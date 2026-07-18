@@ -27,6 +27,11 @@ const GHOST_ADDRESS = `${GHOST_LOCAL}@astermail.org`;
 
 vi.mock("@/services/api/aliases", () => ({
   list_aliases: vi.fn(async () => ({ data: { aliases: [] } })),
+  list_all_aliases: vi.fn(async () => ({
+    aliases: [],
+    max_aliases: -1,
+    total: 0,
+  })),
   decrypt_aliases: vi.fn(async () => []),
   compute_alias_hash: vi.fn(async (local: string, domain: string) => `H:${local}@${domain}`),
 }));

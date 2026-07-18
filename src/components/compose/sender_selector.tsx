@@ -21,13 +21,20 @@
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDownIcon,
   CheckIcon,
   AtSymbolIcon,
   EyeSlashIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -201,10 +208,19 @@ function get_email_username(email: string): string {
   return email.split("@")[0] || email;
 }
 
+const SEARCH_VISIBLE_THRESHOLD = 8;
+
+function option_matches_query(option: SenderOption, query: string): boolean {
+  if (option.email.toLowerCase().includes(query)) return true;
+
+  return option.display_name?.toLowerCase().includes(query) ?? false;
+}
+
 function render_option(
   option: SenderOption,
   is_selected: boolean,
   is_preferred: boolean,
+  is_active: boolean,
   on_click: () => void,
   on_toggle_preferred: ((id: string) => void) | null,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
@@ -214,16 +230,15 @@ function render_option(
   return (
     <div
       key={option.id}
-      className={`group w-full px-3 py-2 flex items-center gap-2 transition-colors ${is_selected ? "bg-surf-secondary" : ""}`}
+      className={`group w-full px-3 py-2 flex items-center gap-2 transition-colors ${is_selected || is_active ? "bg-surf-secondary" : ""}`}
+      data-sender-active={is_active || undefined}
       onMouseEnter={(e) => {
-        if (!is_selected) {
+        if (!is_selected && !is_active) {
           e.currentTarget.style.backgroundColor = "var(--bg-hover)";
         }
       }}
       onMouseLeave={(e) => {
-        if (!is_selected) {
-          e.currentTarget.style.backgroundColor = "transparent";
-        }
+        e.currentTarget.style.backgroundColor = "transparent";
       }}
     >
       <button
@@ -296,10 +311,29 @@ export function SenderSelector({
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const [is_open, set_is_open] = useState(false);
+  const [search_query, set_search_query] = useState("");
+  const [active_index, set_active_index] = useState(-1);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const search_input_ref = useRef<HTMLInputElement>(null);
   const prev_ghost_count = useRef(
     options.filter((o) => o.type === "ghost").length,
   );
+
+  useEffect(() => {
+    if (is_open) {
+      set_search_query("");
+      set_active_index(-1);
+      requestAnimationFrame(() => search_input_ref.current?.focus());
+    }
+  }, [is_open]);
+
+  useEffect(() => {
+    const active_row = dropdown_ref.current?.querySelector(
+      "[data-sender-active]",
+    );
+
+    active_row?.scrollIntoView({ block: "nearest" });
+  }, [active_index]);
 
   useEffect(() => {
     const ghost_count = options.filter((o) => o.type === "ghost").length;
@@ -372,11 +406,66 @@ export function SenderSelector({
     );
   }
 
-  const primary_options = options.filter((o) => o.type === "primary");
-  const alias_options = options.filter((o) => o.type === "alias");
-  const domain_options = options.filter((o) => o.type === "domain");
-  const external_options = options.filter((o) => o.type === "external");
-  const ghost_options = options.filter((o) => o.type === "ghost");
+  const normalized_query = search_query.trim().toLowerCase();
+  const filter_group = (group: SenderOption[]) =>
+    normalized_query
+      ? group.filter((o) => option_matches_query(o, normalized_query))
+      : group;
+
+  const show_search = options.length >= SEARCH_VISIBLE_THRESHOLD;
+  const show_create_ghost = !!on_create_ghost && !normalized_query;
+
+  const primary_options = filter_group(
+    options.filter((o) => o.type === "primary"),
+  );
+  const alias_options = filter_group(options.filter((o) => o.type === "alias"));
+  const domain_options = filter_group(
+    options.filter((o) => o.type === "domain"),
+  );
+  const external_options = filter_group(
+    options.filter((o) => o.type === "external"),
+  );
+  const ghost_options = filter_group(options.filter((o) => o.type === "ghost"));
+
+  const visible_options = [
+    ...primary_options,
+    ...alias_options,
+    ...domain_options,
+    ...external_options,
+    ...ghost_options,
+  ];
+
+  const active_option_id =
+    active_index >= 0 ? visible_options[active_index]?.id : undefined;
+
+  const select_option = (option: SenderOption) => {
+    on_select(option);
+    set_is_open(false);
+  };
+
+  const handle_search_key_down = (
+    event: ReactKeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      set_active_index((i) => Math.min(i + 1, visible_options.length - 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      set_active_index((i) => Math.max(i - 1, 0));
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const target =
+        active_index >= 0
+          ? visible_options[active_index]
+          : normalized_query
+            ? visible_options[0]
+            : undefined;
+
+      if (target) {
+        select_option(target);
+      }
+    }
+  };
 
   const has_multiple_groups =
     [
@@ -385,7 +474,7 @@ export function SenderSelector({
       domain_options,
       external_options,
       ghost_options,
-    ].filter((g) => g.length > 0).length > 1 || !!on_create_ghost;
+    ].filter((g) => g.length > 0).length > 1 || show_create_ghost;
 
   return (
     <div ref={dropdown_ref} className="relative flex-1">
@@ -417,7 +506,31 @@ export function SenderSelector({
             initial={reduce_motion ? false : { opacity: 0, y: -8 }}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
+            {show_search && (
+              <div className="sticky top-0 z-10 px-2 pt-2 pb-1.5 bg-surf-card border-b border-edge-secondary">
+                <div className="relative">
+                  <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
+                  <input
+                    ref={search_input_ref}
+                    className="w-full pl-7 pr-2 py-1.5 text-sm rounded-md bg-surf-secondary text-txt-primary placeholder:text-txt-muted focus:outline-none"
+                    placeholder={t("settings.alias_search_placeholder")}
+                    type="text"
+                    value={search_query}
+                    onChange={(e) => {
+                      set_search_query(e.target.value);
+                      set_active_index(-1);
+                    }}
+                    onKeyDown={handle_search_key_down}
+                  />
+                </div>
+              </div>
+            )}
             <div className="py-1">
+              {normalized_query && visible_options.length === 0 && (
+                <p className="px-3 py-4 text-sm text-center text-txt-muted">
+                  {t("common.no_results")}
+                </p>
+              )}
               {primary_options.length > 0 && (
                 <>
                   {has_multiple_groups && (
@@ -430,10 +543,8 @@ export function SenderSelector({
                       option,
                       selected?.id === option.id,
                       preferred_id === option.id,
-                      () => {
-                        on_select(option);
-                        set_is_open(false);
-                      },
+                      active_option_id === option.id,
+                      () => select_option(option),
                       toggle_preferred,
                       t,
                     ),
@@ -452,10 +563,8 @@ export function SenderSelector({
                       option,
                       selected?.id === option.id,
                       preferred_id === option.id,
-                      () => {
-                        on_select(option);
-                        set_is_open(false);
-                      },
+                      active_option_id === option.id,
+                      () => select_option(option),
                       toggle_preferred,
                       t,
                     ),
@@ -474,10 +583,8 @@ export function SenderSelector({
                       option,
                       selected?.id === option.id,
                       preferred_id === option.id,
-                      () => {
-                        on_select(option);
-                        set_is_open(false);
-                      },
+                      active_option_id === option.id,
+                      () => select_option(option),
                       toggle_preferred,
                       t,
                     ),
@@ -496,10 +603,8 @@ export function SenderSelector({
                       option,
                       selected?.id === option.id,
                       preferred_id === option.id,
-                      () => {
-                        on_select(option);
-                        set_is_open(false);
-                      },
+                      active_option_id === option.id,
+                      () => select_option(option),
                       toggle_preferred,
                       t,
                     ),
@@ -516,10 +621,8 @@ export function SenderSelector({
                       option,
                       selected?.id === option.id,
                       false,
-                      () => {
-                        on_select(option);
-                        set_is_open(false);
-                      },
+                      active_option_id === option.id,
+                      () => select_option(option),
                       null,
                       t,
                     ),
@@ -527,6 +630,7 @@ export function SenderSelector({
                 </>
               )}
               {on_create_ghost &&
+                !normalized_query &&
                 !ghost_options.some((g) => g.id === selected?.id) && (
                   <>
                     {ghost_options.length === 0 && (
