@@ -20,10 +20,12 @@
 //
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 
-import { GHOST_DOMAIN } from "@/services/api/ghost_aliases";
+import { ALL_GHOST_DOMAINS } from "@/services/api/ghost_aliases";
 
 const GHOST_SHAPE_PATTERN = /^[a-z]+\.[a-z0-9]+@/;
-const GHOST_DOMAIN_SUFFIX = `@${GHOST_DOMAIN.toLowerCase()}`;
+const GHOST_DOMAIN_SUFFIXES = ALL_GHOST_DOMAINS.map(
+  (domain) => `@${domain.toLowerCase()}`,
+);
 
 interface GhostEntry {
   email: string;
@@ -58,7 +60,7 @@ export function looks_like_unregistered_ghost_email(email: string): boolean {
   const normalized = email.toLowerCase();
 
   return (
-    normalized.endsWith(GHOST_DOMAIN_SUFFIX) &&
+    GHOST_DOMAIN_SUFFIXES.some((suffix) => normalized.endsWith(suffix)) &&
     GHOST_SHAPE_PATTERN.test(normalized)
   );
 }
