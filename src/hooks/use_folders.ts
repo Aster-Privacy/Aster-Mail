@@ -111,7 +111,7 @@ export function compare_sibling_folders(
   return (
     a.sort_order - b.sort_order ||
     (a.created_at || "").localeCompare(b.created_at || "") ||
-    a.folder_token.localeCompare(b.folder_token)
+    (a.folder_token || "").localeCompare(b.folder_token || "")
   );
 }
 
