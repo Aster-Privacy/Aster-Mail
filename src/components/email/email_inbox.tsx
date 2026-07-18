@@ -1249,12 +1249,15 @@ export function EmailInbox({
       split_pane.list_panel_ref.current?.scrollTo(0, 0);
       split_pane.list_scroll_ref.current?.scrollTo(0, 0);
     },
-    [],
+    [set_current_page, split_pane.list_panel_ref, split_pane.list_scroll_ref],
   );
-  const handle_filter_change = useCallback((filter: InboxFilterType): void => {
-    set_active_filter(filter);
-    set_current_page(0);
-  }, []);
+  const handle_filter_change = useCallback(
+    (filter: InboxFilterType): void => {
+      set_active_filter(filter);
+      set_current_page(0);
+    },
+    [set_current_page],
+  );
 
   const email_list_content = (
     <>
