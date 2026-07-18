@@ -175,6 +175,24 @@ export async function derive_conversation_id(
   return array_to_base64(new Uint8Array(hash));
 }
 
+const conversation_queues = new Map<string, Promise<unknown>>();
+
+async function run_serialized_for_conversation<T>(
+  conversation_id: string,
+  task: () => Promise<T>,
+): Promise<T> {
+  const previous =
+    conversation_queues.get(conversation_id) ?? Promise.resolve();
+  const current = previous.then(task, task);
+
+  conversation_queues.set(
+    conversation_id,
+    current.catch(() => {}),
+  );
+
+  return current;
+}
+
 async function fetch_prekey_bundle(
   username: string,
   email?: string,
@@ -264,15 +282,33 @@ export async function encrypt_for_ratchet_recipient(
   body: string,
   vault: EncryptedVault,
 ): Promise<RatchetRecipientData | null> {
+  const conversation_id = await derive_conversation_id(
+    sender_email,
+    recipient_email,
+  );
+
+  return run_serialized_for_conversation(conversation_id, () =>
+    encrypt_for_ratchet_recipient_unlocked(
+      conversation_id,
+      recipient_email,
+      recipient_username,
+      body,
+      vault,
+    ),
+  );
+}
+
+async function encrypt_for_ratchet_recipient_unlocked(
+  conversation_id: string,
+  recipient_email: string,
+  recipient_username: string,
+  body: string,
+  vault: EncryptedVault,
+): Promise<RatchetRecipientData | null> {
   try {
     if (!vault.ratchet_identity_key || !vault.ratchet_identity_public) {
       return null;
     }
-
-    const conversation_id = await derive_conversation_id(
-      sender_email,
-      recipient_email,
-    );
 
     let ratchet = await load_ratchet_state(conversation_id);
 
@@ -513,39 +549,52 @@ export async function decrypt_ratchet_message(
     if (cached !== null) return cached;
   }
 
-  let plaintext: string | null = null;
+  const conversation_id = await derive_conversation_id(
+    our_email,
+    sender_email,
+  );
 
-  if (our_data) {
-    plaintext = await decrypt_ratchet_for_recipient(
-      our_email,
-      sender_email,
-      our_data,
-      envelope.sender_identity_key,
-      vault,
-    );
-  }
-
-  if (plaintext !== null) {
-    void detect_identity_pin_drift(
-      sender_email.toLowerCase(),
-      envelope.sender_identity_key,
-    );
-
+  return run_serialized_for_conversation(conversation_id, async () => {
     if (dedupe_key) {
-      await set_cached_ratchet_plaintext(dedupe_key, plaintext);
-      void upload_to_escrow(dedupe_key, plaintext).catch(() => {});
+      const cached = await get_cached_ratchet_plaintext(dedupe_key);
+
+      if (cached !== null) return cached;
     }
 
-    return plaintext;
-  }
+    let plaintext: string | null = null;
 
-  if (dedupe_key) {
-    const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+    if (our_data) {
+      plaintext = await decrypt_ratchet_for_recipient(
+        our_email,
+        sender_email,
+        our_data,
+        envelope.sender_identity_key,
+        vault,
+      );
+    }
 
-    if (escrowed !== null) return escrowed;
-  }
+    if (plaintext !== null) {
+      void detect_identity_pin_drift(
+        sender_email.toLowerCase(),
+        envelope.sender_identity_key,
+      );
 
-  return null;
+      if (dedupe_key) {
+        await set_cached_ratchet_plaintext(dedupe_key, plaintext);
+        void upload_to_escrow(dedupe_key, plaintext).catch(() => {});
+      }
+
+      return plaintext;
+    }
+
+    if (dedupe_key) {
+      const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+
+      if (escrowed !== null) return escrowed;
+    }
+
+    return null;
+  });
 }
 
 function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
