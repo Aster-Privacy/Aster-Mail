@@ -1719,6 +1719,18 @@ export const tr = {
       "Son silinenlerdeki {{ count }} rumuzun tamamı kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Adresler hesabınıza ayrılmış olarak kalır, böylece başka hiç kimse onları talep edemez.",
     trash_emptied: "Son silinenler boşaltıldı",
     failed_empty_trash: "Son silinenler boşaltılamadı. Lütfen tekrar deneyin.",
+    recently_deleted_directories_title: "Son silinenler",
+    recently_deleted_directories_description:
+      "Sildiğiniz bir dizini geri yükleyin. Silinen dizinler geri yüklenene kadar yeni posta almaz.",
+    directory_restored: "Dizin geri yüklendi",
+    failed_restore_directory: "Bu dizin geri yüklenmedi. Bir kez daha deneyin.",
+    purge_directory_confirm_title: "Dizin kalıcı olarak silinsin mi?",
+    purge_directory_confirm_message:
+      "{{ key }}@{{ domain }} kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Dizin hesabınıza ayrılmış kalır, böylece başka hiç kimse onu alamaz.",
+    directory_purged: "Dizin kalıcı olarak silindi",
+    failed_purge_directory: "Bu dizin silinmedi. Lütfen tekrar deneyin.",
+    empty_directory_trash_confirm_message:
+      "Son silinenlerdeki {{ count }} dizinin tümü kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Dizinler hesabınıza ayrılmış kalır, böylece başka hiç kimse onları alamaz.",
     alias_stats_received: "{{ count }} alındı",
     alias_stats_blocked: "{{ count }} engellendi",
     alias_generate_random: "Rastgele rumuz oluştur",

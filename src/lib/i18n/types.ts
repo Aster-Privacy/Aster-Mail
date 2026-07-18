@@ -4456,6 +4456,15 @@ export interface SettingsTranslations {
   empty_trash_confirm_message: string;
   trash_emptied: string;
   failed_empty_trash: string;
+  recently_deleted_directories_title: string;
+  recently_deleted_directories_description: string;
+  directory_restored: string;
+  failed_restore_directory: string;
+  purge_directory_confirm_title: string;
+  purge_directory_confirm_message: string;
+  directory_purged: string;
+  failed_purge_directory: string;
+  empty_directory_trash_confirm_message: string;
   alias_stats_received: string;
   alias_stats_blocked: string;
   alias_generate_random: string;

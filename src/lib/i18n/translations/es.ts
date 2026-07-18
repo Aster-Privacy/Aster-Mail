@@ -1719,6 +1719,20 @@ export const es = {
       "¿Eliminar permanentemente los {{ count }} alias en Eliminados recientemente? Esta acción no se puede deshacer. Las direcciones permanecen reservadas para tu cuenta, por lo que nadie más podrá reclamarlas.",
     trash_emptied: "Eliminados recientemente vaciado",
     failed_empty_trash: "No se pudo vaciar Eliminados recientemente. Inténtalo de nuevo.",
+    recently_deleted_directories_title: "Eliminados recientemente",
+    recently_deleted_directories_description:
+      "Restaura un directorio que eliminaste. Los directorios eliminados dejan de recibir correo nuevo hasta que se restauran.",
+    directory_restored: "Directorio restaurado",
+    failed_restore_directory:
+      "Este directorio no se restauró. Otro intento debería bastar.",
+    purge_directory_confirm_title: "¿Eliminar el directorio permanentemente?",
+    purge_directory_confirm_message:
+      "¿Eliminar permanentemente {{ key }}@{{ domain }}? Esto no se puede deshacer. El directorio queda reservado a tu cuenta, así que nadie más podrá reclamarlo.",
+    directory_purged: "Directorio eliminado permanentemente",
+    failed_purge_directory:
+      "Este directorio no se eliminó. Inténtalo de nuevo.",
+    empty_directory_trash_confirm_message:
+      "¿Eliminar permanentemente los {{ count }} directorios de Eliminados recientemente? Esto no se puede deshacer. Los directorios quedan reservados a tu cuenta, así que nadie más podrá reclamarlos.",
     alias_stats_received: "{{ count }} recibidos",
     alias_stats_blocked: "{{ count }} bloqueados",
     alias_generate_random: "Generar alias aleatorio",

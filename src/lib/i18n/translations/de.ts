@@ -1719,6 +1719,20 @@ export const de = {
       "Alle {{ count }} Aliase in „Zuletzt gelöscht“ endgültig löschen? Dies kann nicht rückgängig gemacht werden. Die Adressen bleiben für dein Konto reserviert, sodass niemand sonst sie beanspruchen kann.",
     trash_emptied: "Zuletzt gelöschte geleert",
     failed_empty_trash: "„Zuletzt gelöscht“ konnte nicht geleert werden. Bitte versuche es erneut.",
+    recently_deleted_directories_title: "Zuletzt gelöscht",
+    recently_deleted_directories_description:
+      "Stelle ein gelöschtes Verzeichnis wieder her. Gelöschte Verzeichnisse empfangen keine neuen E-Mails, bis sie wiederhergestellt werden.",
+    directory_restored: "Verzeichnis wiederhergestellt",
+    failed_restore_directory:
+      "Dieses Verzeichnis wurde nicht wiederhergestellt. Ein weiterer Versuch sollte klappen.",
+    purge_directory_confirm_title: "Verzeichnis endgültig löschen?",
+    purge_directory_confirm_message:
+      "{{ key }}@{{ domain }} endgültig löschen? Das kann nicht rückgängig gemacht werden. Das Verzeichnis bleibt für dein Konto reserviert, sodass niemand sonst es je beanspruchen kann.",
+    directory_purged: "Verzeichnis endgültig gelöscht",
+    failed_purge_directory:
+      "Dieses Verzeichnis wurde nicht gelöscht. Bitte versuche es erneut.",
+    empty_directory_trash_confirm_message:
+      "Alle {{ count }} Verzeichnisse in „Zuletzt gelöscht“ endgültig löschen? Das kann nicht rückgängig gemacht werden. Die Verzeichnisse bleiben für dein Konto reserviert, sodass niemand sonst sie beanspruchen kann.",
     alias_stats_received: "{{ count }} empfangen",
     alias_stats_blocked: "{{ count }} blockiert",
     alias_generate_random: "Zufälligen Alias generieren",

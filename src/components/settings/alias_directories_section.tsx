@@ -19,11 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  FolderIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { FolderIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Button, Switch } from "@aster/ui";
+
 import {
   Select,
   SelectContent,
@@ -31,8 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button, Switch } from "@aster/ui";
-
 import {
   list_alias_directories,
   create_alias_directory,
@@ -45,6 +41,7 @@ import {
 } from "@/services/api/alias_directories";
 import { list_domains } from "@/services/api/domains";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { RecentlyDeletedDirectoriesSection } from "@/components/settings/aliases/recently_deleted_directories_section";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -70,7 +67,7 @@ export function AliasDirectoriesSection() {
   const [directory_key, set_directory_key] = useState("");
   const [domain, set_domain] = useState<string>(DIRECTORY_DOMAINS[0]);
   const [custom_domains, set_custom_domains] = useState<string[]>([]);
-  const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".") ;
+  const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".");
   const [busy, set_busy] = useState(false);
   const [checking_availability, set_checking_availability] = useState(false);
   const [is_available, set_is_available] = useState<boolean | null>(null);
@@ -78,6 +75,7 @@ export function AliasDirectoriesSection() {
     null,
   );
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
+  const [trash_refresh, set_trash_refresh] = useState(0);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
@@ -231,6 +229,7 @@ export function AliasDirectoriesSection() {
     } else {
       show_toast(t("settings.alias_directory_removed"), "success");
       set_directories((prev) => prev.filter((d) => d.id !== directory_id));
+      set_trash_refresh((v) => v + 1);
     }
   };
 
@@ -245,7 +244,10 @@ export function AliasDirectoriesSection() {
           <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
             <FolderIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.alias_directories_title")}
-            <InfoHint tip={t("settings.alias_directories_info")} title={t("settings.alias_directories_title")} />
+            <InfoHint
+              tip={t("settings.alias_directories_info")}
+              title={t("settings.alias_directories_title")}
+            />
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
@@ -260,139 +262,149 @@ export function AliasDirectoriesSection() {
         />
       ) : (
         <>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-txt-muted">@</span>
-          <input
-            className={INPUT_CLASS}
-            placeholder={t("settings.alias_directory_key_placeholder")}
-            value={directory_key}
-            onChange={(e) =>
-              set_directory_key(
-                e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-              )
-            }
-            onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
-          />
-          <Select value={domain} onValueChange={set_domain}>
-            <SelectTrigger className="h-10 w-44 shrink-0 bg-transparent">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[...DIRECTORY_DOMAINS, ...custom_domains].map((d) => (
-                <SelectItem key={d} value={d}>
-                  @{d}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={separator}
-            onValueChange={(v) => set_separator(v as "." | "/" | "+" | "#")}
-          >
-            <SelectTrigger className="h-10 w-28 shrink-0 bg-transparent">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value=".">. (dot)</SelectItem>
-              <SelectItem value="/">/ (slash)</SelectItem>
-              <SelectItem value="+">+ (plus)</SelectItem>
-              <SelectItem value="#"># (hash)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            disabled={
-              busy ||
-              !directory_key.trim() ||
-              is_available === false ||
-              (turnstile_required && !captcha_token)
-            }
-            size="xl"
-            variant="depth"
-            onClick={handle_create}
-          >
-            <PlusIcon className="w-4 h-4" />
-            {t("settings.alias_directory_create")}
-          </Button>
-        </div>
-        {directory_key.trim() && (
-          <p className="text-xs text-txt-muted pl-5">
-            anything{separator}{directory_key}@{domain}
-          </p>
-        )}
-        {directory_key.trim() && checking_availability && (
-          <p className="text-xs text-txt-muted pl-5">
-            {t("settings.checking_availability")}
-          </p>
-        )}
-        {directory_key.trim() && !checking_availability && is_available === true && (
-          <p className="text-xs text-green-500 pl-5">
-            {t("settings.alias_directory_available")}
-          </p>
-        )}
-        {directory_key.trim() && !checking_availability && is_available === false && (
-          <p className="text-xs text-red-500 pl-5">
-            {t("settings.alias_directory_not_available")}
-          </p>
-        )}
-        {turnstile_required && directory_key.trim() && (
-          <TurnstileWidget
-            ref={turnstile_ref}
-            on_verify={set_captcha_token}
-            on_expire={() => set_captcha_token(null)}
-          />
-        )}
-      </div>
-
-      {directories.length === 0 ? (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <FolderIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-          <p className="text-sm text-txt-muted">
-            {t("settings.alias_directories_empty")}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {directories.map((directory) => (
-            <div
-              key={directory.id}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
-            >
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-secondary border border-edge-secondary">
-                <FolderIcon className="w-4 h-4 text-txt-muted" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-txt-primary">
-                  anything.{directory.label}@{directory.domain}
-                </p>
-                <p className="text-xs text-txt-muted">
-                  {t("settings.alias_directory_pattern_hint", {
-                    key: directory.label,
-                    domain: directory.domain,
-                  })}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <label className="flex items-center gap-1.5 text-xs text-txt-muted">
-                  {t("settings.alias_directory_auto_create")}
-                  <Switch
-                    checked={directory.auto_create_enabled}
-                    onCheckedChange={() => handle_toggle(directory)}
-                  />
-                </label>
-                <Button
-                  className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => handle_delete(directory.id)}
-                >
-                  <TrashIcon className="w-4 h-4" />
-                </Button>
-              </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-txt-muted">@</span>
+              <input
+                className={INPUT_CLASS}
+                placeholder={t("settings.alias_directory_key_placeholder")}
+                value={directory_key}
+                onChange={(e) =>
+                  set_directory_key(
+                    e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                  )
+                }
+                onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
+              />
+              <Select value={domain} onValueChange={set_domain}>
+                <SelectTrigger className="h-10 w-44 shrink-0 bg-transparent">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...DIRECTORY_DOMAINS, ...custom_domains].map((d) => (
+                    <SelectItem key={d} value={d}>
+                      @{d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={separator}
+                onValueChange={(v) => set_separator(v as "." | "/" | "+" | "#")}
+              >
+                <SelectTrigger className="h-10 w-28 shrink-0 bg-transparent">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value=".">. (dot)</SelectItem>
+                  <SelectItem value="/">/ (slash)</SelectItem>
+                  <SelectItem value="+">+ (plus)</SelectItem>
+                  <SelectItem value="#"># (hash)</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                disabled={
+                  busy ||
+                  !directory_key.trim() ||
+                  is_available === false ||
+                  (turnstile_required && !captcha_token)
+                }
+                size="xl"
+                variant="depth"
+                onClick={handle_create}
+              >
+                <PlusIcon className="w-4 h-4" />
+                {t("settings.alias_directory_create")}
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+            {directory_key.trim() && (
+              <p className="text-xs text-txt-muted pl-5">
+                anything{separator}
+                {directory_key}@{domain}
+              </p>
+            )}
+            {directory_key.trim() && checking_availability && (
+              <p className="text-xs text-txt-muted pl-5">
+                {t("settings.checking_availability")}
+              </p>
+            )}
+            {directory_key.trim() &&
+              !checking_availability &&
+              is_available === true && (
+                <p className="text-xs text-green-500 pl-5">
+                  {t("settings.alias_directory_available")}
+                </p>
+              )}
+            {directory_key.trim() &&
+              !checking_availability &&
+              is_available === false && (
+                <p className="text-xs text-red-500 pl-5">
+                  {t("settings.alias_directory_not_available")}
+                </p>
+              )}
+            {turnstile_required && directory_key.trim() && (
+              <TurnstileWidget
+                ref={turnstile_ref}
+                on_expire={() => set_captcha_token(null)}
+                on_verify={set_captcha_token}
+              />
+            )}
+          </div>
+
+          {directories.length === 0 ? (
+            <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+              <FolderIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
+              <p className="text-sm text-txt-muted">
+                {t("settings.alias_directories_empty")}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {directories.map((directory) => (
+                <div
+                  key={directory.id}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
+                >
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-secondary border border-edge-secondary">
+                    <FolderIcon className="w-4 h-4 text-txt-muted" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate text-txt-primary">
+                      anything.{directory.label}@{directory.domain}
+                    </p>
+                    <p className="text-xs text-txt-muted">
+                      {t("settings.alias_directory_pattern_hint", {
+                        key: directory.label,
+                        domain: directory.domain,
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <label className="flex items-center gap-1.5 text-xs text-txt-muted">
+                      {t("settings.alias_directory_auto_create")}
+                      <Switch
+                        checked={directory.auto_create_enabled}
+                        onCheckedChange={() => handle_toggle(directory)}
+                      />
+                    </label>
+                    <Button
+                      className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handle_delete(directory.id)}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <RecentlyDeletedDirectoriesSection
+            on_restored={load}
+            refresh_signal={trash_refresh}
+          />
         </>
       )}
     </div>

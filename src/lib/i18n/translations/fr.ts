@@ -1719,6 +1719,20 @@ export const fr = {
       "Supprimer définitivement les {{ count }} alias dans Récemment supprimés ? Cette action est irréversible. Les adresses restent réservées à votre compte, de sorte que personne d'autre ne pourra les revendiquer.",
     trash_emptied: "Éléments récemment supprimés vidés",
     failed_empty_trash: "Impossible de vider Récemment supprimés. Veuillez réessayer.",
+    recently_deleted_directories_title: "Récemment supprimés",
+    recently_deleted_directories_description:
+      "Restaurez un répertoire supprimé. Les répertoires supprimés ne reçoivent plus de nouveaux e-mails tant qu'ils ne sont pas restaurés.",
+    directory_restored: "Répertoire restauré",
+    failed_restore_directory:
+      "Ce répertoire n'a pas été restauré. Une nouvelle tentative devrait suffire.",
+    purge_directory_confirm_title: "Supprimer définitivement le répertoire ?",
+    purge_directory_confirm_message:
+      "Supprimer définitivement {{ key }}@{{ domain }} ? Cette action est irréversible. Le répertoire reste réservé à votre compte, personne d'autre ne pourra jamais le réclamer.",
+    directory_purged: "Répertoire supprimé définitivement",
+    failed_purge_directory:
+      "Ce répertoire n'a pas été supprimé. Veuillez réessayer.",
+    empty_directory_trash_confirm_message:
+      "Supprimer définitivement les {{ count }} répertoires de Récemment supprimés ? Cette action est irréversible. Les répertoires restent réservés à votre compte, personne d'autre ne pourra les réclamer.",
     alias_stats_received: "{{ count }} reçu(s)",
     alias_stats_blocked: "{{ count }} bloqué(s)",
     alias_generate_random: "Générer un alias aléatoire",

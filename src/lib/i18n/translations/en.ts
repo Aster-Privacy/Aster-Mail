@@ -4514,6 +4514,19 @@ export const en: Translations = {
       "Permanently delete all {{ count }} aliases in Recently Deleted? This cannot be undone. The addresses stay reserved to your account, so no one else can claim them.",
     trash_emptied: "Recently deleted emptied",
     failed_empty_trash: "Could not empty Recently Deleted. Please try again.",
+    recently_deleted_directories_title: "Recently deleted",
+    recently_deleted_directories_description:
+      "Restore a directory you deleted. Deleted directories stop catching new mail until restored.",
+    directory_restored: "Directory restored",
+    failed_restore_directory:
+      "This directory was not restored. Another attempt should do it.",
+    purge_directory_confirm_title: "Delete directory permanently?",
+    purge_directory_confirm_message:
+      "Permanently delete {{ key }}@{{ domain }}? This cannot be undone. The directory stays reserved to your account, so no one else can ever claim it.",
+    directory_purged: "Directory permanently deleted",
+    failed_purge_directory: "This directory was not deleted. Please try again.",
+    empty_directory_trash_confirm_message:
+      "Permanently delete all {{ count }} directories in Recently Deleted? This cannot be undone. The directories stay reserved to your account, so no one else can claim them.",
     alias_stats_received: "{{ count }} received",
     alias_stats_blocked: "{{ count }} blocked",
     alias_generate_random: "Generate random alias",
