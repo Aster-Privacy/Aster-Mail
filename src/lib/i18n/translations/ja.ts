@@ -1349,6 +1349,8 @@ export const ja = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "設定の表示",
+    settings_view_mode_description: "設定を全画面またはポップアップで開く",
     quick_settings: "クイック設定",
     see_all_settings: "すべての設定を表示",
     fam_welcome_step1_title: "ファミリープランへようこそ",

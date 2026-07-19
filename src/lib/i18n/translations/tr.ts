@@ -1349,6 +1349,8 @@ export const tr = {
     or: "veya",
   },
   settings: {
+    settings_view_mode: "Ayarlar görünümü",
+    settings_view_mode_description: "Ayarları tam sayfa veya açılır pencere olarak aç",
     quick_settings: "Hızlı ayarlar",
     see_all_settings: "Tüm ayarları gör",
     fam_welcome_step1_title: "Aile planınıza hoş geldiniz",

@@ -907,6 +907,22 @@ export function BehaviorSection() {
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
+        <SelectSetting
+          description={t("settings.settings_view_mode_description")}
+          on_change={(v) =>
+            update_preference(
+              "settings_view_mode",
+              v as "fullpage" | "popup",
+              true,
+            )
+          }
+          options={[
+            { value: "fullpage", label: t("settings.full_page") },
+            { value: "popup", label: t("settings.popup") },
+          ]}
+          title={t("settings.settings_view_mode")}
+          value={preferences.settings_view_mode ?? "fullpage"}
+        />
         {is_web && (
           <ToggleSetting
             description={t("settings.default_email_app_description")}

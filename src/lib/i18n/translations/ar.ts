@@ -1349,6 +1349,8 @@ export const ar = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "عرض الإعدادات",
+    settings_view_mode_description: "فتح الإعدادات كصفحة كاملة أو نافذة منبثقة",
     quick_settings: "الإعدادات السريعة",
     see_all_settings: "عرض جميع الإعدادات",
     fam_welcome_step1_title: "مرحباً بك في خطة العائلة",

@@ -1349,6 +1349,8 @@ export const nl = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Instellingenweergave",
+    settings_view_mode_description: "Instellingen openen als volledige pagina of pop-upvenster",
     quick_settings: "Snelle instellingen",
     see_all_settings: "Alle instellingen bekijken",
     fam_welcome_step1_title: "Welkom bij uw familieabonnement",

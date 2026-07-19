@@ -1349,6 +1349,8 @@ export const de = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Einstellungsansicht",
+    settings_view_mode_description: "Einstellungen als ganze Seite oder Popup-Fenster öffnen",
     quick_settings: "Schnelleinstellungen",
     see_all_settings: "Alle Einstellungen anzeigen",
     fam_welcome_step1_title: "Willkommen bei Ihrem Familientarif",

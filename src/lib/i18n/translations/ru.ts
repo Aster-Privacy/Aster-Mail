@@ -1349,6 +1349,8 @@ export const ru = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Вид настроек",
+    settings_view_mode_description: "Открывать настройки на всю страницу или во всплывающем окне",
     quick_settings: "Быстрые настройки",
     see_all_settings: "Все настройки",
     fam_welcome_step1_title: "Добро пожаловать в семейный план",

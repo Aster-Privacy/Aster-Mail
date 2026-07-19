@@ -1350,6 +1350,8 @@ export const it = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Vista impostazioni",
+    settings_view_mode_description: "Apri le impostazioni a pagina intera o in una finestra popup",
     quick_settings: "Impostazioni rapide",
     see_all_settings: "Vedi tutte le impostazioni",
     fam_welcome_step1_title: "Benvenuto nel suo piano famiglia",

@@ -1349,6 +1349,8 @@ export const zh_CN = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "设置视图",
+    settings_view_mode_description: "以整页或弹窗方式打开设置",
     quick_settings: "快速设置",
     see_all_settings: "查看所有设置",
     fam_welcome_step1_title: "欢迎使用家庭套餐",

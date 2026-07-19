@@ -1349,6 +1349,8 @@ export const es = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Vista de configuración",
+    settings_view_mode_description: "Abrir la configuración como página completa o ventana emergente",
     quick_settings: "Configuración rápida",
     see_all_settings: "Ver toda la configuración",
     fam_welcome_step1_title: "Bienvenido a tu plan familiar",

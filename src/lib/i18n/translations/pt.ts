@@ -1349,6 +1349,8 @@ export const pt = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Visualização das configurações",
+    settings_view_mode_description: "Abrir as configurações em página inteira ou janela popup",
     quick_settings: "Configurações rápidas",
     see_all_settings: "Ver todas as configurações",
     fam_welcome_step1_title: "Bem-vindo ao seu plano familiar",
