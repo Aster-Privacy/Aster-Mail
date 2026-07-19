@@ -62,7 +62,15 @@ export async function seal_vault_key_for_device(
 
   const ct = xchacha20poly1305(shared, nonce).encrypt(vault_key_bytes);
 
-  return concat_bytes(eph_pk, mlkem_ct, nonce, ct);
+  const sealed = concat_bytes(eph_pk, mlkem_ct, nonce, ct);
+
+  eph_sk.fill(0);
+  ss_cl.fill(0);
+  ss_pq.fill(0);
+  ikm.fill(0);
+  shared.fill(0);
+
+  return sealed;
 }
 
 export function base64url_encode(bytes: Uint8Array): string {

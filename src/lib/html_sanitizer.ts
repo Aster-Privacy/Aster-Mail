@@ -137,13 +137,41 @@ function strip_until_stable(input: string, pattern: RegExp): string {
   return current;
 }
 
+function preview_fallback_sanitize(input: string): string {
+  let out = strip_until_stable(input, PREVIEW_FORBIDDEN_REGEX);
+
+  out = out.replace(/\son[a-z][\w-]*\s*=\s*("[^"]*"|'[^']*'|[^\s"'>]+)/gi, "");
+
+  out = out.replace(
+    /\s(?:href|src|xlink:href)\s*=\s*("[^"]*"|'[^']*'|[^\s"'>]+)/gi,
+    (match, value: string) => {
+      const v = value
+        .replace(/^["']|["']$/g, "")
+        .replace(/[\u0000-\u0020]+/g, "")
+        .toLowerCase();
+
+      if (
+        v.startsWith("javascript:") ||
+        v.startsWith("vbscript:") ||
+        (v.startsWith("data:") && !v.startsWith("data:image/"))
+      ) {
+        return "";
+      }
+
+      return match;
+    },
+  );
+
+  return out;
+}
+
 export function sanitize_preview_html(html: string): string {
   if (!html || typeof html !== "string") return "";
 
   const working = strip_until_stable(html, PREVIEW_STYLE_BLOCK_REGEX);
 
   if (typeof DOMParser === "undefined") {
-    return strip_until_stable(working, PREVIEW_FORBIDDEN_REGEX);
+    return preview_fallback_sanitize(working);
   }
 
   try {
@@ -183,10 +211,7 @@ export function sanitize_preview_html(html: string): string {
 
     return doc.body ? doc.body.innerHTML : "";
   } catch {
-    return strip_until_stable(
-      strip_until_stable(working, PREVIEW_STYLE_BLOCK_REGEX),
-      PREVIEW_FORBIDDEN_REGEX,
-    );
+    return preview_fallback_sanitize(working);
   }
 }
 

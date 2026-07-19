@@ -183,12 +183,19 @@ export default function LinkDevice() {
       }
 
       const passphrase_bytes = new TextEncoder().encode(passphrase);
-      const envelope = await seal_vault_key_for_device(
-        passphrase_bytes,
-        base64url_decode(device_info.ed25519_pk),
-        base64url_decode(device_info.mlkem_pk),
-        base64url_decode(device_info.x25519_pk),
-      );
+
+      let envelope: Uint8Array;
+
+      try {
+        envelope = await seal_vault_key_for_device(
+          passphrase_bytes,
+          base64url_decode(device_info.ed25519_pk),
+          base64url_decode(device_info.mlkem_pk),
+          base64url_decode(device_info.x25519_pk),
+        );
+      } finally {
+        passphrase_bytes.fill(0);
+      }
 
       const envelope_b64 = base64url_encode(envelope);
       const normalized = code_input.replace(/-/g, "");
