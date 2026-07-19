@@ -149,6 +149,8 @@ export function ForwardModal({
               is_minimized={modal.is_minimized}
               on_create_ghost={modal.ghost_mode.toggle_ghost_mode}
               on_set_ghost_expiry={modal.ghost_mode.set_ghost_expiry_days}
+              on_set_preferred={modal.handle_set_preferred}
+              preferred_id={modal.preferred_sender_id}
               recipients={modal.recipients}
               selected_sender={modal.selected_sender}
               sender_options={modal.sender_options}

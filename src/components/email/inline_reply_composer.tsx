@@ -345,7 +345,9 @@ export const InlineReplyComposer = forwardRef<
         </span>
         <SenderSelector
           on_select={reply_modal.set_selected_sender}
+          on_set_preferred={reply_modal.handle_set_preferred}
           options={reply_modal.sender_options}
+          preferred_id={reply_modal.preferred_sender_id}
           selected={reply_modal.selected_sender}
         />
       </div>
@@ -361,7 +363,9 @@ export const InlineReplyComposer = forwardRef<
           </span>
           <SenderSelector
             on_select={forward_modal.set_selected_sender}
+            on_set_preferred={forward_modal.handle_set_preferred}
             options={forward_modal.sender_options}
+            preferred_id={forward_modal.preferred_sender_id}
             selected={forward_modal.selected_sender}
           />
         </div>
