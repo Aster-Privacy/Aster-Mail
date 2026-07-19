@@ -313,9 +313,21 @@ export async function verify_prekey_signature(
       verificationKeys: identity_key,
     });
 
-    const { verified } = verification.signatures[0];
+    let any_valid = false;
 
-    await verified;
+    for (const signature of verification.signatures) {
+      try {
+        await signature.verified;
+        any_valid = true;
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!any_valid) {
+      return false;
+    }
 
     const extracted_text = signed_message.getText();
 
@@ -827,6 +839,46 @@ async function parse_signing_keys(
   return parsed.length > 0 ? parsed : undefined;
 }
 
+export async function has_usable_signing_key(
+  signing_key: sender_signing_key | sender_signing_key[],
+): Promise<boolean> {
+  const parsed = await parse_signing_keys(signing_key);
+
+  return !!parsed && parsed.length > 0;
+}
+
+export async function select_private_key_matching_public(
+  armored_private_keys: (string | null | undefined)[],
+  armored_public_key: string,
+): Promise<string | null> {
+  let public_fingerprint: string;
+
+  try {
+    const public_key = await openpgp.readKey({
+      armoredKey: armored_public_key,
+    });
+
+    public_fingerprint = public_key.getFingerprint();
+  } catch {
+    return null;
+  }
+
+  for (const armored of armored_private_keys) {
+    if (!armored) continue;
+    try {
+      const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+      if (private_key.getFingerprint() === public_fingerprint) {
+        return armored;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
 export async function derive_public_keys_from_private(
   armored_private_keys: string[],
 ): Promise<string[]> {
@@ -917,7 +969,7 @@ export async function encrypt_message(
 export async function encrypt_message_multi(
   plaintext: string,
   recipient_public_keys: string[],
-  signing_key?: sender_signing_key,
+  signing_key?: sender_signing_key | sender_signing_key[],
 ): Promise<string> {
   if (recipient_public_keys.length === 0) {
     throw new Error("At least one recipient public key is required");

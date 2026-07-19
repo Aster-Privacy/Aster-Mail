@@ -127,7 +127,16 @@ export async function sync_shared_mailbox_grants(): Promise<
           verification_keys,
         );
 
-        if (payload.mailbox_user_id !== mailbox.mailbox_user_id) {
+        const mailbox_email =
+          `${mailbox.username}@${mailbox.email_domain}`.toLowerCase();
+        const placeholder_for_this_mailbox =
+          payload.mailbox_user_id === "pending" &&
+          payload.email.toLowerCase() === mailbox_email;
+
+        if (
+          payload.mailbox_user_id !== mailbox.mailbox_user_id &&
+          !placeholder_for_this_mailbox
+        ) {
           continue;
         }
 

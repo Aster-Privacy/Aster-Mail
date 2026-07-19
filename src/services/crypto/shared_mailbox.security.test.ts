@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import {
   generate_identity_keypair,
   encrypt_message,
+  select_private_key_matching_public,
 } from "@/services/crypto/key_manager_pgp";
 import {
   seal_grant,
@@ -130,6 +131,37 @@ describe("shared mailbox grant signature enforcement", () => {
     );
 
     expect(result.mailbox_user_id).toBe("mbx-1");
+  });
+
+  it("THROWS instead of sealing an unsigned grant when no signing key is usable", async () => {
+    const member = await generate_identity_keypair("Member", "member@astermail.org", PASS);
+    const owner = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+
+    await expect(
+      seal_grant(payload("mbx-1"), member.public_key, {
+        armored_secret_key: owner.secret_key,
+        passphrase: "wrong-passphrase",
+      }),
+    ).rejects.toThrow("no usable signing key");
+  });
+
+  it("selects the vault private key matching a published public key", async () => {
+    const old_key = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+    const new_key = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+
+    const match = await select_private_key_matching_public(
+      [old_key.secret_key, new_key.secret_key],
+      new_key.public_key,
+    );
+
+    expect(match).toBe(new_key.secret_key);
+
+    const no_match = await select_private_key_matching_public(
+      [old_key.secret_key],
+      new_key.public_key,
+    );
+
+    expect(no_match).toBeNull();
   });
 
   it("REJECTS a grant not encrypted to this member (wrong recipient)", async () => {

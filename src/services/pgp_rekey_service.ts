@@ -164,6 +164,12 @@ export async function rekey_pgp_if_needed(
 
     if (result.success && result.new_vault) {
       await store_vault_in_memory(result.new_vault, passphrase);
+
+      const { upload_prekey_bundle } = await import(
+        "@/services/crypto/ratchet_manager"
+      );
+
+      await upload_prekey_bundle(result.new_vault).catch(() => {});
     }
   } catch {
   } finally {

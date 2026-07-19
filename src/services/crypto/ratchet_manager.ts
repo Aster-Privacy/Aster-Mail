@@ -52,6 +52,7 @@ import {
 import {
   sign_ratchet_prekey_bundle,
   verify_ratchet_prekey_bundle,
+  select_private_key_matching_public,
 } from "./key_manager_pgp";
 import { check_and_pin_identity } from "./ratchet_identity_pin";
 import {
@@ -221,6 +222,38 @@ async function legacy_prekey_signature(
   return array_to_base64(new Uint8Array(signature_hash));
 }
 
+async function select_bundle_signing_key(
+  vault: EncryptedVault,
+): Promise<string> {
+  const candidates = [vault.identity_key, ...(vault.previous_keys ?? [])];
+
+  if (candidates.filter(Boolean).length <= 1) return vault.identity_key;
+
+  try {
+    const { get_current_account } = await import(
+      "@/services/account_manager"
+    );
+    const account = await get_current_account();
+    const email = account?.user?.email;
+
+    if (!email) return vault.identity_key;
+
+    const username = email.split("@")[0];
+    const response = await get_recipient_public_key(username, email);
+
+    if (!response.data?.public_key) return vault.identity_key;
+
+    const matching = await select_private_key_matching_public(
+      candidates,
+      response.data.public_key,
+    );
+
+    return matching ?? vault.identity_key;
+  } catch {
+    return vault.identity_key;
+  }
+}
+
 export async function upload_prekey_bundle(
   vault: EncryptedVault,
 ): Promise<boolean> {
@@ -234,7 +267,7 @@ export async function upload_prekey_bundle(
   if (vault.identity_key && passphrase) {
     try {
       signature = await sign_ratchet_prekey_bundle(
-        vault.identity_key,
+        await select_bundle_signing_key(vault),
         passphrase,
         vault.ratchet_identity_public,
         vault.ratchet_signed_prekey_public,
