@@ -33,6 +33,7 @@ import {
   create_crypto_checkout_session,
   format_price,
 } from "@/services/api/billing";
+import { payment_url_or_throw } from "@/lib/payment_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
@@ -101,7 +102,7 @@ export function crypto_term_modal({
           on_checkout_opened?.();
           on_close();
         } else {
-          window.location.href = response.data.url;
+          window.location.href = payment_url_or_throw(response.data.url);
         }
         return;
       }

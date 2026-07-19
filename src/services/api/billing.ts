@@ -21,6 +21,7 @@
 import { api_client } from "./client";
 
 import { format_bytes } from "@/lib/utils";
+import { payment_url_or_throw } from "@/lib/payment_url";
 
 export interface PlanInfo {
   id: string;
@@ -215,24 +216,14 @@ export async function open_billing_portal(): Promise<{
 }
 
 async function open_payment_url(url: string): Promise<void> {
-  let parsed: URL;
-
-  try {
-    parsed = new URL(url);
-  } catch {
-    throw new Error("Invalid payment URL");
-  }
-
-  if (parsed.protocol !== "https:") {
-    throw new Error("Refusing to open a non-https payment URL");
-  }
+  const safe = payment_url_or_throw(url);
 
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     const core = await import("@tauri-apps/api/core");
-    await core.invoke("open_external_url", { url });
+    await core.invoke("open_external_url", { url: safe });
     return;
   }
-  window.location.assign(url);
+  window.location.assign(safe);
 }
 
 export interface PlanChangePreviewResponse {

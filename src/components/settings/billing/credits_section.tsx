@@ -32,6 +32,7 @@ import {
   type CreditTransactionItem,
   type CreditPackageItem,
 } from "@/services/api/billing";
+import { payment_url_or_throw } from "@/lib/payment_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
@@ -87,7 +88,7 @@ export function CreditsSection({
     try {
       const res = await purchase_credits(selected_package.id, preferred_currency);
       if (res.data?.url) {
-        window.location.assign(res.data.url);
+        window.location.assign(payment_url_or_throw(res.data.url));
       } else {
         show_toast(t("settings.credit_purchase_error"), "error");
         set_buying(false);
