@@ -393,53 +393,56 @@ export const SidebarFolders = memo(function SidebarFolders({
                     }
                   }}
                 >
-                  {!is_collapsed && node.depth > 0 && (
-                    <>
-                      {Array.from(
-                        { length: node.depth - 1 },
-                        (_, level) =>
-                          tree_guides.get(folder.folder_token)?.trail[
-                            level + 1
-                          ] && (
-                            <span
-                              key={`guide-${level}`}
-                              aria-hidden="true"
-                              className="absolute top-0 bottom-0 w-px pointer-events-none"
-                              data-tree-guide="vertical"
-                              style={{
-                                left: `${level * 16 + 8}px`,
-                                backgroundColor: "var(--border-primary)",
-                              }}
-                            />
-                          ),
-                      )}
-                      <span
-                        aria-hidden="true"
-                        className="absolute top-0 pointer-events-none"
-                        data-tree-guide="elbow"
-                        style={{
-                          left: `${(node.depth - 1) * 16 + 8}px`,
-                          height: "50%",
-                          width: "9px",
-                          borderLeft: "1px solid var(--border-primary)",
-                          borderBottom: "1px solid var(--border-primary)",
-                          borderBottomLeftRadius: "7px",
-                        }}
-                      />
-                      {tree_guides.get(folder.folder_token)?.has_next && (
+                  {!is_collapsed &&
+                    node.depth > 0 &&
+                    effective_selected !== folder_item_id &&
+                    drag_over_token !== folder.folder_token && (
+                      <>
+                        {Array.from(
+                          { length: node.depth - 1 },
+                          (_, level) =>
+                            tree_guides.get(folder.folder_token)?.trail[
+                              level + 1
+                            ] && (
+                              <span
+                                key={`guide-${level}`}
+                                aria-hidden="true"
+                                className="absolute top-0 bottom-0 w-px pointer-events-none"
+                                data-tree-guide="vertical"
+                                style={{
+                                  left: `${level * 16 + 8}px`,
+                                  backgroundColor: "var(--border-primary)",
+                                }}
+                              />
+                            ),
+                        )}
                         <span
                           aria-hidden="true"
-                          className="absolute bottom-0 w-px pointer-events-none"
-                          data-tree-guide="vertical"
+                          className="absolute top-0 pointer-events-none"
+                          data-tree-guide="elbow"
                           style={{
                             left: `${(node.depth - 1) * 16 + 8}px`,
-                            top: "50%",
-                            backgroundColor: "var(--border-primary)",
+                            height: "50%",
+                            width: "9px",
+                            borderLeft: "1px solid var(--border-primary)",
+                            borderBottom: "1px solid var(--border-primary)",
+                            borderBottomLeftRadius: "7px",
                           }}
                         />
-                      )}
-                    </>
-                  )}
+                        {tree_guides.get(folder.folder_token)?.has_next && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute bottom-0 w-px pointer-events-none"
+                            data-tree-guide="vertical"
+                            style={{
+                              left: `${(node.depth - 1) * 16 + 8}px`,
+                              top: "50%",
+                              backgroundColor: "var(--border-primary)",
+                            }}
+                          />
+                        )}
+                      </>
+                    )}
                   {!is_collapsed && hasChildren && (
                     <span
                       aria-expanded={is_expanded}

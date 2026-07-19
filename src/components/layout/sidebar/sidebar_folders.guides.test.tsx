@@ -67,7 +67,10 @@ function folder(
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
-function render_sidebar_folders(folders: DecryptedFolder[]) {
+function render_sidebar_folders(
+  folders: DecryptedFolder[],
+  effective_selected: string | null = null,
+) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -76,7 +79,7 @@ function render_sidebar_folders(folders: DecryptedFolder[]) {
     root!.render(
       createElement(SidebarFolders, {
         is_collapsed: false,
-        effective_selected: null,
+        effective_selected,
         folders,
         folders_expanded: true,
         set_folders_expanded: () => {},
@@ -162,6 +165,20 @@ describe("sidebar folder tree guides", () => {
     ).map((el) => (el as HTMLElement).style.left);
 
     expect(verticals).toContain("8px");
+  });
+
+  it("hides the guides on the selected row", () => {
+    render_sidebar_folders(
+      [
+        folder("root", "Root"),
+        folder("child", "Child", { parent_token: "root" }),
+      ],
+      "folder-child",
+    );
+
+    expand("Root");
+
+    expect(document.querySelectorAll("[data-tree-guide]").length).toBe(0);
   });
 
   it("draws no continuation below the only child", () => {
