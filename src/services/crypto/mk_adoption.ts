@@ -27,9 +27,11 @@ import { encrypt_vault, decrypt_vault } from "./key_manager";
 import {
   is_master_key_vault,
   derive_encryption_key_from_passphrase,
+  get_vault_from_memory,
   store_vault_in_memory,
   MASTER_KEY_VAULT_FORMAT,
 } from "./memory_key_store";
+import { with_vault_write_lock } from "./vault_write_lock";
 import { array_to_base64 } from "./key_manager_core";
 import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { zero_uint8_array } from "./secure_memory";
@@ -42,7 +44,9 @@ export async function adopt_master_key_if_needed(
 ): Promise<boolean> {
   if (adoption_in_flight) return adoption_in_flight;
 
-  adoption_in_flight = run_adoption(vault, passphrase).finally(() => {
+  adoption_in_flight = with_vault_write_lock(() =>
+    run_adoption(get_vault_from_memory() ?? vault, passphrase),
+  ).finally(() => {
     adoption_in_flight = null;
   });
 
