@@ -4922,7 +4922,7 @@ export const nl = {
     reply_from_mismatch_title: "Antwoorden vanaf een ander adres?",
     reply_from_mismatch_message:
       "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}. Antwoorden vanaf een ander adres kan dit adres onthullen aan de afzender en het antwoord kan worden geweigerd.",
-    reply_from_mismatch_use_received: "{{ address }} gebruiken",
+    reply_from_mismatch_use_received: "Ontvangstadres gebruiken",
     reply_from_mismatch_send_anyway: "Toch verzenden",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "Op {{ date }} schreef {{ name }}:",

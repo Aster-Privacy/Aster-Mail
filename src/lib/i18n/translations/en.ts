@@ -4936,7 +4936,7 @@ export const en: Translations = {
     reply_from_mismatch_title: "Reply from a different address?",
     reply_from_mismatch_message:
       "This email was received on {{ received }}, but your reply is set to send from {{ selected }}. Replying from a different address can expose it to the sender, and the reply may be rejected.",
-    reply_from_mismatch_use_received: "Use {{ address }}",
+    reply_from_mismatch_use_received: "Use received address",
     reply_from_mismatch_send_anyway: "Send anyway",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "On {{ date }}, {{ name }} wrote:",

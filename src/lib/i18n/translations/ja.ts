@@ -4921,7 +4921,7 @@ export const ja = {
     reply_from_mismatch_title: "別のアドレスから返信しますか？",
     reply_from_mismatch_message:
       "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。別のアドレスから返信すると、そのアドレスが送信者に知られたり、返信が拒否されたりする可能性があります。",
-    reply_from_mismatch_use_received: "{{ address }} を使用",
+    reply_from_mismatch_use_received: "受信アドレスを使用",
     reply_from_mismatch_send_anyway: "そのまま送信",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{ date }}、{{ name }} は次のように書きました：",

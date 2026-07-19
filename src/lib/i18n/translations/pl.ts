@@ -4922,7 +4922,7 @@ export const pl = {
     reply_from_mismatch_title: "Odpowiedzieć z innego adresu?",
     reply_from_mismatch_message:
       "Ta wiadomość została odebrana na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}. Odpowiedź z innego adresu może ujawnić go nadawcy i zostać odrzucona.",
-    reply_from_mismatch_use_received: "Użyj {{ address }}",
+    reply_from_mismatch_use_received: "Użyj adresu odbioru",
     reply_from_mismatch_send_anyway: "Wyślij mimo to",
     forward_subject_prefix: "PD:",
     reply_quote_header: "Dnia {{ date }} {{ name }} napisał(-a):",

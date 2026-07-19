@@ -4919,7 +4919,7 @@ export const ar = {
     reply_from_mismatch_title: "الرد من عنوان مختلف؟",
     reply_from_mismatch_message:
       "تم استلام هذا البريد على {{ received }}، لكن ردك سيُرسل من {{ selected }}. الرد من عنوان مختلف قد يكشفه للمرسل وقد يُرفض الرد.",
-    reply_from_mismatch_use_received: "استخدام {{ address }}",
+    reply_from_mismatch_use_received: "استخدام عنوان الاستلام",
     reply_from_mismatch_send_anyway: "الإرسال على أي حال",
     forward_subject_prefix: "تحويل:",
     reply_quote_header: "بتاريخ {{ date }}، كتب {{ name }}:",

@@ -4921,7 +4921,7 @@ export const it = {
     reply_from_mismatch_title: "Rispondere da un altro indirizzo?",
     reply_from_mismatch_message:
       "Questa email è stata ricevuta su {{ received }}, ma la risposta verrà inviata da {{ selected }}. Rispondere da un altro indirizzo può rivelarlo al mittente e la risposta potrebbe essere rifiutata.",
-    reply_from_mismatch_use_received: "Usa {{ address }}",
+    reply_from_mismatch_use_received: "Usa l'indirizzo di ricezione",
     reply_from_mismatch_send_anyway: "Invia comunque",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "Il {{ date }}, {{ name }} ha scritto:",

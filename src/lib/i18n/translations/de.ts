@@ -5038,7 +5038,7 @@ export const de = {
     reply_from_mismatch_title: "Von einer anderen Adresse antworten?",
     reply_from_mismatch_message:
       "Diese E-Mail wurde auf {{ received }} empfangen, deine Antwort wird aber von {{ selected }} gesendet. Eine Antwort von einer anderen Adresse kann diese dem Absender offenlegen und die Antwort kann abgelehnt werden.",
-    reply_from_mismatch_use_received: "{{ address }} verwenden",
+    reply_from_mismatch_use_received: "Empfangsadresse verwenden",
     reply_from_mismatch_send_anyway: "Trotzdem senden",
     search_date_within: "Datum innerhalb",
     search_does_not_have: "Hat nicht",
