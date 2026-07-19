@@ -4915,7 +4915,7 @@ export const zh_CN = {
     reply_from_mismatch_title: "要用其他地址回复吗？",
     reply_from_mismatch_message:
       "这封邮件是在 {{ received }} 收到的，但你的回复将从 {{ selected }} 发送。使用其他地址回复可能会向发件人泄露该地址，回复也可能被拒收。",
-    reply_from_mismatch_use_received: "使用 {{ address }}",
+    reply_from_mismatch_use_received: "使用接收地址",
     reply_from_mismatch_send_anyway: "仍然发送",
     forward_subject_prefix: "转发：",
     reply_quote_header: "{{ name }} 于 {{ date }} 写道：",

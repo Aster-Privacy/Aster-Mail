@@ -4920,7 +4920,7 @@ export const tr = {
     reply_from_mismatch_title: "Farklı bir adresten yanıtlansın mı?",
     reply_from_mismatch_message:
       "Bu e-posta {{ received }} adresinde alındı, ancak yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten yanıtlamak bu adresi gönderene açığa çıkarabilir ve yanıt reddedilebilir.",
-    reply_from_mismatch_use_received: "{{ address }} kullan",
+    reply_from_mismatch_use_received: "Alınan adresi kullan",
     reply_from_mismatch_send_anyway: "Yine de gönder",
     forward_subject_prefix: "İlt:",
     reply_quote_header: "{{ date }} tarihinde {{ name }} yazdı:",

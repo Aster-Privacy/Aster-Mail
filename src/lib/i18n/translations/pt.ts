@@ -4899,7 +4899,7 @@ export const pt = {
     reply_from_mismatch_title: "Responder de outro endereço?",
     reply_from_mismatch_message:
       "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
-    reply_from_mismatch_use_received: "Usar {{ address }}",
+    reply_from_mismatch_use_received: "Usar endereço de recebimento",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
     forward_subject_prefix: "Enc:",
     reply_quote_header: "Em {{ date }}, {{ name }} escreveu:",

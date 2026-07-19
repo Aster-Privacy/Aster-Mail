@@ -5037,7 +5037,7 @@ export const ru = {
     reply_from_mismatch_title: "Ответить с другого адреса?",
     reply_from_mismatch_message:
       "Это письмо получено на {{ received }}, но ответ будет отправлен с {{ selected }}. Ответ с другого адреса может раскрыть его отправителю и быть отклонён.",
-    reply_from_mismatch_use_received: "Использовать {{ address }}",
+    reply_from_mismatch_use_received: "Использовать адрес получения",
     reply_from_mismatch_send_anyway: "Всё равно отправить",
     search_date_within: "Дата в пределах",
     search_does_not_have: "Не содержит",

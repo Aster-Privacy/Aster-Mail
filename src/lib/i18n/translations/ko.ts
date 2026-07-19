@@ -4922,7 +4922,7 @@ export const ko = {
     reply_from_mismatch_title: "다른 주소로 답장할까요?",
     reply_from_mismatch_message:
       "이 이메일은 {{ received }}에서 수신했지만 답장은 {{ selected }}에서 전송됩니다. 다른 주소로 답장하면 해당 주소가 발신자에게 노출되거나 답장이 거부될 수 있습니다.",
-    reply_from_mismatch_use_received: "{{ address }} 사용",
+    reply_from_mismatch_use_received: "수신 주소 사용",
     reply_from_mismatch_send_anyway: "그대로 보내기",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{date}}, {{name}} 작성:",

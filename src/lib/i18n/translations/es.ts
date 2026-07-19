@@ -5038,7 +5038,7 @@ export const es = {
     reply_from_mismatch_title: "¿Responder desde otra dirección?",
     reply_from_mismatch_message:
       "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}. Responder desde otra dirección puede revelarla al remitente y la respuesta podría ser rechazada.",
-    reply_from_mismatch_use_received: "Usar {{ address }}",
+    reply_from_mismatch_use_received: "Usar dirección de recepción",
     reply_from_mismatch_send_anyway: "Enviar de todos modos",
     search_date_within: "Dentro de",
     search_does_not_have: "No contiene",
