@@ -27,6 +27,7 @@ import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
 } from "@/services/crypto/memory_key_store";
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -209,6 +210,9 @@ async function get_alias_hmac_key(): Promise<CryptoKey> {
   combined.set(info, raw_key.byteLength);
 
   const hash = await crypto.subtle.digest(HASH_ALG, combined);
+
+  zero_uint8_array(raw_key);
+  zero_uint8_array(combined);
 
   return crypto.subtle.importKey(
     "raw",

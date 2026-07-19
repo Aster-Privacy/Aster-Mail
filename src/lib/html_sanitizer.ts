@@ -153,10 +153,30 @@ export function sanitize_preview_html(html: string): string {
       .querySelectorAll(PREVIEW_FORBIDDEN_ELEMENTS)
       .forEach((el) => el.remove());
 
+    doc
+      .querySelectorAll("svg, math, form, frame, frameset, portal")
+      .forEach((el) => el.remove());
+
     doc.querySelectorAll("*").forEach((el) => {
       for (const attr of Array.from(el.attributes)) {
-        if (/^on/i.test(attr.name)) {
+        const name = attr.name.toLowerCase();
+
+        if (/^on/i.test(name) || name === "style" || name === "srcdoc") {
           el.removeAttribute(attr.name);
+
+          continue;
+        }
+
+        if (name === "href" || name === "src" || name === "xlink:href") {
+          const value = attr.value.replace(/[\u0000-\u0020]+/g, "").toLowerCase();
+
+          if (
+            value.startsWith("javascript:") ||
+            value.startsWith("vbscript:") ||
+            (value.startsWith("data:") && !value.startsWith("data:image/"))
+          ) {
+            el.removeAttribute(attr.name);
+          }
         }
       }
     });
