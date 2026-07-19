@@ -34,6 +34,7 @@ import {
   store_vault_in_memory,
   MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
+import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { get_current_account } from "@/services/account_manager";
 
 const PREVIOUS_KEYS_LIMIT = 10;
@@ -147,30 +148,34 @@ export async function rekey_pgp_if_needed(
   if (rekey_in_progress) return;
   if (!user_email) return;
 
-  const vault = get_vault_from_memory();
-  const passphrase = get_passphrase_from_memory();
-
-  if (!vault || !passphrase) return;
+  if (!get_vault_from_memory() || !get_passphrase_from_memory()) return;
 
   rekey_in_progress = true;
 
   try {
-    const result = await perform_pgp_rekey(
-      vault,
-      passphrase,
-      user_email,
-      user_name || user_email,
-    );
+    await with_vault_write_lock(async () => {
+      const vault = get_vault_from_memory();
+      const passphrase = get_passphrase_from_memory();
 
-    if (result.success && result.new_vault) {
-      await store_vault_in_memory(result.new_vault, passphrase);
+      if (!vault || !passphrase) return;
 
-      const { upload_prekey_bundle } = await import(
-        "@/services/crypto/ratchet_manager"
+      const result = await perform_pgp_rekey(
+        vault,
+        passphrase,
+        user_email,
+        user_name || user_email,
       );
 
-      await upload_prekey_bundle(result.new_vault).catch(() => {});
-    }
+      if (result.success && result.new_vault) {
+        await store_vault_in_memory(result.new_vault, passphrase);
+
+        const { upload_prekey_bundle } = await import(
+          "@/services/crypto/ratchet_manager"
+        );
+
+        await upload_prekey_bundle(result.new_vault).catch(() => {});
+      }
+    });
   } catch {
   } finally {
     rekey_in_progress = false;
