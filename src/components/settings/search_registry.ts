@@ -143,7 +143,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
 
   // ── Behavior ──────────────────────────────────────────────────────────────
   { label: "Reading pane",         section: "behavior", breadcrumb: "Behavior > Layout", keywords: ["preview pane", "split view"] },
-  { label: "Email view mode",      section: "behavior", breadcrumb: "Behavior > Reading", keywords: ["popup", "split view", "full page", "open style", "view style"] },
+  { label: "Settings view",        section: "behavior", breadcrumb: "Behavior > Advanced", keywords: ["settings popup", "settings full screen", "settings window", "open settings"] },
   { label: "Thread view",          section: "behavior", breadcrumb: "Behavior > Threading", keywords: ["conversation view", "group by thread"] },
   { label: "Undo send",            section: "behavior", breadcrumb: "Behavior > Sending", keywords: ["unsend", "recall email"] },
   { label: "Send delay",           section: "behavior", breadcrumb: "Behavior > Sending", keywords: ["delay send", "scheduled send"] },
