@@ -93,6 +93,45 @@ describe("shared mailbox grant signature enforcement", () => {
     ).rejects.toThrow();
   });
 
+  it("unseals a self-grant for a re-keyed owner whose published key lives in previous_keys", async () => {
+    const old_key = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+    const new_key = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+
+    const signing_keys = [
+      { armored_secret_key: old_key.secret_key, passphrase: PASS },
+      { armored_secret_key: new_key.secret_key, passphrase: PASS },
+    ];
+    const wrapped = await seal_grant(payload("mbx-1"), new_key.public_key, signing_keys);
+
+    const result = await unseal_grant(
+      wrapped,
+      [old_key.secret_key, new_key.secret_key],
+      PASS,
+      new_key.public_key,
+    );
+
+    expect(result.mailbox_user_id).toBe("mbx-1");
+  });
+
+  it("unseals a legacy grant signed only with the pre-rekey key when verifying against own vault keys", async () => {
+    const old_key = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+    const new_key = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+
+    const wrapped = await seal_grant(payload("mbx-1"), new_key.public_key, {
+      armored_secret_key: old_key.secret_key,
+      passphrase: PASS,
+    });
+
+    const result = await unseal_grant(
+      wrapped,
+      [old_key.secret_key, new_key.secret_key],
+      PASS,
+      [new_key.public_key, old_key.public_key],
+    );
+
+    expect(result.mailbox_user_id).toBe("mbx-1");
+  });
+
   it("REJECTS a grant not encrypted to this member (wrong recipient)", async () => {
     const member = await generate_identity_keypair("Member", "member@astermail.org", PASS);
     const other = await generate_identity_keypair("Other", "other@astermail.org", PASS);

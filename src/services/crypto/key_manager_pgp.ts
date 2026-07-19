@@ -802,22 +802,47 @@ export interface sender_signing_key {
 }
 
 async function parse_signing_keys(
-  signing_key: sender_signing_key | undefined,
+  signing_key: sender_signing_key | sender_signing_key[] | undefined,
 ): Promise<openpgp.PrivateKey[] | undefined> {
   if (!signing_key) return undefined;
 
-  try {
-    const decrypted = await openpgp.decryptKey({
-      ["privateKey" as const]: await openpgp.readPrivateKey({
-        armoredKey: signing_key.armored_secret_key,
-      }),
-      passphrase: signing_key.passphrase,
-    });
+  const inputs = Array.isArray(signing_key) ? signing_key : [signing_key];
+  const parsed: openpgp.PrivateKey[] = [];
 
-    return [decrypted];
-  } catch {
-    return undefined;
+  for (const input of inputs) {
+    try {
+      const decrypted = await openpgp.decryptKey({
+        ["privateKey" as const]: await openpgp.readPrivateKey({
+          armoredKey: input.armored_secret_key,
+        }),
+        passphrase: input.passphrase,
+      });
+
+      parsed.push(decrypted);
+    } catch {
+      continue;
+    }
   }
+
+  return parsed.length > 0 ? parsed : undefined;
+}
+
+export async function derive_public_keys_from_private(
+  armored_private_keys: string[],
+): Promise<string[]> {
+  const derived: string[] = [];
+
+  for (const armored of armored_private_keys) {
+    try {
+      const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+      derived.push(private_key.toPublic().armor());
+    } catch {
+      continue;
+    }
+  }
+
+  return derived;
 }
 
 async function parse_verification_keys(
@@ -871,7 +896,7 @@ async function evaluate_signatures(
 export async function encrypt_message(
   plaintext: string,
   recipient_public_key: string,
-  signing_key?: sender_signing_key,
+  signing_key?: sender_signing_key | sender_signing_key[],
 ): Promise<string> {
   const public_key = await openpgp.readKey({
     armoredKey: recipient_public_key,

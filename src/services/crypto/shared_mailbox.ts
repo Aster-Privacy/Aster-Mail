@@ -27,7 +27,7 @@ import {
 } from "@/services/crypto/key_manager";
 import {
   encrypt_message,
-  decrypt_message_verified,
+  decrypt_message_verified_with_any_key,
   reprotect_pgp_key,
   type sender_signing_key,
 } from "@/services/crypto/key_manager_pgp";
@@ -132,7 +132,23 @@ export async function generate_shared_mailbox_material(
   };
 }
 
-export function get_current_signing_key(): sender_signing_key {
+export function get_grant_signing_keys(): sender_signing_key[] {
+  const vault = get_vault_from_memory();
+  const passphrase = get_passphrase_from_memory();
+
+  if (!vault || !passphrase) {
+    throw new Error("your account must be unlocked to manage shared mailboxes");
+  }
+
+  return [vault.identity_key, ...(vault.previous_keys ?? [])].map(
+    (armored_secret_key) => ({ armored_secret_key, passphrase }),
+  );
+}
+
+export function get_grant_decryption_keys(): {
+  secret_keys: string[];
+  passphrase: string;
+} {
   const vault = get_vault_from_memory();
   const passphrase = get_passphrase_from_memory();
 
@@ -141,7 +157,7 @@ export function get_current_signing_key(): sender_signing_key {
   }
 
   return {
-    armored_secret_key: vault.identity_key,
+    secret_keys: [vault.identity_key, ...(vault.previous_keys ?? [])],
     passphrase,
   };
 }
@@ -162,12 +178,12 @@ export async function fetch_member_public_key(
 export async function seal_grant(
   payload: SharedMailboxGrantPayload,
   recipient_public_key: string,
-  signing_key: sender_signing_key,
+  signing_keys: sender_signing_key | sender_signing_key[],
 ): Promise<string> {
   const armored = await encrypt_message(
     JSON.stringify(payload),
     recipient_public_key,
-    signing_key,
+    signing_keys,
   );
 
   return btoa(armored);
@@ -175,16 +191,22 @@ export async function seal_grant(
 
 export async function unseal_grant(
   wrapped_grant: string,
-  identity_private_key: string,
+  identity_private_keys: string | string[],
   passphrase: string,
-  granter_public_key: string,
+  granter_public_keys: string | string[],
 ): Promise<SharedMailboxGrantPayload> {
   const armored = atob(wrapped_grant);
-  const result = await decrypt_message_verified(
+  const secret_keys = Array.isArray(identity_private_keys)
+    ? identity_private_keys
+    : [identity_private_keys];
+  const verification_keys = Array.isArray(granter_public_keys)
+    ? granter_public_keys
+    : [granter_public_keys];
+  const result = await decrypt_message_verified_with_any_key(
     armored,
-    identity_private_key,
+    secret_keys,
     passphrase,
-    [granter_public_key],
+    verification_keys,
   );
 
   if (result.verification !== "verified") {
