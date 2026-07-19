@@ -50,6 +50,11 @@ import { emit_scheduled_changed } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
+  get_preferred_sender_id,
+  set_preferred_sender_id,
+  subscribe_preferred_sender,
+} from "@/lib/preferred_sender";
+import {
   type Attachment,
   type DraftStatus,
   type RecipientsState,
@@ -255,6 +260,9 @@ export function use_forward_modal({
   const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
     null,
   );
+  const [preferred_sender_id, set_preferred_sender_state] = useState<
+    string | null
+  >(() => get_preferred_sender_id());
   const ghost_mode = use_ghost_mode(thread_token, thread_ghost_email);
   const [recipients, dispatch_recipients] = useReducer(recipients_reducer, {
     to: [],
@@ -538,6 +546,31 @@ export function use_forward_modal({
 
     if (ext) set_selected_sender(ext);
   }, [is_external, sender_options, sender_loading, selected_sender]);
+
+  useEffect(() => {
+    if (is_external || sender_loading || selected_sender) return;
+    if (!preferred_sender_id) return;
+    const match = sender_options.find(
+      (s) => s.is_enabled && s.id === preferred_sender_id,
+    );
+
+    if (match) set_selected_sender(match);
+  }, [
+    is_external,
+    sender_options,
+    sender_loading,
+    selected_sender,
+    preferred_sender_id,
+  ]);
+
+  useEffect(() => {
+    return subscribe_preferred_sender((id) => set_preferred_sender_state(id));
+  }, []);
+
+  const handle_set_preferred = useCallback((id: string | null) => {
+    set_preferred_sender_id(id);
+    set_preferred_sender_state(id);
+  }, []);
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
@@ -980,6 +1013,8 @@ export function use_forward_modal({
     sender_options,
     selected_sender,
     set_selected_sender,
+    preferred_sender_id,
+    handle_set_preferred,
     ghost_mode,
     recipients,
     dispatch_recipients,

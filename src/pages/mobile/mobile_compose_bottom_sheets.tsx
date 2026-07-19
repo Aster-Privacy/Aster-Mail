@@ -52,6 +52,23 @@ import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 
+function SenderPinIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      className="h-5 w-5"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
+    </svg>
+  );
+}
+
 export function MobileSenderSheet({
   is_open,
   on_close,
@@ -59,6 +76,8 @@ export function MobileSenderSheet({
   current_sender,
   on_select,
   t,
+  preferred_id = null,
+  on_set_preferred,
 }: {
   is_open: boolean;
   on_close: () => void;
@@ -66,6 +85,8 @@ export function MobileSenderSheet({
   current_sender: SenderOption | undefined;
   on_select: (sender: SenderOption) => void;
   t: (key: TranslationKey) => string;
+  preferred_id?: string | null;
+  on_set_preferred?: (id: string | null) => void;
 }) {
   const [sender_query, set_sender_query] = useState("");
   const normalized_sender_query = sender_query.trim().toLowerCase();
@@ -112,36 +133,62 @@ export function MobileSenderSheet({
         )}
         <div className="space-y-1">
           {filtered_sender_options.map((sender) => (
-            <button
+            <div
               key={sender.id}
-              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
-              type="button"
-              onClick={() => handle_select(sender)}
+              className="flex w-full items-center gap-1 rounded-[14px] active:bg-[var(--bg-tertiary)]"
             >
-              <MobileSenderIcon option={sender} size="sm" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-[14px] font-medium text-[var(--text-primary)]">
-                    {sender.display_name || sender.email}
-                  </span>
-                  {sender.type !== "primary" && (
-                    <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${sender_type_color(sender.type)}`}
-                    >
-                      {sender_type_label(sender.type, t)}
+              <button
+                className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
+                type="button"
+                onClick={() => handle_select(sender)}
+              >
+                <MobileSenderIcon option={sender} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-[14px] font-medium text-[var(--text-primary)]">
+                      {sender.display_name || sender.email}
                     </span>
+                    {sender.type !== "primary" && (
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${sender_type_color(sender.type)}`}
+                      >
+                        {sender_type_label(sender.type, t)}
+                      </span>
+                    )}
+                  </div>
+                  {sender.display_name && (
+                    <p className="truncate text-[12px] text-[var(--text-muted)]">
+                      {sender.email}
+                    </p>
                   )}
                 </div>
-                {sender.display_name && (
-                  <p className="truncate text-[12px] text-[var(--text-muted)]">
-                    {sender.email}
-                  </p>
+                {current_sender?.id === sender.id && (
+                  <CheckIcon className="h-5 w-5 shrink-0 text-blue-500" />
                 )}
-              </div>
-              {current_sender?.id === sender.id && (
-                <CheckIcon className="h-5 w-5 shrink-0 text-blue-500" />
+              </button>
+              {on_set_preferred && sender.type !== "ghost" && (
+                <button
+                  aria-label={
+                    preferred_id === sender.id
+                      ? t("common.unpin_preferred_sender")
+                      : t("common.pin_preferred_sender")
+                  }
+                  className={`shrink-0 rounded-[10px] p-2.5 ${
+                    preferred_id === sender.id
+                      ? "text-blue-500"
+                      : "text-[var(--text-muted)]"
+                  }`}
+                  type="button"
+                  onClick={() =>
+                    on_set_preferred(
+                      preferred_id === sender.id ? null : sender.id,
+                    )
+                  }
+                >
+                  <SenderPinIcon filled={preferred_id === sender.id} />
+                </button>
               )}
-            </button>
+            </div>
           ))}
         </div>
       </div>

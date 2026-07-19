@@ -602,6 +602,8 @@ function MobileComposePage({
         is_open={show_sender_sheet}
         on_close={() => set_show_sender_sheet(false)}
         on_select={handle_select_sender}
+        on_set_preferred={compose.set_preferred_sender}
+        preferred_id={compose.preferred_sender_id}
         sender_options={compose.sender_options}
         t={t}
       />
