@@ -299,210 +299,214 @@ export const SidebarFolders = memo(function SidebarFolders({
                 on_rename={() => handle_folder_modal(folder_data, "rename")}
                 password_set={folder.password_set}
               >
-                <button
-                  ref={(el) => {
-                    folder_refs.current[folder.folder_token] = el;
-                  }}
-                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : ""} h-8 text-[14px]  ${effective_selected === folder_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""} ${drag_over_token === folder.folder_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
-                  style={{
-                    zIndex: 1,
-                    paddingLeft: is_collapsed
-                      ? undefined
-                      : `${(hasChildren ? 18 : 10) + indent}px`,
-                    paddingRight: is_collapsed ? undefined : "10px",
-                    color:
-                      effective_selected === folder_item_id
-                        ? "var(--text-primary)"
-                        : "var(--text-secondary)",
-                    backgroundColor:
-                      drag_over_token === folder.folder_token
-                        ? undefined
-                        : is_collapsed && effective_selected === folder_item_id
-                          ? "var(--indicator-bg)"
-                          : undefined,
-                  }}
-                  title={is_collapsed ? folder.name : undefined}
-                  onClick={() =>
-                    handle_nav_click(() => {
-                      if (folder.is_password_protected) {
-                        if (!folder.password_set) {
-                          set_password_modal_folder({
-                            folder_id: folder.id,
-                            folder_name: folder.name,
-                            folder_token: folder.folder_token,
-                            mode: "setup",
-                          });
-
-                          return;
-                        }
-                        if (!is_folder_unlocked(folder.id)) {
-                          set_password_modal_folder({
-                            folder_id: folder.id,
-                            folder_name: folder.name,
-                            folder_token: folder.folder_token,
-                            mode: "unlock",
-                          });
-
-                          return;
-                        }
-                      }
-                      set_selected_item(folder_item_id);
-                      navigate(
-                        `/folder/${encodeURIComponent(folder.folder_token)}`,
-                      );
-                    })
-                  }
-                  onDragEnter={() => set_drag_over_token(folder.folder_token)}
-                  onDragLeave={(e) => {
-                    if (e.currentTarget.contains(e.relatedTarget as Node))
-                      return;
-                    set_drag_over_token(null);
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    set_drag_over_token(null);
-                    const raw = e.dataTransfer.getData(
-                      "application/x-astermail-emails",
-                    );
-
-                    if (!raw || !on_drop_emails) return;
-                    try {
-                      const ids = JSON.parse(raw) as string[];
-
-                      if (!Array.isArray(ids) || ids.length === 0) return;
-                      const existing_raw = e.dataTransfer.getData(
-                        "application/x-astermail-folders",
-                      );
-                      const existing_folders: string[] = existing_raw
-                        ? JSON.parse(existing_raw)
-                        : [];
-
-                      if (existing_folders.includes(folder.folder_token)) {
-                        on_drop_emails([], folder.folder_token, folder.name);
-
-                        return;
-                      }
-                      on_drop_emails(ids, folder.folder_token, folder.name);
-                    } catch {
-                      return;
-                    }
-                  }}
-                >
-                  {!is_collapsed &&
-                    node.depth > 0 &&
-                    effective_selected !== folder_item_id &&
-                    drag_over_token !== folder.folder_token && (
-                      <>
-                        {Array.from(
-                          { length: node.depth - 1 },
-                          (_, level) =>
-                            tree_guides.get(folder.folder_token)?.trail[
-                              level + 1
-                            ] && (
-                              <span
-                                key={`guide-${level}`}
-                                aria-hidden="true"
-                                className="absolute top-0 bottom-0 w-px pointer-events-none"
-                                data-tree-guide="vertical"
-                                style={{
-                                  left: `${level * 16 + 8}px`,
-                                  backgroundColor: "var(--border-primary)",
-                                }}
-                              />
-                            ),
-                        )}
+                <div className="relative">
+                  {!is_collapsed && node.depth > 0 && (
+                    <>
+                      {Array.from(
+                        { length: node.depth - 1 },
+                        (_, level) =>
+                          tree_guides.get(folder.folder_token)?.trail[
+                            level + 1
+                          ] && (
+                            <span
+                              key={`guide-${level}`}
+                              aria-hidden="true"
+                              className="absolute top-0 bottom-0 w-px pointer-events-none"
+                              data-tree-guide="vertical"
+                              style={{
+                                left: `${level * 16 + 8}px`,
+                                backgroundColor: "var(--border-primary)",
+                              }}
+                            />
+                          ),
+                      )}
+                      <span
+                        aria-hidden="true"
+                        className="absolute top-0 pointer-events-none"
+                        data-tree-guide="elbow"
+                        style={{
+                          left: `${(node.depth - 1) * 16 + 8}px`,
+                          height: "50%",
+                          width: "8px",
+                          borderLeft: "1px solid var(--border-primary)",
+                          borderBottom: "1px solid var(--border-primary)",
+                          borderBottomLeftRadius: "7px",
+                        }}
+                      />
+                      {tree_guides.get(folder.folder_token)?.has_next && (
                         <span
                           aria-hidden="true"
-                          className="absolute top-0 pointer-events-none"
-                          data-tree-guide="elbow"
+                          className="absolute bottom-0 w-px pointer-events-none"
+                          data-tree-guide="vertical"
                           style={{
                             left: `${(node.depth - 1) * 16 + 8}px`,
-                            height: "50%",
-                            width: "9px",
-                            borderLeft: "1px solid var(--border-primary)",
-                            borderBottom: "1px solid var(--border-primary)",
-                            borderBottomLeftRadius: "7px",
+                            top: "50%",
+                            backgroundColor: "var(--border-primary)",
                           }}
-                        />
-                        {tree_guides.get(folder.folder_token)?.has_next && (
-                          <span
-                            aria-hidden="true"
-                            className="absolute bottom-0 w-px pointer-events-none"
-                            data-tree-guide="vertical"
-                            style={{
-                              left: `${(node.depth - 1) * 16 + 8}px`,
-                              top: "50%",
-                              backgroundColor: "var(--border-primary)",
-                            }}
-                          />
-                        )}
-                      </>
-                    )}
-                  {!is_collapsed && hasChildren && (
-                    <span
-                      aria-expanded={is_expanded}
-                      aria-label={folder.name}
-                      className="absolute top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
-                      role="button"
-                      style={{ left: `${indent}px` }}
-                      tabIndex={0}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggle_expanded(folder.folder_token);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          toggle_expanded(folder.folder_token);
-                        }
-                      }}
-                    >
-                      {is_expanded ? (
-                        <ChevronDownIcon className="w-3 h-3" />
-                      ) : (
-                        <ChevronRightIcon className="w-3 h-3" />
-                      )}
-                    </span>
-                  )}
-                  <div className="relative">
-                    <FolderIcon
-                      className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"}`}
-                      style={{ color: folder_color }}
-                    />
-                    {(folder.is_locked ||
-                      (folder.is_password_protected &&
-                        (!folder.password_set ||
-                          !is_folder_unlocked(folder.id)))) && (
-                      <LockClosedIcon className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-txt-primary bg-surf-secondary" />
-                    )}
-                  </div>
-                  {!is_collapsed && (
-                    <>
-                      <span className="flex-1 text-left truncate">
-                        {folder.name}
-                      </span>
-                      {is_locked_closed && (
-                        <LockClosedIcon className="w-3 h-3 ml-1 text-txt-muted" />
-                      )}
-                      {!is_locked_closed && (
-                        <CountBadge
-                          count={
-                            folder_unread_counts?.[folder.folder_token] ??
-                            folder.unread_count ??
-                            0
-                          }
-                          is_active={effective_selected === folder_item_id}
                         />
                       )}
                     </>
                   )}
-                </button>
+                  <button
+                    ref={(el) => {
+                      folder_refs.current[folder.folder_token] = el;
+                    }}
+                    className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : ""} h-8 text-[14px]  ${effective_selected === folder_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""} ${drag_over_token === folder.folder_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
+                    style={{
+                      zIndex: 1,
+                      marginLeft: is_collapsed ? undefined : `${indent}px`,
+                      width: is_collapsed
+                        ? undefined
+                        : `calc(100% - ${indent}px)`,
+                      paddingLeft: is_collapsed
+                        ? undefined
+                        : `${hasChildren ? 18 : 10}px`,
+                      paddingRight: is_collapsed ? undefined : "10px",
+                      color:
+                        effective_selected === folder_item_id
+                          ? "var(--text-primary)"
+                          : "var(--text-secondary)",
+                      backgroundColor:
+                        drag_over_token === folder.folder_token
+                          ? undefined
+                          : is_collapsed &&
+                              effective_selected === folder_item_id
+                            ? "var(--indicator-bg)"
+                            : undefined,
+                    }}
+                    title={is_collapsed ? folder.name : undefined}
+                    onClick={() =>
+                      handle_nav_click(() => {
+                        if (folder.is_password_protected) {
+                          if (!folder.password_set) {
+                            set_password_modal_folder({
+                              folder_id: folder.id,
+                              folder_name: folder.name,
+                              folder_token: folder.folder_token,
+                              mode: "setup",
+                            });
+
+                            return;
+                          }
+                          if (!is_folder_unlocked(folder.id)) {
+                            set_password_modal_folder({
+                              folder_id: folder.id,
+                              folder_name: folder.name,
+                              folder_token: folder.folder_token,
+                              mode: "unlock",
+                            });
+
+                            return;
+                          }
+                        }
+                        set_selected_item(folder_item_id);
+                        navigate(
+                          `/folder/${encodeURIComponent(folder.folder_token)}`,
+                        );
+                      })
+                    }
+                    onDragEnter={() => set_drag_over_token(folder.folder_token)}
+                    onDragLeave={(e) => {
+                      if (e.currentTarget.contains(e.relatedTarget as Node))
+                        return;
+                      set_drag_over_token(null);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      set_drag_over_token(null);
+                      const raw = e.dataTransfer.getData(
+                        "application/x-astermail-emails",
+                      );
+
+                      if (!raw || !on_drop_emails) return;
+                      try {
+                        const ids = JSON.parse(raw) as string[];
+
+                        if (!Array.isArray(ids) || ids.length === 0) return;
+                        const existing_raw = e.dataTransfer.getData(
+                          "application/x-astermail-folders",
+                        );
+                        const existing_folders: string[] = existing_raw
+                          ? JSON.parse(existing_raw)
+                          : [];
+
+                        if (existing_folders.includes(folder.folder_token)) {
+                          on_drop_emails([], folder.folder_token, folder.name);
+
+                          return;
+                        }
+                        on_drop_emails(ids, folder.folder_token, folder.name);
+                      } catch {
+                        return;
+                      }
+                    }}
+                  >
+                    {!is_collapsed && hasChildren && (
+                      <span
+                        aria-expanded={is_expanded}
+                        aria-label={folder.name}
+                        className="absolute top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
+                        role="button"
+                        style={{ left: "0px" }}
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggle_expanded(folder.folder_token);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggle_expanded(folder.folder_token);
+                          }
+                        }}
+                      >
+                        {is_expanded ? (
+                          <ChevronDownIcon className="w-3 h-3" />
+                        ) : (
+                          <ChevronRightIcon className="w-3 h-3" />
+                        )}
+                      </span>
+                    )}
+                    <div className="relative">
+                      <FolderIcon
+                        className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"}`}
+                        style={{ color: folder_color }}
+                      />
+                      {(folder.is_locked ||
+                        (folder.is_password_protected &&
+                          (!folder.password_set ||
+                            !is_folder_unlocked(folder.id)))) && (
+                        <LockClosedIcon className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-txt-primary bg-surf-secondary" />
+                      )}
+                    </div>
+                    {!is_collapsed && (
+                      <>
+                        <span className="flex-1 text-left truncate">
+                          {folder.name}
+                        </span>
+                        {is_locked_closed && (
+                          <LockClosedIcon className="w-3 h-3 ml-1 text-txt-muted" />
+                        )}
+                        {!is_locked_closed && (
+                          <CountBadge
+                            count={
+                              folder_unread_counts?.[folder.folder_token] ??
+                              folder.unread_count ??
+                              0
+                            }
+                            is_active={effective_selected === folder_item_id}
+                          />
+                        )}
+                      </>
+                    )}
+                  </button>
+                </div>
               </FolderContextMenu>
             );
           })}

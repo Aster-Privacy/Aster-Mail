@@ -167,7 +167,7 @@ describe("sidebar folder tree guides", () => {
     expect(verticals).toContain("8px");
   });
 
-  it("hides the guides on the selected row", () => {
+  it("keeps the elbow visible outside the highlight on the selected row", () => {
     render_sidebar_folders(
       [
         folder("root", "Root"),
@@ -178,7 +178,15 @@ describe("sidebar folder tree guides", () => {
 
     expand("Root");
 
-    expect(document.querySelectorAll("[data-tree-guide]").length).toBe(0);
+    expect(document.querySelectorAll("[data-tree-guide='elbow']").length).toBe(
+      1,
+    );
+
+    const selected = document.querySelector("button.sidebar-active");
+
+    expect(selected).not.toBeNull();
+    expect(selected!.querySelector("[data-tree-guide]")).toBeNull();
+    expect((selected as HTMLElement).style.marginLeft).toBe("16px");
   });
 
   it("draws no continuation below the only child", () => {
