@@ -534,6 +534,8 @@ export async function create_contact_group(
     return { error: "No encryption key available" };
   }
 
+  zero_uint8_array(raw_key);
+
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
