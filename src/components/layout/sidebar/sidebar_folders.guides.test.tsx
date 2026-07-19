@@ -121,10 +121,11 @@ describe("sidebar folder tree guides", () => {
     expect(document.querySelectorAll("[data-tree-guide]").length).toBe(0);
   });
 
-  it("renders a vertical guide and elbow per depth level once expanded", () => {
+  it("renders curved elbows and continuation lines only where siblings follow", () => {
     render_sidebar_folders([
       folder("root", "Root"),
-      folder("child", "Child", { parent_token: "root" }),
+      folder("child", "Child", { parent_token: "root", sort_order: 0 }),
+      folder("child2", "Child2", { parent_token: "root", sort_order: 1 }),
       folder("grandchild", "Grandchild", { parent_token: "child" }),
     ]);
 
@@ -132,27 +133,50 @@ describe("sidebar folder tree guides", () => {
 
     expand("Root");
 
-    expect(
-      document.querySelectorAll("[data-tree-guide='vertical']").length,
-    ).toBe(1);
-    expect(document.querySelectorAll("[data-tree-guide='elbow']").length).toBe(
-      1,
-    );
-
-    expand("Child");
-
-    expect(
-      document.querySelectorAll("[data-tree-guide='vertical']").length,
-    ).toBe(3);
     expect(document.querySelectorAll("[data-tree-guide='elbow']").length).toBe(
       2,
     );
+    expect(
+      document.querySelectorAll("[data-tree-guide='vertical']").length,
+    ).toBe(1);
 
-    const grandchild_verticals = Array.from(
+    expand("Child");
+
+    expect(document.querySelectorAll("[data-tree-guide='elbow']").length).toBe(
+      3,
+    );
+    expect(
+      document.querySelectorAll("[data-tree-guide='vertical']").length,
+    ).toBe(2);
+
+    const elbows = Array.from(
+      document.querySelectorAll("[data-tree-guide='elbow']"),
+    ) as HTMLElement[];
+
+    for (const elbow of elbows) {
+      expect(elbow.style.borderBottomLeftRadius).toBe("7px");
+    }
+
+    const verticals = Array.from(
       document.querySelectorAll("[data-tree-guide='vertical']"),
     ).map((el) => (el as HTMLElement).style.left);
 
-    expect(grandchild_verticals).toContain("8px");
-    expect(grandchild_verticals).toContain("24px");
+    expect(verticals).toContain("8px");
+  });
+
+  it("draws no continuation below the only child", () => {
+    render_sidebar_folders([
+      folder("root", "Root"),
+      folder("child", "Child", { parent_token: "root" }),
+    ]);
+
+    expand("Root");
+
+    expect(document.querySelectorAll("[data-tree-guide='elbow']").length).toBe(
+      1,
+    );
+    expect(
+      document.querySelectorAll("[data-tree-guide='vertical']").length,
+    ).toBe(0);
   });
 });

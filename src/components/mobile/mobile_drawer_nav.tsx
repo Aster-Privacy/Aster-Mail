@@ -45,7 +45,11 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { build_folder_tree, flatten_folder_tree } from "@/hooks/use_folders";
+import {
+  build_folder_tree,
+  build_tree_guides,
+  flatten_folder_tree,
+} from "@/hooks/use_folders";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
@@ -166,6 +170,10 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   indicator_style,
 }: DrawerNavContentProps) {
   const { t } = use_i18n();
+
+  const folder_tree = build_folder_tree(folders);
+  const folder_nodes = flatten_folder_tree(folder_tree);
+  const folder_guides = build_tree_guides(folder_tree);
 
   const is_active = (path: string) => {
     if (path === "/") return active_path === "/" || active_path === "/inbox";
@@ -339,8 +347,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           {t("common.no_folders_yet")}
         </p>
       )}
-      {flatten_folder_tree(build_folder_tree(folders)).map((node) => {
+      {folder_nodes.map((node) => {
         const folder = node.folder;
+        const guides = folder_guides.get(folder.folder_token);
         const path = `/folder/${encodeURIComponent(folder.folder_token)}`;
         const is_locked_closed =
           folder.is_locked ||
@@ -359,28 +368,47 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             className="relative"
             style={{ paddingLeft: node.depth * 16 }}
           >
-            {node.depth > 0 &&
-              Array.from({ length: node.depth }, (_, level) => (
+            {node.depth > 0 && (
+              <>
+                {Array.from(
+                  { length: node.depth - 1 },
+                  (_, level) =>
+                    guides?.trail[level + 1] && (
+                      <span
+                        key={`guide-${level}`}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-0 bottom-0 w-px"
+                        style={{
+                          left: `${level * 16 + 10}px`,
+                          backgroundColor: "var(--border-primary)",
+                        }}
+                      />
+                    ),
+                )}
                 <span
-                  key={`guide-${level}`}
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-0 bottom-0 w-px"
+                  className="pointer-events-none absolute top-0"
                   style={{
-                    left: `${level * 16 + 10}px`,
-                    backgroundColor: "var(--border-primary)",
+                    left: `${(node.depth - 1) * 16 + 10}px`,
+                    height: "50%",
+                    width: "9px",
+                    borderLeft: "1px solid var(--border-primary)",
+                    borderBottom: "1px solid var(--border-primary)",
+                    borderBottomLeftRadius: "7px",
                   }}
                 />
-              ))}
-            {node.depth > 0 && (
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 h-px"
-                style={{
-                  left: `${(node.depth - 1) * 16 + 11}px`,
-                  width: "7px",
-                  backgroundColor: "var(--border-primary)",
-                }}
-              />
+                {guides?.has_next && (
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-0 w-px"
+                    style={{
+                      left: `${(node.depth - 1) * 16 + 10}px`,
+                      top: "50%",
+                      backgroundColor: "var(--border-primary)",
+                    }}
+                  />
+                )}
+              </>
             )}
             <SidebarNavButton
               active={is_active(path)}

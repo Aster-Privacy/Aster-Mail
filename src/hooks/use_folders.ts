@@ -168,6 +168,30 @@ export function get_sibling_folders(
     .sort(compare_sibling_folders);
 }
 
+export interface FolderTreeGuides {
+  trail: boolean[];
+  has_next: boolean;
+}
+
+export function build_tree_guides(
+  nodes: FolderTreeNode[],
+): Map<string, FolderTreeGuides> {
+  const result = new Map<string, FolderTreeGuides>();
+
+  const walk = (siblings: FolderTreeNode[], trail: boolean[]) => {
+    siblings.forEach((node, index) => {
+      const has_next = index < siblings.length - 1;
+
+      result.set(node.folder.folder_token, { trail, has_next });
+      walk(node.children, [...trail, has_next]);
+    });
+  };
+
+  walk(nodes, []);
+
+  return result;
+}
+
 export function flatten_folder_tree(nodes: FolderTreeNode[]): FolderTreeNode[] {
   const result: FolderTreeNode[] = [];
 

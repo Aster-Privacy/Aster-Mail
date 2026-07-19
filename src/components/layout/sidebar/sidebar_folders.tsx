@@ -33,6 +33,7 @@ import {
 
 import {
   build_folder_tree,
+  build_tree_guides,
   flatten_visible_tree,
   get_sibling_folders,
 } from "@/hooks/use_folders";
@@ -140,6 +141,7 @@ export const SidebarFolders = memo(function SidebarFolders({
   }, []);
 
   const tree = useMemo(() => build_folder_tree(folders), [folders]);
+  const tree_guides = useMemo(() => build_tree_guides(tree), [tree]);
 
   const visible_nodes = useMemo(() => {
     if (is_collapsed) {
@@ -391,31 +393,52 @@ export const SidebarFolders = memo(function SidebarFolders({
                     }
                   }}
                 >
-                  {!is_collapsed &&
-                    node.depth > 0 &&
-                    Array.from({ length: node.depth }, (_, level) => (
+                  {!is_collapsed && node.depth > 0 && (
+                    <>
+                      {Array.from(
+                        { length: node.depth - 1 },
+                        (_, level) =>
+                          tree_guides.get(folder.folder_token)?.trail[
+                            level + 1
+                          ] && (
+                            <span
+                              key={`guide-${level}`}
+                              aria-hidden="true"
+                              className="absolute top-0 bottom-0 w-px pointer-events-none"
+                              data-tree-guide="vertical"
+                              style={{
+                                left: `${level * 16 + 8}px`,
+                                backgroundColor: "var(--border-primary)",
+                              }}
+                            />
+                          ),
+                      )}
                       <span
-                        key={`guide-${level}`}
                         aria-hidden="true"
-                        className="absolute top-0 bottom-0 w-px pointer-events-none"
-                        data-tree-guide="vertical"
+                        className="absolute top-0 pointer-events-none"
+                        data-tree-guide="elbow"
                         style={{
-                          left: `${level * 16 + 8}px`,
-                          backgroundColor: "var(--border-primary)",
+                          left: `${(node.depth - 1) * 16 + 8}px`,
+                          height: "50%",
+                          width: "9px",
+                          borderLeft: "1px solid var(--border-primary)",
+                          borderBottom: "1px solid var(--border-primary)",
+                          borderBottomLeftRadius: "7px",
                         }}
                       />
-                    ))}
-                  {!is_collapsed && node.depth > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute top-1/2 h-px pointer-events-none"
-                      data-tree-guide="elbow"
-                      style={{
-                        left: `${(node.depth - 1) * 16 + 9}px`,
-                        width: "7px",
-                        backgroundColor: "var(--border-primary)",
-                      }}
-                    />
+                      {tree_guides.get(folder.folder_token)?.has_next && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute bottom-0 w-px pointer-events-none"
+                          data-tree-guide="vertical"
+                          style={{
+                            left: `${(node.depth - 1) * 16 + 8}px`,
+                            top: "50%",
+                            backgroundColor: "var(--border-primary)",
+                          }}
+                        />
+                      )}
+                    </>
                   )}
                   {!is_collapsed && hasChildren && (
                     <span
