@@ -25,24 +25,19 @@ import {
   resolve_received_on_alias,
   collect_recipient_emails,
   is_reply_from_mismatch,
+  resolve_own_recipient_address,
 } from "./build_reply_from_address";
 
 describe("build_reply_from_address", () => {
   it("returns sender_email for own message (replying continues alias)", () => {
     expect(
-      build_reply_from_address(
-        { sender_email: "alias@my.example" },
-        true,
-      ),
+      build_reply_from_address({ sender_email: "alias@my.example" }, true),
     ).toBe("alias@my.example");
   });
 
   it("returns undefined for incoming message with no received-on alias", () => {
     expect(
-      build_reply_from_address(
-        { sender_email: "stranger@x.example" },
-        false,
-      ),
+      build_reply_from_address({ sender_email: "stranger@x.example" }, false),
     ).toBeUndefined();
   });
 
@@ -59,9 +54,41 @@ describe("build_reply_from_address", () => {
   });
 
   it("returns undefined when own message has no sender_email", () => {
-    expect(build_reply_from_address({ sender_email: "" }, true)).toBeUndefined();
+    expect(
+      build_reply_from_address({ sender_email: "" }, true),
+    ).toBeUndefined();
     expect(
       build_reply_from_address({ sender_email: "   " }, true),
+    ).toBeUndefined();
+  });
+});
+
+describe("resolve_own_recipient_address", () => {
+  const own = ["me@astermail.org", "shopping@aster.cx"];
+
+  it("finds the owned alias among the recipients", () => {
+    expect(
+      resolve_own_recipient_address(
+        ["stranger@x.example", "Shopping@Aster.CX"],
+        own,
+      ),
+    ).toBe("Shopping@Aster.CX");
+  });
+
+  it("returns undefined when no recipient is owned", () => {
+    expect(
+      resolve_own_recipient_address(
+        ["simplelogin.alias.traffic496@simplelogin.com"],
+        own,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("handles missing input", () => {
+    expect(resolve_own_recipient_address(undefined, own)).toBeUndefined();
+    expect(resolve_own_recipient_address([], own)).toBeUndefined();
+    expect(
+      resolve_own_recipient_address(["me@astermail.org"], []),
     ).toBeUndefined();
   });
 });
@@ -127,10 +154,7 @@ describe("resolve_received_on_alias", () => {
 describe("collect_recipient_emails", () => {
   it("merges to and cc preserving order", () => {
     expect(
-      collect_recipient_emails(
-        ["a@x.example", "b@x.example"],
-        ["c@x.example"],
-      ),
+      collect_recipient_emails(["a@x.example", "b@x.example"], ["c@x.example"]),
     ).toEqual(["a@x.example", "b@x.example", "c@x.example"]);
   });
 
@@ -145,10 +169,7 @@ describe("collect_recipient_emails", () => {
 
   it("ignores empty strings and trims", () => {
     expect(
-      collect_recipient_emails(
-        ["  a@x.example  ", "", "  "],
-        undefined,
-      ),
+      collect_recipient_emails(["  a@x.example  ", "", "  "], undefined),
     ).toEqual(["a@x.example"]);
   });
 

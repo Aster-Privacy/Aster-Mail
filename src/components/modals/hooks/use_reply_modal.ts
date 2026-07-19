@@ -28,7 +28,10 @@ import { undo_send_manager } from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
-import { is_reply_from_mismatch } from "@/components/email/build_reply_from_address";
+import {
+  is_reply_from_mismatch,
+  resolve_own_recipient_address,
+} from "@/components/email/build_reply_from_address";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -182,7 +185,8 @@ export function use_reply_modal({
     !!my_badge_prefs?.active_badge_slug;
   const active_badge =
     include_badge_signature && my_badge_prefs?.active_badge_slug
-      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      ? (badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ??
+        null)
       : null;
 
   useEffect(() => {
@@ -241,7 +245,9 @@ export function use_reply_modal({
   const initial_content_ref = useRef<string>("");
 
   const reply_message_ref = useRef("");
-  const save_draft_fn_ref = useRef<(text: string) => Promise<void>>(async () => {});
+  const save_draft_fn_ref = useRef<(text: string) => Promise<void>>(
+    async () => {},
+  );
   const prev_is_open_ref = useRef(false);
   const files_drop_ref = useRef<((files: File[]) => void) | null>(null);
 
@@ -327,13 +333,10 @@ export function use_reply_modal({
     return subscribe_preferred_sender((id) => set_preferred_sender_state(id));
   }, []);
 
-  const handle_set_preferred = useCallback(
-    (id: string | null) => {
-      set_preferred_sender_id(id);
-      set_preferred_sender_state(id);
-    },
-    [],
-  );
+  const handle_set_preferred = useCallback((id: string | null) => {
+    set_preferred_sender_id(id);
+    set_preferred_sender_state(id);
+  }, []);
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
@@ -375,18 +378,31 @@ export function use_reply_modal({
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-      const header = t("mail.reply_quote_header", { date: formatted_date, name: `${safe_name} &lt;${safe_email}&gt;` });
+      const header = t("mail.reply_quote_header", {
+        date: formatted_date,
+        name: `${safe_name} &lt;${safe_email}&gt;`,
+      });
 
       if (for_display) {
         const plain_body = (() => {
-          const doc = new DOMParser().parseFromString(original_body, "text/html");
-          doc.querySelectorAll("script, style, head").forEach((el) => el.remove());
+          const doc = new DOMParser().parseFromString(
+            original_body,
+            "text/html",
+          );
+
+          doc
+            .querySelectorAll("script, style, head")
+            .forEach((el) => el.remove());
           doc.querySelectorAll("img").forEach((el) => {
             const alt = el.getAttribute("alt");
+
             el.replaceWith(alt?.trim() ? `[${alt.trim()}]` : "[image]");
           });
           doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
-          doc.querySelectorAll("p, div, tr, li").forEach((el) => el.after("\n"));
+          doc
+            .querySelectorAll("p, div, tr, li")
+            .forEach((el) => el.after("\n"));
+
           return (doc.body.textContent ?? "")
             .replace(/[ \t]+\n/g, "\n")
             .replace(/\n{3,}/g, "\n\n")
@@ -439,6 +455,7 @@ export function use_reply_modal({
   }, [is_open, on_close]);
 
   const existing_draft_ref = useRef(existing_draft);
+
   existing_draft_ref.current = existing_draft;
 
   useEffect(() => {
@@ -551,6 +568,7 @@ export function use_reply_modal({
   const has_user_content = useCallback((text: string) => {
     if (!text.trim()) return false;
     if (text === initial_content_ref.current) return false;
+
     return true;
   }, []);
 
@@ -664,6 +682,7 @@ export function use_reply_modal({
       }
       if (!is_sending_ref.current) {
         const current_text = reply_message_ref.current;
+
         if (
           current_text !== last_saved_text.current &&
           has_user_content(current_text) &&
@@ -677,7 +696,8 @@ export function use_reply_modal({
   }, [is_open, original_email_id, has_user_content]);
 
   useEffect(() => {
-    if (!is_open || !original_email_id || !has_user_content(reply_message)) return;
+    if (!is_open || !original_email_id || !has_user_content(reply_message))
+      return;
     if (reply_message === last_saved_text.current) return;
 
     if (save_draft_timeout.current) {
@@ -693,7 +713,13 @@ export function use_reply_modal({
         clearTimeout(save_draft_timeout.current);
       }
     };
-  }, [is_open, original_email_id, reply_message, save_thread_draft, has_user_content]);
+  }, [
+    is_open,
+    original_email_id,
+    reply_message,
+    save_thread_draft,
+    has_user_content,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -744,11 +770,22 @@ export function use_reply_modal({
     [editor, recipient_name],
   );
 
+  const received_on_address = useMemo(() => {
+    const explicit = reply_from_address?.trim();
+
+    if (explicit) return explicit;
+
+    return resolve_own_recipient_address(
+      [...(original_to ?? []), ...(original_cc ?? [])],
+      sender_options.filter((s) => s.is_enabled).map((s) => s.email ?? ""),
+    );
+  }, [reply_from_address, original_to, original_cc, sender_options]);
+
   const reply_from_mismatch = useCallback((): boolean => {
     if (from_mismatch_ack_ref.current) return false;
 
-    return is_reply_from_mismatch(reply_from_address, selected_sender?.email);
-  }, [reply_from_address, selected_sender]);
+    return is_reply_from_mismatch(received_on_address, selected_sender?.email);
+  }, [received_on_address, selected_sender]);
 
   const handle_send = useCallback(async () => {
     if (is_sending_ref.current) return;
@@ -877,7 +914,9 @@ export function use_reply_modal({
             email_ids: [],
             duration_ms: 5000,
             on_view_message: () => {
-              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+              window.dispatchEvent(
+                new CustomEvent("astermail:navigate-to-sent"),
+              );
             },
           });
 
@@ -930,11 +969,14 @@ export function use_reply_modal({
         optimistic_id_ref.current = opt_id;
 
         const sender_name =
-          selected_sender?.display_name || user?.display_name || user?.username || "";
+          selected_sender?.display_name ||
+          user?.display_name ||
+          user?.username ||
+          "";
         const sender_email_addr =
           selected_sender && selected_sender.type !== "primary"
             ? selected_sender.email
-            : (user?.email || "");
+            : user?.email || "";
 
         emit_thread_reply_optimistic({
           thread_token: reply_thread_token,
@@ -974,7 +1016,9 @@ export function use_reply_modal({
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
           is_server_queued: result.is_server_queued,
-          server_queue_id: result.is_server_queued ? result.queued_id : undefined,
+          server_queue_id: result.is_server_queued
+            ? result.queued_id
+            : undefined,
           optimistic_id: optimistic_id_ref.current || undefined,
           thread_token: reply_thread_token || undefined,
         });
@@ -1127,7 +1171,7 @@ export function use_reply_modal({
   }, []);
 
   const from_mismatch_sender_match = useMemo(() => {
-    const normalized = reply_from_address?.trim().toLowerCase();
+    const normalized = received_on_address?.trim().toLowerCase();
 
     if (!normalized) return null;
 
@@ -1136,7 +1180,7 @@ export function use_reply_modal({
         (s) => s.is_enabled && s.email?.toLowerCase() === normalized,
       ) ?? null
     );
-  }, [reply_from_address, sender_options]);
+  }, [received_on_address, sender_options]);
 
   const handle_from_mismatch_cancel = useCallback(() => {
     pending_send_kind_ref.current = null;
@@ -1163,19 +1207,16 @@ export function use_reply_modal({
 
   useEffect(() => {
     if (!send_after_sender_switch) return;
-    const received = reply_from_address?.trim().toLowerCase();
+    const received = received_on_address?.trim().toLowerCase();
 
-    if (
-      received &&
-      selected_sender?.email?.trim().toLowerCase() === received
-    ) {
+    if (received && selected_sender?.email?.trim().toLowerCase() === received) {
       set_send_after_sender_switch(false);
       run_pending_send();
     }
   }, [
     send_after_sender_switch,
     selected_sender,
-    reply_from_address,
+    received_on_address,
     run_pending_send,
   ]);
 
@@ -1241,7 +1282,9 @@ export function use_reply_modal({
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
 
@@ -1259,7 +1302,9 @@ export function use_reply_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
+          set_attachment_error(
+            t("common.failed_to_read_named_file", { name: file.name }),
+          );
         }
       }
 
@@ -1301,7 +1346,9 @@ export function use_reply_modal({
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
 
@@ -1319,7 +1366,9 @@ export function use_reply_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
+          set_attachment_error(
+            t("common.failed_to_read_named_file", { name: file.name }),
+          );
         }
       }
 
@@ -1411,7 +1460,7 @@ export function use_reply_modal({
     handle_set_preferred,
     from_mismatch: {
       open: show_from_mismatch,
-      received: reply_from_address ?? "",
+      received: received_on_address ?? "",
       selected: selected_sender?.email ?? "",
       can_use_received: !!from_mismatch_sender_match,
       on_cancel: handle_from_mismatch_cancel,

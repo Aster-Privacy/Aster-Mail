@@ -168,6 +168,7 @@ export function ReplyModal({
               e.preventDefault();
               e.stopPropagation();
               const files = Array.from(e.dataTransfer?.files || []);
+
               if (files.length > 0) {
                 modal.handle_files_drop(files);
               }
@@ -195,7 +196,9 @@ export function ReplyModal({
                   ? undefined
                   : modal.ghost_mode.set_ghost_expiry_days
               }
+              on_set_preferred={modal.handle_set_preferred}
               original_subject={modal.original_subject}
+              preferred_id={modal.preferred_sender_id}
               recipient_email={modal.recipient_email}
               selected_sender={modal.selected_sender}
               sender_options={modal.sender_options}
@@ -206,8 +209,6 @@ export function ReplyModal({
                   ? () => {}
                   : modal.set_selected_sender
               }
-              preferred_id={modal.preferred_sender_id}
-              on_set_preferred={modal.handle_set_preferred}
             />
 
             <ReplyBody
@@ -232,6 +233,7 @@ export function ReplyModal({
               handle_scheduled_send={modal.handle_scheduled_send}
               handle_send={modal.handle_send}
               handle_template_select={modal.handle_template_select}
+              include_quoted={modal.include_quoted}
               is_mac={modal.is_mac}
               is_minimized={modal.is_minimized}
               is_plain_text_mode={modal.is_plain_text_mode}
@@ -249,10 +251,9 @@ export function ReplyModal({
               set_error_message={modal.set_error_message}
               set_expires_at={modal.set_expires_at}
               set_expiry_password={modal.set_expiry_password}
+              set_include_quoted={modal.set_include_quoted}
               set_scheduled_time={modal.set_scheduled_time}
               set_show_delete_confirm={modal.set_show_delete_confirm}
-              include_quoted={modal.include_quoted}
-              set_include_quoted={modal.set_include_quoted}
               set_show_quoted={modal.set_show_quoted}
               show_delete_confirm={modal.show_delete_confirm}
               show_quoted={modal.show_quoted}
