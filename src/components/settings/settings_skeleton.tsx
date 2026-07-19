@@ -26,7 +26,7 @@ interface SettingsSkeletonProps {
 
 export function SettingsSkeleton(_props: SettingsSkeletonProps = {}) {
   return (
-    <div className="flex items-center justify-center py-20 text-txt-muted">
+    <div className="flex-1 w-full h-full flex items-center justify-center py-20 text-txt-muted">
       <Spinner size="lg" />
     </div>
   );

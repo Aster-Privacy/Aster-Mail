@@ -51,6 +51,20 @@ export function resolve_received_on_alias(
   return match?.full_address;
 }
 
+export function is_reply_from_mismatch(
+  received_on_alias: string | undefined,
+  selected_sender_email: string | undefined,
+): boolean {
+  const received = received_on_alias?.trim().toLowerCase();
+
+  if (!received) return false;
+  const selected = selected_sender_email?.trim().toLowerCase();
+
+  if (!selected) return false;
+
+  return selected !== received;
+}
+
 export function collect_recipient_emails(
   to_emails?: string[],
   cc_emails?: string[],

@@ -26,7 +26,7 @@ import type {
 import type { TranslationKey } from "@/lib/i18n";
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { CachedSubscription } from "@/services/subscription_cache";
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -75,10 +75,6 @@ export interface ForwardData {
 }
 
 export function use_index_page_state() {
-  const [is_settings_open, set_is_settings_open] = useState(false);
-  const [settings_section, set_settings_section] = useState<
-    SettingsSection | undefined
-  >(undefined);
   const {
     instances: compose_instances,
     open_compose: open_compose_instance,
@@ -120,6 +116,42 @@ export function use_index_page_state() {
   } = use_key_rotation();
 
   const { t } = use_i18n();
+
+  const is_settings_route = location.pathname.startsWith("/settings");
+
+  const open_settings = useCallback(
+    (section?: SettingsSection) => {
+      set_popup_email_id(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+      const params = new URLSearchParams(location.search);
+
+      ["oauth", "crypto", "provider", "reason"].forEach((key) =>
+        params.delete(key),
+      );
+      const query = params.toString();
+      const from = location.pathname.startsWith("/settings")
+        ? undefined
+        : location.pathname + (query ? `?${query}` : "");
+
+      navigate(section ? `/settings/${section}` : "/settings", {
+        state: from ? { from } : (location.state ?? undefined),
+      });
+    },
+    [navigate, location.pathname, location.search, location.state],
+  );
+
+  const close_settings = useCallback(() => {
+    const from = (location.state as { from?: string } | null)?.from;
+
+    navigate(from && !from.startsWith("/settings") ? from : "/");
+  }, [navigate, location.state]);
+
+  const open_settings_ref = useRef(open_settings);
+
+  useEffect(() => {
+    open_settings_ref.current = open_settings;
+  }, [open_settings]);
 
   const [checkout_success, set_checkout_success] = useState<{
     plan: string;
@@ -183,12 +215,13 @@ export function use_index_page_state() {
         t("settings.oauth_import_success", { provider: provider_label }),
         "success",
       );
-      set_settings_section("import" as SettingsSection);
-      set_is_settings_open(true);
+      open_settings("import");
       // Dispatch after a tick so ImportSection has time to mount.
       window.setTimeout(() => {
         window.dispatchEvent(new CustomEvent("astermail:oauth-completed", { detail: { provider } }));
-      }, 50);
+      }, 600);
+
+      return;
     } else if (oauth_status === "error") {
       const reason_key_map: Record<string, string> = {
         provider_denied: "settings.oauth_reason_provider_denied",
@@ -210,16 +243,15 @@ export function use_index_page_state() {
     }
 
     set_search_params({}, { replace: true });
-  }, [search_params, set_search_params, t]);
+  }, [search_params, set_search_params, t, open_settings]);
 
   useEffect(() => {
     const crypto_status = search_params.get("crypto");
 
     if (crypto_status === "success" || crypto_status === "cancelled") {
-      set_settings_section("billing" as SettingsSection);
-      set_is_settings_open(true);
+      open_settings("billing");
     }
-  }, [search_params]);
+  }, [search_params, open_settings]);
 
   const toggle_mobile_sidebar = useCallback(() => {
     set_is_mobile_sidebar_open((prev) => !prev);
@@ -880,11 +912,7 @@ export function use_index_page_state() {
       if (path.startsWith("settings")) {
         const section = path.split("/")[1] as SettingsSection | undefined;
 
-        set_popup_email_id(null);
-        set_popup_scheduled(null);
-        set_split_scheduled_data(null);
-        set_settings_section(section);
-        set_is_settings_open(true);
+        open_settings_ref.current(section);
       }
     };
 
@@ -981,7 +1009,7 @@ export function use_index_page_state() {
 
   const is_input_modal_open = useMemo(() => {
     return (
-      is_settings_open ||
+      is_settings_route ||
       has_compose_instances ||
       is_reply_open ||
       is_forward_open ||
@@ -990,7 +1018,7 @@ export function use_index_page_state() {
       is_shortcuts_open
     );
   }, [
-    is_settings_open,
+    is_settings_route,
     has_compose_instances,
     is_reply_open,
     is_forward_open,
@@ -1234,10 +1262,9 @@ export function use_index_page_state() {
   }, [visible_email_ids.length, focused_email_index]);
 
   return {
-    is_settings_open,
-    set_is_settings_open,
-    settings_section,
-    set_settings_section,
+    is_settings_route,
+    open_settings,
+    close_settings,
     compose_instances,
     open_compose_instance,
     close_compose,

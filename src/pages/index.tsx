@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
@@ -35,11 +35,39 @@ import { SubscriptionsContent } from "@/components/subscriptions/subscriptions_c
 import { SenderDetailHeader } from "@/components/subscriptions/sender_detail_header";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
-const SettingsPanel = lazy(() =>
-  import("@/components/settings/settings_panel").then((m) => ({
-    default: m.SettingsPanel,
+import { FullPageLoader } from "@/components/common/full_page_loader";
+import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
+const SettingsContent = lazy(() =>
+  import("@/components/settings/settings_content").then((m) => ({
+    default: m.SettingsContent,
   })),
 );
+
+const SETTINGS_SECTIONS = new Set([
+  "account",
+  "appearance",
+  "accessibility",
+  "security",
+  "encryption",
+  "trusted_devices",
+  "aliases",
+  "ghost_aliases",
+  "billing",
+  "family",
+  "referral",
+  "import",
+  "notifications",
+  "signature",
+  "templates",
+  "behavior",
+  "sender_filters",
+  "mail_rules",
+  "feedback",
+  "updates",
+  "developer",
+  "bridge",
+  "smtp_tokens",
+]);
 import { ReplyModal } from "@/components/modals/reply_modal";
 import { ForwardModal } from "@/components/modals/forward_modal";
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
@@ -58,6 +86,12 @@ export default function IndexPage() {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const { section } = useParams<{ section?: string }>();
+  const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
+
+  const settings_section =
+    section && SETTINGS_SECTIONS.has(section)
+      ? (section as SettingsSection)
+      : undefined;
 
   useEffect(() => {
     if (section) {
@@ -69,17 +103,19 @@ export default function IndexPage() {
         sessionStorage.setItem("academic_discount_result", academic_result);
       }
     }
-    if (section && !state.is_settings_open) {
-      navigate("/", { replace: true });
-      const timer = setTimeout(() => {
-        state.set_settings_section(section as SettingsSection);
-        state.set_is_settings_open(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    } else if (section && state.is_settings_open) {
-      navigate("/", { replace: true });
+  }, [section]);
+
+  const pathname = state.location.pathname;
+
+  useEffect(() => {
+    if (
+      state.is_settings_route ||
+      pathname === "/contacts" ||
+      pathname === "/subscriptions"
+    ) {
+      set_is_quick_settings_open(false);
     }
-  }, [section]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.is_settings_route, pathname]);
 
   useEffect(() => {
     const result = sessionStorage.getItem("recovery_email_verification_result");
@@ -96,10 +132,16 @@ export default function IndexPage() {
 
   useEffect(() => {
     const handle_navigate = (e: Event) => {
-      const nav_section = (e as CustomEvent<string>).detail as SettingsSection;
+      const detail = (
+        e as CustomEvent<string | { section: string; anchor?: string }>
+      ).detail;
+      const nav_section = (
+        typeof detail === "string" ? detail : detail?.section
+      ) as SettingsSection | undefined;
 
-      state.set_settings_section(nav_section);
-      state.set_is_settings_open(true);
+      if (!state.is_settings_route) {
+        state.open_settings(nav_section);
+      }
     };
 
     const handle_navigate_sent = () => navigate("/sent");
@@ -127,6 +169,20 @@ export default function IndexPage() {
       >
         <NotificationBanner />
         <div className="flex-1 flex transition-colors duration-200 overflow-hidden">
+          {state.is_settings_route ? (
+            <Suspense fallback={<FullPageLoader />}>
+              <SettingsContent
+                section={settings_section}
+                on_close={state.close_settings}
+                on_section_change={(next_section) => {
+                  navigate(`/settings/${next_section}`, {
+                    state: state.location.state,
+                  });
+                }}
+              />
+            </Suspense>
+          ) : (
+          <>
           <Sidebar
             edit_draft={state.edit_draft}
             is_mobile_open={state.is_mobile_sidebar_open}
@@ -150,11 +206,7 @@ export default function IndexPage() {
             }}
             on_nav_click={state.handle_sidebar_nav_click}
             on_settings_click={(section) => {
-              state.set_popup_email_id(null);
-              state.set_popup_scheduled(null);
-              state.set_split_scheduled_data(null);
-              state.set_settings_section(section);
-              state.set_is_settings_open(true);
+              state.open_settings(section);
             }}
           />
           <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
@@ -166,8 +218,7 @@ export default function IndexPage() {
                   className="text-xs underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
                   type="button"
                   onClick={() => {
-                    state.set_settings_section("accessibility");
-                    state.set_is_settings_open(true);
+                    state.open_settings("accessibility");
                   }}
                 >
                   {t("settings.accessibility")}
@@ -188,8 +239,9 @@ export default function IndexPage() {
               </div>
               <div className="w-10" />
             </div>
+            <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative">
             <div
-              className="flex-1 w-full rounded-lg md:rounded-xl border overflow-hidden transition-colors duration-200"
+              className="flex-1 min-w-0 rounded-lg md:rounded-xl border overflow-hidden transition-colors duration-200"
               id="main-content"
               role="main"
               style={{
@@ -247,11 +299,11 @@ export default function IndexPage() {
                       on_result_click={state.handle_search_result_click}
                       on_search_click={() => state.set_is_search_open(true)}
                       on_search_submit={state.handle_search_submit}
+                      on_quick_settings_click={() =>
+                        set_is_quick_settings_open((prev) => !prev)
+                      }
                       on_settings_click={() => {
-                        state.set_popup_email_id(null);
-                        state.set_popup_scheduled(null);
-                        state.set_split_scheduled_data(null);
-                        state.set_is_settings_open(true);
+                        state.open_settings();
                       }}
                       on_split_close={state.handle_search_split_close}
                       query={state.active_search_query}
@@ -286,11 +338,11 @@ export default function IndexPage() {
                   on_search_click={() => state.set_is_search_open(true)}
                   on_search_result_click={state.handle_search_result_click}
                   on_search_submit={state.handle_search_submit}
+                  on_quick_settings_click={() =>
+                    set_is_quick_settings_open((prev) => !prev)
+                  }
                   on_settings_click={() => {
-                    state.set_popup_email_id(null);
-                    state.set_popup_scheduled(null);
-                    state.set_split_scheduled_data(null);
-                    state.set_is_settings_open(true);
+                    state.open_settings();
                   }}
                   on_split_close={state.handle_split_close}
                   on_split_scheduled_close={state.handle_split_scheduled_close}
@@ -314,22 +366,20 @@ export default function IndexPage() {
                 />
               )}
             </div>
+            <QuickSettingsPanel
+              is_open={is_quick_settings_open && !state.is_settings_route}
+              on_close={() => set_is_quick_settings_open(false)}
+              on_open_full_settings={(quick_section) => {
+                set_is_quick_settings_open(false);
+                state.open_settings(quick_section);
+              }}
+            />
+            </div>
           </div>
+          </>
+          )}
         </div>
       </div>
-      <Suspense fallback={null}>
-        <SettingsPanel
-          initial_section={state.settings_section}
-          is_open={state.is_settings_open}
-          on_close={() => {
-            state.set_is_settings_open(false);
-            state.set_settings_section(undefined);
-            if (state.location.pathname.startsWith("/settings")) {
-              navigate("/", { replace: true });
-            }
-          }}
-        />
-      </Suspense>
       {state.reply_data && (
         <ReplyModal
           is_external={state.reply_data.is_external}
@@ -411,7 +461,7 @@ export default function IndexPage() {
         is_open={state.is_command_palette_open}
         on_close={() => state.set_is_command_palette_open(false)}
         on_compose={state.open_compose}
-        on_settings={() => state.set_is_settings_open(true)}
+        on_settings={() => state.open_settings()}
         on_shortcuts={() => state.set_is_shortcuts_open(true)}
       />
       <KeyboardShortcutsModal
@@ -434,8 +484,7 @@ export default function IndexPage() {
       <OnboardingChecklist
         on_compose={state.open_compose}
         on_open_settings={(section) => {
-          state.set_settings_section(section);
-          state.set_is_settings_open(true);
+          state.open_settings(section);
         }}
       />
       <PurchaseSuccessModal
@@ -443,8 +492,7 @@ export default function IndexPage() {
         is_open={!!state.checkout_success}
         on_close={() => state.set_checkout_success(null)}
         on_view_billing={() => {
-          state.set_settings_section("billing");
-          state.set_is_settings_open(true);
+          state.open_settings("billing");
         }}
         plan={state.checkout_success?.plan || ""}
       />

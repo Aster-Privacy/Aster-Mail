@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 
 export interface DynamicSearchEntry {
   label: string;

@@ -225,6 +225,7 @@ export function ReplyModal({
               expires_at={modal.expires_at}
               expiry_password={modal.expiry_password}
               file_input_ref={modal.file_input_ref}
+              from_mismatch={modal.from_mismatch}
               handle_delete_draft={modal.handle_delete_draft}
               handle_file_select={modal.handle_file_select}
               handle_insert_link={modal.handle_insert_link}

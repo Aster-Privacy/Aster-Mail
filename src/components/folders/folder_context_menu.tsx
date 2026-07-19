@@ -19,7 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  ArrowDownIcon,
   ArrowRightIcon,
+  ArrowUpIcon,
   FolderIcon,
   FolderPlusIcon,
   LockClosedIcon,
@@ -47,6 +49,10 @@ interface FolderContextMenuProps {
   on_move?: () => void;
   on_delete: () => void;
   on_create_subfolder?: () => void;
+  on_move_up?: () => void;
+  on_move_down?: () => void;
+  can_move_up?: boolean;
+  can_move_down?: boolean;
 }
 
 export function FolderContextMenu({
@@ -60,6 +66,10 @@ export function FolderContextMenu({
   on_move,
   on_delete,
   on_create_subfolder,
+  on_move_up,
+  on_move_down,
+  can_move_up,
+  can_move_down,
 }: FolderContextMenuProps): React.ReactElement {
   const { t } = use_i18n();
 
@@ -99,6 +109,20 @@ export function FolderContextMenu({
           <ContextMenuItem onClick={on_move}>
             <ArrowRightIcon className="mr-2 h-4 w-4" />
             {t("common.move_to")}
+          </ContextMenuItem>
+        )}
+
+        {on_move_up && (
+          <ContextMenuItem disabled={!can_move_up} onClick={on_move_up}>
+            <ArrowUpIcon className="mr-2 h-4 w-4" />
+            {t("common.move_up")}
+          </ContextMenuItem>
+        )}
+
+        {on_move_down && (
+          <ContextMenuItem disabled={!can_move_down} onClick={on_move_down}>
+            <ArrowDownIcon className="mr-2 h-4 w-4" />
+            {t("common.move_down")}
           </ContextMenuItem>
         )}
 

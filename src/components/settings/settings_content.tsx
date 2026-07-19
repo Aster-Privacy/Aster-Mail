@@ -33,9 +33,9 @@ import {
   Suspense,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   XMarkIcon,
+  ArrowLeftIcon,
   BuildingOffice2Icon,
   SwatchIcon,
   EyeIcon,
@@ -62,8 +62,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { get_dev_mode } from "@/services/api/preferences";
 import {
   get_available_plans,
@@ -142,10 +142,40 @@ export type SettingsSection =
 
 type Section = SettingsSection;
 
-interface SettingsPanelProps {
-  is_open: boolean;
+export const SETTINGS_SECTION_IDS: SettingsSection[] = [
+  "account",
+  "appearance",
+  "accessibility",
+  "security",
+  "encryption",
+  "trusted_devices",
+  "aliases",
+  "ghost_aliases",
+  "billing",
+  "family",
+  "referral",
+  "import",
+  "notifications",
+  "signature",
+  "templates",
+  "behavior",
+  "sender_filters",
+  "mail_rules",
+  "feedback",
+  "updates",
+  "developer",
+  "bridge",
+  "smtp_tokens",
+];
+
+export function is_settings_section(value: string): value is SettingsSection {
+  return (SETTINGS_SECTION_IDS as string[]).includes(value);
+}
+
+interface SettingsContentProps {
+  section?: Section;
+  on_section_change: (section: Section) => void;
   on_close: () => void;
-  initial_section?: Section;
 }
 
 let persisted_section: Section | null = null;
@@ -156,6 +186,10 @@ function get_persisted_section(): Section | null {
 
 function set_persisted_section(section: Section) {
   persisted_section = section;
+}
+
+export function get_default_settings_section(): Section {
+  return persisted_section || "appearance";
 }
 
 interface NavItem {
@@ -205,33 +239,33 @@ function get_nav_items(
   };
 }
 
-
-
-export function SettingsPanel(props: SettingsPanelProps) {
+export function SettingsContent(props: SettingsContentProps) {
   return (
     <SearchRegistryProvider>
       <SettingsCacheProvider>
-        <SettingsPanelInner {...props} />
+        <SettingsContentInner {...props} />
       </SettingsCacheProvider>
     </SearchRegistryProvider>
   );
 }
 
-function SettingsPanelInner({
-  is_open,
+function SettingsContentInner({
+  section: section_prop,
+  on_section_change,
   on_close,
-  initial_section,
-}: SettingsPanelProps) {
-  use_settings_prefetch(is_open);
-  const reduce_motion = use_should_reduce_motion();
+}: SettingsContentProps) {
+  use_settings_prefetch(true);
   const { t } = use_i18n();
   const navigate = useNavigate();
-  const [section, set_section] = useState<Section>(
-    initial_section || get_persisted_section() || "appearance",
+  const { preferences } = use_preferences();
+  const sidebar_width = Math.min(
+    360,
+    Math.max(200, preferences.sidebar_width ?? 256),
   );
-  const [show_mobile_nav, set_show_mobile_nav] = useState(true);
-  const was_open_ref = useRef(false);
-  const animation_complete_ref = useRef(false);
+  const [section, set_section] = useState<Section>(
+    section_prop || get_persisted_section() || "appearance",
+  );
+  const [show_mobile_nav, set_show_mobile_nav] = useState(!section_prop);
   const [is_suspended, set_is_suspended] = useState(
     () => sessionStorage.getItem("aster_suspended") === "true",
   );
@@ -244,13 +278,26 @@ function SettingsPanelInner({
   );
   const [search_query, set_search_query] = useState("");
   const [scroll_target, set_scroll_target] = useState<string | null>(null);
+  const on_section_change_ref = useRef(on_section_change);
 
   useEffect(() => {
-    if (is_open && is_family_plan) {
+    on_section_change_ref.current = on_section_change;
+  }, [on_section_change]);
+
+  useEffect(() => {
+    if (section_prop && section_prop !== section) {
+      set_section(section_prop);
+      set_persisted_section(section_prop);
+      set_show_mobile_nav(false);
+    }
+  }, [section_prop]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (is_family_plan) {
       load_family_section();
       prefetch_family_group();
     }
-  }, [is_open, is_family_plan]);
+  }, [is_family_plan]);
 
   const NAV_ITEMS_BASE = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
   const [indicator_style, set_indicator_style] = useState<{
@@ -260,6 +307,7 @@ function SettingsPanelInner({
   }>({ top: 0, height: 32, opacity: 0 });
   const [should_animate_indicator, set_should_animate_indicator] =
     useState(false);
+  const animation_complete_ref = useRef(false);
   const nav_container_ref = useRef<HTMLDivElement>(null);
   const content_container_ref = useRef<HTMLDivElement>(null);
   const nav_item_refs = useRef<Record<Section, HTMLButtonElement | null>>({
@@ -289,48 +337,37 @@ function SettingsPanelInner({
   });
 
   const handle_account_deleted = useCallback(() => {
-    on_close();
     navigate("/sign-in");
-  }, [on_close, navigate]);
+  }, [navigate]);
 
   useEffect(() => {
-    if (!is_open) return;
     void import("@/components/settings/billing_section").catch(() => {});
-  }, [is_open]);
+  }, []);
 
   useLayoutEffect(() => {
-    if (is_open && !was_open_ref.current) {
-      set_section(initial_section || get_persisted_section() || "appearance");
-      set_show_mobile_nav(true);
-      animation_complete_ref.current = false;
+    refresh_family_plan_flag(set_is_family_plan);
+    get_available_plans();
+    get_billing_history(1, 10);
+    get_plan_limits();
+    get_storage_addons();
+    get_credits();
+    list_devices().then((res) => {
+      const has_any = (res.data?.devices?.length ?? 0) > 0;
 
-      refresh_family_plan_flag(set_is_family_plan);
-      get_available_plans();
-      get_billing_history(1, 10);
-      get_plan_limits();
-      get_storage_addons();
-      get_credits();
-      list_devices().then((res) => {
-        const has_any = (res.data?.devices?.length ?? 0) > 0;
-
-        localStorage.setItem("aster_has_devices", has_any ? "1" : "0");
-        set_has_devices(has_any);
-      });
-    } else if (!is_open) {
-      animation_complete_ref.current = false;
-      set_search_query("");
-    }
-    was_open_ref.current = is_open;
-  }, [is_open, initial_section]);
+      localStorage.setItem("aster_has_devices", has_any ? "1" : "0");
+      set_has_devices(has_any);
+    });
+  }, []);
 
   useEffect(() => {
-    if (!is_open) return;
-
     const handle_navigate_section = (e: Event) => {
       const detail = (e as CustomEvent<string>).detail;
 
       if (detail) {
         set_section(detail as Section);
+        set_persisted_section(detail as Section);
+        set_show_mobile_nav(false);
+        on_section_change_ref.current(detail as Section);
       }
     };
 
@@ -345,10 +382,9 @@ function SettingsPanelInner({
         handle_navigate_section,
       );
     };
-  }, [is_open]);
+  }, []);
 
   useEffect(() => {
-    if (!is_open) return;
     const srcs = [
       "/settings/direct.webp",
       "/settings/tor.webp",
@@ -363,11 +399,9 @@ function SettingsPanelInner({
 
       img.src = src;
     });
-  }, [is_open]);
+  }, []);
 
   useEffect(() => {
-    if (!is_open) return;
-
     const load_dev_mode = async () => {
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
@@ -376,7 +410,7 @@ function SettingsPanelInner({
     };
 
     load_dev_mode();
-  }, [is_open]);
+  }, []);
 
   useEffect(() => {
     const handle_dev_mode_change = (e: Event) => {
@@ -396,6 +430,8 @@ function SettingsPanelInner({
 
       set_section(value);
       set_persisted_section(value);
+      set_show_mobile_nav(false);
+      on_section_change_ref.current(value);
 
       if (anchor) {
         requestAnimationFrame(() =>
@@ -431,14 +467,13 @@ function SettingsPanelInner({
   }, []);
 
   useEffect(() => {
-    if (!is_open) return;
     const handle_key = (e: KeyboardEvent) =>
       e["key"] === "Escape" && on_close();
 
     document.addEventListener("keydown", handle_key);
 
     return () => document.removeEventListener("keydown", handle_key);
-  }, [is_open, on_close]);
+  }, [on_close]);
 
   useEffect(() => {
     content_container_ref.current?.scrollTo(0, 0);
@@ -522,12 +557,6 @@ function SettingsPanelInner({
   }, [scroll_target, section]);
 
   useLayoutEffect(() => {
-    if (!is_open) {
-      set_should_animate_indicator(false);
-
-      return;
-    }
-
     const update_indicator = () => {
       const target_button = nav_item_refs.current[section];
 
@@ -551,10 +580,10 @@ function SettingsPanelInner({
     }
 
     requestAnimationFrame(update_indicator);
-  }, [section, is_open, nav_items]);
+  }, [section, nav_items]);
 
   useEffect(() => {
-    if (!is_open || !nav_container_ref.current) return;
+    if (!nav_container_ref.current) return;
 
     const recalculate = () => {
       const target_button = nav_item_refs.current[section];
@@ -573,7 +602,7 @@ function SettingsPanelInner({
     observer.observe(nav_container_ref.current);
 
     return () => observer.disconnect();
-  }, [is_open, section]);
+  }, [section]);
 
   const active_section_element = useMemo(() => {
     switch (section) {
@@ -642,8 +671,8 @@ function SettingsPanelInner({
     set_section(item_id);
     set_persisted_section(item_id);
     set_search_query("");
-    window.history.pushState({}, "", `/settings/${item_id}`);
-  }, []);
+    on_section_change(item_id);
+  }, [on_section_change]);
 
   const render_nav_item = (item: NavItem) => {
     const is_selected = section === item.id;
@@ -672,6 +701,7 @@ function SettingsPanelInner({
           set_persisted_section(item.id);
           set_search_query("");
           set_show_mobile_nav(false);
+          on_section_change(item.id);
         }}
       >
         <item.icon className="w-5 h-5 flex-shrink-0 text-txt-secondary" />
@@ -688,254 +718,270 @@ function SettingsPanelInner({
   };
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 md:p-4">
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="absolute inset-0"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            transition={{ duration: reduce_motion ? 0 : 0.15 }}
+    <div className="flex w-full h-full overflow-hidden">
+      <aside
+        className="hidden md:flex flex-col flex-shrink-0 h-full bg-sidebar-bg-custom"
+        style={{
+          width: sidebar_width,
+          minWidth: sidebar_width,
+          maxWidth: sidebar_width,
+        }}
+      >
+        <div className="px-3 pt-4 pb-3">
+          <div className="flex items-center gap-3 px-1 py-1">
+            <img
+              alt={t("common.mail")}
+              className="w-11 h-11 flex-shrink-0 select-none rounded-lg"
+              decoding="async"
+              draggable={false}
+              src="/mail_logo.webp"
+            />
+            <div className="flex flex-col items-start min-w-0 flex-1">
+              <span className="text-[15px] font-semibold text-txt-primary truncate w-full text-left">
+                {t("common.aster_mail")}
+              </span>
+              <span className="text-[11px] truncate w-full text-left text-txt-muted">
+                {t("settings.title")}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="px-2.5 pb-3">
+          <Button
+            className="w-full !rounded-[14px] gap-2"
+            variant="depth"
             onClick={on_close}
-          />
-          <motion.div
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            className="relative flex flex-col md:flex-row w-full h-full md:w-[80vw] md:max-w-[1200px] md:h-[80vh] md:max-h-[900px] md:rounded-2xl overflow-hidden bg-surf-primary"
-            exit={{ scale: 0.95, opacity: 0, y: 8 }}
-            initial={reduce_motion ? false : { scale: 0.95, opacity: 0, y: 8 }}
-            style={{
-              border: "1px solid var(--border-secondary)",
-            }}
-            transition={{
-              duration: reduce_motion ? 0 : 0.2,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <nav
-              className="hidden md:flex w-52 px-3 py-4 flex-col overflow-y-auto flex-shrink-0"
-              style={{
-                backgroundColor: "var(--sidebar-bg)",
-                borderRight: "1px solid var(--border-primary)",
-              }}
+            <ArrowLeftIcon className="w-[15px] h-[15px]" />
+            <span>{t("common.back_to_inbox")}</span>
+          </Button>
+        </div>
+        <nav className="flex-1 px-3 pb-4 pt-1 overflow-y-auto">
+        <div ref={nav_container_ref} className="relative">
+          <div
+            className="pointer-events-none absolute left-0 w-full rounded-[10px]"
+            style={{
+              top: indicator_style.top,
+              height: indicator_style.height,
+              opacity: is_searching ? 0 : indicator_style.opacity,
+              backgroundColor: "var(--indicator-bg)",
+              border: "1px solid var(--border-primary)",
+              zIndex: 0,
+              transition: should_animate_indicator
+                ? "top 200ms ease, height 200ms ease, opacity 200ms ease"
+                : "none",
+            }}
+          />
+          {is_searching ? (
+            <div className="space-y-0.5">
+              {search_results.map(render_nav_item)}
+            </div>
+          ) : (
+            <>
+              <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
+                {t("settings.general")}
+              </div>
+              <div className="space-y-0.5 mb-4">
+                {nav_items.general.map(render_nav_item)}
+              </div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
+                {t("common.mail")}
+              </div>
+              <div className="space-y-0.5">
+                {nav_items.mail.map(render_nav_item)}
+              </div>
+            </>
+          )}
+        </div>
+        </nav>
+      </aside>
+
+      <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
+      <div
+        className="flex-1 w-full rounded-lg md:rounded-xl border overflow-hidden flex flex-col min-h-0 transition-colors duration-200 bg-surf-primary"
+        id="main-content"
+        role="main"
+        style={{ borderColor: "var(--border-primary)" }}
+        tabIndex={-1}
+      >
+        <div className="flex items-center gap-3 px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
+          {!show_mobile_nav && (
+            <Button
+              className="md:hidden -ml-1.5"
+              size="icon"
+              variant="ghost"
+              onClick={() => set_show_mobile_nav(true)}
             >
-              <div ref={nav_container_ref} className="relative">
-                <div
-                  className="pointer-events-none absolute left-0 w-full rounded-[10px]"
-                  style={{
-                    top: indicator_style.top,
-                    height: indicator_style.height,
-                    opacity: is_searching ? 0 : indicator_style.opacity,
-                    backgroundColor: "var(--indicator-bg)",
-                    border: "1px solid var(--border-primary)",
-                    zIndex: 0,
-                    transition: should_animate_indicator
-                      ? "top 200ms ease, height 200ms ease, opacity 200ms ease"
-                      : "none",
-                  }}
-                />
-                {is_searching ? (
-                  <div className="space-y-0.5">
-                    {search_results.map(render_nav_item)}
+              <ArrowUturnLeftIcon className="w-5 h-5" />
+            </Button>
+          )}
+          <h2 className="text-[17px] font-semibold text-txt-primary flex-shrink-0">
+            <span className="hidden md:inline">{t("settings.title")}</span>
+            <span className="md:hidden">
+              {show_mobile_nav ? t("settings.title") : get_current_section_label()}
+            </span>
+          </h2>
+          <SettingsSaveIndicator />
+          <div className="hidden md:flex relative flex-1 max-w-[520px]">
+            <MagnifyingGlassIcon
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+              style={{ color: "var(--text-muted)" }}
+            />
+            <input
+              autoComplete="off"
+              className="w-full h-10 pl-9 pr-3 rounded-lg text-[14px] outline-none"
+              placeholder={t("settings.search_placeholder")}
+              spellCheck={false}
+              style={{
+                backgroundColor: "var(--input-bg, var(--bg-secondary))",
+                border: "1px solid var(--border-primary)",
+                color: "var(--text-primary)",
+              }}
+              type="search"
+              value={search_query}
+              onChange={(e) => set_search_query(e.target.value)}
+            />
+            {is_searching && search_query.trim().length >= 2 && (
+              <div
+                className="absolute top-[calc(100%+6px)] left-0 w-[380px] max-h-80 overflow-y-auto rounded-xl z-50 py-1"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  border: "1px solid var(--border-secondary)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+                }}
+              >
+                {registry_results.length === 0 ? (
+                  <div className="px-4 py-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+                    {t("common.no_results")}
                   </div>
                 ) : (
-                  <>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                      {t("settings.general")}
-                    </div>
-                    <div className="space-y-0.5 mb-4">
-                      {nav_items.general.map(render_nav_item)}
-                    </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                      {t("common.mail")}
-                    </div>
-                    <div className="space-y-0.5">
-                      {nav_items.mail.map(render_nav_item)}
-                    </div>
-                  </>
-                )}
-              </div>
-            </nav>
-
-            <div className="flex-1 overflow-y-auto flex flex-col min-h-0 bg-surf-primary">
-              <div className="flex items-center gap-3 px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
-                {!show_mobile_nav && (
-                  <Button
-                    className="md:hidden -ml-1.5"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => set_show_mobile_nav(true)}
-                  >
-                    <ArrowUturnLeftIcon className="w-5 h-5" />
-                  </Button>
-                )}
-                <h2 className="text-[17px] font-semibold text-txt-primary flex-shrink-0">
-                  <span className="hidden md:inline">{t("settings.title")}</span>
-                  <span className="md:hidden">
-                    {show_mobile_nav ? t("settings.title") : get_current_section_label()}
-                  </span>
-                </h2>
-                <SettingsSaveIndicator />
-                <div className="hidden md:flex relative flex-1 max-w-[320px]">
-                  <MagnifyingGlassIcon
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: "var(--text-muted)" }}
-                  />
-                  <input
-                    autoComplete="off"
-                    className="w-full h-9 pl-9 pr-3 rounded-lg text-[14px] outline-none"
-                    placeholder={t("settings.search_placeholder")}
-                    spellCheck={false}
-                    style={{
-                      backgroundColor: "var(--input-bg, var(--bg-secondary))",
-                      border: "1px solid var(--border-primary)",
-                      color: "var(--text-primary)",
-                    }}
-                    type="search"
-                    value={search_query}
-                    onChange={(e) => set_search_query(e.target.value)}
-                  />
-                  {is_searching && search_query.trim().length >= 2 && (
-                    <div
-                      className="absolute top-[calc(100%+6px)] left-0 w-[380px] max-h-80 overflow-y-auto rounded-xl z-50 py-1"
-                      style={{
-                        backgroundColor: "var(--bg-primary)",
-                        border: "1px solid var(--border-secondary)",
-                        boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-                      }}
-                    >
-                      {registry_results.length === 0 ? (
-                        <div className="px-4 py-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>
-                          {t("common.no_results")}
-                        </div>
-                      ) : (
-                        registry_results.map((entry, idx) => {
-                          const nav_item = [...nav_items.general, ...nav_items.mail].find((n) => n.id === entry.section);
-                          return (
-                            <button
-                              key={`${entry.section}-${idx}`}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors duration-100 cursor-pointer"
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = "var(--bg-secondary)"; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ""; }}
-                              onClick={() => { handle_desktop_nav_click(entry.section); set_scroll_target(entry.label); }}
-                            >
-                              {nav_item && <nav_item.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />}
-                              <div className="flex-1 min-w-0">
-                                <span className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>{entry.label}</span>
-                              </div>
-                              <span className="text-[11px] flex-shrink-0 ml-2" style={{ color: "var(--text-muted)" }}>{entry.breadcrumb}</span>
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-                </div>
-                <Button className="ml-auto" size="icon" variant="ghost" onClick={on_close}>
-                  <XMarkIcon className="w-5 h-5" />
-                </Button>
-              </div>
-
-              {show_mobile_nav && (
-                <div className="md:hidden flex-1 overflow-y-auto">
-                  <div className="px-4 pt-3 pb-1">
-                    <div className="relative">
-                      <MagnifyingGlassIcon
-                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                        style={{ color: "var(--text-muted)" }}
-                      />
-                      <input
-                        autoComplete="off"
-                        className="w-full h-9 pl-9 pr-3 rounded-[10px] text-[14px] outline-none"
-                        placeholder={t("settings.search_placeholder")}
-                        spellCheck={false}
-                        style={{
-                          backgroundColor: "var(--input-bg, var(--bg-secondary))",
-                          border: "1px solid var(--border-primary)",
-                          color: "var(--text-primary)",
-                        }}
-                        type="search"
-                        value={search_query}
-                        onChange={(e) => set_search_query(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  {is_searching ? (
-                    search_results.map(render_mobile_nav_item)
-                  ) : (
-                    <>
-                      <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted">
-                        {t("settings.general")}
-                      </div>
-                      {nav_items.general.map(render_mobile_nav_item)}
-                      <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 mt-2 text-txt-muted">
-                        {t("common.mail")}
-                      </div>
-                      {nav_items.mail.map(render_mobile_nav_item)}
-                    </>
-                  )}
-                </div>
-              )}
-
-              <div
-                ref={content_container_ref}
-                className={`p-4 md:p-6 flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
-                style={{ scrollbarGutter: "stable" }}
-              >
-                {is_suspended && (
-                  <div
-                    className="absolute inset-0 z-10 flex items-start justify-center pt-8"
-                    style={{
-                      backgroundColor:
-                        "color-mix(in srgb, var(--bg-primary) 60%, transparent)",
-                      pointerEvents: "auto",
-                    }}
-                  >
-                    <div
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm"
-                      style={{
-                        backgroundColor: "var(--bg-tertiary)",
-                        border: "1px solid var(--border-secondary)",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
-                      <svg
-                        className="w-4 h-4 flex-shrink-0"
-                        fill="currentColor"
-                        style={{ color: "var(--color-error, #ef4444)" }}
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
+                  registry_results.map((entry, idx) => {
+                    const nav_item = [...nav_items.general, ...nav_items.mail].find((n) => n.id === entry.section);
+                    return (
+                      <button
+                        key={`${entry.section}-${idx}`}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors duration-100 cursor-pointer"
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = "var(--bg-secondary)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ""; }}
+                        onClick={() => { handle_desktop_nav_click(entry.section); set_scroll_target(entry.label); }}
                       >
-                        <path
-                          clipRule="evenodd"
-                          d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z"
-                          fillRule="evenodd"
-                        />
-                      </svg>
-                      <span>{t("common.settings_disabled_suspended")}</span>
-                    </div>
-                  </div>
+                        {nav_item && <nav_item.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />}
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>{entry.label}</span>
+                        </div>
+                        <span className="text-[11px] flex-shrink-0 ml-2" style={{ color: "var(--text-muted)" }}>{entry.breadcrumb}</span>
+                      </button>
+                    );
+                  })
                 )}
-                <div
-                  key={section}
-                  style={is_suspended ? { opacity: 0.4, pointerEvents: "none" } : undefined}
-                >
-                  {active_section_element}
-                  {is_family_plan && (
-                    <div className={section !== "family" ? "hidden" : undefined}>
-                      <Suspense fallback={null}>
-                        <FamilySection is_family_plan={is_family_plan} />
-                      </Suspense>
-                    </div>
-                  )}
-                </div>
+              </div>
+            )}
+          </div>
+          <Button className="ml-auto" size="icon" variant="ghost" onClick={on_close}>
+            <XMarkIcon className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {show_mobile_nav && (
+          <div className="md:hidden flex-1 overflow-y-auto">
+            <div className="px-4 pt-3 pb-1">
+              <div className="relative">
+                <MagnifyingGlassIcon
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: "var(--text-muted)" }}
+                />
+                <input
+                  autoComplete="off"
+                  className="w-full h-9 pl-9 pr-3 rounded-[10px] text-[14px] outline-none"
+                  placeholder={t("settings.search_placeholder")}
+                  spellCheck={false}
+                  style={{
+                    backgroundColor: "var(--input-bg, var(--bg-secondary))",
+                    border: "1px solid var(--border-primary)",
+                    color: "var(--text-primary)",
+                  }}
+                  type="search"
+                  value={search_query}
+                  onChange={(e) => set_search_query(e.target.value)}
+                />
               </div>
             </div>
-          </motion.div>
+            {is_searching ? (
+              search_results.map(render_mobile_nav_item)
+            ) : (
+              <>
+                <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted">
+                  {t("settings.general")}
+                </div>
+                {nav_items.general.map(render_mobile_nav_item)}
+                <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 mt-2 text-txt-muted">
+                  {t("common.mail")}
+                </div>
+                {nav_items.mail.map(render_mobile_nav_item)}
+              </>
+            )}
+          </div>
+        )}
+
+        <div
+          ref={content_container_ref}
+          className={`p-4 md:px-12 md:py-8 xl:px-20 flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
+          style={{ scrollbarGutter: "stable" }}
+        >
+          {is_suspended && (
+            <div
+              className="absolute inset-0 z-10 flex items-start justify-center pt-8"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--bg-primary) 60%, transparent)",
+                pointerEvents: "auto",
+              }}
+            >
+              <div
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm"
+                style={{
+                  backgroundColor: "var(--bg-tertiary)",
+                  border: "1px solid var(--border-secondary)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <svg
+                  className="w-4 h-4 flex-shrink-0"
+                  fill="currentColor"
+                  style={{ color: "var(--color-error, #ef4444)" }}
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    clipRule="evenodd"
+                    d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z"
+                    fillRule="evenodd"
+                  />
+                </svg>
+                <span>{t("common.settings_disabled_suspended")}</span>
+              </div>
+            </div>
+          )}
+          <div
+            key={section}
+            className="w-full max-w-[920px] mx-auto"
+            style={is_suspended ? { opacity: 0.4, pointerEvents: "none" } : undefined}
+          >
+            <h1 className="hidden md:block text-[26px] font-bold text-txt-primary mb-6">
+              {get_current_section_label()}
+            </h1>
+            {active_section_element}
+            {is_family_plan && (
+              <div className={section !== "family" ? "hidden" : undefined}>
+                <Suspense fallback={null}>
+                  <FamilySection is_family_plan={is_family_plan} />
+                </Suspense>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </AnimatePresence>
+      </div>
+      </div>
+    </div>
   );
 }

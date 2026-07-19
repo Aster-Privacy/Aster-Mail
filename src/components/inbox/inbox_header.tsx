@@ -77,6 +77,7 @@ interface TagOption {
 
 interface InboxHeaderProps {
   on_settings_click: () => void;
+  on_quick_settings_click?: () => void;
   view_title: string;
   on_compose?: () => void;
   active_filter?: InboxFilterType;
@@ -140,6 +141,7 @@ interface InboxHeaderProps {
 
 export function InboxHeader({
   on_settings_click,
+  on_quick_settings_click,
   view_title,
   on_compose: _on_compose,
   active_filter = "all",
@@ -268,7 +270,7 @@ export function InboxHeader({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 px-2 sm:px-4 py-2 sm:py-2.5 min-h-[56px] border-b border-[var(--border-secondary)] overflow-hidden">
+      <div className="flex items-center justify-between gap-2 px-2 sm:px-4 py-2 sm:py-2.5 min-h-[56px] border-b border-[var(--border-secondary)] overflow-hidden" data-inbox-toolbar>
         <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0">
           {leading_left_slot}
           {on_toggle_select_all && (
@@ -788,6 +790,7 @@ export function InboxHeader({
             is_trash_view={is_trash_view}
             on_empty_spam={on_empty_spam}
             on_empty_trash={on_empty_trash}
+            on_quick_settings_click={on_quick_settings_click}
             on_settings_click={on_settings_click}
             spam_count={spam_count}
             trash_count={trash_count}

@@ -28,7 +28,7 @@ import {
   BookOpenIcon,
   PencilSquareIcon,
   LockClosedIcon,
-  ArrowUturnLeftIcon,
+  ClockIcon,
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
@@ -38,6 +38,8 @@ import {
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import { useTheme } from "@/contexts/theme_context";
+import { ViewModeCard } from "@/components/settings/appearance/view_mode_card";
 import {
   get_dev_mode,
   save_dev_mode,
@@ -188,6 +190,7 @@ export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const { t } = use_i18n();
+  const { theme } = useTheme();
   const { is_feature_locked } = use_plan_limits();
   const [undo_input_value, set_undo_input_value] = useState<string | null>(
     null,
@@ -313,6 +316,44 @@ export function BehaviorSection() {
           title={t("settings.auto_advance")}
           value={preferences.auto_advance}
         />
+
+        <div className="py-3">
+          <p className="text-sm font-medium text-txt-primary">
+            {t("settings.email_view_mode")}
+          </p>
+          <p className="text-sm mt-0.5 mb-3 text-txt-muted">
+            {t("settings.email_view_description")}
+          </p>
+          <div className="flex gap-4">
+            <ViewModeCard
+              is_selected={preferences.email_view_mode === "popup"}
+              label={t("settings.popup")}
+              mode="popup"
+              on_select={() =>
+                update_preference("email_view_mode", "popup", true)
+              }
+              theme={theme}
+            />
+            <ViewModeCard
+              is_selected={preferences.email_view_mode === "split"}
+              label={t("settings.split_view")}
+              mode="split"
+              on_select={() =>
+                update_preference("email_view_mode", "split", true)
+              }
+              theme={theme}
+            />
+            <ViewModeCard
+              is_selected={preferences.email_view_mode === "fullpage"}
+              label={t("settings.full_page")}
+              mode="fullpage"
+              on_select={() =>
+                update_preference("email_view_mode", "fullpage", true)
+              }
+              theme={theme}
+            />
+          </div>
+        </div>
 
         <SelectSetting
           description={t("settings.reading_pane_description")}
@@ -644,7 +685,7 @@ export function BehaviorSection() {
       <div>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ArrowUturnLeftIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.undo_send")}
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />

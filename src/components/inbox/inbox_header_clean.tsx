@@ -85,6 +85,7 @@ function BatchIcon() {
 
 interface InboxHeaderProps {
   on_settings_click: () => void;
+  on_quick_settings_click?: () => void;
   view_title: string;
   email_count: number;
   on_compose?: () => void;
@@ -92,6 +93,7 @@ interface InboxHeaderProps {
 
 export function InboxHeader({
   on_settings_click,
+  on_quick_settings_click,
   view_title,
   email_count,
   on_compose,
@@ -446,6 +448,7 @@ export function InboxHeader({
     <>
       <div
         className="flex items-center justify-between px-6 py-3 border-b transition-colors duration-200"
+        data-inbox-toolbar
         style={{ borderColor: "var(--border-secondary)" }}
       >
         <div className="flex items-center gap-4">
@@ -695,7 +698,7 @@ export function InboxHeader({
             className="p-2 rounded-[14px] transition-colors hover_bg focus:outline-none"
             data-onboarding="settings-button"
             style={{ color: "var(--text-secondary)" }}
-            onClick={on_settings_click}
+            onClick={on_quick_settings_click ?? on_settings_click}
           >
             <CogIcon />
           </button>

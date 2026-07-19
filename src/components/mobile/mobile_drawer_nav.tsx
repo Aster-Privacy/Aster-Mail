@@ -45,6 +45,11 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  build_folder_tree,
+  build_tree_guides,
+  flatten_folder_tree,
+} from "@/hooks/use_folders";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
@@ -165,6 +170,10 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   indicator_style,
 }: DrawerNavContentProps) {
   const { t } = use_i18n();
+
+  const folder_tree = build_folder_tree(folders);
+  const folder_nodes = flatten_folder_tree(folder_tree);
+  const folder_guides = build_tree_guides(folder_tree);
 
   const is_active = (path: string) => {
     if (path === "/") return active_path === "/" || active_path === "/inbox";
@@ -338,7 +347,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           {t("common.no_folders_yet")}
         </p>
       )}
-      {folders.map((folder) => {
+      {folder_nodes.map((node) => {
+        const folder = node.folder;
+        const guides = folder_guides.get(folder.folder_token);
         const path = `/folder/${encodeURIComponent(folder.folder_token)}`;
         const is_locked_closed =
           folder.is_locked ||
@@ -352,59 +363,109 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         const folder_color = folder.color || "#3b82f6";
 
         return (
-          <SidebarNavButton
+          <div
             key={folder.folder_token}
-            active={is_active(path)}
-            count={count}
-            icon={
-              <FolderIcon className="h-5 w-5" style={{ color: folder_color }} />
-            }
-            label={folder.name}
-            on_click={() => {
-              if (folder.is_password_protected) {
-                if (!folder.password_set) {
-                  on_password_modal({
-                    folder_id: folder.id,
-                    folder_name: folder.name,
-                    folder_token: folder.folder_token,
-                    mode: "setup",
-                  });
-
-                  return;
-                }
-                if (!is_folder_unlocked(folder.id)) {
-                  on_password_modal({
-                    folder_id: folder.id,
-                    folder_name: folder.name,
-                    folder_token: folder.folder_token,
-                    mode: "unlock",
-                  });
-
-                  return;
-                }
-              }
-              handle_nav(path);
-            }}
-            on_long_press={() => on_open_edit_folder(folder)}
-            trailing={
-              folder.is_password_protected ? (
-                <button
-                  className="flex h-7 w-7 items-center justify-center rounded-[8px] text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle_lock(folder.id, folder.is_locked);
+            className="relative"
+            style={{ paddingLeft: node.depth * 16 }}
+          >
+            {node.depth > 0 && (
+              <>
+                {Array.from(
+                  { length: node.depth - 1 },
+                  (_, level) =>
+                    guides?.trail[level + 1] && (
+                      <span
+                        key={`guide-${level}`}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-0 bottom-0 w-px"
+                        style={{
+                          left: `${level * 16 + 10}px`,
+                          backgroundColor: "var(--border-primary)",
+                        }}
+                      />
+                    ),
+                )}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-0"
+                  style={{
+                    left: `${(node.depth - 1) * 16 + 10}px`,
+                    height: "50%",
+                    width: "9px",
+                    borderLeft: "1px solid var(--border-primary)",
+                    borderBottom: "1px solid var(--border-primary)",
+                    borderBottomLeftRadius: "7px",
                   }}
-                >
-                  {folder.is_locked || !is_folder_unlocked(folder.id) ? (
-                    <LockClosedIcon className="h-4 w-4" />
-                  ) : (
-                    <LockOpenIcon className="h-4 w-4" />
-                  )}
-                </button>
-              ) : undefined
-            }
-          />
+                />
+                {guides?.has_next && (
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-0 w-px"
+                    style={{
+                      left: `${(node.depth - 1) * 16 + 10}px`,
+                      top: "50%",
+                      backgroundColor: "var(--border-primary)",
+                    }}
+                  />
+                )}
+              </>
+            )}
+            <SidebarNavButton
+              active={is_active(path)}
+              count={count}
+              icon={
+                <FolderIcon
+                  className="h-5 w-5"
+                  style={{ color: folder_color }}
+                />
+              }
+              label={folder.name}
+              on_click={() => {
+                if (folder.is_password_protected) {
+                  if (!folder.password_set) {
+                    on_password_modal({
+                      folder_id: folder.id,
+                      folder_name: folder.name,
+                      folder_token: folder.folder_token,
+                      mode: "setup",
+                    });
+
+                    return;
+                  }
+                  if (!is_folder_unlocked(folder.id)) {
+                    on_password_modal({
+                      folder_id: folder.id,
+                      folder_name: folder.name,
+                      folder_token: folder.folder_token,
+                      mode: "unlock",
+                    });
+
+                    return;
+                  }
+                }
+                handle_nav(path);
+              }}
+              on_long_press={() => on_open_edit_folder(folder)}
+              trailing={
+                folder.is_password_protected ? (
+                  <button
+                    className="flex h-7 w-7 items-center justify-center rounded-[8px] text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_toggle_lock(folder.id, folder.is_locked);
+                    }}
+                  >
+                    {folder.is_locked || !is_folder_unlocked(folder.id) ? (
+                      <LockClosedIcon className="h-4 w-4" />
+                    ) : (
+                      <LockOpenIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                ) : undefined
+              }
+            />
+          </div>
         );
       })}
 

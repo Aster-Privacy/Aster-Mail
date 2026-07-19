@@ -28,7 +28,7 @@ import { use_is_mobile } from "@/hooks/use_platform";
 import { use_onboarding_checklist } from "@/hooks/use_onboarding_checklist";
 
 import type { ChecklistTasksState } from "@/services/api/onboarding";
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 
 interface OnboardingChecklistProps {
   on_compose: () => void;

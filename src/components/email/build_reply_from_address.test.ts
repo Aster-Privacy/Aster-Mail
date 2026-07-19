@@ -24,6 +24,7 @@ import {
   build_reply_from_address,
   resolve_received_on_alias,
   collect_recipient_emails,
+  is_reply_from_mismatch,
 } from "./build_reply_from_address";
 
 describe("build_reply_from_address", () => {
@@ -62,6 +63,43 @@ describe("build_reply_from_address", () => {
     expect(
       build_reply_from_address({ sender_email: "   " }, true),
     ).toBeUndefined();
+  });
+});
+
+describe("is_reply_from_mismatch", () => {
+  it("flags a reply from a different alias than the one that received it", () => {
+    expect(
+      is_reply_from_mismatch(
+        "testing7363672g@aster.cx",
+        "2nd.testing.mail8383@astermail.org",
+      ),
+    ).toBe(true);
+  });
+
+  it("flags a reply from the primary address when received on an alias", () => {
+    expect(
+      is_reply_from_mismatch("shopping@aster.cx", "me@astermail.org"),
+    ).toBe(true);
+  });
+
+  it("accepts the received-on alias case-insensitively with whitespace", () => {
+    expect(
+      is_reply_from_mismatch(
+        " Testing7363672g@Aster.CX ",
+        "testing7363672g@aster.cx",
+      ),
+    ).toBe(false);
+  });
+
+  it("stays quiet when the received-on alias is unknown", () => {
+    expect(is_reply_from_mismatch(undefined, "me@astermail.org")).toBe(false);
+    expect(is_reply_from_mismatch("", "me@astermail.org")).toBe(false);
+    expect(is_reply_from_mismatch("   ", "me@astermail.org")).toBe(false);
+  });
+
+  it("stays quiet when no sender is selected yet", () => {
+    expect(is_reply_from_mismatch("shopping@aster.cx", undefined)).toBe(false);
+    expect(is_reply_from_mismatch("shopping@aster.cx", "")).toBe(false);
   });
 });
 

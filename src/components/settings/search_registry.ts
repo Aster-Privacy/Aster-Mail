@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 
 export interface SearchEntry {
   label: string;
@@ -143,6 +143,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
 
   // ── Behavior ──────────────────────────────────────────────────────────────
   { label: "Reading pane",         section: "behavior", breadcrumb: "Behavior > Layout", keywords: ["preview pane", "split view"] },
+  { label: "Email view mode",      section: "behavior", breadcrumb: "Behavior > Reading", keywords: ["popup", "split view", "full page", "open style", "view style"] },
   { label: "Thread view",          section: "behavior", breadcrumb: "Behavior > Threading", keywords: ["conversation view", "group by thread"] },
   { label: "Undo send",            section: "behavior", breadcrumb: "Behavior > Sending", keywords: ["unsend", "recall email"] },
   { label: "Send delay",           section: "behavior", breadcrumb: "Behavior > Sending", keywords: ["delay send", "scheduled send"] },
