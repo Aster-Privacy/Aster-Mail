@@ -24,6 +24,7 @@ import {
   generate_identity_keypair,
   encrypt_message,
   select_private_key_matching_public,
+  reprotect_pgp_key,
 } from "@/services/crypto/key_manager_pgp";
 import {
   seal_grant,
@@ -162,6 +163,30 @@ describe("shared mailbox grant signature enforcement", () => {
     );
 
     expect(no_match).toBeNull();
+  });
+
+  it("unseals after a password change once previous_keys are reprotected to the new passphrase", async () => {
+    const NEW_PASS = "changed-vault-pass-0099887766";
+    const rekeyed = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+
+    const wrapped = await seal_grant(payload("mbx-1"), rekeyed.public_key, {
+      armored_secret_key: rekeyed.secret_key,
+      passphrase: PASS,
+    });
+
+    await expect(
+      unseal_grant(wrapped, [rekeyed.secret_key], NEW_PASS, rekeyed.public_key),
+    ).rejects.toThrow();
+
+    const reprotected = await reprotect_pgp_key(rekeyed.secret_key, PASS, NEW_PASS);
+    const result = await unseal_grant(
+      wrapped,
+      [reprotected],
+      NEW_PASS,
+      rekeyed.public_key,
+    );
+
+    expect(result.mailbox_user_id).toBe("mbx-1");
   });
 
   it("REJECTS a grant not encrypted to this member (wrong recipient)", async () => {
