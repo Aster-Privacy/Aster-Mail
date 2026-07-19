@@ -309,34 +309,54 @@ export const SidebarFolders = memo(function SidebarFolders({
                           tree_guides.get(folder.folder_token)?.trail[
                             level + 1
                           ] && (
-                            <span
+                            <svg
                               key={`guide-${level}`}
                               aria-hidden="true"
                               className="absolute pointer-events-none"
                               data-tree-guide="vertical"
+                              fill="none"
                               style={{
                                 left: `${level * 16 + 8}px`,
                                 top: "-2px",
-                                bottom: "-2px",
-                                width: "1.5px",
-                                backgroundColor: "var(--border-primary)",
+                                height: "calc(100% + 4px)",
                               }}
-                            />
+                              width={2}
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <line
+                                stroke="var(--border-primary)"
+                                strokeWidth={1.5}
+                                x1={0.75}
+                                x2={0.75}
+                                y1={0}
+                                y2="100%"
+                              />
+                            </svg>
                           ),
                       )}
                       {tree_guides.get(folder.folder_token)?.has_next && (
-                        <span
+                        <svg
                           aria-hidden="true"
                           className="absolute pointer-events-none"
                           data-tree-guide="vertical"
+                          fill="none"
                           style={{
                             left: `${(node.depth - 1) * 16 + 8}px`,
                             top: "-2px",
-                            bottom: "-2px",
-                            width: "1.5px",
-                            backgroundColor: "var(--border-primary)",
+                            height: "calc(100% + 4px)",
                           }}
-                        />
+                          width={2}
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <line
+                            stroke="var(--border-primary)"
+                            strokeWidth={1.5}
+                            x1={0.75}
+                            x2={0.75}
+                            y1={0}
+                            y2="100%"
+                          />
+                        </svg>
                       )}
                       <svg
                         aria-hidden="true"
