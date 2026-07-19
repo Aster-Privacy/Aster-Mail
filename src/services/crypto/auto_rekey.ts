@@ -22,6 +22,7 @@ import {
   get_vault_from_memory,
   get_derived_encryption_key,
 } from "./memory_key_store";
+import { zero_uint8_array } from "./secure_memory";
 import { list_aliases } from "@/services/api/aliases";
 import { list_contacts } from "@/services/api/contacts";
 import { rekey_user_data } from "@/services/api/auth";
@@ -99,7 +100,11 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
   const vault = get_vault_from_memory();
   const new_raw = get_derived_encryption_key();
 
-  if (!vault?.legacy_keks?.length || !new_raw) return false;
+  if (!vault?.legacy_keks?.length || !new_raw) {
+    if (new_raw) zero_uint8_array(new_raw);
+
+    return false;
+  }
 
   const old_decrypt_keys: CryptoKey[] = [];
   for (const kek of vault.legacy_keks) {
@@ -110,7 +115,11 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
     }
   }
 
-  if (old_decrypt_keys.length === 0) return false;
+  if (old_decrypt_keys.length === 0) {
+    zero_uint8_array(new_raw);
+
+    return false;
+  }
 
   rekey_attempted = true;
 
@@ -118,6 +127,8 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
   const new_encrypt = await import_encrypt_key(new_raw);
   const new_alias_hmac = await derive_hmac_key(new_raw, "astermail-alias-hmac-v1");
   const new_contacts_hmac = await derive_hmac_key(new_raw, "contacts-hmac-v2");
+
+  zero_uint8_array(new_raw);
 
   const re_encrypted_aliases: {
     id: string;
