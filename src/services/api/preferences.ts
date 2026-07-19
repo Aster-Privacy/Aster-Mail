@@ -74,6 +74,7 @@ export interface UserPreferences {
   default_signature_id: string | null;
   profile_color: string;
   email_view_mode: "popup" | "split" | "fullpage";
+  settings_view_mode: "fullpage" | "popup";
   keyboard_shortcuts_enabled: boolean;
   confirm_before_delete: boolean;
   confirm_before_archive: boolean;
@@ -375,6 +376,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   default_signature_id: null,
   profile_color: "#3b82f6",
   email_view_mode: "split",
+  settings_view_mode: "fullpage",
   keyboard_shortcuts_enabled: true,
   confirm_before_delete: false,
   confirm_before_archive: false,
