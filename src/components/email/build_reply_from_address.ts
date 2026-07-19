@@ -51,6 +51,26 @@ export function resolve_received_on_alias(
   return match?.full_address;
 }
 
+export function resolve_own_recipient_address(
+  recipient_emails: string[] | undefined,
+  own_addresses: string[],
+): string | undefined {
+  if (!recipient_emails) return undefined;
+  const own = new Set(
+    own_addresses
+      .map((a) => a?.trim().toLowerCase())
+      .filter((a): a is string => !!a),
+  );
+
+  for (const raw of recipient_emails) {
+    const email = raw?.trim();
+
+    if (email && own.has(email.toLowerCase())) return email;
+  }
+
+  return undefined;
+}
+
 export function is_reply_from_mismatch(
   received_on_alias: string | undefined,
   selected_sender_email: string | undefined,

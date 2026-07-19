@@ -264,9 +264,7 @@ export const InlineReplyComposer = forwardRef<
   };
 
   const header = (
-    <div
-      className="flex items-center justify-between px-4 py-2 flex-shrink-0"
-    >
+    <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
       <div className="flex items-center gap-2 text-sm text-txt-secondary min-w-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -427,6 +425,7 @@ export const InlineReplyComposer = forwardRef<
       handle_scheduled_send={reply_modal.handle_scheduled_send}
       handle_send={reply_modal.handle_send}
       handle_template_select={reply_modal.handle_template_select}
+      include_quoted={reply_modal.include_quoted}
       is_mac={reply_modal.is_mac}
       is_minimized={false}
       is_plain_text_mode={reply_modal.is_plain_text_mode}
@@ -444,10 +443,9 @@ export const InlineReplyComposer = forwardRef<
       set_error_message={reply_modal.set_error_message}
       set_expires_at={reply_modal.set_expires_at}
       set_expiry_password={reply_modal.set_expiry_password}
+      set_include_quoted={reply_modal.set_include_quoted}
       set_scheduled_time={reply_modal.set_scheduled_time}
       set_show_delete_confirm={reply_modal.set_show_delete_confirm}
-      include_quoted={reply_modal.include_quoted}
-      set_include_quoted={reply_modal.set_include_quoted}
       set_show_quoted={reply_modal.set_show_quoted}
       show_delete_confirm={reply_modal.show_delete_confirm}
       show_quoted={reply_modal.show_quoted}
@@ -482,6 +480,7 @@ export const InlineReplyComposer = forwardRef<
       last_saved_time={forward_modal.last_saved_time}
       message_content={forward_modal.forward_message}
       message_editor_ref={forward_modal.message_editor_ref}
+      on_discard={on_close}
       recipients_count={forward_modal.recipients.to.length}
       reduce_motion={reduce_motion}
       remove_attachment={forward_modal.remove_attachment}
@@ -495,7 +494,6 @@ export const InlineReplyComposer = forwardRef<
       t={forward_modal.t}
       toggle_plain_text_mode={forward_modal.toggle_plain_text_mode}
       trigger_file_select={forward_modal.trigger_file_select}
-      on_discard={on_close}
     />
   );
 
@@ -528,10 +526,12 @@ export const InlineReplyComposer = forwardRef<
             e.preventDefault();
             e.stopPropagation();
             const files = Array.from(e.dataTransfer?.files || []);
+
             if (files.length > 0) {
               const drop_handler = is_reply_mode
                 ? reply_modal.handle_files_drop
                 : forward_modal.handle_files_drop;
+
               drop_handler(files);
             }
           }}
@@ -557,10 +557,12 @@ export const InlineReplyComposer = forwardRef<
         e.preventDefault();
         e.stopPropagation();
         const files = Array.from(e.dataTransfer?.files || []);
+
         if (files.length > 0) {
           const drop_handler = is_reply_mode
             ? reply_modal.handle_files_drop
             : forward_modal.handle_files_drop;
+
           drop_handler(files);
         }
       }}
