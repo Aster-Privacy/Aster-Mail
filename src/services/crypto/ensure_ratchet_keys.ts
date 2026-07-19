@@ -30,6 +30,7 @@ import {
   upload_prekey_bundle,
 } from "./ratchet_manager";
 import { clear_all_ratchet_states } from "./double_ratchet";
+import { with_vault_write_lock } from "./vault_write_lock";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
@@ -229,7 +230,11 @@ const FORCED_REGEN_KEY = "astermail_ratchet_regen_v4";
 
 const RATCHET_PREVIOUS_KEY_RETENTION = 32;
 
-async function run(): Promise<boolean> {
+function run(): Promise<boolean> {
+  return with_vault_write_lock(run_locked);
+}
+
+async function run_locked(): Promise<boolean> {
   try {
     const vault = get_vault_from_memory();
 
