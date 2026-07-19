@@ -397,6 +397,8 @@ let measure_container: HTMLDivElement | null = null;
 function strip_remote_css_fetches(html: string): string {
   return html
     .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
+    .replace(/(?:-webkit-)?image-set\s*\([^)]*\)/gi, "none")
+    .replace(/cross-fade\s*\([^)]*\)/gi, "none")
     .replace(/@import[^;]*;/gi, "");
 }
 
