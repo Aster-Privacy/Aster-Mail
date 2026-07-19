@@ -215,6 +215,18 @@ export async function open_billing_portal(): Promise<{
 }
 
 async function open_payment_url(url: string): Promise<void> {
+  let parsed: URL;
+
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("Invalid payment URL");
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error("Refusing to open a non-https payment URL");
+  }
+
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     const core = await import("@tauri-apps/api/core");
     await core.invoke("open_external_url", { url });

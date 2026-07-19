@@ -49,6 +49,8 @@ const IMAGE_PROXY_URL = get_image_proxy_url();
 function strip_remote_css_fetches(html: string): string {
   return html
     .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
+    .replace(/(?:-webkit-)?image-set\s*\([^)]*\)/gi, "none")
+    .replace(/cross-fade\s*\([^)]*\)/gi, "none")
     .replace(/@import[^;]*;/gi, "");
 }
 
