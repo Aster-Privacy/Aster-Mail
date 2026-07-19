@@ -1092,6 +1092,7 @@ export const pt = {
     failed_update_alias_avatar: "Seu avatar de alias não foi atualizado. Outra tentativa deve funcionar.",
     failed_update_alias_display_name: "Seu nome de exibição não foi atualizado. Outra tentativa deve funcionar.",
     file_already_attached: "\"{{name}}\" já está neste e-mail. Não é necessário anexá-lo novamente.",
+    metadata_not_removed: "Não foi possível remover os metadados ocultos de {{names}}. O ficheiro foi anexado sem alterações.",
     file_exceeds_max_size: "\"{{name}}\" ultrapassa o limite de 25 MB por arquivo. Uma versão menor, ou um link compartilhado, vai passar.",
     first_contact_colon: "Primeiro contato:",
     folder_fallback: "pasta",

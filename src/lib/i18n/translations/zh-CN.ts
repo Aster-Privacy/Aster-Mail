@@ -1228,6 +1228,7 @@ export const zh_CN = {
     failed_to_get_key_status: "我们无法检查您的密钥状态，再试一次应该可以。您的密钥没有变化。",
     failed_to_read_named_file: "我们无法读取\"{{name}}\"，换一个文件就可以。",
     file_already_attached: "\"{{name}}\"已在这封邮件上，无需再次添加。",
+    metadata_not_removed: "无法从 {{names}} 中移除隐藏的元数据。文件已按原样添加。",
     file_exceeds_max_size: "\"{{name}}\"超过了 25 MB 的单文件限制，较小的版本或共享链接都可以发送。",
     total_attachments_exceed_limit: "您的附件超过了 50 MB 的总限制，移除一个文件或通过链接分享一个就可以发送其余的。",
     adding_file_would_exceed_limit: "添加\"{{name}}\"会让您的附件超过 50 MB 的限制，先移除一个文件，或在单独的邮件中发送，就可以。",

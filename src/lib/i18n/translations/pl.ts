@@ -1247,6 +1247,7 @@ export const pl = {
     adding_file_would_exceed_limit: "Dodanie \"{{name}}\" spowoduje przekroczenie limitu 50 MB dla załączników. Najpierw usuń plik lub wyślij go w oddzielnej wiadomości.",
     unsupported_file_type: "\"{{name}}\" jest nieobsługiwanym typem pliku. Zapisz w innym formacie lub udostępnij przez link.",
     file_already_attached: "\"{{name}}\" jest już dołączone do tej wiadomości. Nie musisz dodawać go ponownie.",
+    metadata_not_removed: "Nie udało się usunąć ukrytych metadanych z {{names}}. Plik został załączony bez zmian.",
     failed_to_read_named_file: "Nie udało się odczytać \"{{name}}\". Spróbuj z innym plikiem.",
     unknown_error: "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj jeszcze raz. Nie udało się określić przyczyny.",
     unknown_sender: "Nieznany",

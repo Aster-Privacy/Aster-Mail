@@ -1210,6 +1210,7 @@ export const nl = {
     failed_update_alias_avatar: "Alias-avatar kon niet worden bijgewerkt",
     failed_update_alias_display_name: "Alias-weergavenaam kon niet worden bijgewerkt",
     file_already_attached: "\"{{name}}\" is al bijgevoegd",
+    metadata_not_removed: "Verborgen metagegevens konden niet uit {{names}} worden verwijderd. Het bestand is ongewijzigd bijgevoegd.",
     file_exceeds_max_size: "\"{{name}}\" overschrijdt de limiet van 25 MB per bestand. Een kleinere versie of een gedeelde link werkt wel.",
     folder_fallback: "Map",
     found_n_contacts: "{{count}} contacten gevonden",

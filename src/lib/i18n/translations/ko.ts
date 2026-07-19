@@ -1332,6 +1332,7 @@ export const ko = {
     adding_file_would_exceed_limit: "\"{{name}}\"를 추가하면 첨부 파일이 50 MB 제한을 초과합니다. 먼저 파일을 제거하거나 별도의 이메일로 보내면 됩니다.",
     unsupported_file_type: "\"{{name}}\"은(는) 첨부할 수 없는 파일 형식입니다. 다른 형식으로 저장하거나 링크로 공유하면 됩니다.",
     file_already_attached: "\"{{name}}\"은(는) 이미 이 이메일에 첨부되어 있습니다. 다시 첨부할 필요가 없습니다.",
+    metadata_not_removed: "{{names}}에서 숨겨진 메타데이터를 제거하지 못했습니다. 파일이 변경되지 않은 상태로 첨부되었습니다.",
     failed_to_read_named_file: "\"{{name}}\"을(를) 읽을 수 없었습니다. 다른 파일이면 됩니다.",
     account_suspended: "계정이 정지된 상태입니다.",
     account_limit_reached: "이 네트워크의 계정 제한에 도달했습니다. 잘못된 표시로 보이면 hello@astermail.org에서 도움을 받을 수 있습니다.",

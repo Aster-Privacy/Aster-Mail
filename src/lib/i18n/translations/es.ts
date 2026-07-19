@@ -1212,6 +1212,7 @@ export const es = {
     failed_update_alias_avatar: "Error al actualizar el avatar del alias",
     failed_update_alias_display_name: "Error al actualizar el nombre visible del alias",
     file_already_attached: "\"{{name}}\" ya está adjunto en este correo. No hace falta adjuntarlo de nuevo.",
+    metadata_not_removed: "No se pudieron eliminar los metadatos ocultos de {{names}}. El archivo se adjuntó sin cambios.",
     file_exceeds_max_size: "\"{{name}}\" supera el límite de 25 MB por archivo. Una versión más pequeña, o un enlace compartido, llegará sin problemas.",
     folder_fallback: "Carpeta",
     found_n_contacts: "Se encontraron {{count}} contactos",

@@ -1212,6 +1212,7 @@ export const de = {
     failed_update_alias_avatar: "Ihr Alias-Avatar wurde nicht aktualisiert. Ein erneuter Versuch sollte es beheben.",
     failed_update_alias_display_name: "Ihr Anzeigename wurde nicht aktualisiert. Ein erneuter Versuch sollte es beheben.",
     file_already_attached: "\"{{name}}\" ist bereits an dieser E-Mail. Es muss nicht erneut angehängt werden.",
+    metadata_not_removed: "Verborgene Metadaten konnten aus {{names}} nicht entfernt werden. Die Datei wurde unverändert angehängt.",
     file_exceeds_max_size: "\"{{name}}\" überschreitet das 25-MB-Limit pro Datei. Eine kleinere Version oder ein geteilter Link funktioniert.",
     folder_fallback: "Ordner",
     found_n_contacts: "{{count}} Kontakte gefunden",

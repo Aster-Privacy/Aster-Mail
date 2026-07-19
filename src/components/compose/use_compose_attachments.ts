@@ -24,7 +24,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
-import { strip_image_metadata } from "@/lib/strip_image_metadata";
+import { strip_metadata } from "@/lib/strip_image_metadata";
 import {
   type Attachment,
   generate_attachment_id,
@@ -77,6 +77,24 @@ const EXTENSION_MIME_MAP: Record<string, string> = {
   avi: "video/x-msvideo",
 };
 
+const METADATA_BEARING_TYPE = /^image\//;
+
+async function apply_metadata_strip(
+  raw: ArrayBuffer,
+  mime_type: string,
+  enabled: boolean,
+  name: string,
+  unstripped: string[],
+): Promise<ArrayBuffer> {
+  if (!enabled || !METADATA_BEARING_TYPE.test(mime_type)) return raw;
+
+  const result = await strip_metadata(raw, mime_type);
+
+  if (result.status !== "stripped") unstripped.push(name);
+
+  return result.data;
+}
+
 function resolve_mime_type(file: File): string {
   if (file.type && file.type !== "application/octet-stream") {
     return file.type;
@@ -120,7 +138,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     attachments_ref.current = attachments;
   }, [attachments]);
 
-
   const remove_attachment = useCallback((id: string) => {
     set_attachments((prev) => prev.filter((a) => a.id !== id));
     set_attachment_error(null);
@@ -138,6 +155,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       set_attachment_error(null);
       const new_attachments: Attachment[] = [];
+      const unstripped: string[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
 
@@ -145,7 +163,10 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         const file = files[i];
 
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          const message = t("common.file_exceeds_max_size", { name: file.name });
+          const message = t("common.file_exceeds_max_size", {
+            name: file.name,
+          });
+
           set_attachment_error(message);
           show_toast(message, "error");
           continue;
@@ -153,6 +174,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
           const message = t("common.total_attachments_exceed_limit");
+
           set_attachment_error(message);
           show_toast(message, "error");
           continue;
@@ -165,16 +187,21 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           new_attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
 
         try {
           const raw = await file.arrayBuffer();
-          const data =
-            preferences.strip_exif_on_compose && mime_type.startsWith("image/")
-              ? await strip_image_metadata(raw, mime_type)
-              : raw;
+          const data = await apply_metadata_strip(
+            raw,
+            mime_type,
+            preferences.strip_exif_on_compose,
+            file.name,
+            unstripped,
+          );
 
           new_attachments.push({
             id: generate_attachment_id(),
@@ -187,7 +214,10 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          const message = t("common.failed_to_read_named_file", { name: file.name });
+          const message = t("common.failed_to_read_named_file", {
+            name: file.name,
+          });
+
           set_attachment_error(message);
           show_toast(message, "error");
         }
@@ -195,25 +225,42 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       if (new_attachments.length > 0) {
         set_attachments((prev) => [...prev, ...new_attachments]);
+      }
+
+      if (unstripped.length > 0) {
+        show_toast(
+          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+          "warning",
+          5000,
+        );
       }
 
       if (file_input_ref.current) {
         file_input_ref.current.value = "";
       }
     },
-    [attachments, get_total_attachments_size, preferences.strip_exif_on_compose, t],
+    [
+      attachments,
+      get_total_attachments_size,
+      preferences.strip_exif_on_compose,
+      t,
+    ],
   );
 
   const handle_files_drop = useCallback(
     async (files: File[]) => {
       set_attachment_error(null);
       const new_attachments: Attachment[] = [];
+      const unstripped: string[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
 
       for (const file of files) {
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          const message = t("common.file_exceeds_max_size", { name: file.name });
+          const message = t("common.file_exceeds_max_size", {
+            name: file.name,
+          });
+
           set_attachment_error(message);
           show_toast(message, "error");
           continue;
@@ -221,6 +268,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
           const message = t("common.total_attachments_exceed_limit");
+
           set_attachment_error(message);
           show_toast(message, "error");
           continue;
@@ -233,16 +281,21 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           new_attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
 
         try {
           const raw = await file.arrayBuffer();
-          const data =
-            preferences.strip_exif_on_compose && mime_type.startsWith("image/")
-              ? await strip_image_metadata(raw, mime_type)
-              : raw;
+          const data = await apply_metadata_strip(
+            raw,
+            mime_type,
+            preferences.strip_exif_on_compose,
+            file.name,
+            unstripped,
+          );
 
           new_attachments.push({
             id: generate_attachment_id(),
@@ -255,7 +308,10 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          const message = t("common.failed_to_read_named_file", { name: file.name });
+          const message = t("common.failed_to_read_named_file", {
+            name: file.name,
+          });
+
           set_attachment_error(message);
           show_toast(message, "error");
         }
@@ -264,8 +320,21 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       if (new_attachments.length > 0) {
         set_attachments((prev) => [...prev, ...new_attachments]);
       }
+
+      if (unstripped.length > 0) {
+        show_toast(
+          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+          "warning",
+          5000,
+        );
+      }
     },
-    [attachments, get_total_attachments_size, preferences.strip_exif_on_compose, t],
+    [
+      attachments,
+      get_total_attachments_size,
+      preferences.strip_exif_on_compose,
+      t,
+    ],
   );
 
   const trigger_file_select = useCallback(() => {

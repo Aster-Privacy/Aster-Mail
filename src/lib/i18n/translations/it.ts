@@ -1250,6 +1250,7 @@ export const it = {
     adding_file_would_exceed_limit: "Aggiungere \"{{name}}\" porterebbe i suoi allegati oltre il limite di 50 MB. Rimuovere prima un file, o inviarlo in un'email separata, funzionerà.",
     unsupported_file_type: "\"{{name}}\" non è un tipo di file che possiamo allegare. Salvarlo in un altro formato, o condividerlo tramite un link, lo farà passare.",
     file_already_attached: "\"{{name}}\" è già su questa email. Non è necessario allegarlo di nuovo.",
+    metadata_not_removed: "Impossibile rimuovere i metadati nascosti da {{names}}. Il file è stato allegato invariato.",
     failed_to_read_named_file: "Non siamo riusciti a leggere \"{{name}}\". Un file diverso funzionerà.",
     unknown_error: "Qualcosa non ha funzionato come previsto. Un altro tentativo dovrebbe bastare. Non siamo riusciti a individuare la causa.",
     unknown_sender: "Sconosciuto",

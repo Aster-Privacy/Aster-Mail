@@ -1211,6 +1211,7 @@ export const fr = {
     failed_update_alias_avatar: "Échec de la mise à jour de l'avatar de l'alias",
     failed_update_alias_display_name: "Échec de la mise à jour du nom d'affichage de l'alias",
     file_already_attached: "{{name}} est déjà joint à cet e-mail.",
+    metadata_not_removed: "Impossible de supprimer les métadonnées masquées de {{names}}. Le fichier a été joint tel quel.",
     file_exceeds_max_size: "\"{{name}}\" dépasse la limite de 25 Mo par fichier. Une version plus petite, ou un lien partagé, passera.",
     folder_fallback: "Dossier",
     found_n_contacts: "{{count}} contacts trouvés",

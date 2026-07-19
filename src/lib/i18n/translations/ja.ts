@@ -1232,6 +1232,7 @@ export const ja = {
     failed_to_remove_folder_password: "フォルダのパスワードを削除できませんでした。もう一度試すと通ることが多いです。フォルダは以前のままロックされています。",
     failed_to_set_folder_password: "フォルダのパスワードが保存されませんでした。もう一度試すと通ることが多いです。フォルダの内容には変更ありません。",
     file_already_attached: "\"{{name}}\" はすでにこのメールに添付されています。再度添付する必要はありません。",
+    metadata_not_removed: "{{names}} から隠しメタデータを削除できませんでした。ファイルはそのまま添付されました。",
     file_exceeds_max_size: "\"{{name}}\" は 25 MB の上限を超えています。より小さいバージョン、または共有リンクでしたら送れます。",
     folder_fallback: "フォルダ",
     found_n_contacts: "{{count}}件の連絡先が見つかりました",

@@ -1290,6 +1290,7 @@ export const en: Translations = {
     adding_file_would_exceed_limit: "Adding \"{{name}}\" would push your attachments past the 50 MB limit. Removing a file first, or sending it in a separate email, will work.",
     unsupported_file_type: "\"{{name}}\" is not a file type we can attach. Saving it in another format, or sharing it through a link, will get it through.",
     file_already_attached: "\"{{name}}\" is already on this email. No need to attach it again.",
+    metadata_not_removed: "Could not remove hidden metadata from {{names}}. The file was attached unchanged.",
     failed_to_read_named_file: "We could not read \"{{name}}\". A different file will work.",
     unknown_error: "Something did not work as expected. Another attempt should do it. We could not pinpoint the cause.",
     unknown_sender: "Unknown",

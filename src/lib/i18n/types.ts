@@ -1619,6 +1619,7 @@ export interface CommonTranslations {
   adding_file_would_exceed_limit: string;
   unsupported_file_type: string;
   file_already_attached: string;
+  metadata_not_removed: string;
   failed_to_read_named_file: string;
   unknown_error: string;
   unknown_sender: string;

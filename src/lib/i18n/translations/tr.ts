@@ -1249,6 +1249,7 @@ export const tr = {
     adding_file_would_exceed_limit: "\"{{name}}\" eklemek eklerinizi 50 MB sınırının üzerine çıkaracak. Önce bir dosyayı kaldırın veya ayrı bir e-postayla gönderin.",
     unsupported_file_type: "\"{{name}}\" ekleyebileceğimiz bir dosya türü değil. Farklı bir formatta kaydedin veya bağlantı üzerinden paylaşın.",
     file_already_attached: "\"{{name}}\" bu e-postaya zaten eklendi. Tekrar eklemenize gerek yok.",
+    metadata_not_removed: "{{names}} dosyasındaki gizli meta veriler kaldırılamadı. Dosya değiştirilmeden eklendi.",
     failed_to_read_named_file: "\"{{name}}\" okunamadı. Farklı bir dosya deneyin.",
     unknown_error: "Bir şeyler beklendiği gibi çalışmadı. Bir kez daha denemek genellikle yeterli olur. Nedeni belirleyemedik.",
     unknown_sender: "Bilinmeyen",
