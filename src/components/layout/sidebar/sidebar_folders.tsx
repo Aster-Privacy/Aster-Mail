@@ -235,6 +235,7 @@ export const SidebarFolders = memo(function SidebarFolders({
             const hasChildren = node.children.length > 0;
             const is_expanded = expanded_folders.has(folder.folder_token);
             const indent = is_collapsed ? 0 : node.depth * 16;
+            const row_inset = indent > 0 ? indent + 4 : 0;
             const siblings = reorder_folders
               ? get_sibling_folders(folders, folder.id)
               : [];
@@ -327,7 +328,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                         style={{
                           left: `${(node.depth - 1) * 16 + 8}px`,
                           height: "50%",
-                          width: "8px",
+                          width: "7px",
                           borderLeft: "1px solid var(--border-primary)",
                           borderBottom: "1px solid var(--border-primary)",
                           borderBottomLeftRadius: "7px",
@@ -354,10 +355,10 @@ export const SidebarFolders = memo(function SidebarFolders({
                     className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : ""} h-8 text-[14px]  ${effective_selected === folder_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""} ${drag_over_token === folder.folder_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
                     style={{
                       zIndex: 1,
-                      marginLeft: is_collapsed ? undefined : `${indent}px`,
+                      marginLeft: is_collapsed ? undefined : `${row_inset}px`,
                       width: is_collapsed
                         ? undefined
-                        : `calc(100% - ${indent}px)`,
+                        : `calc(100% - ${row_inset}px)`,
                       paddingLeft: is_collapsed
                         ? undefined
                         : `${hasChildren ? 18 : 10}px`,

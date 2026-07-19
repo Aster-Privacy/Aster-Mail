@@ -186,7 +186,7 @@ describe("sidebar folder tree guides", () => {
 
     expect(selected).not.toBeNull();
     expect(selected!.querySelector("[data-tree-guide]")).toBeNull();
-    expect((selected as HTMLElement).style.marginLeft).toBe("16px");
+    expect((selected as HTMLElement).style.marginLeft).toBe("20px");
   });
 
   it("draws no continuation below the only child", () => {
