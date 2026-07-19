@@ -391,6 +391,32 @@ export const SidebarFolders = memo(function SidebarFolders({
                     }
                   }}
                 >
+                  {!is_collapsed &&
+                    node.depth > 0 &&
+                    Array.from({ length: node.depth }, (_, level) => (
+                      <span
+                        key={`guide-${level}`}
+                        aria-hidden="true"
+                        className="absolute top-0 bottom-0 w-px pointer-events-none"
+                        data-tree-guide="vertical"
+                        style={{
+                          left: `${level * 16 + 8}px`,
+                          backgroundColor: "var(--border-primary)",
+                        }}
+                      />
+                    ))}
+                  {!is_collapsed && node.depth > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-1/2 h-px pointer-events-none"
+                      data-tree-guide="elbow"
+                      style={{
+                        left: `${(node.depth - 1) * 16 + 9}px`,
+                        width: "7px",
+                        backgroundColor: "var(--border-primary)",
+                      }}
+                    />
+                  )}
                   {!is_collapsed && hasChildren && (
                     <span
                       aria-expanded={is_expanded}

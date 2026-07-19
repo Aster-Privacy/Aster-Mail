@@ -356,8 +356,32 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         return (
           <div
             key={folder.folder_token}
+            className="relative"
             style={{ paddingLeft: node.depth * 16 }}
           >
+            {node.depth > 0 &&
+              Array.from({ length: node.depth }, (_, level) => (
+                <span
+                  key={`guide-${level}`}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-0 bottom-0 w-px"
+                  style={{
+                    left: `${level * 16 + 10}px`,
+                    backgroundColor: "var(--border-primary)",
+                  }}
+                />
+              ))}
+            {node.depth > 0 && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 h-px"
+                style={{
+                  left: `${(node.depth - 1) * 16 + 11}px`,
+                  width: "7px",
+                  backgroundColor: "var(--border-primary)",
+                }}
+              />
+            )}
             <SidebarNavButton
               active={is_active(path)}
               count={count}
