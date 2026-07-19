@@ -28,6 +28,10 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { CloseIcon } from "@/components/common/icons";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import {
+  ReplyFromMismatchModal,
+  type ReplyFromMismatchState,
+} from "@/components/modals/reply_from_mismatch_modal";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { TemplatePicker } from "@/components/compose/template_picker";
@@ -88,6 +92,7 @@ interface ReplyBodyProps {
   toggle_plain_text_mode: () => void;
   handle_template_select: (content: string) => void;
   is_mac: boolean;
+  from_mismatch?: ReplyFromMismatchState;
 }
 
 export function ReplyBody({
@@ -138,6 +143,7 @@ export function ReplyBody({
   toggle_plain_text_mode,
   handle_template_select,
   is_mac,
+  from_mismatch,
 }: ReplyBodyProps) {
   useEffect(() => {
     const el = message_editor_ref.current;
@@ -429,6 +435,8 @@ export function ReplyBody({
         title={t("common.delete_draft")}
         variant="danger"
       />
+
+      {from_mismatch && <ReplyFromMismatchModal {...from_mismatch} />}
     </>
   );
 }

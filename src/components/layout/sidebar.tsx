@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EditDraftData } from "@/components/compose/compose_manager";
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 import type { FolderModalData } from "@/components/layout/sidebar/sidebar_folders";
 import type { TagModalData } from "@/components/layout/sidebar/sidebar_tags";
 
@@ -164,8 +164,11 @@ export const Sidebar = ({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { stats, has_initialized } = use_mail_stats();
-  const { state: folders_state, unread_counts: folder_unread_counts } =
-    use_folders();
+  const {
+    state: folders_state,
+    unread_counts: folder_unread_counts,
+    reorder_folders,
+  } = use_folders();
   const { state: tags_state } = use_tags();
   const {
     aliases,
@@ -855,6 +858,7 @@ export const Sidebar = ({
                   is_loading={folders_state.is_loading}
                   navigate={navigate}
                   on_drop_emails={on_drop_to_folder}
+                  reorder_folders={reorder_folders}
                   set_create_folder_parent_token={set_create_folder_parent_token}
                   set_folders_expanded={set_folders_expanded}
                   set_is_create_folder_open={set_is_create_folder_open}
@@ -895,6 +899,7 @@ export const Sidebar = ({
             navigate={navigate}
             on_drop_emails={on_drop_to_folder}
             on_toggle_section={toggle_folders_collapsed}
+            reorder_folders={reorder_folders}
             section_collapsed={preferences.sidebar_folders_collapsed}
             set_create_folder_parent_token={set_create_folder_parent_token}
             set_folders_expanded={set_folders_expanded}

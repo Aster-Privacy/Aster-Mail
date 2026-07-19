@@ -20,7 +20,7 @@
 //
 import type { MutableRefObject } from "react";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 
 import { memo, useMemo } from "react";
 import {

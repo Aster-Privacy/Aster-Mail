@@ -563,6 +563,9 @@ export interface CommonTranslations {
   move_folder_description: string;
   select_parent_folder: string;
   top_level_no_parent: string;
+  parent_folder: string;
+  move_up: string;
+  move_down: string;
   move_to: string;
   change_folder_color: string;
   select_a_color: string;
@@ -1721,6 +1724,8 @@ export interface CommonTranslations {
 }
 
 export interface SettingsTranslations {
+  quick_settings: string;
+  see_all_settings: string;
   fam_welcome_step1_title: string;
   fam_welcome_step1_desc: string;
   fam_welcome_step1_point1: string;
@@ -4837,6 +4842,10 @@ export interface MailTranslations {
   reply_all: string;
   forward: string;
   reply_subject_prefix: string;
+  reply_from_mismatch_title: string;
+  reply_from_mismatch_message: string;
+  reply_from_mismatch_use_received: string;
+  reply_from_mismatch_send_anyway: string;
   forward_subject_prefix: string;
   reply_quote_header: string;
   to: string;

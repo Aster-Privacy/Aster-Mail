@@ -127,6 +127,7 @@ const noop_load_more = async (): Promise<void> => {};
 
 export function EmailInbox({
   on_settings_click,
+  on_quick_settings_click,
   current_view,
   on_compose,
   on_reply,
@@ -1465,6 +1466,7 @@ export function EmailInbox({
           on_search_submit={on_search_submit}
           on_select_by_filter={selection.handle_select_by_filter}
           on_settings_click={on_settings_click}
+          on_quick_settings_click={on_quick_settings_click}
           on_snooze={toolbar.handle_toolbar_snooze}
           on_spam={handle_spam_wrapped}
           on_tag_toggle={(tag_token) => {

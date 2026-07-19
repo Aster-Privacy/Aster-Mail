@@ -28,6 +28,7 @@ import { undo_send_manager } from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { is_reply_from_mismatch } from "@/components/email/build_reply_from_address";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -219,6 +220,13 @@ export function use_reply_modal({
   const [last_saved_time, set_last_saved_time] = useState<Date | null>(null);
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
   const [is_plain_text_mode, set_is_plain_text_mode] = useState(false);
+  const [show_from_mismatch, set_show_from_mismatch] = useState(false);
+  const [send_after_sender_switch, set_send_after_sender_switch] =
+    useState(false);
+  const from_mismatch_ack_ref = useRef(false);
+  const pending_send_kind_ref = useRef<"send" | "scheduled" | null>(null);
+  const handle_send_ref = useRef<() => void>(() => {});
+  const handle_scheduled_send_ref = useRef<() => void>(() => {});
 
   const message_editor_ref = useRef<HTMLDivElement>(null);
   const file_input_ref = useRef<HTMLInputElement>(null);
@@ -736,9 +744,23 @@ export function use_reply_modal({
     [editor, recipient_name],
   );
 
+  const reply_from_mismatch = useCallback((): boolean => {
+    if (from_mismatch_ack_ref.current) return false;
+
+    return is_reply_from_mismatch(reply_from_address, selected_sender?.email);
+  }, [reply_from_address, selected_sender]);
+
   const handle_send = useCallback(async () => {
     if (is_sending_ref.current) return;
     if (!reply_message.trim() || is_sending) return;
+
+    if (reply_from_mismatch()) {
+      pending_send_kind_ref.current = "send";
+      set_show_from_mismatch(true);
+
+      return;
+    }
+    from_mismatch_ack_ref.current = false;
 
     const now = Date.now();
 
@@ -991,6 +1013,7 @@ export function use_reply_modal({
     user,
     is_plain_text_mode,
     attachments,
+    reply_from_mismatch,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
@@ -1001,6 +1024,14 @@ export function use_reply_modal({
 
       return;
     }
+
+    if (reply_from_mismatch()) {
+      pending_send_kind_ref.current = "scheduled";
+      set_show_from_mismatch(true);
+
+      return;
+    }
+    from_mismatch_ack_ref.current = false;
 
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
@@ -1078,7 +1109,84 @@ export function use_reply_modal({
     draft_id,
     is_plain_text_mode,
     attachments,
+    reply_from_mismatch,
   ]);
+
+  handle_send_ref.current = handle_send;
+  handle_scheduled_send_ref.current = handle_scheduled_send;
+
+  const run_pending_send = useCallback(() => {
+    const kind = pending_send_kind_ref.current;
+
+    pending_send_kind_ref.current = null;
+    if (kind === "scheduled") {
+      handle_scheduled_send_ref.current();
+    } else {
+      handle_send_ref.current();
+    }
+  }, []);
+
+  const from_mismatch_sender_match = useMemo(() => {
+    const normalized = reply_from_address?.trim().toLowerCase();
+
+    if (!normalized) return null;
+
+    return (
+      sender_options.find(
+        (s) => s.is_enabled && s.email?.toLowerCase() === normalized,
+      ) ?? null
+    );
+  }, [reply_from_address, sender_options]);
+
+  const handle_from_mismatch_cancel = useCallback(() => {
+    pending_send_kind_ref.current = null;
+    set_show_from_mismatch(false);
+  }, []);
+
+  const handle_from_mismatch_send_anyway = useCallback(() => {
+    from_mismatch_ack_ref.current = true;
+    set_show_from_mismatch(false);
+    run_pending_send();
+  }, [run_pending_send]);
+
+  const handle_from_mismatch_use_received = useCallback(() => {
+    set_show_from_mismatch(false);
+    if (!from_mismatch_sender_match) {
+      pending_send_kind_ref.current = null;
+
+      return;
+    }
+    from_mismatch_ack_ref.current = true;
+    set_selected_sender(from_mismatch_sender_match);
+    set_send_after_sender_switch(true);
+  }, [from_mismatch_sender_match]);
+
+  useEffect(() => {
+    if (!send_after_sender_switch) return;
+    const received = reply_from_address?.trim().toLowerCase();
+
+    if (
+      received &&
+      selected_sender?.email?.trim().toLowerCase() === received
+    ) {
+      set_send_after_sender_switch(false);
+      run_pending_send();
+    }
+  }, [
+    send_after_sender_switch,
+    selected_sender,
+    reply_from_address,
+    run_pending_send,
+  ]);
+
+  useEffect(() => {
+    if (!is_open) {
+      set_show_from_mismatch(false);
+      set_send_after_sender_switch(false);
+      from_mismatch_ack_ref.current = false;
+      pending_send_kind_ref.current = null;
+    }
+  }, [is_open]);
 
   const handle_close = useCallback(() => {
     on_close();
@@ -1301,5 +1409,14 @@ export function use_reply_modal({
     original_body,
     preferred_sender_id,
     handle_set_preferred,
+    from_mismatch: {
+      open: show_from_mismatch,
+      received: reply_from_address ?? "",
+      selected: selected_sender?.email ?? "",
+      can_use_received: !!from_mismatch_sender_match,
+      on_cancel: handle_from_mismatch_cancel,
+      on_send_anyway: handle_from_mismatch_send_anyway,
+      on_use_received: handle_from_mismatch_use_received,
+    },
   };
 }

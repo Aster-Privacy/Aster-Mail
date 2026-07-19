@@ -420,6 +420,7 @@ export const InlineReplyComposer = forwardRef<
       expires_at={reply_modal.expires_at}
       expiry_password={reply_modal.expiry_password}
       file_input_ref={reply_modal.file_input_ref}
+      from_mismatch={reply_modal.from_mismatch}
       handle_delete_draft={reply_modal.handle_delete_draft}
       handle_file_select={reply_modal.handle_file_select}
       handle_insert_link={reply_modal.handle_insert_link}

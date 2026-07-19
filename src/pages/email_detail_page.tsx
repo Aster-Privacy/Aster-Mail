@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SettingsSection } from "@/components/settings/settings_panel";
+import type { SettingsSection } from "@/components/settings/settings_content";
 
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -32,7 +33,6 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ForwardModal } from "@/components/modals/forward_modal";
 import { ReplyModal } from "@/components/modals/reply_modal";
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
-import { SettingsPanel } from "@/components/settings/settings_panel";
 import { use_should_reduce_motion } from "@/provider";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { EmailDetailHeader } from "@/components/email/email_detail/email_detail_header";
@@ -41,13 +41,18 @@ import { EmailDetailBody } from "@/components/email/email_detail/email_detail_bo
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
   const detail = use_email_detail();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handle_navigate = (e: Event) => {
-      const section = (e as CustomEvent<string>).detail as SettingsSection;
+      const detail_value = (
+        e as CustomEvent<string | { section: string; anchor?: string }>
+      ).detail;
+      const section = (
+        typeof detail_value === "string" ? detail_value : detail_value?.section
+      ) as SettingsSection | undefined;
 
-      detail.set_settings_section(section);
-      detail.set_is_settings_open(true);
+      navigate(section ? `/settings/${section}` : "/settings");
     };
 
     window.addEventListener("navigate-settings", handle_navigate);
@@ -55,7 +60,7 @@ export default function EmailDetailPage() {
     return () => {
       window.removeEventListener("navigate-settings", handle_navigate);
     };
-  }, [detail]);
+  }, [navigate]);
 
   return (
     <>
@@ -65,8 +70,7 @@ export default function EmailDetailPage() {
           on_compose={detail.open_compose}
           on_mobile_toggle={detail.toggle_mobile_sidebar}
           on_settings_click={(section) => {
-            detail.set_settings_section(section);
-            detail.set_is_settings_open(true);
+            navigate(section ? `/settings/${section}` : "/settings");
           }}
         />
         <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
@@ -399,16 +403,6 @@ export default function EmailDetailPage() {
         }
         thread_ghost_email={detail.thread_ghost_email}
         thread_token={detail.mail_item?.thread_token}
-      />
-      <SettingsPanel
-        initial_section={
-          detail.settings_section as "billing" | "account" | undefined
-        }
-        is_open={detail.is_settings_open}
-        on_close={() => {
-          detail.set_is_settings_open(false);
-          detail.set_settings_section(undefined);
-        }}
       />
       <ComposeManager
         instances={detail.compose_instances}

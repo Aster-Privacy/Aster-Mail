@@ -79,6 +79,7 @@ export interface ScheduledClickData {
 
 export interface EmailInboxProps {
   on_settings_click: () => void;
+  on_quick_settings_click?: () => void;
   current_view: string;
   on_compose?: () => void;
   on_reply?: (data: ReplyData) => void;

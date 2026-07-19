@@ -110,6 +110,7 @@ interface SearchResultsPageProps {
   split_email_id?: string | null;
   on_split_close?: () => void;
   on_settings_click?: () => void;
+  on_quick_settings_click?: () => void;
 }
 
 function SearchResultSkeleton() {
@@ -138,6 +139,7 @@ export function SearchResultsPage({
   split_email_id,
   on_split_close,
   on_settings_click,
+  on_quick_settings_click,
 }: SearchResultsPageProps) {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
@@ -951,6 +953,7 @@ export function SearchResultsPage({
               on_search_result_click={on_result_click}
               on_search_submit={on_search_submit}
               on_select_by_filter={handle_select_by_filter}
+              on_quick_settings_click={on_quick_settings_click}
               on_settings_click={on_settings_click || (() => {})}
               on_spam={handle_bulk_spam}
               on_toggle_select_all={handle_select_all_visible}

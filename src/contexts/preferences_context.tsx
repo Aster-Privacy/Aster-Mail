@@ -268,7 +268,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     if (saved) {
       cache_preferences_locally(saved);
 
-      if (saved !== prefs) {
+      if (saved !== prefs && !latest_prefs_ref.current) {
         set_preferences(saved);
       }
 

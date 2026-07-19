@@ -148,6 +148,7 @@ async function decrypt_items_metadata_for_action(
 
 interface HeaderToolbarProps {
   on_settings_click: () => void;
+  on_quick_settings_click?: () => void;
   is_trash_view: boolean;
   on_empty_trash?: () => void;
   trash_count: number;
@@ -165,6 +166,7 @@ interface HeaderToolbarProps {
 
 export function HeaderToolbar({
   on_settings_click,
+  on_quick_settings_click,
   is_trash_view,
   on_empty_trash,
   trash_count,
@@ -296,7 +298,7 @@ export function HeaderToolbar({
           data-onboarding="settings-button"
           size="icon"
           variant="ghost"
-          onClick={on_settings_click}
+          onClick={on_quick_settings_click ?? on_settings_click}
         >
           <Cog6ToothIcon className="w-4 h-4" />
         </Button>
