@@ -400,10 +400,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
                 {guides?.has_next && (
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute bottom-0 w-px"
+                    className="pointer-events-none absolute top-0 bottom-0 w-px"
                     style={{
                       left: `${(node.depth - 1) * 16 + 10}px`,
-                      top: "50%",
                       backgroundColor: "var(--border-primary)",
                     }}
                   />

@@ -322,6 +322,18 @@ export const SidebarFolders = memo(function SidebarFolders({
                             />
                           ),
                       )}
+                      {tree_guides.get(folder.folder_token)?.has_next && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute top-0 bottom-0 pointer-events-none"
+                          data-tree-guide="vertical"
+                          style={{
+                            left: `${(node.depth - 1) * 16 + 8}px`,
+                            width: "1.5px",
+                            backgroundColor: "var(--border-primary)",
+                          }}
+                        />
+                      )}
                       <svg
                         aria-hidden="true"
                         className="absolute top-0 pointer-events-none"
@@ -335,25 +347,16 @@ export const SidebarFolders = memo(function SidebarFolders({
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M0.75 0 V 8 Q 0.75 16 8.75 16 H 12"
+                          d={
+                            tree_guides.get(folder.folder_token)?.has_next
+                              ? "M0.75 6 Q 0.75 16 8.75 16 H 12"
+                              : "M0.75 0 V 8 Q 0.75 16 8.75 16 H 12"
+                          }
                           stroke="var(--border-primary)"
                           strokeLinecap="round"
                           strokeWidth={1.5}
                         />
                       </svg>
-                      {tree_guides.get(folder.folder_token)?.has_next && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute bottom-0 pointer-events-none"
-                          data-tree-guide="vertical"
-                          style={{
-                            left: `${(node.depth - 1) * 16 + 8}px`,
-                            top: "16px",
-                            width: "1.5px",
-                            backgroundColor: "var(--border-primary)",
-                          }}
-                        />
-                      )}
                     </>
                   )}
                   <button
