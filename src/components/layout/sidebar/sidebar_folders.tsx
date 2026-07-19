@@ -312,36 +312,44 @@ export const SidebarFolders = memo(function SidebarFolders({
                             <span
                               key={`guide-${level}`}
                               aria-hidden="true"
-                              className="absolute top-0 bottom-0 w-px pointer-events-none"
+                              className="absolute top-0 bottom-0 pointer-events-none"
                               data-tree-guide="vertical"
                               style={{
                                 left: `${level * 16 + 8}px`,
+                                width: "1.5px",
                                 backgroundColor: "var(--border-primary)",
                               }}
                             />
                           ),
                       )}
-                      <span
+                      <svg
                         aria-hidden="true"
                         className="absolute top-0 pointer-events-none"
                         data-tree-guide="elbow"
+                        fill="none"
+                        height={32}
                         style={{
                           left: `${(node.depth - 1) * 16 + 8}px`,
-                          height: "50%",
-                          width: "7px",
-                          borderLeft: "1px solid var(--border-primary)",
-                          borderBottom: "1px solid var(--border-primary)",
-                          borderBottomLeftRadius: "7px",
                         }}
-                      />
+                        width={13}
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M0.75 0 V 8 Q 0.75 16 8.75 16 H 12"
+                          stroke="var(--border-primary)"
+                          strokeLinecap="round"
+                          strokeWidth={1.5}
+                        />
+                      </svg>
                       {tree_guides.get(folder.folder_token)?.has_next && (
                         <span
                           aria-hidden="true"
-                          className="absolute bottom-0 w-px pointer-events-none"
+                          className="absolute bottom-0 pointer-events-none"
                           data-tree-guide="vertical"
                           style={{
                             left: `${(node.depth - 1) * 16 + 8}px`,
-                            top: "50%",
+                            top: "16px",
+                            width: "1.5px",
                             backgroundColor: "var(--border-primary)",
                           }}
                         />

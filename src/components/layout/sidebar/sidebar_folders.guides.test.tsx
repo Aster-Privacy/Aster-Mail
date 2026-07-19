@@ -154,10 +154,13 @@ describe("sidebar folder tree guides", () => {
 
     const elbows = Array.from(
       document.querySelectorAll("[data-tree-guide='elbow']"),
-    ) as HTMLElement[];
+    ) as SVGElement[];
 
     for (const elbow of elbows) {
-      expect(elbow.style.borderBottomLeftRadius).toBe("7px");
+      expect(elbow.tagName.toLowerCase()).toBe("svg");
+      const path = elbow.querySelector("path");
+
+      expect(path?.getAttribute("stroke-linecap")).toBe("round");
     }
 
     const verticals = Array.from(
