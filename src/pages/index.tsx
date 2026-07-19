@@ -92,6 +92,8 @@ export default function IndexPage() {
     section && SETTINGS_SECTIONS.has(section)
       ? (section as SettingsSection)
       : undefined;
+  const settings_popup_mode =
+    (state.preferences.settings_view_mode ?? "fullpage") === "popup";
 
   useEffect(() => {
     if (section) {
@@ -169,7 +171,7 @@ export default function IndexPage() {
       >
         <NotificationBanner />
         <div className="flex-1 flex transition-colors duration-200 overflow-hidden">
-          {state.is_settings_route ? (
+          {state.is_settings_route && !settings_popup_mode ? (
             <Suspense fallback={<FullPageLoader />}>
               <SettingsContent
                 section={settings_section}
@@ -380,6 +382,32 @@ export default function IndexPage() {
           )}
         </div>
       </div>
+      {state.is_settings_route && settings_popup_mode && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 md:p-4">
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: "var(--modal-overlay)" }}
+            onClick={state.close_settings}
+          />
+          <div
+            className="relative w-full h-full md:w-[80vw] md:max-w-[1200px] md:h-[80vh] md:max-h-[900px] md:rounded-2xl overflow-hidden bg-surf-primary"
+            style={{ border: "1px solid var(--border-secondary)" }}
+          >
+            <Suspense fallback={<FullPageLoader />}>
+              <SettingsContent
+                section={settings_section}
+                variant="popup"
+                on_close={state.close_settings}
+                on_section_change={(next_section) => {
+                  navigate(`/settings/${next_section}`, {
+                    state: state.location.state,
+                  });
+                }}
+              />
+            </Suspense>
+          </div>
+        </div>
+      )}
       {state.reply_data && (
         <ReplyModal
           is_external={state.reply_data.is_external}

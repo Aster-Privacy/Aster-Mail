@@ -1349,6 +1349,8 @@ export const fr = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Affichage des paramètres",
+    settings_view_mode_description: "Ouvrir les paramètres en pleine page ou en fenêtre contextuelle",
     quick_settings: "Paramètres rapides",
     see_all_settings: "Voir tous les paramètres",
     fam_welcome_step1_title: "Bienvenue dans votre forfait famille",

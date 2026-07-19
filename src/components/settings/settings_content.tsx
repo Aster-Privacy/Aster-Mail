@@ -176,6 +176,7 @@ interface SettingsContentProps {
   section?: Section;
   on_section_change: (section: Section) => void;
   on_close: () => void;
+  variant?: "page" | "popup";
 }
 
 let persisted_section: Section | null = null;
@@ -253,7 +254,9 @@ function SettingsContentInner({
   section: section_prop,
   on_section_change,
   on_close,
+  variant = "page",
 }: SettingsContentProps) {
+  const is_popup = variant === "popup";
   use_settings_prefetch(true);
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -720,43 +723,59 @@ function SettingsContentInner({
   return (
     <div className="flex w-full h-full overflow-hidden">
       <aside
-        className="hidden md:flex flex-col flex-shrink-0 h-full bg-sidebar-bg-custom"
-        style={{
-          width: sidebar_width,
-          minWidth: sidebar_width,
-          maxWidth: sidebar_width,
-        }}
+        className={`hidden md:flex flex-col flex-shrink-0 h-full ${is_popup ? "" : "bg-sidebar-bg-custom"}`}
+        style={
+          is_popup
+            ? {
+                width: 208,
+                minWidth: 208,
+                maxWidth: 208,
+                backgroundColor: "var(--sidebar-bg)",
+                borderRight: "1px solid var(--border-primary)",
+              }
+            : {
+                width: sidebar_width,
+                minWidth: sidebar_width,
+                maxWidth: sidebar_width,
+              }
+        }
       >
-        <div className="px-3 pt-4 pb-3">
-          <div className="flex items-center gap-3 px-1 py-1">
-            <img
-              alt={t("common.mail")}
-              className="w-11 h-11 flex-shrink-0 select-none rounded-lg"
-              decoding="async"
-              draggable={false}
-              src="/mail_logo.webp"
-            />
-            <div className="flex flex-col items-start min-w-0 flex-1">
-              <span className="text-[15px] font-semibold text-txt-primary truncate w-full text-left">
-                {t("common.aster_mail")}
-              </span>
-              <span className="text-[11px] truncate w-full text-left text-txt-muted">
-                {t("settings.title")}
-              </span>
+        {!is_popup && (
+          <div className="px-3 pt-4 pb-3">
+            <div className="flex items-center gap-3 px-1 py-1">
+              <img
+                alt={t("common.mail")}
+                className="w-11 h-11 flex-shrink-0 select-none rounded-lg"
+                decoding="async"
+                draggable={false}
+                src="/mail_logo.webp"
+              />
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <span className="text-[15px] font-semibold text-txt-primary truncate w-full text-left">
+                  {t("common.aster_mail")}
+                </span>
+                <span className="text-[11px] truncate w-full text-left text-txt-muted">
+                  {t("settings.title")}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="px-2.5 pb-3">
-          <Button
-            className="w-full !rounded-[14px] gap-2"
-            variant="depth"
-            onClick={on_close}
-          >
-            <ArrowLeftIcon className="w-[15px] h-[15px]" />
-            <span>{t("common.back_to_inbox")}</span>
-          </Button>
-        </div>
-        <nav className="flex-1 px-3 pb-4 pt-1 overflow-y-auto">
+        )}
+        {!is_popup && (
+          <div className="px-2.5 pb-3">
+            <Button
+              className="w-full !rounded-[14px] gap-2"
+              variant="depth"
+              onClick={on_close}
+            >
+              <ArrowLeftIcon className="w-[15px] h-[15px]" />
+              <span>{t("common.back_to_inbox")}</span>
+            </Button>
+          </div>
+        )}
+        <nav
+          className={`flex-1 px-3 pb-4 overflow-y-auto ${is_popup ? "pt-4" : "pt-1"}`}
+        >
         <div ref={nav_container_ref} className="relative">
           <div
             className="pointer-events-none absolute left-0 w-full rounded-[10px]"
@@ -796,24 +815,25 @@ function SettingsContentInner({
         </nav>
       </aside>
 
-      <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
       <div
-        className="flex-1 w-full rounded-lg md:rounded-xl border overflow-hidden flex flex-col min-h-0 transition-colors duration-200 bg-surf-primary"
-        id="main-content"
-        role="main"
-        style={{ borderColor: "var(--border-primary)" }}
-        tabIndex={-1}
+        className={`flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden ${is_popup ? "" : "p-1 md:p-2"}`}
+      >
+      <div
+        className={`flex-1 w-full overflow-hidden flex flex-col min-h-0 transition-colors duration-200 bg-surf-primary ${is_popup ? "" : "rounded-lg md:rounded-xl border"}`}
+        {...(is_popup ? {} : { id: "main-content", role: "main", tabIndex: -1 })}
+        style={is_popup ? undefined : { borderColor: "var(--border-primary)" }}
       >
         <div className="flex items-center gap-3 px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
           {!show_mobile_nav && (
-            <Button
-              className="md:hidden -ml-1.5"
-              size="icon"
-              variant="ghost"
-              onClick={() => set_show_mobile_nav(true)}
-            >
-              <ArrowUturnLeftIcon className="w-5 h-5" />
-            </Button>
+            <span className="md:hidden -ml-1.5 inline-flex">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => set_show_mobile_nav(true)}
+              >
+                <ArrowUturnLeftIcon className="w-5 h-5" />
+              </Button>
+            </span>
           )}
           <h2 className="text-[17px] font-semibold text-txt-primary flex-shrink-0">
             <span className="hidden md:inline">{t("settings.title")}</span>
@@ -925,7 +945,7 @@ function SettingsContentInner({
 
         <div
           ref={content_container_ref}
-          className={`p-4 md:px-12 md:py-8 xl:px-20 flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
+          className={`${is_popup ? "p-4 md:p-6" : "p-4 md:px-12 md:py-8 xl:px-20"} flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
           style={{ scrollbarGutter: "stable" }}
         >
           {is_suspended && (
@@ -964,12 +984,14 @@ function SettingsContentInner({
           )}
           <div
             key={section}
-            className="w-full max-w-[920px] mx-auto"
+            className={is_popup ? "w-full" : "w-full max-w-[920px] mx-auto"}
             style={is_suspended ? { opacity: 0.4, pointerEvents: "none" } : undefined}
           >
-            <h1 className="hidden md:block text-[26px] font-bold text-txt-primary mb-6">
-              {get_current_section_label()}
-            </h1>
+            {!is_popup && (
+              <h1 className="hidden md:block text-[26px] font-bold text-txt-primary mb-6">
+                {get_current_section_label()}
+              </h1>
+            )}
             {active_section_element}
             {is_family_plan && (
               <div className={section !== "family" ? "hidden" : undefined}>

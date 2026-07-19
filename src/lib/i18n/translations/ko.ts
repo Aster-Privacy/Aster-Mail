@@ -1349,6 +1349,8 @@ export const ko = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "설정 보기",
+    settings_view_mode_description: "설정을 전체 페이지 또는 팝업 창으로 열기",
     quick_settings: "빠른 설정",
     see_all_settings: "모든 설정 보기",
     fam_welcome_step1_title: "가족 요금제에 오신 것을 환영합니다",

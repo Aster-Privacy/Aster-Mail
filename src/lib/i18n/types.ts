@@ -1725,6 +1725,8 @@ export interface CommonTranslations {
 
 export interface SettingsTranslations {
   quick_settings: string;
+  settings_view_mode: string;
+  settings_view_mode_description: string;
   see_all_settings: string;
   fam_welcome_step1_title: string;
   fam_welcome_step1_desc: string;

@@ -1349,6 +1349,8 @@ export const pl = {
     or: "lub",
   },
   settings: {
+    settings_view_mode: "Widok ustawień",
+    settings_view_mode_description: "Otwieraj ustawienia jako pełną stronę lub okno podręczne",
     quick_settings: "Szybkie ustawienia",
     see_all_settings: "Zobacz wszystkie ustawienia",
     fam_welcome_step1_title: "Witaj w planie rodzinnym",

@@ -1407,6 +1407,8 @@ export const en: Translations = {
     or: "or",
   },
   settings: {
+    settings_view_mode: "Settings view",
+    settings_view_mode_description: "Open settings as a full page or a popup window",
     quick_settings: "Quick settings",
     see_all_settings: "See all settings",
     fam_welcome_step1_title: "Welcome to your family plan",
