@@ -35,6 +35,7 @@ import {
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
+import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { show_toast } from "@/components/toast/simple_toast";
 
 export interface KeyRotationState {
@@ -155,18 +156,25 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
           return t("common.failed_to_retrieve_key");
         }
 
-        const result = await perform_key_rotation(
-          current_vault,
-          password,
-          user.email,
-          user.display_name ?? user.username ?? "User",
-          preferences.key_history_limit,
-          server_public_key,
-        );
+        const result = await with_vault_write_lock(async () => {
+          const locked_vault = get_vault_from_memory() ?? current_vault;
+          const rotation = await perform_key_rotation(
+            locked_vault,
+            password,
+            user.email,
+            user.display_name ?? user.username ?? "User",
+            preferences.key_history_limit,
+            server_public_key,
+          );
+
+          if (rotation.success && rotation.new_vault) {
+            await store_vault_in_memory(rotation.new_vault, password);
+          }
+
+          return rotation;
+        });
 
         if (result.success && result.new_vault) {
-          await store_vault_in_memory(result.new_vault, password);
-
           if (result.encrypted_vault && result.vault_nonce) {
             store_encrypted_vault(user.id, result.encrypted_vault, result.vault_nonce);
           }

@@ -302,9 +302,22 @@ export function SecuritySection({
         new_password,
       );
 
-      if (!vault.previous_keys) {
-        vault.previous_keys = [];
+      const reprotected_previous: string[] = [];
+
+      for (const previous_key of vault.previous_keys ?? []) {
+        try {
+          reprotected_previous.push(
+            await reprotect_pgp_key(
+              previous_key,
+              current_password,
+              new_password,
+            ),
+          );
+        } catch {
+          reprotected_previous.push(previous_key);
+        }
       }
+      vault.previous_keys = reprotected_previous;
       vault.previous_keys.unshift(reprotected_identity_key);
       if (vault.previous_keys.length > 10) {
         vault.previous_keys = vault.previous_keys.slice(0, 10);
