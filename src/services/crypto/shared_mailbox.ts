@@ -28,6 +28,7 @@ import {
 import {
   encrypt_message,
   decrypt_message_verified_with_any_key,
+  has_usable_signing_key,
   reprotect_pgp_key,
   type sender_signing_key,
 } from "@/services/crypto/key_manager_pgp";
@@ -180,6 +181,10 @@ export async function seal_grant(
   recipient_public_key: string,
   signing_keys: sender_signing_key | sender_signing_key[],
 ): Promise<string> {
+  if (!(await has_usable_signing_key(signing_keys))) {
+    throw new Error("no usable signing key for shared mailbox grant");
+  }
+
   const armored = await encrypt_message(
     JSON.stringify(payload),
     recipient_public_key,

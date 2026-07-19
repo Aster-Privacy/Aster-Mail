@@ -318,10 +318,9 @@ export async function encrypt_for_recipients(
     const passphrase = get_passphrase_from_memory();
     const signing_key =
       vault?.identity_key && passphrase
-        ? {
-            armored_secret_key: vault.identity_key,
-            passphrase,
-          }
+        ? [vault.identity_key, ...(vault.previous_keys ?? [])].map(
+            (armored_secret_key) => ({ armored_secret_key, passphrase }),
+          )
         : undefined;
     const encrypted = await encrypt_message_multi(body, public_keys, signing_key);
 
