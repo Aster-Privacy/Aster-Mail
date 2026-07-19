@@ -62,13 +62,14 @@ import {
   fetch_member_public_key,
   seal_grant,
   generate_rotated_credential,
-  get_current_signing_key,
+  get_grant_signing_keys,
   SHARED_MAILBOX_GRANT_VERSION,
 } from "@/services/crypto/shared_mailbox";
 import { decrypt_vault } from "@/services/crypto/key_manager_pgp";
 import {
   sync_shared_mailbox_grants,
   clear_shared_mailbox_session,
+  cache_shared_mailbox_secret,
 } from "@/services/shared_mailbox_session";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 
@@ -185,7 +186,7 @@ export function SharedMailboxesTab({
           login_secret,
         },
         public_key,
-        get_current_signing_key(),
+        get_grant_signing_keys(),
       );
 
       const response = await add_shared_mailbox_grant(
@@ -221,7 +222,7 @@ export function SharedMailboxesTab({
         me.username,
         my_email,
       );
-      const signing_key = get_current_signing_key();
+      const signing_key = get_grant_signing_keys();
 
       const placeholder_grant = await seal_grant(
         {
@@ -247,6 +248,12 @@ export function SharedMailboxesTab({
 
         return;
       }
+
+      await cache_shared_mailbox_secret(
+        response.data.mailbox_user_id,
+        material.login_secret,
+        response.data.credential_epoch,
+      ).catch(() => {});
 
       const owner_grant = await seal_grant(
         {
@@ -302,7 +309,7 @@ export function SharedMailboxesTab({
       if (busy_mailbox) return false;
       set_busy_mailbox(mailbox_id);
       try {
-        const signing_key = get_current_signing_key();
+        const signing_key = get_grant_signing_keys();
         const fresh = await load();
         const mailbox = fresh.find((m) => m.id === mailbox_id);
 

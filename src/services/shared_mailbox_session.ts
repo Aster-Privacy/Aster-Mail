@@ -44,6 +44,7 @@ import {
   unseal_grant,
   fetch_member_public_key,
 } from "@/services/crypto/shared_mailbox";
+import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp";
 import {
   upsert_shared_account,
   remove_stale_shared_accounts,
@@ -108,11 +109,22 @@ export async function sync_shared_mailbox_grants(): Promise<
           mailbox.my_grant.granted_by_username,
           granter_email,
         );
+        const own_private_keys = [
+          vault.identity_key,
+          ...(vault.previous_keys ?? []),
+        ];
+        const verification_keys = [granter_public_key];
+
+        if (granter_email.toLowerCase() === current?.user?.email?.toLowerCase()) {
+          verification_keys.push(
+            ...(await derive_public_keys_from_private(own_private_keys)),
+          );
+        }
         const payload = await unseal_grant(
           mailbox.my_grant.wrapped_grant,
-          vault.identity_key,
+          own_private_keys,
           passphrase,
-          granter_public_key,
+          verification_keys,
         );
 
         if (payload.mailbox_user_id !== mailbox.mailbox_user_id) {
@@ -147,6 +159,18 @@ export async function sync_shared_mailbox_grants(): Promise<
   }
 
   return response.data.mailboxes;
+}
+
+export async function cache_shared_mailbox_secret(
+  mailbox_user_id: string,
+  login_secret: string,
+  credential_epoch: number,
+): Promise<void> {
+  await store_session_passphrase(mailbox_user_id, login_secret);
+  localStorage.setItem(
+    GRANT_EPOCH_KEY_PREFIX + mailbox_user_id,
+    String(credential_epoch),
+  );
 }
 
 export async function perform_shared_mailbox_login(
