@@ -312,10 +312,12 @@ export const SidebarFolders = memo(function SidebarFolders({
                             <span
                               key={`guide-${level}`}
                               aria-hidden="true"
-                              className="absolute top-0 bottom-0 pointer-events-none"
+                              className="absolute pointer-events-none"
                               data-tree-guide="vertical"
                               style={{
                                 left: `${level * 16 + 8}px`,
+                                top: "-2px",
+                                bottom: "-2px",
                                 width: "1.5px",
                                 backgroundColor: "var(--border-primary)",
                               }}
@@ -325,10 +327,12 @@ export const SidebarFolders = memo(function SidebarFolders({
                       {tree_guides.get(folder.folder_token)?.has_next && (
                         <span
                           aria-hidden="true"
-                          className="absolute top-0 bottom-0 pointer-events-none"
+                          className="absolute pointer-events-none"
                           data-tree-guide="vertical"
                           style={{
                             left: `${(node.depth - 1) * 16 + 8}px`,
+                            top: "-2px",
+                            bottom: "-2px",
                             width: "1.5px",
                             backgroundColor: "var(--border-primary)",
                           }}
@@ -336,12 +340,13 @@ export const SidebarFolders = memo(function SidebarFolders({
                       )}
                       <svg
                         aria-hidden="true"
-                        className="absolute top-0 pointer-events-none"
+                        className="absolute pointer-events-none"
                         data-tree-guide="elbow"
                         fill="none"
-                        height={32}
+                        height={35}
                         style={{
                           left: `${(node.depth - 1) * 16 + 8}px`,
+                          top: "-2px",
                         }}
                         width={13}
                         xmlns="http://www.w3.org/2000/svg"
@@ -349,8 +354,8 @@ export const SidebarFolders = memo(function SidebarFolders({
                         <path
                           d={
                             tree_guides.get(folder.folder_token)?.has_next
-                              ? "M0.75 6 Q 0.75 16 8.75 16 H 12"
-                              : "M0.75 0 V 8 Q 0.75 16 8.75 16 H 12"
+                              ? "M0.75 8 Q 0.75 18 8.75 18 H 12"
+                              : "M0.75 0 V 10 Q 0.75 18 8.75 18 H 12"
                           }
                           stroke="var(--border-primary)"
                           strokeLinecap="round"
