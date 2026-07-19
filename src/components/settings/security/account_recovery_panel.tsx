@@ -77,6 +77,7 @@ import {
   base64_to_array,
 } from "@/services/crypto/key_manager";
 import { array_to_base64 } from "@/services/crypto/key_manager_core";
+import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
 import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { update_vault } from "@/services/api/key_rotation";
 import {
@@ -414,8 +415,15 @@ export function AccountRecoveryPanel() {
         old_vault.identity_key,
         ...(old_vault.previous_keys ?? []),
       ]) {
-        if (old_prev && !live_vault.previous_keys.includes(old_prev)) {
-          live_vault.previous_keys.push(old_prev);
+        if (!old_prev) continue;
+
+        let carried = old_prev;
+
+        try {
+          carried = await reprotect_pgp_key(old_prev, old_password, passphrase);
+        } catch {}
+        if (!live_vault.previous_keys.includes(carried)) {
+          live_vault.previous_keys.push(carried);
         }
       }
       live_vault.previous_keys = live_vault.previous_keys.slice(0, 20);
