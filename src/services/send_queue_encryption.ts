@@ -298,20 +298,29 @@ export async function encrypt_for_recipients(
     const username = await resolve_username_for_key_lookup(recipient);
 
     if (!username) {
-      return { encrypted_body: body, is_encrypted: false };
+      throw create_error(
+        "encryption_failed",
+        en.errors.cannot_send_no_recipient_keys,
+      );
     }
 
     const key_response = await get_recipient_public_key(username, recipient);
 
     if (key_response.error || !key_response.data) {
-      return { encrypted_body: body, is_encrypted: false };
+      throw create_error(
+        "encryption_failed",
+        en.errors.cannot_send_no_recipient_keys,
+      );
     }
 
     public_keys.push(key_response.data.public_key);
   }
 
   if (public_keys.length === 0) {
-    return { encrypted_body: body, is_encrypted: false };
+    throw create_error(
+      "encryption_failed",
+      en.errors.cannot_send_no_recipient_keys,
+    );
   }
 
   try {

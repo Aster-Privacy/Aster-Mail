@@ -289,7 +289,7 @@ export function use_editor({
       const editor = editor_ref.current;
 
       if (editor) {
-        editor.innerHTML = html;
+        editor.innerHTML = sanitize_compose_paste(html);
         handle_input();
       }
     },

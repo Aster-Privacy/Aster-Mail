@@ -31,6 +31,7 @@ import {
   type EncryptedBlob,
 } from "./envelope";
 import { get_derived_encryption_key } from "./memory_key_store";
+import { zero_uint8_array } from "./secure_memory";
 
 const MAIL_METADATA_CONTEXT = "mail-item-metadata";
 
@@ -109,6 +110,10 @@ export async function encrypt_mail_metadata(
     };
   } catch {
     return null;
+  } finally {
+    if (master_key instanceof Uint8Array) {
+      zero_uint8_array(master_key);
+    }
   }
 }
 
@@ -137,6 +142,10 @@ export async function decrypt_mail_metadata(
     );
   } catch {
     return null;
+  } finally {
+    if (master_key instanceof Uint8Array) {
+      zero_uint8_array(master_key);
+    }
   }
 }
 
@@ -197,6 +206,10 @@ export async function encrypt_mail_metadata_batch(
     MAIL_METADATA_CONTEXT,
   );
 
+  if (master_key instanceof Uint8Array) {
+    zero_uint8_array(master_key);
+  }
+
   const results: Array<{
     id: string;
     encrypted_metadata: string;
@@ -237,6 +250,10 @@ export async function decrypt_mail_metadata_batch<
     master_key,
     MAIL_METADATA_CONTEXT,
   );
+
+  if (master_key instanceof Uint8Array) {
+    zero_uint8_array(master_key);
+  }
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
