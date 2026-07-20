@@ -30,6 +30,7 @@ import {
   complete_device_pairing,
   consume_pending_device_login,
   clear_device_session,
+  attempt_device_relogin,
 } from "@/native/desktop_device_auth";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -88,6 +89,54 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
     }
     poll_count_ref.current = 0;
   }, []);
+
+  const finalize_pending_login = useCallback(
+    async (record: {
+      login_response: unknown;
+      passphrase: string | null;
+    }) => {
+      if (!record.passphrase) throw new Error("passphrase_null");
+
+      const lr = record.login_response as {
+        user_id: string;
+        username: string;
+        email: string;
+        encrypted_vault: string;
+        vault_nonce: string;
+      };
+      const vault = await decrypt_vault(
+        lr.encrypted_vault,
+        lr.vault_nonce,
+        record.passphrase,
+      );
+      const user_info_response = await get_user_info();
+      const user_data = user_info_response.data
+        ? {
+            id: lr.user_id,
+            username: lr.username,
+            email: lr.email,
+            display_name: user_info_response.data.display_name || undefined,
+            profile_color: user_info_response.data.profile_color || undefined,
+            profile_picture:
+              user_info_response.data.profile_picture || undefined,
+          }
+        : {
+            id: lr.user_id,
+            username: lr.username,
+            email: lr.email,
+          };
+
+      await login(
+        user_data,
+        vault,
+        record.passphrase,
+        lr.encrypted_vault,
+        lr.vault_nonce,
+      );
+      setTimeout(() => emit_auth_ready(), 50);
+    },
+    [login],
+  );
 
   const start_code_flow = useCallback(
     async (pk: DevicePubkeys) => {
@@ -319,13 +368,50 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
               }
             }
           } else {
-            await clear_device_session();
-            const fresh_pk =
-              await core.invoke<DevicePubkeys>("device_get_pubkeys");
+            let relogged_in = false;
 
-            if (!cancelled) {
-              set_pubkeys(fresh_pk);
-              start_code_flow(fresh_pk);
+            for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
+              if (await attempt_device_relogin(pk.device_id)) {
+                relogged_in = true;
+                break;
+              }
+              if (attempt < 2 && !cancelled) {
+                await new Promise((resolve) =>
+                  setTimeout(resolve, 1000 * (attempt + 1)),
+                );
+              }
+            }
+
+            if (cancelled) return;
+
+            const recovered = relogged_in
+              ? consume_pending_device_login()
+              : null;
+
+            if (recovered?.login_response && recovered?.passphrase) {
+              set_gate_state("completing");
+              try {
+                await finalize_pending_login(recovered);
+              } catch (recover_err) {
+                if (import.meta.env.DEV) console.error(recover_err);
+                await clear_device_session();
+                const fresh_pk =
+                  await core.invoke<DevicePubkeys>("device_get_pubkeys");
+
+                if (!cancelled) {
+                  set_pubkeys(fresh_pk);
+                  start_code_flow(fresh_pk);
+                }
+              }
+            } else {
+              await clear_device_session();
+              const fresh_pk =
+                await core.invoke<DevicePubkeys>("device_get_pubkeys");
+
+              if (!cancelled) {
+                set_pubkeys(fresh_pk);
+                start_code_flow(fresh_pk);
+              }
             }
           }
         }
@@ -350,7 +436,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
       stop_polling();
       window.removeEventListener("astermail:device-paired", on_paired);
     };
-  }, [login, start_code_flow, stop_polling, init_key]);
+  }, [login, start_code_flow, stop_polling, finalize_pending_login, init_key]);
 
   useEffect(() => {
     const was_auth = prev_auth_ref.current;
