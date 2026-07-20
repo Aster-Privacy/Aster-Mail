@@ -141,11 +141,19 @@ export function AliasContextMenu({
               className="mr-2 h-4 w-4"
               style={{
                 color: alias.is_enabled
-                  ? undefined
-                  : "var(--color-red-500, #ef4444)",
+                  ? "var(--color-red-500, #ef4444)"
+                  : "var(--color-green-500, #22c55e)",
               }}
             />
-            {alias.is_enabled ? t("common.disable") : t("common.enable")}
+            <span
+              style={{
+                color: alias.is_enabled
+                  ? "var(--color-red-500, #ef4444)"
+                  : "var(--color-green-500, #22c55e)",
+              }}
+            >
+              {alias.is_enabled ? t("common.disable") : t("common.enable")}
+            </span>
           </ContextMenuItem>
         )}
 
