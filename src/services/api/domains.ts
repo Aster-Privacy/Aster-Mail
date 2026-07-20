@@ -294,19 +294,29 @@ export async function decrypt_domain_address(
   };
 }
 
+const DOMAIN_ADDRESS_DECRYPT_BATCH_SIZE = 25;
+
 export async function decrypt_domain_addresses(
   addresses: DomainAddress[],
 ): Promise<DecryptedDomainAddress[]> {
-  const results = await Promise.allSettled(
-    addresses.map((address) => decrypt_domain_address(address)),
-  );
+  const decrypted: DecryptedDomainAddress[] = [];
 
-  return results
-    .filter(
-      (r): r is PromiseFulfilledResult<DecryptedDomainAddress> =>
-        r.status === "fulfilled",
-    )
-    .map((r) => r.value);
+  for (let i = 0; i < addresses.length; i += DOMAIN_ADDRESS_DECRYPT_BATCH_SIZE) {
+    const batch = addresses.slice(i, i + DOMAIN_ADDRESS_DECRYPT_BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map((address) => decrypt_domain_address(address)),
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled") decrypted.push(result.value);
+    }
+
+    if (i + DOMAIN_ADDRESS_DECRYPT_BATCH_SIZE < addresses.length) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
+  return decrypted;
 }
 
 export async function list_domains(): Promise<ApiResponse<DomainListResponse>> {
