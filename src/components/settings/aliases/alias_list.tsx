@@ -27,6 +27,8 @@ import {
   ExclamationTriangleIcon,
   TrashIcon,
   MagnifyingGlassIcon,
+  CheckCircleIcon,
+  NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
 import {
@@ -47,7 +49,7 @@ import {
 } from "@/components/settings/aliases/alias_card";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
-import { update_alias, delete_alias, toggle_alias_pin, get_alias_preferences } from "@/services/api/aliases";
+import { update_alias, delete_alias, get_alias_preferences } from "@/services/api/aliases";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
@@ -74,7 +76,7 @@ interface AliasListProps {
     address_id: string,
     name: string,
   ) => void;
-  on_alias_pin_toggled?: () => void;
+  on_alias_pin_toggle: (id: string) => void;
 }
 
 function UndecryptableAliasCard({
@@ -131,7 +133,7 @@ export function AliasList({
   on_websites_saved,
   on_aliases_changed,
   on_domain_address_display_name_saved,
-  on_alias_pin_toggled,
+  on_alias_pin_toggle,
 }: AliasListProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
@@ -143,20 +145,6 @@ export function AliasList({
       if (r.data?.alias_always_expand) set_auto_expand(true);
     }).catch(() => {});
   }, []);
-
-  const handle_pin_toggle = async (alias_id: string) => {
-    const response = await toggle_alias_pin(alias_id);
-
-    if (!response.error) {
-      show_toast(
-        response.data?.is_pinned
-          ? t("settings.alias_pinned_toast")
-          : t("settings.alias_unpinned_toast"),
-        "success",
-      );
-      on_alias_pin_toggled?.();
-    }
-  };
 
   const [search_query, set_search_query] = useState("");
   const [filter_mode, set_filter_mode] = useState<FilterMode>("all");
@@ -339,9 +327,9 @@ export function AliasList({
           </SelectContent>
         </Select>
         <Button
-          className={bulk_mode ? "h-9 text-blue-500 border-blue-500/30" : "h-9"}
-          size="sm"
-          variant={bulk_mode ? "outline" : "ghost"}
+          className="h-9 shrink-0"
+          size="md"
+          variant={bulk_mode ? "outline" : "depth"}
           onClick={() => bulk_mode ? exit_bulk_mode() : set_bulk_mode(true)}
         >
           {t("settings.alias_bulk_edit")}
@@ -349,9 +337,9 @@ export function AliasList({
       </div>
 
       {bulk_mode && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-surf-secondary border border-edge-secondary">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1 py-2 border-b border-edge-secondary">
           <button
-            className="flex items-center gap-2 flex-1 min-w-0 text-left cursor-pointer"
+            className="flex items-center gap-2 min-w-0 text-left cursor-pointer"
             type="button"
             onClick={() => handle_select_all(!all_filtered_selected)}
           >
@@ -366,32 +354,25 @@ export function AliasList({
             </span>
           </button>
           {selected_ids.size > 0 && (
-            <>
-              <Button
-                className="h-7 text-xs"
-                size="sm"
-                variant="ghost"
-                onClick={handle_bulk_enable}
-              >
+            <div className="flex items-center gap-1.5">
+              <Button size="sm" variant="outline" onClick={handle_bulk_enable}>
+                <CheckCircleIcon className="w-3.5 h-3.5" />
                 {t("settings.alias_bulk_enable")}
               </Button>
-              <Button
-                className="h-7 text-xs"
-                size="sm"
-                variant="ghost"
-                onClick={handle_bulk_disable}
-              >
+              <Button size="sm" variant="outline" onClick={handle_bulk_disable}>
+                <NoSymbolIcon className="w-3.5 h-3.5" />
                 {t("settings.alias_bulk_disable")}
               </Button>
               <Button
-                className="h-7 text-xs text-red-500 hover:text-red-500 hover:bg-red-500/10"
+                className="text-red-500 hover:text-red-500"
                 size="sm"
-                variant="ghost"
+                variant="outline"
                 onClick={() => set_show_bulk_delete_confirm(true)}
               >
+                <TrashIcon className="w-3.5 h-3.5" />
                 {t("settings.alias_bulk_delete")}
               </Button>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -420,7 +401,7 @@ export function AliasList({
               on_websites_saved={on_websites_saved}
               on_select={handle_select}
               default_advanced_open={auto_expand}
-              on_pin_toggle={handle_pin_toggle}
+              on_pin_toggle={on_alias_pin_toggle}
               on_toggle={on_alias_toggle}
               toggling={toggling_id === alias.id}
             />

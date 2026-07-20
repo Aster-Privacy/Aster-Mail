@@ -30,6 +30,7 @@ import {
   delete_alias,
   decrypt_aliases,
   get_alias_counts,
+  toggle_alias_pin,
   type DecryptedEmailAlias,
   type AliasCountsResponse,
 } from "@/services/api/aliases";
@@ -332,6 +333,13 @@ export function use_aliases() {
           return reverted;
         });
         show_toast(response.error || t("settings.alias_toggle_failed"), "error");
+      } else {
+        show_toast(
+          enabled
+            ? t("settings.alias_enabled_toast")
+            : t("settings.alias_disabled_toast"),
+          "success",
+        );
       }
     } catch (error) {
       set_aliases((prev) => {
@@ -345,6 +353,51 @@ export function use_aliases() {
       if (import.meta.env.DEV) console.error(error);
     } finally {
       set_toggling_id(null);
+    }
+  };
+
+  const handle_pin_toggle = async (id: string) => {
+    const target = aliases.find((a) => a.id === id);
+    if (!target) return;
+    const next_pinned = !target.is_pinned;
+
+    set_aliases((prev) => {
+      const updated = prev.map((a) =>
+        a.id === id ? { ...a, is_pinned: next_pinned } : a,
+      );
+      aliases_cache.aliases = updated;
+      return updated;
+    });
+
+    try {
+      const response = await toggle_alias_pin(id);
+
+      if (response.error) {
+        set_aliases((prev) => {
+          const reverted = prev.map((a) =>
+            a.id === id ? { ...a, is_pinned: !next_pinned } : a,
+          );
+          aliases_cache.aliases = reverted;
+          return reverted;
+        });
+        show_toast(response.error, "error");
+      } else {
+        show_toast(
+          response.data?.is_pinned
+            ? t("settings.alias_pinned_toast")
+            : t("settings.alias_unpinned_toast"),
+          "success",
+        );
+      }
+    } catch (error) {
+      set_aliases((prev) => {
+        const reverted = prev.map((a) =>
+          a.id === id ? { ...a, is_pinned: !next_pinned } : a,
+        );
+        aliases_cache.aliases = reverted;
+        return reverted;
+      });
+      if (import.meta.env.DEV) console.error(error);
     }
   };
 
@@ -651,6 +704,7 @@ export function use_aliases() {
     load_domain_addresses,
     load_domains,
     handle_alias_toggle,
+    handle_pin_toggle,
     handle_alias_delete,
     confirm_alias_delete,
     handle_domain_addr_delete,

@@ -42,8 +42,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
-import { update_alias, get_alias_stats, get_alias_activity } from "@/services/api/aliases";
-import type { AliasStats, AliasActivityDay } from "@/services/api/aliases";
+import { update_alias } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
 import {
   get_preferred_sender_id,
@@ -53,8 +52,7 @@ import {
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
-import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
-import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
+import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
 import { AliasAdvancedPanel } from "@/components/settings/aliases/alias_advanced_panel";
 
 const AVATAR_MAX_SIZE = 256;
@@ -286,31 +284,6 @@ export function AliasItem({
     ? get_grace_days_remaining(alias.downgrade_grace_expires_at!)
     : 0;
 
-  const [stats, set_stats] = useState<AliasStats | null>(null);
-  const [activity, set_activity] = useState<AliasActivityDay[] | null>(null);
-
-  useEffect(() => {
-    if (!advanced_open) return;
-
-    let active = true;
-
-    get_alias_stats(alias.id)
-      .then((response) => {
-        if (active && response.data) set_stats(response.data);
-      })
-      .catch(() => {});
-
-    get_alias_activity(alias.id)
-      .then((response) => {
-        if (active && response.data) set_activity(response.data.days.slice(0, 7).reverse());
-      })
-      .catch(() => {});
-
-    return () => {
-      active = false;
-    };
-  }, [alias.id, advanced_open]);
-
   useEffect(() => {
     set_local_picture(undefined);
   }, [alias.profile_picture]);
@@ -407,16 +380,16 @@ export function AliasItem({
 
   return (
     <div className="group rounded-xl transition-all border border-edge-secondary">
-    <div className="flex items-center gap-3 p-4">
+    <div className="flex items-start gap-3 p-4">
       {bulk_mode && (
         <Checkbox
           checked={!!is_selected}
-          className="shrink-0"
+          className="shrink-0 mt-2.5"
           onCheckedChange={(v) => on_select?.(alias.id, !!v)}
         />
       )}
       <div
-        className="flex flex-1 min-w-0 items-center gap-3"
+        className="flex flex-1 min-w-0 items-start gap-3"
         style={{
           opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
         }}
@@ -455,71 +428,31 @@ export function AliasItem({
             </span>
           )}
         </div>
-        <AliasDisplayNameEditor
+        <AliasMetaEditor
           alias_address={alias.full_address}
           display_name={alias.display_name}
           is_locked={is_avatar_locked}
-          on_save={(name) => update_alias(alias.id, { display_name: name })}
-          on_saved={(name) => on_display_name_saved?.(alias.id, name)}
-        />
-        <AliasNoteEditor
-          alias_address={alias.full_address}
           note={alias.note}
-          on_save={(note_value) =>
+          websites={alias.websites}
+          on_save_display_name={(name) =>
+            update_alias(alias.id, { display_name: name })
+          }
+          on_saved_display_name={(name) =>
+            on_display_name_saved?.(alias.id, name)
+          }
+          on_save_note={(note_value) =>
             update_alias(alias.id, { note: note_value || null })
           }
-          on_saved={(note_value) => on_note_saved?.(alias.id, note_value)}
-        />
-        <AliasWebsitesEditor
-          alias_address={alias.full_address}
-          websites={alias.websites}
-          on_save={(websites_value) =>
+          on_saved_note={(note_value) => on_note_saved?.(alias.id, note_value)}
+          on_save_websites={(websites_value) =>
             update_alias(alias.id, {
               websites: websites_value.length > 0 ? websites_value : null,
             })
           }
-          on_saved={(websites_value) =>
+          on_saved_websites={(websites_value) =>
             on_websites_saved?.(alias.id, websites_value)
           }
         />
-        {!is_feature_locked("has_advanced_aliases") && stats && (
-          <div className="mt-0.5 flex items-center gap-2">
-            <p className="text-[11px] text-txt-muted">
-              {t("settings.alias_stats_received" as TranslationKey, {
-                count: stats.received,
-              })}
-              {" · "}
-              {t("settings.alias_stats_blocked" as TranslationKey, {
-                count: stats.blocked,
-              })}
-            </p>
-            {activity && activity.length > 0 && (() => {
-              const max_val = Math.max(...activity.map((d) => d.received + d.blocked), 1);
-              return (
-                <div
-                  className="flex items-end gap-px"
-                  title={t("settings.alias_activity_title")}
-                >
-                  {activity.map((day, i) => {
-                    const total = day.received + day.blocked;
-                    const height = Math.max(2, Math.round((total / max_val) * 14));
-                    return (
-                      <div
-                        key={i}
-                        className="w-1 rounded-sm transition-opacity hover:opacity-70"
-                        style={{
-                          height: `${height}px`,
-                          backgroundColor: day.blocked > 0 ? "var(--color-red-400, #f87171)" : "var(--color-indigo-400, #818cf8)",
-                        }}
-                        title={`${day.date}: ${t("settings.alias_activity_received" as TranslationKey, { count: day.received })}, ${t("settings.alias_activity_blocked" as TranslationKey, { count: day.blocked })}`}
-                      />
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </div>
-        )}
         {in_grace_period && (
           <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
             {t("settings.alias_grace_upgrade_hint" as TranslationKey)}
@@ -551,7 +484,7 @@ export function AliasItem({
           <Button
             className={
               alias.is_pinned
-                ? "h-8 w-8 text-amber-500 hover:text-amber-500 hover:bg-amber-500/10"
+                ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
                 : "hidden group-hover:inline-flex h-8 w-8"
             }
             size="icon"
@@ -566,7 +499,11 @@ export function AliasItem({
             }}
           >
             <PinIcon
-              className={alias.is_pinned ? "w-4 h-4" : "w-4 h-4 text-txt-muted"}
+              className={
+                alias.is_pinned
+                  ? "w-5 h-5 text-blue-500 rotate-45 transition-transform duration-200"
+                  : "w-5 h-5 text-txt-muted transition-transform duration-200"
+              }
               filled={!!alias.is_pinned}
             />
           </Button>
@@ -864,10 +801,21 @@ export function DomainAddressItem({
               set_toggling(true);
               try {
                 const resp = await update_domain_address(address.domain_id, address.id, { is_enabled: checked });
-                if (resp.error) set_is_enabled(!checked);
-                else on_toggle?.(address.id, address.domain_id, checked);
+                if (resp.error) {
+                  set_is_enabled(!checked);
+                  show_toast(resp.error || t("settings.alias_toggle_failed" as TranslationKey), "error");
+                } else {
+                  on_toggle?.(address.id, address.domain_id, checked);
+                  show_toast(
+                    checked
+                      ? t("settings.alias_enabled_toast" as TranslationKey)
+                      : t("settings.alias_disabled_toast" as TranslationKey),
+                    "success",
+                  );
+                }
               } catch {
                 set_is_enabled(!checked);
+                show_toast(t("settings.alias_toggle_failed" as TranslationKey), "error");
               } finally {
                 set_toggling(false);
               }

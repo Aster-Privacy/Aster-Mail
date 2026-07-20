@@ -30,10 +30,15 @@ import {
 } from "react";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { list_encrypted_mail_items, type MailItem } from "@/services/api/mail";
+import {
+  list_encrypted_mail_items,
+  reencrypt_mail_item_envelope,
+  type MailItem,
+} from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import {
   decrypt_envelope_with_bytes,
+  encrypt_envelope_with_identity_key,
   base64_to_array,
   normalize_envelope_from,
 } from "@/services/crypto/envelope";
@@ -42,7 +47,7 @@ import {
   get_passphrase_from_memory,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
-import { decrypt_message_with_any_key } from "@/services/crypto/key_manager";
+import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { get_email_username } from "@/lib/utils";
@@ -486,9 +491,56 @@ async function try_decrypt_with_identity_key(
   return null;
 }
 
+const legacy_migration_attempted = new Set<string>();
+let legacy_migration_inflight = 0;
+const LEGACY_MIGRATION_MAX_INFLIGHT = 4;
+const legacy_migration_queue: Array<() => void> = [];
+
+function schedule_legacy_envelope_migration(
+  item_id: string,
+  envelope: DecryptedEnvelope,
+): void {
+  if (legacy_migration_attempted.has(item_id)) return;
+  legacy_migration_attempted.add(item_id);
+
+  const run = async () => {
+    legacy_migration_inflight++;
+
+    try {
+      const vault = get_vault_from_memory();
+
+      if (!vault?.identity_key) return;
+
+      const { encrypted, nonce } = await encrypt_envelope_with_identity_key(
+        envelope,
+        vault.identity_key,
+      );
+
+      await reencrypt_mail_item_envelope(item_id, {
+        encrypted_envelope: encrypted,
+        envelope_nonce: nonce,
+      });
+    } catch {
+      legacy_migration_attempted.delete(item_id);
+    } finally {
+      legacy_migration_inflight--;
+      const next = legacy_migration_queue.shift();
+
+      if (next) next();
+    }
+  };
+
+  if (legacy_migration_inflight < LEGACY_MIGRATION_MAX_INFLIGHT) {
+    run();
+  } else {
+    legacy_migration_queue.push(run);
+  }
+}
+
 async function decrypt_envelope_for_search(
   encrypted: string,
   nonce: string,
+  item_id: string,
 ): Promise<DecryptedEnvelope | null> {
   const nonce_bytes = nonce ? base64_to_array(nonce) : new Uint8Array(0);
 
@@ -498,20 +550,27 @@ async function decrypt_envelope_for_search(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        return JSON.parse(text) as DecryptedEnvelope;
+        const parsed = JSON.parse(text) as DecryptedEnvelope;
+
+        schedule_legacy_envelope_migration(item_id, parsed);
+
+        return parsed;
       }
 
       const vault = get_vault_from_memory();
       const pass = get_passphrase_from_memory();
 
       if (vault?.identity_key && pass) {
-        const decrypted = await decrypt_message_with_any_key(
+        const decrypted = await decrypt_pgp_message_parallel(
           text,
           [vault.identity_key, ...(vault.previous_keys ?? [])],
           pass,
         );
+        const parsed = JSON.parse(decrypted) as DecryptedEnvelope;
 
-        return JSON.parse(decrypted) as DecryptedEnvelope;
+        schedule_legacy_envelope_migration(item_id, parsed);
+
+        return parsed;
       }
 
       return null;
@@ -532,6 +591,8 @@ async function decrypt_envelope_for_search(
       );
 
       zero_uint8_array(passphrase);
+
+      if (result) schedule_legacy_envelope_migration(item_id, result);
 
       return result;
     }
@@ -663,7 +724,7 @@ async function do_build_search_index(
   const decrypted = new Map<string, DecryptedIndexEntry>();
   let fresh_count = 0;
 
-  const batch_size = 20;
+  const batch_size = include_body ? 40 : 250;
 
   for (let i = 0; i < all_items.length; i += batch_size) {
     const batch = all_items.slice(i, i + batch_size);
@@ -711,6 +772,7 @@ async function do_build_search_index(
           const envelope = await decrypt_envelope_for_search(
             item.encrypted_envelope,
             item.envelope_nonce,
+            item.id,
           );
 
           if (envelope?.body_text) {
@@ -1137,6 +1199,26 @@ function matches_operator(
   }
 }
 
+const BODY_CONTENT_OPERATOR_TYPES = new Set(["filename", "attachment"]);
+
+function operator_needs_body(op: ParsedOperator): boolean {
+  if (BODY_CONTENT_OPERATOR_TYPES.has(op.type)) return true;
+  if (op.type === "has") {
+    const val = op.value.toLowerCase();
+
+    return val !== "attachment" && val !== "attachments";
+  }
+
+  return false;
+}
+
+function query_requires_body(
+  terms: string[],
+  operators: ParsedOperator[],
+): boolean {
+  return terms.length > 0 || operators.some(operator_needs_body);
+}
+
 export function matches_query(
   terms: string[],
   operators: ParsedOperator[],
@@ -1342,19 +1424,6 @@ export function use_search() {
       const start = Date.now();
 
       try {
-        set_state((prev) => ({ ...prev, index_building: true }));
-
-        const search_body = options?.search_body !== false;
-        const index = await build_search_index(
-          user?.email || "",
-          search_body,
-          ttl,
-        );
-
-        set_state((prev) => ({ ...prev, index_building: false }));
-
-        if (abort_ref.current?.signal.aborted) return;
-
         const parsed = parse_search_query(query);
         const terms = parsed.text_query
           .split(/\s+/)
@@ -1373,6 +1442,20 @@ export function use_search() {
 
           return;
         }
+
+        set_state((prev) => ({ ...prev, index_building: true }));
+
+        const search_body =
+          options?.search_body !== false && query_requires_body(terms, operators);
+        const index = await build_search_index(
+          user?.email || "",
+          search_body,
+          ttl,
+        );
+
+        set_state((prev) => ({ ...prev, index_building: false }));
+
+        if (abort_ref.current?.signal.aborted) return;
 
         const results: SearchResultItem[] = [];
 

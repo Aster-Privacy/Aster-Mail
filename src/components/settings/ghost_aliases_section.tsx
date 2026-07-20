@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { EyeSlashIcon } from "@heroicons/react/24/outline";
+import { EyeSlashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -30,11 +30,32 @@ import {
   type DecryptedGhostAlias,
 } from "@/services/api/ghost_aliases";
 import { register_ghost_email } from "@/stores/ghost_alias_store";
+import { show_toast } from "@/components/toast/simple_toast";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+
+const GHOST_ALIAS_MAX_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
+const GHOST_ALIAS_GRACE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
+
+function format_alias_date(date: Date): string {
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function is_at_max_extension(alias: DecryptedGhostAlias): boolean {
+  if (!alias.expires_at) return false;
+  const max_expires =
+    new Date(alias.created_at).getTime() + GHOST_ALIAS_MAX_LIFETIME_MS;
+  const current_expires = new Date(alias.expires_at).getTime();
+
+  return current_expires >= max_expires - 60_000;
+}
 
 export function GhostAliasesSection() {
   const { t } = use_i18n();
@@ -50,6 +71,10 @@ export function GhostAliasesSection() {
     is_open: boolean;
     eligible_date: string | null;
   }>({ is_open: false, eligible_date: null });
+  const [confirm_expire_info, set_confirm_expire_info] = useState<{
+    alias_id: string;
+    grace_date: string;
+  } | null>(null);
 
   const load_aliases = useCallback(async () => {
     set_loading(true);
@@ -73,6 +98,18 @@ export function GhostAliasesSection() {
     load_aliases();
   }, [load_aliases]);
 
+  useEffect(() => {
+    const handle_created = () => load_aliases();
+
+    window.addEventListener("astermail:ghost-alias-created", handle_created);
+
+    return () =>
+      window.removeEventListener(
+        "astermail:ghost-alias-created",
+        handle_created,
+      );
+  }, [load_aliases]);
+
   const handle_expire = useCallback(
     async (alias_id: string) => {
       const alias = aliases.find((a) => a.id === alias_id);
@@ -94,28 +131,46 @@ export function GhostAliasesSection() {
           return;
         }
       }
-      set_action_loading(alias_id);
-      try {
-        await expire_ghost_alias(alias_id);
-        await load_aliases();
-      } finally {
-        set_action_loading(null);
-      }
+      set_confirm_expire_info({
+        alias_id,
+        grace_date: format_alias_date(
+          new Date(Date.now() + GHOST_ALIAS_GRACE_PERIOD_MS),
+        ),
+      });
     },
-    [load_aliases, aliases, is_free_plan],
+    [aliases, is_free_plan],
   );
 
+  const confirm_expire = useCallback(async () => {
+    if (!confirm_expire_info) return;
+    const alias_id = confirm_expire_info.alias_id;
+
+    set_confirm_expire_info(null);
+    set_action_loading(alias_id);
+    try {
+      await expire_ghost_alias(alias_id);
+      await load_aliases();
+    } finally {
+      set_action_loading(null);
+    }
+  }, [confirm_expire_info, load_aliases]);
+
   const handle_extend = useCallback(
-    async (alias_id: string) => {
-      set_action_loading(alias_id);
+    async (alias: DecryptedGhostAlias) => {
+      if (is_at_max_extension(alias)) {
+        show_toast(t("settings.ghost_alias_max_extension_toast"), "error");
+
+        return;
+      }
+      set_action_loading(alias.id);
       try {
-        await extend_ghost_alias(alias_id, 30);
+        await extend_ghost_alias(alias.id, 30);
         await load_aliases();
       } finally {
         set_action_loading(null);
       }
     },
-    [load_aliases],
+    [load_aliases, t],
   );
 
   const now = new Date();
@@ -153,15 +208,6 @@ export function GhostAliasesSection() {
     return diff > 0 ? diff : 0;
   };
 
-  const is_at_max_extension = (alias: DecryptedGhostAlias) => {
-    if (!alias.expires_at) return false;
-    const max_expires =
-      new Date(alias.created_at).getTime() + 90 * 24 * 60 * 60 * 1000;
-    const current_expires = new Date(alias.expires_at).getTime();
-
-    return current_expires >= max_expires - 60_000;
-  };
-
   if (loading) {
     return <SettingsSkeleton variant="list" />;
   }
@@ -190,9 +236,19 @@ export function GhostAliasesSection() {
       {aliases.length === 0 ? (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <EyeSlashIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-          <p className="text-sm text-txt-muted">
+          <p className="text-sm mb-4 text-txt-muted">
             {t("settings.ghost_aliases_empty")}
           </p>
+          <Button
+            size="md"
+            variant="depth"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("astermail:open-compose-ghost"))
+            }
+          >
+            <PencilSquareIcon className="w-4 h-4" />
+            {t("settings.ghost_aliases_compose_cta")}
+          </Button>
         </div>
       ) : (
         <>
@@ -227,29 +283,21 @@ export function GhostAliasesSection() {
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <Button
-                        disabled={
-                          action_loading === alias.id ||
-                          is_at_max_extension(alias)
-                        }
+                        disabled={action_loading === alias.id}
                         size="sm"
                         variant="depth"
-                        onClick={() => handle_extend(alias.id)}
+                        onClick={() => handle_extend(alias)}
                       >
                         {t("settings.ghost_alias_extend")}
                       </Button>
-                      <button
-                        className="inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-[12px] text-white cursor-pointer transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
+                      <Button
                         disabled={action_loading === alias.id}
-                        style={{
-                          background:
-                            "linear-gradient(180deg, #ff6b6b 0%, #f74f4f 50%, #e83b3b 100%)",
-                          boxShadow:
-                            "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                        }}
+                        size="sm"
+                        variant="depth_destructive"
                         onClick={() => handle_expire(alias.id)}
                       >
                         {t("settings.ghost_alias_expire_now")}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -306,6 +354,16 @@ export function GhostAliasesSection() {
         }
         title={t("settings.ghost_alias_too_new_title")}
         variant="info"
+      />
+      <ConfirmationModal
+        is_open={confirm_expire_info !== null}
+        message={t("settings.ghost_alias_expire_confirm_message", {
+          date: confirm_expire_info?.grace_date ?? "",
+        })}
+        on_cancel={() => set_confirm_expire_info(null)}
+        on_confirm={confirm_expire}
+        title={t("settings.ghost_alias_expire_confirm_title")}
+        variant="danger"
       />
     </div>
   );

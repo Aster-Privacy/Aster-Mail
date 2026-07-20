@@ -916,6 +916,11 @@ export function use_index_page_state() {
       }
     };
 
+    const handle_open_compose_ghost = () => {
+      close_settings();
+      open_compose_instance(null, undefined, true);
+    };
+
     window.addEventListener(
       "astermail:open-search-with-query",
       handle_open_search_with_query,
@@ -925,6 +930,10 @@ export function use_index_page_state() {
       handle_open_shortcuts_modal,
     );
     window.addEventListener("aster-internal-link", handle_internal_link);
+    window.addEventListener(
+      "astermail:open-compose-ghost",
+      handle_open_compose_ghost,
+    );
 
     return () => {
       window.removeEventListener(
@@ -936,8 +945,12 @@ export function use_index_page_state() {
         handle_open_shortcuts_modal,
       );
       window.removeEventListener("aster-internal-link", handle_internal_link);
+      window.removeEventListener(
+        "astermail:open-compose-ghost",
+        handle_open_compose_ghost,
+      );
     };
-  }, []);
+  }, [close_settings, open_compose_instance]);
 
   const handle_initial_query_consumed = useCallback(() => {
     set_initial_search_query(undefined);

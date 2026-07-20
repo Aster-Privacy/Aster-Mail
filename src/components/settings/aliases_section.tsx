@@ -271,7 +271,7 @@ export function AliasesSection() {
               domain_addr_deleting_id={hook.domain_addr_deleting_id}
               domain_addresses={hook.domain_addresses}
               on_alias_delete={hook.handle_alias_delete}
-              on_alias_pin_toggled={hook.load_aliases}
+              on_alias_pin_toggle={hook.handle_pin_toggle}
               on_alias_toggle={hook.handle_alias_toggle}
               on_aliases_changed={hook.load_aliases}
               on_avatar_changed={hook.load_aliases}

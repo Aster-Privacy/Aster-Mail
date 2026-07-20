@@ -271,6 +271,7 @@ export function use_ghost_mode(
 
         set_ghost_sender(sender);
         set_is_ghost_enabled(true);
+        window.dispatchEvent(new CustomEvent("astermail:ghost-alias-created"));
       } else if (result.code === "RATE_LIMIT_EXCEEDED") {
         set_error(t("errors.ghost_alias_rate_limit"));
       } else if (result.code === "CONFLICT") {

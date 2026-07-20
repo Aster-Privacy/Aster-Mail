@@ -761,6 +761,10 @@ export function SearchResultsPage({
     </Select>
   );
 
+  const handle_refine_query = useCallback(() => {
+    window.dispatchEvent(new Event("aster:focus-search"));
+  }, []);
+
   const slow_notice = (
     <div className="flex flex-col items-center justify-center text-center gap-1.5 px-4 py-8 border-b border-edge-secondary">
       <p
@@ -772,20 +776,24 @@ export function SearchResultsPage({
       <p className="text-xs" style={{ color: "var(--text-muted)" }}>
         {t("mail.search_refine_terms")}
       </p>
-      {content_search_enabled && (
-        <div className="flex items-center justify-center gap-2 mt-0.5">
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {t("mail.content_search_slower")}
-          </span>
+      <div className="flex items-center justify-center gap-3 mt-1.5">
+        <button
+          className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+          type="button"
+          onClick={handle_refine_query}
+        >
+          {t("mail.refine_your_search_action")}
+        </button>
+        {content_search_enabled && (
           <button
             className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
             type="button"
             onClick={handle_disable_content_search}
           >
-            {t("common.disable")}
+            {t("mail.turn_off_indexing_action")}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 

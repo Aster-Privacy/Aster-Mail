@@ -28,11 +28,13 @@ import {
   NoSymbolIcon,
   PencilSquareIcon,
   EyeSlashIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
 
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -90,7 +92,11 @@ import {
 import {
   get_alias_delivery_log,
   get_domain_address_delivery_log,
+  get_alias_stats,
+  get_alias_activity,
   type DeliveryEvent,
+  type AliasStats,
+  type AliasActivityDay,
 } from "@/services/api/aliases";
 
 const INPUT_CLASS =
@@ -838,6 +844,157 @@ function LockedSection({
   );
 }
 
+const ACTIVITY_DAYS_SHOWN = 14;
+const GRAPH_HEIGHT = 56;
+
+function StatsLegendDot({ color }: { color: string }) {
+  return (
+    <span
+      className="inline-block w-2 h-2 rounded-full shrink-0"
+      style={{ backgroundColor: color }}
+    />
+  );
+}
+
+function StatsPanel({ alias_id }: { alias_id: string }) {
+  const { t } = use_i18n();
+  const [stats, set_stats] = useState<AliasStats | null>(null);
+  const [activity, set_activity] = useState<AliasActivityDay[] | null>(null);
+  const [loading, set_loading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    set_loading(true);
+    Promise.all([get_alias_stats(alias_id), get_alias_activity(alias_id)])
+      .then(([stats_response, activity_response]) => {
+        if (!active) return;
+        if (stats_response.data) set_stats(stats_response.data);
+        if (activity_response.data) {
+          set_activity(
+            activity_response.data.days
+              .slice(0, ACTIVITY_DAYS_SHOWN)
+              .reverse(),
+          );
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) set_loading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [alias_id]);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <SectionTitle icon={<ChartBarIcon className="w-4 h-4" />}>
+          {t("settings.alias_stats_title")}
+        </SectionTitle>
+        <Spinner size="sm" />
+      </div>
+    );
+  }
+
+  if (!stats) return null;
+
+  const received_color = "var(--color-indigo-400, #818cf8)";
+  const forwarded_color = "var(--color-emerald-400, #34d399)";
+  const blocked_color = "var(--color-red-400, #f87171)";
+
+  const max_val = activity
+    ? Math.max(
+        ...activity.map((d) => d.received + d.forwarded + d.blocked),
+        1,
+      )
+    : 1;
+
+  const has_activity = !!activity && activity.length > 0;
+
+  return (
+    <div className="space-y-3">
+      <SectionTitle icon={<ChartBarIcon className="w-4 h-4" />}>
+        {t("settings.alias_stats_title")}
+      </SectionTitle>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-txt-muted">
+        <span className="flex items-center gap-1.5">
+          <StatsLegendDot color={received_color} />
+          {t("settings.alias_stats_received" as TranslationKey, {
+            count: stats.received,
+          })}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <StatsLegendDot color={forwarded_color} />
+          {t("settings.alias_stats_forwarded" as TranslationKey, {
+            count: stats.forwarded,
+          })}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <StatsLegendDot color={blocked_color} />
+          {t("settings.alias_stats_blocked" as TranslationKey, {
+            count: stats.blocked,
+          })}
+        </span>
+      </div>
+
+      {has_activity ? (
+        <div
+          className="flex items-end gap-1"
+          style={{ height: `${GRAPH_HEIGHT}px` }}
+          title={t("settings.alias_activity_title")}
+        >
+          {activity!.map((day, i) => {
+            const received_h = Math.round(
+              (day.received / max_val) * GRAPH_HEIGHT,
+            );
+            const forwarded_h = Math.round(
+              (day.forwarded / max_val) * GRAPH_HEIGHT,
+            );
+            const blocked_h = Math.round(
+              (day.blocked / max_val) * GRAPH_HEIGHT,
+            );
+            const total = day.received + day.forwarded + day.blocked;
+
+            return (
+              <div
+                key={i}
+                className="flex-1 flex flex-col-reverse rounded-sm overflow-hidden transition-opacity hover:opacity-70"
+                style={{
+                  height: `${GRAPH_HEIGHT}px`,
+                  backgroundColor: total === 0 ? "var(--surf-tertiary)" : undefined,
+                }}
+                title={`${day.date}: ${t("settings.alias_activity_received" as TranslationKey, { count: day.received })}, ${t("settings.alias_activity_forwarded" as TranslationKey, { count: day.forwarded })}, ${t("settings.alias_activity_blocked" as TranslationKey, { count: day.blocked })}`}
+              >
+                {received_h > 0 && (
+                  <div
+                    style={{ height: `${received_h}px`, backgroundColor: received_color }}
+                  />
+                )}
+                {forwarded_h > 0 && (
+                  <div
+                    style={{ height: `${forwarded_h}px`, backgroundColor: forwarded_color }}
+                  />
+                )}
+                {blocked_h > 0 && (
+                  <div
+                    style={{ height: `${blocked_h}px`, backgroundColor: blocked_color }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="text-xs text-txt-muted">
+          {t("settings.alias_activity_empty" as TranslationKey)}
+        </p>
+      )}
+    </div>
+  );
+}
+
 type AliasAdvancedPanelProps =
   | { alias_id: string; domain_address_id?: never; alias_local_part?: never; alias_domain?: never }
   | { alias_id?: never; domain_address_id: string; alias_local_part: string; alias_domain: string };
@@ -861,6 +1018,7 @@ export function AliasAdvancedPanel({ alias_id, domain_address_id, alias_local_pa
 
   return (
     <div className="mt-3 pt-3 border-t border-edge-secondary space-y-5">
+      {alias_id && !delivery_log_locked && <StatsPanel alias_id={alias_id} />}
       {sender_locked ? (
         <LockedSection
           icon={<ShieldCheckIcon className="w-4 h-4" />}

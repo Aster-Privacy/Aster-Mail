@@ -115,6 +115,7 @@ import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard"
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { prewarm_search_index } from "@/hooks/use_search";
 
 export type {
   ReplyData,
@@ -214,6 +215,39 @@ export function EmailInbox({
       }
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const idle = (
+      window as unknown as {
+        requestIdleCallback?: (cb: () => void) => number;
+      }
+    ).requestIdleCallback;
+    const cancel_idle = (
+      window as unknown as {
+        cancelIdleCallback?: (handle: number) => void;
+      }
+    ).cancelIdleCallback;
+
+    let timeout_id: ReturnType<typeof setTimeout> | null = null;
+    let idle_id: number | null = null;
+
+    const run = () => {
+      void prewarm_search_index(user.email, preferences.search_encrypted_content);
+    };
+
+    if (idle) {
+      idle_id = idle(run);
+    } else {
+      timeout_id = setTimeout(run, 2000);
+    }
+
+    return () => {
+      if (idle_id !== null && cancel_idle) cancel_idle(idle_id);
+      if (timeout_id !== null) clearTimeout(timeout_id);
+    };
+  }, [user?.email, preferences.search_encrypted_content]);
 
   useEffect(() => {
     if (current_view !== "trash" && current_view !== "spam") return;

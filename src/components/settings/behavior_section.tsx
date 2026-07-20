@@ -193,6 +193,8 @@ export function BehaviorSection() {
     null,
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
+  const [is_dragging_sidebar_width, set_is_dragging_sidebar_width] =
+    useState(false);
   const [spam_settings, set_spam_settings] = useState<SpamSettings>({
     spam_retention_days: 30,
     spam_sensitivity: "medium",
@@ -498,23 +500,61 @@ export function BehaviorSection() {
             </div>
           </div>
 
-          <input
-            className="w-full accent-[var(--accent-blue)]"
-            max={SIDEBAR_MAX_WIDTH}
-            min={SIDEBAR_MIN_WIDTH}
-            step={4}
-            type="range"
-            value={clamp_sidebar_width(
+          {(() => {
+            const current_width = clamp_sidebar_width(
               preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH,
-            )}
-            onChange={(e) => {
-              update_preference(
-                "sidebar_width",
-                clamp_sidebar_width(parseInt(e.target.value, 10)),
-                true,
-              );
-            }}
-          />
+            );
+            const percent =
+              ((current_width - SIDEBAR_MIN_WIDTH) /
+                (SIDEBAR_MAX_WIDTH - SIDEBAR_MIN_WIDTH)) *
+              100;
+
+            return (
+              <div className="relative py-2 group/slider">
+                <div
+                  className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-surf-tertiary pointer-events-none"
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full pointer-events-none transition-[width] duration-100 ease-out"
+                  style={{
+                    width: `${percent}%`,
+                    background:
+                      "linear-gradient(90deg, color-mix(in srgb, var(--accent-blue) 75%, transparent), var(--accent-blue))",
+                  }}
+                  aria-hidden="true"
+                />
+                {is_dragging_sidebar_width && (
+                  <div
+                    className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium text-white bg-[var(--accent-blue)] shadow-lg pointer-events-none whitespace-nowrap transition-[left] duration-75 ease-out"
+                    style={{ left: `${percent}%` }}
+                  >
+                    {current_width}px
+                  </div>
+                )}
+                <input
+                  className="relative z-10 w-full h-4 appearance-none bg-transparent outline-none cursor-pointer active:cursor-grabbing [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:-mt-[5px] [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.4)] [&::-webkit-slider-thumb]:bg-[var(--accent-blue)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-[transform,box-shadow] [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] [&::-webkit-slider-thumb]:active:scale-110 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.4)] [&::-moz-range-thumb]:bg-[var(--accent-blue)] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:transition-[transform,box-shadow] [&::-moz-range-thumb]:duration-150 [&::-moz-range-thumb]:hover:scale-125 [&::-moz-range-thumb]:hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] [&::-moz-range-thumb]:active:scale-110 focus-visible:[&::-webkit-slider-thumb]:ring-4 focus-visible:[&::-webkit-slider-thumb]:ring-[var(--accent-blue)]/30 focus-visible:[&::-moz-range-thumb]:ring-4 focus-visible:[&::-moz-range-thumb]:ring-[var(--accent-blue)]/30"
+                  max={SIDEBAR_MAX_WIDTH}
+                  min={SIDEBAR_MIN_WIDTH}
+                  step={4}
+                  type="range"
+                  value={current_width}
+                  onChange={(e) => {
+                    update_preference(
+                      "sidebar_width",
+                      clamp_sidebar_width(parseInt(e.target.value, 10)),
+                      true,
+                    );
+                  }}
+                  onMouseDown={() => set_is_dragging_sidebar_width(true)}
+                  onMouseUp={() => set_is_dragging_sidebar_width(false)}
+                  onTouchStart={() => set_is_dragging_sidebar_width(true)}
+                  onTouchEnd={() => set_is_dragging_sidebar_width(false)}
+                  onBlur={() => set_is_dragging_sidebar_width(false)}
+                />
+              </div>
+            );
+          })()}
 
           <div className="flex items-center gap-2 mt-3">
             {SIDEBAR_PRESET_WIDTHS.map((width) => {
@@ -526,7 +566,7 @@ export function BehaviorSection() {
                 <button
                   key={width}
                   className={cn(
-                    "px-3 py-1.5 text-xs rounded-[12px] transition-colors",
+                    "px-3 py-1.5 text-xs rounded-[12px] border-0 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]",
                     current === width
                       ? "bg-[var(--accent-blue)] text-white"
                       : "bg-surf-secondary hover:bg-surf-hover",

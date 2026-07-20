@@ -39,7 +39,6 @@ import {
   BuildingOffice2Icon,
   SwatchIcon,
   EyeIcon,
-  EyeSlashIcon,
   ShieldCheckIcon,
   ArrowDownTrayIcon,
   BellIcon,
@@ -103,7 +102,6 @@ import { TemplatesSection } from "@/components/settings/templates_section";
 import { MailManagementSection } from "@/components/settings/mail_management_section";
 import { MailRulesSection } from "@/components/settings/mail_rules_section";
 import { FeedbackSection } from "@/components/settings/feedback_section";
-import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { ReferralTab } from "@/components/settings/referral_tab";
 import { BridgeSection } from "@/components/settings/bridge_section";
 import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
@@ -123,7 +121,6 @@ export type SettingsSection =
   | "encryption"
   | "trusted_devices"
   | "aliases"
-  | "ghost_aliases"
   | "billing"
   | "family"
   | "referral"
@@ -150,7 +147,6 @@ export const SETTINGS_SECTION_IDS: SettingsSection[] = [
   "encryption",
   "trusted_devices",
   "aliases",
-  "ghost_aliases",
   "billing",
   "family",
   "referral",
@@ -221,7 +217,6 @@ function get_nav_items(
       { id: "encryption", label: t("settings.encryption"), icon: KeyIcon, description: "End-to-end encryption keys, PGP certificates, and quantum-safe key rotation", keywords: ["e2e", "end to end", "pgp", "encryption key", "export key", "export public key", "export private key", "import key", "key rotation", "rotate key", "quantum", "pq", "post quantum", "zero access", "encrypt", "decrypt", "vault", "recovery codes", "regenerate codes", "storage format", "key algorithm", "ecc", "curve25519"] },
       { id: "trusted_devices", label: t("settings.trusted_devices"), icon: ComputerDesktopIcon, description: "Devices authorized to access your account - revoke or sign out remotely", keywords: ["trusted devices", "my devices", "desktop app", "mobile app", "paired device", "revoke access", "sign out device", "remove device", "active sessions"] },
       { id: "aliases", label: t("settings.aliases_and_domains"), icon: AtSymbolIcon, description: "Custom email addresses and domains that route mail to your inbox", keywords: ["alias", "email alias", "custom domain", "add domain", "domain verification", "dns record", "mx record", "dkim", "spf", "dmarc", "custom email", "email address", "forwarding address", "create alias"] },
-      { id: "ghost_aliases", label: t("settings.ghost_aliases"), icon: EyeSlashIcon, description: "One-time anonymous addresses to protect your real email from sign-ups", keywords: ["ghost alias", "anonymous email", "private email", "disposable", "masked email", "hide email", "burn address", "one-time address", "privacy"] },
       ...(!on_onion ? [{ id: "billing" as Section, label: t("settings.billing"), icon: CreditCardIcon, description: "Subscription plan, payment methods, invoices, storage add-ons, and upgrades", keywords: ["plan", "subscription", "upgrade plan", "downgrade plan", "payment method", "credit card", "invoice", "billing history", "storage", "storage addon", "add storage", "star plan", "supernova plan", "cancel subscription", "renew", "price"] }] : []),
       ...(is_family_plan ? [{ id: "family" as Section, label: t("settings.plan_type_family"), icon: HomeModernIcon, description: "Manage family plan members, invites, and children's accounts", keywords: ["family plan", "family members", "invite member", "children accounts", "kids", "child account", "manage family", "family invite"] }] : []),
       { id: "referral", label: t("settings.refer_a_friend"), icon: UserGroupIcon, description: "Invite friends to Aster Mail and earn account credits as rewards", keywords: ["referral", "refer a friend", "invite friend", "referral code", "bonus storage", "reward", "share invite"] },
@@ -321,7 +316,6 @@ function SettingsContentInner({
     encryption: null,
     trusted_devices: null,
     aliases: null,
-    ghost_aliases: null,
     billing: null,
     family: null,
     referral: null,
@@ -470,8 +464,14 @@ function SettingsContentInner({
   }, []);
 
   useEffect(() => {
-    const handle_key = (e: KeyboardEvent) =>
-      e["key"] === "Escape" && on_close();
+    const handle_key = (e: KeyboardEvent) => {
+      if (e["key"] !== "Escape") return;
+      const modal_open = document.querySelector(
+        '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]',
+      );
+      if (modal_open) return;
+      on_close();
+    };
 
     document.addEventListener("keydown", handle_key);
 
@@ -623,8 +623,6 @@ function SettingsContentInner({
         return <TrustedDevicesPanel />;
       case "aliases":
         return <AliasesSection />;
-      case "ghost_aliases":
-        return <GhostAliasesSection />;
       case "billing":
         if (is_onion_host()) {
           return null;

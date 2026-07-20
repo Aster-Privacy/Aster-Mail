@@ -267,6 +267,16 @@ export async function update_mail_item(
   );
 }
 
+export async function reencrypt_mail_item_envelope(
+  item_id: string,
+  data: { encrypted_envelope: string; envelope_nonce: string },
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>(
+    `/mail/v1/messages/${item_id}/envelope-migrate`,
+    data,
+  );
+}
+
 export async function delete_mail_item(
   item_id: string,
 ): Promise<ApiResponse<{ status: string }>> {

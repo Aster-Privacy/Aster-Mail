@@ -511,6 +511,8 @@ export interface CommonTranslations {
   alias_websites_limit_reached: string;
   add_alias_website: string;
   add_alias_website_placeholder: string;
+  alias_add_details: string;
+  alias_websites_count: string;
   remove_alias_website: string;
   failed_update_alias_note: string;
   alias_note_too_long: string;
@@ -1619,6 +1621,7 @@ export interface CommonTranslations {
   adding_file_would_exceed_limit: string;
   unsupported_file_type: string;
   file_already_attached: string;
+  metadata_not_removed: string;
   failed_to_read_named_file: string;
   unknown_error: string;
   unknown_sender: string;
@@ -2170,6 +2173,7 @@ export interface SettingsTranslations {
   blocked_by_browser: string;
   blocked_by_os: string;
   open_system_notification_settings: string;
+  send_test_notification: string;
   sound_new_notifications: string;
   push: string;
   push_notifications_description: string;
@@ -4451,6 +4455,10 @@ export interface SettingsTranslations {
   ghost_alias_expire_now: string;
   ghost_alias_expired_grace: string;
   ghost_alias_grace_until: string;
+  ghost_aliases_compose_cta: string;
+  ghost_alias_max_extension_toast: string;
+  ghost_alias_expire_confirm_title: string;
+  ghost_alias_expire_confirm_message: string;
   recently_deleted_aliases_title: string;
   recently_deleted_aliases_description: string;
   recently_deleted_aliases_empty: string;
@@ -4477,7 +4485,9 @@ export interface SettingsTranslations {
   directory_purged: string;
   failed_purge_directory: string;
   empty_directory_trash_confirm_message: string;
+  alias_stats_title: string;
   alias_stats_received: string;
+  alias_stats_forwarded: string;
   alias_stats_blocked: string;
   alias_generate_random: string;
   alias_pin: string;
@@ -4506,6 +4516,8 @@ export interface SettingsTranslations {
   alias_sender_invalid: string;
   alias_pin_mode_updated: string;
   alias_toggle_failed: string;
+  alias_enabled_toast: string;
+  alias_disabled_toast: string;
   alias_delete_failed: string;
   domain_address_delete_failed: string;
   domain_delete_failed: string;
@@ -4801,7 +4813,9 @@ export interface SettingsTranslations {
   alias_pref_delete_immediate: string;
   alias_activity_title: string;
   alias_activity_received: string;
+  alias_activity_forwarded: string;
   alias_activity_blocked: string;
+  alias_activity_empty: string;
   alias_transfer: string;
   alias_transfer_title: string;
   alias_transfer_warning: string;
@@ -5256,6 +5270,8 @@ export interface MailTranslations {
   searching_message_content: string;
   search_taking_too_long: string;
   search_refine_terms: string;
+  refine_your_search_action: string;
+  turn_off_indexing_action: string;
   content_search_slower: string;
   search_message_content_help: string;
   search_message_content_help_body: string;

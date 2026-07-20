@@ -755,41 +755,48 @@ export function AccountSection() {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {badges.map((badge) => {
-              const visual = get_badge_visual(badge.slug);
-              const Icon = visual.icon;
-              const is_active = badge_prefs.active_badge_slug === badge.slug;
+          <Select
+            value={badge_prefs.active_badge_slug ?? "none"}
+            onValueChange={(v) =>
+              persist_badge_prefs({
+                active_badge_slug: v === "none" ? null : v,
+              })
+            }
+          >
+            <SelectTrigger
+              className="h-10 w-full sm:w-72 bg-transparent text-sm"
+              disabled={is_badge_saving}
+            >
+              <SelectValue placeholder={t("badges.none")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">
+                {t("badges.none")}
+              </SelectItem>
+              {badges.map((badge) => {
+                const visual = get_badge_visual(badge.slug);
+                const Icon = visual.icon;
 
-              return (
-                <button
-                  key={badge.slug}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors cursor-pointer select-none",
-                    is_active
-                      ? "bg-[var(--accent-blue)] text-white shadow-sm"
-                      : "bg-surf-secondary text-txt-secondary hover:bg-surf-hover",
-                  )}
-                  disabled={is_badge_saving}
-                  title={badge.description || undefined}
-                  type="button"
-                  onClick={() =>
-                    persist_badge_prefs({
-                      active_badge_slug: is_active ? null : badge.slug,
-                    })
-                  }
-                >
-                  <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate">{badge.display_name}</span>
-                  {badge.find_order != null && (
-                    <span className="tabular-nums opacity-80">
-                      #{badge.find_order.toLocaleString()}
+                return (
+                  <SelectItem
+                    key={badge.slug}
+                    title={badge.description || undefined}
+                    value={badge.slug}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{badge.display_name}</span>
+                      {badge.find_order != null && (
+                        <span className="tabular-nums opacity-70">
+                          #{badge.find_order.toLocaleString()}
+                        </span>
+                      )}
                     </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
 
           <BadgeToggleRow
             checked={badge_prefs.show_badge_profile}

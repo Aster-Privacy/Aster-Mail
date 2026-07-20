@@ -263,9 +263,9 @@ function render_option(
               ? t("common.unpin_preferred_sender")
               : t("common.pin_preferred_sender")
           }
-          className={`flex-shrink-0 p-1 rounded transition-opacity ${
+          className={`flex-shrink-0 p-1.5 rounded transition-opacity ${
             is_preferred
-              ? "opacity-100 text-txt-primary"
+              ? "opacity-100 text-blue-500 hover:text-blue-500"
               : "sm:opacity-0 opacity-60 sm:group-hover:opacity-60 text-txt-muted hover:opacity-100"
           }`}
           title={
@@ -279,7 +279,10 @@ function render_option(
             on_toggle_preferred!(option.id);
           }}
         >
-          <PinIcon className="w-3.5 h-3.5" filled={is_preferred} />
+          <PinIcon
+            className={`w-4 h-4 transition-transform duration-200 ${is_preferred ? "rotate-45" : ""}`}
+            filled={is_preferred}
+          />
         </button>
       )}
       {is_selected && (
@@ -501,7 +504,7 @@ export function SenderSelector({
         {is_open && (
           <motion.div
             animate={{ opacity: 1, y: 0 }}
-            className="absolute left-0 z-50 mt-1 w-72 max-h-64 rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
+            className="absolute left-0 z-50 mt-1 w-96 max-w-[calc(100vw-2rem)] max-h-[min(28rem,calc(100vh-8rem))] rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
             exit={{ opacity: 0, y: -8 }}
             initial={reduce_motion ? false : { opacity: 0, y: -8 }}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
