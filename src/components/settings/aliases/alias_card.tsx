@@ -380,16 +380,16 @@ export function AliasItem({
 
   return (
     <div className="group rounded-xl transition-all border border-edge-secondary">
-    <div className="flex items-start gap-3 p-4">
+    <div className="flex items-center gap-3 p-4">
       {bulk_mode && (
         <Checkbox
           checked={!!is_selected}
-          className="shrink-0 mt-2.5"
+          className="shrink-0"
           onCheckedChange={(v) => on_select?.(alias.id, !!v)}
         />
       )}
       <div
-        className="flex flex-1 min-w-0 items-start gap-3"
+        className="flex flex-1 min-w-0 items-center gap-3"
         style={{
           opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
         }}
@@ -431,27 +431,9 @@ export function AliasItem({
         <AliasMetaEditor
           alias_address={alias.full_address}
           display_name={alias.display_name}
-          is_locked={is_avatar_locked}
           note={alias.note}
           websites={alias.websites}
-          on_save_display_name={(name) =>
-            update_alias(alias.id, { display_name: name })
-          }
-          on_saved_display_name={(name) =>
-            on_display_name_saved?.(alias.id, name)
-          }
-          on_save_note={(note_value) =>
-            update_alias(alias.id, { note: note_value || null })
-          }
-          on_saved_note={(note_value) => on_note_saved?.(alias.id, note_value)}
-          on_save_websites={(websites_value) =>
-            update_alias(alias.id, {
-              websites: websites_value.length > 0 ? websites_value : null,
-            })
-          }
-          on_saved_websites={(websites_value) =>
-            on_websites_saved?.(alias.id, websites_value)
-          }
+          on_open={() => set_advanced_open(true)}
         />
         {in_grace_period && (
           <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
@@ -539,7 +521,32 @@ export function AliasItem({
     </div>
       {advanced_open && (
         <div className="px-3 pb-3">
-          <AliasAdvancedPanel alias_id={alias.id} />
+          <AliasAdvancedPanel
+            alias_address={alias.full_address}
+            alias_id={alias.id}
+            display_name={alias.display_name}
+            is_locked={is_avatar_locked}
+            note={alias.note}
+            on_save_display_name={(name) =>
+              update_alias(alias.id, { display_name: name })
+            }
+            on_save_note={(note_value) =>
+              update_alias(alias.id, { note: note_value || null })
+            }
+            on_save_websites={(websites_value) =>
+              update_alias(alias.id, {
+                websites: websites_value.length > 0 ? websites_value : null,
+              })
+            }
+            on_saved_display_name={(name) =>
+              on_display_name_saved?.(alias.id, name)
+            }
+            on_saved_note={(note_value) => on_note_saved?.(alias.id, note_value)}
+            on_saved_websites={(websites_value) =>
+              on_websites_saved?.(alias.id, websites_value)
+            }
+            websites={alias.websites}
+          />
         </div>
       )}
     </div>
