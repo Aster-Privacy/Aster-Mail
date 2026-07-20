@@ -5195,6 +5195,7 @@ export const nl = {
     store_codes_safely: "Bewaar deze codes veilig. Ze zijn de ENIGE manier om je account te herstellen als je je wachtwoord vergeet.",
     download_key: "Sleutel downloaden",
     download_as_text: "Downloaden als tekst",
+    recovery_download_failed: "Downloaden mislukt. Probeer het opnieuw.",
     add_backup_email: "Voeg een back-up-e-mailadres toe",
     skip_for_now: "Voorlopig overslaan",
     recovery_email_required_gate_title: "Herstel-e-mail vereist",

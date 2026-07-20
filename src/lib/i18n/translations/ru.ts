@@ -5198,6 +5198,7 @@ export const ru = {
     store_codes_safely: "Храните эти коды в безопасном месте. Они являются ЕДИНСТВЕННЫМ способом восстановить аккаунт, если вы забудете пароль.",
     download_key: "Скачать ключ",
     download_as_text: "Скачать как текст",
+    recovery_download_failed: "Не удалось скачать. Попробуйте еще раз.",
     add_backup_email: "Добавить резервную почту",
     skip_for_now: "Пропустить пока",
     recovery_email_required_gate_title: "Требуется резервный email",

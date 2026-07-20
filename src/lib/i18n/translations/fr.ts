@@ -5199,6 +5199,7 @@ export const fr = {
     store_codes_safely: "Conservez ces codes en lieu sûr. Ils sont le SEUL moyen de récupérer votre compte si vous oubliez votre mot de passe.",
     download_key: "Télécharger la clé",
     download_as_text: "Télécharger en texte",
+    recovery_download_failed: "Échec du téléchargement. Veuillez réessayer.",
     add_backup_email: "Ajouter un e-mail de secours",
     skip_for_now: "Passer pour le moment",
     recovery_email_required_gate_title: "Adresse e-mail de récupération requise",

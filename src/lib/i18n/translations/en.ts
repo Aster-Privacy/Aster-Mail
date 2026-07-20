@@ -5747,6 +5747,7 @@ export const en: Translations = {
       "Store these codes safely. They are the ONLY way to recover your account if you forget your password.",
     download_key: "Download Key",
     download_as_text: "Download as Text",
+    recovery_download_failed: "Download failed. Please try again.",
     add_backup_email: "Add a backup email",
     skip_for_now: "Skip for now",
     recovery_email_required_gate_title: "Recovery email required",

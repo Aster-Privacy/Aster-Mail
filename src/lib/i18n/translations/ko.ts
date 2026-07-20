@@ -5201,6 +5201,7 @@ export const ko = {
     store_codes_safely: "이 코드를 안전하게 보관하세요. 비밀번호를 잊어버린 경우 계정을 복구할 수 있는 유일한 방법입니다.",
     download_key: "키 다운로드",
     download_as_text: "텍스트로 다운로드",
+    recovery_download_failed: "다운로드에 실패했습니다. 다시 시도해 주세요.",
     add_backup_email: "백업 이메일 추가",
     skip_for_now: "지금은 건너뛰기",
     recovery_email_required_gate_title: "복구 이메일 필요",

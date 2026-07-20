@@ -5198,6 +5198,7 @@ export const ja = {
     store_codes_safely: "これらのコードを安全に保管してください。パスワードを忘れた場合にアカウントを復旧する唯一の方法です。",
     download_key: "キーをダウンロード",
     download_as_text: "テキストとしてダウンロード",
+    recovery_download_failed: "ダウンロードに失敗しました。もう一度お試しください。",
     add_backup_email: "バックアップメールを追加",
     skip_for_now: "今はスキップ",
     recovery_email_required_gate_title: "回復用メールアドレスが必要です",

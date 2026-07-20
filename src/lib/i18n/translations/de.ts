@@ -5192,6 +5192,7 @@ export const de = {
     store_codes_safely: "Bewahren Sie diese Codes sicher auf. Sie sind der EINZIGE Weg, um Ihr Konto wiederherzustellen, falls Sie Ihr Passwort vergessen.",
     download_key: "Schlüssel herunterladen",
     download_as_text: "Als Text herunterladen",
+    recovery_download_failed: "Download fehlgeschlagen. Bitte versuchen Sie es erneut.",
     add_backup_email: "Backup-E-Mail hinzufügen",
     skip_for_now: "Vorerst überspringen",
     recovery_email_required_gate_title: "E-Mail-Adresse zur Wiederherstellung erforderlich",

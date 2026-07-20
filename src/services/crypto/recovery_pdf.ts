@@ -204,15 +204,8 @@ export async function download_recovery_text(
   }
 
   const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
 
-  link.href = url;
-  link.download = `astermail-recovery-codes-${Date.now()}.txt`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  trigger_download(blob, `astermail-recovery-codes-${Date.now()}.txt`);
 }
 
 export async function generate_recovery_phrase_pdf(
@@ -378,13 +371,6 @@ export async function download_recovery_phrase_text(
   }
 
   const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
 
-  link.href = url;
-  link.download = `astermail-recovery-phrase-${Date.now()}.txt`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  trigger_download(blob, `astermail-recovery-phrase-${Date.now()}.txt`);
 }
