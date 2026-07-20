@@ -4561,6 +4561,10 @@ export const en: Translations = {
     alias_advanced: "Advanced",
     alias_advanced_hide: "Hide advanced",
     alias_advanced_show: "Advanced settings",
+    alias_details_title: "Details",
+    alias_field_display_name_label: "Display name",
+    alias_field_note_label: "Note",
+    alias_field_websites_label: "Websites",
     alias_sender_pinning_title: "Sender pinning",
     alias_sender_pinning_info:
       "Decide who can send mail to this alias. Off means everyone gets through. Lock to first sender locks it to whoever emails you first - useful for one-off signups. Allowlist means only people you've added can reach you.",

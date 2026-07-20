@@ -4497,6 +4497,10 @@ export interface SettingsTranslations {
   alias_advanced: string;
   alias_advanced_hide: string;
   alias_advanced_show: string;
+  alias_details_title: string;
+  alias_field_display_name_label: string;
+  alias_field_note_label: string;
+  alias_field_websites_label: string;
   alias_sender_pinning_title: string;
   alias_sender_pinning_info: string;
   alias_sender_pinning_description: string;
