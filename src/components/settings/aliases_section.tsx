@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   PlusIcon,
   AtSymbolIcon,
@@ -60,8 +61,10 @@ type AliasTab = "aliases" | "domains" | "directories" | "ghost" | "preferences";
 
 const SESSION_TAB_KEY = "alias_tab";
 
-function download_csv(filename: string, content: string) {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+type ExportFormat = "csv" | "json";
+
+function download_file(filename: string, content: string, mime_type: string) {
+  const blob = new Blob([content], { type: mime_type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
 
@@ -97,6 +100,8 @@ export function AliasesSection() {
 
   const [active_tab, set_active_tab] = useState<AliasTab>(read_initial_tab);
   const [show_import_modal, set_show_import_modal] = useState(false);
+  const [show_export_modal, set_show_export_modal] = useState(false);
+  const [export_format, set_export_format] = useState<ExportFormat>("csv");
   const [default_alias_domain, set_default_alias_domain] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -114,32 +119,53 @@ export function AliasesSection() {
     } catch {}
   };
 
-  const handle_export_csv = () => {
+  const handle_export = (format: ExportFormat) => {
     const date_str = new Date().toISOString().slice(0, 10);
-    const alias_rows = hook.aliases.map((a) => [
-      a.full_address,
-      a.display_name ?? "",
-      String(a.is_enabled),
-      a.created_at ?? "",
-    ]);
-    const domain_rows = hook.domain_addresses.map((a) => [
-      `${a.local_part}@${a.domain_name}`,
-      a.display_name ?? "",
-      String(a.is_enabled),
-      a.created_at ?? "",
-    ]);
-    const rows = [
-      ["alias", "note", "enabled", "created_at"],
-      ...alias_rows,
-      ...domain_rows,
+    const entries = [
+      ...hook.aliases.map((a) => ({
+        alias: a.full_address,
+        note: a.display_name ?? "",
+        enabled: a.is_enabled,
+        created_at: a.created_at ?? "",
+      })),
+      ...hook.domain_addresses.map((a) => ({
+        alias: `${a.local_part}@${a.domain_name}`,
+        note: a.display_name ?? "",
+        enabled: a.is_enabled,
+        created_at: a.created_at ?? "",
+      })),
     ];
-    const csv_content = rows
-      .map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-      )
-      .join("\n");
 
-    download_csv(`aster-aliases-${date_str}.csv`, csv_content);
+    if (format === "json") {
+      download_file(
+        `aster-aliases-${date_str}.json`,
+        JSON.stringify(entries, null, 2),
+        "application/json;charset=utf-8;",
+      );
+    } else {
+      const rows = [
+        ["alias", "note", "enabled", "created_at"],
+        ...entries.map((e) => [
+          e.alias,
+          e.note,
+          String(e.enabled),
+          e.created_at,
+        ]),
+      ];
+      const csv_content = rows
+        .map((row) =>
+          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+        )
+        .join("\n");
+
+      download_file(
+        `aster-aliases-${date_str}.csv`,
+        csv_content,
+        "text/csv;charset=utf-8;",
+      );
+    }
+
+    set_show_export_modal(false);
   };
 
   useEffect(() => {
@@ -168,29 +194,33 @@ export function AliasesSection() {
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex p-1 rounded-lg bg-surf-secondary">
-        {tab_labels.map(({ key, label }) => (
-          <button
-            key={key}
-            className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
-            style={{
-              backgroundColor:
-                active_tab === key ? "var(--bg-primary)" : "transparent",
-              color:
-                active_tab === key
-                  ? "var(--text-primary)"
-                  : "var(--text-muted)",
-              boxShadow:
-                active_tab === key
-                  ? "rgba(0, 0, 0, 0.1) 0px 1px 3px, rgba(0, 0, 0, 0.06) 0px 1px 2px"
-                  : "none",
-            }}
-            type="button"
-            onClick={() => handle_tab(key)}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="border-b border-edge-secondary overflow-x-auto">
+        <div className="flex gap-1 min-w-max">
+          {tab_labels.map(({ key, label }) => (
+            <button
+              key={key}
+              aria-selected={active_tab === key}
+              className="relative px-4 py-2.5 text-sm font-medium whitespace-nowrap outline-none transition-colors"
+              style={{
+                color:
+                  active_tab === key
+                    ? "var(--text-primary)"
+                    : "var(--text-muted)",
+              }}
+              type="button"
+              onClick={() => handle_tab(key)}
+            >
+              {label}
+              {active_tab === key && (
+                <motion.span
+                  className="absolute left-2 right-2 -bottom-px h-0.5 rounded-full bg-blue-500"
+                  layoutId="alias-tab-indicator"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {active_tab === "aliases" && (
@@ -213,7 +243,7 @@ export function AliasesSection() {
                         : (hook.alias_counts.max ?? 0)}
                     </span>
                   )}
-                  <Button size="sm" variant="ghost" onClick={alias_csv_locked ? () => prompt_upgrade(t("settings.feature_requires_upgrade")) : handle_export_csv}>
+                  <Button size="sm" variant="ghost" onClick={alias_csv_locked ? () => prompt_upgrade(t("settings.feature_requires_upgrade")) : () => set_show_export_modal(true)}>
                     {t("settings.alias_export_csv")}
                   </Button>
                   <Button
@@ -512,6 +542,48 @@ export function AliasesSection() {
           set_show_import_modal(false);
         }}
       />
+
+      <Modal is_open={show_export_modal} size="sm" on_close={() => set_show_export_modal(false)}>
+        <ModalHeader>
+          <ModalTitle>{t("settings.alias_export_title")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.alias_export_description")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody>
+          <div className="flex flex-col gap-2">
+            {(["csv", "json"] as ExportFormat[]).map((format) => (
+              <label
+                key={format}
+                className="flex items-center gap-3 rounded-lg border border-edge-secondary px-3 py-2.5 cursor-pointer hover:bg-surf-secondary"
+                htmlFor={`alias-export-format-${format}`}
+              >
+                <input
+                  checked={export_format === format}
+                  className="h-4 w-4"
+                  id={`alias-export-format-${format}`}
+                  name="alias-export-format"
+                  type="radio"
+                  onChange={() => set_export_format(format)}
+                />
+                <span className="text-sm text-txt-primary">
+                  {format === "csv"
+                    ? t("settings.alias_export_format_csv")
+                    : t("settings.alias_export_format_json")}
+                </span>
+              </label>
+            ))}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={() => set_show_export_modal(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button onClick={() => handle_export(export_format)}>
+            {t("settings.alias_export_csv")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <ConfirmationModal
         confirm_text={null}

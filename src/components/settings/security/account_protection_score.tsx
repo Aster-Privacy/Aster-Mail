@@ -134,6 +134,21 @@ export function AccountProtectionScore({
 
   const bar_pct = Math.round((score / MAX_SCORE) * 100);
 
+  if (!security_loaded) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl p-5 animate-pulse bg-surf-secondary border border-edge-secondary">
+        <div className="flex items-center justify-between mb-3">
+          <div className="h-4 w-16 rounded bg-surf-tertiary" />
+          <div className="h-3 w-8 rounded bg-surf-tertiary" />
+        </div>
+        <div className="h-5 w-40 rounded bg-surf-tertiary mb-2" />
+        <div className="h-3.5 w-56 rounded bg-surf-tertiary mb-4" />
+        <div className="mb-4 h-1.5 rounded-full bg-surf-tertiary" />
+        <div className="h-9 w-44 rounded-[14px] bg-surf-tertiary" />
+      </div>
+    );
+  }
+
   return (
     <div
       className="relative overflow-hidden rounded-2xl p-5"
@@ -211,19 +226,6 @@ export function AccountProtectionScore({
               {criteria_labels.map((label, i) => {
                 const click_handler = on_criterion_click?.[i];
                 const is_clickable = !!click_handler;
-                const is_async_row = i < 4;
-                const show_skeleton = is_async_row && !security_loaded;
-
-                if (show_skeleton) {
-                  return (
-                    <li key={label}>
-                      <div className="w-full flex items-center gap-2.5 px-2 py-1.5">
-                        <div className="w-4 h-4 rounded-full bg-edge-secondary animate-pulse flex-shrink-0" />
-                        <div className="h-3.5 rounded bg-edge-secondary animate-pulse flex-1" />
-                      </div>
-                    </li>
-                  );
-                }
 
                 return (
                   <li key={label}>

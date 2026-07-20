@@ -111,6 +111,52 @@
       #initial-loader-dots span:nth-child(3) {
         animation: initial-loader-dot-three 1.6s steps(1, end) infinite;
       }
+      #initial-loader-fallback {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-top: 4px;
+        opacity: 0;
+        transition: opacity 0.3s ease-in;
+      }
+      #initial-loader-fallback.visible {
+        display: flex;
+        opacity: 1;
+      }
+      #initial-loader-fallback-text {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.45);
+      }
+      html.dark #initial-loader-fallback-text {
+        color: rgba(255, 255, 255, 0.5);
+      }
+      #initial-loader-fallback-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .initial-loader-btn {
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        background: rgba(0, 0, 0, 0.03);
+        color: rgba(0, 0, 0, 0.75);
+        cursor: pointer;
+      }
+      html.dark .initial-loader-btn {
+        border-color: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .initial-loader-btn:hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
+      html.dark .initial-loader-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
       @keyframes initial-loader-dot-one {
         0% { opacity: 0; }
         25%, 100% { opacity: 1; }
@@ -160,10 +206,69 @@
           <div id="initial-loader-spinner"></div>
           <div id="initial-loader-text">Loading<span id="initial-loader-dots"><span>.</span><span>.</span><span>.</span></span></div>
         </div>
+        <div id="initial-loader-fallback">
+          <div id="initial-loader-fallback-text">This is taking longer than usual</div>
+          <div id="initial-loader-fallback-actions">
+            <button class="initial-loader-btn" id="initial-loader-reload" type="button">Reload</button>
+            <button class="initial-loader-btn" id="initial-loader-hard-reset" type="button">Clear cache &amp; reload</button>
+          </div>
+        </div>
       </div>
     </div>
     <div id="root"></div>
     <script src="/font-loader.js"></script>
+    <script>
+      (function () {
+        var timeout_id = window.setTimeout(function () {
+          var el = document.getElementById("initial-loader-fallback");
+
+          if (el) el.classList.add("visible");
+        }, 10000);
+
+        var loader_gone = new MutationObserver(function () {
+          if (!document.getElementById("initial-loader")) {
+            window.clearTimeout(timeout_id);
+            loader_gone.disconnect();
+          }
+        });
+
+        loader_gone.observe(document.body, { childList: true });
+
+        document.addEventListener("click", function (event) {
+          var target = event.target;
+
+          if (target && target.id === "initial-loader-reload") {
+            window.location.reload();
+          }
+
+          if (target && target.id === "initial-loader-hard-reset") {
+            Promise.resolve()
+              .then(function () {
+                if (window.caches && caches.keys) {
+                  return caches
+                    .keys()
+                    .then(function (keys) {
+                      return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+                    });
+                }
+              })
+              .then(function () {
+                if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+                  return navigator.serviceWorker
+                    .getRegistrations()
+                    .then(function (regs) {
+                      return Promise.all(regs.map(function (reg) { return reg.unregister(); }));
+                    });
+                }
+              })
+              .catch(function () {})
+              .then(function () {
+                window.location.reload();
+              });
+          }
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -157,9 +157,15 @@ function parse_protonpass_json(text: string): ParsedRow[] {
 
 function parse_csv_file(text: string): ParsedRow[] {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length < 2) return [];
+  if (lines.length === 0) return [];
 
-  const header = parse_csv_row(lines[0]).map((h) => h.toLowerCase().trim());
+  const first_cols = parse_csv_row(lines[0]);
+  const first_row_is_data = (first_cols[0] ?? "").includes("@");
+
+  const header = first_row_is_data ? [] : first_cols.map((h) => h.toLowerCase().trim());
+  const data_lines = first_row_is_data ? lines : lines.slice(1);
+
+  if (data_lines.length === 0) return [];
 
   const alias_col = header.findIndex((h) => ["alias", "email", "address"].includes(h));
   const note_col = header.findIndex((h) => ["note", "description", "display_name"].includes(h));
@@ -168,8 +174,8 @@ function parse_csv_file(text: string): ParsedRow[] {
   const rows: ParsedRow[] = [];
   const seen = new Set<string>();
 
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parse_csv_row(lines[i]);
+  for (let i = 0; i < data_lines.length; i++) {
+    const cols = parse_csv_row(data_lines[i]);
 
     let raw_address = "";
     if (alias_col >= 0 && cols[alias_col]) {
@@ -528,7 +534,7 @@ export function AliasImportModal({
             <div
               ref={drop_ref}
               className={[
-                "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 transition-colors cursor-pointer",
+                "flex flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed p-6 transition-colors cursor-pointer",
                 drag_over
                   ? "border-blue-500 bg-blue-500/5"
                   : "border-edge-secondary hover:border-blue-400 hover:bg-surf-secondary",

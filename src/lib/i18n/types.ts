@@ -392,6 +392,8 @@ export interface MailRulesTranslations {
 export interface CommonTranslations {
   app_name: string;
   loading: string;
+  loading_stuck: string;
+  reload_page: string;
   press_enter: string;
   press_enter_to_view_all: string;
   save: string;
@@ -2173,7 +2175,6 @@ export interface SettingsTranslations {
   blocked_by_browser: string;
   blocked_by_os: string;
   open_system_notification_settings: string;
-  send_test_notification: string;
   sound_new_notifications: string;
   push: string;
   push_notifications_description: string;
@@ -4762,6 +4763,10 @@ export interface SettingsTranslations {
   alias_format_uuid: string;
   alias_directory_separator: string;
   alias_export_csv: string;
+  alias_export_title: string;
+  alias_export_description: string;
+  alias_export_format_csv: string;
+  alias_export_format_json: string;
   alias_import_csv: string;
   alias_import_progress: string;
   alias_import_done: string;
