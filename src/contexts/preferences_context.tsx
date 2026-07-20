@@ -374,37 +374,8 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       });
     }
 
-    do_save(updated).then((saved) => {
-      if (saved) {
-        cache_preferences_locally(saved);
-
-        if (saved !== updated) {
-          set_preferences(saved);
-        }
-
-        if (latest_prefs_ref.current === updated) {
-          latest_prefs_ref.current = null;
-          beacon_payload_ref.current = null;
-        }
-
-        set_save_status("saved");
-        saved_indicator_timer.current = window.setTimeout(() => {
-          set_save_status("idle");
-          saved_indicator_timer.current = null;
-        }, 2000);
-      } else {
-        set_save_status("error");
-
-        window.setTimeout(() => {
-          if (is_saving_ref.current) return;
-
-          if (latest_prefs_ref.current) {
-            flush_save_ref.current();
-          }
-        }, 3000);
-      }
-    });
-  }, [do_save]);
+    void flush_save_ref.current();
+  }, []);
 
   const update_preference = useCallback(
     <K extends keyof UserPreferences>(

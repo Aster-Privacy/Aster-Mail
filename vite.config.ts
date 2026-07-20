@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { execSync } from "child_process";
+import path from "path";
 
 import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
@@ -113,6 +114,14 @@ const css_targets = browserslistToTargets(
 
 export default defineConfig({
   base: "/",
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+    },
+  },
+  worker: {
+    format: "es",
+  },
   css: {
     lightningcss: {
       targets: css_targets,

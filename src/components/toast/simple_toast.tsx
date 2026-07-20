@@ -39,7 +39,7 @@ interface ToastState {
   icon_type?: ToastIconType;
 }
 
-const MAX_TOASTS = 5;
+const MAX_TOASTS = 3;
 
 let toast_listeners: ((toasts: ToastState[]) => void)[] = [];
 let toast_stack: ToastState[] = [];
@@ -61,6 +61,28 @@ export function show_toast(
   icon_type?: ToastIconType,
   duration = 2000,
 ): string {
+  const duplicate = toast_stack.find(
+    (t) => t.message === message && t.icon_type === icon_type,
+  );
+
+  if (duplicate) {
+    const existing_timeout = toast_timeouts.get(duplicate.id);
+
+    if (existing_timeout) {
+      clearTimeout(existing_timeout);
+    }
+
+    const timeout = setTimeout(() => {
+      toast_timeouts.delete(duplicate.id);
+      toast_stack = toast_stack.filter((t) => t.id !== duplicate.id);
+      toast_listeners.forEach((listener) => listener([...toast_stack]));
+    }, duration);
+
+    toast_timeouts.set(duplicate.id, timeout);
+
+    return duplicate.id;
+  }
+
   const new_toast: ToastState = {
     message,
     icon_type,
@@ -215,8 +237,8 @@ export function SimpleToast({ position }: SimpleToastProps) {
             initial={
               reduce_motion ? false : { opacity: 0, y: y_offset, scale: 0.95 }
             }
-            layout={!reduce_motion}
-            transition={{ duration: reduce_motion ? 0 : 0.15 }}
+            layout={reduce_motion ? false : "position"}
+            transition={{ duration: reduce_motion ? 0 : 0.15, layout: { duration: 0.2 } }}
           >
             <div className="px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 bg-modal-bg border border-edge-secondary">
               {get_toast_icon(toast.icon_type) && (

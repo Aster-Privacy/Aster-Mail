@@ -55,6 +55,7 @@ interface ComposeWindowProps {
   edit_draft?: EditDraftData | null;
   on_draft_cleared?: () => void;
   initial_to?: string;
+  initial_ghost_mode?: boolean;
 }
 
 const WINDOW_WIDTH = 700;
@@ -69,6 +70,7 @@ export function ComposeWindow({
   edit_draft,
   on_draft_cleared,
   initial_to,
+  initial_ghost_mode,
 }: ComposeWindowProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
@@ -97,6 +99,12 @@ export function ComposeWindow({
     enable_offline_queue: true,
     enable_ctrl_enter_send: true,
   });
+
+  useEffect(() => {
+    if (!initial_ghost_mode) return;
+    if (compose.ghost_mode.is_ghost_enabled) return;
+    compose.ghost_mode.toggle_ghost_mode();
+  }, [initial_ghost_mode]);
 
   const handle_header_click = useCallback(() => {
     if (did_drag()) {

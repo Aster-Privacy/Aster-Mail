@@ -109,37 +109,34 @@ export function ReplyFromMismatchModal({
           </AlertDialogHeader>
         </div>
 
-        <AlertDialogFooter className="flex-col gap-2 px-6 pb-6 pt-2">
+        <AlertDialogFooter className="flex-row flex-wrap justify-end gap-1 px-4 pb-4 pt-0">
+          <Button
+            className="mt-0"
+            size="lg"
+            variant="ghost"
+            onClick={() => close_with_animation(on_cancel)}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            className="mt-0"
+            size="lg"
+            variant="ghost"
+            onClick={() => close_with_animation(on_send_anyway)}
+          >
+            {t("mail.reply_from_mismatch_send_anyway")}
+          </Button>
           {can_use_received && (
             <Button
-              className="w-full"
-              size="xl"
-              variant="depth"
+              className="mt-0 font-semibold"
+              size="lg"
+              style={{ color: "var(--accent-color)" }}
+              variant="ghost"
               onClick={() => close_with_animation(on_use_received)}
             >
-              {t("mail.reply_from_mismatch_use_received", {
-                address: received,
-              })}
+              {t("mail.reply_from_mismatch_use_received")}
             </Button>
           )}
-          <div className="flex w-full flex-row gap-3">
-            <Button
-              className="mt-0 flex-1"
-              size="xl"
-              variant="outline"
-              onClick={() => close_with_animation(on_cancel)}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              className="mt-0 flex-1"
-              size="xl"
-              variant="outline"
-              onClick={() => close_with_animation(on_send_anyway)}
-            >
-              {t("mail.reply_from_mismatch_send_anyway")}
-            </Button>
-          </div>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

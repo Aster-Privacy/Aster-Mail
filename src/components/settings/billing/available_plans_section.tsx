@@ -183,7 +183,8 @@ interface SegmentedProps<T extends string> {
 
 function Tabs<T extends string>({ value, options, on_change }: SegmentedProps<T>) {
   return (
-    <div className="inline-flex items-center gap-8 border-b border-edge-secondary">
+    <div className="max-w-full overflow-x-auto scrollbar-hide">
+      <div className="inline-flex items-center gap-4 sm:gap-8 flex-wrap justify-center border-b border-edge-secondary">
       {options.map((opt) => {
         const active = value === opt.id;
         return (
@@ -191,7 +192,7 @@ function Tabs<T extends string>({ value, options, on_change }: SegmentedProps<T>
             key={opt.id}
             type="button"
             onClick={() => on_change(opt.id)}
-            className={`relative px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none ${
+            className={`relative shrink-0 px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
               active ? "text-txt-primary" : "text-txt-muted hover:text-txt-secondary"
             }`}
           >
@@ -203,6 +204,7 @@ function Tabs<T extends string>({ value, options, on_change }: SegmentedProps<T>
           </button>
         );
       })}
+      </div>
     </div>
   );
 }

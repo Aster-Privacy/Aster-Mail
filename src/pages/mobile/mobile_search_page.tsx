@@ -36,6 +36,8 @@ import { Input } from "@/components/ui/input";
 
 type SearchFilter = "all" | "unread" | "attachments" | "starred";
 
+const SEARCH_PAGE_SIZE = 30;
+
 const FILTERS: { id: SearchFilter; label: TranslationKey }[] = [
   { id: "all", label: "mail.all" },
   { id: "unread", label: "mail.unread" },
@@ -51,6 +53,7 @@ function MobileSearchPage() {
   const input_ref = useRef<HTMLInputElement>(null);
   const [query, set_query] = useState("");
   const [active_filter, set_active_filter] = useState<SearchFilter>("all");
+  const [visible_count, set_visible_count] = useState(SEARCH_PAGE_SIZE);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -98,6 +101,19 @@ function MobileSearchPage() {
 
     return results;
   }, [search.state.results, active_filter]);
+
+  useEffect(() => {
+    set_visible_count(SEARCH_PAGE_SIZE);
+  }, [search.state.results, active_filter]);
+
+  const paged_results = useMemo(
+    () => filtered_results.slice(0, visible_count),
+    [filtered_results, visible_count],
+  );
+
+  const handle_load_more = useCallback(() => {
+    set_visible_count((prev) => Math.min(prev + SEARCH_PAGE_SIZE, filtered_results.length));
+  }, [filtered_results.length]);
 
   const is_loading = search.state.is_searching || search.state.index_building;
   const has_results = filtered_results.length > 0;
@@ -186,7 +202,7 @@ function MobileSearchPage() {
         )}
 
         {!is_loading &&
-          filtered_results.map((email) => (
+          paged_results.map((email) => (
             <MobileEmailRow
               key={email.id}
               email={email}
@@ -194,6 +210,18 @@ function MobileSearchPage() {
               on_press={handle_email_press}
             />
           ))}
+
+        {!is_loading && paged_results.length < filtered_results.length && (
+          <button
+            className="w-full py-4 text-center text-[14px] font-medium text-[var(--accent-color,#3b82f6)]"
+            type="button"
+            onClick={handle_load_more}
+          >
+            {t("mail.load_more_results", {
+              remaining: filtered_results.length - paged_results.length,
+            })}
+          </button>
+        )}
       </div>
     </motion.div>
   );

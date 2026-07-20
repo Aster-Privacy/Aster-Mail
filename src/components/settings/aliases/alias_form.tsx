@@ -19,7 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowPathIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 
@@ -437,38 +441,52 @@ export function CreateAliasModal({
                   </SelectContent>
                 </Select>
               </div>
-              {local_part && (
-                <p className="text-xs mt-1.5 break-all text-txt-secondary">
-                  {local_part}@{domain}
-                </p>
-              )}
-              {checking && (
-                <p className="text-xs mt-1.5 text-txt-muted">
-                  {t("settings.checking_availability")}
-                </p>
-              )}
-              {!checking && is_available === true && (
-                <p className="text-xs mt-1.5 text-green-500">
-                  {t("settings.alias_is_available")}
-                </p>
-              )}
-              {!checking && is_available === false && (
-                <p className="text-xs mt-1.5 text-red-500">
-                  {t("settings.alias_not_available")}
-                </p>
-              )}
-              {local_part && !current_validation.valid && (
-                <p className="text-xs mt-1.5 text-red-500">
-                  {current_validation.error_key
-                    ? t(current_validation.error_key)
-                    : t("settings.invalid_address")}
-                </p>
-              )}
-              {is_custom_domain && (
-                <p className="text-xs mt-1.5 text-txt-muted">
-                  {t("settings.alias_availability_on_save")}
-                </p>
-              )}
+              <div className="flex items-center gap-1.5 mt-1.5 min-h-[16px] text-xs">
+                {local_part && (
+                  <span className="break-all text-txt-secondary">
+                    {local_part}@{domain}
+                  </span>
+                )}
+                {local_part && !current_validation.valid && (
+                  <span className="inline-flex items-center gap-1 text-red-500">
+                    <XCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                    {current_validation.error_key
+                      ? t(current_validation.error_key)
+                      : t("settings.invalid_address")}
+                  </span>
+                )}
+                {local_part &&
+                  current_validation.valid &&
+                  !is_custom_domain && (
+                    <>
+                      {checking && (
+                        <span className="inline-flex items-center gap-1 text-txt-muted">
+                          <ArrowPathIcon className="w-3.5 h-3.5 shrink-0 animate-spin" />
+                          {t("settings.checking_availability")}
+                        </span>
+                      )}
+                      {!checking && is_available === true && (
+                        <span className="inline-flex items-center gap-1 text-green-500">
+                          <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                          {t("settings.alias_is_available")}
+                        </span>
+                      )}
+                      {!checking && is_available === false && (
+                        <span className="inline-flex items-center gap-1 text-red-500">
+                          <XCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                          {t("settings.alias_not_available")}
+                        </span>
+                      )}
+                    </>
+                  )}
+                {local_part &&
+                  current_validation.valid &&
+                  is_custom_domain && (
+                    <span className="text-txt-muted">
+                      {t("settings.alias_availability_on_save")}
+                    </span>
+                  )}
+              </div>
             </div>
             <div>
               <label

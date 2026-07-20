@@ -243,7 +243,11 @@ export default function IndexPage() {
             </div>
             <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative">
             <div
-              className="flex-1 min-w-0 rounded-lg md:rounded-xl border overflow-hidden transition-colors duration-200"
+              className={`flex-1 min-w-0 rounded-lg md:rounded-xl border overflow-hidden transition-[margin-right] duration-200 ${
+                is_quick_settings_open && !state.is_settings_route
+                  ? "lg:mr-[296px]"
+                  : ""
+              }`}
               id="main-content"
               role="main"
               style={{

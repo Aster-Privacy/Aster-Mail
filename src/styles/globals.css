@@ -19,7 +19,8 @@
   a[href],
   summary,
   label[for],
-  select:not(:disabled) {
+  select:not(:disabled),
+  input[type="range"]:not(:disabled) {
     cursor: pointer;
   }
 

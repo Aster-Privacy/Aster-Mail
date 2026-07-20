@@ -54,6 +54,7 @@ export interface ComposeInstance {
   id: string;
   edit_draft?: EditDraftData | null;
   initial_to?: string;
+  initial_ghost_mode?: boolean;
   is_minimized: boolean;
 }
 
@@ -75,7 +76,11 @@ export function use_compose_manager() {
   const [instances, set_instances] = useState<ComposeInstance[]>([]);
 
   const open_compose = useCallback(
-    (edit_draft?: EditDraftData | null, initial_to?: string) => {
+    (
+      edit_draft?: EditDraftData | null,
+      initial_to?: string,
+      initial_ghost_mode?: boolean,
+    ) => {
       set_instances((prev) => {
         if (prev.length >= MAX_COMPOSE_INSTANCES) {
           show_toast(t("mail.max_composers_warning"), "error");
@@ -87,6 +92,7 @@ export function use_compose_manager() {
           id: generate_compose_id(),
           edit_draft,
           initial_to,
+          initial_ghost_mode,
           is_minimized:
             (preferences.compose_window_mode ?? "default") === "minimized",
         };
@@ -197,6 +203,7 @@ export function ComposeManager({
             >
               <ComposeWindow
                 edit_draft={instance.edit_draft}
+                initial_ghost_mode={instance.initial_ghost_mode}
                 initial_to={instance.initial_to}
                 instance_id={instance.id}
                 is_minimized={instance.is_minimized}

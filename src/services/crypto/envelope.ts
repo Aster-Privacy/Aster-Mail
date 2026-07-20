@@ -385,6 +385,42 @@ async function try_decrypt_with_key<T>(
   return null;
 }
 
+export async function encrypt_envelope_with_identity_key(
+  data: object,
+  identity_key: string,
+): Promise<{
+  encrypted: string;
+  nonce: string;
+}> {
+  const version = ENVELOPE_KEY_VERSIONS[1];
+  const key_hash = await crypto.subtle.digest(
+    HASH_ALG,
+    new TextEncoder().encode(identity_key + version),
+  );
+  const crypto_key = await crypto.subtle.importKey(
+    "raw",
+    key_hash,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"],
+  );
+
+  const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
+  const encoder = new TextEncoder();
+  const data_bytes = encoder.encode(JSON.stringify(data));
+
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    crypto_key,
+    data_bytes,
+  );
+
+  return {
+    encrypted: array_to_base64(new Uint8Array(encrypted)),
+    nonce: array_to_base64(nonce),
+  };
+}
+
 export async function decrypt_mail_envelope_with_fallback<T>(
   encrypted: string,
   nonce: string,

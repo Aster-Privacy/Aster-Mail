@@ -95,8 +95,8 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Delete alias",         section: "aliases", breadcrumb: "Aliases > Manage", keywords: ["remove alias", "deactivate alias"] },
 
   // ── Ghost Aliases ─────────────────────────────────────────────────────────
-  { label: "Create ghost alias",   section: "ghost_aliases", breadcrumb: "Ghost Aliases > Create", keywords: ["burn address", "anonymous address"] },
-  { label: "Masked email",         section: "ghost_aliases", breadcrumb: "Ghost Aliases", keywords: ["hide email", "anonymous email", "disposable"] },
+  { label: "Create ghost alias",   section: "aliases", breadcrumb: "Aliases & Domains > Ghost Aliases", keywords: ["burn address", "anonymous address"] },
+  { label: "Masked email",         section: "aliases", breadcrumb: "Aliases & Domains > Ghost Aliases", keywords: ["hide email", "anonymous email", "disposable"] },
 
   // ── Billing ───────────────────────────────────────────────────────────────
   { label: "Current plan",         section: "billing", breadcrumb: "Billing > Plan" },

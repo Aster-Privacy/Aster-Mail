@@ -292,6 +292,12 @@ export function SearchBar({
   const show_slow_loading = show_loading && is_slow;
   const show_slow_empty = show_empty && finished_slow;
 
+  const handle_refine_query = useCallback(() => {
+    input_ref.current?.focus();
+    input_ref.current?.select();
+    set_is_open(true);
+  }, []);
+
   const slow_notice = (
     <div className="px-6 py-8 flex flex-col items-center justify-center text-center gap-1.5">
       <p className="text-sm font-medium text-[var(--text-primary)]">
@@ -300,20 +306,24 @@ export function SearchBar({
       <p className="text-xs text-[var(--text-muted)]">
         {t("mail.search_refine_terms")}
       </p>
-      {content_search_enabled && (
-        <div className="flex items-center justify-center gap-2 mt-0.5">
-          <span className="text-xs text-[var(--text-muted)]">
-            {t("mail.content_search_slower")}
-          </span>
+      <div className="flex items-center justify-center gap-3 mt-1.5">
+        <button
+          className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+          type="button"
+          onClick={handle_refine_query}
+        >
+          {t("mail.refine_your_search_action")}
+        </button>
+        {content_search_enabled && (
           <button
             className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
             type="button"
             onClick={handle_disable_content_search}
           >
-            {t("common.disable")}
+            {t("mail.turn_off_indexing_action")}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 
