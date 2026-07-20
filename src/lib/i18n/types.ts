@@ -2136,6 +2136,7 @@ export interface SettingsTranslations {
   signing_out: string;
   sign_out_description: string;
   sign_out_everywhere_confirm: string;
+  sign_out_everywhere_success: string;
   failed_sign_out: string;
   active_now: string;
   minutes_ago: string;

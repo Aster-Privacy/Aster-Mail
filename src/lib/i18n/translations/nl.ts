@@ -2507,6 +2507,8 @@ export const nl = {
     signing_out: "Uitloggen...",
     sign_out_description: "Dit logt je uit op alle andere apparaten en browsers",
     sign_out_everywhere_confirm: "Weet je zeker dat je overal wilt uitloggen? Dit beëindigt alle andere actieve sessies.",
+    sign_out_everywhere_success:
+      "Uitgelogd bij {{count}} andere sessie(s)",
     failed_sign_out: "Andere sessies uitloggen mislukt",
     active_now: "Nu actief",
     minutes_ago: "{{count}} minuten geleden",

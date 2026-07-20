@@ -2513,6 +2513,8 @@ export const pl = {
     signing_out: "Wylogowywanie...",
     sign_out_description: "Spowoduje to wylogowanie ze wszystkich innych urządzeń i przeglądarek",
     sign_out_everywhere_confirm: "Czy na pewno chcesz się wylogować wszędzie? Spowoduje to zakończenie wszystkich innych aktywnych sesji.",
+    sign_out_everywhere_success:
+      "Wylogowano z {{count}} innej sesji (sesji)",
     failed_sign_out: "Nie udało się wylogować z innych sesji",
     active_now: "Aktywna teraz",
     minutes_ago: "{{count}} minut temu",

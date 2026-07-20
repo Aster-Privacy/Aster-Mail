@@ -2511,6 +2511,8 @@ export const tr = {
     signing_out: "Çıkış yapılıyor...",
     sign_out_description: "Bu, diğer tüm cihaz ve tarayıcılardaki oturumlarınızı sonlandıracak",
     sign_out_everywhere_confirm: "Her yerden çıkış yapmak istediğinizden emin misiniz? Bu, diğer tüm aktif oturumları sonlandıracak.",
+    sign_out_everywhere_success:
+      "Diğer {{count}} oturumdan çıkış yapıldı",
     failed_sign_out: "Diğer oturumlardan çıkış yapılamadı",
     active_now: "Şu anda aktif",
     minutes_ago: "{{count}} dakika önce",

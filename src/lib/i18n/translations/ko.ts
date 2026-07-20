@@ -2562,6 +2562,7 @@ export const ko = {
     signing_out: "로그아웃 중...",
     sign_out_description: "다른 모든 기기와 브라우저에서 로그아웃됩니다",
     sign_out_everywhere_confirm: "모든 곳에서 로그아웃하시겠습니까? 다른 모든 활성 세션이 종료됩니다.",
+    sign_out_everywhere_success: "다른 세션 {{count}}개에서 로그아웃됨",
     failed_sign_out: "다른 세션 로그아웃 실패",
     active_now: "현재 활성",
     minutes_ago: "{{count}}분 전",

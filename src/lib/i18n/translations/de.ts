@@ -2505,6 +2505,8 @@ export const de = {
     signing_out: "Abmelden...",
     sign_out_description: "Dies meldet Sie von allen anderen Geräten und Browsern ab",
     sign_out_everywhere_confirm: "Sind Sie sicher, dass Sie sich überall abmelden möchten? Dies beendet alle anderen aktiven Sitzungen.",
+    sign_out_everywhere_success:
+      "Von {{count}} anderen Sitzung(en) abgemeldet",
     failed_sign_out: "Abmeldung anderer Sitzungen fehlgeschlagen",
     active_now: "Gerade aktiv",
     minutes_ago: "vor {{count}} Minuten",

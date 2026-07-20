@@ -2527,6 +2527,8 @@ export const it = {
     signing_out: "Disconnessione...",
     sign_out_description: "Questo ti disconnetterà da tutti gli altri dispositivi e browser",
     sign_out_everywhere_confirm: "Sei sicuro di volerti disconnettere ovunque? Questo terminerà tutte le altre sessioni attive.",
+    sign_out_everywhere_success:
+      "Disconnesso da {{count}} altra/e sessione/i",
     failed_sign_out: "Disconnessione altre sessioni non riuscita",
     active_now: "Attivo ora",
     minutes_ago: "{{count}} minuti fa",

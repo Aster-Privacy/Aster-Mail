@@ -2512,6 +2512,8 @@ export const pt = {
     signing_out: "Saindo...",
     sign_out_description: "Isso desconectará você de todos os outros dispositivos e navegadores",
     sign_out_everywhere_confirm: "Tem certeza de que deseja sair de todos os lugares? Isso encerrará todas as outras sessões ativas.",
+    sign_out_everywhere_success:
+      "Sessão encerrada em {{count}} outra(s) sessão(ões)",
     failed_sign_out: "Falha ao encerrar outras sessões",
     active_now: "Ativo agora",
     minutes_ago: "{{count}} minutos atrás",

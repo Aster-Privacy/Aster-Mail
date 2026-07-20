@@ -2513,6 +2513,8 @@ export const es = {
     signing_out: "Cerrando sesión...",
     sign_out_description: "Esto cerrará tu sesión en todos los demás dispositivos y navegadores",
     sign_out_everywhere_confirm: "¿Estás seguro de que quieres cerrar sesión en todos los dispositivos? Esto finalizará todas las demás sesiones activas.",
+    sign_out_everywhere_success:
+      "Sesión cerrada en {{count}} otra(s) sesión(es)",
     failed_sign_out: "Error al cerrar sesión en otras sesiones",
     active_now: "Activo ahora",
     minutes_ago: "hace {{count}} minutos",

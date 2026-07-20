@@ -1881,6 +1881,7 @@ export const en: Translations = {
       "This will sign you out of all other devices and browsers",
     sign_out_everywhere_confirm:
       "Are you sure you want to sign out everywhere? This will end all other active sessions.",
+    sign_out_everywhere_success: "Signed out of {{count}} other session(s)",
     failed_sign_out: "Failed to sign out other sessions",
     active_now: "Active now",
     minutes_ago: "{{count}} minutes ago",

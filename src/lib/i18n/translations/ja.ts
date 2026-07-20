@@ -2513,6 +2513,8 @@ export const ja = {
     signing_out: "サインアウト中...",
     sign_out_description: "他のすべてのデバイスとブラウザからサインアウトされます",
     sign_out_everywhere_confirm: "すべての場所からサインアウトしてもよろしいですか？他のすべてのアクティブなセッションが終了します。",
+    sign_out_everywhere_success:
+      "他の{{count}}件のセッションからサインアウトしました",
     failed_sign_out: "他のセッションのサインアウトに失敗しました",
     active_now: "現在アクティブ",
     minutes_ago: "{{count}}分前",
