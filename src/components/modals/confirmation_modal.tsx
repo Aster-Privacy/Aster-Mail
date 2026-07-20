@@ -139,6 +139,7 @@ export function ConfirmationModal({
       <AlertDialogContent
         className="gap-0 p-0 overflow-hidden max-w-[380px]"
         on_overlay_click={handle_cancel}
+        onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         <div className="px-6 pt-6 pb-5">
           <AlertDialogHeader className="space-y-2">
