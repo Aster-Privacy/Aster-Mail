@@ -436,19 +436,29 @@ export async function decrypt_alias(
   }
 }
 
+const DECRYPT_BATCH_SIZE = 25;
+
 export async function decrypt_aliases(
   aliases: EmailAlias[],
 ): Promise<DecryptedEmailAlias[]> {
-  const results = await Promise.allSettled(
-    aliases.map((alias) => decrypt_alias(alias)),
-  );
+  const decrypted: DecryptedEmailAlias[] = [];
 
-  return results
-    .filter(
-      (r): r is PromiseFulfilledResult<DecryptedEmailAlias> =>
-        r.status === "fulfilled",
-    )
-    .map((r) => r.value);
+  for (let i = 0; i < aliases.length; i += DECRYPT_BATCH_SIZE) {
+    const batch = aliases.slice(i, i + DECRYPT_BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map((alias) => decrypt_alias(alias)),
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled") decrypted.push(result.value);
+    }
+
+    if (i + DECRYPT_BATCH_SIZE < aliases.length) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
+  return decrypted;
 }
 
 export async function list_aliases(params?: {

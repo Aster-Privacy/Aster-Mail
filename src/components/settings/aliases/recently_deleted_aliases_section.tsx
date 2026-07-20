@@ -54,6 +54,8 @@ interface RecentlyDeletedAliasesSectionProps {
   on_restored: () => void;
 }
 
+const DELETED_ALIAS_DECRYPT_BATCH_SIZE = 25;
+
 function decode_random_local_part(encoded: string): string {
   return new TextDecoder().decode(
     Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)),
@@ -91,42 +93,52 @@ export function RecentlyDeletedAliasesSection({
 
       const rows = response.data?.aliases ?? [];
 
-      const decrypted = await Promise.all(
-        rows.map(async (row) => {
-          let local_part = "";
+      const decrypt_row = async (row: (typeof rows)[number]) => {
+        let local_part = "";
 
-          if (row.is_random) {
-            local_part = decode_random_local_part(row.encrypted_local_part);
-          } else {
-            try {
-              local_part = await decrypt_alias_field(
-                row.encrypted_local_part,
-                row.local_part_nonce,
-              );
-            } catch {
-              local_part = "";
-            }
+        if (row.is_random) {
+          local_part = decode_random_local_part(row.encrypted_local_part);
+        } else {
+          try {
+            local_part = await decrypt_alias_field(
+              row.encrypted_local_part,
+              row.local_part_nonce,
+            );
+          } catch {
+            local_part = "";
           }
+        }
 
-          let display_name: string | undefined;
+        let display_name: string | undefined;
 
-          if (row.encrypted_display_name && row.display_name_nonce) {
-            try {
-              display_name = await decrypt_alias_field(
-                row.encrypted_display_name,
-                row.display_name_nonce,
-              );
-            } catch {}
-          }
+        if (row.encrypted_display_name && row.display_name_nonce) {
+          try {
+            display_name = await decrypt_alias_field(
+              row.encrypted_display_name,
+              row.display_name_nonce,
+            );
+          } catch {}
+        }
 
-          return {
-            id: row.id,
-            full_address: `${local_part}@${row.domain}`,
-            display_name,
-            deleted_at: row.deleted_at,
-          };
-        }),
-      );
+        return {
+          id: row.id,
+          full_address: `${local_part}@${row.domain}`,
+          display_name,
+          deleted_at: row.deleted_at,
+        };
+      };
+
+      const decrypted: DecryptedDeletedAlias[] = [];
+
+      for (let i = 0; i < rows.length; i += DELETED_ALIAS_DECRYPT_BATCH_SIZE) {
+        const batch = rows.slice(i, i + DELETED_ALIAS_DECRYPT_BATCH_SIZE);
+
+        decrypted.push(...(await Promise.all(batch.map(decrypt_row))));
+
+        if (i + DELETED_ALIAS_DECRYPT_BATCH_SIZE < rows.length) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      }
 
       set_aliases(decrypted);
     } catch {
