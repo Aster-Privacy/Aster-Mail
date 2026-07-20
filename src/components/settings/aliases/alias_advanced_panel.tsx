@@ -32,6 +32,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
+import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
+import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
+import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
@@ -847,15 +850,6 @@ function LockedSection({
 const ACTIVITY_DAYS_SHOWN = 14;
 const GRAPH_HEIGHT = 56;
 
-function StatsLegendDot({ color }: { color: string }) {
-  return (
-    <span
-      className="inline-block w-2 h-2 rounded-full shrink-0"
-      style={{ backgroundColor: color }}
-    />
-  );
-}
-
 function StatsPanel({ alias_id }: { alias_id: string }) {
   const { t } = use_i18n();
   const [stats, set_stats] = useState<AliasStats | null>(null);
@@ -899,9 +893,9 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
 
   if (!stats) return null;
 
-  const received_color = "var(--color-indigo-400, #818cf8)";
-  const forwarded_color = "var(--color-emerald-400, #34d399)";
-  const blocked_color = "var(--color-red-400, #f87171)";
+  const received_color = "var(--color-blue-500, #3b82f6)";
+  const forwarded_color = "var(--color-blue-300, #93c5fd)";
+  const blocked_color = "var(--color-red-500, #ef4444)";
 
   const max_val = activity
     ? Math.max(
@@ -919,20 +913,17 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
       </SectionTitle>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-txt-muted">
-        <span className="flex items-center gap-1.5">
-          <StatsLegendDot color={received_color} />
+        <span>
           {t("settings.alias_stats_received" as TranslationKey, {
             count: stats.received,
           })}
         </span>
-        <span className="flex items-center gap-1.5">
-          <StatsLegendDot color={forwarded_color} />
+        <span>
           {t("settings.alias_stats_forwarded" as TranslationKey, {
             count: stats.forwarded,
           })}
         </span>
-        <span className="flex items-center gap-1.5">
-          <StatsLegendDot color={blocked_color} />
+        <span>
           {t("settings.alias_stats_blocked" as TranslationKey, {
             count: stats.blocked,
           })}
@@ -995,11 +986,69 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
   );
 }
 
+interface AliasDetailsProps {
+  alias_address: string;
+  display_name?: string;
+  note?: string;
+  websites?: string[];
+  is_locked?: boolean;
+  on_save_display_name: (next: string) => Promise<{ error?: unknown }>;
+  on_saved_display_name: (next: string) => void;
+  on_save_note: (next: string) => Promise<{ error?: unknown }>;
+  on_saved_note: (next: string) => void;
+  on_save_websites: (next: string[]) => Promise<{ error?: unknown }>;
+  on_saved_websites: (next: string[]) => void;
+}
+
+function AliasDetailsPanel({
+  alias_address,
+  display_name,
+  note,
+  websites,
+  is_locked,
+  on_save_display_name,
+  on_saved_display_name,
+  on_save_note,
+  on_saved_note,
+  on_save_websites,
+  on_saved_websites,
+}: AliasDetailsProps) {
+  const { t } = use_i18n();
+
+  return (
+    <div className="space-y-2">
+      <SectionTitle icon={<PencilSquareIcon className="w-4 h-4" />}>
+        {t("settings.alias_details_title" as TranslationKey)}
+      </SectionTitle>
+      <AliasDisplayNameEditor
+        alias_address={alias_address}
+        display_name={display_name}
+        is_locked={is_locked}
+        on_save={on_save_display_name}
+        on_saved={on_saved_display_name}
+      />
+      <AliasNoteEditor
+        alias_address={alias_address}
+        note={note}
+        on_save={on_save_note}
+        on_saved={on_saved_note}
+      />
+      <AliasWebsitesEditor
+        alias_address={alias_address}
+        websites={websites}
+        on_save={on_save_websites}
+        on_saved={on_saved_websites}
+      />
+    </div>
+  );
+}
+
 type AliasAdvancedPanelProps =
-  | { alias_id: string; domain_address_id?: never; alias_local_part?: never; alias_domain?: never }
+  | (AliasDetailsProps & { alias_id: string; domain_address_id?: never; alias_local_part?: never; alias_domain?: never })
   | { alias_id?: never; domain_address_id: string; alias_local_part: string; alias_domain: string };
 
-export function AliasAdvancedPanel({ alias_id, domain_address_id, alias_local_part, alias_domain }: AliasAdvancedPanelProps) {
+export function AliasAdvancedPanel(props: AliasAdvancedPanelProps) {
+  const { alias_id, domain_address_id, alias_local_part, alias_domain } = props;
   const { t } = use_i18n();
   const { is_feature_locked, is_loading } = use_plan_limits();
 
@@ -1018,6 +1067,21 @@ export function AliasAdvancedPanel({ alias_id, domain_address_id, alias_local_pa
 
   return (
     <div className="mt-3 pt-3 border-t border-edge-secondary space-y-5">
+      {alias_id && (
+        <AliasDetailsPanel
+          alias_address={props.alias_address}
+          display_name={props.display_name}
+          is_locked={props.is_locked}
+          note={props.note}
+          on_save_display_name={props.on_save_display_name}
+          on_save_note={props.on_save_note}
+          on_save_websites={props.on_save_websites}
+          on_saved_display_name={props.on_saved_display_name}
+          on_saved_note={props.on_saved_note}
+          on_saved_websites={props.on_saved_websites}
+          websites={props.websites}
+        />
+      )}
       {alias_id && !delivery_log_locked && <StatsPanel alias_id={alias_id} />}
       {sender_locked ? (
         <LockedSection
