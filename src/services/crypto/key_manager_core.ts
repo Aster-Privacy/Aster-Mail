@@ -95,6 +95,7 @@ export interface EncryptedVault {
   ratchet_pq_identity_key?: string;
   ratchet_pq_identity_public?: string;
   ratchet_previous_keys?: RatchetKeySet[];
+  ratchet_regen_v4_done?: boolean;
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
   vault_format?: number;
