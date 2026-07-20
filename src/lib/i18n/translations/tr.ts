@@ -5197,6 +5197,7 @@ export const tr = {
     store_codes_safely: "Bu kodları güvenli bir yerde saklayın. Parolanızı unutursanız hesabınızı kurtarmanın TEK yolu bunlardır.",
     download_key: "Anahtarı İndir",
     download_as_text: "Metin Olarak İndir",
+    recovery_download_failed: "İndirme başarısız oldu. Lütfen tekrar deneyin.",
     add_backup_email: "Yedek e-posta ekle",
     skip_for_now: "Şimdilik atla",
     recovery_email_required_gate_title: "Kurtarma e-postası gerekli",

@@ -5679,6 +5679,7 @@ export interface AuthTranslations {
   recovery_codes_copied: string;
   recovery_code_copied: string;
   click_eye_reveal: string;
+  recovery_download_failed: string;
   continue_without_download: string;
   please_enter_recovery_email: string;
   please_enter_valid_email: string;

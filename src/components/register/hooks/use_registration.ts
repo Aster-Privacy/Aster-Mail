@@ -601,13 +601,21 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_download_key = async () => {
-    await generate_recovery_pdf(generated_email, recovery_codes, t);
-    set_is_pdf_downloaded(true);
+    try {
+      await generate_recovery_pdf(generated_email, recovery_codes, t);
+      set_is_pdf_downloaded(true);
+    } catch {
+      show_toast(t("auth.recovery_download_failed"), "error");
+    }
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text(generated_email, recovery_codes, t);
-    set_is_text_downloaded(true);
+    try {
+      await download_recovery_text(generated_email, recovery_codes, t);
+      set_is_text_downloaded(true);
+    } catch {
+      show_toast(t("auth.recovery_download_failed"), "error");
+    }
   };
 
   const handle_copy_phrase = async () => {
@@ -618,13 +626,21 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_download_phrase_pdf = async () => {
-    await generate_recovery_phrase_pdf(generated_email, recovery_phrase, t);
-    set_is_pdf_downloaded(true);
+    try {
+      await generate_recovery_phrase_pdf(generated_email, recovery_phrase, t);
+      set_is_pdf_downloaded(true);
+    } catch {
+      show_toast(t("auth.recovery_download_failed"), "error");
+    }
   };
 
   const handle_download_phrase_text = async () => {
-    await download_recovery_phrase_text(generated_email, recovery_phrase, t);
-    set_is_text_downloaded(true);
+    try {
+      await download_recovery_phrase_text(generated_email, recovery_phrase, t);
+      set_is_text_downloaded(true);
+    } catch {
+      show_toast(t("auth.recovery_download_failed"), "error");
+    }
   };
 
   const advance_from_phrase = async () => {

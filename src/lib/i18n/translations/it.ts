@@ -5199,6 +5199,7 @@ export const it = {
     store_codes_safely: "Conserva questi codici in modo sicuro. Sono l'UNICO modo per recuperare il tuo account se dimentichi la password.",
     download_key: "Scarica chiave",
     download_as_text: "Scarica come testo",
+    recovery_download_failed: "Download non riuscito. Riprova.",
     add_backup_email: "Aggiungi un'email di backup",
     skip_for_now: "Salta per ora",
     recovery_email_required_gate_title: "Email di recupero obbligatoria",

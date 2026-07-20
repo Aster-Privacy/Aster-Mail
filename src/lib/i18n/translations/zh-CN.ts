@@ -5195,6 +5195,7 @@ export const zh_CN = {
     store_codes_safely: "请安全保存这些代码。它们是您忘记密码时恢复账户的唯一方式。",
     download_key: "下载密钥",
     download_as_text: "下载为文本",
+    recovery_download_failed: "下载失败,请重试。",
     add_backup_email: "添加备份邮箱",
     skip_for_now: "暂时跳过",
     recovery_email_required_gate_title: "需要恢复邮箱",

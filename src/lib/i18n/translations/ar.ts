@@ -5196,6 +5196,7 @@ export const ar = {
     store_codes_safely: "خزّن هذه الرموز بأمان. إنها الطريقة الوحيدة لاستعادة حسابك إذا نسيت كلمة المرور.",
     download_key: "تنزيل المفتاح",
     download_as_text: "تنزيل كنص",
+    recovery_download_failed: "فشل التنزيل. يرجى المحاولة مرة أخرى.",
     add_backup_email: "إضافة بريد إلكتروني احتياطي",
     skip_for_now: "تخطي في الوقت الحالي",
     recovery_email_required_gate_title: "البريد الإلكتروني للاسترداد مطلوب",

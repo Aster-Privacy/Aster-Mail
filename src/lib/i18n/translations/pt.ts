@@ -5199,6 +5199,7 @@ export const pt = {
     store_codes_safely: "Armazene estes códigos com segurança. Eles são a ÚNICA forma de recuperar sua conta caso você esqueçsua senha.",
     download_key: "Baixar Chave",
     download_as_text: "Baixar como Texto",
+    recovery_download_failed: "Falha no download. Tente novamente.",
     add_backup_email: "Adicionar e-mail de backup",
     skip_for_now: "Pular por enquanto",
     recovery_email_required_gate_title: "E-mail de recuperação obrigatório",

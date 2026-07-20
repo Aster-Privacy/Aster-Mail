@@ -5199,6 +5199,7 @@ export const pl = {
     store_codes_safely: "Przechowuj te kody bezpiecznie. To JEDYNY sposób na odzyskanie konta, jeśli zapomnisz hasła.",
     download_key: "Pobierz klucz",
     download_as_text: "Pobierz jako tekst",
+    recovery_download_failed: "Pobieranie nie powiodło się. Spróbuj ponownie.",
     add_backup_email: "Dodaj zapasowy adres e-mail",
     skip_for_now: "Pomiń na razie",
     recovery_email_required_gate_title: "Wymagany adres e-mail do odzyskiwania",
