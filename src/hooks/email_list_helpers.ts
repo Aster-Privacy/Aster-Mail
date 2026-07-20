@@ -328,6 +328,15 @@ export async function decrypt_envelope(
 
     if (!vault?.identity_key) return null;
 
+    const first_byte = base64_to_array(encrypted)[0];
+    if (nonce_bytes.length === 12 && (first_byte === 2 || first_byte === 3 || first_byte === 4)) {
+      const { decrypt_mail_envelope } = await import(
+        "@/components/email/shared/decrypt_envelope"
+      );
+      const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(encrypted, nonce);
+      if (ecies_result) return ecies_result;
+    }
+
     const result = await try_decrypt_with_identity_key(
       encrypted,
       nonce_bytes,

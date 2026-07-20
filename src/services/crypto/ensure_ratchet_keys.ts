@@ -249,7 +249,11 @@ async function run_locked(): Promise<boolean> {
     const has_pq =
       !!vault.ratchet_pq_identity_key && !!vault.ratchet_pq_identity_public;
 
-    const need_forced_regen = !localStorage.getItem(FORCED_REGEN_KEY);
+    const need_forced_regen =
+      !localStorage.getItem(FORCED_REGEN_KEY) && !vault.ratchet_regen_v4_done;
+    if (vault.ratchet_regen_v4_done && !localStorage.getItem(FORCED_REGEN_KEY)) {
+      localStorage.setItem(FORCED_REGEN_KEY, "1");
+    }
 
     const ecdh_consistent =
       !need_forced_regen &&
@@ -302,6 +306,8 @@ async function run_locked(): Promise<boolean> {
           ratchet_identity_public: vault.ratchet_identity_public!,
           ratchet_signed_prekey: vault.ratchet_signed_prekey!,
           ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public!,
+          ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
+          ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
         };
         const previous = vault.ratchet_previous_keys ?? [];
         const merged = [old_set, ...previous];
@@ -324,6 +330,8 @@ async function run_locked(): Promise<boolean> {
 
       await clear_all_ratchet_states();
     }
+
+    vault.ratchet_regen_v4_done = true;
 
     await store_vault_in_memory(vault, passphrase);
 

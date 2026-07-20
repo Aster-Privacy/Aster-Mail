@@ -315,7 +315,6 @@ export async function decrypt_mail_envelope<
           });
         }
       }
-
       for (const key_set of ratchet_key_sets) {
         let plain: Uint8Array | null = null;
 
