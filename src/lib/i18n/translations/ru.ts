@@ -4618,6 +4618,20 @@ export const ru = {
     snooze_similar_emails: "Отложить похожие письма",
     bulk_unsubscribe: "Массовая отписка",
     archive_all_newsletters: "Архивировать все рассылки",
+    scanning_for_newsletters: "Поиск рассылок...",
+    archiving_newsletters: "Архивирование рассылок...",
+    mark_all_read_confirm_title: "Отметить все как прочитанные?",
+    mark_all_read_confirm_message:
+      "Все непрочитанные письма во входящих будут отмечены как прочитанные.",
+    archive_all_read_confirm_title: "Архивировать все прочитанные письма?",
+    archive_all_read_confirm_message:
+      "Все прочитанные письма во входящих будут отправлены в архив. Это можно отменить сразу после.",
+    delete_old_confirm_title: "Удалить письма старше 30 дней?",
+    delete_old_confirm_message:
+      "Все письма старше 30 дней будут перемещены в корзину. Это можно отменить сразу после.",
+    archive_newsletters_confirm_title: "Архивировать все рассылки?",
+    archive_newsletters_confirm_message:
+      "Все письма, определённые как рассылки, во входящих будут отправлены в архив. Это можно отменить сразу после.",
     delete_all: "Удалить все",
     archive_subtitle: "Архивируйте письма, чтобы поддерживать порядок во входящих",
     trash_subtitle: "Удалённые письма будут отображаться здесь",

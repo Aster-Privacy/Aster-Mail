@@ -4623,6 +4623,20 @@ export const nl = {
     snooze_similar_emails: "Vergelijkbare e-mails uitstellen",
     bulk_unsubscribe: "Massaal uitschrijven",
     archive_all_newsletters: "Alle nieuwsbrieven archiveren",
+    scanning_for_newsletters: "Nieuwsbrieven zoeken...",
+    archiving_newsletters: "Nieuwsbrieven archiveren...",
+    mark_all_read_confirm_title: "Alles als gelezen markeren?",
+    mark_all_read_confirm_message:
+      "Dit markeert elke ongelezen e-mail in je inbox als gelezen.",
+    archive_all_read_confirm_title: "Alle gelezen e-mails archiveren?",
+    archive_all_read_confirm_message:
+      "Dit archiveert elke gelezen e-mail in je inbox. Je kunt dit direct daarna ongedaan maken.",
+    delete_old_confirm_title: "E-mails ouder dan 30 dagen verwijderen?",
+    delete_old_confirm_message:
+      "Dit verplaatst elke e-mail ouder dan 30 dagen naar de prullenbak. Je kunt dit direct daarna ongedaan maken.",
+    archive_newsletters_confirm_title: "Alle nieuwsbrieven archiveren?",
+    archive_newsletters_confirm_message:
+      "Dit archiveert elke e-mail die als nieuwsbrief is herkend in je inbox. Je kunt dit direct daarna ongedaan maken.",
     delete_all: "Alles verwijderen",
     archive_subtitle: "Archiveer e-mails om je inbox schoon te houden",
     trash_subtitle: "Verwijderde e-mails verschijnen hier",

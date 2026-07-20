@@ -4623,6 +4623,20 @@ export const pl = {
     snooze_similar_emails: "Odłóż podobne e-maile",
     bulk_unsubscribe: "Masowe wypisanie",
     archive_all_newsletters: "Archiwizuj wszystkie newslettery",
+    scanning_for_newsletters: "Wyszukiwanie newsletterów...",
+    archiving_newsletters: "Archiwizowanie newsletterów...",
+    mark_all_read_confirm_title: "Oznaczyć wszystkie jako przeczytane?",
+    mark_all_read_confirm_message:
+      "Spowoduje to oznaczenie każdej nieprzeczytanej wiadomości w skrzynce odbiorczej jako przeczytanej.",
+    archive_all_read_confirm_title: "Zarchiwizować wszystkie przeczytane wiadomości?",
+    archive_all_read_confirm_message:
+      "Spowoduje to zarchiwizowanie każdej przeczytanej wiadomości w skrzynce odbiorczej. Będzie można to cofnąć zaraz potem.",
+    delete_old_confirm_title: "Usunąć wiadomości starsze niż 30 dni?",
+    delete_old_confirm_message:
+      "Spowoduje to przeniesienie do kosza każdej wiadomości starszej niż 30 dni. Będzie można to cofnąć zaraz potem.",
+    archive_newsletters_confirm_title: "Zarchiwizować wszystkie newslettery?",
+    archive_newsletters_confirm_message:
+      "Spowoduje to zarchiwizowanie każdej wiadomości wykrytej jako newsletter w skrzynce odbiorczej. Będzie można to cofnąć zaraz potem.",
     delete_all: "Usuń wszystkie",
     archive_subtitle: "Archiwizuj e-maile, aby utrzymać porządek w skrzynce",
     trash_subtitle: "Usunięte e-maile pojawią się tutaj",

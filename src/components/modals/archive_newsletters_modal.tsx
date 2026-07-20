@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { UnsubscribeInfo } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -27,6 +26,7 @@ import {
   MagnifyingGlassIcon,
   CheckCircleIcon,
   XMarkIcon,
+  NewspaperIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
@@ -34,9 +34,8 @@ import { Checkbox } from "@aster/ui";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
-import { SnoozeIcon } from "@/components/common/icons";
 import { list_mail_items, bulk_patch_metadata } from "@/services/api/mail";
-import { batch_archive } from "@/services/api/archive";
+import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
   decrypt_mail_envelope,
@@ -57,16 +56,13 @@ import { get_email_username, get_email_domain } from "@/lib/utils";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  detect_unsubscribe_info,
-  execute_unsubscribe,
-} from "@/utils/unsubscribe_detector";
-import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
+import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 
-interface Subscription {
+interface NewsletterSender {
   id: string;
   sender_email: string;
   sender_name: string;
@@ -74,10 +70,9 @@ interface Subscription {
   email_count: number;
   mail_ids: string[];
   items: MailItem[];
-  unsub_info: UnsubscribeInfo;
 }
 
-interface MassUnsubscribeModalProps {
+interface ArchiveNewslettersModalProps {
   is_open: boolean;
   on_close: () => void;
 }
@@ -153,23 +148,25 @@ async function decrypt_items_metadata_for_action(
   }
 }
 
-export function MassUnsubscribeModal({
+export function ArchiveNewslettersModal({
   is_open,
   on_close,
-}: MassUnsubscribeModalProps) {
+}: ArchiveNewslettersModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const [subscriptions, set_subscriptions] = useState<Subscription[]>([]);
+  const [newsletters, set_newsletters] = useState<NewsletterSender[]>([]);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [search_query, set_search_query] = useState("");
   const [is_loading, set_is_loading] = useState(true);
-  const [is_unsubscribing, set_is_unsubscribing] = useState(false);
+  const [is_archiving, set_is_archiving] = useState(false);
   const [completed_count, set_completed_count] = useState(0);
-  const [link_opened_count, set_link_opened_count] = useState(0);
-  const [failed_count, set_failed_count] = useState(0);
   const [show_success, set_show_success] = useState(false);
+  const [last_archived, set_last_archived] = useState<{
+    ids: string[];
+    items: MailItem[];
+  } | null>(null);
 
-  const fetch_subscriptions = useCallback(async () => {
+  const fetch_newsletters = useCallback(async () => {
     set_is_loading(true);
     try {
       let all_items: MailItem[] = [];
@@ -196,7 +193,6 @@ export function MassUnsubscribeModal({
             count: number;
             ids: string[];
             items: MailItem[];
-            unsub_info: UnsubscribeInfo;
           }
         >();
 
@@ -239,7 +235,6 @@ export function MassUnsubscribeModal({
                 count: 1,
                 ids: [item.id],
                 items: [item],
-                unsub_info,
               });
             }
           } catch (error) {
@@ -248,7 +243,7 @@ export function MassUnsubscribeModal({
           }
         }
 
-        const subs = Array.from(sender_map.values()).map(
+        const senders = Array.from(sender_map.values()).map(
           (s) =>
             ({
               id: s.email,
@@ -258,11 +253,14 @@ export function MassUnsubscribeModal({
               email_count: s.count,
               mail_ids: s.ids,
               items: s.items,
-              unsub_info: s.unsub_info,
-            }) as Subscription,
+            }) as NewsletterSender,
         );
 
-        set_subscriptions(subs);
+        set_newsletters(senders);
+        set_selected_ids(new Set(senders.map((s) => s.id)));
+      } else {
+        set_newsletters([]);
+        set_selected_ids(new Set());
       }
     } finally {
       set_is_loading(false);
@@ -271,99 +269,60 @@ export function MassUnsubscribeModal({
 
   useEffect(() => {
     if (is_open) {
-      fetch_subscriptions();
-      set_selected_ids(new Set());
+      fetch_newsletters();
       set_search_query("");
       set_show_success(false);
       set_completed_count(0);
-      set_link_opened_count(0);
-      set_failed_count(0);
+      set_last_archived(null);
     }
-  }, [is_open, fetch_subscriptions]);
+  }, [is_open, fetch_newsletters]);
 
-  const filtered_subscriptions = useMemo(() => {
+  const filtered_newsletters = useMemo(() => {
     if (!search_query)
-      return [...subscriptions].sort((a, b) => b.email_count - a.email_count);
+      return [...newsletters].sort((a, b) => b.email_count - a.email_count);
 
     const query = search_query.toLowerCase();
 
-    return subscriptions
+    return newsletters
       .filter(
-        (sub) =>
-          sub.sender_name.toLowerCase().includes(query) ||
-          sub.sender_email.toLowerCase().includes(query) ||
-          sub.domain.toLowerCase().includes(query),
+        (n) =>
+          n.sender_name.toLowerCase().includes(query) ||
+          n.sender_email.toLowerCase().includes(query) ||
+          n.domain.toLowerCase().includes(query),
       )
       .sort((a, b) => b.email_count - a.email_count);
-  }, [subscriptions, search_query]);
+  }, [newsletters, search_query]);
 
   const handle_select_all = () => {
-    if (selected_ids.size === filtered_subscriptions.length) {
+    if (selected_ids.size === filtered_newsletters.length) {
       set_selected_ids(new Set());
     } else {
-      set_selected_ids(new Set(filtered_subscriptions.map((sub) => sub.id)));
+      set_selected_ids(new Set(filtered_newsletters.map((n) => n.id)));
     }
   };
 
   const handle_select = use_shift_range_select(
-    filtered_subscriptions,
-    (sub) => sub.id,
+    filtered_newsletters,
+    (n) => n.id,
     selected_ids,
     set_selected_ids,
   );
 
-  const handle_unsubscribe = async () => {
+  const handle_archive = async () => {
     if (selected_ids.size === 0) return;
 
-    const confirmed = await confirm_unsubscribe_bulk(selected_ids.size);
-
-    if (!confirmed) return;
-
-    set_is_unsubscribing(true);
-    const total = selected_ids.size;
+    set_is_archiving(true);
 
     try {
-      const selected_subs = subscriptions.filter((sub) =>
-        selected_ids.has(sub.id),
-      );
-      const all_mail_ids = selected_subs.flatMap((sub) => sub.mail_ids);
-      const all_items = selected_subs.flatMap((sub) => sub.items);
-
-      let api_count = 0;
-      let links_opened = 0;
-      let failures = 0;
-
-      const BATCH_SIZE = 5;
-
-      for (let i = 0; i < selected_subs.length; i += BATCH_SIZE) {
-        const batch = selected_subs.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((sub) => execute_unsubscribe(sub.unsub_info)),
-        );
-
-        for (const result of results) {
-          if (result.status === "fulfilled") {
-            if (result.value === "api") {
-              api_count++;
-            } else {
-              links_opened++;
-            }
-          } else {
-            failures++;
-          }
-        }
-      }
-
-      set_link_opened_count(links_opened);
-      set_failed_count(failures);
+      const selected = newsletters.filter((n) => selected_ids.has(n.id));
+      const all_mail_ids = selected.flatMap((n) => n.mail_ids);
+      const all_items = selected.flatMap((n) => n.items);
 
       const metadata_updates = await Promise.all(
         all_items.map(async (item) => {
           const updated_metadata = {
             ...item.metadata!,
             is_archived: true,
-            is_trashed: false,
-            is_spam: false,
           };
           const encrypted = await encrypt_mail_metadata(updated_metadata);
 
@@ -388,24 +347,67 @@ export function MassUnsubscribeModal({
       emit_mail_items_removed({ ids: all_mail_ids });
       invalidate_mail_stats();
 
-      set_completed_count(total);
-      set_subscriptions((prev) =>
-        prev.filter((sub) => !selected_ids.has(sub.id)),
-      );
+      set_completed_count(all_mail_ids.length);
+      set_last_archived({ ids: all_mail_ids, items: all_items });
+      set_newsletters((prev) => prev.filter((n) => !selected_ids.has(n.id)));
       set_selected_ids(new Set());
       set_show_success(true);
     } finally {
-      set_is_unsubscribing(false);
+      set_is_archiving(false);
     }
   };
 
+  const handle_undo = useCallback(async () => {
+    if (!last_archived) return;
+
+    const undo_updates = await Promise.all(
+      last_archived.items.map(async (item) => {
+        const updated_metadata = {
+          ...item.metadata!,
+          is_archived: false,
+        };
+        const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+        return encrypted ? { id: item.id, ...encrypted } : null;
+      }),
+    );
+
+    const valid_undo = undo_updates.filter((u) => u !== null) as Array<{
+      id: string;
+      encrypted_metadata: string;
+      metadata_nonce: string;
+    }>;
+
+    if (valid_undo.length > 0) {
+      await bulk_patch_metadata({ items: valid_undo });
+    }
+
+    await batch_unarchive({ ids: last_archived.ids });
+    window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+    invalidate_mail_stats();
+  }, [last_archived]);
+
+  const handle_done = useCallback(() => {
+    if (last_archived) {
+      show_action_toast({
+        message: t("common.newsletters_archived", {
+          count: String(completed_count),
+        }),
+        action_type: "archive",
+        email_ids: last_archived.ids,
+        on_undo: handle_undo,
+      });
+    }
+    on_close();
+  }, [last_archived, completed_count, t, handle_undo, on_close]);
+
   const all_selected =
-    selected_ids.size === filtered_subscriptions.length &&
-    filtered_subscriptions.length > 0;
+    selected_ids.size === filtered_newsletters.length &&
+    filtered_newsletters.length > 0;
 
   return (
     <Modal
-      close_on_overlay={!is_unsubscribing}
+      close_on_overlay={!is_archiving}
       is_open={is_open}
       on_close={on_close}
       show_close_button={false}
@@ -414,12 +416,15 @@ export function MassUnsubscribeModal({
       <div className="flex flex-col" style={{ height: "520px" }}>
         <div className="flex items-center justify-between px-6 py-5 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <SnoozeIcon size={20} />
+            <NewspaperIcon
+              className="w-5 h-5"
+              style={{ color: "var(--text-secondary)" }}
+            />
             <h2
               className="text-[16px] font-semibold"
               style={{ color: "var(--text-primary)" }}
             >
-              {t("settings.bulk_unsubscribe")}
+              {t("mail.archive_all_newsletters")}
             </h2>
           </div>
           <button
@@ -457,30 +462,10 @@ export function MassUnsubscribeModal({
                   className="text-[12px] text-center"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  {t("settings.senders_unsubscribed", {
-                    count: completed_count,
+                  {t("common.newsletters_archived", {
+                    count: String(completed_count),
                   })}
                 </p>
-                {link_opened_count > 0 && (
-                  <p
-                    className="text-[11px] text-center mt-1"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {t("settings.opened_in_browser", {
-                      count: link_opened_count,
-                    })}
-                  </p>
-                )}
-                {failed_count > 0 && (
-                  <p
-                    className="text-[11px] text-center mt-1"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {t("settings.could_not_unsubscribe", {
-                      count: failed_count,
-                    })}
-                  </p>
-                )}
                 <div className="mt-6" />
                 <div className="flex gap-2">
                   <Button
@@ -488,17 +473,17 @@ export function MassUnsubscribeModal({
                     variant="outline"
                     onClick={() => {
                       set_show_success(false);
-                      fetch_subscriptions();
+                      fetch_newsletters();
                     }}
                   >
                     {t("common.continue_label")}
                   </Button>
-                  <Button size="xl" variant="depth" onClick={on_close}>
+                  <Button size="xl" variant="depth" onClick={handle_done}>
                     {t("common.done")}
                   </Button>
                 </div>
               </motion.div>
-            ) : is_unsubscribing ? (
+            ) : is_archiving ? (
               <motion.div
                 key="loading"
                 animate={{ opacity: 1 }}
@@ -514,7 +499,7 @@ export function MassUnsubscribeModal({
                   className="text-[13px]"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  {t("settings.unsubscribing")}
+                  {t("mail.archiving_newsletters")}
                 </p>
               </motion.div>
             ) : (
@@ -548,12 +533,12 @@ export function MassUnsubscribeModal({
                         className="text-[12px]"
                         style={{ color: "var(--text-muted)" }}
                       >
-                        {t("settings.scanning")}
+                        {t("mail.scanning_for_newsletters")}
                       </p>
                     </div>
-                  ) : filtered_subscriptions.length === 0 ? (
+                  ) : filtered_newsletters.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full px-6">
-                      <MagnifyingGlassIcon
+                      <NewspaperIcon
                         className="w-6 h-6 mb-2"
                         style={{ color: "var(--text-muted)" }}
                       />
@@ -563,24 +548,16 @@ export function MassUnsubscribeModal({
                       >
                         {search_query
                           ? t("common.no_results")
-                          : t("settings.all_clear")}
-                      </p>
-                      <p
-                        className="text-[11px]"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {search_query
-                          ? t("settings.try_different_search")
-                          : t("settings.no_subscriptions_found")}
+                          : t("common.no_newsletters_found")}
                       </p>
                     </div>
                   ) : (
-                    filtered_subscriptions.map((sub, index) => {
-                      const is_selected = selected_ids.has(sub.id);
+                    filtered_newsletters.map((newsletter, index) => {
+                      const is_selected = selected_ids.has(newsletter.id);
 
                       return (
                         <button
-                          key={sub.id}
+                          key={newsletter.id}
                           className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer select-none transition-colors"
                           style={{ backgroundColor: "transparent" }}
                           onClick={() => handle_select(index)}
@@ -602,7 +579,9 @@ export function MassUnsubscribeModal({
                             <img
                               alt=""
                               className="w-4 h-4 object-contain"
-                              src={get_favicon_url(sub.domain.toLowerCase())}
+                              src={get_favicon_url(
+                                newsletter.domain.toLowerCase(),
+                              )}
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
                                 const parent = e.currentTarget.parentElement;
@@ -613,7 +592,8 @@ export function MassUnsubscribeModal({
 
                                   span.className = "text-[11px] font-medium";
                                   span.style.color = "var(--text-muted)";
-                                  span.textContent = sub.sender_name.charAt(0);
+                                  span.textContent =
+                                    newsletter.sender_name.charAt(0);
                                   parent.appendChild(span);
                                 }
                               }}
@@ -624,20 +604,20 @@ export function MassUnsubscribeModal({
                               className="text-[13px] font-medium truncate"
                               style={{ color: "var(--text-primary)" }}
                             >
-                              {sub.sender_name}
+                              {newsletter.sender_name}
                             </p>
                             <p
                               className="text-[11px] truncate"
                               style={{ color: "var(--text-muted)" }}
                             >
-                              {sub.sender_email}
+                              {newsletter.sender_email}
                             </p>
                           </div>
                           <span
                             className="text-[11px] tabular-nums flex-shrink-0"
                             style={{ color: "var(--text-muted)" }}
                           >
-                            {sub.email_count}
+                            {newsletter.email_count}
                           </span>
                         </button>
                       );
@@ -666,9 +646,9 @@ export function MassUnsubscribeModal({
                     disabled={selected_ids.size === 0}
                     size="xl"
                     variant="depth"
-                    onClick={handle_unsubscribe}
+                    onClick={handle_archive}
                   >
-                    {t("mail.unsubscribe")}
+                    {t("mail.archive")}
                     {selected_ids.size > 0 ? ` (${selected_ids.size})` : ""}
                   </Button>
                 </div>

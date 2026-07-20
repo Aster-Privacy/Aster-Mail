@@ -79,6 +79,7 @@ export interface UserPreferences {
   confirm_before_delete: boolean;
   confirm_before_archive: boolean;
   confirm_before_spam: boolean;
+  confirm_before_quick_actions: boolean;
   mark_as_read_delay: "immediate" | "1_second" | "3_seconds" | "never";
   reading_pane_position: "right" | "bottom" | "hidden";
   default_reply_behavior: "reply" | "reply_all";
@@ -381,6 +382,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   confirm_before_delete: false,
   confirm_before_archive: false,
   confirm_before_spam: false,
+  confirm_before_quick_actions: true,
   mark_as_read_delay: "immediate",
   reading_pane_position: "right",
   default_reply_behavior: "reply",

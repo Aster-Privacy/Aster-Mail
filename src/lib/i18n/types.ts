@@ -5004,6 +5004,16 @@ export interface MailTranslations {
   snooze_similar_emails: string;
   bulk_unsubscribe: string;
   archive_all_newsletters: string;
+  scanning_for_newsletters: string;
+  archiving_newsletters: string;
+  mark_all_read_confirm_title: string;
+  mark_all_read_confirm_message: string;
+  archive_all_read_confirm_title: string;
+  archive_all_read_confirm_message: string;
+  delete_old_confirm_title: string;
+  delete_old_confirm_message: string;
+  archive_newsletters_confirm_title: string;
+  archive_newsletters_confirm_message: string;
   delete_all: string;
   archive_subtitle: string;
   trash_subtitle: string;

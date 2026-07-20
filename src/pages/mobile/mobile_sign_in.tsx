@@ -274,10 +274,18 @@ export default function MobileSignInPage() {
             .catch(() => {});
         }
 
+        set_totp_required(false);
+        set_pending_login_token("");
+        set_available_2fa_methods([]);
+        set_active_2fa_method("totp");
         navigate("/");
         setTimeout(() => emit_auth_ready(), 50);
       } catch (err) {
         if (err instanceof Error && err.message === "login_timeout") {
+          set_totp_required(false);
+          set_pending_login_token("");
+          set_available_2fa_methods([]);
+          set_active_2fa_method("totp");
           navigate("/");
           setTimeout(() => emit_auth_ready(), 50);
 

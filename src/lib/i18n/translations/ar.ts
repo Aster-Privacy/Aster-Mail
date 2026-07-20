@@ -4615,6 +4615,20 @@ export const ar = {
     snooze_similar_emails: "تأجيل الرسائل المشابهة",
     bulk_unsubscribe: "إلغاء اشتراك جماعي",
     archive_all_newsletters: "أرشفة جميع النشرات البريدية",
+    scanning_for_newsletters: "جارٍ البحث عن النشرات البريدية...",
+    archiving_newsletters: "جارٍ أرشفة النشرات البريدية...",
+    mark_all_read_confirm_title: "تعليم الكل كمقروء؟",
+    mark_all_read_confirm_message:
+      "سيؤدي هذا إلى تعليم كل رسالة غير مقروءة في صندوق الوارد كمقروءة.",
+    archive_all_read_confirm_title: "أرشفة جميع الرسائل المقروءة؟",
+    archive_all_read_confirm_message:
+      "سيؤدي هذا إلى أرشفة كل رسالة مقروءة في صندوق الوارد. يمكنك التراجع عن هذا فورًا بعد ذلك.",
+    delete_old_confirm_title: "حذف الرسائل الأقدم من 30 يومًا؟",
+    delete_old_confirm_message:
+      "سيؤدي هذا إلى نقل كل رسالة أقدم من 30 يومًا إلى سلة المهملات. يمكنك التراجع عن هذا فورًا بعد ذلك.",
+    archive_newsletters_confirm_title: "أرشفة جميع النشرات البريدية؟",
+    archive_newsletters_confirm_message:
+      "سيؤدي هذا إلى أرشفة كل رسالة تم اكتشافها كنشرة بريدية في صندوق الوارد. يمكنك التراجع عن هذا فورًا بعد ذلك.",
     delete_all: "حذف الكل",
     archive_subtitle: "أرشف الرسائل للحفاظ على صندوق الوارد نظيفًا",
     trash_subtitle: "ستظهر الرسائل المحذوفة هنا",

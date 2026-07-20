@@ -30,6 +30,7 @@ import {
   ClockIcon,
   CalendarIcon,
   CheckIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
@@ -440,8 +441,11 @@ export function SnoozeSimilarModal({
                     exit={{ opacity: 0 }}
                     initial={reduce_motion ? false : { opacity: 0 }}
                   >
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center mb-3 bg-surf-secondary">
-                      <CheckIcon className="w-5 h-5 text-brand" />
+                    <div
+                      className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                      style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
+                    >
+                      <CheckCircleIcon className="w-8 h-8 text-green-500" />
                     </div>
                     <p className="text-[15px] font-medium mb-1 text-txt-primary">
                       {t("common.emails_snoozed")}

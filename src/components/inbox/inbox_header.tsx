@@ -244,6 +244,12 @@ export function InboxHeader({
     set_is_unsubscribe_modal_open,
     is_snooze_modal_open,
     set_is_snooze_modal_open,
+    is_archive_newsletters_modal_open,
+    set_is_archive_newsletters_modal_open,
+    pending_quick_action,
+    handle_quick_action_confirm,
+    handle_quick_action_cancel,
+    handle_quick_action_dont_ask_again,
   } = use_batch_actions(t);
 
   const handle_view_change = (key: string) => {
@@ -859,10 +865,18 @@ export function InboxHeader({
       )}
 
       <ToolbarModals
+        handle_quick_action_cancel={handle_quick_action_cancel}
+        handle_quick_action_confirm={handle_quick_action_confirm}
+        handle_quick_action_dont_ask_again={handle_quick_action_dont_ask_again}
+        is_archive_newsletters_modal_open={is_archive_newsletters_modal_open}
         is_sender_modal_open={is_sender_modal_open}
         is_snooze_modal_open={is_snooze_modal_open}
         is_unsubscribe_modal_open={is_unsubscribe_modal_open}
+        pending_quick_action={pending_quick_action}
         sender_modal_action={sender_modal_action}
+        set_is_archive_newsletters_modal_open={
+          set_is_archive_newsletters_modal_open
+        }
         set_is_sender_modal_open={set_is_sender_modal_open}
         set_is_snooze_modal_open={set_is_snooze_modal_open}
         set_is_unsubscribe_modal_open={set_is_unsubscribe_modal_open}
