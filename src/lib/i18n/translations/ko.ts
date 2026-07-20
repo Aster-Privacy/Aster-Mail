@@ -4554,6 +4554,7 @@ export const ko = {
     exit_fullscreen: "전체 화면 나가기",
     draft: "임시 저장",
     to_label: "받는 사람",
+    cc_label: "Cc",
     encrypted: "암호화됨",
     read_receipt: "읽음 확인",
     snooze: "다시 알림",

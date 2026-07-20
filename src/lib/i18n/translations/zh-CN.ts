@@ -4551,6 +4551,7 @@ export const zh_CN = {
     exit_fullscreen: "退出全屏",
     draft: "草稿",
     to_label: "收件人",
+    cc_label: "Cc",
     encrypted: "已加密",
     read_receipt: "已读回执",
     snooze: "暂停提醒",

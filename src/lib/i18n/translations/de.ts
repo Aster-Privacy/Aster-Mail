@@ -4555,6 +4555,7 @@ export const de = {
     exit_fullscreen: "Vollbild beenden",
     draft: "Entwurf",
     to_label: "An",
+    cc_label: "Cc",
     encrypted: "Verschlüsselt",
     read_receipt: "Lesebestätigung",
     snooze: "Zurückstellen",

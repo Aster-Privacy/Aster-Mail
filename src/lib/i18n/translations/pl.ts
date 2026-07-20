@@ -4555,6 +4555,7 @@ export const pl = {
     exit_fullscreen: "Wyjdź z pełnego ekranu",
     draft: "Szkic",
     to_label: "Do",
+    cc_label: "Cc",
     encrypted: "Zaszyfrowane",
     read_receipt: "Potwierdzenie odczytu",
     snooze: "Odłóż",

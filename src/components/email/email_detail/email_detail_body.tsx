@@ -381,6 +381,12 @@ export function EmailDetailBody({
                           name: r.name || "",
                           email: r.email,
                         })),
+                        cc_recipients: (email.cc || [])
+                          .filter((r) => r.email)
+                          .map((r) => ({
+                            name: r.name || "",
+                            email: r.email as string,
+                          })),
                       },
                     ]
               }

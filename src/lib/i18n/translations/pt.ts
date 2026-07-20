@@ -4555,6 +4555,7 @@ export const pt = {
     exit_fullscreen: "Sair da tela cheia",
     draft: "Rascunho",
     to_label: "Para",
+    cc_label: "Cc",
     encrypted: "Criptografado",
     read_receipt: "Confirmação de leitura",
     snooze: "Adiar",
