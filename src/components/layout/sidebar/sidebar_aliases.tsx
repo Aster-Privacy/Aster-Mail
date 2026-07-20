@@ -35,6 +35,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { CountBadge } from "@/components/common/count_badge";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
 
 function get_alias_color(address: string): string {
   let hash = 0;
@@ -174,50 +175,55 @@ export const SidebarAliases = memo(function SidebarAliases({
               : 0;
 
             return (
-              <button
+              <AliasContextMenu
                 key={alias.id}
-                ref={(el) => {
-                  alias_refs.current[alias.full_address] = el;
-                }}
-                className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === alias_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === alias_item_id ? "sidebar-selected" : ""}`}
-                style={{
-                  zIndex: 1,
-                  color:
-                    effective_selected === alias_item_id
-                      ? "var(--text-primary)"
-                      : "var(--text-secondary)",
-                  backgroundColor:
-                    is_collapsed && effective_selected === alias_item_id
-                      ? "var(--indicator-bg)"
-                      : undefined,
-                }}
-                title={is_collapsed ? alias.full_address : undefined}
-                onClick={() =>
-                  handle_nav_click(() => {
-                    set_selected_item(alias_item_id);
-                    navigate(
-                      `/alias/${encodeURIComponent(alias.full_address)}`,
-                    );
-                  })
-                }
+                alias={alias}
+                on_manage={() => on_settings_click("aliases")}
               >
-                <AliasIcon
-                  address={alias.full_address}
-                  is_random={alias.is_random}
-                  size={is_collapsed ? 24 : 20}
-                />
-                {!is_collapsed && (
-                  <>
-                    <span className="flex-1 text-left truncate leading-4">
-                      {alias.full_address}
-                    </span>
-                    <CountBadge
-                      count={unread_count}
-                      is_active={effective_selected === alias_item_id}
-                    />
-                  </>
-                )}
-              </button>
+                <button
+                  ref={(el) => {
+                    alias_refs.current[alias.full_address] = el;
+                  }}
+                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === alias_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === alias_item_id ? "sidebar-selected" : ""}`}
+                  style={{
+                    zIndex: 1,
+                    color:
+                      effective_selected === alias_item_id
+                        ? "var(--text-primary)"
+                        : "var(--text-secondary)",
+                    backgroundColor:
+                      is_collapsed && effective_selected === alias_item_id
+                        ? "var(--indicator-bg)"
+                        : undefined,
+                  }}
+                  title={is_collapsed ? alias.full_address : undefined}
+                  onClick={() =>
+                    handle_nav_click(() => {
+                      set_selected_item(alias_item_id);
+                      navigate(
+                        `/alias/${encodeURIComponent(alias.full_address)}`,
+                      );
+                    })
+                  }
+                >
+                  <AliasIcon
+                    address={alias.full_address}
+                    is_random={alias.is_random}
+                    size={is_collapsed ? 24 : 20}
+                  />
+                  {!is_collapsed && (
+                    <>
+                      <span className="flex-1 text-left truncate leading-4">
+                        {alias.full_address}
+                      </span>
+                      <CountBadge
+                        count={unread_count}
+                        is_active={effective_selected === alias_item_id}
+                      />
+                    </>
+                  )}
+                </button>
+              </AliasContextMenu>
             );
           })}
         {has_more && !is_collapsed && !section_collapsed && (
