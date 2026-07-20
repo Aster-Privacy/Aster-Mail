@@ -49,7 +49,6 @@ export function UndoSendContainer({
   useEffect(() => {
     if (is_authenticated) {
       server_undo_manager.sync_with_server().catch(() => {});
-      server_undo_manager.start_polling();
 
       return () => {
         server_undo_manager.stop_polling();

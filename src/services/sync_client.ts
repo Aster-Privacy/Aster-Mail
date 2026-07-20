@@ -231,10 +231,12 @@ class SyncClient {
 
     const base_delay = is_low_network() ? 10000 : 3000;
     const max_delay = is_low_network() ? 300000 : 60000;
-    const delay = Math.min(
+    const backoff = Math.min(
       base_delay * Math.pow(2, this.reconnect_attempt),
       max_delay,
     );
+    const jitter = 1 + (Math.random() * 0.5 - 0.25);
+    const delay = Math.max(base_delay, Math.min(backoff * jitter, max_delay));
 
     this.reconnect_attempt++;
 
