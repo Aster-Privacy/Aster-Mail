@@ -220,7 +220,11 @@ export function GhostAliasesSection() {
             <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
               <EyeSlashIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("settings.ghost_aliases_title")}
-              <InfoHint tip={t("settings.ghost_aliases_info")} title={t("settings.ghost_aliases_title")} />
+              <InfoHint
+                learn_more_url="https://astermail.org/blog/what-ghost-aliases-are-and-how-they-work"
+                tip={t("settings.ghost_aliases_info")}
+                title={t("settings.ghost_aliases_title")}
+              />
             </h3>
             <span className="text-xs text-txt-muted">
               {t("settings.ghost_aliases_this_month", { count: this_month_count })}
@@ -357,6 +361,7 @@ export function GhostAliasesSection() {
       />
       <ConfirmationModal
         is_open={confirm_expire_info !== null}
+        learn_more_url="https://astermail.org/blog/what-ghost-aliases-are-and-how-they-work"
         message={t("settings.ghost_alias_expire_confirm_message", {
           date: confirm_expire_info?.grace_date ?? "",
         })}

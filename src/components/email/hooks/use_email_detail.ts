@@ -110,6 +110,14 @@ export function use_email_detail() {
   const mark_as_read_delay_ref = useRef(preferences.mark_as_read_delay);
   mark_as_read_delay_ref.current = preferences.mark_as_read_delay;
   const mark_as_read_timeout = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (mark_as_read_timeout.current !== null) {
+        window.clearTimeout(mark_as_read_timeout.current);
+        mark_as_read_timeout.current = null;
+      }
+    };
+  }, [email_id]);
   const has_loaded_once = useRef(false);
   const load_seq_ref = useRef(0);
   const [mail_item, set_mail_item] = useState<

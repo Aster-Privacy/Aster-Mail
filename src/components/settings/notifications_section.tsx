@@ -181,31 +181,6 @@ async function open_system_notification_settings_os(): Promise<void> {
   }
 }
 
-async function send_test_notification(
-  title: string,
-  body: string,
-): Promise<void> {
-  if (is_tauri) {
-    try {
-      const { sendNotification } = await import(
-        "@tauri-apps/plugin-notification"
-      );
-
-      sendNotification({ title, body });
-    } catch {
-      /* ignore */
-    }
-
-    return;
-  }
-
-  if (!("Notification" in window) || Notification.permission !== "granted") {
-    return;
-  }
-
-  new Notification(title, { body });
-}
-
 export function NotificationsSection() {
   const { preferences, update_preference } = use_preferences();
   const { t } = use_i18n();
@@ -332,20 +307,6 @@ export function NotificationsSection() {
                 onClick={open_system_notification_settings_os}
               >
                 {t("settings.open_system_notification_settings")}
-              </Button>
-            ) : preferences.desktop_notifications &&
-              permission_state === "granted" ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() =>
-                  send_test_notification(
-                    t("settings.test_notification"),
-                    t("settings.test_notification_body"),
-                  )
-                }
-              >
-                {t("settings.send_test_notification")}
               </Button>
             ) : undefined
           }

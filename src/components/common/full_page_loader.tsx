@@ -19,8 +19,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
+import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+
+async function clear_cache_and_reload(): Promise<void> {
+  try {
+    if (window.caches) {
+      const keys = await caches.keys();
+
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+
+    if (navigator.serviceWorker) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+
+      await Promise.all(registrations.map((reg) => reg.unregister()));
+    }
+  } catch {
+    /* ignore */
+  }
+
+  window.location.reload();
+}
 
 let active_count = 0;
 
@@ -40,6 +61,13 @@ export function FullPageLoader() {
   const [static_present, set_static_present] = useState(
     () => !!document.getElementById("initial-loader"),
   );
+  const [stuck, set_stuck] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => set_stuck(true), 10000);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     active_count++;
@@ -94,6 +122,29 @@ export function FullPageLoader() {
               <span>.</span>
             </span>
           </div>
+          {stuck && (
+            <div className="flex flex-col items-center gap-2 mt-1">
+              <span className="text-xs text-txt-tertiary">
+                {t("common.loading_stuck")}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => window.location.reload()}
+                  size="sm"
+                  variant="outline"
+                >
+                  {t("common.reload_page")}
+                </Button>
+                <Button
+                  onClick={clear_cache_and_reload}
+                  size="sm"
+                  variant="outline"
+                >
+                  {t("settings.clear_cache_reload")}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

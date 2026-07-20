@@ -20,6 +20,23 @@
 //
 import { InfoPopover } from "@/components/ui/info_popover";
 
-export function InfoHint({ tip, title }: { tip: string; title?: string }) {
-  return <InfoPopover description={tip} title={title ?? ""} />;
+export function InfoHint({
+  tip,
+  title,
+  learn_more_url,
+  learn_more_label,
+}: {
+  tip: string;
+  title?: string;
+  learn_more_url?: string;
+  learn_more_label?: string;
+}) {
+  return (
+    <InfoPopover
+      description={tip}
+      title={title ?? ""}
+      learn_more_url={learn_more_url}
+      learn_more_label={learn_more_label}
+    />
+  );
 }

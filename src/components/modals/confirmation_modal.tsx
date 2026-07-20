@@ -46,6 +46,8 @@ interface ConfirmationModalProps {
   cancel_text?: string | null;
   variant?: ConfirmationVariant;
   show_dont_ask_again?: boolean;
+  learn_more_url?: string;
+  learn_more_label?: string;
 }
 
 const VARIANT_MAP: Record<ConfirmationVariant, "destructive" | "primary"> = {
@@ -67,6 +69,8 @@ export function ConfirmationModal({
   cancel_text,
   variant = "info",
   show_dont_ask_again = false,
+  learn_more_url,
+  learn_more_label,
 }: ConfirmationModalProps) {
   const { t } = use_i18n();
   const resolved_confirm_text = confirm_text ?? t("common.confirm");
@@ -144,6 +148,16 @@ export function ConfirmationModal({
             <AlertDialogDescription className="text-[14px] leading-normal">
               {message}
             </AlertDialogDescription>
+            {learn_more_url && (
+              <a
+                className="inline-block text-[15px] font-medium text-brand hover:underline"
+                href={learn_more_url}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {learn_more_label ?? t("common.learn_more")}
+              </a>
+            )}
           </AlertDialogHeader>
 
           {show_dont_ask_again && (

@@ -149,6 +149,16 @@ export function use_email_viewer({
   >();
   const [refresh_key, set_refresh_key] = useState(0);
   const mark_as_read_timeout = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (mark_as_read_timeout.current !== null) {
+        window.clearTimeout(mark_as_read_timeout.current);
+        mark_as_read_timeout.current = null;
+      }
+    };
+  }, [email_id]);
+
   const loaded_email_id_ref = useRef<string | null>(null);
   const grouped_email_ids_ref = useRef(grouped_email_ids);
   const was_preloaded_ref = useRef(false);

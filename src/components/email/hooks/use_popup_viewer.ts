@@ -146,6 +146,15 @@ export function use_popup_viewer({
   const fetch_seq_ref = useRef(0);
   const mark_as_read_timeout = useRef<number | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (mark_as_read_timeout.current !== null) {
+        window.clearTimeout(mark_as_read_timeout.current);
+        mark_as_read_timeout.current = null;
+      }
+    };
+  }, [email_id]);
+
   const unsubscribe_info = useMemo(() => {
     if (!email) return null;
     if (email.unsubscribe_info) return email.unsubscribe_info;

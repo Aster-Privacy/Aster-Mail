@@ -247,17 +247,20 @@ export async function decrypt_aes_gcm_with_fallback(
     if (legacy_crypto_keys.length === 0) {
       throw primary_error;
     }
-    for (const fallback_key of legacy_crypto_keys) {
-      try {
-        return await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv },
-          fallback_key,
-          ciphertext,
-        );
-      } catch {
-        continue;
+
+    const attempts = legacy_crypto_keys.map((fallback_key) =>
+      crypto.subtle.decrypt({ name: "AES-GCM", iv }, fallback_key, ciphertext),
+    );
+
+    return new Promise<ArrayBuffer>((resolve, reject) => {
+      let remaining = attempts.length;
+
+      for (const attempt of attempts) {
+        attempt.then(resolve).catch(() => {
+          remaining -= 1;
+          if (remaining === 0) reject(primary_error);
+        });
       }
-    }
-    throw primary_error;
+    });
   }
 }
