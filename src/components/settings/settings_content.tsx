@@ -467,7 +467,7 @@ function SettingsContentInner({
     const handle_key = (e: KeyboardEvent) => {
       if (e["key"] !== "Escape") return;
       const modal_open = document.querySelector(
-        '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]',
+        '[role="dialog"]:not([data-state="closed"]), [role="alertdialog"]:not([data-state="closed"]), [aria-modal="true"]:not([data-state="closed"])',
       );
       if (modal_open) return;
       on_close();
