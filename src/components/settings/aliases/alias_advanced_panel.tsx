@@ -96,10 +96,8 @@ import {
   get_alias_delivery_log,
   get_domain_address_delivery_log,
   get_alias_stats,
-  get_alias_activity,
   type DeliveryEvent,
   type AliasStats,
-  type AliasActivityDay,
 } from "@/services/api/aliases";
 
 const INPUT_CLASS =
@@ -847,29 +845,18 @@ function LockedSection({
   );
 }
 
-const ACTIVITY_DAYS_SHOWN = 14;
-const GRAPH_HEIGHT = 56;
-
 function StatsPanel({ alias_id }: { alias_id: string }) {
   const { t } = use_i18n();
   const [stats, set_stats] = useState<AliasStats | null>(null);
-  const [activity, set_activity] = useState<AliasActivityDay[] | null>(null);
   const [loading, set_loading] = useState(true);
 
   useEffect(() => {
     let active = true;
     set_loading(true);
-    Promise.all([get_alias_stats(alias_id), get_alias_activity(alias_id)])
-      .then(([stats_response, activity_response]) => {
+    get_alias_stats(alias_id)
+      .then((stats_response) => {
         if (!active) return;
         if (stats_response.data) set_stats(stats_response.data);
-        if (activity_response.data) {
-          set_activity(
-            activity_response.data.days
-              .slice(0, ACTIVITY_DAYS_SHOWN)
-              .reverse(),
-          );
-        }
       })
       .catch(() => {})
       .finally(() => {
@@ -892,19 +879,6 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
   }
 
   if (!stats) return null;
-
-  const received_color = "var(--color-blue-500, #3b82f6)";
-  const forwarded_color = "var(--color-blue-300, #93c5fd)";
-  const blocked_color = "var(--color-red-500, #ef4444)";
-
-  const max_val = activity
-    ? Math.max(
-        ...activity.map((d) => d.received + d.forwarded + d.blocked),
-        1,
-      )
-    : 1;
-
-  const has_activity = !!activity && activity.length > 0;
 
   return (
     <div className="space-y-3">
@@ -929,59 +903,6 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
           })}
         </span>
       </div>
-
-      {has_activity ? (
-        <div
-          className="flex items-end gap-1"
-          style={{ height: `${GRAPH_HEIGHT}px` }}
-          title={t("settings.alias_activity_title")}
-        >
-          {activity!.map((day, i) => {
-            const received_h = Math.round(
-              (day.received / max_val) * GRAPH_HEIGHT,
-            );
-            const forwarded_h = Math.round(
-              (day.forwarded / max_val) * GRAPH_HEIGHT,
-            );
-            const blocked_h = Math.round(
-              (day.blocked / max_val) * GRAPH_HEIGHT,
-            );
-            const total = day.received + day.forwarded + day.blocked;
-
-            return (
-              <div
-                key={i}
-                className="flex-1 flex flex-col-reverse rounded-sm overflow-hidden transition-opacity hover:opacity-70"
-                style={{
-                  height: `${GRAPH_HEIGHT}px`,
-                  backgroundColor: total === 0 ? "var(--surf-tertiary)" : undefined,
-                }}
-                title={`${day.date}: ${t("settings.alias_activity_received" as TranslationKey, { count: day.received })}, ${t("settings.alias_activity_forwarded" as TranslationKey, { count: day.forwarded })}, ${t("settings.alias_activity_blocked" as TranslationKey, { count: day.blocked })}`}
-              >
-                {received_h > 0 && (
-                  <div
-                    style={{ height: `${received_h}px`, backgroundColor: received_color }}
-                  />
-                )}
-                {forwarded_h > 0 && (
-                  <div
-                    style={{ height: `${forwarded_h}px`, backgroundColor: forwarded_color }}
-                  />
-                )}
-                {blocked_h > 0 && (
-                  <div
-                    style={{ height: `${blocked_h}px`, backgroundColor: blocked_color }}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="text-xs text-txt-muted">
-          {t("settings.alias_activity_empty" as TranslationKey)}
-        </p>
-      )}
     </div>
   );
 }
