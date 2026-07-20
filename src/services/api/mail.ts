@@ -561,6 +561,48 @@ export async function bulk_patch_metadata(
   );
 }
 
+export interface BatchedMetadataResult {
+  succeeded_ids: string[];
+  failed_ids: string[];
+  was_cancelled: boolean;
+}
+
+export async function batched_bulk_patch_metadata(
+  items: BulkPatchMetadataItem[],
+  options?: BatchedBulkOptions,
+): Promise<BatchedMetadataResult> {
+  const { BATCH_LIMITS } = await import("@/constants/batch_config");
+  const batch_size = BATCH_LIMITS.MAIL_BULK;
+  const succeeded_ids: string[] = [];
+  const failed_ids: string[] = [];
+  let was_cancelled = false;
+
+  for (let i = 0; i < items.length; i += batch_size) {
+    if (options?.signal?.aborted) {
+      was_cancelled = true;
+      break;
+    }
+
+    const batch = items.slice(i, i + batch_size);
+    const response = await bulk_patch_metadata({ items: batch }).catch(
+      () => null,
+    );
+
+    if (response && !response.error) {
+      succeeded_ids.push(...batch.map((item) => item.id));
+    } else {
+      failed_ids.push(...batch.map((item) => item.id));
+    }
+
+    options?.on_progress?.(
+      succeeded_ids.length + failed_ids.length,
+      items.length,
+    );
+  }
+
+  return { succeeded_ids, failed_ids, was_cancelled };
+}
+
 export interface BatchedBulkResult {
   success: boolean;
   affected_total: number;

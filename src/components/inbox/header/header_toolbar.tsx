@@ -42,9 +42,10 @@ import {
 import { SenderActionModal } from "@/components/modals/sender_action_modal";
 import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal";
 import { SnoozeSimilarModal } from "@/components/modals/snooze_similar_modal";
+import { ArchiveNewslettersModal } from "@/components/modals/archive_newsletters_modal";
 import {
   list_mail_items,
-  bulk_patch_metadata,
+  batched_bulk_patch_metadata,
   type MailItem,
 } from "@/services/api/mail";
 import {
@@ -52,9 +53,13 @@ import {
   decrypt_mail_metadata,
   create_default_metadata,
 } from "@/services/crypto/mail_metadata";
-import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  show_action_toast,
+  update_progress_toast,
+  hide_action_toast,
+} from "@/components/toast/action_toast";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -62,58 +67,27 @@ import {
   emit_mail_item_updated,
 } from "@/hooks/mail_events";
 import { use_folders, has_protected_folder_label } from "@/hooks/use_folders";
-import {
-  decrypt_mail_envelope,
-  normalize_envelope_from,
-} from "@/services/crypto/envelope";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import {
-  get_passphrase_bytes,
-  get_vault_from_memory,
-} from "@/services/crypto/memory_key_store";
-import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
-interface DecryptedEnvelope {
-  from: { name: string; email: string };
-  body_html?: string;
-  body_text?: string;
-  list_unsubscribe?: string;
-  list_unsubscribe_post?: string;
-}
-
-async function decrypt_envelope_for_action(
-  encrypted: string,
-  nonce: string,
-): Promise<DecryptedEnvelope | null> {
-  const passphrase = get_passphrase_bytes();
-  const vault = get_vault_from_memory();
-
-  try {
-    const result = await decrypt_mail_envelope<Record<string, unknown>>(
-      encrypted,
-      nonce,
-      passphrase,
-      vault?.identity_key ?? null,
-    );
-
-    if (!result) return null;
-    const from = normalize_envelope_from(result.from);
-
-    if (!from) return null;
-
-    return {
-      from,
-      body_html: (result.body_html ?? result.html_body) as string | undefined,
-      body_text: (result.body_text ?? result.text_body) as string | undefined,
-      list_unsubscribe: result.list_unsubscribe as string | undefined,
-      list_unsubscribe_post: result.list_unsubscribe_post as string | undefined,
-    };
-  } finally {
-    if (passphrase) zero_uint8_array(passphrase);
-  }
-}
+const QUICK_ACTION_CONFIRM_KEYS: Record<
+  string,
+  { title: string; message: string }
+> = {
+  mark_all_read: {
+    title: "mail.mark_all_read_confirm_title",
+    message: "mail.mark_all_read_confirm_message",
+  },
+  archive_all_read: {
+    title: "mail.archive_all_read_confirm_title",
+    message: "mail.archive_all_read_confirm_message",
+  },
+  delete_old: {
+    title: "mail.delete_old_confirm_title",
+    message: "mail.delete_old_confirm_message",
+  },
+};
 
 async function decrypt_items_metadata_for_action(
   items: MailItem[],
@@ -451,6 +425,12 @@ interface ToolbarModalsProps {
   set_is_unsubscribe_modal_open: (open: boolean) => void;
   is_snooze_modal_open: boolean;
   set_is_snooze_modal_open: (open: boolean) => void;
+  is_archive_newsletters_modal_open: boolean;
+  set_is_archive_newsletters_modal_open: (open: boolean) => void;
+  pending_quick_action: string | null;
+  handle_quick_action_confirm: () => void;
+  handle_quick_action_cancel: () => void;
+  handle_quick_action_dont_ask_again: () => void | Promise<void>;
 }
 
 export function ToolbarModals({
@@ -461,8 +441,18 @@ export function ToolbarModals({
   set_is_unsubscribe_modal_open,
   is_snooze_modal_open,
   set_is_snooze_modal_open,
+  is_archive_newsletters_modal_open,
+  set_is_archive_newsletters_modal_open,
+  pending_quick_action,
+  handle_quick_action_confirm,
+  handle_quick_action_cancel,
+  handle_quick_action_dont_ask_again,
 }: ToolbarModalsProps) {
   const { state: folders_state } = use_folders();
+  const { t } = use_i18n();
+  const quick_action_copy = pending_quick_action
+    ? QUICK_ACTION_CONFIRM_KEYS[pending_quick_action]
+    : null;
 
   return (
     <>
@@ -488,6 +478,30 @@ export function ToolbarModals({
         is_open={is_snooze_modal_open}
         on_close={() => set_is_snooze_modal_open(false)}
       />
+
+      <ArchiveNewslettersModal
+        is_open={is_archive_newsletters_modal_open}
+        on_close={() => set_is_archive_newsletters_modal_open(false)}
+      />
+
+      <ConfirmationModal
+        show_dont_ask_again
+        is_open={quick_action_copy !== null}
+        message={
+          quick_action_copy
+            ? t(quick_action_copy.message as Parameters<typeof t>[0])
+            : ""
+        }
+        title={
+          quick_action_copy
+            ? t(quick_action_copy.title as Parameters<typeof t>[0])
+            : ""
+        }
+        variant="info"
+        on_cancel={handle_quick_action_cancel}
+        on_confirm={handle_quick_action_confirm}
+        on_dont_ask_again={handle_quick_action_dont_ask_again}
+      />
     </>
   );
 }
@@ -500,7 +514,15 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
   const [is_unsubscribe_modal_open, set_is_unsubscribe_modal_open] =
     useState(false);
   const [is_snooze_modal_open, set_is_snooze_modal_open] = useState(false);
+  const [
+    is_archive_newsletters_modal_open,
+    set_is_archive_newsletters_modal_open,
+  ] = useState(false);
   const [is_refreshing, set_is_refreshing] = useState(false);
+  const [pending_quick_action, set_pending_quick_action] = useState<
+    string | null
+  >(null);
+  const { preferences, update_preference } = use_preferences();
 
   const handle_refresh = useCallback(() => {
     if (is_refreshing) return;
@@ -517,7 +539,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
     }, REFRESH_STATE_MS);
   }, [is_refreshing, t]);
 
-  const handle_batch_action = useCallback(
+  const execute_batch_action = useCallback(
     async (action: string) => {
       if (action === "archive_from_sender") {
         set_sender_modal_action("archive");
@@ -543,15 +565,24 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
 
         return;
       } else if (action === "archive_all_read") {
-        const response = await list_mail_items({
-          item_type: "received",
-          limit: 100,
-        });
+        let all_items: MailItem[] = [];
+        let cursor: string | undefined;
 
-        if (response.data?.items) {
-          await decrypt_items_metadata_for_action(response.data.items);
+        do {
+          const response = await list_mail_items({
+            item_type: "received",
+            cursor,
+          });
 
-          const read_items = response.data.items.filter(
+          if (!response.data?.items) break;
+          all_items.push(...response.data.items);
+          cursor = response.data.next_cursor;
+        } while (cursor);
+
+        {
+          await decrypt_items_metadata_for_action(all_items);
+
+          const read_items = all_items.filter(
             (item) =>
               item.metadata?.is_read &&
               !item.metadata?.is_archived &&
@@ -560,8 +591,6 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           );
 
           if (read_items.length > 0) {
-            const read_ids = read_items.map((item) => item.id);
-
             const metadata_updates = await Promise.all(
               read_items.map(async (item) => {
                 const updated_metadata = {
@@ -582,23 +611,60 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               metadata_nonce: string;
             }>;
 
+            let metadata_ok_ids: string[] = [];
+
             if (valid_updates.length > 0) {
-              await bulk_patch_metadata({ items: valid_updates });
+              show_action_toast({
+                message: t("common.processing_count", {
+                  completed: 0,
+                  total: valid_updates.length,
+                }),
+                action_type: "progress",
+                email_ids: [],
+                progress: { completed: 0, total: valid_updates.length },
+              });
+
+              const patch_result = await batched_bulk_patch_metadata(
+                valid_updates,
+                {
+                  on_progress: (completed, total) =>
+                    update_progress_toast(completed, total, t),
+                },
+              );
+
+              metadata_ok_ids = patch_result.succeeded_ids;
+              hide_action_toast();
             }
 
-            stale_all_view_caches();
-            await batch_archive({ ids: read_ids, tier: "hot" });
-            emit_mail_items_removed({ ids: read_ids });
-            invalidate_mail_stats();
+            let archived_ids: string[] = [];
+
+            if (metadata_ok_ids.length > 0) {
+              stale_all_view_caches();
+
+              const archive_result = await batched_archive(metadata_ok_ids);
+
+              archived_ids = archive_result.succeeded_ids;
+            }
+
+            const archived_set = new Set(archived_ids);
+            const archived_items = read_items.filter((item) =>
+              archived_set.has(item.id),
+            );
+
+            if (archived_ids.length > 0) {
+              emit_mail_items_removed({ ids: archived_ids });
+              invalidate_mail_stats();
+            }
+
             show_action_toast({
               message: t("common.emails_archived", {
-                count: String(read_ids.length),
+                count: String(archived_ids.length),
               }),
               action_type: "archive",
-              email_ids: read_ids,
+              email_ids: archived_ids,
               on_undo: async () => {
                 const undo_updates = await Promise.all(
-                  read_items.map(async (item) => {
+                  archived_items.map(async (item) => {
                     const updated_metadata = {
                       ...item.metadata!,
                       is_archived: false,
@@ -619,10 +685,10 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 }>;
 
                 if (valid_undo.length > 0) {
-                  await bulk_patch_metadata({ items: valid_undo });
+                  await batched_bulk_patch_metadata(valid_undo);
                 }
 
-                await batch_unarchive({ ids: read_ids });
+                await batched_unarchive(archived_ids);
                 window.dispatchEvent(
                   new CustomEvent("astermail:mail-soft-refresh"),
                 );
@@ -631,15 +697,24 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           }
         }
       } else if (action === "mark_all_read") {
-        const response = await list_mail_items({
-          item_type: "received",
-          limit: 100,
-        });
+        let all_items: MailItem[] = [];
+        let cursor: string | undefined;
 
-        if (response.data?.items) {
-          await decrypt_items_metadata_for_action(response.data.items);
+        do {
+          const response = await list_mail_items({
+            item_type: "received",
+            cursor,
+          });
 
-          const unread_items = response.data.items.filter(
+          if (!response.data?.items) break;
+          all_items.push(...response.data.items);
+          cursor = response.data.next_cursor;
+        } while (cursor);
+
+        {
+          await decrypt_items_metadata_for_action(all_items);
+
+          const unread_items = all_items.filter(
             (item) =>
               !item.metadata?.is_read &&
               !item.metadata?.is_trashed &&
@@ -647,8 +722,6 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           );
 
           if (unread_items.length > 0) {
-            adjust_unread_count(-unread_items.length);
-
             const metadata_updates = await Promise.all(
               unread_items.map(async (item) => {
                 const current_metadata: MailItemMetadata = item.metadata ?? {
@@ -679,26 +752,56 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               metadata_nonce: string;
             }>;
 
+            let succeeded_ids: string[] = [];
+
             if (valid_updates.length > 0) {
-              await bulk_patch_metadata({ items: valid_updates });
+              show_action_toast({
+                message: t("common.processing_count", {
+                  completed: 0,
+                  total: valid_updates.length,
+                }),
+                action_type: "progress",
+                email_ids: [],
+                progress: { completed: 0, total: valid_updates.length },
+              });
+
+              const batch_result = await batched_bulk_patch_metadata(
+                valid_updates,
+                {
+                  on_progress: (completed, total) =>
+                    update_progress_toast(completed, total, t),
+                },
+              );
+
+              succeeded_ids = batch_result.succeeded_ids;
+              hide_action_toast();
             }
 
-            for (const item of unread_items) {
-              emit_mail_item_updated({ id: item.id, is_read: true });
+            const succeeded_set = new Set(succeeded_ids);
+            const succeeded_items = unread_items.filter((item) =>
+              succeeded_set.has(item.id),
+            );
+
+            if (succeeded_items.length > 0) {
+              adjust_unread_count(-succeeded_items.length);
+
+              for (const item of succeeded_items) {
+                emit_mail_item_updated({ id: item.id, is_read: true });
+              }
+              invalidate_mail_stats();
             }
-            invalidate_mail_stats();
 
             show_action_toast({
               message: t("common.emails_marked_as_read", {
-                count: String(unread_items.length),
+                count: String(succeeded_items.length),
               }),
               action_type: "read",
-              email_ids: unread_items.map((item) => item.id),
+              email_ids: succeeded_items.map((item) => item.id),
               on_undo: async () => {
-                adjust_unread_count(unread_items.length);
+                adjust_unread_count(succeeded_items.length);
 
                 const undo_updates = await Promise.all(
-                  unread_items.map(async (item) => {
+                  succeeded_items.map(async (item) => {
                     const current_metadata: MailItemMetadata =
                       item.metadata ?? {
                         is_read: false,
@@ -733,7 +836,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 }>;
 
                 if (valid_undo_updates.length > 0) {
-                  await bulk_patch_metadata({ items: valid_undo_updates });
+                  await batched_bulk_patch_metadata(valid_undo_updates);
                 }
 
                 window.dispatchEvent(
@@ -744,19 +847,28 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           }
         }
       } else if (action === "delete_old") {
-        const response = await list_mail_items({
-          item_type: "received",
-          limit: 100,
-        });
+        let all_items: MailItem[] = [];
+        let cursor: string | undefined;
 
-        if (response.data?.items) {
-          await decrypt_items_metadata_for_action(response.data.items);
+        do {
+          const response = await list_mail_items({
+            item_type: "received",
+            cursor,
+          });
+
+          if (!response.data?.items) break;
+          all_items.push(...response.data.items);
+          cursor = response.data.next_cursor;
+        } while (cursor);
+
+        {
+          await decrypt_items_metadata_for_action(all_items);
 
           const thirty_days_ago = new Date();
 
           thirty_days_ago.setDate(thirty_days_ago.getDate() - 30);
 
-          const old_items = response.data.items.filter((item) => {
+          const old_items = all_items.filter((item) => {
             if (has_protected_folder_label(item.labels)) return false;
             const item_date = new Date(item.message_ts ?? item.created_at);
 
@@ -797,23 +909,50 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               metadata_nonce: string;
             }>;
 
-            emit_mail_items_removed({ ids: old_items.map((item) => item.id) });
+            let succeeded_ids: string[] = [];
 
             if (valid_updates.length > 0) {
-              await bulk_patch_metadata({ items: valid_updates });
+              show_action_toast({
+                message: t("common.processing_count", {
+                  completed: 0,
+                  total: valid_updates.length,
+                }),
+                action_type: "progress",
+                email_ids: [],
+                progress: { completed: 0, total: valid_updates.length },
+              });
+
+              const patch_result = await batched_bulk_patch_metadata(
+                valid_updates,
+                {
+                  on_progress: (completed, total) =>
+                    update_progress_toast(completed, total, t),
+                },
+              );
+
+              succeeded_ids = patch_result.succeeded_ids;
+              hide_action_toast();
             }
 
-            invalidate_mail_stats();
+            const succeeded_set = new Set(succeeded_ids);
+            const succeeded_items = old_items.filter((item) =>
+              succeeded_set.has(item.id),
+            );
+
+            if (succeeded_ids.length > 0) {
+              emit_mail_items_removed({ ids: succeeded_ids });
+              invalidate_mail_stats();
+            }
 
             show_action_toast({
               message: t("common.emails_moved_to_trash", {
-                count: String(old_items.length),
+                count: String(succeeded_ids.length),
               }),
               action_type: "trash",
-              email_ids: old_items.map((item) => item.id),
+              email_ids: succeeded_ids,
               on_undo: async () => {
                 const undo_updates = await Promise.all(
-                  old_items.map(async (item) => {
+                  succeeded_items.map(async (item) => {
                     const current_metadata: MailItemMetadata =
                       item.metadata ?? {
                         is_read: false,
@@ -848,7 +987,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 }>;
 
                 if (valid_undo_updates.length > 0) {
-                  await bulk_patch_metadata({ items: valid_undo_updates });
+                  await batched_bulk_patch_metadata(valid_undo_updates);
                 }
 
                 window.dispatchEvent(
@@ -865,136 +1004,44 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           }
         }
       } else if (action === "archive_newsletters") {
-        let all_items: MailItem[] = [];
-        let cursor: string | undefined;
+        set_is_archive_newsletters_modal_open(true);
 
-        do {
-          const response = await list_mail_items({
-            item_type: "received",
-            cursor,
-          });
-
-          if (!response.data?.items) break;
-          all_items.push(...response.data.items);
-          cursor = response.data.next_cursor;
-        } while (cursor);
-
-        if (all_items.length > 0) {
-          await decrypt_items_metadata_for_action(all_items);
-          const newsletter_items: MailItem[] = [];
-
-          for (const item of all_items) {
-            if (item.metadata?.is_trashed || item.metadata?.is_archived)
-              continue;
-            if (has_protected_folder_label(item.labels)) continue;
-
-            try {
-              const envelope = await decrypt_envelope_for_action(
-                item.encrypted_envelope,
-                item.envelope_nonce,
-              );
-
-              if (!envelope?.from?.email) continue;
-
-              const unsub_info = detect_unsubscribe_info(
-                envelope.body_html || "",
-                envelope.body_text || "",
-                {
-                  list_unsubscribe: envelope.list_unsubscribe,
-                  list_unsubscribe_post: envelope.list_unsubscribe_post,
-                },
-              );
-
-              if (unsub_info.has_unsubscribe) {
-                newsletter_items.push(item);
-              }
-            } catch (error) {
-              if (import.meta.env.DEV) console.error(error);
-              continue;
-            }
-          }
-
-          if (newsletter_items.length > 0) {
-            const newsletter_ids = newsletter_items.map((item) => item.id);
-
-            const metadata_updates = await Promise.all(
-              newsletter_items.map(async (item) => {
-                const updated_metadata = {
-                  ...item.metadata!,
-                  is_archived: true,
-                };
-                const encrypted = await encrypt_mail_metadata(updated_metadata);
-
-                return encrypted ? { id: item.id, ...encrypted } : null;
-              }),
-            );
-
-            const valid_updates = metadata_updates.filter(
-              (u) => u !== null,
-            ) as Array<{
-              id: string;
-              encrypted_metadata: string;
-              metadata_nonce: string;
-            }>;
-
-            if (valid_updates.length > 0) {
-              await bulk_patch_metadata({ items: valid_updates });
-            }
-
-            stale_all_view_caches();
-            await batch_archive({ ids: newsletter_ids, tier: "hot" });
-            emit_mail_items_removed({ ids: newsletter_ids });
-            invalidate_mail_stats();
-            show_action_toast({
-              message: t("common.newsletters_archived", {
-                count: String(newsletter_ids.length),
-              }),
-              action_type: "archive",
-              email_ids: newsletter_ids,
-              on_undo: async () => {
-                const undo_updates = await Promise.all(
-                  newsletter_items.map(async (item) => {
-                    const updated_metadata = {
-                      ...item.metadata!,
-                      is_archived: false,
-                    };
-                    const encrypted =
-                      await encrypt_mail_metadata(updated_metadata);
-
-                    return encrypted ? { id: item.id, ...encrypted } : null;
-                  }),
-                );
-
-                const valid_undo = undo_updates.filter(
-                  (u) => u !== null,
-                ) as Array<{
-                  id: string;
-                  encrypted_metadata: string;
-                  metadata_nonce: string;
-                }>;
-
-                if (valid_undo.length > 0) {
-                  await bulk_patch_metadata({ items: valid_undo });
-                }
-
-                await batch_unarchive({ ids: newsletter_ids });
-                window.dispatchEvent(
-                  new CustomEvent("astermail:mail-soft-refresh"),
-                );
-              },
-            });
-          } else {
-            show_action_toast({
-              message: t("common.no_newsletters_found"),
-              action_type: "archive",
-              email_ids: [],
-            });
-          }
-        }
+        return;
       }
     },
     [t],
   );
+
+  const handle_batch_action = useCallback(
+    async (action: string) => {
+      if (
+        action in QUICK_ACTION_CONFIRM_KEYS &&
+        preferences.confirm_before_quick_actions
+      ) {
+        set_pending_quick_action(action);
+
+        return;
+      }
+
+      await execute_batch_action(action);
+    },
+    [execute_batch_action, preferences.confirm_before_quick_actions],
+  );
+
+  const handle_quick_action_confirm = useCallback(() => {
+    const action = pending_quick_action;
+
+    set_pending_quick_action(null);
+    if (action) void execute_batch_action(action);
+  }, [pending_quick_action, execute_batch_action]);
+
+  const handle_quick_action_cancel = useCallback(() => {
+    set_pending_quick_action(null);
+  }, []);
+
+  const handle_quick_action_dont_ask_again = useCallback(() => {
+    update_preference("confirm_before_quick_actions", false, true);
+  }, [update_preference]);
 
   return {
     is_refreshing,
@@ -1007,5 +1054,11 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
     set_is_unsubscribe_modal_open,
     is_snooze_modal_open,
     set_is_snooze_modal_open,
+    is_archive_newsletters_modal_open,
+    set_is_archive_newsletters_modal_open,
+    pending_quick_action,
+    handle_quick_action_confirm,
+    handle_quick_action_cancel,
+    handle_quick_action_dont_ask_again,
   };
 }

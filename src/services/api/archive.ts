@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { BATCH_LIMITS } from "@/constants/batch_config";
 
 export interface ArchiveTierStats {
   tier: string;
@@ -119,6 +120,54 @@ export async function batch_unarchive(
     "/mail/v1/archive/unarchive/batch",
     data,
   );
+}
+
+export interface BatchedArchiveResult {
+  succeeded_ids: string[];
+  failed_ids: string[];
+}
+
+export async function batched_archive(
+  ids: string[],
+  tier = "hot",
+): Promise<BatchedArchiveResult> {
+  const succeeded_ids: string[] = [];
+  const failed_ids: string[] = [];
+
+  for (let i = 0; i < ids.length; i += BATCH_LIMITS.ARCHIVE) {
+    const batch = ids.slice(i, i + BATCH_LIMITS.ARCHIVE);
+    const response = await batch_archive({ ids: batch, tier }).catch(
+      () => null,
+    );
+
+    if (response && !response.error) {
+      succeeded_ids.push(...batch);
+    } else {
+      failed_ids.push(...batch);
+    }
+  }
+
+  return { succeeded_ids, failed_ids };
+}
+
+export async function batched_unarchive(
+  ids: string[],
+): Promise<BatchedArchiveResult> {
+  const succeeded_ids: string[] = [];
+  const failed_ids: string[] = [];
+
+  for (let i = 0; i < ids.length; i += BATCH_LIMITS.ARCHIVE) {
+    const batch = ids.slice(i, i + BATCH_LIMITS.ARCHIVE);
+    const response = await batch_unarchive({ ids: batch }).catch(() => null);
+
+    if (response && !response.error) {
+      succeeded_ids.push(...batch);
+    } else {
+      failed_ids.push(...batch);
+    }
+  }
+
+  return { succeeded_ids, failed_ids };
 }
 
 export async function get_archive_stats(): Promise<
