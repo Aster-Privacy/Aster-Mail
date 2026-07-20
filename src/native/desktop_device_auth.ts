@@ -125,12 +125,13 @@ async function silent_device_login(device_id: string): Promise<void> {
   const resp = login_response as {
     access_token?: string;
     csrf_token?: string;
+    refresh_token?: string;
   };
 
   if (resp.access_token) {
     const { api_client } = await import("@/services/api/client");
 
-    api_client.set_dev_token(resp.access_token);
+    api_client.set_dev_token(resp.access_token, resp.refresh_token);
     if (resp.csrf_token) {
       api_client.set_csrf(resp.csrf_token);
     }
@@ -148,6 +149,18 @@ async function silent_device_login(device_id: string): Promise<void> {
   pending_device_login = { login_response, passphrase };
 
   window.dispatchEvent(new CustomEvent("astermail:device-login-success"));
+}
+
+export async function attempt_device_relogin(device_id: string): Promise<boolean> {
+  if (!is_tauri()) return false;
+
+  try {
+    await silent_device_login(device_id);
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function request_device_code(
