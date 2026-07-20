@@ -52,23 +52,32 @@ const INBOUND_ML_KEM_CT_LEN = 1088;
 const INBOUND_ECIES_INFO = new TextEncoder().encode("aster-inbound-v1");
 const INBOUND_PQ_HYBRID_INFO = new TextEncoder().encode("aster-inbound-pq-v1");
 
+const MAX_DECOMPRESSED_BYTES = 48 * 1024 * 1024;
+
 async function decompress_zlib(compressed: Uint8Array): Promise<Uint8Array> {
   const ds = new DecompressionStream("deflate");
   const writer = ds.writable.getWriter();
   const reader = ds.readable.getReader();
 
-  writer.write(compressed);
-  writer.close();
+  void writer.write(compressed).catch(() => {});
+  void writer.close().catch(() => {});
 
   const chunks: Uint8Array[] = [];
+  let total = 0;
   let done = false;
   while (!done) {
     const { value, done: d } = await reader.read();
-    if (value) chunks.push(value);
+    if (value) {
+      total += value.length;
+      if (total > MAX_DECOMPRESSED_BYTES) {
+        await reader.cancel();
+        throw new Error("decompressed envelope exceeds size limit");
+      }
+      chunks.push(value);
+    }
     done = d;
   }
 
-  const total = chunks.reduce((n, c) => n + c.length, 0);
   const result = new Uint8Array(total);
   let offset = 0;
   for (const chunk of chunks) {
@@ -315,7 +324,6 @@ export async function decrypt_mail_envelope<
           });
         }
       }
-
       for (const key_set of ratchet_key_sets) {
         let plain: Uint8Array | null = null;
 

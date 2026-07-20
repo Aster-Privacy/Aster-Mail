@@ -295,6 +295,7 @@ export async function perform_key_rotation(
       ratchet_pq_identity_key: new_ratchet_keys.pq_identity_secret,
       ratchet_pq_identity_public: new_ratchet_keys.pq_identity_public,
       ratchet_previous_keys: retain_previous_ratchet_keys(current_vault),
+      ratchet_regen_v4_done: true,
     };
 
     const { encrypted_vault, vault_nonce } = await encrypt_vault(

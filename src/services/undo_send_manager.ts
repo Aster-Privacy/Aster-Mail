@@ -82,6 +82,7 @@ class UndoSendManager {
 
     this.start_countdown(pending);
     this.pending_sends.set(queue_id, pending);
+    this.ensure_polling();
     this.notify_listeners();
 
     return pending;
@@ -281,6 +282,10 @@ class UndoSendManager {
   }
 
   private notify_listeners(): void {
+    if (this.pending_sends.size === 0) {
+      this.stop_polling();
+    }
+
     const pending_list = this.get_pending_sends();
 
     this.listeners.forEach((listener) => {
@@ -341,6 +346,7 @@ class UndoSendManager {
 
     this.start_countdown(pending);
     this.pending_sends.set(status.queue_id, pending);
+    this.ensure_polling();
   }
 
   private update_from_server_status(status: QueuedEmailStatus): void {
@@ -374,13 +380,16 @@ class UndoSendManager {
     }
   }
 
-  start_polling(interval_ms: number = 5000): void {
-    if (this.poll_interval !== null) {
+  private ensure_polling(interval_ms: number = 5000): void {
+    if (this.poll_interval !== null || this.pending_sends.size === 0) {
       return;
     }
 
-    this.poll_interval = window.setInterval(() => {
-      this.sync_with_server();
+    this.poll_interval = window.setInterval(async () => {
+      await this.sync_with_server();
+      if (this.pending_sends.size === 0) {
+        this.stop_polling();
+      }
     }, interval_ms);
   }
 

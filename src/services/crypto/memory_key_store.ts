@@ -204,6 +204,7 @@ export async function store_vault_in_memory(
     ratchet_previous_keys: vault.ratchet_previous_keys
       ? vault.ratchet_previous_keys.map((k) => ({ ...k }))
       : undefined,
+    ratchet_regen_v4_done: vault.ratchet_regen_v4_done,
     legacy_keks: vault.legacy_keks ? [...vault.legacy_keks] : undefined,
     data_kek: vault.data_kek,
     vault_format: vault.vault_format,
