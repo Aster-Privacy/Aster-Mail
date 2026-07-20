@@ -86,6 +86,7 @@ import {
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export const SESSION_TIMEOUT_OPTIONS = [
   { value: 5, label_key: "settings.five_minutes" as const },
@@ -861,7 +862,14 @@ export function use_security() {
       const response = await Promise.race([revoke_all_sessions(), timeout]);
 
       if ("data" in response && response.data?.success) {
+        const revoked_count = sessions.filter((s) => !s.is_current).length;
         set_sessions((prev) => prev.filter((s) => s.is_current));
+        show_toast(
+          t("settings.sign_out_everywhere_success", {
+            count: String(response.data?.revoked_count ?? revoked_count),
+          }),
+          "success",
+        );
       } else {
         const err = "error" in response ? response.error : undefined;
         set_sessions_error(err || t("settings.failed_sign_out"));

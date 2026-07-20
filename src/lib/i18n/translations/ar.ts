@@ -2560,6 +2560,7 @@ export const ar = {
     signing_out: "جارٍ تسجيل الخروج...",
     sign_out_description: "سيتم تسجيل خروجك من جميع الأجهزة والمتصفحات الأخرى",
     sign_out_everywhere_confirm: "هل أنت متأكد أنك تريد تسجيل الخروج من كل مكان؟ سيؤدي هذا إلى إنهاء جميع الجلسات النشطة الأخرى.",
+    sign_out_everywhere_success: "تم تسجيل الخروج من {{count}} جلسة أخرى",
     failed_sign_out: "فشل في تسجيل الخروج من الجلسات الأخرى",
     active_now: "نشط الآن",
     minutes_ago: "منذ {{count}} دقائق",

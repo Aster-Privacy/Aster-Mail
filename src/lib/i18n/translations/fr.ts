@@ -2513,6 +2513,8 @@ export const fr = {
     signing_out: "Déconnexion...",
     sign_out_description: "Cela vous déconnectera de tous les autres appareils et navigateurs",
     sign_out_everywhere_confirm: "Êtes-vous sûr de vouloir vous déconnecter partout ? Cela mettra fin à toutes les autres sessions actives.",
+    sign_out_everywhere_success:
+      "Déconnecté de {{count}} autre(s) session(s)",
     failed_sign_out: "Échec de la déconnexion des autres sessions",
     active_now: "Actif maintenant",
     minutes_ago: "Il y a {{count}} minutes",

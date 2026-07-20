@@ -2510,6 +2510,7 @@ export const zh_CN = {
     signing_out: "退出登录中...",
     sign_out_description: "这将在所有其他设备和浏览器上退出登录",
     sign_out_everywhere_confirm: "确定要在所有设备上退出登录吗？这将结束所有其他活跃会话。",
+    sign_out_everywhere_success: "已退出 {{count}} 个其他会话",
     failed_sign_out: "退出其他会话失败",
     active_now: "当前在线",
     minutes_ago: "{{count}} 分钟前",

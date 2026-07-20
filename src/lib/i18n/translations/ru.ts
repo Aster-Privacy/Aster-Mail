@@ -2512,6 +2512,8 @@ export const ru = {
     signing_out: "Выход из системы...",
     sign_out_description: "Это завершит сессии на всех других устройствах и браузерах",
     sign_out_everywhere_confirm: "Вы уверены, что хотите выйти везде? Это завершит все другие активные сессии.",
+    sign_out_everywhere_success:
+      "Завершено {{count}} других сеансов",
     failed_sign_out: "Не удалось завершить другие сессии",
     active_now: "Активна сейчас",
     minutes_ago: "{{count}} мин. назад",
