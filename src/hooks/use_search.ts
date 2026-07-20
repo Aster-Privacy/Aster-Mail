@@ -498,8 +498,10 @@ const legacy_migration_queue: Array<() => void> = [];
 
 function schedule_legacy_envelope_migration(
   item_id: string,
+  item_type: string,
   envelope: DecryptedEnvelope,
 ): void {
+  if (item_type !== "received") return;
   if (legacy_migration_attempted.has(item_id)) return;
   legacy_migration_attempted.add(item_id);
 
@@ -521,7 +523,6 @@ function schedule_legacy_envelope_migration(
         envelope_nonce: nonce,
       });
     } catch {
-      legacy_migration_attempted.delete(item_id);
     } finally {
       legacy_migration_inflight--;
       const next = legacy_migration_queue.shift();
@@ -541,6 +542,7 @@ async function decrypt_envelope_for_search(
   encrypted: string,
   nonce: string,
   item_id: string,
+  item_type: string,
 ): Promise<DecryptedEnvelope | null> {
   const nonce_bytes = nonce ? base64_to_array(nonce) : new Uint8Array(0);
 
@@ -552,7 +554,7 @@ async function decrypt_envelope_for_search(
       if (!text.startsWith("-----BEGIN PGP")) {
         const parsed = JSON.parse(text) as DecryptedEnvelope;
 
-        schedule_legacy_envelope_migration(item_id, parsed);
+        schedule_legacy_envelope_migration(item_id, item_type, parsed);
 
         return parsed;
       }
@@ -568,7 +570,7 @@ async function decrypt_envelope_for_search(
         );
         const parsed = JSON.parse(decrypted) as DecryptedEnvelope;
 
-        schedule_legacy_envelope_migration(item_id, parsed);
+        schedule_legacy_envelope_migration(item_id, item_type, parsed);
 
         return parsed;
       }
@@ -592,7 +594,8 @@ async function decrypt_envelope_for_search(
 
       zero_uint8_array(passphrase);
 
-      if (result) schedule_legacy_envelope_migration(item_id, result);
+      if (result)
+        schedule_legacy_envelope_migration(item_id, item_type, result);
 
       return result;
     }
@@ -773,6 +776,7 @@ async function do_build_search_index(
             item.encrypted_envelope,
             item.envelope_nonce,
             item.id,
+            item.item_type,
           );
 
           if (envelope?.body_text) {
