@@ -4552,6 +4552,7 @@ export const ar = {
     exit_fullscreen: "الخروج من ملء الشاشة",
     draft: "مسودة",
     to_label: "إلى",
+    cc_label: "Cc",
     encrypted: "مشفر",
     read_receipt: "إيصال قراءة",
     snooze: "تأجيل",

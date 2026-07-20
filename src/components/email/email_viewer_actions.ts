@@ -916,7 +916,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         subject: msg.subject,
         sender: msg.display_sender_name || msg.sender_name,
         sender_email: msg.display_sender_email || msg.sender_email,
-        to: [],
+        to: msg.to_recipients || [],
+        cc: msg.cc_recipients,
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,
       });

@@ -5010,6 +5010,7 @@ export const en: Translations = {
     exit_fullscreen: "Exit fullscreen",
     draft: "Draft",
     to_label: "To",
+    cc_label: "Cc",
     encrypted: "Encrypted",
     read_receipt: "Read receipt",
     snooze: "Snooze",

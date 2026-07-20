@@ -929,6 +929,7 @@ export function use_email_detail() {
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,
         to_recipients: msg.to_recipients,
+        cc_recipients: msg.cc_recipients,
       })),
     };
   }, [email, thread_messages]);

@@ -4555,6 +4555,7 @@ export const nl = {
     exit_fullscreen: "Volledig scherm sluiten",
     draft: "Concept",
     to_label: "Aan",
+    cc_label: "Cc",
     encrypted: "Versleuteld",
     read_receipt: "Leesbevestiging",
     snooze: "Uitstellen",

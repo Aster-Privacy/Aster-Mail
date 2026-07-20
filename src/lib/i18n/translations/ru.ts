@@ -4554,6 +4554,7 @@ export const ru = {
     exit_fullscreen: "Выйти из полного экрана",
     draft: "Черновик",
     to_label: "Кому",
+    cc_label: "Cc",
     encrypted: "Зашифровано",
     read_receipt: "Уведомление о прочтении",
     snooze: "Отложить",

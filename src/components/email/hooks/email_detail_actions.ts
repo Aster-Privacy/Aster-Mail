@@ -423,6 +423,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         sender: msg.display_sender_name || msg.sender_name,
         sender_email: msg.display_sender_email || msg.sender_email,
         to: msg.to_recipients || [],
+        cc: msg.cc_recipients,
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,
       });

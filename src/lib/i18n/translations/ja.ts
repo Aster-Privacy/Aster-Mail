@@ -4554,6 +4554,7 @@ export const ja = {
     exit_fullscreen: "全画面表示を終了",
     draft: "下書き",
     to_label: "宛先",
+    cc_label: "Cc",
     encrypted: "暗号化済み",
     read_receipt: "開封確認",
     snooze: "スヌーズ",

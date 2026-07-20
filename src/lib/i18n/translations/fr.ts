@@ -4555,6 +4555,7 @@ export const fr = {
     exit_fullscreen: "Quitter le plein écran",
     draft: "Brouillon",
     to_label: "À",
+    cc_label: "Cc",
     encrypted: "Chiffré",
     read_receipt: "Accusé de réception",
     snooze: "Mise en veille",

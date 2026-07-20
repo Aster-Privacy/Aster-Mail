@@ -4553,6 +4553,7 @@ export const tr = {
     exit_fullscreen: "Tam ekrandan çık",
     draft: "Taslak",
     to_label: "Kime",
+    cc_label: "Cc",
     encrypted: "Şifreli",
     read_receipt: "Okundu bilgisi",
     snooze: "Ertele",

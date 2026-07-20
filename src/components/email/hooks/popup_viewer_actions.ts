@@ -669,6 +669,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         sender: msg.display_sender_name || msg.sender_name,
         sender_email: msg.display_sender_email || msg.sender_email,
         to: msg.to_recipients || [],
+        cc: msg.cc_recipients,
         timestamp: new Date(msg.timestamp).toLocaleString(),
         body: msg.html_content || msg.body,
       });
