@@ -890,6 +890,10 @@ export function use_reply_modal({
       selected_sender && selected_sender.type !== "primary"
         ? selected_sender.address_hash
         : undefined;
+    const sender_display_name_value =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender.display_name
+        : undefined;
 
     const result = await send_reply(
       {
@@ -901,6 +905,7 @@ export function use_reply_modal({
         expires_at: expires_at?.toISOString(),
         sender_email: sender_email_value,
         sender_alias_hash: sender_alias_hash_value,
+        sender_display_name: sender_display_name_value,
         in_reply_to: original_rfc_message_id,
         attachments: attachments.length > 0 ? attachments : undefined,
       },

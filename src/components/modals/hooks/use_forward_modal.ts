@@ -690,6 +690,10 @@ export function use_forward_modal({
       selected_sender && selected_sender.type !== "primary"
         ? selected_sender.address_hash
         : undefined;
+    const fwd_sender_display_name =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender.display_name
+        : undefined;
 
     const store_mail_id = get_forward_mail_id();
     const fwd_mail_id =
@@ -713,6 +717,7 @@ export function use_forward_modal({
         expires_at: expires_at?.toISOString(),
         sender_email: fwd_sender_email,
         sender_alias_hash: fwd_sender_alias_hash,
+        sender_display_name: fwd_sender_display_name,
         attachments: fwd_attachments,
         forward_original_mail_id: fwd_mail_id,
       },
