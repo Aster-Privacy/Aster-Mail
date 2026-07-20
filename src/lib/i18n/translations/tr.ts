@@ -4617,6 +4617,20 @@ export const tr = {
     snooze_similar_emails: "Benzer e-postaları ertele",
     bulk_unsubscribe: "Toplu abonelik iptali",
     archive_all_newsletters: "Tüm bültenleri arşivle",
+    scanning_for_newsletters: "Bültenler taranıyor...",
+    archiving_newsletters: "Bültenler arşivleniyor...",
+    mark_all_read_confirm_title: "Tümü okundu olarak işaretlensin mi?",
+    mark_all_read_confirm_message:
+      "Bu, gelen kutunuzdaki her okunmamış e-postayı okundu olarak işaretler.",
+    archive_all_read_confirm_title: "Tüm okunmuş e-postalar arşivlensin mi?",
+    archive_all_read_confirm_message:
+      "Bu, gelen kutunuzdaki her okunmuş e-postayı arşivler. Hemen sonrasında geri alabilirsiniz.",
+    delete_old_confirm_title: "30 günden eski e-postalar silinsin mi?",
+    delete_old_confirm_message:
+      "Bu, 30 günden eski her e-postayı çöp kutusuna taşır. Hemen sonrasında geri alabilirsiniz.",
+    archive_newsletters_confirm_title: "Tüm bültenler arşivlensin mi?",
+    archive_newsletters_confirm_message:
+      "Bu, gelen kutunuzda bülten olarak algılanan her e-postayı arşivler. Hemen sonrasında geri alabilirsiniz.",
     delete_all: "Tümünü sil",
     archive_subtitle: "Gelen kutunuzu temiz tutmak için e-postaları arşivleyin",
     trash_subtitle: "Silinen e-postalar burada görünecek",

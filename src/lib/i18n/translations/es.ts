@@ -4619,6 +4619,20 @@ export const es = {
     snooze_similar_emails: "Posponer correos similares",
     bulk_unsubscribe: "Cancelar suscripciones masivamente",
     archive_all_newsletters: "Archivar todos los boletines",
+    scanning_for_newsletters: "Buscando boletines...",
+    archiving_newsletters: "Archivando boletines...",
+    mark_all_read_confirm_title: "¿Marcar todo como leído?",
+    mark_all_read_confirm_message:
+      "Esto marcará como leído cada correo no leído de tu bandeja de entrada.",
+    archive_all_read_confirm_title: "¿Archivar todos los correos leídos?",
+    archive_all_read_confirm_message:
+      "Esto archivará cada correo leído de tu bandeja de entrada. Podrás deshacerlo justo después.",
+    delete_old_confirm_title: "¿Eliminar correos de más de 30 días?",
+    delete_old_confirm_message:
+      "Esto moverá a la papelera cada correo de más de 30 días. Podrás deshacerlo justo después.",
+    archive_newsletters_confirm_title: "¿Archivar todos los boletines?",
+    archive_newsletters_confirm_message:
+      "Esto archivará cada correo detectado como boletín en tu bandeja de entrada. Podrás deshacerlo justo después.",
     delete_all: "Eliminar todo",
     archive_subtitle: "Archiva correos para mantener tu bandeja limpia",
     trash_subtitle: "Los correos eliminados aparecerán aquí",

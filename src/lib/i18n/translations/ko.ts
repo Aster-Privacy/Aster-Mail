@@ -4617,6 +4617,20 @@ export const ko = {
     snooze_similar_emails: "유사한 이메일 다시 알림",
     bulk_unsubscribe: "대량 구독 취소",
     archive_all_newsletters: "모든 뉴스레터 보관",
+    scanning_for_newsletters: "뉴스레터 검색 중...",
+    archiving_newsletters: "뉴스레터 보관 중...",
+    mark_all_read_confirm_title: "모두 읽음으로 표시하시겠습니까?",
+    mark_all_read_confirm_message:
+      "받은편지함의 모든 읽지 않은 이메일이 읽음으로 표시됩니다.",
+    archive_all_read_confirm_title: "읽은 이메일을 모두 보관하시겠습니까?",
+    archive_all_read_confirm_message:
+      "받은편지함의 모든 읽은 이메일이 보관됩니다. 직후에 취소할 수 있습니다.",
+    delete_old_confirm_title: "30일 이상 지난 이메일을 삭제하시겠습니까?",
+    delete_old_confirm_message:
+      "30일이 지난 모든 이메일이 휴지통으로 이동됩니다. 직후에 취소할 수 있습니다.",
+    archive_newsletters_confirm_title: "모든 뉴스레터를 보관하시겠습니까?",
+    archive_newsletters_confirm_message:
+      "받은편지함에서 뉴스레터로 감지된 모든 이메일이 보관됩니다. 직후에 취소할 수 있습니다.",
     delete_all: "모두 삭제",
     archive_subtitle: "받은 편지함을 깔끔하게 유지하기 위해 이메일을 보관하세요",
     trash_subtitle: "삭제된 이메일이 여기에 표시됩니다",

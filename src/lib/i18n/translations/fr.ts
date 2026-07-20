@@ -4619,6 +4619,20 @@ export const fr = {
     snooze_similar_emails: "Mettre en veille les e-mails similaires",
     bulk_unsubscribe: "Désabonnement en masse",
     archive_all_newsletters: "Archiver toutes les newsletters",
+    scanning_for_newsletters: "Recherche des newsletters en cours...",
+    archiving_newsletters: "Archivage des newsletters en cours...",
+    mark_all_read_confirm_title: "Marquer tout comme lu ?",
+    mark_all_read_confirm_message:
+      "Ceci marquera comme lu chaque e-mail non lu de votre boîte de réception.",
+    archive_all_read_confirm_title: "Archiver tous les e-mails lus ?",
+    archive_all_read_confirm_message:
+      "Ceci archivera chaque e-mail lu de votre boîte de réception. Vous pourrez annuler cette action juste après.",
+    delete_old_confirm_title: "Supprimer les e-mails de plus de 30 jours ?",
+    delete_old_confirm_message:
+      "Ceci déplacera vers la corbeille chaque e-mail de plus de 30 jours. Vous pourrez annuler cette action juste après.",
+    archive_newsletters_confirm_title: "Archiver toutes les newsletters ?",
+    archive_newsletters_confirm_message:
+      "Ceci archivera chaque e-mail détecté comme newsletter dans votre boîte de réception. Vous pourrez annuler cette action juste après.",
     delete_all: "Tout supprimer",
     archive_subtitle: "Archiver les e-mails pour garder votre boîte de réception propre",
     trash_subtitle: "Les e-mails supprimés apparaîtront ici",

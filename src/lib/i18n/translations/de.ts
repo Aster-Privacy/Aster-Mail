@@ -4622,6 +4622,20 @@ export const de = {
     snooze_similar_emails: "Ähnliche E-Mails zurückstellen",
     bulk_unsubscribe: "Massenabmeldung",
     archive_all_newsletters: "Alle Newsletter archivieren",
+    scanning_for_newsletters: "Newsletter werden gesucht...",
+    archiving_newsletters: "Newsletter werden archiviert...",
+    mark_all_read_confirm_title: "Alle als gelesen markieren?",
+    mark_all_read_confirm_message:
+      "Dadurch werden alle ungelesenen E-Mails in deinem Posteingang als gelesen markiert.",
+    archive_all_read_confirm_title: "Alle gelesenen E-Mails archivieren?",
+    archive_all_read_confirm_message:
+      "Dadurch werden alle gelesenen E-Mails in deinem Posteingang archiviert. Du kannst dies danach rückgängig machen.",
+    delete_old_confirm_title: "E-Mails älter als 30 Tage löschen?",
+    delete_old_confirm_message:
+      "Dadurch werden alle E-Mails, die älter als 30 Tage sind, in den Papierkorb verschoben. Du kannst dies danach rückgängig machen.",
+    archive_newsletters_confirm_title: "Alle Newsletter archivieren?",
+    archive_newsletters_confirm_message:
+      "Dadurch werden alle als Newsletter erkannten E-Mails in deinem Posteingang archiviert. Du kannst dies danach rückgängig machen.",
     delete_all: "Alle löschen",
     trash_subtitle: "Gelöschte E-Mails erscheinen hier",
     compose_email: "E-Mail verfassen",

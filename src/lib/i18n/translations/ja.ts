@@ -4620,6 +4620,20 @@ export const ja = {
     snooze_similar_emails: "類似メールをスヌーズ",
     bulk_unsubscribe: "一括購読解除",
     archive_all_newsletters: "すべてのニュースレターをアーカイブ",
+    scanning_for_newsletters: "ニュースレターを検索中...",
+    archiving_newsletters: "ニュースレターをアーカイブ中...",
+    mark_all_read_confirm_title: "すべて既読にしますか？",
+    mark_all_read_confirm_message:
+      "受信トレイ内のすべての未読メールが既読としてマークされます。",
+    archive_all_read_confirm_title: "既読メールをすべてアーカイブしますか？",
+    archive_all_read_confirm_message:
+      "受信トレイ内のすべての既読メールがアーカイブされます。直後であれば元に戻せます。",
+    delete_old_confirm_title: "30日以上前のメールを削除しますか？",
+    delete_old_confirm_message:
+      "30日以上前のすべてのメールがゴミ箱に移動されます。直後であれば元に戻せます。",
+    archive_newsletters_confirm_title: "すべてのニュースレターをアーカイブしますか？",
+    archive_newsletters_confirm_message:
+      "受信トレイ内でニュースレターと判定されたすべてのメールがアーカイブされます。直後であれば元に戻せます。",
     delete_all: "すべて削除",
     archive_subtitle: "メールをアーカイブして受信トレイを整理しましょう",
     trash_subtitle: "削除されたメールはここに表示されます",

@@ -18,14 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   MagnifyingGlassIcon,
@@ -36,16 +29,14 @@ import {
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
-import { Spinner } from "@/components/ui/spinner";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { SearchContentBanner } from "@/components/search/search_content_banner";
-import { use_search, extract_query_terms } from "@/hooks/use_search";
+import { use_search } from "@/hooks/use_search";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 
-const MAX_PREVIEW_RESULTS = 7;
 const DEBOUNCE_MS = 180;
-const SLOW_SEARCH_MS = 6000;
+const MIN_QUERY_LENGTH = 2;
 
 interface SearchBarProps {
   on_result_click?: (id: string) => void;
@@ -60,11 +51,7 @@ interface AnchorRect {
   bottom: number;
 }
 
-export function SearchBar({
-  on_result_click,
-  on_search_submit,
-  search_context,
-}: SearchBarProps) {
+export function SearchBar({ on_search_submit, search_context }: SearchBarProps) {
   const { t } = use_i18n();
   const input_ref = useRef<HTMLInputElement>(null);
   const wrapper_ref = useRef<HTMLDivElement>(null);
@@ -74,29 +61,11 @@ export function SearchBar({
   const [query, set_query] = useState(search_context || "");
   const [is_open, set_is_open] = useState(false);
   const [rect, set_rect] = useState<AnchorRect | null>(null);
-  const [selected_index, set_selected_index] = useState(-1);
   const [is_advanced_open, set_is_advanced_open] = useState(false);
-  const [is_slow, set_is_slow] = useState(false);
 
-  const { state, search, clear_results, clear_index, start_index_build } =
-    use_search();
+  const { clear_index, start_index_build } = use_search();
   const { preferences, update_preference } = use_preferences();
   const content_search_enabled = preferences.search_encrypted_content;
-
-  const query_terms = useMemo(() => extract_query_terms(query), [query]);
-  const results = state.results.slice(0, MAX_PREVIEW_RESULTS);
-
-  const run_search = useCallback(
-    (q: string) => {
-      if (!q || q.trim().length < 2) {
-        clear_results();
-
-        return;
-      }
-      search(q, { fields: ["all"], search_body: content_search_enabled });
-    },
-    [search, clear_results, content_search_enabled],
-  );
 
   const handle_enable_content_search = useCallback(() => {
     update_preference("search_encrypted_content", true, true);
@@ -106,39 +75,27 @@ export function SearchBar({
   const handle_disable_content_search = useCallback(() => {
     update_preference("search_encrypted_content", false, true);
     clear_index();
-    if (query && query.trim().length >= 2) {
-      search(query, { fields: ["all"], search_body: false });
-    } else {
-      clear_results();
-    }
-  }, [update_preference, clear_index, query, search, clear_results]);
-
-  const handle_change = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    set_query(value);
-    set_selected_index(-1);
-    if (debounce_ref.current) clearTimeout(debounce_ref.current);
-    debounce_ref.current = setTimeout(() => {
-      if (search_context !== undefined && on_search_submit) {
-        on_search_submit(value.trim());
-
-        return;
-      }
-      run_search(value);
-    }, DEBOUNCE_MS);
-  };
-
-  const handle_clear = () => {
-    set_query("");
-    clear_results();
-    input_ref.current?.focus();
-  };
+  }, [update_preference, clear_index]);
 
   const close = useCallback(() => {
     set_is_open(false);
-    set_selected_index(-1);
   }, []);
+
+  const submit_query = useCallback(
+    (raw: string) => {
+      const trimmed = raw.trim();
+
+      if (!on_search_submit) return;
+      if (trimmed.length === 0) {
+        on_search_submit("");
+
+        return;
+      }
+      if (trimmed.length < MIN_QUERY_LENGTH) return;
+      on_search_submit(trimmed);
+    },
+    [on_search_submit],
+  );
 
   const submit_full = useCallback(
     (q: string) => {
@@ -149,20 +106,26 @@ export function SearchBar({
     [on_search_submit, close],
   );
 
-  const handle_result = useCallback(
-    (id: string) => {
-      if (on_result_click) on_result_click(id);
-      close();
-      input_ref.current?.blur();
-    },
-    [on_result_click, close],
-  );
+  const handle_change = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    set_query(value);
+    if (debounce_ref.current) clearTimeout(debounce_ref.current);
+    debounce_ref.current = setTimeout(() => submit_query(value), DEBOUNCE_MS);
+  };
+
+  const handle_clear = () => {
+    set_query("");
+    submit_query("");
+    input_ref.current?.focus();
+  };
 
   const handle_chip = (suffix: string) => {
     const next = query ? `${query} ${suffix}`.trim() : suffix;
 
     set_query(next);
-    run_search(next);
+    if (debounce_ref.current) clearTimeout(debounce_ref.current);
+    submit_query(next);
     input_ref.current?.focus();
   };
 
@@ -174,27 +137,9 @@ export function SearchBar({
 
       return;
     }
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      set_selected_index((i) =>
-        i < results.length - 1 ? i + 1 : results.length - 1,
-      );
-
-      return;
-    }
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      set_selected_index((i) => (i > 0 ? i - 1 : -1));
-
-      return;
-    }
     if (e.key === "Enter") {
       e.preventDefault();
-      if (selected_index >= 0 && results[selected_index]) {
-        handle_result(results[selected_index].id);
-      } else {
-        submit_full(query);
-      }
+      submit_full(query);
     }
   };
 
@@ -272,61 +217,6 @@ export function SearchBar({
     };
   }, []);
 
-  const show_loading = state.is_searching || state.index_building;
-
-  useEffect(() => {
-    if (!show_loading) {
-      set_is_slow(false);
-
-      return;
-    }
-    const id = setTimeout(() => set_is_slow(true), SLOW_SEARCH_MS);
-
-    return () => clearTimeout(id);
-  }, [show_loading]);
-
-  const show_results = is_open && query.trim().length >= 2;
-  const finished_slow = state.search_time_ms >= SLOW_SEARCH_MS;
-  const show_empty =
-    show_results && !show_loading && results.length === 0 && !state.error;
-  const show_slow_loading = show_loading && is_slow;
-  const show_slow_empty = show_empty && finished_slow;
-
-  const handle_refine_query = useCallback(() => {
-    input_ref.current?.focus();
-    input_ref.current?.select();
-    set_is_open(true);
-  }, []);
-
-  const slow_notice = (
-    <div className="px-6 py-8 flex flex-col items-center justify-center text-center gap-1.5">
-      <p className="text-sm font-medium text-[var(--text-primary)]">
-        {t("mail.search_taking_too_long")}
-      </p>
-      <p className="text-xs text-[var(--text-muted)]">
-        {t("mail.search_refine_terms")}
-      </p>
-      <div className="flex items-center justify-center gap-3 mt-1.5">
-        <button
-          className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
-          type="button"
-          onClick={handle_refine_query}
-        >
-          {t("mail.refine_your_search_action")}
-        </button>
-        {content_search_enabled && (
-          <button
-            className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
-            type="button"
-            onClick={handle_disable_content_search}
-          >
-            {t("mail.turn_off_indexing_action")}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
   const dropdown_style: React.CSSProperties | undefined = rect
     ? {
         position: "fixed",
@@ -349,8 +239,7 @@ export function SearchBar({
           style={{
             borderBottomLeftRadius: is_open && rect ? 0 : undefined,
             borderBottomRightRadius: is_open && rect ? 0 : undefined,
-            borderBottomColor:
-              is_open && rect ? "transparent" : undefined,
+            borderBottomColor: is_open && rect ? "transparent" : undefined,
           }}
         >
           <MagnifyingGlassIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
@@ -432,89 +321,11 @@ export function SearchBar({
               </button>
             </div>
 
-            <div className="max-h-[26rem] overflow-y-auto">
-              {show_loading &&
-                (show_slow_loading ? (
-                  slow_notice
-                ) : (
-                  <div className="flex items-center justify-center gap-2 py-6">
-                    <Spinner size="sm" />
-                    <span className="text-xs text-[var(--text-muted)]">
-                      {t("mail.searching")}
-                    </span>
-                  </div>
-                ))}
-
-              {!show_loading && !show_results && (
-                <div className="px-6 py-10 flex flex-col items-center justify-center text-center">
-                  <MagnifyingGlassIcon className="w-8 h-8 text-[var(--text-muted)] mb-2" />
-                  <p className="text-sm text-[var(--text-muted)]">
-                    {t("mail.search_placeholder_hint")}
-                  </p>
-                </div>
-              )}
-
-              {show_empty &&
-                (show_slow_empty ? (
-                  slow_notice
-                ) : (
-                  <div className="px-6 py-8 text-center">
-                    <p className="text-sm text-[var(--text-muted)]">
-                      {t("mail.no_results_for", { query })}
-                    </p>
-                  </div>
-                ))}
-
-              {show_results && !show_loading && results.length > 0 && (
-                <ul className="py-1">
-                  {results.map((r, idx) => (
-                    <li key={r.id}>
-                      <button
-                        className={`w-full text-left px-4 py-2 flex items-start gap-3 hover:bg-[var(--bg-hover)] transition-colors ${
-                          idx === selected_index ? "bg-[var(--bg-hover)]" : ""
-                        }`}
-                        type="button"
-                        onClick={() => handle_result(r.id)}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-medium text-[var(--text-primary)] truncate">
-                              {highlight(r.sender_name || r.sender_email || "-", query_terms)}
-                            </span>
-                            <span className="text-[10px] text-[var(--text-muted)] flex-shrink-0">
-                              {format_date(r.timestamp)}
-                            </span>
-                          </div>
-                          <div className="text-xs text-[var(--text-primary)] truncate mt-0.5">
-                            {highlight(r.subject || t("mail.no_subject"), query_terms)}
-                          </div>
-                          {r.preview && (
-                            <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
-                              {r.preview}
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {show_results && query.trim().length >= 2 && (
-                <button
-                  className="w-full text-left px-4 py-3 flex items-center gap-3 border-t border-[var(--border-secondary)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-                  type="button"
-                  onClick={() => submit_full(query)}
-                >
-                  <MagnifyingGlassIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
-                  <span className="flex-1 truncate">
-                    {t("mail.all_search_results_for", { query })}
-                  </span>
-                  <span className="text-[11px] text-[var(--text-muted)] flex-shrink-0">
-                    {t("common.press_enter_to_view_all")}
-                  </span>
-                </button>
-              )}
+            <div className="px-6 py-8 flex flex-col items-center justify-center text-center">
+              <MagnifyingGlassIcon className="w-8 h-8 text-[var(--text-muted)] mb-2" />
+              <p className="text-sm text-[var(--text-muted)]">
+                {t("mail.search_placeholder_hint")}
+              </p>
             </div>
           </div>,
           document.body,
@@ -522,7 +333,6 @@ export function SearchBar({
       <AdvancedSearchModal
         is_open={is_advanced_open}
         on_close={() => set_is_advanced_open(false)}
-        on_result_click={on_result_click}
         on_search_submit={on_search_submit}
       />
     </>
@@ -548,39 +358,4 @@ function Chip({
       <span>{label}</span>
     </button>
   );
-}
-
-function highlight(text: string, terms: string[]): React.ReactNode {
-  if (!terms.length) return text;
-  const pattern = new RegExp(
-    `(${terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
-    "gi",
-  );
-  const parts = text.split(pattern);
-
-  return parts.map((part, i) =>
-    pattern.test(part) ? (
-      <mark
-        key={i}
-        className="bg-[var(--accent-color,#3b82f6)]/20 text-[var(--text-primary)] rounded px-0.5"
-      >
-        {part}
-      </mark>
-    ) : (
-      <span key={i}>{part}</span>
-    ),
-  );
-}
-
-function format_date(ts: string | number | Date | undefined): string {
-  if (!ts) return "";
-  const d = new Date(ts);
-  const now = new Date();
-  const same_year = d.getFullYear() === now.getFullYear();
-
-  if (same_year) {
-    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  }
-
-  return d.toLocaleDateString(undefined, { year: "2-digit", month: "short" });
 }

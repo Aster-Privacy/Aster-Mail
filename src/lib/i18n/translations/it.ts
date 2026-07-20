@@ -4623,6 +4623,20 @@ export const it = {
     snooze_similar_emails: "Posticipa email simili",
     bulk_unsubscribe: "Annullamento iscrizione in blocco",
     archive_all_newsletters: "Archivia tutte le newsletter",
+    scanning_for_newsletters: "Ricerca delle newsletter in corso...",
+    archiving_newsletters: "Archiviazione delle newsletter in corso...",
+    mark_all_read_confirm_title: "Segnare tutto come letto?",
+    mark_all_read_confirm_message:
+      "Questa azione contrassegnerà come letta ogni email non letta nella tua posta in arrivo.",
+    archive_all_read_confirm_title: "Archiviare tutte le email lette?",
+    archive_all_read_confirm_message:
+      "Questa azione archivierà ogni email letta nella tua posta in arrivo. Potrai annullarla subito dopo.",
+    delete_old_confirm_title: "Eliminare le email più vecchie di 30 giorni?",
+    delete_old_confirm_message:
+      "Questa azione sposterà nel cestino ogni email più vecchia di 30 giorni. Potrai annullarla subito dopo.",
+    archive_newsletters_confirm_title: "Archiviare tutte le newsletter?",
+    archive_newsletters_confirm_message:
+      "Questa azione archivierà ogni email rilevata come newsletter nella tua posta in arrivo. Potrai annullarla subito dopo.",
     delete_all: "Elimina tutto",
     archive_subtitle: "Archivia le email per mantenere pulita la posta in arrivo",
     trash_subtitle: "Le email eliminate appariranno qui",

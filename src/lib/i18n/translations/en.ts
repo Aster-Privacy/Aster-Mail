@@ -5098,6 +5098,20 @@ export const en: Translations = {
     snooze_similar_emails: "Snooze similar emails",
     bulk_unsubscribe: "Bulk unsubscribe",
     archive_all_newsletters: "Archive all newsletters",
+    scanning_for_newsletters: "Scanning for newsletters...",
+    archiving_newsletters: "Archiving newsletters...",
+    mark_all_read_confirm_title: "Mark all as read?",
+    mark_all_read_confirm_message:
+      "This will mark every unread email in your inbox as read.",
+    archive_all_read_confirm_title: "Archive all read emails?",
+    archive_all_read_confirm_message:
+      "This will archive every read email in your inbox. You can undo this right after.",
+    delete_old_confirm_title: "Delete emails older than 30 days?",
+    delete_old_confirm_message:
+      "This will move every email older than 30 days to trash. You can undo this right after.",
+    archive_newsletters_confirm_title: "Archive all newsletters?",
+    archive_newsletters_confirm_message:
+      "This will archive every email detected as a newsletter in your inbox. You can undo this right after.",
     delete_all: "Delete all",
     archive_subtitle: "Archive emails to keep your inbox clean",
     trash_subtitle: "Deleted emails will appear here",

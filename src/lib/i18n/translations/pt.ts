@@ -4619,6 +4619,20 @@ export const pt = {
     snooze_similar_emails: "Adiar e-mails semelhantes",
     bulk_unsubscribe: "Cancelar inscrições em massa",
     archive_all_newsletters: "Arquivar todas as newsletters",
+    scanning_for_newsletters: "A procurar newsletters...",
+    archiving_newsletters: "A arquivar newsletters...",
+    mark_all_read_confirm_title: "Marcar tudo como lido?",
+    mark_all_read_confirm_message:
+      "Isto marcará como lido cada e-mail não lido na sua caixa de entrada.",
+    archive_all_read_confirm_title: "Arquivar todos os e-mails lidos?",
+    archive_all_read_confirm_message:
+      "Isto arquivará cada e-mail lido na sua caixa de entrada. Poderá desfazer isto logo depois.",
+    delete_old_confirm_title: "Excluir e-mails com mais de 30 dias?",
+    delete_old_confirm_message:
+      "Isto moverá para a lixeira cada e-mail com mais de 30 dias. Poderá desfazer isto logo depois.",
+    archive_newsletters_confirm_title: "Arquivar todas as newsletters?",
+    archive_newsletters_confirm_message:
+      "Isto arquivará cada e-mail detectado como newsletter na sua caixa de entrada. Poderá desfazer isto logo depois.",
     delete_all: "Excluir todos",
     archive_subtitle: "Arquive e-mails para manter sua caixa de entrada limpa",
     trash_subtitle: "E-mails excluídos aparecerão aqui",
