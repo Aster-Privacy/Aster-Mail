@@ -273,10 +273,9 @@ export function use_compose_send({
                 ? selected_sender?.address_hash
                 : undefined,
             sender_display_name:
-              selected_sender?.display_name ||
-              (selected_sender?.type === "external"
-                ? undefined
-                : user?.display_name || undefined),
+              selected_sender?.type && selected_sender.type !== "primary"
+                ? selected_sender.display_name || undefined
+                : user?.display_name || undefined,
             expires_at: expires_at?.toISOString(),
             expiry_password: expiry_password || undefined,
             secure_external: expiry_password ? true : undefined,

@@ -58,6 +58,7 @@ export interface ReplyParams {
   expires_at?: string;
   sender_email?: string;
   sender_alias_hash?: string;
+  sender_display_name?: string;
   in_reply_to?: string;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
 }
@@ -73,6 +74,7 @@ export interface ForwardParams {
   expires_at?: string;
   sender_email?: string;
   sender_alias_hash?: string;
+  sender_display_name?: string;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   forward_original_mail_id?: string;
 }
@@ -183,6 +185,7 @@ export async function send_reply(
         expires_at: params.expires_at,
         sender_email: params.sender_email,
         sender_alias_hash: params.sender_alias_hash,
+        sender_display_name: params.sender_display_name,
         attachments: params.attachments,
       },
       delay_seconds,
@@ -220,6 +223,7 @@ export async function send_reply(
       expires_at: params.expires_at,
       sender_email: params.sender_email,
       sender_alias_hash: params.sender_alias_hash,
+      sender_display_name: params.sender_display_name,
       attachments: params.attachments,
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,
@@ -298,6 +302,7 @@ export async function send_forward(
         expires_at: params.expires_at,
         sender_email: params.sender_email,
         sender_alias_hash: params.sender_alias_hash,
+        sender_display_name: params.sender_display_name,
         attachments: params.attachments,
         forward_original_mail_id: params.forward_original_mail_id,
       },
@@ -331,6 +336,7 @@ export async function send_forward(
       expires_at: params.expires_at,
       sender_email: params.sender_email,
       sender_alias_hash: params.sender_alias_hash,
+      sender_display_name: params.sender_display_name,
       attachments: params.attachments,
       forward_original_mail_id: params.forward_original_mail_id,
       on_complete: callbacks.on_complete,
