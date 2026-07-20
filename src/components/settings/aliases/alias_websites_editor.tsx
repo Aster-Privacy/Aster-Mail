@@ -161,6 +161,24 @@ export function AliasWebsitesEditor({
     ? "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100"
     : "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-txt-muted opacity-60 hover:opacity-100";
 
+  const empty_add_class = is_mobile
+    ? "mt-1 block max-w-full cursor-pointer truncate text-left text-[13px] text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
+    : "mt-0.5 block max-w-full cursor-pointer truncate text-left text-xs text-txt-muted opacity-70 hover:opacity-100 focus:outline-none focus:ring-0";
+
+  if (current.length === 0 && !is_adding) {
+    return (
+      <button
+        aria-label={`${t("common.add_alias_website")} ${alias_address}`}
+        className={empty_add_class}
+        disabled={saving}
+        type="button"
+        onClick={() => set_is_adding(true)}
+      >
+        {t("common.add_alias_website_placeholder")}
+      </button>
+    );
+  }
+
   return (
     <div className="mt-1 flex flex-wrap items-center gap-1.5">
       {current.map((url) => (
@@ -232,9 +250,7 @@ export function AliasWebsitesEditor({
             onClick={() => set_is_adding(true)}
           >
             <PlusIcon className="h-3 w-3" />
-            {current.length === 0
-              ? t("common.add_alias_website_placeholder")
-              : t("common.add_alias_website")}
+            {t("common.add_alias_website")}
           </button>
         )
       )}
