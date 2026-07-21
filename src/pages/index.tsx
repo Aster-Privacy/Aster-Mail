@@ -89,6 +89,15 @@ export default function IndexPage() {
   const { section } = useParams<{ section?: string }>();
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
 
+  const toggle_quick_settings = () => {
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      set_is_quick_settings_open((prev) => !prev);
+    } else {
+      set_is_quick_settings_open(false);
+      state.open_settings();
+    }
+  };
+
   const settings_section =
     section && SETTINGS_SECTIONS.has(section)
       ? (section as SettingsSection)
@@ -310,9 +319,7 @@ export default function IndexPage() {
                       on_result_click={state.handle_search_result_click}
                       on_search_click={() => state.set_is_search_open(true)}
                       on_search_submit={state.handle_search_submit}
-                      on_quick_settings_click={() =>
-                        set_is_quick_settings_open((prev) => !prev)
-                      }
+                      on_quick_settings_click={toggle_quick_settings}
                       on_settings_click={() => {
                         state.open_settings();
                       }}
@@ -349,9 +356,7 @@ export default function IndexPage() {
                   on_search_click={() => state.set_is_search_open(true)}
                   on_search_result_click={state.handle_search_result_click}
                   on_search_submit={state.handle_search_submit}
-                  on_quick_settings_click={() =>
-                    set_is_quick_settings_open((prev) => !prev)
-                  }
+                  on_quick_settings_click={toggle_quick_settings}
                   on_settings_click={() => {
                     state.open_settings();
                   }}
