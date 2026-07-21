@@ -37,7 +37,6 @@ import { clamp_password } from "@/services/sanitize";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { AppLockSection } from "@/components/settings/security/app_lock_section";
-import { AliasWatchSection } from "@/components/settings/security/alias_watch_section";
 import {
   is_vanguard_enabled,
   set_vanguard_enabled,
@@ -348,7 +347,6 @@ export function VanguardSection() {
           <div className="mt-4 border-l-2 border-primary/25 pl-4 space-y-0">
             <AppLockSection />
             <LockdownSection account_id={account_id} />
-            <AliasWatchSection account_id={account_id} />
           </div>
         )}
       </div>

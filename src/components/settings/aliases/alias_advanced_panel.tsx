@@ -907,8 +907,10 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
   );
 }
 
+
 interface AliasDetailsProps {
   alias_address: string;
+  alias_address_hash?: string;
   display_name?: string;
   note?: string;
   websites?: string[];
