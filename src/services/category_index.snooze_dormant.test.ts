@@ -88,7 +88,7 @@ describe("dormant snoozed entries", () => {
       },
     ]);
 
-    expect(get_counts().primary.total).toBe(1);
+    expect(get_counts().primary!.total).toBe(1);
     expect(get_page_ids("primary", 0, 10)).toEqual(["b1"]);
   });
 
@@ -103,7 +103,7 @@ describe("dormant snoozed entries", () => {
       },
     ]);
 
-    expect(get_counts().primary.total).toBe(1);
+    expect(get_counts().primary!.total).toBe(1);
     expect(get_page_ids("primary", 0, 10)).toEqual(["a1"]);
   });
 });
@@ -167,6 +167,6 @@ describe("get_category_action_ids", () => {
 
     expect(rep_ids.sort()).toEqual(["a1", "a2"]);
     expect(all_ids.sort()).toEqual(["a1", "a2"]);
-    expect(get_counts().primary.total).toBe(2);
+    expect(get_counts().primary!.total).toBe(2);
   });
 });

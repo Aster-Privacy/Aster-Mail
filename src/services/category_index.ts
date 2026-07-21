@@ -34,11 +34,13 @@ import {
   decrypt_mail_metadata,
   update_item_metadata,
 } from "@/services/crypto/mail_metadata";
+import { classify, CATEGORY_TABS } from "@/services/mail_categorizer";
 import {
-  classify,
-  category_for_tab,
-  CATEGORY_TABS,
-} from "@/services/mail_categorizer";
+  BUILTIN_CATEGORY_IDS,
+  fold_builtin,
+  is_custom_category_id,
+  type CustomCategoryRule,
+} from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
 import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
 
@@ -77,7 +79,7 @@ export interface CategoryCount {
   new_count: number;
 }
 
-export type CategoryCounts = Record<EmailCategory, CategoryCount>;
+export type CategoryCounts = Partial<Record<EmailCategory, CategoryCount>>;
 
 interface PersistedIndex {
   entries: CategoryIndexEntry[];
@@ -108,6 +110,63 @@ let resync_failures = 0;
 let listeners_started = false;
 
 const MAX_RESYNC_FAILURES = 5;
+
+const BUILTIN_CATEGORY_ID_SET = new Set(BUILTIN_CATEGORY_IDS);
+
+// The set of tabs actually rendered right now (built-ins the user enabled,
+// plus their custom categories). Defaults to the classic 4-tab layout until
+// use_inbox_categories pushes the real preference-derived list.
+let active_tabs: string[] = [...(CATEGORY_TABS as readonly string[])];
+let custom_categories: CustomCategoryRule[] = [];
+
+export function set_active_tabs(tabs: string[]): void {
+  const next = tabs.includes("primary") ? tabs : ["primary", ...tabs];
+
+  if (
+    next.length === active_tabs.length &&
+    next.every((t, i) => t === active_tabs[i])
+  ) {
+    return;
+  }
+
+  active_tabs = next;
+  derived = null;
+  version += 1;
+  notify();
+}
+
+export function get_active_tabs(): readonly string[] {
+  return active_tabs;
+}
+
+export function set_custom_categories(rules: CustomCategoryRule[]): void {
+  custom_categories = rules;
+  // Existing entries were classified with the previous rule set, so a full
+  // reconcile is needed to pick up new/changed custom-category matches.
+  void build_index({ force: true });
+}
+
+// Maps a raw classify() result onto one of the currently active tabs, walking
+// the built-in fold_target chain (e.g. Forums -> Updates -> Primary) until it
+// lands on a tab the user actually has enabled. Disabled custom categories
+// fold to Primary rather than disappearing silently.
+function fold_category(raw: EmailCategory): EmailCategory {
+  if (active_tabs.includes(raw)) return raw;
+
+  if (is_custom_category_id(raw)) return "primary";
+
+  if (!BUILTIN_CATEGORY_ID_SET.has(raw)) return "primary";
+
+  let target = fold_builtin(raw);
+  let guard = 0;
+
+  while (!active_tabs.includes(target) && target !== "primary" && guard < 8) {
+    target = fold_builtin(target);
+    guard += 1;
+  }
+
+  return active_tabs.includes(target) ? target : "primary";
+}
 
 const listeners = new Set<() => void>();
 const in_flight_reclassify = new Map<string, boolean>();
@@ -262,10 +321,14 @@ async function load_from_disk(account_id: string): Promise<void> {
     const raw_seen = payload.seen_ts;
 
     if (raw_seen && typeof raw_seen === "object") {
-      for (const tab of CATEGORY_TABS) {
-        const value = (raw_seen as Record<string, unknown>)[tab];
-
-        if (typeof value === "number" && Number.isFinite(value)) {
+      for (const [tab, value] of Object.entries(
+        raw_seen as Record<string, unknown>,
+      )) {
+        if (
+          (BUILTIN_CATEGORY_ID_SET.has(tab) || is_custom_category_id(tab)) &&
+          typeof value === "number" &&
+          Number.isFinite(value)
+        ) {
           clean_seen[tab] = value;
         }
       }
@@ -319,9 +382,7 @@ async function ensure_loaded(): Promise<boolean> {
 
       if (active_account_id !== account_id) return false;
 
-      for (const tab of CATEGORY_TABS) {
-        const pending = pre_load_seen[tab];
-
+      for (const [tab, pending] of Object.entries(pre_load_seen)) {
         if (typeof pending === "number" && pending > (seen_ts[tab] ?? 0)) {
           seen_ts[tab] = pending;
         }
@@ -496,9 +557,9 @@ interface DerivedData {
 let derived: DerivedData | null = null;
 
 function empty_counts(): CategoryCounts {
-  const counts = {} as CategoryCounts;
+  const counts: CategoryCounts = {};
 
-  for (const tab of CATEGORY_TABS) {
+  for (const tab of active_tabs) {
     counts[tab] = { total: 0, unread: 0, new_count: 0 };
   }
 
@@ -592,12 +653,12 @@ function compute_derived(): DerivedData {
   const thread_reps = new Map<string, string>();
   const wall = derive_wall;
 
-  for (const tab of CATEGORY_TABS) {
+  for (const tab of active_tabs) {
     grouped.set(tab, []);
   }
 
   for (const [key, rep] of best) {
-    const tab = category_for_tab(rep.pinned_category ?? rep.entry.category);
+    const tab = fold_category(rep.pinned_category ?? rep.entry.category);
     const bucket = counts[tab];
     const list = grouped.get(tab);
 
@@ -662,7 +723,7 @@ export function mark_category_seen(category: EmailCategory): void {
   let newest_seen_ts = 0;
 
   for (const entry of entries_map.values()) {
-    if (category_for_tab(entry.category) !== category) continue;
+    if (fold_category(entry.category) !== category) continue;
     const ts = safe_ts(entry.message_ts);
 
     if (ts <= wall && ts > newest_seen_ts) newest_seen_ts = ts;
@@ -881,7 +942,7 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       thread_token: item.thread_token,
       message_ts: item.message_ts || item.created_at,
       is_read: item.is_read === true || (metadata?.is_read ?? false),
-      category: classify(envelope, metadata),
+      category: classify(envelope, metadata, { custom_categories }),
       category_pinned:
         metadata?.category_pinned === true && !!metadata?.category,
       ...(snoozed_until ? { snoozed_until } : {}),

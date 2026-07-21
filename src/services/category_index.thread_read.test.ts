@@ -58,12 +58,12 @@ describe("category_index thread read entries", () => {
   });
 
   it("clears every unread sibling of the thread so the representative stops counting as unread", () => {
-    expect(get_counts().primary.unread).toBe(3);
+    expect(get_counts().primary!.unread).toBe(3);
     expect(is_representative_unread("m3")).toBe(true);
 
     mark_thread_read_entries("t1");
 
-    expect(get_counts().primary.unread).toBe(2);
+    expect(get_counts().primary!.unread).toBe(2);
     expect(is_representative_unread("m3")).toBe(false);
   });
 
@@ -78,6 +78,6 @@ describe("category_index thread read entries", () => {
     mark_thread_read_entries("missing");
     mark_thread_read_entries("");
 
-    expect(get_counts().primary.unread).toBe(3);
+    expect(get_counts().primary!.unread).toBe(3);
   });
 });

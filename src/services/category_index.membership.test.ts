@@ -117,7 +117,7 @@ describe("remove_thread_entries returns the removed ids", () => {
     const removed = remove_thread_entries("t1").sort();
 
     expect(removed).toEqual(["a1", "a2"]);
-    expect(get_counts().primary.total).toBe(1);
+    expect(get_counts().primary!.total).toBe(1);
     expect(remove_thread_entries("missing")).toEqual([]);
   });
 });

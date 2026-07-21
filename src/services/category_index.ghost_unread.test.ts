@@ -209,7 +209,7 @@ describe("category_index ghost unread", () => {
     const ids = get_page_ids("primary", 0, 50);
 
     expect(ids).toEqual(["newer_read"]);
-    expect(get_counts().primary.unread).toBe(1);
+    expect(get_counts().primary!.unread).toBe(1);
     expect(is_representative_unread("newer_read")).toBe(true);
   });
 });
