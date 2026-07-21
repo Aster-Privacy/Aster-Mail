@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { StepUpCredentials } from "./step_up";
+
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
 
@@ -355,10 +357,16 @@ export async function get_inactivity_settings(): Promise<
 
 export async function set_inactivity_settings(
   inactivity_window_months: number,
+  credentials?: StepUpCredentials,
 ): Promise<ApiResponse<InactivitySettingsResponse>> {
   return api_client.put<InactivitySettingsResponse>(
     "/core/v1/auth/inactivity-settings",
-    { inactivity_window_months },
+    {
+      inactivity_window_months,
+      password_hash: credentials?.password_hash,
+      totp_code: credentials?.totp_code,
+      hardware_key_assertion: credentials?.hardware_key_assertion,
+    },
   );
 }
 

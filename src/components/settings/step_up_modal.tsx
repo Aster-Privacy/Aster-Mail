@@ -36,6 +36,10 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { get_totp_status } from "@/services/api/totp";
 import { derive_step_up_credentials } from "@/services/api/step_up";
+import {
+  list_hardware_keys,
+  perform_step_up_webauthn_assertion,
+} from "@/services/api/webauthn";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
@@ -64,6 +68,7 @@ export function StepUpModal({
   const [password, set_password] = useState("");
   const [code, set_code] = useState("");
   const [totp_required, set_totp_required] = useState(false);
+  const [has_hardware_keys, set_has_hardware_keys] = useState(false);
   const [show_password, set_show_password] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
@@ -77,11 +82,20 @@ export function StepUpModal({
     set_error("");
     set_show_password(false);
     set_totp_required(false);
+    set_has_hardware_keys(false);
     setTimeout(() => input_ref.current?.focus(), 100);
 
     get_totp_status()
       .then((res) => {
         if (res.data?.enabled) set_totp_required(true);
+      })
+      .catch(() => {});
+
+    list_hardware_keys()
+      .then((res) => {
+        if (res.data?.keys && res.data.keys.length > 0) {
+          set_has_hardware_keys(true);
+        }
       })
       .catch(() => {});
   }, [is_open]);
@@ -103,6 +117,11 @@ export function StepUpModal({
         password,
         totp_required ? code : undefined,
       );
+
+      if (!totp_required && has_hardware_keys) {
+        credentials.hardware_key_assertion =
+          await perform_step_up_webauthn_assertion();
+      }
 
       await on_confirm(credentials);
     } catch (err) {
@@ -183,6 +202,12 @@ export function StepUpModal({
                 onKeyDown={(e) => e["key"] === "Enter" && handle_confirm()}
               />
             </div>
+          )}
+
+          {!totp_required && has_hardware_keys && (
+            <p className="text-sm text-txt-tertiary">
+              {t("common.step_up_security_key_hint")}
+            </p>
           )}
 
           {error && <p className="text-sm text-center text-red-500">{error}</p>}

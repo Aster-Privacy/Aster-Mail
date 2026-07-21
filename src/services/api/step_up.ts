@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { StepUpHardwareKeyAssertion } from "./webauthn";
+
 import { get_user_salt } from "./auth";
 
 import {
@@ -29,6 +31,7 @@ import {
 export interface StepUpCredentials {
   password_hash: string;
   totp_code?: string;
+  hardware_key_assertion?: StepUpHardwareKeyAssertion;
 }
 
 export async function derive_step_up_credentials(
