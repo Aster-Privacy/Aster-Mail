@@ -107,6 +107,8 @@ export const pl = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1428,6 +1430,8 @@ export const pl = {
       "Ze względów bezpieczeństwa potwierdź hasło, aby kontynuować.",
     step_up_error:
       "Nieprawidłowe hasło lub kod weryfikacyjny. Spróbuj ponownie.",
+    step_up_security_key_hint:
+      "Po wpisaniu hasła zostaniesz poproszony o weryfikację kluczem bezpieczeństwa.",
     remove_recovery_email_confirm:
       "Czy na pewno chcesz usunąć adres e-mail odzyskiwania? Nie będziesz już móc odzyskać konta przy użyciu tego adresu.",
     recovery_email_removed: "E-mail odzyskiwania został usunięty",
@@ -5224,6 +5228,15 @@ export const pl = {
     criterion_auto_lock: "Automatyczne blokowanie",
     criterion_login_alerts: "Alerty logowania",
     criterion_forward_secrecy: "Utajnianie z wyprzedzeniem",
+    action_recommended: "Zalecana czynność",
+    two_step_verification_enabled_description:
+      "Twoje konto wymaga kodu weryfikacyjnego oprócz hasła.",
+    no_passkeys_recommendation:
+      "Dodaj klucz dostępu, aby logować się szybciej i bezpieczniej za pomocą biometrii lub kodu PIN urządzenia.",
+    password_weak_recommendation:
+      "Twoje hasło mogłoby być silniejsze. Rozważ zmianę na dłuższe i bardziej unikalne.",
+    login_alerts_off_recommendation:
+      "Włącz alerty logowania, aby otrzymywać powiadomienia, gdy nowe urządzenie zaloguje się na Twoje konto.",
     or_pay_with_card: "Lub zapłać kartą",
     cardholder_name_placeholder: "Imię i nazwisko",
     billing_postal_placeholder: "00-000",
@@ -5665,6 +5678,7 @@ export const pl = {
     export_security_vault_row_title: "Hasło skarbca szyfrowania",
     export_security_vault_row_body:
       "Twoje lokalne hasło skarbca potwierdza to urządzenie przed odszyfrowaniem poczty do eksportu.",
+    export_security_vault_row_help: "To jest hasło lokalnego sejfu tego urządzenia, a nie hasło konta. Odblokowuje ono klucze szyfrowania tylko na tym urządzeniu.",
     export_security_required_badge: "Wymagane",
     export_warning_title: "Uwaga",
     export_warning_body:
@@ -5674,9 +5688,11 @@ export const pl = {
     export_scope_mail_title: "Poczta",
     export_scope_mail_body:
       "Wszystkie wiadomości i załączniki w standardowym formacie mbox lub .eml.",
+    export_scope_mail_help: "MBOX łączy wszystkie wiadomości w jeden plik; .EML zapisuje każdą wiadomość osobno. Oba formaty działają z większością klientów pocztowych na komputery.",
     export_scope_contacts_title: "Kontakty",
     export_scope_contacts_body:
       "Książka adresowa eksportowana jako vCard 4.0 (możliwa do importu do Apple, Google, Thunderbirda itp.) oraz pełny JSON.",
+    export_scope_contacts_help: "vCard 4.0 to uniwersalny format kontaktów importowany bezpośrednio przez większość aplikacji. Dodatkowy plik JSON zachowuje pola, których vCard nie obsługuje.",
     export_scope_settings_title: "Ustawienia i reguły",
     export_scope_settings_body:
       "Aliasy, podpisy, szablony, reguły pocztowe, zablokowani i dozwoleni nadawcy, foldery i inne dane konta.",
@@ -5684,6 +5700,7 @@ export const pl = {
     export_scope_preset_custom: "Niestandardowy wybór",
     export_scope_folders_label: "Foldery",
     export_scope_labels_label: "Etykiety",
+    export_scope_date_range: "Zakres dat",
     export_scope_date_from: "Od",
     export_scope_date_to: "Do",
     export_scope_empty_warning:

@@ -107,6 +107,8 @@ export const es = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1578,6 +1580,8 @@ export const es = {
       "Por tu seguridad, confirma tu contraseña para continuar.",
     step_up_error:
       "Contraseña o código de verificación incorrectos. Inténtalo de nuevo.",
+    step_up_security_key_hint:
+      "Después de escribir tu contraseña, se te pedirá que verifiques con tu llave de seguridad.",
     remove_recovery_email_confirm:
       "Confirmar eliminación del correo de recuperación",
     reply_notification: "{{ sender }} respondió",
@@ -5046,6 +5050,15 @@ export const es = {
     criterion_auto_lock: "Bloqueo automático",
     criterion_login_alerts: "Alertas de inicio de sesión",
     criterion_forward_secrecy: "Confidencialidad hacia adelante",
+    action_recommended: "Acción recomendada",
+    two_step_verification_enabled_description:
+      "Tu cuenta requiere un código de verificación además de tu contraseña.",
+    no_passkeys_recommendation:
+      "Agrega una clave de acceso para iniciar sesión más rápido y de forma más segura usando la biometría o el PIN de tu dispositivo.",
+    password_weak_recommendation:
+      "Tu contraseña podría ser más segura. Considera cambiarla por una más larga y única.",
+    login_alerts_off_recommendation:
+      "Activa las alertas de inicio de sesión para recibir una notificación cuando un nuevo dispositivo acceda a tu cuenta.",
     block_remote_fonts_description: "Impedir la carga de fuentes externas.",
     block_remote_fonts_label: "Bloquear fuentes remotas",
     block_remote_images_description: "Impedir la carga de imágenes externas.",
@@ -5268,11 +5281,14 @@ export const es = {
       "Frase de contraseña de la bóveda de cifrado",
     export_security_vault_row_body:
       "Tu frase de contraseña local de la bóveda confirma este dispositivo antes de descifrar el correo para exportarlo.",
+    export_security_vault_row_help: "Esta es la frase de acceso de la bóveda local de este dispositivo, no tu contraseña de cuenta. Desbloquea tus claves de cifrado solo en este dispositivo.",
     export_security_required_badge: "Obligatorio",
     export_reauth_prompt: "Ingresa tu contraseña para continuar",
     export_reauth_submit: "Verificar",
     export_scope_contacts_body: "Exportar todos tus contactos",
+    export_scope_mail_help: "MBOX agrupa todos los mensajes en un solo archivo; .EML guarda cada mensaje por separado. Ambos formatos funcionan con la mayoría de los clientes de correo de escritorio.",
     export_scope_contacts_title: "Contactos",
+    export_scope_date_range: "Rango de fechas",
     export_scope_date_from: "Desde",
     export_scope_date_to: "Hasta",
     export_scope_empty_warning: "No hay elementos seleccionados para exportar.",
@@ -5283,6 +5299,7 @@ export const es = {
     export_scope_preset_all: "Todo",
     export_scope_preset_custom: "Personalizado",
     export_scope_settings_body: "Exportar tus preferencias",
+    export_scope_contacts_help: "vCard 4.0 es el formato de contacto universal que la mayoría de las apps importan directamente. El archivo JSON adicional conserva campos que vCard no puede almacenar.",
     export_scope_settings_title: "Configuración",
     export_start_button: "Iniciar exportación",
     export_step_complete_title: "Exportación completada",

@@ -106,6 +106,8 @@ export const pt = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1494,6 +1496,8 @@ export const pt = {
       "Para sua segurança, confirme sua senha para continuar.",
     step_up_error:
       "Senha ou código de verificação incorretos. Tente novamente.",
+    step_up_security_key_hint:
+      "Depois de digitar sua senha, você precisará verificar com sua chave de segurança.",
     remove_recovery_email_confirm:
       "Tem certeza de que deseja remover seu e-mail de recuperação? Você não poderá mais recuperar sua conta usando este e-mail.",
     rename_label: "Renomear Etiqueta",
@@ -5670,6 +5674,7 @@ export const pt = {
     export_security_vault_row_title: "Frase secreta do cofre de criptografia",
     export_security_vault_row_body:
       "Sua frase secreta local do cofre confirma este dispositivo antes que o e-mail seja descriptografado para exportação.",
+    export_security_vault_row_help: "Esta é a frase-senha do cofre local deste dispositivo, não a senha da sua conta. Ela desbloqueia suas chaves de criptografia apenas neste dispositivo.",
     export_security_required_badge: "Obrigatório",
     export_warning_title: "Atenção",
     export_warning_body:
@@ -5679,9 +5684,11 @@ export const pt = {
     export_scope_mail_title: "E-mail",
     export_scope_mail_body:
       "Todas as suas mensagens e anexos no formato padrão mbox ou .eml.",
+    export_scope_mail_help: "O MBOX agrupa todas as mensagens em um único arquivo; o .EML salva cada mensagem separadamente. Ambos os formatos funcionam com a maioria dos clientes de e-mail de desktop.",
     export_scope_contacts_title: "Contatos",
     export_scope_contacts_body:
       "Catálogo de endereços exportado como vCard 4.0 (importável no Apple, Google, Thunderbird, etc.) mais JSON completo.",
+    export_scope_contacts_help: "vCard 4.0 é o formato de contato universal que a maioria dos aplicativos importa diretamente. O arquivo JSON extra preserva campos que o vCard não consegue armazenar.",
     export_scope_settings_title: "Configurações e regras",
     export_scope_settings_body:
       "Aliases, assinaturas, modelos, regras de e-mail, remetentes bloqueados e permitidos, pastas e outros dados da conta.",
@@ -5689,6 +5696,7 @@ export const pt = {
     export_scope_preset_custom: "Seleção personalizada",
     export_scope_folders_label: "Pastas",
     export_scope_labels_label: "Etiquetas",
+    export_scope_date_range: "Intervalo de datas",
     export_scope_date_from: "De",
     export_scope_date_to: "Até",
     export_scope_empty_warning: "Nenhuma mensagem corresponde à seleção atual.",

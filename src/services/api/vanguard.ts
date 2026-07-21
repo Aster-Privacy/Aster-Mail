@@ -39,6 +39,8 @@ export async function disable_vanguard(): Promise<ApiResponse<VanguardStatusResp
 export interface VerifyCredentialsRequest {
   password_hash: string;
   totp_code?: string;
+  for_export?: boolean;
+  captcha_token?: string;
 }
 
 export interface VerifyCredentialsResponse {

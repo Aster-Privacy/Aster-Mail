@@ -106,6 +106,8 @@ export const nl = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1573,6 +1575,8 @@ export const nl = {
       "Bevestig voor uw veiligheid uw wachtwoord om door te gaan.",
     step_up_error:
       "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
+    step_up_security_key_hint:
+      "Na het invoeren van uw wachtwoord wordt u gevraagd te verifiëren met uw beveiligingssleutel.",
     remove_recovery_email_confirm:
       "Weet u zeker dat u uw herstele-mailadres wilt verwijderen?",
     reply_notification: "{{sender}} heeft uw e-mail beantwoord",
@@ -5260,11 +5264,14 @@ export const nl = {
     export_security_vault_row_title: "Wachtwoordzin voor versleutelingskluis",
     export_security_vault_row_body:
       "Je lokale kluiswachtwoordzin bevestigt dit apparaat voordat e-mail wordt ontsleuteld voor export.",
+    export_security_vault_row_help: "Dit is de wachtwoordzin van de lokale kluis van dit apparaat, niet uw accountwachtwoord. Deze ontgrendelt uw encryptiesleutels alleen op dit apparaat.",
     export_security_required_badge: "Vereist",
     export_reauth_prompt: "Voer uw wachtwoord in om door te gaan",
     export_reauth_submit: "Verifiëren",
     export_scope_contacts_body: "Exporteer uw contacten als vCard",
+    export_scope_mail_help: "MBOX bundelt alle berichten in één bestand; .EML slaat elk bericht apart op. Beide formaten werken met de meeste desktop-mailclients.",
     export_scope_contacts_title: "Contacten",
+    export_scope_date_range: "Datumbereik",
     export_scope_date_from: "Van datum",
     export_scope_date_to: "Tot datum",
     export_scope_empty_warning:
@@ -5276,6 +5283,7 @@ export const nl = {
     export_scope_preset_all: "Alles",
     export_scope_preset_custom: "Aangepast",
     export_scope_settings_body: "Exporteer uw instellingen en voorkeuren",
+    export_scope_contacts_help: "vCard 4.0 is het universele contactformaat dat de meeste apps direct importeren. Het extra JSON-bestand bewaart velden die vCard niet kan opslaan.",
     export_scope_settings_title: "Instellingen",
     export_start_button: "Exporteren starten",
     export_step_complete_title: "Export voltooid",

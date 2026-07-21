@@ -497,6 +497,7 @@ export interface CommonTranslations {
   remove_recovery_email: string;
   step_up_description: string;
   step_up_error: string;
+  step_up_security_key_hint: string;
   remove_recovery_email_confirm: string;
   recovery_email_removed: string;
   failed_remove_recovery_email: string;
@@ -1738,6 +1739,7 @@ export interface CommonTranslations {
   inactivity_window_description: string;
   inactivity_window_info_title: string;
   inactivity_window_info_description: string;
+  inactivity_window_step_up_description: string;
   inactivity_window_months: string;
   inactivity_window_saved: string;
   inactivity_window_save_failed: string;
@@ -2094,6 +2096,10 @@ export interface SettingsTranslations {
   alias_breach_badge_desc: string;
   alias_spam_surge_badge_title: string;
   alias_spam_surge_badge_desc: string;
+  alias_watch_disable_success: string;
+  alias_watch_disable_failed: string;
+  alias_watch_delete_success: string;
+  alias_watch_delete_failed: string;
   encryption_keys: string;
   encryption_keys_description: string;
   no_encryption_key: string;
@@ -4932,6 +4938,7 @@ export interface SettingsTranslations {
   export_security_password_row_body: string;
   export_security_vault_row_title: string;
   export_security_vault_row_body: string;
+  export_security_vault_row_help: string;
   export_security_required_badge: string;
   export_warning_title: string;
   export_warning_body: string;
@@ -4939,14 +4946,17 @@ export interface SettingsTranslations {
   export_step_scope_title: string;
   export_scope_mail_title: string;
   export_scope_mail_body: string;
+  export_scope_mail_help: string;
   export_scope_contacts_title: string;
   export_scope_contacts_body: string;
+  export_scope_contacts_help: string;
   export_scope_settings_title: string;
   export_scope_settings_body: string;
   export_scope_preset_all: string;
   export_scope_preset_custom: string;
   export_scope_folders_label: string;
   export_scope_labels_label: string;
+  export_scope_date_range: string;
   export_scope_date_from: string;
   export_scope_date_to: string;
   export_scope_empty_warning: string;

@@ -107,6 +107,8 @@ export const fr = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1589,6 +1591,8 @@ export const fr = {
       "Pour votre sécurité, confirmez votre mot de passe pour continuer.",
     step_up_error:
       "Mot de passe ou code de vérification incorrect. Veuillez réessayer.",
+    step_up_security_key_hint:
+      "Après avoir saisi votre mot de passe, vous devrez vérifier votre identité avec votre clé de sécurité.",
     remove_recovery_email_confirm:
       "Confirmer la suppression de l'e-mail de récupération",
     reply_notification: "{{ sender }} a répondu",
@@ -5094,6 +5098,15 @@ export const fr = {
     criterion_auto_lock: "Verrouillage automatique",
     criterion_login_alerts: "Alertes de connexion",
     criterion_forward_secrecy: "Confidentialité persistante",
+    action_recommended: "Action recommandée",
+    two_step_verification_enabled_description:
+      "Votre compte nécessite un code de vérification en plus de votre mot de passe.",
+    no_passkeys_recommendation:
+      "Ajoutez une clé d'accès pour une connexion plus rapide et plus sécurisée grâce à la biométrie ou au code PIN de votre appareil.",
+    password_weak_recommendation:
+      "Votre mot de passe pourrait être plus fort. Envisagez de le remplacer par un mot de passe plus long et plus unique.",
+    login_alerts_off_recommendation:
+      "Activez les alertes de connexion pour être averti chaque fois qu'un nouvel appareil se connecte à votre compte.",
     block_remote_fonts_description:
       "Empêcher le chargement de polices externes.",
     block_remote_fonts_label: "Bloquer les polices distantes",
@@ -5319,11 +5332,14 @@ export const fr = {
     export_security_vault_row_title: "Phrase secrète du coffre de chiffrement",
     export_security_vault_row_body:
       "Votre phrase secrète locale du coffre confirme cet appareil avant que le courrier ne soit déchiffré pour l'export.",
+    export_security_vault_row_help: "Il s'agit de la phrase secrète du coffre local de cet appareil, pas de votre mot de passe de compte. Elle déverrouille vos clés de chiffrement uniquement sur cet appareil.",
     export_security_required_badge: "Requis",
     export_reauth_prompt: "Entrez votre mot de passe pour continuer",
     export_reauth_submit: "Vérifier",
     export_scope_contacts_body: "Exporter tous vos contacts",
+    export_scope_mail_help: "MBOX regroupe tous les messages dans un seul fichier ; .EML enregistre chaque message séparément. Les deux formats fonctionnent avec la plupart des clients de messagerie de bureau.",
     export_scope_contacts_title: "Contacts",
+    export_scope_date_range: "Plage de dates",
     export_scope_date_from: "Du",
     export_scope_date_to: "Au",
     export_scope_empty_warning: "Aucun élément sélectionné pour l'exportation.",
@@ -5334,6 +5350,7 @@ export const fr = {
     export_scope_preset_all: "Tout",
     export_scope_preset_custom: "Personnalisé",
     export_scope_settings_body: "Exporter vos préférences",
+    export_scope_contacts_help: "vCard 4.0 est le format de contact universel importé directement par la plupart des applications. Le fichier JSON supplémentaire conserve les champs que vCard ne peut pas stocker.",
     export_scope_settings_title: "Paramètres",
     export_start_button: "Démarrer l'exportation",
     export_step_complete_title: "Exportation terminée",
