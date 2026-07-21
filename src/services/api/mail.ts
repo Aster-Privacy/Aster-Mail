@@ -729,6 +729,15 @@ export interface ThreadMessageItem {
   spf_result?: string;
   dkim_result?: string;
   dmarc_result?: string;
+  spam_score?: number;
+  spam_signals?: SpamSignal[];
+  is_spam?: boolean;
+}
+
+export interface SpamSignal {
+  name: string;
+  score: number;
+  category: string;
 }
 
 export interface ThreadWithMessages {
@@ -831,34 +840,47 @@ export async function link_mail_to_thread(
   );
 }
 
+async function sha256_hex(value: string): Promise<string> {
+  const hash_buffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return Array.from(new Uint8Array(hash_buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function sender_domain(normalized_email: string): string {
+  const at = normalized_email.lastIndexOf("@");
+  return at >= 0 ? normalized_email.slice(at + 1) : "";
+}
+
 export async function report_spam_sender(
   sender_email: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   const normalized = sender_email.trim().toLowerCase();
-  const hash_buffer = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(normalized),
-  );
-  const sender_hash = Array.from(new Uint8Array(hash_buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const sender_hash = await sha256_hex(normalized);
+  const domain = sender_domain(normalized);
+  const body: { sender_hash: string; sender_domain_hash?: string } = {
+    sender_hash,
+  };
+  if (domain) {
+    body.sender_domain_hash = await sha256_hex(domain);
+  }
 
-  return api_client.post("/mail/v1/spam_senders", { sender_hash });
+  return api_client.post("/mail/v1/spam_senders", body);
 }
 
 export async function remove_spam_sender(
   sender_email: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   const normalized = sender_email.trim().toLowerCase();
-  const hash_buffer = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(normalized),
-  );
-  const sender_hash = Array.from(new Uint8Array(hash_buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const sender_hash = await sha256_hex(normalized);
+  const domain = sender_domain(normalized);
+  let query = `sender_hash=${encodeURIComponent(sender_hash)}`;
+  if (domain) {
+    query += `&sender_domain_hash=${encodeURIComponent(await sha256_hex(domain))}`;
+  }
 
-  return api_client.delete(
-    `/mail/v1/spam_senders?sender_hash=${encodeURIComponent(sender_hash)}`,
-  );
+  return api_client.delete(`/mail/v1/spam_senders?${query}`);
 }

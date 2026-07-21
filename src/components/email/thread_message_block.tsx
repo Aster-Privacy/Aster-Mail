@@ -85,6 +85,7 @@ import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
+import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banner";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
@@ -1141,6 +1142,16 @@ export function ThreadMessageBlock({
             </Popover>
           </div>
         </div>
+      )}
+
+      {message.item_type === "received" &&
+        on_not_spam &&
+        message.is_spam === true &&
+        (message.spam_signals?.length ?? 0) > 0 && (
+        <SpamReasonsBanner
+          signals={message.spam_signals ?? []}
+          on_not_spam={() => on_not_spam(message)}
+        />
       )}
 
       <div className={`${is_plain_text || html_blocked ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>

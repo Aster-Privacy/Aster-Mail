@@ -61,6 +61,9 @@ export interface DecryptedThreadMessage {
   spf_result?: string;
   dkim_result?: string;
   dmarc_result?: string;
+  spam_score?: number;
+  spam_signals?: { name: string; score: number; category: string }[];
+  is_spam?: boolean;
 }
 
 export interface ThreadAttachment {
