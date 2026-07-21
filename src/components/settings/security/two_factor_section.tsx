@@ -39,6 +39,7 @@ import {
 import { InfoPopover } from "@/components/ui/info_popover";
 import type { LoginEventEntry } from "@/services/api/auth";
 import { TotpInlineSetup } from "@/components/settings/security/totp_inline_setup";
+import { ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
 
 function format_relative_time(
   iso: string,
@@ -56,7 +57,7 @@ function format_relative_time(
 }
 
 interface SecuritySettingProps {
-  title: string;
+  title: React.ReactNode;
   description: string;
   action: React.ReactNode;
   info?: { title: string; description: string };
@@ -120,11 +121,16 @@ export function TwoStepVerificationGroup({
 
   return (
     <div>
-      <p className="text-sm font-medium text-txt-primary">
+      <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
         {t("settings.two_step_verification")}
+        {!totp_enabled && (
+          <ActionRecommendedBadge tip={t("settings.two_step_verification_recommendation")} />
+        )}
       </p>
       <p className="text-sm mt-0.5 text-txt-muted">
-        {t("settings.two_step_verification_description")}
+        {totp_enabled
+          ? t("settings.two_step_verification_enabled_description")
+          : t("settings.two_step_verification_description")}
       </p>
 
       <div className="flex items-center justify-between py-3">
@@ -238,7 +244,14 @@ export function LoginAlertsSessionsGroup({
           />
         }
         description={t("settings.login_alerts_description")}
-        title={t("settings.login_alerts")}
+        title={
+          <>
+            {t("settings.login_alerts")}
+            {!login_alerts_enabled && (
+              <ActionRecommendedBadge tip={t("settings.login_alerts_off_recommendation")} />
+            )}
+          </>
+        }
       />
       <div className="pb-4">
         <div className="flex items-center gap-2 mb-2">

@@ -24,9 +24,9 @@ import {
   FingerPrintIcon,
   KeyIcon,
   PlusIcon,
-  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Badge } from "@aster/ui";
+import { RecommendationBox, ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
 
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
@@ -326,6 +326,9 @@ export function PasskeySection() {
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("passkeys.section_title")}
+          {webauthn_supported && !loading && keys.length === 0 && (
+            <ActionRecommendedBadge tip={t("settings.no_passkeys_recommendation")} />
+          )}
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
@@ -335,12 +338,7 @@ export function PasskeySection() {
       </p>
 
       {!webauthn_supported && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-4">
-          <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-600 dark:text-amber-400">
-            {t("passkeys.not_supported")}
-          </p>
-        </div>
+        <RecommendationBox>{t("passkeys.not_supported")}</RecommendationBox>
       )}
 
       {loading ? (

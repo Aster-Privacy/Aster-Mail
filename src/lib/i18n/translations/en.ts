@@ -2213,6 +2213,8 @@ export const en: Translations = {
     action_recommended: "Action recommended",
     two_step_verification_enabled_description:
       "Your account requires a verification code in addition to your password.",
+    two_step_verification_recommendation:
+      "Turn on two-step verification to keep your account safe even if your password is stolen.",
     no_passkeys_recommendation:
       "Add a passkey for faster, more secure sign-in using your device's biometrics or PIN.",
     password_weak_recommendation:

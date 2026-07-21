@@ -4740,6 +4740,7 @@ export const zh_CN = {
     criterion_forward_secrecy: "前向保密",
     action_recommended: "建议操作",
     two_step_verification_enabled_description: "您的账户在密码之外还需要验证码。",
+    two_step_verification_recommendation: "开启两步验证，即使密码被盗也能保护您的账户安全。",
     no_passkeys_recommendation: "添加通行密钥，使用设备的生物识别或PIN码更快、更安全地登录。",
     password_weak_recommendation: "您的密码强度不够。建议更换为更长、更独特的密码。",
     login_alerts_off_recommendation: "开启登录提醒，以便在有新设备登录您的账户时收到通知。",

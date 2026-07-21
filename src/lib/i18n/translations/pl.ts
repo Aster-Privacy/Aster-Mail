@@ -5231,6 +5231,8 @@ export const pl = {
     action_recommended: "Zalecana czynność",
     two_step_verification_enabled_description:
       "Twoje konto wymaga kodu weryfikacyjnego oprócz hasła.",
+    two_step_verification_recommendation:
+      "Włącz weryfikację dwuetapową, aby chronić konto nawet w razie kradzieży hasła.",
     no_passkeys_recommendation:
       "Dodaj klucz dostępu, aby logować się szybciej i bezpieczniej za pomocą biometrii lub kodu PIN urządzenia.",
     password_weak_recommendation:

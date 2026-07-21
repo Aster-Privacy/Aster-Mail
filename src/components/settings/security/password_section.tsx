@@ -41,6 +41,7 @@ import {
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
+import { ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
 
 interface PasswordSectionProps {
   show_header?: boolean;
@@ -121,6 +122,10 @@ export function PasswordSection({
   };
 
   const strength_badge = get_strength_badge();
+  const is_weak_password =
+    password_strength_tier !== null &&
+    password_strength_tier !== undefined &&
+    password_strength_tier <= 2;
 
   const last_updated_label = last_password_change
     ? t("settings.password_last_updated", {
@@ -139,6 +144,9 @@ export function PasswordSection({
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.password")}
+            {is_weak_password && (
+              <ActionRecommendedBadge tip={t("settings.password_weak_recommendation")} />
+            )}
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>

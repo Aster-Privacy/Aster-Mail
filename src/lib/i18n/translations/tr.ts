@@ -5216,6 +5216,8 @@ export const tr = {
     action_recommended: "İşlem önerilir",
     two_step_verification_enabled_description:
       "Hesabınız, şifrenize ek olarak bir doğrulama kodu gerektiriyor.",
+    two_step_verification_recommendation:
+      "Şifreniz çalınsa bile hesabınızı güvende tutmak için iki adımlı doğrulamayı açın.",
     no_passkeys_recommendation:
       "Cihazınızın biyometrisini veya PIN'ini kullanarak daha hızlı ve güvenli giriş için bir geçiş anahtarı ekleyin.",
     password_weak_recommendation:

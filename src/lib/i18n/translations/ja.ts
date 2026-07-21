@@ -5007,6 +5007,8 @@ export const ja = {
     action_recommended: "対応をおすすめします",
     two_step_verification_enabled_description:
       "アカウントにはパスワードに加えて確認コードが必要です。",
+    two_step_verification_recommendation:
+      "パスワードが盗まれてもアカウントを安全に保つため、二段階認証を有効にしてください。",
     no_passkeys_recommendation:
       "デバイスの生体認証やPINを使ったより速く安全なサインインのために、パスキーを追加してください。",
     password_weak_recommendation:

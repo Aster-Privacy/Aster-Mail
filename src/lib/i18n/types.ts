@@ -2440,6 +2440,12 @@ export interface SettingsTranslations {
   criterion_login_alerts: string;
   criterion_read_receipts_off: string;
   criterion_forward_secrecy: string;
+  action_recommended: string;
+  two_step_verification_enabled_description: string;
+  two_step_verification_recommendation: string;
+  no_passkeys_recommendation: string;
+  password_weak_recommendation: string;
+  login_alerts_off_recommendation: string;
   enable_undo_send: string;
   undo_send_delay_description: string;
   cancellation_period: string;
