@@ -59,7 +59,7 @@ export function CategoryTabs({
   const { limits } = use_plan_limits();
 
   const category_limit = limits
-    ? (limits.limits["max_custom_categories"]?.limit ?? 0)
+    ? (limits.limits["max_custom_categories"]?.limit ?? -1)
     : -1;
 
   const tabs = useMemo<TabConfig[]>(() => {
@@ -128,7 +128,7 @@ export function CategoryTabs({
             aria-current={is_active ? "page" : undefined}
             className={`group relative flex shrink-0 items-center gap-2.5 whitespace-nowrap px-4 py-3.5 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
               is_active
-                ? "text-blue-600 dark:text-blue-400"
+                ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
             }`}
             type="button"
@@ -137,7 +137,7 @@ export function CategoryTabs({
             <Icon
               className={`h-5 w-5 shrink-0 ${
                 is_active
-                  ? "text-blue-600 dark:text-blue-400"
+                  ? "text-brand"
                   : "text-txt-muted group-hover:text-txt-secondary"
               }`}
             />
@@ -152,7 +152,7 @@ export function CategoryTabs({
               </span>
             ) : null}
             {is_active && (
-              <span className="pointer-events-none absolute inset-x-2 -bottom-px h-[3px] rounded-t-full bg-blue-600 dark:bg-blue-400 sm:inset-x-3" />
+              <span className="pointer-events-none absolute inset-x-2 -bottom-px h-[3px] rounded-t-full bg-brand sm:inset-x-3" />
             )}
           </button>
         );

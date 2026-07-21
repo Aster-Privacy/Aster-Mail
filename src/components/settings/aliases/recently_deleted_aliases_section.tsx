@@ -52,6 +52,7 @@ interface DecryptedDeletedAlias {
 
 interface RecentlyDeletedAliasesSectionProps {
   on_restored: () => void;
+  refresh_signal?: number;
 }
 
 const DELETED_ALIAS_DECRYPT_BATCH_SIZE = 25;
@@ -64,6 +65,7 @@ function decode_random_local_part(encoded: string): string {
 
 export function RecentlyDeletedAliasesSection({
   on_restored,
+  refresh_signal,
 }: RecentlyDeletedAliasesSectionProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
@@ -151,7 +153,7 @@ export function RecentlyDeletedAliasesSection({
 
   useEffect(() => {
     load_deleted();
-  }, [load_deleted]);
+  }, [load_deleted, refresh_signal]);
 
   const handle_restore = useCallback(
     async (deleted_id: string) => {

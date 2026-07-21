@@ -124,7 +124,7 @@ export function use_inbox_categories(
   const { preferences, has_loaded_from_server } = use_preferences();
   const { limits } = use_plan_limits();
   const category_limit = limits
-    ? (limits.limits["max_custom_categories"]?.limit ?? 0)
+    ? (limits.limits["max_custom_categories"]?.limit ?? -1)
     : -1;
 
   const initial_disabled_flag_ref = useRef(read_categories_enabled_flag());

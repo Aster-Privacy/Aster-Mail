@@ -221,6 +221,13 @@ export function get_plan_comparison_rows(
       nova: "-",
       supernova: "✓",
     },
+    {
+      label: t("settings.plan_f_custom_themes"),
+      free: "-",
+      star: "✓",
+      nova: "✓",
+      supernova: "✓",
+    },
   ];
 }
 

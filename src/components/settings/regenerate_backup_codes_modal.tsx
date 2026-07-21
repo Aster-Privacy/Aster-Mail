@@ -194,7 +194,7 @@ export function RegenerateBackupCodesModal({
         <>
           <ModalHeader>
             <div className="flex items-center gap-3">
-              <ShieldCheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+              <ShieldCheckIcon className="w-6 h-6 text-txt-primary flex-shrink-0" />
               <ModalTitle>{t("settings.backup_codes_regenerated")}</ModalTitle>
             </div>
             <ModalDescription>
@@ -243,7 +243,7 @@ export function RegenerateBackupCodesModal({
               <div
                 className="flex items-center gap-2 p-3 rounded-lg"
                 style={{
-                  backgroundColor: "#2563eb",
+                  backgroundColor: "var(--accent-color-hover)",
                   color: "#fff",
                 }}
               >

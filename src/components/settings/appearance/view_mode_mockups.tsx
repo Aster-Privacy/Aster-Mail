@@ -20,25 +20,56 @@
 //
 
 interface ViewMockupProps {
-  theme: "light" | "dark";
+  theme: "light" | "dark" | "themed";
+  use_accent?: boolean;
 }
 
-function get_colors(theme: "light" | "dark") {
+function get_colors(theme: "light" | "dark" | "themed", use_accent = false) {
+  if (theme === "themed") {
+    return {
+      bg: "var(--bg-primary)",
+      sidebar_bg: "var(--bg-secondary)",
+      sidebar_border: "var(--border-secondary)",
+      brand: "var(--accent-color)",
+      compose_gradient:
+        "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white), var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, black))",
+      compose_border_top: "rgba(255,255,255,0.15)",
+      compose_border_bottom: "rgba(0,0,0,0.15)",
+      text_primary: "var(--text-primary)",
+      text_secondary: "var(--text-secondary)",
+      text_tertiary: "var(--text-tertiary)",
+      text_muted: "var(--text-muted)",
+      selected_bg: "color-mix(in srgb, var(--accent-color) 18%, var(--bg-primary))",
+      indicator_bg: "var(--bg-primary)",
+      indicator_border: "var(--border-secondary)",
+      border: "var(--border-secondary)",
+      border_secondary: "var(--border-secondary)",
+      body_line: "var(--border-secondary)",
+      avatar_read: "color-mix(in srgb, var(--text-muted) 55%, var(--bg-primary))",
+      storage_track: "rgba(255,255,255,0.08)",
+      modal_overlay: "rgba(0,0,0,0.85)",
+      card_shadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
+    };
+  }
+
   if (theme === "light") {
     return {
       bg: "#ffffff",
       sidebar_bg: "#f5f5f5",
       sidebar_border: "#e8e8e8",
-      brand: "#3b82f6",
-      compose_gradient:
-        "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+      brand: use_accent ? "var(--accent-color, #3b82f6)" : "#3b82f6",
+      compose_gradient: use_accent
+        ? "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))"
+        : "linear-gradient(to bottom, #6b8afd, #4f6ef7, #3d5ce0)",
       compose_border_top: "rgba(255,255,255,0.15)",
       compose_border_bottom: "rgba(0,0,0,0.15)",
       text_primary: "#111827",
       text_secondary: "#374151",
       text_tertiary: "#6b7280",
       text_muted: "#9ca3af",
-      selected_bg: "#eff6ff",
+      selected_bg: use_accent
+        ? "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, white)"
+        : "#eff6ff",
       indicator_bg: "#ffffff",
       indicator_border: "#e8e8e8",
       border: "#e8e8e8",
@@ -55,16 +86,19 @@ function get_colors(theme: "light" | "dark") {
     bg: "#121212",
     sidebar_bg: "#0a0a0a",
     sidebar_border: "#2a2a2a",
-    brand: "#3b82f6",
-    compose_gradient:
-      "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+    brand: use_accent ? "var(--accent-color, #3b82f6)" : "#3b82f6",
+    compose_gradient: use_accent
+      ? "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))"
+      : "linear-gradient(to bottom, #6b8afd, #4f6ef7, #3d5ce0)",
     compose_border_top: "rgba(255,255,255,0.15)",
     compose_border_bottom: "rgba(0,0,0,0.15)",
     text_primary: "#ffffff",
     text_secondary: "#e5e5e5",
     text_tertiary: "#888888",
     text_muted: "#666666",
-    selected_bg: "#142744",
+    selected_bg: use_accent
+      ? "color-mix(in srgb, var(--accent-color, #3b82f6) 18%, #121212)"
+      : "#142744",
     indicator_bg: "#121212",
     indicator_border: "#333333",
     border: "#333333",
@@ -316,13 +350,55 @@ function MockupEmailList({
             style={{ backgroundColor: c.text_muted }}
           />
         </div>
+        <div
+          className="h-6 flex items-center gap-1 px-1.5"
+          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
+        >
+          <div
+            className="w-3 h-3 rounded-full flex-shrink-0"
+            style={{ backgroundColor: c.avatar_read }}
+          />
+          <div
+            className="h-1 rounded-sm flex-shrink-0"
+            style={{ width: "30%", backgroundColor: c.text_secondary }}
+          />
+          <div
+            className="flex-1 h-1 rounded-sm"
+            style={{ backgroundColor: c.text_tertiary }}
+          />
+          <div
+            className="w-2 h-0.5 rounded-sm flex-shrink-0"
+            style={{ backgroundColor: c.text_muted }}
+          />
+        </div>
+        <div
+          className="h-6 flex items-center gap-1 px-1.5"
+          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
+        >
+          <div
+            className="w-3 h-3 rounded-full flex-shrink-0"
+            style={{ backgroundColor: c.avatar_read }}
+          />
+          <div
+            className="h-1 rounded-sm flex-shrink-0"
+            style={{ width: "22%", backgroundColor: c.text_secondary }}
+          />
+          <div
+            className="flex-1 h-1 rounded-sm"
+            style={{ backgroundColor: c.text_tertiary }}
+          />
+          <div
+            className="w-2 h-0.5 rounded-sm flex-shrink-0"
+            style={{ backgroundColor: c.text_muted }}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-export function ViewMockupSplit({ theme }: ViewMockupProps) {
-  const c = get_colors(theme);
+export function ViewMockupSplit({ theme, use_accent }: ViewMockupProps) {
+  const c = get_colors(theme, use_accent);
 
   return (
     <div
@@ -405,8 +481,8 @@ export function ViewMockupSplit({ theme }: ViewMockupProps) {
   );
 }
 
-export function ViewMockupPopup({ theme }: ViewMockupProps) {
-  const c = get_colors(theme);
+export function ViewMockupPopup({ theme, use_accent }: ViewMockupProps) {
+  const c = get_colors(theme, use_accent);
 
   return (
     <div
@@ -502,8 +578,8 @@ export function ViewMockupPopup({ theme }: ViewMockupProps) {
   );
 }
 
-export function ViewMockupFullpage({ theme }: ViewMockupProps) {
-  const c = get_colors(theme);
+export function ViewMockupFullpage({ theme, use_accent }: ViewMockupProps) {
+  const c = get_colors(theme, use_accent);
 
   return (
     <div

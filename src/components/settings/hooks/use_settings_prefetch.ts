@@ -41,6 +41,7 @@ import { list_devices } from "@/services/api/devices";
 import { get_totp_status } from "@/services/api/totp";
 import { get_login_alerts_status } from "@/services/api/auth";
 import { get_recovery_email } from "@/services/api/recovery_email";
+import { get_security_status } from "@/services/api/account";
 import { list_hardware_keys } from "@/services/api/webauthn";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
@@ -65,6 +66,7 @@ const PANEL_FETCHERS: Record<SettingsPanelName, Fetcher> = {
   totp_status: () => get_totp_status(),
   login_alerts_status: () => get_login_alerts_status(),
   recovery_email_status: () => get_recovery_email(get_vault_from_memory()),
+  security_status: () => get_security_status(),
   passkey_list: () => list_hardware_keys(),
 };
 

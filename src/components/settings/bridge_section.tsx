@@ -187,7 +187,7 @@ export function BridgeSection() {
       {is_locked && (
         <div
           className="relative overflow-hidden rounded-2xl p-6"
-          style={{ backgroundColor: "#1d4ed8" }}
+          style={{ backgroundColor: "color-mix(in srgb, var(--accent-color) 85%, black)" }}
         >
           <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
             <KeyIcon
@@ -329,9 +329,12 @@ export function BridgeSection() {
             ))}
           </div>
         ) : devices.length === 0 ? (
-          <p className="text-sm text-txt-muted text-center py-6">
-            {t("settings.bridge_installations_empty")}
-          </p>
+          <div className="py-6 text-center">
+            <ComputerDesktopIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+            <p className="text-sm text-txt-muted">
+              {t("settings.bridge_installations_empty")}
+            </p>
+          </div>
         ) : (
           <div className="space-y-1">
             {devices.map((device) => (

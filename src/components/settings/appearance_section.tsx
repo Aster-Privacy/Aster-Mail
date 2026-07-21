@@ -18,9 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { LanguageCode } from "@/lib/i18n/types";
+import { useState } from "react";
 
-import { PaintBrushIcon, PencilSquareIcon, ViewColumnsIcon } from "@heroicons/react/24/outline";
+import type { LanguageCode, SettingsTranslations } from "@/lib/i18n/types";
+
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  GlobeAltIcon,
+  PaintBrushIcon,
+  PencilSquareIcon,
+  ViewColumnsIcon,
+} from "@heroicons/react/24/outline";
+import { UpgradeBtn } from "@aster/ui";
 
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -40,6 +50,29 @@ import { ThemeCard } from "@/components/settings/appearance/theme_card";
 import { ViewModeCard } from "@/components/settings/appearance/view_mode_card";
 import { ComposeModeCard } from "@/components/settings/appearance/compose_mode_card";
 import { SettingRow } from "@/components/settings/appearance/setting_row";
+import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { FONT_OPTIONS, DEFAULT_FONT_ID } from "@/lib/font_options";
+import {
+  is_valid_hex_color,
+  generate_material_theme,
+  CUSTOM_THEME_ROLE_KEYS,
+  type MaterialThemeVars,
+} from "@/lib/material_theme";
+
+const CUSTOM_THEME_ROLE_LABEL_KEYS: Record<
+  string,
+  keyof SettingsTranslations
+> = {
+  "--accent-color": "custom_theme_role_accent",
+  "--accent-color-hover": "custom_theme_role_accent_hover",
+  "--bg-primary": "custom_theme_role_background",
+  "--bg-secondary": "custom_theme_role_background_secondary",
+  "--text-primary": "custom_theme_role_text",
+  "--text-secondary": "custom_theme_role_text_secondary",
+  "--border-primary": "custom_theme_role_border",
+};
 
 const LANGUAGES = get_supported_languages();
 
@@ -47,10 +80,83 @@ export function AppearanceSection() {
   const { theme, theme_preference, set_theme_preference } = useTheme();
   const { preferences, update_preference } = use_preferences();
   const { t, set_language } = use_i18n();
+  const [show_more_themes, set_show_more_themes] = useState(false);
+  const { limits } = use_plan_limits();
+  const is_paid_plan = !!limits && limits.plan_code !== "free";
 
-  const handle_theme_select = (mode: "light" | "dark") => {
+  const handle_theme_select = (mode: "light" | "dark" | "system") => {
     set_theme_preference(mode);
     update_preference("theme", mode, true);
+    update_preference("color_theme", "default", true);
+  };
+
+  const handle_color_theme_select = (
+    value:
+      | "purple"
+      | "green"
+      | "rose"
+      | "orange"
+      | "teal"
+      | "indigo"
+      | "amber"
+      | "cyan"
+      | "slate"
+      | "aster-blue"
+      | "lime"
+      | "fuchsia"
+      | "emerald"
+      | "pink"
+      | "black",
+  ) => {
+    set_theme_preference("dark");
+    update_preference("theme", "dark", true);
+    update_preference("color_theme", value, true);
+  };
+
+  const is_default_color = (preferences.color_theme ?? "default") === "default";
+
+  const handle_custom_color_change = (hex: string, immediate: boolean) => {
+    if (!is_valid_hex_color(hex)) return;
+
+    update_preference("custom_theme_seed", hex, immediate);
+    update_preference("color_theme", "custom", immediate);
+  };
+
+  const handle_font_change = (value: string) => {
+    update_preference("font_choice", value, true);
+  };
+
+  const custom_theme_base = generate_material_theme(
+    is_valid_hex_color(preferences.custom_theme_seed)
+      ? preferences.custom_theme_seed
+      : "#3b82f6",
+    theme === "dark",
+  );
+
+  const handle_role_override_change = (
+    key: keyof MaterialThemeVars,
+    hex: string,
+    immediate: boolean,
+  ) => {
+    if (!is_valid_hex_color(hex)) return;
+
+    update_preference(
+      "custom_theme_overrides",
+      { ...preferences.custom_theme_overrides, [key]: hex },
+      immediate,
+    );
+    update_preference("color_theme", "custom", immediate);
+  };
+
+  const handle_role_override_reset = (key: keyof MaterialThemeVars) => {
+    const next = { ...preferences.custom_theme_overrides };
+
+    delete next[key];
+    update_preference("custom_theme_overrides", next, true);
+  };
+
+  const handle_reset_all_overrides = () => {
+    update_preference("custom_theme_overrides", {}, true);
   };
 
   const handle_language_change = (code: string) => {
@@ -91,23 +197,272 @@ export function AppearanceSection() {
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.change_appearance")}
         </p>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <ThemeCard
-            is_selected={theme_preference === "light"}
+            is_selected={theme_preference === "system" && is_default_color}
+            label={t("settings.theme_system")}
+            mode="system"
+            on_select={() => handle_theme_select("system")}
+          />
+          <ThemeCard
+            is_selected={theme_preference === "light" && is_default_color}
             label={t("settings.theme_light")}
             mode="light"
             on_select={() => handle_theme_select("light")}
           />
           <ThemeCard
-            is_selected={theme_preference === "dark"}
+            is_selected={theme_preference === "dark" && is_default_color}
             label={t("settings.theme_dark")}
             mode="dark"
             on_select={() => handle_theme_select("dark")}
           />
+          <ThemeCard
+            is_selected={preferences.color_theme === "aster-blue"}
+            label={t("settings.color_theme_aster_blue")}
+            mode="aster-blue"
+            on_select={() => handle_color_theme_select("aster-blue")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "purple"}
+            label={t("settings.color_theme_purple")}
+            mode="purple"
+            on_select={() => handle_color_theme_select("purple")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "green"}
+            label={t("settings.color_theme_green")}
+            mode="green"
+            on_select={() => handle_color_theme_select("green")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "rose"}
+            label={t("settings.color_theme_rose")}
+            mode="rose"
+            on_select={() => handle_color_theme_select("rose")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "orange"}
+            label={t("settings.color_theme_orange")}
+            mode="orange"
+            on_select={() => handle_color_theme_select("orange")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "teal"}
+            label={t("settings.color_theme_teal")}
+            mode="teal"
+            on_select={() => handle_color_theme_select("teal")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "indigo"}
+            label={t("settings.color_theme_indigo")}
+            mode="indigo"
+            on_select={() => handle_color_theme_select("indigo")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "amber"}
+            label={t("settings.color_theme_amber")}
+            mode="amber"
+            on_select={() => handle_color_theme_select("amber")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "cyan"}
+            label={t("settings.color_theme_cyan")}
+            mode="cyan"
+            on_select={() => handle_color_theme_select("cyan")}
+          />
+          {show_more_themes && (
+            <>
+              <ThemeCard
+                is_selected={preferences.color_theme === "slate"}
+                label={t("settings.color_theme_slate")}
+                mode="slate"
+                on_select={() => handle_color_theme_select("slate")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "lime"}
+                label={t("settings.color_theme_lime")}
+                mode="lime"
+                on_select={() => handle_color_theme_select("lime")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "fuchsia"}
+                label={t("settings.color_theme_fuchsia")}
+                mode="fuchsia"
+                on_select={() => handle_color_theme_select("fuchsia")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "black"}
+                label={t("settings.color_theme_black")}
+                mode="black"
+                on_select={() => handle_color_theme_select("black")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "emerald"}
+                label={t("settings.color_theme_emerald")}
+                mode="emerald"
+                on_select={() => handle_color_theme_select("emerald")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "pink"}
+                label={t("settings.color_theme_pink")}
+                mode="pink"
+                on_select={() => handle_color_theme_select("pink")}
+              />
+            </>
+          )}
         </div>
+        <button
+          type="button"
+          className="mt-3 flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
+          onClick={() => set_show_more_themes((prev) => !prev)}
+        >
+          {show_more_themes ? (
+            <>
+              {t("common.show_less")}
+              <ChevronUpIcon className="w-4 h-4" />
+            </>
+          ) : (
+            <>
+              {t("common.show_more")}
+              <ChevronDownIcon className="w-4 h-4" />
+            </>
+          )}
+        </button>
       </div>
 
       <div className="pt-3">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <PaintBrushIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.custom_theme_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <p className="text-sm mb-4 text-txt-muted">
+          {t("settings.custom_theme_description")}
+        </p>
+        {is_paid_plan ? (
+          <>
+            <SettingRow
+              description={t("settings.font_choice_description")}
+              label={t("settings.font_choice_title")}
+            >
+              <Select
+                value={preferences.font_choice ?? DEFAULT_FONT_ID}
+                onValueChange={handle_font_change}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FONT_OPTIONS.map((font) => (
+                    <SelectItem key={font.id} value={font.id}>
+                      {font.id === "default"
+                        ? t("settings.font_option_default")
+                        : font.id === "system"
+                          ? t("settings.font_option_system")
+                          : font.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </SettingRow>
+
+            <div className="mt-6">
+              <p className="text-sm font-semibold text-txt-primary mb-4">
+                {t("settings.custom_theme_colors_title")}
+              </p>
+
+              <div className="flex items-center gap-3 mb-4">
+                <ColorSwatchPicker
+                  label={t("settings.custom_theme_color_label")}
+                  value={
+                    is_valid_hex_color(preferences.custom_theme_seed)
+                      ? preferences.custom_theme_seed
+                      : "#3b82f6"
+                  }
+                  onChange={(hex) => handle_custom_color_change(hex, false)}
+                  onCommit={(hex) => handle_custom_color_change(hex, true)}
+                />
+                <div className="flex-1">
+                  <p className="text-sm text-txt-primary">
+                    {t("settings.custom_theme_color_label")}
+                  </p>
+                  <p className="text-xs text-txt-muted">
+                    {preferences.color_theme === "custom"
+                      ? t("settings.custom_theme_active")
+                      : t("settings.custom_theme_inactive")}
+                  </p>
+                </div>
+                {Object.keys(preferences.custom_theme_overrides ?? {}).length >
+                  0 && (
+                  <button
+                    className="text-xs text-txt-muted hover:text-txt-primary flex-shrink-0"
+                    type="button"
+                    onClick={handle_reset_all_overrides}
+                  >
+                    {t("settings.custom_theme_reset_all")}
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {CUSTOM_THEME_ROLE_KEYS.map((key) => {
+                  const override = preferences.custom_theme_overrides?.[key];
+                  const value = override ?? custom_theme_base[key];
+
+                  const role_label = t(
+                    `settings.${CUSTOM_THEME_ROLE_LABEL_KEYS[key]}`,
+                  );
+
+                  return (
+                    <div className="flex items-center gap-2" key={key}>
+                      <ColorSwatchPicker
+                        label={role_label}
+                        size="sm"
+                        value={value}
+                        onChange={(hex) =>
+                          handle_role_override_change(key, hex, false)
+                        }
+                        onCommit={(hex) =>
+                          handle_role_override_change(key, hex, true)
+                        }
+                      />
+                      <span className="text-xs text-txt-secondary flex-1 truncate">
+                        {role_label}
+                      </span>
+                      {override && (
+                        <button
+                          aria-label={t("settings.custom_theme_reset_role")}
+                          className="text-txt-muted hover:text-txt-primary flex-shrink-0 text-xs"
+                          title={t("settings.custom_theme_reset_role")}
+                          type="button"
+                          onClick={() => handle_role_override_reset(key)}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : (
+          <UpgradeBtn size="sm" onClick={go_to_billing}>
+            {t("settings.upgrade_to_unlock")}
+          </UpgradeBtn>
+        )}
+      </div>
+
+      <div className="pt-3">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <GlobeAltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.language_format_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
         <SettingRow
           description={t("settings.language_description")}
           label={t("settings.language")}

@@ -162,6 +162,14 @@ function BillingSuccessHandler() {
   useEffect(() => {
     if (!is_authenticated || handled.current) return;
     const params = new URLSearchParams(window.location.search);
+
+    if (params.get("billing") === "cancelled") {
+      handled.current = true;
+      window.history.replaceState({}, "", window.location.pathname);
+      show_toast(t("settings.billing_checkout_cancelled"), "info");
+      return;
+    }
+
     if (params.get("billing") !== "success") return;
 
     handled.current = true;

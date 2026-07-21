@@ -21,7 +21,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
 
-import { EMAIL_BODY_CSS, FORCED_DARK_MODE_CSS } from "@/lib/email_body_styles";
+import { build_email_body_css, build_forced_dark_mode_css } from "@/lib/email_body_styles";
 import { sanitize_preview_html } from "@/lib/html_sanitizer";
 import {
   extract_cid_references,
@@ -356,16 +356,18 @@ export function SandboxedEmailRenderer({
 
   const quote_toggle_css = `.aster-quote-toggle { display: inline-block !important; padding: 0 3px !important; font-size: 6px !important; line-height: 12px !important; letter-spacing: 1px !important; background: rgba(128, 128, 128, 0.1) !important; border: 1px solid rgba(128, 128, 128, 0.15) !important; border-radius: 99px !important; color: rgba(100, 100, 100, 0.55) !important; cursor: pointer !important; vertical-align: middle !important; }
 .aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
-.aster-quoted-content { border-left-color: #60a5fa !important; }`;
+.aster-quoted-content { border-left-color: ${preferences.accent_color_hover} !important; }`;
 
   const plain_dark_css =
     is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html)
       ? `html { color-scheme: dark !important; }
 html, body { background-color: transparent !important; color: ${plain_text_color} !important; }
 body * { color: inherit !important; }
-a, a * { color: #60a5fa !important; }`
+a, a * { color: ${preferences.accent_color_hover} !important; }`
       : "";
-  const dark_mode_css = force_dark_mode ? FORCED_DARK_MODE_CSS : plain_dark_css;
+  const dark_mode_css = force_dark_mode
+    ? build_forced_dark_mode_css(preferences.accent_color, preferences.accent_color_hover)
+    : plain_dark_css;
 
   const force_light_scheme = is_html_email && !force_dark_mode && !simple_dark_html;
 
@@ -375,7 +377,7 @@ a, a * { color: #60a5fa !important; }`
     : `background-color:${html_bg}`;
   const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
-  const iframe_css = EMAIL_BODY_CSS;
+  const iframe_css = build_email_body_css(preferences.accent_color);
 
   const html_el_style =
     is_html_email && !force_dark_mode && !simple_dark_html
@@ -1330,7 +1332,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word;zoom:${email_zoom}`;
 
       shadow.innerHTML =
-        `<style>${EMAIL_BODY_CSS}` +
+        `<style>${iframe_css}` +
         (dark_mode_css ? dark_mode_css : "") +
         link_underline_css +
         `a{pointer-events:none}</style>` +
@@ -1347,6 +1349,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       link_underline_css,
       literal_plain_text,
       email_zoom,
+      iframe_css,
     ],
   );
 

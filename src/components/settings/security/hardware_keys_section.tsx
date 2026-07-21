@@ -212,9 +212,12 @@ export function HardwareKeysSection() {
         ) : (
           <div className="space-y-2">
             {keys.length === 0 && (
-              <p className="text-sm text-txt-muted py-2">
-                {t("settings.no_security_keys")}
-              </p>
+              <div className="py-6 text-center">
+                <KeyIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+                <p className="text-sm text-txt-muted">
+                  {t("settings.no_security_keys")}
+                </p>
+              </div>
             )}
 
             {keys.map((key) => (

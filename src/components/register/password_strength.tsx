@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { use_i18n } from "@/lib/i18n/context";
+import { compute_password_strength_tier } from "@/services/password_strength_score";
 
 interface PasswordStrengthIndicatorProps {
   password: string;
@@ -32,49 +33,45 @@ export function PasswordStrengthIndicator({
   const get_strength = () => {
     if (!password) return { level: 0, label: "", color: "", suggestions: [] };
 
-    let score = 0;
+    const level = compute_password_strength_tier(password);
     const suggestions: string[] = [];
 
-    if (password.length >= 8) score++;
-    else suggestions.push(t("auth.use_8_characters"));
-
-    if (password.length >= 12) score++;
-    else if (password.length >= 8)
+    if (password.length < 8) suggestions.push(t("auth.use_8_characters"));
+    else if (password.length < 12)
       suggestions.push(t("auth.try_12_characters"));
 
-    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-    else suggestions.push(t("auth.mix_case"));
+    if (!(/[A-Z]/.test(password) && /[a-z]/.test(password)))
+      suggestions.push(t("auth.mix_case"));
 
-    if (/[0-9]/.test(password)) score++;
-    else suggestions.push(t("auth.add_numbers"));
+    if (!/[0-9]/.test(password)) suggestions.push(t("auth.add_numbers"));
 
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    else if (score >= 2) suggestions.push(t("auth.add_special_characters"));
+    if (!/[^A-Za-z0-9]/.test(password) && level >= 3)
+      suggestions.push(t("auth.add_special_characters"));
 
-    if (score <= 1)
+    if (level <= 1)
       return {
-        level: 1,
+        level,
         label: t("common.password_strength_weak"),
         color: "var(--color-danger)",
         suggestions,
       };
-    if (score === 2)
+    if (level === 2)
       return {
-        level: 2,
+        level,
         label: t("common.password_strength_fair"),
         color: "var(--color-warning)",
         suggestions,
       };
-    if (score === 3)
+    if (level === 3)
       return {
-        level: 3,
+        level,
         label: t("common.password_strength_strong"),
         color: "var(--color-success)",
         suggestions,
       };
 
     return {
-      level: 4,
+      level,
       label: t("common.password_strength_strong"),
       color: "var(--color-success)",
       suggestions: [],

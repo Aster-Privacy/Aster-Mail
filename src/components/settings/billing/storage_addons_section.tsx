@@ -117,7 +117,7 @@ export function StorageAddonsSection({
               style={{
                 backgroundColor:
                   selected_storage === addon.id
-                    ? "rgba(59, 130, 246, 0.06)"
+                    ? "color-mix(in srgb, var(--accent-color) 6%, transparent)"
                     : "var(--bg-tertiary)",
                 borderColor:
                   selected_storage === addon.id
@@ -125,7 +125,7 @@ export function StorageAddonsSection({
                     : "var(--border-secondary)",
                 boxShadow:
                   selected_storage === addon.id
-                    ? "0 0 0 1px rgba(59, 130, 246, 0.3)"
+                    ? "0 0 0 1px color-mix(in srgb, var(--accent-color) 30%, transparent)"
                     : "none",
               }}
               onClick={() =>
@@ -138,7 +138,7 @@ export function StorageAddonsSection({
                 <span
                   className="absolute -top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
                   style={{
-                    backgroundColor: "#1d4ed8",
+                    backgroundColor: "var(--accent-color-hover)",
                   }}
                 >
                   {badge === "popular"

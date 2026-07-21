@@ -555,7 +555,7 @@ export function SecuritySection({
           {totp_status?.enabled && (
             <div className="px-4 pb-3">
               <button
-                className="text-[13px] font-medium text-[#4a7aff]"
+                className="text-[13px] font-medium text-[var(--mobile-accent)]"
                 type="button"
                 onClick={() => set_show_regenerate_codes(true)}
               >
@@ -861,7 +861,7 @@ export function SecuritySection({
                   }
                   style={{
                     background:
-                      "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                      "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                   }}
                   type="button"
                   onClick={handle_change_password}

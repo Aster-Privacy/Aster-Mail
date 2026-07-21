@@ -260,9 +260,12 @@ export function SessionSection({
           )}
 
           {sessions.length === 0 && (
-            <p className="text-sm text-txt-muted text-center py-6">
-              {t("settings.no_active_sessions")}
-            </p>
+            <div className="py-6 text-center">
+              <FingerPrintIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+              <p className="text-sm text-txt-muted">
+                {t("settings.no_active_sessions")}
+              </p>
+            </div>
           )}
 
           {other_sessions.length > 0 && (

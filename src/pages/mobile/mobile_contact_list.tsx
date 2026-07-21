@@ -167,7 +167,7 @@ export function MobileContactList({
                 className="flex h-8 w-8 items-center justify-center rounded-full text-white active:brightness-90"
                 style={{
                   background:
-                    "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                    "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                   border: "1px solid rgba(255, 255, 255, 0.15)",
                   borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
@@ -216,7 +216,7 @@ export function MobileContactList({
             filter === "all"
               ? {
                   background:
-                    "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                    "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                   border: "1px solid rgba(255, 255, 255, 0.15)",
                   borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
@@ -239,7 +239,7 @@ export function MobileContactList({
               filter === "favorites"
                 ? {
                     background:
-                      "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                      "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                     border: "1px solid rgba(255, 255, 255, 0.15)",
                     borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
                     boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
@@ -313,7 +313,7 @@ export function MobileContactList({
                 return (
                   <button
                     key={contact.id}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-[var(--bg-tertiary)] ${is_select_mode && is_selected ? "bg-[var(--bg-selected,rgba(59,130,246,0.08))]" : ""}`}
+                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-[var(--bg-tertiary)] ${is_select_mode && is_selected ? "bg-[var(--bg-selected,color-mix(in srgb, var(--accent-color) 8%, transparent))]" : ""}`}
                     type="button"
                     onClick={() => {
                       if (is_select_mode) {

@@ -426,10 +426,10 @@ export function OnboardingTour() {
                           left: target_rect.left - 8,
                           width: target_rect.width + 16,
                           height: target_rect.height + 16,
-                          "--tour-color": is_dark ? "#60a5fa" : "#3b82f6",
+                          "--tour-color": is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
                           "--tour-color-fade": is_dark
-                            ? "rgba(96, 165, 250, 0.25)"
-                            : "rgba(59, 130, 246, 0.2)",
+                            ? "color-mix(in srgb, var(--accent-color-hover) 25%, transparent)"
+                            : "color-mix(in srgb, var(--accent-color) 20%, transparent)",
                         } as React.CSSProperties
                       }
                     />
@@ -492,9 +492,9 @@ export function OnboardingTour() {
                           className="text-sm font-medium px-2.5 py-1 rounded-md"
                           style={{
                             backgroundColor: is_dark
-                              ? "rgba(96, 165, 250, 0.15)"
-                              : "rgba(59, 130, 246, 0.1)",
-                            color: is_dark ? "#60a5fa" : "#3b82f6",
+                              ? "color-mix(in srgb, var(--accent-color-hover) 15%, transparent)"
+                              : "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+                            color: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
                           }}
                         >
                           {t("common.step")} {current_step + 1} {t("common.of")}{" "}
@@ -524,7 +524,7 @@ export function OnboardingTour() {
                             className="h-full rounded-full"
                             initial={false}
                             style={{
-                              backgroundColor: is_dark ? "#60a5fa" : "#3b82f6",
+                              backgroundColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
                             }}
                             transition={{
                               duration: reduce_motion ? 0 : 0.3,

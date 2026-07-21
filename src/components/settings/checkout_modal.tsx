@@ -76,7 +76,7 @@ function get_theme_colors(is_dark: boolean): theme_colors {
         bg_input: "rgba(255, 255, 255, 0.04)",
         border_rest: "rgba(255, 255, 255, 0.1)",
         border_hover: "rgba(255, 255, 255, 0.18)",
-        accent: "#3b82f6",
+        accent: "var(--accent-color)",
         danger: "#ef4444",
         success: "#22c55e",
       }
@@ -87,7 +87,7 @@ function get_theme_colors(is_dark: boolean): theme_colors {
         bg_input: "#ffffff",
         border_rest: "rgba(0, 0, 0, 0.1)",
         border_hover: "rgba(0, 0, 0, 0.18)",
-        accent: "#3b82f6",
+        accent: "var(--accent-color)",
         danger: "#ef4444",
         success: "#22c55e",
       };

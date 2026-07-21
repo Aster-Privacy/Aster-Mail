@@ -250,7 +250,7 @@ export function EmailReplySection({
               ? {}
               : {
                   scale: 1.02,
-                  boxShadow: "0 8px 16px rgba(59, 130, 246, 0.3)",
+                  boxShadow: "0 8px 16px color-mix(in srgb, var(--accent-color) 30%, transparent)",
                 }
           }
           onClick={

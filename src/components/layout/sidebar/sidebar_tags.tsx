@@ -170,7 +170,7 @@ export const SidebarTags = memo(function SidebarTags({
                   ref={(el) => {
                     tag_refs.current[tag.tag_token] = el;
                   }}
-                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === tag_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === tag_item_id ? "sidebar-selected" : ""} ${drag_over_token === tag.tag_token ? "ring-2 ring-blue-500/60 bg-blue-500/10" : ""}`}
+                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === tag_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === tag_item_id ? "sidebar-selected" : ""} ${drag_over_token === tag.tag_token ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
                   style={{
                     zIndex: 1,
                     color:

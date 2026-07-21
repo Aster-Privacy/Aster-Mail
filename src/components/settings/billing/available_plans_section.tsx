@@ -94,26 +94,18 @@ function PlanCard({
   const highlighted = featured || is_current;
   return (
     <div
-      className={`relative flex flex-col p-6 rounded-2xl border bg-surf-tertiary transition-colors ${
+      className={`relative flex flex-col p-6 rounded-2xl border transition-colors ${
         featured
-          ? "border-2 border-brand sm:-my-2 sm:py-8 z-10"
+          ? "border-brand bg-surf-selected sm:-my-2 sm:py-8 z-10"
           : highlighted
-            ? "border-brand"
-            : "border-edge-secondary"
+            ? "border-brand bg-surf-selected"
+            : "border-edge-secondary bg-surf-tertiary"
       }`}
-      style={
-        featured
-          ? { boxShadow: "0 16px 40px -20px rgba(59,130,246,0.55)" }
-          : undefined
-      }
     >
       {badge && (
         <span
           className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap shadow-sm"
-          style={{
-            background:
-              "linear-gradient(90deg, var(--accent-blue), var(--accent-blue-hover))",
-          }}
+          style={{ backgroundColor: "var(--accent-blue)" }}
         >
           {badge}
         </span>
@@ -159,7 +151,7 @@ function PlanCard({
       <ul
         className="mt-5 pt-5 border-t space-y-2.5 list-none"
         style={{
-          borderTopColor: featured ? "rgba(59,130,246,0.4)" : "var(--border-secondary)",
+          borderTopColor: featured ? "color-mix(in srgb, var(--accent-color) 40%, transparent)" : "var(--border-secondary)",
         }}
       >
         {features.map((feature, i) => (

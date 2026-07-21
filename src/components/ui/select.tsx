@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
       className,
     )}
     style={{
-      boxShadow: "0 1px 0 0 color-mix(in srgb, black 8%, transparent)",
+      boxShadow: "var(--select-shadow)",
       ...style,
     }}
     {...props}
@@ -43,10 +43,11 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-[70] max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-[var(--border-secondary)] bg-[var(--dropdown-bg)] shadow-[0_12px_16px_-4px_rgba(16,24,40,0.08),0_4px_6px_-2px_rgba(16,24,40,0.03)] animate-in fade-in-80",
+        "relative z-[70] max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-[var(--border-secondary)] bg-[var(--dropdown-bg)] animate-in fade-in-80",
         position === "popper" && "translate-y-1",
         className,
       )}
+      style={{ boxShadow: "var(--dropdown-shadow)" }}
       position={position}
       {...props}
     >
@@ -72,7 +73,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-2.5 pr-8 text-[13px] text-[var(--text-secondary)] outline-none transition-colors hover:bg-black/5 dark:hover:bg-white/5 focus:bg-black/5 dark:focus:bg-white/5 data-[highlighted]:bg-black/5 dark:data-[highlighted]:bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:text-blue-500 data-[state=checked]:font-medium",
+      "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-2.5 pr-8 text-[13px] text-[var(--text-secondary)] outline-none transition-colors hover:bg-black/5 dark:hover:bg-white/5 focus:bg-black/5 dark:focus:bg-white/5 data-[highlighted]:bg-black/5 dark:data-[highlighted]:bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:text-brand data-[state=checked]:font-medium",
       className,
     )}
     {...props}

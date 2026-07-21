@@ -55,13 +55,13 @@ export const DEPTH_INPUT_CLASS =
   "h-[52px] w-full rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] px-4 text-base text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150";
 
 export const DEPTH_INPUT_WRAPPER_CLASS =
-  "flex items-center rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150 focus-within:border-[#3b82f6] focus-within:shadow-[0_0_0_2px_#3b82f6]";
+  "flex items-center rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150 focus-within:border-[var(--accent-color)] focus-within:shadow-[0_0_0_2px_var(--accent-color)]";
 
 export const DEPTH_CTA_CLASS =
   "h-[52px] w-full rounded-xl font-semibold text-base text-white disabled:opacity-50 transition-colors duration-150";
 
 export const DEPTH_CTA_STYLE: React.CSSProperties = {
-  background: "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+  background: "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
   boxShadow: "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
 };
 

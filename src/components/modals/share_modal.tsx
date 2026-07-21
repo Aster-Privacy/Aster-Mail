@@ -187,7 +187,7 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
               style={{
                 backgroundColor: copy_success
                   ? "rgba(34, 197, 94, 0.15)"
-                  : "rgba(59, 130, 246, 0.15)",
+                  : "color-mix(in srgb, var(--accent-color) 15%, transparent)",
                 color: copy_success
                   ? "var(--color-success)"
                   : "var(--color-info)",

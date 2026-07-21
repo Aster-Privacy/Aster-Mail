@@ -88,7 +88,7 @@ export const RegisterStepWelcome = ({ reg }: RegisterStepWelcomeProps) => {
               textTransform: "uppercase",
               lineHeight: 1,
               color: "#ffffff",
-              backgroundColor: "#2563eb",
+              backgroundColor: "var(--accent-color-hover)",
             }}
           >
             <OfferIcon className="w-3.5 h-3.5" />

@@ -21,11 +21,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronRightIcon } from "@heroicons/react/24/outline";
 
 import { Modal, ModalHeader, ModalTitle, ModalBody } from "@/components/ui/modal";
 import {
@@ -33,6 +29,7 @@ import {
   type SecurityStatus,
 } from "@/components/settings/security/security_lock_icon";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 function get_status(bar_pct: number): SecurityStatus {
   if (bar_pct < 35) return "weak";
@@ -44,7 +41,7 @@ function get_status(bar_pct: number): SecurityStatus {
 const STATUS_BUTTON_STYLES: Record<SecurityStatus, string> = {
   weak: "bg-red-600 hover:bg-red-700 text-white",
   fair: "bg-orange-500 hover:bg-orange-600 text-white",
-  partial: "bg-yellow-500 hover:bg-yellow-600 text-white",
+  partial: "bg-blue-600 hover:bg-blue-700 text-white",
   strong: "bg-green-600 hover:bg-green-700 text-white",
 };
 
@@ -77,6 +74,7 @@ export function AccountProtectionScore({
   on_criterion_click,
 }: AccountProtectionScoreProps) {
   const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
   const [popover_open, set_popover_open] = useState(false);
   const [dismissed, set_dismissed] = useState(false);
 
@@ -124,7 +122,7 @@ export function AccountProtectionScore({
     );
   }
 
-  if (dismissed) return null;
+  if (dismissed || preferences.account_security_banner_dismissed) return null;
 
   return (
     <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
@@ -140,20 +138,29 @@ export function AccountProtectionScore({
             {t("settings.account_security_review_subtitle")}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+              type="button"
+              onClick={() => set_dismissed(true)}
+            >
+              {t("settings.account_security_dismiss")}
+            </button>
+            <button
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
+              type="button"
+              onClick={() => set_popover_open(true)}
+            >
+              {t("settings.account_security_review_cta")}
+            </button>
+          </div>
           <button
-            className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+            className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
             type="button"
-            onClick={() => set_dismissed(true)}
+            onClick={() => update_preference("account_security_banner_dismissed", true, true)}
           >
-            {t("settings.account_security_dismiss")}
-          </button>
-          <button
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
-            type="button"
-            onClick={() => set_popover_open(true)}
-          >
-            {t("settings.account_security_review_cta")}
+            {t("settings.account_security_dont_show_again")}
           </button>
         </div>
       </div>
@@ -185,11 +192,10 @@ export function AccountProtectionScore({
                         click_handler();
                       }}
                     >
-                      {criteria_met[i] ? (
-                        <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      ) : (
-                        <XCircleIcon className="w-4 h-4 text-red-400 flex-shrink-0" />
-                      )}
+                      <SecurityLockIcon
+                        className="w-4 h-4 flex-shrink-0"
+                        status={criteria_met[i] ? "strong" : "weak"}
+                      />
                       <span className={`text-sm flex-1 ${criteria_met[i] ? "text-txt-primary" : "text-txt-muted"}`}>
                         {label}
                       </span>

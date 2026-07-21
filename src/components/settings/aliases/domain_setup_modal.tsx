@@ -382,7 +382,7 @@ export function DomainSetupModal({
                       : step_statuses[index] === "failed"
                         ? "linear-gradient(to bottom, #f87171, #dc2626)"
                         : index === current_step
-                          ? "linear-gradient(to bottom, #4a7aff, #2d5ae0)"
+                          ? "linear-gradient(to bottom, var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, black))"
                           : "var(--bg-tertiary)",
                   color:
                     step_statuses[index] === "verified" ||
@@ -394,7 +394,7 @@ export function DomainSetupModal({
                     index === current_step &&
                     step_statuses[index] !== "verified" &&
                     step_statuses[index] !== "failed"
-                      ? "0 2px 8px rgba(74, 122, 255, 0.35)"
+                      ? "0 2px 8px color-mix(in srgb, var(--accent-color) 35%, transparent)"
                       : step_statuses[index] === "verified"
                         ? "0 2px 8px rgba(22, 163, 74, 0.3)"
                         : "none",
@@ -441,7 +441,7 @@ export function DomainSetupModal({
                 <span
                   className="text-xs font-medium px-2 py-0.5 rounded"
                   style={{
-                    background: "linear-gradient(to bottom, #4a7aff, #2d5ae0)",
+                    background: "linear-gradient(to bottom, var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, black))",
                     color: "white",
                   }}
                 >

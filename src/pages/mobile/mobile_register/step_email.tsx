@@ -222,7 +222,7 @@ export function StepEmail({ reg, reduce_motion, navigate }: step_email_props) {
         <p className="text-center text-sm text-[var(--text-tertiary)]">
           {reg.t("auth.already_have_account")}{" "}
           <button
-            className="font-semibold text-[#4a7aff]"
+            className="font-semibold text-[var(--mobile-accent)]"
             type="button"
             onClick={() => navigate("/sign-in")}
           >

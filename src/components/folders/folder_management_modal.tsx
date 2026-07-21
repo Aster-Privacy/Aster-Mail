@@ -266,8 +266,8 @@ export function FolderManagementModal({
                 <div
                   className="rounded-lg p-4 mb-4 border"
                   style={{
-                    backgroundColor: "rgba(59, 130, 246, 0.12)",
-                    borderColor: "rgba(59, 130, 246, 0.35)",
+                    backgroundColor: "color-mix(in srgb, var(--accent-color) 12%, transparent)",
+                    borderColor: "color-mix(in srgb, var(--accent-color) 35%, transparent)",
                   }}
                 >
                   <div className="flex items-start gap-3">

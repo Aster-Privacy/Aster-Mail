@@ -41,10 +41,12 @@ export function ViewModeCard({
   theme,
 }: ViewModeCardProps) {
   const get_mockup = () => {
-    if (mode === "popup") return <ViewMockupPopup theme={theme} />;
-    if (mode === "split") return <ViewMockupSplit theme={theme} />;
+    if (mode === "popup")
+      return <ViewMockupPopup theme={theme} use_accent />;
+    if (mode === "split")
+      return <ViewMockupSplit theme={theme} use_accent />;
 
-    return <ViewMockupFullpage theme={theme} />;
+    return <ViewMockupFullpage theme={theme} use_accent />;
   };
 
   const get_border_color = () => {

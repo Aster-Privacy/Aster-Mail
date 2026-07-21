@@ -20,6 +20,30 @@
 //
 import { api_client, type ApiResponse } from "./client";
 
+interface SecurityStatusResponse {
+  two_factor_enabled: boolean;
+  recovery_email_set: boolean;
+  last_password_change: string | null;
+  password_strength_tier: number | null;
+}
+
+export async function get_security_status(): Promise<
+  ApiResponse<SecurityStatusResponse>
+> {
+  return api_client.get<SecurityStatusResponse>("/core/v1/account/security");
+}
+
+export async function backfill_password_strength_tier(
+  password_strength_tier: number,
+): Promise<ApiResponse<SecurityStatusResponse>> {
+  return api_client.post<SecurityStatusResponse>(
+    "/core/v1/account/security/password-strength",
+    { password_strength_tier },
+  );
+}
+
+export type { SecurityStatusResponse };
+
 interface DeleteAccountRequest {
   password_hash: string;
 }

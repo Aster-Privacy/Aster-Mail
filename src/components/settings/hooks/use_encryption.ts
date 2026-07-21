@@ -89,6 +89,7 @@ export function use_encryption() {
   const [export_totp_required, set_export_totp_required] = useState(false);
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [pgp_key, set_pgp_key] = useState<PgpKeyInfo | null>(null);
+  const [pgp_key_load_failed, set_pgp_key_load_failed] = useState(false);
   const [keyserver_urls, set_keyserver_urls] = useState<string[]>([]);
   const [keyserver_input, set_keyserver_input] = useState("");
   const [is_saving_keyservers, set_is_saving_keyservers] = useState(false);
@@ -124,12 +125,13 @@ export function use_encryption() {
   };
 
   const load_encryption_data = async () => {
+    set_pgp_key_load_failed(false);
     try {
       const [key_response, recovery_response, user_response, enc_response, keyserver_status] =
         await Promise.all([
           api_client
             .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
-            .catch(() => ({ data: null, error: null })),
+            .catch(() => ({ data: null, error: "network_error" })),
           api_client
             .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
             .catch(() => ({ data: null, error: null })),
@@ -148,6 +150,8 @@ export function use_encryption() {
 
       if (key_response.data) {
         set_pgp_key(key_response.data);
+      } else if (key_response.error) {
+        set_pgp_key_load_failed(true);
       }
       if (recovery_response.data) {
         set_recovery_info(recovery_response.data);
@@ -750,6 +754,8 @@ export function use_encryption() {
     export_error,
     export_totp_required,
     pgp_key,
+    pgp_key_load_failed,
+    retry_load_encryption_data: load_encryption_data,
     recovery_info,
     recovery_codes,
     show_recovery_codes,

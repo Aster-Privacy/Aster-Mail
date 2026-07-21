@@ -22,7 +22,7 @@
   --mobile-text-primary: #111827;
   --mobile-text-secondary: #374151;
   --mobile-text-muted: #9ca3af;
-  --mobile-accent: #3b82f6;
+  --mobile-accent: var(--accent-color, #3b82f6);
   --mobile-danger: #ef4444;
   --mobile-indicator-bg: #ffffff;
 }
@@ -38,7 +38,7 @@
   --mobile-text-primary: #ffffff;
   --mobile-text-secondary: #e5e5e5;
   --mobile-text-muted: #737373;
-  --mobile-accent: #3b82f6;
+  --mobile-accent: var(--accent-color, #3b82f6);
   --mobile-danger: #ef4444;
   --mobile-indicator-bg: #121212;
 }

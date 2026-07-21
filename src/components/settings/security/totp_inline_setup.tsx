@@ -41,10 +41,12 @@ interface TotpInlineSetupProps {
   on_success: () => void;
 }
 
+let cached_setup_data: TotpSetupInitiateResponse | null = null;
+
 export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
   const { t } = use_i18n();
   const [setup_data, set_setup_data] =
-    useState<TotpSetupInitiateResponse | null>(null);
+    useState<TotpSetupInitiateResponse | null>(cached_setup_data);
   const [verification_code, set_verification_code] = useState("");
   const [backup_codes, set_backup_codes] = useState<string[]>([]);
   const [show_backup_codes, set_show_backup_codes] = useState(false);
@@ -67,6 +69,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
     }
 
     if (response.data) {
+      cached_setup_data = response.data;
       set_setup_data(response.data);
     }
 
@@ -76,7 +79,9 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
   useEffect(() => {
     if (!initiated_ref.current) {
       initiated_ref.current = true;
-      initiate_setup();
+      if (!cached_setup_data) {
+        initiate_setup();
+      }
     }
   }, [initiate_setup]);
 
@@ -101,6 +106,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
     }
 
     if (response.data) {
+      cached_setup_data = null;
       set_backup_codes(response.data.backup_codes);
       set_show_backup_codes(true);
     }
@@ -122,8 +128,8 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
 
   return (
     <>
-      <div className="mt-3 rounded-2xl border border-edge-secondary bg-surf-secondary p-4">
-        <div className="flex items-center justify-between gap-3 mb-3">
+      <div className="mt-3 min-w-0 rounded-2xl border border-edge-secondary bg-surf-secondary p-3.5">
+        <div className="flex items-center justify-between gap-3 mb-2.5">
           <p className="text-sm font-semibold text-txt-primary">
             {t("settings.enable_2fa")}
           </p>
@@ -154,16 +160,16 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
             </Button>
           </div>
         ) : setup_data ? (
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
+          <div className="flex flex-col lg:flex-row gap-3 lg:items-start min-w-0">
             <div className="flex-shrink-0 flex justify-center">
-              <RoundedQrCode logo_src="/mail_logo.webp" value={setup_data.otpauth_uri} />
+              <RoundedQrCode logo_src="/mail_logo.webp" size={210} value={setup_data.otpauth_uri} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-txt-secondary">
                 {t("settings.scan_qr_code_description")}
               </p>
               <button
-                className="flex items-center gap-2 mt-2 group"
+                className="flex items-center gap-2 mt-1.5 group"
                 type="button"
                 onClick={copy_secret}
               >
@@ -172,7 +178,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
                 </code>
                 <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted flex-shrink-0 group-hover:text-txt-primary transition-colors" />
               </button>
-              <div className="mt-4">
+              <div className="mt-2.5">
                 <OtpInput
                   align="left"
                   disabled={is_loading}

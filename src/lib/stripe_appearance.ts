@@ -116,7 +116,7 @@ export function read_stripe_theme_tokens(): StripeThemeTokens {
       "--color-edge-secondary",
       read_var(style, "--border-secondary", is_dark ? "#2a2a2a" : "#e5e7eb"),
     ),
-    accent: read_var(style, "--color-accent", "#3b82f6"),
+    accent: read_var(style, "--accent-color", "#3b82f6"),
     danger: read_var(style, "--color-danger", "#ef4444"),
     success: read_var(style, "--color-success", "#22c55e"),
     is_dark,

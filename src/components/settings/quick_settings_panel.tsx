@@ -342,6 +342,7 @@ export function QuickSettingsPanel({
               <div className="flex flex-col gap-2">
                 <div className="flex">
                   <ThemeCard
+                    full_width
                     is_selected={theme_preference === "light"}
                     label={t("settings.theme_light")}
                     mode="light"
@@ -353,6 +354,7 @@ export function QuickSettingsPanel({
                 </div>
                 <div className="flex">
                   <ThemeCard
+                    full_width
                     is_selected={theme_preference === "dark"}
                     label={t("settings.theme_dark")}
                     mode="dark"

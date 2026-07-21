@@ -125,8 +125,8 @@ export function crypto_addon_term_modal({
                 key={term}
                 className="w-full flex items-center justify-between rounded-[14px] border p-3.5 text-left transition-colors"
                 style={{
-                  backgroundColor: is_selected ? "#3b82f6" : "var(--bg-tertiary)",
-                  borderColor: is_selected ? "#3b82f6" : "var(--border-secondary)",
+                  backgroundColor: is_selected ? "var(--accent-color)" : "var(--bg-tertiary)",
+                  borderColor: is_selected ? "var(--accent-color)" : "var(--border-secondary)",
                 }}
                 type="button"
                 onClick={() => set_selected_term(term)}

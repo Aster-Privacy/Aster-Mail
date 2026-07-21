@@ -29,16 +29,16 @@ function get_colors(theme: "light" | "dark") {
       bg: "#ffffff",
       sidebar_bg: "#f5f5f5",
       sidebar_border: "#e8e8e8",
-      brand: "#3b82f6",
+      brand: "var(--accent-color, #3b82f6)",
       compose_gradient:
-        "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+        "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))",
       compose_border_top: "rgba(255,255,255,0.15)",
       compose_border_bottom: "rgba(0,0,0,0.15)",
       text_primary: "#111827",
       text_secondary: "#374151",
       text_tertiary: "#6b7280",
       text_muted: "#9ca3af",
-      selected_bg: "#eff6ff",
+      selected_bg: "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, white)",
       indicator_bg: "#ffffff",
       indicator_border: "#e8e8e8",
       border: "#e8e8e8",
@@ -50,7 +50,7 @@ function get_colors(theme: "light" | "dark") {
       card_shadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)",
       input_bg: "#f9fafb",
       toolbar_bg: "#f3f4f6",
-      send_btn: "#3b82f6",
+      send_btn: "var(--accent-color, #3b82f6)",
     };
   }
 
@@ -58,16 +58,16 @@ function get_colors(theme: "light" | "dark") {
     bg: "#121212",
     sidebar_bg: "#0a0a0a",
     sidebar_border: "#2a2a2a",
-    brand: "#3b82f6",
+    brand: "var(--accent-color, #3b82f6)",
     compose_gradient:
-      "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+      "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))",
     compose_border_top: "rgba(255,255,255,0.15)",
     compose_border_bottom: "rgba(0,0,0,0.15)",
     text_primary: "#ffffff",
     text_secondary: "#e5e5e5",
     text_tertiary: "#888888",
     text_muted: "#666666",
-    selected_bg: "#142744",
+    selected_bg: "color-mix(in srgb, var(--accent-color, #3b82f6) 18%, #121212)",
     indicator_bg: "#121212",
     indicator_border: "#333333",
     border: "#333333",
@@ -79,7 +79,7 @@ function get_colors(theme: "light" | "dark") {
     card_shadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
     input_bg: "#1e1e1e",
     toolbar_bg: "#1a1a1a",
-    send_btn: "#3b82f6",
+    send_btn: "var(--accent-color, #3b82f6)",
   };
 }
 

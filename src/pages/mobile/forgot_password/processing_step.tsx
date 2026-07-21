@@ -38,7 +38,7 @@ export function ProcessingStep({
       initial={reduce_motion ? false : { opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Spinner className="h-10 w-10 text-[#4a7aff]" size="lg" />
+      <Spinner className="h-10 w-10 text-[var(--mobile-accent)]" size="lg" />
       <h2 className="mt-8 text-xl font-semibold text-[var(--text-primary)]">
         {t("auth.recovering_your_account")}
       </h2>

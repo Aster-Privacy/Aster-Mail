@@ -106,7 +106,7 @@ export default function InvitePage() {
           </div>
         </div>
 
-        <div className="rounded-2xl p-5 space-y-1 text-center" style={{ background: "#1d4ed8" }}>
+        <div className="rounded-2xl p-5 space-y-1 text-center" style={{ background: "color-mix(in srgb, var(--accent-color) 85%, black)" }}>
           <p className="text-lg font-bold text-white">
             {t("settings.invite_discount_line", { percent: String(INVITE_DISCOUNT_PERCENT) })}
           </p>
@@ -129,7 +129,7 @@ export default function InvitePage() {
         <div className="space-y-3">
           <Link
             to={`/register?ref=${encodeURIComponent(code)}`}
-            className="aster_btn aster_btn_primary aster_btn_lg w-full text-center flex items-center justify-center gap-2 font-bold text-base transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+            className="aster_btn aster_btn_primary aster_btn_lg w-full text-center flex items-center justify-center gap-2 font-bold text-base"
           >
             {t("settings.invite_cta_create_account", {
               percent: String(INVITE_DISCOUNT_PERCENT),

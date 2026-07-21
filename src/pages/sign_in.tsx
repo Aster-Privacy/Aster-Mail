@@ -845,7 +845,7 @@ export default function SignInPage() {
               className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
               style={{
                 borderColor: is_dark ? "#374151" : "#bfdbfe",
-                borderTopColor: is_dark ? "#60a5fa" : "#2563eb",
+                borderTopColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
               }}
             />
             <p className="text-sm text-txt-secondary">
@@ -1156,7 +1156,7 @@ export default function SignInPage() {
               className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
               style={{
                 borderColor: is_dark ? "#374151" : "#bfdbfe",
-                borderTopColor: is_dark ? "#60a5fa" : "#2563eb",
+                borderTopColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
               }}
             />
             <p className="text-sm text-txt-secondary">{t("auth.signing_in")}</p>
@@ -1186,7 +1186,7 @@ export default function SignInPage() {
                     className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
                     style={{
                       borderColor: is_dark ? "#374151" : "#bfdbfe",
-                      borderTopColor: is_dark ? "#60a5fa" : "#2563eb",
+                      borderTopColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
                     }}
                   />
                   <p className="text-sm text-txt-secondary">{status}</p>

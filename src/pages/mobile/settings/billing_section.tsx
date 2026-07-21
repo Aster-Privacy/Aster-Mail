@@ -633,7 +633,7 @@ export function BillingSection({
                 className="relative overflow-hidden rounded-2xl p-5"
                 style={{
                   background:
-                    "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 40%, #2563eb 70%, #3b82f6 100%)",
+                    "linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 70%, black) 0%, color-mix(in srgb, var(--accent-color) 85%, black) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
                   boxShadow:
                     "0 1px 3px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
                 }}
@@ -691,6 +691,11 @@ export function BillingSection({
                       <span className="text-[17px] font-semibold text-[var(--text-primary)]">
                         {subscription.plan.name}
                       </span>
+                      {is_paid_plan && subscription.active_discount_description && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-500/15 text-green-500">
+                          {subscription.active_discount_description}
+                        </span>
+                      )}
                       {!is_paid_plan && (
                         <p className="text-[12px] mt-0.5 text-[var(--text-muted)]">
                           {t("settings.free_plan_description")}
@@ -756,7 +761,7 @@ export function BillingSection({
                           disabled={is_action_loading}
                           style={{
                             background:
-                              "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                              "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                             boxShadow:
                               "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                           }}
@@ -781,7 +786,7 @@ export function BillingSection({
                       className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white"
                       style={{
                         background:
-                          "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                          "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                         boxShadow:
                           "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                       }}
@@ -809,9 +814,9 @@ export function BillingSection({
                       style={{
                         backgroundColor:
                           selected_storage === addon.id
-                            ? "rgba(59, 130, 246, 0.06)"
+                            ? "color-mix(in srgb, var(--accent-color) 6%, transparent)"
                             : "var(--mobile-bg-card-hover)",
-                        border: `1.5px solid ${selected_storage === addon.id ? "#3b82f6" : "transparent"}`,
+                        border: `1.5px solid ${selected_storage === addon.id ? "var(--accent-color)" : "transparent"}`,
                       }}
                       type="button"
                       onClick={() =>
@@ -835,7 +840,7 @@ export function BillingSection({
                   disabled={!selected_storage || is_action_loading}
                   style={{
                     background:
-                      "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                      "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                     boxShadow:
                       "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
@@ -900,7 +905,7 @@ export function BillingSection({
                           key={tier.id}
                           className="rounded-2xl overflow-hidden"
                           style={{
-                            border: `2px solid ${is_current ? "#3b82f6" : "var(--border-primary)"}`,
+                            border: `2px solid ${is_current ? "var(--mobile-accent)" : "var(--border-primary)"}`,
                             backgroundColor: "var(--mobile-bg-card-hover)",
                           }}
                         >
@@ -914,9 +919,9 @@ export function BillingSection({
                               <span
                                 className="inline-flex px-3 py-1 rounded-full text-[11px] font-medium mb-2"
                                 style={{
-                                  backgroundColor: "rgba(59, 130, 246, 0.1)",
+                                  backgroundColor: "color-mix(in srgb, var(--accent-color) 10%, transparent)",
                                   color: "var(--color-info)",
-                                  border: "1px solid rgba(59, 130, 246, 0.25)",
+                                  border: "1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)",
                                 }}
                               >
                                 {t("settings.current_plan")}

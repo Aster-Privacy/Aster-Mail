@@ -44,6 +44,8 @@ import { clamp_password } from "@/services/sanitize";
 
 interface PasswordSectionProps {
   show_header?: boolean;
+  last_password_change?: string | null;
+  password_strength_tier?: number | null;
   show_password_section: boolean;
   set_show_password_section: (show: boolean) => void;
   current_password: string;
@@ -67,6 +69,8 @@ interface PasswordSectionProps {
 
 export function PasswordSection({
   show_header = true,
+  last_password_change,
+  password_strength_tier,
   show_password_section,
   set_show_password_section,
   current_password,
@@ -90,6 +94,44 @@ export function PasswordSection({
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
 
+  const get_strength_badge = () => {
+    if (password_strength_tier === null || password_strength_tier === undefined)
+      return null;
+
+    if (password_strength_tier <= 1)
+      return {
+        label: t("common.password_strength_weak"),
+        color: "var(--color-danger)",
+      };
+    if (password_strength_tier === 2)
+      return {
+        label: t("common.password_strength_fair"),
+        color: "var(--color-warning)",
+      };
+    if (password_strength_tier === 3)
+      return {
+        label: t("common.password_strength_strong"),
+        color: "var(--color-success)",
+      };
+
+    return {
+      label: t("common.password_strength_very_secure"),
+      color: "var(--color-success)",
+    };
+  };
+
+  const strength_badge = get_strength_badge();
+
+  const last_updated_label = last_password_change
+    ? t("settings.password_last_updated", {
+        date: new Date(last_password_change).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      })
+    : null;
+
   return (
     <div className={show_header ? "pt-3" : undefined}>
       {show_header && (
@@ -106,21 +148,46 @@ export function PasswordSection({
           {t("settings.password")}
         </p>
       )}
-      <p className="text-sm mb-2 text-txt-muted">
-        {t("settings.change_password_description")}
-      </p>
-
-      <Button
-        variant="secondary"
-        onClick={() => set_show_password_section(true)}
-      >
-        {t("settings.change_password")}
-      </Button>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm tracking-widest text-txt-primary">
+              ••••••••••••
+            </span>
+            {strength_badge && (
+              <span
+                className="inline-flex items-center gap-1 text-xs font-medium"
+                style={{ color: strength_badge.color }}
+              >
+                {password_strength_tier != null && password_strength_tier >= 4 && (
+                  <CheckCircleIcon className="w-3.5 h-3.5" />
+                )}
+                {strength_badge.label}
+              </span>
+            )}
+          </div>
+          {last_updated_label ? (
+            <p className="text-xs text-txt-muted mt-1">
+              {last_updated_label}
+            </p>
+          ) : (
+            <p className="text-sm text-txt-muted mt-1">
+              {t("settings.change_password_description")}
+            </p>
+          )}
+        </div>
+        <Button
+          variant="secondary"
+          onClick={() => set_show_password_section(true)}
+        >
+          {t("settings.change_password")}
+        </Button>
+      </div>
 
       <Modal
         is_open={show_password_section}
         on_close={on_cancel}
-        size="sm"
+        size="md"
         z_index={70}
       >
         <ModalHeader>
@@ -133,16 +200,15 @@ export function PasswordSection({
         <ModalBody>
           <div className="space-y-4">
             <div
-              className="flex items-start gap-2 p-3 rounded-lg text-sm"
+              className="flex items-start gap-2 p-2.5 rounded-lg text-xs"
               style={{
-                backgroundColor: "color-mix(in srgb, #f59e0b 15%, transparent)",
-                color: "var(--txt-primary)",
-                border: "1px solid color-mix(in srgb, #f59e0b 40%, transparent)",
+                backgroundColor: "#b45309",
+                color: "#fff",
               }}
             >
               <ExclamationTriangleIcon
-                className="w-4 h-4 flex-shrink-0 mt-0.5"
-                style={{ color: "#f59e0b" }}
+                className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
+                style={{ color: "#fff" }}
               />
               <span>{t("settings.password_change_encrypted_data_warning")}</span>
             </div>

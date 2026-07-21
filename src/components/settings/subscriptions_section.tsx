@@ -51,7 +51,7 @@ import {
   type ScanProgress,
 } from "@/services/subscription_scanner";
 
-const SNOOZE_COLOR = "#3b82f6";
+const SNOOZE_COLOR = "var(--accent-color)";
 
 const DOMAIN_AVATAR_COLORS = [
   "#3b82f6",
@@ -371,7 +371,7 @@ export function SubscriptionsSection() {
                 role="button"
                 style={{
                   backgroundColor: selected_ids.has(sub.id)
-                    ? `${SNOOZE_COLOR}10`
+                    ? "color-mix(in srgb, var(--accent-color) 10%, transparent)"
                     : "transparent",
                   borderTop:
                     index > 0 ? "1px solid var(--border-secondary)" : "none",

@@ -107,9 +107,12 @@ export function TrustedDevicesSection() {
       ) : error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : devices.length === 0 ? (
-        <p className="text-sm text-txt-muted">
-          {t("settings.trusted_2fa_empty")}
-        </p>
+        <div className="py-6 text-center">
+          <ShieldCheckIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+          <p className="text-sm text-txt-muted">
+            {t("settings.trusted_2fa_empty")}
+          </p>
+        </div>
       ) : (
         <div className="space-y-2">
           {devices.map((d) => (

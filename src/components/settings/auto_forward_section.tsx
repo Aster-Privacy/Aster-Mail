@@ -473,7 +473,7 @@ export function AutoForwardSection() {
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
                         style={{
-                          backgroundColor: "#2563eb",
+                          backgroundColor: "var(--accent-color-hover)",
                           color: "#fff",
                         }}
                       >

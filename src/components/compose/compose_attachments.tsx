@@ -507,7 +507,7 @@ function ImageResizeOverlay({
         style={{
           position: "absolute",
           inset: "0",
-          border: "2px solid var(--accent-primary, #3b82f6)",
+          border: "2px solid var(--accent-color, #3b82f6)",
           pointerEvents: "none",
         }}
       />
@@ -518,7 +518,7 @@ function ImageResizeOverlay({
             position: "absolute",
             width: `${HANDLE_SIZE}px`,
             height: `${HANDLE_SIZE}px`,
-            backgroundColor: "var(--accent-primary, #3b82f6)",
+            backgroundColor: "var(--accent-color, #3b82f6)",
             border: "1px solid white",
             borderRadius: "2px",
             cursor: pos.cursor,
@@ -649,7 +649,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
           cursor: pointer;
         }
         [contenteditable=true] img:hover {
-          outline: 2px solid color-mix(in srgb, var(--accent-primary, #3b82f6) 50%, transparent);
+          outline: 2px solid color-mix(in srgb, var(--accent-color, #3b82f6) 50%, transparent);
           outline-offset: 2px;
         }
       `}</style>

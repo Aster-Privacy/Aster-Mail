@@ -55,7 +55,7 @@ function StepStatusIcon({ status }: { status: StepStatus }) {
 function step_bg(status: StepStatus, is_active: boolean): string {
   if (status === "verified") return "linear-gradient(to bottom, #22c55e, #16a34a)";
   if (status === "failed") return "linear-gradient(to bottom, #f87171, #dc2626)";
-  if (is_active) return "linear-gradient(to bottom, #4a7aff, #2d5ae0)";
+  if (is_active) return "linear-gradient(to bottom, var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, black))";
 
   return "var(--bg-tertiary)";
 }

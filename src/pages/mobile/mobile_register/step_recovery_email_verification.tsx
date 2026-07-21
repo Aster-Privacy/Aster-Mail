@@ -56,10 +56,10 @@ export function StepRecoveryEmailVerification({
               style={{
                 background: reg.is_email_verified
                   ? "linear-gradient(180deg, #34d399 0%, #10b981 100%)"
-                  : "linear-gradient(180deg, #6b8aff 0%, #4a7aff 100%)",
+                  : "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 100%)",
                 boxShadow: reg.is_email_verified
                   ? "0 4px 12px rgba(16, 185, 129, 0.3)"
-                  : "0 4px 12px rgba(74, 122, 255, 0.3)",
+                  : "0 4px 12px color-mix(in srgb, var(--accent-color) 30%, transparent)",
                 transition: "background 0.3s ease, box-shadow 0.3s ease",
               }}
             >
@@ -146,7 +146,7 @@ export function StepRecoveryEmailVerification({
               className="mt-6 flex items-center gap-2"
               variants={reduce_motion ? undefined : fade_up_item}
             >
-              <Spinner className="text-[#4a7aff]" size="sm" />
+              <Spinner className="text-[var(--mobile-accent)]" size="sm" />
               <span className="text-sm text-[var(--text-muted)]">
                 {reg.t("auth.waiting_for_verification")}
               </span>
