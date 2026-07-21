@@ -1464,7 +1464,7 @@ export const pl = {
     add_alias_website: "Dodaj stronę",
     add_alias_website_placeholder: "Dodaj stronę, na której się zarejestrowano",
     alias_add_details: "Dodaj szczegóły",
-    alias_websites_count: "{count} stron",
+    alias_websites_count: "{{count}} stron",
     remove_alias_website: "Usuń stronę",
     failed_update_alias_note:
       "Notatka nie została zapisana. Spróbuj jeszcze raz.",
@@ -7558,7 +7558,7 @@ export const pl = {
   },
   survey: {
     banner_title: "Pomóż ulepszyć Aster Mail",
-    banner_message: "Jednorazowa ankieta, zajmuje około minuty.",
+    banner_message: "Pomóż kształtować Aster: jednorazowa ankieta, około minuty. Twoje odpowiedzi pozostają prywatne i nigdy nie są udostępniane.",
     banner_take: "Wypełnij ankietę",
     banner_dismiss: "Odrzuć",
     remind_tomorrow: "Przypomnij jutro",

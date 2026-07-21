@@ -1465,7 +1465,7 @@ export const ru = {
     add_alias_website_placeholder:
       "Добавьте сайт, на котором вы зарегистрировались",
     alias_add_details: "Добавить детали",
-    alias_websites_count: "{count} сайтов",
+    alias_websites_count: "{{count}} сайтов",
     remove_alias_website: "Удалить сайт",
     failed_update_alias_note: "Заметка не сохранилась. Попробуйте ещё раз.",
     alias_note_too_long:
@@ -7561,7 +7561,7 @@ export const ru = {
   },
   survey: {
     banner_title: "Помогите улучшить Aster Mail",
-    banner_message: "Разовый опрос, займёт около минуты.",
+    banner_message: "Помогите развитию Aster: разовый опрос, около минуты. Ваши ответы остаются конфиденциальными и никогда не передаются.",
     banner_take: "Пройти опрос",
     banner_dismiss: "Скрыть",
     remind_tomorrow: "Напомнить завтра",

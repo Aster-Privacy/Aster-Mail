@@ -1457,7 +1457,7 @@ export const ja = {
     add_alias_website: "ウェブサイトを追加",
     add_alias_website_placeholder: "登録したウェブサイトを追加",
     alias_add_details: "詳細を追加",
-    alias_websites_count: "{count}件のウェブサイト",
+    alias_websites_count: "{{count}}件のウェブサイト",
     remove_alias_website: "ウェブサイトを削除",
     failed_update_alias_note:
       "メモが保存されませんでした。もう一度試すと通ることが多いです。",
@@ -7515,7 +7515,7 @@ export const ja = {
   },
   survey: {
     banner_title: "Aster Mail の改善にご協力ください",
-    banner_message: "一度きりのアンケートです。約1分で終わります。",
+    banner_message: "Aster の改善にご協力ください。一度きり、約1分のアンケートです。回答は非公開で、共有されることはありません。",
     banner_take: "アンケートに回答",
     banner_dismiss: "閉じる",
     remind_tomorrow: "明日リマインド",

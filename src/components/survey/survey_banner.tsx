@@ -20,7 +20,7 @@
 //
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -131,7 +131,7 @@ export function SurveyBanner() {
           >
             <div className="flex items-center justify-between px-4 py-1.5">
               <div className="flex items-center gap-1.5 min-w-0">
-                <ClipboardDocumentListIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
+                <InformationCircleIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
                 <span className="text-xs font-medium truncate opacity-95">
                   {t("survey.banner_message")}
                 </span>
