@@ -56,6 +56,10 @@ import {
 } from "./key_manager_pgp";
 import { check_and_pin_identity } from "./ratchet_identity_pin";
 import {
+  fetch_refreshed_vault,
+  adopt_refreshed_vault,
+} from "./vault_refresh";
+import {
   get_cached_ratchet_plaintext,
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
@@ -820,6 +824,42 @@ async function decrypt_ratchet_for_recipient(
           }
         } catch {
           /* best-effort */
+        }
+      }
+    }
+
+    if ((plaintext === null || !ratchet) && is_fresh_bootstrap) {
+      const refreshed = await fetch_refreshed_vault();
+
+      if (refreshed) {
+        const tried = new Set(
+          key_sets.map((set) => set.ratchet_identity_public),
+        );
+
+        for (const keys of receiver_key_sets(refreshed.vault)) {
+          if (tried.has(keys.ratchet_identity_public)) continue;
+
+          let candidate: DoubleRatchet | null = null;
+
+          try {
+            candidate = await init_receiver_from_bootstrap(
+              data,
+              sender_identity_key,
+              keys,
+              conversation_id,
+            );
+          } catch {
+            continue;
+          }
+
+          if (!candidate) continue;
+
+          try {
+            plaintext = await candidate.decrypt(message);
+            ratchet = candidate;
+            await adopt_refreshed_vault(refreshed);
+            break;
+          } catch {}
         }
       }
     }
