@@ -137,6 +137,7 @@ export function ConnectionSection() {
                 is_disabled && "opacity-50 pointer-events-none",
               )}
               role="button"
+              style={{ backgroundColor: "var(--bg-tertiary)" }}
               tabIndex={is_disabled ? -1 : 0}
               onClick={() => handle_method_change(option.value)}
               onKeyDown={(e) => {

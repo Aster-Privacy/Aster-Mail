@@ -33,6 +33,7 @@ interface ThemeCardProps {
   is_selected: boolean;
   on_select: () => void;
   full_width?: boolean;
+  size?: "default" | "lg";
 }
 
 export function ThemeCard({
@@ -41,6 +42,7 @@ export function ThemeCard({
   is_selected,
   on_select,
   full_width = false,
+  size = "default",
 }: ThemeCardProps) {
   const get_mockup = () => {
     if (mode === "light") return <ThemeMockupLight />;
@@ -92,7 +94,7 @@ export function ThemeCard({
 
   return (
     <button
-      className={`group p-3 rounded-[14px] transition-all cursor-pointer outline-none focus:outline-none ${full_width ? "w-full" : "w-40 flex-none"}`}
+      className={`group p-3 rounded-[14px] transition-all cursor-pointer outline-none focus:outline-none ${full_width ? "w-full" : size === "lg" ? "w-56 flex-none" : "w-40 flex-none"}`}
       type="button"
       onClick={on_select}
     >
