@@ -21,14 +21,18 @@
 import {
   ThemeMockupLight,
   ThemeMockupDark,
+  ThemeMockupSystem,
+  ThemeMockupColor,
+  type ColorThemeName,
 } from "@/components/settings/appearance/theme_mockups";
 import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 
 interface ThemeCardProps {
-  mode: "light" | "dark";
+  mode: "light" | "dark" | "system" | ColorThemeName;
   label: string;
   is_selected: boolean;
   on_select: () => void;
+  full_width?: boolean;
 }
 
 export function ThemeCard({
@@ -36,35 +40,72 @@ export function ThemeCard({
   label,
   is_selected,
   on_select,
+  full_width = false,
 }: ThemeCardProps) {
   const get_mockup = () => {
     if (mode === "light") return <ThemeMockupLight />;
+    if (mode === "dark") return <ThemeMockupDark />;
+    if (mode === "system") return <ThemeMockupSystem />;
 
-    return <ThemeMockupDark />;
+    return <ThemeMockupColor name={mode} />;
   };
 
   const get_border_color = () => {
     if (mode === "light") return "1px solid #e5e5e5";
+    if (mode === "system") return "1px solid var(--border-secondary)";
+    if (mode === "purple") return "1px solid #3a2d4d";
+    if (mode === "green") return "1px solid #2b4a3b";
+    if (mode === "rose") return "1px solid #4d2a35";
+    if (mode === "orange") return "1px solid #4d3820";
+    if (mode === "teal") return "1px solid #2b4949";
 
     return "1px solid #1a1a1a";
   };
 
+  const get_bg_color = () => {
+    if (mode === "light") return "#ffffff";
+    if (mode === "system") return "var(--bg-primary)";
+
+    return "#121212";
+  };
+
+  const color_names: ColorThemeName[] = [
+    "purple",
+    "green",
+    "rose",
+    "orange",
+    "teal",
+    "indigo",
+    "amber",
+    "cyan",
+    "slate",
+    "aster-blue",
+    "lime",
+    "fuchsia",
+    "emerald",
+    "pink",
+    "black",
+  ];
+  const scope_class = color_names.includes(mode as ColorThemeName)
+    ? `dark theme-${mode}`
+    : "";
+
   return (
     <button
-      className="flex-1 p-3 rounded-[14px] transition-all cursor-pointer"
+      className={`group p-3 rounded-[14px] transition-all cursor-pointer outline-none focus:outline-none ${full_width ? "w-full" : "w-40 flex-none"}`}
       type="button"
       onClick={on_select}
     >
       <div
-        className={`relative w-full aspect-[4/3] rounded-lg mb-3 transition-all ${
+        className={`${scope_class} relative w-full aspect-[4/3] rounded-lg mb-3 transition-all ${
           is_selected
             ? "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary"
-            : ""
+            : "group-focus-visible:ring-2 group-focus-visible:ring-brand group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-surf-primary"
         }`}
       >
         <div
           className="w-full h-full rounded-lg overflow-hidden"
-          style={{ border: get_border_color() }}
+          style={{ border: get_border_color(), backgroundColor: get_bg_color() }}
         >
           {get_mockup()}
         </div>

@@ -23,7 +23,6 @@ import type { CustomCategoryRule } from "@/data/category_catalog";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  SparklesIcon,
   XMarkIcon,
   ArrowsPointingOutIcon,
   ArrowsPointingInIcon,
@@ -184,14 +183,11 @@ export function CustomCategoryModal({
           >
             <div className="px-6 pt-6 pb-4">
               <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  <SparklesIcon className="w-5 h-5 text-txt-secondary" />
-                  <h2 className="text-[16px] font-semibold text-txt-primary">
-                    {existing
-                      ? t("settings.edit_custom_category")
-                      : t("settings.new_custom_category")}
-                  </h2>
-                </div>
+                <h2 className="text-[16px] font-semibold text-txt-primary">
+                  {existing
+                    ? t("settings.edit_custom_category")
+                    : t("settings.new_custom_category")}
+                </h2>
                 <div className="flex items-center gap-1">
                   <Button
                     size="icon"

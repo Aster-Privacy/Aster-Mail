@@ -74,7 +74,14 @@ const aliases_cache: AliasesCache = {
   loaded: false,
 };
 
+let aliases_cache_token = 0;
+
+export function get_aliases_cache_token(): number {
+  return aliases_cache_token;
+}
+
 export function clear_aliases_cache(): void {
+  aliases_cache_token += 1;
   aliases_cache.aliases = [];
   aliases_cache.domain_addresses = [];
   aliases_cache.alias_counts = null;
@@ -86,6 +93,12 @@ export function clear_aliases_cache(): void {
 
 export function get_cached_aliases(): DecryptedEmailAlias[] {
   return aliases_cache.aliases;
+}
+
+export function get_cached_domain_addresses(): (DecryptedDomainAddress & {
+  domain_name: string;
+})[] {
+  return aliases_cache.domain_addresses;
 }
 
 export { DEFAULT_DOMAINS };
@@ -184,6 +197,8 @@ export function use_aliases() {
       return;
     }
 
+    const token = aliases_cache_token;
+
     if (!aliases_cache.loaded) {
       set_aliases_loading(true);
     }
@@ -191,11 +206,15 @@ export function use_aliases() {
     try {
       const { aliases: raw, max_aliases, error } = await list_all_aliases();
 
+      if (token !== aliases_cache_token) return;
+
       if (!error) {
         set_max_aliases(max_aliases);
         aliases_cache.max_aliases = max_aliases;
 
         const decrypted = await decrypt_aliases(raw);
+
+        if (token !== aliases_cache_token) return;
 
         set_aliases(decrypted);
         aliases_cache.aliases = decrypted;
@@ -211,18 +230,26 @@ export function use_aliases() {
         aliases_cache.alias_counts = derived_counts;
       }
     } catch (error) {
-      show_toast(t("settings.aliases_load_failed"), "error");
+      if (token === aliases_cache_token) {
+        show_toast(t("settings.aliases_load_failed"), "error");
+      }
       if (import.meta.env.DEV) console.error(error);
     } finally {
-      set_aliases_loading(false);
+      if (token === aliases_cache_token) set_aliases_loading(false);
     }
   }, []);
 
   const load_alias_counts = useCallback(async () => {
+    const token = aliases_cache_token;
+
     try {
       const response = await get_alias_counts();
 
-      if (response.data && typeof response.data.max === "number") {
+      if (
+        token === aliases_cache_token &&
+        response.data &&
+        typeof response.data.max === "number"
+      ) {
         set_alias_counts(response.data);
         aliases_cache.alias_counts = response.data;
       }
@@ -232,12 +259,16 @@ export function use_aliases() {
   }, []);
 
   const load_domains = useCallback(async () => {
+    const token = aliases_cache_token;
+
     if (!aliases_cache.loaded) {
       set_domains_loading(true);
     }
 
     try {
       const response = await list_domains();
+
+      if (token !== aliases_cache_token) return;
 
       if (response.data) {
         set_domains(response.data.domains);
@@ -248,17 +279,20 @@ export function use_aliases() {
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
     } finally {
-      set_domains_loading(false);
+      if (token === aliases_cache_token) set_domains_loading(false);
     }
   }, []);
 
   const load_domain_addresses = useCallback(
     async (domain_list: CustomDomain[]) => {
+      const token = aliases_cache_token;
       const active = domain_list.filter((d) => d.status === "active");
 
       if (active.length === 0) {
-        set_domain_addresses([]);
-        aliases_cache.domain_addresses = [];
+        if (token === aliases_cache_token) {
+          set_domain_addresses([]);
+          aliases_cache.domain_addresses = [];
+        }
 
         return;
       }
@@ -267,6 +301,8 @@ export function use_aliases() {
         const responses = await Promise.all(
           active.map((d) => list_domain_addresses(d.id)),
         );
+
+        if (token !== aliases_cache_token) return;
 
         const all_addresses: (DecryptedDomainAddress & {
           domain_name: string;
@@ -280,6 +316,8 @@ export function use_aliases() {
               response.data.addresses,
             );
 
+            if (token !== aliases_cache_token) return;
+
             for (const addr of decrypted) {
               all_addresses.push({
                 ...addr,
@@ -289,12 +327,16 @@ export function use_aliases() {
           }
         }
 
+        if (token !== aliases_cache_token) return;
+
         set_domain_addresses(all_addresses);
         aliases_cache.domain_addresses = all_addresses;
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
-        set_domain_addresses([]);
-        aliases_cache.domain_addresses = [];
+        if (token === aliases_cache_token) {
+          set_domain_addresses([]);
+          aliases_cache.domain_addresses = [];
+        }
       }
     },
     [],

@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export const EMAIL_BODY_CSS = `
+export function build_email_body_css(accent_color = "#3b82f6") {
+  return `
 @font-face {
   font-family: 'Google Sans Flex';
   font-style: normal;
@@ -122,7 +123,7 @@ body {
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
-  background-color: #3b82f6;
+  background-color: ${accent_color};
   color: white;
   border: none;
   cursor: pointer;
@@ -260,8 +261,12 @@ img {
   }
 }
 `;
+}
 
-export const FORCED_DARK_MODE_CSS = `
+export const EMAIL_BODY_CSS = build_email_body_css();
+
+export function build_forced_dark_mode_css(accent_color = "#3b82f6", accent_color_hover = "#60a5fa") {
+  return `
 html, body {
   background-color: transparent !important;
   color: #d4d4d4 !important;
@@ -287,7 +292,7 @@ blockquote {
   color: #d4d4d4 !important;
 }
 
-a, a * { color: #60a5fa !important; }
+a, a * { color: ${accent_color_hover} !important; }
 a:visited, a:visited * { color: #a78bfa !important; }
 
 img { opacity: 0.87; }
@@ -307,7 +312,7 @@ blockquote {
 }
 
 blockquote blockquote {
-  border-left-color: #3b82f6 !important;
+  border-left-color: ${accent_color} !important;
 }
 
 blockquote blockquote blockquote {
@@ -368,3 +373,6 @@ details.aster-forwarded-collapse > summary {
   color: #9ca3af !important;
 }
 `;
+}
+
+export const FORCED_DARK_MODE_CSS = build_forced_dark_mode_css();

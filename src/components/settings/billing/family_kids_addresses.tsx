@@ -335,7 +335,10 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       {loading ? (
         <div className="flex justify-center py-8"><Spinner /></div>
       ) : visible.length === 0 ? (
-        <p className="text-sm text-txt-muted py-6 text-center">{t("settings.fam_kids_empty")}</p>
+        <div className="py-6 text-center">
+          <UserIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+          <p className="text-sm text-txt-muted">{t("settings.fam_kids_empty")}</p>
+        </div>
       ) : (
         <div className="space-y-2">
           {visible.map((r) => {

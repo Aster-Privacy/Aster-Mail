@@ -213,7 +213,7 @@ export function TotpSetupModal({
             <div className="flex justify-center">
               <RoundedQrCode
                 logo_src="/mail_logo.webp"
-                size={180}
+                size={240}
                 value={setup_data.otpauth_uri}
               />
             </div>
@@ -274,7 +274,7 @@ export function TotpSetupModal({
     <>
       <ModalHeader>
         <div className="flex items-center gap-3">
-          <ShieldCheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+          <ShieldCheckIcon className="w-6 h-6 text-txt-primary flex-shrink-0" />
           <ModalTitle>{t("settings.two_factor_auth_enabled")}</ModalTitle>
         </div>
         <ModalDescription>
@@ -323,7 +323,7 @@ export function TotpSetupModal({
           <div
             className="flex items-center gap-2 p-3 rounded-lg"
             style={{
-              backgroundColor: "#2563eb",
+              backgroundColor: "var(--accent-color-hover)",
               color: "#fff",
             }}
           >

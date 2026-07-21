@@ -99,7 +99,7 @@ export function SendingMessageBlock({
             <span
               className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
               style={{
-                backgroundColor: "rgba(59, 130, 246, 0.15)",
+                backgroundColor: "color-mix(in srgb, var(--accent-color) 15%, transparent)",
                 color: "rgb(59, 130, 246)",
               }}
             >
@@ -133,7 +133,7 @@ export function SendingMessageBlock({
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.03) 50%, transparent 100%)",
+            "linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-color) 3%, transparent) 50%, transparent 100%)",
           animation: "sending-shimmer 2s infinite",
         }}
       />

@@ -20,7 +20,7 @@
 //
 import type { Badge, BadgePreferences } from "@/services/api/user";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   CameraIcon,
@@ -262,6 +262,18 @@ export function AccountSection() {
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
   const file_ref = useRef<HTMLInputElement>(null);
+
+  const copy_primary_address = useCallback(
+    async (address: string) => {
+      try {
+        await navigator.clipboard.writeText(address);
+        show_toast(t("common.copied"), "success");
+      } catch {
+        show_toast(t("common.failed_to_copy_to_clipboard"), "error");
+      }
+    },
+    [t],
+  );
 
   const [color, set_color] = useState(
     preferences.profile_color || PROFILE_COLORS[5],
@@ -736,9 +748,16 @@ export function AccountSection() {
             </p>
           )}
         </div>
-        <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-          {primary_identity.email || account_email}
-        </span>
+        <div
+          className="cursor-pointer rounded-md px-2 -mr-2 py-1 hover:bg-surf-hover transition-colors"
+          onClick={() =>
+            copy_primary_address(primary_identity.email || account_email)
+          }
+        >
+          <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
+            {primary_identity.email || account_email}
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center justify-between py-4">

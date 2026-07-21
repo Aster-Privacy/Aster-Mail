@@ -85,23 +85,20 @@ export function use_draggable_modal(
       movement_occurred_ref.current = false;
       set_initial_mouse_pos({ x: e.clientX, y: e.clientY });
 
-      const new_drag_start = !state.has_been_moved
-        ? { x: e.clientX - rect.left, y: e.clientY - rect.top }
-        : { x: e.clientX - state.position.x, y: e.clientY - state.position.y };
+      const new_drag_start = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
 
-      if (!state.has_been_moved) {
-        set_state((prev) => ({
-          ...prev,
-          position: { x: rect.left, y: rect.top },
-          is_dragging: true,
-        }));
-      } else {
-        set_state((prev) => ({ ...prev, is_dragging: true }));
-      }
+      set_state((prev) => ({
+        ...prev,
+        position: { x: rect.left, y: rect.top },
+        is_dragging: true,
+      }));
 
       set_drag_start(new_drag_start);
     },
-    [state.has_been_moved, state.position],
+    [],
   );
 
   useEffect(() => {

@@ -152,6 +152,16 @@ export function AliasList({
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [show_bulk_delete_confirm, set_show_bulk_delete_confirm] = useState(false);
 
+  const [deleted_refresh_signal, set_deleted_refresh_signal] = useState(0);
+  const prev_aliases_length_ref = useRef(aliases.length);
+
+  useEffect(() => {
+    if (aliases.length < prev_aliases_length_ref.current) {
+      set_deleted_refresh_signal((s) => s + 1);
+    }
+    prev_aliases_length_ref.current = aliases.length;
+  }, [aliases.length]);
+
   const filtered_aliases = useMemo(() => {
     let result = aliases;
     const query = search_query.trim().toLowerCase();
@@ -293,6 +303,7 @@ export function AliasList({
         </div>
         <RecentlyDeletedAliasesSection
           on_restored={() => on_aliases_changed?.()}
+          refresh_signal={deleted_refresh_signal}
         />
       </div>
     );
@@ -426,6 +437,7 @@ export function AliasList({
       ))}
       <RecentlyDeletedAliasesSection
         on_restored={() => on_aliases_changed?.()}
+        refresh_signal={deleted_refresh_signal}
       />
 
       <ConfirmationModal

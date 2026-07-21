@@ -42,6 +42,12 @@ import {
 } from "@/services/api/sessions";
 import { get_recovery_email } from "@/services/api/recovery_email";
 import {
+  get_security_status,
+  backfill_password_strength_tier,
+  type SecurityStatusResponse,
+} from "@/services/api/account";
+import { compute_password_strength_tier } from "@/services/password_strength_score";
+import {
   hash_email,
   derive_password_hash,
   decrypt_vault,
@@ -165,6 +171,8 @@ export function use_security() {
   const [sessions_loading, set_sessions_loading] = useState(true);
   const [sessions_error, set_sessions_error] = useState<string | null>(null);
   const [recovery_email_verified, set_recovery_email_verified] = useState(false);
+  const [security_status, set_security_status] =
+    useState<SecurityStatusResponse | null>(null);
 
   const fetch_totp_status = useCallback(async () => {
     try {
@@ -256,6 +264,53 @@ export function use_security() {
     } catch {}
   }, [cache]);
 
+  const fetch_security_status = useCallback(async () => {
+    try {
+      const response = await get_security_status();
+
+      if (!response.data) return;
+
+      let status = response.data;
+
+      if (status.password_strength_tier === null) {
+        const passphrase = get_passphrase_from_memory();
+
+        if (passphrase) {
+          const tier = compute_password_strength_tier(passphrase);
+
+          status = { ...status, password_strength_tier: tier };
+          backfill_password_strength_tier(tier).catch(() => {});
+        }
+      }
+
+      set_security_status(status);
+      cache.set_entry("security_status", {
+        data: { ...response, data: status },
+        error: null,
+        fetched_at: Date.now(),
+        is_loading: false,
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+
+      return;
+    }
+  }, [cache]);
+
+  const hydrate_security_status = useCallback(async () => {
+    const cached = cache.get_entry<ApiResponse<SecurityStatusResponse>>(
+      "security_status",
+    );
+
+    if (cache.is_fresh("security_status") && cached?.data?.data) {
+      set_security_status(cached.data.data);
+
+      return;
+    }
+
+    await fetch_security_status();
+  }, [cache, fetch_security_status]);
+
   const hydrate_totp_status = useCallback(async () => {
     const cached = cache.get_entry<ApiResponse<TotpStatusResponse>>(
       "totp_status",
@@ -325,6 +380,7 @@ export function use_security() {
       hydrate_totp_status(),
       hydrate_login_alerts_status(),
       hydrate_recovery_email_status(),
+      hydrate_security_status(),
     ]).then(() => set_security_score_loaded(true));
     fetch_ipfs_status();
     fetch_sessions();
@@ -333,6 +389,7 @@ export function use_security() {
     hydrate_totp_status,
     hydrate_login_alerts_status,
     hydrate_recovery_email_status,
+    hydrate_security_status,
     fetch_ipfs_status,
     fetch_sessions,
     fetch_login_events,
@@ -597,6 +654,9 @@ export function use_security() {
         vault_nonce: new_vault_nonce,
       } = await encrypt_vault(vault, new_password);
 
+      const new_password_strength_tier =
+        compute_password_strength_tier(new_password);
+
       let response;
 
       if (master_key_mode) {
@@ -607,6 +667,7 @@ export function use_security() {
           new_encrypted_vault,
           new_vault_nonce,
           vault_format: MASTER_KEY_VAULT_FORMAT,
+          new_password_strength_tier,
         });
       } else {
         const {
@@ -632,6 +693,7 @@ export function use_security() {
           re_encrypted_destinations,
           re_encrypted_directories,
           re_encrypted_domain_addresses,
+          new_password_strength_tier,
         });
       }
 
@@ -690,6 +752,14 @@ export function use_security() {
           vault.identity_key,
         ).catch(() => {});
       }
+
+      set_security_status((prev) => ({
+        two_factor_enabled: prev?.two_factor_enabled ?? false,
+        recovery_email_set: prev?.recovery_email_set ?? false,
+        last_password_change: new Date().toISOString(),
+        password_strength_tier: new_password_strength_tier,
+      }));
+      fetch_security_status();
 
       set_password_success(true);
       set_show_password_section(false);
@@ -909,6 +979,8 @@ export function use_security() {
 
     recovery_email_verified,
     security_score_loaded,
+    last_password_change: security_status?.last_password_change ?? null,
+    password_strength_tier: security_status?.password_strength_tier ?? null,
 
     totp_status,
     fetch_totp_status,

@@ -21,7 +21,12 @@
 import type { LanguageCode as _LanguageCode } from "@/lib/i18n/types";
 import type { ReactNode } from "react";
 
-import { SunIcon, MoonIcon, CheckIcon } from "@heroicons/react/24/outline";
+import {
+  SunIcon,
+  MoonIcon,
+  ComputerDesktopIcon,
+  CheckIcon,
+} from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader, OptionList } from "./shared";
 
@@ -46,7 +51,7 @@ export function AppearanceSection({
   const { set_language } = use_i18n();
 
   const theme_options: {
-    value: "light" | "dark";
+    value: "light" | "dark" | "system";
     label: string;
     icon: ReactNode;
   }[] = [
@@ -59,6 +64,11 @@ export function AppearanceSection({
       value: "dark",
       label: t("settings.theme_dark"),
       icon: <MoonIcon className="h-5 w-5" />,
+    },
+    {
+      value: "system",
+      label: t("settings.theme_system"),
+      icon: <ComputerDesktopIcon className="h-5 w-5" />,
     },
   ];
 

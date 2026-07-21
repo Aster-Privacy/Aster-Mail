@@ -46,6 +46,7 @@ export type SettingsPanelName =
   | "totp_status"
   | "login_alerts_status"
   | "recovery_email_status"
+  | "security_status"
   | "passkey_list";
 
 export interface SettingsPanelEntry<T = unknown> {

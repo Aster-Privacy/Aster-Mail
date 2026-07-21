@@ -29,38 +29,58 @@ import {
 
 import { update_status_bar_theme } from "@/native/capacitor_bridge";
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark";
+export type ThemePreference = "light" | "dark" | "system";
 
 interface ThemeContextType {
   theme: Theme;
-  theme_preference: Theme;
+  theme_preference: ThemePreference;
   toggle_theme: () => void;
   set_theme: (theme: Theme) => void;
-  set_theme_preference: (pref: Theme) => void;
+  set_theme_preference: (pref: ThemePreference) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = "astermail_theme";
 
-function get_initial_theme(): Theme {
+function get_system_theme(): Theme {
+  if (typeof window === "undefined" || !window.matchMedia) return "dark";
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function get_initial_preference(): ThemePreference {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+
+    if (stored === "dark" || stored === "light" || stored === "system") {
+      return stored;
+    }
+  } catch {}
+
   if (
     typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark")
   ) {
     return "dark";
   }
-  try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
-
-    if (stored === "dark" || stored === "light") return stored;
-  } catch {}
 
   return "dark";
 }
 
+function resolve_theme(pref: ThemePreference): Theme {
+  return pref === "system" ? get_system_theme() : pref;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, set_theme_state] = useState<Theme>(get_initial_theme);
+  const [theme_preference, set_theme_preference_state] =
+    useState<ThemePreference>(get_initial_preference);
+  const [theme, set_theme_state] = useState<Theme>(() =>
+    resolve_theme(get_initial_preference()),
+  );
 
   useEffect(() => {
     const root = document.documentElement;
@@ -71,30 +91,61 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove("dark");
     }
 
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {}
-
     update_status_bar_theme(theme === "dark");
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+
+    if (meta) {
+      const bg = getComputedStyle(root).getPropertyValue("--bg-secondary").trim();
+
+      if (bg) meta.setAttribute("content", bg);
+    }
   }, [theme]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme_preference);
+    } catch {}
+
+    set_theme_state(resolve_theme(theme_preference));
+  }, [theme_preference]);
+
+  useEffect(() => {
+    if (theme_preference !== "system" || typeof window === "undefined" || !window.matchMedia) {
+      return;
+    }
+
+    const media_query = window.matchMedia("(prefers-color-scheme: dark)");
+    const handle_change = () => {
+      set_theme_state(media_query.matches ? "dark" : "light");
+    };
+
+    media_query.addEventListener("change", handle_change);
+
+    return () => media_query.removeEventListener("change", handle_change);
+  }, [theme_preference]);
+
   const toggle_theme = useCallback(() => {
-    set_theme_state((prev) => (prev === "light" ? "dark" : "light"));
+    set_theme_preference_state((prev) => {
+      const current = resolve_theme(prev);
+
+      return current === "light" ? "dark" : "light";
+    });
   }, []);
 
   const set_theme = useCallback((new_theme: Theme) => {
-    set_theme_state(new_theme);
+    set_theme_preference_state(new_theme);
   }, []);
 
-  const set_theme_preference = useCallback((pref: Theme) => {
-    set_theme_state(pref);
+  const set_theme_preference = useCallback((pref: ThemePreference) => {
+    set_theme_preference_state(pref);
   }, []);
 
   return (
     <ThemeContext.Provider
       value={{
         theme,
-        theme_preference: theme,
+        theme_preference,
         toggle_theme,
         set_theme,
         set_theme_preference,

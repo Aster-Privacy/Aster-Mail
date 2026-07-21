@@ -19,8 +19,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
-import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  ArrowUpTrayIcon,
+  ArchiveBoxArrowDownIcon,
+  EnvelopeIcon,
+  UserGroupIcon,
+  Cog6ToothIcon,
+  ShieldCheckIcon,
+  KeyIcon,
+  LockClosedIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+import { Badge, Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ExportModal } from "./export_modal";
@@ -39,33 +49,119 @@ export function ExportSection() {
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
-        <p className="text-sm text-txt-muted">
-          {t("settings.export_description")}
-        </p>
-      </div>
 
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
-        <div className="flex-shrink-0">
-          <ArrowUpTrayIcon className="w-6 h-6 text-txt-secondary" />
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.export_title")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.export_description")}
+            </p>
+          </div>
+          <Button variant="depth" onClick={() => set_is_open(true)}>
+            <ArchiveBoxArrowDownIcon className="w-4 h-4" />
+            {t("settings.export_start_button")}
+          </Button>
         </div>
-        <span className="flex-1 text-sm font-medium text-txt-primary">
-          {t("settings.export_title")}
-        </span>
-        <Button
-          variant="depth"
-          onClick={() => set_is_open(true)}
-        >
-          {t("settings.export_start_button")}
-        </Button>
       </div>
 
-      <div className="rounded-xl border p-4 space-y-2 bg-surf-secondary/50 border-edge-secondary">
-        <p className="text-xs font-medium text-txt-secondary">
-          {t("settings.export_warning_title")}
-        </p>
-        <p className="text-xs text-txt-muted leading-relaxed">
-          {t("settings.export_warning_body")}
-        </p>
+      <div>
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+            <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.export_step_scope_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <div className="flex items-start gap-3 py-4">
+          <EnvelopeIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.export_scope_mail_title")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.export_scope_mail_body")}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 py-4">
+          <UserGroupIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.export_scope_contacts_title")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.export_scope_contacts_body")}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 py-4">
+          <Cog6ToothIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.export_scope_settings_title")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.export_scope_settings_body")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.export_security_section_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <div className="flex items-start gap-3 py-4">
+          <KeyIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.export_security_password_row_title")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.export_security_password_row_body")}
+            </p>
+          </div>
+          <Badge className="flex-shrink-0" color="blue">
+            {t("settings.export_security_required_badge")}
+          </Badge>
+        </div>
+
+        <div className="flex items-start gap-3 py-4">
+          <LockClosedIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.export_security_vault_row_title")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.export_security_vault_row_body")}
+            </p>
+          </div>
+          <Badge className="flex-shrink-0" color="blue">
+            {t("settings.export_security_required_badge")}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3 rounded-xl border border-orange-800 bg-orange-900 p-4">
+        <ExclamationTriangleIcon className="w-5 h-5 mt-0.5 text-orange-400 flex-shrink-0" />
+        <div>
+          <p className="text-xs font-medium text-orange-50">
+            {t("settings.export_warning_title")}
+          </p>
+          <p className="text-xs mt-1 leading-relaxed text-orange-200">
+            {t("settings.export_warning_body")}
+          </p>
+        </div>
       </div>
 
       {is_open && (

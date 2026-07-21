@@ -21,7 +21,8 @@
 export const nl = {
   common: {
     profile_picture_removed: "Profielfoto verwijderd",
-    failed_remove_profile_picture: "Je profielfoto kon niet worden verwijderd. Een nieuwe poging zou moeten lukken.",
+    failed_remove_profile_picture:
+      "Je profielfoto kon niet worden verwijderd. Een nieuwe poging zou moeten lukken.",
     remove_photo: "Foto verwijderen",
     toggle_alias: "Deze alias in- of uitschakelen",
     enter_passphrase: "Voer je wachtwoordzin in",
@@ -48,10 +49,13 @@ export const nl = {
     refresh: "Vernieuwen",
     copy: "Kopiëren",
     copied: "Gekopieerd",
+    inactive: "Inactief",
     download: "Downloaden",
     upload: "Uploaden",
-    unsupported_image_type: "Dit bestandstype wordt niet ondersteund. De afbeelding opslaan als PNG, JPEG, WebP of GIF werkt.",
-    csv_too_large: "Deze CSV heeft meer dan 10.000 rijen. Het bestand in kleinere delen splitsen en die afzonderlijk importeren krijgt ze er allemaal in.",
+    unsupported_image_type:
+      "Dit bestandstype wordt niet ondersteund. De afbeelding opslaan als PNG, JPEG, WebP of GIF werkt.",
+    csv_too_large:
+      "Deze CSV heeft meer dan 10.000 rijen. Het bestand in kleinere delen splitsen en die afzonderlijk importeren krijgt ze er allemaal in.",
     export: "Exporteren",
     import: "Importeren",
     select_all: "Alles selecteren",
@@ -88,34 +92,49 @@ export const nl = {
     verified: "Geverifieerd",
     not_verified: "Niet geverifieerd",
     reset_all_settings: "Alle instellingen resetten",
-    restore_defaults_description: "Alle voorkeuren herstellen naar standaardwaarden",
-    reset_confirm_message: "Weet je zeker dat je alle instellingen wilt resetten? Dit herstelt al je voorkeuren naar hun standaardwaarden.",
+    restore_defaults_description:
+      "Alle voorkeuren herstellen naar standaardwaarden",
+    reset_confirm_message:
+      "Weet je zeker dat je alle instellingen wilt resetten? Dit herstelt al je voorkeuren naar hun standaardwaarden.",
     all_settings_reset: "Alle instellingen naar standaard hersteld",
     delete_account: "Account verwijderen",
     erase_all_data: "Wis al je inhoud en gegevens permanent",
     display_name_visible: "De naam die anderen in je werkruimte zien",
     inactivity_window: "Inactivity window",
-    inactivity_window_description: "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
+    inactivity_window_description:
+      "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
-    inactivity_window_info_description: "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_info_description:
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
-    inactivity_window_save_failed: "Failed to save inactivity window. Please try again.",
+    inactivity_window_save_failed:
+      "Failed to save inactivity window. Please try again.",
     recovery_email: "Herstel-e-mailadres",
-    recovery_email_description: "Dit is het e-mailadres dat wordt gebruikt om je account te herstellen",
-    recovery_email_modal_description: "Dit e-mailadres wordt gebruikt om je account te herstellen als je de toegang verliest.",
+    recovery_email_description:
+      "Dit is het e-mailadres dat wordt gebruikt om je account te herstellen",
+    recovery_email_modal_description:
+      "Dit e-mailadres wordt gebruikt om je account te herstellen als je de toegang verliest.",
     enter_recovery_email: "Voer herstel-e-mailadres in",
     enter_valid_email: "Voer een geldig e-mailadres in",
-    failed_to_save: "Uw wijzigingen zijn niet opgeslagen. Uw verbinding controleren en het opnieuw proberen lost dit meestal op. De eerdere versie is er nog.",
-    verification_sent: "Verificatie-e-mail verzonden naar {{email}}. Controleer je inbox en klik op de link om te verifiëren.",
+    failed_to_save:
+      "Uw wijzigingen zijn niet opgeslagen. Uw verbinding controleren en het opnieuw proberen lost dit meestal op. De eerdere versie is er nog.",
+    verification_sent:
+      "Verificatie-e-mail verzonden naar {{email}}. Controleer je inbox en klik op de link om te verifiëren.",
     verification_email_sent: "Verificatie-e-mail verzonden",
-    failed_verification_email: "We konden de verificatie-e-mail op dit moment niet verzenden. Een nieuwe poging zo werkt meestal. Uw account is ongewijzigd.",
+    failed_verification_email:
+      "We konden de verificatie-e-mail op dit moment niet verzenden. Een nieuwe poging zo werkt meestal. Uw account is ongewijzigd.",
     profile_picture_updated: "Profielfoto bijgewerkt",
-    failed_save_profile_picture: "Uw nieuwe profielfoto is niet opgeslagen. Een nieuwe poging zou werken. De oude foto wordt nog getoond.",
-    failed_upload_image: "De upload is niet voltooid. Een nieuwe poging zou werken.",
-    valid_image_error: "Dit bestand is geen ondersteunde afbeelding. JPEG, PNG of WebP werkt wel.",
-    image_size_error: "Deze afbeelding overschrijdt de limiet van 5 MB. Een kleinere of een gecomprimeerde versie past wel.",
-    recovery_conflict: "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
+    failed_save_profile_picture:
+      "Uw nieuwe profielfoto is niet opgeslagen. Een nieuwe poging zou werken. De oude foto wordt nog getoond.",
+    failed_upload_image:
+      "De upload is niet voltooid. Een nieuwe poging zou werken.",
+    valid_image_error:
+      "Dit bestand is geen ondersteunde afbeelding. JPEG, PNG of WebP werkt wel.",
+    image_size_error:
+      "Deze afbeelding overschrijdt de limiet van 5 MB. Een kleinere of een gecomprimeerde versie past wel.",
+    recovery_conflict:
+      "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
     copied_to_clipboard: "Naar klembord gekopieerd",
     offline: "Offline",
     back_online: "Weer online",
@@ -143,9 +162,12 @@ export const nl = {
     unlock_folder: "Unlock Folder",
     lock_folder: "Lock Folder",
     extra_protection_layer: "Extra Protection Layer",
-    lock_folder_description: "Your data is already encrypted. Locking this folder adds an additional encryption layer, requiring extra authentication to access its contents.",
-    unlock_folder_description: "This will unlock the folder and remove the extra protection layer. Your data will remain encrypted with standard encryption.",
-    lock_extra_security: "Locking adds extra security on top of existing encryption. You can unlock it at any time.",
+    lock_folder_description:
+      "Your data is already encrypted. Locking this folder adds an additional encryption layer, requiring extra authentication to access its contents.",
+    unlock_folder_description:
+      "This will unlock the folder and remove the extra protection layer. Your data will remain encrypted with standard encryption.",
+    lock_extra_security:
+      "Locking adds extra security on top of existing encryption. You can unlock it at any time.",
     rename_folder: "Rename Folder",
     rename_folder_description: "Enter a new name for this folder",
     folder_name: "Folder name",
@@ -159,20 +181,26 @@ export const nl = {
     move_to: "Verplaatsen naar",
     change_folder_color: "Change Folder Color",
     select_a_color: "Select a color",
-    delete_folder_warning: "Deze map wordt verwijderd, en u kunt dit niet ongedaan maken. De e-mails erin blijven in uw account, ze worden alleen niet langer onder deze map opgeslagen.",
+    delete_folder_warning:
+      "Deze map wordt verwijderd, en u kunt dit niet ongedaan maken. De e-mails erin blijven in uw account, ze worden alleen niet langer onder deze map opgeslagen.",
     delete_folder_subfolders: " Subfolders will be moved to the top level.",
     delete_folder_confirm: "Are you sure you want to delete the folder",
     collapse_all: "Collapse all",
     expand_all: "Expand all",
     unsubscribed_successfully: "Unsubscribed successfully",
-    unsubscribe_error_manual: "We konden u niet uitschrijven. Open de link om naar de site van de afzender te gaan en uzelf handmatig uit te schrijven.",
+    unsubscribe_error_manual:
+      "We konden u niet uitschrijven. Open de link om naar de site van de afzender te gaan en uzelf handmatig uit te schrijven.",
     one_click_unsubscribe_available: "One-click unsubscribe available",
     email_unsubscribe_available: "Email unsubscribe available",
     unsubscribe_link_available: "Unsubscribe link available",
-    folder_name_too_long: "Mapnamen zijn beperkt tot {{max}} tekens. Een kortere naam wordt opgeslagen.",
-    folder_already_exists: "U hebt al een map met deze naam. Een andere naam zou moeten werken.",
-    label_name_too_long: "Labelnamen zijn beperkt tot {{max}} tekens. Een kortere naam wordt opgeslagen.",
-    label_already_exists: "U hebt al een label met deze naam. Een andere naam zou moeten werken.",
+    folder_name_too_long:
+      "Mapnamen zijn beperkt tot {{max}} tekens. Een kortere naam wordt opgeslagen.",
+    folder_already_exists:
+      "U hebt al een map met deze naam. Een andere naam zou moeten werken.",
+    label_name_too_long:
+      "Labelnamen zijn beperkt tot {{max}} tekens. Een kortere naam wordt opgeslagen.",
+    label_already_exists:
+      "U hebt al een label met deze naam. Een andere naam zou moeten werken.",
     in_n_minutes: "In {{ count }} minute",
     in_n_minutes_plural: "In {{ count }} minutes",
     saved_at_time: "Saved at {{ time }}",
@@ -185,7 +213,8 @@ export const nl = {
     exit_fullscreen: "Volledig scherm sluiten",
     delete_draft: "Concept verwijderen",
     remove_formatting: "Opmaak verwijderen",
-    remove_formatting_warning: "Overschakelen naar platte tekst verwijdert elk stukje opmaak in dit concept, en de opsteller kan dit niet terughalen. Uw andere concepten worden niet beïnvloed.",
+    remove_formatting_warning:
+      "Overschakelen naar platte tekst verwijdert elk stukje opmaak in dit concept, en de opsteller kan dit niet terughalen. Uw andere concepten worden niet beïnvloed.",
     seconds: "seconden",
     password_protected: "Wachtwoordbeveiligd",
     open_menu: "Menu openen",
@@ -194,7 +223,8 @@ export const nl = {
     skip_to_content: "Naar hoofdinhoud gaan",
     main_navigation: "Hoofdnavigatie",
     enable_shortcuts: "Sneltoetsen inschakelen",
-    shortcuts_disabled_message: "Sneltoetsen zijn momenteel uitgeschakeld. Schakel ze in via Instellingen > Toegankelijkheid om sneltoetsen te gebruiken.",
+    shortcuts_disabled_message:
+      "Sneltoetsen zijn momenteel uitgeschakeld. Schakel ze in via Instellingen > Toegankelijkheid om sneltoetsen te gebruiken.",
     navigation: "Navigatie",
     actions: "Acties",
     global: "Globaal",
@@ -355,8 +385,10 @@ export const nl = {
     postal_code_placeholder: "1012 AB",
     country_placeholder: "Nederland",
     website_placeholder: "https://voorbeeld.nl",
-    delete_contact_confirmation: "Weet je zeker dat je {{name}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
-    delete_contacts_confirmation: "Weet je zeker dat je {{count}} contact(en) wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_contact_confirmation:
+      "Weet je zeker dat je {{name}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_contacts_confirmation:
+      "Weet je zeker dat je {{count}} contact(en) wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
     add_new_field_type: "Nieuw veldtype toevoegen",
     field_name_placeholder: "Veldnaam...",
     skip: "Overslaan",
@@ -369,11 +401,13 @@ export const nl = {
     password_strength_weak: "Zwak",
     password_strength_fair: "Redelijk",
     password_strength_strong: "Sterk",
+    password_strength_very_secure: "Zeer veilig",
     pending_email_notifications: "Wachtende e-mailmeldingen",
     selected: "geselecteerd",
     are_you_sure: "Weet je het zeker?",
     sign_out_confirmation: "Weet je zeker dat je wilt uitloggen?",
-    remove_account_confirmation: "Weet je zeker dat je dit account wilt verwijderen? Je kunt het later opnieuw toevoegen.",
+    remove_account_confirmation:
+      "Weet je zeker dat je dit account wilt verwijderen? Je kunt het later opnieuw toevoegen.",
     go_back: "Ga terug",
     continue_anyway: "Toch doorgaan",
     set_as_default: "Als standaard instellen",
@@ -395,24 +429,31 @@ export const nl = {
     commands_count: "{{count}} opdrachten",
     no_commands_found: "Geen opdrachten gevonden",
     type_command_or_search: "Typ een opdracht of zoek...",
-    failed_to_load_emails: "Uw inbox is niet geladen. Naar beneden trekken om te vernieuwen of een nieuwe poging lost dit meestal op. Uw post op de server is veilig.",
+    failed_to_load_emails:
+      "Uw inbox is niet geladen. Naar beneden trekken om te vernieuwen of een nieuwe poging lost dit meestal op. Uw post op de server is veilig.",
     no_emails_match_criteria: "Geen e-mails voldoen aan dit criterium",
-    failed_to_update_emails: "Deze wijzigingen zijn niet opgeslagen. Een nieuwe poging zou werken. De e-mails zelf zijn ongewijzigd.",
-    failed_to_archive_emails: "Het archiveren is niet voltooid. Een nieuwe poging zou werken. De e-mails staan nog in uw inbox.",
+    failed_to_update_emails:
+      "Deze wijzigingen zijn niet opgeslagen. Een nieuwe poging zou werken. De e-mails zelf zijn ongewijzigd.",
+    failed_to_archive_emails:
+      "Het archiveren is niet voltooid. Een nieuwe poging zou werken. De e-mails staan nog in uw inbox.",
     something_went_wrong: "Deze pagina liep tegen een probleem aan.",
-    unexpected_error_refresh: "Deze pagina liep tegen een probleem aan. Een vernieuwing herstelt het meestal. Uw gegevens zijn veilig.",
+    unexpected_error_refresh:
+      "Deze pagina liep tegen een probleem aan. Een vernieuwing herstelt het meestal. Uw gegevens zijn veilig.",
     unsupported_browser: "Browser niet ondersteund.",
     unsupported_browser_detail: "Probeer een andere browser.",
     try_again: "Een nieuwe poging zou werken.",
     view_status: "View Status",
     error_details: "Foutdetails",
     unable_to_display_email: "We kunnen deze e-mail op dit moment niet tonen.",
-    email_render_error: "We konden deze e-mail op dit apparaat niet weergeven. Hem opnieuw openen of de ruwe broncode bekijken lost dit meestal op. Uw inbox is niet getroffen.",
+    email_render_error:
+      "We konden deze e-mail op dit apparaat niet weergeven. Hem opnieuw openen of de ruwe broncode bekijken lost dit meestal op. Uw inbox is niet getroffen.",
     unable_to_load_composer: "De opsteller is niet geladen.",
-    composer_load_error: "De opsteller is niet geladen. Dit venster sluiten en opnieuw openen lost dit meestal op. Uw concept is opgeslagen.",
+    composer_load_error:
+      "De opsteller is niet geladen. Dit venster sluiten en opnieuw openen lost dit meestal op. Uw concept is opgeslagen.",
     enter_field_value: "Enter {{field}}...",
     no_matching_labels: "No matching labels",
-    phishing_confirm_placeholder: "Typ \"Ik begrijp de risico's\" om de links weer in te schakelen.",
+    phishing_confirm_placeholder:
+      'Typ "Ik begrijp de risico\'s" om de links weer in te schakelen.',
     phishing_confirm_text: "i understand the risks",
     and: "en",
     emails_marked_as_read: "{{count}} e-mail(s) als gelezen gemarkeerd",
@@ -442,13 +483,17 @@ export const nl = {
     scheduled_email_cancelled: "Geplande e-mail geannuleerd",
     email_snoozed: "E-mail uitgesteld",
     email_unsnoozed: "E-mail uitstel opgeheven",
-    failed_to_snooze: "Deze e-mail is niet gesnoozed. Een nieuwe poging zou werken. Hij staat nog in uw inbox.",
-    failed_to_unsnooze: "Deze e-mail is niet teruggekeerd naar uw inbox. Een nieuwe poging zou werken.",
+    failed_to_snooze:
+      "Deze e-mail is niet gesnoozed. Een nieuwe poging zou werken. Hij staat nog in uw inbox.",
+    failed_to_unsnooze:
+      "Deze e-mail is niet teruggekeerd naar uw inbox. Een nieuwe poging zou werken.",
     conversation_moved_to_trash: "Gesprek naar prullenbak verplaatst",
     conversation_archived: "Gesprek gearchiveerd",
     conversation_marked_as_spam: "Gesprek als spam gemarkeerd",
-    failed_to_mark_as_spam: "Deze e-mail is niet naar spam verplaatst. Een nieuwe poging zou werken.",
-    failed_to_snooze_conversations: "Deze gesprekken zijn niet gesnoozed. Een nieuwe poging zou werken.",
+    failed_to_mark_as_spam:
+      "Deze e-mail is niet naar spam verplaatst. Een nieuwe poging zou werken.",
+    failed_to_snooze_conversations:
+      "Deze gesprekken zijn niet gesnoozed. Een nieuwe poging zou werken.",
     marked_as_read_toast: "Als gelezen gemarkeerd",
     marked_as_unread_toast: "Als ongelezen gemarkeerd",
     email_permanently_deleted: "E-mail permanent verwijderd",
@@ -506,37 +551,60 @@ export const nl = {
     number_type: "Nummer",
     phone_type: "Telefoon",
     email_type: "E-mail",
-    failed_to_fetch_contacts: "Uw contacten zijn niet geladen. Een nieuwe poging zou werken. Uw opgeslagen contacten zijn veilig.",
-    failed_to_delete_contact: "Dit contact is niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_fetch_contacts:
+      "Uw contacten zijn niet geladen. Een nieuwe poging zou werken. Uw opgeslagen contacten zijn veilig.",
+    failed_to_delete_contact:
+      "Dit contact is niet verwijderd. Een nieuwe poging zou werken.",
     contact_deleted: "Contact deleted",
     contact_saved: "Contact saved",
     contact_created: "Contact created",
-    failed_to_create_contact: "Dit contact is niet opgeslagen. Een nieuwe poging zou werken.",
-    failed_to_save_contact: "Uw wijzigingen aan dit contact zijn niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is er nog.",
-    failed_to_delete_contacts: "Deze contacten zijn niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_update_favorites: "Uw favorieten zijn niet bijgewerkt. Een nieuwe poging zou werken.",
-    failed_to_import_contacts: "De contactimport is niet voltooid. Een nieuwe poging zou werken. Uw bestaande contacten zijn ongewijzigd.",
-    failed_to_read_file: "Dit bestand kon niet worden gelezen. Een ander werkt.",
-    import_failed: "De import is niet voltooid. Een nieuwe poging zou werken. Uw bestaande gegevens zijn ongewijzigd.",
-    failed_to_load_duplicates: "De duplicatenlijst is niet geladen. Een nieuwe poging zou werken.",
+    failed_to_create_contact:
+      "Dit contact is niet opgeslagen. Een nieuwe poging zou werken.",
+    failed_to_save_contact:
+      "Uw wijzigingen aan dit contact zijn niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is er nog.",
+    failed_to_delete_contacts:
+      "Deze contacten zijn niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_update_favorites:
+      "Uw favorieten zijn niet bijgewerkt. Een nieuwe poging zou werken.",
+    failed_to_import_contacts:
+      "De contactimport is niet voltooid. Een nieuwe poging zou werken. Uw bestaande contacten zijn ongewijzigd.",
+    failed_to_read_file:
+      "Dit bestand kon niet worden gelezen. Een ander werkt.",
+    import_failed:
+      "De import is niet voltooid. Een nieuwe poging zou werken. Uw bestaande gegevens zijn ongewijzigd.",
+    failed_to_load_duplicates:
+      "De duplicatenlijst is niet geladen. Een nieuwe poging zou werken.",
     scan_failed: "De scan is niet voltooid. Een nieuwe poging zou werken.",
-    dismiss_failed: "We konden dat niet wegklikken. Een nieuwe poging zou werken.",
-    failed_to_load_custom_fields: "Deze aangepaste velden zijn niet geladen. Een nieuwe poging zou werken.",
-    failed_to_create_field: "Dit aangepaste veld is niet opgeslagen. Een nieuwe poging zou werken.",
-    failed_to_delete_field: "Dit aangepaste veld is niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_save_value: "Uw wijziging is niet opgeslagen. Een nieuwe poging zou werken. De vorige waarde is er nog.",
-    click_scan_duplicates: "Klik op \"Scannen\" om op duplicaten te controleren",
+    dismiss_failed:
+      "We konden dat niet wegklikken. Een nieuwe poging zou werken.",
+    failed_to_load_custom_fields:
+      "Deze aangepaste velden zijn niet geladen. Een nieuwe poging zou werken.",
+    failed_to_create_field:
+      "Dit aangepaste veld is niet opgeslagen. Een nieuwe poging zou werken.",
+    failed_to_delete_field:
+      "Dit aangepaste veld is niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_save_value:
+      "Uw wijziging is niet opgeslagen. Een nieuwe poging zou werken. De vorige waarde is er nog.",
+    click_scan_duplicates: 'Klik op "Scannen" om op duplicaten te controleren',
     never_synced: "Nooit gesynchroniseerd",
     last_sync_successful: "Laatste synchronisatie succesvol",
-    last_sync_failed: "De laatste synchronisatie is niet voltooid, en we proberen automatisch opnieuw.",
-    failed_to_forward: "Het doorsturen is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_to_schedule: "De planning is niet opgeslagen. Een nieuwe poging zou werken. Uw concept is veilig.",
+    last_sync_failed:
+      "De laatste synchronisatie is niet voltooid, en we proberen automatisch opnieuw.",
+    failed_to_forward:
+      "Het doorsturen is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_to_schedule:
+      "De planning is niet opgeslagen. Een nieuwe poging zou werken. Uw concept is veilig.",
     fill_required_fields: "Vul alle verplichte velden in",
-    failed_to_load_sources: "Uw gesynchroniseerde accounts zijn niet geladen. Een nieuwe poging zou werken. De accounts zelf zijn niet getroffen.",
-    failed_to_add_source: "Dit account is niet toegevoegd. Een nieuwe poging zou werken.",
-    failed_to_delete_source: "Dit account is niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_toggle_source: "We konden die instelling niet wijzigen. Een nieuwe poging zou werken.",
-    sync_failed: "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan elke kant is veilig.",
+    failed_to_load_sources:
+      "Uw gesynchroniseerde accounts zijn niet geladen. Een nieuwe poging zou werken. De accounts zelf zijn niet getroffen.",
+    failed_to_add_source:
+      "Dit account is niet toegevoegd. Een nieuwe poging zou werken.",
+    failed_to_delete_source:
+      "Dit account is niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_toggle_source:
+      "We konden die instelling niet wijzigen. Een nieuwe poging zou werken.",
+    sync_failed:
+      "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan elke kant is veilig.",
     clearing: "Wissen...",
     clear: "Wissen",
     clear_all: "Alles wissen",
@@ -547,18 +615,27 @@ export const nl = {
     moved_to_folder: "Verplaatst naar {{folder}}",
     removed_label: "Label {{label}} verwijderd",
     added_label: "Label {{label}} toegevoegd",
-    spam_emails_permanently_deleted: "{{count}} spam-e-mail(s) permanent verwijderd",
+    spam_emails_permanently_deleted:
+      "{{count}} spam-e-mail(s) permanent verwijderd",
     trash_emptied: "Prullenbak succesvol geleegd",
-    conversations_marked_as_spam_bulk: "{{count}} gesprek(ken) als spam gemarkeerd",
+    conversations_marked_as_spam_bulk:
+      "{{count}} gesprek(ken) als spam gemarkeerd",
     conversations_restored_bulk: "{{count}} gesprek(ken) hersteld",
-    failed_to_restore_conversations: "Deze gesprekken zijn niet hersteld. Een nieuwe poging zou werken.",
+    failed_to_restore_conversations:
+      "Deze gesprekken zijn niet hersteld. Een nieuwe poging zou werken.",
     conversations_snoozed_bulk: "{{count}} gesprek(ken) uitgesteld",
-    conversations_marked_as_read_bulk: "{{count}} gesprek(ken) als gelezen gemarkeerd",
-    conversations_marked_as_unread_bulk: "{{count}} gesprek(ken) als ongelezen gemarkeerd",
-    conversations_removed_from_folder: "{{count}} gesprek(ken) verwijderd uit {{folder}}",
-    conversations_moved_to_folder: "{{count}} gesprek(ken) verplaatst naar {{folder}}",
-    conversations_removed_label: "{{count}} gesprek(ken): label {{label}} verwijderd",
-    conversations_added_label: "{{count}} gesprek(ken): label {{label}} toegevoegd",
+    conversations_marked_as_read_bulk:
+      "{{count}} gesprek(ken) als gelezen gemarkeerd",
+    conversations_marked_as_unread_bulk:
+      "{{count}} gesprek(ken) als ongelezen gemarkeerd",
+    conversations_removed_from_folder:
+      "{{count}} gesprek(ken) verwijderd uit {{folder}}",
+    conversations_moved_to_folder:
+      "{{count}} gesprek(ken) verplaatst naar {{folder}}",
+    conversations_removed_label:
+      "{{count}} gesprek(ken): label {{label}} verwijderd",
+    conversations_added_label:
+      "{{count}} gesprek(ken): label {{label}} toegevoegd",
     already_in_folder: "Al in {{folder}}",
     already_has_label: "Al gelabeld als {{label}}",
     birthday_today: "Vandaag!",
@@ -566,7 +643,8 @@ export const nl = {
     contact_details: "Contactgegevens",
     history: "Geschiedenis",
     import_contacts: "Contacten importeren",
-    import_choose_file_desc: "Kies een bestand om contacten uit te importeren. Ondersteunde formaten: vCard (.vcf) en CSV.",
+    import_choose_file_desc:
+      "Kies een bestand om contacten uit te importeren. Ondersteunde formaten: vCard (.vcf) en CSV.",
     click_to_select_file: "Klik om bestand te selecteren",
     or_drag_and_drop: "of sleep en laat los",
     vcf_files: ".vcf-bestanden",
@@ -590,20 +668,29 @@ export const nl = {
     add_contacts_hint: "Voeg contacten toe om te beginnen",
     add_contact: "Contact toevoegen",
     file_too_large: "Bestand moet kleiner zijn dan {{size}}",
-    failed_to_upload_attachment: "Deze bijlage is niet geüpload. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_to_upload_attachment:
+      "Deze bijlage is niet geüpload. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
     upload_failed: "De upload is niet voltooid. Een nieuwe poging zou werken.",
     delete_failed: "Dit item is niet verwijderd. Een nieuwe poging zou werken.",
-    download_failed: "Deze download is niet voltooid. Een nieuwe poging zou werken.",
-    scheduled_no_attachments: "Geplande e-mails kunnen nog geen bijlagen bevatten. Verstuur nu of verwijder de bestanden om te plannen.",
-    failed_to_merge_contacts: "Het samenvoegen is niet voltooid. Een nieuwe poging zou werken. Uw oorspronkelijke contacten zijn ongewijzigd.",
-    merge_failed: "Het samenvoegen is niet voltooid. Een nieuwe poging zou werken. Uw oorspronkelijke contacten zijn ongewijzigd.",
-    failed_to_load_history: "De geschiedenis is niet geladen. Een nieuwe poging zou werken.",
-    failed_to_load_more: "We konden geen meer items laden. Een nieuwe poging zou werken.",
+    download_failed:
+      "Deze download is niet voltooid. Een nieuwe poging zou werken.",
+    scheduled_no_attachments:
+      "Geplande e-mails kunnen nog geen bijlagen bevatten. Verstuur nu of verwijder de bestanden om te plannen.",
+    failed_to_merge_contacts:
+      "Het samenvoegen is niet voltooid. Een nieuwe poging zou werken. Uw oorspronkelijke contacten zijn ongewijzigd.",
+    merge_failed:
+      "Het samenvoegen is niet voltooid. Een nieuwe poging zou werken. Uw oorspronkelijke contacten zijn ongewijzigd.",
+    failed_to_load_history:
+      "De geschiedenis is niet geladen. Een nieuwe poging zou werken.",
+    failed_to_load_more:
+      "We konden geen meer items laden. Een nieuwe poging zou werken.",
     enter_valid_emails: "Voer geldige e-mailadressen in",
     enter_contact_details: "Voer contactgegevens in",
     select_valid_image: "Selecteer een JPEG-, PNG-, WebP- of GIF-afbeelding",
-    image_too_large: "Deze afbeelding overschrijdt de limiet van 10 MB. Een kleinere of een gecomprimeerde versie past wel.",
-    failed_to_upload_photo: "Deze foto is niet geüpload. Een nieuwe poging zou werken.",
+    image_too_large:
+      "Deze afbeelding overschrijdt de limiet van 10 MB. Een kleinere of een gecomprimeerde versie past wel.",
+    failed_to_upload_photo:
+      "Deze foto is niet geüpload. Een nieuwe poging zou werken.",
     contact_photo: "Contactfoto",
     no_emails_older_than_30_days: "Geen e-mails ouder dan 30 dagen",
     no_newsletters_found: "Geen nieuwsbrieven gevonden om te archiveren",
@@ -611,36 +698,61 @@ export const nl = {
     reported_as_phishing: "Als phishing gemeld",
     pinned_to_top: "Bovenaan vastgepind",
     emails_snoozed_until: "{{count}} e-mail(s) uitgesteld tot {{time}}",
-    emails_from_senders_archived: "{{count}} e-mail(s) van {{senders}} afzender(s) gearchiveerd",
-    emails_from_senders_deleted: "{{count}} e-mail(s) van {{senders}} afzender(s) verwijderd",
+    emails_from_senders_archived:
+      "{{count}} e-mail(s) van {{senders}} afzender(s) gearchiveerd",
+    emails_from_senders_deleted:
+      "{{count}} e-mail(s) van {{senders}} afzender(s) verwijderd",
     emails_added_to_folder: "{{count}} e-mail(s) toegevoegd aan {{folder}}",
-    failed_to_snooze_emails: "Deze e-mails zijn niet gesnoozed. Een nieuwe poging zou werken. Ze staan nog in uw inbox.",
+    failed_to_snooze_emails:
+      "Deze e-mails zijn niet gesnoozed. Een nieuwe poging zou werken. Ze staan nog in uw inbox.",
     failed_to_copy: "Er is niets gekopieerd. Een nieuwe poging zou werken.",
     error_copied_to_clipboard: "Fout naar klembord gekopieerd",
-    failed_to_update_contact: "Uw contactwijzigingen zijn niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is er nog.",
-    failed_to_block_sender: "We konden deze afzender niet blokkeren. Een nieuwe poging zou werken.",
-    failed_to_rename_folder: "Deze map is niet hernoemd. Een nieuwe poging zou werken. De map en de e-mails zijn ongewijzigd.",
-    failed_to_change_folder_color: "De mapkleur is niet bijgewerkt. Een nieuwe poging zou werken.",
-    failed_to_delete_folder: "Deze map is niet verwijderd. Een nieuwe poging zou werken. Uw e-mails erin zijn veilig.",
+    failed_to_update_contact:
+      "Uw contactwijzigingen zijn niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is er nog.",
+    failed_to_block_sender:
+      "We konden deze afzender niet blokkeren. Een nieuwe poging zou werken.",
+    failed_to_rename_folder:
+      "Deze map is niet hernoemd. Een nieuwe poging zou werken. De map en de e-mails zijn ongewijzigd.",
+    failed_to_change_folder_color:
+      "De mapkleur is niet bijgewerkt. Een nieuwe poging zou werken.",
+    failed_to_delete_folder:
+      "Deze map is niet verwijderd. Een nieuwe poging zou werken. Uw e-mails erin zijn veilig.",
     failed_to_move_folder: "Deze map is niet verplaatst. Probeer het opnieuw.",
-    failed_to_update_folder_encryption: "De vergrendelinstelling van de map is niet gewijzigd. Een nieuwe poging zou werken. De map blijft zoals hij was.",
-    failed_to_rename_label: "Dit label is niet hernoemd. Een nieuwe poging zou werken.",
-    failed_to_change_label_color: "De labelkleur is niet bijgewerkt. Een nieuwe poging zou werken.",
-    failed_to_change_label_icon: "Het labelpictogram is niet bijgewerkt. Een nieuwe poging zou werken.",
-    failed_to_delete_label: "Dit label is niet verwijderd. Een nieuwe poging zou werken. Uw e-mails zijn niet getroffen.",
-    failed_to_create_label: "Dit label is niet opgeslagen. Een nieuwe poging zou werken.",
-    failed_to_create_folder_error: "Deze map is niet opgeslagen. Een nieuwe poging zou werken.",
-    folder_plan_limit_reached: "Je hebt de maplimiet van je huidige abonnement bereikt. Upgrade om meer mappen aan te maken.",
+    failed_to_update_folder_encryption:
+      "De vergrendelinstelling van de map is niet gewijzigd. Een nieuwe poging zou werken. De map blijft zoals hij was.",
+    failed_to_rename_label:
+      "Dit label is niet hernoemd. Een nieuwe poging zou werken.",
+    failed_to_change_label_color:
+      "De labelkleur is niet bijgewerkt. Een nieuwe poging zou werken.",
+    failed_to_change_label_icon:
+      "Het labelpictogram is niet bijgewerkt. Een nieuwe poging zou werken.",
+    failed_to_delete_label:
+      "Dit label is niet verwijderd. Een nieuwe poging zou werken. Uw e-mails zijn niet getroffen.",
+    failed_to_create_label:
+      "Dit label is niet opgeslagen. Een nieuwe poging zou werken.",
+    failed_to_create_folder_error:
+      "Deze map is niet opgeslagen. Een nieuwe poging zou werken.",
+    folder_plan_limit_reached:
+      "Je hebt de maplimiet van je huidige abonnement bereikt. Upgrade om meer mappen aan te maken.",
     authenticate_to_send: "Authenticeer om e-mail te verzenden",
-    failed_to_send_reply: "Dit antwoord is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_to_delete_draft: "Dit concept is niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_update_rule: "Deze regel is niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is nog actief.",
-    failed_to_send_verification: "We konden de verificatie-e-mail niet verzenden. Een nieuwe poging zo werkt meestal.",
-    failed_to_load_email: "Deze e-mail is niet geladen. Een vernieuwing lost dit meestal op. De e-mail is veilig op de server.",
-    failed_to_decrypt_email: "We konden deze e-mail op dit apparaat niet openen. Een vernieuwing lost dit meestal op, en afmelden en weer aanmelden is de reserveroute als het blijft mislukken.",
-    failed_to_unsubscribe: "Het uitschrijven is niet voltooid. De link in de e-mail brengt u naar de site van de afzender om dit zelf te doen.",
-    failed_to_disable_2fa: "Tweestapsverificatie bleef aan. Een nieuwe poging zou werken. Uw account is nog steeds beschermd.",
-    failed_to_parse_settings: "Dit instellingenbestand kon niet worden gelezen. Een ander werkt. Uw huidige instellingen zijn ongewijzigd.",
+    failed_to_send_reply:
+      "Dit antwoord is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_to_delete_draft:
+      "Dit concept is niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_update_rule:
+      "Deze regel is niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is nog actief.",
+    failed_to_send_verification:
+      "We konden de verificatie-e-mail niet verzenden. Een nieuwe poging zo werkt meestal.",
+    failed_to_load_email:
+      "Deze e-mail is niet geladen. Een vernieuwing lost dit meestal op. De e-mail is veilig op de server.",
+    failed_to_decrypt_email:
+      "We konden deze e-mail op dit apparaat niet openen. Een vernieuwing lost dit meestal op, en afmelden en weer aanmelden is de reserveroute als het blijft mislukken.",
+    failed_to_unsubscribe:
+      "Het uitschrijven is niet voltooid. De link in de e-mail brengt u naar de site van de afzender om dit zelf te doen.",
+    failed_to_disable_2fa:
+      "Tweestapsverificatie bleef aan. Een nieuwe poging zou werken. Uw account is nog steeds beschermd.",
+    failed_to_parse_settings:
+      "Dit instellingenbestand kon niet worden gelezen. Een ander werkt. Uw huidige instellingen zijn ongewijzigd.",
     removed_from_contacts: "Verwijderd uit contacten",
     added_to_contacts: "Toegevoegd aan contacten",
     senders_emails_count: "{{senders}} afzender(s) ({{emails}} e-mails)",
@@ -652,37 +764,65 @@ export const nl = {
     draft_deleted: "Concept permanent verwijderd",
     no_recipients: "Minstens één ontvanger is nodig voor verzending.",
     sync_complete: "Synchronisatie voltooid",
-    sync_timeout: "De synchronisatie duurt langer dan verwacht en is mogelijk nog bezig.",
-    session_expired_login: "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
-    session_expired_refresh: "Uw sessie is beëindigd. De pagina vernieuwen geeft u de kans om opnieuw aan te melden. Uw gegevens zijn veilig.",
-    email_in_locked_folder: "Deze e-mail bevindt zich in een map die u hebt vergrendeld. De map ontgrendelen opent hem.",
-    vault_not_available: "Uw privésleutels zijn op dit apparaat niet geladen. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn onaangeroerd.",
-    no_vault_available: "Uw privésleutels zijn op dit apparaat niet geladen. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn onaangeroerd.",
-    offline_action_queued: "U bent op dit moment offline. Dit staat in de wachtrij en wordt voltooid zodra u weer verbinding hebt.",
-    failed_to_update: "Deze wijziging is niet opgeslagen. Een nieuwe poging zou werken.",
-    failed_to_load_search_results: "Uw zoekopdracht is niet voltooid. Een nieuwe poging zou werken.",
-    failed_to_fetch_tags: "Uw labels zijn niet geladen. Een nieuwe poging zou werken.",
-    failed_to_fetch_folders: "Uw mappen zijn niet geladen. Een nieuwe poging zou werken.",
-    failed_to_unlock_folder: "We konden deze map niet ontgrendelen. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. De inhoud van de map is veilig.",
-    incorrect_password: "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou moeten werken. Uw account is niet vergrendeld.",
-    folder_no_password_protection: "Deze map heeft op dit moment geen wachtwoord, dus er is niets te wijzigen.",
-    password_already_set: "Deze map heeft al een wachtwoord. Wachtwoord wijzigen is de optie om het bij te werken.",
-    folder_must_be_unlocked: "De map eerst ontgrendelen laat deze instelling wijzigen.",
-    failed_to_load_snoozed_emails: "Uw gesnoozede e-mails zijn niet geladen. Een nieuwe poging zou werken. Ze zijn veilig op de server.",
-    failed_to_load_subscriptions: "Uw abonnementen zijn niet geladen. Een nieuwe poging zou werken.",
-    unexpected_error: "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken.",
-    failed_to_load_more_subscriptions: "We konden geen meer abonnementen laden. Een nieuwe poging zou werken.",
-    failed_to_scan_subscriptions: "De abonnementsscan is niet voltooid. Een nieuwe poging zou werken.",
-    failed_to_load_drafts: "Uw concepten zijn niet geladen. Een nieuwe poging zou werken. Uw opgeslagen concepten zijn veilig.",
-    failed_to_load_scheduled_emails: "Uw geplande e-mails zijn niet geladen. Een nieuwe poging zou werken. Ze staan nog steeds op het punt om te worden verzonden.",
+    sync_timeout:
+      "De synchronisatie duurt langer dan verwacht en is mogelijk nog bezig.",
+    session_expired_login:
+      "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
+    session_expired_refresh:
+      "Uw sessie is beëindigd. De pagina vernieuwen geeft u de kans om opnieuw aan te melden. Uw gegevens zijn veilig.",
+    email_in_locked_folder:
+      "Deze e-mail bevindt zich in een map die u hebt vergrendeld. De map ontgrendelen opent hem.",
+    vault_not_available:
+      "Uw privésleutels zijn op dit apparaat niet geladen. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn onaangeroerd.",
+    no_vault_available:
+      "Uw privésleutels zijn op dit apparaat niet geladen. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn onaangeroerd.",
+    offline_action_queued:
+      "U bent op dit moment offline. Dit staat in de wachtrij en wordt voltooid zodra u weer verbinding hebt.",
+    failed_to_update:
+      "Deze wijziging is niet opgeslagen. Een nieuwe poging zou werken.",
+    failed_to_load_search_results:
+      "Uw zoekopdracht is niet voltooid. Een nieuwe poging zou werken.",
+    failed_to_fetch_tags:
+      "Uw labels zijn niet geladen. Een nieuwe poging zou werken.",
+    failed_to_fetch_folders:
+      "Uw mappen zijn niet geladen. Een nieuwe poging zou werken.",
+    failed_to_unlock_folder:
+      "We konden deze map niet ontgrendelen. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. De inhoud van de map is veilig.",
+    incorrect_password:
+      "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou moeten werken. Uw account is niet vergrendeld.",
+    folder_no_password_protection:
+      "Deze map heeft op dit moment geen wachtwoord, dus er is niets te wijzigen.",
+    password_already_set:
+      "Deze map heeft al een wachtwoord. Wachtwoord wijzigen is de optie om het bij te werken.",
+    folder_must_be_unlocked:
+      "De map eerst ontgrendelen laat deze instelling wijzigen.",
+    failed_to_load_snoozed_emails:
+      "Uw gesnoozede e-mails zijn niet geladen. Een nieuwe poging zou werken. Ze zijn veilig op de server.",
+    failed_to_load_subscriptions:
+      "Uw abonnementen zijn niet geladen. Een nieuwe poging zou werken.",
+    unexpected_error:
+      "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken.",
+    failed_to_load_more_subscriptions:
+      "We konden geen meer abonnementen laden. Een nieuwe poging zou werken.",
+    failed_to_scan_subscriptions:
+      "De abonnementsscan is niet voltooid. Een nieuwe poging zou werken.",
+    failed_to_load_drafts:
+      "Uw concepten zijn niet geladen. Een nieuwe poging zou werken. Uw opgeslagen concepten zijn veilig.",
+    failed_to_load_scheduled_emails:
+      "Uw geplande e-mails zijn niet geladen. Een nieuwe poging zou werken. Ze staan nog steeds op het punt om te worden verzonden.",
     recently_archived: "Recent gearchiveerd",
     older_items: "Oudere items",
     long_term_archive: "Langetermijnarchief",
-    failed_to_fetch_archive_stats: "De archiefstatistieken zijn niet geladen. Een nieuwe poging zou werken.",
-    value_too_long: "Deze waarde overschrijdt de lengtelimiet. Een kortere versie werkt.",
-    please_enter_valid_domain: "Dit is geen geldig domein. Iets als example.com werkt.",
-    please_enter_valid_email: "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
-    email_local_part_too_long: "Het gedeelte voor de @ is te lang. Een kortere versie werkt.",
+    failed_to_fetch_archive_stats:
+      "De archiefstatistieken zijn niet geladen. Een nieuwe poging zou werken.",
+    value_too_long:
+      "Deze waarde overschrijdt de lengtelimiet. Een kortere versie werkt.",
+    please_enter_valid_domain:
+      "Dit is geen geldig domein. Iets als example.com werkt.",
+    please_enter_valid_email:
+      "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
+    email_local_part_too_long:
+      "Het gedeelte voor de @ is te lang. Een kortere versie werkt.",
     forwarding_rule_updated: "Doorstuurregel bijgewerkt",
     forwarding_rule_created: "Doorstuurregel aangemaakt",
     spam_settings_saved: "Spaminstellingen opgeslagen",
@@ -700,26 +840,39 @@ export const nl = {
     no_finance_messages: "Geen financiële berichten",
     no_operation_messages: "Geen operationele berichten",
     folder_label: "Map",
-    no_email_id_provided: "We konden niet bepalen welke e-mail moest worden geopend. Teruggaan en er een uit uw inbox kiezen werkt.",
-    please_enter_valid_url: "Dit is geen geldig webadres. Een volledige link zoals https://example.com werkt.",
-    csv_file_empty: "Deze CSV bevat geen rijen. Een ander bestand zou moeten werken.",
-    no_valid_contacts_csv: "We vonden geen leesbare contacten in deze CSV. De kolomkoppen controleren en het opnieuw proberen lost dit meestal op.",
-    label_name_cannot_be_empty: "Dit label heeft een naam nodig voordat het kan worden opgeslagen.",
-    folder_name_cannot_be_empty: "Deze map heeft een naam nodig voordat hij kan worden opgeslagen.",
+    no_email_id_provided:
+      "We konden niet bepalen welke e-mail moest worden geopend. Teruggaan en er een uit uw inbox kiezen werkt.",
+    please_enter_valid_url:
+      "Dit is geen geldig webadres. Een volledige link zoals https://example.com werkt.",
+    csv_file_empty:
+      "Deze CSV bevat geen rijen. Een ander bestand zou moeten werken.",
+    no_valid_contacts_csv:
+      "We vonden geen leesbare contacten in deze CSV. De kolomkoppen controleren en het opnieuw proberen lost dit meestal op.",
+    label_name_cannot_be_empty:
+      "Dit label heeft een naam nodig voordat het kan worden opgeslagen.",
+    folder_name_cannot_be_empty:
+      "Deze map heeft een naam nodig voordat hij kan worden opgeslagen.",
     please_enter_password: "Uw wachtwoord is nodig om door te gaan.",
-    rotation_failed: "Het vernieuwen van de sleutel is niet voltooid. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. Uw oude sleutels werken nog en uw gegevens zijn veilig.",
-    encryption_vault_not_available: "Uw privésleutels zijn op dit apparaat vergrendeld. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn ongewijzigd.",
-    email_data_missing: "We konden de inhoud van deze e-mail niet laden. Hem opnieuw openen vanuit uw inbox zou hem moeten terugbrengen. Uw inbox is ongewijzigd.",
+    rotation_failed:
+      "Het vernieuwen van de sleutel is niet voltooid. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. Uw oude sleutels werken nog en uw gegevens zijn veilig.",
+    encryption_vault_not_available:
+      "Uw privésleutels zijn op dit apparaat vergrendeld. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn ongewijzigd.",
+    email_data_missing:
+      "We konden de inhoud van deze e-mail niet laden. Hem opnieuw openen vanuit uw inbox zou hem moeten terugbrengen. Uw inbox is ongewijzigd.",
     later: "Later",
     welcome_to_aster: "Welkom bij Aster Mail",
     purchase_thank_you: "Bedankt voor je aankoop. Je abonnement is nu actief.",
     view_billing_settings: "Factuurinstellingen bekijken",
-    welcome_description: "Laten we een korte rondleiding doen om je op weg te helpen met je veilige, privé e-mailplatform.",
+    welcome_description:
+      "Laten we een korte rondleiding doen om je op weg te helpen met je veilige, privé e-mailplatform.",
     organize_with_folders: "Organiseren met mappen",
-    organize_folders_description: "Maak aangepaste mappen aan om je e-mails te organiseren. Klik op de + knop naast Mappen om je eerste map aan te maken.",
-    customize_settings_description: "Pas je ervaring aan, beheer beveiligingsinstellingen en configureer je accountvoorkeuren.",
+    organize_folders_description:
+      "Maak aangepaste mappen aan om je e-mails te organiseren. Klik op de + knop naast Mappen om je eerste map aan te maken.",
+    customize_settings_description:
+      "Pas je ervaring aan, beheer beveiligingsinstellingen en configureer je accountvoorkeuren.",
     youre_ready: "Je bent klaar om te beginnen",
-    youre_ready_description: "Dat is alles! Je bent helemaal klaar om Aster Mail te gebruiken. Je e-mails zijn end-to-end versleuteld en volledig privé.",
+    youre_ready_description:
+      "Dat is alles! Je bent helemaal klaar om Aster Mail te gebruiken. Je e-mails zijn end-to-end versleuteld en volledig privé.",
     skip_tour: "Rondleiding overslaan",
     get_started: "Aan de slag",
     setup_complete: "Instelling voltooid!",
@@ -732,28 +885,40 @@ export const nl = {
     protected_in_transit: "Beschermd tijdens verzending",
     end_to_end_encrypted_label: "End-to-end versleuteld",
     only_you_and_sender: "Alleen jij en de afzender kunnen dit lezen.",
-    only_you_can_read_contacts: "Only you can read your contacts. Aster cannot see this data.",
+    only_you_can_read_contacts:
+      "Only you can read your contacts. Aster cannot see this data.",
     tor_label: "Tor",
     tor_snowflake_label: "Tor (Snowflake)",
     cdn_relay_label: "CDN Relay",
     toggle_selection: "Selectie omschakelen",
-    failed_to_send_email: "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_to_send_external_email: "Deze e-mail is niet verzonden via uw gekoppelde externe account. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    external_account_token_missing: "Uw gekoppelde externe account moet opnieuw worden verbonden voordat erdoor kan worden verzonden. Instellingen, Verbonden Accounts is de plek.",
-    failed_to_send_via_external: "Verzenden via uw gekoppelde externe account heeft niet gewerkt. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    offline_email_queued: "U bent op dit moment offline. Deze e-mail wordt verzonden zodra u weer verbinding hebt. Uw concept is opgeslagen.",
-    cannot_mix_recipients: "Aster-gebruikers en externe adressen kunnen niet in dezelfde e-mail. Ze als twee aparte berichten verzenden werkt.",
-    failed_to_schedule_email: "De planning is niet opgeslagen. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_to_restore_draft: "We konden dit concept niet terughalen. Het opnieuw openen lost dit meestal op. Uw andere concepten zijn niet getroffen.",
+    failed_to_send_email:
+      "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_to_send_external_email:
+      "Deze e-mail is niet verzonden via uw gekoppelde externe account. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    external_account_token_missing:
+      "Uw gekoppelde externe account moet opnieuw worden verbonden voordat erdoor kan worden verzonden. Instellingen, Verbonden Accounts is de plek.",
+    failed_to_send_via_external:
+      "Verzenden via uw gekoppelde externe account heeft niet gewerkt. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    offline_email_queued:
+      "U bent op dit moment offline. Deze e-mail wordt verzonden zodra u weer verbinding hebt. Uw concept is opgeslagen.",
+    cannot_mix_recipients:
+      "Aster-gebruikers en externe adressen kunnen niet in dezelfde e-mail. Ze als twee aparte berichten verzenden werkt.",
+    failed_to_schedule_email:
+      "De planning is niet opgeslagen. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_to_restore_draft:
+      "We konden dit concept niet terughalen. Het opnieuw openen lost dit meestal op. Uw andere concepten zijn niet getroffen.",
     enter_url: "Voer URL in:",
     enter_link_text: "Voer linktekst in:",
     conversation_marked_as_spam_toast: "Gesprek als spam gemarkeerd",
-    failed_to_undo_spam: "We konden dat niet ongedaan maken. Het handmatig terugzetten is de tussenoplossing.",
+    failed_to_undo_spam:
+      "We konden dat niet ongedaan maken. Het handmatig terugzetten is de tussenoplossing.",
     conversation_moved_to_trash_toast: "Gesprek naar prullenbak verplaatst",
-    failed_to_undo_trash: "We konden dat niet ongedaan maken. Het handmatig terugzetten is de tussenoplossing.",
+    failed_to_undo_trash:
+      "We konden dat niet ongedaan maken. Het handmatig terugzetten is de tussenoplossing.",
     message_archived: "Bericht gearchiveerd",
     message_moved_to_trash: "Bericht naar prullenbak verplaatst",
-    undo_failed: "Ongedaan maken heeft niet gewerkt. Een nieuwe poging zou werken.",
+    undo_failed:
+      "Ongedaan maken heeft niet gewerkt. Een nieuwe poging zou werken.",
     expired: "Verlopen",
     expires_in: "Verloopt over ",
     report_phishing: "Spam melden",
@@ -776,16 +941,21 @@ export const nl = {
     encrypted_attachment: "Versleutelde bijlage",
     image: "Afbeelding",
     system: "Systeem",
-    failed_to_permanently_delete: "Deze items zijn niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_delete_emails: "Deze e-mails zijn niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_mark_as_read: "Deze e-mails staan nog gemarkeerd als ongelezen. Een nieuwe poging zou werken.",
-    failed_to_mark_as_unread: "Deze e-mails staan nog gemarkeerd als gelezen. Een nieuwe poging zou werken.",
+    failed_to_permanently_delete:
+      "Deze items zijn niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_delete_emails:
+      "Deze e-mails zijn niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_mark_as_read:
+      "Deze e-mails staan nog gemarkeerd als ongelezen. Een nieuwe poging zou werken.",
+    failed_to_mark_as_unread:
+      "Deze e-mails staan nog gemarkeerd als gelezen. Een nieuwe poging zou werken.",
     n_conversations_archived: "{{ count }} gesprekken gearchiveerd",
     internal_only: "Alleen intern",
     external_only: "Alleen extern",
     all_accounts: "Alle accounts",
     all_external_accounts: "Alle externe accounts",
-    failed_to_rotate_keys: "Het vernieuwen van de sleutel is niet voltooid. Een nieuwe poging zou werken. Uw oude sleutels werken nog en uw gegevens zijn veilig.",
+    failed_to_rotate_keys:
+      "Het vernieuwen van de sleutel is niet voltooid. Een nieuwe poging zou werken. Uw oude sleutels werken nog en uw gegevens zijn veilig.",
     read: "Gelezen",
     or_conjunction: "of",
     press_label: "Druk op",
@@ -806,12 +976,18 @@ export const nl = {
     no_content: "Geen inhoud",
     unblocked_count_senders: "{{ count }} afzenders gedeblokkeerd",
     removed_count_from_allowlist: "{{ count }} van toelatingslijst verwijderd",
-    failed_to_add_label: "Dit label is niet toegevoegd. Een nieuwe poging zou werken.",
-    failed_to_remove_label: "Dit label is niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_move_email: "Deze e-mail is niet verplaatst. Een nieuwe poging zou werken. De e-mail is veilig op zijn plek.",
-    failed_to_add_labels: "Deze labels zijn niet toegevoegd. Een nieuwe poging zou werken.",
-    failed_to_remove_labels: "Deze labels zijn niet verwijderd. Een nieuwe poging zou werken.",
-    failed_to_copy_to_clipboard: "Er is niets naar uw klembord gekopieerd. Een nieuwe poging zou werken.",
+    failed_to_add_label:
+      "Dit label is niet toegevoegd. Een nieuwe poging zou werken.",
+    failed_to_remove_label:
+      "Dit label is niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_move_email:
+      "Deze e-mail is niet verplaatst. Een nieuwe poging zou werken. De e-mail is veilig op zijn plek.",
+    failed_to_add_labels:
+      "Deze labels zijn niet toegevoegd. Een nieuwe poging zou werken.",
+    failed_to_remove_labels:
+      "Deze labels zijn niet verwijderd. Een nieuwe poging zou werken.",
+    failed_to_copy_to_clipboard:
+      "Er is niets naar uw klembord gekopieerd. Een nieuwe poging zou werken.",
     add_note_placeholder: "Notitie toevoegen...",
     add_private_note_placeholder: "Privénotitie toevoegen...",
     search_anything: "Zoek naar alles...",
@@ -830,7 +1006,8 @@ export const nl = {
     duplicate_contacts: "Dubbele contacten",
     contact_sync: "Contact synchronisatie",
     sync_confirm_title: "Contacten synchroniseren",
-    sync_confirm_message: "Weet u zeker dat u uw mobiele contacten wilt synchroniseren met Aster? Nieuwe contacten van uw apparaat worden geïmporteerd.",
+    sync_confirm_message:
+      "Weet u zeker dat u uw mobiele contacten wilt synchroniseren met Aster? Nieuwe contacten van uw apparaat worden geïmporteerd.",
     sync_button: "Synchroniseren",
     server_url: "Server-URL",
     from_label: "Van:",
@@ -856,8 +1033,10 @@ export const nl = {
     app_lock_try_again_in: "Probeer opnieuw over {{s}}s",
     duress_confirm_title: "Are you sure?",
     duress_confirm_subtitle: "Erase local data",
-    duress_confirm_desc: "This will erase all locally stored mail, keys, and session data from this device and sign you out.",
-    duress_confirm_detail: "Your account and encrypted data remain safely on Aster's servers. You can sign back in at any time to restore access.",
+    duress_confirm_desc:
+      "This will erase all locally stored mail, keys, and session data from this device and sign you out.",
+    duress_confirm_detail:
+      "Your account and encrypted data remain safely on Aster's servers. You can sign back in at any time to restore access.",
     duress_confirm_proceed: "Erase local data",
     secure_send: "Veilig verzenden",
     push_notifications: "Pushmeldingen",
@@ -890,7 +1069,8 @@ export const nl = {
     tracking_pixel: "Trackingpixel",
     me: "mij",
     snoozed_until_label: "Uitgesteld tot {{time}}",
-    notification_banner_message: "Schakel bureaubladmeldingen in om op de hoogte te blijven van nieuwe e-mails",
+    notification_banner_message:
+      "Schakel bureaubladmeldingen in om op de hoogte te blijven van nieuwe e-mails",
     notification_banner_allow: "Toestaan",
     subscriptions: "Abonnementen",
     unsubscribed_count: "Uitgeschreven ({{count}})",
@@ -899,28 +1079,45 @@ export const nl = {
     total: "totaal",
     learn_more: "Meer informatie",
     buy_more_storage: "Meer opslag kopen",
-    save_failed: "Uw wijzigingen zijn niet opgeslagen. Uw verbinding controleren en het opnieuw proberen lost dit meestal op. De eerdere versie is er nog.",
+    save_failed:
+      "Uw wijzigingen zijn niet opgeslagen. Uw verbinding controleren en het opnieuw proberen lost dit meestal op. De eerdere versie is er nog.",
     block: "Blokkeren",
-    offline_features_limited: "U bent op dit moment offline. Sommige functies werken niet totdat u weer verbinding hebt.",
+    offline_features_limited:
+      "U bent op dit moment offline. Sommige functies werken niet totdat u weer verbinding hebt.",
     state_province: "Provincie / Staat",
-    something_went_wrong_try_again: "Dat heeft niet gewerkt. Een nieuwe poging zo werkt meestal.",
-    spam_emails_moved_to_trash: "{{count}} spam-e-mail(s) naar prullenbak verplaatst",
-    dns_propagation_note: "DNS-wijzigingen kunnen tot 48 uur duren om te verspreiden",
-    select_contact_hint: "Selecteer een contact uit de lijst om de details te bekijken",
-    failed_to_delete_account: "Account verwijderen mislukt. Probeer het opnieuw.",
-    cannot_remove_vault_password: "Uw Vault-map heeft altijd zijn eigen wachtwoord nodig, en deze beveiliging kan niet worden verwijderd.",
-    delete_account_error: "We konden uw account op dit moment niet verwijderen. Een nieuwe poging zo werkt meestal, en hello@astermail.org kan helpen als het blijft mislukken.",
-    encrypted_in_transit_stored: "Versleuteld tijdens verzending en opgeslagen als versleuteld.",
+    something_went_wrong_try_again:
+      "Dat heeft niet gewerkt. Een nieuwe poging zo werkt meestal.",
+    spam_emails_moved_to_trash:
+      "{{count}} spam-e-mail(s) naar prullenbak verplaatst",
+    dns_propagation_note:
+      "DNS-wijzigingen kunnen tot 48 uur duren om te verspreiden",
+    select_contact_hint:
+      "Selecteer een contact uit de lijst om de details te bekijken",
+    failed_to_delete_account:
+      "Account verwijderen mislukt. Probeer het opnieuw.",
+    cannot_remove_vault_password:
+      "Uw Vault-map heeft altijd zijn eigen wachtwoord nodig, en deze beveiliging kan niet worden verwijderd.",
+    delete_account_error:
+      "We konden uw account op dit moment niet verwijderen. Een nieuwe poging zo werkt meestal, en hello@astermail.org kan helpen als het blijft mislukken.",
+    encrypted_in_transit_stored:
+      "Versleuteld tijdens verzending en opgeslagen als versleuteld.",
     files_end_to_end_encrypted: "Deze bestanden zijn end-to-end versleuteld.",
-    files_protected_in_transit: "Deze bestanden waren beveiligd en versleuteld tijdens het transport.",
-    failed_to_queue_offline: "We konden deze e-mail niet in de wachtrij plaatsen voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    empty_body_error: "Een onderwerp of wat berichttekst is nodig voordat dit kan worden verzonden.",
-    subject_too_long: "Uw onderwerp overschrijdt de limiet van 998 tekens. Een kortere versie wordt verzonden.",
-    n_conversations_moved_to_trash: "{{ count }} gesprekken naar prullenbak verplaatst",
-    n_conversations_marked_as_spam: "{{ count }} gesprekken als spam gemarkeerd",
+    files_protected_in_transit:
+      "Deze bestanden waren beveiligd en versleuteld tijdens het transport.",
+    failed_to_queue_offline:
+      "We konden deze e-mail niet in de wachtrij plaatsen voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    empty_body_error:
+      "Een onderwerp of wat berichttekst is nodig voordat dit kan worden verzonden.",
+    subject_too_long:
+      "Uw onderwerp overschrijdt de limiet van 998 tekens. Een kortere versie wordt verzonden.",
+    n_conversations_moved_to_trash:
+      "{{ count }} gesprekken naar prullenbak verplaatst",
+    n_conversations_marked_as_spam:
+      "{{ count }} gesprekken als spam gemarkeerd",
     notification_banner_no_thanks: "Nee, bedankt",
     ghost_label: "Ghost",
-    ghost_mode_tooltip: "Verzonden via Ghost-modus. Je echte adres was verborgen.",
+    ghost_mode_tooltip:
+      "Verzonden via Ghost-modus. Je echte adres was verborgen.",
     bounced_label: "Geweigerd",
     failed_label: "Mislukt",
     scheduled_label: "Gepland",
@@ -941,7 +1138,8 @@ export const nl = {
     n_days: "{{count}} dagen",
     change_password_label: "Wachtwoord wijzigen",
     set_password_label: "Wachtwoord instellen",
-    require_password_expiry: "Vereist een wachtwoord om deze e-mail te bekijken nadat deze is verlopen.",
+    require_password_expiry:
+      "Vereist een wachtwoord om deze e-mail te bekijken nadat deze is verlopen.",
     enter_password_optional: "Wachtwoord invoeren (optioneel)",
     developer_label: "Ontwikkelaar",
     developer_mode_enabled: "Ontwikkelaarsmodus ingeschakeld",
@@ -988,7 +1186,8 @@ export const nl = {
     merging: "Samenvoegen...",
     disabled: "Disabled",
     ghost_mode_title: "Ghost Mode",
-    ghost_mode_description: "Reply from a disposable alias. Your real address stays hidden.",
+    ghost_mode_description:
+      "Reply from a disposable alias. Your real address stays hidden.",
     edit_folder: "Edit Folder",
     edit_label: "Edit Label",
     communication_history: "Communication History",
@@ -1011,72 +1210,105 @@ export const nl = {
     delete_confirm_phrase: "delete my account",
     legal_agree_prefix: "By creating an account, you agree to our",
     and_word: "and",
-    external_link_warning: "U staat op het punt Aster te verlaten voor een externe site. Deze link openen is prima als u de bestemming vertrouwt.",
+    external_link_warning:
+      "U staat op het punt Aster te verlaten voor een externe site. Deze link openen is prima als u de bestemming vertrouwt.",
     dont_show_warning_again: "Deze waarschuwing niet meer tonen",
     unknown_label: "Onbekend",
     n_hours: "{{ count }} uur",
     one_day: "1 dag",
     vault_locked: "Vault vergrendeld",
     unlock_vault_to_view: "Ontgrendel je vault om contacten te bekijken",
-    delete_contact_confirm: "Verwijder dit contact definitief. Dit kan niet ongedaan worden gemaakt.",
-    delete_contacts_confirm: "Verwijder dit contact definitief. Dit kan niet ongedaan worden gemaakt.",
+    delete_contact_confirm:
+      "Verwijder dit contact definitief. Dit kan niet ongedaan worden gemaakt.",
+    delete_contacts_confirm:
+      "Verwijder dit contact definitief. Dit kan niet ongedaan worden gemaakt.",
     this_contact: "dit contact",
     all_done: "Helemaal klaar",
     continue_label: "Doorgaan",
     send_invite_via_email: "Uitnodiging per e-mail verzenden",
     copy_invite_link: "Uitnodigingslink kopiëren",
     share_on_social: "Delen op sociale media",
-    check_out_aster_mail: "Bekijk Aster Mail, een betere manier om je e-mails te beheren!",
+    check_out_aster_mail:
+      "Bekijk Aster Mail, een betere manier om je e-mails te beheren!",
     n_lines: "{{ count }} regels",
     suspicious_email_detected: "Deze e-mail lijkt verdacht.",
-    phishing_warning_message: "We hebben deze e-mail als verdacht gemarkeerd. Alles erin verdient een voorzichtige blik, en het bevestigen van de afzender via een ander kanaal voordat u op links klikt of persoonlijke gegevens deelt, houdt u veiliger. Uw inbox en account zijn niet getroffen.",
+    phishing_warning_message:
+      "We hebben deze e-mail als verdacht gemarkeerd. Alles erin verdient een voorzichtige blik, en het bevestigen van de afzender via een ander kanaal voordat u op links klikt of persoonlijke gegevens deelt, houdt u veiliger. Uw inbox en account zijn niet getroffen.",
     hide_details: "Details verbergen",
     show_details: "Details tonen",
     not_phishing: "Geen phishing",
     i_understand: "Ik begrijp het",
     dangerous_email_links_disabled: "Gevaarlijke e-mail, links uitgeschakeld.",
-    phishing_danger_message: "Deze e-mail lijkt op een phishingpoging, en de links zijn voor uw veiligheid uitgeschakeld. Als u de afzender vertrouwt, biedt de banner een mogelijkheid om ze weer in te schakelen. Uw account blijft verder onaangeroerd.",
+    phishing_danger_message:
+      "Deze e-mail lijkt op een phishingpoging, en de links zijn voor uw veiligheid uitgeschakeld. Als u de afzender vertrouwt, biedt de banner een mogelijkheid om ze weer in te schakelen. Uw account blijft verder onaangeroerd.",
     hide_reasons: "Redenen verbergen",
     show_reasons: "Redenen tonen",
     view_links_anyway: "Links toch bekijken",
     enable_links: "Links inschakelen",
     links_re_enabled: "Links zijn opnieuw ingeschakeld.",
     i_understand_the_risks: "ik begrijp de risico's",
-    signal_dkim_fail: "We konden de handtekening van de afzender niet verifiëren. Deze e-mail is mogelijk onderweg gewijzigd of vervalst.",
-    signal_spf_fail: "De server die deze e-mail heeft verzonden, hoort normaal gesproken niet bij dit domein. De afzender kan vervalst zijn.",
-    signal_dmarc_fail: "Het domein van deze afzender wijst berichten af die niet aan zijn antispoofingregels voldoen, en dit bericht voldeed daar niet aan. Behandel het met zorg.",
-    signal_all_auth_fail: "Elke afzendercontrole op deze e-mail is mislukt, dus deze kan vervalst zijn. Vertrouw de links en bijlagen niet zonder de afzender op een andere manier te bevestigen.",
+    signal_dkim_fail:
+      "We konden de handtekening van de afzender niet verifiëren. Deze e-mail is mogelijk onderweg gewijzigd of vervalst.",
+    signal_spf_fail:
+      "De server die deze e-mail heeft verzonden, hoort normaal gesproken niet bij dit domein. De afzender kan vervalst zijn.",
+    signal_dmarc_fail:
+      "Het domein van deze afzender wijst berichten af die niet aan zijn antispoofingregels voldoen, en dit bericht voldeed daar niet aan. Behandel het met zorg.",
+    signal_all_auth_fail:
+      "Elke afzendercontrole op deze e-mail is mislukt, dus deze kan vervalst zijn. Vertrouw de links en bijlagen niet zonder de afzender op een andere manier te bevestigen.",
     auth_fail_banner_title: "We konden de afzender niet bevestigen.",
-    auth_fail_banner_body: "We konden niet bevestigen dat deze e-mail werkelijk afkomstig is van het getoonde adres, en deze kan vervalst zijn. De afzender via een ander kanaal verifiëren voordat u links of bijlagen opent, is de veiligere weg. Uw account is niet getroffen.",
+    auth_fail_banner_body:
+      "We konden niet bevestigen dat deze e-mail werkelijk afkomstig is van het getoonde adres, en deze kan vervalst zijn. De afzender via een ander kanaal verifiëren voordat u links of bijlagen opent, is de veiligere weg. Uw account is niet getroffen.",
     signal_all_auth_pass: "Alle e-mailauthenticatiecontroles geslaagd",
-    signal_reply_to_mismatch: "Antwoorden op deze e-mail zouden naar een ander domein gaan dan het adres dat als afzender wordt getoond, wat een veelgebruikt phishingpatroon is.",
-    signal_missing_from: "Deze e-mail heeft geen Van-regel, wat ongebruikelijk is en voorzichtigheid verdient.",
-    signal_missing_message_id: "Deze e-mail mist de unieke ID die legitieme post normaal gesproken bevat.",
-    signal_multiple_from: "Deze e-mail claimt meerdere afzenders tegelijk, wat vaak duidt op vervalsing.",
-    signal_future_dated: "Volgens de klok van de afzender is deze e-mail in de toekomst geschreven, wat kan wijzen op vervalsing of een verkeerd ingestelde afzender.",
-    signal_domain_reputation_high: "Het domein van deze afzender heeft een slechte reputatie binnen de bredere e-mailgemeenschap.",
-    signal_domain_reputation_medium: "Het domein van deze afzender heeft een gemengde reputatie. Een zorgvuldige blik voordat u op iets ingaat is de moeite waard.",
-    signal_domain_new: "Het domein van deze afzender is pas onlangs geregistreerd, wat veel voorkomt bij zwendelcampagnes.",
-    signal_user_reputation_high: "U hebt deze afzender eerder gemeld, dus we markeren het bericht voor u.",
-    signal_rbl_spamhaus: "De server die deze e-mail heeft verzonden, staat op een bekende spamzwartelijst.",
-    signal_rbl_barracuda: "De server die deze e-mail heeft verzonden, staat op een bekende spamzwartelijst.",
-    signal_rbl_other: "De server die deze e-mail heeft verzonden, staat op een realtime spamzwartelijst.",
-    signal_display_name_brand_spoof: "De afzendernaam imiteert een bekend merk, een veelgebruikte phishingtruc.",
-    signal_display_name_email_spoof: "De weergavenaam van de afzender toont een ander e-mailadres dan waar het bericht werkelijk vandaan komt, een veelgebruikt phishingpatroon.",
-    signal_domain_blocklist: "Het domein van deze afzender staat op een bekende phishingzwartelijst. Behandel het bericht als vijandig.",
-    signal_safe_browsing_match: "Het domein van deze afzender is gemarkeerd vanwege het hosten van onveilige inhoud.",
-    signal_url_on_blocklist: "Deze e-mail bevat links naar sites die bekendstaan om phishing. Klik er niet op.",
-    signal_homoglyph_domain: "Deze e-mail bevat links naar gelijkende domeinen die legitieme sites nabootsen. Vermijd ze.",
-    signal_display_name_brand_spoof_client: "De afzendernaam imiteert een bekend merk, een veelgebruikte phishingtruc.",
-    signal_display_name_email_mismatch: "De naam en het werkelijke adres van de afzender komen niet overeen, een veelgebruikt phishingpatroon.",
-    signal_urgency_language: "Deze e-mail gebruikt urgente of dreigende taal die vaak voorkomt bij zwendel. Even afwachten voordat u handelt, is veiliger.",
+    signal_reply_to_mismatch:
+      "Antwoorden op deze e-mail zouden naar een ander domein gaan dan het adres dat als afzender wordt getoond, wat een veelgebruikt phishingpatroon is.",
+    signal_missing_from:
+      "Deze e-mail heeft geen Van-regel, wat ongebruikelijk is en voorzichtigheid verdient.",
+    signal_missing_message_id:
+      "Deze e-mail mist de unieke ID die legitieme post normaal gesproken bevat.",
+    signal_multiple_from:
+      "Deze e-mail claimt meerdere afzenders tegelijk, wat vaak duidt op vervalsing.",
+    signal_future_dated:
+      "Volgens de klok van de afzender is deze e-mail in de toekomst geschreven, wat kan wijzen op vervalsing of een verkeerd ingestelde afzender.",
+    signal_domain_reputation_high:
+      "Het domein van deze afzender heeft een slechte reputatie binnen de bredere e-mailgemeenschap.",
+    signal_domain_reputation_medium:
+      "Het domein van deze afzender heeft een gemengde reputatie. Een zorgvuldige blik voordat u op iets ingaat is de moeite waard.",
+    signal_domain_new:
+      "Het domein van deze afzender is pas onlangs geregistreerd, wat veel voorkomt bij zwendelcampagnes.",
+    signal_user_reputation_high:
+      "U hebt deze afzender eerder gemeld, dus we markeren het bericht voor u.",
+    signal_rbl_spamhaus:
+      "De server die deze e-mail heeft verzonden, staat op een bekende spamzwartelijst.",
+    signal_rbl_barracuda:
+      "De server die deze e-mail heeft verzonden, staat op een bekende spamzwartelijst.",
+    signal_rbl_other:
+      "De server die deze e-mail heeft verzonden, staat op een realtime spamzwartelijst.",
+    signal_display_name_brand_spoof:
+      "De afzendernaam imiteert een bekend merk, een veelgebruikte phishingtruc.",
+    signal_display_name_email_spoof:
+      "De weergavenaam van de afzender toont een ander e-mailadres dan waar het bericht werkelijk vandaan komt, een veelgebruikt phishingpatroon.",
+    signal_domain_blocklist:
+      "Het domein van deze afzender staat op een bekende phishingzwartelijst. Behandel het bericht als vijandig.",
+    signal_safe_browsing_match:
+      "Het domein van deze afzender is gemarkeerd vanwege het hosten van onveilige inhoud.",
+    signal_url_on_blocklist:
+      "Deze e-mail bevat links naar sites die bekendstaan om phishing. Klik er niet op.",
+    signal_homoglyph_domain:
+      "Deze e-mail bevat links naar gelijkende domeinen die legitieme sites nabootsen. Vermijd ze.",
+    signal_display_name_brand_spoof_client:
+      "De afzendernaam imiteert een bekend merk, een veelgebruikte phishingtruc.",
+    signal_display_name_email_mismatch:
+      "De naam en het werkelijke adres van de afzender komen niet overeen, een veelgebruikt phishingpatroon.",
+    signal_urgency_language:
+      "Deze e-mail gebruikt urgente of dreigende taal die vaak voorkomt bij zwendel. Even afwachten voordat u handelt, is veiliger.",
     shipment_update: "Zendingsupdate",
     estimated_short: "Verw. {{ date }}",
     track_package: "Pakket volgen",
     tracking_number: "Volgnummer",
     estimated_delivery: "Verwachte levering",
     delivery_address: "Bezorgadres",
-    extracted_locally_message: "Lokaal uit je e-mail gehaald. Er wordt niets naar onze servers verzonden.",
+    extracted_locally_message:
+      "Lokaal uit je e-mail gehaald. Er wordt niets naar onze servers verzonden.",
     view_blocked_content_details: "Details van geblokkeerde inhoud bekijken",
     n_images: "{{ count }} afbeeldingen",
     n_items: "{{ count }} items",
@@ -1089,8 +1321,10 @@ export const nl = {
     cc_bcc_label: "CC/BCC",
     secured_by_aster_mail: "Beveiligd door",
     press_shortcut_to_send: "Druk op ⌘+Enter om te verzenden",
-    session_expired_sign_in: "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
-    signed_out_inactivity: "We hebben u na een rustige periode afgemeld om uw account te beschermen. Opnieuw aanmelden pakt verder waar u gebleven was.",
+    session_expired_sign_in:
+      "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
+    signed_out_inactivity:
+      "We hebben u na een rustige periode afgemeld om uw account te beschermen. Opnieuw aanmelden pakt verder waar u gebleven was.",
     emails_snoozed: "E-mails uitgesteld",
     emails_will_reappear: "{{count}} e-mail(s) verschijnen weer {{time}}",
     snoozing_emails: "E-mails uitstellen...",
@@ -1101,9 +1335,11 @@ export const nl = {
     no_folders_available: "Geen mappen beschikbaar",
     submitting: "Verzenden...",
     account_suspended_label: "Uw account is opgeschort.",
-    account_suspended_default_reason: "Uw account is opgeschort wegens een schending van de gebruiksvoorwaarden. hello@astermail.org kan helpen met bezwaar of meer informatie.",
+    account_suspended_default_reason:
+      "Uw account is opgeschort wegens een schending van de gebruiksvoorwaarden. hello@astermail.org kan helpen met bezwaar of meer informatie.",
     submit_an_appeal: "Bezwaar indienen",
-    settings_disabled_suspended: "Instellingen zijn uitgeschakeld zolang uw account is opgeschort. hello@astermail.org kan helpen met bezwaar of meer informatie.",
+    settings_disabled_suspended:
+      "Instellingen zijn uitgeschakeld zolang uw account is opgeschort. hello@astermail.org kan helpen met bezwaar of meer informatie.",
     new_email_body: "Je hebt een nieuwe e-mail",
     create_ghost_alias: "Ghost-alias aanmaken",
     hide_real_address_expiry: "Verberg je echte adres ({{days}}d verloopt)",
@@ -1117,19 +1353,27 @@ export const nl = {
     sender_type_external: "Extern",
     sender_type_ghost: "Ghost",
     recovery_email_label: "Herstel-e-mailadres",
-    vault_access_error: "We konden uw privésleutels op dit apparaat niet openen. Afmelden en weer aanmelden laadt ze opnieuw. Uw sleutels en gegevens op de server zijn ongewijzigd.",
-    recovery_email_already_used: "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
-    add_recovery_email_gate_desc: "Een geverifieerd herstelpadres is nodig om Aster Mail te blijven gebruiken. Zo komt u weer binnen als u uw wachtwoord vergeet, dus een adres dat u altijd kunt bereiken is de veiligere keuze.",
-    recovery_email_encrypted_note: "Dit e-mailadres wordt alleen gebruikt voor accountherstel en identiteitsverificatie. Het is versleuteld en kan niet door Aster worden gelezen.",
-    recovery_email_verified_redirect: "Je herstel-e-mailadres is geverifieerd. Je wordt nu doorgestuurd...",
-    verification_link_sent_to: "We hebben een verificatielink naar {{email}} verzonden. Klik op de link in de e-mail om je identiteit te verifiëren.",
-    check_spam_folder_note: "Geen e-mail ontvangen? Controleer je spammap. De link verloopt over 24 uur.",
+    vault_access_error:
+      "We konden uw privésleutels op dit apparaat niet openen. Afmelden en weer aanmelden laadt ze opnieuw. Uw sleutels en gegevens op de server zijn ongewijzigd.",
+    recovery_email_already_used:
+      "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
+    add_recovery_email_gate_desc:
+      "Een geverifieerd herstelpadres is nodig om Aster Mail te blijven gebruiken. Zo komt u weer binnen als u uw wachtwoord vergeet, dus een adres dat u altijd kunt bereiken is de veiligere keuze.",
+    recovery_email_encrypted_note:
+      "Dit e-mailadres wordt alleen gebruikt voor accountherstel en identiteitsverificatie. Het is versleuteld en kan niet door Aster worden gelezen.",
+    recovery_email_verified_redirect:
+      "Je herstel-e-mailadres is geverifieerd. Je wordt nu doorgestuurd...",
+    verification_link_sent_to:
+      "We hebben een verificatielink naar {{email}} verzonden. Klik op de link in de e-mail om je identiteit te verifiëren.",
+    check_spam_folder_note:
+      "Geen e-mail ontvangen? Controleer je spammap. De link verloopt over 24 uur.",
     job_title_at_company: "{{ job_title }} bij {{ company }}",
     export_all_contacts: "Alle contacten exporteren",
     export_filtered_count: "Gefilterd exporteren ({{ count }})",
     no_contacts_yet: "Nog geen contacten",
-    add_contacts_quick_email_hint: "Voeg contacten toe om snel mensen te e-mailen die je vaak bericht",
-    no_contacts_match: "Geen contacten komen overeen met \"{{ query }}\"",
+    add_contacts_quick_email_hint:
+      "Voeg contacten toe om snel mensen te e-mailen die je vaak bericht",
+    no_contacts_match: 'Geen contacten komen overeen met "{{ query }}"',
     contact_count_one: "{{ count }} contact",
     contact_count_other: "{{ count }} contacten",
     n_of_n_contacts: "{{ filtered }} van {{ total }}",
@@ -1141,7 +1385,8 @@ export const nl = {
     change_label_icon: "Labelpictogram wijzigen",
     select_an_icon: "Selecteer een pictogram",
     delete_label: "Label verwijderen",
-    label_permanently_deleted_warning: "Dit label wordt van elke e-mail die het draagt verwijderd, en u kunt dit niet ongedaan maken. De e-mails zelf blijven in uw account.",
+    label_permanently_deleted_warning:
+      "Dit label wordt van elke e-mail die het draagt verwijderd, en u kunt dit niet ongedaan maken. De e-mails zelf blijven in uw account.",
     confirm_delete_label: "Weet je zeker dat je het label wilt verwijderen",
     add_another_email_count: "Nog een e-mail toevoegen ({{current}}/{{max}})",
     drop_files_or_click: "Sleep bestanden hierheen of klik om te uploaden",
@@ -1150,31 +1395,41 @@ export const nl = {
     n_messages_count: "{{count}} berichten",
     view_all_messages: "Alle berichten bekijken",
     unable_to_decrypt: "We konden dit bericht niet openen",
-    decrypt_session_expired_message: "We konden dit bericht op dit apparaat niet openen, vaak omdat de sessie is beëindigd. Uw bericht en sleutels op de server zijn ongewijzigd.",
-    decrypt_try_sign_out: "Afmelden en weer aanmelden laadt uw sleutels opnieuw. Als het bericht nog steeds niet opent, kan hello@astermail.org helpen.",
+    decrypt_session_expired_message:
+      "We konden dit bericht op dit apparaat niet openen, vaak omdat de sessie is beëindigd. Uw bericht en sleutels op de server zijn ongewijzigd.",
+    decrypt_try_sign_out:
+      "Afmelden en weer aanmelden laadt uw sleutels opnieuw. Als het bericht nog steeds niet opent, kan hello@astermail.org helpen.",
     n_files: "{{count}} bestand",
     n_files_plural: "{{count}} bestanden",
     aster_user: "Aster-gebruiker",
     allow_sender: "Toevoegen aan toelatingslijst",
     remove_from_allowlist_action: "Verwijderen uit toelatingslijst",
-    failed_to_allow_sender: "Deze afzender is niet aan uw toegestane lijst toegevoegd. Een nieuwe poging zou werken.",
-    account_limit_reached: "U heeft de accountlimiet voor dit netwerk bereikt. Als dit niet klopt, kan hello@astermail.org helpen.",
+    failed_to_allow_sender:
+      "Deze afzender is niet aan uw toegestane lijst toegevoegd. Een nieuwe poging zou werken.",
+    account_limit_reached:
+      "U heeft de accountlimiet voor dit netwerk bereikt. Als dit niet klopt, kan hello@astermail.org helpen.",
     account_suspended: "Uw account is opgeschort.",
     action_undone: "Actie ongedaan gemaakt",
     add_display_name_placeholder: "Weergavenaam toevoegen",
-    adding_file_would_exceed_limit: "Het toevoegen van \"{{name}}\" zou uw bijlagen boven de limiet van 50 MB brengen. Verwijder eerst een bestand of stuur het in een apart e-mailbericht.",
+    adding_file_would_exceed_limit:
+      'Het toevoegen van "{{name}}" zou uw bijlagen boven de limiet van 50 MB brengen. Verwijder eerst een bestand of stuur het in een apart e-mailbericht.',
     advanced_toolbar: "Geavanceerd",
     alias_avatar_removed: "Alias-avatar verwijderd",
     alias_avatar_updated: "Alias-avatar bijgewerkt",
     alias_avatars_feature: "Aangepaste alias- en domein-avatars",
-    alias_avatars_locked: "Aangepaste avatars zijn onderdeel van betaalde abonnementen. Een upgrade schakelt ze in.",
+    alias_avatars_locked:
+      "Aangepaste avatars zijn onderdeel van betaalde abonnementen. Een upgrade schakelt ze in.",
     alias_display_name_updated: "Weergavenaam bijgewerkt",
     all_short: "Alles",
     and_n_more: "En {{count}} meer...",
-    auth_fail_tooltip_dkim: "De handtekening van de afzender ontbreekt of komt niet overeen, en wij kunnen niet bevestigen dat het bericht onderweg niet is gewijzigd.",
-    auth_fail_tooltip_dmarc: "Het eigen beleid van dit domein geeft aan dat berichten als dit geweigerd moeten worden.",
-    auth_fail_tooltip_intro: "Dit bericht heeft de volgende afzendercontroles niet doorstaan:",
-    auth_fail_tooltip_spf: "De server die dit heeft verzonden, is geen goedgekeurde afzender voor het domein in de Van-regel.",
+    auth_fail_tooltip_dkim:
+      "De handtekening van de afzender ontbreekt of komt niet overeen, en wij kunnen niet bevestigen dat het bericht onderweg niet is gewijzigd.",
+    auth_fail_tooltip_dmarc:
+      "Het eigen beleid van dit domein geeft aan dat berichten als dit geweigerd moeten worden.",
+    auth_fail_tooltip_intro:
+      "Dit bericht heeft de volgende afzendercontroles niet doorstaan:",
+    auth_fail_tooltip_spf:
+      "De server die dit heeft verzonden, is geen goedgekeurde afzender voor het domein in de Van-regel.",
     blocked_items_count: "{{count}} geblokkeerde items",
     change_alias_avatar: "Alias-avatar wijzigen",
     change_icon: "Pictogram wijzigen",
@@ -1192,30 +1447,40 @@ export const nl = {
     edit_display_name: "Weergavenaam bewerken",
     alias_note_updated: "Notitie bijgewerkt",
     alias_websites_updated: "Websites bijgewerkt",
-    failed_update_alias_websites: "Websites konden niet worden opgeslagen. Probeer het opnieuw.",
-    alias_website_invalid: "Dit lijkt geen geldig webadres. Probeer iets als example.com.",
-    alias_websites_limit_reached: "U kunt maximaal 10 websites per alias opslaan.",
+    failed_update_alias_websites:
+      "Websites konden niet worden opgeslagen. Probeer het opnieuw.",
+    alias_website_invalid:
+      "Dit lijkt geen geldig webadres. Probeer iets als example.com.",
+    alias_websites_limit_reached:
+      "U kunt maximaal 10 websites per alias opslaan.",
     add_alias_website: "Website toevoegen",
-    add_alias_website_placeholder: "Voeg een website toe waar u zich heeft aangemeld",
+    add_alias_website_placeholder:
+      "Voeg een website toe waar u zich heeft aangemeld",
     alias_add_details: "Details toevoegen",
     alias_websites_count: "{count} websites",
     remove_alias_website: "Website verwijderen",
-    failed_update_alias_note: "Je notitie is niet opgeslagen. Probeer het opnieuw.",
+    failed_update_alias_note:
+      "Je notitie is niet opgeslagen. Probeer het opnieuw.",
     alias_note_too_long: "Deze notitie is te lang. Een kortere werkt wel.",
     add_alias_note_placeholder: "Notitie toevoegen",
     edit_alias_note: "Notitie bewerken",
-    failed_remove_recovery_email: "Herstele-mailadres kon niet worden verwijderd",
+    failed_remove_recovery_email:
+      "Herstele-mailadres kon niet worden verwijderd",
     failed_save_profile_color: "Profielkleur kon niet worden opgeslagen",
     failed_to_change_folder_password: "Mapwachtwoord kon niet worden gewijzigd",
     failed_to_get_key_status: "Sleutelstatus kon niet worden opgehaald",
-    failed_to_read_named_file: "Bestand \"{{name}}\" kon niet worden gelezen",
-    failed_to_remove_folder_password: "Mapwachtwoord kon niet worden verwijderd",
+    failed_to_read_named_file: 'Bestand "{{name}}" kon niet worden gelezen',
+    failed_to_remove_folder_password:
+      "Mapwachtwoord kon niet worden verwijderd",
     failed_to_set_folder_password: "Mapwachtwoord kon niet worden ingesteld",
     failed_update_alias_avatar: "Alias-avatar kon niet worden bijgewerkt",
-    failed_update_alias_display_name: "Alias-weergavenaam kon niet worden bijgewerkt",
-    file_already_attached: "\"{{name}}\" is al bijgevoegd",
-    metadata_not_removed: "Verborgen metagegevens konden niet uit {{names}} worden verwijderd. Het bestand is ongewijzigd bijgevoegd.",
-    file_exceeds_max_size: "\"{{name}}\" overschrijdt de limiet van 25 MB per bestand. Een kleinere versie of een gedeelde link werkt wel.",
+    failed_update_alias_display_name:
+      "Alias-weergavenaam kon niet worden bijgewerkt",
+    file_already_attached: '"{{name}}" is al bijgevoegd',
+    metadata_not_removed:
+      "Verborgen metagegevens konden niet uit {{names}} worden verwijderd. Het bestand is ongewijzigd bijgevoegd.",
+    file_exceeds_max_size:
+      '"{{name}}" overschrijdt de limiet van 25 MB per bestand. Een kleinere versie of een gedeelde link werkt wel.',
     folder_fallback: "Map",
     found_n_contacts: "{{count}} contacten gevonden",
     found_one_contact: "1 contact gevonden",
@@ -1232,7 +1497,8 @@ export const nl = {
     label_system_sent: "Verzonden",
     label_system_spam: "Spam",
     label_system_trash: "Prullenbak",
-    marking_as_read_count: "{{completed}} van {{total}} gemarkeerd als gelezen...",
+    marking_as_read_count:
+      "{{completed}} van {{total}} gemarkeerd als gelezen...",
     mention_notification: "{{sender}} heeft u vermeld in een e-mail",
     message_will_be_sent_shortly: "Bericht wordt binnenkort verzonden",
     more_aliases: "{{count}} meer aliassen",
@@ -1252,7 +1518,8 @@ export const nl = {
     onboarding_checklist_recovery_method: "Stel een herstelmethode in",
     onboarding_checklist_title: "Aan de slag",
     one_email: "1 e-mail",
-    pending_deletion_cancel_prompt: "Annuleer de verwijdering om uw account te behouden",
+    pending_deletion_cancel_prompt:
+      "Annuleer de verwijdering om uw account te behouden",
     pending_deletion_cancelling: "Verwijdering annuleren...",
     pending_deletion_days: "Uw account wordt over {{days}} dag(en) verwijderd",
     pending_deletion_dismiss: "Sluiten",
@@ -1270,7 +1537,8 @@ export const nl = {
     print_from: "Van:",
     print_no_subject: "(Geen onderwerp)",
     print_to: "Aan:",
-    probation_message: "Uw account is in de proefperiode. Sommige functies zijn beperkt.",
+    probation_message:
+      "Uw account is in de proefperiode. Sommige functies zijn beperkt.",
     profile: "Profiel",
     profile_photo: "Profielfoto",
     recovery_email_removed: "Herstele-mailadres verwijderd",
@@ -1279,17 +1547,21 @@ export const nl = {
     recovery_pdf_footer: "Aster Privacy - Versleuteld e-mail",
     recovery_pdf_generated: "Aangemaakt op:",
     recovery_pdf_important_warning: "Bewaar dit document op een veilige plek",
-    recovery_pdf_keep_safe: "Bewaar dit veilig - u heeft het nodig als u uw wachtwoord vergeet",
-    recovery_pdf_no_digital: "Sla dit niet digitaal op als u niet zeker bent van de beveiliging",
+    recovery_pdf_keep_safe:
+      "Bewaar dit veilig - u heeft het nodig als u uw wachtwoord vergeet",
+    recovery_pdf_no_digital:
+      "Sla dit niet digitaal op als u niet zeker bent van de beveiliging",
     recovery_pdf_store_secure: "Bewaar op een veilige, offline locatie",
     recovery_pdf_title: "Herstelcodes voor Aster Mail",
     recovery_pdf_unrecoverable: "Verloren codes kunnen niet worden hersteld",
     recovery_pdf_used: "Gebruikt op:",
     recovery_pdf_your_codes: "Uw herstelcodes",
     recovery_text_code_used_on: "Code {{number}} gebruikt op: ____________",
-    recovery_text_if_forgot: "Als u uw wachtwoord vergeet, kunt u een van deze codes gebruiken om toegang te krijgen tot uw account",
+    recovery_text_if_forgot:
+      "Als u uw wachtwoord vergeet, kunt u een van deze codes gebruiken om toegang te krijgen tot uw account",
     recovery_text_keep_safe: "Bewaar deze codes op een veilige plek",
-    recovery_text_mark_used: "Markeer elke code als gebruikt nadat u hem heeft gebruikt",
+    recovery_text_mark_used:
+      "Markeer elke code als gebruikt nadat u hem heeft gebruikt",
     recovery_text_no_share: "Deel deze codes nooit met anderen",
     recovery_text_store_secure: "Bewaar offline op een veilige locatie",
     recovery_text_title: "Herstelcodes voor Aster Mail",
@@ -1297,17 +1569,22 @@ export const nl = {
     recovery_text_your_codes: "Uw herstelcodes:",
     remove_alias_avatar: "Alias-avatar verwijderen",
     remove_recovery_email: "Herstele-mailadres verwijderen",
-    step_up_description: "Bevestig voor uw veiligheid uw wachtwoord om door te gaan.",
-    step_up_error: "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
-    remove_recovery_email_confirm: "Weet u zeker dat u uw herstele-mailadres wilt verwijderen?",
+    step_up_description:
+      "Bevestig voor uw veiligheid uw wachtwoord om door te gaan.",
+    step_up_error:
+      "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
+    remove_recovery_email_confirm:
+      "Weet u zeker dat u uw herstele-mailadres wilt verwijderen?",
     reply_notification: "{{sender}} heeft uw e-mail beantwoord",
     request_timed_out: "Verzoek is verlopen",
-    save_recovery_codes_dialog: "Sla deze herstelcodes op op een veilige plek. Als u uw wachtwoord vergeet en geen toegang meer heeft tot uw verificatiemethode, kunt u een van deze codes gebruiken om toegang te krijgen tot uw account.",
+    save_recovery_codes_dialog:
+      "Sla deze herstelcodes op op een veilige plek. Als u uw wachtwoord vergeet en geen toegang meer heeft tot uw verificatiemethode, kunt u een van deze codes gebruiken om toegang te krijgen tot uw account.",
     save_recovery_codes_title: "Herstelcodes opslaan",
     scanning_mailbox: "Postvak scannen...",
     scheduled_category: "Gepland",
     search_failed_try_again: "Zoeken mislukt. Probeer het opnieuw.",
-    search_load_failed_try_again: "Zoekresultaten konden niet worden geladen. Probeer het opnieuw.",
+    search_load_failed_try_again:
+      "Zoekresultaten konden niet worden geladen. Probeer het opnieuw.",
     select_label: "Label",
     select_none: "Geen",
     select_read: "Gelezen",
@@ -1315,13 +1592,17 @@ export const nl = {
     select_unread: "Ongelezen",
     select_unstarred: "Zonder ster",
     sender_invalid: "Ongeldige afzender",
-    sender_invalid_desc: "De afzenderinformatie van dit bericht is ongeldig of vervalst.",
+    sender_invalid_desc:
+      "De afzenderinformatie van dit bericht is ongeldig of vervalst.",
     sender_no_keys: "Geen sleutels gevonden",
-    sender_no_keys_desc: "Er zijn geen versleutelingssleutels gevonden voor deze afzender.",
+    sender_no_keys_desc:
+      "Er zijn geen versleutelingssleutels gevonden voor deze afzender.",
     sender_unsigned: "Niet ondertekend",
-    sender_unsigned_desc: "Dit bericht is niet digitaal ondertekend door de afzender.",
+    sender_unsigned_desc:
+      "Dit bericht is niet digitaal ondertekend door de afzender.",
     sender_verified: "Afzender geverifieerd",
-    sender_verified_desc: "Dit bericht is digitaal ondertekend en de handtekening is geverifieerd.",
+    sender_verified_desc:
+      "Dit bericht is digitaal ondertekend en de handtekening is geverifieerd.",
     sending_in_seconds: "Verzenden over {{seconds}} seconden...",
     sending_in_one_second: "Verzenden over 1 seconde...",
     simple_toolbar: "Eenvoudig",
@@ -1334,7 +1615,8 @@ export const nl = {
     time_minutes_short: "m",
     time_seconds_short: "s",
     to_recipient: "Aan",
-    total_attachments_exceed_limit: "Totale grootte van bijlagen overschrijdt de limiet van 50 MB",
+    total_attachments_exceed_limit:
+      "Totale grootte van bijlagen overschrijdt de limiet van 50 MB",
     trash_empty_failed: "Prullenbak kon niet worden geleegd",
     uncategorized: "Ongecategoriseerd",
     unknown_merchant: "Onbekende handelaar",
@@ -1345,59 +1627,83 @@ export const nl = {
     unstar_selected: "Ster verwijderen van geselecteerde",
     unsupported_file_type: "{{name}} is geen ondersteund bestandstype.",
     use_biometry_to_unlock: "Gebruik {{name}} om te ontgrendelen",
-    wkd_encrypted_description: "Dit bericht is versleuteld met de WKD-sleutel van de ontvanger",
+    wkd_encrypted_description:
+      "Dit bericht is versleuteld met de WKD-sleutel van de ontvanger",
     x_of_y: "{{current}} van {{total}}",
     yourname_placeholder: "Uw naam",
     back_to_inbox: "Terug naar inbox",
-    health_check_failed: "De diagnostiek is niet voltooid. Een nieuwe poging zou werken.",
-    unknown_error: "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken. We konden de oorzaak niet bepalen.",
+    health_check_failed:
+      "De diagnostiek is niet voltooid. Een nieuwe poging zou werken.",
+    unknown_error:
+      "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken. We konden de oorzaak niet bepalen.",
     or: "or",
   },
   settings: {
     settings_view_mode: "Instellingenweergave",
-    settings_view_mode_description: "Instellingen openen als volledige pagina of pop-upvenster",
+    settings_view_mode_description:
+      "Instellingen openen als volledige pagina of pop-upvenster",
     quick_settings: "Snelle instellingen",
     see_all_settings: "Alle instellingen bekijken",
     fam_welcome_step1_title: "Welkom bij uw familieabonnement",
-    fam_welcome_step1_desc: "Iedereen in uw familie krijgt een eigen privé, versleutelde inbox - volledig gescheiden van de uwe.",
+    fam_welcome_step1_desc:
+      "Iedereen in uw familie krijgt een eigen privé, versleutelde inbox - volledig gescheiden van de uwe.",
     fam_welcome_step1_point1: "Elk lid krijgt een eigen @astermail.org-adres",
-    fam_welcome_step1_point2: "Volledige privacy - leden kunnen elkaars e-mails niet zien",
+    fam_welcome_step1_point2:
+      "Volledige privacy - leden kunnen elkaars e-mails niet zien",
     fam_welcome_step1_point3: "Kwantumveilige versleuteling op elk account",
     fam_welcome_step2_title: "Eén opslagpool, u bepaalt",
-    fam_welcome_step2_desc: "Uw abonnement bevat een gedeelde opslagpool. Bepaal hoeveel elk lid krijgt en pas het op elk moment aan.",
-    fam_welcome_step2_point1: "Wijs opslag toe aan elk lid wanneer u het uitnodigt",
-    fam_welcome_step2_point2: "Verschuif opslag tussen leden met een schuifregelaar",
-    fam_welcome_step2_point3: "Leden zien alleen hun eigen gebruik - verder niets",
+    fam_welcome_step2_desc:
+      "Uw abonnement bevat een gedeelde opslagpool. Bepaal hoeveel elk lid krijgt en pas het op elk moment aan.",
+    fam_welcome_step2_point1:
+      "Wijs opslag toe aan elk lid wanneer u het uitnodigt",
+    fam_welcome_step2_point2:
+      "Verschuif opslag tussen leden met een schuifregelaar",
+    fam_welcome_step2_point3:
+      "Leden zien alleen hun eigen gebruik - verder niets",
     fam_welcome_step3_title: "Veiligheid voor de hele familie",
-    fam_welcome_step3_desc: "Stel beleid in dat voor elk lid geldt - verplicht 2FA, beperk sessies, beheer toegang.",
-    fam_welcome_step3_point1: "Verplicht tweefactorauthenticatie voor alle leden",
-    fam_welcome_step3_point2: "Stel sessietime-outs en apparaatlimieten in voor iedereen",
-    fam_welcome_step3_point3: "Bekijk activiteitslogboeken en naleving in één oogopslag",
+    fam_welcome_step3_desc:
+      "Stel beleid in dat voor elk lid geldt - verplicht 2FA, beperk sessies, beheer toegang.",
+    fam_welcome_step3_point1:
+      "Verplicht tweefactorauthenticatie voor alle leden",
+    fam_welcome_step3_point2:
+      "Stel sessietime-outs en apparaatlimieten in voor iedereen",
+    fam_welcome_step3_point3:
+      "Bekijk activiteitslogboeken en naleving in één oogopslag",
     fam_welcome_summary: "{{count}} leden · {{storage}}",
     fam_welcome_setup: "Familie instellen",
     fam_welcome_step_aria: "Stap {{number}}: {{title}}",
     smtp_tokens: "SMTP-tokens",
-    smtp_tokens_description: "Maak alleen-verzenden SMTP-inloggegevens aan, zodat externe apps en scripts e-mail kunnen verzenden vanaf je geverifieerde adressen op eigen domeinen.",
-    smtp_tokens_popover_description: "Een SMTP-token is een alleen-verzenden wachtwoord dat is gekoppeld aan een van je geverifieerde adressen op een eigen domein. Gebruik het om e-mail te verzenden vanuit geautomatiseerde systemen, scripts of diensten van derden via standaard-SMTP.",
+    smtp_tokens_description:
+      "Maak alleen-verzenden SMTP-inloggegevens aan, zodat externe apps en scripts e-mail kunnen verzenden vanaf je geverifieerde adressen op eigen domeinen.",
+    smtp_tokens_popover_description:
+      "Een SMTP-token is een alleen-verzenden wachtwoord dat is gekoppeld aan een van je geverifieerde adressen op een eigen domein. Gebruik het om e-mail te verzenden vanuit geautomatiseerde systemen, scripts of diensten van derden via standaard-SMTP.",
     smtp_tokens_empty: "Nog geen SMTP-tokens.",
     smtp_tokens_upgrade_title: "Verzenden vanuit je eigen apps",
-    smtp_tokens_upgrade_description: "Genereer alleen-verzenden SMTP-inloggegevens voor je geverifieerde eigen domeinen. Beschikbaar vanaf Star.",
+    smtp_tokens_upgrade_description:
+      "Genereer alleen-verzenden SMTP-inloggegevens voor je geverifieerde eigen domeinen. Beschikbaar vanaf Star.",
     smtp_tokens_upgrade_cta: "Upgraden naar Star",
     smtp_tokens_no_domain_title: "Voeg eerst een geverifieerd eigen domein toe",
-    smtp_tokens_no_domain_description: "SMTP-tokens kunnen alleen worden gekoppeld aan een geverifieerd adres op een eigen domein. Voeg een eigen domein toe en verifieer het om te beginnen.",
+    smtp_tokens_no_domain_description:
+      "SMTP-tokens kunnen alleen worden gekoppeld aan een geverifieerd adres op een eigen domein. Voeg een eigen domein toe en verifieer het om te beginnen.",
     smtp_tokens_add_domain_cta: "Een eigen domein toevoegen",
     smtp_token_generate: "Token genereren",
     smtp_token_create_title: "SMTP-token genereren",
-    smtp_token_create_description: "Geef deze token een naam en kies het geverifieerde adres waarvandaan deze e-mail mag verzenden.",
+    smtp_token_create_description:
+      "Geef deze token een naam en kies het geverifieerde adres waarvandaan deze e-mail mag verzenden.",
     smtp_token_name_label: "Naam",
     smtp_token_name_placeholder: "bijv. Nieuwsbriefverzender",
     smtp_token_address_label: "Verzenden vanaf",
-    smtp_token_address_hint: "E-mail die met deze token wordt verzonden, lijkt afkomstig van dit adres.",
-    smtp_token_create_failed: "De token kon niet worden aangemaakt. Probeer het opnieuw.",
-    smtp_token_error_forbidden: "SMTP-tokens vereisen een betaald abonnement, of je hebt je tokenlimiet bereikt. Upgrade of trek een bestaande token in om door te gaan.",
-    smtp_token_error_conflict: "Er bestaat al een actieve token voor dit adres. Trek deze eerst in om een nieuwe te genereren.",
+    smtp_token_address_hint:
+      "E-mail die met deze token wordt verzonden, lijkt afkomstig van dit adres.",
+    smtp_token_create_failed:
+      "De token kon niet worden aangemaakt. Probeer het opnieuw.",
+    smtp_token_error_forbidden:
+      "SMTP-tokens vereisen een betaald abonnement, of je hebt je tokenlimiet bereikt. Upgrade of trek een bestaande token in om door te gaan.",
+    smtp_token_error_conflict:
+      "Er bestaat al een actieve token voor dit adres. Trek deze eerst in om een nieuwe te genereren.",
     smtp_token_ready_title: "Token aangemaakt",
-    smtp_token_ready_description: "Kopieer deze instellingen nu naar je mailclient of app. Het wachtwoord wordt slechts eenmaal getoond en kan niet opnieuw worden opgehaald.",
+    smtp_token_ready_description:
+      "Kopieer deze instellingen nu naar je mailclient of app. Het wachtwoord wordt slechts eenmaal getoond en kan niet opnieuw worden opgehaald.",
     smtp_token_host: "Host",
     smtp_token_port: "Poort",
     smtp_token_security: "Beveiliging",
@@ -1407,31 +1713,42 @@ export const nl = {
     smtp_token_last_used: "Laatst gebruikt",
     smtp_token_never_used: "Nooit",
     smtp_token_revoke_title: "Token intrekken?",
-    smtp_token_revoke_message: "Hiermee wordt {{ name }} permanent ingetrokken. Elke app die deze gebruikt, kan dan geen e-mail meer verzenden.",
+    smtp_token_revoke_message:
+      "Hiermee wordt {{ name }} permanent ingetrokken. Elke app die deze gebruikt, kan dan geen e-mail meer verzenden.",
     smtp_token_revoked_toast: "SMTP-token ingetrokken",
-    smtp_token_revoke_failed_toast: "SMTP-token kon niet worden ingetrokken. Probeer het opnieuw.",
-    smtp_token_not_e2e_title: "Berichten die met SMTP-tokens worden verzonden, zijn niet end-to-end versleuteld",
-    smtp_token_not_e2e_body: "E-mail die via een SMTP-token wordt verzonden, wordt onderweg beschermd met TLS en op onze servers opgeslagen met zero-access-versleuteling, maar is niet end-to-end versleuteld. Aster kan geen end-to-end-versleuteling toepassen op e-mail die buiten de Aster-apps ontstaat. Gebruik SMTP-tokens alleen voor geautomatiseerde of transactionele e-mail waarbij end-to-end-versleuteling niet vereist is.",
-    fam_org_sec_member_notice: "Deze beveiligingsregels worden ingesteld door de planeigenaar en zijn van toepassing op uw account.",
+    smtp_token_revoke_failed_toast:
+      "SMTP-token kon niet worden ingetrokken. Probeer het opnieuw.",
+    smtp_token_not_e2e_title:
+      "Berichten die met SMTP-tokens worden verzonden, zijn niet end-to-end versleuteld",
+    smtp_token_not_e2e_body:
+      "E-mail die via een SMTP-token wordt verzonden, wordt onderweg beschermd met TLS en op onze servers opgeslagen met zero-access-versleuteling, maar is niet end-to-end versleuteld. Aster kan geen end-to-end-versleuteling toepassen op e-mail die buiten de Aster-apps ontstaat. Gebruik SMTP-tokens alleen voor geautomatiseerde of transactionele e-mail waarbij end-to-end-versleuteling niet vereist is.",
+    fam_org_sec_member_notice:
+      "Deze beveiligingsregels worden ingesteld door de planeigenaar en zijn van toepassing op uw account.",
     fam_org_sec_saved: "Beveiligingsinstellingen bijgewerkt",
     fam_org_sec_unsaved: "U heeft niet-opgeslagen wijzigingen",
     fam_org_sec_discard: "Verwerpen",
     fam_org_sec_apply: "Wijzigingen toepassen",
     fam_org_sec_confirm_title: "Beveiligingsinstellingen toepassen?",
-    fam_org_sec_confirm_desc: "Deze wijzigingen worden onmiddellijk op alle leden toegepast.",
+    fam_org_sec_confirm_desc:
+      "Deze wijzigingen worden onmiddellijk op alle leden toegepast.",
     fam_org_sec_confirm_on: "Aan",
     fam_org_sec_confirm_off: "Uit",
     fam_org_sec_confirm_cancel: "Annuleren",
     fam_org_sec_confirm_apply: "Toepassen",
     fam_org_event_group_member_added: "Groepslid toegevoegd",
     fam_org_event_group_member_removed: "Groepslid verwijderd",
-    fam_org_captcha_required: "Voltooi de captcha om een uitnodiging te versturen.",
+    fam_org_captcha_required:
+      "Voltooi de captcha om een uitnodiging te versturen.",
     fam_org_left_title: "Je hebt het gezinsabonnement verlaten",
-    fam_org_left_desc: "Je account blijft actief. Je kunt op elk moment opnieuw deelnemen met een nieuwe uitnodiging.",
-    fam_org_invite_summary: "Dit lid krijgt {{member}}. Er blijft {{free}} van je {{pool}} gezinspool over voor de rest.",
-    fam_org_invite_summary_over: "{{member}} is meer dan je gezinspool aankan. Slechts {{avail}} beschikbaar - kies een kleinere waarde.",
+    fam_org_left_desc:
+      "Je account blijft actief. Je kunt op elk moment opnieuw deelnemen met een nieuwe uitnodiging.",
+    fam_org_invite_summary:
+      "Dit lid krijgt {{member}}. Er blijft {{free}} van je {{pool}} gezinspool over voor de rest.",
+    fam_org_invite_summary_over:
+      "{{member}} is meer dan je gezinspool aankan. Slechts {{avail}} beschikbaar - kies een kleinere waarde.",
     fam_org_action_failed: "Er ging iets mis. Probeer het opnieuw.",
-    fam_org_invite_exists: "Er is al een openstaande uitnodiging voor dit e-mailadres.",
+    fam_org_invite_exists:
+      "Er is al een openstaande uitnodiging voor dit e-mailadres.",
     plan_feat_storage_50: "50 GB versleutelde opslag",
     plan_feat_storage_500: "500 GB versleutelde opslag",
     plan_feat_storage_5tb: "5 TB versleutelde opslag",
@@ -1470,16 +1787,21 @@ export const nl = {
     app_lock_set_passphrase: "Wachtwoordzin instellen",
     app_lock_confirm_passphrase: "Wachtwoordzin bevestigen",
     app_lock_text_placeholder: "Voer wachtwoordzin in",
-    app_lock_passphrase_mismatch: "Wachtwoordzinnen komen niet overeen. Probeer het opnieuw.",
-    app_lock_passphrase_too_short: "Wachtwoordzin moet minstens 4 tekens bevatten",
+    app_lock_passphrase_mismatch:
+      "Wachtwoordzinnen komen niet overeen. Probeer het opnieuw.",
+    app_lock_passphrase_too_short:
+      "Wachtwoordzin moet minstens 4 tekens bevatten",
     duress_pin: "Duress PIN",
-    duress_pin_description: "A hidden PIN that erases local data instead of unlocking",
+    duress_pin_description:
+      "A hidden PIN that erases local data instead of unlocking",
     duress_pin_setup: "Set up",
     duress_pin_change: "Change duress PIN",
     duress_pin_remove: "Remove",
     duress_pin_verify_identity: "Verify your identity",
-    duress_pin_verify_identity_desc: "Enter your account password to set up a duress PIN.",
-    duress_pin_verify_identity_totp_desc: "Enter your account password and 2FA code.",
+    duress_pin_verify_identity_desc:
+      "Enter your account password to set up a duress PIN.",
+    duress_pin_verify_identity_totp_desc:
+      "Enter your account password and 2FA code.",
     duress_pin_password_label: "Account password",
     duress_pin_totp_label: "2FA code",
     duress_pin_set: "Set duress PIN",
@@ -1491,11 +1813,13 @@ export const nl = {
     duress_pin_enter_to_remove: "Enter your duress PIN to remove it",
     duress_pin_invalid_credentials: "Incorrect password or 2FA code",
     duress_pin_how_it_works: "How your duress PIN works",
-    duress_pin_how_it_works_body: "If you ever enter this PIN on the lock screen, Aster Mail will immediately erase all locally stored data from this device and sign you out. Your account is not deleted - your encrypted mail and data remain on Aster's servers and can be restored by signing back in.",
+    duress_pin_how_it_works_body:
+      "If you ever enter this PIN on the lock screen, Aster Mail will immediately erase all locally stored data from this device and sign you out. Your account is not deleted - your encrypted mail and data remain on Aster's servers and can be restored by signing back in.",
     duress_pin_confirm_setup: "Set up duress PIN",
     inbox_categories: "Inboxcategorieën",
     inbox_categories_short: "Sorteer je inbox in tabbladen",
-    inbox_categories_description: "Sorteert je inbox in de tabbladen Primair, Promoties, Sociaal en Updates. Het sorteren gebeurt privé op je apparaat - categorieën worden nooit naar de server gestuurd.",
+    inbox_categories_description:
+      "Sorteert je inbox in de tabbladen Primair, Promoties, Sociaal en Updates. Het sorteren gebeurt privé op je apparaat - categorieën worden nooit naar de server gestuurd.",
     categories_title: "Categorieën",
     categories_description:
       "Kies welke categorietabbladen in je inbox verschijnen en maak je eigen categorieën. Alle sortering gebeurt lokaal op je apparaat.",
@@ -1503,14 +1827,19 @@ export const nl = {
     category_finance: "Financiën",
     category_travel: "Reizen",
     category_shopping: "Winkelen",
-    category_info_primary: "Alles wat niet bij een andere categorie past. Altijd actief.",
+    category_info_primary:
+      "Alles wat niet bij een andere categorie past. Altijd actief.",
     category_info_promotions: "Marketingmails, aanbiedingen en deals.",
     category_info_social: "Meldingen van sociale netwerken en communities.",
     category_info_updates: "Bonnetjes, bevestigingen en servicemeldingen.",
-    category_info_forums: "Berichten van mailinglijsten, forums en discussiegroepen.",
-    category_info_finance: "Afschriften, facturen en meldingen van banken en financiële diensten.",
-    category_info_travel: "Boekingen, reisschema's en bevestigingen van luchtvaartmaatschappijen, hotels en ritservices.",
-    category_info_shopping: "Bestelbevestigingen, verzendupdates en bezorgmeldingen.",
+    category_info_forums:
+      "Berichten van mailinglijsten, forums en discussiegroepen.",
+    category_info_finance:
+      "Afschriften, facturen en meldingen van banken en financiële diensten.",
+    category_info_travel:
+      "Boekingen, reisschema's en bevestigingen van luchtvaartmaatschappijen, hotels en ritservices.",
+    category_info_shopping:
+      "Bestelbevestigingen, verzendupdates en bezorgmeldingen.",
     custom_categories_title: "Aangepaste categorieën",
     custom_categories_tutorial:
       "Maak je eigen categorie. Match e-mails op afzenderdomein of een trefwoord in het onderwerp.",
@@ -1518,15 +1847,21 @@ export const nl = {
     add_category: "Categorie toevoegen",
     no_custom_categories: "Nog geen aangepaste categorieën.",
     category_name_required: "Voer een naam in voor deze categorie.",
-    category_rule_required: "Voeg minstens één domein of trefwoord toe om op te matchen.",
-    category_domains_invalid: "Ongeldige domeinen: {{list}}. Gebruik een echt domein zoals example.com.",
-    category_keywords_invalid: "Ongeldige trefwoorden: {{list}}. Gebruik alleen gewone woorden.",
+    category_rule_required:
+      "Voeg minstens één domein of trefwoord toe om op te matchen.",
+    category_domains_invalid:
+      "Ongeldige domeinen: {{list}}. Gebruik een echt domein zoals example.com.",
+    category_keywords_invalid:
+      "Ongeldige trefwoorden: {{list}}. Gebruik alleen gewone woorden.",
     category_expand: "Uitklappen",
     category_collapse: "Inklappen",
     delete_category_title: "Categorie verwijderen?",
-    delete_category_description: "Weet je zeker dat je “{{name}}” wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
-    custom_categories_locked: "Aangepaste categorieën zijn niet beschikbaar in je huidige abonnement.",
-    custom_categories_limit_reached: "Je hebt de limiet voor aangepaste categorieën van je abonnement bereikt. Upgrade voor meer.",
+    delete_category_description:
+      "Weet je zeker dat je “{{name}}” wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    custom_categories_locked:
+      "Aangepaste categorieën zijn niet beschikbaar in je huidige abonnement.",
+    custom_categories_limit_reached:
+      "Je hebt de limiet voor aangepaste categorieën van je abonnement bereikt. Upgrade voor meer.",
     edit_custom_category: "Categorie bewerken",
     new_custom_category: "Nieuwe categorie",
     category_name: "Naam",
@@ -1544,9 +1879,11 @@ export const nl = {
       "Tip: een aangepaste categorie matcht als het afzenderdomein OF het onderwerp een van je trefwoorden bevat. Aangepaste categorieën worden gecontroleerd vóór ingebouwde categorieën en krijgen dus altijd voorrang.",
     html_content_section_title: "HTML-inhoud",
     html_rendering_mode_label: "HTML-weergave blokkeren",
-    html_rendering_mode_description: "Toon inkomende e-mails als platte tekst om tracking, layoutvervalsing en visuele phishing te voorkomen",
+    html_rendering_mode_description:
+      "Toon inkomende e-mails als platte tekst om tracking, layoutvervalsing en visuele phishing te voorkomen",
     plain_text_compose_label: "Opstellen in platte tekst",
-    plain_text_compose_description: "Standaard platte tekst gebruiken bij het schrijven van nieuwe e-mails",
+    plain_text_compose_description:
+      "Standaard platte tekst gebruiken bij het schrijven van nieuwe e-mails",
     family_plan_title: "Gezinsabonnement",
     family_plan_subtitle: "Beheer je gezinsleden en opslag",
     family_members: "Leden",
@@ -1564,32 +1901,40 @@ export const nl = {
     family_invite_expires: "Verloopt op {{date}}",
     family_invite_pending: "In afwachting",
     family_invite_revoke: "Intrekken",
-    family_invite_wrong_recipient: "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
+    family_invite_wrong_recipient:
+      "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_member_owner: "Eigenaar",
     family_member_member: "Lid",
     family_member_grace: "Respijtperiode",
     family_member_storage: "{{used}} van {{limit}} gebruikt",
     family_remove_member: "Lid verwijderen",
     family_remove_confirm_title: "{{name}} verwijderen?",
-    family_remove_confirm_body: "{{name}} heeft 30 dagen toegang voordat het abonnement terugvalt naar Gratis. Hun e-mail en gegevens blijven bij hen.",
+    family_remove_confirm_body:
+      "{{name}} heeft 30 dagen toegang voordat het abonnement terugvalt naar Gratis. Hun e-mail en gegevens blijven bij hen.",
     family_remove_confirm_action: "Lid verwijderen",
     family_transfer_admin: "Beheerder overdragen",
     family_transfer_confirm_title: "Beheerder overdragen aan {{name}}?",
-    family_transfer_confirm_body: "{{name}} wordt de groepseigenaar en beheert de facturering. Jij wordt een gewoon lid.",
+    family_transfer_confirm_body:
+      "{{name}} wordt de groepseigenaar en beheert de facturering. Jij wordt een gewoon lid.",
     family_transfer_confirm_action: "Beheerder overdragen",
     family_leave: "Gezinsabonnement verlaten",
     family_leave_confirm_title: "Gezinsabonnement verlaten?",
-    family_leave_confirm_body: "Je hebt 30 dagen toegang voordat je abonnement terugvalt naar Gratis. Je e-mail en gegevens blijven bij jou.",
+    family_leave_confirm_body:
+      "Je hebt 30 dagen toegang voordat je abonnement terugvalt naar Gratis. Je e-mail en gegevens blijven bij jou.",
     family_leave_confirm_action: "Verlaten",
     family_join_title: "Word lid van een Gezinsabonnement op Aster Mail",
-    family_join_body: "Je bent uitgenodigd om lid te worden van een privé, versleuteld e-mailgezinsabonnement.",
+    family_join_body:
+      "Je bent uitgenodigd om lid te worden van een privé, versleuteld e-mailgezinsabonnement.",
     family_join_create_account: "Account aanmaken en lid worden",
     family_join_login: "Inloggen en lid worden",
-    family_join_invalid: "Deze uitnodigingslink is verlopen of is niet meer geldig.",
+    family_join_invalid:
+      "Deze uitnodigingslink is verlopen of is niet meer geldig.",
     invite_title_named: "{{ name }} heeft je uitgenodigd voor Aster Mail",
     invite_title_generic: "Je bent uitgenodigd voor Aster Mail",
-    invite_subtitle: "Aster Mail is zero-access, end-to-end versleutelde e-mail. Niemand behalve jij kan je inbox lezen, wij ook niet.",
-    invite_discount_line: "Meld je nu aan en krijg {{ percent }}% korting op je eerste abonnement.",
+    invite_subtitle:
+      "Aster Mail is zero-access, end-to-end versleutelde e-mail. Niemand behalve jij kan je inbox lezen, wij ook niet.",
+    invite_discount_line:
+      "Meld je nu aan en krijg {{ percent }}% korting op je eerste abonnement.",
     invite_benefits_heading: "Dit krijg je",
     invite_benefit_zero_access: "Zero-access, end-to-end versleutelde e-mail",
     invite_benefit_no_ads: "Geen advertenties, geen tracking",
@@ -1597,7 +1942,8 @@ export const nl = {
     invite_cta_create_account: "Claim mijn {{ percent }}% korting",
     invite_cta_sign_in: "Heb je al een account? Inloggen",
     invite_not_found_title: "Deze uitnodigingslink is niet beschikbaar",
-    invite_not_found_body: "Mogelijk is de link verlopen of onjuist. Je kunt nog steeds een gratis Aster Mail-account aanmaken.",
+    invite_not_found_body:
+      "Mogelijk is de link verlopen of onjuist. Je kunt nog steeds een gratis Aster Mail-account aanmaken.",
     invite_not_found_cta_register: "Maak je account aan",
     invite_not_found_cta_sign_in: "Inloggen",
     family_join_inviter: "{{ name }} heeft je uitgenodigd",
@@ -1609,21 +1955,25 @@ export const nl = {
     family_join_benefit_e2e: "End-to-end versleutelde e-mail",
     family_join_benefit_no_tracking: "Geen advertenties, geen tracking",
     family_join_2fa_title: "Beveiligingsvereiste",
-    family_join_2fa_body: "Dit gezin vereist tweefactorauthenticatie. Je moet 2FA inschakelen nadat je lid bent geworden.",
+    family_join_2fa_body:
+      "Dit gezin vereist tweefactorauthenticatie. Je moet 2FA inschakelen nadat je lid bent geworden.",
     family_join_accept: "Accepteren en lid worden",
     family_join_joining: "Bezig met deelnemen...",
     family_join_success_title: "Je bent erbij!",
-    family_join_success_body: "Je bent lid geworden van het gezinsabonnement met {{ size }} opslag.",
+    family_join_success_body:
+      "Je bent lid geworden van het gezinsabonnement met {{ size }} opslag.",
     family_join_redirecting: "Doorverwijzen naar je inbox...",
     family_join_invalid_title: "Ongeldige uitnodiging",
     family_join_invalid_link: "Ongeldige uitnodigingslink.",
-    family_join_failed: "We konden je niet aan dit gezin toevoegen. De uitnodiging is mogelijk verlopen of al gebruikt.",
+    family_join_failed:
+      "We konden je niet aan dit gezin toevoegen. De uitnodiging is mogelijk verlopen of al gebruikt.",
     family_join_sign_in_cta: "Inloggen bij Aster",
     family_join_terms_prefix: "Door lid te worden ga je akkoord met onze",
     family_join_terms_link: "Servicevoorwaarden",
     family_join_terms_and: "en",
     family_join_privacy_link: "Privacybeleid",
-    family_plan_grace: "Dit abonnement bevindt zich in een respijtperiode en eindigt op {{date}}.",
+    family_plan_grace:
+      "Dit abonnement bevindt zich in een respijtperiode en eindigt op {{date}}.",
     family_storage_edit: "Opslag bewerken",
     family_storage_save: "Opslaan",
     family_seats_used: "{{used}} van {{max}} plaatsen gebruikt",
@@ -1660,7 +2010,8 @@ export const nl = {
     family_activity_empty: "Nog geen activiteit.",
     family_activity_load_more: "Meer laden",
     family_activity_load_failed: "Activiteit laden mislukt",
-    family_filters_subtitle: "Filters gelden voor de inboxen van alle gezinsleden.",
+    family_filters_subtitle:
+      "Filters gelden voor de inboxen van alle gezinsleden.",
     family_filters_new: "Nieuw filter",
     family_filters_name_placeholder: "Filternaam",
     family_filters_value_placeholder: "Waarde (domein, e-mail, trefwoord)",
@@ -1678,33 +2029,43 @@ export const nl = {
     family_filters_deleted: "Filter verwijderd",
     family_filters_load_failed: "Filters laden mislukt",
     family_filters_create_failed: "Filter aanmaken mislukt",
-    family_domains_subtitle: "Deel aangepaste domeinen zodat gezinsleden er aliassen op kunnen aanmaken.",
-    family_domains_empty: "Geen aangepaste domeinen gevonden. Leden kunnen domeinen toevoegen in de instellingen voor Aliassen en domeinen.",
+    family_domains_subtitle:
+      "Deel aangepaste domeinen zodat gezinsleden er aliassen op kunnen aanmaken.",
+    family_domains_empty:
+      "Geen aangepaste domeinen gevonden. Leden kunnen domeinen toevoegen in de instellingen voor Aliassen en domeinen.",
     family_domains_share: "Delen",
     family_domains_shared: "Domein gedeeld",
     family_domains_share_failed: "Domein delen mislukt",
     family_domains_load_failed: "Domeinen laden mislukt",
     family_domains_select_member: "Lid selecteren...",
     family_security_require_2fa: "Tweefactorauthenticatie vereisen",
-    family_security_require_2fa_hint: "Alle leden moeten 2FA inschakelen om toegang te krijgen tot hun account",
+    family_security_require_2fa_hint:
+      "Alle leden moeten 2FA inschakelen om toegang te krijgen tot hun account",
     family_security_allow_imap: "IMAP/SMTP-toegang toestaan",
-    family_security_allow_imap_hint: "Leden kunnen externe e-mailclients verbinden via Aster Bridge",
+    family_security_allow_imap_hint:
+      "Leden kunnen externe e-mailclients verbinden via Aster Bridge",
     family_security_block_forwarding: "Externe doorsturen blokkeren",
-    family_security_block_forwarding_hint: "Voorkom dat leden e-mail automatisch buiten het gezin doorsturen",
+    family_security_block_forwarding_hint:
+      "Voorkom dat leden e-mail automatisch buiten het gezin doorsturen",
     family_security_grace_label: "Respijtperiode voor nieuwe leden",
-    family_security_grace_hint: "Aantal dagen voordat 2FA wordt afgedwongen na deelname",
+    family_security_grace_hint:
+      "Aantal dagen voordat 2FA wordt afgedwongen na deelname",
     family_security_max_sessions: "Maximaal aantal actieve sessies per lid",
-    family_security_max_sessions_hint: "Beperk gelijktijdige aanmeldingen op apparaten. Laat leeg voor geen limiet.",
+    family_security_max_sessions_hint:
+      "Beperk gelijktijdige aanmeldingen op apparaten. Laat leeg voor geen limiet.",
     family_security_session_timeout: "Automatisch afmelden na",
-    family_security_session_timeout_hint: "Leden afmelden na N uur inactiviteit.",
+    family_security_session_timeout_hint:
+      "Leden afmelden na N uur inactiviteit.",
     family_security_save: "Beveiligingsbeleid opslaan",
     family_security_saved: "Beveiligingsbeleid opgeslagen",
     family_security_save_failed: "Beveiligingsbeleid opslaan mislukt",
     family_security_load_failed: "Beveiligingsinstellingen laden mislukt",
     family_security_compliance: "Naleving door leden",
     family_security_warning_2fa: "{{count}} lid heeft 2FA niet ingeschakeld",
-    family_security_warning_2fa_plural: "{{count}} leden hebben 2FA niet ingeschakeld",
-    family_retention_subtitle: "Verwijder oude berichten automatisch na een ingesteld aantal dagen. Laat leeg om ze voor altijd te bewaren.",
+    family_security_warning_2fa_plural:
+      "{{count}} leden hebben 2FA niet ingeschakeld",
+    family_retention_subtitle:
+      "Verwijder oude berichten automatisch na een ingesteld aantal dagen. Laat leeg om ze voor altijd te bewaren.",
     family_retention_trash: "Prullenbak",
     family_retention_trash_hint: "Verwijderde e-mail automatisch wissen",
     family_retention_spam: "Spam",
@@ -1714,19 +2075,22 @@ export const nl = {
     family_retention_all_mail: "Alle e-mail",
     family_retention_all_mail_hint: "Harde limiet op alle berichten",
     family_retention_enforce: "Afdwingen bij alle leden",
-    family_retention_enforce_hint: "Pas dit beleid toe op elk account in dit gezin",
+    family_retention_enforce_hint:
+      "Pas dit beleid toe op elk account in dit gezin",
     family_retention_save: "Bewaarbeleid opslaan",
     family_retention_saved: "Bewaarbeleid opgeslagen",
     family_retention_save_failed: "Bewaarbeleid opslaan mislukt",
     family_retention_load_failed: "Bewaarinstellingen laden mislukt",
     family_per_member: "Per lid",
-    family_seat_upgrade_msg: "Alle {{count}} plaatsen zijn gebruikt. Upgrade naar het Gezinsabonnement voor maximaal 6 leden.",
+    family_seat_upgrade_msg:
+      "Alle {{count}} plaatsen zijn gebruikt. Upgrade naar het Gezinsabonnement voor maximaal 6 leden.",
     family_billing_section: "Facturering",
     family_billing_empty: "Nog geen factuurgeschiedenis.",
     family_billing_view_all: "Alle facturering bekijken",
     family_setting_up: "Je gezinsabonnement wordt ingesteld...",
     family_storage_updated: "Opslag bijgewerkt",
-    family_plan_billing_notice: "Je hebt het {{plan_name}}-abonnement. Beheer leden, opslag en instellingen op het tabblad Gezin.",
+    family_plan_billing_notice:
+      "Je hebt het {{plan_name}}-abonnement. Beheer leden, opslag en instellingen op het tabblad Gezin.",
     go_to_family_settings: "Ga naar Gezinsinstellingen",
     category_advanced_aliases: "Geavanceerde aliassen",
     feature_alias_sender_pinning: "Afzender vastzetten",
@@ -1735,25 +2099,33 @@ export const nl = {
     feature_soft_delete_restore: "Zacht verwijderen en herstellen",
     feature_alias_directory: "Automatisch aanmaken via directory",
     feature_reverse_alias: "Antwoorden vanaf alias",
-    credits_will_be_applied: "{{amount}} aan tegoed wordt toegepast bij het afrekenen",
+    credits_will_be_applied:
+      "{{amount}} aan tegoed wordt toegepast bij het afrekenen",
     minimize_sidebar: "Zijbalk minimaliseren",
-    minimize_sidebar_description: "Klap de zijbalk in tot pictogrammen om ruimte te besparen",
+    minimize_sidebar_description:
+      "Klap de zijbalk in tot pictogrammen om ruimte te besparen",
     create_alias_display_name_label: "Weergavenaam (optioneel)",
     create_alias_display_name_placeholder: "Wordt getoond als de afzendernaam",
     create_alias_note_label: "Notitie (optioneel)",
     create_alias_note_placeholder: "Alleen jij kunt dit zien",
-    alias_availability_on_save: "De beschikbaarheid wordt gecontroleerd wanneer je opslaat.",
+    alias_availability_on_save:
+      "De beschikbaarheid wordt gecontroleerd wanneer je opslaat.",
     alias_decrypt_failed_title: "Deze alias kon niet worden ontsleuteld",
-    alias_decrypt_failed_hint: "De details zijn niet beschikbaar op dit apparaat. Opnieuw inloggen of je sleutels herstellen lost dit meestal op.",
-    recently_deleted_load_failed: "We konden je onlangs verwijderde aliassen niet laden. Een nieuwe poging zou moeten lukken.",
-    ghost_aliases_info: "Ghost-aliassen zijn tijdelijk en verlopen automatisch. Gebruik ze voor eenmalige aanmeldingen of overal waar je geen vast adres wilt. Ze verdwijnen vanzelf - geen opruimen nodig.",
+    alias_decrypt_failed_hint:
+      "De details zijn niet beschikbaar op dit apparaat. Opnieuw inloggen of je sleutels herstellen lost dit meestal op.",
+    recently_deleted_load_failed:
+      "We konden je onlangs verwijderde aliassen niet laden. Een nieuwe poging zou moeten lukken.",
+    ghost_aliases_info:
+      "Ghost-aliassen zijn tijdelijk en verlopen automatisch. Gebruik ze voor eenmalige aanmeldingen of overal waar je geen vast adres wilt. Ze verdwijnen vanzelf - geen opruimen nodig.",
     recently_deleted_aliases_title: "Onlangs verwijderd",
-    recently_deleted_aliases_description: "Herstel een alias die je hebt verwijderd. Verwijderde aliassen worden beperkte tijd bewaard.",
+    recently_deleted_aliases_description:
+      "Herstel een alias die je hebt verwijderd. Verwijderde aliassen worden beperkte tijd bewaard.",
     recently_deleted_aliases_empty: "Geen onlangs verwijderde aliassen",
     alias_deleted_at: "Verwijderd op {{ date }}",
     restore_alias_action: "Herstellen",
     alias_restored: "Alias hersteld",
-    failed_restore_alias: "Deze alias is niet hersteld. Een nieuwe poging zou moeten lukken.",
+    failed_restore_alias:
+      "Deze alias is niet hersteld. Een nieuwe poging zou moeten lukken.",
     recently_deleted_empty_trash: "Prullenbak legen",
     delete_alias_permanently_action: "Permanent verwijderen",
     purge_alias_confirm_title: "Alias permanent verwijderen?",
@@ -1765,7 +2137,8 @@ export const nl = {
     empty_trash_confirm_message:
       "Alle {{ count }} aliassen in Onlangs verwijderd permanent verwijderen? Dit kan niet ongedaan worden gemaakt. De adressen blijven gereserveerd voor je account, zodat niemand anders ze kan claimen.",
     trash_emptied: "Onlangs verwijderd geleegd",
-    failed_empty_trash: "Onlangs verwijderd kon niet worden geleegd. Probeer het opnieuw.",
+    failed_empty_trash:
+      "Onlangs verwijderd kon niet worden geleegd. Probeer het opnieuw.",
     recently_deleted_directories_title: "Onlangs verwijderd",
     recently_deleted_directories_description:
       "Herstel een directory die je hebt verwijderd. Verwijderde directories ontvangen geen nieuwe e-mail totdat ze zijn hersteld.",
@@ -1797,40 +2170,50 @@ export const nl = {
     alias_field_note_label: "Notitie",
     alias_field_websites_label: "Websites",
     alias_sender_pinning_title: "Afzender vastzetten",
-    alias_sender_pinning_info: "Bepaal wie e-mail naar deze alias mag sturen. Uit betekent dat iedereen erdoor komt. Vergrendelen op eerste afzender vergrendelt de alias op degene die je als eerste e-mailt - handig voor eenmalige aanmeldingen. Toegestane lijst betekent dat alleen de personen die je hebt toegevoegd je kunnen bereiken.",
-    alias_sender_pinning_description: "Bepaal welke afzenders deze alias mogen bereiken.",
+    alias_sender_pinning_info:
+      "Bepaal wie e-mail naar deze alias mag sturen. Uit betekent dat iedereen erdoor komt. Vergrendelen op eerste afzender vergrendelt de alias op degene die je als eerste e-mailt - handig voor eenmalige aanmeldingen. Toegestane lijst betekent dat alleen de personen die je hebt toegevoegd je kunnen bereiken.",
+    alias_sender_pinning_description:
+      "Bepaal welke afzenders deze alias mogen bereiken.",
     alias_sender_pin_mode_off: "Uit",
     alias_sender_pin_mode_off_hint: "Accepteer e-mail van iedereen.",
     alias_sender_pin_mode_lock_first: "Vergrendelen op eerste afzender",
-    alias_sender_pin_mode_lock_first_hint: "Alleen de eerste afzender die deze alias e-mailt wordt daarna geaccepteerd.",
+    alias_sender_pin_mode_lock_first_hint:
+      "Alleen de eerste afzender die deze alias e-mailt wordt daarna geaccepteerd.",
     alias_sender_pin_mode_allowlist: "Toegestane lijst",
-    alias_sender_pin_mode_allowlist_hint: "Alleen de afzenders die je hieronder toevoegt worden geaccepteerd.",
+    alias_sender_pin_mode_allowlist_hint:
+      "Alleen de afzenders die je hieronder toevoegt worden geaccepteerd.",
     alias_sender_add: "Afzender toevoegen",
     alias_sender_email_placeholder: "afzender@voorbeeld.com",
     alias_sender_list_empty: "Nog geen vastgezette afzenders.",
     alias_sender_unknown: "Vastgezette afzender",
     alias_sender_added: "Afzender toegevoegd",
     alias_sender_removed: "Afzender verwijderd",
-    alias_sender_add_failed: "Deze afzender is niet toegevoegd. Probeer het opnieuw.",
+    alias_sender_add_failed:
+      "Deze afzender is niet toegevoegd. Probeer het opnieuw.",
     alias_sender_invalid: "Voer een geldig e-mailadres in.",
     alias_pin_mode_updated: "Afzender vastzetten bijgewerkt",
     alias_toggle_failed: "Kon de alias niet bijwerken. Probeer het opnieuw.",
     alias_enabled_toast: "Alias ingeschakeld",
     alias_disabled_toast: "Alias uitgeschakeld",
     alias_delete_failed: "Kon de alias niet verwijderen. Probeer het opnieuw.",
-    domain_address_delete_failed: "Kon het adres niet verwijderen. Probeer het opnieuw.",
-    domain_delete_failed: "Kon het domein niet verwijderen. Probeer het opnieuw.",
+    domain_address_delete_failed:
+      "Kon het adres niet verwijderen. Probeer het opnieuw.",
+    domain_delete_failed:
+      "Kon het domein niet verwijderen. Probeer het opnieuw.",
     aliases_load_failed: "Kon je aliassen niet laden. Probeer het opnieuw.",
     alias_rules_title: "Regels",
-    alias_rules_info: "Verwerk e-mail automatisch voordat het je inbox bereikt. Blokkeer e-mails van een afzender, verplaats ze naar de prullenbak of voorzie ze van een label - allemaal op basis van wie het stuurde of wat er in de onderwerpregel staat.",
-    alias_rules_description: "Voer acties uit op inkomende e-mail die aan je voorwaarden voldoet.",
+    alias_rules_info:
+      "Verwerk e-mail automatisch voordat het je inbox bereikt. Blokkeer e-mails van een afzender, verplaats ze naar de prullenbak of voorzie ze van een label - allemaal op basis van wie het stuurde of wat er in de onderwerpregel staat.",
+    alias_rules_description:
+      "Voer acties uit op inkomende e-mail die aan je voorwaarden voldoet.",
     alias_rules_empty: "Nog geen regels.",
     alias_rule_add: "Regel toevoegen",
     alias_rule_save: "Regel opslaan",
     alias_rule_added: "Regel toegevoegd",
     alias_rule_removed: "Regel verwijderd",
     alias_rule_updated: "Regel bijgewerkt",
-    alias_rule_save_failed: "Deze regel is niet opgeslagen. Probeer het opnieuw.",
+    alias_rule_save_failed:
+      "Deze regel is niet opgeslagen. Probeer het opnieuw.",
     alias_rule_when: "Wanneer",
     alias_rule_then: "Dan",
     alias_rule_add_condition: "Voorwaarde toevoegen",
@@ -1853,24 +2236,30 @@ export const nl = {
     alias_rule_action_label_placeholder: "label",
     alias_rule_action_banner_placeholder: "bannertekst",
     alias_rule_action_subject_mask_placeholder: "vervangend onderwerp",
-    alias_rule_action_auto_reply_placeholder: "bericht voor automatisch antwoord",
+    alias_rule_action_auto_reply_placeholder:
+      "bericht voor automatisch antwoord",
     alias_rule_needs_action: "Kies minstens één actie.",
     alias_contacts_title: "Omgekeerde contacten",
-    alias_contacts_info: "Voeg hier iemand toe als je hem of haar vanaf deze alias wilt e-mailen. Ze zien je alias als afzender, zodat je echte adres privé blijft. Je kunt afzonderlijke contacten blokkeren zonder de rest te raken.",
-    alias_contacts_description: "Volg afzenders achter een omgekeerde alias per contact en blokkeer ze afzonderlijk.",
+    alias_contacts_info:
+      "Voeg hier iemand toe als je hem of haar vanaf deze alias wilt e-mailen. Ze zien je alias als afzender, zodat je echte adres privé blijft. Je kunt afzonderlijke contacten blokkeren zonder de rest te raken.",
+    alias_contacts_description:
+      "Volg afzenders achter een omgekeerde alias per contact en blokkeer ze afzonderlijk.",
     alias_contacts_empty: "Nog geen contacten.",
     alias_contact_add: "Contact toevoegen",
     alias_contact_email_placeholder: "contact@voorbeeld.com",
     alias_contact_unknown: "Contact",
     alias_contact_added: "Contact toegevoegd",
     alias_contact_removed: "Contact verwijderd",
-    alias_contact_add_failed: "Dit contact is niet toegevoegd. Probeer het opnieuw.",
+    alias_contact_add_failed:
+      "Dit contact is niet toegevoegd. Probeer het opnieuw.",
     alias_contact_block: "Blokkeren",
     alias_contact_unblock: "Deblokkeren",
     alias_contact_blocked: "Geblokkeerd",
     alias_delivery_log_title: "Logboek geblokkeerde e-mail",
-    alias_delivery_log_info: "E-mails die zijn geblokkeerd voordat ze je inbox bereikten. Logboek wordt 30 dagen bewaard.",
-    alias_delivery_log_empty: "Geen geblokkeerde e-mails in de afgelopen 30 dagen.",
+    alias_delivery_log_info:
+      "E-mails die zijn geblokkeerd voordat ze je inbox bereikten. Logboek wordt 30 dagen bewaard.",
+    alias_delivery_log_empty:
+      "Geen geblokkeerde e-mails in de afgelopen 30 dagen.",
     alias_delivery_log_reason_sender_pin: "Geblokkeerd door afzenderfilter",
     alias_delivery_log_reason_alias_rule: "Verwijderd door regel",
     alias_delivery_log_reason_alias_disabled: "Alias was uitgeschakeld",
@@ -1878,10 +2267,13 @@ export const nl = {
     alias_relay_title: "Bezorging",
     alias_relay_description: "Kies hoe e-mail naar deze alias wordt bezorgd.",
     alias_relay_mode_native: "Native",
-    alias_relay_mode_native_hint: "E-mail blijft binnen je versleutelde Aster-mailbox.",
+    alias_relay_mode_native_hint:
+      "E-mail blijft binnen je versleutelde Aster-mailbox.",
     alias_relay_mode_relay: "Relay",
-    alias_relay_mode_relay_hint: "Stuur e-mail door naar een extern adres dat je beheert.",
-    alias_relay_not_private_warning: "Doorsturen naar een extern adres is NIET end-to-end privé. De provider van de bestemming kan doorgestuurde e-mail lezen.",
+    alias_relay_mode_relay_hint:
+      "Stuur e-mail door naar een extern adres dat je beheert.",
+    alias_relay_not_private_warning:
+      "Doorsturen naar een extern adres is NIET end-to-end privé. De provider van de bestemming kan doorgestuurde e-mail lezen.",
     alias_relay_destinations_title: "Doorsturen naar",
     alias_relay_destination_empty: "Nog geen bestemmingen.",
     alias_relay_destination_unknown: "Bestemming",
@@ -1889,15 +2281,18 @@ export const nl = {
     alias_relay_destination_add: "Bestemming toevoegen",
     alias_relay_destination_added: "Bestemming toegevoegd",
     alias_relay_destination_removed: "Bestemming verwijderd",
-    alias_relay_destination_add_failed: "Deze bestemming is niet toegevoegd. Probeer het opnieuw.",
+    alias_relay_destination_add_failed:
+      "Deze bestemming is niet toegevoegd. Probeer het opnieuw.",
     alias_relay_pgp_key: "PGP publieke sleutel (optioneel)",
     alias_relay_pgp_key_placeholder: "-----BEGIN PGP PUBLIC KEY BLOCK-----",
     alias_relay_strip_trackers: "Trackers verwijderen",
     alias_relay_keep_copy: "Bewaar een kopie in deze mailbox",
     alias_relay_mode_updated: "Bezorgmodus bijgewerkt",
     alias_directories_title: "Directory's",
-    alias_directories_info: "Kies een trefwoord en e-mail naar iets.trefwoord@astermail.org maakt direct ter plekke een nieuwe alias aan - geen app nodig. Ideaal om je ergens aan te melden zonder telkens een nieuw adres te bedenken.",
-    alias_directories_description: "E-mail naar iets.<sleutel>@astermail.org maakt automatisch een alias voor je aan.",
+    alias_directories_info:
+      "Kies een trefwoord en e-mail naar iets.trefwoord@astermail.org maakt direct ter plekke een nieuwe alias aan - geen app nodig. Ideaal om je ergens aan te melden zonder telkens een nieuw adres te bedenken.",
+    alias_directories_description:
+      "E-mail naar iets.<sleutel>@astermail.org maakt automatisch een alias voor je aan.",
     alias_directories_empty: "Nog geen directory's.",
     alias_directory_key_label: "Directorysleutel",
     alias_directory_key_placeholder: "winkelen",
@@ -1906,16 +2301,23 @@ export const nl = {
     alias_directory_available: "Deze directory is beschikbaar.",
     alias_directory_not_available: "Deze directory is al in gebruik.",
     alias_directory_removed: "Directory verwijderd",
-    alias_directory_create_failed: "Deze directory is niet aangemaakt. Probeer het opnieuw.",
+    alias_directory_create_failed:
+      "Deze directory is niet aangemaakt. Probeer het opnieuw.",
     alias_directory_auto_create: "Aliassen automatisch aanmaken",
-    alias_directory_pattern_hint: "Stuur naar iets.{{ key }}@{{ domain }} om een nieuwe alias aan te maken.",
+    alias_directory_pattern_hint:
+      "Stuur naar iets.{{ key }}@{{ domain }} om een nieuwe alias aan te maken.",
     alias_directory_color: "Kleur",
     alias_directory_updated: "Directory bijgewerkt",
-    alias_feature_locked_directories: "Upgrade je abonnement om aliasdirectory's te gebruiken.",
-    alias_feature_locked_rules: "Upgrade je abonnement om aliasregels te gebruiken.",
-    alias_feature_locked_relay: "Upgrade je abonnement om externe relay te gebruiken.",
-    alias_feature_locked_contacts: "Upgrade je abonnement om contacten met omgekeerde alias te gebruiken.",
-    alias_feature_locked_sender_pinning: "Upgrade je abonnement om afzender vastzetten te gebruiken.",
+    alias_feature_locked_directories:
+      "Upgrade je abonnement om aliasdirectory's te gebruiken.",
+    alias_feature_locked_rules:
+      "Upgrade je abonnement om aliasregels te gebruiken.",
+    alias_feature_locked_relay:
+      "Upgrade je abonnement om externe relay te gebruiken.",
+    alias_feature_locked_contacts:
+      "Upgrade je abonnement om contacten met omgekeerde alias te gebruiken.",
+    alias_feature_locked_sender_pinning:
+      "Upgrade je abonnement om afzender vastzetten te gebruiken.",
     alias_feature_locked_view_plans: "Abonnementen bekijken",
     alias_feature_locked_upgrade_plan: "Abonnement upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",
@@ -1958,7 +2360,8 @@ export const nl = {
     alias_import_done: "{{created}} aliassen geïmporteerd.",
     alias_import_skipped: "{{skipped}} overgeslagen (niet-ondersteund domein).",
     alias_import_title: "Aliassen importeren",
-    alias_import_drop_hint: "Sleep hier een CSV, tekstlijst of JSON-export, of kies een bestand",
+    alias_import_drop_hint:
+      "Sleep hier een CSV, tekstlijst of JSON-export, of kies een bestand",
     alias_import_choose_file: "Bestand kiezen",
     alias_import_preview_title: "Voorbeeld",
     alias_import_will_import: "Wordt geïmporteerd",
@@ -1970,40 +2373,55 @@ export const nl = {
     alias_import_summary_created: "{{count}} geïmporteerd",
     alias_import_summary_skipped: "{{count}} bestonden al",
     alias_import_summary_failed: "{{count}} mislukt",
-    alias_import_error_no_aliases: "Geen importeerbare aliassen gevonden in dit bestand.",
-    alias_import_protonpass_encrypted_error: "Deze Proton Pass-export is versleuteld. Gebruik 'Exporteren zonder versleuteling' in Proton Pass en importeer opnieuw.",
+    alias_import_error_no_aliases:
+      "Geen importeerbare aliassen gevonden in dit bestand.",
+    alias_import_protonpass_encrypted_error:
+      "Deze Proton Pass-export is versleuteld. Gebruik 'Exporteren zonder versleuteling' in Proton Pass en importeer opnieuw.",
     alias_import_target_domain: "Importeren naar",
     alias_import_invalid: "Ongeldig",
     alias_import_col_address: "Adres",
     alias_import_col_status: "Status",
     alias_pref_section: "Voorkeuren",
     alias_pref_default_domain: "Standaarddomein",
-    alias_pref_default_domain_desc: "Domein dat wordt gebruikt bij het aanmaken van nieuwe aliassen.",
+    alias_pref_default_domain_desc:
+      "Domein dat wordt gebruikt bij het aanmaken van nieuwe aliassen.",
     alias_pref_sender_format: "Weergaveformaat afzender",
-    alias_pref_sender_format_desc: "Hoe afzendernamen verschijnen wanneer e-mail wordt doorgestuurd naar je alias.",
+    alias_pref_sender_format_desc:
+      "Hoe afzendernamen verschijnen wanneer e-mail wordt doorgestuurd naar je alias.",
     alias_pref_sender_via: "Naam via e-mail",
     alias_pref_sender_at: "Naam - e-mail op domein",
     alias_pref_readable_reverse: "Afzender opnemen in omgekeerde aliassen",
-    alias_pref_readable_reverse_desc: "Nieuwe omgekeerde aliassen gebruiken het adres van de afzender, zodat je in één oogopslag ziet wie er e-mailt.",
+    alias_pref_readable_reverse_desc:
+      "Nieuwe omgekeerde aliassen gebruiken het adres van de afzender, zodat je in één oogopslag ziet wie er e-mailt.",
     alias_pref_always_expand: "Aliasdetails altijd tonen",
-    alias_pref_always_expand_desc: "Toon het volledige paneel met aliasinstellingen standaard in plaats van het achter het tandwielpictogram te verbergen.",
+    alias_pref_always_expand_desc:
+      "Toon het volledige paneel met aliasinstellingen standaard in plaats van het achter het tandwielpictogram te verbergen.",
     alias_pref_unsubscribe_action: "Actie van afmeldknop",
-    alias_pref_unsubscribe_action_desc: "Wat er gebeurt wanneer je op de afmeldknop in een doorgestuurde e-mail klikt.",
+    alias_pref_unsubscribe_action_desc:
+      "Wat er gebeurt wanneer je op de afmeldknop in een doorgestuurde e-mail klikt.",
     alias_pref_unsubscribe_preserve: "Oorspronkelijk beleid gebruiken",
     alias_pref_unsubscribe_disable_alias: "Alias uitschakelen",
     alias_pref_unsubscribe_block_contact: "Afzender blokkeren",
     alias_pref_disabled_response: "Reactie op geblokkeerde e-mail",
-    alias_pref_disabled_response_desc: "Wat de afzender ziet wanneer hun e-mail stilzwijgend wordt verwijderd.",
+    alias_pref_disabled_response_desc:
+      "Wat de afzender ziet wanneer hun e-mail stilzwijgend wordt verwijderd.",
     alias_pref_disabled_ignore: "Stilzwijgend negeren",
     alias_pref_disabled_reject: "Weigeren (bounce)",
     alias_pref_delete_action: "Bij het verwijderen van een alias",
-    alias_pref_delete_action_desc: "Kies of verwijderde aliassen naar de prullenbak gaan (30 dagen herstelbaar) of meteen worden verwijderd.",
-    alias_pref_sender_format_info: "Hoe de naam van de afzender verschijnt in doorgestuurde e-mails.",
-    alias_pref_readable_reverse_info: "Indien ingeschakeld bevatten omgekeerde aliasadressen het e-mailadres van de afzender, zodat je in één oogopslag ziet wie er schrijft.",
-    alias_pref_always_expand_info: "Toont automatisch het volledige instellingenpaneel van elke alias in plaats van het achter het tandwielicoon te verbergen.",
-    alias_pref_unsubscribe_action_info: "Wat er gebeurt wanneer je op de afmeldknop klikt in een doorgestuurde e-mail.",
-    alias_pref_disabled_response_info: "Wat de afzender ziet wanneer hij naar een uitgeschakelde alias of een geblokkeerd contact mailt.",
-    alias_pref_delete_action_info: "Naar prullenbak verplaatsen houdt verwijderde aliassen 30 dagen herstelbaar. Direct verwijderen verwijdert ze permanent.",
+    alias_pref_delete_action_desc:
+      "Kies of verwijderde aliassen naar de prullenbak gaan (30 dagen herstelbaar) of meteen worden verwijderd.",
+    alias_pref_sender_format_info:
+      "Hoe de naam van de afzender verschijnt in doorgestuurde e-mails.",
+    alias_pref_readable_reverse_info:
+      "Indien ingeschakeld bevatten omgekeerde aliasadressen het e-mailadres van de afzender, zodat je in één oogopslag ziet wie er schrijft.",
+    alias_pref_always_expand_info:
+      "Toont automatisch het volledige instellingenpaneel van elke alias in plaats van het achter het tandwielicoon te verbergen.",
+    alias_pref_unsubscribe_action_info:
+      "Wat er gebeurt wanneer je op de afmeldknop klikt in een doorgestuurde e-mail.",
+    alias_pref_disabled_response_info:
+      "Wat de afzender ziet wanneer hij naar een uitgeschakelde alias of een geblokkeerd contact mailt.",
+    alias_pref_delete_action_info:
+      "Naar prullenbak verplaatsen houdt verwijderde aliassen 30 dagen herstelbaar. Direct verwijderen verwijdert ze permanent.",
     alias_pref_delete_trash: "Naar prullenbak verplaatsen",
     alias_pref_delete_immediate: "Meteen verwijderen",
     alias_activity_title: "Activiteit (laatste 14 dagen)",
@@ -2013,17 +2431,20 @@ export const nl = {
     alias_activity_empty: "Nog geen activiteit",
     alias_transfer: "Alias overdragen",
     alias_transfer_title: "Alias overdragen",
-    alias_transfer_warning: "Na overdracht heb je geen toegang meer tot deze alias.",
+    alias_transfer_warning:
+      "Na overdracht heb je geen toegang meer tot deze alias.",
     alias_transfer_recipient_label: "E-mail van ontvanger",
     alias_transfer_recipient_placeholder: "gebruiker@astermail.org",
     alias_transfer_confirm: "Overdragen",
     alias_transfer_success: "Alias succesvol overgedragen.",
     low_network_mode_section_title: "Prestaties",
     low_network_mode_label: "Modus voor laag netwerkverbruik",
-    low_network_mode_description: "Slaat profielfoto's, favicons, externe afbeeldingen en het vooraf laden van e-mail over. Alle e-mails worden als platte tekst getoond. Handig bij trage of beperkte verbindingen.",
+    low_network_mode_description:
+      "Slaat profielfoto's, favicons, externe afbeeldingen en het vooraf laden van e-mail over. Alle e-mails worden als platte tekst getoond. Handig bij trage of beperkte verbindingen.",
     low_network_mode_active_banner: "Modus voor laag netwerkverbruik actief",
     info_low_network_mode_title: "Wat doet de modus voor laag netwerkverbruik?",
-    info_low_network_mode_description: "Blokkeert alle niet-essentiële netwerkverzoeken om Aster bruikbaar te houden bij trage of beperkte verbindingen. Schakelt profielfoto's, afzenderlogo's, domeinfavicons, externe afbeeldingen in e-mails, het vooraf laden van e-mail, aangepaste lettertypen, voorbeelden van bijlagen en meldingsgeluiden uit. Alle e-mails worden weergegeven als platte tekst. E-mailgesprekken zijn beperkt tot 4 berichten. Wordt automatisch geactiveerd bij 2G- of Save-Data-verbindingen. Je kunt deze ook inschakelen via ?low_bandwidth=1 in de URL.",
+    info_low_network_mode_description:
+      "Blokkeert alle niet-essentiële netwerkverzoeken om Aster bruikbaar te houden bij trage of beperkte verbindingen. Schakelt profielfoto's, afzenderlogo's, domeinfavicons, externe afbeeldingen in e-mails, het vooraf laden van e-mail, aangepaste lettertypen, voorbeelden van bijlagen en meldingsgeluiden uit. Alle e-mails worden weergegeven als platte tekst. E-mailgesprekken zijn beperkt tot 4 berichten. Wordt automatisch geactiveerd bij 2G- of Save-Data-verbindingen. Je kunt deze ook inschakelen via ?low_bandwidth=1 in de URL.",
     fam_org_tab_overview: "Overzicht",
     fam_org_tab_members: "Leden",
     fam_org_tab_groups: "Groepen",
@@ -2037,15 +2458,20 @@ export const nl = {
     fam_org_groups_domain_placeholder: "Domein selecteren",
     fam_org_groups_create: "Aanmaken",
     fam_org_groups_info_title: "Organisatiegroepen",
-    fam_org_groups_info_desc: "Een groep bundelt meerdere leden onder één gedeeld adres. E-mail naar het adres van de groep wordt aan ieder lid erin bezorgd - handig voor gedeelde postvakken zoals family@ of parents@. Het e-mailvoorvoegsel is optioneel.",
-    fam_org_groups_prefix_hint: "Het e-mailvoorvoegsel is optioneel - maakt een groepsadres aan zoals",
+    fam_org_groups_info_desc:
+      "Een groep bundelt meerdere leden onder één gedeeld adres. E-mail naar het adres van de groep wordt aan ieder lid erin bezorgd - handig voor gedeelde postvakken zoals family@ of parents@. Het e-mailvoorvoegsel is optioneel.",
+    fam_org_groups_prefix_hint:
+      "Het e-mailvoorvoegsel is optioneel - maakt een groepsadres aan zoals",
     fam_org_groups_address_preview: "Groepsadres: ",
-    fam_org_groups_address_in_use: "Dat adres wordt al gebruikt door een alias of een andere groep",
+    fam_org_groups_address_in_use:
+      "Dat adres wordt al gebruikt door een alias of een andere groep",
     fam_org_groups_empty_title: "Nog geen groepen",
-    fam_org_groups_empty_desc: "Maak een groep aan om e-mail in één keer naar meerdere gezinsleden te sturen.",
+    fam_org_groups_empty_desc:
+      "Maak een groep aan om e-mail in één keer naar meerdere gezinsleden te sturen.",
     fam_org_groups_has_email_title: "Heeft e-mailadres",
     fam_org_member_groups_empty_title: "Nog geen groepen",
-    fam_org_member_groups_empty_desc: "U bent nog niet toegevoegd aan een groep.",
+    fam_org_member_groups_empty_desc:
+      "U bent nog niet toegevoegd aan een groep.",
     fam_org_groups_default_domain: "@your-domain.com",
     fam_org_groups_delete: "Groep verwijderen",
     fam_org_groups_no_members: "Geen leden.",
@@ -2057,7 +2483,8 @@ export const nl = {
     fam_org_groups_cancel: "Annuleren",
     fam_org_groups_add_member: "Lid toevoegen",
     fam_org_groups_delete_title: "Groep verwijderen?",
-    fam_org_groups_delete_body: "Hiermee wordt deze groep permanent verwijderd en worden alle leden eruit gehaald. Dit kan niet ongedaan worden gemaakt.",
+    fam_org_groups_delete_body:
+      "Hiermee wordt deze groep permanent verwijderd en worden alle leden eruit gehaald. Dit kan niet ongedaan worden gemaakt.",
     fam_org_groups_delete_confirm: "Groep verwijderen",
     fam_org_groups_created: "Groep aangemaakt",
     fam_org_groups_deleted: "Groep verwijderd",
@@ -2089,31 +2516,45 @@ export const nl = {
     fam_org_activity_member_joined: "{{target}} is tot het gezin toegetreden",
     fam_org_activity_member_joined_generic: "Een lid is toegetreden",
     fam_org_activity_member_removed: "{{actor}} heeft {{target}} verwijderd",
-    fam_org_activity_member_removed_generic: "{{actor}} heeft een lid verwijderd",
+    fam_org_activity_member_removed_generic:
+      "{{actor}} heeft een lid verwijderd",
     fam_org_activity_member_left: "{{target}} heeft het gezin verlaten",
     fam_org_activity_member_left_generic: "Een lid is vertrokken",
-    fam_org_activity_admin_transferred: "{{actor}} heeft het beheer overgedragen aan {{target}}",
-    fam_org_activity_admin_transferred_generic: "{{actor}} heeft het beheer overgedragen",
+    fam_org_activity_admin_transferred:
+      "{{actor}} heeft het beheer overgedragen aan {{target}}",
+    fam_org_activity_admin_transferred_generic:
+      "{{actor}} heeft het beheer overgedragen",
     fam_org_activity_group_created: "{{actor}} heeft een groep aangemaakt",
     fam_org_activity_group_deleted: "{{actor}} heeft een groep verwijderd",
     fam_org_activity_filter_created: "{{actor}} heeft een filter aangemaakt",
-    fam_org_activity_domain_shared: "{{actor}} heeft een domein gedeeld met {{target}}",
-    fam_org_activity_domain_shared_generic: "{{actor}} heeft een domein gedeeld",
-    fam_org_activity_retention_updated: "{{actor}} heeft het bewaarbeleid bijgewerkt",
-    fam_org_activity_security_policy_updated: "{{actor}} heeft het beveiligingsbeleid bijgewerkt",
-    fam_org_activity_security_notify_sent: "{{actor}} heeft een 2FA-herinnering naar leden gestuurd",
+    fam_org_activity_domain_shared:
+      "{{actor}} heeft een domein gedeeld met {{target}}",
+    fam_org_activity_domain_shared_generic:
+      "{{actor}} heeft een domein gedeeld",
+    fam_org_activity_retention_updated:
+      "{{actor}} heeft het bewaarbeleid bijgewerkt",
+    fam_org_activity_security_policy_updated:
+      "{{actor}} heeft het beveiligingsbeleid bijgewerkt",
+    fam_org_activity_security_notify_sent:
+      "{{actor}} heeft een 2FA-herinnering naar leden gestuurd",
     fam_org_activity_invite_sent: "{{actor}} heeft {{target}} uitgenodigd",
-    fam_org_activity_invite_sent_generic: "{{actor}} heeft een uitnodiging verzonden",
-    fam_org_activity_invite_revoked: "{{actor}} heeft de uitnodiging voor {{target}} ingetrokken",
-    fam_org_activity_invite_revoked_generic: "{{actor}} heeft een uitnodiging ingetrokken",
-    fam_org_activity_storage_updated: "{{actor}} heeft de opslag voor {{target}} bijgewerkt",
-    fam_org_activity_storage_updated_generic: "{{actor}} heeft de opslag bijgewerkt",
+    fam_org_activity_invite_sent_generic:
+      "{{actor}} heeft een uitnodiging verzonden",
+    fam_org_activity_invite_revoked:
+      "{{actor}} heeft de uitnodiging voor {{target}} ingetrokken",
+    fam_org_activity_invite_revoked_generic:
+      "{{actor}} heeft een uitnodiging ingetrokken",
+    fam_org_activity_storage_updated:
+      "{{actor}} heeft de opslag voor {{target}} bijgewerkt",
+    fam_org_activity_storage_updated_generic:
+      "{{actor}} heeft de opslag bijgewerkt",
     fam_org_activity_events: "{{count}} gebeurtenis",
     fam_org_activity_events_plural: "{{count}} gebeurtenissen",
     fam_org_activity_search_placeholder: "Activiteit zoeken...",
     fam_org_activity_all_events: "Alle gebeurtenissen",
     fam_org_activity_empty_title: "Nog geen activiteit",
-    fam_org_activity_empty_desc: "Toetredende leden, beveiligingswijzigingen en beheeracties verschijnen hier.",
+    fam_org_activity_empty_desc:
+      "Toetredende leden, beveiligingswijzigingen en beheeracties verschijnen hier.",
     fam_org_activity_cat_member_joins: "Toetredende leden",
     fam_org_activity_cat_security_changes: "Beveiligingswijzigingen",
     fam_org_activity_cat_filter_updates: "Filterupdates",
@@ -2137,16 +2578,20 @@ export const nl = {
     fam_org_filter_delete: "Filter verwijderen",
     fam_org_filters_heading: "Organisatiebrede filters",
     fam_org_filters_info_title: "Organisatiebrede filters",
-    fam_org_filters_info_desc: "Regels die automatisch worden uitgevoerd op de inkomende e-mail van elk gezinslid. Gebruik ze om afzenders te blokkeren of berichten te archiveren, labelen of omleiden voor alle accounts tegelijk.",
+    fam_org_filters_info_desc:
+      "Regels die automatisch worden uitgevoerd op de inkomende e-mail van elk gezinslid. Gebruik ze om afzenders te blokkeren of berichten te archiveren, labelen of omleiden voor alle accounts tegelijk.",
     fam_org_filters_new: "Nieuw filter",
-    fam_org_filters_subtitle: "Filters gelden organisatiebreed voor de postvakken van alle gezinsleden.",
+    fam_org_filters_subtitle:
+      "Filters gelden organisatiebreed voor de postvakken van alle gezinsleden.",
     fam_org_filters_modal_title: "Nieuw organisatiebreed filter",
-    fam_org_filters_modal_desc: "Geldt automatisch voor de postvakken van alle gezinsleden.",
+    fam_org_filters_modal_desc:
+      "Geldt automatisch voor de postvakken van alle gezinsleden.",
     fam_org_filters_name_label: "Filternaam",
     fam_org_filters_name_placeholder: "bijv. Spamdomein blokkeren",
     fam_org_filters_condition_label: "Voorwaarde",
     fam_org_filters_condition_info_title: "Voorwaarde",
-    fam_org_filters_condition_info_desc: "Kies welk deel van een inkomende e-mail moet overeenkomen (afzender, ontvanger, onderwerp, domein of afzender-IP) en de waarde om naar te zoeken. E-mail die overeenkomt activeert de actie hieronder.",
+    fam_org_filters_condition_info_desc:
+      "Kies welk deel van een inkomende e-mail moet overeenkomen (afzender, ontvanger, onderwerp, domein of afzender-IP) en de waarde om naar te zoeken. E-mail die overeenkomt activeert de actie hieronder.",
     fam_org_filters_field_from_option: "Afzender (van)",
     fam_org_filters_field_to_option: "Ontvanger (aan)",
     fam_org_filters_field_domain_option: "Domein",
@@ -2155,7 +2600,8 @@ export const nl = {
     fam_org_filters_value_placeholder: "waarde, domein, trefwoord...",
     fam_org_filters_action_label: "Actie",
     fam_org_filters_action_info_title: "Actie",
-    fam_org_filters_action_info_desc: "Wat te doen met e-mail die aan de voorwaarde voldoet: naar de prullenbak verplaatsen, de afzender blokkeren, archiveren, labelen of omleiden naar een ander adres.",
+    fam_org_filters_action_info_desc:
+      "Wat te doen met e-mail die aan de voorwaarde voldoet: naar de prullenbak verplaatsen, de afzender blokkeren, archiveren, labelen of omleiden naar een ander adres.",
     fam_org_filters_action_trash_option: "Naar prullenbak verplaatsen",
     fam_org_filters_action_block_option: "Afzender blokkeren",
     fam_org_filters_action_archive_option: "Archiveren",
@@ -2164,24 +2610,28 @@ export const nl = {
     fam_org_filters_cancel: "Annuleren",
     fam_org_filters_create: "Filter aanmaken",
     fam_org_filters_empty_title: "Geen organisatiebrede filters",
-    fam_org_filters_empty_desc: "Maak filters aan om regels toe te passen op alle postvakken van leden.",
+    fam_org_filters_empty_desc:
+      "Maak filters aan om regels toe te passen op alle postvakken van leden.",
     fam_org_filters_created: "Filter aangemaakt",
     fam_org_filters_deleted: "Filter verwijderd",
     fam_org_filters_load_failed: "Laden van filters mislukt",
     fam_org_filters_create_failed: "Aanmaken van filter mislukt",
     fam_org_filters_update_failed: "Bijwerken van filter mislukt",
     fam_org_filters_delete_failed: "Verwijderen van filter mislukt",
-    fam_org_domains_subtitle: "Deel aangepaste domeinen zodat gezinsleden er aliassen op kunnen aanmaken.",
+    fam_org_domains_subtitle:
+      "Deel aangepaste domeinen zodat gezinsleden er aliassen op kunnen aanmaken.",
     fam_org_domains_loading: "Laden...",
     fam_org_domains_empty_title: "Geen aangepaste domeinen in dit gezin",
-    fam_org_domains_empty_desc: "Met aangepaste domeinen kunnen gezinsleden verzenden vanaf hun eigen @yourdomain.com-adressen.",
+    fam_org_domains_empty_desc:
+      "Met aangepaste domeinen kunnen gezinsleden verzenden vanaf hun eigen @yourdomain.com-adressen.",
     fam_org_domains_add_domain: "Een domein toevoegen",
     fam_org_domains_verified: "Geverifieerd",
     fam_org_domains_unverified: "Niet geverifieerd",
     fam_org_domains_owned_by: "Eigendom van {{name}}",
     fam_org_domains_share: "Delen",
     fam_org_domains_share_enabled_title: "Delen met leden",
-    fam_org_domains_share_disabled_title: "Verifieer eerst DKIM om delen in te schakelen",
+    fam_org_domains_share_disabled_title:
+      "Verifieer eerst DKIM om delen in te schakelen",
     fam_org_domains_add_member_placeholder: "Een lid toevoegen...",
     fam_org_domains_add_btn: "Toevoegen",
     fam_org_domains_done: "Klaar",
@@ -2197,31 +2647,42 @@ export const nl = {
     fam_org_2fa_send_reminder: "Herinnering verzenden",
     fam_org_2fa_sending: "Verzenden...",
     fam_org_2fa_reminder_sent: "Herinnering verzonden",
-    fam_org_2fa_reminder_sent_toast: "Herinnering verzonden naar {{count}} leden",
-    fam_org_2fa_reminder_rate_limited: "Er is onlangs al een herinnering verzonden. Je kunt over 24 uur een nieuwe sturen.",
+    fam_org_2fa_reminder_sent_toast:
+      "Herinnering verzonden naar {{count}} leden",
+    fam_org_2fa_reminder_rate_limited:
+      "Er is onlangs al een herinnering verzonden. Je kunt over 24 uur een nieuwe sturen.",
     fam_org_2fa_reminder_failed: "Verzenden van herinnering mislukt",
     fam_org_2fa_dismiss: "Sluiten",
-    fam_org_2fa_summary: "{{withCount}} van {{total}} leden hebben 2FA ingeschakeld",
+    fam_org_2fa_summary:
+      "{{withCount}} van {{total}} leden hebben 2FA ingeschakeld",
     fam_org_sec_require_2fa: "Tweefactorauthenticatie verplichten",
-    fam_org_sec_require_2fa_desc: "Alle leden moeten 2FA inschakelen om toegang te krijgen tot hun account",
+    fam_org_sec_require_2fa_desc:
+      "Alle leden moeten 2FA inschakelen om toegang te krijgen tot hun account",
     fam_org_sec_require_2fa_info_title: "Tweefactorauthenticatie verplichten",
-    fam_org_sec_require_2fa_info_desc: "Leden worden gevraagd tweefactorauthenticatie in te stellen en hebben geen toegang tot hun postvak totdat ze dat doen. Sterk aanbevolen voor elk gezinsabonnement.",
+    fam_org_sec_require_2fa_info_desc:
+      "Leden worden gevraagd tweefactorauthenticatie in te stellen en hebben geen toegang tot hun postvak totdat ze dat doen. Sterk aanbevolen voor elk gezinsabonnement.",
     fam_org_sec_active: "Actief",
     fam_org_sec_grace: "Respijtperiode voor nieuwe leden",
-    fam_org_sec_grace_desc: "Aantal dagen voordat 2FA wordt afgedwongen na toetreding",
+    fam_org_sec_grace_desc:
+      "Aantal dagen voordat 2FA wordt afgedwongen na toetreding",
     fam_org_sec_grace_info_title: "Respijtperiode voor nieuwe leden",
-    fam_org_sec_grace_info_desc: "Hoeveel dagen een nieuw toegetreden lid het account kan gebruiken voordat 2FA verplicht wordt. Zet op 0 om het meteen bij toetreding te vereisen.",
+    fam_org_sec_grace_info_desc:
+      "Hoeveel dagen een nieuw toegetreden lid het account kan gebruiken voordat 2FA verplicht wordt. Zet op 0 om het meteen bij toetreding te vereisen.",
     fam_org_sec_days: "dagen",
     fam_org_sec_max_sessions: "Maximaal aantal actieve sessies per lid",
-    fam_org_sec_max_sessions_desc: "Beperk gelijktijdige aanmeldingen op apparaten. Laat leeg voor geen limiet.",
-    fam_org_sec_max_sessions_info_title: "Maximaal aantal actieve sessies per lid",
-    fam_org_sec_max_sessions_info_desc: "Het maximale aantal apparaten of browsers waarop een lid tegelijk aangemeld kan zijn. Wanneer de limiet wordt overschreden, wordt de oudste sessie afgemeld.",
+    fam_org_sec_max_sessions_desc:
+      "Beperk gelijktijdige aanmeldingen op apparaten. Laat leeg voor geen limiet.",
+    fam_org_sec_max_sessions_info_title:
+      "Maximaal aantal actieve sessies per lid",
+    fam_org_sec_max_sessions_info_desc:
+      "Het maximale aantal apparaten of browsers waarop een lid tegelijk aangemeld kan zijn. Wanneer de limiet wordt overschreden, wordt de oudste sessie afgemeld.",
     fam_org_sec_no_limit: "Geen limiet",
     fam_org_sec_sessions: "sessies",
     fam_org_sec_auto_signout: "Automatisch afmelden na",
     fam_org_sec_auto_signout_desc: "Meld leden af na N uur inactiviteit.",
     fam_org_sec_auto_signout_info_title: "Automatisch afmelden na",
-    fam_org_sec_auto_signout_info_desc: "Meld leden automatisch af na dit aantal uur zonder activiteit, waardoor ze opnieuw moeten inloggen. Laat leeg om nooit te verlopen.",
+    fam_org_sec_auto_signout_info_desc:
+      "Meld leden automatisch af na dit aantal uur zonder activiteit, waardoor ze opnieuw moeten inloggen. Laat leeg om nooit te verlopen.",
     fam_org_sec_never: "Nooit",
     fam_org_sec_hours: "uur",
     fam_org_sec_saving: "Opslaan...",
@@ -2237,37 +2698,47 @@ export const nl = {
     fam_org_sec_never_signed_in: "Nooit aangemeld",
     fam_org_sec_load_failed: "Laden van beveiligingsinstellingen mislukt",
     fam_org_sec_save_failed: "Opslaan mislukt",
-    fam_org_ret_intro: "Stel limieten in om oude berichten automatisch te verwijderen. Wijzigingen worden automatisch opgeslagen. Laat leeg om voor altijd te bewaren. Geldt voor alle leden wanneer \"Afdwingen voor alle leden\" aanstaat.",
+    fam_org_ret_intro:
+      'Stel limieten in om oude berichten automatisch te verwijderen. Wijzigingen worden automatisch opgeslagen. Laat leeg om voor altijd te bewaren. Geldt voor alle leden wanneer "Afdwingen voor alle leden" aanstaat.',
     fam_org_ret_loading: "Laden...",
     fam_org_ret_trash: "Prullenbak",
     fam_org_ret_trash_hint: "Verwijderde mail automatisch wissen",
-    fam_org_ret_trash_info: "Berichten in de prullenbak die ouder zijn dan dit aantal dagen worden permanent verwijderd.",
+    fam_org_ret_trash_info:
+      "Berichten in de prullenbak die ouder zijn dan dit aantal dagen worden permanent verwijderd.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Spam automatisch verwijderen (standaard 30 dagen)",
-    fam_org_ret_spam_info: "Berichten in Spam worden na dit aantal dagen gewist. De meeste providers hanteren standaard 30.",
+    fam_org_ret_spam_info:
+      "Berichten in Spam worden na dit aantal dagen gewist. De meeste providers hanteren standaard 30.",
     fam_org_ret_sent: "Verzonden",
     fam_org_ret_sent_hint: "Verzonden mail automatisch verwijderen",
-    fam_org_ret_sent_info: "Berichten in Verzonden die ouder zijn dan dit aantal dagen worden verwijderd. Laat leeg om alle verzonden mail te bewaren.",
+    fam_org_ret_sent_info:
+      "Berichten in Verzonden die ouder zijn dan dit aantal dagen worden verwijderd. Laat leeg om alle verzonden mail te bewaren.",
     fam_org_ret_all_mail: "Alle mail",
     fam_org_ret_all_mail_hint: "Harde limiet voor alle berichten",
-    fam_org_ret_all_mail_info: "Een harde limiet voor elke map. Elk bericht dat ouder is dan dit aantal dagen wordt verwijderd, inclusief het postvak IN. Gebruik met voorzichtigheid.",
+    fam_org_ret_all_mail_info:
+      "Een harde limiet voor elke map. Elk bericht dat ouder is dan dit aantal dagen wordt verwijderd, inclusief het postvak IN. Gebruik met voorzichtigheid.",
     fam_org_ret_off: "Uit",
     fam_org_ret_days: "dagen",
     fam_org_ret_enforce: "Afdwingen voor alle leden",
     fam_org_ret_enforce_info_title: "Afdwingen voor alle leden",
-    fam_org_ret_enforce_info_desc: "Wanneer dit aanstaat, worden deze bewaarlimieten toegepast op elk lidaccount en kunnen leden ze niet wijzigen. Wanneer dit uitstaat, gelden de limieten alleen voor je eigen account.",
-    fam_org_ret_enforce_on_desc: "Afgedwongen voor alle leden - zij kunnen dit niet overschrijven",
-    fam_org_ret_enforce_off_desc: "Wanneer ingeschakeld, gelden deze limieten voor alle lidaccounts. Leden kunnen dit niet overschrijven.",
+    fam_org_ret_enforce_info_desc:
+      "Wanneer dit aanstaat, worden deze bewaarlimieten toegepast op elk lidaccount en kunnen leden ze niet wijzigen. Wanneer dit uitstaat, gelden de limieten alleen voor je eigen account.",
+    fam_org_ret_enforce_on_desc:
+      "Afgedwongen voor alle leden - zij kunnen dit niet overschrijven",
+    fam_org_ret_enforce_off_desc:
+      "Wanneer ingeschakeld, gelden deze limieten voor alle lidaccounts. Leden kunnen dit niet overschrijven.",
     fam_org_ret_saving: "Opslaan...",
     fam_org_ret_confirm_title: "Bewaarbeleid voor alle leden afdwingen?",
-    fam_org_ret_confirm_body: "Deze bewaarlimieten worden toegepast op elk account in dit gezin. Leden kunnen ze niet overschrijven en mail die ouder is dan je limieten wordt permanent uit hun account verwijderd. Dit kan niet ongedaan worden gemaakt voor reeds verwijderde berichten.",
+    fam_org_ret_confirm_body:
+      "Deze bewaarlimieten worden toegepast op elk account in dit gezin. Leden kunnen ze niet overschrijven en mail die ouder is dan je limieten wordt permanent uit hun account verwijderd. Dit kan niet ongedaan worden gemaakt voor reeds verwijderde berichten.",
     fam_org_ret_confirm_cancel: "Annuleren",
     fam_org_ret_confirm_action: "Afdwingen voor alle leden",
     fam_org_ret_load_failed: "Laden van bewaarinstellingen mislukt",
     fam_org_ret_save_failed: "Opslaan mislukt",
     controlled_by_family_admin: "Beheerd door familiebeheerder",
     fam_consent_title: "Toestemming van leden vereist",
-    fam_consent_body: "Deze wijziging betreft de gegevens van alle gezinsleden. Er wordt een toestemmingsverzoek gestuurd aan {{count}} lid/leden. De wijziging treedt pas in werking als alle leden hebben ingestemd.",
+    fam_consent_body:
+      "Deze wijziging betreft de gegevens van alle gezinsleden. Er wordt een toestemmingsverzoek gestuurd aan {{count}} lid/leden. De wijziging treedt pas in werking als alle leden hebben ingestemd.",
     fam_consent_cancel: "Annuleren",
     fam_consent_send: "Toestemmingsverzoek versturen",
     fam_consent_sent_toast: "Toestemmingsverzoek verstuurd aan alle leden",
@@ -2278,12 +2749,17 @@ export const nl = {
     fam_consent_member_decline: "Weigeren",
     fam_consent_member_accepted_toast: "Wijziging geaccepteerd",
     fam_consent_member_declined_toast: "Wijziging geweigerd",
-    fam_ret_unsaved_consent: "Wijzigingen vereisen toestemming van leden vóór opslaan",
+    fam_ret_unsaved_consent:
+      "Wijzigingen vereisen toestemming van leden vóór opslaan",
     fam_ret_request_consent: "Toestemming aanvragen",
-    fam_consent_retention_desc: "Gegevensretentiebeleid bijwerken dat alle ledenaccounts betreft",
-    fam_consent_filter_create_desc: "Een organisatiebrede filterregel toevoegen aan alle ledeninboxen",
-    fam_consent_filter_enable_desc: "Een organisatiebrede filterregel inschakelen voor alle ledeninboxen",
-    fam_consent_security_desc: "Beveiligingsbeleid bijwerken dat alle ledenaccounts betreft",
+    fam_consent_retention_desc:
+      "Gegevensretentiebeleid bijwerken dat alle ledenaccounts betreft",
+    fam_consent_filter_create_desc:
+      "Een organisatiebrede filterregel toevoegen aan alle ledeninboxen",
+    fam_consent_filter_enable_desc:
+      "Een organisatiebrede filterregel inschakelen voor alle ledeninboxen",
+    fam_consent_security_desc:
+      "Beveiligingsbeleid bijwerken dat alle ledenaccounts betreft",
     fam_org_member_storage_updated: "Opslag bijgewerkt",
     fam_org_member_save: "Opslaan",
     fam_org_member_cancel: "Annuleren",
@@ -2303,16 +2779,21 @@ export const nl = {
     fam_org_time_years: "{{count}} jaar geleden",
     fam_org_time_today: "vandaag",
     fam_org_time_one_day_ago: "1 dag geleden",
-    fam_org_grace_banner: "Je gezinsabonnement verloopt op {{date}} - verleng om toegang te behouden",
-    fam_org_grace_banner_soon: "Je gezinsabonnement verloopt binnenkort - verleng om toegang te behouden",
-    fam_org_cancelled_banner: "Je gezinsabonnement is geannuleerd - leden verliezen hun toegang",
+    fam_org_grace_banner:
+      "Je gezinsabonnement verloopt op {{date}} - verleng om toegang te behouden",
+    fam_org_grace_banner_soon:
+      "Je gezinsabonnement verloopt binnenkort - verleng om toegang te behouden",
+    fam_org_cancelled_banner:
+      "Je gezinsabonnement is geannuleerd - leden verliezen hun toegang",
     fam_org_manage_billing: "Facturering beheren",
     fam_org_heading: "Gezin",
     fam_org_status_active: "Actief",
     fam_org_status_expiring: "Verloopt binnenkort",
     fam_org_status_cancelled: "Geannuleerd",
-    fam_org_members_count: "{{active}} van {{max}} leden · {{seats}} plaats beschikbaar",
-    fam_org_members_count_plural: "{{active}} van {{max}} leden · {{seats}} plaatsen beschikbaar",
+    fam_org_members_count:
+      "{{active}} van {{max}} leden · {{seats}} plaats beschikbaar",
+    fam_org_members_count_plural:
+      "{{active}} van {{max}} leden · {{seats}} plaatsen beschikbaar",
     fam_org_setting_up: "Je gezinsabonnement wordt ingesteld...",
     fam_org_refresh: "Vernieuwen",
     fam_org_checklist_title: "Aan de slag met je gezinsabonnement",
@@ -2335,13 +2816,17 @@ export const nl = {
     fam_org_summary_checking: "Naleving controleren...",
     fam_org_summary_all_2fa: "Alle leden hebben 2FA",
     fam_org_summary_partial_2fa: "{{compliant}}/{{total}} hebben 2FA",
-    fam_org_seats_full_notice: "Alle 2 plaatsen zijn in gebruik. Upgrade naar het Gezinsabonnement voor maximaal 6 leden.",
+    fam_org_seats_full_notice:
+      "Alle 2 plaatsen zijn in gebruik. Upgrade naar het Gezinsabonnement voor maximaal 6 leden.",
     fam_org_upgrade: "Upgraden",
-    fam_org_manage_billing_plan: "Facturering en abonnementswijzigingen beheren",
+    fam_org_manage_billing_plan:
+      "Facturering en abonnementswijzigingen beheren",
     fam_org_no_members_title: "Nog geen leden",
-    fam_org_no_members_desc: "Nodig iemand uit om dit gezinsabonnement te delen",
+    fam_org_no_members_desc:
+      "Nodig iemand uit om dit gezinsabonnement te delen",
     fam_org_members_info_title: "Leden",
-    fam_org_members_info_desc: "Iedereen in je gezinsabonnement. Elk lid krijgt een eigen, afzonderlijk versleuteld account. Als eigenaar kun je mensen uitnodigen, de opslagtoewijzing per lid instellen, het eigenaarschap overdragen of leden verwijderen.",
+    fam_org_members_info_desc:
+      "Iedereen in je gezinsabonnement. Elk lid krijgt een eigen, afzonderlijk versleuteld account. Als eigenaar kun je mensen uitnodigen, de opslagtoewijzing per lid instellen, het eigenaarschap overdragen of leden verwijderen.",
     fam_org_add_member: "Lid toevoegen",
     fam_org_gb: "GB",
     fam_org_revoke_link_first: "Trek eerst de bestaande link in",
@@ -2352,46 +2837,62 @@ export const nl = {
     fam_org_invite_sent_ago: "verzonden {{time}}",
     fam_org_wizard_welcome: "Welkom bij je gezinsabonnement",
     fam_org_wizard_setup_desc: "Installatiewizard voor gezinsabonnement",
-    fam_org_wizard_storage_summary: "{{storage}} gedeelde opslag - tot {{count}} leden",
+    fam_org_wizard_storage_summary:
+      "{{storage}} gedeelde opslag - tot {{count}} leden",
     fam_org_wizard_feat_members: "Leden",
-    fam_org_wizard_feat_members_desc: "Nodig tot {{count}} mensen uit, stel opslag per lid in",
+    fam_org_wizard_feat_members_desc:
+      "Nodig tot {{count}} mensen uit, stel opslag per lid in",
     fam_org_wizard_feat_security: "Beveiliging",
-    fam_org_wizard_feat_security_desc: "Vereis 2FA, beperk sessies, blokkeer doorsturen",
+    fam_org_wizard_feat_security_desc:
+      "Vereis 2FA, beperk sessies, blokkeer doorsturen",
     fam_org_wizard_feat_groups: "Groepen",
-    fam_org_wizard_feat_groups_desc: "Stuur e-mail naar meerdere leden tegelijk",
+    fam_org_wizard_feat_groups_desc:
+      "Stuur e-mail naar meerdere leden tegelijk",
     fam_org_wizard_feat_filters: "Filters",
-    fam_org_wizard_feat_filters_desc: "Organisatiebrede blokkeer-, archiveer- en labelregels",
+    fam_org_wizard_feat_filters_desc:
+      "Organisatiebrede blokkeer-, archiveer- en labelregels",
     fam_org_wizard_feat_domains: "Domeinen",
     fam_org_wizard_feat_domains_desc: "Deel aangepaste domeinen tussen leden",
     fam_org_wizard_feat_retention: "Bewaartermijn",
-    fam_org_wizard_feat_retention_desc: "Verwijder prullenbak, spam en oude mail automatisch",
+    fam_org_wizard_feat_retention_desc:
+      "Verwijder prullenbak, spam en oude mail automatisch",
     fam_org_wizard_not_now: "Niet nu",
     fam_org_wizard_get_started: "Aan de slag",
     fam_org_wizard_invite_title: "Nodig je eerste lid uit",
-    fam_org_wizard_invite_desc: "Ze ontvangen een e-mail met een link om deel te nemen.",
+    fam_org_wizard_invite_desc:
+      "Ze ontvangen een e-mail met een link om deel te nemen.",
     fam_org_wizard_member_placeholder: "member@example.com",
     fam_org_wizard_storage_label: "Opslag voor dit lid",
     fam_org_wizard_pool_remaining: "{{count}} GB resterend in pool",
     fam_org_wizard_back: "Terug",
     fam_org_wizard_skip: "Voorlopig overslaan",
     fam_org_wizard_send_invite: "Uitnodiging verzenden",
-    fam_org_wizard_done_title_sent: "Uitnodiging verzonden - verken je abonnement",
+    fam_org_wizard_done_title_sent:
+      "Uitnodiging verzonden - verken je abonnement",
     fam_org_wizard_done_title: "Verken je gezinsabonnement",
-    fam_org_wizard_done_desc_sent: "Uitnodiging verzonden naar {{email}}. Ze hebben 7 dagen om te accepteren.",
-    fam_org_wizard_done_desc: "Hier is alles wat je via de tabbladen hierboven kunt instellen.",
+    fam_org_wizard_done_desc_sent:
+      "Uitnodiging verzonden naar {{email}}. Ze hebben 7 dagen om te accepteren.",
+    fam_org_wizard_done_desc:
+      "Hier is alles wat je via de tabbladen hierboven kunt instellen.",
     fam_org_wizard_invite_sent_to: "Uitnodiging verzonden naar {{email}}",
     fam_org_wizard_grid_security: "Beveiliging",
-    fam_org_wizard_grid_security_desc: "Vereis 2FA en stel sessielimieten in voor alle leden",
+    fam_org_wizard_grid_security_desc:
+      "Vereis 2FA en stel sessielimieten in voor alle leden",
     fam_org_wizard_grid_groups: "Groepen",
-    fam_org_wizard_grid_groups_desc: "Maak gedeelde postvakken die naar meerdere leden routeren",
+    fam_org_wizard_grid_groups_desc:
+      "Maak gedeelde postvakken die naar meerdere leden routeren",
     fam_org_wizard_grid_filters: "Filters",
-    fam_org_wizard_grid_filters_desc: "Blokkeer afzenders en pas regels toe op alle postvakken van leden",
+    fam_org_wizard_grid_filters_desc:
+      "Blokkeer afzenders en pas regels toe op alle postvakken van leden",
     fam_org_wizard_grid_domains: "Domeinen",
-    fam_org_wizard_grid_domains_desc: "Deel een aangepast domein zodat leden ervan kunnen verzenden",
+    fam_org_wizard_grid_domains_desc:
+      "Deel een aangepast domein zodat leden ervan kunnen verzenden",
     fam_org_wizard_grid_retention: "Bewaartermijn",
-    fam_org_wizard_grid_retention_desc: "Stel schema's voor automatisch verwijderen in voor prullenbak, spam en verzonden mail",
+    fam_org_wizard_grid_retention_desc:
+      "Stel schema's voor automatisch verwijderen in voor prullenbak, spam en verzonden mail",
     fam_org_wizard_grid_activity: "Activiteitenlogboek",
-    fam_org_wizard_grid_activity_desc: "Bekijk elke beheerdersactie: uitnodigingen, verwijderingen, beleidswijzigingen",
+    fam_org_wizard_grid_activity_desc:
+      "Bekijk elke beheerdersactie: uitnodigingen, verwijderingen, beleidswijzigingen",
     fam_org_wizard_done: "Klaar",
     fam_org_plan_upgraded: "Abonnement succesvol geüpgraded",
     fam_org_invalid_email: "Voer een geldig e-mailadres in",
@@ -2400,37 +2901,51 @@ export const nl = {
     fam_org_admin_transferred_toast: "Beheerder overgedragen",
     title: "Instellingen",
     account_recovery_title: "Accountherstel",
-    account_recovery_desc: "Methoden waarmee u weer toegang krijgt tot uw account en uw versleutelde gegevens ontgrendelt als u uw wachtwoord vergeet.",
+    account_recovery_desc:
+      "Methoden waarmee u weer toegang krijgt tot uw account en uw versleutelde gegevens ontgrendelt als u uw wachtwoord vergeet.",
     recovery_status_protected: "Volledig herstel beschermd",
-    recovery_status_protected_desc: "U heeft een methode voor gegevensherstel. Als u uw wachtwoord vergeet, verliest u uw versleutelde e-mail niet.",
+    recovery_status_protected_desc:
+      "U heeft een methode voor gegevensherstel. Als u uw wachtwoord vergeet, verliest u uw versleutelde e-mail niet.",
     recovery_status_at_risk: "Risico: geen offline herstelmethode",
-    recovery_status_at_risk_desc: "Zonder herstelzin of herstelcodes wordt uw versleutelde e-mail permanent vergrendeld als u uw wachtwoord vergeet.",
+    recovery_status_at_risk_desc:
+      "Zonder herstelzin of herstelcodes wordt uw versleutelde e-mail permanent vergrendeld als u uw wachtwoord vergeet.",
     recovery_phrase_row: "Herstelzin",
-    recovery_phrase_row_desc: "Een zin van 12 woorden die uw account en alle versleutelde gegevens herstelt.",
+    recovery_phrase_row_desc:
+      "Een zin van 12 woorden die uw account en alle versleutelde gegevens herstelt.",
     recovery_phrase_generate: "Zin genereren",
     recovery_phrase_regenerate: "Zin opnieuw genereren",
-    recovery_phrase_regenerate_warning: "Opnieuw genereren maakt een nieuwe zin aan en maakt de oude permanent ongeldig.",
+    recovery_phrase_regenerate_warning:
+      "Opnieuw genereren maakt een nieuwe zin aan en maakt de oude permanent ongeldig.",
     recovery_phrase_active: "Actief",
     recovery_phrase_not_set: "Niet ingesteld",
-    recovery_phrase_saved_confirm: "Sla de nieuwe zin op voordat u dit venster sluit. Deze wordt maar één keer getoond.",
+    recovery_phrase_saved_confirm:
+      "Sla de nieuwe zin op voordat u dit venster sluit. Deze wordt maar één keer getoond.",
     legacy_codes_row: "Herstelcodes (verouderd)",
-    legacy_codes_row_desc: "Uw bestaande ASTER-herstelcodes blijven geldig. Nieuwe accounts gebruiken in plaats daarvan de herstelzin.",
-    recovery_email_row_moved_hint: "De instellingen voor het herstel-e-mailadres zijn verplaatst naar Beveiliging > Accountherstel",
+    legacy_codes_row_desc:
+      "Uw bestaande ASTER-herstelcodes blijven geldig. Nieuwe accounts gebruiken in plaats daarvan de herstelzin.",
+    recovery_email_row_moved_hint:
+      "De instellingen voor het herstel-e-mailadres zijn verplaatst naar Beveiliging > Accountherstel",
     recover_older_data_title: "Oudere gegevens herstellen",
-    recover_older_data_desc: "Dit account is gereset. Als u het wachtwoord van vóór de reset nog weet, kunnen uw oudere versleutelde gegevens worden ontgrendeld en hersteld.",
+    recover_older_data_desc:
+      "Dit account is gereset. Als u het wachtwoord van vóór de reset nog weet, kunnen uw oudere versleutelde gegevens worden ontgrendeld en hersteld.",
     recover_older_data_button: "Oudere gegevens ontgrendelen",
     resurrection_old_password: "Oud wachtwoord",
-    resurrection_old_password_prompt: "Voer het wachtwoord in dat u vóór de reset gebruikte",
-    resurrection_success: "Oudere gegevens ontgrendeld. Uw e-mail en labels worden op de achtergrond opnieuw versleuteld.",
-    resurrection_failed: "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
-    phrase_wrap_save_failed: "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
+    resurrection_old_password_prompt:
+      "Voer het wachtwoord in dat u vóór de reset gebruikte",
+    resurrection_success:
+      "Oudere gegevens ontgrendeld. Uw e-mail en labels worden op de achtergrond opnieuw versleuteld.",
+    resurrection_failed:
+      "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
+    phrase_wrap_save_failed:
+      "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
     general: "Algemeen",
     account: "Account",
     appearance: "Uiterlijk",
     security: "Beveiliging",
     security_description: "Privacy- en beveiligingsvoorkeuren",
     notifications: "Meldingen",
-    notifications_denied_help: "Meldingen worden geblokkeerd door je browser. Schakel ze in via de site-instellingen van je browser om ze aan te zetten.",
+    notifications_denied_help:
+      "Meldingen worden geblokkeerd door je browser. Schakel ze in via de site-instellingen van je browser om ze aan te zetten.",
     preferences: "Voorkeuren",
     compose: "Opstellen",
     templates: "Sjablonen",
@@ -2442,6 +2957,44 @@ export const nl = {
     theme_description: "Selecteer je voorkeurskleurenschema",
     theme_light: "Licht",
     theme_dark: "Donker",
+    theme_system: "Systeem",
+    color_theme: "Kleurthema",
+    color_theme_description: "Kies een vooraf ingesteld kleurenpalet voor de app",
+    color_theme_default: "Standaard",
+    color_theme_purple: "Paars",
+    color_theme_green: "Groen",
+    color_theme_rose: "Roze",
+    color_theme_orange: "Oranje",
+    color_theme_teal: "Turquoise",
+    color_theme_indigo: "Indigo",
+    color_theme_amber: "Amber",
+    color_theme_cyan: "Cyaan",
+    color_theme_slate: "Leisteen",
+    color_theme_aster_blue: "Aster Blue",
+    color_theme_lime: "Limoen",
+    color_theme_fuchsia: "Fuchsia",
+    custom_theme_title: "Aangepast thema",
+    custom_theme_description:
+      "Stel je eigen kleurenpalet samen op basis van één kleur, veilig gegenereerd op je apparaat",
+    custom_theme_colors_title: "Themakleuren",
+    custom_theme_color_label: "Basiskleur",
+    language_format_title: "Taal & notatie",
+    custom_theme_active: "Momenteel toegepast",
+    custom_theme_inactive: "Kies een kleur om je aangepaste thema toe te passen",
+    custom_theme_role_accent: "Accent",
+    custom_theme_role_accent_hover: "Accent (hover)",
+    custom_theme_role_background: "Achtergrond",
+    custom_theme_role_background_secondary: "Achtergrond (secundair)",
+    custom_theme_role_text: "Tekst",
+    custom_theme_role_text_secondary: "Tekst (secundair)",
+    custom_theme_role_border: "Rand",
+    custom_theme_reset_role: "Terugzetten naar automatisch",
+    custom_theme_reset_all: "Alles terugzetten naar automatisch",
+    font_choice_title: "Lettertype",
+    font_choice_description:
+      "Kies het lettertype dat in de hele app wordt gebruikt",
+    font_option_default: "Aster-standaard",
+    font_option_system: "Systeeminterface",
     email_address: "E-mailadres",
     email_address_description: "Je primaire e-mailadres",
     display_name: "Weergavenaam",
@@ -2470,13 +3023,19 @@ export const nl = {
     two_factor_auth: "Tweefactorauthenticatie",
     two_factor_auth_description: "Voeg een extra beveiligingslaag toe",
     encryption_keys: "Versleutelingssleutels",
-    encryption_keys_description: "Je versleutelingssleutels worden veilig in het geheugen opgeslagen",
+    encryption_keys_description:
+      "Je versleutelingssleutels worden veilig in het geheugen opgeslagen",
     end_to_end_encryption: "End-to-end-versleuteling",
     always_on: "Altijd aan",
-    key_fingerprint: "Sleutelvingerafdruk",
-    copy_fingerprint: "Vingerafdruk kopiëren",
+    your_encryption_key: "Je OpenPGP-sleutel",
+    key_fingerprint: "Verificatiecode",
+    info_fingerprint_title: "Wat is deze code?",
+    info_fingerprint_description:
+      "Een korte code die is gemaakt op basis van je versleutelingssleutel. Als iemand met wie je mailt deze code vergelijkt met die van hen en ze komen overeen, kunnen jullie er beiden zeker van zijn dat jullie berichten privé zijn en niet zijn gemanipuleerd.",
+    copy_fingerprint: "Verificatiecode kopiëren",
     copy_public_key: "Openbare sleutel kopiëren",
-    failed_download_codes: "Herstelcodes konden niet worden gedownload. Probeer het opnieuw.",
+    failed_download_codes:
+      "Herstelcodes konden niet worden gedownload. Probeer het opnieuw.",
     export_keys: "Sleutels & herstelcodes exporteren",
     recovery_codes: "Herstelcodes",
     changes_saved_automatically: "Wijzigingen worden automatisch opgeslagen",
@@ -2486,7 +3045,8 @@ export const nl = {
     developer: "Ontwikkelaar",
     developer_description: "Ontwikkeltools en foutopsporingsinformatie",
     updates: "Updates",
-    updates_description: "Check for application updates and configure auto-update",
+    updates_description:
+      "Check for application updates and configure auto-update",
     updates_check_now: "Check for updates",
     updates_checking: "Checking for updates...",
     updates_up_to_date: "You're on the latest version",
@@ -2497,11 +3057,13 @@ export const nl = {
     updates_last_checked: "Last checked {{when}}",
     updates_never_checked: "Never checked",
     updates_auto_label: "Install updates automatically",
-    updates_auto_description: "When enabled, new versions install in the background and apply on next launch",
+    updates_auto_description:
+      "When enabled, new versions install in the background and apply on next launch",
     updates_release_notes: "Release notes",
     updates_banner_title: "Aster Mail {{version}} is available",
     updates_banner_action: "Install now",
-    updates_unsupported: "Updates are managed by your operating system or browser",
+    updates_unsupported:
+      "Updates are managed by your operating system or browser",
     updates_dismiss: "Later",
     billing: "Facturering",
     billing_description: "Beheer je abonnement en betaalmethoden",
@@ -2517,31 +3079,40 @@ export const nl = {
     change_appearance: "Verander het uiterlijk van Aster",
     security_settings: "Beveiligingsinstellingen",
     login_alerts_sessions_title: "Inlogwaarschuwingen en sessies",
-    manage_security_description: "Beheer je accountbeveiliging en authenticatievoorkeuren",
+    manage_security_description:
+      "Beheer je accountbeveiliging en authenticatievoorkeuren",
     session_timeout: "Sessietime-out",
     session_timeout_disabled: "Sessietime-out is uitgeschakeld",
     timeout_duration: "Time-outduur",
-    timeout_logout_description: "Je wordt uitgelogd na deze periode van inactiviteit. Je moet opnieuw inloggen.",
+    timeout_logout_description:
+      "Je wordt uitgelogd na deze periode van inactiviteit. Je moet opnieuw inloggen.",
     login_alerts: "Inlogwaarschuwingen",
     external_link_warnings: "Waarschuwingen voor externe links",
-    external_link_warning_enabled: "Toon waarschuwing voordat externe links in e-mails worden geopend",
+    external_link_warning_enabled:
+      "Toon waarschuwing voordat externe links in e-mails worden geopend",
     ipfs_attachment_storage: "IPFS-bijlageopslag",
-    ipfs_enabled_description: "Bijlagen worden opgeslagen op gedecentraliseerde IPFS-opslag",
-    ipfs_disabled_description: "Sla bijlagen op IPFS op voor gedecentraliseerde, veerkrachtige opslag",
+    ipfs_enabled_description:
+      "Bijlagen worden opgeslagen op gedecentraliseerde IPFS-opslag",
+    ipfs_disabled_description:
+      "Sla bijlagen op IPFS op voor gedecentraliseerde, veerkrachtige opslag",
     forward_secrecy: "Forward Secrecy",
     forward_secrecy_enabled_description: "Sleutels roteren {{frequency}}",
-    forward_secrecy_disabled_description: "Roteer automatisch versleutelingssleutels voor verbeterde beveiliging",
+    forward_secrecy_disabled_description:
+      "Roteer automatisch versleutelingssleutels voor verbeterde beveiliging",
     current_key_status: "Huidige sleutelstatus",
     age: "Leeftijd",
     fingerprint: "Vingerafdruk",
     key_rotation_interval: "Sleutelrotatie-interval",
     key_history_limit: "Sleutelgeschiedenislimiet",
-    key_history_description: "Oude sleutels worden bewaard om oudere e-mails te ontsleutelen. Stel in op onbeperkt voor volledige geschiedenis.",
+    key_history_description:
+      "Oude sleutels worden bewaard om oudere e-mails te ontsleutelen. Stel in op onbeperkt voor volledige geschiedenis.",
     rotate_keys_now: "Sleutels nu roteren",
-    rotate_keys_description: "Roteer handmatig je versleutelingssleutels. Oude e-mails blijven leesbaar.",
+    rotate_keys_description:
+      "Roteer handmatig je versleutelingssleutels. Oude e-mails blijven leesbaar.",
     password: "Wachtwoord",
     change_password: "Wachtwoord wijzigen",
     change_password_description: "Wijzig je accountwachtwoord",
+    password_last_updated: "Laatst bijgewerkt op {{date}}.",
     current_password: "Huidig wachtwoord",
     new_password: "Nieuw wachtwoord",
     confirm_new_password: "Bevestig nieuw wachtwoord",
@@ -2552,25 +3123,31 @@ export const nl = {
     password_min_length: "Wachtwoord moet minimaal 8 tekens bevatten",
     password_max_length: "Wachtwoord mag maximaal 128 tekens bevatten",
     user_not_found: "Gebruiker niet gevonden",
-    session_expired_sign_in: "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
+    session_expired_sign_in:
+      "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
     current_password_incorrect: "Huidig wachtwoord is onjuist",
     failed_change_password: "Wachtwoord wijzigen mislukt",
-    alias_reencrypt_failed: "Een van uw aliassen kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder de betreffende alias en probeer het opnieuw.",
-    contact_reencrypt_failed: "Een van uw contacten kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder het betreffende contact en probeer het opnieuw.",
+    alias_reencrypt_failed:
+      "Een van uw aliassen kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder de betreffende alias en probeer het opnieuw.",
+    contact_reencrypt_failed:
+      "Een van uw contacten kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder het betreffende contact en probeer het opnieuw.",
     update_password: "Wachtwoord bijwerken",
     updating: "Bijwerken...",
     password_change_encrypted_data_warning:
       "Uw labels, handtekeningen en sjablonen worden opnieuw versleuteld bij een wachtwoordwijziging. Als uw verbinding tijdens dit proces wegvalt, kunnen die gegevens niet worden hersteld.",
-    password_changed_signing_out: "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
+    password_changed_signing_out:
+      "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     session_security: "Sessiebeveiliging",
     browsers_and_devices: "Browsers en apparaten",
-    session_privacy_description: "Voor je privacy houden we geen sessiegegevens of apparaatinformatie bij",
+    session_privacy_description:
+      "Voor je privacy houden we geen sessiegegevens of apparaatinformatie bij",
     sign_out_everywhere: "Overal anders uitloggen",
     signing_out: "Uitloggen...",
-    sign_out_description: "Dit logt je uit op alle andere apparaten en browsers",
-    sign_out_everywhere_confirm: "Weet je zeker dat je overal wilt uitloggen? Dit beëindigt alle andere actieve sessies.",
-    sign_out_everywhere_success:
-      "Uitgelogd bij {{count}} andere sessie(s)",
+    sign_out_description:
+      "Dit logt je uit op alle andere apparaten en browsers",
+    sign_out_everywhere_confirm:
+      "Weet je zeker dat je overal wilt uitloggen? Dit beëindigt alle andere actieve sessies.",
+    sign_out_everywhere_success: "Uitgelogd bij {{count}} andere sessie(s)",
     failed_sign_out: "Andere sessies uitloggen mislukt",
     active_now: "Nu actief",
     minutes_ago: "{{count}} minuten geleden",
@@ -2580,7 +3157,8 @@ export const nl = {
     signed_in_date: "Ingelogd op {{date}}",
     sign_out: "Uitloggen",
     sign_out_all_other: "Alle andere sessies uitloggen",
-    sign_out_session_confirm: "Weet je zeker dat je deze sessie wilt uitloggen?",
+    sign_out_session_confirm:
+      "Weet je zeker dat je deze sessie wilt uitloggen?",
     no_active_sessions: "Geen actieve sessies gevonden",
     failed_load_sessions: "Sessies laden mislukt",
     load_more_sessions: "{{count}} meer sessies laden",
@@ -2598,10 +3176,14 @@ export const nl = {
     notifications_blocked: "Meldingen geblokkeerd",
     notifications_not_supported: "Niet ondersteund",
     permission_required: "Toestemming vereist",
-    notifications_enabled_description: "Je ontvangt bureaubladmeldingen voor nieuwe e-mails",
-    notifications_blocked_description: "Schakel meldingen in via je browserinstellingen",
-    notifications_unsupported_description: "Je browser ondersteunt geen meldingen",
-    permission_required_description: "Geef toestemming om meldingen te ontvangen",
+    notifications_enabled_description:
+      "Je ontvangt bureaubladmeldingen voor nieuwe e-mails",
+    notifications_blocked_description:
+      "Schakel meldingen in via je browserinstellingen",
+    notifications_unsupported_description:
+      "Je browser ondersteunt geen meldingen",
+    permission_required_description:
+      "Geef toestemming om meldingen te ontvangen",
     channels: "Kanalen",
     desktop: "Bureaublad",
     show_desktop_notifications: "Bureaubladmeldingen tonen",
@@ -2638,7 +3220,8 @@ export const nl = {
     after_3_seconds: "Na 3 seconden",
     never_manual: "Nooit (alleen handmatig)",
     auto_advance: "Na archiveren of verwijderen",
-    auto_advance_description: "Welke e-mail wordt geopend na het archiveren of verwijderen van de huidige",
+    auto_advance_description:
+      "Welke e-mail wordt geopend na het archiveren of verwijderen van de huidige",
     auto_advance_next: "Naar volgende e-mail",
     auto_advance_previous: "Naar vorige e-mail",
     auto_advance_back: "Terug naar e-maillijst",
@@ -2651,25 +3234,32 @@ export const nl = {
     reply_to_sender: "Antwoorden aan afzender",
     reply_to_all: "Allen antwoorden",
     force_dark_mode_emails: "Donkere modus voor e-mails forceren",
-    force_dark_mode_emails_description: "E-mailinhoud altijd in donkere modus weergeven, waarbij de oorspronkelijke stijl wordt overschreven",
+    force_dark_mode_emails_description:
+      "E-mailinhoud altijd in donkere modus weergeven, waarbij de oorspronkelijke stijl wordt overschreven",
     block_external_content: "Externe inhoud blokkeren",
-    block_external_content_description: "Blokkeer externe inhoud totdat je ervoor kiest om deze te laden",
+    block_external_content_description:
+      "Blokkeer externe inhoud totdat je ervoor kiest om deze te laden",
     blocking_mode: "Blokkeringsmodus",
     blocking_mode_description: "Kies welke externe inhoud je wilt blokkeren",
     trackers_only: "Alleen trackers",
     images_only: "Alleen afbeeldingen",
     images_and_trackers: "Afbeeldingen & trackers",
     enable_undo_send: "Verzenden ongedaan maken inschakelen",
-    undo_send_delay_description: "Vertraag het verzenden van e-mails zodat je kunt annuleren indien nodig",
+    undo_send_delay_description:
+      "Vertraag het verzenden van e-mails zodat je kunt annuleren indien nodig",
     cancellation_period: "Annuleringsperiode",
-    cancellation_period_description: "Tijdsvenster om een verzonden e-mail te annuleren ({{min}}-{{max}} seconden)",
+    cancellation_period_description:
+      "Tijdsvenster om een verzonden e-mail te annuleren ({{min}}-{{max}} seconden)",
     protected_folders: "Beveiligde mappen",
-    protected_folders_description: "Configureer hoe wachtwoordbeveiligde mappen zich gedragen",
+    protected_folders_description:
+      "Configureer hoe wachtwoordbeveiligde mappen zich gedragen",
     folder_lock_mode: "Mapvergrendelingsmodus",
     lock_mode_session: "Ontgrendeld voor sessie",
     lock_mode_on_leave: "Vergrendelen bij verlaten",
-    auto_save_recipients_to_contacts: "Recente ontvangers automatisch opslaan als contacten",
-    auto_save_recipients_to_contacts_description: "E-mailadressen waarnaar je verzendt automatisch als contacten toevoegen",
+    auto_save_recipients_to_contacts:
+      "Recente ontvangers automatisch opslaan als contacten",
+    auto_save_recipients_to_contacts_description:
+      "E-mailadressen waarnaar je verzendt automatisch als contacten toevoegen",
     confirmations: "Bevestigingen",
     confirm_actions_description: "Vraag om bevestiging voor deze acties",
     confirm_delete: "Verwijderen bevestigen",
@@ -2680,7 +3270,8 @@ export const nl = {
     advanced: "Geavanceerd",
     advanced_description: "Instellingen voor gevorderde gebruikers",
     developer_mode: "Ontwikkelaarsmodus",
-    developer_mode_description: "Toon het tabblad Ontwikkelaar met build-info, cryptostatus en foutopsporingstools",
+    developer_mode_description:
+      "Toon het tabblad Ontwikkelaar met build-info, cryptostatus en foutopsporingstools",
     time_format: "Tijdnotatie",
     time_format_description: "Kies hoe de tijd wordt weergegeven",
     twelve_hours: "12 uur",
@@ -2722,7 +3313,8 @@ export const nl = {
     js_heap: "JS Heap",
     screen: "Scherm",
     viewport: "Viewport",
-    network: "We konden de server niet bereiken. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
+    network:
+      "We konden de server niet bereiken. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
     status: "Status",
     online: "Online",
     connection: "Verbinding",
@@ -2746,24 +3338,34 @@ export const nl = {
     reactivate: "Heractiveren",
     manage_plan: "Abonnement beheren",
     manage_plan_description: "Wijzigingen aanbrengen aan je abonnement",
-    cancel_plan_warning: "U behoudt de premiumfuncties tot het einde van deze factureringsperiode, en daarna gaat uw abonnement over op Gratis. Uw post, contacten en instellingen blijven bij u.",
+    cancel_plan_warning:
+      "U behoudt de premiumfuncties tot het einde van deze factureringsperiode, en daarna gaat uw abonnement over op Gratis. Uw post, contacten en instellingen blijven bij u.",
     cancel_plan: "Abonnement annuleren",
     billing_history: "Factureringsgeschiedenis",
     storage_limit_exceeded: "Uw opslag is vol.",
-    storage_limit_description: "Nieuwe post is gepauzeerd tot u ruimte vrijmaakt. Wat e-mails wissen of uw abonnement upgraden laat het weer stromen. Bestaande post is veilig.",
+    storage_limit_description:
+      "Nieuwe post is gepauzeerd tot u ruimte vrijmaakt. Wat e-mails wissen of uw abonnement upgraden laat het weer stromen. Bestaande post is veilig.",
     cancel_subscription: "Abonnement annuleren",
-    cancel_subscription_description: "Je abonnement blijft actief tot het einde van de huidige factureringsperiode. Daarna word je overgezet naar het gratis abonnement.",
+    cancel_subscription_description:
+      "Je abonnement blijft actief tot het einde van de huidige factureringsperiode. Daarna word je overgezet naar het gratis abonnement.",
     keep_plan: "Abonnement behouden",
     cancelling: "Annuleren...",
     continue_to_checkout: "Doorgaan naar afrekenen",
-    redirect_payment_description: "Je wordt doorgestuurd naar onze beveiligde betalingsprovider om je aankoop te voltooien.",
-    plan_not_available: "Dit abonnement is op dit moment niet te koop. Een ander abonnement of later terugkomen werkt.",
-    failed_checkout: "We konden de afrekenpagina op dit moment niet openen. Een nieuwe poging zou werken. Uw facturering is ongewijzigd.",
-    failed_billing_portal: "We konden de factureringspagina niet openen. Een nieuwe poging zou werken. Uw abonnement is ongewijzigd.",
-    subscription_cancelled: "Abonnement wordt geannuleerd aan het einde van de factureringsperiode",
-    failed_cancel_subscription: "Uw opzegging is niet doorgegaan. Een nieuwe poging zou werken. Uw abonnement is nog steeds actief.",
+    redirect_payment_description:
+      "Je wordt doorgestuurd naar onze beveiligde betalingsprovider om je aankoop te voltooien.",
+    plan_not_available:
+      "Dit abonnement is op dit moment niet te koop. Een ander abonnement of later terugkomen werkt.",
+    failed_checkout:
+      "We konden de afrekenpagina op dit moment niet openen. Een nieuwe poging zou werken. Uw facturering is ongewijzigd.",
+    failed_billing_portal:
+      "We konden de factureringspagina niet openen. Een nieuwe poging zou werken. Uw abonnement is ongewijzigd.",
+    subscription_cancelled:
+      "Abonnement wordt geannuleerd aan het einde van de factureringsperiode",
+    failed_cancel_subscription:
+      "Uw opzegging is niet doorgegaan. Een nieuwe poging zou werken. Uw abonnement is nog steeds actief.",
     subscription_reactivated: "Abonnement geheractiveerd",
-    failed_reactivate: "We konden uw abonnement niet reactiveren. Een nieuwe poging zou werken.",
+    failed_reactivate:
+      "We konden uw abonnement niet reactiveren. Een nieuwe poging zou werken.",
     daily: "Dagelijks",
     weekly: "Wekelijks",
     biweekly: "Tweewekelijks",
@@ -2784,7 +3386,8 @@ export const nl = {
     auto_lock_after: "Automatisch vergrendelen na {{duration}} inactiviteit",
     hours: "{{count}} uur",
     days: "{{count}} dagen",
-    failed_get_auth_data: "We konden uw aanmeldgegevens niet laden. Een nieuwe poging zou werken.",
+    failed_get_auth_data:
+      "We konden uw aanmeldgegevens niet laden. Een nieuwe poging zou werken.",
     downgrade: "Downgraden",
     upgrade: "Upgraden",
     export: "Exporteren",
@@ -2795,51 +3398,65 @@ export const nl = {
     renews: "Verlengt",
     your_feedback: "Jouw feedback",
     feedback_placeholder: "Deel je gedachten, suggesties of meld problemen...",
-    feedback_not_encrypted: "Feedback is niet end-to-end versleuteld. Deel geen gevoelige informatie.",
+    feedback_not_encrypted:
+      "Feedback is niet end-to-end versleuteld. Deel geen gevoelige informatie.",
     sending: "Verzenden...",
     send_feedback_button: "Feedback verzenden",
     thank_you_feedback: "Bedankt voor je feedback!",
-    too_many_requests: "Je doet dat te snel. Wacht even en probeer het opnieuw.",
+    too_many_requests:
+      "Je doet dat te snel. Wacht even en probeer het opnieuw.",
     please_log_in_feedback: "Aanmelden laat u feedback verzenden.",
-    failed_send_feedback: "Uw feedback is niet verzonden. Een nieuwe poging zou werken.",
+    failed_send_feedback:
+      "Uw feedback is niet verzonden. Een nieuwe poging zou werken.",
     other_ways_to_reach: "Andere manieren om ons te bereiken",
     reset_to_defaults: "Standaardinstellingen herstellen",
     section_reset: "Sectie naar standaard hersteld",
     reset_all_confirm: "Alle instellingen naar standaard herstellen?",
     reset_section_confirm: "Deze sectie resetten?",
-    reset_all_type_confirm: "Dit herstelt al je voorkeuren. Typ RESET om te bevestigen.",
+    reset_all_type_confirm:
+      "Dit herstelt al je voorkeuren. Typ RESET om te bevestigen.",
     type_to_confirm: "Typ {{text}} om te bevestigen.",
     confirm_reset: "Reset bevestigen",
     delete_account_title: "Account verwijderen",
-    delete_account_description: "Al je e-mails, mappen, contacten en versleutelingssleutels worden permanent verwijderd. Je kunt geen gegevens herstellen die aan dit account zijn gekoppeld.",
+    delete_account_description:
+      "Al je e-mails, mappen, contacten en versleutelingssleutels worden permanent verwijderd. Je kunt geen gegevens herstellen die aan dit account zijn gekoppeld.",
     type_delete_confirm: "Typ om verwijdering te bevestigen",
     type_to_confirm_placeholder: "Typ om te bevestigen",
     enter_password_confirm: "Voer je wachtwoord in om te bevestigen:",
     verifying_credentials: "Inloggegevens verifiëren...",
-    failed_verify_credentials: "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou moeten werken. Uw account is ongewijzigd.",
+    failed_verify_credentials:
+      "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou moeten werken. Uw account is ongewijzigd.",
     deleting_account: "Account verwijderen...",
-    failed_delete_account: "We konden uw account niet verwijderen. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. Uw account is ongewijzigd.",
+    failed_delete_account:
+      "We konden uw account niet verwijderen. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. Uw account is ongewijzigd.",
     "connection.title": "Verbinding",
     "connection.description": "Kies hoe je verbinding maakt met Aster-diensten",
-    "connection.title_info": "Aster ondersteunt meerdere routes naar zijn servers. De route die je kiest bepaalt wie je IP-adres kan zien en hoe verzoeken ons bereiken. Je berichten blijven in beide gevallen end-to-end versleuteld.",
+    "connection.title_info":
+      "Aster ondersteunt meerdere routes naar zijn servers. De route die je kiest bepaalt wie je IP-adres kan zien en hoe verzoeken ons bereiken. Je berichten blijven in beide gevallen end-to-end versleuteld.",
     "connection.direct": "Direct",
     "connection.direct_description": "Verbind direct met Aster-servers",
     "connection.tor": "Tor",
     "connection.tor_description": "Routeer verkeer via het Tor-netwerk",
     "connection.tor_snowflake": "Tor met Snowflake",
-    "connection.tor_snowflake_description": "Gebruik Snowflake-bridges voor censuurbestendigheid",
+    "connection.tor_snowflake_description":
+      "Gebruik Snowflake-bridges voor censuurbestendigheid",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description": "Routeer via CDN-relayservers",
     "connection.status_connected": "Verbonden",
     "connection.status_connecting": "Verbinden...",
-    "connection.status_error": "We zijn de verbinding kwijtgeraakt, en we proberen het zelf opnieuw.",
+    "connection.status_error":
+      "We zijn de verbinding kwijtgeraakt, en we proberen het zelf opnieuw.",
     "connection.status_disconnected": "Niet verbonden",
-    "connection.tor_blocked": "Tor staat uit, en we hebben dit verzoek geblokkeerd om uw verkeer niet te laten weglekken. Tor inschakelen laat het door.",
-    "connection.tor_blocked_connecting": "Tor is nog aan het verbinden, en we hebben dit verzoek geblokkeerd om uw verkeer niet te laten weglekken. Een moment voor Tor om af te ronden, dan een nieuwe poging, zou werken.",
-    "connection.requires_native_app": "Beschikbaar in de desktop- en mobiele apps",
+    "connection.tor_blocked":
+      "Tor staat uit, en we hebben dit verzoek geblokkeerd om uw verkeer niet te laten weglekken. Tor inschakelen laat het door.",
+    "connection.tor_blocked_connecting":
+      "Tor is nog aan het verbinden, en we hebben dit verzoek geblokkeerd om uw verkeer niet te laten weglekken. Een moment voor Tor om af te ronden, dan een nieuwe poging, zou werken.",
+    "connection.requires_native_app":
+      "Beschikbaar in de desktop- en mobiele apps",
     "connection.requires_desktop_app": "Beschikbaar in de desktop-app",
     "connection.coming_soon": "Binnenkort beschikbaar",
-    "connection.tor_warning": "Al het verkeer wordt via het Tor-netwerk gerouteerd. Verwacht langzamere prestaties.",
+    "connection.tor_warning":
+      "Al het verkeer wordt via het Tor-netwerk gerouteerd. Verwacht langzamere prestaties.",
     domain_ownership_verification: "Domeineigendomsverificatie",
     txt_record: "TXT-record",
     mail_routing: "E-mailroutering",
@@ -2868,12 +3485,14 @@ export const nl = {
     hex_color_value: "Hex-kleurwaarde",
     fetch_imap_folders: "IMAP-mappen ophalen",
     imap_folder_selection: "IMAP-mapselectie",
-    fetch_folders_instruction: "Klik op \"Mappen ophalen\" om beschikbare IMAP-mappen te laden.",
+    fetch_folders_instruction:
+      'Klik op "Mappen ophalen" om beschikbare IMAP-mappen te laden.',
     test_incoming_connection: "Inkomende e-mailverbinding testen",
     test_smtp_connection: "SMTP-verbinding testen",
     show_sync_error_details: "Synchronisatiefoutdetails tonen",
     disable_two_factor_auth: "Tweefactorauthenticatie uitschakelen",
-    disable_2fa_description: "Voer je authenticatorcode en wachtwoord in om 2FA uit te schakelen. Hierdoor wordt je account minder veilig.",
+    disable_2fa_description:
+      "Voer je authenticatorcode en wachtwoord in om 2FA uit te schakelen. Hierdoor wordt je account minder veilig.",
     authenticator_code: "Authenticatorcode",
     disabling: "Uitschakelen...",
     disable_2fa: "2FA uitschakelen",
@@ -2886,44 +3505,64 @@ export const nl = {
       "Scan de QR-code met de app, of voer de geheime sleutel handmatig in als scannen niet lukt.",
     two_factor_guide_step_code:
       "Voer hieronder de 6-cijferige code in die de app genereert om de installatie te voltooien.",
-    verify_2fa_setup: "Voer de 6-cijferige code van je authenticator-app in om de instelling te verifiëren",
+    verify_2fa_setup:
+      "Voer de 6-cijferige code van je authenticator-app in om de instelling te verifiëren",
     two_factor_auth_enabled: "Tweefactorauthenticatie ingeschakeld",
-    backup_code_security_note: "Elke reservecode kan slechts één keer worden gebruikt. Bewaar ze veilig.",
-    delete_alias_confirmation: "Weet je zeker dat je deze alias wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    backup_code_security_note:
+      "Elke reservecode kan slechts één keer worden gebruikt. Bewaar ze veilig.",
+    delete_alias_confirmation:
+      "Weet je zeker dat je deze alias wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
     alias_too_new_title: "Deze alias is te nieuw om te verwijderen",
-    alias_too_new_message: "Nieuwe aliassen blijven 30 dagen actief voordat ze kunnen worden verwijderd. Deze kan vanaf {{date}} worden verwijderd.",
-    ghost_alias_too_new_title: "Deze ghost-alias is te nieuw om te laten verlopen",
-    ghost_alias_too_new_message: "Nieuwe ghost-aliassen blijven 30 dagen actief voordat ze kunnen verlopen. Deze kan vanaf {{date}} verlopen.",
-    delete_signature_confirmation: "Weet je zeker dat je deze handtekening wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
-    delete_domain_confirmation: "Weet je zeker dat je dit domein wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
-    delete_address_confirmation: "Weet je zeker dat je dit adres wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    alias_too_new_message:
+      "Nieuwe aliassen blijven 30 dagen actief voordat ze kunnen worden verwijderd. Deze kan vanaf {{date}} worden verwijderd.",
+    ghost_alias_too_new_title:
+      "Deze ghost-alias is te nieuw om te laten verlopen",
+    ghost_alias_too_new_message:
+      "Nieuwe ghost-aliassen blijven 30 dagen actief voordat ze kunnen verlopen. Deze kan vanaf {{date}} verlopen.",
+    delete_signature_confirmation:
+      "Weet je zeker dat je deze handtekening wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_domain_confirmation:
+      "Weet je zeker dat je dit domein wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_address_confirmation:
+      "Weet je zeker dat je dit adres wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
     colorblind_protanopia: "Protanopie",
     enable_undo_send_label: "Verzenden ongedaan maken inschakelen",
     cancellation_period_label: "Annuleringsperiode in seconden",
     delete_your_account: "Verwijder je account",
     auto_discover_keys_title: "Ontvangersleutels automatisch ontdekken",
     encrypt_by_default_title: "Standaard versleutelen",
-    encrypt_by_default_description: "Automatisch versleutelen wanneer ontvangersleutel beschikbaar is",
+    encrypt_by_default_description:
+      "Automatisch versleutelen wanneer ontvangersleutel beschikbaar is",
     require_encryption_title: "Versleuteling vereisen",
-    require_encryption_description: "Voorkom onversleuteld verzenden naar ontvangers met bekende sleutels",
+    require_encryption_description:
+      "Voorkom onversleuteld verzenden naar ontvangers met bekende sleutels",
     show_encryption_indicators_title: "Versleutelingsindicatoren tonen",
-    show_encryption_indicators_description: "Slotpictogrammen weergeven op versleutelde berichten",
+    show_encryption_indicators_description:
+      "Slotpictogrammen weergeven op versleutelde berichten",
     publish_keys_wkd_title: "Sleutels publiceren naar WKD",
-    publish_keys_wkd_description: "Maak je sleutels vindbaar via Web Key Directory",
+    publish_keys_wkd_description:
+      "Maak je sleutels vindbaar via Web Key Directory",
     publish_to_keyservers_title: "Publiceren naar sleutelservers",
-    publish_to_keyservers_description: "Maak je sleutels vindbaar op openbare sleutelservers",
+    publish_to_keyservers_description:
+      "Maak je sleutels vindbaar op openbare sleutelservers",
     info_forward_secrecy_title: "Wat is Forward Secrecy?",
-    info_forward_secrecy_description: "Uw sessiesleutels worden automatisch gewisseld. Zelfs als iemand vandaag uw privésleutel zou krijgen, kunnen ze oude berichten niet lezen omdat elke sessie een andere sleutel gebruikte.",
+    info_forward_secrecy_description:
+      "Uw sessiesleutels worden automatisch gewisseld. Zelfs als iemand vandaag uw privésleutel zou krijgen, kunnen ze oude berichten niet lezen omdat elke sessie een andere sleutel gebruikte.",
     info_key_rotation_interval_title: "Sleutelrotatie-interval",
-    info_key_rotation_interval_description: "Hoe vaak uw versleutelingssleutel wordt gewisseld. Vaker is veiliger maar vraagt iets meer overhead. Een week is een goede standaard voor de meeste mensen.",
+    info_key_rotation_interval_description:
+      "Hoe vaak uw versleutelingssleutel wordt gewisseld. Vaker is veiliger maar vraagt iets meer overhead. Een week is een goede standaard voor de meeste mensen.",
     info_key_history_limit_title: "Sleutelgeschiedenislimiet",
-    info_key_history_limit_description: "Hoeveel oude sleutels Aster bewaart zodat u oudere e-mails nog kunt ontsleutelen. Te laag instellen kan oudere berichten onleesbaar maken.",
+    info_key_history_limit_description:
+      "Hoeveel oude sleutels Aster bewaart zodat u oudere e-mails nog kunt ontsleutelen. Te laag instellen kan oudere berichten onleesbaar maken.",
     info_wkd_title: "Wat is WKD?",
-    info_wkd_description: "Een standaard waarmee e-mailapps zoals Thunderbird of Proton automatisch uw openbare sleutel vinden. Contacten kunnen versleutelde mail sturen zonder handmatige sleuteluitwisseling.",
+    info_wkd_description:
+      "Een standaard waarmee e-mailapps zoals Thunderbird of Proton automatisch uw openbare sleutel vinden. Contacten kunnen versleutelde mail sturen zonder handmatige sleuteluitwisseling.",
     info_keyservers_title: "Wat zijn sleutelservers?",
-    info_keyservers_description: "Openbare directories waar PGP-sleutels doorzoekbaar zijn op e-mailadres. Let op: bij de meeste sleutelservers kunnen sleutels na publicatie niet volledig worden verwijderd.",
+    info_keyservers_description:
+      "Openbare directories waar PGP-sleutels doorzoekbaar zijn op e-mailadres. Let op: bij de meeste sleutelservers kunnen sleutels na publicatie niet volledig worden verwijderd.",
     keyserver_urls_title: "Sleutelserver-URLs",
-    keyserver_urls_description: "Extra sleutelservers om in te zoeken en naar te publiceren, naast de standaardservers (keys.openpgp.org, keyserver.ubuntu.com)",
+    keyserver_urls_description:
+      "Extra sleutelservers om in te zoeken en naar te publiceren, naast de standaardservers (keys.openpgp.org, keyserver.ubuntu.com)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Toevoegen",
     keyserver_remove: "Verwijderen",
@@ -2936,52 +3575,75 @@ export const nl = {
     keyserver_status_not_published: "Niet gepubliceerd",
     keyserver_publish_btn: "Sleutel publiceren",
     keyserver_republish_btn: "Sleutel opnieuw publiceren",
-    keyserver_permanent_warning: "Eenmaal gepubliceerde sleutels kunnen bij de meeste servers niet volledig worden verwijderd.",
+    keyserver_permanent_warning:
+      "Eenmaal gepubliceerde sleutels kunnen bij de meeste servers niet volledig worden verwijderd.",
     keyserver_add_custom_label: "Aangepaste server toevoegen",
     info_require_encryption_title: "Versleuteling vereisen",
-    info_require_encryption_description: "Verstuurt alleen e-mails die end-to-end versleuteld kunnen worden. Als een ontvanger geen PGP-sleutel heeft, wordt het bericht niet verzonden.",
+    info_require_encryption_description:
+      "Verstuurt alleen e-mails die end-to-end versleuteld kunnen worden. Als een ontvanger geen PGP-sleutel heeft, wordt het bericht niet verzonden.",
     info_storage_format_title: "Over opslagformaat",
-    info_storage_format_description: "Aster Server bewaart uw versleutelde e-mails op Asters servers. IPFS verspreidt uw gegevens over een peer-to-peer netwerk. In beide gevallen kunnen alleen uw sleutels de inhoud ontsleutelen.",
+    info_storage_format_description:
+      "Aster Server bewaart uw versleutelde e-mails op Asters servers. IPFS verspreidt uw gegevens over een peer-to-peer netwerk. In beide gevallen kunnen alleen uw sleutels de inhoud ontsleutelen.",
     info_block_fonts_title: "Waarom externe lettertypen blokkeren?",
-    info_block_fonts_description: "E-mails kunnen lettertypen van externe servers laden. Daarbij ziet de server van de afzender uw IP-adres en wanneer u de e-mail opende, net als een trackingpixel.",
+    info_block_fonts_description:
+      "E-mails kunnen lettertypen van externe servers laden. Daarbij ziet de server van de afzender uw IP-adres en wanneer u de e-mail opende, net als een trackingpixel.",
     info_block_css_title: "Waarom externe stylesheets blokkeren?",
-    info_block_css_description: "Externe CSS-bestanden in e-mails werken als verborgen trackers. Ze vertellen de server van de afzender uw IP, wanneer u opende en welk apparaat u gebruikt.",
+    info_block_css_description:
+      "Externe CSS-bestanden in e-mails werken als verborgen trackers. Ze vertellen de server van de afzender uw IP, wanneer u opende en welk apparaat u gebruikt.",
     info_strip_exif_title: "Wat zijn afbeeldingsmetadata?",
-    info_strip_exif_description: "Foto's genomen met telefoons en camera's bevatten verborgen gegevens zoals GPS-coördinaten, apparaatmodel, tijdstempel en lensgegevens. Aster verwijdert deze voor verzending zodat ontvangers alleen de pixels zien.",
+    info_strip_exif_description:
+      "Foto's genomen met telefoons en camera's bevatten verborgen gegevens zoals GPS-coördinaten, apparaatmodel, tijdstempel en lensgegevens. Aster verwijdert deze voor verzending zodat ontvangers alleen de pixels zien.",
     info_spy_pixels_title: "Wat zijn spionagepixels?",
-    info_spy_pixels_description: "Onzichtbare 1x1-afbeeldingen in e-mails. Bij het laden ziet de afzender uw IP, wanneer u het bericht opende en uw apparaattype. Aster verwijdert ze voordat ze kunnen laden.",
+    info_spy_pixels_description:
+      "Onzichtbare 1x1-afbeeldingen in e-mails. Bij het laden ziet de afzender uw IP, wanneer u het bericht opende en uw apparaattype. Aster verwijdert ze voordat ze kunnen laden.",
     info_folder_lock_mode_title: "Mapvergrendelingsmodus",
-    info_folder_lock_mode_description: "Sessie vergrendelt de map bij het sluiten van de app. Bij verlaten vergrendelt het direct bij wegnavigeren, zodat u elke keer uw wachtwoord nodig heeft.",
+    info_folder_lock_mode_description:
+      "Sessie vergrendelt de map bij het sluiten van de app. Bij verlaten vergrendelt het direct bij wegnavigeren, zodat u elke keer uw wachtwoord nodig heeft.",
     info_block_remote_images_title: "Waarom externe afbeeldingen blokkeren?",
-    info_block_remote_images_description: "Wanneer een e-mail afbeeldingen laadt van externe servers, kan de afzender uw IP-adres en het tijdstip van openen zien. Blokkeren beschermt deze informatie.",
+    info_block_remote_images_description:
+      "Wanneer een e-mail afbeeldingen laadt van externe servers, kan de afzender uw IP-adres en het tijdstip van openen zien. Blokkeren beschermt deze informatie.",
     info_remote_image_loading_title: "Afbeeldingsladingopties",
-    info_remote_image_loading_description: "Nooit: altijd blokkeren. Vragen: elke keer een melding tonen. Altijd: laden zonder vragen. Dit beheert uitzonderingen op uw afbeeldingsblokkering.",
+    info_remote_image_loading_description:
+      "Nooit: altijd blokkeren. Vragen: elke keer een melding tonen. Altijd: laden zonder vragen. Dit beheert uitzonderingen op uw afbeeldingsblokkering.",
     info_tracking_protection_title: "Trackingbeveiliging",
-    info_tracking_protection_description: "Voorkomt dat e-mails bij het openen naar huis bellen. Afzenders gebruiken trackingpixels, lettertypen en CSS om bij te houden wie hun e-mails wanneer opende.",
+    info_tracking_protection_description:
+      "Voorkomt dat e-mails bij het openen naar huis bellen. Afzenders gebruiken trackingpixels, lettertypen en CSS om bij te houden wie hun e-mails wanneer opende.",
     info_block_tracking_links_title: "Wat zijn trackinglinks?",
-    info_block_tracking_links_description: "Links in e-mails gaan vaak eerst via de server van de afzender zodat klikken worden bijgehouden. Dit verwijdert die omleidingen zodat links rechtstreeks naar het doel gaan.",
+    info_block_tracking_links_description:
+      "Links in e-mails gaan vaak eerst via de server van de afzender zodat klikken worden bijgehouden. Dit verwijdert die omleidingen zodat links rechtstreeks naar het doel gaan.",
     info_two_factor_auth_title: "Tweefactorauthenticatie",
-    info_two_factor_auth_description: "Voegt een tweede beveiligingslaag toe bij het inloggen. Na uw wachtwoord voert u een 6-cijferige code in vanuit uw authenticator-app.",
+    info_two_factor_auth_description:
+      "Voegt een tweede beveiligingslaag toe bij het inloggen. Na uw wachtwoord voert u een 6-cijferige code in vanuit uw authenticator-app.",
     info_session_timeout_title: "Sessie-time-out",
-    info_session_timeout_description: "Logt u automatisch uit na een periode van inactiviteit. Handig op gedeelde computers of als u bescherming wilt wanneer u wegloopt.",
+    info_session_timeout_description:
+      "Logt u automatisch uit na een periode van inactiviteit. Handig op gedeelde computers of als u bescherming wilt wanneer u wegloopt.",
     info_login_alerts_title: "Inlogwaarschuwingen",
-    info_login_alerts_description: "Stuurt u een e-mail wanneer uw account wordt ingelogd vanaf een nieuw apparaat of locatie. Goed voor het vroeg detecteren van onbevoegde toegang.",
+    info_login_alerts_description:
+      "Stuurt u een e-mail wanneer uw account wordt ingelogd vanaf een nieuw apparaat of locatie. Goed voor het vroeg detecteren van onbevoegde toegang.",
     info_external_link_warnings_title: "Externe linkwaarschuwingen",
-    info_external_link_warnings_description: "Toont een waarschuwing voordat een link buiten Aster wordt geopend. Helpt phishingpogingen te herkennen voordat u doorklinkt.",
+    info_external_link_warnings_description:
+      "Toont een waarschuwing voordat een link buiten Aster wordt geopend. Helpt phishingpogingen te herkennen voordat u doorklinkt.",
     info_auto_discover_keys_title: "Sleutels automatisch ontdekken",
-    info_auto_discover_keys_description: "Haalt automatisch versleutelingssleutels op voor uw contacten zodat u hen versleutelde mail kunt sturen zonder handmatige installatie.",
+    info_auto_discover_keys_description:
+      "Haalt automatisch versleutelingssleutels op voor uw contacten zodat u hen versleutelde mail kunt sturen zonder handmatige installatie.",
     info_encrypt_by_default_title: "Standaard versleutelen",
-    info_encrypt_by_default_description: "Versleutelt uitgaande e-mails automatisch wanneer de openbare sleutel van een ontvanger beschikbaar is. Geen handmatig schakelen per bericht nodig.",
+    info_encrypt_by_default_description:
+      "Versleutelt uitgaande e-mails automatisch wanneer de openbare sleutel van een ontvanger beschikbaar is. Geen handmatig schakelen per bericht nodig.",
     info_show_encryption_indicators_title: "Versleutelingsindicatoren",
-    info_show_encryption_indicators_description: "Toont een slotpictogram op e-mails om aan te geven of een bericht versleuteld, ondertekend of geen van beide is.",
+    info_show_encryption_indicators_description:
+      "Toont een slotpictogram op e-mails om aan te geven of een bericht versleuteld, ondertekend of geen van beide is.",
     info_force_dark_mode_title: "Donkere modus e-mails",
-    info_force_dark_mode_description: "Herschrijft e-mailstijlen voor een donkere achtergrond en lichte tekst. Handig als helderwitte e-mails zwaar zijn voor uw ogen.",
+    info_force_dark_mode_description:
+      "Herschrijft e-mailstijlen voor een donkere achtergrond en lichte tekst. Handig als helderwitte e-mails zwaar zijn voor uw ogen.",
     info_undo_send_title: "Verzenden ongedaan maken",
-    info_undo_send_description: "Geeft u een kort venster om een e-mail te annuleren nadat u op verzenden hebt gedrukt. Er wordt niets verzonden totdat de timer verloopt.",
+    info_undo_send_description:
+      "Geeft u een kort venster om een e-mail te annuleren nadat u op verzenden hebt gedrukt. Er wordt niets verzonden totdat de timer verloopt.",
     info_spam_sensitivity_title: "Spamgevoeligheid",
-    info_spam_sensitivity_description: "Hoog vangt meer spam maar kan echte e-mails af en toe markeren. Laag laat meer door. Medium is voor de meeste mensen de juiste balans.",
+    info_spam_sensitivity_description:
+      "Hoog vangt meer spam maar kan echte e-mails af en toe markeren. Laag laat meer door. Medium is voor de meeste mensen de juiste balans.",
     info_conversation_grouping_title: "Gesprekgroepering",
-    info_conversation_grouping_description: "Groepeert e-mails met hetzelfde onderwerp in één thread. Maakt het gemakkelijker een gesprek te volgen.",
+    info_conversation_grouping_description:
+      "Groepeert e-mails met hetzelfde onderwerp in één thread. Maakt het gemakkelijker een gesprek te volgen.",
     one_click_unsubscribe_supported: "Uitschrijven met één klik ondersteund",
     open_unsubscribe_page: "Uitschrijfpagina openen",
     font_size: "Lettergrootte",
@@ -2991,13 +3653,17 @@ export const nl = {
     motion_layout: "Beweging & lay-out",
     high_contrast: "Hoog contrast",
     reduce_transparency: "Transparantie verminderen",
-    reduce_transparency_description: "Verwijder vervagingseffecten en verhoog de dekking van overlays",
+    reduce_transparency_description:
+      "Verwijder vervagingseffecten en verhoog de dekking van overlays",
     underline_links: "Links onderstrepen",
-    underline_links_description: "Links altijd onderstrepen voor eenvoudigere herkenning",
+    underline_links_description:
+      "Links altijd onderstrepen voor eenvoudigere herkenning",
     dyslexia_friendly_font: "Dyslexievriendelijk lettertype",
-    dyslexia_friendly_font_description: "Gebruik OpenDyslexic, een lettertype ontworpen voor leesbaarheid",
+    dyslexia_friendly_font_description:
+      "Gebruik OpenDyslexic, een lettertype ontworpen voor leesbaarheid",
     text_spacing: "Tekstafstand",
-    text_spacing_description: "Vergroot regelhoogte, letterafstand en woordafstand",
+    text_spacing_description:
+      "Vergroot regelhoogte, letterafstand en woordafstand",
     reduce_motion: "Beweging verminderen",
     reduce_motion_description: "Minimaliseer animaties en overgangen",
     compact_mode: "Compacte modus",
@@ -3030,30 +3696,45 @@ export const nl = {
     alias_reserved: "Gereserveerd",
     alias_grace_upgrade_hint: "Upgrade om deze alias actief te houden",
     alias_reserved_upgrade_hint: "Upgrade om deze alias te heractiveren",
-    invalid_address: "Dit adres is niet geldig. De opmaak controleren lost dit meestal op.",
-    alias_already_taken: "Deze alias is al in gebruik. Een andere zou moeten werken.",
-    alias_create_failed: "Deze alias is niet opgeslagen. Een nieuwe poging zou werken. Uw andere aliassen zijn ongewijzigd.",
-    alias_generate_failed: "We konden op dit moment geen alias genereren. Een nieuwe poging zou werken.",
-    alias_invalid: "Deze alias is niet geldig. Letters, cijfers, punten, underscores en koppeltekens zijn de toegestane tekens.",
-    domain_not_available: "Dit domein is op dit moment niet beschikbaar. Een ander zou moeten werken.",
-    failed_create_address: "Dit adres is niet opgeslagen. Een nieuwe poging zou werken.",
+    invalid_address:
+      "Dit adres is niet geldig. De opmaak controleren lost dit meestal op.",
+    alias_already_taken:
+      "Deze alias is al in gebruik. Een andere zou moeten werken.",
+    alias_create_failed:
+      "Deze alias is niet opgeslagen. Een nieuwe poging zou werken. Uw andere aliassen zijn ongewijzigd.",
+    alias_generate_failed:
+      "We konden op dit moment geen alias genereren. Een nieuwe poging zou werken.",
+    alias_invalid:
+      "Deze alias is niet geldig. Letters, cijfers, punten, underscores en koppeltekens zijn de toegestane tekens.",
+    domain_not_available:
+      "Dit domein is op dit moment niet beschikbaar. Een ander zou moeten werken.",
+    failed_create_address:
+      "Dit adres is niet opgeslagen. Een nieuwe poging zou werken.",
     domain_limit_reached: "Domeinlimiet bereikt",
     add_custom_domain: "Aangepast domein toevoegen",
     domain_name_label: "Domeinnaam",
-    invalid_domain: "Dit domein is niet geldig. De opmaak controleren lost dit meestal op.",
-    failed_add_domain: "Dit domein is niet toegevoegd. Een nieuwe poging zou werken. Uw andere domeinen zijn ongewijzigd.",
+    invalid_domain:
+      "Dit domein is niet geldig. De opmaak controleren lost dit meestal op.",
+    failed_add_domain:
+      "Dit domein is niet toegevoegd. Een nieuwe poging zou werken. Uw andere domeinen zijn ongewijzigd.",
     configure_dns_for: "DNS configureren voor {{domain}}",
     dns_instruction_login: "Log in bij je domeinregistrar of DNS-provider",
     dns_instruction_navigate: "Navigeer naar DNS-beheer voor je domein",
-    dns_instruction_add_txt: "Voeg een nieuw TXT-record toe met de host en waarde hieronder",
+    dns_instruction_add_txt:
+      "Voeg een nieuw TXT-record toe met de host en waarde hieronder",
     dns_instruction_save_wait: "Sla je wijzigingen op en wacht op propagatie",
-    dns_instruction_set_priority: "Stel de prioriteit en mailserver in zoals hieronder weergegeven",
+    dns_instruction_set_priority:
+      "Stel de prioriteit en mailserver in zoals hieronder weergegeven",
     dns_instruction_save: "Sla je wijzigingen op",
-    dns_instruction_add_txt_settings: "Voeg een nieuw TXT-record toe in je DNS-instellingen",
+    dns_instruction_add_txt_settings:
+      "Voeg een nieuw TXT-record toe in je DNS-instellingen",
     dns_instruction_set_spf: "Stel de waarde in op het onderstaande SPF-record",
-    dns_instruction_merge_spf: "Als je al een SPF-record hebt, voeg dan de include:-richtlijn toe aan je bestaande record",
-    dns_instruction_set_dmarc_host: "Stel de host in op _dmarc (zonder je domein)",
-    dns_instruction_set_dmarc_value: "Stel de waarde in op het onderstaande DMARC-beleid",
+    dns_instruction_merge_spf:
+      "Als je al een SPF-record hebt, voeg dan de include:-richtlijn toe aan je bestaande record",
+    dns_instruction_set_dmarc_host:
+      "Stel de host in op _dmarc (zonder je domein)",
+    dns_instruction_set_dmarc_value:
+      "Stel de waarde in op het onderstaande DMARC-beleid",
     edit_external_account: "Extern account bewerken",
     add_external_account: "Extern account toevoegen",
     edit_account: "Account bewerken",
@@ -3064,54 +3745,81 @@ export const nl = {
     security_implicit: "Impliciet",
     security_none: "Geen",
     email_required: "Hier is een e-mailadres nodig.",
-    valid_email_required: "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
+    valid_email_required:
+      "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
     incoming_server_required: "De server voor inkomende post is hier nodig.",
-    private_address_error: "Dit moet een openbare mailserver zijn, niet een lokaal of privéadres. De openbare hostnaam die uw provider u heeft gegeven werkt.",
+    private_address_error:
+      "Dit moet een openbare mailserver zijn, niet een lokaal of privéadres. De openbare hostnaam die uw provider u heeft gegeven werkt.",
     username_required: "Voor dit account is een gebruikersnaam nodig.",
     password_required: "Voor dit account is een wachtwoord nodig.",
-    connection_timeout_error: "Een time-out tussen 5 en 120 seconden werkt hier.",
-    fill_server_first: "De server, gebruikersnaam en wachtwoord zijn eerst nodig zodat de verbinding kan worden getest.",
-    fill_smtp_first: "De gegevens van de uitgaande server zijn eerst nodig zodat ze kunnen worden getest.",
-    fill_connection_first: "De verbindingsgegevens zijn eerst nodig zodat ze kunnen worden getest.",
-    connection_test_failed: "De verbindingstest is niet geslaagd. De server, poort en wachtwoord hieronder zijn de details om te controleren. Uw opgeslagen verbinding is ongewijzigd.",
+    connection_timeout_error:
+      "Een time-out tussen 5 en 120 seconden werkt hier.",
+    fill_server_first:
+      "De server, gebruikersnaam en wachtwoord zijn eerst nodig zodat de verbinding kan worden getest.",
+    fill_smtp_first:
+      "De gegevens van de uitgaande server zijn eerst nodig zodat ze kunnen worden getest.",
+    fill_connection_first:
+      "De verbindingsgegevens zijn eerst nodig zodat ze kunnen worden getest.",
+    connection_test_failed:
+      "De verbindingstest is niet geslaagd. De server, poort en wachtwoord hieronder zijn de details om te controleren. Uw opgeslagen verbinding is ongewijzigd.",
     account_updated: "Account succesvol bijgewerkt",
     account_added: "Account succesvol toegevoegd",
-    failed_update_account: "Dit account is niet bijgewerkt. Een nieuwe poging zou werken. De eerdere instellingen zijn nog actief.",
-    failed_add_account: "Dit account is niet toegevoegd. Een nieuwe poging zou werken.",
-    switch_failed: "We konden niet wisselen tussen accounts. Een nieuwe poging zou werken.",
-    unexpected_error: "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken.",
-    failed_sync: "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan beide kanten is veilig.",
-    failed_delete_emails_external: "Deze e-mails zijn niet verwijderd uit uw gekoppelde account. Een nieuwe poging zou werken.",
-    failed_fetch_folders_external: "Mappen uit uw gekoppelde account zijn niet geladen. Een nieuwe poging zou werken.",
+    failed_update_account:
+      "Dit account is niet bijgewerkt. Een nieuwe poging zou werken. De eerdere instellingen zijn nog actief.",
+    failed_add_account:
+      "Dit account is niet toegevoegd. Een nieuwe poging zou werken.",
+    switch_failed:
+      "We konden niet wisselen tussen accounts. Een nieuwe poging zou werken.",
+    unexpected_error:
+      "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken.",
+    failed_sync:
+      "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan beide kanten is veilig.",
+    failed_delete_emails_external:
+      "Deze e-mails zijn niet verwijderd uit uw gekoppelde account. Een nieuwe poging zou werken.",
+    failed_fetch_folders_external:
+      "Mappen uit uw gekoppelde account zijn niet geladen. Een nieuwe poging zou werken.",
     show_password_toggle: "Wachtwoord tonen",
     hide_password_toggle: "Wachtwoord verbergen",
     hide_smtp_password: "SMTP-wachtwoord verbergen",
     show_smtp_password: "SMTP-wachtwoord tonen",
     please_enter_password: "Uw wachtwoord is nodig om door te gaan.",
-    please_enter_2fa_code: "De huidige code uit uw authenticator-app is hier nodig.",
-    invalid_2fa_code: "Die code kwam niet overeen. De huidige code uit uw authenticator-app werkt.",
+    please_enter_2fa_code:
+      "De huidige code uit uw authenticator-app is hier nodig.",
+    invalid_2fa_code:
+      "Die code kwam niet overeen. De huidige code uit uw authenticator-app werkt.",
     incorrect_password_error: "Onjuist wachtwoord",
-    failed_retrieve_auth: "We konden uw aanmeldgegevens niet laden. Een nieuwe poging zou werken.",
-    failed_verify_password: "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou moeten werken.",
-    failed_export_private_key: "We konden uw sleutel op dit moment niet exporteren. Een nieuwe poging zou werken. Uw sleutel is ongewijzigd.",
+    failed_retrieve_auth:
+      "We konden uw aanmeldgegevens niet laden. Een nieuwe poging zou werken.",
+    failed_verify_password:
+      "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou moeten werken.",
+    failed_export_private_key:
+      "We konden uw sleutel op dit moment niet exporteren. Een nieuwe poging zou werken. Uw sleutel is ongewijzigd.",
     type_regenerate: "Typ regenerate",
     client_side_encryption: "Clientzijde-versleuteling",
-    client_side_encryption_description: "Alle versleuteling vindt plaats in je browser voordat gegevens je apparaat verlaten",
+    client_side_encryption_description:
+      "Alle versleuteling vindt plaats in je browser voordat gegevens je apparaat verlaten",
     zero_knowledge_storage: "Zero-access-opslag",
-    zero_knowledge_storage_description: "Wij kunnen je gegevens niet lezen. Alleen jij hebt de sleutels.",
+    zero_knowledge_storage_description:
+      "Wij kunnen je gegevens niet lezen. Alleen jij hebt de sleutels.",
     email_content_attachments: "E-mailinhoud & bijlagen",
     folder_names_structure: "Mapnamen & structuur",
     drafts_signatures: "Concepten & handtekeningen",
     contact_information_label: "Contactinformatie",
-    auto_discover_keys_description: "Zoek automatisch WKD en sleutelservers bij het opstellen",
+    auto_discover_keys_description:
+      "Zoek automatisch WKD en sleutelservers bij het opstellen",
     key_published_wkd: "Sleutel gepubliceerd naar WKD",
     key_removed_wkd: "Sleutel verwijderd van WKD",
-    failed_publish_wkd: "Uw openbare sleutel is niet gepubliceerd in de openbare directory. Een nieuwe poging zou werken. Uw sleutels zijn ongewijzigd.",
-    failed_remove_wkd: "Uw sleutel is niet verwijderd uit de openbare directory. Een nieuwe poging zou werken.",
+    failed_publish_wkd:
+      "Uw openbare sleutel is niet gepubliceerd in de openbare directory. Een nieuwe poging zou werken. Uw sleutels zijn ongewijzigd.",
+    failed_remove_wkd:
+      "Uw sleutel is niet verwijderd uit de openbare directory. Een nieuwe poging zou werken.",
     key_published_keyserver: "Sleutel gepubliceerd naar sleutelserver",
-    failed_publish_keyserver: "Uw openbare sleutel is niet gepubliceerd op de keyserver. Een nieuwe poging zou werken.",
-    failed_save_setting: "Instelling kon niet worden opgeslagen. Probeer het opnieuw.",
-    keys_cannot_remove_keyservers: "Zodra een sleutel op een openbare keyserver staat, kan hij niet meer worden verwijderd. De moeite waard om vooraf te overdenken.",
+    failed_publish_keyserver:
+      "Uw openbare sleutel is niet gepubliceerd op de keyserver. Een nieuwe poging zou werken.",
+    failed_save_setting:
+      "Instelling kon niet worden opgeslagen. Probeer het opnieuw.",
+    keys_cannot_remove_keyservers:
+      "Zodra een sleutel op een openbare keyserver staat, kan hij niet meer worden verwijderd. De moeite waard om vooraf te overdenken.",
     copied_to_clipboard: "Naar klembord gekopieerd",
     category_storage_limits: "Opslag & limieten",
     category_email_features: "E-mailfuncties",
@@ -3195,8 +3903,10 @@ export const nl = {
     continue_with_plan: "Doorgaan met {{plan}}",
     select_your_plan: "Selecteer je abonnement",
     plan_features: "{{plan}}-functies",
-    all_plans_include_privacy: "Alle abonnementen bevatten onze kern privacy- en beveiligingsfuncties.",
-    upgrade_downgrade_anytime: "Upgrade of downgrade op elk moment via je instellingen.",
+    all_plans_include_privacy:
+      "Alle abonnementen bevatten onze kern privacy- en beveiligingsfuncties.",
+    upgrade_downgrade_anytime:
+      "Upgrade of downgrade op elk moment via je instellingen.",
     features: "Functies",
     protect_folder: "Map beveiligen",
     unlock_folder: "Map ontgrendelen",
@@ -3216,19 +3926,26 @@ export const nl = {
     re_enter_new_password: "Voer nieuw wachtwoord opnieuw in",
     enter_password_to_confirm: "Voer je wachtwoord in om te bevestigen",
     password_min_8: "Minstens 8 tekens werken hier.",
-    passwords_do_not_match_folder: "De twee wachtwoorden komen niet overeen. Ze opnieuw invoeren lost dit op.",
-    choose_stronger_password: "Dit wachtwoord is gemakkelijk te raden. Iets langer of gevarieerder houdt beter stand.",
+    passwords_do_not_match_folder:
+      "De twee wachtwoorden komen niet overeen. Ze opnieuw invoeren lost dit op.",
+    choose_stronger_password:
+      "Dit wachtwoord is gemakkelijk te raden. Iets langer of gevarieerder houdt beter stand.",
     enter_password_required: "Uw wachtwoord is nodig om door te gaan.",
     enter_current_password_required: "Voer je huidige wachtwoord in",
     new_password_min_8: "Minstens 8 tekens werken hier.",
-    new_passwords_do_not_match: "De twee wachtwoorden komen niet overeen. Ze opnieuw invoeren lost dit op.",
-    choose_stronger_new_password: "Dit wachtwoord is gemakkelijk te raden. Iets langer of gevarieerder houdt beter stand.",
+    new_passwords_do_not_match:
+      "De twee wachtwoorden komen niet overeen. Ze opnieuw invoeren lost dit op.",
+    choose_stronger_new_password:
+      "Dit wachtwoord is gemakkelijk te raden. Iets langer of gevarieerder houdt beter stand.",
     enter_password_confirm_required: "Uw wachtwoord is nodig om door te gaan.",
     no_password_recovery_title: "Dit wachtwoord kan niet worden hersteld.",
-    no_password_recovery_desc: "Als u dit wachtwoord vergeet, kan niemand deze map voor u herstellen. Het ergens bewaren waar u het niet kunt verliezen telt.",
-    folder_protected_desc: "Deze map is beveiligd. Voer je wachtwoord in om de inhoud te bekijken.",
+    no_password_recovery_desc:
+      "Als u dit wachtwoord vergeet, kan niemand deze map voor u herstellen. Het ergens bewaren waar u het niet kunt verliezen telt.",
+    folder_protected_desc:
+      "Deze map is beveiligd. Voer je wachtwoord in om de inhoud te bekijken.",
     remove_protection_warning_title: "Wachtwoord van deze map verwijderen",
-    remove_protection_warning_desc: "Hierna kan iedereen die bij uw account is aangemeld deze map lezen zonder apart wachtwoord. Dat uw account zelf goed beschermd is, telt zwaarder zodra dit uit staat.",
+    remove_protection_warning_desc:
+      "Hierna kan iedereen die bij uw account is aangemeld deze map lezen zonder apart wachtwoord. Dat uw account zelf goed beschermd is, telt zwaarder zodra dit uit staat.",
     password_strength_label: "Wachtwoordsterkte",
     all_emails_conversations: "Alle e-mails en gesprekken",
     drafts_templates: "Concepten en sjablonen",
@@ -3238,89 +3955,134 @@ export const nl = {
     encryption_keys_security: "Versleutelingssleutels en beveiligingsgegevens",
     type_delete_placeholder: "Typ hier DELETE",
     enter_your_password_placeholder: "Voer je wachtwoord in",
-    all_info_permanently_deleted: "Al je informatie wordt permanent verwijderd.",
+    all_info_permanently_deleted:
+      "Al je informatie wordt permanent verwijderd.",
     macos: "macOS",
     windows_linux: "Windows/Linux",
-    color_vision_description: "Pas kleurfilters toe om de interface aan te passen voor kleurenzichtafwijkingen",
+    color_vision_description:
+      "Pas kleurfilters toe om de interface aan te passen voor kleurenzichtafwijkingen",
     motion_layout_description: "Beheer animaties en interfacedichtheid",
-    manage_encryption_description: "Beheer je versleutelingssleutels en accountherstel",
+    manage_encryption_description:
+      "Beheer je versleutelingssleutels en accountherstel",
     password_required_title: "Wachtwoord vereist",
-    enter_password_view_settings: "Voer je wachtwoord in om versleutelingsinstellingen te bekijken",
+    enter_password_view_settings:
+      "Voer je wachtwoord in om versleutelingsinstellingen te bekijken",
     created_date: "Aangemaakt {{date}}",
     export_public_key_label: "Publieke sleutel exporteren",
     export_private_key_label: "Privésleutel exporteren",
     two_fa_code_label: "2FA-code",
     codes_remaining_count: "{{remaining}} van {{total}} resterend",
     codes_used_count: "{{used}} gebruikt",
-    running_low_warning: "Uw herstelcodes raken op. Een nieuwe set genereren en op een veilige plek bewaren houdt u gedekt.",
+    running_low_warning:
+      "Uw herstelcodes raken op. Een nieuwe set genereren en op een veilige plek bewaren houdt u gedekt.",
     download_pdf: "PDF downloaden",
     regenerate_codes_label: "Codes opnieuw genereren",
-    regenerate_codes_warning: "Uw huidige herstelcodes stoppen met werken zodra u nieuwe genereert. De nieuwe set op een veilige plek bewaren voordat u dit venster sluit, is de manier om gedekt te blijven. Typ",
+    regenerate_codes_warning:
+      "Uw huidige herstelcodes stoppen met werken zodra u nieuwe genereert. De nieuwe set op een veilige plek bewaren voordat u dit venster sluit, is de manier om gedekt te blijven. Typ",
     end_to_end_encrypted: "End-to-end versleuteld",
-    all_data_protected: "Al je gegevens zijn beschermd met zero-access-versleuteling",
+    all_data_protected:
+      "Al je gegevens zijn beschermd met zero-access-versleuteling",
     pgp_compatible: "PGP-compatibel",
     emails_decrypted: "E-mails ontsleuteld",
     last_decryption: "Laatste ontsleuteling",
     encryption_behavior: "Versleutelingsgedrag",
-    control_encryption_description: "Bepaal hoe versleuteling wordt toegepast op je e-mails",
+    control_encryption_description:
+      "Bepaal hoe versleuteling wordt toegepast op je e-mails",
     encryption_title: "Versleuteling",
-    alias_limit_all_used: "Je hebt {{used}} van {{count}} aliassen van je huidige abonnement gebruikt.",
-    alias_forwards_description: "Maak een nieuw adres aan dat doorstuurt naar je inbox.",
+    alias_limit_all_used:
+      "Je hebt {{used}} van {{count}} aliassen van je huidige abonnement gebruikt.",
+    alias_forwards_description:
+      "Maak een nieuw adres aan dat doorstuurt naar je inbox.",
     address_label: "Adres",
-    display_name_sender_note: "Wordt getoond als afzendernaam wanneer je antwoordt vanuit deze alias.",
-    aliases_description: "Maak alternatieve e-mailadressen aan die doorsturen naar je hoofdinbox. Gebruik ze om je privacy te beschermen of inkomende e-mail te organiseren.",
-    custom_domain_addresses_note: "Je kunt ook adressen aanmaken op je geverifieerde aangepaste domeinen.",
-    alias_taken_try_different: "Deze alias is al in gebruik. Probeer een andere naam.",
-    upgrade_plan_more_aliases: "Upgrade je abonnement om meer aliassen aan te maken en extra functies te ontgrendelen.",
-    upgrade_plan_more_domains: "Upgrade je abonnement om meer domeinen toe te voegen en extra functies te ontgrendelen.",
+    display_name_sender_note:
+      "Wordt getoond als afzendernaam wanneer je antwoordt vanuit deze alias.",
+    aliases_description:
+      "Maak alternatieve e-mailadressen aan die doorsturen naar je hoofdinbox. Gebruik ze om je privacy te beschermen of inkomende e-mail te organiseren.",
+    custom_domain_addresses_note:
+      "Je kunt ook adressen aanmaken op je geverifieerde aangepaste domeinen.",
+    alias_taken_try_different:
+      "Deze alias is al in gebruik. Probeer een andere naam.",
+    upgrade_plan_more_aliases:
+      "Upgrade je abonnement om meer aliassen aan te maken en extra functies te ontgrendelen.",
+    upgrade_plan_more_domains:
+      "Upgrade je abonnement om meer domeinen toe te voegen en extra functies te ontgrendelen.",
     custom_domains_not_available: "Aangepaste domeinen niet beschikbaar",
-    no_aliases_yet: "Nog geen extra aliassen. Maak er een aan om je privacy te beschermen.",
+    no_aliases_yet:
+      "Nog geen extra aliassen. Maak er een aan om je privacy te beschermen.",
     no_domains_yet: "Nog geen aangepaste domeinen",
     add_first_domain: "Voeg je eerste aangepaste domein toe om te beginnen",
     continue_setup: "Doorgaan met instellen",
     verified_count: "{{count}}/5 geverifieerd",
     used_count: "{{current}} / {{max}} gebruikt",
     dns_records_for_domain: "DNS-records voor dit domein:",
-    add_dns_records_description: "Voeg deze DNS-records toe bij je domeinregistrar om eigendom te verifiëren en e-mail in te schakelen:",
-    domains_description: "Voeg je eigen domein toe om adressen aan te maken en e-mail te verzenden vanaf je domein. Geverifieerde domeinen verschijnen in de alias-domeinkiezer.",
-    domains_send_receive_description: "Voeg je eigen domein toe om e-mail te verzenden en ontvangen. Je hebt toegang nodig tot de DNS-instellingen van je domein om de verificatie te voltooien.",
+    add_dns_records_description:
+      "Voeg deze DNS-records toe bij je domeinregistrar om eigendom te verifiëren en e-mail in te schakelen:",
+    domains_description:
+      "Voeg je eigen domein toe om adressen aan te maken en e-mail te verzenden vanaf je domein. Geverifieerde domeinen verschijnen in de alias-domeinkiezer.",
+    domains_send_receive_description:
+      "Voeg je eigen domein toe om e-mail te verzenden en ontvangen. Je hebt toegang nodig tot de DNS-instellingen van je domein om de verificatie te voltooien.",
     verification_failed_retry: "Verificatie mislukt. Probeer het opnieuw.",
-    dns_propagation_close_note: "DNS-wijzigingen kunnen tot 48 uur duren. Je kunt deze wizard sluiten en later verifiëren.",
-    configure_dns_description: "Volg elke stap om je domein in te stellen. Aster verifieert records rechtstreeks via DNS.",
-    domain_input_description: "Voer je domeinnaam in. Je wordt na het toevoegen door de DNS-instelling geleid.",
-    domain_limit_all_used: "Je hebt alle {{count}} domeinen van je huidige abonnement gebruikt.",
+    dns_propagation_close_note:
+      "DNS-wijzigingen kunnen tot 48 uur duren. Je kunt deze wizard sluiten en later verifiëren.",
+    configure_dns_description:
+      "Volg elke stap om je domein in te stellen. Aster verifieert records rechtstreeks via DNS.",
+    domain_input_description:
+      "Voer je domeinnaam in. Je wordt na het toevoegen door de DNS-instelling geleid.",
+    domain_limit_all_used:
+      "Je hebt alle {{count}} domeinen van je huidige abonnement gebruikt.",
     domain_without_www_note: "Voer je domein in zonder www of https://",
     catch_all_label: "Catch-all",
-    set_host_root: "Stel de host in op @ (voer je domein niet in; je provider voegt het automatisch toe)",
-    use_exact_host: "Gebruik de exacte host/naam hieronder (bevat het selectorvoorvoegsel)",
-    verification_description: "Bewijs dat je dit domein bezit door een TXT-record toe te voegen. Dit is vereist voordat andere records worden gecontroleerd.",
-    mx_description: "Routeer inkomende e-mails naar de mailservers van Aster. Zonder dit record kun je geen e-mails ontvangen op je aangepaste domein.",
-    spf_description: "Autoriseer Aster om e-mails te verzenden namens je domein. Dit voorkomt dat je e-mails als spam worden gemarkeerd.",
-    dkim_description: "Voeg een cryptografische handtekening toe om te verifiëren dat e-mails verzonden vanaf je domein authentiek zijn en niet zijn gemanipuleerd.",
-    dmarc_description: "Definieer hoe ontvangende servers e-mails moeten behandelen die SPF- of DKIM-controles niet doorstaan. Dit beschermt je domein tegen spoofing.",
-    verification_help: "De meeste registrars hebben een DNS- of Zone Editor-sectie. Zoek naar opties zoals \"Record toevoegen\" of \"DNS beheren\". Selecteer TXT als recordtype.",
-    mx_help: "MX-records vertellen andere mailservers waar e-mail voor je domein moet worden afgeleverd. Het prioriteitsnummer bepaalt de volgorde waarin servers worden geprobeerd (lager = eerst).",
-    spf_help: "SPF-records zijn TXT-records die specificeren welke mailservers bevoegd zijn om e-mail voor je domein te verzenden. Er mag slechts één SPF-record per domein bestaan.",
-    dkim_help: "DKIM gebruikt Ed25519 cryptografische handtekeningen. Elke e-mail verzonden via Aster wordt ondertekend met een privésleutel, en ontvangende servers verifiëren de handtekening met deze publieke sleutel in je DNS.",
-    dmarc_help: "DMARC bouwt voort op SPF en DKIM om je controle te geven over hoe niet-geauthenticeerde e-mails worden behandeld. Het \"quarantine\"-beleid vertelt ontvangers om verdachte e-mails als spam te markeren.",
+    set_host_root:
+      "Stel de host in op @ (voer je domein niet in; je provider voegt het automatisch toe)",
+    use_exact_host:
+      "Gebruik de exacte host/naam hieronder (bevat het selectorvoorvoegsel)",
+    verification_description:
+      "Bewijs dat je dit domein bezit door een TXT-record toe te voegen. Dit is vereist voordat andere records worden gecontroleerd.",
+    mx_description:
+      "Routeer inkomende e-mails naar de mailservers van Aster. Zonder dit record kun je geen e-mails ontvangen op je aangepaste domein.",
+    spf_description:
+      "Autoriseer Aster om e-mails te verzenden namens je domein. Dit voorkomt dat je e-mails als spam worden gemarkeerd.",
+    dkim_description:
+      "Voeg een cryptografische handtekening toe om te verifiëren dat e-mails verzonden vanaf je domein authentiek zijn en niet zijn gemanipuleerd.",
+    dmarc_description:
+      "Definieer hoe ontvangende servers e-mails moeten behandelen die SPF- of DKIM-controles niet doorstaan. Dit beschermt je domein tegen spoofing.",
+    verification_help:
+      'De meeste registrars hebben een DNS- of Zone Editor-sectie. Zoek naar opties zoals "Record toevoegen" of "DNS beheren". Selecteer TXT als recordtype.',
+    mx_help:
+      "MX-records vertellen andere mailservers waar e-mail voor je domein moet worden afgeleverd. Het prioriteitsnummer bepaalt de volgorde waarin servers worden geprobeerd (lager = eerst).",
+    spf_help:
+      "SPF-records zijn TXT-records die specificeren welke mailservers bevoegd zijn om e-mail voor je domein te verzenden. Er mag slechts één SPF-record per domein bestaan.",
+    dkim_help:
+      "DKIM gebruikt Ed25519 cryptografische handtekeningen. Elke e-mail verzonden via Aster wordt ondertekend met een privésleutel, en ontvangende servers verifiëren de handtekening met deze publieke sleutel in je DNS.",
+    dmarc_help:
+      'DMARC bouwt voort op SPF en DKIM om je controle te geven over hoe niet-geauthenticeerde e-mails worden behandeld. Het "quarantine"-beleid vertelt ontvangers om verdachte e-mails als spam te markeren.',
     host_required: "{{label}}-host is verplicht",
-    host_invalid_characters: "De {{label}}-server bevat tekens die we niet kunnen gebruiken. De hostnaam op zich, zoals mail.example.com, werkt.",
-    host_private_address: "Dit moet een openbare mailserver zijn, niet een lokaal of privéadres. De openbare hostnaam die uw provider u heeft gegeven werkt.",
-    incoming_server_invalid: "Dit is geen geldig serveradres. De hostnaam op zich, zoals imap.example.com, werkt.",
+    host_invalid_characters:
+      "De {{label}}-server bevat tekens die we niet kunnen gebruiken. De hostnaam op zich, zoals mail.example.com, werkt.",
+    host_private_address:
+      "Dit moet een openbare mailserver zijn, niet een lokaal of privéadres. De openbare hostnaam die uw provider u heeft gegeven werkt.",
+    incoming_server_invalid:
+      "Dit is geen geldig serveradres. De hostnaam op zich, zoals imap.example.com, werkt.",
     incoming_port_error: "Een poortnummer tussen 1 en 65535 werkt hier.",
     incoming_mail_server: "Inkomende mailserver",
     smtp_server: "SMTP-server",
     smtp_server_required: "SMTP-serverhost is verplicht",
-    smtp_server_invalid: "Dit is geen geldige uitgaande server. De hostnaam op zich, zoals smtp.example.com, werkt.",
-    smtp_private_address_error: "Dit moet een openbare mailserver zijn, niet een lokaal of privéadres. De openbare hostnaam die uw provider u heeft gegeven werkt.",
+    smtp_server_invalid:
+      "Dit is geen geldige uitgaande server. De hostnaam op zich, zoals smtp.example.com, werkt.",
+    smtp_private_address_error:
+      "Dit moet een openbare mailserver zijn, niet een lokaal of privéadres. De openbare hostnaam die uw provider u heeft gegeven werkt.",
     smtp_port_error: "Een poortnummer tussen 1 en 65535 werkt hier.",
     smtp_username_required: "SMTP-gebruikersnaam is verplicht",
     smtp_password_required: "SMTP-wachtwoord is verplicht",
-    label_color_invalid: "Deze kleur is geen geldige keuze. Een uit het palet werkt.",
-    smtp_test_failed: "De test van de uitgaande server is niet geslaagd. De server, poort en wachtwoord hieronder zijn de details om te controleren.",
+    label_color_invalid:
+      "Deze kleur is geen geldige keuze. Een uit het palet werkt.",
+    smtp_test_failed:
+      "De test van de uitgaande server is niet geslaagd. De server, poort en wachtwoord hieronder zijn de details om te controleren.",
     deleted_emails_count: "{{count}} e-mail(s) verwijderd",
-    edit_external_account_description: "Werk je externe accountinstellingen bij. Voer opnieuw inloggegevens in om ze bij te werken.",
-    add_external_account_description: "Verbind een extern POP3- of IMAP-account om e-mails te importeren.",
+    edit_external_account_description:
+      "Werk je externe accountinstellingen bij. Voer opnieuw inloggegevens in om ze bij te werken.",
+    add_external_account_description:
+      "Verbind een extern POP3- of IMAP-account om e-mails te importeren.",
     account_info: "Accountinformatie",
     incoming_mail: "Inkomende e-mail",
     protocol: "Protocol",
@@ -3354,35 +4116,45 @@ export const nl = {
     syncing: "Synchroniseren...",
     syncing_progress: "Synchroniseren ({{processed}}/{{total}})",
     fetching_emails: "E-mails ophalen...",
-    sync_failed: "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan elke kant is veilig.",
+    sync_failed:
+      "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan elke kant is veilig.",
     not_synced: "Niet gesynchroniseerd",
-    sync_failed_detail: "De laatste synchronisatie om {{time}} is niet voltooid. Een nieuwe poging of een controle op uw accountwachtwoord lost dit meestal op.",
+    sync_failed_detail:
+      "De laatste synchronisatie om {{time}} is niet voltooid. Een nieuwe poging of een controle op uw accountwachtwoord lost dit meestal op.",
     external_accounts: "Externe accounts",
-    external_accounts_description: "Verbind externe e-mailaccounts om e-mails te importeren en verzenden van andere providers.",
+    external_accounts_description:
+      "Verbind externe e-mailaccounts om e-mails te importeren en verzenden van andere providers.",
     add_account: "Account toevoegen",
     remove_account: "Account verwijderen",
     no_external_accounts: "Geen externe accounts",
-    no_external_accounts_description: "Verbind een extern e-mailaccount om e-mails te importeren en verzenden van andere providers",
+    no_external_accounts_description:
+      "Verbind een extern e-mailaccount om e-mails te importeren en verzenden van andere providers",
     external_account_count: "{{count}} extern(e) account(s)",
     email_count: "{{count}} e-mail(s)",
-    purge_confirm_message: "Dit verwijdert permanent alle {{count}} geïmporteerde e-mail(s) van {{email}}. Deze actie kan niet ongedaan worden gemaakt.",
+    purge_confirm_message:
+      "Dit verwijdert permanent alle {{count}} geïmporteerde e-mail(s) van {{email}}. Deze actie kan niet ongedaan worden gemaakt.",
     this_account: "dit account",
     storage_limit_reached: "Opslaglimiet bereikt",
     auto_forward_title: "Automatisch doorsturen",
-    auto_forward_description: "Stuur inkomende e-mails automatisch door naar andere adressen op basis van voorwaarden. Doorstuurregels evalueren e-mailheaders (afzender, ontvanger, onderwerp) zonder toegang tot e-mailinhoud.",
+    auto_forward_description:
+      "Stuur inkomende e-mails automatisch door naar andere adressen op basis van voorwaarden. Doorstuurregels evalueren e-mailheaders (afzender, ontvanger, onderwerp) zonder toegang tot e-mailinhoud.",
     add_rule: "Regel toevoegen",
     edit_forwarding_rule: "Doorstuurregel bewerken",
     create_forwarding_rule: "Doorstuurregel aanmaken",
     no_forwarding_rules: "Geen doorstuurregels",
-    create_rule_description: "Maak een regel aan om je e-mails automatisch door te sturen naar andere adressen",
+    create_rule_description:
+      "Maak een regel aan om je e-mails automatisch door te sturen naar andere adressen",
     try_different_search: "Probeer een andere zoekterm",
     allowlist_title: "Toelatingslijst",
-    allowlist_description: "E-mails van toegestane afzenders worden nooit als spam gemarkeerd.",
-    allowlist_popup_description: "E-mails van deze afzender of dit domein worden nooit als spam gemarkeerd en bereiken altijd je inbox.",
+    allowlist_description:
+      "E-mails van toegestane afzenders worden nooit als spam gemarkeerd.",
+    allowlist_popup_description:
+      "E-mails van deze afzender of dit domein worden nooit als spam gemarkeerd en bereiken altijd je inbox.",
     add_to_allowlist: "Toevoegen aan toelatingslijst",
     entire_domain: "Volledig domein",
     no_allowed_senders: "Geen toegestane afzenders",
-    add_senders_allowlist_hint: "Voeg afzenders of domeinen toe om ervoor te zorgen dat hun e-mails altijd je inbox bereiken",
+    add_senders_allowlist_hint:
+      "Voeg afzenders of domeinen toe om ervoor te zorgen dat hun e-mails altijd je inbox bereiken",
     allowed_senders_count: "{{count}} toegestane afzender(s)",
     added_on_date: "Toegevoegd op {{date}}",
     enter_domain_placeholder: "Voer domein in (bijv. bedrijf.nl)",
@@ -3399,19 +4171,25 @@ export const nl = {
     cancel_import: "Import annuleren",
     emails_imported_count: "{{count}} e-mails geïmporteerd",
     duplicates_skipped: "{{count}} duplicaten overgeslagen",
-    import_folder_hint: "Sommige e-mails niet gevonden? Controleer de mappen Spam en Verzonden - geïmporteerde e-mails kunnen daar worden gesorteerd.",
+    import_folder_hint:
+      "Sommige e-mails niet gevonden? Controleer de mappen Spam en Verzonden - geïmporteerde e-mails kunnen daar worden gesorteerd.",
     n_failed_count: "{{count}} mislukt",
-    storage_quota_reached: "Uw opslag is vol. Uw abonnement upgraden of wat e-mails verwijderen maakt ruimte voor meer imports.",
-    no_emails_in_file: "Geen e-mails gevonden in het geselecteerde bestand(en). Zorg ervoor dat het bestand een ondersteund formaat heeft (MBOX, EML, CSV of PST).",
-    import_failed: "De import is niet voltooid. Een nieuwe poging zou werken. Uw bestaande gegevens zijn ongewijzigd.",
-    failed_to_parse_file: "Dit bestand kon niet worden gelezen. Een ander werkt.",
+    storage_quota_reached:
+      "Uw opslag is vol. Uw abonnement upgraden of wat e-mails verwijderen maakt ruimte voor meer imports.",
+    no_emails_in_file:
+      "Geen e-mails gevonden in het geselecteerde bestand(en). Zorg ervoor dat het bestand een ondersteund formaat heeft (MBOX, EML, CSV of PST).",
+    import_failed:
+      "De import is niet voltooid. Een nieuwe poging zou werken. Uw bestaande gegevens zijn ongewijzigd.",
+    failed_to_parse_file:
+      "Dit bestand kon niet worden gelezen. Een ander werkt.",
     plan_storage_value: "{{value}} opslag",
     plan_aliases_count: "{{count}} aliassen",
     plan_domains_count: "{{count}} domein(en)",
     forwarding_rules_count: "{{count}} doorstuurregel(s)",
     keeps_copy: "Bewaart kopie",
     vacation_reply_title: "Afwezigheidsantwoord",
-    vacation_reply_description: "Stel een automatisch antwoord in voor inkomende e-mails wanneer u afwezig bent. Gebruikt alleen afzender-/ontvanger-metadata, geen toegang tot e-mailinhoud.",
+    vacation_reply_description:
+      "Stel een automatisch antwoord in voor inkomende e-mails wanneer u afwezig bent. Gebruikt alleen afzender-/ontvanger-metadata, geen toegang tot e-mailinhoud.",
     vacation_reply_subject: "Onderwerp",
     vacation_reply_body: "Bericht",
     vacation_reply_start_date: "Startdatum",
@@ -3427,13 +4205,17 @@ export const nl = {
     vacation_reply_toggled_on: "Afwezigheidsantwoord ingeschakeld",
     vacation_reply_toggled_off: "Afwezigheidsantwoord uitgeschakeld",
     blocked_senders_title: "Geblokkeerde afzenders",
-    blocked_senders_description: "E-mails van geblokkeerde afzenders worden automatisch uit je inbox gefilterd.",
-    block_sender_popup_description: "E-mails van deze afzender worden automatisch uit je inbox gefilterd.",
+    blocked_senders_description:
+      "E-mails van geblokkeerde afzenders worden automatisch uit je inbox gefilterd.",
+    block_sender_popup_description:
+      "E-mails van deze afzender worden automatisch uit je inbox gefilterd.",
     no_blocked_senders: "Geen geblokkeerde afzenders",
-    block_senders_hint: "Blokkeer afzenders via het profielmenu om hun e-mails uit je inbox te filteren",
+    block_senders_hint:
+      "Blokkeer afzenders via het profielmenu om hun e-mails uit je inbox te filteren",
     blocked_senders_count: "{{count}} geblokkeerde afzender(s)",
     blocked_date: "Geblokkeerd {{date}}",
-    snooze_description: "Zet ongewenste abonnementen in slaapstand. Uitgestelde afzenders worden automatisch uit je inbox gefilterd.",
+    snooze_description:
+      "Zet ongewenste abonnementen in slaapstand. Uitgestelde afzenders worden automatisch uit je inbox gefilterd.",
     active_count: "Actief ({{count}})",
     snoozed_count: "Uitgesteld ({{count}})",
     snooze_count: "Uitstellen ({{count}})",
@@ -3442,20 +4224,24 @@ export const nl = {
     no_snoozed_senders: "Geen uitgestelde afzenders",
     no_subscriptions_detected: "Geen abonnementen gedetecteerd",
     snoozed_appear_here: "Afzenders die je uitstelt verschijnen hier",
-    scan_inbox_description: "Klik op 'Inbox scannen' om nieuwsbrieven en marketing-e-mails te detecteren",
+    scan_inbox_description:
+      "Klik op 'Inbox scannen' om nieuwsbrieven en marketing-e-mails te detecteren",
     emails_count: "{{count}} e-mails",
     newsletter: "Nieuwsbrief",
     social: "Sociaal",
     transactional: "Transactioneel",
     other: "Anders",
     email_signature_title: "E-mailhandtekening",
-    email_signature_description: "Maak en beheer je e-mailhandtekeningen. Alle handtekeningen zijn end-to-end versleuteld.",
+    email_signature_description:
+      "Maak en beheer je e-mailhandtekeningen. Alle handtekeningen zijn end-to-end versleuteld.",
     signature_mode: "Handtekeningmodus",
     signature_off: "Uit",
     signature_auto: "Automatisch",
     signature_manual: "Handmatig",
-    signature_auto_description: "Je standaardhandtekening wordt automatisch aan nieuwe e-mails toegevoegd.",
-    signature_manual_description: "Je kunt handmatig een handtekening invoegen bij het opstellen van e-mails.",
+    signature_auto_description:
+      "Je standaardhandtekening wordt automatisch aan nieuwe e-mails toegevoegd.",
+    signature_manual_description:
+      "Je kunt handmatig een handtekening invoegen bij het opstellen van e-mails.",
     your_signatures: "Je handtekeningen ({{count}})",
     add_signature: "Handtekening toevoegen",
     signature_name: "Handtekeningnaam",
@@ -3464,14 +4250,17 @@ export const nl = {
     update_signature: "Handtekening bijwerken",
     create_signature: "Handtekening aanmaken",
     no_signatures_yet: "Nog geen handtekeningen",
-    no_signatures_description: "Maak je eerste handtekening aan om je e-mails te personaliseren.",
+    no_signatures_description:
+      "Maak je eerste handtekening aan om je e-mails te personaliseren.",
     default_badge: "Standaard",
     signature_placement: "Handtekeningplaatsing",
-    signature_placement_description: "Kies waar je handtekening verschijnt in antwoorden",
+    signature_placement_description:
+      "Kies waar je handtekening verschijnt in antwoorden",
     below_quoted_text: "Onder geciteerde tekst",
     above_quoted_text: "Boven geciteerde tekst",
     email_templates_title: "E-mailsjablonen",
-    email_templates_description: "Maak en beheer herbruikbare e-mailsjablonen. Alle sjablonen zijn end-to-end versleuteld.",
+    email_templates_description:
+      "Maak en beheer herbruikbare e-mailsjablonen. Alle sjablonen zijn end-to-end versleuteld.",
     your_templates: "Je sjablonen ({{count}})",
     add_template: "Sjabloon toevoegen",
     template_name: "Sjabloonnaam",
@@ -3479,12 +4268,15 @@ export const nl = {
     category: "Categorie",
     category_placeholder: "bijv. Werk, Persoonlijk",
     template_content: "Sjablooninhoud",
-    template_content_placeholder: "Hallo [Naam],\n\nIk zou graag een vergadering plannen...\n\nMet vriendelijke groet",
-    placeholders_hint: "Gebruik plaatshouders zoals [Naam], [Datum], enz. om aan te passen bij gebruik.",
+    template_content_placeholder:
+      "Hallo [Naam],\n\nIk zou graag een vergadering plannen...\n\nMet vriendelijke groet",
+    placeholders_hint:
+      "Gebruik plaatshouders zoals [Naam], [Datum], enz. om aan te passen bij gebruik.",
     update_template: "Sjabloon bijwerken",
     create_template: "Sjabloon aanmaken",
     no_templates_yet: "Nog geen sjablonen",
-    no_templates_description: "Maak je eerste sjabloon aan om het opstellen van e-mails te versnellen.",
+    no_templates_description:
+      "Maak je eerste sjabloon aan om het opstellen van e-mails te versnellen.",
     spam_filtering_title: "Spamfiltering",
     spam_sensitivity: "Spamgevoeligheid",
     auto_delete_spam_after: "Spam automatisch verwijderen na",
@@ -3495,7 +4287,8 @@ export const nl = {
     spam_medium: "Gemiddeld",
     spam_medium_description: "Gebalanceerde filtering",
     spam_high: "Hoog",
-    spam_high_description: "Agressieve filtering, kan sommige legitieme e-mails onderscheppen",
+    spam_high_description:
+      "Agressieve filtering, kan sommige legitieme e-mails onderscheppen",
     retention_7_days: "7 dagen",
     retention_14_days: "14 dagen",
     retention_30_days: "30 dagen",
@@ -3505,7 +4298,8 @@ export const nl = {
     import_emails_title: "E-mails importeren",
     import_add_another: "Add another account",
     import_choose_source: "Choose a source",
-    import_emails_description: "Breng je e-mails over van Gmail, Outlook of andere e-maildiensten. Je e-mails worden op je apparaat versleuteld voordat ze worden opgeslagen.",
+    import_emails_description:
+      "Breng je e-mails over van Gmail, Outlook of andere e-maildiensten. Je e-mails worden op je apparaat versleuteld voordat ze worden opgeslagen.",
     import_emails_button: "E-mails importeren",
     recent_imports: "Recente imports",
     status_pending: "In afwachting",
@@ -3517,10 +4311,12 @@ export const nl = {
     source_import: "{{source}}-import",
     imported_skipped: "{{imported}} geïmporteerd{{skipped}}",
     export_import_settings_title: "Instellingen exporteren & importeren",
-    export_import_settings_description: "Maak een back-up van je instellingen of zet ze over naar een ander account",
+    export_import_settings_description:
+      "Maak een back-up van je instellingen of zet ze over naar een ander account",
     export_settings: "Instellingen exporteren",
     import_settings_button: "Instellingen importeren",
-    invalid_settings_format: "Dit bestand voldoet niet aan het verwachte instellingenformaat. Een andere export werkt. Uw huidige instellingen zijn ongewijzigd.",
+    invalid_settings_format:
+      "Dit bestand voldoet niet aan het verwachte instellingenformaat. Een andere export werkt. Uw huidige instellingen zijn ongewijzigd.",
     settings_imported: "Instellingen succesvol geïmporteerd",
     rule_name_optional: "Regelnaam (optioneel)",
     rule_name_placeholder: "bijv. Werk-e-mails, Nieuwsbriefback-up...",
@@ -3551,12 +4347,15 @@ export const nl = {
     server_capabilities: "Servermogelijkheden",
     tls_information: "TLS-informatie",
     run_health_check: "Statuscontrole uitvoeren",
-    connection_failed: "We konden geen verbinding maken. Een nieuwe blik op uw instellingen, dan een nieuwe poging, lost dit meestal op.",
-    removed_forwarding_rule: "Doorstuurregel \"{{ name }}\" verwijderd",
+    connection_failed:
+      "We konden geen verbinding maken. Een nieuwe blik op uw instellingen, dan een nieuwe poging, lost dit meestal op.",
+    removed_forwarding_rule: 'Doorstuurregel "{{ name }}" verwijderd',
     removed_forwarding_rules_count: "{{ count }} doorstuurregels verwijderd",
     customize_toolbar: "Werkbalk aanpassen",
-    customize_toolbar_description: "Kies welke acties in de onderste werkbalk verschijnen.",
-    toolbar_dots_hint: "Het driebolletjesmenu verschijnt altijd met alle opties.",
+    customize_toolbar_description:
+      "Kies welke acties in de onderste werkbalk verschijnen.",
+    toolbar_dots_hint:
+      "Het driebolletjesmenu verschijnt altijd met alle opties.",
     toolbar_section_quick_actions: "Snelle acties",
     toolbar_section_organize: "Organiseren",
     haptic_feedback_title: "Haptische feedback",
@@ -3565,96 +4364,133 @@ export const nl = {
     swipe_left: "Veeg naar links",
     swipe_right: "Veeg naar rechts",
     swipe_none: "Geen",
-    swipe_actions_description: "Kies wat er gebeurt als je naar links of rechts veegt op e-mails.",
+    swipe_actions_description:
+      "Kies wat er gebeurt als je naar links of rechts veegt op e-mails.",
     badges_title: "Badges",
     badges_description: "Laat je verdiende badges zien.",
     badges_description_full:
       "Badges die je op je account hebt verdiend worden weergegeven op je profiel en optioneel in e-mails.",
-    auto_save_drafts_description: "Automatisch concepten opslaan tijdens het schrijven",
+    auto_save_drafts_description:
+      "Automatisch concepten opslaan tijdens het schrijven",
     no_encryption_key: "Geen versleutelingssleutel",
-    no_encryption_key_description: "Je versleutelingssleutel wordt automatisch gegenereerd",
-    undo_send_description: "Configureer de vertraging bij het verzenden van e-mail voor de mogelijkheid om te annuleren",
+    encryption_key_load_failed:
+      "Je versleutelingssleutel kon niet worden geladen. Controleer je verbinding en probeer het opnieuw.",
+    no_encryption_key_description:
+      "Je versleutelingssleutel wordt automatisch gegenereerd",
+    undo_send_description:
+      "Configureer de vertraging bij het verzenden van e-mail voor de mogelijkheid om te annuleren",
     encryption_banner_title: "Je privésleutels verlaten nooit je apparaat",
-    encryption_banner_subtitle: "E-mails worden versleuteld voordat ze je apparaat verlaten. Aster slaat alleen onleesbare versleutelde tekst op, we kunnen je e-mail nooit lezen.",
+    encryption_banner_subtitle:
+      "E-mails worden versleuteld voordat ze je apparaat verlaten. Aster slaat alleen onleesbare versleutelde tekst op, we kunnen je e-mail nooit lezen.",
     encryption_banner_you: "Jij",
     encryption_banner_recipient: "Ontvanger",
-    login_alerts_description: "Ontvang een melding bij nieuwe aanmeldingen op je account",
+    login_alerts_description:
+      "Ontvang een melding bij nieuwe aanmeldingen op je account",
     recent_sign_ins: "Recente aanmeldingen",
     no_sign_in_history: "Nog geen aanmeldingsgeschiedenis",
-    external_link_warning_disabled: "Links worden direct geopend zonder bevestiging",
+    external_link_warning_disabled:
+      "Links worden direct geopend zonder bevestiging",
     storage_format_title: "Opslagformaat",
-    storage_format_description: "Schakel gedecentraliseerde opslag in om je bestanden en statische inhoud op te slaan in het Interplanetary Filesystem (IPFS).",
+    storage_format_description:
+      "Schakel gedecentraliseerde opslag in om je bestanden en statische inhoud op te slaan in het Interplanetary Filesystem (IPFS).",
     storage_format_aster_server: "Aster Server",
     storage_format_decentralized_ipfs: "Gedecentraliseerd (IPFS)",
     storage_format_ipfs_confirm_title: "Overschakelen naar IPFS-opslag",
-    storage_format_ipfs_confirm_description: "Weet je zeker dat je wilt overschakelen naar end-to-end versleuteld IPFS?",
+    storage_format_ipfs_confirm_description:
+      "Weet je zeker dat je wilt overschakelen naar end-to-end versleuteld IPFS?",
     choose_notification_events: "Kies welke gebeurtenissen meldingen activeren",
     mute_notifications_description: "Meldingen dempen op vaste tijden",
     quiet_hours_schedule: "Schema",
-    quiet_hours_schedule_description: "Stel de begin- en eindtijden in voor stille uren",
-    default_reply_description: "Standaardactie bij het beantwoorden van e-mails",
+    quiet_hours_schedule_description:
+      "Stel de begin- en eindtijden in voor stille uren",
+    default_reply_description:
+      "Standaardactie bij het beantwoorden van e-mails",
     conversation_grouping: "Gesprekken groeperen",
-    conversation_grouping_description: "Groepeer e-mails in hetzelfde gesprek samen",
+    conversation_grouping_description:
+      "Groepeer e-mails in hetzelfde gesprek samen",
     conversation_grouping_confirm_title: "Weet je het zeker?",
-    conversation_grouping_confirm_description: "Het uitschakelen van gespreksgroepering toont elke e-mail als apart item in je inbox in plaats van antwoorden te groeperen. Dit kan het lastiger maken om e-mailthreads te volgen.",
+    conversation_grouping_confirm_description:
+      "Het uitschakelen van gespreksgroepering toont elke e-mail als apart item in je inbox in plaats van antwoorden te groeperen. Dit kan het lastiger maken om e-mailthreads te volgen.",
     show_message_size: "Berichtgrootte tonen",
-    show_message_size_description: "Toon de grootte van elke e-mail in de inboxlijst",
-    folder_lock_mode_description: "Kies wanneer beveiligde mappen vergrendeld moeten worden",
+    show_message_size_description:
+      "Toon de grootte van elke e-mail in de inboxlijst",
+    folder_lock_mode_description:
+      "Kies wanneer beveiligde mappen vergrendeld moeten worden",
     auto_save_recipients: "Recente ontvangers automatisch opslaan",
-    auto_save_recipients_description: "Onthoud automatisch e-mailadressen waarnaar je verzendt voor sneller opstellen",
+    auto_save_recipients_description:
+      "Onthoud automatisch e-mailadressen waarnaar je verzendt voor sneller opstellen",
     disable_recent_recipients_title: "Recente ontvangers uitschakelen?",
-    disable_recent_recipients_description: "Dit verwijdert permanent alle opgeslagen gegevens van recente ontvangers. Deze actie kan niet ongedaan worden gemaakt.",
+    disable_recent_recipients_description:
+      "Dit verwijdert permanent alle opgeslagen gegevens van recente ontvangers. Deze actie kan niet ongedaan worden gemaakt.",
     disable_and_clear: "Uitschakelen en gegevens wissen",
-    confirm_delete_description: "Bevestigen voordat e-mails permanent worden verwijderd",
+    confirm_delete_description:
+      "Bevestigen voordat e-mails permanent worden verwijderd",
     default_email_app: "Standaard e-mailapp",
-    default_email_app_description: "Open mailto:-links in Aster Mail in plaats van je standaard e-mailapp",
-    email_view_description: "Kies hoe e-mails worden geopend wanneer je erop klikt",
-    popup_description: "Opent in een versleepbaar venster dat kan worden aangepast",
+    default_email_app_description:
+      "Open mailto:-links in Aster Mail in plaats van je standaard e-mailapp",
+    email_view_description:
+      "Kies hoe e-mails worden geopend wanneer je erop klikt",
+    popup_description:
+      "Opent in een versleepbaar venster dat kan worden aangepast",
     full_page_description: "Opent e-mail in volledig breedte zonder inboxlijst",
     thread_count_position: "Positie van draadtelling badge",
-    thread_count_position_description: "Kies waar het draadtelling-badge verschijnt ten opzichte van de naam van de afzender",
+    thread_count_position_description:
+      "Kies waar het draadtelling-badge verschijnt ten opzichte van de naam van de afzender",
     thread_count_left: "Links van afzender",
     thread_count_right: "Rechts van afzender",
     compose_window_mode: "Schrijfvenstermodus",
-    compose_window_mode_description: "Kies hoe het schrijfvenster standaard opent",
+    compose_window_mode_description:
+      "Kies hoe het schrijfvenster standaard opent",
     compose_mode_default: "Standaard - zwevend pop-up",
     compose_mode_fullscreen: "Altijd volledig scherm",
     compose_mode_minimized: "Geminimaliseerd starten",
     change_plan: "Abonnement wijzigen",
-    change_plan_description: "Upgrade of downgrade je abonnement via het factureringsportaal",
+    change_plan_description:
+      "Upgrade of downgrade je abonnement via het factureringsportaal",
     checkout_welcome: "Welkom bij Aster! Je abonnement is actief.",
-    payment_failed_warning: "De laatste betaling op uw betaalmethode is niet doorgegaan. Deze bijwerken in Instellingen, Facturering houdt uw abonnement draaiende. Uw post wordt niet getroffen.",
-    grace_period_remaining: "U hebt {{days}} dagen om uw betaalmethode bij te werken voordat uw abonnement overgaat op Gratis.",
+    payment_failed_warning:
+      "De laatste betaling op uw betaalmethode is niet doorgegaan. Deze bijwerken in Instellingen, Facturering houdt uw abonnement draaiende. Uw post wordt niet getroffen.",
+    grace_period_remaining:
+      "U hebt {{days}} dagen om uw betaalmethode bij te werken voordat uw abonnement overgaat op Gratis.",
     update_payment_method: "Betaalmethode bijwerken",
     currency: "Valuta",
     select_currency: "Selecteer valuta",
-    prices_in_usd_note: "Prijzen weergegeven in USD. Het definitieve bedrag wordt bepaald bij het afrekenen.",
+    prices_in_usd_note:
+      "Prijzen weergegeven in USD. Het definitieve bedrag wordt bepaald bij het afrekenen.",
     switch_to_yearly: "Overschakelen naar jaarlijks",
     switch_to_monthly: "Overschakelen naar maandelijks",
     switch_billing_confirm: "Factureringscyclus wijzigen",
-    switch_billing_description: "Je factureringscyclus wordt direct gewijzigd. Een evenredig tegoed of toeslag wordt toegepast op je volgende factuur.",
-    switch_billing_savings: "Overschakelen naar jaarlijkse facturering bespaart je {{amount}} per jaar.",
+    switch_billing_description:
+      "Je factureringscyclus wordt direct gewijzigd. Een evenredig tegoed of toeslag wordt toegepast op je volgende factuur.",
+    switch_billing_savings:
+      "Overschakelen naar jaarlijkse facturering bespaart je {{amount}} per jaar.",
     plan_change_confirm_title: "Planwijziging bevestigen",
-    plan_change_confirm_description: "Upgrade naar {{plan}}. De resterende tijd van je huidige plan wordt als tegoed verrekend.",
+    plan_change_confirm_description:
+      "Upgrade naar {{plan}}. De resterende tijd van je huidige plan wordt als tegoed verrekend.",
     plan_change_credit: "Tegoed van huidig plan",
     plan_change_due_today: "Vandaag te betalen",
-    plan_change_preview_failed: "Het prijsoverzicht kon niet worden geladen. Probeer het opnieuw.",
+    plan_change_preview_failed:
+      "Het prijsoverzicht kon niet worden geladen. Probeer het opnieuw.",
     plan_change_confirm_button: "Bevestigen en betalen",
     plan_change_confirming: "Verwerken...",
     billing_switched: "Factureringscyclus succesvol gewijzigd",
-    failed_switch_billing: "Uw factureringscyclus is niet gewijzigd. Een nieuwe poging zou werken. Uw huidige cyclus is nog steeds actief.",
+    failed_switch_billing:
+      "Uw factureringscyclus is niet gewijzigd. Een nieuwe poging zou werken. Uw huidige cyclus is nog steeds actief.",
     current_billing_interval: "Gefactureerd {{interval}}",
     switching_billing: "Overschakelen...",
     billing_banner_title: "Ontgrendel meer met Aster",
-    billing_banner_subtitle: "Upgrade je abonnement of koop extra opslag om je privacy beschermd te houden.",
+    billing_banner_subtitle:
+      "Upgrade je abonnement of koop extra opslag om je privacy beschermd te houden.",
     billing_banner_cta: "Opties bekijken",
     storage_addons: "Extra opslag",
-    storage_addons_description: "Meer ruimte nodig? Koop extra versleutelde opslag voor je account.",
+    storage_addons_description:
+      "Meer ruimte nodig? Koop extra versleutelde opslag voor je account.",
     per_month_short: "/mnd",
     add_storage: "Opslag toevoegen",
     popular: "Populair",
     best_value: "Beste waarde",
-    storage_purchase_coming_soon: "Opslag-add-ons komen binnenkort. Blijf op de hoogte!",
+    storage_purchase_coming_soon:
+      "Opslag-add-ons komen binnenkort. Blijf op de hoogte!",
     purchase_addon: "Add-on kopen",
     addon_purchased: "Opslag-add-on succesvol gekocht.",
     cancel_addon: "Annuleren",
@@ -3662,9 +4498,12 @@ export const nl = {
     active_addons: "Je actieve add-ons",
     no_active_addons: "Geen actieve opslag-add-ons.",
     confirm_cancel_addon: "Opslag-add-on annuleren",
-    confirm_cancel_addon_description: "Weet je zeker dat je deze opslag-add-on wilt annuleren? Je extra opslag blijft beschikbaar tot het einde van de huidige factureringsperiode.",
-    addon_purchase_failed: "We konden de aankoop van de add-on niet starten. Een nieuwe poging zou werken. Uw facturering is ongewijzigd.",
-    addon_cancel_failed: "We konden uw opslag-add-on niet opzeggen. Een nieuwe poging zou werken. Uw add-on is nog steeds actief.",
+    confirm_cancel_addon_description:
+      "Weet je zeker dat je deze opslag-add-on wilt annuleren? Je extra opslag blijft beschikbaar tot het einde van de huidige factureringsperiode.",
+    addon_purchase_failed:
+      "We konden de aankoop van de add-on niet starten. Een nieuwe poging zou werken. Uw facturering is ongewijzigd.",
+    addon_cancel_failed:
+      "We konden uw opslag-add-on niet opzeggen. Een nieuwe poging zou werken. Uw add-on is nog steeds actief.",
     addon_purchase_success: "Doorsturen naar afrekenen...",
     addon_checkout_opened: "Voltooi je aankoop in het nieuwe tabblad.",
     plan_recommended: "Aanbevolen",
@@ -3674,10 +4513,12 @@ export const nl = {
     billing_yearly: "Jaarlijks",
     subscribe: "Abonneren",
     free_plan_includes: "3 aliassen · 1 eigen domein",
-    upgrade_for_more: "Upgrade om meer opslag, aliassen en functies te ontgrendelen",
+    upgrade_for_more:
+      "Upgrade om meer opslag, aliassen en functies te ontgrendelen",
     upgrade_for_more_short: "Ontgrendel voor meer",
     plans_coming_soon: "Abonnementen komen binnenkort. Blijf op de hoogte!",
-    free_plan_description: "Je gebruikt het gratis abonnement. Bekijk hieronder betaalde abonnementen voor meer opslag, aliassen en functies.",
+    free_plan_description:
+      "Je gebruikt het gratis abonnement. Bekijk hieronder betaalde abonnementen voor meer opslag, aliassen en functies.",
     free_plan_banner_title: "Je gebruikt het gratis abonnement",
     plan_f_storage: "{{value}} versleutelde opslag",
     plan_f_attachments: "Bijlagen tot {{value}}",
@@ -3686,10 +4527,12 @@ export const nl = {
     plan_f_send_limit: "{{value}} dagelijkse e-mails",
     plan_f_templates: "{{value}} e-mailsjablonen",
     plan_f_read_receipts: "Leesbevestigingen",
+    plan_f_custom_themes: "Aangepaste thema's",
     plan_f_smart_folders: "Slimme mappen",
     plan_f_imap_smtp: "IMAP- en SMTP-toegang",
     plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
-    plan_f_bridge_hint: "Runs through the Aster Bridge companion app on your device.",
+    plan_f_bridge_hint:
+      "Runs through the Aster Bridge companion app on your device.",
     plan_f_external_accounts: "Externe accounts (IMAP & POP3)",
     plan_f_caldav: "CalDAV-synchronisatie",
     plan_f_encrypted_exports: "Versleutelde exports",
@@ -3721,16 +4564,22 @@ export const nl = {
     plan_f_auto_delete_spam: "Automatisch spam en prullenbak verwijderen",
     plan_f_quiet_hours: "Stille uren",
     storage_approaching_title: "Opslag raakt vol.",
-    storage_approaching_description: "U hebt meer dan 75% van uw opslag gebruikt. Wat oude e-mails wissen of uw abonnement upgraden houdt u gedekt voordat het opraakt.",
+    storage_approaching_description:
+      "U hebt meer dan 75% van uw opslag gebruikt. Wat oude e-mails wissen of uw abonnement upgraden houdt u gedekt voordat het opraakt.",
     storage_warning_title: "U hebt nog weinig opslag.",
-    storage_warning_description: "U hebt meer dan 90% van uw opslag gebruikt. Wat e-mails wissen of uw abonnement upgraden houdt nieuwe post stromend.",
+    storage_warning_description:
+      "U hebt meer dan 90% van uw opslag gebruikt. Wat e-mails wissen of uw abonnement upgraden houdt nieuwe post stromend.",
     storage_locked_title: "Uw opslag is vol.",
-    storage_locked_description: "Nieuwe post is gepauzeerd tot u ruimte vrijmaakt. Wat e-mails wissen of uw abonnement upgraden laat het weer stromen. Bestaande post is veilig.",
-    storage_locked_bounce_warning: "Inkomende post wordt over {{days}} dagen geweigerd tenzij er ruimte vrijkomt. Wat e-mails wissen of snel upgraden houdt ze binnenkomend.",
-    plan_limit_reached: "U hebt de limiet van uw huidige abonnement bereikt. Upgraden of wat items verwijderen om ruimte te maken brengt u weer op gang.",
+    storage_locked_description:
+      "Nieuwe post is gepauzeerd tot u ruimte vrijmaakt. Wat e-mails wissen of uw abonnement upgraden laat het weer stromen. Bestaande post is veilig.",
+    storage_locked_bounce_warning:
+      "Inkomende post wordt over {{days}} dagen geweigerd tenzij er ruimte vrijkomt. Wat e-mails wissen of snel upgraden houdt ze binnenkomend.",
+    plan_limit_reached:
+      "U hebt de limiet van uw huidige abonnement bereikt. Upgraden of wat items verwijderen om ruimte te maken brengt u weer op gang.",
     upgrade_to_unlock: "Upgrade om meer te ontgrendelen",
     usage_overview: "Gebruiksoverzicht",
-    usage_overview_description: "Volg je huidige gebruik van abonnementsfuncties.",
+    usage_overview_description:
+      "Volg je huidige gebruik van abonnementsfuncties.",
     usage_aliases: "E-mailaliassen",
     usage_domains: "Eigen domeinen",
     usage_templates: "E-mailsjablonen",
@@ -3745,7 +4594,8 @@ export const nl = {
     promo_code_placeholder: "Voer promotiecode in",
     apply_promo: "Toepassen",
     promo_applied: "Promotiecode succesvol toegepast!",
-    promo_invalid: "Deze promocode komt niet overeen met iets dat we hebben. De spelling controleren lost dit meestal op.",
+    promo_invalid:
+      "Deze promocode komt niet overeen met iets dat we hebben. De spelling controleren lost dit meestal op.",
     promo_expired: "Deze promocode is niet meer actief.",
     promo_already_used: "U hebt deze promocode al op uw account gebruikt.",
     promo_discount_percent: "{{value}}% korting",
@@ -3757,11 +4607,13 @@ export const nl = {
     checkout_description: "Voer je betaalgegevens in om je te abonneren.",
     payment_complete: "Betaling voltooid",
     payment_success: "Betaling geslaagd!",
-    payment_failed: "We konden uw betaalmethode niet belasten. Een nieuwe poging of een update in Instellingen, Facturering lost dit op.",
+    payment_failed:
+      "We konden uw betaalmethode niet belasten. Een nieuwe poging of een update in Instellingen, Facturering lost dit op.",
     payment_details: "Betaalgegevens",
     processing_payment: "Betaling verwerken...",
     subscribe_now: "Nu abonneren",
-    stripe_secure_notice: "Beveiligd door Stripe. Je betaalgegevens zijn versleuteld.",
+    stripe_secure_notice:
+      "Beveiligd door Stripe. Je betaalgegevens zijn versleuteld.",
     preparing_checkout: "Afrekenen voorbereiden...",
     stripe_not_configured: "Betaalsysteem is niet geconfigureerd.",
     try_again: "Een nieuwe poging zou werken.",
@@ -3781,23 +4633,30 @@ export const nl = {
     no_payment_methods: "Geen betaalmethoden opgeslagen",
     save_card: "Kaart opslaan",
     cancel_confirm_title: "Abonnement opzeggen",
-    cancel_confirm_description: "Weet je zeker dat je je abonnement wilt opzeggen? Je abonnement blijft actief tot het einde van de huidige factureringsperiode.",
-    cancel_enter_password: "Voer je wachtwoord in om de opzegging te bevestigen:",
+    cancel_confirm_description:
+      "Weet je zeker dat je je abonnement wilt opzeggen? Je abonnement blijft actief tot het einde van de huidige factureringsperiode.",
+    cancel_enter_password:
+      "Voer je wachtwoord in om de opzegging te bevestigen:",
     cancel_password_placeholder: "Voer je wachtwoord in",
     cancel_confirm_button: "Abonnement opzeggen",
     cancel_password_required: "Uw wachtwoord bevestigt dat u wilt opzeggen.",
-    cancel_password_error: "We konden uw abonnement niet opzeggen. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. Uw abonnement en facturering zijn ongewijzigd.",
+    cancel_password_error:
+      "We konden uw abonnement niet opzeggen. Uw wachtwoord controleren en het opnieuw proberen lost dit meestal op. Uw abonnement en facturering zijn ongewijzigd.",
     credits: "Tegoed",
-    credits_description: "Verdien tegoed via verwijzingen, promotiecodes en cadeaubonnen. Tegoed kan worden toegepast op verlengingen van je abonnement.",
+    credits_description:
+      "Verdien tegoed via verwijzingen, promotiecodes en cadeaubonnen. Tegoed kan worden toegepast op verlengingen van je abonnement.",
     credit_balance: "Tegoedbalans",
     use_credits_for_renewals: "Tegoed gebruiken voor verlengingen",
-    use_credits_for_renewals_description: "Pas automatisch je tegoedbalans toe op abonnements- en add-onverlengingen. Als je balans het volledige bedrag niet dekt, wordt het restant in rekening gebracht op je betaalmethode.",
+    use_credits_for_renewals_description:
+      "Pas automatisch je tegoedbalans toe op abonnements- en add-onverlengingen. Als je balans het volledige bedrag niet dekt, wordt het restant in rekening gebracht op je betaalmethode.",
     credits_toggle_updated: "Tegoedinstellingen bijgewerkt",
-    credits_toggle_failed: "Deze instelling is niet opgeslagen. Een nieuwe poging zou werken. De eerdere waarde is nog actief.",
+    credits_toggle_failed:
+      "Deze instelling is niet opgeslagen. Een nieuwe poging zou werken. De eerdere waarde is nog actief.",
     credits_earn_first: "Verdien eerst tegoed om dit in te schakelen",
     recent_transactions: "Recente transacties",
     view_all_transactions: "Alles bekijken",
-    no_credits_yet: "Nog geen tegoed. Verdien tegoed via verwijzingen of cadeaubonnen!",
+    no_credits_yet:
+      "Nog geen tegoed. Verdien tegoed via verwijzingen of cadeaubonnen!",
     credit_type_referral_reward: "Verwijzing",
     credit_type_referral_commission: "Commissie",
     credit_type_admin_grant: "Bonus",
@@ -3806,7 +4665,8 @@ export const nl = {
     credit_type_reversal: "Terugboeking",
     credit_type_purchase: "Aankoop",
     top_up_credits: "Top Up",
-    top_up_credits_description: "Add credits to your account. Credits apply automatically toward plan renewals.",
+    top_up_credits_description:
+      "Add credits to your account. Credits apply automatically toward plan renewals.",
     credit_packages_loading: "Loading packages...",
     credit_package_bonus: "+{{ bonus }} bonus",
     credit_package_total: "{{ total }} total",
@@ -3820,7 +4680,8 @@ export const nl = {
     in_credits: "in credits",
     credit_transactions: "Tegoedtransacties",
     referral_program: "Verwijzingsprogramma",
-    referral_program_description: "Nodig vrienden uit voor Aster en verdien tegoed wanneer ze een betaald abonnement afsluiten.",
+    referral_program_description:
+      "Nodig vrienden uit voor Aster en verdien tegoed wanneer ze een betaald abonnement afsluiten.",
     your_referral_link: "Jouw verwijzingslink",
     copy_link: "Link kopiëren",
     link_copied: "Link gekopieerd naar klembord",
@@ -3835,12 +4696,85 @@ export const nl = {
     no_referrals_yet: "Nog geen verwijzingen. Deel je link om te beginnen!",
     referral_status_pending: "In behandeling",
     referral_status_completed: "Voltooid",
-    referral_reward_info: "$2,00 voor jou, $1,00 voor je vriend wanneer ze zich abonneren op een betaald abonnement.",
-    referral_commission_info: "Plus {{ percent }}% van elke betaling die je verwijzingen doen, zolang ze geabonneerd blijven.",
+    referral_reward_info:
+      "$2,00 voor jou, $1,00 voor je vriend wanneer ze zich abonneren op een betaald abonnement.",
+    referral_commission_info:
+      "Plus {{ percent }}% van elke betaling die je verwijzingen doen, zolang ze geabonneerd blijven.",
     referral_max_credits: "Maximale verdiensten: {{ value }}",
+    referral_gauge_earned_label: "Verdiend",
     total_earned: "Totaal verdiend",
+    affiliate_program: "Affiliateprogramma",
+    affiliate_status_title: "Affiliate-partnerstatus",
+    affiliate_status_description:
+      "Je neemt deel aan het Aster Mail Affiliate Programma en verdient {{ percent }}% commissie op elke betaling van abonnees die je hebt doorverwezen, zolang ze abonnee blijven.",
+    affiliate_commission_rate: "Commissiepercentage",
+    affiliate_total_earned: "Totaal Verdiend",
+    affiliate_amount_owed: "Verschuldigd Bedrag",
+    affiliate_paid_out: "Uitbetaald",
+    affiliate_brand_badge: "Merkaffiliate",
+    affiliate_your_link_label: "Jouw Affiliatelink",
+    affiliate_lifetime_cap: "Maandelijkse verdienlimiet: {{ value }}",
+    affiliate_cap_resets_in: "Reset over {{ days }} dagen",
+    affiliate_info_hint_cap_title: "Maandelijkse Verdienlimiet",
+    affiliate_info_hint_cap:
+      "Affiliate-commissies zijn beperkt tot {{ value }} per kalendermaand. Zodra je de limiet bereikt, wordt er geen commissie meer opgebouwd totdat deze automatisch wordt gereset aan het begin van de volgende maand, over {{ days }} dagen.",
+    affiliate_info_hint_paid_out_title: "Uitbetaald",
+    affiliate_info_hint_paid_out:
+      "Het totale commissiebedrag dat al aan jou is uitbetaald via alle voltooide uitbetalingsverzoeken. Dit cijfer wordt niet elke maand gereset.",
+    affiliate_info_hint_owed_title: "Verschuldigd Bedrag",
+    affiliate_info_hint_owed:
+      "Je huidige onbetaalde commissiesaldo. Dit is het bedrag dat je kunt aanvragen als je volgende uitbetaling, en het blijft oplopen totdat je een uitbetaling aanvraagt.",
+    affiliate_info_title: "Programmavoorwaarden",
+    affiliate_info_step_commission:
+      "Commissie wordt berekend tegen een tarief van {{ percent }}% over het door de abonnee betaalde bedrag, vóór toepasselijke belastingen en kosten. Dit is terugkerend: je verdient commissie op elke verlengingsbetaling van een doorverwezen abonnee zolang deze abonnee blijft, niet alleen op de eerste betaling.",
+    affiliate_info_step_cap:
+      "De totale verdiensten zijn beperkt tot {{ value }} per kalendermaand per merkaffiliate. De limiet wordt automatisch gereset aan het begin van elke maand, en zodra de maandelijkse limiet is bereikt, wordt er geen aanvullende commissie meer opgebouwd.",
+    affiliate_info_step_payout:
+      "Voor een uitbetalingsverzoek is een minimaal openstaand saldo van $5 vereist. Uitbetalingsverzoeken worden handmatig beoordeeld door ons team en, na goedkeuring, doorgaans binnen 3-5 werkdagen verwerkt.",
+    affiliate_info_step_disclosure:
+      "Merkaffiliates zijn verplicht hun affiliate-relatie met Aster Mail duidelijk kenbaar te maken overal waar het programma wordt gepromoot, in overeenstemming met de toepasselijke regelgeving voor reclamebekendmaking.",
+    affiliate_info_step_tax:
+      "Je bent zelf volledig verantwoordelijk voor het aangeven en afdragen van eventuele belastingen over affiliate-inkomsten in jouw rechtsgebied.",
+    affiliate_info_step_tax_reporting:
+      "Als je totale commissie-inkomsten in een kalenderjaar $2.000 of meer bedragen, zijn wij verplicht je inkomsten te melden bij de bevoegde belastingdienst. Hiervoor hebben we een volledig ingevuld W-9-formulier (voor Amerikaanse personen) of W-8BEN-formulier (voor niet-Amerikaanse personen) nodig, en verdere uitbetalingen worden opgeschort totdat we dit hebben ontvangen. Als er geen geldig formulier wordt verstrekt, kan de belastingwetgeving ons verplichten een deel van toekomstige uitbetalingen in te houden. We nemen rechtstreeks contact met je op als dit op jou van toepassing is.",
+    affiliate_info_step_account_binding:
+      "Affiliate- en merkpartnerstatus is uitsluitend gekoppeld aan één Aster Mail-account. Deze kan niet worden toegekend, overgedragen of gedupliceerd over meerdere accounts van dezelfde persoon of entiteit.",
+    affiliate_info_footer_note:
+      "Deze voorwaarden gaan in op je aanmelddatum en kunnen periodiek worden bijgewerkt. Als we een materiële wijziging doorvoeren die van invloed is op je commissiepercentage, maandelijkse limiet of uitbetalingsvoorwaarden, informeren we je hier rechtstreeks over (in de app of per e-mail) voordat deze van kracht wordt. Voortgezette deelname na die kennisgeving geldt als aanvaarding van de wijziging.",
+    affiliate_payout_processing_note:
+      "Uitbetalingen worden handmatig beoordeeld en meestal binnen 3-5 werkdagen verwerkt.",
+    affiliate_payout_email_subject: "Affiliate-uitbetalingsverzoek",
+    affiliate_payout_instructions:
+      "Vraag hieronder je uitbetaling aan. We openen een vooraf ingevulde e-mail naar hello@astermail.org voor je.",
+    affiliate_copy_template: "Uitbetaling Aanvragen",
+    affiliate_template_copied: "Uitbetalingsverzoek aangemaakt",
+    affiliate_payout_email_body:
+      "Hallo,\n\nIk wil graag mijn affiliate-uitbetaling aanvragen.\n\nAanvraag-ID: {{ request_id }}\nCommissiepercentage: {{ commission_percent }}%\nTotaal verdiend: {{ total_earned }}\nAl uitbetaald: {{ total_paid_out }}\nVerschuldigd bedrag: {{ outstanding }}\n\nLaat me weten wat de volgende stappen zijn.\n\nBedankt",
+    affiliate_nothing_owed:
+      "Je hebt momenteel geen openstaande uitbetaling om aan te vragen.",
+    affiliate_payout_request_failed:
+      "Kan het uitbetalingsverzoek niet aanmaken. Probeer het opnieuw.",
+    affiliate_email_link_button: "E-maillink",
+    affiliate_payout_amount_label: "Aan te vragen bedrag",
+    affiliate_payout_amount_max: "Max",
+    affiliate_payout_amount_invalid:
+      "Voer een geldig bedrag in om aan te vragen.",
+    affiliate_payout_amount_exceeds:
+      "Dat bedrag is hoger dan je openstaande saldo.",
+    affiliate_payout_amount_below_minimum:
+      "Het minimale uitbetalingsbedrag is $5.",
+    affiliate_learn_more_irs_confirm_title: "Aster Mail verlaten?",
+    affiliate_learn_more_irs_confirm:
+      "Je gaat naar de website van de IRS (irs.gov) in een nieuw tabblad.",
+    affiliate_payout_history_title: "Uitbetalingsgeschiedenis",
+    affiliate_payout_history_empty: "Nog geen uitbetalingsverzoeken.",
+    affiliate_payout_status_pending: "In behandeling",
+    affiliate_payout_status_accepted: "Uitbetaald",
+    affiliate_payout_status_rejected: "Afgewezen",
+    affiliate_payout_requested_on: "Aangevraagd op {{ date }}",
     billing_address: "Factuuradres",
-    billing_address_description: "Voeg je factuurgegevens toe om op facturen te verschijnen.",
+    billing_address_description:
+      "Voeg je factuurgegevens toe om op facturen te verschijnen.",
     company_name: "Bedrijfsnaam",
     vat_number: "Btw-nummer",
     address_line1: "Adresregel 1",
@@ -3851,24 +4785,30 @@ export const nl = {
     country: "Land",
     save_address: "Adres opslaan",
     address_saved: "Factuuradres opgeslagen",
-    address_save_failed: "Uw factuuradres is niet opgeslagen. Een nieuwe poging zou werken. Het eerdere adres is er nog.",
+    address_save_failed:
+      "Uw factuuradres is niet opgeslagen. Een nieuwe poging zou werken. Het eerdere adres is er nog.",
     saving: "Opslaan...",
     redeem: "Inwisselen",
     redeeming: "Inwisselen...",
     data_export: "Je gegevens exporteren",
-    data_export_description: "Download een kopie van al je gegevens inclusief e-mails, contacten en instellingen.",
+    data_export_description:
+      "Download een kopie van al je gegevens inclusief e-mails, contacten en instellingen.",
     request_export: "Export aanvragen",
     requesting_export: "Aanvragen...",
-    export_requested: "Export aangevraagd. Je ontvangt een e-mail zodra deze klaar is.",
+    export_requested:
+      "Export aangevraagd. Je ontvangt een e-mail zodra deze klaar is.",
     export_ready: "Je export is klaar om te downloaden.",
     export_processing: "Export wordt voorbereid...",
     download_export: "Downloaden",
-    export_failed: "We konden uw export niet starten. Een nieuwe poging zou werken. Uw post is ongewijzigd.",
+    export_failed:
+      "We konden uw export niet starten. Een nieuwe poging zou werken. Uw post is ongewijzigd.",
     biennial: "2-jarig",
     all_star_features: "Alles in Star, plus:",
     all_nova_features: "Alles in Nova, plus:",
-    delete_account_permanent: "Deze actie is permanent en kan niet ongedaan worden gemaakt",
-    error_deleting_account: "We konden uw account op dit moment niet verwijderen. Een nieuwe poging zo werkt meestal, en hello@astermail.org kan helpen als het blijft mislukken.",
+    delete_account_permanent:
+      "Deze actie is permanent en kan niet ongedaan worden gemaakt",
+    error_deleting_account:
+      "We konden uw account op dit moment niet verwijderen. Een nieuwe poging zo werkt meestal, en hello@astermail.org kan helpen als het blijft mislukken.",
     yahoo_import: "Yahoo Mail",
     yahoo_import_description: "MBOX- of EML-export",
     icloud_import: "iCloud Mail",
@@ -3877,14 +4817,20 @@ export const nl = {
     manual_import_description: "Upload MBOX-, EML- of PST-bestanden",
     mbox_import: "MBOX",
     eml_import: "EML",
-    onboarding_compose_description: "Klik hier om een nieuwe e-mail op te stellen",
-    onboarding_search_description: "Gebruik de zoekbalk om elke e-mail te vinden",
+    onboarding_compose_description:
+      "Klik hier om een nieuwe e-mail op te stellen",
+    onboarding_search_description:
+      "Gebruik de zoekbalk om elke e-mail te vinden",
     delete_signature_title: "Handtekening verwijderen",
-    delete_signature_message: "Weet je zeker dat je deze handtekening wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_signature_message:
+      "Weet je zeker dat je deze handtekening wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
     delete_template_title: "Sjabloon verwijderen",
-    delete_template_message: "Weet je zeker dat je dit sjabloon wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
-    high_contrast_description: "Verhoog het contrast tussen tekst en achtergronden",
-    dns_instruction_add_mx: "Voeg een nieuw MX-record toe in je DNS-instellingen",
+    delete_template_message:
+      "Weet je zeker dat je dit sjabloon wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    high_contrast_description:
+      "Verhoog het contrast tussen tekst en achtergronden",
+    dns_instruction_add_mx:
+      "Voeg een nieuw MX-record toe in je DNS-instellingen",
     dns_instruction_set_dkim: "Stel de waarde in op de DKIM-sleutel hieronder",
     password_label: "Wachtwoord",
     two_factor_code_label: "Tweefactorcode",
@@ -3893,44 +4839,65 @@ export const nl = {
     delete_account_button: "Account verwijderen",
     font_size_description: "Pas de basistekstgrootte aan in de interface",
     font_size_reset: "Resetten",
-    vision_description: "Instellingen voor verbeterde zichtbaarheid en contrast",
+    vision_description:
+      "Instellingen voor verbeterde zichtbaarheid en contrast",
     reading_description: "Pas lettertype en afstand aan voor makkelijker lezen",
-    keyboard_shortcuts_description: "Gebruik sneltoetsen voor veelgebruikte acties",
-    verify_identity_export: "Verifieer je identiteit om je privésleutel te exporteren",
-    pgp_compatible_description: "Versleutelde e-mails sturen naar iedereen die PGP gebruikt.",
+    keyboard_shortcuts_description:
+      "Gebruik sneltoetsen voor veelgebruikte acties",
+    verify_identity_export:
+      "Verifieer je identiteit om je privésleutel te exporteren",
+    pgp_compatible_description:
+      "Versleutelde e-mails sturen naar iedereen die PGP gebruikt.",
     alias_is_available: "Deze alias is beschikbaar.",
     alias_not_available: "Deze alias is bezet. Een andere zou moeten werken.",
     checking_availability: "Beschikbaarheid controleren...",
     domain_promo_title: "Gebruik je eigen domein",
-    domain_promo_subtitle: "Koppel je domein om e-mail te verzenden en ontvangen met je eigen gepersonaliseerde adres",
+    domain_promo_subtitle:
+      "Koppel je domein om e-mail te verzenden en ontvangen met je eigen gepersonaliseerde adres",
     domain_promo_cta: "Koppel je domein",
-    catch_all_description: "Ontvang e-mails die naar elk adres op dit domein worden gestuurd",
-    archive_sent_label: "Kopieer verzonden e-mails naar de Verzonden-map van de externe server",
+    catch_all_description:
+      "Ontvang e-mails die naar elk adres op dit domein worden gestuurd",
+    archive_sent_label:
+      "Kopieer verzonden e-mails naar de Verzonden-map van de externe server",
     allow_sender: "Afzender toestaan",
     sender_added_to_allowlist: "Afzender toegevoegd aan de toestaanlijst",
     vacation_reply_edit: "Vakantieantwoord bewerken",
     vacation_reply_setup: "Vakantieantwoord instellen",
     show_badges_in_signature: "Badges in e-mails tonen",
-    show_badges_in_signature_description: "Toon je badges in het handtekeninggedeelte van uitgaande e-mails.",
-    signature_off_description: "Handtekeningen worden niet aan je e-mails toegevoegd.",
-    signature_content_placeholder: "Met vriendelijke groet,\nJe Naam\nje@email.com",
-    plain_text_hint: "Alleen platte tekst. Gebruik regelonderbrekingen voor opmaak.",
-    below_quoted_description: "Handtekening verschijnt na het geciteerde bericht",
-    above_quoted_description: "Handtekening verschijnt voor het geciteerde bericht",
+    show_badges_in_signature_description:
+      "Toon je badges in het handtekeninggedeelte van uitgaande e-mails.",
+    signature_off_description:
+      "Handtekeningen worden niet aan je e-mails toegevoegd.",
+    signature_content_placeholder:
+      "Met vriendelijke groet,\nJe Naam\nje@email.com",
+    plain_text_hint:
+      "Alleen platte tekst. Gebruik regelonderbrekingen voor opmaak.",
+    below_quoted_description:
+      "Handtekening verschijnt na het geciteerde bericht",
+    above_quoted_description:
+      "Handtekening verschijnt voor het geciteerde bericht",
     signature_alias: "Toepassen op",
     signature_alias_default: "Alle aliassen (standaard)",
-    signature_alias_in_use: "Een andere handtekening gebruikt deze alias al. Een andere zou moeten werken.",
+    signature_alias_in_use:
+      "Een andere handtekening gebruikt deze alias al. Een andere zou moeten werken.",
     signature_placement_inherit: "Globale instelling gebruiken",
-    signature_alias_conflict_error: "Een andere handtekening gebruikt deze alias al. Een andere alias hier zou moeten werken.",
-    spam_filtering_description: "Configureer hoe spam wordt gedetecteerd en beheerd.",
+    signature_alias_conflict_error:
+      "Een andere handtekening gebruikt deze alias al. Een andere alias hier zou moeten werken.",
+    spam_filtering_description:
+      "Configureer hoe spam wordt gedetecteerd en beheerd.",
     import_how_it_works: "Hoe het werkt",
     import_oauth_title: "OAuth-verbinding",
-    import_oauth_description: "Verbind je Gmail-, Outlook- of Yahoo-account met een enkele klik. We importeren en versleutelen automatisch je e-mails op je apparaat.",
+    import_oauth_description:
+      "Verbind je Gmail-, Outlook- of Yahoo-account met een enkele klik. We importeren en versleutelen automatisch je e-mails op je apparaat.",
     import_manual_title: "Handmatige import",
-    import_manual_step_1: "Exporteer je e-mails van je huidige provider als MBOX-, EML- of PST-bestanden",
-    import_manual_step_2: "Gebruik voor Gmail Google Takeout. Exporteer voor Outlook als PST of MBOX",
-    import_manual_step_3: "Selecteer je provider hierboven en klik op \"Handmatig\" om je bestanden te uploaden",
-    import_manual_step_4: "Je e-mails worden versleuteld op je apparaat voordat ze worden opgeslagen",
+    import_manual_step_1:
+      "Exporteer je e-mails van je huidige provider als MBOX-, EML- of PST-bestanden",
+    import_manual_step_2:
+      "Gebruik voor Gmail Google Takeout. Exporteer voor Outlook als PST of MBOX",
+    import_manual_step_3:
+      'Selecteer je provider hierboven en klik op "Handmatig" om je bestanden te uploaden',
+    import_manual_step_4:
+      "Je e-mails worden versleuteld op je apparaat voordat ze worden opgeslagen",
     import_oauth_button: "OAuth",
     import_manual_button: "Handmatig",
     import_oauth_coming_soon: "Binnenkort beschikbaar",
@@ -3943,33 +4910,49 @@ export const nl = {
     connected_accounts_syncing: "Synchroniseren...",
     connected_accounts_sync_now: "Nu synchroniseren",
     connected_accounts_disconnect: "Ontkoppelen",
-    connected_accounts_error: "Dit gekoppelde account heeft moeite met synchroniseren, en we proberen automatisch opnieuw.",
-    connected_accounts_reauth_needed: "Re-authorization required - click Reconnect to fix.",
+    connected_accounts_error:
+      "Dit gekoppelde account heeft moeite met synchroniseren, en we proberen automatisch opnieuw.",
+    connected_accounts_reauth_needed:
+      "Re-authorization required - click Reconnect to fix.",
     connected_accounts_reconnect: "Reconnect",
     connected_accounts_enabled: "Ingeschakeld",
     connected_accounts_disabled: "Uitgeschakeld",
     oauth_import_success: "{{ provider }}-account succesvol verbonden",
-    oauth_import_error: "Het verbinden van uw account heeft niet gewerkt: {{reason}}. Een nieuwe poging of een andere provider werkt.",
+    oauth_import_error:
+      "Het verbinden van uw account heeft niet gewerkt: {{reason}}. Een nieuwe poging of een andere provider werkt.",
     oauth_import_loading: "Verbinden met {{ provider }}...",
-    and_logic_hint: "Meerdere voorwaarden gebruiken EN-logica, dus alle moeten overeenkomen",
-    feature_locked: "Dit is onderdeel van het {{plan}}-abonnement. Een upgrade schakelt het in.",
+    and_logic_hint:
+      "Meerdere voorwaarden gebruiken EN-logica, dus alle moeten overeenkomen",
+    feature_locked:
+      "Dit is onderdeel van het {{plan}}-abonnement. Een upgrade schakelt het in.",
     available_on_plan: "Beschikbaar op {{plan}} en hoger",
     carddav_locked: "Contacten importeren van CardDAV-compatibele diensten",
     contact_merge_locked: "Duplicaatcontacten intelligent samenvoegen",
-    encrypted_export_locked: "Je gegevens exporteren met end-to-end-versleuteling",
-    vacation_reply_locked: "Automatische antwoorden stellen je in staat automatische reacties te versturen wanneer je afwezig bent",
-    catch_all_locked: "Catch-all ontvangt e-mails die naar elk adres op je domein worden gestuurd",
-    auto_forward_locked: "Inkomende e-mails automatisch doorsturen naar een ander adres",
-    subscription_manager_locked: "Beheer nieuwsbriefabonnementen en massaal uitschrijven",
-    quiet_hours_locked: "Demp meldingen tijdens specifieke uren om gefocust te blijven",
+    encrypted_export_locked:
+      "Je gegevens exporteren met end-to-end-versleuteling",
+    vacation_reply_locked:
+      "Automatische antwoorden stellen je in staat automatische reacties te versturen wanneer je afwezig bent",
+    catch_all_locked:
+      "Catch-all ontvangt e-mails die naar elk adres op je domein worden gestuurd",
+    auto_forward_locked:
+      "Inkomende e-mails automatisch doorsturen naar een ander adres",
+    subscription_manager_locked:
+      "Beheer nieuwsbriefabonnementen en massaal uitschrijven",
+    quiet_hours_locked:
+      "Demp meldingen tijdens specifieke uren om gefocust te blijven",
     folder_lock_locked: "Bescherm gevoelige mappen met een extra wachtwoord",
-    key_rotation_locked: "Stel aangepaste intervallen in voor automatische versleutelingssleutelrotatie",
-    receipt_tracking_locked: "Automatisch aankoopgegevens extraheren uit ontvangstbewijzen per e-mail",
+    key_rotation_locked:
+      "Stel aangepaste intervallen in voor automatische versleutelingssleutelrotatie",
+    receipt_tracking_locked:
+      "Automatisch aankoopgegevens extraheren uit ontvangstbewijzen per e-mail",
     mail_section: "E-mail",
     about: "Over",
-    scan_qr_code_description: "Scan de QR-code met de authenticator-app van je keuze",
-    cant_scan_enter_manually: "Kun je niet scannen? Voer deze code handmatig in:",
-    save_backup_codes_description: "Bewaar deze back-upcodes op een veilige plek. Je kunt ze gebruiken om toegang te krijgen tot je account als je je authenticator-apparaat verliest.",
+    scan_qr_code_description:
+      "Scan de QR-code met de authenticator-app van je keuze",
+    cant_scan_enter_manually:
+      "Kun je niet scannen? Voer deze code handmatig in:",
+    save_backup_codes_description:
+      "Bewaar deze back-upcodes op een veilige plek. Je kunt ze gebruiken om toegang te krijgen tot je account als je je authenticator-apparaat verliest.",
     copy_all_codes: "Alle codes kopiëren",
     backup_codes: "Back-upcodes",
     regenerate_backup_codes: "Back-upcodes opnieuw genereren",
@@ -3985,61 +4968,76 @@ export const nl = {
     keys_rotated_successfully: "Sleutels succesvol geroteerd",
     encryption_keys_updated: "Je versleutelingssleutels zijn bijgewerkt",
     current_key_age: "Huidige sleutelleeftijd",
-    rotate_keys_description_manual: "Voer je wachtwoord in om je versleutelingssleutels te roteren. Oude e-mails blijven leesbaar.",
-    rotate_keys_description_required: "Je versleutelingssleutels zijn toe aan rotatie. Voer je wachtwoord in om nieuwe sleutels te genereren en forward secrecy te behouden.",
+    rotate_keys_description_manual:
+      "Voer je wachtwoord in om je versleutelingssleutels te roteren. Oude e-mails blijven leesbaar.",
+    rotate_keys_description_required:
+      "Je versleutelingssleutels zijn toe aan rotatie. Voer je wachtwoord in om nieuwe sleutels te genereren en forward secrecy te behouden.",
     rotating: "Roteren...",
     rotate_keys: "Sleutels roteren",
     key_rotation_data_loss_warning:
       "Na rotatie wordt je vorige sleutel ingetrokken. E-mails die uitsluitend met je oude sleutel zijn versleuteld, kunnen niet meer worden ontsleuteld. Dit kan niet ongedaan worden gemaakt.",
     bulk_unsubscribe: "Bulk uitschrijven",
     senders_unsubscribed: "{{ count }} afzenders uitgeschreven",
-    opened_in_browser: "{{ count }} gearchiveerd - handmatige bevestiging kan nodig zijn",
+    opened_in_browser:
+      "{{ count }} gearchiveerd - handmatige bevestiging kan nodig zijn",
     could_not_unsubscribe: "{{ count }} konden niet worden uitgeschreven",
     unsubscribing: "Uitschrijven...",
     scanning: "Scannen...",
     all_clear: "Alles in orde",
     no_subscriptions_found: "Geen abonnementen gevonden",
     add_security_key: "Beveiligingssleutel toevoegen",
-    addon_limit_one_active: "U heeft al een actieve opslag-add-on. Annuleer deze voordat u een nieuwe aanschaft.",
+    addon_limit_one_active:
+      "U heeft al een actieve opslag-add-on. Annuleer deze voordat u een nieuwe aanschaft.",
     alias_local_part_placeholder: "mijnalias",
     allowlist_tab: "Toelatingslijst",
     attachments_suffix: "bijlagen",
-    auto_delete_spam_description: "Spamberichten ouder dan dit worden definitief verwijderd.",
+    auto_delete_spam_description:
+      "Spamberichten ouder dan dit worden definitief verwijderd.",
     auto_forward_tab_label: "Automatisch doorsturen",
     billing_postal: "Postcode",
     billing_postal_placeholder: "1234 AB",
-    block_remote_css_description: "Voorkom dat e-mails stijlbladen laden van externe servers",
+    block_remote_css_description:
+      "Voorkom dat e-mails stijlbladen laden van externe servers",
     block_remote_css_label: "Externe CSS blokkeren",
     strip_exif_on_compose_label: "Afbeeldingsmetadata verwijderen",
-    strip_exif_on_compose_description: "Verwijder EXIF- en andere metadata uit afbeeldingen voor het verzenden om uw locatie en apparaatinformatie te beschermen",
+    strip_exif_on_compose_description:
+      "Verwijder EXIF- en andere metadata uit afbeeldingen voor het verzenden om uw locatie en apparaatinformatie te beschermen",
     account_protection_title: "Accountbeveiliging",
     account_protection_weak: "Zwak",
     account_protection_fair: "Matig",
     account_protection_partial: "Gedeeltelijk",
     account_protection_strong: "Sterk",
-    account_protection_hint_weak: "Uw account loopt risico. Schakel nu meer beveiligingsopties in.",
+    account_protection_hint_weak:
+      "Uw account loopt risico. Schakel nu meer beveiligingsopties in.",
     account_protection_hint_fair: "Uw account heeft meer bescherming nodig.",
-    account_protection_hint_partial: "Schakel meer opties in voor sterkere bescherming.",
+    account_protection_hint_partial:
+      "Schakel meer opties in voor sterkere bescherming.",
     account_protection_hint_strong: "Uw account is goed beveiligd.",
     account_security_percent_title: "Uw accountbeveiliging is {{percent}}%",
-    account_security_review_subtitle: "Controleer regelmatig uw accountbeveiligingsinstellingen en werk uw wachtwoord bij.",
+    account_security_review_subtitle:
+      "Controleer regelmatig uw accountbeveiligingsinstellingen en werk uw wachtwoord bij.",
     account_security_dismiss: "Sluiten",
     account_security_review_cta: "Beveiliging bekijken",
+    account_security_dont_show_again: "Niet meer tonen",
     protection_breakdown_title: "Beveiligingsdetails",
     criterion_two_factor: "Tweefactorauthenticatie",
     criterion_recovery_email: "Geverifieerd herstel-e-mailadres",
     criterion_auto_lock: "Automatisch vergrendelen",
     criterion_login_alerts: "Aanmeldingswaarschuwingen",
     criterion_forward_secrecy: "Voorwaartse geheimhouding",
-    block_remote_fonts_description: "Voorkom dat e-mails lettertypen laden van externe servers",
+    block_remote_fonts_description:
+      "Voorkom dat e-mails lettertypen laden van externe servers",
     block_remote_fonts_label: "Externe lettertypen blokkeren",
-    block_remote_images_description: "Voorkom dat e-mails afbeeldingen laden van externe servers",
+    block_remote_images_description:
+      "Voorkom dat e-mails afbeeldingen laden van externe servers",
     block_remote_images_label: "Externe afbeeldingen blokkeren",
     images_section_title: "Afbeeldingen",
     block_spy_pixels: "Spionpixels blokkeren",
-    block_spy_pixels_description: "Blokkeer onzichtbare tracking-pixels in e-mails",
+    block_spy_pixels_description:
+      "Blokkeer onzichtbare tracking-pixels in e-mails",
     block_tracking_links: "Traceerlinks blokkeren",
-    block_tracking_links_description: "Verwijder tracking-parameters uit links in e-mails",
+    block_tracking_links_description:
+      "Verwijder tracking-parameters uit links in e-mails",
     blocked_tab: "Geblokkeerd",
     browser_on_os: "{{browser}} op {{os}}",
     card_cvc: "CVC",
@@ -4047,7 +5045,8 @@ export const nl = {
     card_number: "Kaartnummer",
     cardholder_name: "Naam kaarthouder",
     cardholder_name_placeholder: "Jan de Vries",
-    cashapp_redirect_notice: "U wordt doorgestuurd naar Cash App om uw betaling te voltooien",
+    cashapp_redirect_notice:
+      "U wordt doorgestuurd naar Cash App om uw betaling te voltooien",
     catch_all_disabled: "Catch-all uitgeschakeld",
     catch_all_enabled_toast: "Catch-all ingeschakeld",
     checkout_billing_email: "Factuuradres e-mail",
@@ -4064,9 +5063,12 @@ export const nl = {
     checkout_method_wallet: "Digitale portemonnee",
     checkout_pay_now: "Nu betalen",
     composing_and_replies: "Opstellen en beantwoorden",
-    confirm_remove_key: "Weet u zeker dat u deze beveiligingssleutel wilt verwijderen?",
-    connect_modal_description: "Verbind {{provider}} om e-mails te synchroniseren",
-    connect_modal_privacy_note: "Uw inloggegevens worden versleuteld opgeslagen en worden nooit gedeeld",
+    confirm_remove_key:
+      "Weet u zeker dat u deze beveiligingssleutel wilt verwijderen?",
+    connect_modal_description:
+      "Verbind {{provider}} om e-mails te synchroniseren",
+    connect_modal_privacy_note:
+      "Uw inloggegevens worden versleuteld opgeslagen en worden nooit gedeeld",
     connect_modal_title: "{{provider}} verbinden",
     connect_provider_name_google: "Google",
     connect_provider_name_microsoft: "Microsoft",
@@ -4081,15 +5083,18 @@ export const nl = {
     credit_task_ios_hint_coming: "Binnenkort beschikbaar voor iOS",
     credit_task_ios_title: "Aster voor iOS",
     credit_task_refer_cta: "Nu doorverwijzen",
-    credit_task_refer_hint: "Verdien credits voor elke vriend die u doorverwijst",
+    credit_task_refer_hint:
+      "Verdien credits voor elke vriend die u doorverwijst",
     credit_task_refer_title: "Vrienden doorverwijzen",
     credit_type_install_android: "Android-app geinstalleerd",
     credit_type_install_desktop: "Desktop-app geinstalleerd",
     credit_type_install_ios: "iOS-app geinstalleerd",
     credits_balance_label: "Huidig saldo",
-    credits_balance_note: "Credits worden automatisch toegepast bij uw volgende verlenging",
+    credits_balance_note:
+      "Credits worden automatisch toegepast bij uw volgende verlenging",
     credits_shop_plans: "Abonnementen bekijken",
-    credits_subtitle: "Verdien credits door de app te installeren en vrienden door te verwijzen",
+    credits_subtitle:
+      "Verdien credits door de app te installeren en vrienden door te verwijzen",
     credits_title: "Aster-credits",
     crypto_cancelled_toast: "Cryptobetaling geannuleerd",
     crypto_modal_confirm: "Betaling bevestigen",
@@ -4108,10 +5113,14 @@ export const nl = {
     crypto_term_3mo: "3 maanden",
     crypto_term_6mo: "6 maanden",
     custom_domains_suffix: "aangepaste domeinen",
-    delete_domain_cooldown: "Na verwijdering kan dit domein 30 dagen lang niet opnieuw worden toegevoegd.",
-    delete_domain_warning: "Weet u zeker dat u dit domein wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
-    desktop_bridge_description: "Gebruik Aster Mail met e-mailclients als Thunderbird of Apple Mail",
-    desktop_bridge_install_hint: "Installeer de desktopbrug om aan de slag te gaan",
+    delete_domain_cooldown:
+      "Na verwijdering kan dit domein 30 dagen lang niet opnieuw worden toegevoegd.",
+    delete_domain_warning:
+      "Weet u zeker dat u dit domein wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    desktop_bridge_description:
+      "Gebruik Aster Mail met e-mailclients als Thunderbird of Apple Mail",
+    desktop_bridge_install_hint:
+      "Installeer de desktopbrug om aan de slag te gaan",
     desktop_bridge_set_up: "{{client}} instellen",
     bridge: "Bridge",
     bridge_description: "Connect Aster to any IMAP or SMTP mail client",
@@ -4119,27 +5128,35 @@ export const nl = {
     bridge_download_msi: "MSI",
     bridge_app_name: "Aster Bridge",
     bridge_windows_name: "Windows",
-    bridge_windows_desc: "Download the installer and run Aster Bridge on your Windows machine.",
+    bridge_windows_desc:
+      "Download the installer and run Aster Bridge on your Windows machine.",
     bridge_linux_name: "Linux",
-    bridge_linux_desc: "AppImage, .deb, and .rpm packages available for all major distributions.",
+    bridge_linux_desc:
+      "AppImage, .deb, and .rpm packages available for all major distributions.",
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
     bridge_macos_name: "macOS",
-    bridge_macos_desc: "Download the universal DMG for Apple Silicon and Intel Macs.",
+    bridge_macos_desc:
+      "Download the universal DMG for Apple Silicon and Intel Macs.",
     bridge_macos_cta: "Download for macOS",
     bridge_coming_soon: "Coming soon",
     bridge_info_link: "Learn more",
-    bridge_popover_description: "Een lichtgewicht lokale proxy die op uw bureaublad draait. Het decodeert uw mailbox en serveert deze via standaard IMAP en SMTP, zodat elke e-mailclient er verbinding mee kan maken.",
+    bridge_popover_description:
+      "Een lichtgewicht lokale proxy die op uw bureaublad draait. Het decodeert uw mailbox en serveert deze via standaard IMAP en SMTP, zodat elke e-mailclient er verbinding mee kan maken.",
     bridge_installations: "Verbonden installaties",
-    bridge_installations_description: "Elke vermelding is een Bridge-app gekoppeld aan uw account. Het intrekken ervan verbreekt alle e-mailclients die die installatie gebruiken.",
+    bridge_installations_description:
+      "Elke vermelding is een Bridge-app gekoppeld aan uw account. Het intrekken ervan verbreekt alle e-mailclients die die installatie gebruiken.",
     bridge_installations_empty: "Geen Bridge-installaties verbonden.",
     bridge_revoke_title: "Installatie intrekken?",
-    bridge_revoke_message: "Dit verbreekt {{ name }} en alle e-mailclients die het gebruiken. U kunt opnieuw verbinding maken door Bridge opnieuw te koppelen.",
-    bridge_revoke_all_message: "Dit verbreekt alle Bridge-installaties en alle e-mailclients die ze gebruiken.",
+    bridge_revoke_message:
+      "Dit verbreekt {{ name }} en alle e-mailclients die het gebruiken. U kunt opnieuw verbinding maken door Bridge opnieuw te koppelen.",
+    bridge_revoke_all_message:
+      "Dit verbreekt alle Bridge-installaties en alle e-mailclients die ze gebruiken.",
     bridge_active_now: "Nu actief",
     bridge_support_title: "Hulp nodig?",
-    bridge_support_description: "Krijg hulp bij het instellen van Aster Bridge met uw e-mailclient.",
+    bridge_support_description:
+      "Krijg hulp bij het instellen van Aster Bridge met uw e-mailclient.",
     bridge_support_help: "Helpcentrum",
     bridge_support_discord: "Discord-community",
     bridge_support_x: "Volgen op X",
@@ -4147,7 +5164,8 @@ export const nl = {
     bridge_support_reddit: "Reddit",
     desktop_bridge_title: "Desktopbrug",
     desktop_bridge_upgrade_cta: "Upgraden om te ontgrendelen",
-    desktop_bridge_upgrade_description: "De desktopbrug is beschikbaar voor betaalde abonnees",
+    desktop_bridge_upgrade_description:
+      "De desktopbrug is beschikbaar voor betaalde abonnees",
     desktop_bridge_upgrade_title: "Upgrade vereist",
     dev_active_count: "{{count}} actief",
     dev_checking: "Controleren...",
@@ -4171,18 +5189,24 @@ export const nl = {
     dev_unregistered: "Niet geregistreerd",
     dev_unsupported: "Niet ondersteund",
     disconnect_button: "Verbinding verbreken",
-    disconnect_confirm: "Weet u zeker dat u de verbinding met dit account wilt verbreken?",
-    disconnect_delete_messages_label: "Alle gesynchroniseerde berichten verwijderen",
-    disconnect_delete_messages_label_count: "Ook de {{ count }} geïmporteerde e-mails verwijderen",
+    disconnect_confirm:
+      "Weet u zeker dat u de verbinding met dit account wilt verbreken?",
+    disconnect_delete_messages_label:
+      "Alle gesynchroniseerde berichten verwijderen",
+    disconnect_delete_messages_label_count:
+      "Ook de {{ count }} geïmporteerde e-mails verwijderen",
     disconnect_success: "Account verbroken",
-    disconnect_deleted_success: "Account verbroken, {{ count }} e-mails verwijderd",
+    disconnect_deleted_success:
+      "Account verbroken, {{ count }} e-mails verwijderd",
     disconnect_title: "Verbinding verbreken",
     discount_first_month: "Eerste maand",
     discount_first_year: "Eerste jaar",
     dkim_rotated: "DKIM-sleutel geroteerd",
-    dkim_rotated_warning_body: "Werk uw DNS-records bij om de nieuwe DKIM-sleutel te activeren. E-mails kunnen worden geweigerd totdat de DNS is bijgewerkt.",
+    dkim_rotated_warning_body:
+      "Werk uw DNS-records bij om de nieuwe DKIM-sleutel te activeren. E-mails kunnen worden geweigerd totdat de DNS is bijgewerkt.",
     dkim_rotated_warning_title: "DNS-update vereist",
-    domain_pending_hint: "Uw domein is in behandeling. Voeg de vereiste DNS-records toe om het te verifiëren.",
+    domain_pending_hint:
+      "Uw domein is in behandeling. Voeg de vereiste DNS-records toe om het te verifiëren.",
     domain_placeholder: "voorbeeld.nl",
     downgrade_scheduled: "Downgrade gepland",
     email_aliases_suffix: "e-mailaliassen",
@@ -4194,37 +5218,57 @@ export const nl = {
     error_tip_spf: "Voeg een SPF TXT-record toe aan uw DNS",
     error_tip_txt: "Voeg het vereiste TXT-verificatierecord toe aan uw DNS",
     export_cancel: "Exporteren annuleren",
-    export_cancelled_partial_saved: "Exporteren geannuleerd. Voortgang opgeslagen in {{location}}.",
+    export_cancelled_partial_saved:
+      "Exporteren geannuleerd. Voortgang opgeslagen in {{location}}.",
     export_complete_bytes: "Geschreven: {{bytes}}",
     export_complete_errors: "Fouten: {{count}}",
-    export_complete_errors_in_mbox_hint: "Sommige berichten konden niet worden geexporteerd",
+    export_complete_errors_in_mbox_hint:
+      "Sommige berichten konden niet worden geexporteerd",
     export_complete_location: "Opgeslagen op: {{location}}",
     export_complete_summary: "{{count}} van {{total}} berichten geëxporteerd.",
     export_description: "Exporteer uw e-mails naar een lokaal bestand",
     export_destination_chosen: "Bestemming: {{location}}",
-    export_destination_fallback_notice: "Het bestand wordt opgeslagen in de downloadmap",
+    export_destination_fallback_notice:
+      "Het bestand wordt opgeslagen in de downloadmap",
     export_destination_pick_file: "Bestand kiezen",
     export_destination_pick_folder: "Map kiezen",
-    export_error_no_messages_match: "Geen berichten komen overeen met uw exportcriteria",
+    export_error_no_messages_match:
+      "Geen berichten komen overeen met uw exportcriteria",
     export_error_no_vault: "Geen versleutelde opslag gevonden",
     export_error_write_fatal: "Schrijffout - export mislukt",
-    export_format_eml_hint: "Afzonderlijke .eml-bestanden, compatibel met de meeste e-mailclients",
+    export_format_eml_hint:
+      "Afzonderlijke .eml-bestanden, compatibel met de meeste e-mailclients",
     export_format_eml_name: "EML-bestanden",
-    export_format_mbox_hint: "Enkel MBOX-bestand, compatibel met Thunderbird en andere clients",
+    export_format_mbox_hint:
+      "Enkel MBOX-bestand, compatibel met Thunderbird en andere clients",
     export_format_mbox_name: "MBOX-bestand",
     export_progress_bytes_written: "{{bytes}} geschreven",
     export_progress_current_folder: "Huidige map: {{folder}}",
     export_progress_eta: "Nog ongeveer {{duration}}",
     export_progress_messages: "{{processed}} van {{total}} berichten",
-    export_rate_limited_paused: "Exporteren gepauzeerd vanwege snelheidslimiet - wordt automatisch hervat",
+    export_rate_limited_paused:
+      "Exporteren gepauzeerd vanwege snelheidslimiet - wordt automatisch hervat",
     export_reauth_failed: "Herverificatie mislukt",
+    export_step_verify_title: "Bevestig dat jij het bent",
+    export_verify_description:
+      "Bevestig je accountwachtwoord voordat we deze export voorbereiden.",
+    export_verify_submit: "Verifiëren",
+    export_security_section_title: "Verificatie vereist",
+    export_security_password_row_title: "Accountwachtwoord & 2FA",
+    export_security_password_row_body:
+      "Je bevestigt je wachtwoord, en je authenticatorcode als 2FA is ingeschakeld, vóór elke export.",
+    export_security_vault_row_title: "Wachtwoordzin voor versleutelingskluis",
+    export_security_vault_row_body:
+      "Je lokale kluiswachtwoordzin bevestigt dit apparaat voordat e-mail wordt ontsleuteld voor export.",
+    export_security_required_badge: "Vereist",
     export_reauth_prompt: "Voer uw wachtwoord in om door te gaan",
     export_reauth_submit: "Verifiëren",
     export_scope_contacts_body: "Exporteer uw contacten als vCard",
     export_scope_contacts_title: "Contacten",
     export_scope_date_from: "Van datum",
     export_scope_date_to: "Tot datum",
-    export_scope_empty_warning: "Selecteer ten minste een item om te exporteren",
+    export_scope_empty_warning:
+      "Selecteer ten minste een item om te exporteren",
     export_scope_folders_label: "Mappen",
     export_scope_labels_label: "Labels",
     export_scope_mail_body: "Exporteer uw e-mails in het gekozen formaat",
@@ -4241,7 +5285,8 @@ export const nl = {
     export_step_reauth_title: "Verificatie",
     export_step_scope_title: "Bereik",
     export_title: "E-mail exporteren",
-    export_warning_body: "De export bevat versleutelde gegevens. Bewaar het exportbestand veilig.",
+    export_warning_body:
+      "De export bevat versleutelde gegevens. Bewaar het exportbestand veilig.",
     export_warning_confirm: "Ik begrijp het",
     export_warning_title: "Beveiligingswaarschuwing",
     external_accounts_tab: "Externe accounts",
@@ -4265,12 +5310,14 @@ export const nl = {
     ghost_alias_expires_in: "Verloopt over {{ days }} dag(en)",
     ghost_alias_extend: "Verlengen",
     ghost_alias_grace_until: "Respijtperiode tot {{date}}",
-    ghost_aliases_description: "Tijdelijke e-mailadressen die automatisch verlopen",
+    ghost_aliases_description:
+      "Tijdelijke e-mailadressen die automatisch verlopen",
     ghost_aliases_empty: "Geen tijdelijke aliassen",
     ghost_aliases_compose_cta: "Opstellen met Ghost-modus",
     ghost_aliases_this_month: "Deze maand: {{count}}",
     ghost_aliases_title: "Tijdelijke aliassen",
-    import_delete_confirm_description: "Weet u zeker dat u deze importtaak wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    import_delete_confirm_description:
+      "Weet u zeker dat u deze importtaak wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
     import_delete_confirm_title: "Import verwijderen",
     import_folder_prep_status: "Mappen voorbereiden... ({{done}}/{{total}})",
     import_source_csv: "CSV",
@@ -4317,7 +5364,8 @@ export const nl = {
     passkeys_desktop_note:
       "Toegangssleutels kunnen worden toegevoegd in de Aster-webapp op app.astermail.org. Je kunt bestaande toegangssleutels hier nog steeds bekijken en verwijderen.",
     app_lock_pin: "PIN-vergrendeling",
-    app_lock_pin_description: "Vereist een PIN om Aster Mail in je browser te openen",
+    app_lock_pin_description:
+      "Vereist een PIN om Aster Mail in je browser te openen",
     app_lock_choose_digits: "Kies PIN-lengte",
     app_lock_digits_4: "4 cijfers",
     app_lock_digits_6: "6 cijfers",
@@ -4328,13 +5376,15 @@ export const nl = {
     app_lock_enabled_toast: "App-vergrendeling ingeschakeld",
     app_lock_disabled_toast: "App-vergrendeling uitgeschakeld",
     app_lock_change_pin: "PIN wijzigen",
-    app_lock_enter_to_disable: "Voer je PIN in om de vergrendeling uit te schakelen",
+    app_lock_enter_to_disable:
+      "Voer je PIN in om de vergrendeling uit te schakelen",
     app_lock_enter_to_change: "Voer je huidige PIN in om door te gaan",
     app_lock_wrong_pin: "Onjuiste PIN",
     app_lock_locked_out_for: "Te veel pogingen - probeer opnieuw over {{s}}s",
     vanguard_title: "Aster Vanguard",
     vanguard_description: "Alleen Nova+. Meer functies komen binnenkort.",
-    vanguard_info: "Aster Vanguard activeert geavanceerde beveiligingsfuncties voor journalisten, advocaten en personen met verhoogd risico. Inclusief PIN-appvergrendeling, verbeterde sessiebeheer en meer.",
+    vanguard_info:
+      "Aster Vanguard activeert geavanceerde beveiligingsfuncties voor journalisten, advocaten en personen met verhoogd risico. Inclusief PIN-appvergrendeling, verbeterde sessiebeheer en meer.",
     vanguard_active: "Vanguard Actief",
     vanguard_learn_more: "Meer informatie",
     vanguard_enable: "Vanguard inschakelen",
@@ -4343,35 +5393,44 @@ export const nl = {
     vanguard_upgrade_cta: "Upgraden naar Nova",
     vanguard_what_you_get: "Wat je krijgt:",
     vanguard_feature_app_lock: "PIN-appvergrendeling",
-    vanguard_feature_app_lock_desc: "Vergrendel de app met een PIN als je weggaat",
+    vanguard_feature_app_lock_desc:
+      "Vergrendel de app met een PIN als je weggaat",
     vanguard_feature_enhanced_monitoring: "Verbeterde beveiligingsmonitoring",
-    vanguard_feature_enhanced_monitoring_desc: "Aanvullende beveiliging voor je account",
+    vanguard_feature_enhanced_monitoring_desc:
+      "Aanvullende beveiliging voor je account",
     vanguard_confirm_disable_title: "Aster Vanguard uitschakelen?",
-    vanguard_confirm_disable_desc: "Dit schakelt alle Vanguard-functies uit, inclusief je PIN-appvergrendeling. Je kunt het op elk moment opnieuw inschakelen.",
+    vanguard_confirm_disable_desc:
+      "Dit schakelt alle Vanguard-functies uit, inclusief je PIN-appvergrendeling. Je kunt het op elk moment opnieuw inschakelen.",
     vanguard_enabled_toast: "Aster Vanguard ingeschakeld",
     vanguard_disabled_toast: "Aster Vanguard uitgeschakeld",
     lockdown_title: "Lockdown Mode",
-    lockdown_description: "Blocks all external content, strips notification previews, disables real-time sync, and requires confirmation before opening links. No bypass while active.",
+    lockdown_description:
+      "Blocks all external content, strips notification previews, disables real-time sync, and requires confirmation before opening links. No bypass while active.",
     lockdown_active: "Lockdown Active",
     lockdown_enable: "Enable Lockdown Mode",
     lockdown_disable: "Disable Lockdown Mode",
     lockdown_enabled_toast: "Lockdown Mode enabled",
     lockdown_disabled_toast: "Lockdown Mode disabled",
     lockdown_confirm_disable_title: "Disable Lockdown Mode?",
-    lockdown_confirm_disable_desc: "This will allow external content, link tracking, and notification previews. You can re-enable it at any time.",
+    lockdown_confirm_disable_desc:
+      "This will allow external content, link tracking, and notification previews. You can re-enable it at any time.",
     lockdown_notification_generic: "New message",
     lockdown_content_blocked_note: "Lockdown Mode active",
     lockdown_link_warning_title: "Opening external link",
     lockdown_link_warning_body: "This will reveal your IP address to:",
-    lockdown_info: "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+    lockdown_info:
+      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
     lockdown_badge: "Lockdown",
-    lockdown_must_disable_first: "Disable Lockdown Mode before disabling Vanguard.",
+    lockdown_must_disable_first:
+      "Disable Lockdown Mode before disabling Vanguard.",
     oauth_folders_error: "Mappen aanmaken mislukt",
     oauth_folders_partial: "{{count}} mappen konden niet worden aangemaakt",
     oauth_folders_ready: "Mappen klaar",
     oauth_reason_account_creation_failed: "Account aanmaken mislukt",
-    oauth_reason_email_not_found: "We could not retrieve your email address from the provider. Try again - if it keeps failing, use the manual IMAP option instead.",
-    oauth_reason_session_expired: "The sign-in session expired. Please try again.",
+    oauth_reason_email_not_found:
+      "We could not retrieve your email address from the provider. Try again - if it keeps failing, use the manual IMAP option instead.",
+    oauth_reason_session_expired:
+      "The sign-in session expired. Please try again.",
     oauth_reason_encryption_error: "Versleutelingsfout",
     oauth_reason_expired_state: "Sessie verlopen",
     oauth_reason_internal_error: "Interne fout",
@@ -4386,8 +5445,10 @@ export const nl = {
     oauth_setting_up_folders: "Mappen instellen...",
     oldest_first: "Oudste eerst",
     or_pay_with_card: "Of betalen met kaart",
-    password_breach_warning: "Dit wachtwoord is gevonden in een datalek. Gebruik een ander wachtwoord.",
-    payment_processing_delayed: "Betaalverwerking wordt vertraagd. Controleer uw betaalmethode.",
+    password_breach_warning:
+      "Dit wachtwoord is gevonden in een datalek. Gebruik een ander wachtwoord.",
+    payment_processing_delayed:
+      "Betaalverwerking wordt vertraagd. Controleer uw betaalmethode.",
     pdf: "PDF",
     per_two_years: "per twee jaar",
     plan_f_alias_avatars: "Alias-avatars",
@@ -4395,8 +5456,10 @@ export const nl = {
     plan_f_signed_in_accounts: "Aangemelde accounts",
     plan_f_tracker_protection: "Trackerbeveiliging",
     promo_forever: "Van toepassing voor de hele abonnementsperiode",
-    promo_once_reverts: "Geldt alleen voor je {{period}}, daarna weer {{price}}{{interval}}",
-    promo_then_reverts: "Daarna terug naar {{price}}{{interval}} na {{months}} maanden",
+    promo_once_reverts:
+      "Geldt alleen voor je {{period}}, daarna weer {{price}}{{interval}}",
+    promo_then_reverts:
+      "Daarna terug naar {{price}}{{interval}} na {{months}} maanden",
     provider_cf_add_mx: "MX-records toevoegen in Cloudflare",
     provider_cf_add_record: "Record toevoegen in Cloudflare",
     provider_cf_add_txt_record: "TXT-record toevoegen in Cloudflare",
@@ -4418,29 +5481,42 @@ export const nl = {
     reading_and_conversations: "Lezen en gesprekken",
     record_not_detected: "Record niet gedetecteerd",
     academic_discount_title: "Studenten- en journalistenkorting",
-    academic_discount_description: "30% korting op individuele abonnementen voor geverifieerde studenten en journalisten.",
-    academic_intro: "Verifieer je academische e-mailadres en ontvang een persoonlijke kortingscode van 30% voor de abonnementen Star, Nova en Supernova.",
+    academic_discount_description:
+      "30% korting op individuele abonnementen voor geverifieerde studenten en journalisten.",
+    academic_intro:
+      "Verifieer je academische e-mailadres en ontvang een persoonlijke kortingscode van 30% voor de abonnementen Star, Nova en Supernova.",
     academic_email_placeholder: "jij@universiteit.edu",
     academic_send_verification: "Verificatie versturen",
     academic_sending: "Versturen...",
-    academic_verification_sent: "Verificatiemail verstuurd. Controleer je academische inbox.",
+    academic_verification_sent:
+      "Verificatiemail verstuurd. Controleer je academische inbox.",
     academic_pending_title: "Verificatie in behandeling",
-    academic_pending_description: "We hebben een verificatielink naar je academische e-mail gestuurd. De link verloopt over 24 uur.",
+    academic_pending_description:
+      "We hebben een verificatielink naar je academische e-mail gestuurd. De link verloopt over 24 uur.",
     academic_resend: "E-mail opnieuw versturen",
     academic_resend_cooldown: "Opnieuw versturen over {{ seconds }} s",
     academic_code_ready_title: "Je kortingscode",
-    academic_use_at_checkout: "De code wordt bij het afrekenen automatisch toegepast, of voer hem handmatig in.",
-    academic_terms: "30% korting gedurende 12 maanden op individuele abonnementen. Verzilver binnen 90 dagen.",
-    academic_verified_toast: "Academische e-mail geverifieerd. Je kortingscode staat klaar.",
-    academic_failed_toast: "Verificatie mislukt. De link is mogelijk verlopen - vraag een nieuwe aan.",
-    academic_invalid_email: "Gebruik een academisch e-mailadres (bijv. .edu of .ac.uk). Gebruikt je universiteit een ander domein, neem dan contact op met support.",
-    academic_email_in_use: "Dit academische e-mailadres wordt al gebruikt voor een korting.",
-    academic_request_failed: "De verificatiemail kon niet worden verstuurd. Probeer het opnieuw.",
+    academic_use_at_checkout:
+      "De code wordt bij het afrekenen automatisch toegepast, of voer hem handmatig in.",
+    academic_terms:
+      "30% korting gedurende 12 maanden op individuele abonnementen. Verzilver binnen 90 dagen.",
+    academic_verified_toast:
+      "Academische e-mail geverifieerd. Je kortingscode staat klaar.",
+    academic_failed_toast:
+      "Verificatie mislukt. De link is mogelijk verlopen - vraag een nieuwe aan.",
+    academic_invalid_email:
+      "Gebruik een academisch e-mailadres (bijv. .edu of .ac.uk). Gebruikt je universiteit een ander domein, neem dan contact op met support.",
+    academic_email_in_use:
+      "Dit academische e-mailadres wordt al gebruikt voor een korting.",
+    academic_request_failed:
+      "De verificatiemail kon niet worden verstuurd. Probeer het opnieuw.",
     academic_copy_failed: "De code kon niet worden gekopieerd.",
     academic_captcha_required: "Voltooi de captcha-uitdaging.",
-    academic_journalist_hint: "Journalist? Neem contact op met support met je perskaart om je code te ontvangen.",
+    academic_journalist_hint:
+      "Journalist? Neem contact op met support met je perskaart om je code te ontvangen.",
     refer_a_friend: "Vriend doorverwijzen",
-    referral_email_body: "He, ik gebruik Aster Mail voor versleutelde e-mail. Probeer het eens! Meld je aan via mijn link: {{referral_link}}",
+    referral_email_body:
+      "He, ik gebruik Aster Mail voor versleutelde e-mail. Probeer het eens! Meld je aan via mijn link: {{referral_link}}",
     referral_email_subject: "Probeer Aster Mail",
     referral_how_it_works: "Hoe het werkt",
     referral_loading_contacts: "Contacten laden...",
@@ -4451,41 +5527,50 @@ export const nl = {
     referral_step_signup: "Vriend meldt zich aan",
     registered: "Geregistreerd",
     remote_image_loading: "Externe afbeeldingen laden",
-    remote_image_loading_description: "Kies wanneer externe afbeeldingen worden geladen",
+    remote_image_loading_description:
+      "Kies wanneer externe afbeeldingen worden geladen",
     remote_images_always: "Altijd laden",
     remote_images_ask: "Vragen",
     remote_images_never: "Nooit laden",
     remove_key: "Sleutel verwijderen",
-    rotate_dkim_description: "Roteer uw DKIM-sleutel om de beveiliging te verbeteren. U moet uw DNS-records bijwerken na de rotatie.",
+    rotate_dkim_description:
+      "Roteer uw DKIM-sleutel om de beveiliging te verbeteren. U moet uw DNS-records bijwerken na de rotatie.",
     rotate_dkim_key: "DKIM-sleutel roteren",
     rotate_label: "Roteren",
     security_key_registered: "Beveiligingssleutel geregistreerd",
     security_key_removed: "Beveiligingssleutel verwijderd",
     security_keys: "Beveiligingssleutels",
-    security_keys_description: "Gebruik een fysieke beveiligingssleutel als tweede factor",
+    security_keys_description:
+      "Gebruik een fysieke beveiligingssleutel als tweede factor",
     select_color: "Kleur {{name}} selecteren",
     send_referral_to_contacts: "Doorverwijzing naar contacten sturen",
     show_signature_separator: "Handtekeningscheider",
     show_signature_separator_description:
       "Voeg een '--' scheidingslijn toe boven uw handtekening in uitgaande e-mails.",
     show_aster_branding: "Aster-branding tonen",
-    show_aster_branding_description: "Toon Verzonden met Aster Mail in uw e-mails",
-    show_aster_branding_free_note: "Aster-branding is vereist voor gratis accounts",
+    show_aster_branding_description:
+      "Toon Verzonden met Aster Mail in uw e-mails",
+    show_aster_branding_free_note:
+      "Aster-branding is vereist voor gratis accounts",
     sidebar_width: "Zijbalkbreedte",
     sidebar_width_description: "Breedte van de e-maillijstzijbalk",
     smtp_host_placeholder: "smtp.voorbeeld.nl",
     spam_filter_enabled: "Spamfilter ingeschakeld",
-    spam_filter_enabled_description: "Verplaats vermoedelijke spam automatisch naar de spammap",
+    spam_filter_enabled_description:
+      "Verplaats vermoedelijke spam automatisch naar de spammap",
     spam_sensitivity_description: "Gevoeligheid van de spamfilter aanpassen",
     status_active: "Actief",
     status_dns_pending: "DNS in behandeling",
     status_suspended: "Opgeschort",
     status_verifying: "Verifiëren",
-    stop_sync_description: "Weet u zeker dat u de synchronisatie wilt stoppen? Nieuwe e-mails worden niet meer gesynchroniseerd.",
+    stop_sync_description:
+      "Weet u zeker dat u de synchronisatie wilt stoppen? Nieuwe e-mails worden niet meer gesynchroniseerd.",
     stop_sync_title: "Synchronisatie stoppen",
-    storage_format_ipfs_hint: "E-mails worden gedecentraliseerd opgeslagen via IPFS",
+    storage_format_ipfs_hint:
+      "E-mails worden gedecentraliseerd opgeslagen via IPFS",
     subscription_activated: "Abonnement geactiveerd",
-    switch_billing_loss: "Overstappen naar maandelijkse facturering kost je {{amount}} extra per jaar.",
+    switch_billing_loss:
+      "Overstappen naar maandelijkse facturering kost je {{amount}} extra per jaar.",
     sync_15_min: "Elke 15 minuten",
     sync_1_hour: "Elk uur",
     sync_2_hours: "Elke 2 uur",
@@ -4498,14 +5583,17 @@ export const nl = {
     sync_result_imported: "{{ count }} nieuwe e-mails geïmporteerd",
     sync_result_up_to_date: "Al up-to-date - geen nieuwe e-mails",
     sync_stopped: "Synchronisatie gestopt",
-    purging_progress: "Geïmporteerde e-mails verwijderen… {{ current }} van {{ total }}",
+    purging_progress:
+      "Geïmporteerde e-mails verwijderen… {{ current }} van {{ total }}",
     purging_simple: "Geïmporteerde e-mails verwijderen…",
     time_format_12h: "12-uursindeling (AM/PM)",
     time_format_24h: "24-uursindeling",
     tracking_protection_enabled: "Trackerbeveiliging ingeschakeld",
-    tracking_protection_enabled_description: "Geavanceerde bescherming tegen e-mailtracking",
+    tracking_protection_enabled_description:
+      "Geavanceerde bescherming tegen e-mailtracking",
     tracking_protection_title: "Trackerbeveiliging",
-    trusted_2fa_description: "Beheer apparaten waarop tweefactorauthenticatie is vertrouwd",
+    trusted_2fa_description:
+      "Beheer apparaten waarop tweefactorauthenticatie is vertrouwd",
     trusted_2fa_empty: "Geen vertrouwde 2FA-apparaten",
     trusted_2fa_expires: "Verloopt {{when}}",
     trusted_2fa_last_used: "Laatst gebruikt {{when}}",
@@ -4522,15 +5610,18 @@ export const nl = {
     trusted_devices_never: "Nooit",
     trusted_devices_revoke: "Apparaat intrekken",
     trusted_devices_revoke_all: "Alle apparaten intrekken",
-    trusted_devices_revoke_all_confirm: "Weet u zeker dat u alle vertrouwde apparaten wilt intrekken?",
+    trusted_devices_revoke_all_confirm:
+      "Weet u zeker dat u alle vertrouwde apparaten wilt intrekken?",
     trusted_devices_revoke_confirm: "{{name}} intrekken?",
     two_factor_auth_disabled: "Tweefactorauthenticatie uitgeschakeld",
     upgrade_buy_storage: "Opslag kopen",
     upgrade_generic_resource: "Uw limiet is bereikt",
     upgrade_inline_card_description: "Upgrade om meer functies te ontgrendelen",
     upgrade_inline_card_title: "Upgrade uw abonnement",
-    upgrade_modal_description_generic: "Upgrade uw abonnement om toegang te krijgen tot meer functies",
-    upgrade_modal_description_specific: "Je hebt de {{resource}}-limiet bereikt voor het {{plan}}-abonnement. Upgrade om meer te ontgrendelen en je inbox in beweging te houden.",
+    upgrade_modal_description_generic:
+      "Upgrade uw abonnement om toegang te krijgen tot meer functies",
+    upgrade_modal_description_specific:
+      "Je hebt de {{resource}}-limiet bereikt voor het {{plan}}-abonnement. Upgrade om meer te ontgrendelen en je inbox in beweging te houden.",
     upgrade_modal_title: "Upgrade vereist",
     upgrade_perk_aliases: "Meer e-mailaliassen",
     upgrade_perk_domains: "Meer aangepaste domeinen",
@@ -4548,12 +5639,15 @@ export const nl = {
     vacation_reply_last: "Laatste antwoord: {{date}}",
     vacation_reply_tab_label: "Vakantieantwoord",
     vault_recovery_button: "Kluis herstellen",
-    vault_recovery_description: "Herstel uw versleutelde kluis met uw oude wachtwoord",
+    vault_recovery_description:
+      "Herstel uw versleutelde kluis met uw oude wachtwoord",
     vault_recovery_enter_password: "Voer uw oude wachtwoord in",
     vault_recovery_failed: "Kluisherstel mislukt",
-    vault_recovery_known_aliases_hint: "Dit helpt ons uw gegevens te ontsleutelen",
+    vault_recovery_known_aliases_hint:
+      "Dit helpt ons uw gegevens te ontsleutelen",
     vault_recovery_known_aliases_label: "Bekende aliassen",
-    vault_recovery_modal_description: "Voer uw oude wachtwoord in om uw kluis te herstellen. Dit kan enige tijd duren.",
+    vault_recovery_modal_description:
+      "Voer uw oude wachtwoord in om uw kluis te herstellen. Dit kan enige tijd duren.",
     vault_recovery_old_password_label: "Oud wachtwoord",
     vault_recovery_old_password_placeholder: "Voer uw oude wachtwoord in",
     vault_recovery_recover_button: "Herstellen",
@@ -4569,30 +5663,42 @@ export const nl = {
     moved_to_category: "Naar categorie verplaatst",
     tab_new_count: "nieuw",
     category_empty_primary_title: "Niets in Primair",
-    category_empty_primary_desc: "Je persoonlijke berichten en gesprekken verschijnen hier.",
+    category_empty_primary_desc:
+      "Je persoonlijke berichten en gesprekken verschijnen hier.",
     category_empty_promotions_title: "Geen promoties",
-    category_empty_promotions_desc: "Aanbiedingen, deals en marketing-e-mails komen hier terecht, zodat ze je niet in de weg zitten.",
+    category_empty_promotions_desc:
+      "Aanbiedingen, deals en marketing-e-mails komen hier terecht, zodat ze je niet in de weg zitten.",
     category_empty_social_title: "Geen sociale updates",
-    category_empty_social_desc: "Berichten van sociale netwerken en communities verschijnen hier.",
+    category_empty_social_desc:
+      "Berichten van sociale netwerken en communities verschijnen hier.",
     category_empty_updates_title: "Geen updates",
-    category_empty_updates_desc: "Bonnen, bevestigingen, rekeningen en meldingen verschijnen hier.",
+    category_empty_updates_desc:
+      "Bonnen, bevestigingen, rekeningen en meldingen verschijnen hier.",
     category_empty_forums_title: "Geen forumberichten",
-    category_empty_forums_desc: "Berichten van mailinglijsten en discussiegroepen verschijnen hier.",
+    category_empty_forums_desc:
+      "Berichten van mailinglijsten en discussiegroepen verschijnen hier.",
     category_empty_finance_title: "Geen financiële e-mails",
-    category_empty_finance_desc: "Afschriften, facturen en meldingen van banken en financiële diensten verschijnen hier.",
+    category_empty_finance_desc:
+      "Afschriften, facturen en meldingen van banken en financiële diensten verschijnen hier.",
     category_empty_travel_title: "Geen reismails",
-    category_empty_travel_desc: "Boekingen, reisschema's en bevestigingen verschijnen hier.",
+    category_empty_travel_desc:
+      "Boekingen, reisschema's en bevestigingen verschijnen hier.",
     category_empty_shopping_title: "Geen winkelmails",
-    category_empty_shopping_desc: "Bestelbevestigingen en verzendupdates verschijnen hier.",
-    category_empty_custom_desc: "E-mails die voldoen aan de regels van deze categorie verschijnen hier.",
+    category_empty_shopping_desc:
+      "Bestelbevestigingen en verzendupdates verschijnen hier.",
+    category_empty_custom_desc:
+      "E-mails die voldoen aan de regels van deze categorie verschijnen hier.",
     view_html_part: "HTML bekijken",
     view_plain_text: "Platte tekst bekijken",
     html_blocked_label: "HTML geblokkeerd",
     block_sender_on_alias: "Afzender blokkeren op alias",
     block_sender_on_alias_success: "{{sender}} geblokkeerd op {{alias}}",
-    block_sender_on_alias_failed: "Kon afzender niet blokkeren. Probeer het opnieuw.",
-    block_sender_on_alias_tooltip: "Blokkeer deze afzender zodat hij {{alias}} niet bereikt",
-    encrypted_message_unavailable: "Dit bericht kon niet worden ontsleuteld. De afzender heeft mogelijk een verouderde sleutel gebruikt.",
+    block_sender_on_alias_failed:
+      "Kon afzender niet blokkeren. Probeer het opnieuw.",
+    block_sender_on_alias_tooltip:
+      "Blokkeer deze afzender zodat hij {{alias}} niet bereikt",
+    encrypted_message_unavailable:
+      "Dit bericht kon niet worden ontsleuteld. De afzender heeft mogelijk een verouderde sleutel gebruikt.",
     inbox: "Postvak in",
     sent: "Verzonden",
     drafts: "Concepten",
@@ -4681,12 +5787,16 @@ export const nl = {
     report_phishing: "Spam melden",
     not_spam: "Geen spam",
     block_sender: "Afzender blokkeren",
-    block_sender_spam_warning: "Vanaf nu gaan nieuwe e-mails van deze afzender rechtstreeks naar spam. Uw blokkadelijst biedt de optie om hen later te deblokkeren.",
-    block_sender_confirm_message: "{{email}} blokkeren? Je ontvangt geen e-mails meer van deze afzender.",
+    block_sender_spam_warning:
+      "Vanaf nu gaan nieuwe e-mails van deze afzender rechtstreeks naar spam. Uw blokkadelijst biedt de optie om hen later te deblokkeren.",
+    block_sender_confirm_message:
+      "{{email}} blokkeren? Je ontvangt geen e-mails meer van deze afzender.",
     unblock_sender: "Afzender deblokkeren",
     unsubscribe: "Uitschrijven",
-    unsubscribe_confirm_message: "Weet je zeker dat je je wilt uitschrijven van deze mailinglijst?",
-    max_composers_warning: "Maximaal drie opstellers kunnen tegelijk open zijn. Een sluiten laat een andere starten. Uw concepten zijn opgeslagen.",
+    unsubscribe_confirm_message:
+      "Weet je zeker dat je je wilt uitschrijven van deze mailinglijst?",
+    max_composers_warning:
+      "Maximaal drie opstellers kunnen tegelijk open zijn. Een sluiten laat een andere starten. Uw concepten zijn opgeslagen.",
     edit_draft: "Concept bewerken",
     schedule: "Plannen",
     scheduling: "Plannen",
@@ -4751,20 +5861,28 @@ export const nl = {
     archived_label: "Gearchiveerd",
     write_reply: "Schrijf je antwoord...",
     delete_messages_title: "Berichten verwijderen",
-    delete_messages_confirmation: "De geselecteerde berichten worden definitief verwijderd en u kunt dit niet ongedaan maken.",
+    delete_messages_confirmation:
+      "De geselecteerde berichten worden definitief verwijderd en u kunt dit niet ongedaan maken.",
     confirm_bulk_action_title: "Bulkactie bevestigen",
-    confirm_bulk_action_description: "Deze actie heeft invloed op elk gesprek in deze weergave.",
-    bulk_action_index_not_ready: "Dit tabblad wordt nog geïndexeerd. Probeer het zo opnieuw.",
+    confirm_bulk_action_description:
+      "Deze actie heeft invloed op elk gesprek in deze weergave.",
+    bulk_action_index_not_ready:
+      "Dit tabblad wordt nog geïndexeerd. Probeer het zo opnieuw.",
     archive_messages_title: "Berichten archiveren",
-    archive_messages_confirmation: "Weet je zeker dat je de geselecteerde berichten wilt archiveren?",
+    archive_messages_confirmation:
+      "Weet je zeker dat je de geselecteerde berichten wilt archiveren?",
     mark_spam_title: "Als spam markeren?",
-    mark_spam_confirmation: "Weet je zeker dat je de geselecteerde berichten als spam wilt markeren?",
+    mark_spam_confirmation:
+      "Weet je zeker dat je de geselecteerde berichten als spam wilt markeren?",
     archive_email_title: "E-mail archiveren?",
-    delete_email_confirmation: "Deze e-mail wordt definitief verwijderd en u kunt dit niet ongedaan maken.",
-    empty_trash_confirmation: "Alles in de prullenbak wordt definitief verwijderd en u kunt dit niet ongedaan maken.",
+    delete_email_confirmation:
+      "Deze e-mail wordt definitief verwijderd en u kunt dit niet ongedaan maken.",
+    empty_trash_confirmation:
+      "Alles in de prullenbak wordt definitief verwijderd en u kunt dit niet ongedaan maken.",
     empty_tag_subtitle: "E-mails met dit label verschijnen hier",
     self_destructs_in: "Vernietigt zichzelf over {{time}}",
-    cancel_scheduled_confirmation: "Annuleer deze geplande e-mail. Hij wordt niet verzonden en u kunt dit niet ongedaan maken, hoewel uw concept is opgeslagen.",
+    cancel_scheduled_confirmation:
+      "Annuleer deze geplande e-mail. Hij wordt niet verzonden en u kunt dit niet ongedaan maken, hoewel uw concept is opgeslagen.",
     shipping_label_created: "Label aangemaakt",
     shipping_shipped: "Verzonden",
     shipping_in_transit: "Onderweg",
@@ -4807,15 +5925,20 @@ export const nl = {
     no_signature: "Geen handtekening",
     self_destruct: "Zelfvernietiging",
     self_destruct_after: "Zelfvernietiging na",
-    self_destruct_tooltip: "Deze e-mail wordt permanent verwijderd nadat de timer is verlopen",
+    self_destruct_tooltip:
+      "Deze e-mail wordt permanent verwijderd nadat de timer is verlopen",
     category_promos: "Aanbiedingen",
     search_history: "Zoekgeschiedenis",
-    search_error: "Zoekopdracht is niet voltooid. Een nieuwe poging zou werken.",
-    delete_draft_confirmation: "Dit concept en alle niet-opgeslagen wijzigingen worden definitief verwijderd.",
-    plain_text_warning: "Overschakelen naar platte tekst verwijdert elk stukje opmaak in dit concept, en de opsteller kan dit niet terughalen. Uw andere concepten worden niet beïnvloed.",
+    search_error:
+      "Zoekopdracht is niet voltooid. Een nieuwe poging zou werken.",
+    delete_draft_confirmation:
+      "Dit concept en alle niet-opgeslagen wijzigingen worden definitief verwijderd.",
+    plain_text_warning:
+      "Overschakelen naar platte tekst verwijdert elk stukje opmaak in dit concept, en de opsteller kan dit niet terughalen. Uw andere concepten worden niet beïnvloed.",
     remove_formatting: "Opmaak verwijderen",
     encrypt_with_pgp: "Versleutelen met PGP",
-    pgp_encryption_active: "PGP-versleuteling actief - de publieke sleutel van de ontvanger wordt gebruikt",
+    pgp_encryption_active:
+      "PGP-versleuteling actief - de publieke sleutel van de ontvanger wordt gebruikt",
     font_color: "Tekstkleur",
     highlight_color: "Markeerkleur",
     write_message_placeholder: "Schrijf bericht",
@@ -4956,7 +6079,8 @@ export const nl = {
     active_filters: "Actieve filters:",
     quick_filters: "Snelfilters:",
     larger_than_search: "Groter dan 5MB",
-    search_privacy_note: "Zoeken wordt clientzijdig uitgevoerd met versleutelde tokens. Je berichten blijven end-to-end versleuteld.",
+    search_privacy_note:
+      "Zoeken wordt clientzijdig uitgevoerd met versleutelde tokens. Je berichten blijven end-to-end versleuteld.",
     navigate: "Navigeren",
     load_more_results: "Meer resultaten laden ({{remaining}} resterend)",
     contacts: "Contacten",
@@ -4966,13 +6090,17 @@ export const nl = {
     spam_email_message: "Deze e-mail wordt verplaatst naar je Spammap.",
     delete_permanently_question: "Permanent verwijderen?",
     empty_spam_folder_question: "Spammap legen?",
-    empty_spam_description: "Alle {{count}} berichten in spam worden definitief verwijderd en u kunt dit niet ongedaan maken.",
+    empty_spam_description:
+      "Alle {{count}} berichten in spam worden definitief verwijderd en u kunt dit niet ongedaan maken.",
     empty_trash_question: "Prullenbak legen?",
-    empty_trash_description: "Alle {{count}} berichten in de prullenbak worden definitief verwijderd en u kunt dit niet ongedaan maken.",
+    empty_trash_description:
+      "Alle {{count}} berichten in de prullenbak worden definitief verwijderd en u kunt dit niet ongedaan maken.",
     folder_not_found_title: "We konden deze map niet vinden.",
-    folder_not_found_subtitle: "Deze map is mogelijk verwijderd of heeft nooit bestaan. Een andere uit de zijbalk werkt.",
+    folder_not_found_subtitle:
+      "Deze map is mogelijk verwijderd of heeft nooit bestaan. Een andere uit de zijbalk werkt.",
     tag_not_found_title: "We konden dit label niet vinden.",
-    tag_not_found_subtitle: "Dit label is mogelijk verwijderd of heeft nooit bestaan. Een ander uit de zijbalk werkt.",
+    tag_not_found_subtitle:
+      "Dit label is mogelijk verwijderd of heeft nooit bestaan. Een ander uit de zijbalk werkt.",
     folder_locked_title: "Deze map is vergrendeld.",
     shortcut_next_email: "Volgende e-mail",
     shortcut_previous_email: "Vorige e-mail",
@@ -4995,14 +6123,17 @@ export const nl = {
     require_password_to_view: "Wachtwoord vereist om te bekijken",
     pick_expiration: "Vervaldatum kiezen",
     set_expiration: "Vervaldatum instellen",
-    password_description: "Externe ontvangers hebben dit wachtwoord nodig om de e-mail te bekijken",
+    password_description:
+      "Externe ontvangers hebben dit wachtwoord nodig om de e-mail te bekijken",
     no_password: "Geen wachtwoord",
     replying_to: "Antwoord aan {{name}}",
     reply_sent_successfully: "Antwoord succesvol verzonden",
     successfully_unsubscribed: "Succesvol uitgeschreven",
     unsubscribe_success_message: "Je ontvangt geen e-mails meer van {{sender}}",
-    unsubscribe_failed: "Het uitschrijven is niet voltooid. De link in de e-mail brengt u naar de site van de afzender om dit zelf te doen.",
-    unsubscribe_manual_required: "Deze afzender ondersteunt geen automatisch uitschrijven. De link in de e-mail laat u dit zelf doen.",
+    unsubscribe_failed:
+      "Het uitschrijven is niet voltooid. De link in de e-mail brengt u naar de site van de afzender om dit zelf te doen.",
+    unsubscribe_manual_required:
+      "Deze afzender ondersteunt geen automatisch uitschrijven. De link in de e-mail laat u dit zelf doen.",
     stop_receiving_from: "Stop met het ontvangen van e-mails van",
     send_email: "E-mail verzenden",
     purchase_receipt: "Aankoopbewijs",
@@ -5012,7 +6143,8 @@ export const nl = {
     card_ending_in: "Kaart eindigend op {{last_four}}",
     confirmation_label: "Bevestiging: {{number}}",
     transaction_label: "Transactie: {{id}}",
-    purchase_extraction_privacy: "Lokaal uit je e-mail geëxtraheerd. Er wordt niets naar onze servers verzonden.",
+    purchase_extraction_privacy:
+      "Lokaal uit je e-mail geëxtraheerd. Er wordt niets naar onze servers verzonden.",
     external_content_blocked: "Externe inhoud geblokkeerd ({{message}})",
     message_deleted: "Dit bericht is verwijderd",
     unknown_recipient: "(onbekende ontvanger)",
@@ -5038,7 +6170,8 @@ export const nl = {
     page_of_total: "Pagina {{current}} van {{total}}",
     total_pages_label: "{{count}} pagina's",
     loading_preview: "Voorbeeld laden…",
-    preview_failed: "Het voorbeeld is niet geladen. De e-mail openen toont het.",
+    preview_failed:
+      "Het voorbeeld is niet geladen. De e-mail openen toont het.",
     move_1_conversation: "1 gesprek verplaatsen",
     move_n_conversations: "{{ count }} gesprekken verplaatsen",
     view_message: "Bericht bekijken",
@@ -5046,14 +6179,19 @@ export const nl = {
     block: "Blokkeren",
     unsubscribe_title: "Uitschrijven",
     manual_unsubscribe_link: "Handmatige uitschrijflink:",
-    empty_starred_subtitle: "Markeer belangrijke e-mails met een ster om ze snel terug te vinden",
+    empty_starred_subtitle:
+      "Markeer belangrijke e-mails met een ster om ze snel terug te vinden",
     empty_snoozed_title: "Er slaapt nu niets",
     empty_snoozed_subtitle: "Uitgestelde e-mails worden hier weer wakker",
-    enter_password_to_access: "Uw wachtwoord opent \"{{folder}}\".",
-    use_arrows_to_navigate: "Gebruik de pijlen hierboven om tussen pagina's te navigeren",
-    unsubscribe_try_again: "Een nieuwe poging of de link hieronder laat u uzelf uitschrijven.",
-    all_on_page_selected: "Alle {{ count }} gesprekken op deze pagina zijn geselecteerd.",
-    select_all_in_folder: "Alle {{ count }} gesprekken in {{ folder }} selecteren",
+    enter_password_to_access: 'Uw wachtwoord opent "{{folder}}".',
+    use_arrows_to_navigate:
+      "Gebruik de pijlen hierboven om tussen pagina's te navigeren",
+    unsubscribe_try_again:
+      "Een nieuwe poging of de link hieronder laat u uzelf uitschrijven.",
+    all_on_page_selected:
+      "Alle {{ count }} gesprekken op deze pagina zijn geselecteerd.",
+    select_all_in_folder:
+      "Alle {{ count }} gesprekken in {{ folder }} selecteren",
     all_in_folder_selected: "Alle {{ count }} gesprekken zijn geselecteerd.",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Antwoorden vanaf een ander adres?",
@@ -5066,12 +6204,16 @@ export const nl = {
     download_file_named: "{{ filename }} downloaden",
     to_recipients_prefix: "aan {{ recipients }}",
     received_on_prefix: "ontvangen op {{ address }}",
-    trash_auto_delete_notice: "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd.",
-    spam_auto_delete_notice: "Items in spam worden na {{ days }} dagen automatisch verwijderd.",
-    trash_auto_delete_notice_family: "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
-    spam_auto_delete_notice_family: "Items in spam worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
+    trash_auto_delete_notice:
+      "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd.",
+    spam_auto_delete_notice:
+      "Items in spam worden na {{ days }} dagen automatisch verwijderd.",
+    trash_auto_delete_notice_family:
+      "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
+    spam_auto_delete_notice_family:
+      "Items in spam worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
     insert_link_title: "Link invoegen",
-    add_link_to_selection: "Een link toevoegen aan \"{{text}}\"",
+    add_link_to_selection: 'Een link toevoegen aan "{{text}}"',
     url_label: "URL",
     link_text_optional: "Linktekst (optioneel)",
     advanced_search: "Geavanceerd",
@@ -5092,7 +6234,8 @@ export const nl = {
     links_cleaned: "Links opgeschoond",
     links_cleaned_count: "{{count}} link(s) opgeschoond",
     no_trackers_detected: "Geen trackers gedetecteerd",
-    email_is_clean: "Deze e-mail lijkt schoon - er zijn geen tracking-elementen gedetecteerd.",
+    email_is_clean:
+      "Deze e-mail lijkt schoon - er zijn geen tracking-elementen gedetecteerd.",
     param_removed_from_n_links: "{{param}} verwijderd uit {{count}} link(s)",
     n_blocked: "{{count}} geblokkeerd",
     tracker_domain: "{{domain}}",
@@ -5102,9 +6245,11 @@ export const nl = {
     older_message: "1 ouder bericht",
     verification_verified: "Geverifieerde afzender",
     verification_invalid: "Handtekening afzender kwam niet overeen",
-    verification_no_keys: "We konden de identiteit van deze afzender niet controleren",
+    verification_no_keys:
+      "We konden de identiteit van deze afzender niet controleren",
     official_sender: "Officieel Aster-adres",
-    official_sender_desc: "Dit bericht komt van een officieel Aster-adres. Aster vraagt je nooit per e-mail om je wachtwoord of herstelzin.",
+    official_sender_desc:
+      "Dit bericht komt van een officieel Aster-adres. Aster vraagt je nooit per e-mail om je wachtwoord of herstelzin.",
     message_details: "Berichtdetails",
     message_headers: "Berichtkoppen",
     message_id_label: "Bericht-ID:",
@@ -5185,7 +6330,8 @@ export const nl = {
     create_filter: "Filter aanmaken",
     search_placeholder_hint: "Zoek in mail, contacten en mappen",
     all_search_results_for: "Alle zoekresultaten voor “{{query}}”",
-    try_adjusting_filters: "Probeer je filters aan te passen of op iets anders te zoeken",
+    try_adjusting_filters:
+      "Probeer je filters aan te passen of op iets anders te zoeken",
     no_emails_match_query: "Geen e-mails komen overeen met “{{query}}”",
     more_folders_count: "+{{count}} meer mappen",
     folder_item_count: "{{count}} items",
@@ -5193,12 +6339,15 @@ export const nl = {
     indexing_messages: "Berichten indexeren...",
     searching_message_content: "Berichtinhoud doorzoeken",
     search_taking_too_long: "Zoeken duurt te lang",
-    search_refine_terms: "Probeer uw zoekopdracht te verfijnen met specifiekere termen.",
+    search_refine_terms:
+      "Probeer uw zoekopdracht te verfijnen met specifiekere termen.",
     refine_your_search_action: "Zoekopdracht verfijnen",
     turn_off_indexing_action: "Indexering uitschakelen",
-    content_search_slower: "Zoeken in berichtinhoud kan traag zijn bij grote postvakken.",
+    content_search_slower:
+      "Zoeken in berichtinhoud kan traag zijn bij grote postvakken.",
     search_message_content_help: "Over het doorzoeken van berichtinhoud",
-    search_message_content_help_body: "Je berichten zijn end-to-end versleuteld, dus ze moeten worden gedownload en geïndexeerd op dit apparaat voordat de tekst kan worden doorzocht. Dit kan aanzienlijke opslag gebruiken. De index verlaat dit apparaat nooit en wordt verwijderd wanneer je uitlogt.",
+    search_message_content_help_body:
+      "Je berichten zijn end-to-end versleuteld, dus ze moeten worden gedownload en geïndexeerd op dit apparaat voordat de tekst kan worden doorzocht. Dit kan aanzienlijke opslag gebruiken. De index verlaat dit apparaat nooit en wordt verwijderd wanneer je uitlogt.",
     op_search_by_sender: "Zoeken op afzender",
     op_search_by_recipient: "Zoeken op ontvanger",
     op_search_in_subject: "Zoeken in onderwerp",
@@ -5238,7 +6387,8 @@ export const nl = {
   },
   auth: {
     passkey_verification: "Verifiëren met Passkey",
-    use_passkey_or_key: "Gebruik Windows Hello, Face ID of je beveiligingssleutel",
+    use_passkey_or_key:
+      "Gebruik Windows Hello, Face ID of je beveiligingssleutel",
     use_passkey_instead: "Gebruik in plaats daarvan een passkey",
     sign_in: "Inloggen",
     sign_out: "Uitloggen",
@@ -5249,9 +6399,11 @@ export const nl = {
     switch_to_account: "Schakel naar dit account",
     remove_account: "Verwijderen van dit apparaat",
     remove_account_title: "Account verwijderen?",
-    remove_account_message: "{{email}} wordt afgemeld op dit apparaat. Je gegevens op de server blijven behouden.",
+    remove_account_message:
+      "{{email}} wordt afgemeld op dit apparaat. Je gegevens op de server blijven behouden.",
     confirm_remove_account: "Verwijderen",
-    account_limit_for_plan: "Je abonnement staat maximaal {{max}} aangemelde accounts toe. Upgrade om er meer toe te voegen.",
+    account_limit_for_plan:
+      "Je abonnement staat maximaal {{max}} aangemelde accounts toe. Upgrade om er meer toe te voegen.",
     signing_out_current: "Afmelden...",
     email: "E-mail",
     password: "Wachtwoord",
@@ -5278,7 +6430,8 @@ export const nl = {
     decrypting_vault: "Je sleutelkluis ontsleutelen...",
     getting_user_info: "Gebruikersinformatie ophalen...",
     enter_backup_code: "Reservecode invoeren",
-    backup_code_length_error: "Een back-upcode is 12 tekens lang (8 bij oudere codes). Uw aantal controleren lost dit meestal op.",
+    backup_code_length_error:
+      "Een back-upcode is 12 tekens lang (8 bij oudere codes). Uw aantal controleren lost dit meestal op.",
     two_fa_temporarily_locked:
       "Te veel mislukte pogingen. Tweestapsverificatie is ongeveer 15 minuten geblokkeerd.",
     too_many_2fa_attempts:
@@ -5292,10 +6445,12 @@ export const nl = {
     two_factor_auth_title: "Tweefactorauthenticatie",
     enter_2fa_code: "Voer de 6-cijferige code van je authenticator-app in",
     use_backup_code_instead: "Gebruik in plaats daarvan een reservecode",
-    recovery_codes_warning: "Zonder herstelcodes kan niemand u terug in dit account helpen als u uw wachtwoord vergeet, en uw versleutelde gegevens zouden voorgoed verloren zijn. Doorgaan zonder ze op te slaan?",
+    recovery_codes_warning:
+      "Zonder herstelcodes kan niemand u terug in dit account helpen als u uw wachtwoord vergeet, en uw versleutelde gegevens zouden voorgoed verloren zijn. Doorgaan zonder ze op te slaan?",
     create_aster_account: "Maak je Aster-account aan",
     create_your_free_account: "Maak je gratis account aan",
-    one_account_all_services: "Eén account voor alle Aster-diensten. Gratis, veilig en privé.",
+    one_account_all_services:
+      "Eén account voor alle Aster-diensten. Gratis, veilig en privé.",
     create_free_account: "Gratis account aanmaken",
     sign_in_existing: "Inloggen bij bestaand account",
     choose_email_address: "Kies je e-mailadres",
@@ -5309,66 +6464,93 @@ export const nl = {
     choose_your_plan: "Kies je abonnement",
     setting_up_account: "Je account instellen",
     save_recovery_codes: "Sla je herstelcodes op",
-    store_codes_safely: "Bewaar deze codes veilig. Ze zijn de ENIGE manier om je account te herstellen als je je wachtwoord vergeet.",
+    store_codes_safely:
+      "Bewaar deze codes veilig. Ze zijn de ENIGE manier om je account te herstellen als je je wachtwoord vergeet.",
     download_key: "Sleutel downloaden",
     download_as_text: "Downloaden als tekst",
     recovery_download_failed: "Downloaden mislukt. Probeer het opnieuw.",
     add_backup_email: "Voeg een back-up-e-mailadres toe",
     skip_for_now: "Voorlopig overslaan",
     recovery_email_required_gate_title: "Herstel-e-mail vereist",
-    recovery_email_required_gate_desc: "Voor het aanmaken van een extra account is een herstel-e-mail vereist. Dit helpt al uw accounts te beveiligen.",
+    recovery_email_required_gate_desc:
+      "Voor het aanmaken van een extra account is een herstel-e-mail vereist. Dit helpt al uw accounts te beveiligen.",
     username_min_length: "Minstens 3 tekens werken hier.",
     username_max_length: "Minder dan 40 tekens werken hier.",
-    username_not_available: "Deze gebruikersnaam is bezet. Een andere zou moeten werken.",
+    username_not_available:
+      "Deze gebruikersnaam is bezet. Een andere zou moeten werken.",
     password_req_length: "Minimaal 8 tekens",
     password_req_uppercase: "Eén hoofdletter",
     password_req_lowercase: "Eén kleine letter",
     password_req_number: "Eén cijfer",
     password_max_length_register: "Minder dan 128 tekens werken hier.",
-    password_invalid_chars: "Standaard toetsenbordtekens zijn de toegestane set.",
-    passwords_do_not_match_register: "De twee wachtwoorden komen niet overeen. Ze opnieuw invoeren lost dit op.",
-    registration_failed: "Aanmelden is niet voltooid. Opnieuw beginnen en het opnieuw proberen lost dit meestal op. Er is geen account aangemaakt.",
+    password_invalid_chars:
+      "Standaard toetsenbordtekens zijn de toegestane set.",
+    passwords_do_not_match_register:
+      "De twee wachtwoorden komen niet overeen. Ze opnieuw invoeren lost dit op.",
+    registration_failed:
+      "Aanmelden is niet voltooid. Opnieuw beginnen en het opnieuw proberen lost dit meestal op. Er is geen account aangemaakt.",
     recovery_codes_copied: "Herstelcodes gekopieerd",
     recovery_code_copied: "Herstelcode gekopieerd",
     click_eye_reveal: "Klik op het oogpictogram om codes eerst te onthullen",
     continue_without_download: "Doorgaan zonder downloaden",
-    please_enter_recovery_email: "Een herstelpadres is hoe u weer binnenkomt als u uw wachtwoord vergeet.",
-    please_enter_valid_email: "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
-    recovery_email_conflict: "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
-    failed_save_recovery_email: "Uw herstelpadres is niet opgeslagen. Een nieuwe poging zou werken. Uw huidige herstelopzet is ongewijzigd.",
+    please_enter_recovery_email:
+      "Een herstelpadres is hoe u weer binnenkomt als u uw wachtwoord vergeet.",
+    please_enter_valid_email:
+      "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
+    recovery_email_conflict:
+      "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
+    failed_save_recovery_email:
+      "Uw herstelpadres is niet opgeslagen. Een nieuwe poging zou werken. Uw huidige herstelopzet is ongewijzigd.",
     recovery_phrase_title: "Sla uw herstelzin op",
-    recovery_phrase_desc: "Deze 12 woorden zijn de enige manier om uw account en al uw versleutelde e-mail volledig te herstellen als u ooit uw wachtwoord vergeet. Schrijf ze in volgorde op en bewaar ze op een veilige plek, offline.",
+    recovery_phrase_desc:
+      "Deze 12 woorden zijn de enige manier om uw account en al uw versleutelde e-mail volledig te herstellen als u ooit uw wachtwoord vergeet. Schrijf ze in volgorde op en bewaar ze op een veilige plek, offline.",
     recovery_phrase_copied: "Herstelzin gekopieerd",
     recovery_phrase_reveal: "Klik eerst op het oogpictogram om uw zin te tonen",
-    recovery_phrase_saved_checkbox: "Ik heb mijn herstelzin op een veilige plek opgeslagen",
-    recovery_phrase_skip_warning: "Zonder uw herstelzin betekent het vergeten van uw wachtwoord dat uw versleutelde e-mail en aliassen voorgoed verloren zijn. Doorgaan zonder deze op te slaan?",
+    recovery_phrase_saved_checkbox:
+      "Ik heb mijn herstelzin op een veilige plek opgeslagen",
+    recovery_phrase_skip_warning:
+      "Zonder uw herstelzin betekent het vergeten van uw wachtwoord dat uw versleutelde e-mail en aliassen voorgoed verloren zijn. Doorgaan zonder deze op te slaan?",
     recovery_phrase_confirm_title: "Bevestig uw herstelzin",
-    recovery_phrase_confirm_desc: "Selecteer de juiste woorden om te bevestigen dat u uw zin heeft opgeslagen.",
+    recovery_phrase_confirm_desc:
+      "Selecteer de juiste woorden om te bevestigen dat u uw zin heeft opgeslagen.",
     recovery_phrase_confirm_word_prompt: "Woord {n}",
-    recovery_phrase_confirm_error: "Een of meer woorden komen niet overeen. Controleer uw opgeslagen zin en probeer het opnieuw.",
+    recovery_phrase_confirm_error:
+      "Een of meer woorden komen niet overeen. Controleer uw opgeslagen zin en probeer het opnieuw.",
     recovery_phrase_skip_check: "Ik heb hem opgeslagen, sla deze controle over",
     forgot_method_title: "Hoe wilt u uw account herstellen?",
-    forgot_method_desc: "De methode die u kiest, bepaalt of uw versleutelde gegevens kunnen worden hersteld.",
+    forgot_method_desc:
+      "De methode die u kiest, bepaalt of uw versleutelde gegevens kunnen worden hersteld.",
     forgot_method_full_restore: "Volledig herstel",
     forgot_method_access_only: "Alleen toegang",
     forgot_method_phrase_title: "Mijn herstelzin gebruiken",
-    forgot_method_phrase_desc: "Voer uw zin van 12 woorden in. Alle e-mail, aliassen en instellingen worden hersteld.",
+    forgot_method_phrase_desc:
+      "Voer uw zin van 12 woorden in. Alle e-mail, aliassen en instellingen worden hersteld.",
     forgot_method_code_title: "Een herstelcode gebruiken",
-    forgot_method_code_desc: "Voer een van uw ASTER-herstelcodes in. Alle e-mail, aliassen en instellingen worden hersteld.",
+    forgot_method_code_desc:
+      "Voer een van uw ASTER-herstelcodes in. Alle e-mail, aliassen en instellingen worden hersteld.",
     forgot_method_email_title: "E-mail mij een resetlink",
-    forgot_method_email_desc: "Krijg weer toegang tot uw account. Versleutelde e-mail van vóór de reset kan niet meer worden gelezen, tenzij u later uw zin of een code terugvindt.",
+    forgot_method_email_desc:
+      "Krijg weer toegang tot uw account. Versleutelde e-mail van vóór de reset kan niet meer worden gelezen, tenzij u later uw zin of een code terugvindt.",
     phrase_entry_title: "Voer uw herstelzin in",
     phrase_entry_desc: "Typ of plak de 12 woorden in volgorde.",
-    phrase_entry_invalid: "Dit is geen geldige herstelzin. Controleer de woorden en hun volgorde.",
-    phrase_recovery_failed: "Deze zin hoort niet bij dit account. Controleer de woorden en het e-mailadres.",
+    phrase_entry_invalid:
+      "Dit is geen geldige herstelzin. Controleer de woorden en hun volgorde.",
+    phrase_recovery_failed:
+      "Deze zin hoort niet bij dit account. Controleer de woorden en het e-mailadres.",
     reset_consent_title: "Deze reset kan uw oude gegevens niet ontsleutelen",
-    reset_consent_keeps: "U behoudt: uw e-mailadres, al uw aliassen (e-mail blijft binnenkomen), uw abonnement en uw account.",
-    reset_consent_loses: "U verliest de toegang tot: alle versleutelde e-mail, contacten, aliaslabels en instellingen van vóór de reset. Ze blijven versleuteld opgeslagen en kunnen later alleen worden ontgrendeld als u uw oude wachtwoord nog weet.",
-    reset_consent_last_chance: "Heeft u uw herstelzin of een herstelcode? Met een van beide wordt alles hersteld.",
-    reset_consent_use_phrase_instead: "Gebruik in plaats daarvan mijn zin of code",
-    reset_consent_checkbox: "Ik begrijp dat mijn versleutelde gegevens na deze reset onleesbaar zullen zijn",
+    reset_consent_keeps:
+      "U behoudt: uw e-mailadres, al uw aliassen (e-mail blijft binnenkomen), uw abonnement en uw account.",
+    reset_consent_loses:
+      "U verliest de toegang tot: alle versleutelde e-mail, contacten, aliaslabels en instellingen van vóór de reset. Ze blijven versleuteld opgeslagen en kunnen later alleen worden ontgrendeld als u uw oude wachtwoord nog weet.",
+    reset_consent_last_chance:
+      "Heeft u uw herstelzin of een herstelcode? Met een van beide wordt alles hersteld.",
+    reset_consent_use_phrase_instead:
+      "Gebruik in plaats daarvan mijn zin of code",
+    reset_consent_checkbox:
+      "Ik begrijp dat mijn versleutelde gegevens na deze reset onleesbaar zullen zijn",
     reset_consent_type_email: "Typ uw volledige e-mailadres ter bevestiging",
-    reset_consent_email_mismatch: "Het e-mailadres komt niet overeen met dit account.",
+    reset_consent_email_mismatch:
+      "Het e-mailadres komt niet overeen met dit account.",
     reset_consent_continue: "Wachtwoord toch resetten",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Persoonlijk",
@@ -5390,48 +6572,59 @@ export const nl = {
     password_strong: "Sterk",
     please_enter_email_address: "Uw e-mailadres is hier nodig.",
     please_enter_recovery_code: "Een van uw herstelcodes is hier nodig.",
-    invalid_recovery_code: "Die herstelcode kwam niet overeen. Een andere uit uw opgeslagen lijst zou moeten werken.",
+    invalid_recovery_code:
+      "Die herstelcode kwam niet overeen. Een andere uit uw opgeslagen lijst zou moeten werken.",
     new_password_placeholder: "Nieuw wachtwoord",
     confirm_password_placeholder: "Wachtwoord bevestigen",
     email_address_placeholder: "E-mailadres",
-    recovery_failed: "Herstel is niet voltooid. Opnieuw beginnen lost dit meestal op. Uw account is ongewijzigd.",
+    recovery_failed:
+      "Herstel is niet voltooid. Opnieuw beginnen lost dit meestal op. Uw account is ongewijzigd.",
     add_special_characters: "Voeg speciale tekens toe (!@#$%)",
     recovery_codes_start_with_aster: "Herstelcodes beginnen met 'ASTER-'",
     verifying_recovery_code: "Herstelcode verifiëren...",
-    recovery_session_expired: "Deze herstelsessie is beëindigd. De herstelprocedure opnieuw starten pakt hem weer op. Uw account is ongewijzigd.",
+    recovery_session_expired:
+      "Deze herstelsessie is beëindigd. De herstelprocedure opnieuw starten pakt hem weer op. Uw account is ongewijzigd.",
     recovering_account_data: "Accountgegevens herstellen...",
     creating_new_recovery_codes: "Nieuwe herstelcodes aanmaken...",
     encrypting_vault_new_password: "Kluis versleutelen met nieuw wachtwoord...",
     creating_new_recovery_backup: "Nieuwe herstelback-up aanmaken...",
     saving_new_credentials: "Nieuwe inloggegevens opslaan...",
     recover_your_account: "Herstel je account",
-    enter_email_associated: "Voer je gebruikersnaam in om je account te herstellen",
+    enter_email_associated:
+      "Voer je gebruikersnaam in om je account te herstellen",
     back_to_sign_in: "Terug naar inloggen",
     email_me_reset_link: "Stuur me een resetlink per e-mail",
     have_recovery_code: "Heb je een herstelcode?",
     use_recovery_code: "Gebruik in plaats daarvan een herstelcode",
     reset_link_sent_title: "Controleer je herstel-e-mail",
-    reset_link_sent_desc: "Als deze gebruikersnaam is geregistreerd en een geverifieerd herstel-e-mailadres heeft, is er een link verzonden om het wachtwoord opnieuw in te stellen. De link verloopt over 30 minuten.",
+    reset_link_sent_desc:
+      "Als deze gebruikersnaam is geregistreerd en een geverifieerd herstel-e-mailadres heeft, is er een link verzonden om het wachtwoord opnieuw in te stellen. De link verloopt over 30 minuten.",
     sending_reset_link: "Resetlink verzenden...",
-    no_recovery_email_on_account: "Dit account heeft geen geverifieerd herstel-e-mailadres. Gebruik een herstelcode om je wachtwoord opnieuw in te stellen.",
+    no_recovery_email_on_account:
+      "Dit account heeft geen geverifieerd herstel-e-mailadres. Gebruik een herstelcode om je wachtwoord opnieuw in te stellen.",
     reset_your_password: "Stel je wachtwoord opnieuw in",
     reset_choose_new_password: "Kies een nieuw wachtwoord voor je account.",
-    reset_invalid_or_expired: "Deze resetlink is ongeldig of verlopen. Vraag een nieuwe aan.",
+    reset_invalid_or_expired:
+      "Deze resetlink is ongeldig of verlopen. Vraag een nieuwe aan.",
     request_new_reset_link: "Nieuwe resetlink aanvragen",
     set_new_password: "Nieuw wachtwoord instellen",
     resetting_password: "Wachtwoord opnieuw instellen...",
     enter_recovery_code: "Voer herstelcode in",
-    enter_recovery_code_desc: "Voer een van de herstelcodes in die je hebt opgeslagen bij het aanmaken van je account",
+    enter_recovery_code_desc:
+      "Voer een van de herstelcodes in die je hebt opgeslagen bij het aanmaken van je account",
     verify_code: "Code verifiëren",
     create_new_password: "Nieuw wachtwoord aanmaken",
     choose_strong_password: "Kies een sterk wachtwoord voor je account",
     recovering_your_account: "Je account herstellen",
-    please_dont_close: "Sluit dit venster niet terwijl we je account herstellen.",
+    please_dont_close:
+      "Sluit dit venster niet terwijl we je account herstellen.",
     save_new_recovery_codes: "Sla je nieuwe herstelcodes op",
-    old_codes_invalidated: "Uw oude herstelcodes werken niet meer. Deze nieuwe set op een veilige plek bewaren voordat u dit venster sluit, houdt u gedekt.",
+    old_codes_invalidated:
+      "Uw oude herstelcodes werken niet meer. Deze nieuwe set op een veilige plek bewaren voordat u dit venster sluit, houdt u gedekt.",
     n_recovery_codes: "{{count}} herstelcodes",
     password_reset_successful: "Wachtwoord succesvol gereset",
-    account_recovered_sign_in: "Je account is hersteld. Je kunt nu inloggen met je nieuwe wachtwoord.",
+    account_recovered_sign_in:
+      "Je account is hersteld. Je kunt nu inloggen met je nieuwe wachtwoord.",
     check_your_inbox: "Controleer je inbox",
     generating_encryption_keys: "Versleutelingssleutels genereren...",
     creating_identity_keypair: "Identiteitssleutelpaar aanmaken...",
@@ -5455,39 +6648,56 @@ export const nl = {
     "5_custom_domains": "5 aangepaste domeinen",
     "100mb_attachments": "100 MB bijlagen",
     compare_all_features: "Alle functies vergelijken",
-    encryption_keys_local: "Je versleutelingssleutels worden lokaal op dit apparaat opgeslagen en worden nooit naar onze servers verzonden.",
-    optional_backup_email_desc: "Voeg een herstel-e-mailadres toe van een andere provider. Dit is optioneel maar aanbevolen voor accountherstel.",
-    verification_email_sent_to_desc: "We hebben een verificatielink naar {{email}} gestuurd. Klik op de link om te verifiëren.",
+    encryption_keys_local:
+      "Je versleutelingssleutels worden lokaal op dit apparaat opgeslagen en worden nooit naar onze servers verzonden.",
+    optional_backup_email_desc:
+      "Voeg een herstel-e-mailadres toe van een andere provider. Dit is optioneel maar aanbevolen voor accountherstel.",
+    verification_email_sent_to_desc:
+      "We hebben een verificatielink naar {{email}} gestuurd. Klik op de link om te verifiëren.",
     waiting_for_verification: "Wachten op verificatie...",
     resend_verification_email: "Verificatie-e-mail opnieuw verzenden",
     resend_in_seconds: "Opnieuw verzenden over {{seconds}}s",
     skip_verification: "Verificatie overslaan",
-    enter_credentials: "Voer je inloggegevens in om toegang te krijgen tot je account",
-    backup_code_single_use: "Elke back-upcode kan slechts één keer worden gebruikt",
-    pick_unique_username: "Kies een unieke gebruikersnaam voor je nieuwe Aster-e-mailadres",
-    create_strong_password: "Maak een sterk wachtwoord om je account te beschermen",
-    recovery_email_required_notice: "Een back-up-e-mailadres is vereist om spam te voorkomen.",
+    enter_credentials:
+      "Voer je inloggegevens in om toegang te krijgen tot je account",
+    backup_code_single_use:
+      "Elke back-upcode kan slechts één keer worden gebruikt",
+    pick_unique_username:
+      "Kies een unieke gebruikersnaam voor je nieuwe Aster-e-mailadres",
+    create_strong_password:
+      "Maak een sterk wachtwoord om je account te beschermen",
+    recovery_email_required_notice:
+      "Een back-up-e-mailadres is vereist om spam te voorkomen.",
     username_alphanumeric: "Letters en cijfers zijn de toegestane tekens.",
-    abuse_account_limit: "Ons geautomatiseerde beveiligingssysteem heeft deze aanmelding gemarkeerd, en we kunnen het account niet aanmaken. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
-    abuse_flagged_message: "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+    abuse_account_limit:
+      "Ons geautomatiseerde beveiligingssysteem heeft deze aanmelding gemarkeerd, en we kunnen het account niet aanmaken. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+    abuse_flagged_message:
+      "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
     contact_support: "contact opnemen met de klantenservice",
-    generating_new_encryption_keys: "Nieuwe versleutelingssleutels genereren...",
+    generating_new_encryption_keys:
+      "Nieuwe versleutelingssleutels genereren...",
     recovery_email_verified: "Herstel-e-mailadres geverifieerd",
-    recovery_email_verified_desc: "Je herstel-e-mailadres is succesvol geverifieerd en gekoppeld aan je account.",
+    recovery_email_verified_desc:
+      "Je herstel-e-mailadres is succesvol geverifieerd en gekoppeld aan je account.",
     verification_failed: "Verificatie is niet voltooid.",
-    verification_failed_desc: "Deze link is verlopen of komt niet meer overeen. Een verse verificatiemail via uw accountinstellingen werkt.",
+    verification_failed_desc:
+      "Deze link is verlopen of komt niet meer overeen. Een verse verificatiemail via uw accountinstellingen werkt.",
     go_to_inbox: "Naar inbox",
     end_to_end_encrypted: "End-to-end versleuteld",
     zero_knowledge: "Zero-Access architectuur",
     zero_knowledge_desc: "Wij kunnen nooit je e-mails of gegevens lezen",
     password_never_stored: "Wachtwoord wordt nooit opgeslagen",
-    password_never_stored_desc: "Alleen een afgeleide sleutelhash wordt gebruikt voor authenticatie",
+    password_never_stored_desc:
+      "Alleen een afgeleide sleutelhash wordt gebruikt voor authenticatie",
     recovery_codes_important: "Bewaar deze goed",
-    recovery_codes_important_desc: "Deze codes zijn de enige manier om je account te herstellen als je je wachtwoord kwijtraakt. Bewaar ze op een veilige plek.",
+    recovery_codes_important_desc:
+      "Deze codes zijn de enige manier om je account te herstellen als je je wachtwoord kwijtraakt. Bewaar ze op een veilige plek.",
     recovery_backup_tip: "Back-uptip",
-    recovery_backup_tip_desc: "Sla je codes op in een wachtwoordmanager of druk ze af en bewaar ze op een veilige plaats.",
+    recovery_backup_tip_desc:
+      "Sla je codes op in een wachtwoordmanager of druk ze af en bewaar ze op een veilige plaats.",
     onboarding_appearance_title: "Personaliseer je inbox",
-    onboarding_appearance_desc: "Kies een uitstraling die bij je past. Je kunt dit altijd wijzigen.",
+    onboarding_appearance_desc:
+      "Kies een uitstraling die bij je past. Je kunt dit altijd wijzigen.",
     onboarding_theme_light: "Licht",
     onboarding_theme_dark: "Donker",
     onboarding_view_mode_label: "Leesweergave",
@@ -5498,53 +6708,73 @@ export const nl = {
     onboarding_view_fullpage: "Volledige pagina",
     onboarding_view_fullpage_desc: "Wijdt het volledige scherm aan elke e-mail",
     onboarding_compact_mode: "Compacte modus",
-    onboarding_compact_mode_desc: "Kleinere afstanden voor meer e-mails op het scherm",
+    onboarding_compact_mode_desc:
+      "Kleinere afstanden voor meer e-mails op het scherm",
     onboarding_continue_btn: "Doorgaan",
     onboarding_privacy_title: "Privacy en beveiliging",
-    onboarding_privacy_desc: "Jouw inbox, jouw regels. Pas deze aan naar jouw comfortniveau.",
+    onboarding_privacy_desc:
+      "Jouw inbox, jouw regels. Pas deze aan naar jouw comfortniveau.",
     onboarding_block_tracking: "Trackingpixels blokkeren",
-    onboarding_block_tracking_desc: "Voorkom dat afzenders weten wanneer je hun e-mails opent",
+    onboarding_block_tracking_desc:
+      "Voorkom dat afzenders weten wanneer je hun e-mails opent",
     onboarding_block_external: "Externe inhoud blokkeren",
-    onboarding_block_external_desc: "Stop externe afbeeldingen en inhoud die je kunnen tracken",
+    onboarding_block_external_desc:
+      "Stop externe afbeeldingen en inhoud die je kunnen tracken",
     onboarding_read_receipts: "Leesbevestigingen blokkeren",
-    onboarding_read_receipts_desc: "Laat afzenders niet weten wanneer je hun e-mails hebt geopend",
+    onboarding_read_receipts_desc:
+      "Laat afzenders niet weten wanneer je hun e-mails hebt geopend",
     onboarding_warn_external: "Waarschuwen bij externe ontvangers",
-    onboarding_warn_external_desc: "Toon een waarschuwing bij het verzenden naar niet-Aster-adressen",
+    onboarding_warn_external_desc:
+      "Toon een waarschuwing bij het verzenden naar niet-Aster-adressen",
     onboarding_auto_keys: "Sleutels automatisch zoeken",
-    onboarding_auto_keys_desc: "Automatisch versleutelingssleutels vinden voor contacten die je e-mailt",
+    onboarding_auto_keys_desc:
+      "Automatisch versleutelingssleutels vinden voor contacten die je e-mailt",
     onboarding_encrypt_emails: "Standaard versleutelen",
-    onboarding_encrypt_emails_desc: "Uitgaande e-mails automatisch versleutelen wanneer de sleutel van de ontvanger beschikbaar is",
+    onboarding_encrypt_emails_desc:
+      "Uitgaande e-mails automatisch versleutelen wanneer de sleutel van de ontvanger beschikbaar is",
     onboarding_session_timeout: "Sessietime-out",
-    onboarding_session_timeout_desc: "Je account automatisch vergrendelen na een periode van inactiviteit",
+    onboarding_session_timeout_desc:
+      "Je account automatisch vergrendelen na een periode van inactiviteit",
     browser_login_title: "Inloggen via browser",
-    browser_login_desc: "Open Aster Mail in je browser, ga naar Instellingen en voer deze code in om je telefoon te koppelen.",
+    browser_login_desc:
+      "Open Aster Mail in je browser, ga naar Instellingen en voer deze code in om je telefoon te koppelen.",
     browser_login_expires_in: "Verloopt over ",
     browser_login_generate_new: "Nieuwe code genereren",
     browser_login_sign_in_password: "In plaats daarvan inloggen met wachtwoord",
     log_in: "Inloggen",
-    welcome_subtitle: "Moderne e-mail, versleuteld voor jou en onleesbaar voor alle anderen.",
+    welcome_subtitle:
+      "Moderne e-mail, versleuteld voor jou en onleesbaar voor alle anderen.",
     copy_email: "Klik om e-mail te kopiëren",
     email_copied: "E-mail gekopieerd",
     copy_failed: "E-mail kon niet worden gekopieerd",
     pair_device_title: "Apparaat koppelen",
-    pair_device_confirm: "Wil je {{ name }} koppelen aan je Aster Mail-account?",
-    pair_device_warning: "Een gekoppeld apparaat kan je mail openen zonder je wachtwoord, dus koppelen is het best beperkt tot apparaten die je bij je houdt. Een apparaat kan op elk moment worden verwijderd via Instellingen, Vertrouwde apparaten.",
+    pair_device_confirm:
+      "Wil je {{ name }} koppelen aan je Aster Mail-account?",
+    pair_device_warning:
+      "Een gekoppeld apparaat kan je mail openen zonder je wachtwoord, dus koppelen is het best beperkt tot apparaten die je bij je houdt. Een apparaat kan op elk moment worden verwijderd via Instellingen, Vertrouwde apparaten.",
     pair_device_confirm_button: "Apparaat koppelen",
     pair_device_cancel: "Annuleren",
-    pair_device_success: "Koppeling voltooid. Ga terug naar de Aster Mail desktop-app.",
+    pair_device_success:
+      "Koppeling voltooid. Ga terug naar de Aster Mail desktop-app.",
     pair_device_open_app: "Desktop-app openen",
-    pair_device_invalid: "Deze koppellink werkte niet. Opnieuw beginnen vanuit je desktop-app lost dit meestal op.",
-    pair_device_failed: "Koppeling is niet voltooid. Opnieuw beginnen vanuit je desktop-app lost dit meestal op. Je account is ongewijzigd.",
+    pair_device_invalid:
+      "Deze koppellink werkte niet. Opnieuw beginnen vanuit je desktop-app lost dit meestal op.",
+    pair_device_failed:
+      "Koppeling is niet voltooid. Opnieuw beginnen vanuit je desktop-app lost dit meestal op. Je account is ongewijzigd.",
     pair_this_device: "Dit apparaat koppelen",
-    pair_device_description: "Log in via je browser om deze desktop-app veilig te koppelen.",
-    waiting_for_pairing: "Wachten op koppeling. Er is een browservenster geopend.",
+    pair_device_description:
+      "Log in via je browser om deze desktop-app veilig te koppelen.",
+    waiting_for_pairing:
+      "Wachten op koppeling. Er is een browservenster geopend.",
     device_code_title: "Dit apparaat koppelen",
-    device_code_instruction: "Voer deze code in op app.astermail.org/link-device om je account te koppelen.",
+    device_code_instruction:
+      "Voer deze code in op app.astermail.org/link-device om je account te koppelen.",
     device_code_copy: "Code kopiëren",
     device_code_copied: "Gekopieerd!",
     device_code_open_browser: "Browser openen",
     device_code_expired: "Deze code is verlopen.",
-    device_code_expired_description: "Deze code is verlopen. Een nieuwe van je desktop-app werkt.",
+    device_code_expired_description:
+      "Deze code is verlopen. Een nieuwe van je desktop-app werkt.",
     device_code_get_new: "Nieuwe code ophalen",
     device_code_waiting: "Wachten op bevestiging",
     device_code_expires_in: "Verloopt over",
@@ -5559,31 +6789,47 @@ export const nl = {
     link_device_cancel: "Annuleren",
     link_device_desktop: "Desktop-app",
     link_device_success: "Apparaat gekoppeld",
-    link_device_success_description: "Je desktop-app is nu gekoppeld. Je kunt dit tabblad sluiten.",
-    link_device_invalid_code: "Een koppelcode is 8 tekens lang. Je aantal controleren lost dit meestal op.",
-    link_device_expired_code: "Deze code is verlopen of komt niet overeen. Je desktop-app heeft de huidige code.",
-    link_device_failed: "Koppeling is niet voltooid. Opnieuw beginnen lost dit meestal op. Je account is ongewijzigd.",
-    link_device_try_again: "Dat werkte niet. Opnieuw beginnen lost dit meestal op.",
+    link_device_success_description:
+      "Je desktop-app is nu gekoppeld. Je kunt dit tabblad sluiten.",
+    link_device_invalid_code:
+      "Een koppelcode is 8 tekens lang. Je aantal controleren lost dit meestal op.",
+    link_device_expired_code:
+      "Deze code is verlopen of komt niet overeen. Je desktop-app heeft de huidige code.",
+    link_device_failed:
+      "Koppeling is niet voltooid. Opnieuw beginnen lost dit meestal op. Je account is ongewijzigd.",
+    link_device_try_again:
+      "Dat werkte niet. Opnieuw beginnen lost dit meestal op.",
     trust_this_device_30_days: "Dit apparaat 30 dagen vertrouwen",
     security_key_verification: "Beveiligingssleutelverificatie",
     passkey_sign_in: "Sign in with passkey",
-    tap_security_key: "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
+    tap_security_key:
+      "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
     use_another_method: "Een andere verificatiemethode gebruiken",
-    webauthn_not_supported: "Deze browser ondersteunt geen beveiligingssleutels. Een andere browser, of inloggen met je wachtwoord, werkt.",
-    account_flagged_notice: "Ons geautomatiseerde beveiligingssysteem heeft tijdelijk beperkingen op je account geplaatst, en sommige functies kunnen niet beschikbaar zijn. De rest van je account werkt normaal. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
-    registration_suspended: "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
-    username_in_use: "Deze gebruikersnaam is al in gebruik. Een andere zou moeten werken.",
-    password_breach_warning: "Dit wachtwoord is verschenen in een datalek. Overweeg een ander wachtwoord te gebruiken.",
+    webauthn_not_supported:
+      "Deze browser ondersteunt geen beveiligingssleutels. Een andere browser, of inloggen met je wachtwoord, werkt.",
+    account_flagged_notice:
+      "Ons geautomatiseerde beveiligingssysteem heeft tijdelijk beperkingen op je account geplaatst, en sommige functies kunnen niet beschikbaar zijn. De rest van je account werkt normaal. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
+    registration_suspended:
+      "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit er verkeerd uitziet, kan hello@astermail.org helpen.",
+    username_in_use:
+      "Deze gebruikersnaam is al in gebruik. Een andere zou moeten werken.",
+    password_breach_warning:
+      "Dit wachtwoord is verschenen in een datalek. Overweeg een ander wachtwoord te gebruiken.",
     plan_selection_title: "Kies je abonnement",
-    plan_selection_subtitle: "Kies het abonnement dat bij je past. Je kunt op elk moment wijzigen of annuleren.",
+    plan_selection_subtitle:
+      "Kies het abonnement dat bij je past. Je kunt op elk moment wijzigen of annuleren.",
     plan_continue_with_free: "Doorgaan met Gratis",
     plan_continue_as_free: "Doorgaan als gratis",
     academic_offer_title: "Student of journalist? 30% korting",
-    academic_offer_desc: "30% korting op individuele abonnementen gedurende 12 maanden. Studenten: verifieer nu je academische e-mail en je code staat klaar bij het afrekenen. Journalisten: neem na registratie contact op met support.",
-    academic_offer_sent: "Verificatielink verstuurd naar {{ email }}. Na de klik verschijnt je kortingscode in Instellingen onder Facturering.",
-    academic_offer_journalist: "Journalist? Rond de registratie af en neem daarna contact op met support met je perskaart.",
+    academic_offer_desc:
+      "30% korting op individuele abonnementen gedurende 12 maanden. Studenten: verifieer nu je academische e-mail en je code staat klaar bij het afrekenen. Journalisten: neem na registratie contact op met support.",
+    academic_offer_sent:
+      "Verificatielink verstuurd naar {{ email }}. Na de klik verschijnt je kortingscode in Instellingen onder Facturering.",
+    academic_offer_journalist:
+      "Journalist? Rond de registratie af en neem daarna contact op met support met je perskaart.",
     academic_offer_headline: "Student of journalist?",
-    academic_offer_subline: "Een jaar lang 30% korting op Star, Nova en Supernova. Studenten: voer je academische e-mail in en we sturen je een verificatielink.",
+    academic_offer_subline:
+      "Een jaar lang 30% korting op Star, Nova en Supernova. Studenten: voer je academische e-mail in en we sturen je een verificatielink.",
     academic_offer_cta: "Stuur mij de verificatielink",
     academic_offer_not_now: "Niet nu",
     academic_offer_journalist_link: "Ik ben journalist",
@@ -5591,43 +6837,58 @@ export const nl = {
     academic_offer_sent_title: "Check je inbox",
     academic_offer_continue: "Doorgaan",
     academic_offer_j_step1: "Maak je account af",
-    academic_offer_j_step2: "Mail hello@astermail.org met je perskaart, teampagina of artikel-links",
-    academic_offer_j_step3: "Je 30%-code verschijnt in Instellingen onder Facturering",
-    plan_star_description: "Meer opslag, meer aliassen en je eerste aangepaste domein.",
-    plan_nova_description: "Meer opslag, aangepaste domeinen en onbeperkte aliassen.",
-    plan_supernova_description: "Maximale opslag, alles onbeperkt en toegewijde ondersteuning.",
+    academic_offer_j_step2:
+      "Mail hello@astermail.org met je perskaart, teampagina of artikel-links",
+    academic_offer_j_step3:
+      "Je 30%-code verschijnt in Instellingen onder Facturering",
+    plan_star_description:
+      "Meer opslag, meer aliassen en je eerste aangepaste domein.",
+    plan_nova_description:
+      "Meer opslag, aangepaste domeinen en onbeperkte aliassen.",
+    plan_supernova_description:
+      "Maximale opslag, alles onbeperkt en toegewijde ondersteuning.",
     plan_free_name: "Gratis",
     plan_free_tagline: "Begin zonder kosten",
     plan_free_cta: "Beginnen",
     plan_view_full_features: "Volledige functielijst bekijken",
-    plan_footer_reassurance: "Alle abonnementen bevatten zero-access-versleuteling, geen advertenties en een geld-terug-garantie van 30 dagen. Wijzig of annuleer op elk moment.",
+    plan_footer_reassurance:
+      "Alle abonnementen bevatten zero-access-versleuteling, geen advertenties en een geld-terug-garantie van 30 dagen. Wijzig of annuleer op elk moment.",
     plan_recommended: "Aanbevolen",
     plan_select: "Selecteren",
     plan_selected: "Geselecteerd",
     plan_loading: "Abonnementen laden...",
     plan_payment_success_continuing: "Betaling ontvangen. Afmaken...",
     verification_success_title: "E-mail geverifieerd",
-    verification_success_desc: "Je herstel-e-mailadres is geverifieerd. Je kunt dit tabblad sluiten en terugkeren naar je andere venster.",
+    verification_success_desc:
+      "Je herstel-e-mailadres is geverifieerd. Je kunt dit tabblad sluiten en terugkeren naar je andere venster.",
     close_this_tab: "Dit tabblad sluiten",
     privacy_policy_heading: "Privacybeleid",
     terms_of_service_heading: "Servicevoorwaarden",
     last_updated: "Laatste update: {{date}}",
     effective_date: "Ingangsdatum: {{date}}",
-    privacy_policy_intro: "Bij Aster Communications Inc. is privacy de basis van alles wat we bouwen. Dit Privacybeleid legt uit hoe we met je gegevens omgaan wanneer je Aster Mail en gerelateerde diensten gebruikt. Ons leidend principe is eenvoudig: je gegevens zijn van jou, en we mogen er nooit toegang toe hebben.",
-    terms_of_service_intro: "Welkom bij Aster Mail, beheerd door Aster Communications Inc. Deze Servicevoorwaarden vormen een juridisch bindende overeenkomst tussen jou en Aster Communications Inc. met betrekking tot je gebruik van onze end-to-end versleutelde e-maildienst en gerelateerde producten. Lees deze voorwaarden zorgvuldig door voordat je onze diensten gebruikt.",
+    privacy_policy_intro:
+      "Bij Aster Communications Inc. is privacy de basis van alles wat we bouwen. Dit Privacybeleid legt uit hoe we met je gegevens omgaan wanneer je Aster Mail en gerelateerde diensten gebruikt. Ons leidend principe is eenvoudig: je gegevens zijn van jou, en we mogen er nooit toegang toe hebben.",
+    terms_of_service_intro:
+      "Welkom bij Aster Mail, beheerd door Aster Communications Inc. Deze Servicevoorwaarden vormen een juridisch bindende overeenkomst tussen jou en Aster Communications Inc. met betrekking tot je gebruik van onze end-to-end versleutelde e-maildienst en gerelateerde producten. Lees deze voorwaarden zorgvuldig door voordat je onze diensten gebruikt.",
     view_terms_of_service: "Servicevoorwaarden bekijken",
     view_privacy_policy: "Privacybeleid bekijken",
     backup_email_placeholder: "backup@email.com",
   },
   passkeys: {
     passkey_setup_cancelled: "Instellen van passkey geannuleerd.",
-    security_key_not_found: "Authenticatie geannuleerd of apparaatauthenticator niet beschikbaar.",
-    no_platform_authenticator: "Windows Hello is niet ingesteld op dit apparaat. Ga naar Windows-instellingen > Accounts > Aanmeldingsopties om een pincode, vingerafdruk of gezichtsherkenning toe te voegen.",
-    saved_to_password_manager: "Passkey opgeslagen in je wachtwoordmanager. Om in plaats daarvan Windows Hello te gebruiken, sluit je het dialoogvenster van de wachtwoordmanager wanneer het verschijnt.",
-    passkey_hint: "Gebruikt Windows Hello, Face ID of Touch ID. Als je wachtwoordmanager opent, kun je hem daar opslaan of de extensie pauzeren om Windows Hello direct te gebruiken.",
-    security_key_hint: "Voegt een tweede factor toe via Windows Hello, een YubiKey of je wachtwoordmanager.",
+    security_key_not_found:
+      "Authenticatie geannuleerd of apparaatauthenticator niet beschikbaar.",
+    no_platform_authenticator:
+      "Windows Hello is niet ingesteld op dit apparaat. Ga naar Windows-instellingen > Accounts > Aanmeldingsopties om een pincode, vingerafdruk of gezichtsherkenning toe te voegen.",
+    saved_to_password_manager:
+      "Passkey opgeslagen in je wachtwoordmanager. Om in plaats daarvan Windows Hello te gebruiken, sluit je het dialoogvenster van de wachtwoordmanager wanneer het verschijnt.",
+    passkey_hint:
+      "Gebruikt Windows Hello, Face ID of Touch ID. Als je wachtwoordmanager opent, kun je hem daar opslaan of de extensie pauzeren om Windows Hello direct te gebruiken.",
+    security_key_hint:
+      "Voegt een tweede factor toe via Windows Hello, een YubiKey of je wachtwoordmanager.",
     section_title: "Passkeys & Security Keys",
-    section_description: "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
+    section_description:
+      "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
     add_passkey: "Add passkey",
     add_security_key: "Add security key",
     no_passkeys: "No passkeys or security keys registered",
@@ -5642,150 +6903,260 @@ export const nl = {
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
     registering: "Registering...",
-    not_supported: "Your browser does not support passkeys. Try a modern browser like Chrome, Safari, or Firefox.",
+    not_supported:
+      "Your browser does not support passkeys. Try a modern browser like Chrome, Safari, or Firefox.",
     sign_in_with_passkey: "Sign in with passkey",
     authenticating: "Authenticating...",
-    vault_needs_password: "Enter your password to decrypt your vault for the first time.",
+    vault_needs_password:
+      "Enter your password to decrypt your vault for the first time.",
     unnamed_passkey: "Passkey",
     unnamed_security_key: "Security Key",
     rename: "Hernoemen",
     rename_saved: "Naam bijgewerkt",
   },
   errors: {
-    pending_email_verification: "Controleer je e-mail en klik op de verificatielink om dit account te activeren.",
+    pending_email_verification:
+      "Controleer je e-mail en klik op de verificatielink om dit account te activeren.",
     generic: "Dat heeft niet gewerkt. Een nieuwe poging zou werken.",
-    network: "We konden de server niet bereiken. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
-    unauthorized: "U hebt geen toegang om dat te doen. Als dit een vergissing lijkt, kan uw beheerder helpen.",
-    not_found: "We konden dat niet vinden. Het is mogelijk verplaatst of verwijderd.",
+    network:
+      "We konden de server niet bereiken. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
+    unauthorized:
+      "U hebt geen toegang om dat te doen. Als dit een vergissing lijkt, kan uw beheerder helpen.",
+    not_found:
+      "We konden dat niet vinden. Het is mogelijk verplaatst of verwijderd.",
     validation: "De gemarkeerde velden hebben een nieuwe blik nodig.",
-    server: "De server liep aan onze kant tegen een probleem aan. Een nieuwe poging binnenkort werkt meestal. We zijn aan het onderzoeken.",
-    timeout: "Het verzoek deed er te lang over om af te ronden. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
+    server:
+      "De server liep aan onze kant tegen een probleem aan. Een nieuwe poging binnenkort werkt meestal. We zijn aan het onderzoeken.",
+    timeout:
+      "Het verzoek deed er te lang over om af te ronden. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
     rate_limit: "Je doet dat te snel. Wacht even en probeer het opnieuw.",
-    invalid_credentials: "Dat e-mailadres en wachtwoord kwamen niet overeen. Een nieuwe poging of een reset op astermail.org/reset lost dit op.",
-    session_expired: "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
+    invalid_credentials:
+      "Dat e-mailadres en wachtwoord kwamen niet overeen. Een nieuwe poging of een reset op astermail.org/reset lost dit op.",
+    session_expired:
+      "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
     try_again: "Een nieuwe poging zou werken.",
     invalid_username: "Een gebruikersnaam tussen 3 en 40 tekens werkt hier.",
     enter_password: "Uw wachtwoord is nodig om door te gaan.",
-    password_too_long: "Dit wachtwoord overschrijdt de lengtelimiet. Een korter werkt.",
-    account_not_found: "We konden geen account met die naam vinden. De spelling controleren of een reset op astermail.org/reset lost dit meestal op.",
-    login_failed: "Aanmelden is niet voltooid. Een nieuwe poging zou werken. Uw account is niet vergrendeld.",
-    decrypt_failed: "Dat wachtwoord heeft uw sleutels op dit apparaat niet ontgrendeld. Een nieuwe poging werkt, en een herstelcode op astermail.org/reset is de reserveroute als het blijft mislukken. Uw gegevens op de server zijn ongewijzigd.",
-    send_limit_reached: "U hebt uw dagelijkse verzendlimiet bereikt. Een nieuwe poging over {{time}} werkt. Uw concept is opgeslagen.",
-    ip_blocked: "Te veel mislukte aanmeldpogingen vanaf hier. Een wachttijd van {{time}} voordat u het opnieuw probeert lost dit op. Uw account is niet vergrendeld.",
+    password_too_long:
+      "Dit wachtwoord overschrijdt de lengtelimiet. Een korter werkt.",
+    account_not_found:
+      "We konden geen account met die naam vinden. De spelling controleren of een reset op astermail.org/reset lost dit meestal op.",
+    login_failed:
+      "Aanmelden is niet voltooid. Een nieuwe poging zou werken. Uw account is niet vergrendeld.",
+    decrypt_failed:
+      "Dat wachtwoord heeft uw sleutels op dit apparaat niet ontgrendeld. Een nieuwe poging werkt, en een herstelcode op astermail.org/reset is de reserveroute als het blijft mislukken. Uw gegevens op de server zijn ongewijzigd.",
+    send_limit_reached:
+      "U hebt uw dagelijkse verzendlimiet bereikt. Een nieuwe poging over {{time}} werkt. Uw concept is opgeslagen.",
+    ip_blocked:
+      "Te veel mislukte aanmeldpogingen vanaf hier. Een wachttijd van {{time}} voordat u het opnieuw probeert lost dit op. Uw account is niet vergrendeld.",
     an_error_occurred: "Dat heeft niet gewerkt. Een nieuwe poging zou werken.",
-    failed_to_block_sender: "We konden deze afzender niet blokkeren. Een nieuwe poging zou werken.",
-    failed_to_snooze: "Deze e-mail is niet gesnoozed. Een nieuwe poging zou werken. Hij staat nog in uw inbox.",
-    ghost_alias_not_found: "We konden het ghost-adres dat bij deze conversatie hoort niet vinden.",
-    failed_to_resolve_ghost_alias: "Het ghost-adres voor deze conversatie is niet geladen. Een nieuwe poging zou werken.",
-    ghost_alias_rate_limit: "U hebt al uw ghost-aliassen voor deze maand gebruikt. Uw abonnement upgraden of wachten op de reset van volgende maand geeft u er meer.",
+    failed_to_block_sender:
+      "We konden deze afzender niet blokkeren. Een nieuwe poging zou werken.",
+    failed_to_snooze:
+      "Deze e-mail is niet gesnoozed. Een nieuwe poging zou werken. Hij staat nog in uw inbox.",
+    ghost_alias_not_found:
+      "We konden het ghost-adres dat bij deze conversatie hoort niet vinden.",
+    failed_to_resolve_ghost_alias:
+      "Het ghost-adres voor deze conversatie is niet geladen. Een nieuwe poging zou werken.",
+    ghost_alias_rate_limit:
+      "U hebt al uw ghost-aliassen voor deze maand gebruikt. Uw abonnement upgraden of wachten op de reset van volgende maand geeft u er meer.",
     ghost_alias_already_exists: "U hebt deze ghost-alias al op uw account.",
-    failed_to_create_ghost_alias: "Deze ghost-alias is niet opgeslagen. Een nieuwe poging zou werken. Uw andere aliassen zijn ongewijzigd.",
-    failed_to_activate_ghost_mode: "Ghost-modus is niet aangezet. Een nieuwe poging zou werken.",
-    wrong_vault_password: "Dat wachtwoord heeft uw sleutels op dit apparaat niet ontgrendeld. Een nieuwe poging zou werken, en een herstelcode op astermail.org/reset is de back-up als het blijft mislukken. Uw gegevens op de server zijn ongewijzigd.",
-    vault_tampered: "De versleutelde gegevens op dit apparaat komen niet overeen met wat we verwachtten, wat op manipulatie kan wijzen. Ga naar Instellingen en vervolgens Beveiliging om dit te bekijken, en als de waarschuwing terugkeert neem dan contact op met hello@astermail.org. Uw gegevens op de server zijn onaangetast.",
-    vault_version_drift: "Uw versleutelde opslag is van een oudere versie van Aster, en we werken die nu bij. Uw gegevens zijn veilig en dit gebeurt maar één keer.",
-    vault_missing_key: "We konden de apparaatsleutel die nodig is om deze opslag te lezen niet vinden. Afmelden en weer aanmelden zal dit apparaat opnieuw koppelen. Uw gegevens op de server zijn onaangetast.",
-    wrong_folder_password: "Dat mapwachtwoord kwam niet overeen. Een nieuwe poging zou werken. De map blijft vergrendeld.",
-    wrong_external_account_password: "Dat externe accountwachtwoord kwam niet overeen. Het controleren in Instellingen en daarna een nieuwe poging volstaat meestal. Uw opgeslagen verbinding is ongewijzigd.",
-    decrypt_wrong_key: "We hebben niet de juiste sleutel om deze e-mail op dit apparaat te lezen. Afmelden en weer aanmelden volstaat meestal. Uw e-mail is veilig op de server.",
-    decrypt_corrupt_ciphertext: "Deze e-mail staat op de server maar lijkt onderweg beschadigd. Vernieuwen en het opnieuw proberen volstaat meestal, en hello@astermail.org kan helpen als het blijft mislukken.",
-    decrypt_sender_error: "De afzender heeft deze e-mail versleuteld op een manier die wij niet kunnen lezen. De afzender vragen om hem opnieuw te sturen volstaat meestal. Uw andere e-mails zijn niet getroffen.",
-    no_unsubscribe_method: "Deze afzender heeft geen afmeldingsheader meegestuurd. De link in de e-mail zelf, of het markeren als spam, geeft hetzelfde resultaat.",
-    invalid_unsubscribe_address: "Het afmeldadres van deze afzender lijkt onjuist opgemaakt. De link in de e-mail zelf laat u zich afmelden op de site van de afzender.",
-    tor_unsupported_platform: "Tor is niet beschikbaar op dit platform. De desktop- of mobiele app kan uw verbinding via Tor leiden.",
-    tor_native_only: "Tor is alleen beschikbaar in de native app. De desktop- of mobiele app stelt u in staat om het te gebruiken.",
-    tor_plugin_missing: "De Tor-module is niet geïnstalleerd op dit apparaat. De app opnieuw installeren, of overschakelen naar een directe verbinding in Instellingen, brengt u weer online.",
-    cdn_relay_misconfigured: "De CDN-relay is niet geconfigureerd voor deze build. Overschakelen naar een directe verbinding in Instellingen brengt u weer online, en hello@astermail.org kan helpen indien nodig.",
-    device_repair_required: "De sleutel van dit apparaat ontbreekt. Opnieuw koppelen vanuit uw desktop-app lost dit op. Uw account en gegevens zijn ongewijzigd.",
-    device_challenge_mismatch: "De identiteitscontrole van dit apparaat kwam niet overeen, wat op manipulatie kan wijzen. Koppel opnieuw vanuit uw desktop-app, en als de waarschuwing terugkeert neem dan contact op met hello@astermail.org.",
-    metadata_migration_stalled: "We konden uw lokale opslag na meerdere pogingen niet bijwerken. Uw verbinding controleren en Aster opnieuw openen volstaat meestal. Uw post op de server is veilig.",
-    failed_to_queue_email: "We konden deze e-mail niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_to_send_queued: "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_to_send_external_queued: "Deze e-mail is niet verzonden via uw gekoppelde externe account. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    authentication_failed: "Aanmelden is niet voltooid. Een nieuwe poging zou werken. Uw account is niet vergrendeld.",
-    failed_to_snooze_email: "Deze e-mail is niet gesnoozed. Een nieuwe poging zou werken. Hij staat nog in uw inbox.",
-    failed_to_snooze_emails: "Deze e-mails zijn niet gesnoozed. Een nieuwe poging zou werken.",
-    failed_to_unsnooze_email: "Deze e-mail is niet teruggekeerd naar uw inbox. Een nieuwe poging zou werken.",
-    failed_to_list_snoozed: "Uw gesnoozede e-mails zijn niet geladen. Een nieuwe poging zou werken. Ze zijn veilig op de server.",
+    failed_to_create_ghost_alias:
+      "Deze ghost-alias is niet opgeslagen. Een nieuwe poging zou werken. Uw andere aliassen zijn ongewijzigd.",
+    failed_to_activate_ghost_mode:
+      "Ghost-modus is niet aangezet. Een nieuwe poging zou werken.",
+    wrong_vault_password:
+      "Dat wachtwoord heeft uw sleutels op dit apparaat niet ontgrendeld. Een nieuwe poging zou werken, en een herstelcode op astermail.org/reset is de back-up als het blijft mislukken. Uw gegevens op de server zijn ongewijzigd.",
+    vault_tampered:
+      "De versleutelde gegevens op dit apparaat komen niet overeen met wat we verwachtten, wat op manipulatie kan wijzen. Ga naar Instellingen en vervolgens Beveiliging om dit te bekijken, en als de waarschuwing terugkeert neem dan contact op met hello@astermail.org. Uw gegevens op de server zijn onaangetast.",
+    vault_version_drift:
+      "Uw versleutelde opslag is van een oudere versie van Aster, en we werken die nu bij. Uw gegevens zijn veilig en dit gebeurt maar één keer.",
+    vault_missing_key:
+      "We konden de apparaatsleutel die nodig is om deze opslag te lezen niet vinden. Afmelden en weer aanmelden zal dit apparaat opnieuw koppelen. Uw gegevens op de server zijn onaangetast.",
+    wrong_folder_password:
+      "Dat mapwachtwoord kwam niet overeen. Een nieuwe poging zou werken. De map blijft vergrendeld.",
+    wrong_external_account_password:
+      "Dat externe accountwachtwoord kwam niet overeen. Het controleren in Instellingen en daarna een nieuwe poging volstaat meestal. Uw opgeslagen verbinding is ongewijzigd.",
+    decrypt_wrong_key:
+      "We hebben niet de juiste sleutel om deze e-mail op dit apparaat te lezen. Afmelden en weer aanmelden volstaat meestal. Uw e-mail is veilig op de server.",
+    decrypt_corrupt_ciphertext:
+      "Deze e-mail staat op de server maar lijkt onderweg beschadigd. Vernieuwen en het opnieuw proberen volstaat meestal, en hello@astermail.org kan helpen als het blijft mislukken.",
+    decrypt_sender_error:
+      "De afzender heeft deze e-mail versleuteld op een manier die wij niet kunnen lezen. De afzender vragen om hem opnieuw te sturen volstaat meestal. Uw andere e-mails zijn niet getroffen.",
+    no_unsubscribe_method:
+      "Deze afzender heeft geen afmeldingsheader meegestuurd. De link in de e-mail zelf, of het markeren als spam, geeft hetzelfde resultaat.",
+    invalid_unsubscribe_address:
+      "Het afmeldadres van deze afzender lijkt onjuist opgemaakt. De link in de e-mail zelf laat u zich afmelden op de site van de afzender.",
+    tor_unsupported_platform:
+      "Tor is niet beschikbaar op dit platform. De desktop- of mobiele app kan uw verbinding via Tor leiden.",
+    tor_native_only:
+      "Tor is alleen beschikbaar in de native app. De desktop- of mobiele app stelt u in staat om het te gebruiken.",
+    tor_plugin_missing:
+      "De Tor-module is niet geïnstalleerd op dit apparaat. De app opnieuw installeren, of overschakelen naar een directe verbinding in Instellingen, brengt u weer online.",
+    cdn_relay_misconfigured:
+      "De CDN-relay is niet geconfigureerd voor deze build. Overschakelen naar een directe verbinding in Instellingen brengt u weer online, en hello@astermail.org kan helpen indien nodig.",
+    device_repair_required:
+      "De sleutel van dit apparaat ontbreekt. Opnieuw koppelen vanuit uw desktop-app lost dit op. Uw account en gegevens zijn ongewijzigd.",
+    device_challenge_mismatch:
+      "De identiteitscontrole van dit apparaat kwam niet overeen, wat op manipulatie kan wijzen. Koppel opnieuw vanuit uw desktop-app, en als de waarschuwing terugkeert neem dan contact op met hello@astermail.org.",
+    metadata_migration_stalled:
+      "We konden uw lokale opslag na meerdere pogingen niet bijwerken. Uw verbinding controleren en Aster opnieuw openen volstaat meestal. Uw post op de server is veilig.",
+    failed_to_queue_email:
+      "We konden deze e-mail niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_to_send_queued:
+      "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_to_send_external_queued:
+      "Deze e-mail is niet verzonden via uw gekoppelde externe account. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    authentication_failed:
+      "Aanmelden is niet voltooid. Een nieuwe poging zou werken. Uw account is niet vergrendeld.",
+    failed_to_snooze_email:
+      "Deze e-mail is niet gesnoozed. Een nieuwe poging zou werken. Hij staat nog in uw inbox.",
+    failed_to_snooze_emails:
+      "Deze e-mails zijn niet gesnoozed. Een nieuwe poging zou werken.",
+    failed_to_unsnooze_email:
+      "Deze e-mail is niet teruggekeerd naar uw inbox. Een nieuwe poging zou werken.",
+    failed_to_list_snoozed:
+      "Uw gesnoozede e-mails zijn niet geladen. Een nieuwe poging zou werken. Ze zijn veilig op de server.",
     auth_required: "Aanmelden brengt u erdoor.",
-    no_permission: "U hebt geen toegang om dat te doen. Als dit er verkeerd uitziet, kan uw beheerder helpen.",
-    invalid_request: "We konden dat verzoek niet verwerken. De pagina vernieuwen en het opnieuw proberen lost dit meestal op.",
-    conflict: "Iets of iemand anders heeft dit als eerste gewijzigd. Vernieuwen toont de nieuwste versie.",
+    no_permission:
+      "U hebt geen toegang om dat te doen. Als dit er verkeerd uitziet, kan uw beheerder helpen.",
+    invalid_request:
+      "We konden dat verzoek niet verwerken. De pagina vernieuwen en het opnieuw proberen lost dit meestal op.",
+    conflict:
+      "Iets of iemand anders heeft dit als eerste gewijzigd. Vernieuwen toont de nieuwste versie.",
     rate_limited: "Je doet dat te snel. Wacht even en probeer het opnieuw.",
-    internal_error: "De server liep aan onze kant tegen een probleem aan. Een nieuwe poging binnenkort werkt meestal. We zijn aan het onderzoeken.",
-    connection_failed: "We konden de server niet bereiken. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
-    request_timeout: "Het verzoek deed er te lang over om af te ronden. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
-    unexpected_error: "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken.",
-    encryption_keys_not_loaded: "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
-    session_expired_reenter: "Uw sessie is beëindigd. Uw wachtwoord pakt hem weer op. Uw werk is opgeslagen.",
-    encryption_keys_unavailable: "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
-    session_expired_send: "Uw sessie eindigde voordat deze e-mail kon worden verzonden. Opnieuw aanmelden verstuurt hem. Uw concept is opgeslagen.",
-    failed_encrypt_envelope: "We konden deze e-mail niet beveiligen voor verzending. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    internal_error:
+      "De server liep aan onze kant tegen een probleem aan. Een nieuwe poging binnenkort werkt meestal. We zijn aan het onderzoeken.",
+    connection_failed:
+      "We konden de server niet bereiken. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
+    request_timeout:
+      "Het verzoek deed er te lang over om af te ronden. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
+    unexpected_error:
+      "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken.",
+    encryption_keys_not_loaded:
+      "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
+    session_expired_reenter:
+      "Uw sessie is beëindigd. Uw wachtwoord pakt hem weer op. Uw werk is opgeslagen.",
+    encryption_keys_unavailable:
+      "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
+    session_expired_send:
+      "Uw sessie eindigde voordat deze e-mail kon worden verzonden. Opnieuw aanmelden verstuurt hem. Uw concept is opgeslagen.",
+    failed_encrypt_envelope:
+      "We konden deze e-mail niet beveiligen voor verzending. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
     failed_pgp_encrypt: "pgp_encrypt_failed",
-    no_authenticated_account: "We konden geen aangemeld account op dit apparaat vinden. Aanmelden brengt u erdoor.",
-    daily_limit_reached: "U hebt uw dagelijkse verzendlimiet bereikt. Een nieuwe poging over {{time}} werkt. Uw concept is opgeslagen.",
-    failed_send_email: "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    cannot_send_no_keys: "U hebt vereiste versleuteling ingeschakeld, en we hebben geen sleutel voor {{recipients}}. Hen vragen een sleutel te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
-    cannot_send_no_recipient_keys: "U hebt vereiste versleuteling ingeschakeld, en geen van uw ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
-    failed_send_external: "Deze e-mail is niet verzonden via uw gekoppelde externe account. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_queue_email: "We konden deze e-mail niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    no_active_account: "We konden geen aangemeld account op dit apparaat vinden. Aanmelden brengt u erdoor.",
-    failed_queue_reply: "We konden dit antwoord niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    no_authenticated_account:
+      "We konden geen aangemeld account op dit apparaat vinden. Aanmelden brengt u erdoor.",
+    daily_limit_reached:
+      "U hebt uw dagelijkse verzendlimiet bereikt. Een nieuwe poging over {{time}} werkt. Uw concept is opgeslagen.",
+    failed_send_email:
+      "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    cannot_send_no_keys:
+      "U hebt vereiste versleuteling ingeschakeld, en we hebben geen sleutel voor {{recipients}}. Hen vragen een sleutel te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
+    cannot_send_no_recipient_keys:
+      "U hebt vereiste versleuteling ingeschakeld, en geen van uw ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
+    failed_send_external:
+      "Deze e-mail is niet verzonden via uw gekoppelde externe account. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_queue_email:
+      "We konden deze e-mail niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    no_active_account:
+      "We konden geen aangemeld account op dit apparaat vinden. Aanmelden brengt u erdoor.",
+    failed_queue_reply:
+      "We konden dit antwoord niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
     no_recipients: "Er is minimaal één ontvanger nodig voor het verzenden.",
-    failed_queue_forward: "We konden dit doorsturen niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    failed_send: "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
-    incorrect_password: "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou werken. Uw account is niet vergrendeld.",
-    no_keys_available: "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
-    session_expired_login: "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
-    key_material_unavailable: "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
-    storage_compromised: "De versleutelde gegevens op dit apparaat komen niet overeen met wat we verwachtten, wat op manipulatie kan wijzen. Afmelden en weer aanmelden lost dit vaak op. Als de waarschuwing terugkeert, neem dan onmiddellijk contact op met hello@astermail.org. Uw gegevens op de server zijn onaangetast.",
+    failed_queue_forward:
+      "We konden dit doorsturen niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_send:
+      "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    incorrect_password:
+      "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou werken. Uw account is niet vergrendeld.",
+    no_keys_available:
+      "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
+    session_expired_login:
+      "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
+    key_material_unavailable:
+      "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
+    storage_compromised:
+      "De versleutelde gegevens op dit apparaat komen niet overeen met wat we verwachtten, wat op manipulatie kan wijzen. Afmelden en weer aanmelden lost dit vaak op. Als de waarschuwing terugkeert, neem dan onmiddellijk contact op met hello@astermail.org. Uw gegevens op de server zijn onaangetast.",
     registration_cancelled: "Registratie geannuleerd",
-    registration_failed: "Aanmelden is niet voltooid. Opnieuw beginnen en het opnieuw proberen lost dit meestal op. Er is geen account aangemaakt.",
-    authentication_failed_webauthn: "Beveiligingssleutel aanmelden is niet voltooid of geannuleerd. Een nieuwe poging zou werken.",
+    registration_failed:
+      "Aanmelden is niet voltooid. Opnieuw beginnen en het opnieuw proberen lost dit meestal op. Er is geen account aangemaakt.",
+    authentication_failed_webauthn:
+      "Beveiligingssleutel aanmelden is niet voltooid of geannuleerd. Een nieuwe poging zou werken.",
     authentication_cancelled: "Authenticatie geannuleerd",
     alias_empty: "Er is een aliasnaam nodig.",
     alias_too_short: "Minimaal 3 tekens werken hier.",
     alias_too_long: "64 tekens of minder werken hier.",
-    alias_consecutive_dots: "Opeenvolgende punten zijn niet toegestaan in een alias.",
+    alias_consecutive_dots:
+      "Opeenvolgende punten zijn niet toegestaan in een alias.",
     alias_numeric_only: "Een aliasnaam kan niet alleen uit cijfers bestaan.",
     alias_not_available: "Deze alias is bezet. Een andere zou moeten werken.",
-    alias_invalid_chars: "Letters, cijfers, punten, underscores en koppeltekens zijn de toegestane tekens.",
+    alias_invalid_chars:
+      "Letters, cijfers, punten, underscores en koppeltekens zijn de toegestane tekens.",
     domain_empty: "Er is een domeinnaam nodig.",
     domain_too_long: "Dit domein is te lang. Een kortere werkt.",
-    domain_reserved: "astermail.org en aster.cx kunnen hier niet worden gebruikt. Een ander domein dat u bezit werkt.",
-    domain_invalid_format: "Dit domeinformaat is niet geldig. De spelling controleren lost dit meestal op.",
-    domain_invalid_label: "Een sectie van dit domein is te lang of te kort. Een nieuwe blik lost dit meestal op.",
-    domain_invalid_chars: "Dit domein heeft tekens die we niet kunnen gebruiken. De spelling controleren lost dit meestal op.",
+    domain_reserved:
+      "astermail.org en aster.cx kunnen hier niet worden gebruikt. Een ander domein dat u bezit werkt.",
+    domain_invalid_format:
+      "Dit domeinformaat is niet geldig. De spelling controleren lost dit meestal op.",
+    domain_invalid_label:
+      "Een sectie van dit domein is te lang of te kort. Een nieuwe blik lost dit meestal op.",
+    domain_invalid_chars:
+      "Dit domein heeft tekens die we niet kunnen gebruiken. De spelling controleren lost dit meestal op.",
     address_empty: "Het adres voor de @ is hier nodig.",
     address_too_short: "Minimaal één teken werkt hier.",
     address_too_long: "64 tekens of minder werken hier.",
-    address_invalid_chars: "Letters, cijfers, punten, underscores en koppeltekens zijn de toegestane tekens.",
-    address_consecutive_dots: "Opeenvolgende punten zijn niet toegestaan in een adres.",
+    address_invalid_chars:
+      "Letters, cijfers, punten, underscores en koppeltekens zijn de toegestane tekens.",
+    address_consecutive_dots:
+      "Opeenvolgende punten zijn niet toegestaan in een adres.",
     address_numeric_only: "Een adres kan niet alleen uit cijfers bestaan.",
-    max_accounts: "Maximaal {{max}} accounts kunnen tegelijk actief zijn. Een verwijderen maakt ruimte voor een andere.",
-    account_already_added: "Dit account is al aangemeld op dit apparaat. Schakel ernaar over via het accountmenu.",
-    failed_encrypt_draft: "We konden dit concept niet veilig opslaan op dit apparaat. Een nieuwe poging zou werken. Uw getypte tekst staat nog in de opsteller.",
-    failed_decrypt_draft: "We konden dit concept niet openen op dit apparaat. Afmelden en weer aanmelden, dan een nieuwe poging, lost dit meestal op.",
-    version_conflict: "Iets of iemand anders heeft dit als eerste gewijzigd. Vernieuwen toont de nieuwste versie.",
-    file_too_large: "Dit bestand is {{size}} MB, wat de limiet van {{limit}} MB overschrijdt. Een kleiner werkt.",
-    no_emails_in_mbox: "Dit MBOX-bestand bevat geen leesbare e-mails. Een andere export werkt.",
-    no_emails_in_pst: "Dit PST-bestand bevat geen leesbare e-mails. Een andere export werkt.",
+    max_accounts:
+      "Maximaal {{max}} accounts kunnen tegelijk actief zijn. Een verwijderen maakt ruimte voor een andere.",
+    account_already_added:
+      "Dit account is al aangemeld op dit apparaat. Schakel ernaar over via het accountmenu.",
+    failed_encrypt_draft:
+      "We konden dit concept niet veilig opslaan op dit apparaat. Een nieuwe poging zou werken. Uw getypte tekst staat nog in de opsteller.",
+    failed_decrypt_draft:
+      "We konden dit concept niet openen op dit apparaat. Afmelden en weer aanmelden, dan een nieuwe poging, lost dit meestal op.",
+    version_conflict:
+      "Iets of iemand anders heeft dit als eerste gewijzigd. Vernieuwen toont de nieuwste versie.",
+    file_too_large:
+      "Dit bestand is {{size}} MB, wat de limiet van {{limit}} MB overschrijdt. Een kleiner werkt.",
+    no_emails_in_mbox:
+      "Dit MBOX-bestand bevat geen leesbare e-mails. Een andere export werkt.",
+    no_emails_in_pst:
+      "Dit PST-bestand bevat geen leesbare e-mails. Een andere export werkt.",
     no_data_in_csv: "Deze CSV heeft geen rijen. Een ander bestand werkt.",
-    email_skipped_size: "E-mail {{number}} is overgeslagen omdat het de limiet van 50 MB overschrijdt. De rest van uw import gaat door.",
-    failed_parse_email: "E-mail {{number}} kon niet worden gelezen: {{error}}. De rest van uw import gaat door.",
-    failed_parse_pst: "We konden een bericht in dit PST-bestand niet lezen: {{error}}. Exporteren vanuit Outlook als MBOX is de oplossing.",
-    pst_conversion_required: "Aster kan PST-bestanden niet rechtstreeks lezen. Uw e-mails exporteren vanuit Outlook als MBOX of als afzonderlijke EML-bestanden laat de import werken.",
-    failed_parse_pst_file: "Dit PST-bestand kon niet worden gelezen: {{error}}. Exporteren vanuit uw e-mailclient als MBOX lost dit meestal op.",
-    no_valid_emails_csv: "We vonden geen bruikbare e-mails in deze CSV. Het bestand heeft kolommen nodig zoals van, aan, onderwerp, inhoud en datum. De koppen controleren lost dit meestal op.",
-    failed_parse_csv: "Deze CSV kon niet worden gelezen: {{error}}. Een nieuwe blik op het bestand lost dit meestal op.",
-    failed_parse_eml: "Dit EML-bestand kon niet worden gelezen: {{error}}. Een nieuwe blik op het bestand lost dit meestal op.",
-    row_skipped: "Rij {{number}} is overgeslagen omdat vereiste velden ontbraken. De rest van uw import gaat door.",
-    emails_skipped_invalid: "We hebben {{count}} e-mails overgeslagen die geen afzender of inhoud hadden. De rest is geïmporteerd.",
-    unrecognized_format: "Aster kan {{name}} niet lezen. Ondersteunde formaten zijn MBOX, EML, CSV en PST. Sla het bestand op in een van deze formaten en probeer het opnieuw.",
-    unknown_error: "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken. We konden de oorzaak niet bepalen.",
-    health_check_failed: "De diagnostiek is niet voltooid. Een nieuwe poging zou werken.",
-    unexpected_health_check_error: "De diagnostiek liep tegen een probleem aan. Een nieuwe poging zou werken.",
-    all_emails_rejected: "Alle {{count}} e-mails in dit bestand zijn overgeslagen omdat elk een afzender of inhoud miste, en er is niets geïmporteerd. Een nieuwe blik op de bronexport lost dit meestal op.",
+    email_skipped_size:
+      "E-mail {{number}} is overgeslagen omdat het de limiet van 50 MB overschrijdt. De rest van uw import gaat door.",
+    failed_parse_email:
+      "E-mail {{number}} kon niet worden gelezen: {{error}}. De rest van uw import gaat door.",
+    failed_parse_pst:
+      "We konden een bericht in dit PST-bestand niet lezen: {{error}}. Exporteren vanuit Outlook als MBOX is de oplossing.",
+    pst_conversion_required:
+      "Aster kan PST-bestanden niet rechtstreeks lezen. Uw e-mails exporteren vanuit Outlook als MBOX of als afzonderlijke EML-bestanden laat de import werken.",
+    failed_parse_pst_file:
+      "Dit PST-bestand kon niet worden gelezen: {{error}}. Exporteren vanuit uw e-mailclient als MBOX lost dit meestal op.",
+    no_valid_emails_csv:
+      "We vonden geen bruikbare e-mails in deze CSV. Het bestand heeft kolommen nodig zoals van, aan, onderwerp, inhoud en datum. De koppen controleren lost dit meestal op.",
+    failed_parse_csv:
+      "Deze CSV kon niet worden gelezen: {{error}}. Een nieuwe blik op het bestand lost dit meestal op.",
+    failed_parse_eml:
+      "Dit EML-bestand kon niet worden gelezen: {{error}}. Een nieuwe blik op het bestand lost dit meestal op.",
+    row_skipped:
+      "Rij {{number}} is overgeslagen omdat vereiste velden ontbraken. De rest van uw import gaat door.",
+    emails_skipped_invalid:
+      "We hebben {{count}} e-mails overgeslagen die geen afzender of inhoud hadden. De rest is geïmporteerd.",
+    unrecognized_format:
+      "Aster kan {{name}} niet lezen. Ondersteunde formaten zijn MBOX, EML, CSV en PST. Sla het bestand op in een van deze formaten en probeer het opnieuw.",
+    unknown_error:
+      "Iets heeft niet gewerkt zoals verwacht. Een nieuwe poging zou werken. We konden de oorzaak niet bepalen.",
+    health_check_failed:
+      "De diagnostiek is niet voltooid. Een nieuwe poging zou werken.",
+    unexpected_health_check_error:
+      "De diagnostiek liep tegen een probleem aan. Een nieuwe poging zou werken.",
+    all_emails_rejected:
+      "Alle {{count}} e-mails in dit bestand zijn overgeslagen omdat elk een afzender of inhoud miste, en er is niets geïmporteerd. Een nieuwe blik op de bronexport lost dit meestal op.",
   },
   mail_rules: {
     editor_description: "Geef uw regel een naam en vertel wat deze moet doen.",
@@ -5793,9 +7164,11 @@ export const nl = {
     title: "E-mailregels",
     subtitle: "Inkomende e-mail automatisch organiseren.",
     new_rule: "Nieuwe regel",
-    at_limit_upgrade: "Je hebt de limiet voor e-mailregels van je abonnement bereikt. Upgrade om er meer toe te voegen.",
+    at_limit_upgrade:
+      "Je hebt de limiet voor e-mailregels van je abonnement bereikt. Upgrade om er meer toe te voegen.",
     rule_limit_reached: "Limiet e-mailregels bereikt",
-    rule_limit_body: "Je hebt de limiet voor e-mailregels van je abonnement bereikt. Upgrade om er meer toe te voegen.",
+    rule_limit_body:
+      "Je hebt de limiet voor e-mailregels van je abonnement bereikt. Upgrade om er meer toe te voegen.",
     edit_rule: "Regel bewerken",
     create_rule: "Regel aanmaken",
     save_rule: "Regel opslaan",
@@ -5810,7 +7183,8 @@ export const nl = {
     add_condition: "Voorwaarde toevoegen",
     apply_to_existing: "Nu toepassen op bestaande e-mail",
     empty_title: "Nog geen regels",
-    empty_description: "Maak je eerste regel aan om inkomende e-mail automatisch te organiseren.",
+    empty_description:
+      "Maak je eerste regel aan om inkomende e-mail automatisch te organiseren.",
     empty_cta: "Regel aanmaken",
     applied_count: "Toegepast op {{count}} berichten",
     field_from: "Van",
@@ -5867,18 +7241,22 @@ export const nl = {
     op_equals: "gelijk aan",
     op_older_than_days: "ouder dan (dagen)",
     op_newer_than_days: "nieuwer dan (dagen)",
-    regex_invalid: "Dit regex-patroon heeft een typefout. De syntaxis controleren lost dit meestal op.",
+    regex_invalid:
+      "Dit regex-patroon heeft een typefout. De syntaxis controleren lost dit meestal op.",
     regex_empty: "Er is een regex-patroon nodig voor het opslaan.",
     regex_too_long: "Deze regex is te lang. Een kortere versie werkt.",
-    last_condition_required: "Er is minimaal één voorwaarde nodig voordat deze regel kan worden opgeslagen.",
-    last_action_required: "Er is minimaal één actie nodig voordat deze regel kan worden opgeslagen.",
+    last_condition_required:
+      "Er is minimaal één voorwaarde nodig voordat deze regel kan worden opgeslagen.",
+    last_action_required:
+      "Er is minimaal één actie nodig voordat deze regel kan worden opgeslagen.",
     read: "Gelezen",
     unread: "Ongelezen",
     none: "Geen",
     no_labels: "Geen labels",
     no_labels_create_hint: "Nog geen labels. Maak er een aan in de zijbalk.",
     delete_rule_title: "Regel verwijderen?",
-    delete_rule_body: "Inkomende e-mail wordt niet meer gefilterd door deze regel.",
+    delete_rule_body:
+      "Inkomende e-mail wordt niet meer gefilterd door deze regel.",
     menu_enable: "Inschakelen",
     menu_disable: "Uitschakelen",
     menu_duplicate: "Dupliceren",
@@ -5889,9 +7267,12 @@ export const nl = {
     value_placeholder: "Waarde",
     pick_folder: "Een map kiezen",
     pick_labels: "Labels kiezen",
-    load_failed: "Uw regels zijn niet geladen. Een nieuwe poging zou werken. Uw opgeslagen regels zijn veilig.",
-    save_failed: "Deze regel is niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is nog actief.",
-    reorder_failed: "De nieuwe volgorde is niet opgeslagen. Een nieuwe poging zou werken. Uw regels worden nog uitgevoerd in hun vorige volgorde.",
+    load_failed:
+      "Uw regels zijn niet geladen. Een nieuwe poging zou werken. Uw opgeslagen regels zijn veilig.",
+    save_failed:
+      "Deze regel is niet opgeslagen. Een nieuwe poging zou werken. De eerdere versie is nog actief.",
+    reorder_failed:
+      "De nieuwe volgorde is niet opgeslagen. Een nieuwe poging zou werken. Uw regels worden nog uitgevoerd in hun vorige volgorde.",
     match_case: "Hoofdlettergevoelig",
     header_name_placeholder: "Naam koptekst",
     value_unit_bytes: "B",
@@ -5923,10 +7304,14 @@ export const nl = {
     more_actions: "Meer acties",
     coming_soon: "Binnenkort beschikbaar",
     hint_name_required: "Er is een naam voor deze regel nodig.",
-    hint_conditions_required: "Er is minimaal één voorwaarde nodig voordat deze regel kan worden opgeslagen.",
-    hint_actions_required: "Er is minimaal één actie nodig voordat deze regel kan worden opgeslagen.",
-    hint_condition_incomplete: "Elke voorwaarde moet worden ingevuld voordat deze regel kan worden opgeslagen.",
-    hint_forward_required: "Het e-mailadres om naar door te sturen is hier nodig.",
+    hint_conditions_required:
+      "Er is minimaal één voorwaarde nodig voordat deze regel kan worden opgeslagen.",
+    hint_actions_required:
+      "Er is minimaal één actie nodig voordat deze regel kan worden opgeslagen.",
+    hint_condition_incomplete:
+      "Elke voorwaarde moet worden ingevuld voordat deze regel kan worden opgeslagen.",
+    hint_forward_required:
+      "Het e-mailadres om naar door te sturen is hier nodig.",
     hint_snooze_required: "Er is een uitsteldatum nodig.",
     hint_categorize_required: "Er is een categorie nodig.",
     remove_action: "Actie verwijderen",
@@ -5940,9 +7325,12 @@ export const nl = {
     pick_a_field: "Een veld kiezen",
     tab_visual: "Visueel",
     tab_expression: "Expressie",
-    expression_placeholder: "from.address is \"alice@example.com\" and subject contains \"receipt\"",
-    expression_parse_error: "Deze expressie heeft een typefout. De syntaxis controleren lost dit meestal op.",
-    cannot_render_visual: "Deze regel heeft geneste voorwaarden die de visuele editor niet kan tonen. De Expressieweergave is waar het kan worden bewerkt.",
+    expression_placeholder:
+      'from.address is "alice@example.com" and subject contains "receipt"',
+    expression_parse_error:
+      "Deze expressie heeft een typefout. De syntaxis controleren lost dit meestal op.",
+    cannot_render_visual:
+      "Deze regel heeft geneste voorwaarden die de visuele editor niet kan tonen. De Expressieweergave is waar het kan worden bewerkt.",
   },
   badges: {
     title: "Badges",
@@ -5952,15 +7340,18 @@ export const nl = {
     active_badge: "Actieve badge",
     none: "Geen",
     show_on_profile: "Tonen op profiel",
-    show_on_profile_description: "Je actieve badge weergeven aan andere Aster-gebruikers.",
+    show_on_profile_description:
+      "Je actieve badge weergeven aan andere Aster-gebruikers.",
     show_in_signature: "Tonen in handtekening",
-    show_in_signature_description: "Je actieve badge opnemen in uitgaande e-mailhandtekeningen.",
+    show_in_signature_description:
+      "Je actieve badge opnemen in uitgaande e-mailhandtekeningen.",
     granted_at: "Verdiend {date}",
     find_order_label: "#{order}",
     empty_state: "Je hebt nog geen badges gevonden.",
     claim_success: "Je hebt de {name}-badge verdiend.",
     claim_already: "Je hebt al een ontdekkingsbadge.",
-    claim_failed: "Deze badge is niet opgeslagen. Een nieuwe poging zou werken.",
+    claim_failed:
+      "Deze badge is niet opgeslagen. Een nieuwe poging zou werken.",
     badge_big_bang: "Oerknal",
     badge_big_bang_description: "De eerste die de kosmos ontdekte.",
     badge_event_horizon: "Gebeurtenishorizon",
@@ -5988,7 +7379,8 @@ export const nl = {
     from: "Van",
     expires: "Verloopt",
     expired: "Dit beveiligde bericht is verlopen en niet langer beschikbaar.",
-    password_prompt: "Dit bericht is beveiligd. Voer het wachtwoord in om het te bekijken.",
+    password_prompt:
+      "Dit bericht is beveiligd. Voer het wachtwoord in om het te bekijken.",
     password_label: "Wachtwoord",
     view_button: "Bericht bekijken",
     unlocking: "Ontgrendelen...",
@@ -6009,15 +7401,19 @@ export const nl = {
     reply_failed: "Je antwoord kon niet worden verzonden. Probeer het opnieuw.",
     reply_limit_reached: "Dit bericht heeft de antwoordlimiet bereikt.",
     delete_button: "Bericht verwijderen",
-    delete_confirm_prompt: "Dit bericht verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    delete_confirm_prompt:
+      "Dit bericht verwijderen? Dit kan niet ongedaan worden gemaakt.",
     delete_confirm_yes: "Verwijderen",
     delete_confirm_no: "Annuleren",
-    delete_failed: "Dit bericht kon niet worden verwijderd. Probeer het opnieuw.",
+    delete_failed:
+      "Dit bericht kon niet worden verwijderd. Probeer het opnieuw.",
   },
   compose: {
     encrypt_external_label: "Versleutelen voor externe ontvangers",
-    encrypt_external_desc: "Ontvangers openen een privélink en voeren een wachtwoord in om dit bericht te lezen.",
-    encrypt_password_required: "Stel een wachtwoord in om dit bericht te versleutelen.",
+    encrypt_external_desc:
+      "Ontvangers openen een privélink en voeren een wachtwoord in om dit bericht te lezen.",
+    encrypt_password_required:
+      "Stel een wachtwoord in om dit bericht te versleutelen.",
   },
   shared_mailboxes: {
     tab_label: "Gedeelde mailboxen",
@@ -6025,20 +7421,28 @@ export const nl = {
     create: "Aanmaken",
     created: "Gedeelde mailbox aangemaakt",
     create_failed: "Kon de gedeelde mailbox niet aanmaken",
-    create_hint: "{{count}}/{{max}} gedeelde mailboxen. Iedereen met toegang leest en verstuurt vanaf hetzelfde adres.",
-    limit_reached: "Je abonnement staat maximaal {{max}} gedeelde mailboxen toe.",
+    create_hint:
+      "{{count}}/{{max}} gedeelde mailboxen. Iedereen met toegang leest en verstuurt vanaf hetzelfde adres.",
+    limit_reached:
+      "Je abonnement staat maximaal {{max}} gedeelde mailboxen toe.",
     address_placeholder: "familie",
     empty_title: "Nog geen gedeelde mailboxen",
-    empty_desc: "Maak een adres zoals familie@astermail.org dat je hele gezin kan lezen en gebruiken - zonder extra wachtwoord.",
+    empty_desc:
+      "Maak een adres zoals familie@astermail.org dat je hele gezin kan lezen en gebruiken - zonder extra wachtwoord.",
     frozen: "Bevroren",
     rotation_needed: "Toegang bijwerken",
-    rotation_explainer: "Iemand heeft de toegang tot deze mailbox verloren. Vernieuw de sleutels zodat verwijderde leden nieuwe mail niet meer kunnen openen.",
+    rotation_explainer:
+      "Iemand heeft de toegang tot deze mailbox verloren. Vernieuw de sleutels zodat verwijderde leden nieuwe mail niet meer kunnen openen.",
     rotate: "Sleutels vernieuwen",
     rotated: "Mailboxsleutels vernieuwd",
-    rotate_conflict: "De ledenlijst is gewijzigd tijdens het vernieuwen. De lijst is bijgewerkt - probeer het opnieuw.",
-    revoke_rotation_pending: "Toegang verwijderd, maar sleutels konden niet worden vernieuwd. Tik op Toegang bijwerken - tot dan behoudt het lid toegang.",
-    created_grant_pending: "Mailbox aangemaakt, maar het instellen van je toegang is mislukt. Open de mailboxregel en geef jezelf toegang.",
-    load_failed_retry: "Kan gedeelde mailboxen niet laden. Tik om opnieuw te proberen.",
+    rotate_conflict:
+      "De ledenlijst is gewijzigd tijdens het vernieuwen. De lijst is bijgewerkt - probeer het opnieuw.",
+    revoke_rotation_pending:
+      "Toegang verwijderd, maar sleutels konden niet worden vernieuwd. Tik op Toegang bijwerken - tot dan behoudt het lid toegang.",
+    created_grant_pending:
+      "Mailbox aangemaakt, maar het instellen van je toegang is mislukt. Open de mailboxregel en geef jezelf toegang.",
+    load_failed_retry:
+      "Kan gedeelde mailboxen niet laden. Tik om opnieuw te proberen.",
     open: "Openen",
     grant_added: "Toegang verleend",
     grant_revoked: "Toegang ingetrokken",
@@ -6049,10 +7453,9 @@ export const nl = {
     storage_line: "{{used}} van {{total}} gebruikt",
     deleted: "Gedeelde mailbox verwijderd",
     delete_confirm_button: "Mailbox verwijderen",
-    delete_confirm_message: "{{address}} verwijderen? Het adres ontvangt geen mail meer en kan niet opnieuw worden geregistreerd.",
+    delete_confirm_message:
+      "{{address}} verwijderen? Het adres ontvangt geen mail meer en kan niet opnieuw worden geregistreerd.",
     delete_confirm_title: "Gedeelde mailbox verwijderen",
     access_unavailable: "Deze gedeelde mailbox is niet meer beschikbaar",
   },
 };
-
-

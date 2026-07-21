@@ -42,8 +42,15 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
-import { update_alias } from "@/services/api/aliases";
+import { update_alias, get_alias_stats } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
+import { use_auth_safe } from "@/contexts/auth_context";
+import {
+  get_breach_match_for_alias,
+  is_alias_watch_enabled,
+  ALIAS_WATCH_MATCHES_CHANGED_EVENT,
+  type CachedAliasBreachMatch,
+} from "@/services/alias_breach_store";
 import {
   get_preferred_sender_id,
   set_preferred_sender_id,
@@ -181,7 +188,7 @@ function AliasAvatar({
       <div className="absolute -bottom-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
         {is_locked ? (
           <button
-            className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-blue-500/30 transition-colors"
+            className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-brand/30 transition-colors"
             title={t("common.alias_avatars_locked" as TranslationKey)}
             type="button"
             onClick={() => prompt_upgrade(t("settings.feature_requires_upgrade"))}
@@ -269,11 +276,19 @@ export function AliasItem({
 }: AliasItemProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
+  const auth = use_auth_safe();
+  const account_id = auth?.current_account_id ?? "";
   const [uploading, set_uploading] = useState(false);
   const [advanced_open, set_advanced_open] = useState(!!default_advanced_open);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
+  const [breach_match, set_breach_match] =
+    useState<CachedAliasBreachMatch | null>(null);
+  const [spam_surge_active, set_spam_surge_active] = useState(false);
+  const [explain_open, set_explain_open] = useState<
+    "breach" | "spam_surge" | null
+  >(null);
   const gradient = useMemo(
     () => get_gradient_background(get_alias_color(alias.full_address)),
     [alias.full_address],
@@ -283,6 +298,53 @@ export function AliasItem({
   const grace_days = in_grace_period
     ? get_grace_days_remaining(alias.downgrade_grace_expires_at!)
     : 0;
+
+  useEffect(() => {
+    if (!account_id || !is_alias_watch_enabled(account_id)) {
+      set_breach_match(null);
+
+      return;
+    }
+
+    set_breach_match(get_breach_match_for_alias(account_id, alias.id));
+
+    const handle_matches_changed = (event: Event) => {
+      const detail = (event as CustomEvent<{ account_id: string }>).detail;
+
+      if (detail?.account_id !== account_id) return;
+      set_breach_match(get_breach_match_for_alias(account_id, alias.id));
+    };
+
+    window.addEventListener(
+      ALIAS_WATCH_MATCHES_CHANGED_EVENT,
+      handle_matches_changed,
+    );
+
+    return () =>
+      window.removeEventListener(
+        ALIAS_WATCH_MATCHES_CHANGED_EVENT,
+        handle_matches_changed,
+      );
+  }, [account_id, alias.id]);
+
+  useEffect(() => {
+    let active = true;
+
+    get_alias_stats(alias.id)
+      .then((response) => {
+        if (!active) return;
+        set_spam_surge_active(
+          !!response.data?.active_flags?.some(
+            (flag) => flag.flag_type === "spam_surge" && flag.status === "active",
+          ),
+        );
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [alias.id]);
 
   useEffect(() => {
     set_local_picture(undefined);
@@ -427,6 +489,36 @@ export function AliasItem({
               })}
             </span>
           )}
+          {breach_match && (
+            <button
+              className="flex-shrink-0"
+              title={t("settings.alias_breach_badge_title" as TranslationKey)}
+              type="button"
+              onClick={() =>
+                set_explain_open((prev) => (prev === "breach" ? null : "breach"))
+              }
+            >
+              <Badge color="red" className="cursor-pointer">
+                {t("settings.alias_breach_badge_title" as TranslationKey)}
+              </Badge>
+            </button>
+          )}
+          {spam_surge_active && (
+            <button
+              className="flex-shrink-0"
+              title={t("settings.alias_spam_surge_badge_title" as TranslationKey)}
+              type="button"
+              onClick={() =>
+                set_explain_open((prev) =>
+                  prev === "spam_surge" ? null : "spam_surge",
+                )
+              }
+            >
+              <Badge color="amber" className="cursor-pointer">
+                {t("settings.alias_spam_surge_badge_title" as TranslationKey)}
+              </Badge>
+            </button>
+          )}
         </div>
         <AliasMetaEditor
           alias_address={alias.full_address}
@@ -439,6 +531,43 @@ export function AliasItem({
           <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
             {t("settings.alias_grace_upgrade_hint" as TranslationKey)}
           </p>
+        )}
+        {explain_open && (
+          <div className="mt-2 rounded-lg border border-edge-secondary bg-surf-secondary p-2.5">
+            <p className="text-xs font-medium text-txt-primary">
+              {explain_open === "breach"
+                ? t("settings.alias_breach_badge_title" as TranslationKey)
+                : t("settings.alias_spam_surge_badge_title" as TranslationKey)}
+            </p>
+            <p className="text-xs mt-0.5 text-txt-muted">
+              {explain_open === "breach"
+                ? t("settings.alias_breach_badge_desc" as TranslationKey)
+                : t("settings.alias_spam_surge_badge_desc" as TranslationKey)}
+            </p>
+            <div className="mt-2 flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  on_toggle(alias.id, false);
+                  set_explain_open(null);
+                }}
+              >
+                {t("common.disable")}
+              </Button>
+              <Button
+                className="text-red-500 hover:text-red-500"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  on_delete(alias.id);
+                  set_explain_open(null);
+                }}
+              >
+                {t("common.delete")}
+              </Button>
+            </div>
+          </div>
         )}
       </div>
       </div>

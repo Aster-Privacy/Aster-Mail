@@ -35,6 +35,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,8 @@ import {
 
 interface KeyRotationPanelProps {
   pgp_key: PgpKeyInfo | null;
+  pgp_key_load_failed: boolean;
+  retry_load_encryption_data: () => Promise<void>;
   recovery_info: RecoveryCodesInfo | null;
   recovery_codes: string[] | null;
   show_recovery_codes: boolean;
@@ -94,6 +97,8 @@ interface KeyRotationPanelProps {
 
 export function KeyRotationPanel({
   pgp_key,
+  pgp_key_load_failed,
+  retry_load_encryption_data,
   recovery_codes,
   show_recovery_codes,
   show_export_prompt,
@@ -155,9 +160,10 @@ export function KeyRotationPanel({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-txt-primary">
-                    {pgp_key.algorithm.toUpperCase()}-{pgp_key.key_size}
+                    {t("settings.your_encryption_key")}
                   </p>
                   <p className="text-xs mt-0.5 text-txt-muted">
+                    {pgp_key.algorithm.toUpperCase()}-{pgp_key.key_size} &middot;{" "}
                     {t("settings.created_date", {
                       date: format_date(pgp_key.created_at),
                     })}
@@ -171,6 +177,15 @@ export function KeyRotationPanel({
             </div>
 
             <div className="px-4 py-3 border-t border-edge-secondary">
+              <div className="flex items-center gap-1.5 mb-2">
+                <p className="text-xs font-medium text-txt-secondary">
+                  {t("settings.key_fingerprint")}
+                </p>
+                <InfoPopover
+                  description={t("settings.info_fingerprint_description")}
+                  title={t("settings.info_fingerprint_title")}
+                />
+              </div>
               <div className="flex items-center gap-2">
                 <code className="flex-1 px-3 py-2 rounded-md text-[11px] font-mono tracking-wide bg-surf-secondary text-txt-secondary border border-edge-primary">
                   {format_fingerprint(pgp_key.fingerprint)}
@@ -216,6 +231,20 @@ export function KeyRotationPanel({
                 <ClipboardIcon className="w-3.5 h-3.5" />
               </Button>
             </div>
+          </div>
+        ) : pgp_key_load_failed ? (
+          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+            <ExclamationTriangleIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
+            <p className="text-sm text-txt-muted mb-3">
+              {t("settings.encryption_key_load_failed")}
+            </p>
+            <Button
+              size="sm"
+              variant="depth"
+              onClick={retry_load_encryption_data}
+            >
+              {t("common.retry")}
+            </Button>
           </div>
         ) : (
           <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">

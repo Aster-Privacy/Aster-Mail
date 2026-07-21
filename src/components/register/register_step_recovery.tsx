@@ -144,22 +144,20 @@ export const RegisterStepRecoveryCodes = ({
         {reg.t("auth.download_as_text")}
       </Button>
 
-      {(!reg.is_invited || reg.is_pdf_downloaded || reg.is_text_downloaded) && (
-        <button
-          className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
-          onClick={() => {
-            if (reg.is_pdf_downloaded || reg.is_text_downloaded) {
-              reg.handle_advance_from_recovery_key();
-            } else {
-              reg.set_show_skip_confirmation(true);
-            }
-          }}
-        >
-          {reg.is_pdf_downloaded || reg.is_text_downloaded
-            ? reg.t("common.continue")
-            : reg.t("auth.continue_without_download")}
-        </button>
-      )}
+      <button
+        className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
+        onClick={() => {
+          if (reg.is_pdf_downloaded || reg.is_text_downloaded) {
+            reg.handle_advance_from_recovery_key();
+          } else {
+            reg.set_show_skip_confirmation(true);
+          }
+        }}
+      >
+        {reg.is_pdf_downloaded || reg.is_text_downloaded
+          ? reg.t("common.continue")
+          : reg.t("auth.continue_without_download")}
+      </button>
 
       <ConfirmationModal
         cancel_text={reg.t("common.go_back")}

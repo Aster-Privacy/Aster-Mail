@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { CloseIcon } from "@/components/common/icons";
@@ -94,12 +94,15 @@ export function ComposeWindow({
     handle_drag_start,
     get_position_style,
     has_been_moved,
+    position,
     did_drag,
     reset: reset_drag_position,
   } = use_draggable_modal(!is_minimized && !is_expanded, {
     width: is_minimized ? WINDOW_WIDTH_MINIMIZED : effective_width,
     height: effective_height,
   });
+
+  const resize_anchor_right_ref = useRef<number | null>(null);
 
   const handle_resize_start = useCallback(
     (e: React.MouseEvent) => {
@@ -110,6 +113,10 @@ export function ComposeWindow({
       const start_y = e.clientY;
       const start_width = effective_width;
       const start_height = effective_height;
+
+      resize_anchor_right_ref.current = has_been_moved
+        ? window.innerWidth - (position.x + start_width)
+        : null;
 
       set_is_resizing(true);
 
@@ -125,7 +132,7 @@ export function ComposeWindow({
         );
         const new_height = Math.min(
           max_height,
-          Math.max(RESIZE_MIN_HEIGHT, start_height - dy),
+          Math.max(RESIZE_MIN_HEIGHT, start_height + dy),
         );
 
         set_resize_state({ width: new_width, height: new_height });
@@ -140,7 +147,7 @@ export function ComposeWindow({
       window.addEventListener("mousemove", handle_move);
       window.addEventListener("mouseup", handle_up);
     },
-    [effective_width, effective_height],
+    [effective_width, effective_height, has_been_moved, position],
   );
 
   const compose = use_compose({
@@ -171,6 +178,7 @@ export function ComposeWindow({
       if (is_minimized) {
         return;
       }
+      resize_anchor_right_ref.current = null;
       handle_drag_start(e);
     },
     [is_minimized, handle_drag_start],
@@ -180,6 +188,7 @@ export function ComposeWindow({
     if (is_minimized) {
       reset_drag_position();
       set_resize_state(null);
+      resize_anchor_right_ref.current = null;
     }
   }, [is_minimized, reset_drag_position]);
 
@@ -255,8 +264,10 @@ export function ComposeWindow({
             ? "fixed inset-4 z-50 rounded-lg"
             : is_minimized
               ? "rounded-t-lg"
-              : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-lg"
-        } ${has_been_moved && !is_expanded && !is_minimized ? "sm:!fixed sm:!z-50" : ""}`}
+              : has_been_moved || resize_state
+                ? "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-lg"
+                : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-lg"
+        } ${(has_been_moved || resize_state) && !is_expanded && !is_minimized ? "sm:!fixed sm:!z-50" : ""}`}
         style={{
           ...(is_expanded
             ? { width: "auto", height: "auto" }
@@ -275,11 +286,19 @@ export function ComposeWindow({
                     minWidth: RESIZE_MIN_WIDTH,
                     maxWidth: window.innerWidth - 48,
                   }),
-          ...(has_been_moved &&
-          !is_expanded &&
-          !is_minimized &&
-          window.innerWidth >= 640
-            ? get_position_style()
+          ...(!is_expanded && !is_minimized && window.innerWidth >= 640
+            ? has_been_moved
+              ? resize_state && resize_anchor_right_ref.current !== null
+                ? {
+                    left: "auto",
+                    top: `${position.y}px`,
+                    right: `${resize_anchor_right_ref.current}px`,
+                    bottom: "auto",
+                  }
+                : get_position_style()
+              : resize_state
+                ? { left: "auto", top: "auto", right: "1rem", bottom: "1rem" }
+                : {}
             : {}),
           ...(is_resizing ? { transition: "none", userSelect: "none" } : {}),
         }}
@@ -466,24 +485,11 @@ export function ComposeWindow({
         {!is_minimized && !is_expanded && (
           <div
             aria-label={t("mail.resize_compose")}
-            className="hidden sm:flex absolute top-0 left-0 w-4 h-4 items-start justify-start cursor-nwse-resize z-10 touch-none"
+            className="hidden sm:block absolute bottom-0 left-0 w-4 h-4 cursor-nesw-resize z-10 touch-none"
             role="button"
             tabIndex={-1}
             onMouseDown={handle_resize_start}
-          >
-            <svg
-              className="w-2.5 h-2.5 mt-0.5 ml-0.5 text-txt-muted/60"
-              fill="none"
-              viewBox="0 0 10 10"
-            >
-              <path
-                d="M9 9L1 1M9 5L5 1"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="1.25"
-              />
-            </svg>
-          </div>
+          />
         )}
       </div>
     </>

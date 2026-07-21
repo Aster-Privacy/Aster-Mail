@@ -27,3 +27,40 @@ export function ThemeMockupLight() {
 export function ThemeMockupDark() {
   return <ViewMockupSplit theme="dark" />;
 }
+
+export type ColorThemeName =
+  | "purple"
+  | "green"
+  | "rose"
+  | "orange"
+  | "teal"
+  | "indigo"
+  | "amber"
+  | "cyan"
+  | "slate"
+  | "aster-blue"
+  | "lime"
+  | "fuchsia"
+  | "emerald"
+  | "pink"
+  | "black";
+
+export function ThemeMockupColor(_props: { name: ColorThemeName }) {
+  return <ViewMockupSplit theme="themed" />;
+}
+
+export function ThemeMockupSystem() {
+  return (
+    <div className="relative w-full h-full rounded-lg overflow-hidden">
+      <div className="absolute inset-0 rounded-lg overflow-hidden [&>div]:rounded-none">
+        <ViewMockupSplit theme="light" />
+      </div>
+      <div
+        className="absolute inset-0 rounded-lg overflow-hidden [&>div]:rounded-none"
+        style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+      >
+        <ViewMockupSplit theme="dark" />
+      </div>
+    </div>
+  );
+}

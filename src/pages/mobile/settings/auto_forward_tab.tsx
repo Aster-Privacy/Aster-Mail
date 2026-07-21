@@ -205,7 +205,7 @@ export function AutoForwardTab() {
           className="flex w-full items-center justify-center gap-2 rounded-[16px] py-3 text-[14px] font-semibold text-white"
           style={{
             background:
-              "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+              "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
             boxShadow:
               "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
           }}
@@ -246,7 +246,7 @@ export function AutoForwardTab() {
                   className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                   style={{
                     backgroundColor: rule.is_enabled
-                      ? "rgba(107, 138, 255, 0.15)"
+                      ? "color-mix(in srgb, var(--mobile-accent) 15%, transparent)"
                       : "var(--mobile-bg-card-hover)",
                   }}
                 >
@@ -254,7 +254,7 @@ export function AutoForwardTab() {
                     className="w-4.5 h-4.5"
                     style={{
                       color: rule.is_enabled
-                        ? "#6b8aff"
+                        ? "var(--mobile-accent)"
                         : "var(--mobile-text-muted)",
                     }}
                   />
@@ -283,7 +283,7 @@ export function AutoForwardTab() {
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0"
                         style={{
-                          backgroundColor: "rgba(59, 130, 246, 0.15)",
+                          backgroundColor: "color-mix(in srgb, var(--accent-color) 15%, transparent)",
                           color: "rgb(59, 130, 246)",
                         }}
                       >

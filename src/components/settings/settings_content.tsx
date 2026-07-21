@@ -281,6 +281,7 @@ function SettingsContentInner({
   );
   const [search_query, set_search_query] = useState("");
   const [scroll_target, set_scroll_target] = useState<string | null>(null);
+  const [show_inline_totp_setup, set_show_inline_totp_setup] = useState(false);
   const on_section_change_ref = useRef(on_section_change);
 
   useEffect(() => {
@@ -622,7 +623,13 @@ function SettingsContentInner({
       case "accessibility":
         return <AccessibilitySection />;
       case "security":
-        return <SecuritySection on_account_deleted={handle_account_deleted} />;
+        return (
+          <SecuritySection
+            on_account_deleted={handle_account_deleted}
+            set_show_inline_totp_setup={set_show_inline_totp_setup}
+            show_inline_totp_setup={show_inline_totp_setup}
+          />
+        );
       case "encryption":
         return <EncryptionSection />;
       case "trusted_devices":
@@ -674,7 +681,7 @@ function SettingsContentInner({
       default:
         return null;
     }
-  }, [section, handle_account_deleted]);
+  }, [section, handle_account_deleted, show_inline_totp_setup]);
 
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
     set_section(item_id);

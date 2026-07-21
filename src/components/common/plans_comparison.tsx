@@ -654,7 +654,7 @@ function MobilePlanCard({
       className={cn(
         "cursor-pointer transition-all border-2 bg-surf-card",
         selected
-          ? "border-brand shadow-[0_0_0_1px_var(--color-brand),0_4px_12px_rgba(59,130,246,0.15)]"
+          ? "border-brand shadow-[0_0_0_1px_var(--color-brand),0_4px_12px_color-mix(in srgb, var(--accent-color) 15%, transparent)]"
           : "border-edge-primary",
       )}
       onClick={on_select}
@@ -848,7 +848,7 @@ export function PlansComparison({
                         className={cn(
                           "cursor-pointer transition-all border-2 bg-surf-card",
                           selected_plan === plan.key
-                            ? "border-brand shadow-[0_0_0_1px_var(--color-brand),0_4px_12px_rgba(59,130,246,0.15)]"
+                            ? "border-brand shadow-[0_0_0_1px_var(--color-brand),0_4px_12px_color-mix(in srgb, var(--accent-color) 15%, transparent)]"
                             : "border-edge-primary hover:border-edge-secondary",
                         )}
                         onClick={() => on_select(plan.key)}

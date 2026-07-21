@@ -105,6 +105,14 @@ updates/UPLOAD.md
 /test_*.png
 /verify_*.mjs
 /verify_*.cjs
+/verify_*.png
 /_test_*
 /_screenshot_*.png
 /*_tmp.mjs
+/debug*.png
+/login_debug.png
+/mail_home_debug.png
+/register_*.png
+/wizard_*.png
+/_mail_fontfix_epoch.txt
+.claude/

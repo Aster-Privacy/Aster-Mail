@@ -194,7 +194,7 @@ export function SchedulePicker({
         <div
           className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium"
           style={{
-            backgroundColor: "rgba(59, 130, 246, 0.1)",
+            backgroundColor: "color-mix(in srgb, var(--accent-color) 10%, transparent)",
             color: "var(--color-info)",
           }}
         >
@@ -217,7 +217,7 @@ export function SchedulePicker({
       <Tooltip tip={t("mail.schedule_send")}>
         <PopoverTrigger asChild>
           <button
-            className="w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-150 active:scale-90 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+            className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
             disabled={disabled}
             type="button"
           >

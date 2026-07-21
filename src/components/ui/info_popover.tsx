@@ -53,7 +53,11 @@ export function InfoPopover({ title, description, learn_more_url, learn_more_lab
         className="w-80 border border-edge-primary bg-modal-bg shadow-lg rounded-xl p-4 z-[200]"
         sideOffset={6}
       >
-        <p className="text-sm font-semibold text-txt-primary mb-1.5">{title}</p>
+        {title && (
+          <p className="text-sm font-semibold text-txt-primary mb-1.5">
+            {title}
+          </p>
+        )}
         <p className="text-sm text-txt-muted leading-relaxed">{description}</p>
         {learn_more_url && (
           <a

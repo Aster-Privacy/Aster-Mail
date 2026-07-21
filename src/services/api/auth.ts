@@ -201,6 +201,7 @@ interface ChangePasswordRequest {
   re_encrypted_destinations?: ReEncryptedDestination[];
   re_encrypted_directories?: ReEncryptedDirectory[];
   re_encrypted_domain_addresses?: ReEncryptedDomainAddress[];
+  new_password_strength_tier?: number;
 }
 
 interface ChangePasswordResponse {

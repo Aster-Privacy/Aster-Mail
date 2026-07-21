@@ -63,6 +63,8 @@ export function EncryptionSection() {
         open_export_prompt={encryption.open_export_prompt}
         open_regenerate_confirm={encryption.open_regenerate_confirm}
         pgp_key={encryption.pgp_key}
+        pgp_key_load_failed={encryption.pgp_key_load_failed}
+        retry_load_encryption_data={encryption.retry_load_encryption_data}
         recovery_codes={encryption.recovery_codes}
         recovery_info={encryption.recovery_info}
         regenerate_confirm_text={encryption.regenerate_confirm_text}

@@ -124,7 +124,7 @@ export function OtpInput({
   return (
     <div
       className={cn(
-        "flex items-center gap-2",
+        "flex flex-wrap items-center gap-2",
         align === "left" ? "justify-start" : "justify-center",
       )}
     >

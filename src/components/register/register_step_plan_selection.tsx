@@ -36,6 +36,8 @@ import {
   get_available_plans,
   format_price,
   start_hosted_checkout,
+  get_my_referral_status,
+  validate_promo_code,
   type AvailablePlansResponse,
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
@@ -232,10 +234,46 @@ export const RegisterStepPlanSelection = ({
   const [crypto_tier, set_crypto_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
   const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] = useState<FamilyPlanTier | null>(null);
+  const [referral_discount_percent, set_referral_discount_percent] = useState<number | null>(null);
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
   }, []);
+
+  useEffect(() => {
+    if (!reg.is_invited) return;
+    let cancelled = false;
+
+    (async () => {
+      const status = await get_my_referral_status();
+      const code = status.data?.discount_promo_code;
+      if (!code || cancelled) return;
+
+      const promo = await validate_promo_code(code);
+      if (cancelled) return;
+
+      if (
+        promo.data?.valid &&
+        promo.data.discount_type === "percent_off" &&
+        typeof promo.data.discount_value === "number"
+      ) {
+        set_referral_discount_percent(promo.data.discount_value);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reg.is_invited]);
+
+  const apply_referral_discount = useCallback(
+    (cents: number) => {
+      if (!referral_discount_percent) return cents;
+
+      return Math.max(0, Math.round(cents * (1 - referral_discount_percent / 100)));
+    },
+    [referral_discount_percent],
+  );
 
   useEffect(() => {
     const handle_page_show = (e: PageTransitionEvent) => {
@@ -392,12 +430,29 @@ export const RegisterStepPlanSelection = ({
         <div
           className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
           style={{
-            backgroundColor: "var(--accent-blue-soft, rgba(37,99,235,0.12))",
-            color: "var(--accent-blue)",
+            backgroundColor: "var(--accent-blue)",
+            color: "#ffffff",
           }}
         >
           <AcademicCapIcon className="w-4 h-4 shrink-0" />
           {t("auth.plan_academic_discount_note")}
+        </div>
+      )}
+
+      {!offer.has_offer && reg.is_invited && (
+        <div
+          className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
+          style={{
+            backgroundColor: "var(--accent-blue)",
+            color: "#ffffff",
+          }}
+        >
+          <AcademicCapIcon className="w-4 h-4 shrink-0" />
+          {referral_discount_percent
+            ? t("auth.plan_referral_discount_percent_note", {
+                percent: referral_discount_percent,
+              })
+            : t("auth.plan_referral_discount_note")}
         </div>
       )}
 
@@ -469,7 +524,8 @@ export const RegisterStepPlanSelection = ({
       ) : plan_type === "family" ? (
         <div className="w-full grid gap-5 mt-10 md:grid-cols-2 max-w-3xl items-stretch">
           {FAMILY_PLAN_TIERS.map((tier) => {
-            const price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
+            const base_price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
+            const price_cents = apply_referral_discount(base_price_cents);
             const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
 
             return (
@@ -487,6 +543,11 @@ export const RegisterStepPlanSelection = ({
                     <h3 className="text-lg font-bold text-txt-primary">{tier.name}</h3>
                   </div>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
+                    {referral_discount_percent && (
+                      <span className="text-lg font-medium leading-none text-txt-muted line-through">
+                        {format_price(convert_cents(base_price_cents, currency), currency)}
+                      </span>
+                    )}
                     <span className="text-[40px] font-bold leading-none tracking-tight text-txt-primary">
                       {format_price(convert_cents(price_cents, currency), currency)}
                     </span>
@@ -543,10 +604,11 @@ export const RegisterStepPlanSelection = ({
       ) : (
         <div className="w-full grid gap-5 mt-10 md:grid-cols-3 max-w-5xl items-stretch">
           {PLAN_TIERS.map((tier) => {
-            const cents =
+            const base_cents =
               billing_period === "yearly"
                 ? tier.yearly_cents
                 : tier.monthly_cents;
+            const cents = apply_referral_discount(base_cents);
             const display_price = format_price(
               convert_cents(cents, currency),
               currency,
@@ -576,6 +638,11 @@ export const RegisterStepPlanSelection = ({
                     {tier.name}
                   </h3>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
+                    {referral_discount_percent && (
+                      <span className="text-lg font-medium leading-none text-txt-muted line-through">
+                        {format_price(convert_cents(base_cents, currency), currency)}
+                      </span>
+                    )}
                     <span className="text-[40px] font-bold leading-none tracking-tight text-txt-primary">
                       {display_price}
                     </span>

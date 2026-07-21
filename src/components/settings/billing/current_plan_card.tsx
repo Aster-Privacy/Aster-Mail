@@ -84,7 +84,7 @@ export function CurrentPlanCard({
       <div
         className="relative overflow-hidden rounded-2xl p-6"
         style={{
-          backgroundColor: "#1d4ed8",
+          backgroundColor: "color-mix(in srgb, var(--accent-color) 85%, black)",
         }}
       >
         <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
@@ -191,9 +191,16 @@ export function CurrentPlanCard({
         <div className="p-4 rounded-lg bg-surf-tertiary border border-edge-secondary">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h4 className="text-base font-semibold text-txt-primary">
-                {subscription?.plan.name || t("settings.free")}
-              </h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-base font-semibold text-txt-primary">
+                  {subscription?.plan.name || t("settings.free")}
+                </h4>
+                {is_paid_plan && subscription?.active_discount_description && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-500/15 text-green-500">
+                    {subscription.active_discount_description}
+                  </span>
+                )}
+              </div>
               {is_paid_plan && subscription?.plan.description && (
                 <p className="text-xs mt-1 text-txt-muted">
                   {subscription.plan.description}

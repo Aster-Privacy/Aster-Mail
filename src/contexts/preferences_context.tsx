@@ -63,11 +63,90 @@ import { configure_session_timeout } from "@/services/session_timeout_service";
 import { set_low_network_mode } from "@/services/low_network_state";
 import { stop_version_check } from "@/lib/version_check";
 import { set_preload_email_font_px } from "@/components/email/hooks/preload_cache";
+import {
+  apply_custom_theme,
+  clear_material_theme,
+  is_valid_hex_color,
+  type CustomThemeOverrides,
+} from "@/lib/material_theme";
+import { get_font_stack } from "@/lib/font_options";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
   label: get_display_name(lang.code),
 }));
+
+const COLOR_THEME_CLASSES = [
+  "theme-purple",
+  "theme-green",
+  "theme-rose",
+  "theme-orange",
+  "theme-teal",
+  "theme-indigo",
+  "theme-amber",
+  "theme-cyan",
+  "theme-slate",
+  "theme-aster-blue",
+  "theme-lime",
+  "theme-fuchsia",
+  "theme-emerald",
+  "theme-pink",
+  "theme-black",
+];
+
+function apply_color_theme_class(
+  color_theme: UserPreferences["color_theme"],
+  accent_color: string,
+  accent_color_hover: string,
+  custom_theme_seed: string,
+  is_dark: boolean,
+  custom_theme_overrides?: CustomThemeOverrides,
+) {
+  const root = document.documentElement;
+
+  root.style.removeProperty("--bg-secondary");
+  root.style.removeProperty("--border-secondary");
+  root.style.removeProperty("--text-tertiary");
+
+  for (const cls of COLOR_THEME_CLASSES) {
+    root.classList.remove(cls);
+  }
+
+  if (color_theme === "custom") {
+    if (is_valid_hex_color(custom_theme_seed)) {
+      apply_custom_theme(custom_theme_seed, is_dark, custom_theme_overrides);
+    } else {
+      clear_material_theme();
+      root.style.setProperty("--accent-color", accent_color);
+      root.style.setProperty("--accent-color-hover", accent_color_hover);
+    }
+  } else {
+    clear_material_theme();
+
+    if (color_theme !== "default") {
+      root.classList.add(`theme-${color_theme}`);
+      root.style.removeProperty("--accent-color");
+      root.style.removeProperty("--accent-color-hover");
+    } else {
+      root.style.setProperty("--accent-color", accent_color);
+      root.style.setProperty("--accent-color-hover", accent_color_hover);
+    }
+  }
+
+  sync_meta_theme_color();
+}
+
+function sync_meta_theme_color() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+
+  if (!meta) return;
+
+  const bg = getComputedStyle(document.documentElement)
+    .getPropertyValue("--bg-secondary")
+    .trim();
+
+  if (bg) meta.setAttribute("content", bg);
+}
 
 function label_to_language_code(label: string): LanguageCode | null {
   const match = LANGUAGE_OPTIONS.find((l) => l.label === label);
@@ -135,7 +214,7 @@ interface PreferencesProviderProps {
 
 export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const { vault, is_completing_registration } = use_auth();
-  const { set_theme_preference } = useTheme();
+  const { theme, set_theme_preference } = useTheme();
   const { set_language } = use_i18n();
 
   const [preferences, set_preferences] = useState<UserPreferences>(() => {
@@ -174,6 +253,9 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
   const set_theme_ref = useRef(set_theme_preference);
   set_theme_ref.current = set_theme_preference;
+
+  const theme_ref = useRef(theme);
+  theme_ref.current = theme;
 
   const set_language_ref = useRef(set_language);
   set_language_ref.current = set_language;
@@ -452,13 +534,13 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       DEFAULT_PREFERENCES.session_timeout_minutes,
     );
 
-    document.documentElement.style.setProperty(
-      "--accent-color",
+    apply_color_theme_class(
+      DEFAULT_PREFERENCES.color_theme,
       DEFAULT_PREFERENCES.accent_color,
-    );
-    document.documentElement.style.setProperty(
-      "--accent-color-hover",
       DEFAULT_PREFERENCES.accent_color_hover,
+      DEFAULT_PREFERENCES.custom_theme_seed,
+      theme_ref.current === "dark",
+      DEFAULT_PREFERENCES.custom_theme_overrides,
     );
 
     sync_haptic_state(false);
@@ -525,18 +607,21 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       prefs.session_timeout_minutes ?? DEFAULT_PREFERENCES.session_timeout_minutes,
     );
 
-    if (prefs.accent_color) {
-      document.documentElement.style.setProperty(
-        "--accent-color",
-        prefs.accent_color,
+    if (prefs.color_theme) {
+      apply_color_theme_class(
+        prefs.color_theme,
+        prefs.accent_color ?? DEFAULT_PREFERENCES.accent_color,
+        prefs.accent_color_hover ?? DEFAULT_PREFERENCES.accent_color_hover,
+        prefs.custom_theme_seed ?? DEFAULT_PREFERENCES.custom_theme_seed,
+        theme_ref.current === "dark",
+        prefs.custom_theme_overrides ?? DEFAULT_PREFERENCES.custom_theme_overrides,
       );
     }
-    if (prefs.accent_color_hover) {
-      document.documentElement.style.setProperty(
-        "--accent-color-hover",
-        prefs.accent_color_hover,
-      );
-    }
+
+    document.documentElement.style.setProperty(
+      "--font-sans",
+      get_font_stack(prefs.font_choice ?? DEFAULT_PREFERENCES.font_choice),
+    );
 
     const root = document.documentElement;
 
@@ -782,6 +867,31 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       ),
     );
   }, [preferences.font_size_scale]);
+
+  useEffect(() => {
+    apply_color_theme_class(
+      preferences.color_theme,
+      preferences.accent_color,
+      preferences.accent_color_hover,
+      preferences.custom_theme_seed,
+      theme === "dark",
+      preferences.custom_theme_overrides,
+    );
+  }, [
+    preferences.color_theme,
+    preferences.accent_color,
+    preferences.accent_color_hover,
+    preferences.custom_theme_seed,
+    preferences.custom_theme_overrides,
+    theme,
+  ]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--font-sans",
+      get_font_stack(preferences.font_choice),
+    );
+  }, [preferences.font_choice]);
 
   useEffect(() => {
     document.documentElement.classList.toggle(

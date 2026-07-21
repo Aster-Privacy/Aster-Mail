@@ -34,7 +34,7 @@ export const get_alert_styles = (
       color: "#fff",
     },
     info: {
-      backgroundColor: "#2563eb",
+      backgroundColor: "var(--color-info)",
       color: "#fff",
     },
     warning: {
@@ -331,13 +331,15 @@ export const get_primary_button_style = (
 ): CSSProperties => ({
   background: is_disabled
     ? "var(--text-muted)"
-    : "linear-gradient(rgb(82, 110, 249), rgb(55, 79, 235))",
+    : "linear-gradient(var(--accent-color), var(--accent-color-hover))",
   border: is_disabled ? "none" : is_dark ? "none" : "1px solid #6c6d71",
 });
 
 export const get_spinner_style = (is_dark: boolean): CSSProperties => ({
-  borderColor: is_dark ? "#374151" : "#bfdbfe",
-  borderTopColor: is_dark ? "#60a5fa" : "#2563eb",
+  borderColor: is_dark
+    ? "#374151"
+    : "color-mix(in srgb, var(--accent-color) 25%, white)",
+  borderTopColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
 });
 
 export const FourPointStar = ({

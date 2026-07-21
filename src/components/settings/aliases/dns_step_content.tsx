@@ -186,7 +186,7 @@ export function DnsStepContent({
           <span
             className="text-xs font-medium px-2 py-0.5 rounded"
             style={{
-              background: "linear-gradient(to bottom, #4a7aff, #2d5ae0)",
+              background: "linear-gradient(to bottom, var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, black))",
               color: "white",
             }}
           >

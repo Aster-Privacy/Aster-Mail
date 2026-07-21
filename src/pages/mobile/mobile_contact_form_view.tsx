@@ -152,7 +152,7 @@ export function ContactFormView({
           }
           style={{
             background:
-              "linear-gradient(to bottom, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+              "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
           }}
           type="button"
           onClick={on_save}

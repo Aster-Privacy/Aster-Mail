@@ -492,7 +492,7 @@ export function ModalContactList({
                   role="button"
                   style={{
                     backgroundColor: is_selected
-                      ? "rgba(59, 130, 246, 0.08)"
+                      ? "color-mix(in srgb, var(--accent-color) 8%, transparent)"
                       : "transparent",
                   }}
                   tabIndex={0}

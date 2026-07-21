@@ -627,7 +627,7 @@ export default function MobileSignInPage() {
           <AnimatePresence mode="wait">
             {is_loading ? (
               <div className="flex flex-col items-center gap-4 text-center">
-                <Spinner className="h-8 w-8 text-[#4a7aff]" size="lg" />
+                <Spinner className="h-8 w-8 text-[var(--mobile-accent)]" size="lg" />
                 <p className="text-sm text-[var(--text-secondary)]">{status}</p>
               </div>
             ) : active_2fa_method === "backup" ? (
@@ -696,7 +696,7 @@ export default function MobileSignInPage() {
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Spinner className="h-8 w-8 text-[#4a7aff]" size="lg" />
+            <Spinner className="h-8 w-8 text-[var(--mobile-accent)]" size="lg" />
             <p className="text-sm text-[var(--text-secondary)]">{status}</p>
           </motion.div>
         )}
@@ -928,12 +928,12 @@ export default function MobileSignInPage() {
                     disabled={is_loading}
                     style={{
                       backgroundColor: remember_me
-                        ? "#3b82f6"
+                        ? "var(--mobile-accent)"
                         : is_dark
                           ? "#1f1f1f"
                           : "#ffffff",
                       borderColor: remember_me
-                        ? "#3b82f6"
+                        ? "var(--mobile-accent)"
                         : is_dark
                           ? "#404040"
                           : "#d1d5db",
@@ -962,7 +962,7 @@ export default function MobileSignInPage() {
                   </span>
                 </label>
                 <Link
-                  className="text-xs font-semibold text-[#4a7aff]"
+                  className="text-xs font-semibold text-[var(--mobile-accent)]"
                   to="/forgot-password"
                 >
                   {t("auth.forgot_password")}

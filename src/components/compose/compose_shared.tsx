@@ -188,8 +188,8 @@ export function get_file_icon_color(mime_type: string): {
   }
   if (mime_type.includes("word") || mime_type.includes("document")) {
     return {
-      bg: "rgba(59, 130, 246, 0.1)",
-      border: "rgba(59, 130, 246, 0.3)",
+      bg: "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+      border: "color-mix(in srgb, var(--accent-color) 30%, transparent)",
       text: "var(--color-info)",
     };
   }

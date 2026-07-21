@@ -59,7 +59,7 @@ export function CategorySettingsSection() {
   const custom_categories = preferences.custom_categories ?? [];
 
   const category_limit = limits
-    ? (limits.limits["max_custom_categories"]?.limit ?? 0)
+    ? (limits.limits["max_custom_categories"]?.limit ?? -1)
     : -1;
   const is_unlimited = category_limit < 0;
   const at_limit = !is_unlimited && custom_categories.length >= category_limit;

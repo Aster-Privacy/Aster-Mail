@@ -19,18 +19,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  XMarkIcon,
   ArchiveBoxArrowDownIcon,
   InformationCircleIcon,
+  EyeIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
 
-import { use_should_reduce_motion } from "@/provider";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
+import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_auth } from "@/contexts/auth_context";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { clamp_password } from "@/services/sanitize";
+import { get_totp_status } from "@/services/api/totp";
+import { derive_step_up_credentials } from "@/services/api/step_up";
+import { verify_vanguard_credentials } from "@/services/api/vanguard";
 import {
   verify_passphrase_for_export,
   issue_export_token,
@@ -53,6 +66,7 @@ import { build_account_data_files } from "@/services/export/account_data";
 
 type ExportStep =
   | "reauth"
+  | "verify"
   | "warning"
   | "scope"
   | "format"
@@ -76,12 +90,22 @@ function format_bytes(n: number): string {
 
 export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const { t } = use_i18n();
-  const reduce_motion = use_should_reduce_motion();
+  const { user } = use_auth();
 
   const [step, set_step] = useState<ExportStep>("reauth");
   const [passphrase, set_passphrase] = useState("");
   const [reauth_error, set_reauth_error] = useState(false);
   const [token, set_token] = useState<string | null>(null);
+
+  const [verify_password, set_verify_password] = useState("");
+  const [verify_code, set_verify_code] = useState("");
+  const [verify_totp_required, set_verify_totp_required] = useState(false);
+  const [verify_show_password, set_verify_show_password] = useState(false);
+  const [verify_loading, set_verify_loading] = useState(false);
+  const [verify_error, set_verify_error] = useState("");
+  const verify_submitting_ref = useRef(false);
+  const verify_input_ref = useRef<HTMLInputElement>(null);
+
   const [warning_ack, set_warning_ack] = useState(false);
   const [format, set_format] = useState<ExportFormat>("mbox");
   const [include_mail, set_include_mail] = useState(true);
@@ -101,6 +125,12 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     set_passphrase("");
     set_reauth_error(false);
     set_token(null);
+    set_verify_password("");
+    set_verify_code("");
+    set_verify_totp_required(false);
+    set_verify_show_password(false);
+    set_verify_loading(false);
+    set_verify_error("");
     set_warning_ack(false);
     set_format("mbox");
     set_include_mail(true);
@@ -123,6 +153,16 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     if (!is_open) reset();
   }, [is_open, reset]);
 
+  useEffect(() => {
+    if (step !== "verify") return;
+    get_totp_status()
+      .then((res) => {
+        if (res.data?.enabled) set_verify_totp_required(true);
+      })
+      .catch(() => {});
+    setTimeout(() => verify_input_ref.current?.focus(), 100);
+  }, [step]);
+
   const handle_reauth_submit = useCallback(() => {
     if (!verify_passphrase_for_export(passphrase)) {
       set_reauth_error(true);
@@ -135,8 +175,46 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     }
     set_token(t_str);
     set_passphrase("");
-    set_step("warning");
+    set_step("verify");
   }, [passphrase]);
+
+  const verify_can_submit =
+    !!verify_password &&
+    (!verify_totp_required || verify_code.length === 6) &&
+    !verify_loading;
+
+  const handle_verify_submit = useCallback(async () => {
+    if (!verify_can_submit || !user?.email || verify_submitting_ref.current) return;
+
+    verify_submitting_ref.current = true;
+    set_verify_loading(true);
+    set_verify_error("");
+
+    try {
+      const credentials = await derive_step_up_credentials(
+        user.email,
+        verify_password,
+        verify_totp_required ? verify_code : undefined,
+      );
+      const res = await verify_vanguard_credentials(credentials);
+
+      if (res.error || !res.data?.valid) {
+        set_verify_error(t("common.step_up_error"));
+        return;
+      }
+
+      set_verify_password("");
+      set_verify_code("");
+      set_step("warning");
+    } catch (err) {
+      set_verify_error(
+        err instanceof Error ? err.message : t("common.step_up_error"),
+      );
+    } finally {
+      verify_submitting_ref.current = false;
+      set_verify_loading(false);
+    }
+  }, [t, user, verify_can_submit, verify_code, verify_password, verify_totp_required]);
 
   const handle_warning_continue = useCallback(() => {
     if (!warning_ack) return;
@@ -233,324 +311,388 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     abort_ref.current?.abort();
   }, []);
 
-  const render_step = () => {
-    if (step === "reauth") {
-      return (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-txt-primary">
-            {t("settings.export_step_reauth_title")}
-          </h3>
-          <p className="text-xs text-txt-muted">
-            {t("settings.export_reauth_prompt")}
-          </p>
-          <input
-            autoFocus
-            className="w-full px-3 py-2 rounded-lg bg-surf-secondary border border-edge-secondary text-sm text-txt-primary"
-            placeholder="••••••••"
-            type="password"
-            value={passphrase}
-            onChange={(e) => {
-              set_passphrase(e.target.value);
-              set_reauth_error(false);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && handle_reauth_submit()}
-          />
-          {reauth_error && (
-            <p className="text-xs text-red-500">
-              {t("settings.export_reauth_failed")}
-            </p>
-          )}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button size="md" variant="outline" onClick={handle_close}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              disabled={passphrase.length === 0}
-              size="md"
-              variant="depth"
-              onClick={handle_reauth_submit}
-            >
-              {t("settings.export_reauth_submit")}
-            </Button>
-          </div>
-        </div>
-      );
-    }
+  let title = t("settings.export_title");
+  let description: string | null = null;
+  let body: React.ReactNode = null;
+  let footer: React.ReactNode = null;
 
-    if (step === "warning") {
-      return (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-txt-primary">
-            {t("settings.export_warning_title")}
-          </h3>
-          <p className="text-xs text-txt-muted leading-relaxed">
-            {t("settings.export_warning_body")}
+  if (step === "reauth") {
+    title = t("settings.export_step_reauth_title");
+    description = t("settings.export_reauth_prompt");
+    body = (
+      <div className="space-y-2">
+        <Input
+          autoFocus
+          className="w-full"
+          maxLength={256}
+          placeholder="••••••••"
+          status={reauth_error ? "error" : "default"}
+          type="password"
+          value={passphrase}
+          onChange={(e) => {
+            set_passphrase(e.target.value);
+            set_reauth_error(false);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && handle_reauth_submit()}
+        />
+        {reauth_error && (
+          <p className="text-sm text-red-500">
+            {t("settings.export_reauth_failed")}
           </p>
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <Checkbox
-              checked={warning_ack}
-              onCheckedChange={(v) => set_warning_ack(v === true)}
-            />
-            <span className="text-xs text-txt-secondary">
-              {t("settings.export_warning_confirm")}
-            </span>
-          </label>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button size="md" variant="outline" onClick={handle_close}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              disabled={!warning_ack}
-              size="md"
-              variant="depth"
-              onClick={handle_warning_continue}
-            >
-              {t("common.continue")}
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    if (step === "scope") {
-      const none_selected =
-        !include_mail && !include_contacts && !include_settings;
-      const Row = ({
-        checked,
-        on_change,
-        title,
-        body,
-      }: {
-        checked: boolean;
-        on_change: (v: boolean) => void;
-        title: string;
-        body: string;
-      }) => (
-        <label
-          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${
-            checked
-              ? "border-brand bg-surf-secondary"
-              : "border-edge-secondary"
-          }`}
+        )}
+      </div>
+    );
+    footer = (
+      <>
+        <Button variant="outline" onClick={handle_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button
+          disabled={passphrase.length === 0}
+          variant="depth"
+          onClick={handle_reauth_submit}
         >
-          <Checkbox
-            checked={checked}
-            onCheckedChange={(v) => on_change(v === true)}
-          />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-txt-primary">{title}</p>
-            <p className="text-xs text-txt-muted mt-0.5">{body}</p>
-          </div>
-        </label>
-      );
-      return (
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-txt-primary">
-            {t("settings.export_step_scope_title")}
-          </h3>
-          <Row
-            checked={include_mail}
-            on_change={set_include_mail}
-            title={t("settings.export_scope_mail_title")}
-            body={t("settings.export_scope_mail_body")}
-          />
-          <Row
-            checked={include_contacts}
-            on_change={set_include_contacts}
-            title={t("settings.export_scope_contacts_title")}
-            body={t("settings.export_scope_contacts_body")}
-          />
-          <Row
-            checked={include_settings}
-            on_change={set_include_settings}
-            title={t("settings.export_scope_settings_title")}
-            body={t("settings.export_scope_settings_body")}
-          />
-          <div className="flex justify-end gap-2 pt-2">
-            <Button size="md" variant="outline" onClick={handle_close}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              disabled={none_selected}
-              size="md"
-              variant="depth"
-              onClick={handle_scope_continue}
-            >
-              {t("common.continue")}
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    if (step === "format") {
-      return (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-txt-primary">
-            {t("settings.export_step_format_title")}
-          </h3>
-          <button
-            className={`w-full text-left p-3 rounded-lg border ${
-              format === "mbox"
-                ? "border-brand bg-surf-secondary"
-                : "border-edge-secondary"
-            }`}
-            type="button"
-            onClick={() => set_format("mbox")}
+          {t("settings.export_reauth_submit")}
+        </Button>
+      </>
+    );
+  } else if (step === "verify") {
+    title = t("settings.export_step_verify_title");
+    description = t("settings.export_verify_description");
+    body = (
+      <div className="space-y-4">
+        <div>
+          <label
+            className="text-sm font-medium block mb-2 text-txt-primary"
+            htmlFor="export-verify-password"
           >
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.export_format_mbox_name")}
-            </p>
-            <p className="text-xs text-txt-muted mt-1">
-              {t("settings.export_format_mbox_hint")}
-            </p>
-          </button>
-          <button
-            className={`w-full text-left p-3 rounded-lg border ${
-              format === "eml_dir"
-                ? "border-brand bg-surf-secondary"
-                : "border-edge-secondary"
-            }`}
-            type="button"
-            onClick={() => set_format("eml_dir")}
-          >
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.export_format_eml_name")}
-            </p>
-            <p className="text-xs text-txt-muted mt-1">
-              {t("settings.export_format_eml_hint")}
-            </p>
-          </button>
-
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <div>
-              <label className="text-xs text-txt-muted">
-                {t("settings.export_scope_date_from")}
-              </label>
-              <input
-                className="w-full mt-1 px-2 py-1.5 rounded-lg bg-surf-secondary border border-edge-secondary text-xs text-txt-primary"
-                type="date"
-                value={date_from}
-                onChange={(e) => set_date_from(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs text-txt-muted">
-                {t("settings.export_scope_date_to")}
-              </label>
-              <input
-                className="w-full mt-1 px-2 py-1.5 rounded-lg bg-surf-secondary border border-edge-secondary text-xs text-txt-primary"
-                type="date"
-                value={date_to}
-                onChange={(e) => set_date_to(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button size="md" variant="outline" onClick={handle_close}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              size="md"
-              variant="depth"
-              onClick={() => set_step("destination")}
+            {t("settings.password")}
+          </label>
+          <div className="relative">
+            <Input
+              ref={verify_input_ref}
+              className="w-full pr-10"
+              disabled={verify_loading}
+              id="export-verify-password"
+              maxLength={128}
+              placeholder={t("settings.enter_your_password_placeholder")}
+              status={verify_error ? "error" : "default"}
+              type={verify_show_password ? "text" : "password"}
+              value={verify_password}
+              onChange={(e) => set_verify_password(clamp_password(e.target.value))}
+              onKeyDown={(e) =>
+                e["key"] === "Enter" &&
+                !verify_totp_required &&
+                handle_verify_submit()
+              }
+            />
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
+              type="button"
+              onClick={() => set_verify_show_password(!verify_show_password)}
             >
-              {t("common.continue")}
-            </Button>
+              {verify_show_password ? (
+                <EyeSlashIcon className="w-4 h-4" />
+              ) : (
+                <EyeIcon className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
-      );
-    }
 
-    if (step === "destination") {
-      const fsa = is_fsa_supported();
-      const action_label = fsa
-        ? t("settings.export_destination_pick_file")
-        : t("common.download");
-      return (
-        <div className="space-y-5">
-          <h3 className="text-sm font-medium text-txt-primary">
-            {t("settings.export_step_destination_title")}
-          </h3>
-          <div className="flex flex-col items-center justify-center gap-3 p-6 rounded-lg border border-dashed border-edge-secondary bg-surf-secondary/40">
-            <ArchiveBoxArrowDownIcon className="w-10 h-10 text-txt-secondary" />
-            <p className="text-xs text-txt-secondary text-center">
-              {suggested_zip_filename()}
-            </p>
-          </div>
-          {!fsa && (
-            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-surf-secondary/60 border border-edge-secondary">
-              <InformationCircleIcon className="w-4 h-4 mt-0.5 text-txt-muted flex-shrink-0" />
-              <p className="text-xs text-txt-muted leading-relaxed">
-                {t("settings.export_destination_fallback_notice")}
-              </p>
-            </div>
-          )}
-          <div className="flex justify-end gap-2 pt-1">
-            <Button size="md" variant="outline" onClick={handle_close}>
-              {t("common.cancel")}
-            </Button>
-            <Button size="md" variant="depth" onClick={handle_pick_destination}>
-              {action_label}
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    if (step === "progress") {
-      const total = progress?.total ?? 0;
-      const processed = progress?.processed ?? 0;
-      const percent = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
-      return (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-txt-primary">
-            {t("settings.export_step_progress_title")}
-          </h3>
-          <div className="flex items-center gap-2 text-xs text-txt-secondary">
-            <Spinner className="text-brand" size="sm" />
-            <span>
-              {t("settings.export_progress_messages", {
-                processed: String(processed),
-                total: String(total),
-              })}
-            </span>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: percent + "%",
-                background: "var(--color-brand)",
-                transition: "width 0.4s ease-out",
-              }}
+        {verify_totp_required && (
+          <div>
+            <label
+              className="text-sm font-medium block mb-2 text-txt-primary"
+              htmlFor="export-verify-code"
+            >
+              {t("settings.authenticator_code")}
+            </label>
+            <Input
+              autoComplete="one-time-code"
+              className="text-center text-2xl font-semibold tracking-[0.5em]"
+              disabled={verify_loading}
+              id="export-verify-code"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="000000"
+              status={verify_error ? "error" : "default"}
+              type="text"
+              value={verify_code}
+              onChange={(e) =>
+                set_verify_code(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+              onKeyDown={(e) => e["key"] === "Enter" && handle_verify_submit()}
             />
           </div>
-          <p className="text-xs text-txt-muted">
-            {t("settings.export_progress_bytes_written", {
-              bytes: format_bytes(progress?.bytes_written ?? 0),
-            })}
+        )}
+
+        {verify_error && (
+          <p className="text-sm text-center text-red-500">{verify_error}</p>
+        )}
+      </div>
+    );
+    footer = (
+      <>
+        <Button disabled={verify_loading} variant="outline" onClick={handle_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button
+          disabled={!verify_can_submit}
+          variant="depth"
+          onClick={handle_verify_submit}
+        >
+          {verify_loading ? <Spinner className="mr-2" size="md" /> : null}
+          {t("settings.export_verify_submit")}
+        </Button>
+      </>
+    );
+  } else if (step === "warning") {
+    title = t("settings.export_warning_title");
+    description = t("settings.export_warning_body");
+    body = (
+      <label className="flex items-center gap-2.5 cursor-pointer select-none">
+        <Checkbox
+          checked={warning_ack}
+          onCheckedChange={(v) => set_warning_ack(v === true)}
+        />
+        <span className="text-sm text-txt-secondary">
+          {t("settings.export_warning_confirm")}
+        </span>
+      </label>
+    );
+    footer = (
+      <>
+        <Button variant="outline" onClick={handle_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button
+          disabled={!warning_ack}
+          variant="depth"
+          onClick={handle_warning_continue}
+        >
+          {t("common.continue")}
+        </Button>
+      </>
+    );
+  } else if (step === "scope") {
+    const none_selected =
+      !include_mail && !include_contacts && !include_settings;
+    const Row = ({
+      checked,
+      on_change,
+      title: row_title,
+      row_body,
+    }: {
+      checked: boolean;
+      on_change: (v: boolean) => void;
+      title: string;
+      row_body: string;
+    }) => (
+      <label
+        className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+          checked
+            ? "border-brand bg-surf-secondary"
+            : "border-edge-secondary hover:bg-surf-secondary/50"
+        }`}
+      >
+        <Checkbox
+          checked={checked}
+          onCheckedChange={(v) => on_change(v === true)}
+        />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-txt-primary">{row_title}</p>
+          <p className="text-xs text-txt-muted mt-0.5">{row_body}</p>
+        </div>
+      </label>
+    );
+    title = t("settings.export_step_scope_title");
+    body = (
+      <div className="space-y-3">
+        <Row
+          checked={include_mail}
+          on_change={set_include_mail}
+          row_body={t("settings.export_scope_mail_body")}
+          title={t("settings.export_scope_mail_title")}
+        />
+        <Row
+          checked={include_contacts}
+          on_change={set_include_contacts}
+          row_body={t("settings.export_scope_contacts_body")}
+          title={t("settings.export_scope_contacts_title")}
+        />
+        <Row
+          checked={include_settings}
+          on_change={set_include_settings}
+          row_body={t("settings.export_scope_settings_body")}
+          title={t("settings.export_scope_settings_title")}
+        />
+      </div>
+    );
+    footer = (
+      <>
+        <Button variant="outline" onClick={handle_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button
+          disabled={none_selected}
+          variant="depth"
+          onClick={handle_scope_continue}
+        >
+          {t("common.continue")}
+        </Button>
+      </>
+    );
+  } else if (step === "format") {
+    title = t("settings.export_step_format_title");
+    body = (
+      <div className="space-y-4">
+        <button
+          className={`w-full text-left p-3 rounded-xl border transition-colors ${
+            format === "mbox"
+              ? "border-brand bg-surf-secondary"
+              : "border-edge-secondary hover:bg-surf-secondary/50"
+          }`}
+          type="button"
+          onClick={() => set_format("mbox")}
+        >
+          <p className="text-sm font-medium text-txt-primary">
+            {t("settings.export_format_mbox_name")}
           </p>
-          <div className="flex justify-end pt-2">
-            <Button
-              size="md"
-              variant="outline"
-              onClick={handle_cancel_progress}
-            >
-              {t("settings.export_cancel")}
-            </Button>
+          <p className="text-xs text-txt-muted mt-1">
+            {t("settings.export_format_mbox_hint")}
+          </p>
+        </button>
+        <button
+          className={`w-full text-left p-3 rounded-xl border transition-colors ${
+            format === "eml_dir"
+              ? "border-brand bg-surf-secondary"
+              : "border-edge-secondary hover:bg-surf-secondary/50"
+          }`}
+          type="button"
+          onClick={() => set_format("eml_dir")}
+        >
+          <p className="text-sm font-medium text-txt-primary">
+            {t("settings.export_format_eml_name")}
+          </p>
+          <p className="text-xs text-txt-muted mt-1">
+            {t("settings.export_format_eml_hint")}
+          </p>
+        </button>
+
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label className="text-xs text-txt-muted">
+              {t("settings.export_scope_date_from")}
+            </label>
+            <Input
+              className="w-full mt-1"
+              type="date"
+              value={date_from}
+              onChange={(e) => set_date_from(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-xs text-txt-muted">
+              {t("settings.export_scope_date_to")}
+            </label>
+            <Input
+              className="w-full mt-1"
+              type="date"
+              value={date_to}
+              onChange={(e) => set_date_to(e.target.value)}
+            />
           </div>
         </div>
-      );
-    }
-
-    return (
+      </div>
+    );
+    footer = (
+      <>
+        <Button variant="outline" onClick={handle_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button variant="depth" onClick={() => set_step("destination")}>
+          {t("common.continue")}
+        </Button>
+      </>
+    );
+  } else if (step === "destination") {
+    const fsa = is_fsa_supported();
+    const action_label = fsa
+      ? t("settings.export_destination_pick_file")
+      : t("common.download");
+    title = t("settings.export_step_destination_title");
+    body = (
       <div className="space-y-4">
-        <h3 className="text-sm font-medium text-txt-primary">
-          {t("settings.export_step_complete_title")}
-        </h3>
-        <p className="text-xs text-txt-secondary">
+        <div className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl border border-dashed border-edge-secondary bg-surf-secondary/40">
+          <ArchiveBoxArrowDownIcon className="w-10 h-10 text-txt-secondary" />
+          <p className="text-xs text-txt-secondary text-center">
+            {suggested_zip_filename()}
+          </p>
+        </div>
+        {!fsa && (
+          <div className="flex items-start gap-2 px-3 py-2 rounded-xl bg-surf-secondary/60 border border-edge-secondary">
+            <InformationCircleIcon className="w-4 h-4 mt-0.5 text-txt-muted flex-shrink-0" />
+            <p className="text-xs text-txt-muted leading-relaxed">
+              {t("settings.export_destination_fallback_notice")}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+    footer = (
+      <>
+        <Button variant="outline" onClick={handle_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button variant="depth" onClick={handle_pick_destination}>
+          {action_label}
+        </Button>
+      </>
+    );
+  } else if (step === "progress") {
+    const total = progress?.total ?? 0;
+    const processed = progress?.processed ?? 0;
+    const percent = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
+    title = t("settings.export_step_progress_title");
+    body = (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-sm text-txt-secondary">
+          <Spinner className="text-brand" size="sm" />
+          <span>
+            {t("settings.export_progress_messages", {
+              processed: String(processed),
+              total: String(total),
+            })}
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: percent + "%",
+              background: "var(--color-brand)",
+              transition: "width 0.4s ease-out",
+            }}
+          />
+        </div>
+        <p className="text-xs text-txt-muted">
+          {t("settings.export_progress_bytes_written", {
+            bytes: format_bytes(progress?.bytes_written ?? 0),
+          })}
+        </p>
+      </div>
+    );
+    footer = (
+      <Button variant="outline" onClick={handle_cancel_progress}>
+        {t("settings.export_cancel")}
+      </Button>
+    );
+  } else {
+    title = t("settings.export_step_complete_title");
+    body = (
+      <div className="space-y-2">
+        <p className="text-sm text-txt-secondary">
           {t("settings.export_complete_summary", {
             count: String(summary?.processed ?? 0),
             total: String(summary?.total ?? 0),
@@ -575,65 +717,28 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
             })}
           </p>
         )}
-        <div className="flex justify-end pt-2">
-          <Button size="md" variant="depth" onClick={handle_close}>
-            {t("common.done")}
-          </Button>
-        </div>
       </div>
     );
-  };
+    footer = (
+      <Button variant="depth" onClick={handle_close}>
+        {t("common.done")}
+      </Button>
+    );
+  }
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center"
-          role="presentation"
-          onClick={(e) => e.target === e.currentTarget && handle_close()}
-          onKeyDown={(e) => e.key === "Escape" && handle_close()}
-        >
-          <motion.div
-            animate={{ opacity: 1 }}
-            aria-hidden="true"
-            className="absolute inset-0 backdrop-blur-md"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onClick={handle_close}
-          />
-          <motion.div
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            aria-modal="true"
-            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
-            exit={{ opacity: 0, scale: 0.97, y: 4 }}
-            initial={reduce_motion ? false : { opacity: 0, scale: 0.97, y: 4 }}
-            role="dialog"
-            style={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)" }}
-            transition={{
-              duration: reduce_motion ? 0 : 0.2,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-6 pt-5 pb-4">
-              <h2 className="text-[16px] font-semibold text-txt-primary">
-                {t("settings.export_title")}
-              </h2>
-              {step !== "progress" && (
-                <button
-                  className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
-                  onClick={handle_close}
-                >
-                  <XMarkIcon className="w-5 h-5 text-txt-muted" />
-                </button>
-              )}
-            </div>
-            <div className="px-6 pb-6">{render_step()}</div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <Modal
+      is_open={is_open}
+      on_close={handle_close}
+      show_close_button={step !== "progress"}
+      size="md"
+    >
+      <ModalHeader>
+        <ModalTitle>{title}</ModalTitle>
+        {description && <ModalDescription>{description}</ModalDescription>}
+      </ModalHeader>
+      <ModalBody>{body}</ModalBody>
+      <ModalFooter>{footer}</ModalFooter>
+    </Modal>
   );
 }

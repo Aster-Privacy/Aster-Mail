@@ -149,7 +149,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
         />
         <div className="relative flex-shrink-0">
           <button
-            className={`w-8 h-8 flex items-center justify-center rounded-full text-base cursor-pointer transition-all duration-150 active:scale-90 ${show_tones ? "bg-black/10 dark:bg-white/15" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
+            className={`press_scale w-8 h-8 flex items-center justify-center rounded-full text-base cursor-pointer transition-transform duration-150 ${show_tones ? "bg-black/10 dark:bg-white/15" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
             title={t("common.skin_tone")}
             type="button"
             onClick={() => set_show_tones(!show_tones)}
@@ -161,7 +161,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               {skin_tones.map((tone) => (
                 <button
                   key={tone}
-                  className={`w-7 h-7 flex items-center justify-center rounded-full text-sm cursor-pointer transition-all duration-150 active:scale-90 ${skin_tone === tone ? "bg-black/10 dark:bg-white/15" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
+                  className={`press_scale w-7 h-7 flex items-center justify-center rounded-full text-sm cursor-pointer transition-transform duration-150 ${skin_tone === tone ? "bg-black/10 dark:bg-white/15" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
                   type="button"
                   onClick={() => select_skin_tone(tone)}
                 >
@@ -178,7 +178,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
           {CATEGORY_KEYS.map((key) => (
             <button
               key={key}
-              className={`flex-1 flex items-center justify-center h-8 rounded-full cursor-pointer transition-all duration-150 active:scale-90 ${active_category === key ? "bg-black/10 dark:bg-white/15" : "opacity-55 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"}`}
+              className={`press_scale flex-1 flex items-center justify-center h-8 rounded-full cursor-pointer transition-transform duration-150 ${active_category === key ? "bg-black/10 dark:bg-white/15" : "opacity-55 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"}`}
               title={emoji_categories[key].label}
               type="button"
               onClick={() => {

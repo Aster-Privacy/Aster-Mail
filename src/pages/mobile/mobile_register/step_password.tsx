@@ -184,12 +184,12 @@ export function StepPassword({
                 className="flex h-5 w-5 items-center justify-center rounded border transition-colors"
                 style={{
                   backgroundColor: reg.remember_me
-                    ? "#3b82f6"
+                    ? "var(--mobile-accent)"
                     : reg.is_dark
                       ? "#1f1f1f"
                       : "#ffffff",
                   borderColor: reg.remember_me
-                    ? "#3b82f6"
+                    ? "var(--mobile-accent)"
                     : reg.is_dark
                       ? "#404040"
                       : "#d1d5db",
@@ -304,7 +304,7 @@ export function StepPassword({
         <p className="text-center text-sm text-[var(--text-tertiary)]">
           {reg.t("auth.already_have_account")}{" "}
           <button
-            className="font-semibold text-[#4a7aff]"
+            className="font-semibold text-[var(--mobile-accent)]"
             type="button"
             onClick={() => navigate("/sign-in")}
           >

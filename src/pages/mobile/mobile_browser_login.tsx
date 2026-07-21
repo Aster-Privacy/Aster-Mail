@@ -115,8 +115,8 @@ export default function MobileBrowserLoginPage() {
           <motion.div
             className="flex h-16 w-16 items-center justify-center rounded-2xl"
             style={{
-              background: "linear-gradient(135deg, #4a7aff 0%, #6b8aff 100%)",
-              boxShadow: "0 8px 32px rgba(74,122,255,0.25)",
+              background: "linear-gradient(135deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 80%, white) 100%)",
+              boxShadow: "0 8px 32px color-mix(in srgb, var(--accent-color) 25%, transparent)",
             }}
             variants={reduce_motion ? undefined : fade_up_item}
           >
@@ -157,7 +157,7 @@ export default function MobileBrowserLoginPage() {
               {pairing_code}
             </p>
             <div className="mt-3 flex items-center justify-center gap-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#4a7aff]" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[var(--mobile-accent)]" />
               <p className="text-xs text-[var(--text-muted)]">
                 {t("auth.browser_login_expires_in")}
                 {minutes}:{seconds.toString().padStart(2, "0")}
@@ -166,7 +166,7 @@ export default function MobileBrowserLoginPage() {
           </motion.div>
 
           <motion.button
-            className="mt-4 text-sm font-medium text-[#4a7aff]"
+            className="mt-4 text-sm font-medium text-[var(--mobile-accent)]"
             variants={reduce_motion ? undefined : fade_up_item}
             whileTap={{ opacity: 0.7 }}
             onClick={refresh_code}

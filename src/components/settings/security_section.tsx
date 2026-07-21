@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState } from "react";
-import { Button, Switch } from "@aster/ui";
+import { Badge, Button, Switch } from "@aster/ui";
 import { InfoPopover } from "@/components/ui/info_popover";
 import {
   ShieldCheckIcon,
@@ -61,6 +61,8 @@ import {
 
 interface SecuritySectionProps {
   on_account_deleted?: () => void;
+  show_inline_totp_setup?: boolean;
+  set_show_inline_totp_setup?: (value: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 function find_scroll_container(el: HTMLElement): HTMLElement | null {
@@ -106,14 +108,23 @@ function scroll_to_id(id: string) {
   requestAnimationFrame(() => requestAnimationFrame(run));
 }
 
-export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
+export function SecuritySection({
+  on_account_deleted,
+  show_inline_totp_setup: show_inline_totp_setup_prop,
+  set_show_inline_totp_setup: set_show_inline_totp_setup_prop,
+}: SecuritySectionProps) {
   const security = use_security();
   const { t } = use_i18n();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const [show_delete_modal, set_show_delete_modal] = useState(false);
   const [show_regenerate_modal, set_show_regenerate_modal] = useState(false);
-  const [show_inline_totp_setup, set_show_inline_totp_setup] = useState(false);
+  const [show_inline_totp_setup_local, set_show_inline_totp_setup_local] =
+    useState(false);
+  const show_inline_totp_setup =
+    show_inline_totp_setup_prop ?? show_inline_totp_setup_local;
+  const set_show_inline_totp_setup =
+    set_show_inline_totp_setup_prop ?? set_show_inline_totp_setup_local;
   const {
     data: passkey_data,
     is_loading: passkey_is_loading,
@@ -166,6 +177,8 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
           password_props={{
             confirm_password: security.confirm_password,
             current_password: security.current_password,
+            last_password_change: security.last_password_change,
+            password_strength_tier: security.password_strength_tier,
             new_password: security.new_password,
             on_cancel: security.handle_password_cancel,
             on_change_password: security.handle_change_password,
@@ -321,13 +334,9 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
                 </p>
               </div>
               {preferences.block_external_content ? (
-                <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
-                  Active
-                </span>
+                <Badge color="green">{t("common.active")}</Badge>
               ) : (
-                <span className="text-[11px] px-2 py-0.5 rounded-md bg-surf-secondary border border-edge-secondary text-txt-muted shrink-0">
-                  Inactive
-                </span>
+                <Badge color="gray">{t("common.inactive")}</Badge>
               )}
             </div>
           </>

@@ -31,7 +31,7 @@ import { api_client } from "./client";
 const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface UserPreferences {
-  theme: "light" | "dark";
+  theme: "light" | "dark" | "system";
   language: string;
   time_zone: string;
   date_format: string;
@@ -108,6 +108,27 @@ export interface UserPreferences {
   key_history_limit: number;
   accent_color: string;
   accent_color_hover: string;
+  color_theme:
+    | "default"
+    | "custom"
+    | "purple"
+    | "green"
+    | "rose"
+    | "orange"
+    | "teal"
+    | "indigo"
+    | "amber"
+    | "cyan"
+    | "slate"
+    | "aster-blue"
+    | "lime"
+    | "fuchsia"
+    | "emerald"
+    | "pink"
+    | "black";
+  custom_theme_seed: string;
+  custom_theme_overrides: Record<string, string>;
+  font_choice: string;
   reduce_motion: boolean;
   compact_mode: boolean;
   font_size_scale: number;
@@ -124,6 +145,7 @@ export interface UserPreferences {
     | "achromatopsia";
   external_link_warning_dismissed: boolean;
   notification_banner_dismissed: boolean;
+  account_security_banner_dismissed: boolean;
   biometric_app_lock_enabled: boolean;
   biometric_send_enabled: boolean;
   biometric_settings_enabled: boolean;
@@ -304,7 +326,11 @@ export function get_cached_preferences(): UserPreferences | null {
       const parsed = JSON.parse(cached) as UserPreferences;
       const result = { ...DEFAULT_PREFERENCES, ...parsed };
 
-      if (result.theme !== "light" && result.theme !== "dark") {
+      if (
+        result.theme !== "light" &&
+        result.theme !== "dark" &&
+        result.theme !== "system"
+      ) {
         result.theme = "dark";
       }
 
@@ -413,6 +439,10 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   key_history_limit: 0,
   accent_color: "#3b82f6",
   accent_color_hover: "#2563eb",
+  color_theme: "default",
+  custom_theme_seed: "#3b82f6",
+  custom_theme_overrides: {},
+  font_choice: "default",
   reduce_motion: false,
   compact_mode: false,
   font_size_scale: 15,
@@ -424,6 +454,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   color_vision_mode: "none",
   external_link_warning_dismissed: false,
   notification_banner_dismissed: false,
+  account_security_banner_dismissed: false,
   biometric_app_lock_enabled: false,
   biometric_send_enabled: false,
   biometric_settings_enabled: false,

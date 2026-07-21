@@ -180,7 +180,7 @@ export function AliasesSection({
             className="relative overflow-hidden rounded-2xl p-5"
             style={{
               background:
-                "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 40%, #2563eb 70%, #3b82f6 100%)",
+                "linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 70%, black) 0%, color-mix(in srgb, var(--accent-color) 85%, black) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
               boxShadow:
                 "0 1px 3px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
             }}
@@ -235,7 +235,7 @@ export function AliasesSection({
             className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
             style={{
               background:
-                "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
               boxShadow:
                 "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
             }}
@@ -452,7 +452,7 @@ export function AliasesSection({
                 className="rounded-xl px-5 py-2.5 text-[14px] font-semibold text-white"
                 style={{
                   background:
-                    "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                    "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                   boxShadow:
                     "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                 }}
@@ -475,7 +475,7 @@ export function AliasesSection({
                 className="flex w-full items-center justify-center gap-2 rounded-xl py-3 mb-3 text-[15px] font-semibold text-white"
                 style={{
                   background:
-                    "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                    "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                   boxShadow:
                     "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                 }}
@@ -547,7 +547,7 @@ export function AliasesSection({
                                 className="rounded-[12px] px-3 py-1.5 text-[12px] font-medium text-white"
                                 style={{
                                   background:
-                                    "linear-gradient(180deg, #6b8aff 0%, #4f6ef7 50%, #3b5ae8 100%)",
+                                    "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
                                 }}
                                 type="button"
                                 onClick={() => hook.handle_open_setup(domain)}

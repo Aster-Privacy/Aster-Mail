@@ -86,6 +86,8 @@ async function ensure_pq_prekeys_available(): Promise<void> {
 
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { emit_aliases_changed, emit_contacts_changed } from "@/hooks/mail_events";
+import { compute_password_strength_tier } from "@/services/password_strength_score";
+import { backfill_password_strength_tier } from "@/services/api/account";
 
 let vault_decryption_lock: Promise<void> | null = null;
 
@@ -120,6 +122,10 @@ export async function decrypt_vault_with_lock(
 
     reset_rekey_flag();
     await store_vault_in_memory(vault, passphrase);
+
+    backfill_password_strength_tier(
+      compute_password_strength_tier(passphrase),
+    ).catch(() => {});
 
     try {
       await adopt_master_key_if_needed(vault, passphrase);

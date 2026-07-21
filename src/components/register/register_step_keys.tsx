@@ -85,7 +85,7 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
             className="h-full rounded-full"
             initial={reduce_motion ? false : { width: "0%" }}
             style={{
-              backgroundColor: reg.is_dark ? "#60a5fa" : "#3b82f6",
+              backgroundColor: reg.is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
             }}
             transition={{
               duration: reduce_motion ? 0 : 0.3,

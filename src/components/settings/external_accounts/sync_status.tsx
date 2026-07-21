@@ -121,7 +121,7 @@ export function SyncStatusIndicator({
               className="h-full rounded-full"
               style={{
                 width: `${percent}%`,
-                background: "#3B82F6",
+                background: "var(--accent-color)",
                 transition: "width 300ms ease-out",
               }}
             />
@@ -130,7 +130,7 @@ export function SyncStatusIndicator({
               className="h-full rounded-full animate-pulse"
               style={{
                 width: "40%",
-                background: "#3B82F6",
+                background: "var(--accent-color)",
                 animation: "sync_bar_indeterminate 1.5s ease-in-out infinite",
               }}
             />

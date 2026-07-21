@@ -109,7 +109,7 @@ export function StorageBanner({
       <div
         className="mx-3 mt-2 px-4 py-3 rounded-lg flex items-center gap-3"
         style={{
-          backgroundColor: "#2563eb",
+          backgroundColor: "var(--accent-color-hover)",
           color: "#fff",
         }}
       >

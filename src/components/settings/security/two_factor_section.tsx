@@ -250,7 +250,12 @@ export function LoginAlertsSessionsGroup({
         {login_events_loading ? (
           <p className="text-xs text-txt-muted">{t("common.loading")}</p>
         ) : login_events.length === 0 ? (
-          <p className="text-xs text-txt-muted">{t("settings.no_sign_in_history")}</p>
+          <div className="py-4 text-center">
+            <ComputerDesktopIcon className="w-6 h-6 text-txt-muted mx-auto mb-2" />
+            <p className="text-xs text-txt-muted">
+              {t("settings.no_sign_in_history")}
+            </p>
+          </div>
         ) : (
           <div className="space-y-1">
             {login_events.slice(0, 10).map((event) => (

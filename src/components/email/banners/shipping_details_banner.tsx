@@ -66,13 +66,13 @@ export function ShippingDetailsBanner({
       shipped: {
         label: t("mail.shipping_shipped"),
         color: "#ffffff",
-        bg: "#2563eb",
+        bg: "var(--accent-color-hover)",
         icon: <TruckIcon className="w-4 h-4" />,
       },
       in_transit: {
         label: t("mail.shipping_in_transit"),
         color: "#ffffff",
-        bg: "#2563eb",
+        bg: "var(--accent-color-hover)",
         icon: <TruckIcon className="w-4 h-4" />,
       },
       out_for_delivery: {
