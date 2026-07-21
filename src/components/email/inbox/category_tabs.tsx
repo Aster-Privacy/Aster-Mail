@@ -20,33 +20,24 @@
 //
 import type { EmailCategory } from "@/types/email";
 import type { CategoryCounts } from "@/services/category_index";
-import type { TranslationKey } from "@/lib/i18n/types";
 
-import {
-  InboxIcon,
-  TagIcon,
-  UsersIcon,
-  BellIcon,
-} from "@heroicons/react/24/outline";
+import { useMemo } from "react";
+import { InboxIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  BUILTIN_CATEGORIES,
+  allowed_custom_categories,
+} from "@/data/category_catalog";
+import { category_icon } from "@/data/category_icons";
 
 interface TabConfig {
   key: EmailCategory;
-  label_key: TranslationKey;
+  label: string;
   Icon: typeof InboxIcon;
 }
-
-const TAB_CONFIG: TabConfig[] = [
-  { key: "primary", label_key: "mail_rules.category_primary", Icon: InboxIcon },
-  {
-    key: "promotions",
-    label_key: "mail_rules.category_promotions",
-    Icon: TagIcon,
-  },
-  { key: "social", label_key: "mail_rules.category_social", Icon: UsersIcon },
-  { key: "updates", label_key: "mail_rules.category_updates", Icon: BellIcon },
-];
 
 function format_count(value: number): string {
   return value > 999 ? "999+" : value.toLocaleString();
@@ -64,10 +55,67 @@ export function CategoryTabs({
   on_change,
 }: CategoryTabsProps): React.ReactElement {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
+  const { limits } = use_plan_limits();
+
+  const category_limit = limits
+    ? (limits.limits["max_custom_categories"]?.limit ?? 0)
+    : -1;
+
+  const tabs = useMemo<TabConfig[]>(() => {
+    const enabled_ids = new Set(preferences.enabled_categories ?? []);
+    const list: TabConfig[] = [];
+
+    for (const cat of BUILTIN_CATEGORIES) {
+      if (cat.id !== "primary" && !enabled_ids.has(cat.id)) {
+        continue;
+      }
+
+      list.push({
+        key: cat.id,
+        label: t(cat.label_key),
+        Icon: category_icon(cat.icon),
+      });
+    }
+
+    const permitted = allowed_custom_categories(
+      preferences.custom_categories ?? [],
+      category_limit,
+    );
+
+    for (const rule of permitted) {
+      if (!rule.enabled) continue;
+
+      list.push({
+        key: rule.id,
+        label: rule.name,
+        Icon: category_icon(rule.icon),
+      });
+    }
+
+    return list;
+  }, [
+    preferences.enabled_categories,
+    preferences.custom_categories,
+    category_limit,
+    t,
+  ]);
+
+  const handle_wheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.deltaY === 0) return;
+    const el = e.currentTarget;
+
+    if (el.scrollWidth <= el.clientWidth) return;
+    el.scrollLeft += e.deltaY;
+    e.preventDefault();
+  };
 
   return (
-    <div className="scrollbar-hide relative flex items-stretch gap-1 overflow-x-auto border-b border-edge-primary bg-surf-primary px-2 sm:px-3">
-      {TAB_CONFIG.map(({ key, label_key, Icon }) => {
+    <div
+      className="aster_scrollbar_thin group/tabs relative flex shrink-0 items-stretch gap-1 overflow-x-auto overflow-y-hidden border-b border-edge-primary bg-surf-primary px-2 sm:px-3"
+      onWheel={handle_wheel}
+    >
+      {tabs.map(({ key, label, Icon }) => {
         const is_active = key === active_category;
         const bucket = counts[key];
         const new_count = bucket?.new_count ?? 0;
@@ -93,7 +141,7 @@ export function CategoryTabs({
                   : "text-txt-muted group-hover:text-txt-secondary"
               }`}
             />
-            <span>{t(label_key)}</span>
+            <span>{label}</span>
             {show_new ? (
               <span className="aster_badge aster_badge_blue">
                 {format_count(new_count)} {t("mail.tab_new_count")}
