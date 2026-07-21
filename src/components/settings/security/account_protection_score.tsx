@@ -22,19 +22,31 @@
 //
 import { useState } from "react";
 import {
-  ShieldCheckIcon,
-  ShieldExclamationIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ArrowRightIcon,
   ChevronRightIcon,
-  LockClosedIcon,
-  KeyIcon,
-  FingerPrintIcon,
 } from "@heroicons/react/24/outline";
 
 import { Modal, ModalHeader, ModalTitle, ModalBody } from "@/components/ui/modal";
+import {
+  SecurityLockIcon,
+  type SecurityStatus,
+} from "@/components/settings/security/security_lock_icon";
 import { use_i18n } from "@/lib/i18n/context";
+
+function get_status(bar_pct: number): SecurityStatus {
+  if (bar_pct < 35) return "weak";
+  if (bar_pct < 60) return "fair";
+  if (bar_pct < 90) return "partial";
+  return "strong";
+}
+
+const STATUS_BUTTON_STYLES: Record<SecurityStatus, string> = {
+  weak: "bg-red-600 hover:bg-red-700 text-white",
+  fair: "bg-orange-500 hover:bg-orange-600 text-white",
+  partial: "bg-yellow-500 hover:bg-yellow-600 text-white",
+  strong: "bg-green-600 hover:bg-green-700 text-white",
+};
 
 interface AccountProtectionScoreProps {
   totp_enabled: boolean;
@@ -52,24 +64,6 @@ interface AccountProtectionScoreProps {
 const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
 const MAX_SCORE = 8;
 
-type Status = "weak" | "fair" | "partial" | "strong";
-
-function get_status(score: number): Status {
-  if (score >= MAX_SCORE) return "strong";
-  if (score >= 6) return "partial";
-  if (score >= 3) return "fair";
-
-  return "weak";
-}
-
-const BG_COLOR: Record<Status, string> = {
-  weak:    "#7f1d1d",
-  fair:    "#78350f",
-  partial: "#1e3a8a",
-  strong:  "#14532d",
-};
-
-
 export function AccountProtectionScore({
   totp_enabled,
   passkey_registered,
@@ -84,6 +78,7 @@ export function AccountProtectionScore({
 }: AccountProtectionScoreProps) {
   const { t } = use_i18n();
   const [popover_open, set_popover_open] = useState(false);
+  const [dismissed, set_dismissed] = useState(false);
 
   const criteria_met = [
     totp_enabled,
@@ -112,107 +107,58 @@ export function AccountProtectionScore({
     0,
   );
 
-  const status = get_status(score);
-  const ShieldIcon =
-    status === "weak" || status === "fair"
-      ? ShieldExclamationIcon
-      : ShieldCheckIcon;
-
-  const status_label = {
-    weak:    t("settings.account_protection_weak"),
-    fair:    t("settings.account_protection_fair"),
-    partial: t("settings.account_protection_partial"),
-    strong:  t("settings.account_protection_strong"),
-  }[status];
-
-  const hint = {
-    weak:    t("settings.account_protection_hint_weak"),
-    fair:    t("settings.account_protection_hint_fair"),
-    partial: t("settings.account_protection_hint_partial"),
-    strong:  t("settings.account_protection_hint_strong"),
-  }[status];
-
   const bar_pct = Math.round((score / MAX_SCORE) * 100);
+  const status = get_status(bar_pct);
 
   if (!security_loaded) {
     return (
-      <div className="relative overflow-hidden rounded-2xl p-5 animate-pulse bg-surf-secondary border border-edge-secondary">
-        <div className="flex items-center justify-between mb-3">
-          <div className="h-4 w-16 rounded bg-surf-tertiary" />
-          <div className="h-3 w-8 rounded bg-surf-tertiary" />
+      <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 animate-pulse">
+        <div className="flex items-start gap-2.5">
+          <div className="h-5 w-5 rounded-full bg-surf-tertiary flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="h-4 w-56 rounded bg-surf-tertiary mb-2" />
+            <div className="h-3.5 w-72 rounded bg-surf-tertiary" />
+          </div>
         </div>
-        <div className="h-5 w-40 rounded bg-surf-tertiary mb-2" />
-        <div className="h-3.5 w-56 rounded bg-surf-tertiary mb-4" />
-        <div className="mb-4 h-1.5 rounded-full bg-surf-tertiary" />
-        <div className="h-9 w-44 rounded-[14px] bg-surf-tertiary" />
       </div>
     );
   }
 
+  if (dismissed) return null;
+
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl p-5"
-      style={{ backgroundColor: BG_COLOR[status] }}
-    >
-      <div
-        className="absolute right-4 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none select-none"
-        aria-hidden
-      >
-        <KeyIcon
-          className="w-8 h-8 text-white/15"
-          style={{ transform: "translateY(-20px) rotate(-15deg)" }}
-        />
-        <ShieldIcon className="w-20 h-20 text-white/20" />
-        <FingerPrintIcon
-          className="w-10 h-10 text-white/12"
-          style={{ transform: "translateY(-24px) rotate(12deg)" }}
-        />
-        <LockClosedIcon
-          className="w-7 h-7 text-white/10"
-          style={{ transform: "translateY(-4px) rotate(-8deg)" }}
-        />
+    <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <SecurityLockIcon className="h-5 w-5 flex-shrink-0" status={status} />
+            <p className="text-sm font-semibold text-txt-primary">
+              {t("settings.account_security_percent_title", { percent: bar_pct })}
+            </p>
+          </div>
+          <p className="text-sm text-txt-muted mt-1 ml-7">
+            {t("settings.account_security_review_subtitle")}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+            type="button"
+            onClick={() => set_dismissed(true)}
+          >
+            {t("settings.account_security_dismiss")}
+          </button>
+          <button
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
+            type="button"
+            onClick={() => set_popover_open(true)}
+          >
+            {t("settings.account_security_review_cta")}
+          </button>
+        </div>
       </div>
 
       <div className="relative z-10">
-        <div className="flex items-center justify-between mb-3">
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] leading-none font-medium bg-white/20 text-white border border-white/30">
-            {status_label}
-          </span>
-          <span className="text-xs font-semibold text-white/60 tabular-nums">
-            {score}
-            <span className="font-normal">/{MAX_SCORE}</span>
-          </span>
-        </div>
-
-        <h3
-          className="text-base font-bold text-white mb-1 tracking-tight"
-          style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
-        >
-          {t("settings.account_protection_title")}
-        </h3>
-
-        <p className="text-sm text-white/65 mb-4 max-w-xs">{hint}</p>
-
-        <div className="mb-4 h-1.5 rounded-full bg-white/20 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-white/70 transition-all duration-500"
-            style={{ width: `${bar_pct}%` }}
-          />
-        </div>
-
-        <button
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] text-sm font-semibold bg-white transition-opacity hover:opacity-90"
-          style={{
-            color: BG_COLOR[status],
-            boxShadow: "0 2px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.9) inset",
-          }}
-          type="button"
-          onClick={() => set_popover_open(true)}
-        >
-          {t("settings.protection_breakdown_title")}
-          <ArrowRightIcon className="w-4 h-4" />
-        </button>
-
         <Modal
           is_open={popover_open}
           size="sm"

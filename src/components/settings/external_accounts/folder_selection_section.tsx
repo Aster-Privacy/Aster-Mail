@@ -60,7 +60,6 @@ export function FolderSelectionSection({
           aria-label={t("settings.fetch_imap_folders")}
           className="gap-1.5"
           disabled={is_fetching_folders}
-          size="md"
           variant="outline"
           onClick={handle_fetch_folders}
         >

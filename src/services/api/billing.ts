@@ -706,6 +706,15 @@ export async function get_referral_info() {
   return api_client.get<ReferralInfo>("/payments/v1/referrals");
 }
 
+export function build_referral_invite_url(referral_code: string): string {
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://app.astermail.org";
+
+  return `${origin}/invite/${referral_code}`;
+}
+
 export async function get_referral_history() {
   return api_client.get<ReferralHistoryResponse>(
     "/payments/v1/referrals/history",

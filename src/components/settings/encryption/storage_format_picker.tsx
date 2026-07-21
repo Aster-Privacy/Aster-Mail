@@ -20,10 +20,11 @@
 //
 import { useState } from "react";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
-import { Button, Radio } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
+import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 import {
   Modal,
   ModalHeader,
@@ -77,63 +78,63 @@ export function StorageFormatPicker({
 
       <div className="grid grid-cols-2 gap-3">
         <button
-          className="rounded-[14px] border-2 overflow-hidden text-left transition-all"
-          style={{
-            borderColor:
-              storage_format === "aster"
-                ? "var(--accent-color)"
-                : "var(--border-secondary)",
-            backgroundColor: "var(--bg-tertiary)",
-          }}
+          className="rounded-[14px] text-left transition-all"
+          style={{ backgroundColor: "var(--bg-tertiary)" }}
           type="button"
           onClick={() => handle_select("aster")}
         >
-          <div className="aspect-[5/3] overflow-hidden">
-            <img
-              alt=""
-              className="w-full h-full object-cover block"
-              draggable={false}
-              loading="lazy"
-              src="/settings/aster_server.webp"
-            />
+          <div
+            className={`relative aspect-[5/3] rounded-[14px] transition-all ${
+              storage_format === "aster"
+                ? "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary"
+                : ""
+            }`}
+          >
+            <div className="w-full h-full rounded-[14px] overflow-hidden">
+              <img
+                alt=""
+                className="w-full h-full object-cover block"
+                draggable={false}
+                loading="lazy"
+                src="/settings/aster_server.webp"
+              />
+            </div>
+            {storage_format === "aster" && <SelectedBadge />}
           </div>
-          <div className="px-3.5 py-3 flex items-center justify-between border-t border-edge-primary">
+          <div className="px-3.5 py-3 flex items-center justify-center">
             <span className="text-sm font-medium text-txt-primary">
               {t("settings.storage_format_aster_server")}
-            </span>
-            <span className="pointer-events-none flex-shrink-0">
-              <Radio readOnly checked={storage_format === "aster"} />
             </span>
           </div>
         </button>
 
         <button
-          className="rounded-[14px] border-2 overflow-hidden text-left transition-all"
-          style={{
-            borderColor:
-              storage_format === "ipfs"
-                ? "var(--accent-color)"
-                : "var(--border-secondary)",
-            backgroundColor: "var(--bg-tertiary)",
-          }}
+          className="rounded-[14px] text-left transition-all"
+          style={{ backgroundColor: "var(--bg-tertiary)" }}
           type="button"
           onClick={() => handle_select("ipfs")}
         >
-          <div className="aspect-[5/3] overflow-hidden">
-            <img
-              alt=""
-              className="w-full h-full object-cover block"
-              draggable={false}
-              loading="lazy"
-              src="/settings/decentralized.webp"
-            />
+          <div
+            className={`relative aspect-[5/3] rounded-[14px] transition-all ${
+              storage_format === "ipfs"
+                ? "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary"
+                : ""
+            }`}
+          >
+            <div className="w-full h-full rounded-[14px] overflow-hidden">
+              <img
+                alt=""
+                className="w-full h-full object-cover block"
+                draggable={false}
+                loading="lazy"
+                src="/settings/decentralized.webp"
+              />
+            </div>
+            {storage_format === "ipfs" && <SelectedBadge />}
           </div>
-          <div className="px-3.5 py-3 flex items-center justify-between border-t border-edge-primary">
+          <div className="px-3.5 py-3 flex items-center justify-center">
             <span className="text-sm font-medium text-txt-primary">
               {t("settings.storage_format_decentralized_ipfs")}
-            </span>
-            <span className="pointer-events-none flex-shrink-0">
-              <Radio readOnly checked={storage_format === "ipfs"} />
             </span>
           </div>
         </button>

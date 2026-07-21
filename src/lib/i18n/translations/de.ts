@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1611,6 +1611,20 @@ export const de = {
     family_join_create_account: "Konto erstellen & beitreten",
     family_join_login: "Anmelden & beitreten",
     family_join_invalid: "Dieser Einladungslink ist abgelaufen oder nicht mehr gültig.",
+    invite_title_named: "{{ name }} hat dich zu Aster Mail eingeladen",
+    invite_title_generic: "Du wurdest zu Aster Mail eingeladen",
+    invite_subtitle: "Aster Mail ist zero-access, Ende-zu-Ende-verschlüsselte E-Mail. Niemand außer dir kann dein Postfach lesen, nicht einmal wir.",
+    invite_discount_line: "Melde dich jetzt an und erhalte {{ percent }}% Rabatt auf deinen ersten Tarif.",
+    invite_benefits_heading: "Das bekommst du",
+    invite_benefit_zero_access: "Zero-access, Ende-zu-Ende-verschlüsselte E-Mail",
+    invite_benefit_no_ads: "Keine Werbung, kein Tracking",
+    invite_benefit_open_source: "Open Source und geprüft",
+    invite_cta_create_account: "{{ percent }}% Rabatt sichern",
+    invite_cta_sign_in: "Schon ein Konto? Anmelden",
+    invite_not_found_title: "Dieser Einladungslink ist nicht verfügbar",
+    invite_not_found_body: "Er ist möglicherweise abgelaufen oder falsch. Du kannst trotzdem ein kostenloses Aster-Mail-Konto erstellen.",
+    invite_not_found_cta_register: "Konto erstellen",
+    invite_not_found_cta_sign_in: "Anmelden",
     family_join_inviter: "{{ name }} hat dich eingeladen",
     family_join_shared_storage: "gemeinsamer Speicher",
     family_join_storage_suffix: "{{ size }} Speicher",
@@ -2849,7 +2863,7 @@ export const de = {
     view_guide: "Anleitung ansehen",
     two_factor_guide_title: "So funktioniert die Zwei-Faktor-Authentifizierung",
     two_factor_guide_step_app:
-      "Öffne eine Authenticator-App auf deinem Telefon, z. B. Google Authenticator, Authy oder 1Password.",
+      "Öffne die Authenticator-App deiner Wahl auf deinem Telefon.",
     two_factor_guide_step_scan:
       "Scanne den QR-Code mit der App oder gib den geheimen Schlüssel manuell ein, falls du nicht scannen kannst.",
     two_factor_guide_step_code:
@@ -2929,7 +2943,7 @@ export const de = {
     info_block_tracking_links_title: "Was sind Tracking-Links?",
     info_block_tracking_links_description: "Links in E-Mails leiten oft zuerst über den Server des Absenders, damit dieser Klicks erfassen kann. Dies entfernt diese Weiterleitungen, damit Links direkt zum Ziel führen.",
     info_two_factor_auth_title: "Zwei-Faktor-Authentifizierung",
-    info_two_factor_auth_description: "Fügt eine zweite Sicherheitsebene beim Anmelden hinzu. Nach Ihrem Passwort geben Sie einen 6-stelligen Code aus einer App wie Authy oder Google Authenticator ein.",
+    info_two_factor_auth_description: "Fügt eine zweite Sicherheitsebene beim Anmelden hinzu. Nach Ihrem Passwort geben Sie einen 6-stelligen Code aus Ihrer Authenticator-App ein.",
     info_session_timeout_title: "Sitzungs-Timeout",
     info_session_timeout_description: "Meldet Sie nach einer Inaktivitätsperiode automatisch ab. Nützlich auf gemeinsam genutzten Computern oder wenn Sie Schutz beim Weggehen wünschen.",
     info_login_alerts_title: "Anmeldewarnungen",
@@ -3950,7 +3964,7 @@ export const de = {
     encrypted_export_locked: "Exportieren Sie Ihre Daten mit Ende-zu-Ende-Verschlüsselung",
     mail_section: "E-Mail",
     about: "Über",
-    scan_qr_code_description: "Scannen Sie den QR-Code mit Ihrer Authenticator-App (Google Authenticator, Authy usw.)",
+    scan_qr_code_description: "Scannen Sie den QR-Code mit Ihrer bevorzugten Authenticator-App",
     cant_scan_enter_manually: "Können Sie nicht scannen? Geben Sie diesen Code manuell ein:",
     save_backup_codes_description: "Speichern Sie diese Backup-Codes an einem sicheren Ort. Sie können sie verwenden, um auf Ihr Konto zuzugreifen, wenn Sie Ihr Authenticator-Gerät verlieren.",
     copy_all_codes: "Alle Codes kopieren",
@@ -4004,6 +4018,10 @@ export const de = {
     account_protection_hint_fair: "Ihr Konto benötigt mehr Schutz.",
     account_protection_hint_partial: "Aktivieren Sie mehr Optionen für stärkeren Schutz.",
     account_protection_hint_strong: "Ihr Konto ist gut geschützt.",
+    account_security_percent_title: "Ihre Kontosicherheit liegt bei {{percent}}%",
+    account_security_review_subtitle: "Bitte überprüfen Sie regelmäßig Ihre Sicherheitseinstellungen und aktualisieren Sie Ihr Passwort.",
+    account_security_dismiss: "Verwerfen",
+    account_security_review_cta: "Sicherheit prüfen",
     protection_breakdown_title: "Schutzübersicht",
     criterion_two_factor: "Zwei-Faktor-Authentifizierung",
     criterion_recovery_email: "Verifizierte Wiederherstellungs-E-Mail",
@@ -5931,7 +5949,6 @@ export const de = {
     none: "Keine",
     show_on_profile: "Im Profil anzeigen",
     show_in_signature: "In der Signatur anzeigen",
-    show_avatar_ring: "Avatar-Ring",
     earned_label: "Erhalten",
     empty_state: "Du hast noch keine Abzeichen gefunden.",
     claim_success: "Du hast das Abzeichen {name} erhalten.",
@@ -5960,7 +5977,6 @@ export const de = {
     find_order_label: "#{order}",
     granted_at: "Erhalten {date}",
     not_earned: "Noch nicht erhalten",
-    show_avatar_ring_description: "Einen farbigen Ring um Ihren Avatar hinzufügen.",
     show_in_signature_description: "Ihr aktives Abzeichen in ausgehende E-Mail-Signaturen einbeziehen.",
     show_on_profile_description: "Ihr aktives Abzeichen anderen Aster-Nutzern anzeigen.",
   },

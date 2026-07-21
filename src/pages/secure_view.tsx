@@ -40,9 +40,17 @@ import {
 import {
   get_secure_view_metadata,
   verify_secure_view,
+  reply_to_secure_view,
+  delete_secure_view,
 } from "@/services/api/secure_view";
 
-type ViewState = "loading" | "not_found" | "expired" | "ready" | "unlocked";
+type ViewState =
+  | "loading"
+  | "not_found"
+  | "expired"
+  | "deleted"
+  | "ready"
+  | "unlocked";
 
 const SECURE_BODY_CSS =
   EMAIL_BODY_CSS +
@@ -154,6 +162,13 @@ export default function SecureViewPage() {
   const [decrypted, set_decrypted] = useState<DecryptedSecureMessage | null>(
     null,
   );
+  const [reply_text, set_reply_text] = useState("");
+  const [is_replying, set_is_replying] = useState(false);
+  const [reply_sent, set_reply_sent] = useState(false);
+  const [reply_error, set_reply_error] = useState("");
+  const [is_deleting, set_is_deleting] = useState(false);
+  const [show_delete_confirm, set_show_delete_confirm] = useState(false);
+  const [delete_error, set_delete_error] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -171,6 +186,12 @@ export default function SecureViewPage() {
         if (cancelled) return;
 
         set_metadata(data);
+
+        if (data.is_deleted) {
+          set_view_state("deleted");
+
+          return;
+        }
 
         if (data.is_expired) {
           set_view_state("expired");
@@ -273,6 +294,8 @@ export default function SecureViewPage() {
           set_error(sv("secure_view.locked"));
         } else if (code === "expired") {
           set_view_state("expired");
+        } else if (code === "deleted") {
+          set_view_state("deleted");
         } else {
           set_error(sv("secure_view.wrong_password"));
         }
@@ -347,6 +370,72 @@ export default function SecureViewPage() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  const handle_reply = async () => {
+    if (!token || !reply_text.trim()) return;
+
+    set_reply_error("");
+    set_is_replying(true);
+
+    try {
+      const response = await reply_to_secure_view(token, reply_text.trim());
+
+      if (!response.success) {
+        const code = response.error || "";
+
+        if (code === "reply_limit_reached") {
+          set_reply_error(sv("secure_view.reply_limit_reached"));
+        } else if (code === "expired") {
+          set_view_state("expired");
+        } else if (code === "deleted") {
+          set_view_state("deleted");
+        } else {
+          set_reply_error(sv("secure_view.reply_failed"));
+        }
+
+        return;
+      }
+
+      set_reply_sent(true);
+      set_reply_text("");
+    } catch {
+      set_reply_error(sv("secure_view.reply_failed"));
+    } finally {
+      set_is_replying(false);
+    }
+  };
+
+  const handle_delete_message = async () => {
+    if (!token) return;
+
+    set_delete_error("");
+    set_is_deleting(true);
+
+    try {
+      const response = await delete_secure_view(token);
+
+      if (!response.success) {
+        const code = response.error || "";
+
+        if (code === "expired") {
+          set_view_state("expired");
+        } else {
+          set_delete_error(sv("secure_view.delete_failed"));
+
+          return;
+        }
+
+        return;
+      }
+
+      set_view_state("deleted");
+    } catch {
+      set_delete_error(sv("secure_view.delete_failed"));
+    } finally {
+      set_is_deleting(false);
+      set_show_delete_confirm(false);
+    }
+  };
+
   const render_meta = () => {
     if (!metadata) return null;
 
@@ -389,6 +478,16 @@ export default function SecureViewPage() {
             {render_meta()}
             <p className="text-sm text-txt-tertiary">
               {sv("secure_view.expired")}
+            </p>
+          </div>
+        );
+
+      case "deleted":
+        return (
+          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-left">
+            {render_meta()}
+            <p className="text-sm text-txt-tertiary">
+              {sv("secure_view.deleted")}
             </p>
           </div>
         );
@@ -485,6 +584,83 @@ export default function SecureViewPage() {
                   ))}
                 </div>
               )}
+
+              <div className="space-y-3 border-t border-edge-secondary px-6 py-4">
+                {reply_sent ? (
+                  <p className="text-sm text-txt-tertiary">
+                    {sv("secure_view.reply_sent")}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-txt-muted">
+                      {sv("secure_view.reply_label")}
+                    </label>
+                    <textarea
+                      className="aster_input resize-none py-2"
+                      maxLength={10000}
+                      placeholder={sv("secure_view.reply_placeholder")}
+                      rows={4}
+                      value={reply_text}
+                      onChange={(e) => {
+                        set_reply_text(e.target.value);
+                        if (reply_error) set_reply_error("");
+                      }}
+                    />
+                    {reply_error && (
+                      <p className="text-sm text-danger">{reply_error}</p>
+                    )}
+                    <Button
+                      disabled={is_replying || !reply_text.trim()}
+                      size="sm"
+                      variant="primary"
+                      onClick={handle_reply}
+                    >
+                      {is_replying
+                        ? sv("secure_view.reply_sending")
+                        : sv("secure_view.reply_button")}
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-3 border-t border-edge-secondary pt-3">
+                  {show_delete_confirm ? (
+                    <div className="flex w-full flex-col gap-2">
+                      <p className="text-sm text-txt-tertiary">
+                        {sv("secure_view.delete_confirm_prompt")}
+                      </p>
+                      {delete_error && (
+                        <p className="text-sm text-danger">{delete_error}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button
+                          disabled={is_deleting}
+                          size="sm"
+                          variant="destructive"
+                          onClick={handle_delete_message}
+                        >
+                          {sv("secure_view.delete_confirm_yes")}
+                        </Button>
+                        <Button
+                          disabled={is_deleting}
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => set_show_delete_confirm(false)}
+                        >
+                          {sv("secure_view.delete_confirm_no")}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => set_show_delete_confirm(true)}
+                    >
+                      {sv("secure_view.delete_button")}
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           )
         );

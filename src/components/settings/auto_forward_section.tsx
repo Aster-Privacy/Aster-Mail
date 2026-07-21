@@ -295,7 +295,7 @@ export function AutoForwardSection() {
             <h3 className="text-base font-semibold text-txt-primary">
               {t("settings.auto_forward_title")}
             </h3>
-            <Button className="gap-2" size="md" onClick={() => open_builder()}>
+            <Button className="gap-2" onClick={() => open_builder()}>
               <PlusIcon className="w-4 h-4" />
               {t("settings.add_rule")}
             </Button>

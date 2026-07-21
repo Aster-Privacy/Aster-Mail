@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1586,6 +1586,20 @@ export const nl = {
     family_join_create_account: "Account aanmaken en lid worden",
     family_join_login: "Inloggen en lid worden",
     family_join_invalid: "Deze uitnodigingslink is verlopen of is niet meer geldig.",
+    invite_title_named: "{{ name }} heeft je uitgenodigd voor Aster Mail",
+    invite_title_generic: "Je bent uitgenodigd voor Aster Mail",
+    invite_subtitle: "Aster Mail is zero-access, end-to-end versleutelde e-mail. Niemand behalve jij kan je inbox lezen, wij ook niet.",
+    invite_discount_line: "Meld je nu aan en krijg {{ percent }}% korting op je eerste abonnement.",
+    invite_benefits_heading: "Dit krijg je",
+    invite_benefit_zero_access: "Zero-access, end-to-end versleutelde e-mail",
+    invite_benefit_no_ads: "Geen advertenties, geen tracking",
+    invite_benefit_open_source: "Open source en geauditeerd",
+    invite_cta_create_account: "Claim mijn {{ percent }}% korting",
+    invite_cta_sign_in: "Heb je al een account? Inloggen",
+    invite_not_found_title: "Deze uitnodigingslink is niet beschikbaar",
+    invite_not_found_body: "Mogelijk is de link verlopen of onjuist. Je kunt nog steeds een gratis Aster Mail-account aanmaken.",
+    invite_not_found_cta_register: "Maak je account aan",
+    invite_not_found_cta_sign_in: "Inloggen",
     family_join_inviter: "{{ name }} heeft je uitgenodigd",
     family_join_shared_storage: "gedeelde opslag",
     family_join_storage_suffix: "{{ size }} opslag",
@@ -2867,7 +2881,7 @@ export const nl = {
     view_guide: "Handleiding bekijken",
     two_factor_guide_title: "Hoe tweefactorauthenticatie werkt",
     two_factor_guide_step_app:
-      "Open een authenticator-app op je telefoon, zoals Google Authenticator, Authy of 1Password.",
+      "Open de authenticator-app van je keuze op je telefoon.",
     two_factor_guide_step_scan:
       "Scan de QR-code met de app, of voer de geheime sleutel handmatig in als scannen niet lukt.",
     two_factor_guide_step_code:
@@ -2947,7 +2961,7 @@ export const nl = {
     info_block_tracking_links_title: "Wat zijn trackinglinks?",
     info_block_tracking_links_description: "Links in e-mails gaan vaak eerst via de server van de afzender zodat klikken worden bijgehouden. Dit verwijdert die omleidingen zodat links rechtstreeks naar het doel gaan.",
     info_two_factor_auth_title: "Tweefactorauthenticatie",
-    info_two_factor_auth_description: "Voegt een tweede beveiligingslaag toe bij het inloggen. Na uw wachtwoord voert u een 6-cijferige code in vanuit een app zoals Authy of Google Authenticator.",
+    info_two_factor_auth_description: "Voegt een tweede beveiligingslaag toe bij het inloggen. Na uw wachtwoord voert u een 6-cijferige code in vanuit uw authenticator-app.",
     info_session_timeout_title: "Sessie-time-out",
     info_session_timeout_description: "Logt u automatisch uit na een periode van inactiviteit. Handig op gedeelde computers of als u bescherming wilt wanneer u wegloopt.",
     info_login_alerts_title: "Inlogwaarschuwingen",
@@ -3953,7 +3967,7 @@ export const nl = {
     receipt_tracking_locked: "Automatisch aankoopgegevens extraheren uit ontvangstbewijzen per e-mail",
     mail_section: "E-mail",
     about: "Over",
-    scan_qr_code_description: "Scan de QR-code met je authenticator-app (Google Authenticator, Authy, enz.)",
+    scan_qr_code_description: "Scan de QR-code met de authenticator-app van je keuze",
     cant_scan_enter_manually: "Kun je niet scannen? Voer deze code handmatig in:",
     save_backup_codes_description: "Bewaar deze back-upcodes op een veilige plek. Je kunt ze gebruiken om toegang te krijgen tot je account als je je authenticator-apparaat verliest.",
     copy_all_codes: "Alle codes kopiëren",
@@ -4007,6 +4021,10 @@ export const nl = {
     account_protection_hint_fair: "Uw account heeft meer bescherming nodig.",
     account_protection_hint_partial: "Schakel meer opties in voor sterkere bescherming.",
     account_protection_hint_strong: "Uw account is goed beveiligd.",
+    account_security_percent_title: "Uw accountbeveiliging is {{percent}}%",
+    account_security_review_subtitle: "Controleer regelmatig uw accountbeveiligingsinstellingen en werk uw wachtwoord bij.",
+    account_security_dismiss: "Sluiten",
+    account_security_review_cta: "Beveiliging bekijken",
     protection_breakdown_title: "Beveiligingsdetails",
     criterion_two_factor: "Tweefactorauthenticatie",
     criterion_recovery_email: "Geverifieerd herstel-e-mailadres",
@@ -5936,8 +5954,6 @@ export const nl = {
     show_on_profile_description: "Je actieve badge weergeven aan andere Aster-gebruikers.",
     show_in_signature: "Tonen in handtekening",
     show_in_signature_description: "Je actieve badge opnemen in uitgaande e-mailhandtekeningen.",
-    show_avatar_ring: "Avatar-ring",
-    show_avatar_ring_description: "Een gekleurde ring rond je avatar toevoegen.",
     granted_at: "Verdiend {date}",
     find_order_label: "#{order}",
     empty_state: "Je hebt nog geen badges gevonden.",

@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1611,6 +1611,20 @@ export const pl = {
     family_join_create_account: "Utwórz konto i dołącz",
     family_join_login: "Zaloguj się i dołącz",
     family_join_invalid: "Ten link zaproszenia wygasł lub jest już nieważny.",
+    invite_title_named: "{{ name }} zaprosił(a) Cię do Aster Mail",
+    invite_title_generic: "Zostałeś zaproszony do Aster Mail",
+    invite_subtitle: "Aster Mail to poczta z zerowym dostępem i szyfrowaniem end-to-end. Nikt poza Tobą nie może odczytać Twojej skrzynki, nawet my.",
+    invite_discount_line: "Zarejestruj się teraz i zyskaj {{ percent }}% zniżki na pierwszy plan.",
+    invite_benefits_heading: "Co otrzymujesz",
+    invite_benefit_zero_access: "Poczta z zerowym dostępem i szyfrowaniem end-to-end",
+    invite_benefit_no_ads: "Bez reklam, bez śledzenia",
+    invite_benefit_open_source: "Open source i poddane audytowi",
+    invite_cta_create_account: "Odbierz {{ percent }}% zniżki",
+    invite_cta_sign_in: "Masz już konto? Zaloguj się",
+    invite_not_found_title: "Ten link zaproszenia jest niedostępny",
+    invite_not_found_body: "Mógł wygasnąć lub być nieprawidłowy. Nadal możesz utworzyć bezpłatne konto Aster Mail.",
+    invite_not_found_cta_register: "Utwórz konto",
+    invite_not_found_cta_sign_in: "Zaloguj się",
     family_join_inviter: "{{ name }} zaprosił(a) Cię",
     family_join_shared_storage: "współdzielona przestrzeń",
     family_join_storage_suffix: "{{ size }} przestrzeni",
@@ -2891,7 +2905,7 @@ export const pl = {
     view_guide: "Zobacz przewodnik",
     two_factor_guide_title: "Jak działa uwierzytelnianie dwuskładnikowe",
     two_factor_guide_step_app:
-      "Otwórz aplikację uwierzytelniającą na telefonie, np. Google Authenticator, Authy lub 1Password.",
+      "Otwórz wybraną aplikację uwierzytelniającą na telefonie.",
     two_factor_guide_step_scan:
       "Zeskanuj kod QR aplikacją lub wpisz klucz tajny ręcznie, jeśli nie możesz skanować.",
     two_factor_guide_step_code:
@@ -2971,7 +2985,7 @@ export const pl = {
     info_block_tracking_links_title: "Czym są linki śledzące?",
     info_block_tracking_links_description: "Linki w e-mailach często najpierw przechodzą przez serwer nadawcy, by rejestrować kliknięcia. To usuwa te przekierowania, by linki prowadziły prosto do celu.",
     info_two_factor_auth_title: "Uwierzytelnianie dwuskładnikowe",
-    info_two_factor_auth_description: "Dodaje drugą warstwę zabezpieczeń przy logowaniu. Po haśle wprowadzasz 6-cyfrowy kod z aplikacji jak Authy lub Google Authenticator.",
+    info_two_factor_auth_description: "Dodaje drugą warstwę zabezpieczeń przy logowaniu. Po haśle wprowadzasz 6-cyfrowy kod z aplikacji uwierzytelniającej.",
     info_session_timeout_title: "Limit czasu sesji",
     info_session_timeout_description: "Automatycznie wylogowuje po okresie bezczynności. Przydatne na współdzielonych komputerach lub gdy chcesz ochrony gdy odchodzisz.",
     info_login_alerts_title: "Powiadomienia o logowaniu",
@@ -3951,7 +3965,7 @@ export const pl = {
     receipt_tracking_locked: "Automatycznie wyodrębniaj szczegóły zakupów z e-maili z paragonami",
     mail_section: "Poczta",
     about: "O aplikacji",
-    scan_qr_code_description: "Zeskanuj kod QR aplikacją uwierzytelniającą (Google Authenticator, Authy itp.)",
+    scan_qr_code_description: "Zeskanuj kod QR wybraną aplikacją uwierzytelniającą",
     cant_scan_enter_manually: "Nie możesz zeskanować? Wprowadź ten kod ręcznie:",
     save_backup_codes_description: "Zapisz te kody zapasowe w bezpiecznym miejscu. Możesz ich użyć, aby uzyskać dostęp do konta w przypadku utraty urządzenia uwierzytelniającego.",
     copy_all_codes: "Kopiuj wszystkie kody",
@@ -4158,6 +4172,10 @@ export const pl = {
     account_protection_hint_fair: "Twoje konto potrzebuje więcej ochrony.",
     account_protection_hint_partial: "Włącz więcej opcji dla silniejszej ochrony.",
     account_protection_hint_strong: "Twoje konto jest dobrze chronione.",
+    account_security_percent_title: "Bezpieczeństwo Twojego konta wynosi {{percent}}%",
+    account_security_review_subtitle: "Regularnie sprawdzaj ustawienia zabezpieczeń konta i aktualizuj hasło.",
+    account_security_dismiss: "Odrzuć",
+    account_security_review_cta: "Sprawdź zabezpieczenia",
     protection_breakdown_title: "Szczegóły ochrony",
     criterion_two_factor: "Uwierzytelnianie dwuskładnikowe",
     criterion_recovery_email: "Zweryfikowany e-mail odzyskiwania",
@@ -5932,7 +5950,6 @@ export const pl = {
     none: "Brak",
     show_on_profile: "Pokaż w profilu",
     show_in_signature: "Pokaż w podpisie",
-    show_avatar_ring: "Pierścień awatara",
     earned_label: "Zdobyte",
     empty_state: "Nie znalazłeś jeszcze żadnych odznak.",
     claim_success: "Zdobyłeś odznakę {name}.",
@@ -5941,7 +5958,6 @@ export const pl = {
     not_earned: "Jeszcze nie zdobyto",
     show_on_profile_description: "Wyświetlaj aktywną odznakę innym użytkownikom Astera.",
     show_in_signature_description: "Dołącz aktywną odznakę do podpisów wychodzących wiadomości.",
-    show_avatar_ring_description: "Dodaj kolorową obwódkę wokół avatara.",
     granted_at: "Zdobyto {date}",
     find_order_label: "#{order}",
     badge_big_bang: "Wielki Wybuch",

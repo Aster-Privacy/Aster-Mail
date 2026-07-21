@@ -61,6 +61,8 @@ interface ComposeWindowProps {
 const WINDOW_WIDTH = 700;
 const WINDOW_WIDTH_MINIMIZED = 320;
 const WINDOW_HEIGHT_NORMAL = 600;
+const RESIZE_MIN_WIDTH = 420;
+const RESIZE_MIN_HEIGHT = 340;
 
 export function ComposeWindow({
   instance_id,
@@ -79,6 +81,15 @@ export function ComposeWindow({
     () => (preferences.compose_window_mode ?? "default") === "fullscreen",
   );
 
+  const [resize_state, set_resize_state] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [is_resizing, set_is_resizing] = useState(false);
+
+  const effective_width = resize_state?.width ?? WINDOW_WIDTH;
+  const effective_height = resize_state?.height ?? WINDOW_HEIGHT_NORMAL;
+
   const {
     handle_drag_start,
     get_position_style,
@@ -86,9 +97,51 @@ export function ComposeWindow({
     did_drag,
     reset: reset_drag_position,
   } = use_draggable_modal(!is_minimized && !is_expanded, {
-    width: is_minimized ? WINDOW_WIDTH_MINIMIZED : WINDOW_WIDTH,
-    height: WINDOW_HEIGHT_NORMAL,
+    width: is_minimized ? WINDOW_WIDTH_MINIMIZED : effective_width,
+    height: effective_height,
   });
+
+  const handle_resize_start = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const start_x = e.clientX;
+      const start_y = e.clientY;
+      const start_width = effective_width;
+      const start_height = effective_height;
+
+      set_is_resizing(true);
+
+      const handle_move = (ev: MouseEvent) => {
+        const dx = ev.clientX - start_x;
+        const dy = ev.clientY - start_y;
+        const max_width = window.innerWidth - 48;
+        const max_height = window.innerHeight - 48;
+
+        const new_width = Math.min(
+          max_width,
+          Math.max(RESIZE_MIN_WIDTH, start_width - dx),
+        );
+        const new_height = Math.min(
+          max_height,
+          Math.max(RESIZE_MIN_HEIGHT, start_height - dy),
+        );
+
+        set_resize_state({ width: new_width, height: new_height });
+      };
+
+      const handle_up = () => {
+        set_is_resizing(false);
+        window.removeEventListener("mousemove", handle_move);
+        window.removeEventListener("mouseup", handle_up);
+      };
+
+      window.addEventListener("mousemove", handle_move);
+      window.addEventListener("mouseup", handle_up);
+    },
+    [effective_width, effective_height],
+  );
 
   const compose = use_compose({
     on_close,
@@ -126,6 +179,7 @@ export function ComposeWindow({
   useEffect(() => {
     if (is_minimized) {
       reset_drag_position();
+      set_resize_state(null);
     }
   }, [is_minimized, reset_drag_position]);
 
@@ -216,10 +270,10 @@ export function ComposeWindow({
               : window.innerWidth < 640
                 ? {}
                 : {
-                    width: WINDOW_WIDTH,
-                    height: WINDOW_HEIGHT_NORMAL,
-                    minWidth: WINDOW_WIDTH,
-                    maxWidth: WINDOW_WIDTH,
+                    width: effective_width,
+                    height: effective_height,
+                    minWidth: RESIZE_MIN_WIDTH,
+                    maxWidth: window.innerWidth - 48,
                   }),
           ...(has_been_moved &&
           !is_expanded &&
@@ -227,6 +281,7 @@ export function ComposeWindow({
           window.innerWidth >= 640
             ? get_position_style()
             : {}),
+          ...(is_resizing ? { transition: "none", userSelect: "none" } : {}),
         }}
         onDragOver={(e) => {
           e.preventDefault();
@@ -408,6 +463,28 @@ export function ComposeWindow({
             variant="warning"
           />
         </ErrorBoundary>
+        {!is_minimized && !is_expanded && (
+          <div
+            aria-label={t("mail.resize_compose")}
+            className="hidden sm:flex absolute top-0 left-0 w-4 h-4 items-start justify-start cursor-nwse-resize z-10 touch-none"
+            role="button"
+            tabIndex={-1}
+            onMouseDown={handle_resize_start}
+          >
+            <svg
+              className="w-2.5 h-2.5 mt-0.5 ml-0.5 text-txt-muted/60"
+              fill="none"
+              viewBox="0 0 10 10"
+            >
+              <path
+                d="M9 9L1 1M9 5L5 1"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeWidth="1.25"
+              />
+            </svg>
+          </div>
+        )}
       </div>
     </>
   );

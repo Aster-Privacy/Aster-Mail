@@ -300,7 +300,6 @@ export function BridgeSection() {
             {devices.length > 1 && (
               <Button
                 disabled={revoking_all || revoking_id !== null}
-                size="sm"
                 variant="destructive"
                 onClick={() => set_confirm_revoke_all(true)}
               >
@@ -356,7 +355,6 @@ export function BridgeSection() {
                 <Button
                   className="flex-shrink-0 ml-3"
                   disabled={revoking_id === device.id || revoking_all}
-                  size="sm"
                   variant="destructive"
                   onClick={() => set_confirm_revoke_id(device.id)}
                 >

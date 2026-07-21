@@ -645,7 +645,6 @@ export function SharedMailboxesTab({
                         </p>
                         <Button
                           disabled={is_busy}
-                          size="sm"
                           variant="outline"
                           onClick={() => handle_rotate(mailbox.id)}
                         >
@@ -694,7 +693,6 @@ export function SharedMailboxesTab({
                               ) : (
                                 <Button
                                   disabled={is_busy}
-                                  size="sm"
                                   variant={has_grant ? "outline" : "depth"}
                                   onClick={() =>
                                     handle_toggle_member(

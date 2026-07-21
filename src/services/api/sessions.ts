@@ -28,6 +28,9 @@ export interface Session {
   last_active: string;
   created_at: string;
   is_current: boolean;
+  city?: string;
+  country?: string;
+  country_code?: string;
 }
 
 export interface SessionsListResponse {

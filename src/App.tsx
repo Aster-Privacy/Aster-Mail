@@ -88,6 +88,7 @@ function lazy_with_retry<T extends { default: React.ComponentType }>(
 const IndexPage = lazy_with_retry(() => import("@/pages/index"));
 const SignInPage = lazy_with_retry(() => import("@/pages/sign_in"));
 const RegisterPage = lazy_with_retry(() => import("@/pages/register"));
+const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/forgot_password"),
 );
@@ -360,6 +361,7 @@ function App() {
               />
               <Route element={<SignInPage />} path="/sign-in" />
               <Route element={<RegisterPage />} path="/register" />
+              <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
               <Route element={<ResetPasswordPage />} path="/reset-password" />

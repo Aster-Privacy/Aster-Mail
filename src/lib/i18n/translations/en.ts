@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2109,6 +2109,11 @@ export const en: Translations = {
     account_protection_hint_fair: "Your account needs more protection.",
     account_protection_hint_partial: "Enable more options for stronger protection.",
     account_protection_hint_strong: "Your account is well protected.",
+    account_security_percent_title: "Your account security is {{percent}}%",
+    account_security_review_subtitle:
+      "Please review your account security settings regularly and update your password.",
+    account_security_dismiss: "Dismiss",
+    account_security_review_cta: "Review security",
     protection_breakdown_title: "Protection breakdown",
     criterion_two_factor: "Two-factor authentication",
     criterion_passkey: "Passkey registered",
@@ -2361,6 +2366,20 @@ export const en: Translations = {
     family_join_create_account: "Create Account & Join",
     family_join_login: "Log In & Join",
     family_join_invalid: "This invite link has expired or is no longer valid.",
+    invite_title_named: "{{ name }} invited you to Aster Mail",
+    invite_title_generic: "You've been invited to Aster Mail",
+    invite_subtitle: "Aster Mail is zero-access, end-to-end encrypted email. Nobody but you can read your inbox, not even us.",
+    invite_discount_line: "Sign up now and get {{ percent }}% off your first plan.",
+    invite_benefits_heading: "What you get",
+    invite_benefit_zero_access: "Zero-access, end-to-end encrypted email",
+    invite_benefit_no_ads: "No ads, no tracking",
+    invite_benefit_open_source: "Open-source and audited",
+    invite_cta_create_account: "Claim my {{ percent }}% discount",
+    invite_cta_sign_in: "Already have an account? Sign in",
+    invite_not_found_title: "This invite link isn't available",
+    invite_not_found_body: "It may have expired, or the link may be incorrect. You can still create a free Aster Mail account.",
+    invite_not_found_cta_register: "Create your account",
+    invite_not_found_cta_sign_in: "Sign in",
     family_plan_grace: "This plan is in a grace period and will end on {{date}}.",
     family_storage_edit: "Edit Storage",
     family_storage_save: "Save",
@@ -3455,7 +3474,7 @@ export const en: Translations = {
     view_guide: "View guide",
     two_factor_guide_title: "How two-factor authentication works",
     two_factor_guide_step_app:
-      "Open an authenticator app on your phone, such as Google Authenticator, Authy, or 1Password.",
+      "Open your authenticator app of choice on your phone.",
     two_factor_guide_step_scan:
       "Scan the QR code with the app, or enter the secret key manually if you can't scan.",
     two_factor_guide_step_code:
@@ -3569,7 +3588,7 @@ export const en: Translations = {
       "Links in emails often redirect through a sender's server first so they can record whether you clicked. This strips those redirects so links go straight to the destination.",
     info_two_factor_auth_title: "Two-Factor Authentication",
     info_two_factor_auth_description:
-      "Adds a second layer of sign-in security. After your password, you'll enter a 6-digit code from an app like Authy or Google Authenticator.",
+      "Adds a second layer of sign-in security. After your password, you'll enter a 6-digit code from your authenticator app.",
     info_session_timeout_title: "Session Timeout",
     info_session_timeout_description:
       "Automatically signs you out after a period of inactivity. Useful on shared computers or if you want protection when you walk away.",
@@ -4452,7 +4471,7 @@ export const en: Translations = {
     mail_section: "Mail",
     about: "About",
     scan_qr_code_description:
-      "Scan the QR code with your authenticator app (Google Authenticator, Authy, etc.)",
+      "Scan the QR code with your authenticator app of choice",
     cant_scan_enter_manually: "Can't scan? Enter this code manually:",
     save_backup_codes_description:
       "Save these backup codes in a secure place. You can use them to access your account if you lose your authenticator device.",
@@ -5840,6 +5859,7 @@ export const en: Translations = {
     choose_email_address: "Choose your email address",
     pick_unique_username: "Pick a unique username for your new Aster email",
     new_email_address: "New email address",
+    your_new_aster_address: "Your new Aster Mail address",
     generate_random_username: "Generate random username",
     generate_random_display: "Generate random display name",
     profile_color: "Profile color",
@@ -6601,8 +6621,6 @@ export const en: Translations = {
     show_on_profile_description: "Display your active badge to other Aster users.",
     show_in_signature: "Show in signature",
     show_in_signature_description: "Include your active badge in outgoing email signatures.",
-    show_avatar_ring: "Avatar ring",
-    show_avatar_ring_description: "Add a colored ring around your avatar.",
     granted_at: "Earned {date}",
     find_order_label: "#{order}",
     empty_state: "You haven't found any badges yet.",

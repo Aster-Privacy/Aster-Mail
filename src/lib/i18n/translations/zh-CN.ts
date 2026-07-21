@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1608,6 +1608,20 @@ export const zh_CN = {
     family_join_create_account: "创建账户并加入",
     family_join_login: "登录并加入",
     family_join_invalid: "此邀请链接已过期或不再有效。",
+    invite_title_named: "{{ name }} 邀请你加入 Aster Mail",
+    invite_title_generic: "你已被邀请加入 Aster Mail",
+    invite_subtitle: "Aster Mail 是零访问、端到端加密的电子邮件服务。除你之外没有人能读取你的收件箱，我们也不能。",
+    invite_discount_line: "立即注册，首个套餐享 {{ percent }}% 折扣。",
+    invite_benefits_heading: "你将获得",
+    invite_benefit_zero_access: "零访问、端到端加密邮件",
+    invite_benefit_no_ads: "无广告，无追踪",
+    invite_benefit_open_source: "开源且经过审计",
+    invite_cta_create_account: "领取 {{ percent }}% 折扣",
+    invite_cta_sign_in: "已有账户？登录",
+    invite_not_found_title: "此邀请链接不可用",
+    invite_not_found_body: "该链接可能已过期或不正确。你仍然可以免费创建 Aster Mail 账户。",
+    invite_not_found_cta_register: "创建你的账户",
+    invite_not_found_cta_sign_in: "登录",
     family_join_inviter: "{{ name }} 邀请了你",
     family_join_shared_storage: "共享存储",
     family_join_storage_suffix: "{{ size }} 存储空间",
@@ -2882,7 +2896,7 @@ export const zh_CN = {
     view_guide: "查看指南",
     two_factor_guide_title: "两步验证的工作原理",
     two_factor_guide_step_app:
-      "在手机上打开一个身份验证器应用，例如 Google Authenticator、Authy 或 1Password。",
+      "在手机上打开您选择的身份验证器应用。",
     two_factor_guide_step_scan:
       "用该应用扫描二维码，如果无法扫描，请手动输入密钥。",
     two_factor_guide_step_code:
@@ -2962,7 +2976,7 @@ export const zh_CN = {
     info_block_tracking_links_title: "什么是追踪链接？",
     info_block_tracking_links_description: "邮件中的链接通常先经过发件人服务器以记录点击。此功能去除这些重定向，使链接直接指向目标。",
     info_two_factor_auth_title: "双重身份验证",
-    info_two_factor_auth_description: "为登录添加第二层安全保护。输入密码后，您还需输入Authy或Google Authenticator等应用生成的6位验证码。",
+    info_two_factor_auth_description: "为登录添加第二层安全保护。输入密码后，您还需输入验证器应用生成的6位验证码。",
     info_session_timeout_title: "会话超时",
     info_session_timeout_description: "在一段不活跃时间后自动退出登录。在共享电脑上或离开时需要保护时非常有用。",
     info_login_alerts_title: "登录提醒",
@@ -3939,7 +3953,7 @@ export const zh_CN = {
     receipt_tracking_locked: "自动从收据邮件中提取购买详情",
     mail_section: "邮件",
     about: "关于",
-    scan_qr_code_description: "使用验证器应用扫描二维码（Google Authenticator、Authy 等）",
+    scan_qr_code_description: "使用您选择的验证器应用扫描二维码",
     cant_scan_enter_manually: "无法扫描？手动输入此代码：",
     save_backup_codes_description: "请将这些备份代码保存在安全的地方。如果您丢失了验证器设备，可以使用它们访问账户。",
     copy_all_codes: "复制所有代码",
@@ -4146,6 +4160,10 @@ export const zh_CN = {
     account_protection_hint_fair: "您的账户需要更多保护。",
     account_protection_hint_partial: "启用更多选项以获得更强的保护。",
     account_protection_hint_strong: "您的账户已受到良好保护。",
+    account_security_percent_title: "您的账户安全评分为 {{percent}}%",
+    account_security_review_subtitle: "请定期检查您的账户安全设置并更新密码。",
+    account_security_dismiss: "关闭",
+    account_security_review_cta: "查看安全设置",
     protection_breakdown_title: "保护详情",
     criterion_two_factor: "双重验证",
     criterion_recovery_email: "已验证的恢复邮箱",
@@ -5924,8 +5942,6 @@ export const zh_CN = {
     show_on_profile_description: "向其他 Aster 用户展示您的当前徽章。",
     show_in_signature: "显示在签名中",
     show_in_signature_description: "在发出邮件的签名中包含您的当前徽章。",
-    show_avatar_ring: "头像光环",
-    show_avatar_ring_description: "在您的头像周围添加彩色光环。",
     granted_at: "获得于 {date}",
     find_order_label: "#{order}",
     empty_state: "您还没有找到任何徽章。",

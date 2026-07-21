@@ -31,7 +31,6 @@ import type { ApiResponse } from "@/services/api/client";
 import type { HardwareKeysListResponse } from "@/services/api/webauthn";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 
-import { TotpSetupModal } from "./totp_setup_modal";
 import { TotpDisableModal } from "./totp_disable_modal";
 import { RegenerateBackupCodesModal } from "./regenerate_backup_codes_modal";
 
@@ -39,8 +38,12 @@ import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { ConnectionSection } from "@/components/settings/connection_section";
 import { PasskeySection } from "@/components/settings/security/passkey_section";
-import { TwoFactorSection } from "@/components/settings/security/two_factor_section";
-import { PasswordSection } from "@/components/settings/security/password_section";
+import {
+  LoginAlertsSessionsGroup,
+  ExternalLinkWarningsGroup,
+  ForwardSecrecyGroup,
+} from "@/components/settings/security/two_factor_section";
+import { BasicsSection } from "@/components/settings/security/basics_section";
 import { VanguardSection } from "@/components/settings/security/vanguard_section";
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
@@ -110,6 +113,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
     use_preferences();
   const [show_delete_modal, set_show_delete_modal] = useState(false);
   const [show_regenerate_modal, set_show_regenerate_modal] = useState(false);
+  const [show_inline_totp_setup, set_show_inline_totp_setup] = useState(false);
   const {
     data: passkey_data,
     is_loading: passkey_is_loading,
@@ -118,6 +122,14 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
   );
   const passkey_registered = (passkey_data?.data?.keys?.length ?? 0) > 0;
   const passkey_loaded = !passkey_is_loading;
+
+  const on_two_factor_toggle = () => {
+    if (security.totp_status?.enabled) {
+      security.set_show_totp_disable_modal(true);
+    } else {
+      set_show_inline_totp_setup((prev) => !prev);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -143,22 +155,105 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         totp_enabled={security.totp_status?.enabled ?? false}
       />
 
-      <div id="sec-vanguard">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <CpuChipIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.vanguard_title")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <VanguardSection />
+      <div id="sec-2fa">
+        <BasicsSection
+          on_inline_totp_setup_success={() => {
+            set_show_inline_totp_setup(false);
+            security.handle_totp_setup_success();
+          }}
+          on_regenerate_backup_codes={() => set_show_regenerate_modal(true)}
+          on_two_factor_toggle={on_two_factor_toggle}
+          password_props={{
+            confirm_password: security.confirm_password,
+            current_password: security.current_password,
+            new_password: security.new_password,
+            on_cancel: security.handle_password_cancel,
+            on_change_password: security.handle_change_password,
+            on_new_password_blur: security.handle_new_password_blur,
+            password_breach_warning: security.password_breach_warning,
+            password_error: security.password_error,
+            password_loading: security.password_loading,
+            password_success: security.password_success,
+            set_confirm_password: security.set_confirm_password,
+            set_current_password: security.set_current_password,
+            set_new_password: security.set_new_password,
+            set_show_current_password: security.set_show_current_password,
+            set_show_new_password: security.set_show_new_password,
+            set_show_password_section: security.set_show_password_section,
+            show_current_password: security.show_current_password,
+            show_new_password: security.show_new_password,
+            show_password_section: security.show_password_section,
+          }}
+          show_inline_totp_setup={show_inline_totp_setup}
+          totp_backup_codes_remaining={
+            security.totp_status?.backup_codes_remaining
+          }
+          totp_enabled={security.totp_status?.enabled ?? false}
+        />
       </div>
 
-      <div>
+      <SessionSection
+        logout_others_loading={security.logout_others_loading}
+        logout_others_result={security.logout_others_result}
+        on_revoke_all_sessions={security.handle_revoke_all_sessions}
+        on_revoke_session={security.handle_revoke_session}
+        sessions={security.sessions}
+        sessions_error={security.sessions_error}
+        sessions_loading={security.sessions_loading}
+      />
+
+      <TrustedDevicesSection />
+
+      <div id="sec-passkeys">
+        <PasskeySection />
+      </div>
+
+      <LoginAlertsSessionsGroup
+        login_alerts_enabled={security.login_alerts_enabled}
+        login_events={security.login_events}
+        login_events_loading={security.login_events_loading}
+        on_login_alerts_toggle={security.handle_login_alerts_toggle}
+        on_timeout_change={security.handle_timeout_change}
+        on_timeout_toggle={security.handle_timeout_toggle}
+        session_timeout_enabled={security.preferences.session_timeout_enabled}
+        session_timeout_minutes={security.preferences.session_timeout_minutes}
+        timeout_description={security.get_timeout_description()}
+      />
+
+      <ExternalLinkWarningsGroup
+        external_link_warning_dismissed={
+          security.preferences.external_link_warning_dismissed
+        }
+        on_external_link_toggle={() =>
+          security.update_preference(
+            "external_link_warning_dismissed",
+            !security.preferences.external_link_warning_dismissed,
+            true,
+          )
+        }
+      />
+
+      <ForwardSecrecyGroup
+        forward_secrecy_enabled={security.preferences.forward_secrecy_enabled}
+        key_age_hours={security.key_age_hours}
+        key_fingerprint={security.key_fingerprint}
+        key_history_limit={security.preferences.key_history_limit}
+        key_rotation_hours={security.preferences.key_rotation_hours}
+        on_forward_secrecy_toggle={security.handle_forward_secrecy_toggle}
+        on_key_history_change={(limit) =>
+          security.update_preference("key_history_limit", limit, true)
+        }
+        on_key_rotation_change={(hours) =>
+          security.update_preference("key_rotation_hours", hours, true)
+        }
+        on_rotate_keys_now={security.show_manual_rotation_modal}
+      />
+
+      <div id="sec-tracking">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <CodeBracketIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.html_content_section_title")}
+            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.tracking_protection_title")}
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
@@ -166,24 +261,77 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary">
-              {t("settings.html_rendering_mode_label")}
+              {t("settings.tracking_protection_enabled")}
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.html_rendering_mode_description")}
+              {t("settings.tracking_protection_enabled_description")}
             </p>
           </div>
-          <Switch
-            checked={preferences.html_rendering_mode === "plain_text"}
-            onCheckedChange={() =>
-              update_preference(
-                "html_rendering_mode",
-                preferences.html_rendering_mode === "plain_text" ? "html" : "plain_text",
-                true,
-              )
-            }
+          <Switch size="lg"
+            checked={preferences.block_external_content}
+            onCheckedChange={() => {
+              const new_value = !preferences.block_external_content;
+
+              if (new_value) {
+                update_preferences({
+                  block_external_content: true,
+                  block_tracking_pixels: true,
+                }, true);
+              } else {
+                update_preferences({
+                  block_external_content: false,
+                  block_tracking_pixels: false,
+                }, true);
+              }
+            }}
           />
         </div>
 
+        {preferences.block_external_content && (
+          <>
+            <div className="flex items-center justify-between py-4">
+              <div className="flex-1 pr-4">
+                <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+                  {t("settings.block_spy_pixels")}
+                  <InfoPopover description={t("settings.info_spy_pixels_description")} title={t("settings.info_spy_pixels_title")} />
+                </p>
+                <p className="text-sm mt-0.5 text-txt-muted">
+                  {t("settings.block_spy_pixels_description")}
+                </p>
+              </div>
+              <Switch size="lg"
+                checked={preferences.block_tracking_pixels}
+                onCheckedChange={() =>
+                  update_preference(
+                    "block_tracking_pixels",
+                    !preferences.block_tracking_pixels,
+                    true,
+                  )
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-4">
+              <div className="flex-1 pr-4">
+                <p className="text-sm font-medium text-txt-primary">
+                  {t("settings.block_tracking_links")}
+                </p>
+                <p className="text-sm mt-0.5 text-txt-muted">
+                  {t("settings.block_tracking_links_description")}
+                </p>
+              </div>
+              {preferences.block_external_content ? (
+                <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+                  Active
+                </span>
+              ) : (
+                <span className="text-[11px] px-2 py-0.5 rounded-md bg-surf-secondary border border-edge-secondary text-txt-muted shrink-0">
+                  Inactive
+                </span>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <div id="sec-images">
@@ -204,7 +352,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
               {t("settings.block_remote_images_description")}
             </p>
           </div>
-          <Switch
+          <Switch size="lg"
             checked={preferences.block_remote_images}
             onCheckedChange={() => {
               const new_value = !preferences.block_remote_images;
@@ -266,7 +414,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
               {t("settings.block_remote_fonts_description")}
             </p>
           </div>
-          <Switch
+          <Switch size="lg"
             checked={preferences.block_remote_fonts}
             onCheckedChange={() =>
               update_preference(
@@ -288,7 +436,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
               {t("settings.block_remote_css_description")}
             </p>
           </div>
-          <Switch
+          <Switch size="lg"
             checked={preferences.block_remote_css}
             onCheckedChange={() =>
               update_preference(
@@ -310,7 +458,7 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
               {t("settings.strip_exif_on_compose_description")}
             </p>
           </div>
-          <Switch
+          <Switch size="lg"
             checked={preferences.strip_exif_on_compose}
             onCheckedChange={() =>
               update_preference(
@@ -323,11 +471,11 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         </div>
       </div>
 
-      <div id="sec-tracking">
+      <div>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.tracking_protection_title")}
+            <CodeBracketIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.html_content_section_title")}
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
@@ -335,159 +483,40 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary">
-              {t("settings.tracking_protection_enabled")}
+              {t("settings.html_rendering_mode_label")}
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.tracking_protection_enabled_description")}
+              {t("settings.html_rendering_mode_description")}
             </p>
           </div>
-          <Switch
-            checked={preferences.block_external_content}
-            onCheckedChange={() => {
-              const new_value = !preferences.block_external_content;
-
-              if (new_value) {
-                update_preferences({
-                  block_external_content: true,
-                  block_tracking_pixels: true,
-                }, true);
-              } else {
-                update_preferences({
-                  block_external_content: false,
-                  block_tracking_pixels: false,
-                }, true);
-              }
-            }}
+          <Switch size="lg"
+            checked={preferences.html_rendering_mode === "plain_text"}
+            onCheckedChange={() =>
+              update_preference(
+                "html_rendering_mode",
+                preferences.html_rendering_mode === "plain_text" ? "html" : "plain_text",
+                true,
+              )
+            }
           />
         </div>
 
-        {preferences.block_external_content && (
-          <>
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 pr-4">
-                <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                  {t("settings.block_spy_pixels")}
-                  <InfoPopover description={t("settings.info_spy_pixels_description")} title={t("settings.info_spy_pixels_title")} />
-                </p>
-                <p className="text-sm mt-0.5 text-txt-muted">
-                  {t("settings.block_spy_pixels_description")}
-                </p>
-              </div>
-              <Switch
-                checked={preferences.block_tracking_pixels}
-                onCheckedChange={() =>
-                  update_preference(
-                    "block_tracking_pixels",
-                    !preferences.block_tracking_pixels,
-                    true,
-                  )
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 pr-4">
-                <p className="text-sm font-medium text-txt-primary">
-                  {t("settings.block_tracking_links")}
-                </p>
-                <p className="text-sm mt-0.5 text-txt-muted">
-                  {t("settings.block_tracking_links_description")}
-                </p>
-              </div>
-              {preferences.block_external_content ? (
-                <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
-                  Active
-                </span>
-              ) : (
-                <span className="text-[11px] px-2 py-0.5 rounded-md bg-surf-secondary border border-edge-secondary text-txt-muted shrink-0">
-                  Inactive
-                </span>
-              )}
-            </div>
-          </>
-        )}
       </div>
 
-      <div id="sec-passkeys">
-        <PasskeySection />
+      <div id="sec-vanguard">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <CpuChipIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.vanguard_title")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <VanguardSection />
       </div>
 
-      <div id="sec-2fa">
-      <TwoFactorSection
-        external_link_warning_dismissed={
-          security.preferences.external_link_warning_dismissed
-        }
-        forward_secrecy_enabled={security.preferences.forward_secrecy_enabled}
-        key_age_hours={security.key_age_hours}
-        key_fingerprint={security.key_fingerprint}
-        key_history_limit={security.preferences.key_history_limit}
-        key_rotation_hours={security.preferences.key_rotation_hours}
-        login_alerts_enabled={security.login_alerts_enabled}
-        login_events={security.login_events}
-        login_events_loading={security.login_events_loading}
-        on_external_link_toggle={() =>
-          security.update_preference(
-            "external_link_warning_dismissed",
-            !security.preferences.external_link_warning_dismissed,
-            true,
-          )
-        }
-        on_forward_secrecy_toggle={security.handle_forward_secrecy_toggle}
-        on_key_history_change={(limit) =>
-          security.update_preference("key_history_limit", limit, true)
-        }
-        on_key_rotation_change={(hours) =>
-          security.update_preference("key_rotation_hours", hours, true)
-        }
-        on_login_alerts_toggle={security.handle_login_alerts_toggle}
-        on_rotate_keys_now={security.show_manual_rotation_modal}
-        on_timeout_change={security.handle_timeout_change}
-        on_timeout_toggle={security.handle_timeout_toggle}
-        on_two_factor_toggle={security.handle_two_factor_toggle}
-        on_regenerate_backup_codes={() => set_show_regenerate_modal(true)}
-        session_timeout_enabled={security.preferences.session_timeout_enabled}
-        session_timeout_minutes={security.preferences.session_timeout_minutes}
-        timeout_description={security.get_timeout_description()}
-        totp_backup_codes_remaining={
-          security.totp_status?.backup_codes_remaining
-        }
-        totp_enabled={security.totp_status?.enabled ?? false}
-      />
+      <div className="pt-3">
+        <ConnectionSection />
       </div>
-
-      <PasswordSection
-        confirm_password={security.confirm_password}
-        current_password={security.current_password}
-        new_password={security.new_password}
-        on_cancel={security.handle_password_cancel}
-        on_change_password={security.handle_change_password}
-        on_new_password_blur={security.handle_new_password_blur}
-        password_breach_warning={security.password_breach_warning}
-        password_error={security.password_error}
-        password_loading={security.password_loading}
-        password_success={security.password_success}
-        set_confirm_password={security.set_confirm_password}
-        set_current_password={security.set_current_password}
-        set_new_password={security.set_new_password}
-        set_show_current_password={security.set_show_current_password}
-        set_show_new_password={security.set_show_new_password}
-        set_show_password_section={security.set_show_password_section}
-        show_current_password={security.show_current_password}
-        show_new_password={security.show_new_password}
-        show_password_section={security.show_password_section}
-      />
-
-      <SessionSection
-        logout_others_loading={security.logout_others_loading}
-        logout_others_result={security.logout_others_result}
-        on_revoke_all_sessions={security.handle_revoke_all_sessions}
-        on_revoke_session={security.handle_revoke_session}
-        sessions={security.sessions}
-        sessions_error={security.sessions_error}
-        sessions_loading={security.sessions_loading}
-      />
-
-      <TrustedDevicesSection />
 
       <div className="flex items-center justify-between py-4 px-1 mt-4 border-t border-edge-secondary">
         <div>
@@ -505,16 +534,6 @@ export function SecuritySection({ on_account_deleted }: SecuritySectionProps) {
           {t("common.delete")}
         </Button>
       </div>
-
-      <div className="pt-3">
-        <ConnectionSection />
-      </div>
-
-      <TotpSetupModal
-        is_open={security.show_totp_setup_modal}
-        on_close={() => security.set_show_totp_setup_modal(false)}
-        on_success={security.handle_totp_setup_success}
-      />
 
       <TotpDisableModal
         is_open={security.show_totp_disable_modal}

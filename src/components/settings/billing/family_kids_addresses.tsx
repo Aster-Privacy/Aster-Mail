@@ -30,6 +30,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Switch } from "@aster/ui";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { TurnstileWidget, type TurnstileWidgetRef, TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
@@ -297,19 +298,16 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
               <label className="text-sm font-medium text-txt-primary">{t("settings.fam_kids_storage_label")}</label>
               <span className="text-xs tabular-nums text-txt-muted">{format_bytes(alloc)} / {format_bytes(pool_remaining)}</span>
             </div>
-            <input
-              type="range"
-              min={0}
+            <Slider
               max={max_gib}
-              step={1}
+              min={0}
               value={Math.min(Math.round(alloc / GIB), max_gib)}
-              onChange={(e) => set_alloc(Number(e.target.value) * GIB)}
-              className="w-full h-1.5 accent-blue-500"
+              onChange={(v) => set_alloc(v * GIB)}
             />
           </div>
 
           <div className="flex items-start gap-3 rounded-lg bg-surf-secondary px-3 py-2.5">
-            <Switch checked={consent} onCheckedChange={set_consent} />
+            <Switch size="lg" checked={consent} onCheckedChange={set_consent} />
             <span className="text-xs text-txt-secondary leading-relaxed">{t("settings.fam_kids_consent_label")}</span>
           </div>
 

@@ -472,7 +472,6 @@ export function SubscriptionsSection() {
                     {show_snoozed && (
                       <Button
                         className="ml-2"
-                        size="md"
                         variant="outline"
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();

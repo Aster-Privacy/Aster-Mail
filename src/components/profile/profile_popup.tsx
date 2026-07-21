@@ -29,7 +29,6 @@ import { useEffect, useCallback } from "react";
 import { Button } from "@aster/ui";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { AvatarRing } from "@/components/ui/avatar_ring";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_email_username, get_email_domain } from "@/lib/utils";
@@ -103,7 +102,6 @@ export function ProfilePopup({
   const display_name = peer_display_name || name || get_email_username(email);
   const domain = get_email_domain(email);
   const active_badge = peer_profile?.active_badge ?? null;
-  const show_ring = (peer_profile?.show_badge_ring ?? false) && !!active_badge;
   const show_profile_badge =
     (peer_profile?.show_badge_profile ?? false) && !!active_badge;
 
@@ -150,21 +148,14 @@ export function ProfilePopup({
 
             <div className="p-5">
               <div className="flex flex-col items-center text-center mb-5">
-                <AvatarRing
-                  badge_slug={active_badge?.slug}
-                  className="mb-3"
-                  enabled={show_ring}
-                  thickness={3}
-                >
-                  <ProfileAvatar
-                    use_domain_logo
-                    className="ring-2 ring-white dark:ring-zinc-800 shadow-md"
-                    email={email}
-                    image_url={peer_profile?.profile_picture ?? undefined}
-                    name={display_name}
-                    size="xl"
-                  />
-                </AvatarRing>
+                <ProfileAvatar
+                  use_domain_logo
+                  className="mb-3 shadow-md ring-2 ring-white dark:ring-zinc-800"
+                  email={email}
+                  image_url={peer_profile?.profile_picture ?? undefined}
+                  name={display_name}
+                  size="xl"
+                />
                 <h3 className="text-[16px] font-semibold text-txt-primary">
                   {display_name}
                 </h3>

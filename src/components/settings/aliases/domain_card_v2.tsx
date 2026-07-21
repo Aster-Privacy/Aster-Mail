@@ -334,7 +334,7 @@ export function DomainCardV2({
                           {t("settings.catch_all_description")}
                         </p>
                       </div>
-                      <Switch
+                      <Switch size="lg"
                         checked={domain.catch_all_enabled}
                         onCheckedChange={handle_toggle_catch_all}
                       />
@@ -351,7 +351,6 @@ export function DomainCardV2({
                       </div>
                       <Button
                         disabled={dkim_rotating}
-                        size="sm"
                         variant="outline"
                         onClick={handle_rotate_dkim}
                       >

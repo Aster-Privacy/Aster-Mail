@@ -240,7 +240,6 @@ export function TrustedDevicesPanel() {
           <Button
             className="whitespace-nowrap flex-shrink-0"
             disabled={is_revoking_all}
-            size="sm"
             variant="depth_destructive"
             onClick={() => set_pending_revoke_all(true)}
           >
@@ -293,7 +292,6 @@ export function TrustedDevicesPanel() {
                 </div>
                 <Button
                   disabled={revoking_id === device.id}
-                  size="sm"
                   variant="destructive"
                   onClick={() => set_pending_revoke(device)}
                 >

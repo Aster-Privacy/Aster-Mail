@@ -200,7 +200,7 @@ export function CategorySettingsSection() {
               {t("settings.add_category")}
             </UpgradeBtn>
           ) : (
-            <Button size="sm" variant="outline" onClick={handle_add_category}>
+            <Button variant="outline" onClick={handle_add_category}>
               <PlusIcon className="w-4 h-4" />
               {t("settings.add_category")}
             </Button>

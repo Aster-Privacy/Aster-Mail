@@ -156,7 +156,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
               {t("settings.lockdown_description")}
             </p>
           </div>
-          <Switch checked={enabled} onCheckedChange={handle_toggle} />
+          <Switch size="lg" checked={enabled} onCheckedChange={handle_toggle} />
         </div>
       </div>
 
@@ -335,7 +335,7 @@ export function VanguardSection() {
           </div>
 
           {is_nova_plus ? (
-            <Switch checked={enabled} onCheckedChange={handle_toggle} />
+            <Switch size="lg" checked={enabled} onCheckedChange={handle_toggle} />
           ) : (
             <UpgradeBtn size="sm" onClick={go_to_billing}>
               {t("settings.vanguard_upgrade_cta")}

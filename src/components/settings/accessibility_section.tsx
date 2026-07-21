@@ -21,6 +21,7 @@
 import { useEffect, useState } from "react";
 import { Switch } from "@aster/ui";
 import { InfoPopover } from "@/components/ui/info_popover";
+import { Slider } from "@/components/ui/slider";
 import {
   AdjustmentsHorizontalIcon,
   EyeIcon,
@@ -99,15 +100,14 @@ export function AccessibilitySection() {
           {t("settings.font_size_description")}
         </p>
         <div className="flex items-center gap-4">
-          <input
-            aria-label={t("settings.font_size")}
-            className="flex-1 accent-[var(--accent-color)]"
+          <Slider
+            ariaLabel={t("settings.font_size")}
+            className="flex-1"
+            format_tooltip={(v) => `${v}px`}
             max={FONT_SIZE_MAX}
             min={FONT_SIZE_MIN}
-            step={1}
-            type="range"
             value={font_size}
-            onChange={(e) => commit_font_size(Number(e.target.value))}
+            onChange={commit_font_size}
           />
           <div className="flex items-center gap-2">
             <input
@@ -176,7 +176,7 @@ export function AccessibilitySection() {
           description={t("settings.high_contrast_description")}
           label={t("settings.high_contrast")}
         >
-          <Switch
+          <Switch size="lg"
             checked={preferences.high_contrast}
             onCheckedChange={(v) => update_preference("high_contrast", v, true)}
           />
@@ -185,7 +185,7 @@ export function AccessibilitySection() {
           description={t("settings.reduce_transparency_description")}
           label={t("settings.reduce_transparency")}
         >
-          <Switch
+          <Switch size="lg"
             checked={preferences.reduce_transparency}
             onCheckedChange={(v) => update_preference("reduce_transparency", v, true)}
           />
@@ -194,7 +194,7 @@ export function AccessibilitySection() {
           description={t("settings.underline_links_description")}
           label={t("settings.underline_links")}
         >
-          <Switch
+          <Switch size="lg"
             checked={preferences.link_underlines}
             onCheckedChange={(v) => update_preference("link_underlines", v, true)}
           />
@@ -216,7 +216,7 @@ export function AccessibilitySection() {
           description={t("settings.dyslexia_friendly_font_description")}
           label={t("settings.dyslexia_friendly_font")}
         >
-          <Switch
+          <Switch size="lg"
             checked={preferences.dyslexia_font}
             onCheckedChange={(v) => update_preference("dyslexia_font", v, true)}
           />
@@ -225,7 +225,7 @@ export function AccessibilitySection() {
           description={t("settings.text_spacing_description")}
           label={t("settings.text_spacing")}
         >
-          <Switch
+          <Switch size="lg"
             checked={preferences.text_spacing}
             onCheckedChange={(v) => update_preference("text_spacing", v, true)}
           />
@@ -247,7 +247,7 @@ export function AccessibilitySection() {
           description={t("settings.reduce_motion_description")}
           label={t("settings.reduce_motion")}
         >
-          <Switch
+          <Switch size="lg"
             checked={preferences.reduce_motion}
             onCheckedChange={(v) => update_preference("reduce_motion", v, true)}
           />
@@ -256,7 +256,7 @@ export function AccessibilitySection() {
           description={t("settings.compact_mode_description")}
           label={t("settings.compact_mode")}
         >
-          <Switch
+          <Switch size="lg"
             checked={preferences.compact_mode}
             onCheckedChange={(v) => update_preference("compact_mode", v, true)}
           />
@@ -294,7 +294,7 @@ export function AccessibilitySection() {
             </button>
           </div>
           <div className="flex-shrink-0">
-            <Switch
+            <Switch size="lg"
               checked={preferences.keyboard_shortcuts_enabled}
               onCheckedChange={(v) =>
                 update_preference("keyboard_shortcuts_enabled", v, true)
@@ -326,7 +326,7 @@ export function AccessibilitySection() {
             </p>
           </div>
           <div className="flex-shrink-0">
-            <Switch
+            <Switch size="lg"
               checked={preferences.low_network_mode}
               onCheckedChange={(v) =>
                 update_preference("low_network_mode", v, true)

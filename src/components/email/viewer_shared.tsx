@@ -53,7 +53,6 @@ import { use_external_link } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { AvatarRing } from "@/components/ui/avatar_ring";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import {
@@ -664,8 +663,6 @@ export function ViewerEmailHeader({
     is_system_email(email.sender_email) ? null : email.sender_email,
   );
   const peer_badge = peer_profile?.active_badge ?? null;
-  const show_sender_ring =
-    (peer_profile?.show_badge_ring ?? false) && !!peer_badge;
   const show_sender_badge =
     (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
   const display_sender =
@@ -715,21 +712,15 @@ export function ViewerEmailHeader({
       )}
 
       <div className={`flex items-start ${gap_class} mb-6`}>
-        <AvatarRing
-          badge_slug={peer_badge?.slug}
-          enabled={show_sender_ring}
-          thickness={2}
-        >
-          <ProfileAvatar
-            clickable
-            use_domain_logo
-            className={avatar_class}
-            email={show_sender_email}
-            image_url={peer_profile?.profile_picture ?? undefined}
-            name={display_sender}
-            size={avatar_size}
-          />
-        </AvatarRing>
+        <ProfileAvatar
+          clickable
+          use_domain_logo
+          className={avatar_class}
+          email={show_sender_email}
+          image_url={peer_profile?.profile_picture ?? undefined}
+          name={display_sender}
+          size={avatar_size}
+        />
         <div className="flex-1 min-w-0">
           <div
             className={`flex items-start sm:items-center justify-between gap-2 ${flex_wrap_class}`}

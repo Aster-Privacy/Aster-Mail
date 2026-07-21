@@ -27,8 +27,10 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   XMarkIcon,
+  SparklesIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Switch } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { StepUpModal } from "./step_up_modal";
@@ -82,6 +84,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InfoPopover } from "@/components/ui/info_popover";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { is_onion_host } from "@/lib/onion_host";
 
 const MAX_SIZE = 256;
 
@@ -211,6 +215,44 @@ function RecoveryModal({
   );
 }
 
+function navigate_to_billing() {
+  window.dispatchEvent(
+    new CustomEvent("navigate-settings", { detail: "billing" }),
+  );
+}
+
+function FreePlanBanner() {
+  const { t } = use_i18n();
+  const { limits } = use_plan_limits();
+
+  if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-edge-secondary bg-surf-tertiary p-5">
+      <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-[var(--accent-blue)]/10">
+        <SparklesIcon className="w-5 h-5" style={{ color: "var(--accent-blue)" }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="text-sm font-semibold text-txt-primary">
+            {t("settings.free_plan_banner_title")}
+          </h3>
+          <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-surf-primary text-txt-muted border border-edge-secondary">
+            {t("settings.free")}
+          </span>
+        </div>
+        <p className="text-sm mt-1 text-txt-muted max-w-[440px]">
+          {t("settings.free_plan_description")}
+        </p>
+      </div>
+      <Button className="flex-shrink-0 gap-1.5" variant="depth" onClick={navigate_to_billing}>
+        {t("settings.upgrade_view_plans")}
+        <ArrowRightIcon className="w-3.5 h-3.5" />
+      </Button>
+    </div>
+  );
+}
+
 export function AccountSection() {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
@@ -248,7 +290,6 @@ export function AccountSection() {
   const [saving_inactivity, set_saving_inactivity] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
   const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
-  const [is_badge_saving, set_is_badge_saving] = useState(false);
   const [is_initial_load, set_is_initial_load] = useState(true);
 
   useEffect(() => {
@@ -295,7 +336,6 @@ export function AccountSection() {
     const optimistic: BadgePreferences = { ...badge_prefs, ...patch };
     set_badge_prefs(optimistic);
     set_my_badge_prefs(optimistic);
-    set_is_badge_saving(true);
     try {
       const response = await update_badge_preferences(patch);
       if (response.data) {
@@ -310,8 +350,6 @@ export function AccountSection() {
       set_badge_prefs(previous);
       set_my_badge_prefs(previous);
       show_toast(t("badges.claim_failed"), "error");
-    } finally {
-      set_is_badge_saving(false);
     }
   };
 
@@ -534,6 +572,8 @@ export function AccountSection() {
 
   return (
     <div className="space-y-4">
+      <FreePlanBanner />
+
       <div className="rounded-xl overflow-hidden bg-surf-tertiary border border-edge-secondary">
         <div
           className="h-20"
@@ -547,61 +587,40 @@ export function AccountSection() {
             onMouseEnter={() => set_avatar_hovered(true)}
             onMouseLeave={() => set_avatar_hovered(false)}
           >
-            {(() => {
-              const ring_visual =
-                badge_prefs?.show_badge_ring && badge_prefs?.active_badge_slug
-                  ? get_badge_visual(badge_prefs.active_badge_slug)
-                  : null;
-              const ring_style: React.CSSProperties | undefined = ring_visual
-                ? {
-                    background: `conic-gradient(from 0deg, ${ring_visual.gradient_from}, ${ring_visual.gradient_to}, ${ring_visual.gradient_from})`,
-                    padding: 2,
-                    borderRadius: 14,
-                  }
-                : undefined;
-
-              return (
+            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg relative bg-surf-primary">
+              {has_custom_picture ? (
+                <img
+                  alt=""
+                  className="w-full h-full object-cover rounded-xl"
+                  src={picture}
+                />
+              ) : (
                 <div
-                  className="inline-flex"
-                  style={ring_style}
+                  className="w-full h-full rounded-xl flex items-center justify-center select-none"
+                  style={{
+                    backgroundColor: color,
+                    boxShadow:
+                      "inset 0 -3px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.2)",
+                  }}
                 >
-                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg relative bg-surf-primary">
-                    {has_custom_picture ? (
-                      <img
-                        alt=""
-                        className="w-full h-full object-cover rounded-xl border-[3px] border-surf-primary"
-                        src={picture}
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full rounded-xl flex items-center justify-center select-none"
-                        style={{
-                          backgroundColor: color,
-                          boxShadow:
-                            "inset 0 -3px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.2)",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 26,
-                            fontWeight: 600,
-                            lineHeight: 1,
-                            color: get_contrast_text(color),
-                          }}
-                        >
-                          {get_initials(name, user?.email, get_active_locale())}
-                        </span>
-                      </div>
-                    )}
-                    {uploading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-                        <Spinner className="text-white" size="md" />
-                      </div>
-                    )}
-                  </div>
+                  <span
+                    style={{
+                      fontSize: 26,
+                      fontWeight: 600,
+                      lineHeight: 1,
+                      color: get_contrast_text(color),
+                    }}
+                  >
+                    {get_initials(name, user?.email, get_active_locale())}
+                  </span>
                 </div>
-              );
-            })()}
+              )}
+              {uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
+                  <Spinner className="text-white" size="md" />
+                </div>
+              )}
+            </div>
             <button
               className="absolute -bottom-1 -right-1 p-1.5 rounded-full transition-colors disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary"
               disabled={uploading}
@@ -746,79 +765,78 @@ export function AccountSection() {
       {badges.length > 0 && badge_prefs && (
         <div className="py-4 space-y-4">
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-txt-primary">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("badges.active_badge")}
+                <InfoPopover
+                  description={t("settings.badges_description_full")}
+                  title={t("badges.active_badge")}
+                />
               </p>
               <p className="text-sm mt-0.5 text-txt-muted">
                 {t("settings.badges_description")}
               </p>
             </div>
-          </div>
-          <Select
-            value={badge_prefs.active_badge_slug ?? "none"}
-            onValueChange={(v) =>
-              persist_badge_prefs({
-                active_badge_slug: v === "none" ? null : v,
-              })
-            }
-          >
-            <SelectTrigger
-              className="h-10 w-full sm:w-72 bg-transparent text-sm"
-              disabled={is_badge_saving}
+            <Select
+              value={badge_prefs.active_badge_slug ?? "none"}
+              onValueChange={(v) =>
+                persist_badge_prefs({
+                  active_badge_slug: v === "none" ? null : v,
+                })
+              }
             >
-              <SelectValue placeholder={t("badges.none")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">
-                {t("badges.none")}
-              </SelectItem>
-              {badges.map((badge) => {
-                const visual = get_badge_visual(badge.slug);
-                const Icon = visual.icon;
+              <SelectTrigger className="h-10 w-48 flex-shrink-0 bg-transparent text-sm">
 
-                return (
-                  <SelectItem
-                    key={badge.slug}
-                    title={badge.description || undefined}
-                    value={badge.slug}
-                  >
-                    <span className="inline-flex items-center gap-1.5">
-                      <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span className="truncate">{badge.display_name}</span>
-                      {badge.find_order != null && (
-                        <span className="tabular-nums opacity-70">
-                          #{badge.find_order.toLocaleString()}
-                        </span>
-                      )}
-                    </span>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+                <SelectValue placeholder={t("badges.none")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">
+                  {t("badges.none")}
+                </SelectItem>
+                {badges.map((badge) => {
+                  const visual = get_badge_visual(badge.slug);
+                  const Icon = visual.icon;
 
-          <BadgeToggleRow
-            checked={badge_prefs.show_badge_profile}
-            description={t("badges.show_on_profile_description")}
-            disabled={is_badge_saving || !badge_prefs.active_badge_slug}
-            label={t("badges.show_on_profile")}
-            on_change={(v) => persist_badge_prefs({ show_badge_profile: v })}
-          />
-          <BadgeToggleRow
-            checked={badge_prefs.show_badge_ring}
-            description={t("badges.show_avatar_ring_description")}
-            disabled={is_badge_saving || !badge_prefs.active_badge_slug}
-            label={t("badges.show_avatar_ring")}
-            on_change={(v) => persist_badge_prefs({ show_badge_ring: v })}
-          />
-          <BadgeToggleRow
-            checked={badge_prefs.show_badge_signature}
-            description={t("badges.show_in_signature_description")}
-            disabled={is_badge_saving || !badge_prefs.active_badge_slug}
-            label={t("badges.show_in_signature")}
-            on_change={(v) => persist_badge_prefs({ show_badge_signature: v })}
-          />
+                  return (
+                    <SelectItem
+                      key={badge.slug}
+                      title={badge.description || undefined}
+                      value={badge.slug}
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate">{badge.display_name}</span>
+                        {badge.find_order != null && (
+                          <span className="tabular-nums opacity-70">
+                            #{badge.find_order.toLocaleString()}
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {badge_prefs.active_badge_slug && (
+            <>
+              <BadgeToggleRow
+                checked={badge_prefs.show_badge_profile}
+                description={t("badges.show_on_profile_description")}
+                label={t("badges.show_on_profile")}
+                on_change={(v) => persist_badge_prefs({ show_badge_profile: v })}
+              />
+              <BadgeToggleRow
+                checked={badge_prefs.show_badge_signature}
+                description={t("badges.show_in_signature_description")}
+                label={t("badges.show_in_signature")}
+                on_change={(v) =>
+                  persist_badge_prefs({ show_badge_signature: v })
+                }
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -982,7 +1000,6 @@ interface BadgeToggleRowProps {
   label: string;
   description: string;
   checked: boolean;
-  disabled?: boolean;
   on_change: (value: boolean) => void;
 }
 
@@ -990,39 +1007,15 @@ function BadgeToggleRow({
   label,
   description,
   checked,
-  disabled,
   on_change,
 }: BadgeToggleRowProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center justify-between gap-4 transition-opacity",
-        disabled && "opacity-50",
-      )}
-    >
+    <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
         <div className="text-sm font-medium text-txt-primary">{label}</div>
         <div className="text-xs mt-0.5 text-txt-muted">{description}</div>
       </div>
-      <button
-        aria-checked={checked}
-        className={cn(
-          "relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors cursor-pointer",
-          checked ? "bg-[var(--accent-blue)]" : "bg-edge-secondary",
-          disabled && "opacity-50 cursor-not-allowed",
-        )}
-        disabled={disabled}
-        role="switch"
-        type="button"
-        onClick={() => on_change(!checked)}
-      >
-        <span
-          className={cn(
-            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-            checked ? "translate-x-[18px]" : "translate-x-0.5",
-          )}
-        />
-      </button>
+      <Switch size="lg" checked={checked} onCheckedChange={on_change} />
     </div>
   );
 }

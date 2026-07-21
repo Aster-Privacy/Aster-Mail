@@ -57,7 +57,7 @@ function ToggleSetting({
         </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
-      <Switch checked={enabled} onCheckedChange={on_toggle} />
+      <Switch size="lg" checked={enabled} onCheckedChange={on_toggle} />
     </div>
   );
 }
@@ -197,7 +197,6 @@ export function EncryptionSettingsForm({
         </div>
         <Button
           disabled={is_publishing_keyserver}
-          size="sm"
           variant="depth"
           onClick={handle_publish_to_keyservers}
         >

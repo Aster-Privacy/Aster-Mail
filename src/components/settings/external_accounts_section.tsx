@@ -54,7 +54,6 @@ export function ExternalAccountsSection() {
           {state.accounts.length < 5 && (
             <Button
               className="gap-2"
-              size="md"
               variant="depth"
               onClick={state.open_add_form}
             >

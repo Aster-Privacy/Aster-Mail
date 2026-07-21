@@ -524,8 +524,17 @@ const PRESERVED_LOCAL_KEYS: ReadonlySet<string> = new Set([
   "aster_sw_reset_v1",
 ]);
 
+const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
+  "aster_family_setup_",
+  "aster_family_welcome_seen_",
+  "aster_family_2fa_banner_dismissed",
+  "aster_family_checklist_dismissed_",
+];
+
 function should_preserve_local_key(key: string): boolean {
-  return PRESERVED_LOCAL_KEYS.has(key);
+  if (PRESERVED_LOCAL_KEYS.has(key)) return true;
+
+  return PRESERVED_LOCAL_KEY_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
 
 function secure_clear_local_storage(): void {

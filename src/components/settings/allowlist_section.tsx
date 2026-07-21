@@ -257,7 +257,6 @@ export function AllowlistSection() {
           </h3>
           <Button
             className="gap-2"
-            size="md"
             onClick={() => (show_add_form ? close_add_form() : open_add_form())}
           >
             <PlusIcon className="w-4 h-4" />
@@ -477,7 +476,6 @@ export function AllowlistSection() {
                   })}
                 </span>
                 <Button
-                  size="md"
                   variant="destructive"
                   onClick={() => handle_remove(sender)}
                 >

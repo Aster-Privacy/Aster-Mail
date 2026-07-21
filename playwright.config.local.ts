@@ -7,6 +7,8 @@ export default defineConfig({
     "local_full_sweep.spec.ts",
     "tests/152_encryption_settings_sync.spec.ts",
     "tests/alias_features_local.spec.ts",
+    "_blog_preview.spec.ts",
+    "_blog_2fa_screenshot.spec.ts",
   ],
   fullyParallel: false,
   retries: 0,

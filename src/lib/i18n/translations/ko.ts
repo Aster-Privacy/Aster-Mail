@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1586,6 +1586,20 @@ export const ko = {
     family_join_create_account: "계정 만들고 참여하기",
     family_join_login: "로그인하고 참여하기",
     family_join_invalid: "이 초대 링크가 만료되었거나 더 이상 유효하지 않습니다.",
+    invite_title_named: "{{ name }} 님이 Aster Mail에 초대했습니다",
+    invite_title_generic: "Aster Mail에 초대되었습니다",
+    invite_subtitle: "Aster Mail은 제로 액세스, 종단 간 암호화 이메일입니다. 당신 외에는 누구도, 심지어 우리조차도 받은편지함을 읽을 수 없습니다.",
+    invite_discount_line: "지금 가입하면 첫 플랜을 {{ percent }}% 할인받을 수 있습니다.",
+    invite_benefits_heading: "제공되는 혜택",
+    invite_benefit_zero_access: "제로 액세스, 종단 간 암호화 이메일",
+    invite_benefit_no_ads: "광고 없음, 추적 없음",
+    invite_benefit_open_source: "오픈소스 및 감사 완료",
+    invite_cta_create_account: "{{ percent }}% 할인 받기",
+    invite_cta_sign_in: "이미 계정이 있으신가요? 로그인",
+    invite_not_found_title: "이 초대 링크를 사용할 수 없습니다",
+    invite_not_found_body: "링크가 만료되었거나 잘못되었을 수 있습니다. 그래도 무료로 Aster Mail 계정을 만들 수 있습니다.",
+    invite_not_found_cta_register: "계정 만들기",
+    invite_not_found_cta_sign_in: "로그인",
     family_join_inviter: "{{ name }} 님이 회원님을 초대했습니다",
     family_join_shared_storage: "공유 저장공간",
     family_join_storage_suffix: "저장공간 {{ size }}",
@@ -2939,7 +2953,7 @@ export const ko = {
     view_guide: "가이드 보기",
     two_factor_guide_title: "이중 인증 작동 방식",
     two_factor_guide_step_app:
-      "휴대폰에서 Google Authenticator, Authy, 1Password 같은 인증 앱을 엽니다.",
+      "휴대폰에서 원하는 인증 앱을 엽니다.",
     two_factor_guide_step_scan:
       "앱으로 QR 코드를 스캔하거나, 스캔할 수 없는 경우 비밀 키를 직접 입력하세요.",
     two_factor_guide_step_code:
@@ -3019,7 +3033,7 @@ export const ko = {
     info_block_tracking_links_title: "추적 링크란?",
     info_block_tracking_links_description: "이메일의 링크는 클릭을 기록하기 위해 먼저 발신자 서버를 거칩니다. 이 리디렉션을 제거하여 링크가 목적지로 바로 연결됩니다.",
     info_two_factor_auth_title: "이중 인증",
-    info_two_factor_auth_description: "로그인에 두 번째 보안 레이어를 추가합니다. 비밀번호 입력 후 Authy나 Google Authenticator 같은 앱에서 6자리 코드를 입력합니다.",
+    info_two_factor_auth_description: "로그인에 두 번째 보안 레이어를 추가합니다. 비밀번호 입력 후 인증 앱에서 6자리 코드를 입력합니다.",
     info_session_timeout_title: "세션 시간 초과",
     info_session_timeout_description: "비활성 상태가 일정 시간 지속되면 자동으로 로그아웃됩니다. 공유 컴퓨터 사용 시 또는 자리를 비울 때 유용합니다.",
     info_login_alerts_title: "로그인 알림",
@@ -4000,7 +4014,7 @@ export const ko = {
     receipt_tracking_locked: "영수증 이메일에서 자동으로 구매 세부 정보를 추출합니다",
     mail_section: "메일",
     about: "정보",
-    scan_qr_code_description: "인증 앱(Google Authenticator, Authy 등)으로 QR 코드를 스캔하세요",
+    scan_qr_code_description: "원하는 인증 앱으로 QR 코드를 스캔하세요",
     cant_scan_enter_manually: "스캔할 수 없나요? 이 코드를 수동으로 입력하세요:",
     save_backup_codes_description: "이 백업 코드를 안전한 곳에 저장하세요. 인증 기기를 분실한 경우 계정에 접근하는 데 사용할 수 있습니다.",
     copy_all_codes: "모든 코드 복사",
@@ -4158,6 +4172,10 @@ export const ko = {
     account_protection_hint_fair: "계정에 더 많은 보호가 필요합니다.",
     account_protection_hint_partial: "더 강한 보호를 위해 더 많은 옵션을 활성화하세요.",
     account_protection_hint_strong: "계정이 잘 보호되어 있습니다.",
+    account_security_percent_title: "계정 보안 수준: {{percent}}%",
+    account_security_review_subtitle: "계정 보안 설정을 정기적으로 검토하고 비밀번호를 업데이트하세요.",
+    account_security_dismiss: "닫기",
+    account_security_review_cta: "보안 검토",
     protection_breakdown_title: "보호 세부 정보",
     criterion_two_factor: "이중 인증",
     criterion_recovery_email: "인증된 복구 이메일",
@@ -5934,8 +5952,6 @@ export const ko = {
     show_on_profile_description: "활성 배지를 다른 Aster 사용자에게 표시합니다.",
     show_in_signature: "서명에 표시",
     show_in_signature_description: "발신 이메일 서명에 활성 배지를 포함합니다.",
-    show_avatar_ring: "아바타 링",
-    show_avatar_ring_description: "아바타 주위에 색상 링을 추가합니다.",
     granted_at: "{date}에 획득",
     find_order_label: "#{order}",
     empty_state: "아직 배지를 찾지 못했습니다.",

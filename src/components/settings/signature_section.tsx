@@ -35,7 +35,7 @@ import {
   PencilSquareIcon,
   Bars3BottomLeftIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Radio, UpgradeBtn } from "@aster/ui";
+import { Button, Switch, UpgradeBtn } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -456,85 +456,60 @@ export function SignatureSection() {
           {t("settings.email_signature_description")}
         </p>
 
-        <div className="mb-3">
-          <p className="text-sm font-medium mb-3 text-txt-primary">
-            {t("settings.signature_mode")}
-          </p>
-          <div className="inline-flex p-1 rounded-lg bg-surf-secondary">
-            {[
-              { value: "disabled", label: t("settings.signature_off") },
-              { value: "auto", label: t("settings.signature_auto") },
-              { value: "manual", label: t("settings.signature_manual") },
-            ].map((option) => {
-              const is_selected = local_mode === option.value;
-
-              return (
-                <button
-                  key={option.value}
-                  className="relative px-5 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none"
-                  style={{
-                    backgroundColor: is_selected
-                      ? "var(--bg-primary)"
-                      : "transparent",
-                    color: is_selected
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
-                    boxShadow: is_selected
-                      ? "0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)"
-                      : "none",
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handle_mode_change(option.value as SignatureMode);
-                  }}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.signature_mode")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {local_mode === "disabled" &&
+                t("settings.signature_off_description")}
+              {local_mode === "auto" &&
+                t("settings.signature_auto_description")}
+              {local_mode === "manual" &&
+                t("settings.signature_manual_description")}
+            </p>
           </div>
-          <p className="text-xs mt-3 text-txt-muted">
-            {local_mode === "disabled" &&
-              t("settings.signature_off_description")}
-            {local_mode === "auto" && t("settings.signature_auto_description")}
-            {local_mode === "manual" &&
-              t("settings.signature_manual_description")}
-          </p>
+          <Select
+            value={local_mode}
+            onValueChange={(value) =>
+              handle_mode_change(value as SignatureMode)
+            }
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="disabled">
+                {t("settings.signature_off")}
+              </SelectItem>
+              <SelectItem value="auto">
+                {t("settings.signature_auto")}
+              </SelectItem>
+              <SelectItem value="manual">
+                {t("settings.signature_manual")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {has_badges && (
-          <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-edge-secondary mb-3">
-            <div className="flex-1">
-              <p className="text-sm text-txt-primary">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex-1 pr-4">
+              <p className="text-sm font-medium text-txt-primary">
                 {t("settings.show_badges_in_signature")}
               </p>
-              <p className="text-xs text-txt-muted mt-0.5">
+              <p className="text-sm mt-0.5 text-txt-muted">
                 {t("settings.show_badges_in_signature_description")}
               </p>
             </div>
-            <button
-              className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                preferences.show_badges_in_signature
-                  ? "bg-blue-500"
-                  : "bg-zinc-600"
-              }`}
-              type="button"
-              onClick={() =>
-                update_preference(
-                  "show_badges_in_signature",
-                  !preferences.show_badges_in_signature,
-                  true,
-                )
+            <Switch
+              size="lg"
+              checked={preferences.show_badges_in_signature}
+              onCheckedChange={(checked) =>
+                update_preference("show_badges_in_signature", checked, true)
               }
-            >
-              <span
-                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  preferences.show_badges_in_signature
-                    ? "translate-x-4"
-                    : "translate-x-0"
-                }`}
-              />
-            </button>
+            />
           </div>
         )}
 
@@ -568,7 +543,6 @@ export function SignatureSection() {
             </h4>
             <Button
               disabled={editor.is_open}
-              size="md"
               variant="depth"
               onClick={open_create_editor}
             >
@@ -1050,56 +1024,36 @@ export function SignatureSection() {
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.signature_placement_description")}
-        </p>
 
-        <div className="space-y-2">
-          {[
-            {
-              value: "below",
-              label: t("settings.below_quoted_text"),
-              description: t("settings.below_quoted_description"),
-            },
-            {
-              value: "above",
-              label: t("settings.above_quoted_text"),
-              description: t("settings.above_quoted_description"),
-            },
-          ].map((option) => {
-            const is_selected = local_placement === option.value;
-
-            return (
-              <button
-                key={option.value}
-                className="w-full flex items-center justify-between p-3 rounded-[14px] transition-colors text-left"
-                style={{
-                  backgroundColor: is_selected
-                    ? "var(--bg-selected)"
-                    : "var(--bg-tertiary)",
-                  border: is_selected
-                    ? "1px solid var(--accent-color)"
-                    : "1px solid var(--border-secondary)",
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handle_placement_change(option.value as "below" | "above");
-                }}
-              >
-                <div>
-                  <p className="text-sm font-medium text-txt-primary">
-                    {option.label}
-                  </p>
-                  <p className="text-xs mt-0.5 text-txt-muted">
-                    {option.description}
-                  </p>
-                </div>
-                <span className="pointer-events-none flex-shrink-0 ml-3">
-                  <Radio readOnly checked={is_selected} />
-                </span>
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.signature_placement_description")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {local_placement === "below"
+                ? t("settings.below_quoted_description")
+                : t("settings.above_quoted_description")}
+            </p>
+          </div>
+          <Select
+            value={local_placement}
+            onValueChange={(value) =>
+              handle_placement_change(value as "below" | "above")
+            }
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="below">
+                {t("settings.below_quoted_text")}
+              </SelectItem>
+              <SelectItem value="above">
+                {t("settings.above_quoted_text")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

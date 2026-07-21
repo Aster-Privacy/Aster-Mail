@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
   PlusIcon,
   AtSymbolIcon,
@@ -32,6 +31,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { get_alias_preferences } from "@/services/api/aliases";
+import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import {
   Modal,
   ModalHeader,
@@ -194,34 +194,12 @@ export function AliasesSection() {
 
   return (
     <div className="space-y-4">
-      <div className="border-b border-edge-secondary overflow-x-auto">
-        <div className="flex gap-1 min-w-max">
-          {tab_labels.map(({ key, label }) => (
-            <button
-              key={key}
-              aria-selected={active_tab === key}
-              className="relative px-4 py-2.5 text-sm font-medium whitespace-nowrap outline-none transition-colors"
-              style={{
-                color:
-                  active_tab === key
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
-              }}
-              type="button"
-              onClick={() => handle_tab(key)}
-            >
-              {label}
-              {active_tab === key && (
-                <motion.span
-                  className="absolute left-2 right-2 -bottom-px h-0.5 rounded-full bg-blue-500"
-                  layoutId="alias-tab-indicator"
-                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SettingsTabBar
+        active={active_tab}
+        layout_id="alias"
+        tabs={tab_labels}
+        on_change={handle_tab}
+      />
 
       {active_tab === "aliases" && (
         <div className="space-y-4">

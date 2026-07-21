@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1611,6 +1611,20 @@ export const ru = {
     family_join_create_account: "Создать аккаунт и присоединиться",
     family_join_login: "Войти и присоединиться",
     family_join_invalid: "Срок действия этой ссылки-приглашения истёк, или она больше недействительна.",
+    invite_title_named: "{{ name }} пригласил(а) вас в Aster Mail",
+    invite_title_generic: "Вас пригласили в Aster Mail",
+    invite_subtitle: "Aster Mail — это почта с нулевым доступом и сквозным шифрованием. Никто, кроме вас, не может прочитать ваш почтовый ящик, даже мы.",
+    invite_discount_line: "Зарегистрируйтесь сейчас и получите скидку {{ percent }}% на первый тариф.",
+    invite_benefits_heading: "Что вы получите",
+    invite_benefit_zero_access: "Почта с нулевым доступом и сквозным шифрованием",
+    invite_benefit_no_ads: "Без рекламы, без слежки",
+    invite_benefit_open_source: "Открытый исходный код, прошедший аудит",
+    invite_cta_create_account: "Получить скидку {{ percent }}%",
+    invite_cta_sign_in: "Уже есть аккаунт? Войти",
+    invite_not_found_title: "Эта пригласительная ссылка недоступна",
+    invite_not_found_body: "Возможно, срок её действия истёк, либо ссылка неверна. Вы всё равно можете создать бесплатный аккаунт Aster Mail.",
+    invite_not_found_cta_register: "Создать аккаунт",
+    invite_not_found_cta_sign_in: "Войти",
     family_join_inviter: "{{ name }} пригласил(а) вас",
     family_join_shared_storage: "общее хранилище",
     family_join_storage_suffix: "{{ size }} хранилища",
@@ -2889,7 +2903,7 @@ export const ru = {
     view_guide: "Посмотреть инструкцию",
     two_factor_guide_title: "Как работает двухфакторная аутентификация",
     two_factor_guide_step_app:
-      "Откройте приложение-аутентификатор на телефоне, например Google Authenticator, Authy или 1Password.",
+      "Откройте любое удобное приложение-аутентификатор на телефоне.",
     two_factor_guide_step_scan:
       "Отсканируйте QR-код приложением или введите секретный ключ вручную, если сканирование недоступно.",
     two_factor_guide_step_code:
@@ -2969,7 +2983,7 @@ export const ru = {
     info_block_tracking_links_title: "Что такое трекинговые ссылки?",
     info_block_tracking_links_description: "Ссылки в письмах часто сначала проходят через сервер отправителя для записи кликов. Это убирает перенаправления, чтобы ссылки вели прямо к цели.",
     info_two_factor_auth_title: "Двухфакторная аутентификация",
-    info_two_factor_auth_description: "Добавляет второй уровень защиты при входе. После пароля вы вводите 6-значный код из приложения вроде Authy или Google Authenticator.",
+    info_two_factor_auth_description: "Добавляет второй уровень защиты при входе. После пароля вы вводите 6-значный код из приложения-аутентификатора.",
     info_session_timeout_title: "Таймаут сеанса",
     info_session_timeout_description: "Автоматически завершает сеанс после периода бездействия. Полезно на общих компьютерах или для защиты, когда вы отходите.",
     info_login_alerts_title: "Оповещения о входе",
@@ -3893,7 +3907,7 @@ export const ru = {
     encrypted_export_locked: "Экспорт данных со сквозным шифрованием",
     mail_section: "Почта",
     about: "О приложении",
-    scan_qr_code_description: "Отсканируйте QR-код приложением-аутентификатором (Google Authenticator, Authy и т.д.)",
+    scan_qr_code_description: "Отсканируйте QR-код любым удобным приложением-аутентификатором",
     cant_scan_enter_manually: "Не удаётся отсканировать? Введите код вручную:",
     save_backup_codes_description: "Сохраните эти резервные коды в безопасном месте. Вы сможете использовать их для доступа к аккаунту, если потеряете устройство-аутентификатор.",
     copy_all_codes: "Копировать все коды",
@@ -4004,6 +4018,10 @@ export const ru = {
     account_protection_hint_fair: "Вашему аккаунту нужна дополнительная защита.",
     account_protection_hint_partial: "Включите больше параметров для более надёжной защиты.",
     account_protection_hint_strong: "Ваш аккаунт хорошо защищён.",
+    account_security_percent_title: "Уровень безопасности вашего аккаунта: {{percent}}%",
+    account_security_review_subtitle: "Регулярно проверяйте настройки безопасности вашего аккаунта и обновляйте пароль.",
+    account_security_dismiss: "Скрыть",
+    account_security_review_cta: "Проверить безопасность",
     protection_breakdown_title: "Детали защиты",
     criterion_two_factor: "Двухфакторная аутентификация",
     criterion_recovery_email: "Подтверждённый резервный email",
@@ -5931,7 +5949,6 @@ export const ru = {
     none: "Нет",
     show_on_profile: "Показывать в профиле",
     show_in_signature: "Показывать в подписи",
-    show_avatar_ring: "Кольцо аватара",
     earned_label: "Получено",
     empty_state: "Вы ещё не нашли ни одного значка.",
     claim_success: "Вы получили значок {name}.",
@@ -5960,7 +5977,6 @@ export const ru = {
     find_order_label: "#{order}",
     granted_at: "Получено {date}",
     not_earned: "Ещё не получено",
-    show_avatar_ring_description: "Добавить цветное кольцо вокруг аватара.",
     show_in_signature_description: "Включать активный значок в подписи исходящих писем.",
     show_on_profile_description: "Показывать активный значок другим пользователям Aster.",
   },

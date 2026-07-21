@@ -271,7 +271,7 @@ export function DomainCard({
                     {t("settings.catch_all_description")}
                   </p>
                 </div>
-                <Switch
+                <Switch size="lg"
                   checked={domain.catch_all_enabled}
                   onCheckedChange={handle_catch_all_toggle}
                 />

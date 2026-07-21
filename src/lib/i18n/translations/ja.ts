@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1611,6 +1611,20 @@ export const ja = {
     family_join_create_account: "アカウントを作成して参加",
     family_join_login: "ログインして参加",
     family_join_invalid: "この招待リンクは期限切れか、無効になっています。",
+    invite_title_named: "{{ name }} さんが Aster Mail に招待しました",
+    invite_title_generic: "Aster Mail に招待されました",
+    invite_subtitle: "Aster Mail はゼロアクセス、エンドツーエンド暗号化のメールサービスです。あなた以外は受信箱を読むことができません。私たちにも読めません。",
+    invite_discount_line: "今すぐ登録すると、最初のプランが {{ percent }}% オフになります。",
+    invite_benefits_heading: "得られるもの",
+    invite_benefit_zero_access: "ゼロアクセス、エンドツーエンド暗号化メール",
+    invite_benefit_no_ads: "広告なし、トラッキングなし",
+    invite_benefit_open_source: "オープンソースで監査済み",
+    invite_cta_create_account: "{{ percent }}%割引を受け取る",
+    invite_cta_sign_in: "すでにアカウントをお持ちですか？サインイン",
+    invite_not_found_title: "この招待リンクは利用できません",
+    invite_not_found_body: "リンクの期限が切れているか、正しくない可能性があります。無料の Aster Mail アカウントを作成することもできます。",
+    invite_not_found_cta_register: "アカウントを作成",
+    invite_not_found_cta_sign_in: "サインイン",
     family_join_inviter: "{{ name }} さんがあなたを招待しました",
     family_join_shared_storage: "共有ストレージ",
     family_join_storage_suffix: "ストレージ {{ size }}",
@@ -2892,7 +2906,7 @@ export const ja = {
     view_guide: "ガイドを見る",
     two_factor_guide_title: "二要素認証の仕組み",
     two_factor_guide_step_app:
-      "スマートフォンでGoogle Authenticator、Authy、1Passwordなどの認証アプリを開きます。",
+      "スマートフォンで好みの認証アプリを開いてください。",
     two_factor_guide_step_scan:
       "アプリでQRコードをスキャンするか、スキャンできない場合は秘密鍵を手動で入力します。",
     two_factor_guide_step_code:
@@ -2972,7 +2986,7 @@ export const ja = {
     info_block_tracking_links_title: "トラッキングリンクとは？",
     info_block_tracking_links_description: "メール内のリンクはクリックを記録するため送信者のサーバーを経由することがあります。これを削除してリンクが直接目的地に移動するようにします。",
     info_two_factor_auth_title: "二要素認証",
-    info_two_factor_auth_description: "ログイン時に2番目のセキュリティ層を追加します。パスワードの後、AuthyやGoogle Authenticatorなどのアプリから6桁のコードを入力します。",
+    info_two_factor_auth_description: "ログイン時に2番目のセキュリティ層を追加します。パスワードの後、認証アプリから6桁のコードを入力します。",
     info_session_timeout_title: "セッションタイムアウト",
     info_session_timeout_description: "一定時間操作がないと自動的にログアウトします。共有PCや離席時の保護に役立ちます。",
     info_login_alerts_title: "ログインアラート",
@@ -3950,7 +3964,7 @@ export const ja = {
     encrypted_export_locked: "エンドツーエンド暗号化でデータをエクスポート",
     mail_section: "メール",
     about: "アプリについて",
-    scan_qr_code_description: "認証アプリ（Google Authenticator、Authyなど）でQRコードをスキャンしてください",
+    scan_qr_code_description: "お好みの認証アプリでQRコードをスキャンしてください",
     cant_scan_enter_manually: "スキャンできない場合はこのコードを手動で入力してください：",
     save_backup_codes_description: "これらのバックアップコードを安全な場所に保存してください。認証デバイスを紛失した場合にアカウントにアクセスするために使用できます。",
     copy_all_codes: "すべてのコードをコピー",
@@ -4004,6 +4018,10 @@ export const ja = {
     account_protection_hint_fair: "アカウントにはより多くの保護が必要です。",
     account_protection_hint_partial: "より強力な保護のためにオプションを追加してください。",
     account_protection_hint_strong: "アカウントは十分に保護されています。",
+    account_security_percent_title: "アカウントのセキュリティは {{percent}}% です",
+    account_security_review_subtitle: "アカウントのセキュリティ設定を定期的に確認し、パスワードを更新してください。",
+    account_security_dismiss: "閉じる",
+    account_security_review_cta: "セキュリティを確認",
     protection_breakdown_title: "保護の詳細",
     criterion_two_factor: "二段階認証",
     criterion_recovery_email: "確認済みの回復メール",
@@ -5935,8 +5953,6 @@ export const ja = {
     show_on_profile_description: "アクティブなバッジを他の Aster ユーザーに表示します。",
     show_in_signature: "署名に表示",
     show_in_signature_description: "送信メールの署名にアクティブなバッジを含めます。",
-    show_avatar_ring: "アバターリング",
-    show_avatar_ring_description: "アバターの周りに色付きのリングを追加します。",
     granted_at: "{date} に獲得",
     find_order_label: "#{order}",
     empty_state: "まだバッジを見つけていません。",

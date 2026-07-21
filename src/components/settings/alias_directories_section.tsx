@@ -382,7 +382,7 @@ export function AliasDirectoriesSection() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <label className="flex items-center gap-1.5 text-xs text-txt-muted">
                       {t("settings.alias_directory_auto_create")}
-                      <Switch
+                      <Switch size="lg"
                         checked={directory.auto_create_enabled}
                         onCheckedChange={() => handle_toggle(directory)}
                       />

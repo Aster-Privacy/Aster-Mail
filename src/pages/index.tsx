@@ -397,7 +397,7 @@ export default function IndexPage() {
             onClick={state.close_settings}
           />
           <div
-            className="relative w-full h-full md:w-[80vw] md:max-w-[1200px] md:h-[80vh] md:max-h-[900px] md:rounded-2xl overflow-hidden bg-surf-primary"
+            className="relative w-full h-full md:w-[92vw] md:max-w-[1440px] md:h-[88vh] md:max-h-[960px] md:rounded-2xl overflow-hidden bg-surf-primary"
             style={{ border: "1px solid var(--border-secondary)" }}
           >
             <Suspense fallback={<FullPageLoader />}>

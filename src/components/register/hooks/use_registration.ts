@@ -108,6 +108,10 @@ export interface RegistrationClaimOptions {
 
 export function use_registration(options?: RegistrationClaimOptions) {
   const is_claim = !!options?.claim_token;
+  const is_invited =
+    !is_claim &&
+    typeof window !== "undefined" &&
+    !!new URLSearchParams(window.location.search).get("ref");
   const { t } = use_i18n();
   const navigate = useNavigate();
   const location = useLocation();
@@ -139,7 +143,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   }, []);
 
   const [step, set_step] = useState<RegistrationStep>(
-    is_claim ? "password" : "welcome",
+    is_claim ? "password" : is_invited ? "email" : "welcome",
   );
   const [is_password_visible, set_is_password_visible] = useState(false);
   const [is_confirm_password_visible, set_is_confirm_password_visible] =
@@ -1127,6 +1131,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     finalize_registration,
 
     is_claim,
+    is_invited,
     claim_address: is_claim
       ? `${options?.claim_username ?? username}@${options?.claim_domain ?? email_domain}`
       : null,

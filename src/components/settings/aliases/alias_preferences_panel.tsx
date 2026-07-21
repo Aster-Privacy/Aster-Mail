@@ -185,7 +185,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
                     {t("settings.alias_feature_locked_upgrade_cta")}
                   </UpgradeBtn>
                 ) : (
-                  <Switch
+                  <Switch size="lg"
                     checked={prefs.readable_reverse_aliases}
                     onCheckedChange={(v) => save_pref({ readable_reverse_aliases: v })}
                   />
@@ -197,7 +197,7 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
                 info={t("settings.alias_pref_always_expand_info")}
                 label={t("settings.alias_pref_always_expand")}
               >
-                <Switch
+                <Switch size="lg"
                   checked={prefs.alias_always_expand}
                   onCheckedChange={(v) => save_pref({ alias_always_expand: v })}
                 />
