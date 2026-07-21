@@ -496,14 +496,24 @@ let legacy_migration_inflight = 0;
 const LEGACY_MIGRATION_MAX_INFLIGHT = 4;
 const legacy_migration_queue: Array<() => void> = [];
 
-function schedule_legacy_envelope_migration(
+export function schedule_legacy_envelope_migration(
   item_id: string,
   item_type: string,
   envelope: DecryptedEnvelope,
 ): void {
   if (item_type !== "received") return;
   if (legacy_migration_attempted.has(item_id)) return;
+
+  const has_body =
+    !!envelope.body_text ||
+    !!envelope.body_html ||
+    !!envelope.html_body;
+
+  if (!has_body) return;
+
   legacy_migration_attempted.add(item_id);
+
+  const envelope_snapshot = JSON.stringify(envelope);
 
   const run = async () => {
     legacy_migration_inflight++;
@@ -513,8 +523,14 @@ function schedule_legacy_envelope_migration(
 
       if (!vault?.identity_key) return;
 
+      const snapshot = JSON.parse(envelope_snapshot) as DecryptedEnvelope;
+
+      if (!snapshot.body_text && !snapshot.body_html && !snapshot.html_body) {
+        return;
+      }
+
       const { encrypted, nonce } = await encrypt_envelope_with_identity_key(
-        envelope,
+        snapshot,
         vault.identity_key,
       );
 
