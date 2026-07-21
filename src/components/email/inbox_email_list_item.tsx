@@ -41,7 +41,6 @@ import { Tooltip } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { AvatarRing } from "@/components/ui/avatar_ring";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
@@ -227,8 +226,6 @@ export const InboxEmailListItem = memo(
         ? outgoing_names[0]
         : (email.display_sender_name ?? email.sender_name);
       const peer_badge = peer_profile?.active_badge ?? null;
-      const show_sender_ring =
-        (peer_profile?.show_badge_ring ?? false) && !!peer_badge;
       const show_sender_badge =
         (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
       const show_hover_actions =
@@ -452,19 +449,13 @@ export const InboxEmailListItem = memo(
                         src="/mail_logo.webp"
                       />
                     ) : (
-                      <AvatarRing
-                        badge_slug={peer_badge?.slug}
-                        enabled={show_sender_ring}
-                        thickness={2}
-                      >
-                        <ProfileAvatar
-                          use_domain_logo={show_profile_pictures}
-                          email={show_sender_email}
-                          image_url={peer_profile?.profile_picture ?? email.avatar_url}
-                          name={peer_profile?.display_name ?? show_sender_name}
-                          size="sm"
-                        />
-                      </AvatarRing>
+                      <ProfileAvatar
+                        use_domain_logo={show_profile_pictures}
+                        email={show_sender_email}
+                        image_url={peer_profile?.profile_picture ?? email.avatar_url}
+                        name={peer_profile?.display_name ?? show_sender_name}
+                        size="sm"
+                      />
                     )}
                   </div>
                   <div

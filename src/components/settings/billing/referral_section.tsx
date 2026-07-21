@@ -27,6 +27,7 @@ import { Button } from "@aster/ui";
 import {
   format_price,
   format_date,
+  build_referral_invite_url,
   type ReferralInfo,
   type ReferralHistoryItem,
 } from "@/services/api/billing";
@@ -67,13 +68,15 @@ export function ReferralSection({
               <input
                 readOnly
                 className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
-                value={referral_info.referral_link}
+                value={build_referral_invite_url(referral_info.referral_code)}
               />
               <Button
                 className="h-9 px-3 text-sm"
                 variant="secondary"
                 onClick={() => {
-                  navigator.clipboard.writeText(referral_info.referral_link);
+                  navigator.clipboard.writeText(
+                    build_referral_invite_url(referral_info.referral_code),
+                  );
                   show_toast(t("settings.link_copied"), "success");
                 }}
               >

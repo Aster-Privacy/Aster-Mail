@@ -31,6 +31,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   get_referral_info,
   get_referral_history,
+  build_referral_invite_url,
   format_price,
   format_date,
   type ReferralInfo,
@@ -84,7 +85,7 @@ export function ReferralTab() {
       }
 
       const body_text = t("settings.referral_email_body", {
-        referral_link: referral_info.referral_link,
+        referral_link: build_referral_invite_url(referral_info.referral_code),
       });
 
       const body_html = body_text
@@ -201,7 +202,7 @@ export function ReferralTab() {
             <div className="flex-1 h-9 px-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 min-w-0">
               <GiftIcon className="w-4 h-4 text-white/60 flex-shrink-0" />
               <span className="font-mono text-xs text-white whitespace-nowrap overflow-x-auto">
-                {referral_info.referral_link}
+                {build_referral_invite_url(referral_info.referral_code)}
               </span>
             </div>
             <div className="flex gap-2">
@@ -213,7 +214,9 @@ export function ReferralTab() {
                     "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
                 }}
                 onClick={() => {
-                  navigator.clipboard.writeText(referral_info.referral_link);
+                  navigator.clipboard.writeText(
+                    build_referral_invite_url(referral_info.referral_code),
+                  );
                   show_toast(t("settings.link_copied"), "success");
                 }}
               >

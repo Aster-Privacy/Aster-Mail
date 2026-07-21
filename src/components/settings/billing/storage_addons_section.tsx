@@ -94,7 +94,6 @@ export function StorageAddonsSection({
                 {!addon.cancel_at_period_end && (
                   <Button
                     disabled={is_action_loading}
-                    size="sm"
                     variant="ghost"
                     onClick={() => on_cancel_addon(addon)}
                   >

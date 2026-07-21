@@ -35,11 +35,9 @@ import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
 import { get_root_domain, is_official_sender } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { is_aster_email } from "@/services/api/profiles";
 
-import { AvatarRing } from "./avatar_ring";
 import { Skeleton } from "./skeleton";
 
 const SenderProfileTrigger = lazy(() =>
@@ -114,36 +112,6 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     ? undefined
     : image_url ||
       (is_current_user ? user?.profile_picture : peer_profile?.profile_picture ?? undefined);
-  const my_badge_prefs = use_my_badge_prefs();
-  const show_self_ring =
-    is_current_user &&
-    !!my_badge_prefs?.show_badge_ring &&
-    !!my_badge_prefs?.active_badge_slug;
-  const peer_ring_slug =
-    !is_current_user &&
-    peer_profile?.show_badge_ring &&
-    peer_profile?.active_badge
-      ? peer_profile.active_badge.slug
-      : null;
-  const ring_slug = is_current_user
-    ? show_self_ring
-      ? my_badge_prefs?.active_badge_slug ?? null
-      : null
-    : peer_ring_slug;
-  const ring_thickness = 2;
-  const wrap_ring = (node: React.ReactElement): React.ReactElement =>
-    ring_slug ? (
-      <AvatarRing
-        badge_slug={ring_slug}
-        enabled
-        size={pixel_size + ring_thickness * 2}
-        thickness={ring_thickness}
-      >
-        {node}
-      </AvatarRing>
-    ) : (
-      node
-    );
 
   const [image_error, set_image_error] = useState(false);
   const [ddg_logo_error, set_ddg_logo_error] = useState(false);
@@ -269,7 +237,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   if (!actual_src) {
     if (profile_pending) {
-      return wrap_ring(
+      return (
         <Skeleton
           className={`rounded-full flex-shrink-0 ${className}`}
           style={{
@@ -278,7 +246,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
             minWidth: pixel_size,
             minHeight: pixel_size,
           }}
-        />,
+        />
       );
     }
 
@@ -330,7 +298,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     );
 
     if (clickable && email) {
-      return wrap_ring(
+      return (
         <Suspense fallback={letter_element}>
           <SenderProfileTrigger
             className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
@@ -340,11 +308,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           >
             {letter_element}
           </SenderProfileTrigger>
-        </Suspense>,
+        </Suspense>
       );
     }
 
-    return wrap_ring(letter_element);
+    return letter_element;
   }
 
   const img_element = (
@@ -392,7 +360,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   );
 
   if (clickable && email) {
-    return wrap_ring(
+    return (
       <Suspense fallback={img_element}>
         <SenderProfileTrigger
           className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
@@ -402,9 +370,9 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         >
           {img_element}
         </SenderProfileTrigger>
-      </Suspense>,
+      </Suspense>
     );
   }
 
-  return wrap_ring(img_element);
+  return img_element;
 });

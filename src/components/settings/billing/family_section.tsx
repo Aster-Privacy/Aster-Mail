@@ -47,6 +47,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { SharedMailboxesTab } from "@/components/settings/billing/shared_mailboxes_tab";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { TurnstileWidget, type TurnstileWidgetRef, TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
 import { Spinner } from "@/components/ui/spinner";
@@ -81,6 +82,7 @@ import {
   type FamilyMemberInfo,
 } from "@/services/api/family";
 import { KidsContent } from "./family_kids_addresses";
+import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { show_toast } from "@/components/toast/simple_toast";
 import { check_alias_availability } from "@/services/api/aliases";
 import { use_i18n } from "@/lib/i18n/context";
@@ -279,13 +281,15 @@ export function MemberRow({ member, is_owner_view, compliance, pool_remaining_by
         {editing ? (
           <div className="mt-2 space-y-1.5">
             <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min={String(min_gb)}
-                max={String(max_gb)}
-                value={storage_input}
-                onChange={e => set_storage_input(e.target.value)}
-                className="flex-1 h-1.5 accent-blue-500"
+              <Slider
+                className="flex-1"
+                max={max_gb}
+                min={min_gb}
+                value={Math.min(
+                  max_gb,
+                  Math.max(min_gb, Math.round(parseFloat(storage_input) || min_gb)),
+                )}
+                onChange={v => set_storage_input(String(v))}
               />
               <div className="flex items-center gap-1 flex-shrink-0">
                 <input
@@ -1096,7 +1100,6 @@ function FiltersContent({ other_member_count, initial_filters }: { other_member_
               </span>
             </h3>
             <Button
-              size="md"
               variant="depth"
               onClick={() => set_show_form(true)}
             >
@@ -1524,7 +1527,7 @@ function SecurityContent({ other_member_count, initial_security, initial_complia
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">{t("settings.fam_org_sec_require_2fa_desc")}</p>
           </div>
-          <Switch
+          <Switch size="lg"
             checked={policy.require_2fa}
             onCheckedChange={val => patch_draft({ require_2fa: val })}
           />
@@ -1743,7 +1746,7 @@ function RetentionContent({ other_member_count, initial_retention }: { other_mem
               {policy.enforce_on_members ? t("settings.fam_org_ret_enforce_on_desc") : t("settings.fam_org_ret_enforce_off_desc")}
             </p>
           </div>
-          <Switch
+          <Switch size="lg"
             checked={policy.enforce_on_members}
             onCheckedChange={val => {
               if (val) {
@@ -2157,34 +2160,28 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       </div>
 
       {is_owner && (
-        <div className="inline-flex p-1 rounded-lg bg-surf-secondary overflow-x-auto scrollbar-none max-w-full">
-          {owner_tabs.map(t_item => (
-            <button
-              key={t_item.id}
-              onClick={() => set_tab(t_item.id)}
-              className={`relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 outline-none whitespace-nowrap ${tab === t_item.id ? "bg-surf-primary" : "bg-transparent"}`}
-              style={{ color: tab === t_item.id ? "var(--text-primary)" : "var(--text-muted)", boxShadow: tab === t_item.id ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none" }}
-            >
-              <t_item.Icon className="w-3.5 h-3.5 flex-shrink-0" />
-              {t_item.label}
-            </button>
-          ))}
-        </div>
+        <SettingsTabBar<FamilyTab>
+          active={tab}
+          layout_id="family"
+          tabs={owner_tabs.map(t_item => ({
+            key: t_item.id,
+            label: t_item.label,
+            icon: <t_item.Icon className="w-3.5 h-3.5 flex-shrink-0" />,
+          }))}
+          on_change={set_tab}
+        />
       )}
 
       {!is_owner && (
-        <div className="inline-flex p-1 rounded-lg bg-surf-secondary">
-          {(["overview", "groups"] as const).map(tid => (
-            <button
-              key={tid}
-              onClick={() => set_tab(tid)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-[14px] transition-all duration-200 whitespace-nowrap ${tab === tid ? "bg-surf-primary" : "bg-transparent"}`}
-              style={{ color: tab === tid ? "var(--text-primary)" : "var(--text-muted)", boxShadow: tab === tid ? "rgba(0,0,0,0.1) 0px 1px 3px,rgba(0,0,0,0.06) 0px 1px 2px" : "none" }}
-            >
-              {tid === "overview" ? t("settings.fam_org_tab_overview") : t("settings.fam_org_tab_groups")}
-            </button>
-          ))}
-        </div>
+        <SettingsTabBar<FamilyTab>
+          active={tab}
+          layout_id="family-member"
+          tabs={[
+            { key: "overview", label: t("settings.fam_org_tab_overview") },
+            { key: "groups", label: t("settings.fam_org_tab_groups") },
+          ]}
+          on_change={set_tab}
+        />
       )}
 
       {!is_owner && tab === "groups" && <MemberGroupsContent />}

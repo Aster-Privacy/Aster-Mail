@@ -144,7 +144,6 @@ export function UpdatesSection() {
           </div>
           <Button
             variant="secondary"
-            size="sm"
             disabled={!supported || checking || installing}
             onClick={handle_check}
           >
@@ -208,7 +207,7 @@ export function UpdatesSection() {
               {t("settings.updates_auto_description")}
             </p>
           </div>
-          <Switch checked={auto} onCheckedChange={handle_auto} />
+          <Switch size="lg" checked={auto} onCheckedChange={handle_auto} />
         </div>
       </div>
     </div>

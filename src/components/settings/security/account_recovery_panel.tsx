@@ -577,7 +577,7 @@ export function AccountRecoveryPanel() {
               </p>
             )}
           </div>
-          <Button size="md" variant="depth" onClick={open_phrase_modal}>
+          <Button variant="depth" onClick={open_phrase_modal}>
             <KeyIcon className="w-3.5 h-3.5" />
             {methods?.has_phrase
               ? t("settings.recovery_phrase_regenerate")
@@ -608,7 +608,6 @@ export function AccountRecoveryPanel() {
             </p>
           </div>
           <Button
-            size="md"
             variant="depth"
             onClick={() => set_show_resurrect_modal(true)}
           >

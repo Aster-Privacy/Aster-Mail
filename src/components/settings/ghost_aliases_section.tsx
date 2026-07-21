@@ -244,7 +244,6 @@ export function GhostAliasesSection() {
             {t("settings.ghost_aliases_empty")}
           </p>
           <Button
-            size="md"
             variant="depth"
             onClick={() =>
               window.dispatchEvent(new CustomEvent("astermail:open-compose-ghost"))

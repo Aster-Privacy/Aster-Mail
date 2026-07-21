@@ -138,7 +138,6 @@ export function TrustedDevicesSection() {
               </div>
               <Button
                 disabled={busy_id === d.id}
-                size="sm"
                 variant="outline"
                 onClick={() => handle_revoke(d.id)}
               >
@@ -152,7 +151,6 @@ export function TrustedDevicesSection() {
           <div className="pt-2">
             <Button
               disabled={revoke_all_busy}
-              size="sm"
               variant="outline"
               onClick={handle_revoke_all}
             >

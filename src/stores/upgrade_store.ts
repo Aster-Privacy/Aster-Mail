@@ -31,6 +31,7 @@ export type UpgradeLimitKey =
   | "max_email_templates"
   | "max_html_signatures"
   | "max_custom_filters"
+  | "max_custom_categories"
   | "generic";
 
 export interface UpgradeState {
@@ -81,6 +82,8 @@ const RESOURCE_TO_LIMIT_KEY: Record<string, UpgradeLimitKey> = {
   "html signatures": "max_html_signatures",
   filters: "max_custom_filters",
   "custom filters": "max_custom_filters",
+  categories: "max_custom_categories",
+  "custom categories": "max_custom_categories",
 };
 
 function resolve_limit_key(resource: string | null): UpgradeLimitKey {

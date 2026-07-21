@@ -578,18 +578,6 @@ export function AccountSection({
               }
             />
             <SettingsRow
-              label={t("badges.show_avatar_ring")}
-              trailing={
-                <Switch
-                  checked={badge_prefs.show_badge_ring}
-                  disabled={is_badge_saving || !badge_prefs.active_badge_slug}
-                  onCheckedChange={(v) =>
-                    persist_badge_prefs({ show_badge_ring: v })
-                  }
-                />
-              }
-            />
-            <SettingsRow
               label={t("badges.show_in_signature")}
               trailing={
                 <Switch

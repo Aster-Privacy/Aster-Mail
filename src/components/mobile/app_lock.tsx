@@ -114,7 +114,7 @@ function PinPad({
         className={cn(btn_base, "bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === "Enter" && "scale-90 bg-muted/50")}
         onClick={on_check}
       >
-        <CheckIcon className="h-5 w-5 text-white/80" />
+        <CheckIcon className="h-5 w-5 text-txt-primary" />
       </button>
     </div>
   );

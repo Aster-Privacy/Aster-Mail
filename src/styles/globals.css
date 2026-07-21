@@ -272,6 +272,34 @@ button *:not(.animate-spin),
   display: none;
 }
 
+.aster_scrollbar_thin {
+  scrollbar-width: thin;
+}
+
+.aster_scrollbar_thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.aster_scrollbar_thin::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.aster_scrollbar_thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.aster_scrollbar_thin::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+
+.dark .aster_scrollbar_thin::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
 [contenteditable="true"] ul,
 [contenteditable="true"] ol {
   margin: 0.5rem 0;

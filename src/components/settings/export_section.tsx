@@ -52,7 +52,6 @@ export function ExportSection() {
           {t("settings.export_title")}
         </span>
         <Button
-          size="md"
           variant="depth"
           onClick={() => set_is_open(true)}
         >

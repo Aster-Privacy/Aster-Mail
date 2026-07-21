@@ -25,7 +25,6 @@ import type {
 
 import { useState, useEffect, useCallback } from "react";
 import { SignalIcon } from "@heroicons/react/24/outline";
-import { Radio } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
@@ -33,6 +32,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_cdn_relay_supported } from "@/services/routing/tor_transport";
 import { InfoPopover } from "@/components/ui/info_popover";
+import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 
 interface ConnectionOptionDef {
   value: ConnectionMethod;
@@ -133,9 +133,8 @@ export function ConnectionSection() {
               aria-disabled={is_disabled}
               aria-pressed={is_selected}
               className={cn(
-                "rounded-[14px] border-2 overflow-hidden transition-colors text-left cursor-pointer",
+                "rounded-[14px] transition-colors text-left cursor-pointer",
                 is_disabled && "opacity-50 pointer-events-none",
-                is_selected ? "border-brand" : "border-edge-secondary",
               )}
               role="button"
               tabIndex={is_disabled ? -1 : 0}
@@ -147,31 +146,33 @@ export function ConnectionSection() {
                 }
               }}
             >
-              <div className="h-40 overflow-hidden">
+              <div
+                className={cn(
+                  "relative h-40 rounded-[14px] transition-all",
+                  is_selected &&
+                    "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary",
+                )}
+              >
                 <img
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-[14px]"
                   draggable={false}
                   loading="lazy"
                   src={option.image}
                 />
+                {is_selected && <SelectedBadge />}
               </div>
 
-              <div className="flex items-center justify-between px-3 py-2.5">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-sm font-medium text-txt-primary">
-                    {label}
-                  </span>
-                  <span
-                    className="inline-flex items-center leading-none"
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                  >
-                    <InfoPopover description={info} title={label} />
-                  </span>
-                </div>
-                <span className="pointer-events-none flex-shrink-0">
-                  <Radio readOnly checked={is_selected} />
+              <div className="flex items-center justify-center gap-1.5 px-3 py-2.5">
+                <span className="text-sm font-medium text-txt-primary">
+                  {label}
+                </span>
+                <span
+                  className="inline-flex items-center leading-none"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <InfoPopover description={info} title={label} />
                 </span>
               </div>
             </div>

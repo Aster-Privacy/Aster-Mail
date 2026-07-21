@@ -180,11 +180,14 @@ export function SmtpTokensSection() {
           <Button
             className="mt-4"
             variant="depth"
-            onClick={() =>
+            onClick={() => {
+              try {
+                sessionStorage.setItem("alias_tab", "domains");
+              } catch {}
               window.dispatchEvent(
                 new CustomEvent("navigate-settings", { detail: "aliases" }),
-              )
-            }
+              );
+            }}
           >
             {t("settings.smtp_tokens_add_domain_cta")}
           </Button>
@@ -197,14 +200,14 @@ export function SmtpTokensSection() {
     <div className="space-y-5">
       {header}
 
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5">
+      <div className="rounded-xl bg-amber-500 p-3.5">
         <div className="flex items-start gap-2.5">
-          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-black mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-txt-primary">
+            <p className="text-sm font-semibold text-black">
               {t("settings.smtp_token_not_e2e_title")}
             </p>
-            <p className="text-xs text-txt-muted leading-relaxed mt-1">
+            <p className="text-xs text-black/80 leading-relaxed mt-1">
               {t("settings.smtp_token_not_e2e_body")}
             </p>
           </div>
@@ -271,7 +274,6 @@ export function SmtpTokensSection() {
               <Button
                 className="flex-shrink-0 ml-3"
                 disabled={revoking_id === token.id}
-                size="sm"
                 variant="destructive"
                 onClick={() => set_confirm_revoke_id(token.id)}
               >

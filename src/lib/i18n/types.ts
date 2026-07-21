@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -2344,6 +2344,10 @@ export interface SettingsTranslations {
   account_protection_hint_fair: string;
   account_protection_hint_partial: string;
   account_protection_hint_strong: string;
+  account_security_percent_title: string;
+  account_security_review_subtitle: string;
+  account_security_dismiss: string;
+  account_security_review_cta: string;
   protection_breakdown_title: string;
   criterion_two_factor: string;
   criterion_passkey: string;
@@ -2581,6 +2585,20 @@ export interface SettingsTranslations {
   family_join_create_account: string;
   family_join_login: string;
   family_join_invalid: string;
+  invite_title_named: string;
+  invite_title_generic: string;
+  invite_subtitle: string;
+  invite_discount_line: string;
+  invite_benefits_heading: string;
+  invite_benefit_zero_access: string;
+  invite_benefit_no_ads: string;
+  invite_benefit_open_source: string;
+  invite_cta_create_account: string;
+  invite_cta_sign_in: string;
+  invite_not_found_title: string;
+  invite_not_found_body: string;
+  invite_not_found_cta_register: string;
+  invite_not_found_cta_sign_in: string;
   family_plan_grace: string;
   family_storage_edit: string;
   family_storage_save: string;
@@ -5738,6 +5756,7 @@ export interface AuthTranslations {
   choose_email_address: string;
   pick_unique_username: string;
   new_email_address: string;
+  your_new_aster_address: string;
   generate_random_username: string;
   generate_random_display: string;
   profile_color: string;
@@ -6132,8 +6151,6 @@ export interface BadgesTranslations {
   show_on_profile_description: string;
   show_in_signature: string;
   show_in_signature_description: string;
-  show_avatar_ring: string;
-  show_avatar_ring_description: string;
   granted_at: string;
   find_order_label: string;
   empty_state: string;

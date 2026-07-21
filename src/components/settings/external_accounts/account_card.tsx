@@ -193,7 +193,7 @@ export function AccountCard({
             </Button>
           ) : (
             <>
-              <Switch
+              <Switch size="lg"
                 aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
                 checked={account.is_enabled}
                 onCheckedChange={() => handle_toggle(account)}

@@ -664,7 +664,7 @@ export function AppLockSection() {
             <p className="text-sm font-medium text-txt-primary">{t("settings.app_lock_pin")}</p>
             <p className="text-xs mt-0.5 text-txt-muted">{t("settings.app_lock_pin_description")}</p>
           </div>
-          <Switch checked={enabled} onCheckedChange={handle_toggle} />
+          <Switch size="lg" checked={enabled} onCheckedChange={handle_toggle} />
         </div>
         {enabled && (
           <button

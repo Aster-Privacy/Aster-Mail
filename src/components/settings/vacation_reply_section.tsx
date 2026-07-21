@@ -437,7 +437,6 @@ export function VacationReplySection() {
               </span>
             </div>
             <Button
-              size="sm"
               variant="secondary"
               onClick={() => handle_toggle(!vacation.is_enabled)}
             >

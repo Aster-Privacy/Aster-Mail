@@ -240,8 +240,8 @@ export function RetentionPolicyCard({
           <div className="text-xs text-txt-muted">{summary}</div>
         </button>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Switch checked={policy.enabled} onCheckedChange={on_toggle} />
-          <Button variant="ghost" size="sm" onClick={on_delete}>
+          <Switch size="lg" checked={policy.enabled} onCheckedChange={on_toggle} />
+          <Button variant="ghost" onClick={on_delete}>
             {t("folder_retention.remove")}
           </Button>
         </div>
@@ -305,7 +305,7 @@ export function FolderRetentionSection() {
               <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("folder_retention.title")}
             </h3>
-            <Button size="md" variant="depth" onClick={r.open_new}>
+            <Button variant="depth" onClick={r.open_new}>
               <PlusIcon className="w-4 h-4" />
               {t("folder_retention.add")}
             </Button>

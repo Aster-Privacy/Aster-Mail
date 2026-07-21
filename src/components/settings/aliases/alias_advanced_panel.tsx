@@ -482,7 +482,7 @@ function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain
                   {describe_actions(rule.actions)}
                 </p>
               </div>
-              <Switch
+              <Switch size="lg"
                 checked={rule.is_enabled}
                 onCheckedChange={() => handle_toggle(rule)}
               />

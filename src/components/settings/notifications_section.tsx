@@ -153,7 +153,7 @@ function ToggleSetting({
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {action}
-        <Switch checked={enabled} onCheckedChange={on_toggle} />
+        <Switch size="lg" checked={enabled} onCheckedChange={on_toggle} />
       </div>
     </div>
   );
@@ -302,7 +302,6 @@ export function NotificationsSection() {
           action={
             is_tauri && permission_state === "denied" ? (
               <Button
-                size="sm"
                 variant="ghost"
                 onClick={open_system_notification_settings_os}
               >

@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1611,6 +1611,20 @@ export const ar = {
     family_join_create_account: "إنشاء حساب والانضمام",
     family_join_login: "تسجيل الدخول والانضمام",
     family_join_invalid: "انتهت صلاحية رابط الدعوة هذا أو لم يعد صالحًا.",
+    invite_title_named: "دعاك {{ name }} إلى Aster Mail",
+    invite_title_generic: "لقد تمت دعوتك إلى Aster Mail",
+    invite_subtitle: "Aster Mail بريد إلكتروني معدوم الوصول ومشفّر من طرف إلى طرف. لا يستطيع أحد غيرك قراءة بريدك الوارد، ولا نحن حتى.",
+    invite_discount_line: "سجّل الآن واحصل على خصم {{ percent }}% على باقتك الأولى.",
+    invite_benefits_heading: "ما الذي ستحصل عليه",
+    invite_benefit_zero_access: "بريد إلكتروني معدوم الوصول ومشفّر من طرف إلى طرف",
+    invite_benefit_no_ads: "بدون إعلانات، بدون تتبع",
+    invite_benefit_open_source: "مفتوح المصدر وخاضع للتدقيق",
+    invite_cta_create_account: "احصل على خصم {{ percent }}%",
+    invite_cta_sign_in: "لديك حساب بالفعل؟ سجّل الدخول",
+    invite_not_found_title: "رابط الدعوة هذا غير متاح",
+    invite_not_found_body: "قد يكون منتهي الصلاحية أو غير صحيح. لا يزال بإمكانك إنشاء حساب مجاني في Aster Mail.",
+    invite_not_found_cta_register: "أنشئ حسابك",
+    invite_not_found_cta_sign_in: "سجّل الدخول",
     family_join_inviter: "دعاك {{ name }}",
     family_join_shared_storage: "تخزين مشترك",
     family_join_storage_suffix: "{{ size }} تخزين",
@@ -2935,7 +2949,7 @@ export const ar = {
     view_guide: "عرض الدليل",
     two_factor_guide_title: "كيف تعمل المصادقة الثنائية",
     two_factor_guide_step_app:
-      "افتح تطبيق مصادقة على هاتفك، مثل Google Authenticator أو Authy أو 1Password.",
+      "افتح تطبيق المصادقة الذي تفضله على هاتفك.",
     two_factor_guide_step_scan:
       "امسح رمز QR باستخدام التطبيق، أو أدخل المفتاح السري يدويًا إذا تعذر المسح.",
     two_factor_guide_step_code:
@@ -3015,7 +3029,7 @@ export const ar = {
     info_block_tracking_links_title: "ما هي روابط التتبع؟",
     info_block_tracking_links_description: "روابط الرسائل كثيراً ما تمر عبر خادم المرسل أولاً لتسجيل النقرات. هذا يزيل تلك إعادة التوجيه ليذهب الرابط مباشرة للهدف.",
     info_two_factor_auth_title: "المصادقة الثنائية",
-    info_two_factor_auth_description: "يضيف طبقة أمان ثانية عند تسجيل الدخول. بعد كلمة المرور تُدخل رمزاً من 6 أرقام من تطبيق مثل Authy أو Google Authenticator.",
+    info_two_factor_auth_description: "يضيف طبقة أمان ثانية عند تسجيل الدخول. بعد كلمة المرور تُدخل رمزاً من 6 أرقام من تطبيق المصادقة.",
     info_session_timeout_title: "انتهاء مهلة الجلسة",
     info_session_timeout_description: "يسجّل خروجك تلقائياً بعد فترة من عدم النشاط. مفيد على الأجهزة المشتركة أو عند الابتعاد.",
     info_login_alerts_title: "تنبيهات تسجيل الدخول",
@@ -3991,7 +4005,7 @@ export const ar = {
     receipt_tracking_locked: "استخراج تفاصيل الشراء تلقائيًا من رسائل الإيصالات",
     mail_section: "البريد",
     about: "حول",
-    scan_qr_code_description: "امسح رمز QR بتطبيق المصادقة (Google Authenticator أو Authy أو غيرها)",
+    scan_qr_code_description: "امسح رمز QR بتطبيق المصادقة الذي تفضله",
     cant_scan_enter_manually: "لا تستطيع المسح؟ أدخل هذا الرمز يدويًا:",
     save_backup_codes_description: "احفظ رموز النسخ الاحتياطي هذه في مكان آمن. يمكنك استخدامها للوصول إلى حسابك إذا فقدت جهاز المصادقة.",
     copy_all_codes: "نسخ جميع الرموز",
@@ -4149,6 +4163,10 @@ export const ar = {
     account_protection_hint_fair: "يحتاج حسابك إلى مزيد من الحماية.",
     account_protection_hint_partial: "فعّل المزيد من الخيارات للحصول على حماية أقوى.",
     account_protection_hint_strong: "حسابك محمي جيداً.",
+    account_security_percent_title: "أمان حسابك هو {{percent}}%",
+    account_security_review_subtitle: "يرجى مراجعة إعدادات أمان حسابك بانتظام وتحديث كلمة المرور الخاصة بك.",
+    account_security_dismiss: "إغلاق",
+    account_security_review_cta: "مراجعة الأمان",
     protection_breakdown_title: "تفاصيل الحماية",
     criterion_two_factor: "المصادقة الثنائية",
     criterion_recovery_email: "بريد الاسترداد المُحقَّق",
@@ -5931,8 +5949,6 @@ export const ar = {
     show_on_profile_description: "اعرض شارتك النشطة لمستخدمي Aster الآخرين.",
     show_in_signature: "عرض في التوقيع",
     show_in_signature_description: "تضمين شارتك النشطة في توقيعات الرسائل الصادرة.",
-    show_avatar_ring: "حلقة الصورة الرمزية",
-    show_avatar_ring_description: "إضافة حلقة ملونة حول صورتك الرمزية.",
     granted_at: "مكتسب {date}",
     find_order_label: "#{order}",
     empty_state: "لم تجد أي شارات بعد.",

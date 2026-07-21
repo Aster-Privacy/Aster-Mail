@@ -43,6 +43,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 
 interface PasswordSectionProps {
+  show_header?: boolean;
   show_password_section: boolean;
   set_show_password_section: (show: boolean) => void;
   current_password: string;
@@ -65,6 +66,7 @@ interface PasswordSectionProps {
 }
 
 export function PasswordSection({
+  show_header = true,
   show_password_section,
   set_show_password_section,
   current_password,
@@ -89,14 +91,21 @@ export function PasswordSection({
   const { t } = use_i18n();
 
   return (
-    <div className="pt-3">
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+    <div className={show_header ? "pt-3" : undefined}>
+      {show_header && (
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.password")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+      )}
+      {!show_header && (
+        <p className="text-sm font-medium text-txt-primary mb-2">
           {t("settings.password")}
-        </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
-      </div>
+        </p>
+      )}
       <p className="text-sm mb-2 text-txt-muted">
         {t("settings.change_password_description")}
       </p>

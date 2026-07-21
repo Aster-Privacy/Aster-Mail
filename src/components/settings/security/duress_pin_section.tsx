@@ -736,7 +736,6 @@ export function DuressPinSection() {
             <p className="text-xs mt-0.5 text-txt-muted">{t("settings.duress_pin_description")}</p>
           </div>
           <Button
-            size="sm"
             variant={enabled ? "outline" : "depth"}
             onClick={() => set_modal(enabled ? "remove" : "setup")}
           >

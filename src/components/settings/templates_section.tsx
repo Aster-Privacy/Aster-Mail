@@ -256,7 +256,6 @@ export function TemplatesSection() {
             </h4>
             <Button
               disabled={editor.is_open}
-              size="md"
               variant="depth"
               onClick={open_create_editor}
             >

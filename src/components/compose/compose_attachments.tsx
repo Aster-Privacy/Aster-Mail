@@ -591,12 +591,31 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
     }
   });
 
+  const focus_editor_at_click = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+
+    const el = compose.message_textarea_ref.current;
+
+    if (!el) return;
+
+    el.focus();
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+
+    range.selectNodeContents(el);
+    range.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
   return (
     <div className="flex-1 px-4 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
       <div
         ref={scroll_container_ref}
-        className="flex-1 overflow-auto"
+        className="flex-1 overflow-auto cursor-text"
         style={{ position: "relative" }}
+        onClick={focus_editor_at_click}
       >
         <div
           ref={compose.message_textarea_ref}
@@ -605,7 +624,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
           className="w-full h-full text-sm leading-relaxed border-none outline-none"
           data-placeholder={resolved_placeholder}
           style={{
-            minHeight: "150px",
+            minHeight: "100%",
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
           }}

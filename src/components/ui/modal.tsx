@@ -206,14 +206,14 @@ export function Modal({
               outline: "none",
             }}
             transition={{
-              duration: reduce_motion ? 0 : 0.2,
+              duration: reduce_motion ? 0 : 0.12,
               ease: [0.16, 1, 0.3, 1],
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {show_close_button && (
               <button
-                className="aster_modal_close absolute right-5 top-4 z-10 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                className="aster_modal_close absolute right-5 top-5 z-10 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                 style={{ width: 28, height: 28, padding: 0 }}
                 type="button"
                 onClick={on_close}

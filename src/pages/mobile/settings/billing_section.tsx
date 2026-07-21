@@ -86,6 +86,7 @@ import {
   get_referral_info,
   get_referral_history,
   get_credits,
+  build_referral_invite_url,
   format_storage,
   format_price,
   format_date,
@@ -230,7 +231,7 @@ export function BillingSection({
       }
 
       const body_text = t("settings.referral_email_body", {
-        referral_link: referral_info.referral_link,
+        referral_link: build_referral_invite_url(referral_info.referral_code),
       });
 
       const body_html = body_text
@@ -1116,12 +1117,14 @@ export function BillingSection({
                         <input
                           readOnly
                           className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
-                          value={referral_info.referral_link}
+                          value={build_referral_invite_url(referral_info.referral_code)}
                         />
                         <button
                           className="h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
                           onClick={() => {
-                            navigator.clipboard.writeText(referral_info.referral_link);
+                            navigator.clipboard.writeText(
+                              build_referral_invite_url(referral_info.referral_code),
+                            );
                             show_toast(t("settings.link_copied"), "success");
                           }}
                         >

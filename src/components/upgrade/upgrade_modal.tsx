@@ -47,6 +47,7 @@ const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_templates: "settings.usage_templates",
   max_html_signatures: "settings.usage_signatures",
   max_custom_filters: "settings.usage_filters",
+  max_custom_categories: "settings.usage_custom_categories",
   generic: "settings.upgrade_generic_resource",
 };
 

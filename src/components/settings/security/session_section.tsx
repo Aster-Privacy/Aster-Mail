@@ -26,10 +26,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   FingerPrintIcon,
-  ComputerDesktopIcon,
-  DevicePhoneMobileIcon,
-  DeviceTabletIcon,
-  GlobeAltIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Badge } from "@aster/ui";
 
@@ -38,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { BrowserIcon } from "@/components/settings/security/browser_icon";
 
 const SESSIONS_PER_PAGE = 5;
 
@@ -49,19 +47,6 @@ interface SessionSectionProps {
   on_revoke_all_sessions: () => Promise<void>;
   logout_others_loading: boolean;
   logout_others_result: { success: boolean; message: string } | null;
-}
-
-function get_device_icon(device_type: string) {
-  switch (device_type.toLowerCase()) {
-    case "mobile":
-      return DevicePhoneMobileIcon;
-    case "tablet":
-      return DeviceTabletIcon;
-    case "desktop":
-      return ComputerDesktopIcon;
-    default:
-      return GlobeAltIcon;
-  }
 }
 
 function format_last_active(date_string: string) {
@@ -140,7 +125,7 @@ export function SessionSection({
       <div className="mb-4">
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.session_security")}
+          {t("settings.browsers_and_devices")}
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
@@ -172,7 +157,6 @@ export function SessionSection({
 
           <div className="space-y-1">
             {visible_sessions.map((session) => {
-              const Icon = get_device_icon(session.device_type);
               const browser_label =
                 session.browser?.trim() || t("common.unknown");
               const os_label = session.os?.trim();
@@ -182,14 +166,19 @@ export function SessionSection({
                     os: os_label,
                   })
                 : browser_label;
+              const location_label = [session.city, session.country]
+                .filter((part) => part && part.trim().length > 0)
+                .join(", ");
 
               return (
                 <div
                   key={session.id}
-                  className="flex items-center justify-between py-3 border-b last:border-b-0 border-edge-secondary"
+                  className="flex items-center justify-between gap-3 py-3 border-b last:border-b-0 border-edge-secondary"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Icon className="w-5 h-5 text-txt-muted flex-shrink-0" />
+                    <div className="w-11 h-11 rounded-lg bg-bg-secondary flex items-center justify-center flex-shrink-0">
+                      <BrowserIcon browser={browser_label} className="w-6 h-6" />
+                    </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-txt-primary flex items-center gap-2 flex-wrap">
                         <span className="truncate">{device_label}</span>
@@ -220,24 +209,33 @@ export function SessionSection({
                       </p>
                     </div>
                   </div>
-                  {!session.is_current && (
-                    <Button
-                      className="flex-shrink-0 ml-3"
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {location_label && (
+                      <span className="hidden sm:flex items-center gap-1.5 text-xs text-txt-muted">
+                        {session.country_code && (
+                          <img
+                            alt={session.country ?? session.country_code}
+                            className="w-4 h-3 rounded-[1px] object-cover"
+                            src={`https://flagcdn.com/16x12/${session.country_code.toLowerCase()}.png`}
+                          />
+                        )}
+                        {location_label}
+                      </span>
+                    )}
+                    <button
+                      aria-label={t("settings.sign_out")}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
                       disabled={revoking_id === session.id}
-                      size="sm"
-                      variant="destructive"
+                      type="button"
                       onClick={() => set_show_confirm_single(session.id)}
                     >
                       {revoking_id === session.id ? (
-                        <>
-                          <Spinner className="mr-1.5" size="sm" />
-                          {t("settings.signing_out")}
-                        </>
+                        <Spinner size="sm" />
                       ) : (
-                        t("settings.sign_out")
+                        <TrashIcon className="w-4 h-4" />
                       )}
-                    </Button>
-                  )}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -268,20 +266,23 @@ export function SessionSection({
           )}
 
           {other_sessions.length > 0 && (
-            <div className="mt-4">
+            <div className="mt-4 flex justify-end">
               <Button
-                className="w-full"
+                className="text-red-500 hover:text-red-600"
                 disabled={revoking_all || logout_others_loading}
-                variant="destructive"
+                variant="outline"
                 onClick={() => set_show_confirm_all(true)}
               >
                 {revoking_all || logout_others_loading ? (
                   <>
-                    <Spinner className="mr-2" size="sm" />
+                    <Spinner className="mr-1.5" size="sm" />
                     {t("settings.signing_out")}
                   </>
                 ) : (
-                  t("settings.sign_out_all_other")
+                  <>
+                    <TrashIcon className="w-3.5 h-3.5 mr-1.5" />
+                    {t("settings.sign_out_all_other")}
+                  </>
                 )}
               </Button>
             </div>

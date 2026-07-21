@@ -717,11 +717,6 @@ async function do_build_search_index(
     page_count++;
   } while (cursor);
 
-  if (all_items.length === 0 && page_count === 0) {
-    emit_indexing({ building: false, current: 0, total: 0 });
-    throw new Error("search_fetch_failed:no_response");
-  }
-
   emit_indexing({ total: all_items.length, current: 0 });
 
   const decrypted = new Map<string, DecryptedIndexEntry>();

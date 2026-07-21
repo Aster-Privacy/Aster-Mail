@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -1611,6 +1611,20 @@ export const tr = {
     family_join_create_account: "Hesap Oluştur ve Katıl",
     family_join_login: "Giriş Yap ve Katıl",
     family_join_invalid: "Bu davet bağlantısının süresi dolmuş veya artık geçerli değil.",
+    invite_title_named: "{{ name }} sizi Aster Mail'e davet etti",
+    invite_title_generic: "Aster Mail'e davet edildiniz",
+    invite_subtitle: "Aster Mail, sıfır erişimli, uçtan uca şifrelenmiş bir e-posta hizmetidir. Gelen kutunuzu sizden başka kimse okuyamaz, biz bile.",
+    invite_discount_line: "Şimdi kaydolun ve ilk planınızda %{{ percent }} indirim kazanın.",
+    invite_benefits_heading: "Neler kazanırsınız",
+    invite_benefit_zero_access: "Sıfır erişimli, uçtan uca şifrelenmiş e-posta",
+    invite_benefit_no_ads: "Reklam yok, takip yok",
+    invite_benefit_open_source: "Açık kaynak ve denetlenmiş",
+    invite_cta_create_account: "%{{ percent }} indirimi al",
+    invite_cta_sign_in: "Zaten hesabınız var mı? Giriş yapın",
+    invite_not_found_title: "Bu davet bağlantısı kullanılamıyor",
+    invite_not_found_body: "Süresi dolmuş ya da bağlantı hatalı olabilir. Yine de ücretsiz bir Aster Mail hesabı oluşturabilirsiniz.",
+    invite_not_found_cta_register: "Hesabınızı oluşturun",
+    invite_not_found_cta_sign_in: "Giriş yapın",
     family_join_inviter: "{{ name }} sizi davet etti",
     family_join_shared_storage: "paylaşılan depolama",
     family_join_storage_suffix: "{{ size }} depolama",
@@ -2886,7 +2900,7 @@ export const tr = {
     view_guide: "Kılavuzu görüntüle",
     two_factor_guide_title: "İki faktörlü kimlik doğrulama nasıl çalışır",
     two_factor_guide_step_app:
-      "Telefonunuzda Google Authenticator, Authy veya 1Password gibi bir kimlik doğrulama uygulaması açın.",
+      "Telefonunuzda tercih ettiğiniz kimlik doğrulama uygulamasını açın.",
     two_factor_guide_step_scan:
       "QR kodunu uygulamayla tarayın veya tarayamıyorsanız gizli anahtarı manuel olarak girin.",
     two_factor_guide_step_code:
@@ -2966,7 +2980,7 @@ export const tr = {
     info_block_tracking_links_title: "İzleme Bağlantıları Nedir?",
     info_block_tracking_links_description: "E-postalardaki bağlantılar genellikle önce gönderenin sunucusundan geçer ve tıklamaları kaydeder. Bu yönlendirmeleri kaldırarak bağlantılar doğrudan hedefe gider.",
     info_two_factor_auth_title: "İki Faktörlü Kimlik Doğrulama",
-    info_two_factor_auth_description: "Girişe ikinci bir güvenlik katmanı ekler. Şifrenizden sonra Authy veya Google Authenticator gibi bir uygulamadan 6 haneli kod girersiniz.",
+    info_two_factor_auth_description: "Girişe ikinci bir güvenlik katmanı ekler. Şifrenizden sonra kimlik doğrulama uygulamanızdan 6 haneli kod girersiniz.",
     info_session_timeout_title: "Oturum Zaman Aşımı",
     info_session_timeout_description: "Belirli bir süre hareketsiz kalındığında sizi otomatik çıkış yapar. Paylaşılan bilgisayarlarda veya uzaklaştığınızda koruma için kullanışlıdır.",
     info_login_alerts_title: "Giriş Uyarıları",
@@ -3894,7 +3908,7 @@ export const tr = {
     encrypted_export_locked: "Verilerinizi uçtan uca şifreleme ile dışa aktarın",
     mail_section: "E-posta",
     about: "Hakkında",
-    scan_qr_code_description: "QR kodu kimlik doğrulama uygulamanızla tarayın (Google Authenticator, Authy vb.)",
+    scan_qr_code_description: "QR kodu tercih ettiğiniz kimlik doğrulama uygulamasıyla tarayın",
     cant_scan_enter_manually: "Tarayamıyor musunuz? Bu kodu manuel olarak girin:",
     save_backup_codes_description: "Bu yedek kodları güvenli bir yerde saklayın. Kimlik doğrulama cihazınızı kaybederseniz hesabınıza erişmek için kullanabilirsiniz.",
     copy_all_codes: "Tüm Kodları Kopyala",
@@ -4157,6 +4171,10 @@ export const tr = {
     account_protection_hint_fair: "Hesabınız daha fazla korumaya ihtiyaç duyuyor.",
     account_protection_hint_partial: "Daha güçlü koruma için daha fazla seçenek etkinleştirin.",
     account_protection_hint_strong: "Hesabınız iyi korunuyor.",
+    account_security_percent_title: "Hesap güvenliğiniz %{{percent}}",
+    account_security_review_subtitle: "Lütfen hesap güvenlik ayarlarınızı düzenli olarak gözden geçirin ve şifrenizi güncelleyin.",
+    account_security_dismiss: "Kapat",
+    account_security_review_cta: "Güvenliği incele",
     protection_breakdown_title: "Koruma detayları",
     criterion_two_factor: "İki faktörlü kimlik doğrulama",
     criterion_recovery_email: "Doğrulanmış kurtarma e-postası",
@@ -5930,7 +5948,6 @@ export const tr = {
     none: "Yok",
     show_on_profile: "Profilde göster",
     show_in_signature: "İmzada göster",
-    show_avatar_ring: "Avatar halkası",
     earned_label: "Kazanılan",
     empty_state: "Henüz rozet bulamadın.",
     claim_success: "{name} rozetini kazandın.",
@@ -5939,7 +5956,6 @@ export const tr = {
     not_earned: "Henüz kazanılmadı",
     show_on_profile_description: "Aktif rozetinizi diğer Aster kullanıcılarına gösterin.",
     show_in_signature_description: "Aktif rozetinizi giden e-posta imzalarına ekleyin.",
-    show_avatar_ring_description: "Avatarınızın etrafına renkli bir halka ekleyin.",
     granted_at: "{date} tarihinde kazanıldı",
     find_order_label: "#{order}",
     badge_big_bang: "Büyük Patlama",

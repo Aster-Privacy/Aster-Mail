@@ -501,7 +501,7 @@ export function AliasItem({
           <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
         </Button>
 
-        <Switch
+        <Switch size="lg"
           aria-label={t("common.toggle_alias")}
           checked={alias.is_enabled}
           disabled={toggling || in_grace_period}
@@ -799,7 +799,7 @@ export function DomainAddressItem({
             <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
           </Button>
 
-          <Switch
+          <Switch size="lg"
             aria-label={t("common.toggle_alias")}
             checked={is_enabled}
             disabled={toggling}

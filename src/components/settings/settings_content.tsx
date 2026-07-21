@@ -58,6 +58,7 @@ import {
   UserGroupIcon,
   HomeModernIcon,
   MagnifyingGlassIcon,
+  Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -101,6 +102,7 @@ import { is_desktop_runtime } from "@/services/updates/updater";
 import { TemplatesSection } from "@/components/settings/templates_section";
 import { MailManagementSection } from "@/components/settings/mail_management_section";
 import { MailRulesSection } from "@/components/settings/mail_rules_section";
+import { CategorySettingsSection } from "@/components/settings/category_settings_section";
 import { FeedbackSection } from "@/components/settings/feedback_section";
 import { ReferralTab } from "@/components/settings/referral_tab";
 import { BridgeSection } from "@/components/settings/bridge_section";
@@ -129,6 +131,7 @@ export type SettingsSection =
   | "signature"
   | "templates"
   | "behavior"
+  | "categories"
   | "sender_filters"
   | "mail_rules"
   | "feedback"
@@ -155,6 +158,7 @@ export const SETTINGS_SECTION_IDS: SettingsSection[] = [
   "signature",
   "templates",
   "behavior",
+  "categories",
   "sender_filters",
   "mail_rules",
   "feedback",
@@ -228,6 +232,7 @@ function get_nav_items(
       { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon, description: "Create HTML or plain-text signatures appended to outgoing messages", keywords: ["signature", "email signature", "html signature", "plain text signature", "sign off", "closing", "footer text", "add signature"] },
       { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon, description: "Save reusable message templates for faster email composition", keywords: ["templates", "email templates", "canned responses", "quick reply", "saved replies", "draft template", "message template", "reusable email"] },
       { id: "behavior", label: t("settings.behavior"), icon: AdjustmentsHorizontalIcon, description: "Reading pane, message threading, undo send, and compose behavior", keywords: ["reading pane", "preview pane", "thread view", "conversation view", "group by thread", "undo send", "delay send", "send delay", "auto archive", "mark as read", "read receipts", "swipe action", "keyboard shortcuts"] },
+      { id: "categories", label: t("settings.categories_title"), icon: Squares2X2Icon, description: "Enable built-in inbox categories and create custom rule-based categories", keywords: ["categories", "inbox categories", "custom category", "category tabs", "primary", "social", "promotions", "updates", "forums", "finance", "travel", "shopping", "classify", "auto sort", "category rule", "domain match", "keyword match"] },
       { id: "sender_filters", label: t("settings.mail_management"), icon: FunnelIcon, description: "Block senders, manage spam, allowlists, and forwarding rules", keywords: ["block sender", "blocked senders", "blocklist", "allowlist", "whitelist", "safe senders", "spam filter", "junk mail", "forward mail", "email forwarding", "ban sender", "unblock"] },
       { id: "mail_rules", label: t("mail_rules.title"), icon: BoltIcon, description: "Automate inbox organization with conditions, labels, and folder actions", keywords: ["mail rules", "email rules", "filters", "auto label", "auto archive", "auto forward", "auto move", "inbox automation", "rule condition", "rule action", "organize mail", "sorting rules"] },
       { id: "feedback", label: t("settings.feedback"), icon: ChatBubbleBottomCenterTextIcon, description: "Report bugs, request features, or get in touch with the Aster team", keywords: ["feedback", "report bug", "bug report", "feature request", "contact support", "help", "get help", "support ticket", "send feedback"] },
@@ -324,6 +329,7 @@ function SettingsContentInner({
     signature: null,
     templates: null,
     behavior: null,
+    categories: null,
     sender_filters: null,
     mail_rules: null,
     feedback: null,
@@ -649,6 +655,8 @@ function SettingsContentInner({
         return <TemplatesSection />;
       case "behavior":
         return <BehaviorSection />;
+      case "categories":
+        return <CategorySettingsSection />;
       case "sender_filters":
         return <MailManagementSection />;
       case "mail_rules":
@@ -821,33 +829,37 @@ function SettingsContentInner({
         {...(is_popup ? {} : { id: "main-content", role: "main", tabIndex: -1 })}
         style={is_popup ? undefined : { borderColor: "var(--border-primary)" }}
       >
-        <div className="flex items-center gap-3 px-4 md:px-6 py-4 flex-shrink-0 border-b border-b-edge-secondary">
-          {!show_mobile_nav && (
-            <span className="md:hidden -ml-1.5 inline-flex">
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => set_show_mobile_nav(true)}
-              >
-                <ArrowUturnLeftIcon className="w-5 h-5" />
-              </Button>
-            </span>
-          )}
-          <h2 className="text-[17px] font-semibold text-txt-primary flex-shrink-0">
-            <span className="hidden md:inline">{t("settings.title")}</span>
-            <span className="md:hidden">
-              {show_mobile_nav ? t("settings.title") : get_current_section_label()}
-            </span>
-          </h2>
-          <SettingsSaveIndicator />
-          <div className="hidden md:flex relative flex-1 max-w-[520px]">
+        <div className="flex items-center gap-4 px-4 md:px-6 py-3.5 flex-shrink-0 border-b border-b-edge-secondary">
+          <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+            {!show_mobile_nav && (
+              <span className="md:hidden -ml-1.5 inline-flex">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => set_show_mobile_nav(true)}
+                >
+                  <ArrowUturnLeftIcon className="w-5 h-5" />
+                </Button>
+              </span>
+            )}
+            <h2 className="text-[17px] font-semibold text-txt-primary flex-shrink-0 truncate">
+              <span className="hidden md:inline">{t("settings.title")}</span>
+              <span className="md:hidden">
+                {show_mobile_nav ? t("settings.title") : get_current_section_label()}
+              </span>
+            </h2>
+            <SettingsSaveIndicator />
+          </div>
+
+          <div className="hidden md:flex flex-1 justify-center">
+          <div className="relative w-full max-w-[1100px]">
             <MagnifyingGlassIcon
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
               style={{ color: "var(--text-muted)" }}
             />
             <input
               autoComplete="off"
-              className="w-full h-10 pl-9 pr-3 rounded-lg text-[14px] outline-none"
+              className="w-full h-12 pl-11 pr-4 rounded-lg text-[15px] outline-none transition-colors duration-150 focus:border-brand"
               placeholder={t("settings.search_placeholder")}
               spellCheck={false}
               style={{
@@ -861,11 +873,11 @@ function SettingsContentInner({
             />
             {is_searching && search_query.trim().length >= 2 && (
               <div
-                className="absolute top-[calc(100%+6px)] left-0 w-[380px] max-h-80 overflow-y-auto rounded-xl z-50 py-1"
+                className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-full max-w-[1100px] max-h-80 overflow-y-auto rounded-lg z-50 py-1"
                 style={{
                   backgroundColor: "var(--bg-primary)",
                   border: "1px solid var(--border-secondary)",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+                  boxShadow: "0 12px 36px rgba(0,0,0,0.28)",
                 }}
               >
                 {registry_results.length === 0 ? (
@@ -895,9 +907,13 @@ function SettingsContentInner({
               </div>
             )}
           </div>
-          <Button className="ml-auto" size="icon" variant="ghost" onClick={on_close}>
-            <XMarkIcon className="w-5 h-5" />
-          </Button>
+          </div>
+
+          <div className="flex items-center justify-end flex-shrink-0">
+            <Button size="icon" variant="ghost" onClick={on_close}>
+              <XMarkIcon className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {show_mobile_nav && (
@@ -943,7 +959,7 @@ function SettingsContentInner({
 
         <div
           ref={content_container_ref}
-          className={`${is_popup ? "p-4 md:p-6" : "p-4 md:px-12 md:py-8 xl:px-20"} flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
+          className={`${is_popup ? "p-4 md:p-6" : "p-4 md:px-10 md:py-8 xl:px-16 2xl:px-24"} flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
           style={{ scrollbarGutter: "stable" }}
         >
           {is_suspended && (
@@ -982,7 +998,7 @@ function SettingsContentInner({
           )}
           <div
             key={section}
-            className={is_popup ? "w-full" : "w-full max-w-[920px] mx-auto"}
+            className={is_popup ? "w-full" : "w-full max-w-[1040px] mx-auto"}
             style={is_suspended ? { opacity: 0.4, pointerEvents: "none" } : undefined}
           >
             {!is_popup && (

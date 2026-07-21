@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Badge } from "@aster/ui";
 
+import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -386,8 +387,8 @@ export function PasskeySection() {
       )}
 
       {webauthn_supported && !is_desktop() && (
-        <div className="space-y-3 mt-2">
-          <div>
+        <div className="flex items-center gap-3 mt-2">
+          <div className="flex items-center gap-1.5">
             <Button
               disabled={registering !== null}
               size="sm"
@@ -403,11 +404,12 @@ export function PasskeySection() {
                 ? t("passkeys.registering")
                 : t("passkeys.add_passkey")}
             </Button>
-            <p className="text-xs text-txt-muted mt-1">
-              {t("passkeys.passkey_hint")}
-            </p>
+            <InfoPopover
+              description={t("passkeys.passkey_hint")}
+              title={t("passkeys.add_passkey")}
+            />
           </div>
-          <div>
+          <div className="flex items-center gap-1.5">
             <Button
               disabled={registering !== null}
               size="sm"
@@ -423,9 +425,10 @@ export function PasskeySection() {
                 ? t("passkeys.registering")
                 : t("passkeys.add_security_key")}
             </Button>
-            <p className="text-xs text-txt-muted mt-1">
-              {t("passkeys.security_key_hint")}
-            </p>
+            <InfoPopover
+              description={t("passkeys.security_key_hint")}
+              title={t("passkeys.add_security_key")}
+            />
           </div>
         </div>
       )}

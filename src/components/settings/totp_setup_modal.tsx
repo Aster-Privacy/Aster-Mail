@@ -20,12 +20,13 @@
 //
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { QRCodeSVG } from "qrcode.react";
+import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import {
   ClipboardDocumentIcon,
   ShieldCheckIcon,
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
+  QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -38,7 +39,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Input } from "@/components/ui/input";
+import { OtpInput } from "@/components/ui/otp_input";
 import {
   initiate_totp_setup,
   verify_totp_setup,
@@ -53,7 +54,7 @@ interface TotpSetupModalProps {
   on_success: () => void;
 }
 
-type SetupStep = "qr_code" | "verify" | "backup_codes";
+type SetupStep = "setup" | "backup_codes";
 
 export function TotpSetupModal({
   is_open,
@@ -62,18 +63,17 @@ export function TotpSetupModal({
 }: TotpSetupModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const [step, set_step] = useState<SetupStep>("qr_code");
+  const [step, set_step] = useState<SetupStep>("setup");
   const [setup_data, set_setup_data] =
     useState<TotpSetupInitiateResponse | null>(null);
   const [verification_code, set_verification_code] = useState("");
   const [backup_codes, set_backup_codes] = useState<string[]>([]);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
-  const input_ref = useRef<HTMLInputElement>(null);
   const verifying_ref = useRef(false);
 
   const reset_state = useCallback(() => {
-    set_step("qr_code");
+    set_step("setup");
     set_setup_data(null);
     set_verification_code("");
     set_backup_codes([]);
@@ -89,12 +89,6 @@ export function TotpSetupModal({
       reset_state();
     }
   }, [is_open, setup_data, reset_state]);
-
-  useEffect(() => {
-    if (step === "verify") {
-      input_ref.current?.focus();
-    }
-  }, [step]);
 
   const initiate_setup = async () => {
     set_is_loading(true);
@@ -116,16 +110,15 @@ export function TotpSetupModal({
     set_is_loading(false);
   };
 
-  const handle_verify = async () => {
-    if (!setup_data || verification_code.length !== 6 || verifying_ref.current)
-      return;
+  const handle_verify = async (code = verification_code) => {
+    if (!setup_data || code.length !== 6 || verifying_ref.current) return;
 
     verifying_ref.current = true;
     set_is_loading(true);
     set_error("");
 
     const response = await verify_totp_setup({
-      code: verification_code,
+      code,
       setup_token: setup_data.setup_token,
     });
 
@@ -133,8 +126,6 @@ export function TotpSetupModal({
       set_error(response.error);
       verifying_ref.current = false;
       set_is_loading(false);
-      input_ref.current?.focus();
-      input_ref.current?.select();
 
       return;
     }
@@ -149,12 +140,8 @@ export function TotpSetupModal({
   };
 
   const handle_code_change = (value: string) => {
-    set_verification_code(value.replace(/\D/g, "").slice(0, 6));
+    set_verification_code(value);
     if (error) set_error("");
-  };
-
-  const handle_key_down = (e: React.KeyboardEvent) => {
-    if (e["key"] === "Enter") handle_verify();
   };
 
   const copy_secret = async () => {
@@ -186,16 +173,27 @@ export function TotpSetupModal({
     on_close();
   }, [step, on_success, on_close]);
 
-  const render_qr_step = () => (
+  const render_setup_step = () => (
     <>
       <ModalHeader>
-        <ModalTitle>{t("settings.setup_two_factor_auth")}</ModalTitle>
+        <div className="flex items-center justify-between gap-3">
+          <ModalTitle>{t("settings.setup_two_factor_auth")}</ModalTitle>
+          <a
+            className="flex items-center gap-1 text-xs font-medium text-txt-muted hover:text-txt-primary transition-colors flex-shrink-0"
+            href="https://astermail.org/blog/how-to-set-up-two-factor-authentication"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <QuestionMarkCircleIcon className="w-4 h-4" />
+            {t("settings.view_guide")}
+          </a>
+        </div>
         <ModalDescription>
           {t("settings.scan_qr_code_description")}
         </ModalDescription>
       </ModalHeader>
       <ModalBody>
-        {is_loading ? (
+        {is_loading && !setup_data ? (
           <div className="flex items-center justify-center py-12">
             <div
               className="w-8 h-8 border-2 rounded-full animate-spin border-edge-secondary"
@@ -211,18 +209,13 @@ export function TotpSetupModal({
             </Button>
           </div>
         ) : setup_data ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex justify-center">
-              <div
-                className="p-4 rounded-lg"
-                style={{ backgroundColor: "#ffffff" }}
-              >
-                <QRCodeSVG
-                  level="M"
-                  size={180}
-                  value={setup_data.otpauth_uri}
-                />
-              </div>
+              <RoundedQrCode
+                logo_src="/mail_logo.webp"
+                size={180}
+                value={setup_data.otpauth_uri}
+              />
             </div>
             <div className="text-center">
               <p className="text-xs mb-2 text-txt-muted">
@@ -241,64 +234,35 @@ export function TotpSetupModal({
                 </button>
               </div>
             </div>
+            <div className="h-px bg-edge-secondary" />
+            <div>
+              <p className="text-xs font-medium mb-2 text-txt-muted">
+                {t("common.verify_setup")}
+              </p>
+              <OtpInput
+                disabled={is_loading}
+                status={error ? "error" : "default"}
+                value={verification_code}
+                onChange={handle_code_change}
+                onComplete={handle_verify}
+              />
+              {error && (
+                <p className="text-sm text-center text-red-500 mt-2">
+                  {error}
+                </p>
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="flex items-center justify-center py-12">
-            <div
-              className="w-8 h-8 border-2 rounded-full animate-spin border-edge-secondary"
-              style={{ borderTopColor: "var(--color-info)" }}
-            />
-          </div>
-        )}
+        ) : null}
       </ModalBody>
       <ModalFooter>
         <Button variant="outline" onClick={on_close}>
           {t("common.cancel")}
         </Button>
         <Button
-          disabled={!setup_data}
+          disabled={verification_code.length !== 6 || is_loading || !setup_data}
           variant="depth"
-          onClick={() => set_step("verify")}
-        >
-          {t("common.continue")}
-        </Button>
-      </ModalFooter>
-    </>
-  );
-
-  const render_verify_step = () => (
-    <>
-      <ModalHeader>
-        <ModalTitle>{t("common.verify_setup")}</ModalTitle>
-        <ModalDescription>{t("settings.verify_2fa_setup")}</ModalDescription>
-      </ModalHeader>
-      <ModalBody>
-        <div className="space-y-4">
-          <Input
-            ref={input_ref}
-            autoComplete="one-time-code"
-            className="text-center text-2xl font-semibold tracking-[0.5em]"
-            disabled={is_loading}
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="000000"
-            status={error ? "error" : "default"}
-            type="text"
-            value={verification_code}
-            onChange={(e) => handle_code_change(e.target.value)}
-            onKeyDown={handle_key_down}
-          />
-          {error && <p className="text-sm text-center text-red-500">{error}</p>}
-        </div>
-      </ModalBody>
-      <ModalFooter>
-        <Button variant="outline" onClick={() => set_step("qr_code")}>
-          {t("common.back")}
-        </Button>
-        <Button
-          disabled={verification_code.length !== 6 || is_loading}
-          variant="depth"
-          onClick={handle_verify}
+          onClick={() => handle_verify()}
         >
           {is_loading ? t("common.verifying") : t("common.verify")}
         </Button>
@@ -382,25 +346,26 @@ export function TotpSetupModal({
   );
 
   return (
-    <Modal
-      close_on_overlay={false}
-      is_open={is_open}
-      on_close={handle_modal_close}
-      size="md"
-    >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          initial={reduce_motion ? false : { opacity: 0 }}
-          transition={{ duration: reduce_motion ? 0 : 0.15 }}
-        >
-          {step === "qr_code" && render_qr_step()}
-          {step === "verify" && render_verify_step()}
-          {step === "backup_codes" && render_backup_codes_step()}
-        </motion.div>
-      </AnimatePresence>
-    </Modal>
+    <>
+      <Modal
+        close_on_overlay={false}
+        is_open={is_open}
+        on_close={handle_modal_close}
+        size="md"
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            initial={reduce_motion ? false : { opacity: 0 }}
+            transition={{ duration: reduce_motion ? 0 : 0.15 }}
+          >
+            {step === "setup" && render_setup_step()}
+            {step === "backup_codes" && render_backup_codes_step()}
+          </motion.div>
+        </AnimatePresence>
+      </Modal>
+    </>
   );
 }

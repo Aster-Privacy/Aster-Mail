@@ -24,6 +24,7 @@ import {
   FingerPrintIcon,
   ShieldCheckIcon,
   ComputerDesktopIcon,
+  LinkIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
@@ -37,6 +38,7 @@ import {
 } from "@/components/settings/hooks/use_security";
 import { InfoPopover } from "@/components/ui/info_popover";
 import type { LoginEventEntry } from "@/services/api/auth";
+import { TotpInlineSetup } from "@/components/settings/security/totp_inline_setup";
 
 function format_relative_time(
   iso: string,
@@ -97,11 +99,73 @@ function OptionButton({ is_selected, label, on_click }: OptionButtonProps) {
   );
 }
 
-interface TwoFactorSectionProps {
+interface TwoStepVerificationGroupProps {
   totp_enabled: boolean;
   totp_backup_codes_remaining: number | undefined;
   on_two_factor_toggle: () => void;
   on_regenerate_backup_codes?: () => void;
+  show_inline_setup: boolean;
+  on_inline_setup_success: () => void;
+}
+
+export function TwoStepVerificationGroup({
+  totp_enabled,
+  totp_backup_codes_remaining,
+  on_two_factor_toggle,
+  on_regenerate_backup_codes,
+  show_inline_setup,
+  on_inline_setup_success,
+}: TwoStepVerificationGroupProps) {
+  const { t } = use_i18n();
+
+  return (
+    <div>
+      <p className="text-sm font-medium text-txt-primary">
+        {t("settings.two_step_verification")}
+      </p>
+      <p className="text-sm mt-0.5 text-txt-muted">
+        {t("settings.two_step_verification_description")}
+      </p>
+
+      <div className="flex items-center justify-between py-3">
+        <p className="text-sm text-txt-primary">
+          {t("settings.authenticator_app")}
+        </p>
+        {totp_enabled ? (
+          <Switch size="lg" checked={totp_enabled} onCheckedChange={on_two_factor_toggle} />
+        ) : (
+          <Button variant="outline" onClick={on_two_factor_toggle}>
+            {show_inline_setup ? t("common.cancel") : t("settings.setup_2fa")}
+          </Button>
+        )}
+      </div>
+
+      {show_inline_setup && (
+        <TotpInlineSetup on_success={on_inline_setup_success} />
+      )}
+
+      {totp_enabled && on_regenerate_backup_codes && (
+        <SecuritySetting
+          action={
+            <Button
+              variant="outline"
+              onClick={on_regenerate_backup_codes}
+            >
+              {t("settings.regenerate_backup_codes")}
+            </Button>
+          }
+          description={t("settings.regenerate_backup_codes_description").replace(
+            "{{count}}",
+            String(totp_backup_codes_remaining ?? 0),
+          )}
+          title={t("settings.backup_codes")}
+        />
+      )}
+    </div>
+  );
+}
+
+interface LoginAlertsSessionsGroupProps {
   session_timeout_enabled: boolean;
   session_timeout_minutes: number;
   on_timeout_toggle: () => void;
@@ -111,24 +175,9 @@ interface TwoFactorSectionProps {
   on_login_alerts_toggle: () => void;
   login_events: LoginEventEntry[];
   login_events_loading: boolean;
-  external_link_warning_dismissed: boolean;
-  on_external_link_toggle: () => void;
-  forward_secrecy_enabled: boolean;
-  on_forward_secrecy_toggle: () => void;
-  key_rotation_hours: number;
-  on_key_rotation_change: (hours: number) => void;
-  key_history_limit: number;
-  on_key_history_change: (limit: number) => void;
-  key_age_hours: number | null;
-  key_fingerprint: string | null;
-  on_rotate_keys_now: () => void;
 }
 
-export function TwoFactorSection({
-  totp_enabled,
-  totp_backup_codes_remaining,
-  on_two_factor_toggle,
-  on_regenerate_backup_codes,
+export function LoginAlertsSessionsGroup({
   session_timeout_enabled,
   session_timeout_minutes,
   on_timeout_toggle,
@@ -138,18 +187,7 @@ export function TwoFactorSection({
   on_login_alerts_toggle,
   login_events,
   login_events_loading,
-  external_link_warning_dismissed,
-  on_external_link_toggle,
-  forward_secrecy_enabled,
-  on_forward_secrecy_toggle,
-  key_rotation_hours,
-  on_key_rotation_change,
-  key_history_limit,
-  on_key_history_change,
-  key_age_hours,
-  key_fingerprint,
-  on_rotate_keys_now,
-}: TwoFactorSectionProps) {
+}: LoginAlertsSessionsGroupProps) {
   const { t } = use_i18n();
 
   return (
@@ -157,48 +195,14 @@ export function TwoFactorSection({
       <div className="mb-4">
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.security_settings")}
+          {t("settings.login_alerts_sessions_title")}
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <SecuritySetting
         action={
-          <Switch
-            checked={totp_enabled}
-            onCheckedChange={on_two_factor_toggle}
-          />
-        }
-        description={
-          totp_enabled
-            ? t("settings.two_fa_enabled").replace(
-                "{{count}}",
-                String(totp_backup_codes_remaining),
-              )
-            : t("settings.two_fa_add_security")
-        }
-        title={t("settings.two_factor_auth")}
-      />
-
-      {totp_enabled && on_regenerate_backup_codes && (
-        <SecuritySetting
-          action={
-            <Button
-              size="md"
-              variant="outline"
-              onClick={on_regenerate_backup_codes}
-            >
-              {t("settings.regenerate_backup_codes")}
-            </Button>
-          }
-          description={t("settings.regenerate_backup_codes_description")}
-          title={t("settings.backup_codes")}
-        />
-      )}
-
-      <SecuritySetting
-        action={
-          <Switch
+          <Switch size="lg"
             checked={session_timeout_enabled}
             onCheckedChange={on_timeout_toggle}
           />
@@ -228,7 +232,7 @@ export function TwoFactorSection({
       )}
       <SecuritySetting
         action={
-          <Switch
+          <Switch size="lg"
             checked={login_alerts_enabled}
             onCheckedChange={on_login_alerts_toggle}
           />
@@ -272,9 +276,33 @@ export function TwoFactorSection({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+interface ExternalLinkWarningsGroupProps {
+  external_link_warning_dismissed: boolean;
+  on_external_link_toggle: () => void;
+}
+
+export function ExternalLinkWarningsGroup({
+  external_link_warning_dismissed,
+  on_external_link_toggle,
+}: ExternalLinkWarningsGroupProps) {
+  const { t } = use_i18n();
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+          <LinkIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+          {t("settings.external_link_warnings")}
+        </h3>
+        <div className="mt-2 h-px bg-edge-secondary" />
+      </div>
       <SecuritySetting
         action={
-          <Switch
+          <Switch size="lg"
             checked={!external_link_warning_dismissed}
             onCheckedChange={on_external_link_toggle}
           />
@@ -287,9 +315,47 @@ export function TwoFactorSection({
         info={{ title: t("settings.info_external_link_warnings_title"), description: t("settings.info_external_link_warnings_description") }}
         title={t("settings.external_link_warnings")}
       />
+    </div>
+  );
+}
+
+interface ForwardSecrecyGroupProps {
+  forward_secrecy_enabled: boolean;
+  on_forward_secrecy_toggle: () => void;
+  key_rotation_hours: number;
+  on_key_rotation_change: (hours: number) => void;
+  key_history_limit: number;
+  on_key_history_change: (limit: number) => void;
+  key_age_hours: number | null;
+  key_fingerprint: string | null;
+  on_rotate_keys_now: () => void;
+}
+
+export function ForwardSecrecyGroup({
+  forward_secrecy_enabled,
+  on_forward_secrecy_toggle,
+  key_rotation_hours,
+  on_key_rotation_change,
+  key_history_limit,
+  on_key_history_change,
+  key_age_hours,
+  key_fingerprint,
+  on_rotate_keys_now,
+}: ForwardSecrecyGroupProps) {
+  const { t } = use_i18n();
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+          <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+          {t("settings.forward_secrecy")}
+        </h3>
+        <div className="mt-2 h-px bg-edge-secondary" />
+      </div>
       <SecuritySetting
         action={
-          <Switch
+          <Switch size="lg"
             checked={forward_secrecy_enabled}
             onCheckedChange={on_forward_secrecy_toggle}
           />
@@ -331,7 +397,7 @@ export function TwoFactorSection({
                         "{{count}}",
                         String(Math.floor(key_age_hours / 24)),
                       )
-                  : "\u2014"}
+                  : "—"}
               </span>
             </div>
             <div className="flex justify-between items-center text-xs mt-1">
@@ -339,7 +405,7 @@ export function TwoFactorSection({
                 {t("settings.fingerprint")}
               </span>
               <span className="font-mono text-txt-primary">
-                {key_fingerprint || "\u2014"}
+                {key_fingerprint || "—"}
               </span>
             </div>
           </div>

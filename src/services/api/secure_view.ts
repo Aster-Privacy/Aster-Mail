@@ -30,6 +30,7 @@ export interface SecureViewMetadata {
   expires_at: string;
   requires_password: boolean;
   is_expired: boolean;
+  is_deleted: boolean;
   time_remaining_seconds: number;
   is_zero_knowledge: boolean;
   kdf_salt?: string;
@@ -101,4 +102,52 @@ export async function verify_secure_view(
   }
 
   return (await response.json()) as SecureViewVerifyResponse;
+}
+
+export interface SecureViewReplyResponse {
+  success: boolean;
+  error?: string;
+}
+
+export async function reply_to_secure_view(
+  token: string,
+  body: string,
+): Promise<SecureViewReplyResponse> {
+  const response = await fetch(
+    `/api/view/${encodeURIComponent(token)}/reply`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ body }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`secure_view_reply_failed_${response.status}`);
+  }
+
+  return (await response.json()) as SecureViewReplyResponse;
+}
+
+export interface SecureViewDeleteResponse {
+  success: boolean;
+  error?: string;
+}
+
+export async function delete_secure_view(
+  token: string,
+): Promise<SecureViewDeleteResponse> {
+  const response = await fetch(`/api/view/${encodeURIComponent(token)}`, {
+    method: "DELETE",
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(`secure_view_delete_failed_${response.status}`);
+  }
+
+  return (await response.json()) as SecureViewDeleteResponse;
 }
