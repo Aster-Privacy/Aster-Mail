@@ -105,7 +105,6 @@ import {
 } from "@/components/email/inbox/inbox_email_list";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
-import { SurveyBanner } from "@/components/survey/survey_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { get_spam_settings } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
@@ -1562,7 +1561,6 @@ export function EmailInbox({
           storage_used_bytes={mail_stats.storage_used_bytes}
         />
 
-        <SurveyBanner />
 
         {(current_view === "trash" || current_view === "spam") &&
           !selection.some_selected &&

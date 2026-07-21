@@ -73,6 +73,7 @@ import { ForwardModal } from "@/components/modals/forward_modal";
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
 import { NotificationBanner } from "@/components/common/notification_banner";
+import { SurveyBanner } from "@/components/survey/survey_banner";
 import { WifiIcon } from "@heroicons/react/24/outline";
 import { SearchResultsPage } from "@/components/search/search_results_page";
 import { CommandPalette } from "@/components/search/command_palette";
@@ -170,6 +171,7 @@ export default function IndexPage() {
         style={{ backgroundColor: "var(--bg-secondary)" }}
       >
         <NotificationBanner />
+        <SurveyBanner />
         <div className="flex-1 flex transition-colors duration-200 overflow-hidden">
           {state.is_settings_route && !settings_popup_mode ? (
             <Suspense fallback={<FullPageLoader />}>

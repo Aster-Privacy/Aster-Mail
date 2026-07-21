@@ -19,8 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { ClipboardDocumentListIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { AnimatePresence, motion } from "framer-motion";
+import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 
+import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   dismiss_survey,
@@ -47,6 +49,7 @@ function cache_done() {
 }
 
 export function SurveyBanner() {
+  const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const [status, set_status] = useState<SurveyStatusResponse | null>(null);
   const [is_hidden, set_is_hidden] = useState(get_cached_done);
@@ -69,9 +72,7 @@ export function SurveyBanner() {
     };
   }, []);
 
-  if (is_hidden || !status?.eligible) {
-    return null;
-  }
+  const should_hide = is_hidden || !status?.eligible;
 
   const handle_remind_tomorrow = () => {
     set_is_hidden(true);
@@ -90,65 +91,93 @@ export function SurveyBanner() {
     cache_done();
   };
 
+  const pill_button = (label: string, on_click: () => void, emphasis: boolean) => (
+    <button
+      className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
+      style={{
+        backgroundColor: emphasis
+          ? "rgba(255, 255, 255, 0.2)"
+          : "rgba(255, 255, 255, 0.1)",
+        color: "inherit",
+      }}
+      type="button"
+      onClick={on_click}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.backgroundColor = emphasis
+          ? "rgba(255, 255, 255, 0.3)"
+          : "rgba(255, 255, 255, 0.2)")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.backgroundColor = emphasis
+          ? "rgba(255, 255, 255, 0.2)"
+          : "rgba(255, 255, 255, 0.1)")
+      }
+    >
+      {label}
+    </button>
+  );
+
   return (
     <>
-      <div
-        className="mx-3 mt-2 px-4 py-3 rounded-lg flex items-center gap-3"
-        style={{ backgroundColor: "var(--accent-color)", color: "#fff" }}
-      >
-        <ClipboardDocumentListIcon className="w-5 h-5 flex-shrink-0 text-white" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white">
-            {t("survey.banner_title")}
-          </p>
-          <p className="text-xs text-white/80 mt-0.5">
-            {t("survey.banner_message")}
-          </p>
-        </div>
-        {is_choosing_dismissal ? (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              className="px-3 py-1.5 rounded-[12px] text-xs font-medium bg-white/15 hover:bg-white/25 transition-colors"
-              type="button"
-              onClick={handle_remind_tomorrow}
-            >
-              {t("survey.remind_tomorrow")}
-            </button>
-            <button
-              className="px-3 py-1.5 rounded-[12px] text-xs font-medium bg-white/15 hover:bg-white/25 transition-colors"
-              type="button"
-              onClick={handle_dismiss_forever}
-            >
-              {t("survey.dismiss_forever")}
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              className="px-3 py-1.5 rounded-[12px] text-xs font-medium bg-white text-neutral-900 hover:bg-white/90 transition-colors"
-              type="button"
-              onClick={() => set_is_modal_open(true)}
-            >
-              {t("survey.banner_take")}
-            </button>
-            <button
-              aria-label={t("survey.banner_dismiss")}
-              className="p-1.5 rounded-full hover:bg-white/15 transition-colors"
-              type="button"
-              onClick={() => set_is_choosing_dismissal(true)}
-            >
-              <XMarkIcon className="w-4 h-4" />
-            </button>
-          </div>
+      <AnimatePresence>
+        {!should_hide && (
+          <motion.div
+            animate={{ opacity: 1, height: "auto" }}
+            className="w-full text-white flex-shrink-0 overflow-hidden"
+            exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+            initial={reduce_motion ? false : { opacity: 0, height: 0 }}
+            style={{ backgroundColor: "var(--accent-color)" }}
+            transition={{ duration: reduce_motion ? 0 : 0.2 }}
+          >
+            <div className="flex items-center justify-between px-4 py-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <ClipboardDocumentListIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
+                <span className="text-xs font-medium truncate opacity-95">
+                  {t("survey.banner_message")}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0 ml-4">
+                {is_choosing_dismissal ? (
+                  <>
+                    {pill_button(
+                      t("survey.remind_tomorrow"),
+                      handle_remind_tomorrow,
+                      false,
+                    )}
+                    {pill_button(
+                      t("survey.dismiss_forever"),
+                      handle_dismiss_forever,
+                      false,
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {pill_button(
+                      t("survey.banner_take"),
+                      () => set_is_modal_open(true),
+                      true,
+                    )}
+                    {pill_button(
+                      t("survey.banner_dismiss"),
+                      () => set_is_choosing_dismissal(true),
+                      false,
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
         )}
-      </div>
-      <SurveyModal
-        branch={status.branch}
-        is_open={is_modal_open}
-        plan_code={status.plan_code}
-        on_close={() => set_is_modal_open(false)}
-        on_submitted={handle_submitted}
-      />
+      </AnimatePresence>
+      {status && (
+        <SurveyModal
+          branch={status.branch}
+          is_open={is_modal_open}
+          plan_code={status.plan_code}
+          on_close={() => set_is_modal_open(false)}
+          on_submitted={handle_submitted}
+        />
+      )}
     </>
   );
 }
