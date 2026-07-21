@@ -3319,6 +3319,7 @@ export const en: Translations = {
     referral_commission_info:
       "Plus {{ percent }}% of every payment your referrals make, as long as they stay subscribed.",
     referral_max_credits: "Maximum earnings: {{ value }}",
+    referral_gauge_earned_label: "Earned",
     total_earned: "Total Earned",
     send_referral_to_contacts: "Email All Contacts",
     referral_email_subject: "Try Aster Mail - private email for everyone",
@@ -3326,6 +3327,80 @@ export const en: Translations = {
       "Hey!\n\nI've been using Aster Mail and really like it. It's end-to-end encrypted so nobody can read your emails except you - not even Aster themselves.\n\nIf you want to give it a shot, here's my referral link:\n\n{{ referral_link }}\n\nWe both get credits if you end up subscribing, but no pressure. Just thought you'd appreciate it.\n\nCheers",
     referral_no_contacts: "No contacts found. Add some contacts first!",
     referral_loading_contacts: "Loading contacts...",
+    referral_your_discount: "Your Discount",
+    referral_discount_active: "Active",
+    referral_discount_redeemed: "Redeemed",
+    referral_discount_expired: "Expired",
+    referral_discount_auto_apply:
+      "Applied automatically at checkout - no need to enter it.",
+    referral_discount_expires: "Expires {{ date }}",
+    affiliate_program: "Affiliate Program",
+    affiliate_status_title: "Affiliate Partner Status",
+    affiliate_status_description:
+      "You are enrolled in the Aster Mail Affiliate Program and earn {{ percent }}% commission on every payment made by subscribers you've referred, for as long as they remain subscribed.",
+    affiliate_commission_rate: "Commission Rate",
+    affiliate_total_earned: "Total Earned",
+    affiliate_amount_owed: "Amount Owed",
+    affiliate_paid_out: "Paid Out",
+    affiliate_brand_badge: "Brand Affiliate",
+    affiliate_your_link_label: "Your Affiliate Link",
+    affiliate_lifetime_cap: "Monthly earnings cap: {{ value }}",
+    affiliate_cap_resets_in: "Resets in {{ days }} days",
+    affiliate_info_hint_cap_title: "Monthly Earnings Cap",
+    affiliate_info_hint_cap:
+      "Affiliate commissions are capped at {{ value }} per calendar month. Once you reach the cap, no further commission accrues until it automatically resets at the start of the next month, in {{ days }} days.",
+    affiliate_info_hint_paid_out_title: "Paid Out",
+    affiliate_info_hint_paid_out:
+      "The total commission that has already been paid out to you across all completed payout requests. This figure does not reset each month.",
+    affiliate_info_hint_owed_title: "Amount Owed",
+    affiliate_info_hint_owed:
+      "Your current unpaid commission balance. This is the amount available to request as your next payout, and it accumulates until you request one.",
+    affiliate_info_title: "Program Terms",
+    affiliate_info_step_commission:
+      "Commission is earned at a rate of {{ percent }}% on the subscriber's payment amount, before applicable taxes and fees. This is recurring: you earn commission on every renewal payment made by a referred subscriber for as long as they remain subscribed, not just their first payment.",
+    affiliate_info_step_cap:
+      "Total earnings are capped at {{ value }} per calendar month per brand affiliate. The cap resets automatically at the start of each month, and no additional commission accrues once the monthly limit is reached.",
+    affiliate_info_step_payout:
+      "A $5 minimum outstanding balance is required to request a payout. Payout requests are reviewed manually by our team and, once approved, are typically processed within 3-5 business days.",
+    affiliate_info_step_disclosure:
+      "Brand affiliates are required to clearly disclose their affiliate relationship with Aster Mail wherever the program is promoted, in accordance with applicable advertising disclosure regulations.",
+    affiliate_info_step_tax:
+      "You are solely responsible for reporting and remitting any taxes owed on affiliate earnings in your jurisdiction.",
+    affiliate_info_step_tax_reporting:
+      "If your total commission earnings reach $2,000 or more in a calendar year, we are required to report your earnings to the applicable tax authority. To do this, we will need a completed W-9 (US persons) or W-8BEN (non-US persons) on file, and further payouts will be paused until we receive it. If a valid form isn't provided, tax law may require us to withhold a portion of future payouts. We will contact you directly if this applies to you.",
+    affiliate_info_step_account_binding:
+      "Affiliate and brand partner status is linked exclusively to a single Aster Mail account. It cannot be granted, transferred, or duplicated across multiple accounts belonging to the same individual or entity.",
+    affiliate_info_footer_note:
+      "These terms take effect on your enrollment date and may be updated periodically. If we make a material change that affects your commission rate, monthly cap, or payout terms, we will notify you directly (in-app or by email) before it takes effect. Continued participation after that notice constitutes acceptance of the change.",
+    affiliate_payout_processing_note:
+      "Payouts are reviewed manually and typically processed within 3-5 business days.",
+    affiliate_payout_email_subject: "Affiliate Payout Request",
+    affiliate_payout_instructions:
+      "Request your payout below. We'll open a pre-filled email to hello@astermail.org for you.",
+    affiliate_copy_template: "Request Payout",
+    affiliate_template_copied: "Payout request created",
+    affiliate_payout_email_body:
+      "Hi,\n\nI'd like to request my affiliate payout.\n\nRequest ID: {{ request_id }}\nCommission rate: {{ commission_percent }}%\nTotal earned: {{ total_earned }}\nAlready paid out: {{ total_paid_out }}\nAmount owed: {{ outstanding }}\n\nPlease let me know the next steps.\n\nThanks",
+    affiliate_nothing_owed: "You have no outstanding payout to request yet.",
+    affiliate_payout_request_failed:
+      "Couldn't create a payout request. Please try again.",
+    affiliate_email_link_button: "Email Link",
+    affiliate_payout_amount_label: "Amount to request",
+    affiliate_payout_amount_max: "Max",
+    affiliate_payout_amount_invalid: "Enter a valid amount to request.",
+    affiliate_payout_amount_exceeds:
+      "That amount is more than your outstanding balance.",
+    affiliate_payout_amount_below_minimum:
+      "The minimum payout amount is $5.",
+    affiliate_learn_more_irs_confirm_title: "Leave Aster Mail?",
+    affiliate_learn_more_irs_confirm:
+      "You're about to go to the IRS website (irs.gov) in a new tab.",
+    affiliate_payout_history_title: "Payout History",
+    affiliate_payout_history_empty: "No payout requests yet.",
+    affiliate_payout_status_pending: "Pending",
+    affiliate_payout_status_accepted: "Paid",
+    affiliate_payout_status_rejected: "Rejected",
+    affiliate_payout_requested_on: "Requested {{ date }}",
     billing_address: "Billing Address",
     billing_address_description:
       "Add your billing details to appear on invoices.",
@@ -6066,6 +6141,10 @@ export const en: Translations = {
       "Pick the plan that fits you. You can change or cancel anytime.",
     plan_academic_discount_note:
       "Your 30% discount is applied automatically at checkout once your email is verified.",
+    plan_referral_discount_note:
+      "Your referral discount is applied automatically when you check out.",
+    plan_referral_discount_percent_note:
+      "Your {{percent}}% referral discount is already applied below.",
     plan_continue_with_free: "Continue with Free",
     plan_continue_as_free: "Continue as free",
     academic_offer_title: "Student or journalist? Get 30% off",

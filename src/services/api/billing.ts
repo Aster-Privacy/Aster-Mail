@@ -54,6 +54,7 @@ export interface SubscriptionResponse {
   payment_provider?: string | null;
   paid_until?: string | null;
   has_stripe_subscription?: boolean;
+  active_discount_description?: string | null;
 }
 
 export interface AvailablePlan {
@@ -700,6 +701,60 @@ export interface ReferralHistoryItem {
 export interface ReferralHistoryResponse {
   referrals: ReferralHistoryItem[];
   total: number;
+}
+
+export interface MyReferralStatus {
+  was_referred: boolean;
+  status: string | null;
+  discount_promo_code: string | null;
+  discount_issued_at: string | null;
+  discount_redeemed_at: string | null;
+  discount_expires_at: string | null;
+}
+
+export async function get_my_referral_status() {
+  return api_client.get<MyReferralStatus>("/payments/v1/referrals/me");
+}
+
+export interface MyAffiliateStatus {
+  is_affiliate: boolean;
+  commission_percent: number;
+  total_earned_cents: number;
+  earned_this_month_cents: number;
+  total_paid_out_cents: number;
+  outstanding_cents: number;
+}
+
+export async function get_my_affiliate_status() {
+  return api_client.get<MyAffiliateStatus>("/payments/v1/referrals/affiliate");
+}
+
+export interface AffiliatePayoutRequest {
+  short_code: string;
+  amount_cents: number;
+  created_at: string;
+}
+
+export async function request_affiliate_payout(amount_cents?: number) {
+  return api_client.post<AffiliatePayoutRequest>(
+    "/payments/v1/referrals/affiliate/request-payout",
+    { amount_cents: amount_cents ?? null },
+  );
+}
+
+export interface MyAffiliatePayoutRequestItem {
+  short_code: string;
+  amount_cents: number;
+  status: string;
+  created_at: string;
+  accepted_at: string | null;
+  rejected_at: string | null;
+}
+
+export async function list_my_affiliate_payout_requests() {
+  return api_client.get<MyAffiliatePayoutRequestItem[]>(
+    "/payments/v1/referrals/affiliate/payout-requests",
+  );
 }
 
 export async function get_referral_info() {
