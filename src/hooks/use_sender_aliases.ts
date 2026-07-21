@@ -233,7 +233,8 @@ export function use_sender_aliases() {
 
       if (external_response.data) {
         const enabled_externals = external_response.data.filter(
-          (a) => a.is_enabled && !a.email.endsWith("@import"),
+          (a) =>
+            a.is_enabled && !a.oauth_provider && !a.email.endsWith("@import"),
         );
         const external_sender_options: SenderOption[] = enabled_externals.map(
           (account) => ({
