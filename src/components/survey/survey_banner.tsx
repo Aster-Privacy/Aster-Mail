@@ -27,6 +27,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   dismiss_survey,
   get_survey_status,
+  mark_survey_opened,
   type SurveyStatusResponse,
 } from "@/services/api/survey";
 
@@ -154,7 +155,10 @@ export function SurveyBanner() {
                   <>
                     {pill_button(
                       t("survey.banner_take"),
-                      () => set_is_modal_open(true),
+                      () => {
+                        set_is_modal_open(true);
+                        mark_survey_opened();
+                      },
                       true,
                     )}
                     {pill_button(

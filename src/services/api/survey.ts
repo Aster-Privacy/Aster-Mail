@@ -34,6 +34,10 @@ export function get_survey_status(): Promise<ApiResponse<SurveyStatusResponse>> 
   return api_client.get<SurveyStatusResponse>("/core/v1/survey");
 }
 
+export function mark_survey_opened(): Promise<ApiResponse<SurveyActionResponse>> {
+  return api_client.post<SurveyActionResponse>("/core/v1/survey/opened", {});
+}
+
 export function dismiss_survey(
   permanent: boolean,
 ): Promise<ApiResponse<SurveyActionResponse>> {
