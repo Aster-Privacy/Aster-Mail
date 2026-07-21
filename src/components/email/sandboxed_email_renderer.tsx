@@ -158,6 +158,14 @@ async function resolve_native_images(doc: Document): Promise<void> {
 
 const iframe_height_cache = new Map<string, number>();
 
+export const CONTENT_READY_FALLBACK_MS = 1500;
+
+export function dispatch_iframe_ready(email_id: string): void {
+  window.dispatchEvent(
+    new CustomEvent("astermail:iframe-ready", { detail: email_id }),
+  );
+}
+
 export function get_cached_iframe_height(email_id: string): number | undefined {
   return iframe_height_cache.get(email_id);
 }

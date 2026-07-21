@@ -25,7 +25,10 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
-import { get_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
+import {
+  get_cached_iframe_height,
+  CONTENT_READY_FALLBACK_MS,
+} from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_i18n } from "@/lib/i18n/context";
 import { useMemo } from "react";
@@ -160,8 +163,12 @@ export function FullEmailViewer({
     };
 
     window.addEventListener("astermail:iframe-ready", handler);
+    const fallback_timer = window.setTimeout(handler, CONTENT_READY_FALLBACK_MS);
 
-    return () => window.removeEventListener("astermail:iframe-ready", handler);
+    return () => {
+      window.removeEventListener("astermail:iframe-ready", handler);
+      window.clearTimeout(fallback_timer);
+    };
   }, [email_id]);
 
   const prev_email_id_ref = useRef(email_id);

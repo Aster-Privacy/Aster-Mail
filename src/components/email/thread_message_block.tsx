@@ -28,6 +28,8 @@ import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload
 import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+
+import { dispatch_iframe_ready } from "@/components/email/sandboxed_email_renderer";
 import {
   StarIcon,
   EyeIcon,
@@ -274,6 +276,12 @@ export function ThreadMessageBlock({
       is_ratchet_envelope(message.html_content));
   const rich_html_source = message.html_content || message.body;
   const is_plain_text = !rich_html_source || !has_rich_html(rich_html_source);
+
+  useEffect(() => {
+    if (is_ratchet_undecryptable) {
+      dispatch_iframe_ready(message.id);
+    }
+  }, [is_ratchet_undecryptable, message.id]);
 
   const base_image_mode = is_system
     ? ("always" as ImageLoadMode)
