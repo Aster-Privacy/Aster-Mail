@@ -156,8 +156,9 @@
     "workbox-window": "^7.4.0"
   },
   "overrides": {
-    "tar": ">=7.5.16",
-    "js-yaml": ">=4.2.0",
+    "tar": ">=7.5.18",
+    "js-yaml": ">=4.3.0",
+    "brace-expansion": ">=2.1.2",
     "@babel/core": "^7.29.6",
     "lodash": "^4.17.23",
     "serialize-javascript": ">=7.0.3",
