@@ -70,8 +70,8 @@ describe("category_index pinned rep election", () => {
 
     expect(get_page_ids("primary", 0, 50)).toEqual(["m2"]);
     expect(get_page_ids("promotions", 0, 50)).toEqual([]);
-    expect(get_counts().primary.total).toBe(1);
-    expect(get_counts().promotions.total).toBe(0);
+    expect(get_counts().primary!.total).toBe(1);
+    expect(get_counts().promotions!.total).toBe(0);
   });
 
   it("the newest pin wins when a thread was re-moved", () => {
@@ -128,11 +128,11 @@ describe("category_index remove_thread_entries", () => {
       entry("other"),
     ]);
 
-    expect(get_counts().primary.total).toBe(2);
+    expect(get_counts().primary!.total).toBe(2);
 
     remove_thread_entries("t1");
 
-    expect(get_counts().primary.total).toBe(1);
+    expect(get_counts().primary!.total).toBe(1);
     expect(get_page_ids("primary", 0, 50)).toEqual(["other"]);
   });
 });
@@ -155,12 +155,12 @@ describe("category_index mark_category_seen clock clamp", () => {
       }),
     ]);
 
-    expect(get_counts().primary.new_count).toBe(1);
+    expect(get_counts().primary!.new_count).toBe(1);
 
     mark_category_seen("primary");
 
-    expect(get_counts().primary.new_count).toBe(0);
-    expect(get_counts().primary.unread).toBe(1);
+    expect(get_counts().primary!.new_count).toBe(0);
+    expect(get_counts().primary!.unread).toBe(1);
   });
 
   it("does not let one future-dated message blind the badge to genuinely new mail", () => {
@@ -180,6 +180,6 @@ describe("category_index mark_category_seen clock clamp", () => {
       }),
     ]);
 
-    expect(get_counts().primary.new_count).toBeGreaterThanOrEqual(1);
+    expect(get_counts().primary!.new_count).toBeGreaterThanOrEqual(1);
   });
 });

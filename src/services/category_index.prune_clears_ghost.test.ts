@@ -202,14 +202,14 @@ describe("category_index prune clears the ghost", () => {
     await init_category_index();
     await flush();
 
-    expect(get_counts().primary.total).toBe(2);
-    expect(get_counts().primary.unread).toBe(2);
+    expect(get_counts().primary!.total).toBe(2);
+    expect(get_counts().primary!.unread).toBe(2);
     expect(get_page_ids("primary", 0, 50)).toEqual(["keep1", "keep2"]);
 
     remove_ids(["keep1", "keep2"]);
 
-    expect(get_counts().primary.total).toBe(0);
-    expect(get_counts().primary.unread).toBe(0);
+    expect(get_counts().primary!.total).toBe(0);
+    expect(get_counts().primary!.unread).toBe(0);
     expect(get_page_ids("primary", 0, 50)).toEqual([]);
   });
 });

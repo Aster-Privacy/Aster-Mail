@@ -210,7 +210,7 @@ describe("category_index server read-state authority", () => {
     await init_category_index();
     await flush();
 
-    expect(get_counts().primary.unread).toBe(0);
+    expect(get_counts().primary!.unread).toBe(0);
   });
 
   it("renders unread when both server and metadata say unread", async () => {
@@ -222,7 +222,7 @@ describe("category_index server read-state authority", () => {
     await init_category_index();
     await flush();
 
-    expect(get_counts().primary.unread).toBe(1);
+    expect(get_counts().primary!.unread).toBe(1);
   });
 
   it("renders read when metadata says read but the server has not caught up", async () => {
@@ -234,7 +234,7 @@ describe("category_index server read-state authority", () => {
     await init_category_index();
     await flush();
 
-    expect(get_counts().primary.unread).toBe(0);
+    expect(get_counts().primary!.unread).toBe(0);
   });
 
   it("renders unread for a freshly delivered item with a server flag and no metadata blob", async () => {
@@ -245,7 +245,7 @@ describe("category_index server read-state authority", () => {
     await init_category_index();
     await flush();
 
-    expect(get_counts().primary.unread).toBe(1);
+    expect(get_counts().primary!.unread).toBe(1);
     expect(decrypt_mail_metadata).not.toHaveBeenCalled();
   });
 });

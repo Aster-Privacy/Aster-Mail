@@ -197,7 +197,7 @@ describe("category_index read-state immediacy", () => {
     await init_category_index();
     await flush();
 
-    expect(get_counts().primary.unread).toBe(1);
+    expect(get_counts().primary!.unread).toBe(1);
 
     let notified = 0;
     const unsubscribe = subscribe(() => {
@@ -207,7 +207,7 @@ describe("category_index read-state immediacy", () => {
     emit_mail_item_updated({ id: "m1", is_read: true });
 
     expect(notified).toBe(1);
-    expect(get_counts().primary.unread).toBe(0);
+    expect(get_counts().primary!.unread).toBe(0);
 
     unsubscribe();
   });
