@@ -56,6 +56,7 @@ export interface TranslationNamespace {
   compose: ComposeTranslations;
   passkeys: PasskeysTranslations;
   shared_mailboxes: SharedMailboxesTranslations;
+  survey: SurveyTranslations;
 }
 
 export interface SharedMailboxesTranslations {
@@ -4739,6 +4740,13 @@ export interface SettingsTranslations {
   alias_advanced_hide: string;
   alias_advanced_show: string;
   alias_details_title: string;
+  alias_auto_tag_title: string;
+  alias_auto_tag_info: string;
+  alias_auto_tag_accept: string;
+  alias_auto_tag_accepted: string;
+  alias_pref_auto_tag: string;
+  alias_pref_auto_tag_desc: string;
+  alias_pref_auto_tag_info: string;
   alias_field_display_name_label: string;
   alias_field_note_label: string;
   alias_field_websites_label: string;
@@ -6359,6 +6367,60 @@ export interface BadgesTranslations {
   badge_stargazer_description: string;
 }
 
+export interface SurveyTranslations {
+  banner_title: string;
+  banner_message: string;
+  banner_take: string;
+  banner_dismiss: string;
+  remind_tomorrow: string;
+  dismiss_forever: string;
+  modal_title: string;
+  modal_subtitle: string;
+  q_source: string;
+  source_reddit: string;
+  source_youtube: string;
+  source_friend: string;
+  source_twitter: string;
+  source_privacy_directory: string;
+  source_search_engine: string;
+  q_signup_reason: string;
+  signup_e2ee: string;
+  signup_leave_big_tech: string;
+  signup_open_source: string;
+  signup_specific_feature: string;
+  signup_price: string;
+  signup_curiosity: string;
+  q_stood_out: string;
+  stood_openpgp: string;
+  stood_post_quantum: string;
+  stood_open_source: string;
+  stood_germany: string;
+  stood_price: string;
+  stood_ui: string;
+  q_upgrade_blocker: string;
+  q_upgrade_trigger: string;
+  trigger_storage: string;
+  trigger_feature: string;
+  trigger_support_mission: string;
+  trigger_switched_fully: string;
+  q_plan_reason: string;
+  q_cancel_reason: string;
+  q_hesitation: string;
+  hesitation_price: string;
+  hesitation_trust: string;
+  hesitation_missing_feature: string;
+  hesitation_longevity: string;
+  hesitation_none: string;
+  option_other: string;
+  other_placeholder: string;
+  open_placeholder: string;
+  optional_label: string;
+  required_error: string;
+  submit: string;
+  submit_failed: string;
+  submitted_thanks: string;
+}
+
 export type TranslationKey =
   | `common.${keyof CommonTranslations}`
   | `settings.${keyof SettingsTranslations}`
@@ -6371,6 +6433,7 @@ export type TranslationKey =
   | `secure_view.${keyof SecureViewTranslations}`
   | `compose.${keyof ComposeTranslations}`
   | `passkeys.${keyof PasskeysTranslations}`
-  | `shared_mailboxes.${keyof SharedMailboxesTranslations}`;
+  | `shared_mailboxes.${keyof SharedMailboxesTranslations}`
+  | `survey.${keyof SurveyTranslations}`;
 
 export type Translations = TranslationNamespace;
