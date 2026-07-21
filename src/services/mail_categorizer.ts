@@ -29,13 +29,21 @@ import {
   ASTER_DOMAIN_SUFFIXES,
   SOCIAL_DOMAIN_SUFFIXES,
   FORUM_DOMAIN_SUFFIXES,
+  FINANCE_DOMAIN_SUFFIXES,
+  TRAVEL_DOMAIN_SUFFIXES,
+  SHOPPING_DOMAIN_SUFFIXES,
   UPDATES_DOMAIN_SUFFIXES,
   MARKETING_DOMAIN_SUFFIXES,
   BULK_INFRA_DOMAIN_SUFFIXES,
   BULK_SENDER_LOCALPARTS,
   PROMOTIONS_SUBJECT_PATTERNS,
   UPDATES_SUBJECT_PATTERNS,
+  FINANCE_SUBJECT_PATTERNS,
+  TRAVEL_SUBJECT_PATTERNS,
+  SHOPPING_SUBJECT_PATTERNS,
 } from "@/data/category_signals";
+import type { CustomCategoryRule } from "@/data/category_catalog";
+import { BUILTIN_CATEGORY_IDS, fold_builtin } from "@/data/category_catalog";
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -78,10 +86,14 @@ const PROMO_LOCALPARTS = new Set([
 const ASTER_SET = new Set(ASTER_DOMAIN_SUFFIXES);
 const SOCIAL_SET = new Set(SOCIAL_DOMAIN_SUFFIXES);
 const FORUM_SET = new Set(FORUM_DOMAIN_SUFFIXES);
+const FINANCE_SET = new Set(FINANCE_DOMAIN_SUFFIXES);
+const TRAVEL_SET = new Set(TRAVEL_DOMAIN_SUFFIXES);
+const SHOPPING_SET = new Set(SHOPPING_DOMAIN_SUFFIXES);
 const UPDATES_SET = new Set(UPDATES_DOMAIN_SUFFIXES);
 const MARKETING_SET = new Set(MARKETING_DOMAIN_SUFFIXES);
 const BULK_INFRA_SET = new Set(BULK_INFRA_DOMAIN_SUFFIXES);
 const BULK_LOCALPARTS_SET = new Set(BULK_SENDER_LOCALPARTS);
+const BUILTIN_CATEGORY_ID_SET = new Set(BUILTIN_CATEGORY_IDS);
 
 function domain_in_set(domain: string, set: Set<string>): boolean {
   let current = domain;
@@ -150,9 +162,42 @@ function matches_any(text: string, patterns: readonly RegExp[]): boolean {
   return false;
 }
 
+function match_custom_category(
+  auth_domains: string[],
+  subject: string,
+  custom_categories?: readonly CustomCategoryRule[] | null,
+): string | null {
+  if (!custom_categories || custom_categories.length === 0) return null;
+
+  const lower_subject = subject.toLowerCase();
+
+  for (const rule of custom_categories) {
+    if (!rule.enabled) continue;
+
+    const domain_match = rule.match_domains.some((suffix) =>
+      auth_domains.some((d) => domain_in_set(d, new Set([suffix]))),
+    );
+
+    if (domain_match) return rule.id;
+
+    const keyword_match = rule.match_keywords.some((keyword) =>
+      lower_subject.includes(keyword),
+    );
+
+    if (keyword_match) return rule.id;
+  }
+
+  return null;
+}
+
+export interface ClassifyOptions {
+  custom_categories?: readonly CustomCategoryRule[] | null;
+}
+
 export function classify(
   envelope: DecryptedEnvelope,
   metadata?: MailItemMetadata | null,
+  options?: ClassifyOptions,
 ): EmailCategory {
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;
@@ -194,9 +239,49 @@ export function classify(
     return "primary";
   }
 
+  // 1b. User-defined custom categories take priority over every built-in
+  //     bucket below, since the user explicitly asked for this sender/subject
+  //     to land somewhere specific.
+  const custom_match = match_custom_category(
+    auth_domains,
+    subject,
+    options?.custom_categories,
+  );
+
+  if (custom_match) {
+    return custom_match;
+  }
+
   // 2. Social networks - reliable, unambiguous sender-domain signal.
   if (domain_in_set(from_domain, SOCIAL_SET)) {
     return "social";
+  }
+
+  // 2b. Finance / travel / shopping - reliable sender-domain whitelists for
+  //     opt-in built-in categories. Domains here are unambiguous (a real bank,
+  //     airline, or retailer never also sends social/forum mail), so this is
+  //     safe to check unconditionally, before the automated/bulk heuristics.
+  if (in_any(FINANCE_SET) && matches_any(subject, FINANCE_SUBJECT_PATTERNS)) {
+    return "finance";
+  }
+
+  if (domain_in_set(from_domain, FINANCE_SET)) {
+    return "finance";
+  }
+
+  if (in_any(TRAVEL_SET) && matches_any(subject, TRAVEL_SUBJECT_PATTERNS)) {
+    return "travel";
+  }
+
+  if (domain_in_set(from_domain, TRAVEL_SET)) {
+    return "travel";
+  }
+
+  if (
+    in_any(SHOPPING_SET) &&
+    matches_any(subject, SHOPPING_SUBJECT_PATTERNS)
+  ) {
+    return "shopping";
   }
 
   // 3. Mailing lists / forums - reliable header signal (folded into Updates).
@@ -231,11 +316,15 @@ export function classify(
     in_any(BULK_INFRA_SET);
 
   if (!is_automated) {
-    // A known service domain with a clearly transactional subject (e.g. a
-    // receipt that carries no bulk markers) is Updates. Everything else with
-    // no automation markers is personal and stays in Primary.
+    // A known service domain (Updates, or finance/travel/shopping's own
+    // whitelists) with a clearly transactional subject (e.g. a receipt that
+    // carries no bulk markers) is Updates. Everything else with no
+    // automation markers is personal and stays in Primary.
     if (
-      in_any(UPDATES_SET) &&
+      (in_any(UPDATES_SET) ||
+        in_any(SHOPPING_SET) ||
+        in_any(FINANCE_SET) ||
+        in_any(TRAVEL_SET)) &&
       matches_any(subject, UPDATES_SUBJECT_PATTERNS)
     ) {
       return "updates";
@@ -275,12 +364,12 @@ export function classify(
 }
 
 export function category_for_tab(category?: EmailCategory): EmailCategory {
-  if (category === "forums") {
-    return "updates";
-  }
-
   if (category && (CATEGORY_TABS as readonly string[]).includes(category)) {
     return category;
+  }
+
+  if (category && BUILTIN_CATEGORY_ID_SET.has(category)) {
+    return fold_builtin(category) as EmailCategory;
   }
 
   return "primary";
