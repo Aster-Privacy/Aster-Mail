@@ -269,6 +269,9 @@ export async function fetch_and_decrypt_thread_messages(
         spf_result: msg.spf_result,
         dkim_result: msg.dkim_result,
         dmarc_result: msg.dmarc_result,
+        spam_score: msg.spam_score,
+        spam_signals: msg.spam_signals,
+        is_spam: msg.is_spam,
       };
     }
 
@@ -393,6 +396,9 @@ export async function fetch_and_decrypt_thread_messages(
       spf_result: msg.spf_result,
       dkim_result: msg.dkim_result,
       dmarc_result: msg.dmarc_result,
+      spam_score: msg.spam_score,
+      spam_signals: msg.spam_signals,
+      is_spam: msg.is_spam,
     };
   });
 
