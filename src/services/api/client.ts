@@ -897,7 +897,7 @@ class ApiClient {
       let cookies_reissued = false;
       let reissue_denied = false;
 
-      const reissue_cookies = async (): Promise<boolean> => {
+      const reissue_cookies_impl = async (): Promise<boolean> => {
         try {
           const refreshed = await this.post<{
             csrf_token: string;
@@ -939,6 +939,29 @@ class ApiClient {
 
           return false;
         }
+      };
+
+      const reissue_cookies = async (): Promise<boolean> => {
+        if (this.refresh_promise) {
+          try {
+            await this.refresh_promise;
+          } catch {}
+        }
+
+        const result = reissue_cookies_impl();
+        const lock = result.then(
+          () => {},
+          () => {},
+        );
+
+        this.refresh_promise = lock;
+        lock.finally(() => {
+          if (this.refresh_promise === lock) {
+            this.refresh_promise = null;
+          }
+        });
+
+        return result;
       };
 
       if (!this.dev_access_token) {
