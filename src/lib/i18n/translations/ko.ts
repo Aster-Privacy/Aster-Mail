@@ -7336,6 +7336,6 @@ export const ko = {
     required_error: "이 질문에 답해 주세요",
     submit: "제출",
     submit_failed: "설문을 제출하지 못했습니다. 다시 시도해 주세요.",
-    submitted_thanks: "소중한 의견 감사합니다!",
+    submitted_thanks: "감사합니다! 보내주신 의견이 모두를 위한 더 나은 Aster Mail을 만듭니다. 모든 답변을 꼼꼼히 읽습니다.",
   },
 };

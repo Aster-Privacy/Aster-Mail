@@ -7564,6 +7564,6 @@ export const ja = {
     required_error: "この質問に回答してください",
     submit: "送信",
     submit_failed: "アンケートを送信できませんでした。もう一度お試しください。",
-    submitted_thanks: "フィードバックありがとうございます!",
+    submitted_thanks: "ありがとうございます!あなたのフィードバックが Aster Mail をみんなにとってより良いものにします。すべての回答に目を通しています。",
   },
 };

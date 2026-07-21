@@ -7672,6 +7672,6 @@ export const it = {
     required_error: "Rispondi a questa domanda",
     submit: "Invia",
     submit_failed: "Impossibile inviare il sondaggio. Riprova.",
-    submitted_thanks: "Grazie per il tuo feedback!",
+    submitted_thanks: "Grazie! Il tuo feedback rende Aster Mail migliore per tutti. Leggiamo ogni risposta.",
   },
 };

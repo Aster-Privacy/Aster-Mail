@@ -6993,6 +6993,6 @@ export const en: Translations = {
     required_error: "Please answer this question",
     submit: "Submit",
     submit_failed: "Could not submit the survey. Please try again.",
-    submitted_thanks: "Thanks for your feedback!",
+    submitted_thanks: "Thank you! Your feedback makes Aster Mail better for everyone. We read every answer.",
   },
 };
