@@ -45,14 +45,34 @@ async function clear_cache_and_reload(): Promise<void> {
 
 let active_count = 0;
 
+const RELOAD_CLICK_COUNT_KEY = "aster_reload_click_count";
+const CLEAR_CACHE_CLICK_THRESHOLD = 3;
+
 function dismiss_loader() {
   const el = document.getElementById("initial-loader");
+
+  sessionStorage.removeItem(RELOAD_CLICK_COUNT_KEY);
 
   if (!el) return;
 
   el.style.transition = "opacity 0.15s ease-out";
   el.style.opacity = "0";
   setTimeout(() => el.remove(), 150);
+}
+
+function handle_reload_click(): void {
+  const count =
+    Number(sessionStorage.getItem(RELOAD_CLICK_COUNT_KEY) || "0") + 1;
+
+  if (count >= CLEAR_CACHE_CLICK_THRESHOLD) {
+    sessionStorage.removeItem(RELOAD_CLICK_COUNT_KEY);
+    clear_cache_and_reload();
+
+    return;
+  }
+
+  sessionStorage.setItem(RELOAD_CLICK_COUNT_KEY, String(count));
+  window.location.reload();
 }
 
 export function FullPageLoader() {
@@ -128,19 +148,8 @@ export function FullPageLoader() {
                 {t("common.loading_stuck")}
               </span>
               <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => window.location.reload()}
-                  size="sm"
-                  variant="outline"
-                >
+                <Button onClick={handle_reload_click} size="sm" variant="outline">
                   {t("common.reload_page")}
-                </Button>
-                <Button
-                  onClick={clear_cache_and_reload}
-                  size="sm"
-                  variant="outline"
-                >
-                  {t("settings.clear_cache_reload")}
                 </Button>
               </div>
             </div>
