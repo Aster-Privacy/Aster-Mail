@@ -27,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Badge } from "@aster/ui";
 import { RecommendationBox, ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
@@ -65,14 +66,13 @@ function key_display_type(key: HardwareKeyInfo): "passkey" | "security_key" {
 
 interface KeyRowProps {
   key_info: HardwareKeyInfo;
-  on_remove: (id: string) => void;
+  on_delete_click: (key: HardwareKeyInfo) => void;
   on_rename: (id: string, name: string | null) => void;
   removing: boolean;
 }
 
-function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
+function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps) {
   const { t } = use_i18n();
-  const [confirm, set_confirm] = useState(false);
   const [editing, set_editing] = useState(false);
   const [draft, set_draft] = useState("");
   const [saving, set_saving] = useState(false);
@@ -81,7 +81,6 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
   const start_edit = () => {
     set_draft(key_info.name_encrypted ?? "");
     set_editing(true);
-    set_confirm(false);
   };
 
   const cancel_edit = () => {
@@ -128,7 +127,7 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
                   }}
                 />
                 <Button
-                  variant="ghost"
+                  variant="primary"
                   size="sm"
                   disabled={saving}
                   onClick={save_name}
@@ -140,7 +139,7 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
                   )}
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={cancel_edit}
                 >
@@ -175,43 +174,22 @@ function KeyRow({ key_info, on_remove, on_rename, removing }: KeyRowProps) {
         </div>
 
         {!editing && (
-          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-            {confirm ? (
-              <div className="flex items-center gap-3">
-                <button
-                  className="text-xs font-medium text-txt-muted hover:text-txt-primary transition-colors"
-                  onClick={() => set_confirm(false)}
-                >
-                  {t("common.cancel")}
-                </button>
-                <button
-                  className="text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
-                  disabled={removing}
-                  onClick={() => on_remove(key_info.id)}
-                >
-                  {removing ? (
-                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    t("passkeys.confirm_remove")
-                  )}
-                </button>
-              </div>
-            ) : (
-              <>
-                <button
-                  className="text-xs font-medium text-txt-muted hover:text-txt-primary transition-colors px-1.5 py-1"
-                  onClick={start_edit}
-                >
-                  {t("passkeys.rename")}
-                </button>
-                <button
-                  className="text-xs font-medium text-txt-muted hover:text-red-500 transition-colors px-1.5 py-1"
-                  onClick={() => set_confirm(true)}
-                >
-                  {t("common.delete")}
-                </button>
-              </>
-            )}
+          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+            <Button size="sm" variant="outline" onClick={start_edit}>
+              {t("passkeys.rename")}
+            </Button>
+            <Button
+              disabled={removing}
+              size="sm"
+              variant="destructive"
+              onClick={() => on_delete_click(key_info)}
+            >
+              {removing ? (
+                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                t("common.delete")
+              )}
+            </Button>
           </div>
         )}
       </div>
@@ -225,6 +203,9 @@ export function PasskeySection() {
   const [keys, set_keys] = useState<HardwareKeyInfo[]>([]);
   const [loading, set_loading] = useState(true);
   const [removing_id, set_removing_id] = useState<string | null>(null);
+  const [pending_delete, set_pending_delete] = useState<HardwareKeyInfo | null>(
+    null,
+  );
   const [registering, set_registering] = useState<
     "passkey" | "security_key" | null
   >(null);
@@ -249,6 +230,7 @@ export function PasskeySection() {
 
   const handle_remove = useCallback(
     async (key_id: string) => {
+      set_pending_delete(null);
       set_removing_id(key_id);
       try {
         const resp = await remove_hardware_key(key_id);
@@ -368,7 +350,7 @@ export function PasskeySection() {
                 <KeyRow
                   key={key.id}
                   key_info={key}
-                  on_remove={handle_remove}
+                  on_delete_click={set_pending_delete}
                   on_rename={handle_rename}
                   removing={removing_id === key.id}
                 />
@@ -430,6 +412,36 @@ export function PasskeySection() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        confirm_text={t("common.delete")}
+        confirm_variant="destructive"
+        description={t(
+          pending_delete && !pending_delete.is_passkey
+            ? "passkeys.delete_security_key_description"
+            : "passkeys.delete_passkey_description",
+          {
+            name:
+              pending_delete?.name_encrypted ||
+              (pending_delete && !pending_delete.is_passkey
+                ? t("passkeys.unnamed_security_key")
+                : t("passkeys.unnamed_passkey")),
+          },
+        )}
+        dont_ask={false}
+        hide_dont_ask
+        show={!!pending_delete}
+        title={t(
+          pending_delete && !pending_delete.is_passkey
+            ? "passkeys.delete_security_key_title"
+            : "passkeys.delete_passkey_title",
+        )}
+        on_cancel={() => set_pending_delete(null)}
+        on_confirm={() => {
+          if (pending_delete) handle_remove(pending_delete.id);
+        }}
+        on_dont_ask_change={() => {}}
+      />
     </div>
   );
 }
