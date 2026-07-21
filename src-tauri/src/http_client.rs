@@ -54,13 +54,17 @@ struct PinnedVerifier {
 
 impl PinnedVerifier {
     fn new() -> Result<Arc<Self>, String> {
+        Self::with_pin_set(PIN_B64_SET)
+    }
+
+    fn with_pin_set(pin_b64_set: &[&str]) -> Result<Arc<Self>, String> {
         let provider = Arc::new(ring::default_provider());
         let mut roots = RootCertStore::empty();
         roots.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
         let delegate = WebPkiServerVerifier::builder_with_provider(Arc::new(roots), provider)
             .build()
             .map_err(|e| format!("webpki verifier: {e}"))?;
-        let pins = PIN_B64_SET
+        let pins = pin_b64_set
             .iter()
             .map(|b64| decode_pin(b64))
             .collect::<Result<Vec<_>, _>>()?;
@@ -198,4 +202,91 @@ pub fn shared_pinned_client() -> Result<reqwest::Client, String> {
         .get()
         .cloned()
         .unwrap_or(client))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const LEGACY_LEAF_ONLY_PINS: &[&str] = &[
+        "xzW4Lh0h5AJczrSG3fvSOGZYUsDrxYyt0AlhLpZFUls=",
+        "DDf/bfpXnW80wMM5Y2b9zNCdohxBo5lX7rUMiw+DYO4=",
+    ];
+
+    fn build_client_with_pins(pin_b64_set: &'static [&'static str]) -> reqwest::Client {
+        let verifier = PinnedVerifier::with_pin_set(pin_b64_set).expect("verifier");
+        let provider = Arc::new(ring::default_provider());
+        let tls = ClientConfig::builder_with_provider(provider)
+            .with_safe_default_protocol_versions()
+            .expect("protocol versions")
+            .dangerous()
+            .with_custom_certificate_verifier(verifier)
+            .with_no_client_auth();
+        reqwest::Client::builder()
+            .no_proxy()
+            .timeout(Duration::from_secs(30))
+            .redirect(reqwest::redirect::Policy::none())
+            .use_preconfigured_tls(tls)
+            .build()
+            .expect("client")
+    }
+
+    #[test]
+    fn every_production_pin_decodes_to_32_bytes() {
+        for pin in PIN_B64_SET {
+            decode_pin(pin).expect("pin decodes");
+        }
+        assert!(PIN_B64_SET.len() >= 3);
+    }
+
+    #[test]
+    fn pin_check_applies_to_astermail_hosts_only() {
+        let pinned: ServerName<'_> = "app.astermail.org".try_into().expect("name");
+        let bare: ServerName<'_> = "astermail.org".try_into().expect("name");
+        let github: ServerName<'_> = "github.com".try_into().expect("name");
+        assert!(host_requires_pin(&pinned));
+        assert!(host_requires_pin(&bare));
+        assert!(!host_requires_pin(&github));
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn device_http_request_reaches_live_edge_through_pinned_client() {
+        let response = crate::device::crypto::device_http_request(
+            "https://app.astermail.org/api/health".to_string(),
+            "GET".to_string(),
+            None,
+            None,
+        )
+        .await
+        .expect("device_http_request succeeds");
+        assert_eq!(response.status, 200);
+        let body_bytes = STANDARD.decode(&response.body).expect("body decodes");
+        assert_eq!(body_bytes, b"ok");
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn legacy_leaf_only_pin_set_fails_handshake_against_live_edge() {
+        let client = build_client_with_pins(LEGACY_LEAF_ONLY_PINS);
+        let error = client
+            .get("https://app.astermail.org/api/health")
+            .send()
+            .await
+            .expect_err("legacy pins must fail");
+        let chain = format!("{error:?}");
+        assert!(chain.contains("pin mismatch"), "unexpected error: {chain}");
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn unpinned_host_is_not_blocked_by_pin_verifier() {
+        let client = build_pinned_client(Duration::from_secs(30)).expect("client");
+        let response = client
+            .get("https://github.com/")
+            .send()
+            .await
+            .expect("unpinned host request succeeds");
+        assert!(response.status().is_success() || response.status().is_redirection());
+    }
 }
