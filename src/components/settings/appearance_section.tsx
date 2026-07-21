@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { LanguageCode, SettingsTranslations } from "@/lib/i18n/types";
 
@@ -83,6 +83,14 @@ export function AppearanceSection() {
   const [show_more_themes, set_show_more_themes] = useState(false);
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
+
+  useEffect(() => {
+    if (!limits || is_paid_plan) return;
+    if (preferences.color_theme !== "custom") return;
+
+    update_preference("color_theme", "default", true);
+    update_preference("custom_theme_overrides", {}, true);
+  }, [limits, is_paid_plan, preferences.color_theme]);
 
   const handle_theme_select = (mode: "light" | "dark" | "system") => {
     set_theme_preference(mode);
@@ -202,76 +210,79 @@ export function AppearanceSection() {
             is_selected={theme_preference === "system" && is_default_color}
             label={t("settings.theme_system")}
             mode="system"
+            size={show_more_themes ? "default" : "lg"}
             on_select={() => handle_theme_select("system")}
           />
           <ThemeCard
             is_selected={theme_preference === "light" && is_default_color}
             label={t("settings.theme_light")}
             mode="light"
+            size={show_more_themes ? "default" : "lg"}
             on_select={() => handle_theme_select("light")}
           />
           <ThemeCard
             is_selected={theme_preference === "dark" && is_default_color}
             label={t("settings.theme_dark")}
             mode="dark"
+            size={show_more_themes ? "default" : "lg"}
             on_select={() => handle_theme_select("dark")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "aster-blue"}
-            label={t("settings.color_theme_aster_blue")}
-            mode="aster-blue"
-            on_select={() => handle_color_theme_select("aster-blue")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "purple"}
-            label={t("settings.color_theme_purple")}
-            mode="purple"
-            on_select={() => handle_color_theme_select("purple")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "green"}
-            label={t("settings.color_theme_green")}
-            mode="green"
-            on_select={() => handle_color_theme_select("green")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "rose"}
-            label={t("settings.color_theme_rose")}
-            mode="rose"
-            on_select={() => handle_color_theme_select("rose")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "orange"}
-            label={t("settings.color_theme_orange")}
-            mode="orange"
-            on_select={() => handle_color_theme_select("orange")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "teal"}
-            label={t("settings.color_theme_teal")}
-            mode="teal"
-            on_select={() => handle_color_theme_select("teal")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "indigo"}
-            label={t("settings.color_theme_indigo")}
-            mode="indigo"
-            on_select={() => handle_color_theme_select("indigo")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "amber"}
-            label={t("settings.color_theme_amber")}
-            mode="amber"
-            on_select={() => handle_color_theme_select("amber")}
-          />
-          <ThemeCard
-            is_selected={preferences.color_theme === "cyan"}
-            label={t("settings.color_theme_cyan")}
-            mode="cyan"
-            on_select={() => handle_color_theme_select("cyan")}
           />
           {show_more_themes && (
             <>
+              <ThemeCard
+                is_selected={preferences.color_theme === "aster-blue"}
+                label={t("settings.color_theme_aster_blue")}
+                mode="aster-blue"
+                on_select={() => handle_color_theme_select("aster-blue")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "purple"}
+                label={t("settings.color_theme_purple")}
+                mode="purple"
+                on_select={() => handle_color_theme_select("purple")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "green"}
+                label={t("settings.color_theme_green")}
+                mode="green"
+                on_select={() => handle_color_theme_select("green")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "rose"}
+                label={t("settings.color_theme_rose")}
+                mode="rose"
+                on_select={() => handle_color_theme_select("rose")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "orange"}
+                label={t("settings.color_theme_orange")}
+                mode="orange"
+                on_select={() => handle_color_theme_select("orange")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "teal"}
+                label={t("settings.color_theme_teal")}
+                mode="teal"
+                on_select={() => handle_color_theme_select("teal")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "indigo"}
+                label={t("settings.color_theme_indigo")}
+                mode="indigo"
+                on_select={() => handle_color_theme_select("indigo")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "amber"}
+                label={t("settings.color_theme_amber")}
+                mode="amber"
+                on_select={() => handle_color_theme_select("amber")}
+              />
+              <ThemeCard
+                is_selected={preferences.color_theme === "cyan"}
+                label={t("settings.color_theme_cyan")}
+                mode="cyan"
+                on_select={() => handle_color_theme_select("cyan")}
+              />
               <ThemeCard
                 is_selected={preferences.color_theme === "slate"}
                 label={t("settings.color_theme_slate")}
@@ -341,34 +352,34 @@ export function AppearanceSection() {
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.custom_theme_description")}
         </p>
-        {is_paid_plan ? (
-          <>
-            <SettingRow
-              description={t("settings.font_choice_description")}
-              label={t("settings.font_choice_title")}
-            >
-              <Select
-                value={preferences.font_choice ?? DEFAULT_FONT_ID}
-                onValueChange={handle_font_change}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FONT_OPTIONS.map((font) => (
-                    <SelectItem key={font.id} value={font.id}>
-                      {font.id === "default"
-                        ? t("settings.font_option_default")
-                        : font.id === "system"
-                          ? t("settings.font_option_system")
-                          : font.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </SettingRow>
+        <SettingRow
+          description={t("settings.font_choice_description")}
+          label={t("settings.font_choice_title")}
+        >
+          <Select
+            value={preferences.font_choice ?? DEFAULT_FONT_ID}
+            onValueChange={handle_font_change}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FONT_OPTIONS.map((font) => (
+                <SelectItem key={font.id} value={font.id}>
+                  {font.id === "default"
+                    ? t("settings.font_option_default")
+                    : font.id === "system"
+                      ? t("settings.font_option_system")
+                      : font.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingRow>
 
-            <div className="mt-6">
+        <div className="mt-6">
+          {is_paid_plan ? (
+            <>
               <p className="text-sm font-semibold text-txt-primary mb-4">
                 {t("settings.custom_theme_colors_title")}
               </p>
@@ -446,13 +457,13 @@ export function AppearanceSection() {
                   );
                 })}
               </div>
-            </div>
-          </>
-        ) : (
-          <UpgradeBtn size="sm" onClick={go_to_billing}>
-            {t("settings.upgrade_to_unlock")}
-          </UpgradeBtn>
-        )}
+            </>
+          ) : (
+            <UpgradeBtn size="sm" onClick={go_to_billing}>
+              {t("settings.upgrade_to_unlock")}
+            </UpgradeBtn>
+          )}
+        </div>
       </div>
 
       <div className="pt-3">

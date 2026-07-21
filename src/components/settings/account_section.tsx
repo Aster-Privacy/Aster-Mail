@@ -27,8 +27,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   XMarkIcon,
-  SparklesIcon,
-  ArrowRightIcon,
+  CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
@@ -228,27 +227,27 @@ function FreePlanBanner() {
   if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-edge-secondary bg-surf-tertiary p-5">
-      <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-[var(--accent-blue)]/10">
-        <SparklesIcon className="w-5 h-5" style={{ color: "var(--accent-blue)" }} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-sm font-semibold text-txt-primary">
-            {t("settings.free_plan_banner_title")}
-          </h3>
-          <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-surf-primary text-txt-muted border border-edge-secondary">
-            {t("settings.free")}
-          </span>
+    <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <CreditCardIcon className="h-5 w-5 flex-shrink-0 text-blue-600" />
+            <p className="text-sm font-semibold text-txt-primary">
+              {t("settings.free_plan_banner_title")}
+            </p>
+          </div>
+          <p className="text-sm text-txt-muted mt-1 ml-7">
+            {t("settings.free_plan_description")}
+          </p>
         </div>
-        <p className="text-sm mt-1 text-txt-muted max-w-[440px]">
-          {t("settings.free_plan_description")}
-        </p>
+        <button
+          className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+          type="button"
+          onClick={navigate_to_billing}
+        >
+          {t("settings.upgrade_view_plans")}
+        </button>
       </div>
-      <Button className="flex-shrink-0 gap-1.5" variant="depth" onClick={navigate_to_billing}>
-        {t("settings.upgrade_view_plans")}
-        <ArrowRightIcon className="w-3.5 h-3.5" />
-      </Button>
     </div>
   );
 }
@@ -293,10 +292,13 @@ export function AccountSection() {
   const [resending, set_resending] = useState(false);
   const [show_reset_confirm, set_show_reset_confirm] = useState(false);
   const [show_step_up, set_show_step_up] = useState(false);
-  const [step_up_mode, set_step_up_mode] = useState<"change" | "remove">(
-    "change",
-  );
+  const [step_up_mode, set_step_up_mode] = useState<
+    "change" | "remove" | "inactivity"
+  >("change");
   const [pending_recovery_email, set_pending_recovery_email] = useState("");
+  const [pending_inactivity_months, set_pending_inactivity_months] = useState<
+    number | null
+  >(null);
   const [photo_error, set_photo_error] = useState<string | null>(null);
   const [inactivity_window, set_inactivity_window] = useState(24);
   const [saving_inactivity, set_saving_inactivity] = useState(false);
@@ -501,6 +503,30 @@ export function AccountSection() {
   };
 
   const handle_step_up_confirm = async (credentials: StepUpCredentials) => {
+    if (step_up_mode === "inactivity") {
+      if (pending_inactivity_months === null) return;
+
+      const months = pending_inactivity_months;
+
+      set_saving_inactivity(true);
+      try {
+        const r = await set_inactivity_settings(months, credentials);
+
+        if (r.error) {
+          throw new Error(r.error || t("common.step_up_error"));
+        }
+
+        set_inactivity_window(months);
+        show_toast(t("common.inactivity_window_saved"), "success");
+        set_show_step_up(false);
+        set_pending_inactivity_months(null);
+      } finally {
+        set_saving_inactivity(false);
+      }
+
+      return;
+    }
+
     if (step_up_mode === "change") {
       if (!vault) throw new Error(t("common.failed_to_save"));
       const r = await save_recovery_email(
@@ -554,25 +580,11 @@ export function AccountSection() {
   };
 
 
-  const save_inactivity_window = async (months: number) => {
+  const request_inactivity_window_change = (months: number) => {
     if (months < 3 || months > 24) return;
-    set_saving_inactivity(true);
-    const prev = inactivity_window;
-    set_inactivity_window(months);
-    try {
-      const r = await set_inactivity_settings(months);
-      if (r.error) {
-        set_inactivity_window(prev);
-        show_toast(t("common.inactivity_window_save_failed"), "error");
-      } else {
-        show_toast(t("common.inactivity_window_saved"), "success");
-      }
-    } catch {
-      set_inactivity_window(prev);
-      show_toast(t("common.inactivity_window_save_failed"), "error");
-    } finally {
-      set_saving_inactivity(false);
-    }
+    set_pending_inactivity_months(months);
+    set_step_up_mode("inactivity");
+    set_show_step_up(true);
   };
 
   const has_custom_picture = !!(preview || user?.profile_picture);
@@ -938,7 +950,7 @@ export function AccountSection() {
             <Select
               disabled={saving_inactivity}
               value={String(inactivity_window)}
-              onValueChange={(v) => save_inactivity_window(Number(v))}
+              onValueChange={(v) => request_inactivity_window_change(Number(v))}
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
@@ -993,15 +1005,24 @@ export function AccountSection() {
         confirm_label={
           step_up_mode === "remove" ? t("common.remove") : t("common.save")
         }
-        description={t("common.step_up_description")}
+        description={
+          step_up_mode === "inactivity"
+            ? t("common.inactivity_window_step_up_description")
+            : t("common.step_up_description")
+        }
         destructive={step_up_mode === "remove"}
         is_open={show_step_up}
-        on_close={() => set_show_step_up(false)}
+        on_close={() => {
+          set_show_step_up(false);
+          if (step_up_mode === "inactivity") set_pending_inactivity_months(null);
+        }}
         on_confirm={handle_step_up_confirm}
         title={
           step_up_mode === "remove"
             ? t("common.remove_recovery_email")
-            : t("common.recovery_email")
+            : step_up_mode === "inactivity"
+              ? t("common.inactivity_window")
+              : t("common.recovery_email")
         }
       />
 
