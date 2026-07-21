@@ -56,6 +56,9 @@ const CATEGORY_LABEL: Record<CategoryValue, TranslationKey> = {
   social: "mail_rules.category_social",
   updates: "mail_rules.category_updates",
   forums: "mail_rules.category_forums",
+  finance: "settings.category_finance",
+  travel: "settings.category_travel",
+  shopping: "settings.category_shopping",
 };
 
 export function ActionChip({
