@@ -5249,6 +5249,17 @@ export const pt = {
     criterion_auto_lock: "Bloqueio automático",
     criterion_login_alerts: "Alertas de login",
     criterion_forward_secrecy: "Sigilo futuro",
+    action_recommended: "Ação recomendada",
+    two_step_verification_enabled_description:
+      "Sua conta requer um código de verificação além da sua senha.",
+    two_step_verification_recommendation:
+      "Ative a verificação em duas etapas para manter sua conta segura mesmo se sua senha for roubada.",
+    no_passkeys_recommendation:
+      "Adicione uma chave de acesso para um login mais rápido e seguro usando a biometria ou o PIN do seu dispositivo.",
+    password_weak_recommendation:
+      "Sua senha poderia ser mais forte. Considere alterá-la para uma senha mais longa e única.",
+    login_alerts_off_recommendation:
+      "Ative os alertas de login para ser notificado sempre que um novo dispositivo entrar na sua conta.",
     or_pay_with_card: "Ou pagar com cartão",
     cardholder_name_placeholder: "Nome como no cartão",
     billing_postal_placeholder: "CEP",

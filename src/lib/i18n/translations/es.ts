@@ -5053,6 +5053,8 @@ export const es = {
     action_recommended: "Acción recomendada",
     two_step_verification_enabled_description:
       "Tu cuenta requiere un código de verificación además de tu contraseña.",
+    two_step_verification_recommendation:
+      "Activa la verificación en dos pasos para mantener tu cuenta segura incluso si roban tu contraseña.",
     no_passkeys_recommendation:
       "Agrega una clave de acceso para iniciar sesión más rápido y de forma más segura usando la biometría o el PIN de tu dispositivo.",
     password_weak_recommendation:

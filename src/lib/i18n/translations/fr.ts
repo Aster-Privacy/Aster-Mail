@@ -5101,6 +5101,8 @@ export const fr = {
     action_recommended: "Action recommandée",
     two_step_verification_enabled_description:
       "Votre compte nécessite un code de vérification en plus de votre mot de passe.",
+    two_step_verification_recommendation:
+      "Activez la vérification en deux étapes pour protéger votre compte même si votre mot de passe est volé.",
     no_passkeys_recommendation:
       "Ajoutez une clé d'accès pour une connexion plus rapide et plus sécurisée grâce à la biométrie ou au code PIN de votre appareil.",
     password_weak_recommendation:

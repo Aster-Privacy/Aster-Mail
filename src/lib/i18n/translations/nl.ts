@@ -5029,6 +5029,17 @@ export const nl = {
     criterion_auto_lock: "Automatisch vergrendelen",
     criterion_login_alerts: "Aanmeldingswaarschuwingen",
     criterion_forward_secrecy: "Voorwaartse geheimhouding",
+    action_recommended: "Actie aanbevolen",
+    two_step_verification_enabled_description:
+      "Voor uw account is naast uw wachtwoord ook een verificatiecode vereist.",
+    two_step_verification_recommendation:
+      "Schakel tweestapsverificatie in om uw account veilig te houden, zelfs als uw wachtwoord wordt gestolen.",
+    no_passkeys_recommendation:
+      "Voeg een passkey toe voor sneller en veiliger inloggen met de biometrie of pincode van uw apparaat.",
+    password_weak_recommendation:
+      "Uw wachtwoord kan sterker zijn. Overweeg het te wijzigen in een langer en unieker wachtwoord.",
+    login_alerts_off_recommendation:
+      "Schakel inlogmeldingen in om een melding te krijgen wanneer een nieuw apparaat inlogt op uw account.",
     block_remote_fonts_description:
       "Voorkom dat e-mails lettertypen laden van externe servers",
     block_remote_fonts_label: "Externe lettertypen blokkeren",

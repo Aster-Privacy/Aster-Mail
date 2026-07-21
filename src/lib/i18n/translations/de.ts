@@ -5119,6 +5119,8 @@ export const de = {
     action_recommended: "Aktion empfohlen",
     two_step_verification_enabled_description:
       "Ihr Konto erfordert zusätzlich zum Passwort einen Bestätigungscode.",
+    two_step_verification_recommendation:
+      "Aktivieren Sie die zweistufige Verifizierung, damit Ihr Konto auch bei gestohlenem Passwort sicher bleibt.",
     no_passkeys_recommendation:
       "Fügen Sie einen Passkey hinzu, um sich schneller und sicherer mit Biometrie oder PIN Ihres Geräts anzumelden.",
     password_weak_recommendation:

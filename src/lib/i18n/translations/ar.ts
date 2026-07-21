@@ -5010,6 +5010,8 @@ export const ar = {
     action_recommended: "يوصى باتخاذ إجراء",
     two_step_verification_enabled_description:
       "يتطلب حسابك رمز تحقق بالإضافة إلى كلمة المرور.",
+    two_step_verification_recommendation:
+      "فعّل التحقق بخطوتين لإبقاء حسابك آمنًا حتى إذا سُرقت كلمة المرور.",
     no_passkeys_recommendation:
       "أضف مفتاح مرور لتسجيل دخول أسرع وأكثر أمانًا باستخدام القياسات الحيوية أو رمز PIN لجهازك.",
     password_weak_recommendation:

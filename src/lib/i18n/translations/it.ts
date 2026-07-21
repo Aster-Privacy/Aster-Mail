@@ -5258,6 +5258,8 @@ export const it = {
     action_recommended: "Azione consigliata",
     two_step_verification_enabled_description:
       "Il tuo account richiede un codice di verifica oltre alla password.",
+    two_step_verification_recommendation:
+      "Attiva la verifica in due passaggi per proteggere il tuo account anche se la password viene rubata.",
     no_passkeys_recommendation:
       "Aggiungi una passkey per un accesso più rapido e sicuro usando la biometria o il PIN del tuo dispositivo.",
     password_weak_recommendation:

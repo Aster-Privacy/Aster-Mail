@@ -5045,6 +5045,8 @@ export const ru = {
     action_recommended: "Рекомендуется действие",
     two_step_verification_enabled_description:
       "Для вашей учётной записи требуется код подтверждения в дополнение к паролю.",
+    two_step_verification_recommendation:
+      "Включите двухэтапную проверку, чтобы ваш аккаунт оставался защищённым, даже если пароль будет украден.",
     no_passkeys_recommendation:
       "Добавьте ключ доступа для более быстрого и безопасного входа с использованием биометрии или PIN-кода устройства.",
     password_weak_recommendation:

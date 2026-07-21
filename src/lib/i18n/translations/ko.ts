@@ -5073,6 +5073,8 @@ export const ko = {
     action_recommended: "조치 권장",
     two_step_verification_enabled_description:
       "계정에 비밀번호 외에 인증 코드가 필요합니다.",
+    two_step_verification_recommendation:
+      "비밀번호가 유출되더라도 계정을 안전하게 유지하려면 2단계 인증을 켜세요.",
     no_passkeys_recommendation:
       "기기의 생체 인증 또는 PIN을 사용해 더 빠르고 안전하게 로그인하려면 패스키를 추가하세요.",
     password_weak_recommendation:
