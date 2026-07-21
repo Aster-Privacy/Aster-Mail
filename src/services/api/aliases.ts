@@ -947,22 +947,12 @@ export interface ListDeletedAliasesResponse {
   total: number;
 }
 
-export interface AliasActivityFlag {
-  id: string;
-  flag_type: string;
-  detected_at: string;
-  baseline_value?: number;
-  observed_value?: number;
-  status: string;
-}
-
 export interface AliasStats {
   received: number;
   forwarded: number;
   blocked: number;
   replied: number;
   distinct_senders: number;
-  active_flags?: AliasActivityFlag[];
 }
 
 export async function list_deleted_aliases(): Promise<

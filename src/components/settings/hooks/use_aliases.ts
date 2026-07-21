@@ -101,6 +101,94 @@ export function get_cached_domain_addresses(): (DecryptedDomainAddress & {
   return aliases_cache.domain_addresses;
 }
 
+let ensure_loaded_promise: Promise<void> | null = null;
+
+export async function ensure_aliases_and_domains_loaded(): Promise<void> {
+  if (aliases_cache.loaded) return;
+  if (ensure_loaded_promise) return ensure_loaded_promise;
+  if (!has_passphrase_in_memory() || !get_derived_encryption_key()) return;
+
+  const token = aliases_cache_token;
+
+  ensure_loaded_promise = (async () => {
+    try {
+      const { aliases: raw, max_aliases, error } = await list_all_aliases();
+
+      if (token !== aliases_cache_token) return;
+
+      if (!error) {
+        const decrypted = await decrypt_aliases(raw);
+
+        if (token !== aliases_cache_token) return;
+
+        aliases_cache.aliases = decrypted;
+        aliases_cache.max_aliases = max_aliases;
+        aliases_cache.loaded = true;
+        aliases_cache.alias_counts = {
+          count: decrypted.length,
+          max: max_aliases,
+          can_create: max_aliases === -1 || decrypted.length < max_aliases,
+        };
+      }
+
+      const domains_response = await list_domains();
+
+      if (token !== aliases_cache_token) return;
+
+      if (!domains_response.data) return;
+
+      const active = domains_response.data.domains.filter(
+        (d) => d.status === "active",
+      );
+
+      aliases_cache.domains = domains_response.data.domains;
+      aliases_cache.max_domains = domains_response.data.max_domains;
+
+      if (active.length === 0) {
+        aliases_cache.domain_addresses = [];
+
+        return;
+      }
+
+      const responses = await Promise.all(
+        active.map((d) => list_domain_addresses(d.id)),
+      );
+
+      if (token !== aliases_cache_token) return;
+
+      const all_addresses: (DecryptedDomainAddress & {
+        domain_name: string;
+      })[] = [];
+
+      for (let i = 0; i < active.length; i++) {
+        const response = responses[i];
+
+        if (response.data) {
+          const decrypted = await decrypt_domain_addresses(
+            response.data.addresses,
+          );
+
+          if (token !== aliases_cache_token) return;
+
+          for (const addr of decrypted) {
+            all_addresses.push({ ...addr, domain_name: active[i].domain_name });
+          }
+        }
+      }
+
+      if (token !== aliases_cache_token) return;
+
+      aliases_cache.domain_addresses = all_addresses;
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+    } finally {
+      ensure_loaded_promise = null;
+    }
+  })();
+
+  return ensure_loaded_promise;
+}
+
 export { DEFAULT_DOMAINS };
 
 export function use_aliases() {

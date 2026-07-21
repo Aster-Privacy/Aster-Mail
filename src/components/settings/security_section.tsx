@@ -205,6 +205,10 @@ export function SecuritySection({
         />
       </div>
 
+      <div id="sec-passkeys">
+        <PasskeySection />
+      </div>
+
       <SessionSection
         logout_others_loading={security.logout_others_loading}
         logout_others_result={security.logout_others_result}
@@ -216,10 +220,6 @@ export function SecuritySection({
       />
 
       <TrustedDevicesSection />
-
-      <div id="sec-passkeys">
-        <PasskeySection />
-      </div>
 
       <LoginAlertsSessionsGroup
         login_alerts_enabled={security.login_alerts_enabled}
