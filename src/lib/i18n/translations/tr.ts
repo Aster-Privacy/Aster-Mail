@@ -5301,6 +5301,7 @@ export const tr = {
     choose_email_address: "E-posta adresinizi seçin",
     pick_unique_username: "Yeni Aster e-postanız için benzersiz bir kullanıcı adı seçin",
     new_email_address: "Yeni e-posta adresi",
+    your_new_aster_address: "Yeni Aster Mail adresiniz",
     generate_random_username: "Rastgele kullanıcı adı oluştur",
     generate_random_display: "Rastgele görünen ad oluştur",
     profile_color: "Profil rengi",

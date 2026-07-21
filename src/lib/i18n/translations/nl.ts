@@ -5300,6 +5300,7 @@ export const nl = {
     sign_in_existing: "Inloggen bij bestaand account",
     choose_email_address: "Kies je e-mailadres",
     new_email_address: "Nieuw e-mailadres",
+    your_new_aster_address: "Je nieuwe Aster Mail-adres",
     generate_random_username: "Willekeurige gebruikersnaam genereren",
     generate_random_display: "Willekeurige weergavenaam genereren",
     profile_color: "Profielkleur",

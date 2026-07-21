@@ -5302,6 +5302,7 @@ export const es = {
     choose_email_address: "Elige tu dirección de correo",
     pick_unique_username: "Elige un nombre de usuario único para tu nuevo correo de Aster",
     new_email_address: "Nueva dirección de correo",
+    your_new_aster_address: "Tu nueva dirección de Aster Mail",
     generate_random_username: "Generar nombre de usuario aleatorio",
     generate_random_display: "Generar nombre para mostrar aleatorio",
     profile_color: "Color de perfil",
