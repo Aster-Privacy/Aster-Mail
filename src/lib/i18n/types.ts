@@ -106,6 +106,10 @@ export interface PasskeysTranslations {
   never_used: string;
   remove: string;
   confirm_remove: string;
+  delete_passkey_title: string;
+  delete_passkey_description: string;
+  delete_security_key_title: string;
+  delete_security_key_description: string;
   removed: string;
   rename: string;
   rename_placeholder: string;
