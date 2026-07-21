@@ -31,19 +31,52 @@ import {
 } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
-import { CATEGORY_TABS } from "@/services/mail_categorizer";
+import type { UserPreferences } from "@/services/api/preferences";
 import {
   get_counts,
   mark_category_seen,
   is_index_loaded,
   subscribe as subscribe_index,
   get_version as get_index_version,
+  set_active_tabs,
+  set_custom_categories,
 } from "@/services/category_index";
+import {
+  BUILTIN_CATEGORIES,
+  allowed_custom_categories,
+} from "@/data/category_catalog";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   secure_store,
   secure_retrieve,
 } from "@/services/crypto/secure_storage";
 import { on_keys_ready } from "@/services/crypto/memory_key_store";
+
+function compute_active_tabs(
+  preferences: UserPreferences,
+  category_limit: number,
+): string[] {
+  const enabled_ids = new Set(preferences.enabled_categories ?? []);
+  const tabs: string[] = ["primary"];
+
+  for (const cat of BUILTIN_CATEGORIES) {
+    if (cat.id === "primary") continue;
+    if (enabled_ids.has(cat.id)) {
+      tabs.push(cat.id);
+    }
+  }
+
+  const permitted = allowed_custom_categories(
+    preferences.custom_categories ?? [],
+    category_limit,
+  );
+
+  for (const rule of permitted) {
+    if (rule.enabled) tabs.push(rule.id);
+  }
+
+  return tabs;
+}
 
 const ACTIVE_CATEGORY_KEY = "astermail_active_category";
 const CATEGORIES_ENABLED_FLAG = "astermail_inbox_categories_enabled";
@@ -70,11 +103,11 @@ function write_categories_enabled_flag(enabled: boolean): void {
   } catch {}
 }
 
+// Loosely validates a persisted tab id. The real gatekeeping (whether this
+// category is still enabled) happens downstream in category_index's
+// fold_category, which safely folds a disabled/removed id back to Primary.
 function is_tab(value: unknown): value is EmailCategory {
-  return (
-    typeof value === "string" &&
-    (CATEGORY_TABS as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && value.length > 0 && value.length <= 64;
 }
 
 export interface UseInboxCategoriesReturn {
@@ -89,6 +122,10 @@ export function use_inbox_categories(
   current_view: string,
 ): UseInboxCategoriesReturn {
   const { preferences, has_loaded_from_server } = use_preferences();
+  const { limits } = use_plan_limits();
+  const category_limit = limits
+    ? (limits.limits["max_custom_categories"]?.limit ?? 0)
+    : -1;
 
   const initial_disabled_flag_ref = useRef(read_categories_enabled_flag());
 
@@ -129,6 +166,26 @@ export function use_inbox_categories(
   );
 
   const counts = useMemo(() => get_counts(), [index_version]);
+
+  const custom_categories_key = JSON.stringify(preferences.custom_categories ?? []);
+  const enabled_categories_key = JSON.stringify(
+    preferences.enabled_categories ?? [],
+  );
+
+  useEffect(() => {
+    set_active_tabs(compute_active_tabs(preferences, category_limit));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled_categories_key, custom_categories_key, category_limit]);
+
+  useEffect(() => {
+    set_custom_categories(
+      allowed_custom_categories(
+        preferences.custom_categories ?? [],
+        category_limit,
+      ),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [custom_categories_key, category_limit]);
 
   // The last-viewed tab is persisted vault-encrypted (AES-256-GCM + HMAC), not
   // as plaintext, so it leaves no readable behavioral signal on disk. Because
