@@ -18,13 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export type EmailCategory =
+export type BuiltinEmailCategory =
   | "primary"
   | "important"
   | "promotions"
   | "social"
   | "updates"
-  | "forums";
+  | "forums"
+  | "finance"
+  | "travel"
+  | "shopping";
+
+// Custom categories are identified by a "custom:<uuid>" string id, so the
+// type stays a string while still offering autocomplete for built-ins.
+export type EmailCategory = BuiltinEmailCategory | (string & {});
 
 export interface EmailSender {
   name: string;
