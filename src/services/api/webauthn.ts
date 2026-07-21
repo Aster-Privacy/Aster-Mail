@@ -69,6 +69,16 @@ export interface WebAuthnAssertionOptions {
   userVerification: string;
 }
 
+export interface StepUpHardwareKeyAssertion {
+  raw_id: string;
+  response: {
+    authenticator_data: string;
+    client_data_json: string;
+    signature: string;
+  };
+  challenge_token: string;
+}
+
 function base64_url_to_array_buffer(base64_url: string): ArrayBuffer {
   let base64 = base64_url.replace(/-/g, "+").replace(/_/g, "/");
 
@@ -330,6 +340,74 @@ export async function perform_webauthn_assertion(
     pending_login_token,
     remember_me,
   });
+}
+
+export async function initiate_step_up_assertion(): Promise<
+  ApiResponse<WebAuthnAssertionOptions>
+> {
+  return api_client.post<WebAuthnAssertionOptions>(
+    "/core/v1/auth/hardware-keys/step-up/options",
+    {},
+  );
+}
+
+export async function perform_step_up_webauthn_assertion(): Promise<StepUpHardwareKeyAssertion> {
+  const options_res = await initiate_step_up_assertion();
+
+  if (options_res.error || !options_res.data) {
+    throw new Error(options_res.error || en.errors.authentication_failed_webauthn);
+  }
+
+  const options = options_res.data;
+
+  const public_key: PublicKeyCredentialRequestOptions = {
+    challenge: base64_url_to_array_buffer(options.challenge),
+    rpId: options.rpId,
+    allowCredentials: options.allowCredentials.map((c) => ({
+      type: c.type as PublicKeyCredentialType,
+      id: base64_url_to_array_buffer(c.id),
+    })),
+    timeout: options.timeout,
+    userVerification: options.userVerification as UserVerificationRequirement,
+  };
+
+  let credential: PublicKeyCredential | null;
+
+  try {
+    credential = (await navigator.credentials.get({
+      publicKey: public_key,
+      mediation: "required" as CredentialMediationRequirement,
+    })) as PublicKeyCredential | null;
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      (err.name === "NotAllowedError" || err.name === "AbortError")
+    ) {
+      throw new Error(en.errors.authentication_cancelled);
+    }
+
+    throw new Error(en.errors.authentication_failed_webauthn);
+  }
+
+  if (!credential) {
+    throw new Error(en.errors.authentication_cancelled);
+  }
+
+  const assertion_response = credential.response as AuthenticatorAssertionResponse;
+
+  return {
+    raw_id: array_buffer_to_base64_url(credential.rawId),
+    response: {
+      authenticator_data: array_buffer_to_base64_url(
+        assertion_response.authenticatorData,
+      ),
+      client_data_json: array_buffer_to_base64_url(
+        assertion_response.clientDataJSON,
+      ),
+      signature: array_buffer_to_base64_url(assertion_response.signature),
+    },
+    challenge_token: options.challenge_token,
+  };
 }
 
 export function is_webauthn_supported(): boolean {

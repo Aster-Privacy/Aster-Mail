@@ -33,7 +33,7 @@ const TOTP_CODE_LENGTH = 6;
 
 interface TotpVerificationProps {
   pending_login_token: string;
-  on_success: (response: TotpVerifyResponse) => void;
+  on_success: (response: TotpVerifyResponse) => void | Promise<void>;
   on_use_backup_code: () => void;
   on_use_passkey?: () => void;
   on_cancel: () => void;
@@ -91,9 +91,12 @@ export function TotpVerification({
     }
 
     if (response.data) {
-      verifying_ref.current = false;
-      set_is_loading(false);
-      on_success(response.data);
+      try {
+        await on_success(response.data);
+      } finally {
+        verifying_ref.current = false;
+        set_is_loading(false);
+      }
 
       return;
     }
