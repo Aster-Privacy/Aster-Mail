@@ -219,7 +219,7 @@ export function SurveyModal({
       return;
     }
 
-    show_toast(t("survey.submitted_thanks"), "success");
+    show_toast(t("survey.submitted_thanks"), "success", 6000);
     on_submitted();
   };
 
