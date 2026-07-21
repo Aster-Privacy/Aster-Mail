@@ -6878,6 +6878,6 @@ export const zh_CN = {
     required_error: "请回答此问题",
     submit: "提交",
     submit_failed: "无法提交问卷,请重试。",
-    submitted_thanks: "感谢您的反馈!",
+    submitted_thanks: "谢谢!您的反馈让 Aster Mail 对每个人都更好。我们会认真阅读每一条回答。",
   },
 };

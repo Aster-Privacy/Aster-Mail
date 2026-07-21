@@ -7311,6 +7311,6 @@ export const ar = {
     required_error: "يرجى الإجابة على هذا السؤال",
     submit: "إرسال",
     submit_failed: "تعذر إرسال الاستبيان. حاول مرة أخرى.",
-    submitted_thanks: "شكرًا على ملاحظاتك!",
+    submitted_thanks: "شكرًا لك! ملاحظاتك تجعل Aster Mail أفضل للجميع. نقرأ كل إجابة.",
   },
 };

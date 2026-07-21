@@ -7575,6 +7575,6 @@ export const fr = {
     required_error: "Veuillez répondre à cette question",
     submit: "Envoyer",
     submit_failed: "Impossible d'envoyer le sondage. Veuillez réessayer.",
-    submitted_thanks: "Merci pour vos retours !",
+    submitted_thanks: "Merci ! Vos retours rendent Aster Mail meilleur pour tout le monde. Nous lisons chaque réponse.",
   },
 };

@@ -7626,6 +7626,6 @@ export const pt = {
     required_error: "Responda esta pergunta",
     submit: "Enviar",
     submit_failed: "Não foi possível enviar a pesquisa. Tente novamente.",
-    submitted_thanks: "Obrigado pelo seu feedback!",
+    submitted_thanks: "Obrigado! Seu feedback torna o Aster Mail melhor para todos. Lemos cada resposta.",
   },
 };

@@ -7607,6 +7607,6 @@ export const pl = {
     required_error: "Odpowiedz na to pytanie",
     submit: "Wyślij",
     submit_failed: "Nie udało się wysłać ankiety. Spróbuj ponownie.",
-    submitted_thanks: "Dziękujemy za opinię!",
+    submitted_thanks: "Dziękujemy! Twoja opinia sprawia, że Aster Mail jest lepszy dla wszystkich. Czytamy każdą odpowiedź.",
   },
 };

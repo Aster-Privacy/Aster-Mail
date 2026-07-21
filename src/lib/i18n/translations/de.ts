@@ -7736,6 +7736,6 @@ export const de = {
     required_error: "Bitte beantworte diese Frage",
     submit: "Absenden",
     submit_failed: "Umfrage konnte nicht gesendet werden. Bitte erneut versuchen.",
-    submitted_thanks: "Danke für dein Feedback!",
+    submitted_thanks: "Danke! Dein Feedback macht Aster Mail für alle besser. Wir lesen jede Antwort.",
   },
 };

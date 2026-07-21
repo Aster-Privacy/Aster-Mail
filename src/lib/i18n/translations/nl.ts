@@ -7546,6 +7546,6 @@ export const nl = {
     required_error: "Beantwoord deze vraag",
     submit: "Versturen",
     submit_failed: "Kon de enquête niet versturen. Probeer het opnieuw.",
-    submitted_thanks: "Bedankt voor je feedback!",
+    submitted_thanks: "Bedankt! Jouw feedback maakt Aster Mail beter voor iedereen. We lezen elk antwoord.",
   },
 };

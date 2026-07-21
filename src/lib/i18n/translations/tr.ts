@@ -7582,6 +7582,6 @@ export const tr = {
     required_error: "Lütfen bu soruyu yanıtlayın",
     submit: "Gönder",
     submit_failed: "Anket gönderilemedi. Lütfen tekrar deneyin.",
-    submitted_thanks: "Geri bildiriminiz için teşekkürler!",
+    submitted_thanks: "Teşekkürler! Geri bildiriminiz Aster Mail'i herkes için daha iyi yapıyor. Her yanıtı okuyoruz.",
   },
 };
