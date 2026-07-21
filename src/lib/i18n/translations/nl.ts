@@ -1459,7 +1459,7 @@ export const nl = {
     add_alias_website_placeholder:
       "Voeg een website toe waar u zich heeft aangemeld",
     alias_add_details: "Details toevoegen",
-    alias_websites_count: "{count} websites",
+    alias_websites_count: "{{count}} websites",
     remove_alias_website: "Website verwijderen",
     failed_update_alias_note:
       "Je notitie is niet opgeslagen. Probeer het opnieuw.",
@@ -7497,7 +7497,7 @@ export const nl = {
   },
   survey: {
     banner_title: "Help Aster Mail te verbeteren",
-    banner_message: "Een eenmalige enquête, duurt ongeveer een minuut.",
+    banner_message: "Help Aster vorm te geven: een eenmalige enquête van ongeveer een minuut. Je antwoorden blijven privé en worden nooit gedeeld.",
     banner_take: "Enquête invullen",
     banner_dismiss: "Sluiten",
     remind_tomorrow: "Herinner me morgen",

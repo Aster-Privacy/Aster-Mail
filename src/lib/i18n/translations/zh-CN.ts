@@ -1327,7 +1327,7 @@ export const zh_CN = {
     add_alias_website: "添加网站",
     add_alias_website_placeholder: "添加您注册过的网站",
     alias_add_details: "添加详情",
-    alias_websites_count: "{count} 个网站",
+    alias_websites_count: "{{count}} 个网站",
     remove_alias_website: "移除网站",
     failed_update_alias_note: "备注未能保存，再试一次应该可以。",
     alias_note_too_long: "这条备注超过了长度限制，缩短一些就可以。",
@@ -6829,7 +6829,7 @@ export const zh_CN = {
   },
   survey: {
     banner_title: "帮助我们改进 Aster Mail",
-    banner_message: "一次性问卷,大约需要一分钟。",
+    banner_message: "帮助塑造 Aster:一次性问卷,约一分钟。您的回答保持私密,绝不共享。",
     banner_take: "参与问卷",
     banner_dismiss: "关闭",
     remind_tomorrow: "明天提醒我",

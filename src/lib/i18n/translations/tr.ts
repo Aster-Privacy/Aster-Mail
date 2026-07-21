@@ -1459,7 +1459,7 @@ export const tr = {
     add_alias_website: "Web sitesi ekle",
     add_alias_website_placeholder: "Kaydolduğunuz bir web sitesi ekleyin",
     alias_add_details: "Ayrıntı ekle",
-    alias_websites_count: "{count} web sitesi",
+    alias_websites_count: "{{count}} web sitesi",
     remove_alias_website: "Web sitesini kaldır",
     failed_update_alias_note:
       "Notunuz kaydedilmedi. Bir kez daha denemek genellikle yeterli olur.",
@@ -7533,7 +7533,7 @@ export const tr = {
   },
   survey: {
     banner_title: "Aster Mail'i geliştirmemize yardım edin",
-    banner_message: "Tek seferlik bir anket, yaklaşık bir dakika sürer.",
+    banner_message: "Aster'ı şekillendirmeye yardım edin: tek seferlik, yaklaşık bir dakikalık anket. Yanıtlarınız gizli kalır ve asla paylaşılmaz.",
     banner_take: "Ankete katıl",
     banner_dismiss: "Kapat",
     remind_tomorrow: "Yarın hatırlat",

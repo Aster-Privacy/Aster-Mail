@@ -1544,7 +1544,7 @@ export const ar = {
     add_alias_website: "إضافة موقع",
     add_alias_website_placeholder: "أضف موقعًا سجّلت فيه",
     alias_add_details: "إضافة تفاصيل",
-    alias_websites_count: "{count} مواقع",
+    alias_websites_count: "{{count}} مواقع",
     remove_alias_website: "إزالة الموقع",
     failed_update_alias_note: "لم تُحفظ الملاحظة. محاولة أخرى ينبغي أن تنجح.",
     alias_note_too_long: "هذه الملاحظة تتجاوز حد الطول. ملاحظة أقصر ستعمل.",
@@ -7262,7 +7262,7 @@ export const ar = {
   },
   survey: {
     banner_title: "ساعدنا في تحسين Aster Mail",
-    banner_message: "استبيان لمرة واحدة، يستغرق حوالي دقيقة.",
+    banner_message: "ساعد في تطوير Aster: استبيان لمرة واحدة يستغرق حوالي دقيقة. تبقى إجاباتك خاصة ولا تُشارك أبدًا.",
     banner_take: "ابدأ الاستبيان",
     banner_dismiss: "تجاهل",
     remind_tomorrow: "ذكّرني غدًا",

@@ -1469,7 +1469,7 @@ export const it = {
     add_alias_website: "Aggiungi sito web",
     add_alias_website_placeholder: "Aggiungi un sito su cui ti sei registrato",
     alias_add_details: "Aggiungi dettagli",
-    alias_websites_count: "{count} siti web",
+    alias_websites_count: "{{count}} siti web",
     remove_alias_website: "Rimuovi sito web",
     failed_update_alias_note:
       "La nota non è stata salvata. Un altro tentativo dovrebbe bastare.",
@@ -7623,7 +7623,7 @@ export const it = {
   },
   survey: {
     banner_title: "Aiutaci a migliorare Aster Mail",
-    banner_message: "Un sondaggio unico, richiede circa un minuto.",
+    banner_message: "Aiuta a plasmare Aster: un sondaggio unico di un minuto. Le tue risposte restano private e non vengono mai condivise.",
     banner_take: "Fai il sondaggio",
     banner_dismiss: "Ignora",
     remind_tomorrow: "Ricordamelo domani",

@@ -1536,7 +1536,7 @@ export const ko = {
     add_alias_website: "웹사이트 추가",
     add_alias_website_placeholder: "가입한 웹사이트를 추가하세요",
     alias_add_details: "세부정보 추가",
-    alias_websites_count: "웹사이트 {count}개",
+    alias_websites_count: "웹사이트 {{count}}개",
     remove_alias_website: "웹사이트 제거",
     failed_update_alias_note:
       "메모가 저장되지 않았습니다. 다시 시도하면 됩니다.",
@@ -7287,7 +7287,7 @@ export const ko = {
   },
   survey: {
     banner_title: "Aster Mail 개선에 도움을 주세요",
-    banner_message: "일회성 설문조사입니다. 약 1분 소요됩니다.",
+    banner_message: "Aster를 함께 만들어 주세요: 한 번뿐인 약 1분 설문입니다. 답변은 비공개로 유지되며 절대 공유되지 않습니다.",
     banner_take: "설문 참여",
     banner_dismiss: "닫기",
     remind_tomorrow: "내일 다시 알림",

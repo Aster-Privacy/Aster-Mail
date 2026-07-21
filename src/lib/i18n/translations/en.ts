@@ -169,7 +169,7 @@ export const en: Translations = {
     add_alias_website: "Add website",
     add_alias_website_placeholder: "Add a website you signed up on",
     alias_add_details: "Add details",
-    alias_websites_count: "{count} websites",
+    alias_websites_count: "{{count}} websites",
     remove_alias_website: "Remove website",
     failed_update_alias_note: "Your note did not save. Another attempt should do it.",
     alias_note_too_long: "This note is over the length limit. A shorter one will work.",
@@ -6942,7 +6942,7 @@ export const en: Translations = {
   },
   survey: {
     banner_title: "Help shape Aster Mail",
-    banner_message: "A one-time survey, it takes about a minute.",
+    banner_message: "Help shape Aster: a one-time survey, about a minute. Your answers stay private and are never shared.",
     banner_take: "Take survey",
     banner_dismiss: "Dismiss",
     remind_tomorrow: "Remind me tomorrow",
