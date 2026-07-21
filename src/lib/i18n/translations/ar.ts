@@ -5298,6 +5298,7 @@ export const ar = {
     choose_email_address: "اختر عنوان بريدك الإلكتروني",
     pick_unique_username: "اختر اسم مستخدم فريدًا لبريدك الجديد على Aster",
     new_email_address: "عنوان بريد إلكتروني جديد",
+    your_new_aster_address: "عنوان Aster Mail الجديد الخاص بك",
     generate_random_username: "إنشاء اسم مستخدم عشوائي",
     generate_random_display: "إنشاء اسم عرض عشوائي",
     profile_color: "لون الملف الشخصي",

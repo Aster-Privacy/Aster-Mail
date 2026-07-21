@@ -5291,6 +5291,7 @@ export const zh_CN = {
     choose_email_address: "选择您的邮箱地址",
     pick_unique_username: "为您的新 Aster 邮箱选择一个唯一的用户名",
     new_email_address: "新邮箱地址",
+    your_new_aster_address: "你的新 Aster Mail 地址",
     generate_random_username: "生成随机用户名",
     generate_random_display: "生成随机显示名称",
     profile_color: "头像颜色",

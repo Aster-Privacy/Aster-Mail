@@ -5302,6 +5302,7 @@ export const ja = {
     choose_email_address: "メールアドレスを選択",
     pick_unique_username: "新しいAsterメールのユニークなユーザー名を選択してください",
     new_email_address: "新しいメールアドレス",
+    your_new_aster_address: "あなたの新しい Aster Mail アドレス",
     generate_random_username: "ランダムなユーザー名を生成",
     generate_random_display: "ランダムな表示名を生成",
     profile_color: "プロフィールカラー",

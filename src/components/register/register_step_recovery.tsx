@@ -61,6 +61,17 @@ export const RegisterStepRecoveryCodes = ({
         {reg.t("auth.store_codes_safely")}
       </p>
 
+      {reg.is_invited && reg.generated_email && (
+        <div className="mt-3 flex flex-col items-center gap-0.5">
+          <span className="text-xs text-txt-muted">
+            {reg.t("auth.your_new_aster_address")}
+          </span>
+          <span className="text-sm font-semibold text-txt-primary notranslate" translate="no">
+            {reg.generated_email}
+          </span>
+        </div>
+      )}
+
       <div className="w-full mt-6">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-medium text-txt-muted">
@@ -133,20 +144,22 @@ export const RegisterStepRecoveryCodes = ({
         {reg.t("auth.download_as_text")}
       </Button>
 
-      <button
-        className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
-        onClick={() => {
-          if (reg.is_pdf_downloaded || reg.is_text_downloaded) {
-            reg.handle_advance_from_recovery_key();
-          } else {
-            reg.set_show_skip_confirmation(true);
-          }
-        }}
-      >
-        {reg.is_pdf_downloaded || reg.is_text_downloaded
-          ? reg.t("common.continue")
-          : reg.t("auth.continue_without_download")}
-      </button>
+      {(!reg.is_invited || reg.is_pdf_downloaded || reg.is_text_downloaded) && (
+        <button
+          className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
+          onClick={() => {
+            if (reg.is_pdf_downloaded || reg.is_text_downloaded) {
+              reg.handle_advance_from_recovery_key();
+            } else {
+              reg.set_show_skip_confirmation(true);
+            }
+          }}
+        >
+          {reg.is_pdf_downloaded || reg.is_text_downloaded
+            ? reg.t("common.continue")
+            : reg.t("auth.continue_without_download")}
+        </button>
+      )}
 
       <ConfirmationModal
         cancel_text={reg.t("common.go_back")}

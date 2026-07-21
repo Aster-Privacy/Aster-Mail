@@ -72,6 +72,20 @@ export function StepRecoveryKey({
             </p>
           </motion.div>
 
+          {reg.is_invited && reg.generated_email && (
+            <motion.div
+              className="mt-3 flex flex-col gap-0.5"
+              variants={reduce_motion ? undefined : fade_up_item}
+            >
+              <span className="text-xs text-[var(--text-muted)]">
+                {reg.t("auth.your_new_aster_address")}
+              </span>
+              <span className="text-sm font-semibold text-[var(--text-primary)] notranslate" translate="no">
+                {reg.generated_email}
+              </span>
+            </motion.div>
+          )}
+
           <motion.div
             className="mt-6"
             variants={reduce_motion ? undefined : fade_up_item}

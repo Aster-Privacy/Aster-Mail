@@ -5296,6 +5296,7 @@ export const de = {
     sign_in_existing: "Bei bestehendem Konto anmelden",
     choose_email_address: "Wählen Sie Ihre E-Mail-Adresse",
     new_email_address: "Neue E-Mail-Adresse",
+    your_new_aster_address: "Deine neue Aster-Mail-Adresse",
     generate_random_username: "Zufälligen Benutzernamen generieren",
     generate_random_display: "Zufälligen Anzeigenamen generieren",
     profile_color: "Profilfarbe",

@@ -5303,6 +5303,7 @@ export const pl = {
     choose_email_address: "Wybierz adres e-mail",
     pick_unique_username: "Wybierz unikalną nazwę użytkownika dla nowego e-maila Aster",
     new_email_address: "Nowy adres e-mail",
+    your_new_aster_address: "Twój nowy adres Aster Mail",
     generate_random_username: "Wygeneruj losową nazwę użytkownika",
     generate_random_display: "Wygeneruj losową nazwę wyświetlaną",
     profile_color: "Kolor profilu",

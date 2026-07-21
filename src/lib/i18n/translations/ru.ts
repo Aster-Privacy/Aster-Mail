@@ -5302,6 +5302,7 @@ export const ru = {
     choose_email_address: "Выберите ваш адрес электронной почты",
     pick_unique_username: "Выберите уникальное имя пользователя для вашей новой почты Aster",
     new_email_address: "Новый адрес электронной почты",
+    your_new_aster_address: "Ваш новый адрес Aster Mail",
     generate_random_username: "Сгенерировать случайное имя пользователя",
     generate_random_display: "Сгенерировать случайное отображаемое имя",
     profile_color: "Цвет профиля",

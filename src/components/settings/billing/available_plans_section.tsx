@@ -94,18 +94,26 @@ function PlanCard({
   const highlighted = featured || is_current;
   return (
     <div
-      className={`relative flex flex-col p-6 rounded-2xl border transition-colors ${
+      className={`relative flex flex-col p-6 rounded-2xl border bg-surf-tertiary transition-colors ${
         featured
-          ? "border-brand bg-surf-selected sm:-my-2 sm:py-8 z-10"
+          ? "border-2 border-brand sm:-my-2 sm:py-8 z-10"
           : highlighted
-            ? "border-brand bg-surf-selected"
-            : "border-edge-secondary bg-surf-tertiary"
+            ? "border-brand"
+            : "border-edge-secondary"
       }`}
+      style={
+        featured
+          ? { boxShadow: "0 16px 40px -20px rgba(59,130,246,0.55)" }
+          : undefined
+      }
     >
       {badge && (
         <span
           className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap shadow-sm"
-          style={{ backgroundColor: "var(--accent-blue)" }}
+          style={{
+            background:
+              "linear-gradient(90deg, var(--accent-blue), var(--accent-blue-hover))",
+          }}
         >
           {badge}
         </span>

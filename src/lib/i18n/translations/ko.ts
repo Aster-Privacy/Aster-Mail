@@ -5304,6 +5304,7 @@ export const ko = {
     choose_email_address: "이메일 주소 선택",
     pick_unique_username: "새 Aster 이메일의 고유한 사용자 이름을 선택하세요",
     new_email_address: "새 이메일 주소",
+    your_new_aster_address: "새 Aster Mail 주소",
     generate_random_username: "무작위 사용자 이름 생성",
     generate_random_display: "무작위 표시 이름 생성",
     profile_color: "프로필 색상",
