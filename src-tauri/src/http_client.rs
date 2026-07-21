@@ -33,8 +33,15 @@ use sha2::{Digest, Sha256};
 use subtle::ConstantTimeEq;
 use x509_parser::prelude::*;
 
-const PRIMARY_PIN_B64: &str = "xzW4Lh0h5AJczrSG3fvSOGZYUsDrxYyt0AlhLpZFUls=";
-const BACKUP_PIN_B64: &str = "DDf/bfpXnW80wMM5Y2b9zNCdohxBo5lX7rUMiw+DYO4=";
+const PIN_B64_SET: &[&str] = &[
+    "DDf/bfpXnW80wMM5Y2b9zNCdohxBo5lX7rUMiw+DYO4=",
+    "fk6IOKit1ild5647BH06ujSIq5XbCgqlbYl6ANhhi88=",
+    "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
+    "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
+    "ZtbEdP4fXOZh79o7Pf8qXXNlIKRpQNBzxoh/UgnQ2Qc=",
+    "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
+    "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
+];
 
 const PINNED_SUFFIXES: &[&str] = &[".astermail.org", ".astermail.com"];
 const PINNED_EXACT: &[&str] = &["astermail.org", "astermail.com"];
@@ -42,7 +49,7 @@ const PINNED_EXACT: &[&str] = &["astermail.org", "astermail.com"];
 #[derive(Debug)]
 struct PinnedVerifier {
     delegate: Arc<WebPkiServerVerifier>,
-    pins: [[u8; 32]; 2],
+    pins: Vec<[u8; 32]>,
 }
 
 impl PinnedVerifier {
@@ -53,12 +60,11 @@ impl PinnedVerifier {
         let delegate = WebPkiServerVerifier::builder_with_provider(Arc::new(roots), provider)
             .build()
             .map_err(|e| format!("webpki verifier: {e}"))?;
-        let primary = decode_pin(PRIMARY_PIN_B64)?;
-        let backup = decode_pin(BACKUP_PIN_B64)?;
-        Ok(Arc::new(Self {
-            delegate,
-            pins: [primary, backup],
-        }))
+        let pins = PIN_B64_SET
+            .iter()
+            .map(|b64| decode_pin(b64))
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Arc::new(Self { delegate, pins }))
     }
 }
 
@@ -113,11 +119,18 @@ impl ServerCertVerifier for PinnedVerifier {
             return Ok(ServerCertVerified::assertion());
         }
 
-        let observed = spki_sha256(end_entity.as_ref())?;
-        let matched = self
-            .pins
-            .iter()
-            .any(|pin| pin.ct_eq(&observed).unwrap_u8() == 1);
+        let mut matched = false;
+        for cert_der in std::iter::once(end_entity).chain(intermediates.iter()) {
+            let observed = spki_sha256(cert_der.as_ref())?;
+            if self
+                .pins
+                .iter()
+                .any(|pin| pin.ct_eq(&observed).unwrap_u8() == 1)
+            {
+                matched = true;
+                break;
+            }
+        }
 
         if matched {
             Ok(ServerCertVerified::assertion())
