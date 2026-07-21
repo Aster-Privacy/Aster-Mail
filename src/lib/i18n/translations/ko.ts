@@ -105,6 +105,8 @@ export const ko = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1499,6 +1501,8 @@ export const ko = {
     step_up_description: "보안을 위해 계속하려면 비밀번호를 확인하세요.",
     step_up_error:
       "비밀번호 또는 인증 코드가 올바르지 않습니다. 다시 시도하세요.",
+    step_up_security_key_hint:
+      "비밀번호를 입력하면 보안 키로 추가 인증을 진행하게 됩니다.",
     remove_recovery_email_confirm:
       "복구 이메일을 제거하시겠습니까? 이 이메일로 더 이상 계정을 복구할 수 없습니다.",
     recovery_email_removed: "복구 이메일이 제거되었습니다",
@@ -5066,6 +5070,15 @@ export const ko = {
     criterion_auto_lock: "자동 잠금",
     criterion_login_alerts: "로그인 알림",
     criterion_forward_secrecy: "순방향 비밀성",
+    action_recommended: "조치 권장",
+    two_step_verification_enabled_description:
+      "계정에 비밀번호 외에 인증 코드가 필요합니다.",
+    no_passkeys_recommendation:
+      "기기의 생체 인증 또는 PIN을 사용해 더 빠르고 안전하게 로그인하려면 패스키를 추가하세요.",
+    password_weak_recommendation:
+      "비밀번호가 취약할 수 있습니다. 더 길고 고유한 비밀번호로 변경하는 것을 고려하세요.",
+    login_alerts_off_recommendation:
+      "새 기기가 계정에 로그인할 때 알림을 받으려면 로그인 알림을 켜세요.",
     or_pay_with_card: "또는 카드로 결제",
     cardholder_name_placeholder: "성명",
     billing_postal_placeholder: "12345",
@@ -5456,6 +5469,7 @@ export const ko = {
     export_security_vault_row_title: "암호화 보관함 암호",
     export_security_vault_row_body:
       "로컬 보관함 암호는 내보내기를 위해 메일을 복호화하기 전에 이 기기를 확인합니다.",
+    export_security_vault_row_help: "이는 이 기기의 로컬 보관함 암호이며 계정 비밀번호가 아닙니다. 이 기기에서만 암호화 키의 잠금을 해제합니다.",
     export_security_required_badge: "필수",
     export_warning_title: "내보내기 전 확인",
     export_warning_body:
@@ -5464,14 +5478,17 @@ export const ko = {
     export_step_scope_title: "내보낼 내용 선택",
     export_scope_mail_title: "이메일",
     export_scope_mail_body: "선택한 폴더의 모든 메시지",
+    export_scope_mail_help: "MBOX는 모든 메시지를 하나의 파일로 묶고, .EML은 메시지를 개별 파일로 저장합니다. 두 형식 모두 대부분의 데스크톱 메일 클라이언트에서 사용할 수 있습니다.",
     export_scope_contacts_title: "연락처",
     export_scope_contacts_body: "주소록의 모든 연락처",
+    export_scope_contacts_help: "vCard 4.0은 대부분의 앱이 직접 가져올 수 있는 범용 연락처 형식입니다. 추가 JSON 파일에는 vCard가 저장할 수 없는 필드가 보존됩니다.",
     export_scope_settings_title: "설정",
     export_scope_settings_body: "계정 환경설정 및 설정",
     export_scope_preset_all: "모두",
     export_scope_preset_custom: "사용자 정의",
     export_scope_folders_label: "폴더",
     export_scope_labels_label: "라벨",
+    export_scope_date_range: "날짜 범위",
     export_scope_date_from: "시작 날짜",
     export_scope_date_to: "종료 날짜",
     export_scope_empty_warning: "내보낼 항목을 하나 이상 선택하세요",

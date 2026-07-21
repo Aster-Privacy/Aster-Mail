@@ -22,6 +22,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArchiveBoxArrowDownIcon,
   InformationCircleIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  EnvelopeIcon,
+  UserGroupIcon,
+  Cog6ToothIcon,
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
@@ -36,6 +41,12 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
+import { RadioRowWithDescription } from "@/components/settings/appearance/radio_row_with_description";
+import {
+  TurnstileWidget,
+  TURNSTILE_SITE_KEY,
+  type TurnstileWidgetRef,
+} from "@/components/auth/turnstile_widget";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { Spinner } from "@/components/ui/spinner";
@@ -105,6 +116,9 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const [verify_error, set_verify_error] = useState("");
   const verify_submitting_ref = useRef(false);
   const verify_input_ref = useRef<HTMLInputElement>(null);
+  const [captcha_token, set_captcha_token] = useState<string | null>(null);
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   const [warning_ack, set_warning_ack] = useState(false);
   const [format, set_format] = useState<ExportFormat>("mbox");
@@ -131,6 +145,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     set_verify_show_password(false);
     set_verify_loading(false);
     set_verify_error("");
+    set_captcha_token(null);
     set_warning_ack(false);
     set_format("mbox");
     set_include_mail(true);
@@ -181,6 +196,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const verify_can_submit =
     !!verify_password &&
     (!verify_totp_required || verify_code.length === 6) &&
+    (!turnstile_required || !!captcha_token) &&
     !verify_loading;
 
   const handle_verify_submit = useCallback(async () => {
@@ -196,25 +212,42 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         verify_password,
         verify_totp_required ? verify_code : undefined,
       );
-      const res = await verify_vanguard_credentials(credentials);
+      const res = await verify_vanguard_credentials({
+        ...credentials,
+        for_export: true,
+        captcha_token: captcha_token ?? undefined,
+      });
 
       if (res.error || !res.data?.valid) {
         set_verify_error(t("common.step_up_error"));
+        set_captcha_token(null);
+        turnstile_ref.current?.reset();
         return;
       }
 
       set_verify_password("");
       set_verify_code("");
+      set_captcha_token(null);
       set_step("warning");
     } catch (err) {
       set_verify_error(
         err instanceof Error ? err.message : t("common.step_up_error"),
       );
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
     } finally {
       verify_submitting_ref.current = false;
       set_verify_loading(false);
     }
-  }, [t, user, verify_can_submit, verify_code, verify_password, verify_totp_required]);
+  }, [
+    t,
+    user,
+    verify_can_submit,
+    verify_code,
+    verify_password,
+    verify_totp_required,
+    captcha_token,
+  ]);
 
   const handle_warning_continue = useCallback(() => {
     if (!warning_ack) return;
@@ -427,6 +460,14 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           </div>
         )}
 
+        {turnstile_required && (
+          <TurnstileWidget
+            ref={turnstile_ref}
+            on_verify={set_captcha_token}
+            on_expire={() => set_captcha_token(null)}
+          />
+        )}
+
         {verify_error && (
           <p className="text-sm text-center text-red-500">{verify_error}</p>
         )}
@@ -449,17 +490,26 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     );
   } else if (step === "warning") {
     title = t("settings.export_warning_title");
-    description = t("settings.export_warning_body");
     body = (
-      <label className="flex items-center gap-2.5 cursor-pointer select-none">
-        <Checkbox
-          checked={warning_ack}
-          onCheckedChange={(v) => set_warning_ack(v === true)}
-        />
-        <span className="text-sm text-txt-secondary">
-          {t("settings.export_warning_confirm")}
-        </span>
-      </label>
+      <div className="space-y-4">
+        <div className="rounded-xl bg-amber-500 p-3.5">
+          <div className="flex items-start gap-2.5">
+            <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-950 mt-[3px]" />
+            <p className="text-sm font-semibold text-amber-950 leading-relaxed">
+              {t("settings.export_warning_body")}
+            </p>
+          </div>
+        </div>
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <Checkbox
+            checked={warning_ack}
+            onCheckedChange={(v) => set_warning_ack(v === true)}
+          />
+          <span className="text-sm text-txt-secondary">
+            {t("settings.export_warning_confirm")}
+          </span>
+        </label>
+      </div>
     );
     footer = (
       <>
@@ -483,27 +533,32 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       on_change,
       title: row_title,
       row_body,
+      icon: Icon,
     }: {
       checked: boolean;
       on_change: (v: boolean) => void;
       title: string;
       row_body: string;
+      icon: typeof EnvelopeIcon;
     }) => (
       <label
-        className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+        className={`flex items-start gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
           checked
-            ? "border-brand bg-surf-secondary"
+            ? "border-brand"
             : "border-edge-secondary hover:bg-surf-secondary/50"
         }`}
       >
-        <Checkbox
-          checked={checked}
-          onCheckedChange={(v) => on_change(v === true)}
-        />
-        <div className="flex-1">
+        <Icon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-txt-primary">{row_title}</p>
-          <p className="text-xs text-txt-muted mt-0.5">{row_body}</p>
+          <p className="text-sm mt-0.5 text-txt-muted">{row_body}</p>
         </div>
+        <span className="flex-shrink-0">
+          <Checkbox
+            checked={checked}
+            onCheckedChange={(v) => on_change(v === true)}
+          />
+        </span>
       </label>
     );
     title = t("settings.export_step_scope_title");
@@ -511,18 +566,21 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       <div className="space-y-3">
         <Row
           checked={include_mail}
+          icon={EnvelopeIcon}
           on_change={set_include_mail}
           row_body={t("settings.export_scope_mail_body")}
           title={t("settings.export_scope_mail_title")}
         />
         <Row
           checked={include_contacts}
+          icon={UserGroupIcon}
           on_change={set_include_contacts}
           row_body={t("settings.export_scope_contacts_body")}
           title={t("settings.export_scope_contacts_title")}
         />
         <Row
           checked={include_settings}
+          icon={Cog6ToothIcon}
           on_change={set_include_settings}
           row_body={t("settings.export_scope_settings_body")}
           title={t("settings.export_scope_settings_title")}
@@ -546,62 +604,49 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   } else if (step === "format") {
     title = t("settings.export_step_format_title");
     body = (
-      <div className="space-y-4">
-        <button
-          className={`w-full text-left p-3 rounded-xl border transition-colors ${
-            format === "mbox"
-              ? "border-brand bg-surf-secondary"
-              : "border-edge-secondary hover:bg-surf-secondary/50"
-          }`}
-          type="button"
-          onClick={() => set_format("mbox")}
-        >
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.export_format_mbox_name")}
-          </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.export_format_mbox_hint")}
-          </p>
-        </button>
-        <button
-          className={`w-full text-left p-3 rounded-xl border transition-colors ${
-            format === "eml_dir"
-              ? "border-brand bg-surf-secondary"
-              : "border-edge-secondary hover:bg-surf-secondary/50"
-          }`}
-          type="button"
-          onClick={() => set_format("eml_dir")}
-        >
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.export_format_eml_name")}
-          </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.export_format_eml_hint")}
-          </p>
-        </button>
+      <div className="space-y-5">
+        <div className="space-y-3">
+          <RadioRowWithDescription
+            description={t("settings.export_format_mbox_hint")}
+            is_selected={format === "mbox"}
+            label={t("settings.export_format_mbox_name")}
+            on_select={() => set_format("mbox")}
+          />
+          <RadioRowWithDescription
+            description={t("settings.export_format_eml_hint")}
+            is_selected={format === "eml_dir"}
+            label={t("settings.export_format_eml_name")}
+            on_select={() => set_format("eml_dir")}
+          />
+        </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <div>
-            <label className="text-xs text-txt-muted">
-              {t("settings.export_scope_date_from")}
-            </label>
-            <Input
-              className="w-full mt-1"
-              type="date"
-              value={date_from}
-              onChange={(e) => set_date_from(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-xs text-txt-muted">
-              {t("settings.export_scope_date_to")}
-            </label>
-            <Input
-              className="w-full mt-1"
-              type="date"
-              value={date_to}
-              onChange={(e) => set_date_to(e.target.value)}
-            />
+        <div>
+          <p className="text-xs font-medium text-txt-muted mb-2">
+            {t("settings.export_scope_date_range")}
+          </p>
+          <div className="grid grid-cols-2 gap-3 rounded-[16px] border border-edge-secondary p-3">
+            <div>
+              <label className="text-xs text-txt-muted">
+                {t("settings.export_scope_date_from")}
+              </label>
+              <Input
+                className="w-full mt-1"
+                type="date"
+                value={date_from}
+                onChange={(e) => set_date_from(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-txt-muted">
+                {t("settings.export_scope_date_to")}
+              </label>
+              <Input
+                className="w-full mt-1"
+                type="date"
+                value={date_to}
+                onChange={(e) => set_date_to(e.target.value)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -691,32 +736,38 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   } else {
     title = t("settings.export_step_complete_title");
     body = (
-      <div className="space-y-2">
-        <p className="text-sm text-txt-secondary">
+      <div className="py-8 text-center">
+        <CheckCircleIcon
+          className="w-16 h-16 mx-auto mb-4"
+          style={{ color: "var(--color-success)" }}
+        />
+        <h3 className="text-lg font-semibold mb-2 text-txt-primary">
           {t("settings.export_complete_summary", {
             count: String(summary?.processed ?? 0),
             total: String(summary?.total ?? 0),
           })}
-        </p>
-        <p className="text-xs text-txt-muted">
-          {t("settings.export_complete_bytes", {
-            bytes: format_bytes(summary?.bytes_written ?? 0),
-          })}
-        </p>
-        {destination_label && (
-          <p className="text-xs text-txt-muted">
-            {t("settings.export_complete_location", {
-              location: destination_label,
+        </h3>
+        <div className="space-y-1">
+          <p className="text-sm text-txt-secondary">
+            {t("settings.export_complete_bytes", {
+              bytes: format_bytes(summary?.bytes_written ?? 0),
             })}
           </p>
-        )}
-        {summary && summary.errors.length > 0 && (
-          <p className="text-xs text-red-500">
-            {t("settings.export_complete_errors", {
-              count: String(summary.errors.length),
-            })}
-          </p>
-        )}
+          {destination_label && (
+            <p className="text-xs text-txt-muted">
+              {t("settings.export_complete_location", {
+                location: destination_label,
+              })}
+            </p>
+          )}
+          {summary && summary.errors.length > 0 && (
+            <p className="text-xs text-red-500 mt-2">
+              {t("settings.export_complete_errors", {
+                count: String(summary.errors.length),
+              })}
+            </p>
+          )}
+        </div>
       </div>
     );
     footer = (
@@ -730,6 +781,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     <Modal
       is_open={is_open}
       on_close={handle_close}
+      close_on_overlay={false}
       show_close_button={step !== "progress"}
       size="md"
     >

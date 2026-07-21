@@ -105,6 +105,8 @@ export const ja = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1424,6 +1426,8 @@ export const ja = {
       "セキュリティのため、続行するにはパスワードを確認してください。",
     step_up_error:
       "パスワードまたは確認コードが正しくありません。もう一度お試しください。",
+    step_up_security_key_hint:
+      "パスワードを入力すると、セキュリティキーによる確認を求められます。",
     remove_recovery_email_confirm:
       "復旧用メールアドレスを削除してもよろしいですか？このメールでアカウントを復旧できなくなります。",
     recovery_email_removed: "復旧用メールアドレスを削除しました",
@@ -5000,6 +5004,15 @@ export const ja = {
     criterion_auto_lock: "自動ロック",
     criterion_login_alerts: "ログインアラート",
     criterion_forward_secrecy: "前方秘匿性",
+    action_recommended: "対応をおすすめします",
+    two_step_verification_enabled_description:
+      "アカウントにはパスワードに加えて確認コードが必要です。",
+    no_passkeys_recommendation:
+      "デバイスの生体認証やPINを使ったより速く安全なサインインのために、パスキーを追加してください。",
+    password_weak_recommendation:
+      "パスワードをより強力にすることをおすすめします。より長く一意なパスワードへの変更をご検討ください。",
+    login_alerts_off_recommendation:
+      "新しいデバイスでアカウントにサインインした際に通知を受け取るには、ログインアラートをオンにしてください。",
     block_remote_fonts_description:
       "外部サーバーからのフォントの読み込みをブロックします",
     block_remote_fonts_label: "リモートフォントをブロック",
@@ -5619,6 +5632,7 @@ export const ja = {
     export_security_vault_row_title: "暗号化保管庫のパスフレーズ",
     export_security_vault_row_body:
       "ローカルの保管庫パスフレーズは、メールをエクスポート用に復号する前にこのデバイスを確認します。",
+    export_security_vault_row_help: "これはこの端末のローカルボールトのパスフレーズであり、アカウントのパスワードではありません。この端末上でのみ暗号化キーのロックを解除します。",
     export_security_required_badge: "必須",
     export_warning_title: "ご注意ください",
     export_warning_body:
@@ -5628,9 +5642,11 @@ export const ja = {
     export_scope_mail_title: "メール",
     export_scope_mail_body:
       "すべてのメッセージと添付ファイルを標準のmboxまたは.eml形式でエクスポートします。",
+    export_scope_mail_help: "MBOXはすべてのメッセージを1つのファイルにまとめます。.EMLはメッセージごとに別々のファイルとして保存します。どちらの形式もほとんどのデスクトップメールクライアントで使用できます。",
     export_scope_contacts_title: "連絡先",
     export_scope_contacts_body:
       "アドレス帳をvCard 4.0（Apple、Google、Thunderbirdなどにインポート可能）と完全なJSONでエクスポートします。",
+    export_scope_contacts_help: "vCard 4.0はほとんどのアプリが直接インポートできる汎用の連絡先形式です。追加のJSONファイルにはvCardが保存できない項目が保持されます。",
     export_scope_settings_title: "設定とルール",
     export_scope_settings_body:
       "エイリアス、署名、テンプレート、メールルール、ブロック済みと許可済みの送信者、フォルダ、その他のアカウントデータをエクスポートします。",
@@ -5638,6 +5654,7 @@ export const ja = {
     export_scope_preset_custom: "カスタム選択",
     export_scope_folders_label: "フォルダ",
     export_scope_labels_label: "ラベル",
+    export_scope_date_range: "日付範囲",
     export_scope_date_from: "開始日",
     export_scope_date_to: "終了日",
     export_scope_empty_warning: "現在の選択に一致するメッセージがありません。",

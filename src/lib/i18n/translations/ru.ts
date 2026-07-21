@@ -107,6 +107,8 @@ export const ru = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1591,6 +1593,8 @@ export const ru = {
     step_up_description:
       "В целях безопасности подтвердите пароль, чтобы продолжить.",
     step_up_error: "Неверный пароль или код подтверждения. Попробуйте ещё раз.",
+    step_up_security_key_hint:
+      "После ввода пароля вам нужно будет подтвердить личность с помощью ключа безопасности.",
     remove_recovery_email_confirm:
       "Вы уверены, что хотите удалить резервный адрес? Вы больше не сможете восстановить аккаунт с помощью этого адреса.",
     reply_notification: "{{ sender }} ответил",
@@ -5038,6 +5042,15 @@ export const ru = {
     criterion_auto_lock: "Автоблокировка",
     criterion_login_alerts: "Оповещения о входе",
     criterion_forward_secrecy: "Прямая секретность",
+    action_recommended: "Рекомендуется действие",
+    two_step_verification_enabled_description:
+      "Для вашей учётной записи требуется код подтверждения в дополнение к паролю.",
+    no_passkeys_recommendation:
+      "Добавьте ключ доступа для более быстрого и безопасного входа с использованием биометрии или PIN-кода устройства.",
+    password_weak_recommendation:
+      "Ваш пароль может быть надёжнее. Рассмотрите возможность смены на более длинный и уникальный пароль.",
+    login_alerts_off_recommendation:
+      "Включите оповещения о входе, чтобы получать уведомления при входе с нового устройства в вашу учётную запись.",
     block_remote_fonts_description:
       "Запретить письмам загружать шрифты с внешних серверов",
     block_remote_fonts_label: "Блокировать внешние шрифты",
@@ -5286,12 +5299,15 @@ export const ru = {
     export_security_vault_row_title: "Пароль хранилища шифрования",
     export_security_vault_row_body:
       "Локальный пароль хранилища подтверждает это устройство перед расшифровкой почты для экспорта.",
+    export_security_vault_row_help: "Это пароль локального хранилища этого устройства, а не пароль вашей учётной записи. Он разблокирует ваши ключи шифрования только на этом устройстве.",
     export_security_required_badge: "Обязательно",
     export_reauth_prompt: "Введите пароль аккаунта для авторизации экспорта.",
     export_reauth_submit: "Авторизовать",
     export_scope_contacts_body:
       "Адресная книга в формате vCard 4.0 (импортируется в Apple, Google, Thunderbird и др.) плюс полный JSON.",
+    export_scope_mail_help: "MBOX объединяет все сообщения в один файл; .EML сохраняет каждое сообщение отдельно. Оба формата работают с большинством настольных почтовых клиентов.",
     export_scope_contacts_title: "Контакты",
+    export_scope_date_range: "Диапазон дат",
     export_scope_date_from: "С",
     export_scope_date_to: "По",
     export_scope_empty_warning: "Нет сообщений, соответствующих выбору.",
@@ -5304,6 +5320,7 @@ export const ru = {
     export_scope_preset_custom: "Выборочно",
     export_scope_settings_body:
       "Псевдонимы, подписи, шаблоны, правила, чёрный и белый список, папки и другие данные аккаунта.",
+    export_scope_contacts_help: "vCard 4.0 — универсальный формат контактов, который большинство приложений импортирует напрямую. Дополнительный файл JSON сохраняет поля, которые vCard не поддерживает.",
     export_scope_settings_title: "Настройки и правила",
     export_start_button: "Начать экспорт",
     export_step_complete_title: "Экспорт завершён",

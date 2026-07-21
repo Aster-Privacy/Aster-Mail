@@ -106,6 +106,8 @@ export const de = {
     inactivity_window_info_title: "Wie die Inaktivitätsrichtlinie funktioniert",
     inactivity_window_info_description:
       "Wenn Ihr Konto für die von Ihnen festgelegte Dauer keine Aktivität aufweist, wird es dauerhaft gelöscht. Aktivität umfasst die Anmeldung von einem beliebigen Client - Web, Desktop, Mobile oder der Bridge. Sie erhalten Warn-E-Mails auf halbem Weg, bei 83 % und erneut bei 96 % des Fensters.",
+    inactivity_window_step_up_description:
+      "Bestätigen Sie zu Ihrer Sicherheit Ihr Passwort, um das Inaktivitätsfenster zu ändern.",
     inactivity_window_months: "{{n}} Monate",
     inactivity_window_saved: "Inaktivitätsfenster aktualisiert",
     inactivity_window_save_failed:
@@ -1608,6 +1610,8 @@ export const de = {
       "Bestätigen Sie zu Ihrer Sicherheit Ihr Passwort, um fortzufahren.",
     step_up_error:
       "Falsches Passwort oder falscher Bestätigungscode. Bitte versuchen Sie es erneut.",
+    step_up_security_key_hint:
+      "Nach Eingabe Ihres Passworts werden Sie gebeten, sich mit Ihrem Sicherheitsschlüssel zu verifizieren.",
     remove_recovery_email_confirm:
       "Möchten Sie Ihre Wiederherstellungs-E-Mail wirklich entfernen? Sie können Ihr Konto dann nicht mehr über diese E-Mail-Adresse wiederherstellen.",
     reply_notification: "{{ sender }} hat geantwortet",
@@ -5112,6 +5116,15 @@ export const de = {
     criterion_auto_lock: "Automatische Sperre",
     criterion_login_alerts: "Anmeldewarnungen",
     criterion_forward_secrecy: "Forward Secrecy",
+    action_recommended: "Aktion empfohlen",
+    two_step_verification_enabled_description:
+      "Ihr Konto erfordert zusätzlich zum Passwort einen Bestätigungscode.",
+    no_passkeys_recommendation:
+      "Fügen Sie einen Passkey hinzu, um sich schneller und sicherer mit Biometrie oder PIN Ihres Geräts anzumelden.",
+    password_weak_recommendation:
+      "Ihr Passwort könnte stärker sein. Erwägen Sie, es durch ein längeres und einzigartigeres zu ersetzen.",
+    login_alerts_off_recommendation:
+      "Aktivieren Sie Anmeldebenachrichtigungen, um informiert zu werden, wenn sich ein neues Gerät bei Ihrem Konto anmeldet.",
     block_remote_fonts_description:
       "Verhindern, dass E-Mails Schriftarten von externen Servern laden",
     block_remote_fonts_label: "Externe Schriftarten blockieren",
@@ -5362,13 +5375,16 @@ export const de = {
       "Passphrase für den Verschlüsselungstresor",
     export_security_vault_row_body:
       "Deine lokale Tresor-Passphrase bestätigt dieses Gerät, bevor E-Mails für den Export entschlüsselt werden.",
+    export_security_vault_row_help: "Dies ist die Passphrase des lokalen Geräte-Tresors, nicht Ihr Kontopasswort. Sie schaltet Ihre Verschlüsselungsschlüssel nur auf diesem Gerät frei.",
     export_security_required_badge: "Erforderlich",
     export_reauth_prompt:
       "Geben Sie Ihre Konto-Passphrase erneut ein, um diesen Export zu autorisieren.",
     export_reauth_submit: "Autorisieren",
     export_scope_contacts_body:
       "Adressbuch als vCard 4.0 exportiert (importierbar in Apple, Google, Thunderbird usw.) plus vollständiges JSON.",
+    export_scope_mail_help: "MBOX bündelt alle Nachrichten in einer Datei; .EML speichert jede Nachricht einzeln. Beide Formate funktionieren mit den meisten Desktop-Mail-Clients.",
     export_scope_contacts_title: "Kontakte",
+    export_scope_date_range: "Zeitraum",
     export_scope_date_from: "Von",
     export_scope_date_to: "Bis",
     export_scope_empty_warning:
@@ -5382,6 +5398,7 @@ export const de = {
     export_scope_preset_custom: "Benutzerdefinierte Auswahl",
     export_scope_settings_body:
       "Aliase, Signaturen, Vorlagen, E-Mail-Regeln, blockierte und erlaubte Absender, Ordner und andere Kontodaten.",
+    export_scope_contacts_help: "vCard 4.0 ist das universelle Kontaktformat, das die meisten Apps direkt importieren. Die zusätzliche JSON-Datei bewahrt Felder, die vCard nicht speichern kann.",
     export_scope_settings_title: "Einstellungen & Regeln",
     export_start_button: "Export starten",
     export_step_complete_title: "Export abgeschlossen",

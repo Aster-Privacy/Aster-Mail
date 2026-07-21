@@ -29,11 +29,21 @@ import {
   KeyIcon,
   LockClosedIcon,
   ExclamationTriangleIcon,
+  QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button } from "@aster/ui";
+import { Badge, Button, Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+
 import { ExportModal } from "./export_modal";
+
+function HelpTip({ tip }: { tip: string }) {
+  return (
+    <Tooltip tip={tip}>
+      <QuestionMarkCircleIcon className="w-4 h-4 text-txt-muted cursor-help flex-shrink-0" />
+    </Tooltip>
+  );
+}
 
 export function ExportSection() {
   const { t } = use_i18n();
@@ -78,8 +88,9 @@ export function ExportSection() {
         <div className="flex items-start gap-3 py-4">
           <EnvelopeIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-txt-primary">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_scope_mail_title")}
+              <HelpTip tip={t("settings.export_scope_mail_help")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_scope_mail_body")}
@@ -90,8 +101,9 @@ export function ExportSection() {
         <div className="flex items-start gap-3 py-4">
           <UserGroupIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-txt-primary">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_scope_contacts_title")}
+              <HelpTip tip={t("settings.export_scope_contacts_help")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_scope_contacts_body")}
@@ -139,8 +151,9 @@ export function ExportSection() {
         <div className="flex items-start gap-3 py-4">
           <LockClosedIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
           <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_security_vault_row_title")}
+              <HelpTip tip={t("settings.export_security_vault_row_help")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_security_vault_row_body")}
@@ -152,15 +165,17 @@ export function ExportSection() {
         </div>
       </div>
 
-      <div className="flex items-start gap-3 rounded-xl border border-orange-800 bg-orange-900 p-4">
-        <ExclamationTriangleIcon className="w-5 h-5 mt-0.5 text-orange-400 flex-shrink-0" />
-        <div>
-          <p className="text-xs font-medium text-orange-50">
-            {t("settings.export_warning_title")}
-          </p>
-          <p className="text-xs mt-1 leading-relaxed text-orange-200">
-            {t("settings.export_warning_body")}
-          </p>
+      <div className="rounded-xl bg-amber-500 p-3.5">
+        <div className="flex items-start gap-2.5">
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-950 mt-[3px]" />
+          <div>
+            <p className="text-sm font-semibold text-amber-950">
+              {t("settings.export_warning_title")}
+            </p>
+            <p className="text-sm mt-1 leading-relaxed font-medium text-amber-950/90">
+              {t("settings.export_warning_body")}
+            </p>
+          </div>
         </div>
       </div>
 

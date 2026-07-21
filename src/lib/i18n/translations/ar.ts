@@ -106,6 +106,8 @@ export const ar = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1511,6 +1513,8 @@ export const ar = {
     remove_recovery_email: "إزالة بريد الاسترداد",
     step_up_description: "لأمانك، أكِّد كلمة المرور للمتابعة.",
     step_up_error: "كلمة المرور أو رمز التحقق غير صحيح. حاول مرة أخرى.",
+    step_up_security_key_hint:
+      "بعد إدخال كلمة المرور، سيُطلب منك التحقق باستخدام مفتاح الأمان الخاص بك.",
     remove_recovery_email_confirm:
       "هل أنت متأكد أنك تريد إزالة بريد الاسترداد؟ لن تتمكن بعد الآن من استرداد حسابك باستخدام هذا البريد.",
     recovery_email_removed: "تمت إزالة بريد الاسترداد",
@@ -5003,6 +5007,15 @@ export const ar = {
     criterion_auto_lock: "القفل التلقائي",
     criterion_login_alerts: "تنبيهات تسجيل الدخول",
     criterion_forward_secrecy: "السرية المستقبلية",
+    action_recommended: "يوصى باتخاذ إجراء",
+    two_step_verification_enabled_description:
+      "يتطلب حسابك رمز تحقق بالإضافة إلى كلمة المرور.",
+    no_passkeys_recommendation:
+      "أضف مفتاح مرور لتسجيل دخول أسرع وأكثر أمانًا باستخدام القياسات الحيوية أو رمز PIN لجهازك.",
+    password_weak_recommendation:
+      "يمكن أن تكون كلمة مرورك أقوى. فكر في تغييرها إلى كلمة أطول وأكثر تفردًا.",
+    login_alerts_off_recommendation:
+      "فعّل تنبيهات تسجيل الدخول لتصلك إشعارات عند تسجيل دخول جهاز جديد إلى حسابك.",
     or_pay_with_card: "أو الدفع بالبطاقة",
     cardholder_name_placeholder: "الاسم الكامل",
     billing_postal_placeholder: "12345",
@@ -5430,6 +5443,7 @@ export const ar = {
     export_security_vault_row_title: "عبارة مرور خزنة التشفير",
     export_security_vault_row_body:
       "تؤكد عبارة مرور الخزنة المحلية هذا الجهاز قبل فك تشفير البريد من أجل التصدير.",
+    export_security_vault_row_help: "هذه هي عبارة مرور الخزنة المحلية لهذا الجهاز، وليست كلمة مرور حسابك. إنها تفتح مفاتيح التشفير الخاصة بك على هذا الجهاز فقط.",
     export_security_required_badge: "مطلوب",
     export_warning_title: "تنبيه",
     export_warning_body:
@@ -5438,9 +5452,11 @@ export const ar = {
     export_step_scope_title: "ما تريد تصديره",
     export_scope_mail_title: "البريد",
     export_scope_mail_body: "جميع رسائلك ومرفقاتك بصيغة mbox أو .eml القياسية.",
+    export_scope_mail_help: "يجمع MBOX جميع الرسائل في ملف واحد؛ بينما يحفظ .EML كل رسالة في ملف منفصل. تعمل كلتا الصيغتين مع معظم برامج البريد على سطح المكتب.",
     export_scope_contacts_title: "جهات الاتصال",
     export_scope_contacts_body:
       "دفتر العناوين مُصدَّرًا بصيغة vCard 4.0 (قابل للاستيراد في Apple وGoogle وThunderbird وغيرها) إضافةً إلى JSON كامل.",
+    export_scope_contacts_help: "vCard 4.0 هو تنسيق جهات الاتصال العالمي الذي تستورده معظم التطبيقات مباشرة. يحافظ ملف JSON الإضافي على الحقول التي لا يمكن لـ vCard تخزينها.",
     export_scope_settings_title: "الإعدادات والقواعد",
     export_scope_settings_body:
       "الأسماء المستعارة والتوقيعات والقوالب وقواعد البريد والمرسلون المحظورون والمسموح بهم والمجلدات وبيانات الحساب الأخرى.",
@@ -5448,6 +5464,7 @@ export const ar = {
     export_scope_preset_custom: "تحديد مخصص",
     export_scope_folders_label: "المجلدات",
     export_scope_labels_label: "التصنيفات",
+    export_scope_date_range: "نطاق التاريخ",
     export_scope_date_from: "من",
     export_scope_date_to: "إلى",
     export_scope_empty_warning: "لا توجد رسائل تطابق التحديد الحالي.",

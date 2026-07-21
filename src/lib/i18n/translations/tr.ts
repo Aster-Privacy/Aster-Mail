@@ -106,6 +106,8 @@ export const tr = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1422,6 +1424,8 @@ export const tr = {
     step_up_description:
       "Güvenliğiniz için devam etmek üzere şifrenizi onaylayın.",
     step_up_error: "Şifre veya doğrulama kodu yanlış. Lütfen tekrar deneyin.",
+    step_up_security_key_hint:
+      "Şifrenizi girdikten sonra güvenlik anahtarınızla doğrulama yapmanız istenecek.",
     remove_recovery_email_confirm:
       "Kurtarma e-postanızı kaldırmak istediğinizden emin misiniz? Bu e-postayı kullanarak artık hesabınızı kurtaramazsınız.",
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
@@ -5209,6 +5213,15 @@ export const tr = {
     criterion_auto_lock: "Otomatik kilitleme",
     criterion_login_alerts: "Giriş uyarıları",
     criterion_forward_secrecy: "İleri gizlilik",
+    action_recommended: "İşlem önerilir",
+    two_step_verification_enabled_description:
+      "Hesabınız, şifrenize ek olarak bir doğrulama kodu gerektiriyor.",
+    no_passkeys_recommendation:
+      "Cihazınızın biyometrisini veya PIN'ini kullanarak daha hızlı ve güvenli giriş için bir geçiş anahtarı ekleyin.",
+    password_weak_recommendation:
+      "Şifreniz daha güçlü olabilir. Daha uzun ve benzersiz bir şifreye geçmeyi düşünün.",
+    login_alerts_off_recommendation:
+      "Hesabınıza yeni bir cihazdan giriş yapıldığında bildirim almak için giriş uyarılarını açın.",
     or_pay_with_card: "Veya kartla öde",
     cardholder_name_placeholder: "Ad Soyad",
     billing_postal_placeholder: "12345",
@@ -5646,6 +5659,7 @@ export const tr = {
     export_security_vault_row_title: "Şifreleme kasası parolası",
     export_security_vault_row_body:
       "Yerel kasa parolanız, posta dışa aktarma için çözülmeden önce bu cihazı onaylar.",
+    export_security_vault_row_help: "Bu, bu cihazın yerel kasa parolasıdır, hesap parolanız değildir. Yalnızca bu cihazdaki şifreleme anahtarlarınızın kilidini açar.",
     export_security_required_badge: "Gerekli",
     export_warning_title: "Dikkat",
     export_warning_body:
@@ -5655,9 +5669,11 @@ export const tr = {
     export_scope_mail_title: "Posta",
     export_scope_mail_body:
       "Tüm mesajlarınız ve ekleriniz standart mbox veya .eml biçiminde.",
+    export_scope_mail_help: "MBOX tüm mesajları tek bir dosyada birleştirir; .EML her mesajı ayrı ayrı kaydeder. Her iki format da çoğu masaüstü e-posta istemcisiyle çalışır.",
     export_scope_contacts_title: "Kişiler",
     export_scope_contacts_body:
       "Adres defteri vCard 4.0 olarak dışa aktarıldı (Apple, Google, Thunderbird vb.'ne aktarılabilir) ve tam JSON.",
+    export_scope_contacts_help: "vCard 4.0, çoğu uygulamanın doğrudan içe aktardığı evrensel kişi formatıdır. Ek JSON dosyası, vCard'ın saklayamadığı alanları korur.",
     export_scope_settings_title: "Ayarlar ve kurallar",
     export_scope_settings_body:
       "Takma adlar, imzalar, şablonlar, posta kuralları, engellenen ve izin verilen göndericiler, klasörler ve diğer hesap verileri.",
@@ -5665,6 +5681,7 @@ export const tr = {
     export_scope_preset_custom: "Özel seçim",
     export_scope_folders_label: "Klasörler",
     export_scope_labels_label: "Etiketler",
+    export_scope_date_range: "Tarih aralığı",
     export_scope_date_from: "Başlangıç",
     export_scope_date_to: "Bitiş",
     export_scope_empty_warning: "Mevcut seçimle eşleşen mesaj yok.",

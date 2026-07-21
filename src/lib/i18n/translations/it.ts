@@ -114,6 +114,8 @@ export const it = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1434,6 +1436,8 @@ export const it = {
     step_up_description:
       "Per la tua sicurezza, conferma la password per continuare.",
     step_up_error: "Password o codice di verifica errati. Riprova.",
+    step_up_security_key_hint:
+      "Dopo aver inserito la password, ti verrà chiesto di verificare con la tua chiave di sicurezza.",
     remove_recovery_email_confirm:
       "Sei sicuro di voler rimuovere la tua email di recupero? Non potrai più recuperare il tuo account usando questa email.",
     recovery_email_removed: "Email di recupero rimossa",
@@ -5251,6 +5255,15 @@ export const it = {
     criterion_auto_lock: "Blocco automatico",
     criterion_login_alerts: "Avvisi di accesso",
     criterion_forward_secrecy: "Forward secrecy",
+    action_recommended: "Azione consigliata",
+    two_step_verification_enabled_description:
+      "Il tuo account richiede un codice di verifica oltre alla password.",
+    no_passkeys_recommendation:
+      "Aggiungi una passkey per un accesso più rapido e sicuro usando la biometria o il PIN del tuo dispositivo.",
+    password_weak_recommendation:
+      "La tua password potrebbe essere più sicura. Valuta di cambiarla con una più lunga e univoca.",
+    login_alerts_off_recommendation:
+      "Attiva gli avvisi di accesso per essere avvisato quando un nuovo dispositivo accede al tuo account.",
     or_pay_with_card: "O paga con carta",
     cardholder_name_placeholder: "Nome completo",
     billing_postal_placeholder: "12345",
@@ -5703,6 +5716,7 @@ export const it = {
     export_security_vault_row_title: "Passphrase del vault di cifratura",
     export_security_vault_row_body:
       "La passphrase locale del vault conferma questo dispositivo prima che la posta venga decifrata per l'esportazione.",
+    export_security_vault_row_help: "Questa è la passphrase del vault locale di questo dispositivo, non la password dell'account. Sblocca le tue chiavi di crittografia solo su questo dispositivo.",
     export_security_required_badge: "Richiesto",
     export_warning_title: "Attenzione",
     export_warning_body:
@@ -5712,9 +5726,11 @@ export const it = {
     export_scope_mail_title: "Posta",
     export_scope_mail_body:
       "Tutti i tuoi messaggi e allegati in formato mbox o .eml standard.",
+    export_scope_mail_help: "MBOX raggruppa tutti i messaggi in un unico file; .EML salva ogni messaggio separatamente. Entrambi i formati funzionano con la maggior parte dei client di posta desktop.",
     export_scope_contacts_title: "Contatti",
     export_scope_contacts_body:
       "Rubrica esportata come vCard 4.0 (importabile in Apple, Google, Thunderbird, ecc.) più JSON completo.",
+    export_scope_contacts_help: "vCard 4.0 è il formato di contatto universale che la maggior parte delle app importa direttamente. Il file JSON aggiuntivo conserva i campi che vCard non può memorizzare.",
     export_scope_settings_title: "Impostazioni e regole",
     export_scope_settings_body:
       "Alias, firme, modelli, regole posta, mittenti bloccati e consentiti, cartelle e altri dati dell'account.",
@@ -5722,6 +5738,7 @@ export const it = {
     export_scope_preset_custom: "Selezione personalizzata",
     export_scope_folders_label: "Cartelle",
     export_scope_labels_label: "Etichette",
+    export_scope_date_range: "Intervallo di date",
     export_scope_date_from: "Da",
     export_scope_date_to: "A",
     export_scope_empty_warning:

@@ -104,6 +104,8 @@ export const zh_CN = {
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+    inactivity_window_step_up_description:
+      "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
     inactivity_window_saved: "Inactivity window updated",
     inactivity_window_save_failed:
@@ -1338,6 +1340,7 @@ export const zh_CN = {
     remove_recovery_email: "移除恢复邮箱",
     step_up_description: "为了您的安全，请确认密码以继续。",
     step_up_error: "密码或验证码不正确，请重试。",
+    step_up_security_key_hint: "输入密码后，系统会要求您使用安全密钥进行验证。",
     remove_recovery_email_confirm:
       "确定要移除恢复邮箱吗？之后您将无法使用此邮箱恢复账户。",
     recovery_email_removed: "恢复邮箱已移除",
@@ -4735,6 +4738,11 @@ export const zh_CN = {
     criterion_auto_lock: "自动锁定",
     criterion_login_alerts: "登录提醒",
     criterion_forward_secrecy: "前向保密",
+    action_recommended: "建议操作",
+    two_step_verification_enabled_description: "您的账户在密码之外还需要验证码。",
+    no_passkeys_recommendation: "添加通行密钥，使用设备的生物识别或PIN码更快、更安全地登录。",
+    password_weak_recommendation: "您的密码强度不够。建议更换为更长、更独特的密码。",
+    login_alerts_off_recommendation: "开启登录提醒，以便在有新设备登录您的账户时收到通知。",
     block_tracking_links: "屏蔽追踪链接",
     block_tracking_links_description:
       "去除链接中的重定向追踪器，使链接直接指向目标",
@@ -4764,14 +4772,17 @@ export const zh_CN = {
     export_step_complete_title: "导出完成",
     export_scope_mail_title: "邮件",
     export_scope_mail_body: "导出您的邮件和对话",
+    export_scope_mail_help: "MBOX 将所有邮件合并为一个文件;.EML 将每封邮件单独保存。两种格式都适用于大多数桌面邮件客户端。",
     export_scope_contacts_title: "联系人",
     export_scope_contacts_body: "导出您的通讯录",
+    export_scope_contacts_help: "vCard 4.0 是大多数应用可直接导入的通用联系人格式。额外的 JSON 文件会保留 vCard 无法存储的字段。",
     export_scope_settings_title: "设置",
     export_scope_settings_body: "导出您的账户偏好设置",
     export_scope_preset_all: "全部内容",
     export_scope_preset_custom: "自定义",
     export_scope_folders_label: "文件夹",
     export_scope_labels_label: "标签",
+    export_scope_date_range: "日期范围",
     export_scope_date_from: "开始日期",
     export_scope_date_to: "结束日期",
     export_scope_empty_warning: "请至少选择一项要导出的内容",
@@ -4796,6 +4807,7 @@ export const zh_CN = {
     export_security_vault_row_title: "加密保险库密码短语",
     export_security_vault_row_body:
       "本地保险库密码短语用于在导出前确认此设备并解密邮件。",
+    export_security_vault_row_help: "这是此设备本地保险库的密码短语,并非您的账户密码。它仅在此设备上解锁您的加密密钥。",
     export_security_required_badge: "必需",
     export_progress_messages: "{{processed}}/{{total}} 封邮件",
     export_progress_current_folder: "当前文件夹：{{folder}}",
