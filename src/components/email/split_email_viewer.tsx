@@ -32,7 +32,10 @@ import {
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { use_tags } from "@/hooks/use_tags";
-import { get_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
+import {
+  get_cached_iframe_height,
+  CONTENT_READY_FALLBACK_MS,
+} from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
@@ -158,8 +161,12 @@ export function SplitEmailViewer({
     };
 
     window.addEventListener("astermail:iframe-ready", handler);
+    const fallback_timer = window.setTimeout(handler, CONTENT_READY_FALLBACK_MS);
 
-    return () => window.removeEventListener("astermail:iframe-ready", handler);
+    return () => {
+      window.removeEventListener("astermail:iframe-ready", handler);
+      window.clearTimeout(fallback_timer);
+    };
   }, [email_id]);
 
   const prev_email_id_ref = useRef(email_id);
