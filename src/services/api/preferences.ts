@@ -20,6 +20,11 @@
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import type { CustomCategoryRule } from "@/data/category_catalog";
+import {
+  DEFAULT_ENABLED_CATEGORIES,
+  sanitize_custom_categories,
+} from "@/data/category_catalog";
 
 import { api_client } from "./client";
 
@@ -141,6 +146,8 @@ export interface UserPreferences {
   conversation_order: "asc" | "desc";
   inbox_sort_order: "newest_first" | "oldest_first";
   inbox_categories_enabled: boolean;
+  enabled_categories: string[];
+  custom_categories: CustomCategoryRule[];
   show_message_size: boolean;
   show_badges_in_signature: boolean;
   show_aster_branding: boolean;
@@ -439,6 +446,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   conversation_order: "asc",
   inbox_sort_order: "newest_first",
   inbox_categories_enabled: true,
+  enabled_categories: [...DEFAULT_ENABLED_CATEGORIES],
+  custom_categories: [],
   show_message_size: false,
   show_badges_in_signature: true,
   show_aster_branding: true,
@@ -552,6 +561,13 @@ export function build_merged_preferences(
       merged.external_content_blocking_mode = "trackers";
     }
   }
+
+  merged.custom_categories = sanitize_custom_categories(
+    merged.custom_categories,
+  );
+  merged.enabled_categories = Array.isArray(merged.enabled_categories)
+    ? merged.enabled_categories.filter((c) => typeof c === "string")
+    : [...DEFAULT_ENABLED_CATEGORIES];
 
   return merged;
 }
