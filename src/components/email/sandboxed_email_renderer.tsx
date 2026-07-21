@@ -36,6 +36,7 @@ import { api_client } from "@/services/api/client";
 import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { reveal_on_fonts_ready } from "@/components/email/reveal_on_fonts_ready";
 
 const IMAGE_PROXY_URL = get_image_proxy_url();
 
@@ -212,6 +213,7 @@ export function SandboxedEmailRenderer({
   const mutation_observer_ref = useRef<MutationObserver | null>(null);
   const raf_ref = useRef<number>(0);
   const stable_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reveal_cleanup_ref = useRef<(() => void) | null>(null);
   const has_fired_ready_ref = useRef(!!cached_height);
   const load_remote_ref = useRef(load_remote_content);
 
@@ -1099,15 +1101,15 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       });
     };
 
-    const fonts_ready =
-      iframe.contentDocument.fonts && iframe.contentDocument.fonts.status !== "loaded"
-        ? iframe.contentDocument.fonts.ready
-        : Promise.resolve(iframe.contentDocument.fonts);
-
-    fonts_ready.then(() => {
-      reveal_content();
-      attach_observer();
-    });
+    reveal_cleanup_ref.current?.();
+    reveal_cleanup_ref.current = reveal_on_fonts_ready(
+      iframe.contentDocument.fonts,
+      () => {
+        reveal_content();
+        attach_observer();
+      },
+      update_height,
+    );
 
     iframe.contentDocument.addEventListener(
       "wheel",
@@ -1290,6 +1292,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
       if (stable_timer_ref.current) clearTimeout(stable_timer_ref.current);
+      reveal_cleanup_ref.current?.();
     };
   }, []);
 
