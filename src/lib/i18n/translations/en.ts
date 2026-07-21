@@ -475,7 +475,7 @@ export const en: Translations = {
     failed_to_archive_emails: "The archive did not finish. Another attempt should do it. The emails are still in your inbox.",
     something_went_wrong_try_again: "That did not work. Another attempt in a moment usually does it.",
     something_went_wrong: "This page hit a snag.",
-    unexpected_error_refresh: "This page hit a snag. A refresh usually recovers it. Your data is safe.",
+    unexpected_error_refresh: "Just a small snag. Give it a refresh and you'll be right back where you left off, your data's all safe.",
     unsupported_browser: "Unsupported browser.",
     unsupported_browser_detail: "Please try a different browser.",
     try_again: "Try Again",
@@ -1600,7 +1600,8 @@ export const en: Translations = {
     email_address: "Email Address",
     email_address_description: "Your primary email address",
     badges_title: "Badges",
-    badges_description:
+    badges_description: "Show off badges you've earned.",
+    badges_description_full:
       "Badges earned on your account are displayed on your profile and optionally in emails.",
     display_name: "Display Name",
     display_name_description: "Name shown to recipients",
@@ -1785,6 +1786,7 @@ export const en: Translations = {
     encryption_banner_you: "You",
     encryption_banner_recipient: "Recipient",
     security_settings: "Security Settings",
+    login_alerts_sessions_title: "Login Alerts & Sessions",
     manage_security_description:
       "Manage your account security and authentication preferences",
     session_timeout: "Session Timeout",
@@ -1873,6 +1875,7 @@ export const en: Translations = {
     vault_recovery_known_aliases_hint:
       "If you remember your alias addresses, enter them here separated by commas to help restore them.",
     session_security: "Session Security",
+    browsers_and_devices: "Browsers and Devices",
     session_privacy_description:
       "For your privacy, we don't track session details or device information",
     sign_out_everywhere: "Sign out everywhere else",
@@ -1907,6 +1910,13 @@ export const en: Translations = {
     load_more_sessions: "Load {{count}} more sessions",
     two_fa_enabled: "Enabled ({{count}} backup codes remaining)",
     two_fa_add_security: "Add an extra layer of security with 2FA",
+    basics_section_title: "Basics",
+    two_step_verification: "Two-step verification",
+    two_step_verification_description:
+      "We recommend requiring a verification code in addition to your password.",
+    authenticator_app: "2FA authenticator",
+    enable_2fa: "Enable 2FA",
+    setup_2fa: "Set up",
     notifications_configure: "Configure how and when you receive notifications",
     notifications_enabled: "Notifications enabled",
     notifications_blocked: "Notifications blocked",
@@ -1987,6 +1997,57 @@ export const en: Translations = {
     inbox_categories_short: "Sort your inbox into tabs",
     inbox_categories_description:
       "Sorts your inbox into Primary, Promotions, Social, and Updates tabs. Sorting happens privately on your device - categories are never sent to the server.",
+    categories_title: "Categories",
+    categories_description:
+      "Choose which category tabs appear in your inbox and create your own. All sorting happens locally on your device.",
+    category_forums: "Forums",
+    category_finance: "Finance",
+    category_travel: "Travel",
+    category_shopping: "Shopping",
+    category_info_primary:
+      "Everything that doesn't match another category. Always on.",
+    category_info_promotions: "Marketing emails, offers, and deals.",
+    category_info_social: "Notifications from social networks and communities.",
+    category_info_updates: "Receipts, confirmations, and service notifications.",
+    category_info_forums: "Messages from mailing lists, forums, and discussion groups.",
+    category_info_finance: "Statements, invoices, and alerts from banks and financial services.",
+    category_info_travel: "Bookings, itineraries, and confirmations from airlines, hotels, and rideshare.",
+    category_info_shopping: "Order confirmations, shipping updates, and delivery notices.",
+    custom_categories_title: "Custom Categories",
+    custom_categories_tutorial:
+      "Make a category of your own. Match mail by sender domain or a subject keyword.",
+    custom_category_locked_badge: "Locked",
+    add_category: "Add Category",
+    no_custom_categories: "No custom categories yet.",
+    category_name_required: "Enter a name for this category.",
+    category_rule_required: "Add at least one domain or keyword to match.",
+    category_domains_invalid:
+      "Not valid domains: {{list}}. Use a real domain like example.com.",
+    category_keywords_invalid:
+      "Not valid keywords: {{list}}. Use plain words only.",
+    category_expand: "Expand",
+    category_collapse: "Collapse",
+    delete_category_title: "Delete category?",
+    delete_category_description:
+      "Are you sure you want to delete “{{name}}”? This can't be undone.",
+    custom_categories_locked: "Custom categories aren't available on your current plan.",
+    custom_categories_limit_reached:
+      "You've reached your plan's custom category limit. Upgrade for more.",
+    edit_custom_category: "Edit Category",
+    new_custom_category: "New Category",
+    category_name: "Name",
+    category_name_placeholder: "e.g. Newsletters",
+    category_icon: "Icon",
+    category_match_domains: "Match sender domains",
+    category_match_domains_placeholder: "example.com, news.example.org",
+    category_match_domains_help:
+      "Comma-separated list of sender domains. Emails from these domains go into this category.",
+    category_match_keywords: "Match subject keywords",
+    category_match_keywords_placeholder: "newsletter, digest",
+    category_match_keywords_help:
+      "Comma-separated words. If any appear in the subject line, the email goes into this category.",
+    category_tutorial_text:
+      "Tip: a custom category matches if the sender's domain OR the subject contains any of your keywords. Custom categories are checked before built-in ones, so they always take priority.",
     conversation_grouping_confirm_title: "Are you sure?",
     conversation_grouping_confirm_description:
       "Turning off conversation grouping will show each email as a separate item in your inbox instead of grouping replies together. This may make it harder to follow email threads.",
@@ -2929,6 +2990,7 @@ export const en: Translations = {
     plans_coming_soon: "Plan subscriptions are coming soon. Stay tuned!",
     free_plan_description:
       "You\u2019re on the free plan. Explore paid plans below for more storage, aliases, and features.",
+    free_plan_banner_title: "You\u2019re on the Free plan",
     plan_f_storage: "{{value}} encrypted storage",
     plan_f_attachments: "Up to {{value}} attachments",
     plan_f_aliases: "{{value}} email aliases",
@@ -3039,6 +3101,7 @@ export const en: Translations = {
     usage_loading: "Loading usage data...",
     usage_contacts: "Contacts",
     usage_filters: "Custom Filters",
+    usage_custom_categories: "Custom Categories",
     upgrade_modal_title: "Upgrade to keep going",
     upgrade_modal_description_specific:
       "You have reached the {{resource}} limit on the {{plan}} plan. Upgrade to unlock more and keep your inbox moving.",
@@ -3389,6 +3452,14 @@ export const en: Translations = {
     setup_two_factor_auth: "Set Up Two-Factor Authentication",
     verify_2fa_setup:
       "Enter the 6-digit code from your authenticator app to verify the setup",
+    view_guide: "View guide",
+    two_factor_guide_title: "How two-factor authentication works",
+    two_factor_guide_step_app:
+      "Open an authenticator app on your phone, such as Google Authenticator, Authy, or 1Password.",
+    two_factor_guide_step_scan:
+      "Scan the QR code with the app, or enter the secret key manually if you can't scan.",
+    two_factor_guide_step_code:
+      "Enter the 6-digit code the app generates below to finish setup.",
     two_factor_auth_enabled: "Two-Factor Authentication Enabled",
     two_factor_auth_disabled: "Two-factor authentication has been disabled",
     backup_code_security_note:
@@ -5011,6 +5082,7 @@ export const en: Translations = {
     new_message: "New Message",
     expand_compose: "Expand compose window",
     minimize_compose: "Minimize compose window",
+    resize_compose: "Resize compose window",
     close_compose: "Close compose window",
     enter_fullscreen: "Enter fullscreen",
     exit_fullscreen: "Exit fullscreen",
@@ -5258,6 +5330,20 @@ export const en: Translations = {
     category_empty_updates_title: "No updates",
     category_empty_updates_desc:
       "Receipts, confirmations, bills, and notifications will appear here.",
+    category_empty_forums_title: "No forum messages",
+    category_empty_forums_desc:
+      "Messages from mailing lists and discussion groups will appear here.",
+    category_empty_finance_title: "No finance emails",
+    category_empty_finance_desc:
+      "Statements, invoices, and alerts from banks and financial services will appear here.",
+    category_empty_travel_title: "No travel emails",
+    category_empty_travel_desc:
+      "Bookings, itineraries, and confirmations will appear here.",
+    category_empty_shopping_title: "No shopping emails",
+    category_empty_shopping_desc:
+      "Order confirmations and shipping updates will appear here.",
+    category_empty_custom_desc:
+      "Emails matching this category's rules will appear here.",
     report_spam: "Report spam",
     clear_selection: "Clear selection",
     archive_email_question: "Archive Email?",
@@ -6562,6 +6648,19 @@ export const en: Translations = {
     download: "Download",
     powered_by: "Sent securely via Aster Mail",
     powered_by_prefix: "Sent securely via",
+    deleted: "This secure message has been deleted and is no longer available.",
+    reply_label: "Send a reply",
+    reply_placeholder: "Write your reply...",
+    reply_button: "Send reply",
+    reply_sending: "Sending...",
+    reply_sent: "Your reply has been sent.",
+    reply_failed: "Could not send your reply. Please try again.",
+    reply_limit_reached: "This message has reached its reply limit.",
+    delete_button: "Delete message",
+    delete_confirm_prompt: "Delete this message? This cannot be undone.",
+    delete_confirm_yes: "Delete",
+    delete_confirm_no: "Cancel",
+    delete_failed: "Could not delete this message. Please try again.",
   },
   compose: {
     encrypt_external_label: "Encrypt for external recipients",
