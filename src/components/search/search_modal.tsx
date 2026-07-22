@@ -367,6 +367,11 @@ export function SearchModal({
                   {t("mail.indexing")}
                 </span>
               )}
+              {!state.index_building && state.body_search_degraded && (
+                <span className="text-amber-500">
+                  {t("mail.body_search_unavailable_large_mailbox")}
+                </span>
+              )}
             </div>
             <AnimatePresence mode="popLayout">
               {filtered_results.map((result) => (

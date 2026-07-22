@@ -53,9 +53,13 @@ import {
   empty_trash,
   type MailItem,
 } from "@/services/api/mail";
-import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  show_action_toast,
+  update_progress_toast,
+  hide_action_toast,
+} from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
@@ -255,10 +259,26 @@ export function CommandPalette({
           metadata_version: item.metadata_version,
         }));
 
+        show_action_toast({
+          message: t("common.processing_count", {
+            completed: 0,
+            total: update_items.length,
+          }),
+          action_type: "progress",
+          email_ids: [],
+          progress: { completed: 0, total: update_items.length },
+        });
+
         const api_result = await bulk_update_items_metadata(
           update_items,
           updates,
+          {
+            on_progress: (completed, total) =>
+              update_progress_toast(completed, total, t),
+          },
         );
+
+        hide_action_toast();
 
         const count =
           api_result.updated_count > 0
@@ -334,9 +354,22 @@ export function CommandPalette({
 
         const ids = result.items.map((i) => i.id);
         stale_all_view_caches();
-        const archive_result = await batch_archive({ ids, tier: "hot" });
 
-        if (archive_result.error) {
+        show_action_toast({
+          message: t("common.processing_count", {
+            completed: 0,
+            total: ids.length,
+          }),
+          action_type: "progress",
+          email_ids: [],
+          progress: { completed: 0, total: ids.length },
+        });
+
+        const archive_result = await batched_archive(ids, "hot");
+
+        hide_action_toast();
+
+        if (archive_result.succeeded_ids.length === 0) {
           show_action_toast({
             message: t("common.failed_to_archive_emails"),
             action_type: "archive",
@@ -346,17 +379,20 @@ export function CommandPalette({
           return;
         }
 
-        const count = archive_result.data?.archived_count ?? ids.length;
+        const archived_ids = archive_result.succeeded_ids;
+        const count = archived_ids.length;
 
-        await bulk_update_metadata_by_ids(ids, { is_archived: true });
+        await bulk_update_metadata_by_ids(archived_ids, { is_archived: true });
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_action_toast({
           message: success_message(count),
           action_type: "archive",
-          email_ids: ids,
+          email_ids: archived_ids,
           on_undo: async () => {
-            await batch_unarchive({ ids });
-            await bulk_update_metadata_by_ids(ids, { is_archived: false });
+            await batched_unarchive(archived_ids);
+            await bulk_update_metadata_by_ids(archived_ids, {
+              is_archived: false,
+            });
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
             );

@@ -386,6 +386,7 @@ interface SearchState {
   search_time_ms: number;
   error: string | null;
   index_building: boolean;
+  body_search_degraded: boolean;
 }
 
 interface AutocompleteState {
@@ -798,10 +799,12 @@ export function index_texts(entry: DecryptedIndexEntry): TextIndexDocument {
   };
 }
 
-function build_text_index(
+const INDEX_BUILD_YIELD_CHUNK_SIZE = 500;
+
+async function build_text_index(
   items: MailItem[],
   decrypted: Map<string, DecryptedIndexEntry>,
-): TextIndex {
+): Promise<TextIndex> {
   const idx = new TextIndex();
 
   for (let i = 0; i < items.length; i++) {
@@ -811,9 +814,31 @@ function build_text_index(
       i,
       entry ? index_texts(entry) : { header_text: "", body_text: "" },
     );
+
+    if (i > 0 && i % INDEX_BUILD_YIELD_CHUNK_SIZE === 0) {
+      await new Promise<void>((r) => setTimeout(r, 0));
+    }
   }
 
   return idx;
+}
+
+const SEARCH_SCAN_YIELD_CHUNK_SIZE = 500;
+
+async function scan_all_items_chunked(
+  items: MailItem[],
+  scan_item: (item: MailItem) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  for (let i = 0; i < items.length; i++) {
+    if (signal?.aborted) return;
+
+    scan_item(items[i]);
+
+    if (i > 0 && i % SEARCH_SCAN_YIELD_CHUNK_SIZE === 0) {
+      await new Promise<void>((r) => setTimeout(r, 0));
+    }
+  }
 }
 
 async function do_build_search_index(
@@ -984,13 +1009,21 @@ async function do_build_search_index(
     throw new Error("search_index_cancelled");
   }
 
+  const built_text_index = await build_text_index(all_items, decrypted);
+
+  if (my_gen !== build_generation) {
+    decrypted.clear();
+    emit_indexing({ building: false, current: 0, total: 0 });
+    throw new Error("search_index_cancelled");
+  }
+
   const index: CachedIndex = {
     items: all_items,
     decrypted,
     built_at: Date.now(),
     include_body,
     user_email,
-    text_index: build_text_index(all_items, decrypted),
+    text_index: built_text_index,
   };
 
   cached_index = index;
@@ -1125,7 +1158,7 @@ async function build_search_index(
       built_at: 0,
       include_body: all_have_bodies,
       user_email,
-      text_index: build_text_index(snapshot.items, restored),
+      text_index: await build_text_index(snapshot.items, restored),
     };
 
     void start_background_rebuild(user_email, include_body, restored);
@@ -1492,6 +1525,7 @@ export function use_search() {
     search_time_ms: 0,
     error: null,
     index_building: false,
+    body_search_degraded: false,
   });
 
   const abort_ref = useRef<AbortController | null>(null);
@@ -1553,6 +1587,7 @@ export function use_search() {
           is_searching: false,
           total_results: 0,
           search_time_ms: 0,
+          body_search_degraded: false,
         }));
 
         return;
@@ -1562,6 +1597,7 @@ export function use_search() {
       abort_ref.current?.abort();
       abort_ref.current = new AbortController();
 
+      const controller = abort_ref.current;
       const start = Date.now();
 
       try {
@@ -1579,6 +1615,7 @@ export function use_search() {
             is_searching: false,
             total_results: 0,
             search_time_ms: Date.now() - start,
+            body_search_degraded: false,
           }));
 
           return;
@@ -1596,7 +1633,7 @@ export function use_search() {
 
         set_state((prev) => ({ ...prev, index_building: false }));
 
-        if (abort_ref.current?.signal.aborted) return;
+        if (controller.signal.aborted) return;
 
         const results: SearchResultItem[] = [];
 
@@ -1607,6 +1644,11 @@ export function use_search() {
               search_body_flag && terms.length > 0,
             )
           : null;
+        const body_search_degraded =
+          search_body_flag &&
+          terms.length > 0 &&
+          !!index.text_index &&
+          !index.text_index.body_indexed;
 
         const scan_item = (item: MailItem) => {
           const data = index.decrypted.get(item.id);
@@ -1666,8 +1708,14 @@ export function use_search() {
             if (item) scan_item(item);
           }
         } else {
-          for (const item of index.items) scan_item(item);
+          await scan_all_items_chunked(
+            index.items,
+            scan_item,
+            controller.signal,
+          );
         }
+
+        if (controller.signal.aborted) return;
 
         results.sort(
           (a, b) =>
@@ -1681,6 +1729,7 @@ export function use_search() {
           total_results: results.length,
           search_time_ms: Date.now() - start,
           has_more: false,
+          body_search_degraded,
         }));
       } catch (err) {
         const message = err instanceof Error ? err.message : "";
@@ -1701,6 +1750,7 @@ export function use_search() {
           ...prev,
           is_searching: false,
           index_building: false,
+          body_search_degraded: false,
           error: is_fetch_error
             ? t("common.search_load_failed_try_again")
             : t("common.search_failed_try_again"),
@@ -1731,6 +1781,7 @@ export function use_search() {
       search_time_ms: 0,
       error: null,
       index_building: false,
+      body_search_degraded: false,
     });
   }, []);
 

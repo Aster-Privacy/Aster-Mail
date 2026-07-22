@@ -36,6 +36,8 @@ import { get_current_account_id } from "@/services/account_manager";
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
+const MAX_SNAPSHOT_ENTRIES = 20000;
+const SNAPSHOT_CAP_TARGET = 12000;
 
 export interface PersistedSearchEntry {
   id: string;
@@ -98,7 +100,24 @@ export async function save_search_snapshot(
 
     await encrypted_set(key, snapshot, encryption_key);
   } catch (error) {
-    if (import.meta.env.DEV) console.error("search_snapshot_save", error);
+    const is_quota =
+      error instanceof DOMException && error.name === "QuotaExceededError";
+    const approx_size_bytes = (() => {
+      try {
+        return JSON.stringify(snapshot).length;
+      } catch {
+        return -1;
+      }
+    })();
+
+    console.error(
+      `search_index_store: failed to persist snapshot (entries=${
+        snapshot.entries.length
+      }, approx_size_bytes=${approx_size_bytes}${
+        is_quota ? ", quota exceeded" : ""
+      })`,
+      error,
+    );
   }
 }
 
@@ -128,7 +147,7 @@ export async function load_search_snapshot(
 
     return snapshot;
   } catch (error) {
-    if (import.meta.env.DEV) console.error("search_snapshot_load", error);
+    console.error("search_index_store: failed to load snapshot", error);
 
     return null;
   }
@@ -148,6 +167,20 @@ export async function clear_search_snapshots(): Promise<void> {
   }
 }
 
+function item_recency_ts(item: MailItem): number {
+  const ts = new Date(item.message_ts || item.created_at).getTime();
+
+  return Number.isNaN(ts) ? 0 : ts;
+}
+
+function select_items_for_snapshot(items: MailItem[]): MailItem[] {
+  if (items.length <= MAX_SNAPSHOT_ENTRIES) return items;
+
+  return [...items]
+    .sort((a, b) => item_recency_ts(b) - item_recency_ts(a))
+    .slice(0, SNAPSHOT_CAP_TARGET);
+}
+
 export function build_snapshot(
   user_email: string,
   items: MailItem[],
@@ -162,7 +195,13 @@ export function build_snapshot(
     }
   >,
 ): SearchIndexSnapshot {
-  const trimmed_items = items.map((item) => ({
+  const capped_items = select_items_for_snapshot(items);
+  const kept_ids =
+    capped_items.length === items.length
+      ? null
+      : new Set(capped_items.map((item) => item.id));
+
+  const trimmed_items = capped_items.map((item) => ({
     ...item,
     encrypted_envelope: "",
     envelope_nonce: "",
@@ -175,6 +214,8 @@ export function build_snapshot(
   const trimmed_entries: PersistedSearchEntry[] = [];
 
   for (const [id, entry] of entries) {
+    if (kept_ids && !kept_ids.has(id)) continue;
+
     trimmed_entries.push({
       id,
       envelope: entry.envelope
