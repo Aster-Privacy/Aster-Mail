@@ -55,10 +55,6 @@ export async function send_reaction(
   emoji: string,
   thread_token?: string,
 ): Promise<ReactionResult> {
-  if (!message.message_group_id) {
-    return { success: false, error: en.errors.failed_send_reaction };
-  }
-
   if (get_cached_preferences()?.reactions_enabled === false) {
     return { success: false, error: en.errors.reactions_disabled };
   }
