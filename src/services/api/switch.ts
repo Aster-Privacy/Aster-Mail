@@ -24,6 +24,8 @@ interface AccountLimitResponse {
   max_accounts: number;
   plan_code: string;
   plan_name: string;
+  linked_count?: number;
+  is_linked?: boolean;
 }
 
 export async function get_account_limit(): Promise<
@@ -32,6 +34,19 @@ export async function get_account_limit(): Promise<
   return api_client.get<AccountLimitResponse>(
     "/payments/v1/plans/account-limit",
   );
+}
+
+export async function link_account_device(): Promise<
+  ApiResponse<AccountLimitResponse>
+> {
+  return api_client.post<AccountLimitResponse>(
+    "/payments/v1/plans/account-limit/link",
+    {},
+  );
+}
+
+export async function unlink_account_device(): Promise<ApiResponse<unknown>> {
+  return api_client.delete<unknown>("/payments/v1/plans/account-limit/link");
 }
 
 export type { AccountLimitResponse };
