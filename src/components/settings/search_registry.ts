@@ -42,9 +42,8 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Font",                 section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["font switcher", "typeface", "font family", "starplan"] },
   { label: "Layout density",       section: "appearance", breadcrumb: "Appearance > Layout", keywords: ["compact", "comfortable", "cozy"] },
   { label: "Language",             section: "appearance", breadcrumb: "Appearance > Language", keywords: ["locale", "region"] },
-  { label: "Date format",          section: "appearance", breadcrumb: "Appearance > Date & Time" },
-  { label: "Time format",          section: "appearance", breadcrumb: "Appearance > Date & Time", keywords: ["12 hour", "24 hour", "clock"] },
-  { label: "Timezone",             section: "appearance", breadcrumb: "Appearance > Date & Time" },
+  { label: "Date Format",          section: "appearance", breadcrumb: "Appearance > Language & format" },
+  { label: "Time format",          section: "appearance", breadcrumb: "Appearance > Language & format", keywords: ["12 hour", "24 hour", "clock", "timezone"] },
 
   // ── Account ──────────────────────────────────────────────────────────────
   { label: "Display name",         section: "account", breadcrumb: "Account > Profile", keywords: ["change name"] },
