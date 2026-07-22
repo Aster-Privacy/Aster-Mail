@@ -3246,6 +3246,8 @@ export const ru = {
     after_3_seconds: "Через 3 секунды",
     never_manual: "Никогда (только вручную)",
     auto_advance: "После архивации или удаления",
+    reactions_enabled: "Реакции",
+    reactions_enabled_description: "Разрешает реагировать на сообщения эмодзи и видеть реакции других",
     auto_advance_description:
       "Какое письмо открывать после архивации или удаления текущего",
     auto_advance_next: "Перейти к следующему письму",
@@ -5802,6 +5804,10 @@ export const ru = {
     all: "Все",
     reply: "Ответить",
     reply_all: "Ответить всем",
+    react: "Отреагировать",
+    already_reacted: "Вы уже отреагировали так",
+    you_reacted_with: "Вы отреагировали {{emoji}}",
+    reacted_with: "{{name}} отреагировал(а) {{emoji}}",
     forward: "Переслать",
     to: "Кому",
     cc: "Копия",
@@ -7020,6 +7026,8 @@ export const ru = {
     rename_saved: "Имя обновлено",
   },
   errors: {
+    failed_send_reaction: "Не удалось отправить реакцию. Попробуйте ещё раз.",
+    reactions_disabled: "Реакции отключены в ваших настройках.",
     pending_email_verification:
       "Проверьте почту и перейдите по ссылке подтверждения, чтобы активировать этот аккаунт.",
     generic: "Это не сработало. Повторная попытка обычно помогает.",

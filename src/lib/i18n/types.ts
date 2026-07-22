@@ -2291,6 +2291,8 @@ export interface SettingsTranslations {
   never_manual: string;
   auto_advance: string;
   auto_advance_description: string;
+  reactions_enabled: string;
+  reactions_enabled_description: string;
   auto_advance_next: string;
   auto_advance_previous: string;
   auto_advance_back: string;
@@ -5083,6 +5085,10 @@ export interface MailTranslations {
   reply: string;
   reply_all: string;
   forward: string;
+  react: string;
+  already_reacted: string;
+  you_reacted_with: string;
+  reacted_with: string;
   reply_subject_prefix: string;
   reply_from_mismatch_title: string;
   reply_from_mismatch_message: string;
@@ -6150,6 +6156,8 @@ export interface AuthTranslations {
 
 export interface ErrorTranslations {
   generic: string;
+  failed_send_reaction: string;
+  reactions_disabled: string;
   network: string;
   unauthorized: string;
   not_found: string;

@@ -141,6 +141,8 @@ export function build_single_thread_message(
     has_recipient_key?: boolean;
     encrypted_metadata?: string;
     metadata_nonce?: string;
+    message_group_id?: string;
+    reactions?: DecryptedThreadMessage["reactions"];
   },
   envelope: DecryptedEnvelope,
   body_text: string,
@@ -177,5 +179,7 @@ export function build_single_thread_message(
     bcc_recipients: envelope.bcc || [],
     raw_headers: envelope.raw_headers,
     sender_verification: envelope.sender_verification,
+    message_group_id: item.message_group_id,
+    reactions: item.reactions,
   };
 }

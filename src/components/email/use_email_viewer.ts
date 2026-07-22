@@ -59,6 +59,7 @@ import { type ThreadMessagesListRef } from "@/components/email/thread_message_bl
 import {
   fetch_and_decrypt_thread_messages,
   fetch_and_decrypt_virtual_group,
+  resolve_reaction_emojis,
 } from "@/services/thread_service";
 import {
   get_draft_by_thread,
@@ -583,6 +584,8 @@ export function use_email_viewer({
         safe_html,
         decrypted_metadata ?? null,
       );
+
+      await resolve_reaction_emojis([single_message], user_email);
 
       const should_load_thread =
         preferences.conversation_grouping !== false && !!item.thread_token;

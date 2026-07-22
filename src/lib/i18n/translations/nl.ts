@@ -3222,6 +3222,8 @@ export const nl = {
     after_3_seconds: "Na 3 seconden",
     never_manual: "Nooit (alleen handmatig)",
     auto_advance: "Na archiveren of verwijderen",
+    reactions_enabled: "Reacties",
+    reactions_enabled_description: "Sta emoji-reacties op berichten toe en toon reacties van anderen",
     auto_advance_description:
       "Welke e-mail wordt geopend na het archiveren of verwijderen van de huidige",
     auto_advance_next: "Naar volgende e-mail",
@@ -5736,6 +5738,10 @@ export const nl = {
     all: "Alles",
     reply: "Antwoorden",
     reply_all: "Allen antwoorden",
+    react: "Reageren",
+    already_reacted: "Je hebt hier al mee gereageerd",
+    you_reacted_with: "Je hebt gereageerd met {{emoji}}",
+    reacted_with: "{{name}} heeft gereageerd met {{emoji}}",
     forward: "Doorsturen",
     to: "Aan",
     cc: "Cc",
@@ -6951,6 +6957,8 @@ export const nl = {
     rename_saved: "Naam bijgewerkt",
   },
   errors: {
+    failed_send_reaction: "De reactie kon niet worden verzonden. Probeer het opnieuw.",
+    reactions_disabled: "Reacties zijn uitgeschakeld in je instellingen.",
     pending_email_verification:
       "Controleer je e-mail en klik op de verificatielink om dit account te activeren.",
     generic: "Dat heeft niet gewerkt. Een nieuwe poging zou werken.",

@@ -3251,6 +3251,8 @@ export const pt = {
     after_3_seconds: "Após 3 segundos",
     never_manual: "Nunca (apenas manual)",
     auto_advance: "Depois de arquivar ou excluir",
+    reactions_enabled: "Reações",
+    reactions_enabled_description: "Permite reagir a mensagens com emojis e ver as reações de outras pessoas",
     auto_advance_description:
       "Qual e-mail abrir depois de arquivar ou excluir o que está lendo",
     auto_advance_next: "Ir para o próximo e-mail",
@@ -5808,6 +5810,10 @@ export const pt = {
     all: "Todos",
     reply: "Responder",
     reply_all: "Responder a Todos",
+    react: "Reagir",
+    already_reacted: "Você já reagiu com isto",
+    you_reacted_with: "Você reagiu com {{emoji}}",
+    reacted_with: "{{name}} reagiu com {{emoji}}",
     forward: "Encaminhar",
     to: "Para",
     cc: "Cc",
@@ -7026,6 +7032,8 @@ export const pt = {
     rename_saved: "Nome atualizado",
   },
   errors: {
+    failed_send_reaction: "Não foi possível enviar a reação. Tente novamente.",
+    reactions_disabled: "As reações estão desativadas nas suas configurações.",
     pending_email_verification:
       "Verifique seu e-mail e clique no link de verificação para ativar esta conta.",
     generic: "Isso não funcionou. Outra tentativa deve funcionar.",

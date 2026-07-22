@@ -3184,6 +3184,8 @@ export const ar = {
     after_3_seconds: "بعد 3 ثوانٍ",
     never_manual: "أبدًا (يدوي فقط)",
     auto_advance: "بعد الأرشفة أو الحذف",
+    reactions_enabled: "التفاعلات",
+    reactions_enabled_description: "السماح بالتفاعل مع الرسائل بالرموز التعبيرية وعرض تفاعلات الآخرين",
     auto_advance_description:
       "البريد الذي يُفتح بعد أرشفة أو حذف البريد الذي تقرأه",
     auto_advance_next: "الانتقال إلى البريد التالي",
@@ -5560,6 +5562,10 @@ export const ar = {
     all: "الكل",
     reply: "رد",
     reply_all: "رد على الكل",
+    react: "تفاعل",
+    already_reacted: "لقد تفاعلت بهذا بالفعل",
+    you_reacted_with: "لقد تفاعلت بـ {{emoji}}",
+    reacted_with: "تفاعل {{name}} بـ {{emoji}}",
     forward: "تحويل",
     to: "إلى",
     cc: "نسخة",
@@ -6736,6 +6742,8 @@ export const ar = {
     rename_saved: "تم تحديث الاسم",
   },
   errors: {
+    failed_send_reaction: "تعذر إرسال التفاعل. يرجى المحاولة مرة أخرى.",
+    reactions_disabled: "التفاعلات معطلة في إعداداتك.",
     pending_email_verification:
       "تحقّق من بريدك الإلكتروني وانقر على رابط التحقق لتفعيل هذا الحساب.",
     generic: "ذلك لم ينجح. محاولة أخرى ينبغي أن تنجح.",

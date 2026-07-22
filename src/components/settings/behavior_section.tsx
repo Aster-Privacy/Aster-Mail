@@ -487,7 +487,7 @@ export function BehaviorSection() {
             return (
               <div className="relative py-2 group/slider">
                 <div
-                  className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-surf-tertiary pointer-events-none"
+                  className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-edge-secondary pointer-events-none"
                   aria-hidden="true"
                 />
                 <div
@@ -615,6 +615,19 @@ export function BehaviorSection() {
             );
           }}
           title={t("settings.auto_save_recipients_to_contacts")}
+        />
+
+        <ToggleSetting
+          description={t("settings.reactions_enabled_description")}
+          enabled={preferences.reactions_enabled !== false}
+          on_toggle={() =>
+            update_preference(
+              "reactions_enabled",
+              preferences.reactions_enabled === false,
+              true,
+            )
+          }
+          title={t("settings.reactions_enabled")}
         />
       </div>
 
