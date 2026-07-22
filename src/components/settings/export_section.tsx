@@ -29,21 +29,13 @@ import {
   KeyIcon,
   LockClosedIcon,
   ExclamationTriangleIcon,
-  QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button, Tooltip } from "@aster/ui";
+import { Badge, Button } from "@aster/ui";
 
+import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 
 import { ExportModal } from "./export_modal";
-
-function HelpTip({ tip }: { tip: string }) {
-  return (
-    <Tooltip tip={tip}>
-      <QuestionMarkCircleIcon className="w-4 h-4 text-txt-muted cursor-help flex-shrink-0" />
-    </Tooltip>
-  );
-}
 
 export function ExportSection() {
   const { t } = use_i18n();
@@ -90,7 +82,7 @@ export function ExportSection() {
           <div className="flex-1">
             <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_scope_mail_title")}
-              <HelpTip tip={t("settings.export_scope_mail_help")} />
+              <InfoPopover description={t("settings.export_scope_mail_help")} title={t("settings.export_scope_mail_title")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_scope_mail_body")}
@@ -103,7 +95,7 @@ export function ExportSection() {
           <div className="flex-1">
             <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_scope_contacts_title")}
-              <HelpTip tip={t("settings.export_scope_contacts_help")} />
+              <InfoPopover description={t("settings.export_scope_contacts_help")} title={t("settings.export_scope_contacts_title")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_scope_contacts_body")}
@@ -153,7 +145,7 @@ export function ExportSection() {
           <div className="flex-1 pr-4">
             <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_security_vault_row_title")}
-              <HelpTip tip={t("settings.export_security_vault_row_help")} />
+              <InfoPopover description={t("settings.export_security_vault_row_help")} title={t("settings.export_security_vault_row_title")} />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_security_vault_row_body")}
