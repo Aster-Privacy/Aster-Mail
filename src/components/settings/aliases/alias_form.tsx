@@ -552,7 +552,7 @@ export function CreateAliasModal({
         )}
 
         {error && (
-          <div className="mt-4 px-3 py-2.5 rounded-lg text-sm bg-red-500/[0.08] border border-red-500/20 text-red-500">
+          <div className="mt-4 px-3 py-2.5 rounded-lg text-sm bg-red-600 text-red-50">
             {error}
           </div>
         )}

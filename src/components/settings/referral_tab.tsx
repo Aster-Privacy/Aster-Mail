@@ -772,7 +772,7 @@ export function ReferralTab() {
       {!my_affiliate_status?.is_affiliate && (
         <div
           className="relative overflow-hidden rounded-2xl p-6 mb-5"
-          style={{ backgroundColor: "color-mix(in srgb, var(--accent-color) 85%, black)" }}
+          style={{ backgroundColor: "var(--accent-mix-b85, #326fd1)" }}
         >
           <img
             alt=""
