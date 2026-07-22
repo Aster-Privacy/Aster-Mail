@@ -157,15 +157,16 @@ export function sanitize_srcset(value: string): string {
 
 export function strip_mso_conditionals(html: string): string {
   let result = html.replace(
-    /<!--\[if\s[^\]!]*?mso[^\]]*?\]>[\s\S]*?<!\[endif\]\s*--\s*>/gi,
+    /<!--\[if\s[^\]]*\]>\s*<![\s-]*>\s*/gi,
     "",
   );
 
-  result = result.replace(/<!--\[if\s!mso\]><!-->\s*/gi, "");
-  result = result.replace(/\s*<!--<!\[endif\]\s*--\s*>/gi, "");
+  result = result.replace(/\s*<!--[\s-]*<!\[endif\][\s-]*>/gi, "");
 
-  result = result.replace(/<!--\[if\s!mso\]>\s*<!--\s*--\s*>/gi, "");
-  result = result.replace(/<!--\s*<!\[endif\]\s*--\s*>/gi, "");
+  result = result.replace(
+    /<!--\[if\s[^\]]*\]>[\s\S]*?<!\[endif\]\s*--\s*>/gi,
+    "",
+  );
 
   return result;
 }

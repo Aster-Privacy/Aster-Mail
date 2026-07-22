@@ -100,7 +100,7 @@ export function MessageDetailsModal({
       </ModalHeader>
       <ModalBody className="space-y-2.5 text-sm">
         <div className="flex">
-          <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
             {t("common.from_label")}
           </span>
           <span className="min-w-0 text-txt-secondary break-words">
@@ -111,11 +111,24 @@ export function MessageDetailsModal({
 
         {message.to_recipients && message.to_recipients.length > 0 && (
           <div className="flex">
-            <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
               {t("common.to_label")}
             </span>
             <span className="min-w-0 text-txt-secondary break-words">
               {message.to_recipients
+                .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
+                .join(", ")}
+            </span>
+          </div>
+        )}
+
+        {message.cc_recipients && message.cc_recipients.length > 0 && (
+          <div className="flex">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+              {t("common.cc_label")}
+            </span>
+            <span className="min-w-0 text-txt-secondary break-words">
+              {message.cc_recipients
                 .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
                 .join(", ")}
             </span>
@@ -130,7 +143,7 @@ export function MessageDetailsModal({
 
           return received_on ? (
             <div className="flex">
-              <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+              <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                 {t("common.received_on_label")}
               </span>
               <span className="min-w-0 text-txt-secondary break-words">
@@ -141,7 +154,7 @@ export function MessageDetailsModal({
         })()}
 
         <div className="flex">
-          <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
             {t("common.date_label")}
           </span>
           <span className="text-txt-secondary">
@@ -150,7 +163,7 @@ export function MessageDetailsModal({
         </div>
 
         <div className="flex">
-          <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
             {t("common.subject_label")}
           </span>
           <span className="min-w-0 text-txt-secondary break-words">
@@ -159,7 +172,7 @@ export function MessageDetailsModal({
         </div>
 
         <div className="flex">
-          <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
             {t("mail.message_id_label")}
           </span>
           <span className="min-w-0 text-txt-secondary break-all font-mono text-xs">
@@ -169,7 +182,7 @@ export function MessageDetailsModal({
 
         {size_bytes != null && size_bytes > 0 && (
           <div className="flex">
-            <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
               {t("mail.size_label")}
             </span>
             <span className="text-txt-secondary">
@@ -179,7 +192,7 @@ export function MessageDetailsModal({
         )}
 
         <div className="flex items-center">
-          <span className="w-24 flex-shrink-0 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
             {t("mail.encryption_label")}
           </span>
           <EncryptionInfoDropdown

@@ -20,12 +20,91 @@
 //
 import DOMPurify from "dompurify";
 
-import { sanitize_compose_style } from "./html_sanitizer_css";
+import { sanitize_compose_style, is_transparent_color_value } from "./html_sanitizer_css";
+
+const BACKGROUND_DECLARATION_RE = /background(?:-color)?\s*:\s*[^;]+;?/gi;
+
+export function strip_transparent_backgrounds(el: Element): void {
+  const style_attr = el.getAttribute("style");
+
+  if (!style_attr || !/background/i.test(style_attr)) return;
+
+  const matches = [...style_attr.matchAll(BACKGROUND_DECLARATION_RE)];
+
+  if (matches.length === 0) return;
+  const last_offset = matches[matches.length - 1].index;
+
+  const cleaned = style_attr
+    .replace(BACKGROUND_DECLARATION_RE, (declaration, offset) => {
+      if (offset !== last_offset) return declaration;
+
+      const value = declaration
+        .slice(declaration.indexOf(":") + 1)
+        .replace(/;\s*$/, "")
+        .trim();
+
+      return is_transparent_color_value(value) ? "" : declaration;
+    })
+    .trim()
+    .replace(/^;+|;+$/g, "")
+    .trim();
+
+  if (cleaned) {
+    el.setAttribute("style", cleaned);
+  } else {
+    el.removeAttribute("style");
+  }
+}
 
 const OUTGOING_URI_REGEXP =
   /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
 
 const OUTGOING_DANGEROUS_HREF = /^\s*(?:javascript|vbscript|data|blob|file):/i;
+
+function is_removable_trailing_node(node: Node): boolean {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return !(node.textContent || "").trim();
+  }
+  if (node.nodeType === Node.COMMENT_NODE) return true;
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+  const el = node as Element;
+
+  if (el.tagName === "BR") return true;
+  if (!["DIV", "P", "SECTION", "SPAN"].includes(el.tagName)) return false;
+  if ((el.textContent || "").trim()) return false;
+  if (el.querySelector("img,hr,table,iframe,svg,video,object,embed,input,button")) {
+    return false;
+  }
+
+  return !/background|height|border|padding/i.test(el.getAttribute("style") || "");
+}
+
+export function trim_trailing_empty_nodes(body: HTMLElement): void {
+  let container: Element = body;
+
+  for (;;) {
+    let last: Node | null = container.lastChild;
+
+    while (last && is_removable_trailing_node(last)) {
+      const removed = last;
+
+      last = last.previousSibling;
+      removed.parentNode?.removeChild(removed);
+    }
+    if (
+      last &&
+      last.nodeType === Node.ELEMENT_NODE &&
+      ["DIV", "P"].includes((last as Element).tagName) &&
+      !(last as Element).matches(
+        '[class*="quote" i], [class*="cite" i], blockquote[type="cite"]',
+      )
+    ) {
+      container = last as Element;
+      continue;
+    }
+    break;
+  }
+}
 
 export function sanitize_outgoing_html(html: string): string {
   if (!html || typeof html !== "string") return "";
@@ -59,7 +138,11 @@ export function sanitize_outgoing_html(html: string): string {
         el.removeAttribute("href");
       }
     }
+
+    strip_transparent_backgrounds(el);
   }
+
+  trim_trailing_empty_nodes(doc.body);
 
   return doc.body.innerHTML;
 }

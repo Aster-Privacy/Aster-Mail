@@ -734,7 +734,7 @@ export function MobileMessageDetailsSheet({
         {message && (
           <div className="space-y-2.5 mb-4">
             <div className="flex">
-              <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("common.from_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
@@ -745,7 +745,7 @@ export function MobileMessageDetailsSheet({
 
             {message.to_recipients && message.to_recipients.length > 0 && (
               <div className="flex">
-                <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                   {t("common.to_label")}
                 </span>
                 <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
@@ -756,8 +756,21 @@ export function MobileMessageDetailsSheet({
               </div>
             )}
 
+            {message.cc_recipients && message.cc_recipients.length > 0 && (
+              <div className="flex">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+                  {t("common.cc_label")}
+                </span>
+                <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
+                  {message.cc_recipients
+                    .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
+                    .join(", ")}
+                </span>
+              </div>
+            )}
+
             <div className="flex">
-              <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("common.date_label")}
               </span>
               <span className="text-[12px] text-[var(--text-secondary)]">
@@ -766,7 +779,7 @@ export function MobileMessageDetailsSheet({
             </div>
 
             <div className="flex">
-              <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("common.subject_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-words">
@@ -775,7 +788,7 @@ export function MobileMessageDetailsSheet({
             </div>
 
             <div className="flex">
-              <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("mail.message_id_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
@@ -785,7 +798,7 @@ export function MobileMessageDetailsSheet({
 
             {size_bytes != null && size_bytes > 0 && (
               <div className="flex">
-                <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                   {t("mail.size_label")}
                 </span>
                 <span className="text-[12px] text-[var(--text-secondary)]">
@@ -795,7 +808,7 @@ export function MobileMessageDetailsSheet({
             )}
 
             <div className="flex">
-              <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("mail.location_label")}
               </span>
               <span className="text-[12px] text-[var(--text-secondary)]">
@@ -804,7 +817,7 @@ export function MobileMessageDetailsSheet({
             </div>
 
             <div className="flex items-center">
-              <span className="w-20 flex-shrink-0 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("mail.encryption_label")}
               </span>
               <EncryptionInfoDropdown

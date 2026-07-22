@@ -213,7 +213,7 @@ export const SidebarAliases = memo(function SidebarAliases({
                   />
                   {!is_collapsed && (
                     <>
-                      <span className="flex-1 text-left truncate leading-4">
+                      <span className="flex-1 text-left truncate leading-5">
                         {alias.full_address}
                       </span>
                       <CountBadge

@@ -173,6 +173,7 @@ export function build_single_thread_message(
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,
     to_recipients: envelope.to || [],
+    cc_recipients: envelope.cc || [],
     raw_headers: envelope.raw_headers,
     sender_verification: envelope.sender_verification,
   };

@@ -30,7 +30,10 @@ import {
   block_remote_fonts,
   strip_css_urls,
   escape_style_terminator,
+  is_transparent_color_value,
 } from "./html_sanitizer_css";
+
+export { is_transparent_color_value } from "./html_sanitizer_css";
 import {
   is_tracking_pixel,
   strip_tracking_params,
@@ -340,9 +343,11 @@ function sanitize_html_impl(
     }
   }
 
+  const preprocessed = strip_mso_conditionals(html);
+
   const head_styles: string[] = [];
   const head_match = sandbox_mode
-    ? html.match(/<head[\s>][\s\S]*?<\/head\s*>/i)
+    ? preprocessed.match(/<head[\s>][\s\S]*?<\/head\s*>/i)
     : null;
 
   if (head_match) {
@@ -360,8 +365,6 @@ function sanitize_html_impl(
       }
     }
   }
-
-  const preprocessed = strip_mso_conditionals(html);
 
   const purified = DOMPurify.sanitize(preprocessed, {
     ALLOWED_TAGS: Array.from(ALLOWED_TAGS),
@@ -876,19 +879,50 @@ export function is_html_content(content: string): boolean {
   return html_patterns.some((pattern) => pattern.test(content));
 }
 
+const QUOTE_CONTAINER_START_RE =
+  /<(?:div|blockquote)[^>]*(?:class=["'][^"']*(?:aster_quote|gmail_quote|yahoo_quoted|protonmail_quote|moz-cite-prefix)[^"']*["']|type=["']cite["'])/i;
+
+export function strip_quoted_sections(content: string): string {
+  const idx = content.search(QUOTE_CONTAINER_START_RE);
+
+  if (idx < 0) return content;
+  const own_content = content.slice(0, idx);
+
+  return strip_html_tags(own_content).trim() ? own_content : content;
+}
+
+function has_designed_background_style(content: string): boolean {
+  const declarations = content.match(
+    /style\s*=\s*["'][^"']*background(?:-color)?\s*:\s*[^;"']+/gi,
+  );
+
+  if (!declarations) return false;
+
+  return declarations.some((declaration) => {
+    const value_match = declaration.match(
+      /background(?:-color)?\s*:\s*([^;"']+)$/i,
+    );
+    const value = value_match ? value_match[1].trim() : "";
+
+    return value.length > 0 && !is_transparent_color_value(value);
+  });
+}
+
 export function has_rich_html(content: string): boolean {
   if (!content || typeof content !== "string") return false;
 
-  const stripped = content
-    .replace(/<span[^>]*>Secured by\s*<a[^>]*>Aster Mail<\/a><\/span>/gi, "")
-    .replace(
-      /<a[^>]*href=["']https?:\/\/astermail\.org["'][^>]*>Aster Mail<\/a>/gi,
-      "",
-    );
+  const stripped = strip_quoted_sections(
+    content
+      .replace(/<span[^>]*>Secured by\s*<a[^>]*>Aster Mail<\/a><\/span>/gi, "")
+      .replace(
+        /<a[^>]*href=["']https?:\/\/astermail\.org["'][^>]*>Aster Mail<\/a>/gi,
+        "",
+      ),
+  );
 
   if (/<(table|td|th|tr)\b/i.test(stripped)) return true;
   if (/<style[\s>]/i.test(stripped)) return true;
-  if (/style\s*=\s*["'][^"']*background/i.test(stripped)) return true;
+  if (has_designed_background_style(stripped)) return true;
   if (/style\s*=\s*["'][^"']*\bwidth\s*:/i.test(stripped)) return true;
   if (/<img\b[^>]*src\s*=/i.test(stripped)) return true;
   if (/<(center|font)\b/i.test(stripped)) return true;
