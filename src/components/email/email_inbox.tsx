@@ -348,11 +348,15 @@ export function EmailInbox({
   }, [categories_just_disabled, raw_mail_state]);
   const {
     state: drafts_state,
+    load_more: load_more_drafts,
     update_draft,
     schedule_delete_drafts,
   } = use_drafts_list(is_drafts_view);
-  const { state: scheduled_state, update_scheduled } =
-    use_scheduled_emails(is_scheduled_view);
+  const {
+    state: scheduled_state,
+    load_more: load_more_scheduled,
+    update_scheduled,
+  } = use_scheduled_emails(is_scheduled_view);
   const {
     state: snoozed_state,
     fetch_snoozed,
@@ -1408,6 +1412,32 @@ export function EmailInbox({
                   on_page_change={handle_page_change}
                   total_pages={total_pages}
                 />
+              )}
+            {!skeleton_visible &&
+              is_drafts_view &&
+              drafts_state.has_more && (
+                <div className="flex items-center justify-center py-3 border-t border-edge-primary">
+                  <button
+                    className="text-sm font-medium text-txt-muted hover:text-txt-primary disabled:opacity-50 transition-colors"
+                    disabled={drafts_state.is_loading_more}
+                    onClick={() => load_more_drafts()}
+                  >
+                    {t("common.load_more")}
+                  </button>
+                </div>
+              )}
+            {!skeleton_visible &&
+              is_scheduled_view &&
+              scheduled_state.has_more && (
+                <div className="flex items-center justify-center py-3 border-t border-edge-primary">
+                  <button
+                    className="text-sm font-medium text-txt-muted hover:text-txt-primary disabled:opacity-50 transition-colors"
+                    disabled={scheduled_state.is_loading_more}
+                    onClick={() => load_more_scheduled()}
+                  >
+                    {t("common.load_more")}
+                  </button>
+                </div>
               )}
           </div>
           {(skeleton_visible ||

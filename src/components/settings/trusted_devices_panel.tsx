@@ -45,6 +45,8 @@ function open_billing_settings() {
   );
 }
 
+const TRUSTED_DEVICES_REVOKE_CHUNK_SIZE = 10;
+
 function format_date(value: string | null): string {
   if (!value) return "";
   try {
@@ -103,14 +105,49 @@ export function TrustedDevicesPanel() {
 
   const handle_revoke_all = async () => {
     set_is_revoking_all(true);
-    const responses = await Promise.all(
-      devices.map((device) => revoke_device(device.id)),
-    );
+    let succeeded = 0;
+    let failed = 0;
 
-    const failed = responses.find((r) => r.error);
-    if (failed?.error) {
-      show_toast(failed.error, "error");
+    for (
+      let i = 0;
+      i < devices.length;
+      i += TRUSTED_DEVICES_REVOKE_CHUNK_SIZE
+    ) {
+      const chunk = devices.slice(i, i + TRUSTED_DEVICES_REVOKE_CHUNK_SIZE);
+      const results = await Promise.allSettled(
+        chunk.map((device) => revoke_device(device.id)),
+      );
+
+      for (const result of results) {
+        if (result.status === "fulfilled" && !result.value.error) {
+          succeeded += 1;
+        } else {
+          failed += 1;
+        }
+      }
+    }
+
+    if (failed === 0) {
+      show_toast(
+        t("settings.trusted_devices_revoke_all_success", {
+          count: String(succeeded),
+        }),
+        "success",
+      );
+    } else if (succeeded > 0) {
+      show_toast(
+        t("settings.trusted_devices_revoke_all_partial", {
+          succeeded: String(succeeded),
+          total: String(devices.length),
+          failed: String(failed),
+        }),
+        "error",
+      );
     } else {
+      show_toast(t("settings.trusted_devices_revoke_all_failed"), "error");
+    }
+
+    if (succeeded > 0) {
       await revalidate();
     }
     set_is_revoking_all(false);

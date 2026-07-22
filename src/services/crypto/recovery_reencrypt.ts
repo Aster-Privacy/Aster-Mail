@@ -67,6 +67,31 @@ const PENDING_KEY = "aster_pending_reencryption";
 interface PendingReencryptData {
   old_data_kek?: string;
   old_identity_key: string;
+  completed_steps?: string[];
+}
+
+type NamedReencryptStep = [string, () => Promise<boolean>];
+
+async function run_named_steps(
+  steps: NamedReencryptStep[],
+  already_done: Set<string>,
+  newly_completed: string[],
+): Promise<boolean> {
+  let all_ok = true;
+
+  for (const [name, fn] of steps) {
+    if (already_done.has(name)) continue;
+
+    const ok = await fn();
+
+    if (ok) {
+      newly_completed.push(name);
+    } else {
+      all_ok = false;
+    }
+  }
+
+  return all_ok;
 }
 
 function array_to_b64(a: Uint8Array): string {
@@ -162,6 +187,29 @@ async function re_encrypt_field(
     encrypted: array_to_b64(new Uint8Array(new_ct)),
     nonce: array_to_b64(new_iv),
   };
+}
+
+const CONTACT_REENCRYPT_CONCURRENCY = 5;
+
+async function process_in_batches<T>(
+  items: T[],
+  handler: (item: T) => Promise<boolean>,
+  concurrency: number = CONTACT_REENCRYPT_CONCURRENCY,
+): Promise<boolean> {
+  let all_ok = true;
+
+  for (let i = 0; i < items.length; i += concurrency) {
+    const batch = items.slice(i, i + concurrency);
+    const results = await Promise.allSettled(batch.map(handler));
+
+    for (const result of results) {
+      if (result.status === "rejected" || result.value === false) {
+        all_ok = false;
+      }
+    }
+  }
+
+  return all_ok;
 }
 
 async function re_encrypt_signatures(
@@ -1284,50 +1332,56 @@ async function re_encrypt_contact_photos(
 
     if (contacts_resp.error || !contacts_resp.data) return false;
 
-    for (const contact of contacts_resp.data.items) {
-      try {
-        const photo_resp = await api_client.get<{
-          id: string;
-          encrypted_data: string;
-          data_nonce: string;
-          encrypted_meta: string;
-          meta_nonce: string;
-          size_bytes: number;
-        }>(`/contacts/v1/${contact.id}/photo`);
-
-        if (photo_resp.error || !photo_resp.data) continue;
-
-        const photo = photo_resp.data;
-        const [data_result, meta_result] = await Promise.all([
-          re_encrypt_field(photo.encrypted_data, photo.data_nonce, old_aes, new_aes),
-          re_encrypt_field(photo.encrypted_meta, photo.meta_nonce, old_aes, new_aes),
-        ]);
-
-        await api_client.delete(`/contacts/v1/${contact.id}/photo`);
+    const batch_ok = await process_in_batches(
+      contacts_resp.data.items,
+      async (contact) => {
         try {
-          await api_client.post(`/contacts/v1/${contact.id}/photo`, {
-            encrypted_data: data_result.encrypted,
-            data_nonce: data_result.nonce,
-            encrypted_meta: meta_result.encrypted,
-            meta_nonce: meta_result.nonce,
-            size_bytes: photo.size_bytes,
-          });
-        } catch (post_err) {
-          await api_client.post(`/contacts/v1/${contact.id}/photo`, {
-            encrypted_data: photo.encrypted_data,
-            data_nonce: photo.data_nonce,
-            encrypted_meta: photo.encrypted_meta,
-            meta_nonce: photo.meta_nonce,
-            size_bytes: photo.size_bytes,
-          });
+          const photo_resp = await api_client.get<{
+            id: string;
+            encrypted_data: string;
+            data_nonce: string;
+            encrypted_meta: string;
+            meta_nonce: string;
+            size_bytes: number;
+          }>(`/contacts/v1/${contact.id}/photo`);
 
-          throw post_err;
+          if (photo_resp.error || !photo_resp.data) return true;
+
+          const photo = photo_resp.data;
+          const [data_result, meta_result] = await Promise.all([
+            re_encrypt_field(photo.encrypted_data, photo.data_nonce, old_aes, new_aes),
+            re_encrypt_field(photo.encrypted_meta, photo.meta_nonce, old_aes, new_aes),
+          ]);
+
+          await api_client.delete(`/contacts/v1/${contact.id}/photo`);
+          try {
+            await api_client.post(`/contacts/v1/${contact.id}/photo`, {
+              encrypted_data: data_result.encrypted,
+              data_nonce: data_result.nonce,
+              encrypted_meta: meta_result.encrypted,
+              meta_nonce: meta_result.nonce,
+              size_bytes: photo.size_bytes,
+            });
+          } catch (post_err) {
+            await api_client.post(`/contacts/v1/${contact.id}/photo`, {
+              encrypted_data: photo.encrypted_data,
+              data_nonce: photo.data_nonce,
+              encrypted_meta: photo.encrypted_meta,
+              meta_nonce: photo.meta_nonce,
+              size_bytes: photo.size_bytes,
+            });
+
+            throw post_err;
+          }
+
+          return true;
+        } catch {
+          return false;
         }
-      } catch {
-        ok = false;
-        continue;
-      }
-    }
+      },
+    );
+
+    if (!batch_ok) ok = false;
 
     if (!contacts_resp.data.has_more || !contacts_resp.data.next_cursor) break;
 
@@ -1360,53 +1414,56 @@ async function re_encrypt_contact_attachments(
 
         if (list_resp.error || !list_resp.data || list_resp.data.items.length === 0) continue;
 
-        for (const att_stub of list_resp.data.items) {
-          try {
-            const att_resp = await api_client.get<{
-              id: string;
-              encrypted_data: string;
-              data_nonce: string;
-              encrypted_meta: string;
-              meta_nonce: string;
-              size_bytes: number;
-            }>(`/contacts/v1/${contact.id}/attachments/${att_stub.id}`);
-
-            if (att_resp.error || !att_resp.data) {
-              ok = false;
-              continue;
-            }
-
-            const att = att_resp.data;
-            const [data_result, meta_result] = await Promise.all([
-              re_encrypt_field(att.encrypted_data, att.data_nonce, old_aes, new_aes),
-              re_encrypt_field(att.encrypted_meta, att.meta_nonce, old_aes, new_aes),
-            ]);
-
-            await api_client.delete(`/contacts/v1/${contact.id}/attachments/${att.id}`);
+        const batch_ok = await process_in_batches(
+          list_resp.data.items,
+          async (att_stub) => {
             try {
-              await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
-                encrypted_data: data_result.encrypted,
-                data_nonce: data_result.nonce,
-                encrypted_meta: meta_result.encrypted,
-                meta_nonce: meta_result.nonce,
-                size_bytes: att.size_bytes,
-              });
-            } catch (post_err) {
-              await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
-                encrypted_data: att.encrypted_data,
-                data_nonce: att.data_nonce,
-                encrypted_meta: att.encrypted_meta,
-                meta_nonce: att.meta_nonce,
-                size_bytes: att.size_bytes,
-              });
+              const att_resp = await api_client.get<{
+                id: string;
+                encrypted_data: string;
+                data_nonce: string;
+                encrypted_meta: string;
+                meta_nonce: string;
+                size_bytes: number;
+              }>(`/contacts/v1/${contact.id}/attachments/${att_stub.id}`);
 
-              throw post_err;
+              if (att_resp.error || !att_resp.data) return false;
+
+              const att = att_resp.data;
+              const [data_result, meta_result] = await Promise.all([
+                re_encrypt_field(att.encrypted_data, att.data_nonce, old_aes, new_aes),
+                re_encrypt_field(att.encrypted_meta, att.meta_nonce, old_aes, new_aes),
+              ]);
+
+              await api_client.delete(`/contacts/v1/${contact.id}/attachments/${att.id}`);
+              try {
+                await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
+                  encrypted_data: data_result.encrypted,
+                  data_nonce: data_result.nonce,
+                  encrypted_meta: meta_result.encrypted,
+                  meta_nonce: meta_result.nonce,
+                  size_bytes: att.size_bytes,
+                });
+              } catch (post_err) {
+                await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
+                  encrypted_data: att.encrypted_data,
+                  data_nonce: att.data_nonce,
+                  encrypted_meta: att.encrypted_meta,
+                  meta_nonce: att.meta_nonce,
+                  size_bytes: att.size_bytes,
+                });
+
+                throw post_err;
+              }
+
+              return true;
+            } catch {
+              return false;
             }
-          } catch {
-            ok = false;
-            continue;
-          }
-        }
+          },
+        );
+
+        if (!batch_ok) ok = false;
       } catch {
         ok = false;
         continue;
@@ -1438,50 +1495,40 @@ async function re_encrypt_contact_sync_sources(
 
   if (resp.data.items.length === 0) return true;
 
-  const decrypted: Array<{ source_type: string; config_pt: ArrayBuffer }> = [];
-
-  let ok = true;
-
-  for (const source of resp.data.items) {
+  return process_in_batches(resp.data.items, async (source) => {
     try {
       const ct = b64_to_array(source.encrypted_config);
       const iv = b64_to_array(source.config_nonce);
       const config_pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_aes, ct);
-      decrypted.push({ source_type: source.source_type, config_pt });
-    } catch {
-      ok = false;
-      continue;
-    }
-  }
-
-  if (decrypted.length === 0) return ok;
-
-  for (const source of resp.data.items) {
-    await api_client.delete(`/contacts/v1/sync/sources/${source.id}`).catch(() => {
-      ok = false;
-    });
-  }
-
-  for (const item of decrypted) {
-    try {
       const new_iv = crypto.getRandomValues(new Uint8Array(12));
       const new_ct = await crypto.subtle.encrypt(
         { name: "AES-GCM", iv: new_iv },
         new_aes,
-        item.config_pt,
+        config_pt,
       );
-      await api_client.post("/contacts/v1/sync/sources", {
-        source_type: item.source_type,
-        encrypted_config: array_to_b64(new Uint8Array(new_ct)),
-        config_nonce: array_to_b64(new_iv),
-      });
-    } catch {
-      ok = false;
-      continue;
-    }
-  }
 
-  return ok;
+      await api_client.delete(`/contacts/v1/sync/sources/${source.id}`);
+      try {
+        await api_client.post("/contacts/v1/sync/sources", {
+          source_type: source.source_type,
+          encrypted_config: array_to_b64(new Uint8Array(new_ct)),
+          config_nonce: array_to_b64(new_iv),
+        });
+      } catch (post_err) {
+        await api_client.post("/contacts/v1/sync/sources", {
+          source_type: source.source_type,
+          encrypted_config: source.encrypted_config,
+          config_nonce: source.config_nonce,
+        });
+
+        throw post_err;
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  });
 }
 
 async function re_encrypt_drafts(
@@ -1585,6 +1632,7 @@ export async function reencrypt_settings_password_change(
   let complete = false;
   let retired_old_kek: Uint8Array | null = null;
   let old_data_kek_b64: string | null = null;
+  const newly_completed: string[] = [];
 
   try {
     const old_bytes = new TextEncoder().encode(current_password);
@@ -1600,27 +1648,32 @@ export async function reencrypt_settings_password_change(
 
     old_data_kek_b64 = array_to_b64(old_raw);
 
-    const old_aes = await import_aes_key(old_raw, ["decrypt"]);
-    const new_aes = await import_aes_key(new_raw, ["encrypt"]);
+    const resolved_old_raw = old_raw;
+    const resolved_new_raw = new_raw;
+    const old_aes = await import_aes_key(resolved_old_raw, ["decrypt"]);
+    const new_aes = await import_aes_key(resolved_new_raw, ["encrypt"]);
 
-    const results = [
-      await re_encrypt_signatures(old_aes, new_aes),
-      await re_encrypt_templates(old_aes, new_aes),
-      await re_encrypt_blocked_senders(old_aes),
-      await re_encrypt_allowed_senders(old_aes),
-      await re_encrypt_recent_recipients(old_aes),
-      await re_encrypt_tags(old_identity_key, new_identity_key),
-      await re_encrypt_folders(old_identity_key, new_identity_key),
-      await re_encrypt_mail_metadata(old_raw, new_raw),
-      await re_encrypt_profile_notes(old_raw, new_raw),
-      await re_encrypt_external_accounts(old_aes, new_aes, new_raw),
-      await re_encrypt_contact_field_values(old_aes, new_aes),
-      await re_encrypt_contact_photos(old_aes, new_aes),
-      await re_encrypt_contact_attachments(old_aes, new_aes),
-      await re_encrypt_contact_sync_sources(old_aes, new_aes),
+    const steps: NamedReencryptStep[] = [
+      ["signatures", () => re_encrypt_signatures(old_aes, new_aes)],
+      ["templates", () => re_encrypt_templates(old_aes, new_aes)],
+      ["blocked_senders", () => re_encrypt_blocked_senders(old_aes)],
+      ["allowed_senders", () => re_encrypt_allowed_senders(old_aes)],
+      ["recent_recipients", () => re_encrypt_recent_recipients(old_aes)],
+      ["tags", () => re_encrypt_tags(old_identity_key, new_identity_key)],
+      ["folders", () => re_encrypt_folders(old_identity_key, new_identity_key)],
+      ["mail_metadata", () => re_encrypt_mail_metadata(resolved_old_raw, resolved_new_raw)],
+      ["profile_notes", () => re_encrypt_profile_notes(resolved_old_raw, resolved_new_raw)],
+      [
+        "external_accounts",
+        () => re_encrypt_external_accounts(old_aes, new_aes, resolved_new_raw),
+      ],
+      ["contact_field_values", () => re_encrypt_contact_field_values(old_aes, new_aes)],
+      ["contact_photos", () => re_encrypt_contact_photos(old_aes, new_aes)],
+      ["contact_attachments", () => re_encrypt_contact_attachments(old_aes, new_aes)],
+      ["contact_sync_sources", () => re_encrypt_contact_sync_sources(old_aes, new_aes)],
     ];
 
-    complete = results.every((result) => result);
+    complete = await run_named_steps(steps, new Set(), newly_completed);
 
     if (complete) {
       retired_old_kek = old_raw.slice();
@@ -1636,6 +1689,7 @@ export async function reencrypt_settings_password_change(
     await store_pending_reencryption({
       old_identity_key,
       old_data_kek: old_data_kek_b64,
+      completed_steps: newly_completed,
     });
   }
 
@@ -1915,27 +1969,99 @@ export async function check_and_run_recovery_reencryption(
   zero_uint8_array(old_folder_hash);
   zero_uint8_array(old_tag_hash);
 
+  const already_done = new Set(pending.completed_steps ?? []);
+  const newly_completed: string[] = [];
+  let identity_complete = true;
+
   try {
-    await re_encrypt_tags(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_folders(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_preferences(
-      pending.old_identity_key,
-      vault.identity_key,
-      vault,
-    );
-    await re_encrypt_drafts(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_dev_mode(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_recovery_email(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_onboarding_state(pending.old_identity_key, vault.identity_key);
+    const identity_steps: NamedReencryptStep[] = [
+      ["tags", () => re_encrypt_tags(pending.old_identity_key, vault.identity_key)],
+      ["folders", () => re_encrypt_folders(pending.old_identity_key, vault.identity_key)],
+      [
+        "preferences",
+        async () => {
+          try {
+            await re_encrypt_preferences(
+              pending.old_identity_key,
+              vault.identity_key,
+              vault,
+            );
+
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      ],
+      [
+        "drafts",
+        async () => {
+          try {
+            await re_encrypt_drafts(pending.old_identity_key, vault.identity_key);
+
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      ],
+      [
+        "dev_mode",
+        async () => {
+          try {
+            await re_encrypt_dev_mode(pending.old_identity_key, vault.identity_key);
+
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      ],
+      [
+        "recovery_email",
+        async () => {
+          try {
+            await re_encrypt_recovery_email(pending.old_identity_key, vault.identity_key);
+
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      ],
+      [
+        "onboarding_state",
+        async () => {
+          try {
+            await re_encrypt_onboarding_state(pending.old_identity_key, vault.identity_key);
+
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      ],
+    ];
+
+    identity_complete = await run_named_steps(identity_steps, already_done, newly_completed);
   } catch {
-    /* silently fail */
+    identity_complete = false;
   }
 
-  if (!pending.old_data_kek) return;
+  if (!pending.old_data_kek) {
+    if (!identity_complete) {
+      await store_pending_reencryption({
+        old_identity_key: pending.old_identity_key,
+        completed_steps: [...already_done, ...newly_completed],
+      });
+    }
+
+    return;
+  }
 
   let old_raw: Uint8Array | null = null;
   let new_raw: Uint8Array | null = null;
-  let complete = false;
+  let data_complete = false;
 
   try {
     old_raw = b64_to_array(pending.old_data_kek);
@@ -1944,39 +2070,45 @@ export async function check_and_run_recovery_reencryption(
     new_raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
     zero_uint8_array(passphrase_bytes);
 
-    const old_aes = await import_aes_key(old_raw, ["decrypt"]);
-    const new_aes = await import_aes_key(new_raw, ["encrypt"]);
+    const resolved_old_raw = old_raw;
+    const resolved_new_raw = new_raw;
+    const old_aes = await import_aes_key(resolved_old_raw, ["decrypt"]);
+    const new_aes = await import_aes_key(resolved_new_raw, ["encrypt"]);
 
-    const results = [
-      await re_encrypt_signatures(old_aes, new_aes),
-      await re_encrypt_templates(old_aes, new_aes),
-      await re_encrypt_blocked_senders(old_aes),
-      await re_encrypt_allowed_senders(old_aes),
-      await re_encrypt_recent_recipients(old_aes),
-      await re_encrypt_mail_metadata(old_raw, new_raw),
-      await re_encrypt_profile_notes(old_raw, new_raw),
-      await re_encrypt_external_accounts(old_aes, new_aes, new_raw),
-      await re_encrypt_contact_field_values(old_aes, new_aes),
-      await re_encrypt_contact_photos(old_aes, new_aes),
-      await re_encrypt_contact_attachments(old_aes, new_aes),
-      await re_encrypt_contact_sync_sources(old_aes, new_aes),
+    const data_kek_steps: NamedReencryptStep[] = [
+      ["signatures", () => re_encrypt_signatures(old_aes, new_aes)],
+      ["templates", () => re_encrypt_templates(old_aes, new_aes)],
+      ["blocked_senders", () => re_encrypt_blocked_senders(old_aes)],
+      ["allowed_senders", () => re_encrypt_allowed_senders(old_aes)],
+      ["recent_recipients", () => re_encrypt_recent_recipients(old_aes)],
+      ["mail_metadata", () => re_encrypt_mail_metadata(resolved_old_raw, resolved_new_raw)],
+      ["profile_notes", () => re_encrypt_profile_notes(resolved_old_raw, resolved_new_raw)],
+      [
+        "external_accounts",
+        () => re_encrypt_external_accounts(old_aes, new_aes, resolved_new_raw),
+      ],
+      ["contact_field_values", () => re_encrypt_contact_field_values(old_aes, new_aes)],
+      ["contact_photos", () => re_encrypt_contact_photos(old_aes, new_aes)],
+      ["contact_attachments", () => re_encrypt_contact_attachments(old_aes, new_aes)],
+      ["contact_sync_sources", () => re_encrypt_contact_sync_sources(old_aes, new_aes)],
     ];
 
-    await re_encrypt_aliases_contacts(old_raw, new_raw);
-    await re_encrypt_alias_sub_items_recovery(old_raw, new_raw);
+    data_complete = await run_named_steps(data_kek_steps, already_done, newly_completed);
 
-    complete = results.every((result) => result);
+    await re_encrypt_aliases_contacts(resolved_old_raw, resolved_new_raw);
+    await re_encrypt_alias_sub_items_recovery(resolved_old_raw, resolved_new_raw);
   } catch {
-    complete = false;
+    data_complete = false;
   } finally {
     if (old_raw) zero_uint8_array(old_raw);
     if (new_raw) zero_uint8_array(new_raw);
   }
 
-  if (!complete) {
+  if (!identity_complete || !data_complete) {
     await store_pending_reencryption({
       old_identity_key: pending.old_identity_key,
       old_data_kek: pending.old_data_kek,
+      completed_steps: [...already_done, ...newly_completed],
     });
   }
 }

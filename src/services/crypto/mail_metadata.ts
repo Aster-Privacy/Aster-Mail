@@ -587,6 +587,11 @@ export async function update_item_metadata(
   }
 }
 
+export interface BulkUpdateItemsMetadataOptions {
+  signal?: AbortSignal;
+  on_progress?: (completed: number, total: number) => void;
+}
+
 export async function bulk_update_items_metadata(
   items: Array<{
     id: string;
@@ -595,12 +600,13 @@ export async function bulk_update_items_metadata(
     metadata_version?: number;
   }>,
   updates: Partial<MailItemMetadata>,
+  options?: BulkUpdateItemsMetadataOptions,
 ): Promise<{
   success: boolean;
   updated_count: number;
   failed_ids: string[];
 }> {
-  const { bulk_patch_metadata } = await import("@/services/api/mail");
+  const { batched_bulk_patch_metadata } = await import("@/services/api/mail");
 
   const bulk_items: Array<{
     id: string;
@@ -678,26 +684,25 @@ export async function bulk_update_items_metadata(
     return { success: false, updated_count: 0, failed_ids };
   }
 
-  const result = await bulk_patch_metadata({ items: bulk_items });
-
-  if (result.error) {
-    return {
-      success: false,
-      updated_count: 0,
-      failed_ids: items.map((i) => i.id),
-    };
-  }
+  const result = await batched_bulk_patch_metadata(bulk_items, {
+    signal: options?.signal,
+    on_progress: options?.on_progress,
+  });
 
   return {
-    success: failed_ids.length === 0,
-    updated_count: result.data?.updated_count ?? 0,
-    failed_ids,
+    success:
+      failed_ids.length === 0 &&
+      result.failed_ids.length === 0 &&
+      !result.was_cancelled,
+    updated_count: result.succeeded_ids.length,
+    failed_ids: [...failed_ids, ...result.failed_ids],
   };
 }
 
 export async function bulk_update_metadata_by_ids(
   ids: string[],
   updates: Partial<MailItemMetadata>,
+  options?: BulkUpdateItemsMetadataOptions,
 ): Promise<{
   success: boolean;
   updated_count: number;
@@ -751,7 +756,7 @@ export async function bulk_update_metadata_by_ids(
     };
   }
 
-  const result = await bulk_update_items_metadata(fetched, updates);
+  const result = await bulk_update_items_metadata(fetched, updates, options);
 
   return {
     success: result.success && failed_fetch.length === 0,

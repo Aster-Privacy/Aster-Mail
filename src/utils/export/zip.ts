@@ -58,7 +58,7 @@ function dos_datetime(): { time: number; date: number } {
   return { time, date };
 }
 
-export function build_store_zip(entries: ZipInputEntry[]): Uint8Array {
+export function build_store_zip_parts(entries: ZipInputEntry[]): Uint8Array[] {
   const enc = new TextEncoder();
   const { time, date } = dos_datetime();
 
@@ -91,61 +91,66 @@ export function build_store_zip(entries: ZipInputEntry[]): Uint8Array {
   if (total > 0xfffffffe) {
     throw new Error("zip archive exceeds 4GiB STORE limit");
   }
-  const out = new Uint8Array(total);
-  const view = new DataView(out.buffer);
+
+  const parts: Uint8Array[] = [];
+
+  for (const r of records) {
+    const header = new Uint8Array(30 + r.name_bytes.length);
+    const view = new DataView(header.buffer);
+    view.setUint32(0, 0x04034b50, true);
+    view.setUint16(4, 20, true);
+    view.setUint16(6, 0x0800, true);
+    view.setUint16(8, 0, true);
+    view.setUint16(10, time, true);
+    view.setUint16(12, date, true);
+    view.setUint32(14, r.crc, true);
+    view.setUint32(18, r.data.length, true);
+    view.setUint32(22, r.data.length, true);
+    view.setUint16(26, r.name_bytes.length, true);
+    view.setUint16(28, 0, true);
+    header.set(r.name_bytes, 30);
+    parts.push(header, r.data);
+  }
+
+  const central_start = local_total;
+  const central = new Uint8Array(central_total);
+  const cview = new DataView(central.buffer);
   let pos = 0;
-
   for (const r of records) {
-    view.setUint32(pos, 0x04034b50, true);
-    view.setUint16(pos + 4, 20, true);
-    view.setUint16(pos + 6, 0x0800, true);
-    view.setUint16(pos + 8, 0, true);
-    view.setUint16(pos + 10, time, true);
-    view.setUint16(pos + 12, date, true);
-    view.setUint32(pos + 14, r.crc, true);
-    view.setUint32(pos + 18, r.data.length, true);
-    view.setUint32(pos + 22, r.data.length, true);
-    view.setUint16(pos + 26, r.name_bytes.length, true);
-    view.setUint16(pos + 28, 0, true);
-    pos += 30;
-    out.set(r.name_bytes, pos);
-    pos += r.name_bytes.length;
-    out.set(r.data, pos);
-    pos += r.data.length;
-  }
-
-  const central_start = pos;
-  for (const r of records) {
-    view.setUint32(pos, 0x02014b50, true);
-    view.setUint16(pos + 4, 20, true);
-    view.setUint16(pos + 6, 20, true);
-    view.setUint16(pos + 8, 0x0800, true);
-    view.setUint16(pos + 10, 0, true);
-    view.setUint16(pos + 12, time, true);
-    view.setUint16(pos + 14, date, true);
-    view.setUint32(pos + 16, r.crc, true);
-    view.setUint32(pos + 20, r.data.length, true);
-    view.setUint32(pos + 24, r.data.length, true);
-    view.setUint16(pos + 28, r.name_bytes.length, true);
-    view.setUint16(pos + 30, 0, true);
-    view.setUint16(pos + 32, 0, true);
-    view.setUint16(pos + 34, 0, true);
-    view.setUint16(pos + 36, 0, true);
-    view.setUint32(pos + 38, 0, true);
-    view.setUint32(pos + 42, r.offset, true);
+    cview.setUint32(pos, 0x02014b50, true);
+    cview.setUint16(pos + 4, 20, true);
+    cview.setUint16(pos + 6, 20, true);
+    cview.setUint16(pos + 8, 0x0800, true);
+    cview.setUint16(pos + 10, 0, true);
+    cview.setUint16(pos + 12, time, true);
+    cview.setUint16(pos + 14, date, true);
+    cview.setUint32(pos + 16, r.crc, true);
+    cview.setUint32(pos + 20, r.data.length, true);
+    cview.setUint32(pos + 24, r.data.length, true);
+    cview.setUint16(pos + 28, r.name_bytes.length, true);
+    cview.setUint16(pos + 30, 0, true);
+    cview.setUint16(pos + 32, 0, true);
+    cview.setUint16(pos + 34, 0, true);
+    cview.setUint16(pos + 36, 0, true);
+    cview.setUint32(pos + 38, 0, true);
+    cview.setUint32(pos + 42, r.offset, true);
     pos += 46;
-    out.set(r.name_bytes, pos);
+    central.set(r.name_bytes, pos);
     pos += r.name_bytes.length;
   }
+  parts.push(central);
 
-  view.setUint32(pos, 0x06054b50, true);
-  view.setUint16(pos + 4, 0, true);
-  view.setUint16(pos + 6, 0, true);
-  view.setUint16(pos + 8, records.length, true);
-  view.setUint16(pos + 10, records.length, true);
-  view.setUint32(pos + 12, central_total, true);
-  view.setUint32(pos + 16, central_start, true);
-  view.setUint16(pos + 20, 0, true);
+  const eocd = new Uint8Array(22);
+  const eview = new DataView(eocd.buffer);
+  eview.setUint32(0, 0x06054b50, true);
+  eview.setUint16(4, 0, true);
+  eview.setUint16(6, 0, true);
+  eview.setUint16(8, records.length, true);
+  eview.setUint16(10, records.length, true);
+  eview.setUint32(12, central_total, true);
+  eview.setUint32(16, central_start, true);
+  eview.setUint16(20, 0, true);
+  parts.push(eocd);
 
-  return out;
+  return parts;
 }

@@ -159,6 +159,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     time: number;
   } | null>(null);
   const PAGE_CACHE_TTL_MS = 20_000;
+  const SILENT_FETCH_MIN_INTERVAL_MS = 2_000;
+  const MAX_SILENT_REFRESH_PAGES = 10;
   const committed_view_ref = useRef(current_view);
   committed_view_ref.current = current_view;
   const has_data_ref = useRef(false);
@@ -339,10 +341,22 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     if (!is_mail_view) return;
     if (!has_passphrase_in_memory()) return;
 
+    const last = last_fetch_ref.current;
+    if (
+      last &&
+      last.view === current_view &&
+      Date.now() - last.time < SILENT_FETCH_MIN_INTERVAL_MS
+    ) {
+      return;
+    }
+
     const controller = new AbortController();
     const { signal } = controller;
     const active_page = page_ref.current;
-    const refresh_limit = (active_page + 1) * page_size;
+    const refresh_limit = Math.min(
+      (active_page + 1) * page_size,
+      page_size * MAX_SILENT_REFRESH_PAGES,
+    );
 
     try {
       const result = await fetch_mail_from_api(

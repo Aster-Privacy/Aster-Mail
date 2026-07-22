@@ -331,9 +331,10 @@ interface ScheduledListApiResponse {
 
 export async function list_scheduled_emails(
   limit: number = 50,
+  offset: number = 0,
 ): Promise<ApiResponse<ListScheduledResult>> {
   const response = await api_client.get<ScheduledListApiResponse>(
-    `/mail/v1/scheduled?limit=${limit}`,
+    `/mail/v1/scheduled?limit=${limit}&offset=${offset}`,
   );
 
   if (response.error || !response.data) {

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { build_store_zip } from "@/utils/export/zip";
+import { build_store_zip_parts } from "@/utils/export/zip";
 import { sanitize_download_filename } from "@/lib/attachment_utils";
 
 interface ZipEntry {
@@ -33,7 +33,7 @@ export interface ZipSink {
   entries: ZipEntry[];
   by_name: Map<string, number>;
   bytes: number;
-  fsa_writer: WritableStreamDefaultWriter<Uint8Array> | null;
+  fsa_writer: WritableStreamDefaultWriter<FileSystemWriteChunkType> | null;
 }
 
 export type ExportSink = ZipSink;
@@ -141,24 +141,24 @@ export async function sink_finalize(_sink: ExportSink): Promise<void> {
 }
 
 export async function sink_complete(sink: ExportSink): Promise<void> {
-  const flattened = sink.entries.map((e) => ({
-    name: e.name,
-    data: concat_chunks(e.chunks, e.size),
-  }));
-  const zip = build_store_zip(flattened);
+  const flattened = sink.entries.map((e) => {
+    const data = concat_chunks(e.chunks, e.size);
+    e.chunks = [];
+    return { name: e.name, data };
+  });
+  sink.entries = [];
+  const parts = build_store_zip_parts(flattened);
+  const zip_blob = new Blob(parts, { type: "application/zip" });
   if (sink.fsa_writer) {
     try {
-      await sink.fsa_writer.write(zip);
+      await sink.fsa_writer.write(zip_blob);
     } finally {
       await sink.fsa_writer.close();
       sink.fsa_writer = null;
     }
     return;
   }
-  trigger_download(
-    new Blob([new Uint8Array(zip)], { type: "application/zip" }),
-    sink.filename,
-  );
+  trigger_download(zip_blob, sink.filename);
 }
 
 export async function sink_abort(sink: ExportSink): Promise<void> {

@@ -349,11 +349,15 @@ function calculate_draft_expiration(): string {
 function build_list_drafts_params(
   limit: number,
   draft_type?: DraftType,
+  cursor?: string,
 ): URLSearchParams {
   const params = new URLSearchParams({ limit: limit.toString() });
 
   if (draft_type) {
     params.append("draft_type", draft_type);
+  }
+  if (cursor) {
+    params.append("cursor", cursor);
   }
 
   return params;
@@ -419,6 +423,7 @@ export async function list_drafts_with_content(
   limit: number = 20,
   vault: EncryptedVault,
   draft_type?: DraftType,
+  cursor?: string,
 ): Promise<
   ApiResponse<{
     drafts: DraftWithContent[];
@@ -426,7 +431,7 @@ export async function list_drafts_with_content(
     has_more: boolean;
   }>
 > {
-  const params = build_list_drafts_params(limit, draft_type);
+  const params = build_list_drafts_params(limit, draft_type, cursor);
 
   const response = await api_client.get<ListDraftsApiResponse>(
     `/mail/v1/drafts?${params.toString()}`,

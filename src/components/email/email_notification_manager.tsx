@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -34,6 +34,9 @@ import { is_lockdown_enabled } from "@/services/lockdown_store";
 function is_tauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
+
+const EMAIL_RECEIVED_BURST_WINDOW_MS = 8000;
+const EMAIL_RECEIVED_BURST_THRESHOLD = 4;
 
 export function EmailNotificationManager() {
   const { is_authenticated, current_account_id } = use_auth();
@@ -66,23 +69,52 @@ export function EmailNotificationManager() {
     preferences.low_network_mode,
   ]);
 
+  const burst_state = useRef({ window_start: 0, count: 0 });
+
   useEffect(() => {
     if (!is_authenticated) return;
 
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       const email_id = detail?.email_id || "";
+      const now = Date.now();
+      const state = burst_state.current;
+
+      if (now - state.window_start > EMAIL_RECEIVED_BURST_WINDOW_MS) {
+        state.window_start = now;
+        state.count = 0;
+      }
+      state.count += 1;
+
+      if (state.count <= EMAIL_RECEIVED_BURST_THRESHOLD) {
+        show_notification(
+          "new_email",
+          {
+            title: t("common.aster_mail"),
+            body: t("common.new_email_body"),
+            tag: `email-${email_id}`,
+            data: email_id ? { email_id } : undefined,
+          },
+          preferences,
+          is_lockdown_enabled(current_account_id ?? ""),
+        );
+
+        return;
+      }
 
       show_notification(
         "new_email",
         {
           title: t("common.aster_mail"),
-          body: t("common.new_email_body"),
-          tag: `email-${email_id}`,
-          data: email_id ? { email_id } : undefined,
+          body: t("common.new_emails_burst_body").replace(
+            "{{count}}",
+            String(state.count),
+          ),
+          tag: "email-burst",
         },
         preferences,
         is_lockdown_enabled(current_account_id ?? ""),
+        state.count === EMAIL_RECEIVED_BURST_THRESHOLD + 1,
       );
     };
 

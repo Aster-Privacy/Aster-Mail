@@ -21,7 +21,8 @@
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   MagnifyingGlassIcon,
   Bars3Icon,
@@ -122,6 +123,25 @@ export function SubscriptionsContent({
     unsubscribed_subscriptions,
     search_query,
   ]);
+
+  useEffect(() => {
+    const visible_emails = new Set(current_list.map((s) => s.sender_email));
+
+    set_selected_ids((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+
+      for (const email of prev) {
+        if (visible_emails.has(email)) {
+          next.add(email);
+        } else {
+          changed = true;
+        }
+      }
+
+      return changed ? next : prev;
+    });
+  }, [current_list]);
 
   const handle_sender_click = useCallback(
     (sub: CachedSubscription) => {
@@ -242,6 +262,16 @@ export function SubscriptionsContent({
     [reactivate],
   );
 
+  const list_scroll_ref = useRef<HTMLDivElement>(null);
+
+  const row_virtualizer = useVirtualizer({
+    count: current_list.length,
+    getScrollElement: () => list_scroll_ref.current,
+    estimateSize: () => 68,
+    overscan: 8,
+    getItemKey: (index) => current_list[index].sender_email,
+  });
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-4 h-14 flex-shrink-0 border-b border-edge-primary">
@@ -320,7 +350,7 @@ export function SubscriptionsContent({
           </p>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto">
+        <div ref={list_scroll_ref} className="flex-1 overflow-y-auto">
           {active_tab === "active" && current_list.length > 0 && (
             <div className="flex items-center gap-2 px-4 py-1.5 border-b border-edge-primary">
               <Checkbox
@@ -340,20 +370,36 @@ export function SubscriptionsContent({
               </span>
             </div>
           )}
-          {current_list.map((sub) => (
-            <SubscriptionRow
-              key={sub.sender_email}
-              active_tab={active_tab}
-              is_selected={selected_ids.has(sub.sender_email)}
-              on_click={handle_sender_click}
-              on_open_unsubscribe_page={handle_open_unsubscribe_page}
-              on_reactivate={handle_reactivate}
-              on_toggle_select={handle_toggle_select}
-              on_unsubscribe={handle_unsubscribe}
-              subscription={sub}
-              unsub_failed={failed_unsub_ids.has(sub.sender_email)}
-            />
-          ))}
+          <div
+            className="relative w-full"
+            style={{ height: row_virtualizer.getTotalSize() }}
+          >
+            {row_virtualizer.getVirtualItems().map((virtual_row) => {
+              const sub = current_list[virtual_row.index];
+
+              return (
+                <div
+                  key={virtual_row.key}
+                  ref={row_virtualizer.measureElement}
+                  className="absolute top-0 left-0 w-full"
+                  data-index={virtual_row.index}
+                  style={{ transform: `translateY(${virtual_row.start}px)` }}
+                >
+                  <SubscriptionRow
+                    active_tab={active_tab}
+                    is_selected={selected_ids.has(sub.sender_email)}
+                    on_click={handle_sender_click}
+                    on_open_unsubscribe_page={handle_open_unsubscribe_page}
+                    on_reactivate={handle_reactivate}
+                    on_toggle_select={handle_toggle_select}
+                    on_unsubscribe={handle_unsubscribe}
+                    subscription={sub}
+                    unsub_failed={failed_unsub_ids.has(sub.sender_email)}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -70,6 +70,7 @@ export interface ScheduledListItem extends InboxEmail {
 export interface ScheduledListState {
   emails: ScheduledListItem[];
   is_loading: boolean;
+  is_loading_more: boolean;
   total_count: number;
   has_more: boolean;
   error: string | null;
@@ -78,6 +79,7 @@ export interface ScheduledListState {
 interface UseScheduledEmailsReturn {
   state: ScheduledListState;
   refresh: () => void;
+  load_more: () => void;
   update_scheduled: (id: string, updates: Partial<ScheduledListItem>) => void;
   cancel_email: (id: string) => Promise<boolean>;
   bulk_cancel: (ids: string[]) => Promise<boolean>;
@@ -166,12 +168,13 @@ async function fetch_scheduled_from_api(
   format_options: FormatOptions,
   labels: ScheduledTimestampLabels,
   t: (key: TranslationKey) => string,
+  offset: number = 0,
 ): Promise<{ emails: ScheduledListItem[]; has_more: boolean } | null> {
   const vault = get_vault_from_memory();
 
   if (!vault) return null;
 
-  const response = await list_scheduled_emails(SCHEDULED_FETCH_LIMIT);
+  const response = await list_scheduled_emails(SCHEDULED_FETCH_LIMIT, offset);
 
   if (signal.aborted || !response.data) return null;
 
@@ -213,14 +216,17 @@ export function use_scheduled_emails(
     () => scheduled_cache ?? [],
   );
   const [is_loading, set_is_loading] = useState(() => scheduled_cache === null);
+  const [is_loading_more, set_is_loading_more] = useState(false);
   const [has_more, set_has_more] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
   const abort_ref = useRef<AbortController | null>(null);
+  const load_more_abort_ref = useRef<AbortController | null>(null);
   const vault_check_ref = useRef<NodeJS.Timeout | null>(null);
   const fetch_seq_ref = useRef(0);
   const mounted_ref = useRef(true);
   const has_loaded_ref = useRef(scheduled_cache !== null);
+  const emails_ref = useRef<ScheduledListItem[]>([]);
 
   useEffect(() => {
     mounted_ref.current = true;
@@ -297,6 +303,48 @@ export function use_scheduled_emails(
     fetch_scheduled();
   }, [fetch_scheduled]);
 
+  const load_more = useCallback(async (): Promise<void> => {
+    if (!has_more || is_loading_more) return;
+    if (!get_vault_from_memory()) return;
+
+    load_more_abort_ref.current?.abort();
+    const controller = new AbortController();
+
+    load_more_abort_ref.current = controller;
+    set_is_loading_more(true);
+
+    try {
+      const timestamp_labels: ScheduledTimestampLabels = {
+        sending: t("common.sending"),
+        in_one_minute: t("common.in_one_minute"),
+        in_x_minutes: (count: number) => t("common.in_x_minutes", { count }),
+      };
+
+      const result = await fetch_scheduled_from_api(
+        controller.signal,
+        format_options,
+        timestamp_labels,
+        t,
+        emails_ref.current.length,
+      );
+
+      if (controller.signal.aborted || !mounted_ref.current) return;
+
+      if (result) {
+        const existing_ids = new Set(emails_ref.current.map((e) => e.id));
+        const appended = result.emails.filter((e) => !existing_ids.has(e.id));
+
+        set_emails((prev) => [...prev, ...appended]);
+        set_has_more(result.has_more);
+      }
+    } catch {
+    } finally {
+      if (!controller.signal.aborted && mounted_ref.current) {
+        set_is_loading_more(false);
+      }
+    }
+  }, [has_more, is_loading_more, format_options, t]);
+
   const update_scheduled = useCallback(
     (id: string, updates: Partial<ScheduledListItem>) => {
       set_emails((prev) =>
@@ -307,6 +355,8 @@ export function use_scheduled_emails(
     },
     [],
   );
+
+  emails_ref.current = emails;
 
   const remove_from_state = useCallback((ids: string[]) => {
     const id_set = new Set(ids);
@@ -460,22 +510,24 @@ export function use_scheduled_emails(
     () => ({
       emails,
       is_loading,
+      is_loading_more,
       total_count: emails.length,
       has_more,
       error,
     }),
-    [emails, is_loading, has_more, error],
+    [emails, is_loading, is_loading_more, has_more, error],
   );
 
   return useMemo(
     () => ({
       state,
       refresh,
+      load_more,
       update_scheduled,
       cancel_email: cancel_single,
       bulk_cancel,
     }),
-    [state, refresh, update_scheduled, cancel_single, bulk_cancel],
+    [state, refresh, load_more, update_scheduled, cancel_single, bulk_cancel],
   );
 }
 

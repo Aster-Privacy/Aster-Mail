@@ -127,6 +127,7 @@ export async function show_notification(
   options: NotificationOptions,
   preferences: UserPreferences,
   lockdown_active: boolean = false,
+  play_sound: boolean = true,
 ): Promise<Notification | null> {
   if (!should_notify(type, preferences)) {
     return null;
@@ -135,7 +136,7 @@ export async function show_notification(
   const display_title = lockdown_active ? en.settings.lockdown_notification_generic : options.title;
   const display_body = lockdown_active ? "" : options.body;
 
-  if (preferences.sound) {
+  if (preferences.sound && play_sound) {
     play_notification_sound();
   }
 

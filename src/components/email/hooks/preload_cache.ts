@@ -629,6 +629,7 @@ export async function preload_email_detail(
         cc_recipients: envelope.cc || [],
         bcc_recipients: envelope.bcc || [],
         raw_headers: envelope.raw_headers,
+        message_group_id: item.message_group_id,
       };
 
       let thread_messages: DecryptedThreadMessage[] = [single_message];
