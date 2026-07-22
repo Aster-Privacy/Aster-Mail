@@ -3078,13 +3078,11 @@ export interface SettingsTranslations {
   fam_org_checklist_security: string;
   fam_org_stat_members: string;
   fam_org_stat_storage_used: string;
-  fam_org_stat_encryption: string;
+  fam_org_stat_unassigned: string;
   fam_org_stat_seats_available: string;
   fam_org_stat_seats_available_plural: string;
   fam_org_stat_pending: string;
   fam_org_stat_of_total: string;
-  fam_org_stat_e2e: string;
-  fam_org_stat_zero_access: string;
   fam_org_preview_more: string;
   fam_org_preview_owner: string;
   fam_org_preview_manage: string;

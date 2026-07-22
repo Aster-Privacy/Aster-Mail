@@ -83,6 +83,7 @@ import {
 } from "@/services/api/family";
 import { KidsContent } from "./family_kids_addresses";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
+import { StatRing } from "@/components/settings/stat_ring";
 import { show_toast } from "@/components/toast/simple_toast";
 import { check_alias_availability } from "@/services/api/aliases";
 import { use_i18n } from "@/lib/i18n/context";
@@ -2104,6 +2105,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const pool_pct = storage_pct(pool_used, group.storage_pool_bytes);
   const seats_remaining = group.max_members - active_members.length;
   const seats_full = active_members.length >= group.max_members;
+  const allocated_alloc = active_members.reduce((s, m) => s + m.allocated_storage_bytes, 0)
+    + group.pending_invites.reduce((s, i) => s + (i.allocated_storage_bytes || 0), 0);
+  const unassigned_bytes = Math.max(0, group.storage_pool_bytes - allocated_alloc);
+  const unassigned_pct = storage_pct(unassigned_bytes, group.storage_pool_bytes);
 
   type OwnTab = { id: FamilyTab; label: string; Icon: React.ElementType };
   const owner_tabs: OwnTab[] = is_owner ? [
@@ -2246,47 +2251,40 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               </div>
             );
           })()}
-          <div className="grid grid-cols-3 divide-x divide-edge-secondary rounded-xl border border-edge-secondary">
-            <div className="px-5 py-4">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <UserGroupIcon className="w-3.5 h-3.5 text-txt-muted" />
-                <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">{t("settings.fam_org_stat_members")}</p>
-              </div>
-              <p className="text-2xl font-bold text-txt-primary tabular-nums">
-                {active_members.length}
-                <span className="text-base font-normal text-txt-muted"> / {group.max_members}</span>
-              </p>
-              <p className="text-xs text-txt-muted mt-1">
-                {seats_remaining !== 1
-                  ? t("settings.fam_org_stat_seats_available_plural", { count: seats_remaining })
-                  : t("settings.fam_org_stat_seats_available", { count: seats_remaining })}
-                {group.pending_invites.length > 0 && <span className="text-amber-500"> · {t("settings.fam_org_stat_pending", { count: group.pending_invites.length })}</span>}
-              </p>
-            </div>
-            <div className="px-5 py-4">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <CircleStackIcon className="w-3.5 h-3.5 text-txt-muted" />
-                <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">{t("settings.fam_org_stat_storage_used")}</p>
-              </div>
-              <p className="text-2xl font-bold text-txt-primary tabular-nums">
-                {format_bytes(pool_used)}
-              </p>
-              <p className="text-xs text-txt-muted mt-1">{t("settings.fam_org_stat_of_total", { total: format_bytes(group.storage_pool_bytes) })}</p>
-              <div className="w-full bg-edge-secondary rounded-full h-1.5 mt-2">
-                <div
-                  className={`h-1.5 rounded-full transition-all ${pool_pct >= 90 ? "bg-red-500" : pool_pct >= 70 ? "bg-amber-500" : "bg-accent-blue"}`}
-                  style={{ width: `${Math.max(pool_pct, 0.3)}%` }}
-                />
-              </div>
-            </div>
-            <div className="px-5 py-4">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <ShieldCheckIcon className="w-3.5 h-3.5 text-txt-muted" />
-                <p className="text-xs font-medium text-txt-muted uppercase tracking-wide">{t("settings.fam_org_stat_encryption")}</p>
-              </div>
-              <p className="text-2xl font-bold text-txt-primary mt-1.5">{t("settings.fam_org_stat_e2e")}</p>
-              <p className="text-xs text-txt-muted mt-1">{t("settings.fam_org_stat_zero_access")}</p>
-            </div>
+          <div className="grid grid-cols-3 gap-3">
+            <StatRing
+              color_class="text-txt-secondary"
+              icon={UserGroupIcon}
+              label={t("settings.fam_org_stat_members")}
+              max={group.max_members}
+              value={active_members.length}
+              display_value={`${active_members.length} / ${group.max_members}`}
+              sublabel={
+                group.pending_invites.length > 0
+                  ? t("settings.fam_org_stat_pending", { count: group.pending_invites.length })
+                  : (seats_remaining !== 1
+                    ? t("settings.fam_org_stat_seats_available_plural", { count: seats_remaining })
+                    : t("settings.fam_org_stat_seats_available", { count: seats_remaining }))
+              }
+            />
+            <StatRing
+              color_class={pool_pct >= 90 ? "text-red-500" : pool_pct >= 70 ? "text-amber-500" : "text-accent-blue"}
+              icon={CircleStackIcon}
+              label={t("settings.fam_org_stat_storage_used")}
+              max={100}
+              value={pool_pct}
+              display_value={format_bytes(pool_used)}
+              sublabel={t("settings.fam_org_stat_of_total", { total: format_bytes(group.storage_pool_bytes) })}
+            />
+            <StatRing
+              color_class={unassigned_pct <= 10 ? "text-red-500" : unassigned_pct <= 30 ? "text-amber-500" : "text-accent-blue"}
+              icon={ArchiveBoxIcon}
+              label={t("settings.fam_org_stat_unassigned")}
+              max={100}
+              value={unassigned_pct}
+              display_value={format_bytes(unassigned_bytes)}
+              sublabel={t("settings.fam_org_stat_of_total", { total: format_bytes(group.storage_pool_bytes) })}
+            />
           </div>
 
           <div className="space-y-1.5 py-1">
