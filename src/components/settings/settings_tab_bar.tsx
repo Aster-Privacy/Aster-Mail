@@ -20,7 +20,6 @@
 //
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
 
 export interface SettingsTabBarItem<T extends string> {
   key: T;
@@ -41,38 +40,9 @@ export function SettingsTabBar<T extends string>({
   on_change,
   layout_id,
 }: SettingsTabBarProps<T>) {
-  const scroll_ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = scroll_ref.current;
-
-    if (!el) return;
-
-    const handle_wheel = (e: WheelEvent) => {
-      if (e.deltaY === 0) return;
-      if (el.scrollWidth <= el.clientWidth) return;
-
-      e.preventDefault();
-      el.scrollLeft += e.deltaY + e.deltaX;
-    };
-
-    el.addEventListener("wheel", handle_wheel, { passive: false });
-
-    return () => el.removeEventListener("wheel", handle_wheel);
-  }, []);
-
   return (
-    <div
-      ref={scroll_ref}
-      className="border-b border-edge-secondary overflow-x-auto overflow-y-hidden"
-      onAuxClick={(e) => {
-        if (e.button === 1) e.preventDefault();
-      }}
-      onMouseDown={(e) => {
-        if (e.button === 1) e.preventDefault();
-      }}
-    >
-      <div className="flex gap-1 min-w-max">
+    <div className="border-b border-edge-secondary">
+      <div className="flex flex-wrap gap-1">
         {tabs.map(({ key, label, icon }) => (
           <button
             key={key}
