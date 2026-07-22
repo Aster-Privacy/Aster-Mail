@@ -187,7 +187,7 @@ export function BridgeSection() {
       {is_locked && (
         <div
           className="relative overflow-hidden rounded-2xl p-6"
-          style={{ backgroundColor: "color-mix(in srgb, var(--accent-color) 85%, black)" }}
+          style={{ backgroundColor: "var(--accent-mix-b85, #326fd1)" }}
         >
           <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
             <KeyIcon

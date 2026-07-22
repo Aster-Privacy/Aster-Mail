@@ -32,7 +32,7 @@ function get_colors(theme: "light" | "dark" | "themed", use_accent = false) {
       sidebar_border: "var(--border-secondary)",
       brand: "var(--accent-color)",
       compose_gradient:
-        "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white), var(--accent-color), color-mix(in srgb, var(--accent-color) 80%, black))",
+        "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color), var(--accent-mix-b80, #2f68c5))",
       compose_border_top: "rgba(255,255,255,0.15)",
       compose_border_bottom: "rgba(0,0,0,0.15)",
       text_primary: "var(--text-primary)",
@@ -59,7 +59,7 @@ function get_colors(theme: "light" | "dark" | "themed", use_accent = false) {
       sidebar_border: "#e8e8e8",
       brand: use_accent ? "var(--accent-color, #3b82f6)" : "#3b82f6",
       compose_gradient: use_accent
-        ? "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))"
+        ? "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color, #4f6ef7), var(--accent-mix-b80, #2f68c5))"
         : "linear-gradient(to bottom, #6b8afd, #4f6ef7, #3d5ce0)",
       compose_border_top: "rgba(255,255,255,0.15)",
       compose_border_bottom: "rgba(0,0,0,0.15)",
@@ -88,7 +88,7 @@ function get_colors(theme: "light" | "dark" | "themed", use_accent = false) {
     sidebar_border: "#2a2a2a",
     brand: use_accent ? "var(--accent-color, #3b82f6)" : "#3b82f6",
     compose_gradient: use_accent
-      ? "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))"
+      ? "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color, #4f6ef7), var(--accent-mix-b80, #2f68c5))"
       : "linear-gradient(to bottom, #6b8afd, #4f6ef7, #3d5ce0)",
     compose_border_top: "rgba(255,255,255,0.15)",
     compose_border_bottom: "rgba(0,0,0,0.15)",

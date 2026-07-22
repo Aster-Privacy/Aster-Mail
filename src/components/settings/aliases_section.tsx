@@ -303,7 +303,7 @@ export function AliasesSection() {
             className="relative overflow-hidden rounded-2xl p-6"
             style={{
               background:
-                "linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 70%, black) 0%, color-mix(in srgb, var(--accent-color) 85%, black) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
+                "linear-gradient(135deg, var(--accent-mix-b70, #295bac) 0%, var(--accent-mix-b85, #326fd1) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
               boxShadow:
                 "0 1px 3px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
             }}

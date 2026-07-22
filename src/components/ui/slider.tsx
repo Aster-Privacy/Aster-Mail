@@ -152,7 +152,7 @@ export function Slider({
         style={{
           width: `${display_percent}%`,
           background:
-            "linear-gradient(90deg, color-mix(in srgb, var(--accent-blue) 75%, transparent), var(--accent-blue))",
+            "linear-gradient(90deg, var(--accent-alpha-75, rgba(59, 130, 246, 0.75)), var(--accent-blue))",
         }}
       />
       {is_dragging && format_tooltip && (

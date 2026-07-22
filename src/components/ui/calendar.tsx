@@ -61,7 +61,7 @@ function Calendar({
         range_start: "day-range-start rounded-l-md",
         range_end: "day-range-end rounded-r-md",
         selected:
-          "[background:linear-gradient(to_bottom,color-mix(in_srgb,var(--accent-color)_80%,white)_0%,var(--accent-color)_50%,color-mix(in_srgb,var(--accent-color)_80%,black)_100%)] rounded-full [color:white]",
+          "[background:linear-gradient(to_bottom,var(--accent-mix-w80,#629bf8)_0%,var(--accent-color)_50%,var(--accent-mix-b80,#2f68c5)_100%)] rounded-full [color:white]",
         today:
           "[background:var(--bg-tertiary)] [color:var(--text-primary)] rounded-full",
         outside: "[color:var(--text-muted)] opacity-50",

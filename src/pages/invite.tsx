@@ -106,7 +106,7 @@ export default function InvitePage() {
           </div>
         </div>
 
-        <div className="rounded-2xl p-5 space-y-1 text-center" style={{ background: "color-mix(in srgb, var(--accent-color) 85%, black)" }}>
+        <div className="rounded-2xl p-5 space-y-1 text-center" style={{ background: "var(--accent-mix-b85, #326fd1)" }}>
           <p className="text-lg font-bold text-white">
             {t("settings.invite_discount_line", { percent: String(INVITE_DISCOUNT_PERCENT) })}
           </p>

@@ -266,7 +266,7 @@ export default function MobileRegisterPage() {
             <div className="h-1 flex-1 rounded-full bg-[var(--border-secondary)] overflow-hidden">
               <motion.div
                 animate={{ width: `${get_step_progress(effective_step)}%` }}
-                className="h-full rounded-full bg-gradient-to-r from-[var(--accent-color)] to-[color-mix(in_srgb,var(--accent-color)_80%,white)]"
+                className="h-full rounded-full bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-mix-w80,#629bf8)]"
                 initial={false}
                 transition={
                   reduce_motion
