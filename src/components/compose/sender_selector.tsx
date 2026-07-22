@@ -26,8 +26,11 @@ import {
   useRef,
   useEffect,
   useMemo,
+  useCallback,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDownIcon,
@@ -317,7 +320,56 @@ export function SenderSelector({
   const [search_query, set_search_query] = useState("");
   const [active_index, set_active_index] = useState(-1);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const panel_ref = useRef<HTMLDivElement>(null);
   const search_input_ref = useRef<HTMLInputElement>(null);
+  const [panel_style, set_panel_style] = useState<CSSProperties>({});
+
+  const reposition_panel = useCallback(() => {
+    const anchor = dropdown_ref.current;
+
+    if (!anchor) return;
+
+    const rect = anchor.getBoundingClientRect();
+    const viewport_w = window.innerWidth;
+    const viewport_h = window.innerHeight;
+    const panel_width = Math.min(384, viewport_w - 32);
+    const left = Math.min(Math.max(rect.left, 16), viewport_w - panel_width - 16);
+    const space_below = viewport_h - rect.bottom - 16;
+    const space_above = rect.top - 16;
+    const opens_up = space_below < 240 && space_above > space_below;
+    const max_height = Math.min(448, (opens_up ? space_above : space_below) - 4);
+
+    set_panel_style(
+      opens_up
+        ? {
+            position: "fixed",
+            left,
+            bottom: viewport_h - rect.top + 4,
+            width: panel_width,
+            maxHeight: max_height,
+          }
+        : {
+            position: "fixed",
+            left,
+            top: rect.bottom + 4,
+            width: panel_width,
+            maxHeight: max_height,
+          },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!is_open) return;
+
+    reposition_panel();
+    window.addEventListener("resize", reposition_panel);
+    window.addEventListener("scroll", reposition_panel, true);
+
+    return () => {
+      window.removeEventListener("resize", reposition_panel);
+      window.removeEventListener("scroll", reposition_panel, true);
+    };
+  }, [is_open, reposition_panel]);
   const prev_ghost_count = useRef(
     options.filter((o) => o.type === "ghost").length,
   );
@@ -331,7 +383,7 @@ export function SenderSelector({
   }, [is_open]);
 
   useEffect(() => {
-    const active_row = dropdown_ref.current?.querySelector(
+    const active_row = panel_ref.current?.querySelector(
       "[data-sender-active]",
     );
 
@@ -349,10 +401,11 @@ export function SenderSelector({
 
   useEffect(() => {
     function handle_click_outside(event: MouseEvent) {
-      if (
-        dropdown_ref.current &&
-        !dropdown_ref.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      const inside_anchor = dropdown_ref.current?.contains(target);
+      const inside_panel = panel_ref.current?.contains(target);
+
+      if (!inside_anchor && !inside_panel) {
         set_is_open(false);
       }
     }
@@ -500,13 +553,16 @@ export function SenderSelector({
         <ChevronDownIcon className="w-3.5 h-3.5 text-txt-muted" />
       </button>
 
-      <AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
         {is_open && (
           <motion.div
+            ref={panel_ref}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute left-0 z-50 mt-1 w-96 max-w-[calc(100vw-2rem)] max-h-[min(28rem,calc(100vh-8rem))] rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
+            className="z-[70] rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
             exit={{ opacity: 0, y: -8 }}
             initial={reduce_motion ? false : { opacity: 0, y: -8 }}
+            style={panel_style}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             {show_search && (
@@ -732,7 +788,9 @@ export function SenderSelector({
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 }
