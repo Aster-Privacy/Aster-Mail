@@ -3226,6 +3226,8 @@ export const tr = {
     after_3_seconds: "3 saniye sonra",
     never_manual: "Asla (yalnızca elle)",
     auto_advance: "Arşivleme veya silme sonrası",
+    reactions_enabled: "Tepkiler",
+    reactions_enabled_description: "Mesajlara emoji ile tepki vermeye ve başkalarının tepkilerini görmeye izin verir",
     auto_advance_description:
       "Okuduğunuz e-postayı arşivledikten veya sildikten sonra açılacak e-posta",
     auto_advance_next: "Sonraki e-postaya git",
@@ -5783,6 +5785,10 @@ export const tr = {
     all: "Tümü",
     reply: "Yanıtla",
     reply_all: "Tümünü Yanıtla",
+    react: "Tepki Ver",
+    already_reacted: "Buna zaten tepki verdiniz",
+    you_reacted_with: "{{emoji}} ile tepki verdiniz",
+    reacted_with: "{{name}} {{emoji}} ile tepki verdi",
     forward: "İlet",
     to: "Kime",
     cc: "Bilgi",
@@ -6992,6 +6998,8 @@ export const tr = {
     rename_saved: "Ad güncellendi",
   },
   errors: {
+    failed_send_reaction: "Tepki gönderilemedi. Lütfen tekrar deneyin.",
+    reactions_disabled: "Tepkiler ayarlarınızda kapalı.",
     pending_email_verification:
       "Bu hesabı etkinleştirmek için e-postanızı kontrol edin ve doğrulama bağlantısına tıklayın.",
     generic: "Bu işe yaramadı. Bir kez daha denemek genellikle yeterli olur.",

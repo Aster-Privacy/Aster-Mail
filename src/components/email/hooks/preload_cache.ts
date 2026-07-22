@@ -34,7 +34,10 @@ import type {
 import { get_email_username, is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
-import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
+import {
+  fetch_and_decrypt_thread_messages,
+  resolve_reaction_emojis,
+} from "@/services/thread_service";
 import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,
@@ -629,7 +632,11 @@ export async function preload_email_detail(
         cc_recipients: envelope.cc || [],
         bcc_recipients: envelope.bcc || [],
         raw_headers: envelope.raw_headers,
+        message_group_id: item.message_group_id,
+        reactions: item.reactions,
       };
+
+      await resolve_reaction_emojis([single_message], user_email);
 
       let thread_messages: DecryptedThreadMessage[] = [single_message];
 

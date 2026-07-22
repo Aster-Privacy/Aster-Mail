@@ -31,6 +31,14 @@ export interface MailItemFolder {
 
 export type MailItemLabel = MailItemFolder;
 
+export interface ReactionSummary {
+  reaction_mail_item_id: string;
+  source: "internal" | "external_inbound" | "external_outbound";
+  emoji?: string;
+  reactor_email?: string;
+  created_at: string;
+}
+
 export interface MailItem {
   id: string;
   item_type: "received" | "sent" | "draft" | "scheduled" | "outbox";
@@ -64,6 +72,9 @@ export interface MailItem {
   expires_at?: string;
   expiry_type?: "sender" | "recipient";
   phishing_level?: "safe" | "suspicious" | "dangerous";
+  message_group_id?: string;
+  is_reaction?: boolean;
+  reactions?: ReactionSummary[];
 }
 
 export interface MailItemsListResponse {
@@ -732,6 +743,9 @@ export interface ThreadMessageItem {
   spam_score?: number;
   spam_signals?: SpamSignal[];
   is_spam?: boolean;
+  message_group_id?: string;
+  is_reaction?: boolean;
+  reactions?: ReactionSummary[];
 }
 
 export interface SpamSignal {

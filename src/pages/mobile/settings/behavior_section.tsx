@@ -409,6 +409,20 @@ export function BehaviorSection({
           />
         </SettingsGroup>
 
+        <SettingsGroup title={t("settings.reactions_enabled")}>
+          <SettingsRow
+            label={t("settings.reactions_enabled")}
+            trailing={
+              <Switch
+                checked={preferences.reactions_enabled !== false}
+                onCheckedChange={(v) =>
+                  update_preference("reactions_enabled", v, true)
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("settings.undo_send")}>
           <SettingsRow
             label={t("settings.undo_send")}

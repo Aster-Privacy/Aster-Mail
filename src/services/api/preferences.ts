@@ -184,6 +184,7 @@ export interface UserPreferences {
   strip_exif_on_compose: boolean;
   thread_count_position: "left" | "right";
   compose_window_mode: "default" | "fullscreen" | "minimized";
+  reactions_enabled: boolean;
 }
 
 export async function sync_quiet_hours_to_server(
@@ -493,6 +494,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   strip_exif_on_compose: true,
   thread_count_position: "left",
   compose_window_mode: "default",
+  reactions_enabled: true,
 };
 
 type GetPreferencesViaHttpResult =

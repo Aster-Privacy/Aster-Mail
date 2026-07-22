@@ -19,7 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage, ThreadContext } from "@/types/thread";
-import type { MailItem, ThreadWithMessages } from "@/services/api/mail";
+import type {
+  MailItem,
+  ReactionSummary,
+  ThreadWithMessages,
+} from "@/services/api/mail";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { en } from "@/lib/i18n/translations/en";
 
@@ -28,6 +32,7 @@ import {
   create_thread,
   link_mail_to_thread,
   list_mail_items,
+  get_mail_item,
 } from "./api/mail";
 import {
   get_passphrase_bytes,
@@ -185,6 +190,103 @@ async function decrypt_message_envelope(
   }
 }
 
+async function decrypt_reaction_body(
+  mail_item_id: string,
+  our_email: string,
+): Promise<{ emoji: string; reactor_email: string } | null> {
+  try {
+    const response = await get_mail_item(mail_item_id);
+
+    if (response.error || !response.data) return null;
+
+    const item = response.data;
+    const envelope = await decrypt_message_envelope(
+      item.encrypted_envelope,
+      item.envelope_nonce,
+    );
+
+    if (!envelope) return null;
+
+    let body_content = envelope.body_text || envelope.text_body || "";
+
+    if (body_content.startsWith("{") && is_ratchet_envelope(body_content)) {
+      const ratchet_env = parse_ratchet_envelope(body_content);
+
+      if (!ratchet_env) return null;
+
+      const vault = get_vault_from_memory();
+
+      if (!vault) return null;
+
+      const decrypted = await decrypt_ratchet_message(
+        our_email,
+        envelope.from.email,
+        ratchet_env,
+        vault,
+        mail_item_id,
+      );
+
+      if (!decrypted) return null;
+
+      body_content = decrypted;
+    }
+
+    const parsed = JSON.parse(body_content) as {
+      aster_reaction?: boolean;
+      emoji?: string;
+    };
+
+    if (!parsed.aster_reaction || !parsed.emoji) return null;
+
+    return { emoji: parsed.emoji, reactor_email: envelope.from.email };
+  } catch {
+    return null;
+  }
+}
+
+export async function resolve_reaction_emojis(
+  messages: DecryptedThreadMessage[],
+  our_email?: string,
+): Promise<void> {
+  if (!our_email) return;
+
+  const unresolved = new Map<string, ReactionSummary>();
+
+  for (const msg of messages) {
+    for (const reaction of msg.reactions ?? []) {
+      if (!reaction.emoji && reaction.source === "internal") {
+        unresolved.set(reaction.reaction_mail_item_id, reaction);
+      }
+    }
+  }
+
+  if (!unresolved.size) return;
+
+  const resolved = new Map<string, { emoji: string; reactor_email: string }>();
+
+  await Promise.all(
+    Array.from(unresolved.keys()).map(async (mail_item_id) => {
+      const decrypted = await decrypt_reaction_body(mail_item_id, our_email);
+
+      if (decrypted) resolved.set(mail_item_id, decrypted);
+    }),
+  );
+
+  if (!resolved.size) return;
+
+  for (const msg of messages) {
+    if (!msg.reactions?.length) continue;
+
+    msg.reactions = msg.reactions.map((reaction) => {
+      const match = resolved.get(reaction.reaction_mail_item_id);
+
+      return match
+        ? { ...reaction, emoji: match.emoji, reactor_email: match.reactor_email }
+        : reaction;
+    });
+  }
+}
+
 export async function generate_thread_token(
   identity_key: string,
   original_email_id: string,
@@ -224,7 +326,7 @@ export async function fetch_and_decrypt_thread_messages(
   }
 
   const thread_data = response.data;
-  const all_messages = thread_data.messages;
+  const all_messages = thread_data.messages.filter((msg) => !msg.is_reaction);
   let messages_to_decrypt = all_messages;
   let truncated = false;
 
@@ -273,6 +375,7 @@ export async function fetch_and_decrypt_thread_messages(
         spam_score: msg.spam_score,
         spam_signals: msg.spam_signals,
         is_spam: msg.is_spam,
+        reactions: msg.reactions,
       };
     }
 
@@ -401,6 +504,8 @@ export async function fetch_and_decrypt_thread_messages(
       spam_score: msg.spam_score,
       spam_signals: msg.spam_signals,
       is_spam: msg.is_spam,
+      message_group_id: msg.message_group_id,
+      reactions: msg.reactions,
     };
   });
 
@@ -411,6 +516,8 @@ export async function fetch_and_decrypt_thread_messages(
   decrypted_messages.sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
   );
+
+  await resolve_reaction_emojis(decrypted_messages, our_email);
 
   return { messages: decrypted_messages, thread_data, truncated };
 }
@@ -425,7 +532,9 @@ export async function fetch_and_decrypt_virtual_group(
     return [];
   }
 
-  const visible_items = response.data.items.filter((item) => !item.is_spam);
+  const visible_items = response.data.items.filter(
+    (item) => !item.is_spam && !item.is_reaction,
+  );
 
   const decrypt_promises = visible_items.map(async (item) => {
     const [envelope, decrypted_metadata] = await Promise.all([
@@ -456,6 +565,7 @@ export async function fetch_and_decrypt_virtual_group(
         send_status: item.send_status ?? decrypted_metadata?.send_status,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
+        reactions: item.reactions,
       };
     }
 
@@ -578,6 +688,8 @@ export async function fetch_and_decrypt_virtual_group(
       cc_recipients: envelope.cc || [],
       bcc_recipients: envelope.bcc || [],
       raw_headers: envelope.raw_headers,
+      message_group_id: item.message_group_id,
+      reactions: item.reactions,
     };
   });
 
@@ -587,6 +699,8 @@ export async function fetch_and_decrypt_virtual_group(
   results.sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
   );
+
+  await resolve_reaction_emojis(results, our_email);
 
   return results;
 }

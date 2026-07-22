@@ -3235,6 +3235,8 @@ export const ja = {
     after_3_seconds: "3秒後",
     never_manual: "なし（手動のみ）",
     auto_advance: "アーカイブまたは削除後",
+    reactions_enabled: "リアクション",
+    reactions_enabled_description: "絵文字でメッセージにリアクションし、他の人のリアクションを表示します",
     auto_advance_description:
       "読んでいるメールをアーカイブまたは削除した後に開くメール",
     auto_advance_next: "次のメールへ移動",
@@ -5757,6 +5759,10 @@ export const ja = {
     all: "すべて",
     reply: "返信",
     reply_all: "全員に返信",
+    react: "リアクション",
+    already_reacted: "すでにこのリアクションを送信済みです",
+    you_reacted_with: "{{emoji}} でリアクションしました",
+    reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
     cc: "Cc",
@@ -6966,6 +6972,8 @@ export const ja = {
     rename_saved: "名前を更新しました",
   },
   errors: {
+    failed_send_reaction: "リアクションを送信できませんでした。もう一度お試しください。",
+    reactions_disabled: "設定でリアクションが無効になっています。",
     pending_email_verification:
       "メールを確認し、認証リンクをクリックしてこのアカウントを有効化してください。",
     generic: "うまくいきませんでした。もう一度試すと通ることが多いです。",

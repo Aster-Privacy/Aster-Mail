@@ -3220,6 +3220,8 @@ export const ko = {
     after_3_seconds: "3초 후",
     never_manual: "사용 안 함 (수동만)",
     auto_advance: "보관 또는 삭제 후",
+    reactions_enabled: "반응",
+    reactions_enabled_description: "이모지로 메시지에 반응하고 다른 사람의 반응을 볼 수 있습니다",
     auto_advance_description:
       "읽고 있는 이메일을 보관하거나 삭제한 후 열 이메일",
     auto_advance_next: "다음 이메일로 이동",
@@ -5588,6 +5590,10 @@ export const ko = {
     all: "전체",
     reply: "답장",
     reply_all: "전체 답장",
+    react: "반응하기",
+    already_reacted: "이미 이 반응을 남겼습니다",
+    you_reacted_with: "{{emoji}} 반응을 남겼습니다",
+    reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",
     cc: "참조",
@@ -6766,6 +6772,8 @@ export const ko = {
     rename_saved: "이름이 업데이트되었습니다",
   },
   errors: {
+    failed_send_reaction: "반응을 보내지 못했습니다. 다시 시도해 주세요.",
+    reactions_disabled: "설정에서 반응이 꺼져 있습니다.",
     pending_email_verification:
       "이메일을 확인하고 인증 링크를 클릭하여 이 계정을 활성화하세요.",
     generic: "동작이 완료되지 않았습니다. 다시 시도하면 됩니다.",

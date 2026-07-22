@@ -2029,6 +2029,8 @@ export const en: Translations = {
     never_manual: "Never (manual only)",
     auto_advance: "After Archiving or Deleting",
     auto_advance_description: "Which email to open after you archive or delete the one you're reading",
+    reactions_enabled: "Reactions",
+    reactions_enabled_description: "Allow reacting to messages with emoji and show reactions from others",
     auto_advance_next: "Go to next email",
     auto_advance_previous: "Go to previous email",
     auto_advance_back: "Return to email list",
@@ -5200,6 +5202,10 @@ export const en: Translations = {
     reply: "Reply",
     reply_all: "Reply All",
     forward: "Forward",
+    react: "React",
+    already_reacted: "You already reacted with this",
+    you_reacted_with: "You reacted with {{emoji}}",
+    reacted_with: "{{name}} reacted with {{emoji}}",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Reply from a different address?",
     reply_from_mismatch_message:
@@ -6400,6 +6406,8 @@ export const en: Translations = {
   },
   errors: {
     generic: "That did not work. Another attempt should do it.",
+    failed_send_reaction: "The reaction could not be sent. Another attempt should do it.",
+    reactions_disabled: "Reactions are turned off in your settings.",
     network: "We could not reach the server. Checking your connection and trying again usually does it.",
     unauthorized: "You do not have access to do that. If this looks wrong, your admin can help.",
     not_found: "We could not find that. It may have been moved or removed.",

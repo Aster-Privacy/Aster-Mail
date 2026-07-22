@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { MailItem } from "@/services/api/mail";
+import type { MailItem, ReactionSummary } from "@/services/api/mail";
 import type { SenderVerificationStatus } from "@/types/email";
 
 export interface ThreadMessage {
@@ -65,6 +65,9 @@ export interface DecryptedThreadMessage {
   spam_score?: number;
   spam_signals?: { name: string; score: number; category: string }[];
   is_spam?: boolean;
+  message_group_id?: string;
+  is_reaction?: boolean;
+  reactions?: ReactionSummary[];
 }
 
 export interface ThreadAttachment {

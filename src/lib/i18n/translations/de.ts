@@ -3276,6 +3276,8 @@ export const de = {
     after_3_seconds: "Nach 3 Sekunden",
     never_manual: "Nie (nur manuell)",
     auto_advance: "Nach Archivieren oder Löschen",
+    reactions_enabled: "Reaktionen",
+    reactions_enabled_description: "Erlaubt Emoji-Reaktionen auf Nachrichten und zeigt Reaktionen anderer an",
     auto_advance_description:
       "Welche E-Mail nach dem Archivieren oder Löschen geöffnet wird",
     auto_advance_next: "Zur nächsten E-Mail",
@@ -5887,6 +5889,10 @@ export const de = {
     all: "Alle",
     reply: "Antworten",
     reply_all: "Allen antworten",
+    react: "Reagieren",
+    already_reacted: "Du hast bereits damit reagiert",
+    you_reacted_with: "Du hast mit {{emoji}} reagiert",
+    reacted_with: "{{name}} hat mit {{emoji}} reagiert",
     forward: "Weiterleiten",
     to: "An",
     cc: "Cc",
@@ -7128,6 +7134,8 @@ export const de = {
     rename_saved: "Name aktualisiert",
   },
   errors: {
+    failed_send_reaction: "Die Reaktion konnte nicht gesendet werden. Bitte erneut versuchen.",
+    reactions_disabled: "Reaktionen sind in deinen Einstellungen deaktiviert.",
     pending_email_verification:
       "Prüfe deine E-Mails und klicke auf den Bestätigungslink, um dieses Konto zu aktivieren.",
     generic: "Das hat nicht funktioniert. Ein erneuter Versuch genügt meist.",
