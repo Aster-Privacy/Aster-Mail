@@ -6536,6 +6536,13 @@ export const de = {
       "Versuchen Sie, Ihre Suche mit spezifischeren Begriffen einzugrenzen.",
     refine_your_search_action: "Suche eingrenzen",
     turn_off_indexing_action: "Indizierung ausschalten",
+    search_preparing_title: "Suche wird vorbereitet",
+    search_preparing_desc:
+      "Da Ihre E-Mails Ende-zu-Ende-verschlüsselt sind, erstellen wir Ihren privaten Suchindex direkt auf Ihrem Gerät. Das passiert nur beim ersten Mal. Danach sind Ihre Suchen sofort da.",
+    search_preparing_progress: "{{current}} von {{total}} Nachrichten vorbereitet",
+    search_preparing_almost: "Fast fertig, wird abgeschlossen...",
+    search_preparing_collecting:
+      "Ihre Nachrichten werden gesammelt... {{current}} bisher",
     content_search_slower:
       "Das Durchsuchen von Nachrichteninhalten kann bei großen Postfächern langsam sein.",
     select_all_in_folder:

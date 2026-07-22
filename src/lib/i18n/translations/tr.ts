@@ -6341,6 +6341,12 @@ export const tr = {
       "Aramanızı daha belirgin terimlerle daraltmayı deneyin.",
     refine_your_search_action: "Aramanızı daraltın",
     turn_off_indexing_action: "Dizinlemeyi kapat",
+    search_preparing_title: "Arama hazırlanıyor",
+    search_preparing_desc:
+      "E-postanız uçtan uca şifreli olduğu için özel arama dizininizi doğrudan cihazınızda oluşturuyoruz. Bu yalnızca ilk seferde gerçekleşir. Sonrasında aramalarınız anında sonuçlanır.",
+    search_preparing_progress: "{{total}} mesajdan {{current}} tanesi hazırlandı",
+    search_preparing_almost: "Neredeyse bitti, tamamlanıyor...",
+    search_preparing_collecting: "Mesajlarınız toplanıyor... şu ana kadar {{current}}",
     content_search_slower:
       "Mesaj içeriğinde arama, büyük posta kutularında yavaş olabilir.",
     search_message_content_help: "Mesaj içeriği araması hakkında",

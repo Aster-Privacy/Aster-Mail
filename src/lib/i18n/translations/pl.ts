@@ -6365,6 +6365,13 @@ export const pl = {
       "Spróbuj zawęzić wyszukiwanie, używając bardziej szczegółowych słów.",
     refine_your_search_action: "Zawęź wyszukiwanie",
     turn_off_indexing_action: "Wyłącz indeksowanie",
+    search_preparing_title: "Przygotowywanie wyszukiwania",
+    search_preparing_desc:
+      "Ponieważ Twoja poczta jest szyfrowana od końca do końca, tworzymy Twój prywatny indeks wyszukiwania bezpośrednio na Twoim urządzeniu. Dzieje się to tylko za pierwszym razem. Później wyszukiwania będą natychmiastowe.",
+    search_preparing_progress: "Przygotowano {{current}} z {{total}} wiadomości",
+    search_preparing_almost: "Już prawie, kończymy...",
+    search_preparing_collecting:
+      "Zbieranie Twoich wiadomości... na razie {{current}}",
     content_search_slower:
       "Przeszukiwanie treści wiadomości może być wolne przy dużych skrzynkach.",
     search_message_content_help: "O wyszukiwaniu w treści wiadomości",

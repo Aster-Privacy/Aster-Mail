@@ -6103,6 +6103,12 @@ export const ar = {
     search_refine_terms: "حاول تضييق نطاق البحث باستخدام كلمات أكثر تحديدًا.",
     refine_your_search_action: "تحسين بحثك",
     turn_off_indexing_action: "إيقاف الفهرسة",
+    search_preparing_title: "جارٍ تحضير البحث",
+    search_preparing_desc:
+      "نظرًا لأن بريدك مشفّر من طرف إلى طرف، فإننا ننشئ فهرس البحث الخاص بك مباشرةً على جهازك. يحدث هذا في المرة الأولى فقط. بعد ذلك ستكون عمليات البحث فورية.",
+    search_preparing_progress: "تم تحضير {{current}} من {{total}} رسالة",
+    search_preparing_almost: "أوشكنا على الانتهاء، جارٍ الإنهاء...",
+    search_preparing_collecting: "جارٍ جمع رسائلك... {{current}} حتى الآن",
     content_search_slower:
       "قد يكون البحث في محتوى الرسائل بطيئًا في علب البريد الكبيرة.",
     search_message_content_help: "حول البحث في محتوى الرسائل",

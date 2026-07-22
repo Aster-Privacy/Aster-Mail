@@ -6391,6 +6391,12 @@ export const ja = {
     search_refine_terms: "より具体的な語句で検索を絞り込んでみてください。",
     refine_your_search_action: "検索条件を絞り込む",
     turn_off_indexing_action: "インデックス作成をオフにする",
+    search_preparing_title: "検索の準備をしています",
+    search_preparing_desc:
+      "メールはエンドツーエンドで暗号化されているため、プライベートな検索インデックスをこの端末上で作成します。これは初回のみ行われます。次回以降の検索は瞬時に完了します。",
+    search_preparing_progress: "{{total}} 件中 {{current}} 件を準備しました",
+    search_preparing_almost: "もうすぐ完了します。仕上げ中...",
+    search_preparing_collecting: "メッセージを収集しています... 現在 {{current}} 件",
     content_search_slower:
       "メッセージ本文の検索は、メールボックスが大きいと遅くなることがあります。",
     search_message_content_help: "メッセージ内容検索について",

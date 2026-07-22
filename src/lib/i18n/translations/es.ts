@@ -6385,6 +6385,12 @@ export const es = {
       "Intenta acotar tu búsqueda con términos más específicos.",
     refine_your_search_action: "Refinar tu búsqueda",
     turn_off_indexing_action: "Desactivar indexación",
+    search_preparing_title: "Preparando la búsqueda",
+    search_preparing_desc:
+      "Como tu correo está cifrado de extremo a extremo, creamos tu índice de búsqueda privado aquí, en tu dispositivo. Esto solo ocurre la primera vez. Después, tus búsquedas serán instantáneas.",
+    search_preparing_progress: "{{current}} de {{total}} mensajes preparados",
+    search_preparing_almost: "Casi listo, terminando...",
+    search_preparing_collecting: "Recopilando tus mensajes... {{current}} hasta ahora",
     content_search_slower:
       "Buscar en el contenido de los mensajes puede ser lento en buzones grandes.",
     select_all_in_folder:

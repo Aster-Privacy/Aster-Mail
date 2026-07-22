@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import {
   use_search,
+  use_indexing_progress,
   extract_query_terms,
   compute_highlight_ranges,
   apply_highlights,
@@ -147,9 +148,17 @@ export function SearchResultsPage({
   const { state, search, load_more, set_query, clear_results, clear_index } =
     use_search();
   const email_actions = use_email_actions();
+  const indexing = use_indexing_progress();
   const [bulk_busy, set_bulk_busy] = useState(false);
   const [is_slow, set_is_slow] = useState(false);
   const content_search_enabled = preferences.search_encrypted_content;
+
+  const is_preparing_index = state.index_building || indexing.building;
+  const index_pct =
+    indexing.total > 0
+      ? Math.min(100, Math.round((indexing.current / indexing.total) * 100))
+      : 0;
+  const index_near_done = indexing.total > 0 && indexing.current >= indexing.total;
 
   const [filters, set_filters] = useState<SearchFiltersState>({
     date_range: "any",
@@ -230,6 +239,15 @@ export function SearchResultsPage({
     }
   }, [filters.date_range, filters.has_attachment]);
 
+  const prev_sort_order = useRef(preferences.inbox_sort_order);
+
+  useEffect(() => {
+    if (prev_sort_order.current !== preferences.inbox_sort_order) {
+      prev_sort_order.current = preferences.inbox_sort_order;
+      set_filters((prev) => ({ ...prev, sort_by: "recent" }));
+    }
+  }, [preferences.inbox_sort_order]);
+
   const handle_disable_content_search = useCallback(() => {
     update_preference("search_encrypted_content", false, true);
     clear_index();
@@ -287,14 +305,15 @@ export function SearchResultsPage({
       });
     }
 
-    if (filters.sort_by === "recent") {
-      results.sort((a, b) => {
-        const date_a = new Date(a.timestamp).getTime();
-        const date_b = new Date(b.timestamp).getTime();
+    const oldest_first = preferences.inbox_sort_order === "oldest_first";
+    const by_date = (a: (typeof results)[number], b: (typeof results)[number]) => {
+      const date_a = new Date(a.timestamp).getTime();
+      const date_b = new Date(b.timestamp).getTime();
 
-        return date_b - date_a;
-      });
-    } else if (filters.sort_by === "relevant" && search_terms.length > 0) {
+      return oldest_first ? date_a - date_b : date_b - date_a;
+    };
+
+    if (filters.sort_by === "relevant" && search_terms.length > 0) {
       results.sort((a, b) => {
         let score_a = 0;
         let score_b = 0;
@@ -315,10 +334,10 @@ export function SearchResultsPage({
 
         if (score_b !== score_a) return score_b - score_a;
 
-        return (
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        );
+        return by_date(a, b);
       });
+    } else {
+      results.sort(by_date);
     }
 
     return results.map((r) => ({
@@ -332,6 +351,7 @@ export function SearchResultsPage({
     filters.read_status,
     filters.exclude_social,
     filters.sort_by,
+    preferences.inbox_sort_order,
     selected_ids,
     search_terms,
     format_email_list,
@@ -797,11 +817,61 @@ export function SearchResultsPage({
     </div>
   );
 
+  const indexing_notice = (
+    <div className="flex flex-col items-center justify-center text-center gap-2 px-4 py-8 border-b border-edge-secondary">
+      <Spinner className="text-[var(--accent-blue)]" size="md" />
+      <p
+        className="text-sm font-medium mt-1"
+        style={{ color: "var(--text-primary)" }}
+      >
+        {t("mail.search_preparing_title")}
+      </p>
+      <p
+        className="text-xs max-w-[360px] leading-relaxed"
+        style={{ color: "var(--text-muted)" }}
+      >
+        {t("mail.search_preparing_desc")}
+      </p>
+      {indexing.total > 0 ? (
+        <div className="w-full max-w-[280px] flex flex-col items-center gap-1.5 mt-1">
+          <div
+            className="w-full h-1.5 rounded-full overflow-hidden"
+            style={{ backgroundColor: "var(--bg-tertiary)" }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${index_pct}%`,
+                backgroundColor: "var(--accent-blue)",
+              }}
+            />
+          </div>
+          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            {index_near_done
+              ? t("mail.search_preparing_almost")
+              : t("mail.search_preparing_progress", {
+                  current: indexing.current,
+                  total: indexing.total,
+                })}
+          </p>
+        </div>
+      ) : indexing.current > 0 ? (
+        <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+          {t("mail.search_preparing_collecting", { current: indexing.current })}
+        </p>
+      ) : null}
+    </div>
+  );
+
   const email_list_content = (
     <>
       {is_loading && filtered_results.length === 0 ? (
         <div>
-          {is_slow && slow_notice}
+          {is_preparing_index
+            ? indexing_notice
+            : is_slow
+              ? slow_notice
+              : null}
           {Array.from({ length: 10 }).map((_, i) => (
             <SearchResultSkeleton key={i} />
           ))}

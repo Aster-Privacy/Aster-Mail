@@ -35,7 +35,8 @@ import {
   reencrypt_mail_item_envelope,
   type MailItem,
 } from "@/services/api/mail";
-import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
+import { decrypt_mail_metadata_batch } from "@/services/crypto/mail_metadata";
+import { TextIndex, type TextIndexDocument } from "@/services/search/text_index";
 import {
   decrypt_envelope_with_bytes,
   encrypt_envelope_with_identity_key,
@@ -426,7 +427,7 @@ interface SearchOptions {
   search_body?: boolean;
 }
 
-interface DecryptedIndexEntry {
+export interface DecryptedIndexEntry {
   envelope: DecryptedEnvelope | null;
   metadata: MailItemMetadata | null;
   search_body_text: string;
@@ -440,6 +441,7 @@ interface CachedIndex {
   built_at: number;
   include_body: boolean;
   user_email: string;
+  text_index: TextIndex | null;
 }
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -451,6 +453,65 @@ let cached_index: CachedIndex | null = null;
 let index_build_promise: Promise<CachedIndex> | null = null;
 let build_generation = 0;
 
+async function derive_envelope_crypto_key(
+  identity_key: string,
+  version: string,
+): Promise<CryptoKey> {
+  const key_hash = await crypto.subtle.digest(
+    HASH_ALG,
+    new TextEncoder().encode(identity_key + version),
+  );
+
+  return crypto.subtle.importKey(
+    "raw",
+    key_hash,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+}
+
+async function derive_envelope_crypto_keys(
+  identity_keys: string[],
+): Promise<CryptoKey[]> {
+  const keys: CryptoKey[] = [];
+
+  for (const identity_key of identity_keys) {
+    if (!identity_key) continue;
+    for (const version of ENVELOPE_KEY_VERSIONS) {
+      try {
+        keys.push(await derive_envelope_crypto_key(identity_key, version));
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  return keys;
+}
+
+async function decrypt_envelope_with_crypto_key(
+  encrypted_bytes: Uint8Array,
+  nonce_bytes: Uint8Array,
+  crypto_key: CryptoKey,
+): Promise<DecryptedEnvelope | null> {
+  try {
+    const decrypted = await decrypt_aes_gcm_with_fallback(
+      crypto_key,
+      encrypted_bytes,
+      nonce_bytes,
+    );
+    const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+    const from = normalize_envelope_from(parsed.from);
+
+    if (from) parsed.from = from;
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 async function try_decrypt_with_identity_key(
   encrypted: string,
   nonce_bytes: Uint8Array,
@@ -459,33 +520,20 @@ async function try_decrypt_with_identity_key(
   const encrypted_bytes = base64_to_array(encrypted);
 
   for (const version of ENVELOPE_KEY_VERSIONS) {
-    try {
-      const key_hash = await crypto.subtle.digest(
-        HASH_ALG,
-        new TextEncoder().encode(identity_key + version),
-      );
-      const crypto_key = await crypto.subtle.importKey(
-        "raw",
-        key_hash,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
-      );
-      const decrypted = await decrypt_aes_gcm_with_fallback(
-        crypto_key,
-        encrypted_bytes,
-        nonce_bytes,
-      );
+    const crypto_key = await derive_envelope_crypto_key(
+      identity_key,
+      version,
+    ).catch(() => null);
 
-      const parsed = JSON.parse(new TextDecoder().decode(decrypted));
-      const from = normalize_envelope_from(parsed.from);
+    if (!crypto_key) continue;
 
-      if (from) parsed.from = from;
+    const result = await decrypt_envelope_with_crypto_key(
+      encrypted_bytes,
+      nonce_bytes,
+      crypto_key,
+    );
 
-      return parsed;
-    } catch {
-      continue;
-    }
+    if (result) return result;
   }
 
   return null;
@@ -559,6 +607,7 @@ async function decrypt_envelope_for_search(
   nonce: string,
   item_id: string,
   item_type: string,
+  precomputed_keys?: CryptoKey[],
 ): Promise<DecryptedEnvelope | null> {
   const nonce_bytes = nonce ? base64_to_array(nonce) : new Uint8Array(0);
 
@@ -617,6 +666,22 @@ async function decrypt_envelope_for_search(
     }
 
     zero_uint8_array(passphrase);
+
+    if (precomputed_keys && precomputed_keys.length > 0) {
+      const encrypted_bytes = base64_to_array(encrypted);
+
+      for (const crypto_key of precomputed_keys) {
+        const result = await decrypt_envelope_with_crypto_key(
+          encrypted_bytes,
+          nonce_bytes,
+          crypto_key,
+        );
+
+        if (result) return result;
+      }
+
+      return null;
+    }
 
     const vault = get_vault_from_memory();
 
@@ -702,6 +767,55 @@ export function subscribe_index_refresh(cb: () => void): () => void {
   };
 }
 
+export function index_texts(entry: DecryptedIndexEntry): TextIndexDocument {
+  const envelope = entry.envelope;
+
+  if (!envelope) {
+    return { header_text: "", body_text: entry.search_body_text || "" };
+  }
+
+  const forwarding = resolve_forwarding_display(
+    envelope.from,
+    envelope.raw_headers,
+  );
+  const subject = (envelope.subject || "").toLowerCase();
+  const sender_name = `${envelope.from?.name || ""} ${
+    forwarding?.display_sender_name || ""
+  }`.toLowerCase();
+  const sender_email = `${envelope.from?.email || ""} ${
+    forwarding?.display_sender_email || ""
+  }`.toLowerCase();
+  const recipients = (envelope.to || [])
+    .map(
+      (r: { email?: string; name?: string }) =>
+        `${(r.email || "").toLowerCase()} ${(r.name || "").toLowerCase()}`,
+    )
+    .join(" ");
+
+  return {
+    header_text: `${subject}\n${sender_name}\n${sender_email}\n${recipients}`,
+    body_text: entry.search_body_text || "",
+  };
+}
+
+function build_text_index(
+  items: MailItem[],
+  decrypted: Map<string, DecryptedIndexEntry>,
+): TextIndex {
+  const idx = new TextIndex();
+
+  for (let i = 0; i < items.length; i++) {
+    const entry = decrypted.get(items[i].id);
+
+    idx.add_document(
+      i,
+      entry ? index_texts(entry) : { header_text: "", body_text: "" },
+    );
+  }
+
+  return idx;
+}
+
 async function do_build_search_index(
   user_email: string,
   include_body: boolean,
@@ -731,9 +845,25 @@ async function do_build_search_index(
     all_items.push(...response.data.items);
     cursor = response.data.next_cursor;
     page_count++;
+    emit_indexing({ current: all_items.length });
   } while (cursor);
 
   emit_indexing({ total: all_items.length, current: 0 });
+
+  const metadata_map = await decrypt_mail_metadata_batch(all_items);
+
+  const vault_for_keys = get_vault_from_memory();
+  const precomputed_envelope_keys = vault_for_keys?.identity_key
+    ? await derive_envelope_crypto_keys([
+        vault_for_keys.identity_key,
+        ...(vault_for_keys.previous_keys ?? []),
+      ])
+    : [];
+
+  if (my_gen !== build_generation) {
+    emit_indexing({ building: false, current: 0, total: 0 });
+    throw new Error("search_index_cancelled");
+  }
 
   const decrypted = new Map<string, DecryptedIndexEntry>();
   let fresh_count = 0;
@@ -766,15 +896,7 @@ async function do_build_search_index(
               return { id: item.id, entry: prior_entry, fresh: false };
             }
 
-            let refreshed_metadata: MailItemMetadata | null = null;
-
-            if (item.encrypted_metadata && item.metadata_nonce) {
-              refreshed_metadata = await decrypt_mail_metadata(
-                item.encrypted_metadata,
-                item.metadata_nonce,
-                item.metadata_version,
-              );
-            }
+            const refreshed_metadata = metadata_map.get(item.id) ?? null;
 
             return {
               id: item.id,
@@ -788,6 +910,7 @@ async function do_build_search_index(
             item.envelope_nonce,
             item.id,
             item.item_type,
+            precomputed_envelope_keys,
           );
 
           if (envelope?.body_text) {
@@ -814,15 +937,7 @@ async function do_build_search_index(
             envelope.html_body = "";
           }
 
-          let metadata: MailItemMetadata | null = null;
-
-          if (item.encrypted_metadata && item.metadata_nonce) {
-            metadata = await decrypt_mail_metadata(
-              item.encrypted_metadata,
-              item.metadata_nonce,
-              item.metadata_version,
-            );
-          }
+          const metadata = metadata_map.get(item.id) ?? null;
 
           return {
             id: item.id,
@@ -875,6 +990,7 @@ async function do_build_search_index(
     built_at: Date.now(),
     include_body,
     user_email,
+    text_index: build_text_index(all_items, decrypted),
   };
 
   cached_index = index;
@@ -1009,6 +1125,7 @@ async function build_search_index(
       built_at: 0,
       include_body: all_have_bodies,
       user_email,
+      text_index: build_text_index(snapshot.items, restored),
     };
 
     void start_background_rebuild(user_email, include_body, restored);
@@ -1029,6 +1146,15 @@ function date_boundary_local(value: string, end_of_day: boolean): number {
   }
 
   return new Date(value).getTime();
+}
+
+function entry_has_attachment(
+  envelope: DecryptedEnvelope | null,
+  metadata: MailItemMetadata | null,
+): boolean {
+  if (metadata?.has_attachments) return true;
+
+  return (envelope?.attachment_keys?.length ?? 0) > 0;
 }
 
 function matches_operator(
@@ -1069,8 +1195,8 @@ function matches_operator(
       return (envelope.subject || "").toLowerCase().includes(val);
     case "has": {
       if (val === "attachment" || val === "attachments")
-        return metadata?.has_attachments ?? false;
-      if (!metadata?.has_attachments) return false;
+        return entry_has_attachment(envelope, metadata);
+      if (!entry_has_attachment(envelope, metadata)) return false;
       const body_lower = (envelope.body_text || "").toLowerCase();
       const html_lower = (
         envelope.body_html ||
@@ -1147,7 +1273,7 @@ function matches_operator(
     }
     case "filename":
     case "attachment": {
-      if (!metadata?.has_attachments) return false;
+      if (!entry_has_attachment(envelope, metadata)) return false;
       const content = (
         (envelope.body_text || "") +
         " " +
@@ -1333,7 +1459,7 @@ function to_search_result(
     timestamp: item.message_ts || item.created_at,
     is_read: metadata?.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,
-    has_attachment: metadata?.has_attachments ?? false,
+    has_attachment: entry_has_attachment(envelope, metadata),
     folders: [
       ...(item.labels || []).map((l) => ({
         folder_token: l.token,
@@ -1474,10 +1600,18 @@ export function use_search() {
 
         const results: SearchResultItem[] = [];
 
-        for (const item of index.items) {
+        const search_body_flag = options?.search_body !== false;
+        const candidate_indices = index.text_index
+          ? index.text_index.candidates(
+              terms,
+              search_body_flag && terms.length > 0,
+            )
+          : null;
+
+        const scan_item = (item: MailItem) => {
           const data = index.decrypted.get(item.id);
 
-          if (!data) continue;
+          if (!data) return;
 
           const { envelope, metadata, search_body_text } = data;
 
@@ -1490,11 +1624,11 @@ export function use_search() {
               item,
               options?.label_name_to_tokens,
               options?.fields,
-              options?.search_body !== false,
+              search_body_flag,
               search_body_text,
             )
           ) {
-            continue;
+            return;
           }
 
           if (options?.filters) {
@@ -1502,27 +1636,37 @@ export function use_search() {
 
             if (
               f.has_attachments !== undefined &&
-              (metadata?.has_attachments ?? false) !== f.has_attachments
+              entry_has_attachment(envelope, metadata) !== f.has_attachments
             )
-              continue;
+              return;
             if (
               f.is_starred !== undefined &&
               (metadata?.is_starred ?? false) !== f.is_starred
             )
-              continue;
+              return;
             if (f.date_from) {
               const ts = new Date(item.message_ts || item.created_at).getTime();
 
-              if (ts < date_boundary_local(f.date_from, false)) continue;
+              if (ts < date_boundary_local(f.date_from, false)) return;
             }
             if (f.date_to) {
               const ts = new Date(item.message_ts || item.created_at).getTime();
 
-              if (ts > date_boundary_local(f.date_to, true)) continue;
+              if (ts > date_boundary_local(f.date_to, true)) return;
             }
           }
 
           results.push(to_search_result(item, envelope, metadata));
+        };
+
+        if (candidate_indices) {
+          for (const i of candidate_indices) {
+            const item = index.items[i];
+
+            if (item) scan_item(item);
+          }
+        } else {
+          for (const item of index.items) scan_item(item);
         }
 
         results.sort(

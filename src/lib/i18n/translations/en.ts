@@ -5676,6 +5676,12 @@ export const en: Translations = {
     search_refine_terms: "Try refining your search with more specific terms.",
     refine_your_search_action: "Refine your query",
     turn_off_indexing_action: "Turn off indexing",
+    search_preparing_title: "Getting search ready",
+    search_preparing_desc:
+      "Because your mail is end-to-end encrypted, we build your private search index right here on your device. This only happens the first time. After this, your searches will be instant.",
+    search_preparing_progress: "{{current}} of {{total}} messages prepared",
+    search_preparing_almost: "Almost there, finishing up...",
+    search_preparing_collecting: "Gathering your messages... {{current}} so far",
     content_search_slower:
       "Searching message content can be slow on large mailboxes.",
     search_message_content_help: "About message content search",

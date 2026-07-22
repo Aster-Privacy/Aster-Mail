@@ -6344,6 +6344,12 @@ export const pt = {
       "Tente refinar sua pesquisa com termos mais específicos.",
     refine_your_search_action: "Refinar sua pesquisa",
     turn_off_indexing_action: "Desativar indexação",
+    search_preparing_title: "Preparando a pesquisa",
+    search_preparing_desc:
+      "Como o seu e-mail é criptografado de ponta a ponta, criamos o seu índice de pesquisa privado aqui, no seu dispositivo. Isso só acontece na primeira vez. Depois, as suas pesquisas serão instantâneas.",
+    search_preparing_progress: "{{current}} de {{total}} mensagens preparadas",
+    search_preparing_almost: "Quase lá, finalizando...",
+    search_preparing_collecting: "Reunindo as suas mensagens... {{current}} até agora",
     content_search_slower:
       "Pesquisar no conteúdo das mensagens pode ser lento em caixas de correio grandes.",
     search_message_content_help: "Sobre pesquisa de conteúdo de mensagens",

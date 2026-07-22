@@ -6375,6 +6375,13 @@ export const nl = {
       "Probeer uw zoekopdracht te verfijnen met specifiekere termen.",
     refine_your_search_action: "Zoekopdracht verfijnen",
     turn_off_indexing_action: "Indexering uitschakelen",
+    search_preparing_title: "Zoeken wordt voorbereid",
+    search_preparing_desc:
+      "Omdat je e-mail end-to-end versleuteld is, bouwen we je privézoekindex hier op je apparaat. Dit gebeurt alleen de eerste keer. Daarna zijn je zoekopdrachten direct.",
+    search_preparing_progress: "{{current}} van {{total}} berichten voorbereid",
+    search_preparing_almost: "Bijna klaar, afronden...",
+    search_preparing_collecting:
+      "Je berichten worden verzameld... {{current}} tot nu toe",
     content_search_slower:
       "Zoeken in berichtinhoud kan traag zijn bij grote postvakken.",
     search_message_content_help: "Over het doorzoeken van berichtinhoud",

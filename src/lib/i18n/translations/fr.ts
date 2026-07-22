@@ -6453,6 +6453,13 @@ export const fr = {
       "Essayez d'affiner votre recherche avec des termes plus précis.",
     refine_your_search_action: "Affiner votre recherche",
     turn_off_indexing_action: "Désactiver l'indexation",
+    search_preparing_title: "Préparation de la recherche",
+    search_preparing_desc:
+      "Comme votre courrier est chiffré de bout en bout, nous créons votre index de recherche privé directement sur votre appareil. Cela ne se produit que la première fois. Ensuite, vos recherches seront instantanées.",
+    search_preparing_progress: "{{current}} sur {{total}} messages préparés",
+    search_preparing_almost: "Presque fini, finalisation...",
+    search_preparing_collecting:
+      "Récupération de vos messages... {{current}} jusqu'à présent",
     content_search_slower:
       "La recherche dans le contenu des messages peut être lente sur les grandes boîtes mail.",
     select_all_in_folder:

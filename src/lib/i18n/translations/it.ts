@@ -6402,6 +6402,12 @@ export const it = {
       "Prova a restringere la ricerca con termini più specifici.",
     refine_your_search_action: "Affina la tua ricerca",
     turn_off_indexing_action: "Disattiva l'indicizzazione",
+    search_preparing_title: "Preparazione della ricerca",
+    search_preparing_desc:
+      "Poiché la tua posta è crittografata end-to-end, creiamo il tuo indice di ricerca privato direttamente sul tuo dispositivo. Questo accade solo la prima volta. Dopodiché, le tue ricerche saranno istantanee.",
+    search_preparing_progress: "{{current}} di {{total}} messaggi preparati",
+    search_preparing_almost: "Ci siamo quasi, sto completando...",
+    search_preparing_collecting: "Raccolta dei tuoi messaggi... {{current}} finora",
     content_search_slower:
       "La ricerca nel contenuto dei messaggi può essere lenta con caselle di grandi dimensioni.",
     search_message_content_help: "Informazioni sulla ricerca nel contenuto",

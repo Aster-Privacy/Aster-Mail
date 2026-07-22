@@ -6140,6 +6140,12 @@ export const ko = {
     search_refine_terms: "더 구체적인 검색어로 검색 범위를 좁혀 보세요.",
     refine_your_search_action: "검색어 다듬기",
     turn_off_indexing_action: "색인 생성 끄기",
+    search_preparing_title: "검색 준비 중",
+    search_preparing_desc:
+      "메일이 종단 간 암호화되어 있어 비공개 검색 색인을 이 기기에서 직접 만듭니다. 이 작업은 처음 한 번만 진행됩니다. 이후에는 검색이 즉시 완료됩니다.",
+    search_preparing_progress: "{{total}}개 중 {{current}}개 메시지 준비됨",
+    search_preparing_almost: "거의 다 됐어요. 마무리 중...",
+    search_preparing_collecting: "메시지를 모으는 중... 현재 {{current}}개",
     content_search_slower: "메시지 내용 검색은 사서함이 크면 느릴 수 있습니다.",
     search_message_content_help: "메시지 내용 검색",
     search_message_content_help_body:

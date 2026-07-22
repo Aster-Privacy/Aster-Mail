@@ -5824,6 +5824,12 @@ export const zh_CN = {
     search_refine_terms: "请尝试使用更具体的关键词缩小搜索范围。",
     refine_your_search_action: "优化搜索条件",
     turn_off_indexing_action: "关闭索引",
+    search_preparing_title: "正在准备搜索",
+    search_preparing_desc:
+      "由于您的邮件采用端到端加密，我们会直接在您的设备上构建私密的搜索索引。这只会在首次进行。之后，您的搜索将即时完成。",
+    search_preparing_progress: "已准备 {{current}} / {{total}} 封邮件",
+    search_preparing_almost: "即将完成，正在收尾……",
+    search_preparing_collecting: "正在收集您的邮件……已获取 {{current}} 封",
     content_search_slower: "在大型邮箱中搜索邮件内容可能会很慢。",
     search_message_content_help: "关于邮件内容搜索",
     search_message_content_help_body:

@@ -5534,6 +5534,11 @@ export interface MailTranslations {
   search_refine_terms: string;
   refine_your_search_action: string;
   turn_off_indexing_action: string;
+  search_preparing_title: string;
+  search_preparing_desc: string;
+  search_preparing_progress: string;
+  search_preparing_almost: string;
+  search_preparing_collecting: string;
   content_search_slower: string;
   search_message_content_help: string;
   search_message_content_help_body: string;
