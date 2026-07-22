@@ -5633,6 +5633,7 @@ export const ko = {
     draft: "임시 저장",
     to_label: "받는 사람",
     cc_label: "Cc",
+    bcc_label: "숨은 참조",
     encrypted: "암호화됨",
     read_receipt: "읽음 확인",
     snooze: "다시 알림",

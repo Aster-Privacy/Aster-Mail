@@ -5851,6 +5851,7 @@ export const pl = {
     draft: "Szkic",
     to_label: "Do",
     cc_label: "Cc",
+    bcc_label: "Udw",
     encrypted: "Zaszyfrowane",
     read_receipt: "Potwierdzenie odczytu",
     snooze: "Odłóż",

@@ -5847,6 +5847,7 @@ export const ru = {
     draft: "Черновик",
     to_label: "Кому",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "Зашифровано",
     read_receipt: "Уведомление о прочтении",
     snooze: "Отложить",

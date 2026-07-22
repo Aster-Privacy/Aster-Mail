@@ -5784,6 +5784,7 @@ export const es = {
     draft: "Borrador",
     to_label: "Para",
     cc_label: "Cc",
+    bcc_label: "Cco",
     encrypted: "Cifrado",
     read_receipt: "Confirmación de lectura",
     snooze: "Posponer",

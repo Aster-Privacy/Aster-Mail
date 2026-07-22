@@ -5828,6 +5828,7 @@ export const tr = {
     draft: "Taslak",
     to_label: "Kime",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "Şifreli",
     read_receipt: "Okundu bilgisi",
     snooze: "Ertele",

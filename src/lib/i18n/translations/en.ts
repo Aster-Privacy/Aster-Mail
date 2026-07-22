@@ -5260,6 +5260,7 @@ export const en: Translations = {
     draft: "Draft",
     to_label: "To",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "Encrypted",
     read_receipt: "Read receipt",
     snooze: "Snooze",

@@ -5781,6 +5781,7 @@ export const nl = {
     draft: "Concept",
     to_label: "Aan",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "Versleuteld",
     read_receipt: "Leesbevestiging",
     snooze: "Uitstellen",

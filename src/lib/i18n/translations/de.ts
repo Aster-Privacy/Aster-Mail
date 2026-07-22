@@ -5932,6 +5932,7 @@ export const de = {
     draft: "Entwurf",
     to_label: "An",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "Verschlüsselt",
     read_receipt: "Lesebestätigung",
     snooze: "Zurückstellen",

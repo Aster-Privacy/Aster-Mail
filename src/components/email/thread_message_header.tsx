@@ -115,6 +115,37 @@ export function ThreadMessageHeader({
             </div>
           </div>
         )}
+        {message.bcc_recipients && message.bcc_recipients.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-txt-muted">{t("mail.bcc_label")}</span>
+            <div className="flex items-center gap-1 flex-wrap">
+              {message.bcc_recipients.map((r, idx) => (
+                <button
+                  key={r.email}
+                  className="inline-flex items-center gap-1 cursor-pointer text-txt-secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard
+                      .writeText(r.email)
+                      .then(() => {
+                        show_toast(t("common.email_copied"), "success");
+                      })
+                      .catch(() => {});
+                  }}
+                >
+                  <ProfileAvatar
+                    use_domain_logo
+                    email={r.email}
+                    name={r.name || ""}
+                    size="xs"
+                  />
+                  {r.name || r.email}
+                  {idx < (message.bcc_recipients?.length ?? 0) - 1 && ","}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col items-end gap-1 flex-shrink-0">

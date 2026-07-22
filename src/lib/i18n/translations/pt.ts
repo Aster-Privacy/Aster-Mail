@@ -5853,6 +5853,7 @@ export const pt = {
     draft: "Rascunho",
     to_label: "Para",
     cc_label: "Cc",
+    bcc_label: "Cco",
     encrypted: "Criptografado",
     read_receipt: "Confirmação de leitura",
     snooze: "Adiar",

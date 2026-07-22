@@ -174,6 +174,7 @@ export function build_single_thread_message(
     metadata_nonce: item.metadata_nonce,
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],
+    bcc_recipients: envelope.bcc || [],
     raw_headers: envelope.raw_headers,
     sender_verification: envelope.sender_verification,
   };

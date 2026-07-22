@@ -271,6 +271,7 @@ export function use_email_viewer({
       is_sending: true,
       to_recipients: local_email.to.map((e) => ({ name: "", email: e })),
       cc_recipients: (local_email.cc || []).map((e) => ({ name: "", email: e })),
+      bcc_recipients: (local_email.bcc || []).map((e) => ({ name: "", email: e })),
     };
 
     set_thread_messages([msg]);

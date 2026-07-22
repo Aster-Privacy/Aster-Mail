@@ -769,6 +769,19 @@ export function MobileMessageDetailsSheet({
               </div>
             )}
 
+            {message.bcc_recipients && message.bcc_recipients.length > 0 && (
+              <div className="flex">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+                  {t("common.bcc_label")}
+                </span>
+                <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
+                  {message.bcc_recipients
+                    .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
+                    .join(", ")}
+                </span>
+              </div>
+            )}
+
             <div className="flex">
               <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("common.date_label")}
