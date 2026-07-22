@@ -729,6 +729,18 @@ export function use_aliases() {
     });
   };
 
+  const handle_never_inbox_saved = (alias_id: string, value: boolean) => {
+    set_aliases((prev) => {
+      const updated = prev.map((a) =>
+        a.id === alias_id ? { ...a, never_inbox: value } : a,
+      );
+
+      aliases_cache.aliases = updated;
+
+      return updated;
+    });
+  };
+
   const handle_websites_saved = (alias_id: string, websites: string[]) => {
     set_aliases((prev) => {
       const updated = prev.map((a) =>
@@ -844,6 +856,7 @@ export function use_aliases() {
     handle_open_setup,
     handle_wizard_close,
     handle_display_name_saved,
+    handle_never_inbox_saved,
     handle_note_saved,
     handle_websites_saved,
     handle_domain_address_display_name_saved,

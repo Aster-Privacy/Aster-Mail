@@ -44,6 +44,7 @@ export interface EmailAlias {
   is_enabled: boolean;
   is_random: boolean;
   is_pinned?: boolean;
+  never_inbox?: boolean;
   profile_picture?: string;
   encrypted_note?: string;
   note_nonce?: string;
@@ -66,6 +67,7 @@ export interface DecryptedEmailAlias {
   is_enabled: boolean;
   is_random: boolean;
   is_pinned?: boolean;
+  never_inbox?: boolean;
   decryption_failed?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
@@ -104,6 +106,7 @@ export interface UpdateAliasRequest {
   encrypted_display_name?: string;
   display_name_nonce?: string;
   is_enabled?: boolean;
+  never_inbox?: boolean;
   profile_picture?: string | null;
   encrypted_local_part?: string;
   local_part_nonce?: string;
@@ -351,6 +354,7 @@ export async function decrypt_alias(
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
+      never_inbox: alias.never_inbox ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -412,6 +416,7 @@ export async function decrypt_alias(
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
+      never_inbox: alias.never_inbox ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -427,6 +432,7 @@ export async function decrypt_alias(
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
+      never_inbox: alias.never_inbox ?? false,
       decryption_failed: true,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
@@ -576,6 +582,7 @@ export async function update_alias(
   updates: {
     display_name?: string;
     is_enabled?: boolean;
+    never_inbox?: boolean;
     profile_picture?: string | null;
     note?: string | null;
     websites?: string[] | null;
@@ -594,6 +601,10 @@ export async function update_alias(
 
   if (updates.is_enabled !== undefined) {
     request.is_enabled = updates.is_enabled;
+  }
+
+  if (updates.never_inbox !== undefined) {
+    request.never_inbox = updates.never_inbox;
   }
 
   if (updates.profile_picture !== undefined) {
