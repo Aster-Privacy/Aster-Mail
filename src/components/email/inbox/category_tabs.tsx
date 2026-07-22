@@ -21,27 +21,9 @@
 import type { EmailCategory } from "@/types/email";
 import type { CategoryCounts } from "@/services/category_index";
 
-import { useMemo } from "react";
-import { InboxIcon } from "@heroicons/react/24/outline";
-
 import { use_i18n } from "@/lib/i18n/context";
-import { use_preferences } from "@/contexts/preferences_context";
-import { use_plan_limits } from "@/hooks/use_plan_limits";
-import {
-  BUILTIN_CATEGORIES,
-  allowed_custom_categories,
-} from "@/data/category_catalog";
-import { category_icon } from "@/data/category_icons";
-
-interface TabConfig {
-  key: EmailCategory;
-  label: string;
-  Icon: typeof InboxIcon;
-}
-
-function format_count(value: number): string {
-  return value > 999 ? "999+" : value.toLocaleString();
-}
+import { use_category_menu_options } from "@/hooks/use_category_menu_options";
+import { format_capped_count } from "@/lib/count_display";
 
 interface CategoryTabsProps {
   active_category: EmailCategory;
@@ -55,51 +37,7 @@ export function CategoryTabs({
   on_change,
 }: CategoryTabsProps): React.ReactElement {
   const { t } = use_i18n();
-  const { preferences } = use_preferences();
-  const { limits } = use_plan_limits();
-
-  const category_limit = limits
-    ? (limits.limits["max_custom_categories"]?.limit ?? -1)
-    : -1;
-
-  const tabs = useMemo<TabConfig[]>(() => {
-    const enabled_ids = new Set(preferences.enabled_categories ?? []);
-    const list: TabConfig[] = [];
-
-    for (const cat of BUILTIN_CATEGORIES) {
-      if (cat.id !== "primary" && !enabled_ids.has(cat.id)) {
-        continue;
-      }
-
-      list.push({
-        key: cat.id,
-        label: t(cat.label_key),
-        Icon: category_icon(cat.icon),
-      });
-    }
-
-    const permitted = allowed_custom_categories(
-      preferences.custom_categories ?? [],
-      category_limit,
-    );
-
-    for (const rule of permitted) {
-      if (!rule.enabled) continue;
-
-      list.push({
-        key: rule.id,
-        label: rule.name,
-        Icon: category_icon(rule.icon),
-      });
-    }
-
-    return list;
-  }, [
-    preferences.enabled_categories,
-    preferences.custom_categories,
-    category_limit,
-    t,
-  ]);
+  const tabs = use_category_menu_options();
 
   const handle_wheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (e.deltaY === 0) return;
@@ -144,11 +82,11 @@ export function CategoryTabs({
             <span>{label}</span>
             {show_new ? (
               <span className="aster_badge aster_badge_blue">
-                {format_count(new_count)} {t("mail.tab_new_count")}
+                {format_capped_count(new_count)} {t("mail.tab_new_count")}
               </span>
             ) : unread > 0 ? (
               <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
-                {format_count(unread)}
+                {format_capped_count(unread)}
               </span>
             ) : null}
             {is_active && (

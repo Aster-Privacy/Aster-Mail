@@ -526,6 +526,7 @@ export const zh_CN = {
     import_complete: "导入完成",
     contacts_imported_desc: "您的联系人已导入",
     importing: "导入中...",
+    import_progress: "正在导入第 {{current}} / {{total}} 批...",
     imported: "已导入",
     skipped: "已跳过",
     failed: "失败",
@@ -1190,6 +1191,7 @@ export const zh_CN = {
     account_suspended_label: "您的账户已被暂停。",
     submit_an_appeal: "提交申诉",
     new_email_body: "您有一封新邮件",
+    new_emails_burst_body: "您有 {{count}} 封新邮件",
     create_ghost_alias: "创建隐身别名",
     hide_real_address_expiry: "隐藏您的真实地址（{{days}} 天后过期）",
     sender_group_primary: "主账户",
@@ -1474,8 +1476,10 @@ export const zh_CN = {
     n_contacts_imported: "已导入 {{ count }} 个联系人",
     yourname_placeholder: "yourname",
     contacts_deleted: "已删除 {{ count }} 个联系人",
+    contacts_deleted_partial: "已删除 {{ count }} 个联系人，{{ failed }} 个失败",
     contacts_starred: "已星标 {{ count }} 个联系人",
     contacts_unstarred: "已取消星标 {{ count }} 个联系人",
+    contacts_favorites_updated_partial: "已更新 {{ count }} 个联系人，{{ failed }} 个失败",
     auth_fail_tooltip_intro: "此邮件未通过以下发件人检查：",
     auth_fail_tooltip_spf:
       "发送此邮件的服务器不是 From 行所在域名的授权发件人。",
@@ -2234,6 +2238,12 @@ export const zh_CN = {
     alias_pref_readable_reverse: "在反向别名中包含发件人",
     alias_pref_readable_reverse_desc:
       "新的反向别名将使用发件人的地址，让你一眼就能看出是谁在发邮件。",
+    alias_delivery_title: "投递",
+    alias_never_inbox: "永不投递到收件箱",
+    alias_never_inbox_desc: "发送到此别名的新邮件将跳过你的收件箱。",
+    alias_never_inbox_info:
+      "启用后，通过此别名收到的新邮件将不会进入你的主收件箱。你仍可在“所有邮件”中找到它们，也可以在侧边栏中打开此别名查看。",
+    alias_never_inbox_error: "更新别名投递设置失败",
     alias_pref_always_expand: "始终显示别名详情",
     alias_pref_always_expand_desc:
       "默认显示完整的别名设置面板，而不是将其隐藏在齿轮图标后面。",
@@ -2994,6 +3004,8 @@ export const zh_CN = {
     auto_save_recipients_to_contacts: "自动将最近收件人保存到通讯录",
     auto_save_recipients_to_contacts_description:
       "自动把您发送过邮件的邮箱地址添加为联系人",
+    reactions_enabled: "发送表情回应",
+    reactions_enabled_description: "允许对消息发送表情符号回应。关闭此选项后您仍可以接收回应。",
     confirmations: "确认",
     confirm_actions_description: "在执行以下操作前请求确认",
     confirm_delete: "确认删除",
@@ -5214,6 +5226,10 @@ export const zh_CN = {
     reply: "回复",
     reply_all: "回复所有人",
     forward: "转发",
+    react: "回应",
+    you_reacted_with: "你回应了 {{ emoji }}",
+    reacted_with: "{{ name }} 回应了 {{ emoji }}",
+    already_reacted: "你已经回应过这个了",
     to: "收件人",
     cc: "抄送",
     bcc: "密送",
@@ -5819,6 +5835,8 @@ export const zh_CN = {
     folder_item_count: "{{count}} 项",
     folder_item_count_singular: "{{count}} 项",
     indexing_messages: "正在索引消息...",
+    body_search_unavailable_large_mailbox:
+      "此邮箱内容过多，暂不支持正文搜索，仅显示主题和发件人匹配结果",
     searching_message_content: "正在搜索邮件内容",
     search_taking_too_long: "搜索时间过长",
     search_refine_terms: "请尝试使用更具体的关键词缩小搜索范围。",
@@ -6480,6 +6498,8 @@ export const zh_CN = {
     no_recipients: "发送前至少需要一个收件人。",
     failed_queue_forward:
       "我们无法保存此转发以供稍后发送。再试一次应该可以。您的草稿已保存。",
+    failed_send_reaction: "我们无法发送您的回应。再试一次应该可以。",
+    reactions_disabled: "发送回应功能已关闭。请在设置 > 行为中启用。",
     failed_send: "此邮件未能发送。再试一次应该可以。您的草稿已保存。",
     incorrect_password: "该密码不匹配。再试一次应该可以。您的账户未被锁定。",
     no_keys_available:

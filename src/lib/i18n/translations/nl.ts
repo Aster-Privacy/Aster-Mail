@@ -655,6 +655,7 @@ export const nl = {
     import_complete: "Import voltooid",
     contacts_imported_desc: "Je contacten zijn geïmporteerd",
     importing: "Importeren...",
+    import_progress: "Batch {{current}} van {{total}} importeren...",
     imported: "Geïmporteerd",
     skipped: "Overgeslagen",
     failed: "Mislukt",
@@ -1343,6 +1344,7 @@ export const nl = {
     settings_disabled_suspended:
       "Instellingen zijn uitgeschakeld zolang uw account is opgeschort. hello@astermail.org kan helpen met bezwaar of meer informatie.",
     new_email_body: "Je hebt een nieuwe e-mail",
+    new_emails_burst_body: "Je hebt {{count}} nieuwe e-mails",
     create_ghost_alias: "Ghost-alias aanmaken",
     hide_real_address_expiry: "Verberg je echte adres ({{days}}d verloopt)",
     sender_group_primary: "Primair",
@@ -1437,8 +1439,10 @@ export const nl = {
     change_icon: "Pictogram wijzigen",
     click_to_add_value: "Klik om waarde toe te voegen",
     contacts_deleted: "{{count}} contacten verwijderd",
+    contacts_deleted_partial: "{{count}} contacten verwijderd, {{failed}} mislukt",
     contacts_starred: "{{count}} contacten met ster gemarkeerd",
     contacts_unstarred: "Ster verwijderd van {{count}} contacten",
+    contacts_favorites_updated_partial: "{{count}} contacten bijgewerkt, {{failed}} mislukt",
     conversations_starred_bulk: "{{count}} gesprekken met ster gemarkeerd",
     conversations_unstarred_bulk: "Ster verwijderd van {{count}} gesprekken",
     custom_fields: "Aangepaste velden",
@@ -2397,6 +2401,13 @@ export const nl = {
     alias_pref_readable_reverse: "Afzender opnemen in omgekeerde aliassen",
     alias_pref_readable_reverse_desc:
       "Nieuwe omgekeerde aliassen gebruiken het adres van de afzender, zodat je in één oogopslag ziet wie er e-mailt.",
+    alias_delivery_title: "Bezorging",
+    alias_never_inbox: "Nooit naar Postvak in sturen",
+    alias_never_inbox_desc:
+      "Nieuwe e-mails naar deze alias slaan je Postvak in over.",
+    alias_never_inbox_info:
+      "Indien ingeschakeld blijven nieuwe e-mails die via deze alias binnenkomen uit je hoofdpostvak. Je vindt ze nog steeds in Alle e-mail en door deze alias in de zijbalk te openen.",
+    alias_never_inbox_error: "Bezorging van alias bijwerken mislukt",
     alias_pref_always_expand: "Aliasdetails altijd tonen",
     alias_pref_always_expand_desc:
       "Toon het volledige paneel met aliasinstellingen standaard in plaats van het achter het tandwielpictogram te verbergen.",
@@ -3262,6 +3273,9 @@ export const nl = {
       "Recente ontvangers automatisch opslaan als contacten",
     auto_save_recipients_to_contacts_description:
       "E-mailadressen waarnaar je verzendt automatisch als contacten toevoegen",
+    reactions_enabled: "Reacties verzenden",
+    reactions_enabled_description:
+      "Sta toe om emoji-reacties op berichten te verzenden. U kunt nog steeds reacties ontvangen wanneer dit is uitgeschakeld.",
     confirmations: "Bevestigingen",
     confirm_actions_description: "Vraag om bevestiging voor deze acties",
     confirm_delete: "Verwijderen bevestigen",
@@ -5737,6 +5751,10 @@ export const nl = {
     reply: "Antwoorden",
     reply_all: "Allen antwoorden",
     forward: "Doorsturen",
+    react: "Reageren",
+    you_reacted_with: "Je hebt gereageerd met {{ emoji }}",
+    reacted_with: "{{ name }} heeft gereageerd met {{ emoji }}",
+    already_reacted: "Je hebt hier al mee gereageerd",
     to: "Aan",
     cc: "Cc",
     bcc: "Bcc",
@@ -6369,6 +6387,8 @@ export const nl = {
     folder_item_count: "{{count}} items",
     folder_item_count_singular: "{{count}} item",
     indexing_messages: "Berichten indexeren...",
+    body_search_unavailable_large_mailbox:
+      "Zoeken in berichtinhoud is niet beschikbaar voor deze grote mailbox; alleen overeenkomsten in onderwerp en afzender worden getoond",
     searching_message_content: "Berichtinhoud doorzoeken",
     search_taking_too_long: "Zoeken duurt te lang",
     search_refine_terms:
@@ -7108,6 +7128,8 @@ export const nl = {
     no_recipients: "Er is minimaal één ontvanger nodig voor het verzenden.",
     failed_queue_forward:
       "We konden dit doorsturen niet opslaan voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    failed_send_reaction: "We konden uw reactie niet versturen. Een nieuwe poging zou werken.",
+    reactions_disabled: "Het verzenden van reacties staat uit. Schakel dit in bij Instellingen > Gedrag.",
     failed_send:
       "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
     incorrect_password:

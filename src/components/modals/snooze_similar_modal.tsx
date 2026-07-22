@@ -68,6 +68,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { CATEGORY_ACTION_CHUNK_SIZE } from "@/components/email/inbox/category_bulk_actions";
+
+function chunk_items<T>(items: T[], chunk_size: number): T[][] {
+  const chunks: T[][] = [];
+
+  for (let i = 0; i < items.length; i += chunk_size) {
+    chunks.push(items.slice(i, i + chunk_size));
+  }
+
+  return chunks;
+}
 
 interface DecryptedEnvelope {
   from: { name: string; email: string };
@@ -333,10 +344,35 @@ export function SnoozeSimilarModal({
     try {
       const selected = senders.filter((s) => selected_senders.has(s.email));
       const all_ids = selected.flatMap((s) => s.ids);
+      const chunks = chunk_items(all_ids, CATEGORY_ACTION_CHUNK_SIZE);
 
-      const result = await bulk_snooze_emails(all_ids, snooze_date);
+      const chunk_results = await Promise.allSettled(
+        chunks.map((chunk) => bulk_snooze_emails(chunk, snooze_date)),
+      );
 
-      if (result.error) {
+      let snoozed_count_total = 0;
+      let failed_count_total = 0;
+      const succeeded_ids: string[] = [];
+
+      chunk_results.forEach((chunk_result, index) => {
+        const chunk = chunks[index];
+
+        if (chunk_result.status === "fulfilled" && !chunk_result.value.error) {
+          const data = chunk_result.value.data;
+
+          if (data) {
+            snoozed_count_total += data.snoozed_count;
+            failed_count_total += data.failed_count;
+            succeeded_ids.push(...chunk);
+          } else {
+            failed_count_total += chunk.length;
+          }
+        } else {
+          failed_count_total += chunk.length;
+        }
+      });
+
+      if (snoozed_count_total === 0) {
         show_action_toast({
           message: t("common.failed_to_snooze_emails"),
           action_type: "archive",
@@ -346,25 +382,30 @@ export function SnoozeSimilarModal({
         return;
       }
 
-      if (result.data) {
-        set_snoozed_count(result.data.snoozed_count);
-        set_show_success(true);
+      set_snoozed_count(snoozed_count_total);
+      set_show_success(true);
 
-        remove_index_ids(all_ids);
-        reindex_ids(all_ids);
-        emit_mail_items_removed({ ids: all_ids });
-        emit_snoozed_changed();
-        invalidate_mail_stats();
+      remove_index_ids(succeeded_ids);
+      reindex_ids(succeeded_ids);
+      emit_mail_items_removed({ ids: succeeded_ids });
+      emit_snoozed_changed();
+      invalidate_mail_stats();
 
-        show_action_toast({
-          message: t("common.emails_snoozed_until", {
-            count: String(result.data.snoozed_count),
-            time: snooze_label?.toLowerCase() ?? "later",
-          }),
-          action_type: "archive",
-          email_ids: all_ids,
-        });
-      }
+      show_action_toast({
+        message:
+          failed_count_total > 0
+            ? t("common.emails_snoozed_until_partial", {
+                count: String(snoozed_count_total),
+                time: snooze_label?.toLowerCase() ?? "later",
+                failed: String(failed_count_total),
+              })
+            : t("common.emails_snoozed_until", {
+                count: String(snoozed_count_total),
+                time: snooze_label?.toLowerCase() ?? "later",
+              }),
+        action_type: "archive",
+        email_ids: succeeded_ids,
+      });
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       show_action_toast({

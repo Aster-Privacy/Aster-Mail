@@ -51,7 +51,8 @@ interface ActionToastState {
     | "not_spam"
     | "snooze"
     | "progress"
-    | "refresh";
+    | "refresh"
+    | "error";
   email_ids: string[];
   on_undo?: () => Promise<void>;
   action_label?: string;
@@ -63,31 +64,64 @@ interface ActionToastState {
 const toast_listeners = new Set<(toast: ActionToastState | null) => void>();
 let current_toast: ActionToastState | null = null;
 let toast_timeout: NodeJS.Timeout | null = null;
+let pending_toasts: Array<
+  Omit<ActionToastState, "id"> & { duration_ms?: number }
+> = [];
 
-export function show_action_toast(
-  toast: Omit<ActionToastState, "id"> & { duration_ms?: number },
-) {
+function clear_toast_timeout() {
   if (toast_timeout) {
     clearTimeout(toast_timeout);
     toast_timeout = null;
   }
+}
 
-  current_toast = {
-    ...toast,
-    id: crypto.randomUUID(),
-  };
-
+function notify(next: ActionToastState | null) {
+  current_toast = next;
   toast_listeners.forEach((listener) => listener(current_toast));
+}
+
+function display_toast(
+  toast: Omit<ActionToastState, "id"> & { duration_ms?: number },
+) {
+  clear_toast_timeout();
+  notify({ ...toast, id: crypto.randomUUID() });
 
   if (!toast.progress) {
     toast_timeout = setTimeout(
-      () => {
-        current_toast = null;
-        toast_listeners.forEach((listener) => listener(null));
-      },
+      () => dismiss_current_toast(),
       toast.duration_ms && toast.duration_ms > 0 ? toast.duration_ms : 5000,
     );
   }
+}
+
+function dismiss_current_toast() {
+  clear_toast_timeout();
+  notify(null);
+
+  const next = pending_toasts.shift();
+
+  if (next) display_toast(next);
+}
+
+export function show_action_toast(
+  toast: Omit<ActionToastState, "id"> & { duration_ms?: number },
+) {
+  const has_active_undo_window =
+    current_toast !== null &&
+    (current_toast.on_undo !== undefined || current_toast.progress !== undefined);
+
+  if (has_active_undo_window) {
+    pending_toasts.push(toast);
+    return;
+  }
+
+  display_toast(toast);
+}
+
+export function replace_active_toast(
+  toast: Omit<ActionToastState, "id"> & { duration_ms?: number },
+) {
+  display_toast(toast);
 }
 
 export function update_progress_toast(
@@ -97,23 +131,30 @@ export function update_progress_toast(
 ) {
   if (!current_toast?.progress) return;
 
-  current_toast = {
+  notify({
     ...current_toast,
     progress: { completed, total },
     message: t
       ? t("common.processing_count", { completed, total })
       : `Processing ${completed} of ${total}...`,
-  };
-
-  toast_listeners.forEach((listener) => listener(current_toast));
+  });
 }
 
 export function hide_action_toast() {
-  if (toast_timeout) {
-    clearTimeout(toast_timeout);
-  }
-  current_toast = null;
-  toast_listeners.forEach((listener) => listener(null));
+  dismiss_current_toast();
+}
+
+export function finish_undo(toast_id: string, message: string) {
+  if (!current_toast || current_toast.id !== toast_id) return;
+
+  notify({ ...current_toast, message, on_undo: undefined });
+  toast_timeout = setTimeout(() => dismiss_current_toast(), 2000);
+}
+
+export function fail_undo(toast_id: string, message: string) {
+  if (!current_toast || current_toast.id !== toast_id) return;
+
+  notify({ ...current_toast, message, on_undo: undefined });
 }
 
 function get_icon_for_action(action_type: ActionToastState["action_type"]) {
@@ -121,6 +162,7 @@ function get_icon_for_action(action_type: ActionToastState["action_type"]) {
 
   switch (action_type) {
     case "spam":
+    case "error":
       return <ExclamationTriangleIcon className={icon_class} />;
     case "refresh":
       return <ArrowPathIcon className={`${icon_class} animate-spin`} />;
@@ -182,37 +224,15 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
   const handle_undo = useCallback(async () => {
     if (!toast?.on_undo || is_undoing) return;
 
+    const toast_id = toast.id;
+
     set_is_undoing(true);
     try {
       await toast.on_undo();
-      if (toast_timeout) {
-        clearTimeout(toast_timeout);
-        toast_timeout = null;
-      }
-      set_toast((prev) =>
-        prev
-          ? {
-              ...prev,
-              message: t("common.action_undone"),
-              on_undo: undefined,
-            }
-          : null,
-      );
-      toast_timeout = setTimeout(() => {
-        current_toast = null;
-        toast_listeners.forEach((listener) => listener(null));
-      }, 2000);
+      finish_undo(toast_id, t("common.action_undone"));
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      set_toast((prev) =>
-        prev
-          ? {
-              ...prev,
-              message: t("common.undo_failed"),
-              on_undo: undefined,
-            }
-          : null,
-      );
+      fail_undo(toast_id, t("common.undo_failed"));
     } finally {
       set_is_undoing(false);
     }
@@ -272,7 +292,7 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
                   disabled={is_undoing}
                   onClick={handle_undo}
                 >
-                  {is_undoing ? "..." : (toast.action_label || t("common.undo"))}
+                  {is_undoing ? "..." : toast.action_label || t("common.undo")}
                 </button>
               )}
               {toast.on_view_message && (

@@ -20,6 +20,8 @@
 //
 import { useCallback, useRef, type ReactNode } from "react";
 
+import { format_capped_count } from "@/lib/count_display";
+
 export interface SidebarNavButtonProps {
   icon: ReactNode;
   label: string;
@@ -127,7 +129,7 @@ export function SidebarNavButton({
             color: active ? "var(--text-secondary)" : "var(--text-muted)",
           }}
         >
-          {count > 999 ? "999+" : count.toLocaleString()}
+          {format_capped_count(count)}
         </span>
       )}
     </button>

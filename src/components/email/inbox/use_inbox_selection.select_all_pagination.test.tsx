@@ -115,7 +115,7 @@ describe("use_inbox_selection select-all across pages", () => {
     container.remove();
   });
 
-  it("selects every message in the folder, not just the currently loaded page", async () => {
+  it("selects only the currently loaded page without materializing later pages", async () => {
     await act(async () => {
       root.render(createElement(FolderHarness));
     });
@@ -130,8 +130,42 @@ describe("use_inbox_selection select-all across pages", () => {
       await Promise.resolve();
     });
 
-    expect(load_more_calls).toBe(1);
-    expect(hook.selected_count).toBe(4);
+    expect(load_more_calls).toBe(0);
+    expect(hook.selected_count).toBe(2);
     expect(hook.all_selected).toBe(true);
+    expect(hook.select_all_mode).toBe(false);
+  });
+
+  it("activating select-all-in-folder mode does not trigger any additional page loads", async () => {
+    await act(async () => {
+      root.render(createElement(FolderHarness));
+    });
+
+    await act(async () => {
+      hook.activate_select_all_mode();
+    });
+
+    expect(load_more_calls).toBe(0);
+    expect(hook.selected_count).toBe(2);
+    expect(hook.select_all_mode).toBe(true);
+  });
+
+  it("toggling select-all off while in select-all-in-folder mode clears the selection", async () => {
+    await act(async () => {
+      root.render(createElement(FolderHarness));
+    });
+
+    await act(async () => {
+      hook.activate_select_all_mode();
+    });
+
+    expect(hook.select_all_mode).toBe(true);
+
+    await act(async () => {
+      hook.handle_toggle_select_all();
+    });
+
+    expect(hook.select_all_mode).toBe(false);
+    expect(hook.selected_count).toBe(0);
   });
 });

@@ -653,6 +653,7 @@ export const ar = {
     import_complete: "اكتمل الاستيراد",
     contacts_imported_desc: "تم استيراد جهات الاتصال الخاصة بك",
     importing: "جارٍ الاستيراد...",
+    import_progress: "استيراد الدفعة {{current}} من {{total}}...",
     imported: "مستورد",
     skipped: "تم تخطيه",
     failed: "فشل",
@@ -1303,6 +1304,7 @@ export const ar = {
     settings_disabled_suspended:
       "الإعدادات معطّلة طوال فترة تعليق حسابك. hello@astermail.org مستعد للمساعدة في الاعتراض أو لمزيد من التفاصيل.",
     new_email_body: "لديك رسالة جديدة",
+    new_emails_burst_body: "لديك {{count}} رسائل جديدة",
     create_ghost_alias: "إنشاء اسم مستعار شبحي",
     hide_real_address_expiry: "إخفاء عنوانك الحقيقي (انتهاء بعد {{days}} يوم)",
     sender_group_primary: "الأساسي",
@@ -1473,8 +1475,10 @@ export const ar = {
     n_contacts_imported: "تم استيراد {{ count }} جهات اتصال",
     yourname_placeholder: "اسمك",
     contacts_deleted: "تم حذف {{ count }} جهة/جهات اتصال",
+    contacts_deleted_partial: "تم حذف {{ count }} جهة/جهات اتصال، وفشل {{ failed }}",
     contacts_starred: "تم تمييز {{ count }} جهة/جهات اتصال بنجمة",
     contacts_unstarred: "تم إزالة النجمة من {{ count }} جهة/جهات اتصال",
+    contacts_favorites_updated_partial: "تم تحديث {{ count }} جهة/جهات اتصال، وفشل {{ failed }}",
     auth_fail_tooltip_intro: "فشلت هذه الرسالة في الفحوصات التالية:",
     auth_fail_tooltip_spf:
       "الخادم الذي أرسل هذه الرسالة ليس مرسلًا معتمدًا للنطاق في سطر From.",
@@ -2365,6 +2369,13 @@ export const ar = {
     alias_pref_readable_reverse: "تضمين المُرسِل في الأسماء المستعارة العكسية",
     alias_pref_readable_reverse_desc:
       "ستستخدم الأسماء المستعارة العكسية الجديدة عنوان المُرسِل حتى تتمكّن من معرفة من يراسلك بنظرة واحدة.",
+    alias_delivery_title: "التسليم",
+    alias_never_inbox: "عدم الإرسال إلى صندوق الوارد مطلقًا",
+    alias_never_inbox_desc:
+      "الرسائل الجديدة إلى هذا الاسم المستعار تتخطى صندوق الوارد.",
+    alias_never_inbox_info:
+      "عند التفعيل، تُبقى الرسائل الجديدة الواردة عبر هذا الاسم المستعار خارج صندوق الوارد الرئيسي. لا يزال بإمكانك العثور عليها في كل البريد وعبر فتح هذا الاسم المستعار في الشريط الجانبي.",
+    alias_never_inbox_error: "فشل تحديث تسليم الاسم المستعار",
     alias_pref_always_expand: "عرض تفاصيل الاسم المستعار دائمًا",
     alias_pref_always_expand_desc:
       "عرض لوحة إعدادات الاسم المستعار كاملة افتراضيًا بدلًا من إخفائها خلف أيقونة الترس.",
@@ -3224,6 +3235,9 @@ export const ar = {
       "حفظ المستلمين الأخيرين تلقائيًا في جهات الاتصال",
     auto_save_recipients_to_contacts_description:
       "إضافة عناوين البريد الإلكتروني التي ترسل إليها تلقائيًا كجهات اتصال",
+    reactions_enabled: "إرسال التفاعلات",
+    reactions_enabled_description:
+      "السماح بإرسال تفاعلات الرموز التعبيرية على الرسائل. يمكنك مع ذلك تلقي التفاعلات عند إيقاف هذا الخيار.",
     confirmations: "التأكيدات",
     confirm_actions_description: "طلب التأكيد قبل هذه الإجراءات",
     confirm_delete: "تأكيد الحذف",
@@ -5561,6 +5575,10 @@ export const ar = {
     reply: "رد",
     reply_all: "رد على الكل",
     forward: "تحويل",
+    react: "تفاعل",
+    you_reacted_with: "لقد تفاعلت بـ {{ emoji }}",
+    reacted_with: "{{ name }} تفاعل بـ {{ emoji }}",
+    already_reacted: "لقد تفاعلت بهذا بالفعل",
     to: "إلى",
     cc: "نسخة",
     bcc: "نسخة مخفية",
@@ -6098,6 +6116,8 @@ export const ar = {
     folder_item_count: "{{count}} عناصر",
     folder_item_count_singular: "{{count}} عنصر",
     indexing_messages: "جارٍ فهرسة الرسائل...",
+    body_search_unavailable_large_mailbox:
+      "البحث في محتوى الرسائل غير متاح لهذا البريد الكبير؛ تُعرض فقط نتائج الموضوع والمرسل",
     searching_message_content: "جارٍ البحث في محتوى الرسائل",
     search_taking_too_long: "يستغرق البحث وقتًا طويلاً",
     search_refine_terms: "حاول تضييق نطاق البحث باستخدام كلمات أكثر تحديدًا.",
@@ -6882,6 +6902,8 @@ export const ar = {
       "تعذّر حفظ هذا الرد للإرسال لاحقًا. محاولة أخرى ينبغي أن تنجح. مسوّدتك محفوظة.",
     failed_queue_forward:
       "تعذّر حفظ هذا التحويل للإرسال لاحقًا. محاولة أخرى ينبغي أن تنجح. مسوّدتك محفوظة.",
+    failed_send_reaction: "تعذّر إرسال تفاعلك. محاولة أخرى ينبغي أن تنجح.",
+    reactions_disabled: "إرسال التفاعلات متوقف. فعّله من الإعدادات > السلوك.",
     failed_send:
       "هذه الرسالة لم تُرسل. محاولة أخرى ينبغي أن تنجح. مسوّدتك محفوظة.",
     no_keys_available:

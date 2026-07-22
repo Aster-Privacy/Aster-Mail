@@ -664,6 +664,7 @@ export const tr = {
     import_complete: "İçe Aktarma Tamamlandı",
     contacts_imported_desc: "Kişileriniz içe aktarıldı",
     importing: "İçe aktarılıyor...",
+    import_progress: "{{total}} grubun {{current}}. grubu içe aktarılıyor...",
     imported: "İçe aktarıldı",
     skipped: "Atlandı",
     failed: "Başarısız",
@@ -1343,6 +1344,7 @@ export const tr = {
     settings_disabled_suspended:
       "Hesabınız askıdayken ayarlar kapalı. hello@astermail.org itiraz ya da daha fazla ayrıntı için yardımcı olabilir.",
     new_email_body: "Yeni bir e-postanız var",
+    new_emails_burst_body: "{{count}} yeni e-postanız var",
     create_ghost_alias: "Ghost takma adı oluştur",
     hide_real_address_expiry: "Gerçek adresinizi gizleyin ({{days}}g geçerli)",
     sender_group_primary: "Birincil",
@@ -1636,8 +1638,10 @@ export const tr = {
     n_contacts_imported: "{{ count }} kişi içe aktarıldı",
     yourname_placeholder: "adınız",
     contacts_deleted: "{{ count }} kişi silindi",
+    contacts_deleted_partial: "{{ count }} kişi silindi, {{ failed }} başarısız oldu",
     contacts_starred: "{{ count }} kişi yıldızlandı",
     contacts_unstarred: "{{ count }} kişinin yıldızı kaldırıldı",
+    contacts_favorites_updated_partial: "{{ count }} kişi güncellendi, {{ failed }} başarısız oldu",
     auth_fail_tooltip_intro:
       "Bu mesaj şu gönderici kontrollerinde başarısız oldu:",
     auth_fail_tooltip_spf:
@@ -2440,6 +2444,13 @@ export const tr = {
     alias_pref_readable_reverse: "Ters rumuzlara göndereni dahil et",
     alias_pref_readable_reverse_desc:
       "Yeni ters rumuzlar, kimin e-posta gönderdiğini bir bakışta anlayabilmeniz için gönderenin adresini kullanır.",
+    alias_delivery_title: "Teslimat",
+    alias_never_inbox: "Asla gelen kutusuna gönderme",
+    alias_never_inbox_desc:
+      "Bu rumuza gelen yeni e-postalar gelen kutunuzu atlar.",
+    alias_never_inbox_info:
+      "Etkinleştirildiğinde, bu rumuz üzerinden alınan yeni e-postalar ana gelen kutunuzun dışında tutulur. Bunları yine de Tüm Postalar'da ve kenar çubuğunda bu rumuzu açarak bulabilirsiniz.",
+    alias_never_inbox_error: "Rumuz teslimatı güncellenemedi",
     alias_pref_always_expand: "Rumuz ayrıntılarını her zaman göster",
     alias_pref_always_expand_desc:
       "Tam rumuz ayarları panelini dişli simgesinin arkasına gizlemek yerine varsayılan olarak gösterin.",
@@ -3269,6 +3280,9 @@ export const tr = {
       "Son alıcıları otomatik olarak kişilere kaydet",
     auto_save_recipients_to_contacts_description:
       "E-posta gönderdiğiniz adresleri otomatik olarak kişilere ekle",
+    reactions_enabled: "Tepki gönder",
+    reactions_enabled_description:
+      "Mesajlara emoji tepkileri göndermeye izin verir. Bu kapalıyken yine de tepki alabilirsiniz.",
     confirmations: "Onaylar",
     confirm_actions_description: "Bu eylemlerden önce onay iste",
     confirm_delete: "Silmeyi Onayla",
@@ -5784,6 +5798,10 @@ export const tr = {
     reply: "Yanıtla",
     reply_all: "Tümünü Yanıtla",
     forward: "İlet",
+    react: "Tepki Ver",
+    you_reacted_with: "{{ emoji }} ile tepki verdiniz",
+    reacted_with: "{{ name }} {{ emoji }} ile tepki verdi",
+    already_reacted: "Bununla zaten tepki verdiniz",
     to: "Kime",
     cc: "Bilgi",
     bcc: "Gizli",
@@ -6335,6 +6353,8 @@ export const tr = {
     folder_item_count: "{{count}} öğe",
     folder_item_count_singular: "{{count}} öğe",
     indexing_messages: "Mesajlar dizinleniyor...",
+    body_search_unavailable_large_mailbox:
+      "Bu büyük posta kutusu için içerik araması kullanılamıyor; yalnızca konu ve gönderen eşleşmeleri gösteriliyor",
     searching_message_content: "Mesaj içeriği aranıyor",
     search_taking_too_long: "Arama çok uzun sürüyor",
     search_refine_terms:
@@ -7150,6 +7170,8 @@ export const tr = {
     no_recipients: "Göndermeden önce en az bir alıcı gerekiyor.",
     failed_queue_forward:
       "Bu yönlendirme daha sonra gönderilmek üzere kaydedilemedi. Bir kez daha denemek genellikle yeterli olur. Taslağınız kaydedildi.",
+    failed_send_reaction: "Tepkinizi gönderemedik. Bir kez daha denemek genellikle yeterli olur.",
+    reactions_disabled: "Tepki gönderme kapalı. Ayarlar > Davranış bölümünden etkinleştirin.",
     failed_send:
       "Bu e-posta gönderilemedi. Bir kez daha denemek genellikle yeterli olur. Taslağınız kaydedildi.",
     incorrect_password:

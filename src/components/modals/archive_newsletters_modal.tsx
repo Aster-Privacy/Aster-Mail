@@ -34,8 +34,11 @@ import { Checkbox } from "@aster/ui";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
-import { list_mail_items, bulk_patch_metadata } from "@/services/api/mail";
-import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import {
+  list_mail_items,
+  batched_bulk_patch_metadata,
+} from "@/services/api/mail";
+import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
   decrypt_mail_envelope,
@@ -61,6 +64,60 @@ import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
+import { CATEGORY_ACTION_CHUNK_SIZE } from "@/components/email/inbox/category_bulk_actions";
+
+function chunk_items<T>(items: T[], chunk_size: number): T[][] {
+  const chunks: T[][] = [];
+
+  for (let i = 0; i < items.length; i += chunk_size) {
+    chunks.push(items.slice(i, i + chunk_size));
+  }
+
+  return chunks;
+}
+
+async function encrypt_metadata_updates_chunked(
+  items: MailItem[],
+  build_metadata: (item: MailItem) => NonNullable<MailItem["metadata"]>,
+): Promise<{
+  valid_updates: Array<{
+    id: string;
+    encrypted_metadata: string;
+    metadata_nonce: string;
+  }>;
+  failed_count: number;
+}> {
+  const chunks = chunk_items(items, CATEGORY_ACTION_CHUNK_SIZE);
+  const valid_updates: Array<{
+    id: string;
+    encrypted_metadata: string;
+    metadata_nonce: string;
+  }> = [];
+  let failed_count = 0;
+
+  for (const chunk of chunks) {
+    const chunk_results = await Promise.allSettled(
+      chunk.map(async (item) => {
+        const updated_metadata = build_metadata(item);
+        const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+        if (!encrypted) throw new Error("encrypt_failed");
+
+        return { id: item.id, ...encrypted };
+      }),
+    );
+
+    for (const result of chunk_results) {
+      if (result.status === "fulfilled") {
+        valid_updates.push(result.value);
+      } else {
+        failed_count++;
+      }
+    }
+  }
+
+  return { valid_updates, failed_count };
+}
 
 interface NewsletterSender {
   id: string;
@@ -160,6 +217,7 @@ export function ArchiveNewslettersModal({
   const [is_loading, set_is_loading] = useState(true);
   const [is_archiving, set_is_archiving] = useState(false);
   const [completed_count, set_completed_count] = useState(0);
+  const [failed_count, set_failed_count] = useState(0);
   const [show_success, set_show_success] = useState(false);
   const [last_archived, set_last_archived] = useState<{
     ids: string[];
@@ -273,6 +331,7 @@ export function ArchiveNewslettersModal({
       set_search_query("");
       set_show_success(false);
       set_completed_count(0);
+      set_failed_count(0);
       set_last_archived(null);
     }
   }, [is_open, fetch_newsletters]);
@@ -318,40 +377,60 @@ export function ArchiveNewslettersModal({
       const all_mail_ids = selected.flatMap((n) => n.mail_ids);
       const all_items = selected.flatMap((n) => n.items);
 
-      const metadata_updates = await Promise.all(
-        all_items.map(async (item) => {
-          const updated_metadata = {
-            ...item.metadata!,
-            is_archived: true,
-          };
-          const encrypted = await encrypt_mail_metadata(updated_metadata);
+      const { valid_updates, failed_count: encrypt_failed_count } =
+        await encrypt_metadata_updates_chunked(all_items, (item) => ({
+          ...item.metadata!,
+          is_archived: true,
+        }));
 
-          return encrypted ? { id: item.id, ...encrypted } : null;
-        }),
-      );
-
-      const valid_updates = metadata_updates.filter(
-        (u) => u !== null,
-      ) as Array<{
-        id: string;
-        encrypted_metadata: string;
-        metadata_nonce: string;
-      }>;
+      let patch_failed_count = 0;
 
       if (valid_updates.length > 0) {
-        await bulk_patch_metadata({ items: valid_updates });
+        const patch_result = await batched_bulk_patch_metadata(valid_updates);
+
+        patch_failed_count = patch_result.failed_ids.length;
       }
 
       stale_all_view_caches();
-      await batch_archive({ ids: all_mail_ids, tier: "hot" });
-      emit_mail_items_removed({ ids: all_mail_ids });
+
+      const archive_result = await batched_archive(all_mail_ids, "hot");
+      const total_failed =
+        encrypt_failed_count + patch_failed_count + archive_result.failed_ids.length;
+      const succeeded_ids_set = new Set(archive_result.succeeded_ids);
+      const succeeded_items = all_items.filter((item) =>
+        succeeded_ids_set.has(item.id),
+      );
+
+      emit_mail_items_removed({ ids: archive_result.succeeded_ids });
       invalidate_mail_stats();
 
-      set_completed_count(all_mail_ids.length);
-      set_last_archived({ ids: all_mail_ids, items: all_items });
+      set_completed_count(archive_result.succeeded_ids.length);
+      set_failed_count(total_failed);
+      set_last_archived({
+        ids: archive_result.succeeded_ids,
+        items: succeeded_items,
+      });
       set_newsletters((prev) => prev.filter((n) => !selected_ids.has(n.id)));
       set_selected_ids(new Set());
+
+      if (archive_result.succeeded_ids.length === 0) {
+        show_action_toast({
+          message: t("common.something_went_wrong"),
+          action_type: "error",
+          email_ids: [],
+        });
+
+        return;
+      }
+
       set_show_success(true);
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_action_toast({
+        message: t("common.something_went_wrong"),
+        action_type: "error",
+        email_ids: [],
+      });
     } finally {
       set_is_archiving(false);
     }
@@ -360,29 +439,19 @@ export function ArchiveNewslettersModal({
   const handle_undo = useCallback(async () => {
     if (!last_archived) return;
 
-    const undo_updates = await Promise.all(
-      last_archived.items.map(async (item) => {
-        const updated_metadata = {
-          ...item.metadata!,
-          is_archived: false,
-        };
-        const encrypted = await encrypt_mail_metadata(updated_metadata);
-
-        return encrypted ? { id: item.id, ...encrypted } : null;
+    const { valid_updates: valid_undo } = await encrypt_metadata_updates_chunked(
+      last_archived.items,
+      (item) => ({
+        ...item.metadata!,
+        is_archived: false,
       }),
     );
 
-    const valid_undo = undo_updates.filter((u) => u !== null) as Array<{
-      id: string;
-      encrypted_metadata: string;
-      metadata_nonce: string;
-    }>;
-
     if (valid_undo.length > 0) {
-      await bulk_patch_metadata({ items: valid_undo });
+      await batched_bulk_patch_metadata(valid_undo);
     }
 
-    await batch_unarchive({ ids: last_archived.ids });
+    await batched_unarchive(last_archived.ids);
     window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
     invalidate_mail_stats();
   }, [last_archived]);
@@ -390,16 +459,22 @@ export function ArchiveNewslettersModal({
   const handle_done = useCallback(() => {
     if (last_archived) {
       show_action_toast({
-        message: t("common.newsletters_archived", {
-          count: String(completed_count),
-        }),
+        message:
+          failed_count > 0
+            ? t("common.newsletters_archived_partial", {
+                count: String(completed_count),
+                failed: String(failed_count),
+              })
+            : t("common.newsletters_archived", {
+                count: String(completed_count),
+              }),
         action_type: "archive",
         email_ids: last_archived.ids,
         on_undo: handle_undo,
       });
     }
     on_close();
-  }, [last_archived, completed_count, t, handle_undo, on_close]);
+  }, [last_archived, completed_count, failed_count, t, handle_undo, on_close]);
 
   const all_selected =
     selected_ids.size === filtered_newsletters.length &&
@@ -466,6 +541,16 @@ export function ArchiveNewslettersModal({
                     count: String(completed_count),
                   })}
                 </p>
+                {failed_count > 0 && (
+                  <p
+                    className="text-[11px] text-center mt-1"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {t("common.n_could_not_be_archived", {
+                      count: failed_count,
+                    })}
+                  </p>
+                )}
                 <div className="mt-6" />
                 <div className="flex gap-2">
                   <Button

@@ -647,6 +647,7 @@ export const de = {
     import_complete: "Import abgeschlossen",
     contacts_imported_desc: "Ihre Kontakte wurden importiert",
     importing: "Importieren...",
+    import_progress: "Charge {{current}} von {{total}} wird importiert...",
     imported: "Importiert",
     skipped: "Übersprungen",
     failed: "Fehlgeschlagen",
@@ -1264,6 +1265,7 @@ export const de = {
       "Echte Adresse ausblenden (läuft in {{days}}T ab)",
     create_ghost_alias: "Ghost-Alias erstellen",
     new_email_body: "Sie haben eine neue E-Mail",
+    new_emails_burst_body: "Sie haben {{count}} neue E-Mails",
     settings_disabled_suspended:
       "Einstellungen sind deaktiviert, solange Ihr Konto gesperrt ist. hello@astermail.org hilft bei einem Einspruch oder weiteren Details gern weiter.",
     submit_an_appeal: "Einspruch einreichen",
@@ -1455,8 +1457,10 @@ export const de = {
     change_alias_avatar: "Avatar ändern",
     click_to_add_value: "Zum Hinzufügen klicken...",
     contacts_deleted: "{{ count }} Kontakt(e) gelöscht",
+    contacts_deleted_partial: "{{ count }} Kontakt(e) gelöscht, {{ failed }} fehlgeschlagen",
     contacts_starred: "{{ count }} Kontakt(e) mit Stern markiert",
     contacts_unstarred: "{{ count }} Kontakt(e) Stern entfernt",
+    contacts_favorites_updated_partial: "{{ count }} Kontakt(e) aktualisiert, {{ failed }} fehlgeschlagen",
     conversations_starred_bulk: "{{count}} Unterhaltung(en) mit Stern markiert",
     conversations_unstarred_bulk: "{{count}} Unterhaltung(en) Stern entfernt",
     custom_fields: "Benutzerdefinierte Felder",
@@ -2492,6 +2496,14 @@ export const de = {
     alias_pref_readable_reverse: "Absender in Reverse-Aliasen einbeziehen",
     alias_pref_readable_reverse_desc:
       "Neue Reverse-Aliase verwenden die Adresse des Absenders, sodass du auf einen Blick erkennst, wer dir schreibt.",
+    alias_delivery_title: "Zustellung",
+    alias_never_inbox: "Nie an den Posteingang senden",
+    alias_never_inbox_desc:
+      "Neue E-Mails an diesen Alias überspringen deinen Posteingang.",
+    alias_never_inbox_info:
+      "Wenn aktiviert, werden neue E-Mails, die über diesen Alias eingehen, aus deinem Haupt-Posteingang herausgehalten. Du findest sie weiterhin unter Alle E-Mails und beim Öffnen dieses Alias in der Seitenleiste.",
+    alias_never_inbox_error:
+      "Zustellung des Alias konnte nicht aktualisiert werden",
     alias_pref_always_expand: "Alias-Details immer anzeigen",
     alias_pref_always_expand_desc:
       "Zeigt das vollständige Alias-Einstellungsfeld standardmäßig an, anstatt es hinter dem Zahnradsymbol zu verbergen.",
@@ -3316,6 +3328,9 @@ export const de = {
       "Letzte Empfänger automatisch als Kontakte speichern",
     auto_save_recipients_to_contacts_description:
       "E-Mail-Adressen, an die Sie senden, automatisch als Kontakte hinzufügen",
+    reactions_enabled: "Reaktionen senden",
+    reactions_enabled_description:
+      "Erlaubt das Senden von Emoji-Reaktionen auf Nachrichten. Sie können weiterhin Reaktionen empfangen, wenn dies deaktiviert ist.",
     confirmations: "Bestätigungen",
     confirm_actions_description: "Vor diesen Aktionen um Bestätigung bitten",
     confirm_delete: "Löschen bestätigen",
@@ -5888,6 +5903,10 @@ export const de = {
     reply: "Antworten",
     reply_all: "Allen antworten",
     forward: "Weiterleiten",
+    react: "Reagieren",
+    you_reacted_with: "Du hast mit {{ emoji }} reagiert",
+    reacted_with: "{{ name }} hat mit {{ emoji }} reagiert",
+    already_reacted: "Du hast bereits damit reagiert",
     to: "An",
     cc: "Cc",
     bcc: "Bcc",
@@ -6435,6 +6454,8 @@ export const de = {
     image: "Bild",
     images: "Bilder",
     indexing_messages: "Nachrichten werden indiziert...",
+    body_search_unavailable_large_mailbox:
+      "Die Inhaltssuche ist für dieses große Postfach nicht verfügbar; es werden nur Treffer bei Betreff und Absender angezeigt",
     insert_link_title: "Link einfügen",
     last_forwarded: "Zuletzt: {{ date }}",
     link_text_optional: "Linktext (optional)",
@@ -7302,6 +7323,8 @@ export const de = {
       "Wir konnten diese E-Mail nicht für späteres Senden speichern. Ein erneuter Versuch sollte es beheben. Ihr Entwurf ist gespeichert.",
     failed_queue_forward:
       "Wir konnten diese Weiterleitung nicht für späteres Senden speichern. Ein erneuter Versuch sollte es beheben. Ihr Entwurf ist gespeichert.",
+    failed_send_reaction: "Wir konnten Ihre Reaktion nicht senden. Ein erneuter Versuch sollte es beheben.",
+    reactions_disabled: "Das Senden von Reaktionen ist deaktiviert. Aktivieren Sie es unter Einstellungen > Verhalten.",
     failed_queue_reply:
       "Wir konnten diese Antwort nicht für späteres Senden speichern. Ein erneuter Versuch sollte es beheben. Ihr Entwurf ist gespeichert.",
     failed_send:

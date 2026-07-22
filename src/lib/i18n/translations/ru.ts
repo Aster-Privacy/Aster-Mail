@@ -667,6 +667,7 @@ export const ru = {
     import_complete: "Импорт завершён",
     contacts_imported_desc: "Ваши контакты были импортированы",
     importing: "Импортирование...",
+    import_progress: "Импорт партии {{current}} из {{total}}...",
     imported: "Импортировано",
     skipped: "Пропущено",
     failed: "Не удалось",
@@ -1346,6 +1347,7 @@ export const ru = {
     settings_disabled_suspended:
       "Настройки отключены, пока учётная запись приостановлена. hello@astermail.org сможет помочь с апелляцией или с подробностями.",
     new_email_body: "У вас новое письмо",
+    new_emails_burst_body: "У вас {{count}} новых писем",
     create_ghost_alias: "Создать призрачный псевдоним",
     hide_real_address_expiry: "Скрыть ваш настоящий адрес (срок {{days}}д)",
     sender_group_primary: "Основной",
@@ -1442,8 +1444,10 @@ export const ru = {
     change_alias_avatar: "Изменить аватар",
     click_to_add_value: "Нажмите для добавления значения...",
     contacts_deleted: "{{ count }} контакт(а/ов) удалено",
+    contacts_deleted_partial: "{{ count }} контакт(а/ов) удалено, {{ failed }} не удалось",
     contacts_starred: "{{ count }} контакт(а/ов) отмечено звёздочкой",
     contacts_unstarred: "{{ count }} контакт(а/ов) сняты отметки",
+    contacts_favorites_updated_partial: "{{ count }} контакт(а/ов) обновлено, {{ failed }} не удалось",
     conversations_starred_bulk: "{{count}} беседа(ы) отмечена звёздочкой",
     conversations_unstarred_bulk: "{{count}} беседа(ы) сняты отметки",
     custom_fields: "Пользовательские поля",
@@ -2456,6 +2460,13 @@ export const ru = {
     alias_pref_readable_reverse: "Включать отправителя в обратные псевдонимы",
     alias_pref_readable_reverse_desc:
       "Новые обратные псевдонимы будут использовать адрес отправителя, чтобы вы сразу видели, кто пишет.",
+    alias_delivery_title: "Доставка",
+    alias_never_inbox: "Никогда не доставлять во Входящие",
+    alias_never_inbox_desc:
+      "Новые письма на этот псевдоним минуют ваши Входящие.",
+    alias_never_inbox_info:
+      "Когда включено, новые письма, полученные через этот псевдоним, не попадают в основную папку «Входящие». Вы по-прежнему можете найти их в разделе «Вся почта» и открыв этот псевдоним в боковой панели.",
+    alias_never_inbox_error: "Не удалось обновить доставку псевдонима",
     alias_pref_always_expand: "Всегда показывать детали псевдонима",
     alias_pref_always_expand_desc:
       "Показывать полную панель настроек псевдонима по умолчанию вместо того, чтобы скрывать её за значком шестерёнки.",
@@ -3289,6 +3300,9 @@ export const ru = {
       "Автосохранение недавних получателей в контакты",
     auto_save_recipients_to_contacts_description:
       "Автоматически добавлять адреса получателей в контакты",
+    reactions_enabled: "Отправлять реакции",
+    reactions_enabled_description:
+      "Разрешить отправку эмодзи-реакций на сообщения. Вы всё равно сможете получать реакции, даже если эта функция отключена.",
     confirmations: "Подтверждения",
     confirm_actions_description:
       "Запрашивать подтверждение перед этими действиями",
@@ -5803,6 +5817,10 @@ export const ru = {
     reply: "Ответить",
     reply_all: "Ответить всем",
     forward: "Переслать",
+    react: "Реакция",
+    you_reacted_with: "Вы отреагировали {{ emoji }}",
+    reacted_with: "{{ name }} отреагировал(а) {{ emoji }}",
+    already_reacted: "Вы уже поставили эту реакцию",
     to: "Кому",
     cc: "Копия",
     bcc: "Скрытая копия",
@@ -6347,6 +6365,8 @@ export const ru = {
     image: "изображение",
     images: "изображения",
     indexing_messages: "Индексирование сообщений...",
+    body_search_unavailable_large_mailbox:
+      "Поиск по содержимому недоступен для такого большого почтового ящика; показаны только совпадения по теме и отправителю",
     insert_link_title: "Вставить ссылку",
     last_forwarded: "Последний раз: {{ date }}",
     link_text_optional: "Текст ссылки (необязательно)",
@@ -7188,6 +7208,8 @@ export const ru = {
       "Не удалось сохранить письмо для отложенной отправки. Попробуйте ещё раз. Черновик сохранён.",
     failed_queue_forward:
       "Не удалось сохранить пересылку для отложенной отправки. Попробуйте ещё раз. Черновик сохранён.",
+    failed_send_reaction: "Не удалось отправить вашу реакцию. Попробуйте ещё раз.",
+    reactions_disabled: "Отправка реакций отключена. Включите её в Настройки > Поведение.",
     failed_queue_reply:
       "Не удалось сохранить ответ для отложенной отправки. Попробуйте ещё раз. Черновик сохранён.",
     failed_send: "Письмо не отправлено. Попробуйте ещё раз. Черновик сохранён.",

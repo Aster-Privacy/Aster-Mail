@@ -35,12 +35,6 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 export const CATEGORY_ACTION_CHUNK_SIZE = 100;
 
-const DESTRUCTIVE_ACTIONS: ReadonlySet<BulkScopeAction> = new Set([
-  "trash",
-  "archive",
-  "mark_spam",
-]);
-
 export type CategoryBulkOutcome = "done" | "noop" | "not_ready";
 
 export interface CategoryBulkOptions {
@@ -95,7 +89,7 @@ export async function run_category_scope_action(
   options?: CategoryBulkOptions,
 ): Promise<CategoryBulkOutcome> {
   if (!is_fully_built()) return "not_ready";
-  if (DESTRUCTIVE_ACTIONS.has(action) && is_index_capped()) return "not_ready";
+  if (is_index_capped()) return "not_ready";
 
   const { all_ids } = get_category_action_ids(category);
 

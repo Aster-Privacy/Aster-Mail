@@ -56,6 +56,39 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 type FilterMode = "all" | "enabled" | "disabled";
 
 const ALIASES_PER_PAGE = 50;
+const BULK_ACTION_CHUNK_SIZE = 100;
+
+function chunk_ids(ids: string[]): string[][] {
+  const chunks: string[][] = [];
+
+  for (let i = 0; i < ids.length; i += BULK_ACTION_CHUNK_SIZE) {
+    chunks.push(ids.slice(i, i + BULK_ACTION_CHUNK_SIZE));
+  }
+
+  return chunks;
+}
+
+async function run_chunked<T>(
+  ids: string[],
+  action: (id: string) => Promise<T>,
+): Promise<{ succeeded: string[]; failed: string[] }> {
+  const succeeded: string[] = [];
+  const failed: string[] = [];
+
+  for (const chunk of chunk_ids(ids)) {
+    const results = await Promise.allSettled(chunk.map((id) => action(id)));
+
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        succeeded.push(chunk[index]);
+      } else {
+        failed.push(chunk[index]);
+      }
+    });
+  }
+
+  return { succeeded, failed };
+}
 
 interface AliasListProps {
   aliases: DecryptedEmailAlias[];
@@ -71,6 +104,7 @@ interface AliasListProps {
   on_display_name_saved?: (alias_id: string, name: string) => void;
   on_note_saved?: (alias_id: string, note: string) => void;
   on_websites_saved?: (alias_id: string, websites: string[]) => void;
+  on_never_inbox_saved?: (alias_id: string, value: boolean) => void;
   on_aliases_changed?: () => void;
   on_domain_address_display_name_saved?: (
     address_id: string,
@@ -131,6 +165,7 @@ export function AliasList({
   on_display_name_saved,
   on_note_saved,
   on_websites_saved,
+  on_never_inbox_saved,
   on_aliases_changed,
   on_domain_address_display_name_saved,
   on_alias_pin_toggle,
@@ -236,28 +271,95 @@ export function AliasList({
     }
   };
 
-  const handle_bulk_enable = async () => {
+  const handle_bulk_set_enabled = async (enabled: boolean) => {
     const ids = Array.from(selected_ids);
-    await Promise.all(ids.map((id) => update_alias(id, { is_enabled: true })));
-    on_aliases_changed?.();
-    show_toast(t("settings.alias_bulk_enable"), "success");
+    const messages = enabled
+      ? {
+          success: "settings.alias_bulk_enable_success" as const,
+          partial: "settings.alias_bulk_enable_partial" as const,
+          failed: "settings.alias_bulk_enable_failed" as const,
+        }
+      : {
+          success: "settings.alias_bulk_disable_success" as const,
+          partial: "settings.alias_bulk_disable_partial" as const,
+          failed: "settings.alias_bulk_disable_failed" as const,
+        };
+
+    try {
+      const { succeeded, failed } = await run_chunked(ids, (id) =>
+        update_alias(id, { is_enabled: enabled }),
+      );
+
+      if (succeeded.length > 0) {
+        set_selected_ids((prev) => {
+          const next = new Set(prev);
+
+          succeeded.forEach((id) => next.delete(id));
+          return next;
+        });
+        on_aliases_changed?.();
+      }
+
+      if (failed.length === 0) {
+        show_toast(t(messages.success, { count: String(succeeded.length) }), "success");
+      } else if (succeeded.length > 0) {
+        show_toast(
+          t(messages.partial, {
+            count: String(succeeded.length),
+            failed: String(failed.length),
+          }),
+          "warning",
+        );
+      } else {
+        show_toast(t(messages.failed), "error");
+      }
+    } catch {
+      show_toast(t(messages.failed), "error");
+    }
   };
 
-  const handle_bulk_disable = async () => {
-    const ids = Array.from(selected_ids);
-    await Promise.all(ids.map((id) => update_alias(id, { is_enabled: false })));
-    on_aliases_changed?.();
-    show_toast(t("settings.alias_bulk_disable"), "success");
-  };
+  const handle_bulk_enable = () => handle_bulk_set_enabled(true);
+  const handle_bulk_disable = () => handle_bulk_set_enabled(false);
 
   const handle_bulk_delete_confirm = async () => {
+    const ids = Array.from(selected_ids);
+
     try {
-      const ids = Array.from(selected_ids);
-      await Promise.all(ids.map((id) => delete_alias(id)));
-      set_selected_ids(new Set());
-      set_show_bulk_delete_confirm(false);
-      on_aliases_changed?.();
-    } catch {}
+      const { succeeded, failed } = await run_chunked(ids, (id) => delete_alias(id));
+
+      set_selected_ids((prev) => {
+        const next = new Set(prev);
+
+        succeeded.forEach((id) => next.delete(id));
+        return next;
+      });
+
+      if (failed.length === 0) {
+        set_show_bulk_delete_confirm(false);
+      }
+      if (succeeded.length > 0) {
+        on_aliases_changed?.();
+      }
+
+      if (failed.length === 0) {
+        show_toast(
+          t("settings.alias_bulk_delete_success", { count: String(succeeded.length) }),
+          "success",
+        );
+      } else if (succeeded.length > 0) {
+        show_toast(
+          t("settings.alias_bulk_delete_partial", {
+            count: String(succeeded.length),
+            failed: String(failed.length),
+          }),
+          "warning",
+        );
+      } else {
+        show_toast(t("settings.alias_bulk_delete_failed"), "error");
+      }
+    } catch {
+      show_toast(t("settings.alias_bulk_delete_failed"), "error");
+    }
   };
 
   const exit_bulk_mode = () => {
@@ -408,6 +510,7 @@ export function AliasList({
               on_avatar_changed={on_avatar_changed}
               on_delete={on_alias_delete}
               on_display_name_saved={on_display_name_saved}
+              on_never_inbox_saved={on_never_inbox_saved}
               on_note_saved={on_note_saved}
               on_websites_saved={on_websites_saved}
               on_select={handle_select}

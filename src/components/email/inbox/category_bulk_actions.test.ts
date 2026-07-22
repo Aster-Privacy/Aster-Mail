@@ -117,16 +117,16 @@ describe("run_category_scope_action", () => {
     expect(mock_batch_archive).not.toHaveBeenCalled();
   });
 
-  it("still allows non-destructive actions when the index is capped", async () => {
+  it("refuses non-destructive actions when the index is capped", async () => {
     mock_capped.mockReturnValue(true);
     set_index(make_ids(3));
 
-    const outcome = await run_category_scope_action("mark_read", "primary");
+    for (const action of ["mark_read", "mark_unread", "star", "unstar"] as const) {
+      const outcome = await run_category_scope_action(action, "primary");
 
-    expect(outcome).toBe("done");
-    expect(mock_bulk_update).toHaveBeenCalledWith(make_ids(3), {
-      is_read: true,
-    });
+      expect(outcome).toBe("not_ready");
+    }
+    expect(mock_bulk_update).not.toHaveBeenCalled();
   });
 
   it("returns noop for an empty tab", async () => {

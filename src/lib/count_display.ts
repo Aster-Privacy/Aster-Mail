@@ -18,24 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { format_capped_count } from "@/lib/count_display";
+export const DISPLAY_COUNT_CAP = 500;
 
-function is_tauri(): boolean {
-  return "__TAURI_INTERNALS__" in window;
+export function format_capped_count(
+  value: number,
+  cap: number = DISPLAY_COUNT_CAP,
+): string {
+  if (!Number.isFinite(value) || value <= 0) return "0";
+  const floored = Math.floor(value);
+
+  if (floored >= cap) return `${cap.toLocaleString()}+`;
+
+  return floored.toLocaleString();
 }
 
-export async function update_tray_badge(unread_count: number): Promise<void> {
-  if (!is_tauri()) return;
-
-  try {
-    const { invoke } = await import("@tauri-apps/api/core");
-    const tooltip =
-      unread_count > 0
-        ? `Aster Mail - ${format_capped_count(unread_count)} unread`
-        : "Aster Mail";
-
-    await invoke("set_tray_tooltip", { tooltip });
-  } catch {
-    return;
-  }
+export function is_at_or_above_display_cap(
+  value: number,
+  cap: number = DISPLAY_COUNT_CAP,
+): boolean {
+  return Number.isFinite(value) && value >= cap;
 }

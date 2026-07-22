@@ -660,6 +660,7 @@ export const ja = {
     import_complete: "インポート完了",
     contacts_imported_desc: "連絡先がインポートされました",
     importing: "インポート中...",
+    import_progress: "バッチ {{current}} / {{total}} をインポート中...",
     imported: "インポート済み",
     skipped: "スキップ済み",
     failed: "失敗",
@@ -1343,6 +1344,7 @@ export const ja = {
     settings_disabled_suspended:
       "アカウントが停止されている間、設定は無効になっています。異議申し立てや詳細については hello@astermail.org がお力になれます。",
     new_email_body: "新しいメールが届いています",
+    new_emails_burst_body: "新しいメールが{{count}}件届いています",
     create_ghost_alias: "ゴーストエイリアスを作成",
     hide_real_address_expiry: "実際のアドレスを隠す（{{days}}日で有効期限）",
     sender_group_primary: "プライマリ",
@@ -1498,8 +1500,10 @@ export const ja = {
     blocked_items_count: "{{count}}件",
     click_to_add_value: "クリックして値を追加...",
     contacts_deleted: "{{ count }}件の連絡先を削除しました",
+    contacts_deleted_partial: "{{ count }}件の連絡先を削除しました（{{ failed }}件失敗）",
     contacts_starred: "{{ count }}件の連絡先にスターを付けました",
     contacts_unstarred: "{{ count }}件の連絡先のスターを外しました",
+    contacts_favorites_updated_partial: "{{ count }}件の連絡先を更新しました（{{ failed }}件失敗）",
     conversations_starred_bulk: "{{count}}件の会話にスターを付けました",
     conversations_unstarred_bulk: "{{count}}件の会話のスターを外しました",
     custom_fields: "カスタムフィールド",
@@ -2446,6 +2450,13 @@ export const ja = {
     alias_pref_readable_reverse: "リバースエイリアスに送信者を含める",
     alias_pref_readable_reverse_desc:
       "新しいリバースエイリアスに送信者のアドレスを使用し、誰がメールしてきたか一目で分かるようにします。",
+    alias_delivery_title: "配信",
+    alias_never_inbox: "受信トレイに配信しない",
+    alias_never_inbox_desc:
+      "このエイリアス宛ての新着メールは受信トレイに入らなくなります。",
+    alias_never_inbox_info:
+      "有効にすると、このエイリアスで受信した新着メールはメインの受信トレイに表示されなくなります。「すべてのメール」や、サイドバーでこのエイリアスを開くことで引き続き確認できます。",
+    alias_never_inbox_error: "エイリアスの配信設定を更新できませんでした",
     alias_pref_always_expand: "常にエイリアスの詳細を表示",
     alias_pref_always_expand_desc:
       "歯車アイコンの後ろに隠さず、既定でエイリアスの設定パネル全体を表示します。",
@@ -3277,6 +3288,9 @@ export const ja = {
     auto_save_recipients_to_contacts: "最近の受信者を連絡先に自動保存",
     auto_save_recipients_to_contacts_description:
       "送信先のメールアドレスを自動的に連絡先として追加します",
+    reactions_enabled: "リアクションを送信",
+    reactions_enabled_description:
+      "メッセージに絵文字リアクションを送信できるようにします。オフにしてもリアクションを受信することはできます。",
     confirmations: "確認",
     confirm_actions_description: "これらの操作の前に確認を求めます",
     confirm_delete: "削除の確認",
@@ -5758,6 +5772,10 @@ export const ja = {
     reply: "返信",
     reply_all: "全員に返信",
     forward: "転送",
+    react: "リアクション",
+    you_reacted_with: "{{ emoji }} でリアクションしました",
+    reacted_with: "{{ name }} が {{ emoji }} でリアクションしました",
+    already_reacted: "すでにこのリアクションをしています",
     to: "宛先",
     cc: "Cc",
     bcc: "Bcc",
@@ -6386,6 +6404,8 @@ export const ja = {
     folder_item_count: "{{count}} 件",
     folder_item_count_singular: "{{count}} 件",
     indexing_messages: "メッセージをインデックス中...",
+    body_search_unavailable_large_mailbox:
+      "このメールボックスは大きいため本文検索は利用できません。件名と差出人の一致結果のみ表示しています",
     searching_message_content: "メッセージ内容を検索中",
     search_taking_too_long: "検索に時間がかかっています",
     search_refine_terms: "より具体的な語句で検索を絞り込んでみてください。",
@@ -7124,6 +7144,8 @@ export const ja = {
     no_recipients: "送信する前に、少なくとも 1 件の宛先が必要です。",
     failed_queue_forward:
       "この転送メールを後で送信するために保存できませんでした。もう一度試すと通ることが多いです。下書きは保存されています。",
+    failed_send_reaction: "リアクションを送信できませんでした。もう一度試すと通ることが多いです。",
+    reactions_disabled: "リアクションの送信はオフになっています。設定 > 動作で有効にしてください。",
     failed_send:
       "このメールは送信されませんでした。もう一度試すと通ることが多いです。下書きは保存されています。",
     incorrect_password:

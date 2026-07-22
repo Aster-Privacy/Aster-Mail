@@ -676,6 +676,7 @@ export const it = {
     import_complete: "Importazione completata",
     contacts_imported_desc: "I tuoi contatti sono stati importati",
     importing: "Importazione...",
+    import_progress: "Importazione lotto {{current}} di {{total}}...",
     imported: "Importati",
     skipped: "Saltati",
     failed: "Non riuscito",
@@ -1349,6 +1350,7 @@ export const it = {
     settings_disabled_suspended:
       "Le impostazioni sono disattivate mentre il suo account è sospeso. hello@astermail.org può aiutarla con un ricorso o con maggiori dettagli.",
     new_email_body: "Hai una nuova email",
+    new_emails_burst_body: "Hai {{count}} nuove email",
     create_ghost_alias: "Crea alias Ghost",
     hide_real_address_expiry:
       "Nascondi il tuo vero indirizzo (scadenza {{days}}g)",
@@ -1650,8 +1652,10 @@ export const it = {
     n_contacts_imported: "{{ count }} contatti importati",
     yourname_placeholder: "tuonome",
     contacts_deleted: "{{ count }} contatto/i eliminato/i",
+    contacts_deleted_partial: "{{ count }} contatto/i eliminato/i, {{ failed }} non riusciti",
     contacts_starred: "{{ count }} contatto/i contrassegnato/i come speciale/i",
     contacts_unstarred: "{{ count }} contatto/i rimosso/i dai preferiti",
+    contacts_favorites_updated_partial: "{{ count }} contatto/i aggiornato/i, {{ failed }} non riusciti",
     auth_fail_tooltip_intro:
       "Questo messaggio non ha superato questi controlli sul mittente:",
     auth_fail_tooltip_spf:
@@ -2468,6 +2472,13 @@ export const it = {
     alias_pref_readable_reverse: "Includi il mittente negli alias inversi",
     alias_pref_readable_reverse_desc:
       "I nuovi alias inversi useranno l'indirizzo del mittente così puoi capire a colpo d'occhio chi sta scrivendo.",
+    alias_delivery_title: "Consegna",
+    alias_never_inbox: "Non inviare mai in Posta in arrivo",
+    alias_never_inbox_desc:
+      "Le nuove email a questo alias saltano la tua Posta in arrivo.",
+    alias_never_inbox_info:
+      "Quando è attivo, le nuove email ricevute tramite questo alias restano fuori dalla tua Posta in arrivo principale. Puoi comunque trovarle in Tutta la posta e aprendo questo alias nella barra laterale.",
+    alias_never_inbox_error: "Impossibile aggiornare la consegna dell'alias",
     alias_pref_always_expand: "Mostra sempre i dettagli dell'alias",
     alias_pref_always_expand_desc:
       "Mostra per impostazione predefinita il pannello completo delle impostazioni dell'alias invece di nasconderlo dietro l'icona dell'ingranaggio.",
@@ -3359,6 +3370,9 @@ export const it = {
       "Salva automaticamente i destinatari recenti nei contatti",
     auto_save_recipients_to_contacts_description:
       "Aggiungi automaticamente gli indirizzi email a cui invii come contatti",
+    reactions_enabled: "Invia reazioni",
+    reactions_enabled_description:
+      "Consenti l'invio di reazioni con emoji ai messaggi. Puoi comunque ricevere reazioni quando questa opzione è disattivata.",
     confirmations: "Conferme",
     confirm_actions_description: "Chiedi conferma prima di queste azioni",
     confirm_delete: "Conferma eliminazione",
@@ -5842,6 +5856,10 @@ export const it = {
     reply: "Rispondi",
     reply_all: "Rispondi a tutti",
     forward: "Inoltra",
+    react: "Reagisci",
+    you_reacted_with: "Hai reagito con {{ emoji }}",
+    reacted_with: "{{ name }} ha reagito con {{ emoji }}",
+    already_reacted: "Hai già reagito con questo",
     to: "A",
     cc: "Cc",
     bcc: "Ccn",
@@ -6396,6 +6414,8 @@ export const it = {
     folder_item_count: "{{count}} elementi",
     folder_item_count_singular: "{{count}} elemento",
     indexing_messages: "Indicizzazione messaggi...",
+    body_search_unavailable_large_mailbox:
+      "La ricerca nel contenuto non è disponibile per questa casella molto grande; vengono mostrate solo le corrispondenze di oggetto e mittente",
     searching_message_content: "Ricerca nel contenuto dei messaggi",
     search_taking_too_long: "La ricerca sta richiedendo troppo tempo",
     search_refine_terms:
@@ -7241,6 +7261,8 @@ export const it = {
       "Non siamo riusciti a salvare questa email per l'invio successivo. Un altro tentativo dovrebbe bastare. La sua bozza è salvata.",
     failed_queue_forward:
       "Non siamo riusciti a salvare questo inoltro per l'invio successivo. Un altro tentativo dovrebbe bastare. La sua bozza è salvata.",
+    failed_send_reaction: "Non siamo riusciti a inviare la sua reazione. Un altro tentativo dovrebbe bastare.",
+    reactions_disabled: "L'invio di reazioni è disattivato. Attivalo in Impostazioni > Comportamento.",
     failed_queue_reply:
       "Non siamo riusciti a salvare questa risposta per l'invio successivo. Un altro tentativo dovrebbe bastare. La sua bozza è salvata.",
     failed_send:

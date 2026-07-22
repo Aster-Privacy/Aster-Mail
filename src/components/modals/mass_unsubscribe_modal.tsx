@@ -21,7 +21,8 @@
 import type { UnsubscribeInfo } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MagnifyingGlassIcon,
@@ -35,8 +36,11 @@ import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { SnoozeIcon } from "@/components/common/icons";
-import { list_mail_items, bulk_patch_metadata } from "@/services/api/mail";
-import { batch_archive } from "@/services/api/archive";
+import {
+  list_mail_items,
+  batched_bulk_patch_metadata,
+} from "@/services/api/mail";
+import { batched_archive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
   decrypt_mail_envelope,
@@ -54,6 +58,7 @@ import {
   encrypt_mail_metadata,
 } from "@/services/crypto/mail_metadata";
 import { get_email_username, get_email_domain } from "@/lib/utils";
+import { BATCH_LIMITS } from "@/constants/batch_config";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -297,6 +302,25 @@ export function MassUnsubscribeModal({
       .sort((a, b) => b.email_count - a.email_count);
   }, [subscriptions, search_query]);
 
+  useEffect(() => {
+    const visible_ids = new Set(filtered_subscriptions.map((sub) => sub.id));
+
+    set_selected_ids((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+
+      for (const id of prev) {
+        if (visible_ids.has(id)) {
+          next.add(id);
+        } else {
+          changed = true;
+        }
+      }
+
+      return changed ? next : prev;
+    });
+  }, [filtered_subscriptions]);
+
   const handle_select_all = () => {
     if (selected_ids.size === filtered_subscriptions.length) {
       set_selected_ids(new Set());
@@ -355,36 +379,54 @@ export function MassUnsubscribeModal({
       }
 
       set_link_opened_count(links_opened);
-      set_failed_count(failures);
 
-      const metadata_updates = await Promise.all(
-        all_items.map(async (item) => {
-          const updated_metadata = {
-            ...item.metadata!,
-            is_archived: true,
-            is_trashed: false,
-            is_spam: false,
-          };
-          const encrypted = await encrypt_mail_metadata(updated_metadata);
-
-          return encrypted ? { id: item.id, ...encrypted } : null;
-        }),
-      );
-
-      const valid_updates = metadata_updates.filter(
-        (u) => u !== null,
-      ) as Array<{
+      const ENCRYPT_CHUNK_SIZE = BATCH_LIMITS.MAIL_BULK;
+      const valid_updates: Array<{
         id: string;
         encrypted_metadata: string;
         metadata_nonce: string;
-      }>;
+      }> = [];
+
+      for (let i = 0; i < all_items.length; i += ENCRYPT_CHUNK_SIZE) {
+        const chunk = all_items.slice(i, i + ENCRYPT_CHUNK_SIZE);
+        const chunk_results = await Promise.allSettled(
+          chunk.map(async (item) => {
+            const updated_metadata = {
+              ...item.metadata!,
+              is_archived: true,
+              is_trashed: false,
+              is_spam: false,
+            };
+            const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+            if (!encrypted) throw new Error("encrypt_failed");
+
+            return { id: item.id, ...encrypted };
+          }),
+        );
+
+        for (const result of chunk_results) {
+          if (result.status === "fulfilled") {
+            valid_updates.push(result.value);
+          } else {
+            failures++;
+          }
+        }
+      }
 
       if (valid_updates.length > 0) {
-        await bulk_patch_metadata({ items: valid_updates });
+        const patch_result = await batched_bulk_patch_metadata(valid_updates);
+
+        failures += patch_result.failed_ids.length;
       }
 
       stale_all_view_caches();
-      await batch_archive({ ids: all_mail_ids, tier: "hot" });
+
+      const archive_result = await batched_archive(all_mail_ids, "hot");
+
+      failures += archive_result.failed_ids.length;
+
+      set_failed_count(failures);
       emit_mail_items_removed({ ids: all_mail_ids });
       invalidate_mail_stats();
 
@@ -402,6 +444,16 @@ export function MassUnsubscribeModal({
   const all_selected =
     selected_ids.size === filtered_subscriptions.length &&
     filtered_subscriptions.length > 0;
+
+  const list_scroll_ref = useRef<HTMLDivElement>(null);
+
+  const row_virtualizer = useVirtualizer({
+    count: filtered_subscriptions.length,
+    getScrollElement: () => list_scroll_ref.current,
+    estimateSize: () => 52,
+    overscan: 8,
+    getItemKey: (index) => filtered_subscriptions[index].id,
+  });
 
   return (
     <Modal
@@ -537,7 +589,7 @@ export function MassUnsubscribeModal({
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
+                <div ref={list_scroll_ref} className="flex-1 overflow-y-auto">
                   {is_loading ? (
                     <div className="flex flex-col items-center justify-center h-full">
                       <Spinner
@@ -575,73 +627,88 @@ export function MassUnsubscribeModal({
                       </p>
                     </div>
                   ) : (
-                    filtered_subscriptions.map((sub, index) => {
-                      const is_selected = selected_ids.has(sub.id);
+                    <div
+                      className="relative w-full"
+                      style={{ height: row_virtualizer.getTotalSize() }}
+                    >
+                      {row_virtualizer.getVirtualItems().map((virtual_row) => {
+                        const index = virtual_row.index;
+                        const sub = filtered_subscriptions[index];
+                        const is_selected = selected_ids.has(sub.id);
 
-                      return (
-                        <button
-                          key={sub.id}
-                          className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer select-none transition-colors"
-                          style={{ backgroundColor: "transparent" }}
-                          onClick={() => handle_select(index)}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "var(--bg-hover)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
-                          }}
-                        >
-                          <Checkbox
-                            checked={is_selected}
-                            onCheckedChange={() => handle_select(index)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden bg-black/[0.03] dark:bg-white/[0.04]">
-                            <img
-                              alt=""
-                              className="w-4 h-4 object-contain"
-                              src={get_favicon_url(sub.domain.toLowerCase())}
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                const parent = e.currentTarget.parentElement;
-
-                                if (parent) {
-                                  parent.textContent = "";
-                                  const span = document.createElement("span");
-
-                                  span.className = "text-[11px] font-medium";
-                                  span.style.color = "var(--text-muted)";
-                                  span.textContent = sub.sender_name.charAt(0);
-                                  parent.appendChild(span);
-                                }
-                              }}
+                        return (
+                          <button
+                            key={virtual_row.key}
+                            ref={row_virtualizer.measureElement}
+                            className="absolute top-0 left-0 w-full flex items-center gap-3 px-4 py-2 cursor-pointer select-none transition-colors"
+                            data-index={index}
+                            style={{
+                              backgroundColor: "transparent",
+                              transform: `translateY(${virtual_row.start}px)`,
+                            }}
+                            onClick={() => handle_select(index)}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "var(--bg-hover)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                            }}
+                          >
+                            <Checkbox
+                              checked={is_selected}
+                              onCheckedChange={() => handle_select(index)}
+                              onClick={(e) => e.stopPropagation()}
                             />
-                          </div>
-                          <div className="flex-1 min-w-0 text-left">
-                            <p
-                              className="text-[13px] font-medium truncate"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {sub.sender_name}
-                            </p>
-                            <p
-                              className="text-[11px] truncate"
+                            <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden bg-black/[0.03] dark:bg-white/[0.04]">
+                              <img
+                                alt=""
+                                className="w-4 h-4 object-contain"
+                                src={get_favicon_url(sub.domain.toLowerCase())}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  const parent = e.currentTarget.parentElement;
+
+                                  if (parent) {
+                                    parent.textContent = "";
+                                    const span =
+                                      document.createElement("span");
+
+                                    span.className =
+                                      "text-[11px] font-medium";
+                                    span.style.color = "var(--text-muted)";
+                                    span.textContent =
+                                      sub.sender_name.charAt(0);
+                                    parent.appendChild(span);
+                                  }
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0 text-left">
+                              <p
+                                className="text-[13px] font-medium truncate"
+                                style={{ color: "var(--text-primary)" }}
+                              >
+                                {sub.sender_name}
+                              </p>
+                              <p
+                                className="text-[11px] truncate"
+                                style={{ color: "var(--text-muted)" }}
+                              >
+                                {sub.sender_email}
+                              </p>
+                            </div>
+                            <span
+                              className="text-[11px] tabular-nums flex-shrink-0"
                               style={{ color: "var(--text-muted)" }}
                             >
-                              {sub.sender_email}
-                            </p>
-                          </div>
-                          <span
-                            className="text-[11px] tabular-nums flex-shrink-0"
-                            style={{ color: "var(--text-muted)" }}
-                          >
-                            {sub.email_count}
-                          </span>
-                        </button>
-                      );
-                    })
+                              {sub.email_count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 

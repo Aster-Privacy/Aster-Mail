@@ -671,6 +671,7 @@ export const es = {
     import_complete: "Importación completada",
     contacts_imported_desc: "Tus contactos han sido importados",
     importing: "Importando...",
+    import_progress: "Importando lote {{current}} de {{total}}...",
     imported: "Importados",
     skipped: "Omitidos",
     failed: "Falló",
@@ -1350,6 +1351,7 @@ export const es = {
     settings_disabled_suspended:
       "Los ajustes están desactivados mientras tu cuenta está suspendida. Escribe a hello@astermail.org para apelar o saber más.",
     new_email_body: "Tienes un correo nuevo",
+    new_emails_burst_body: "Tienes {{count}} correos nuevos",
     create_ghost_alias: "Crear alias fantasma",
     hide_real_address_expiry: "Oculta tu dirección real (caduca en {{days}} d)",
     sender_group_primary: "Principal",
@@ -1441,8 +1443,10 @@ export const es = {
     change_alias_avatar: "Cambiar avatar del alias",
     click_to_add_value: "Clic para agregar un valor",
     contacts_deleted: "{{ count }} contacto(s) eliminado(s)",
+    contacts_deleted_partial: "{{ count }} contacto(s) eliminado(s), {{ failed }} fallido(s)",
     contacts_starred: "{{ count }} contacto(s) marcado(s) con estrella",
     contacts_unstarred: "{{ count }} contacto(s) sin estrella",
+    contacts_favorites_updated_partial: "{{ count }} contacto(s) actualizado(s), {{ failed }} fallido(s)",
     conversations_starred_bulk:
       "{{count}} conversación(es) marcada(s) con estrella",
     conversations_unstarred_bulk:
@@ -2438,6 +2442,13 @@ export const es = {
     alias_pref_readable_reverse: "Incluir al remitente en los alias inversos",
     alias_pref_readable_reverse_desc:
       "Los nuevos alias inversos usarán la dirección del remitente para que sepas de un vistazo quién te escribe.",
+    alias_delivery_title: "Entrega",
+    alias_never_inbox: "No enviar nunca a la bandeja de entrada",
+    alias_never_inbox_desc:
+      "Los nuevos correos a este alias omiten tu bandeja de entrada.",
+    alias_never_inbox_info:
+      "Cuando está activado, los nuevos correos recibidos a través de este alias se mantienen fuera de tu bandeja de entrada principal. Aún puedes encontrarlos en Todo el correo y abriendo este alias en la barra lateral.",
+    alias_never_inbox_error: "No se pudo actualizar la entrega del alias",
     alias_pref_always_expand: "Mostrar siempre los detalles del alias",
     alias_pref_always_expand_desc:
       "Muestra el panel completo de ajustes del alias de forma predeterminada en lugar de ocultarlo tras el icono del engranaje.",
@@ -3281,6 +3292,9 @@ export const es = {
       "Guardar destinatarios recientes en contactos automáticamente",
     auto_save_recipients_to_contacts_description:
       "Automatically add email addresses you send to as contacts",
+    reactions_enabled: "Enviar reacciones",
+    reactions_enabled_description:
+      "Permite enviar reacciones con emoji a los mensajes. Aún puedes recibir reacciones cuando esto está desactivado.",
     confirmations: "Confirmaciones",
     confirm_actions_description: "Pedir confirmación antes de estas acciones",
     confirm_delete: "Confirmar eliminación",
@@ -5740,6 +5754,10 @@ export const es = {
     reply: "Responder",
     reply_all: "Responder a todos",
     forward: "Reenviar",
+    react: "Reaccionar",
+    you_reacted_with: "Reaccionaste con {{ emoji }}",
+    reacted_with: "{{ name }} reaccionó con {{ emoji }}",
+    already_reacted: "Ya reaccionaste con esto",
     to: "Para",
     cc: "Cc",
     bcc: "Cco",
@@ -6284,6 +6302,8 @@ export const es = {
     image: "Imagen",
     images: "Imágenes",
     indexing_messages: "Indexando mensajes...",
+    body_search_unavailable_large_mailbox:
+      "La búsqueda de contenido no está disponible para este buzón tan grande; solo se muestran coincidencias de asunto y remitente",
     insert_link_title: "Insertar enlace",
     last_forwarded: "Último: {{ date }}",
     link_text_optional: "Texto del enlace (opcional)",
@@ -7087,6 +7107,8 @@ export const es = {
       "No pudimos leer este archivo PST: {{error}}. Exportar desde tu cliente de correo como MBOX suele resolverlo.",
     failed_queue_email: "Error al poner el correo en cola",
     failed_queue_forward: "Error al poner el reenvío en cola",
+    failed_send_reaction: "No se pudo enviar tu reacción",
+    reactions_disabled: "El envío de reacciones está desactivado. Actívalo en Configuración > Comportamiento.",
     failed_queue_reply: "Error al poner la respuesta en cola",
     failed_send: "Error al enviar",
     failed_send_email: "Error al enviar el correo",

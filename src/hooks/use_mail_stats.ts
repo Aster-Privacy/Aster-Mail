@@ -442,12 +442,14 @@ class MailStatsStore {
       void this.fetch(true);
     }, RECONCILE_DELAY_MS);
 
-    if (!this.late_reconcile_timer) {
-      this.late_reconcile_timer = setTimeout(() => {
-        this.late_reconcile_timer = null;
-        void this.fetch(true);
-      }, LATE_RECONCILE_DELAY_MS);
+    if (this.late_reconcile_timer) {
+      clearTimeout(this.late_reconcile_timer);
     }
+
+    this.late_reconcile_timer = setTimeout(() => {
+      this.late_reconcile_timer = null;
+      void this.fetch(true);
+    }, LATE_RECONCILE_DELAY_MS);
   }
 
   set_storage_total(bytes: number): void {

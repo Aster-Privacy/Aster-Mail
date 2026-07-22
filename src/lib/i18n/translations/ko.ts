@@ -653,6 +653,7 @@ export const ko = {
     import_complete: "가져오기 완료",
     contacts_imported_desc: "연락처를 가져왔습니다",
     importing: "가져오는 중...",
+    import_progress: "{{total}}개 배치 중 {{current}}번째 가져오는 중...",
     imported: "가져옴",
     skipped: "건너뜀",
     failed: "실패",
@@ -1316,6 +1317,7 @@ export const ko = {
     settings_disabled_suspended:
       "계정이 정지된 동안 설정은 사용할 수 없습니다. 이의 신청이나 자세한 안내는 hello@astermail.org에서 도움을 받을 수 있습니다.",
     new_email_body: "새 이메일이 도착했습니다",
+    new_emails_burst_body: "새 이메일이 {{count}}개 도착했습니다",
     create_ghost_alias: "고스트 별칭 만들기",
     hide_real_address_expiry: "실제 주소 숨기기 ({{days}}일 후 만료)",
     sender_group_primary: "기본",
@@ -1460,8 +1462,10 @@ export const ko = {
     n_contacts_imported: "{{ count }}개 연락처 가져옴",
     yourname_placeholder: "yourname",
     contacts_deleted: "{{ count }}개 연락처 삭제됨",
+    contacts_deleted_partial: "{{ count }}개 연락처 삭제됨, {{ failed }}개 실패",
     contacts_starred: "{{ count }}개 연락처 별표 표시됨",
     contacts_unstarred: "{{ count }}개 연락처 별표 해제됨",
+    contacts_favorites_updated_partial: "{{ count }}개 연락처 업데이트됨, {{ failed }}개 실패",
     auth_fail_tooltip_intro: "이 메시지는 다음 발신자 검사에 실패했습니다:",
     auth_fail_tooltip_spf:
       "이 메시지를 보낸 서버는 보낸 사람 줄 도메인의 승인된 발신자가 아닙니다.",
@@ -2351,6 +2355,13 @@ export const ko = {
     alias_pref_readable_reverse: "역방향 별칭에 발신자 포함",
     alias_pref_readable_reverse_desc:
       "새 역방향 별칭은 발신자의 주소를 사용하므로 누가 이메일을 보내는지 한눈에 알 수 있습니다.",
+    alias_delivery_title: "수신",
+    alias_never_inbox: "받은 편지함으로 보내지 않음",
+    alias_never_inbox_desc:
+      "이 별칭으로 오는 새 이메일은 받은 편지함을 건너뜁니다.",
+    alias_never_inbox_info:
+      "활성화하면 이 별칭을 통해 수신된 새 이메일이 기본 받은 편지함에 표시되지 않습니다. 전체 메일에서 확인하거나 사이드바에서 이 별칭을 열어 계속 찾을 수 있습니다.",
+    alias_never_inbox_error: "별칭 수신 설정을 업데이트하지 못했습니다",
     alias_pref_always_expand: "항상 별칭 세부 정보 표시",
     alias_pref_always_expand_desc:
       "톱니바퀴 아이콘 뒤에 숨기는 대신 전체 별칭 설정 패널을 기본으로 표시합니다.",
@@ -3260,6 +3271,9 @@ export const ko = {
     auto_save_recipients_to_contacts: "최근 수신자를 연락처에 자동 저장",
     auto_save_recipients_to_contacts_description:
       "보내는 이메일 주소를 자동으로 연락처에 추가합니다",
+    reactions_enabled: "반응 보내기",
+    reactions_enabled_description:
+      "메시지에 이모지 반응을 보낼 수 있습니다. 이 기능을 꺼도 반응을 받을 수는 있습니다.",
     confirmations: "확인",
     confirm_actions_description: "다음 작업 전에 확인을 요청합니다",
     confirm_delete: "삭제 확인",
@@ -5589,6 +5603,10 @@ export const ko = {
     reply: "답장",
     reply_all: "전체 답장",
     forward: "전달",
+    react: "반응",
+    you_reacted_with: "{{ emoji }}(으)로 반응했습니다",
+    reacted_with: "{{ name }}님이 {{ emoji }}(으)로 반응했습니다",
+    already_reacted: "이미 이 반응을 남겼습니다",
     to: "받는 사람",
     cc: "참조",
     bcc: "숨은 참조",
@@ -6135,6 +6153,8 @@ export const ko = {
     folder_item_count: "{{count}}개 항목",
     folder_item_count_singular: "{{count}}개 항목",
     indexing_messages: "메시지 인덱싱 중...",
+    body_search_unavailable_large_mailbox:
+      "메일함이 너무 커서 본문 검색을 사용할 수 없습니다. 제목과 보낸 사람 일치 결과만 표시됩니다",
     searching_message_content: "메시지 내용 검색 중...",
     search_taking_too_long: "검색에 시간이 너무 오래 걸립니다",
     search_refine_terms: "더 구체적인 검색어로 검색 범위를 좁혀 보세요.",
@@ -6911,6 +6931,8 @@ export const ko = {
       "답장을 대기열에 넣지 못했습니다. 다시 시도하면 됩니다.",
     failed_queue_forward:
       "전달을 대기열에 넣지 못했습니다. 다시 시도하면 됩니다.",
+    failed_send_reaction: "반응을 보내지 못했습니다. 다시 시도하면 됩니다.",
+    reactions_disabled: "반응 보내기가 꺼져 있습니다. 설정 > 동작에서 활성화하세요.",
     failed_send: "발송에 실패했습니다. 다시 시도하면 됩니다.",
     no_keys_available:
       "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",

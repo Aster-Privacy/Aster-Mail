@@ -41,6 +41,7 @@ interface UnsubscribeConfirmRequest {
 }
 
 let current_request: UnsubscribeConfirmRequest | null = null;
+let pending_queue: UnsubscribeConfirmRequest[] = [];
 let listeners: Array<(req: UnsubscribeConfirmRequest | null) => void> = [];
 
 function notify() {
@@ -49,32 +50,48 @@ function notify() {
   }
 }
 
+function enqueue_request(request: UnsubscribeConfirmRequest) {
+  if (current_request) {
+    pending_queue.push(request);
+
+    return;
+  }
+
+  current_request = request;
+  notify();
+}
+
+function advance_queue() {
+  const next = pending_queue.shift();
+
+  if (!next) {
+    current_request = null;
+
+    return;
+  }
+
+  current_request = next;
+  notify();
+}
+
 export function confirm_unsubscribe(
   kind: UnsubscribeConfirmKind,
   destination: string,
   sender_name?: string,
 ): Promise<boolean> {
   return new Promise((resolve) => {
-    if (current_request) {
-      current_request.resolve(false);
-    }
-    current_request = { kind, destination, sender_name, resolve };
-    notify();
+    enqueue_request({ kind, destination, sender_name, resolve });
   });
 }
 
 export function confirm_unsubscribe_bulk(count: number): Promise<boolean> {
   return new Promise((resolve) => {
-    if (current_request) {
-      current_request.resolve(false);
-    }
-    current_request = {
+    enqueue_request({
       kind: "bulk",
       destination: "",
       bulk_count: count,
       resolve,
-    };
-    notify();
+    });
   });
 }
 
@@ -111,13 +128,15 @@ export function UnsubscribeConfirmationModal() {
 
     set_internal_open(false);
     setTimeout(() => {
-      if (req && current_request === req) {
-        current_request = null;
-      }
       if (req) {
         req.resolve(confirmed);
       }
-      set_request(null);
+      if (req && current_request === req) {
+        advance_queue();
+      }
+      if (!current_request) {
+        set_request(null);
+      }
     }, ANIMATION_DURATION);
   };
 

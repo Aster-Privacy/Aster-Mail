@@ -308,6 +308,10 @@ export interface MailRulesTranslations {
   menu_duplicate: string;
   menu_delete: string;
   menu_run_on_existing: string;
+  run_on_existing_confirm_title: string;
+  run_on_existing_confirm_body: string;
+  run_on_existing_success: string;
+  run_on_existing_failed: string;
   and_label: string;
   or_label: string;
   value_placeholder: string;
@@ -956,8 +960,10 @@ export interface CommonTranslations {
   failed_to_save_contact: string;
   failed_to_delete_contacts: string;
   contacts_deleted: string;
+  contacts_deleted_partial: string;
   contacts_starred: string;
   contacts_unstarred: string;
+  contacts_favorites_updated_partial: string;
   failed_to_update_favorites: string;
   failed_to_import_contacts: string;
   failed_to_read_file: string;
@@ -1035,6 +1041,7 @@ export interface CommonTranslations {
   import_complete: string;
   contacts_imported_desc: string;
   importing: string;
+  import_progress: string;
   imported: string;
   skipped: string;
   failed: string;
@@ -1070,9 +1077,12 @@ export interface CommonTranslations {
   no_emails_older_than_30_days: string;
   no_newsletters_found: string;
   newsletters_archived: string;
+  newsletters_archived_partial: string;
+  n_could_not_be_archived: string;
   reported_as_phishing: string;
   pinned_to_top: string;
   emails_snoozed_until: string;
+  emails_snoozed_until_partial: string;
   emails_from_senders_archived: string;
   emails_from_senders_deleted: string;
   emails_added_to_folder: string;
@@ -1587,6 +1597,7 @@ export interface CommonTranslations {
   pending_deletion_dismiss: string;
   pending_deletion_cancelling: string;
   new_email_body: string;
+  new_emails_burst_body: string;
   create_ghost_alias: string;
   hide_real_address_expiry: string;
   sender_group_primary: string;
@@ -1815,6 +1826,9 @@ export interface SettingsTranslations {
   trusted_devices_revoke_confirm: string;
   trusted_devices_revoke_all: string;
   trusted_devices_revoke_all_confirm: string;
+  trusted_devices_revoke_all_success: string;
+  trusted_devices_revoke_all_partial: string;
+  trusted_devices_revoke_all_failed: string;
   bridge: string;
   bridge_app_name: string;
   bridge_description: string;
@@ -2435,6 +2449,8 @@ export interface SettingsTranslations {
   auto_save_recipients_to_contacts_description: string;
   disable_recent_recipients_title: string;
   disable_recent_recipients_description: string;
+  reactions_enabled: string;
+  reactions_enabled_description: string;
   disable_and_clear: string;
   confirmations: string;
   confirm_actions_description: string;
@@ -4976,6 +4992,15 @@ export interface SettingsTranslations {
   alias_bulk_disable: string;
   alias_bulk_delete: string;
   alias_bulk_select_all: string;
+  alias_bulk_enable_success: string;
+  alias_bulk_enable_partial: string;
+  alias_bulk_enable_failed: string;
+  alias_bulk_disable_success: string;
+  alias_bulk_disable_partial: string;
+  alias_bulk_disable_failed: string;
+  alias_bulk_delete_success: string;
+  alias_bulk_delete_partial: string;
+  alias_bulk_delete_failed: string;
   alias_format_words: string;
   alias_format_uuid: string;
   alias_directory_separator: string;
@@ -5021,6 +5046,11 @@ export interface SettingsTranslations {
   alias_pref_always_expand: string;
   alias_pref_always_expand_desc: string;
   alias_pref_always_expand_info: string;
+  alias_delivery_title: string;
+  alias_never_inbox: string;
+  alias_never_inbox_desc: string;
+  alias_never_inbox_info: string;
+  alias_never_inbox_error: string;
   alias_pref_unsubscribe_action: string;
   alias_pref_unsubscribe_action_desc: string;
   alias_pref_unsubscribe_action_info: string;
@@ -5083,6 +5113,10 @@ export interface MailTranslations {
   reply: string;
   reply_all: string;
   forward: string;
+  react: string;
+  you_reacted_with: string;
+  reacted_with: string;
+  already_reacted: string;
   reply_subject_prefix: string;
   reply_from_mismatch_title: string;
   reply_from_mismatch_message: string;
@@ -5529,6 +5563,7 @@ export interface MailTranslations {
   showing_results: string;
   indexing: string;
   indexing_messages: string;
+  body_search_unavailable_large_mailbox: string;
   searching_message_content: string;
   search_taking_too_long: string;
   search_refine_terms: string;
@@ -6216,6 +6251,8 @@ export interface ErrorTranslations {
   failed_queue_reply: string;
   no_recipients: string;
   failed_queue_forward: string;
+  failed_send_reaction: string;
+  reactions_disabled: string;
   failed_send: string;
   incorrect_password: string;
   no_keys_available: string;

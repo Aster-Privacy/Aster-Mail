@@ -20,6 +20,7 @@
 //
 import type { InboxFilterType } from "@/types/email";
 
+import { format_capped_count } from "@/lib/count_display";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -362,7 +363,7 @@ export function InboxHeader({
                   </span>
                   {(display_count ?? filtered_count) > 0 && (
                     <span className="text-base leading-tight font-extrabold text-blue-500 tabular-nums flex-shrink-0">
-                      {(display_count ?? filtered_count).toLocaleString()}
+                      {format_capped_count(display_count ?? filtered_count)}
                     </span>
                   )}
                   <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />

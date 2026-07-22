@@ -671,6 +671,7 @@ export const fr = {
     import_complete: "Importation terminée",
     contacts_imported_desc: "Vos contacts ont été importés",
     importing: "Importation...",
+    import_progress: "Importation du lot {{current}} sur {{total}}...",
     imported: "Importé",
     skipped: "Ignoré",
     failed: "Échec",
@@ -1261,6 +1262,7 @@ export const fr = {
       "Masquer votre adresse réelle (expire dans {{days}} j)",
     create_ghost_alias: "Créer un alias fantôme",
     new_email_body: "Vous avez un nouvel e-mail",
+    new_emails_burst_body: "Vous avez {{count}} nouveaux e-mails",
     settings_disabled_suspended:
       "Les paramètres sont désactivés pendant que votre compte est suspendu. hello@astermail.org peut aider pour un appel ou plus de détails.",
     submit_an_appeal: "Soumettre un recours",
@@ -1449,8 +1451,10 @@ export const fr = {
     change_alias_avatar: "Modifier l'avatar de l'alias",
     click_to_add_value: "Cliquer pour ajouter une valeur",
     contacts_deleted: "{{ count }} contact(s) supprimé(s)",
+    contacts_deleted_partial: "{{ count }} contact(s) supprimé(s), {{ failed }} échec(s)",
     contacts_starred: "{{ count }} contact(s) marqué(s) d'une étoile",
     contacts_unstarred: "Étoile retirée de {{ count }} contact(s)",
+    contacts_favorites_updated_partial: "{{ count }} contact(s) mis à jour, {{ failed }} échec(s)",
     conversations_starred_bulk:
       "{{count}} conversation(s) marquée(s) d'une étoile",
     conversations_unstarred_bulk: "Étoile retirée de {{count}} conversation(s)",
@@ -2456,6 +2460,14 @@ export const fr = {
     alias_pref_readable_reverse: "Inclure l'expéditeur dans les alias inversés",
     alias_pref_readable_reverse_desc:
       "Les nouveaux alias inversés utiliseront l'adresse de l'expéditeur afin que vous puissiez voir d'un coup d'œil qui vous écrit.",
+    alias_delivery_title: "Distribution",
+    alias_never_inbox: "Ne jamais envoyer dans la boîte de réception",
+    alias_never_inbox_desc:
+      "Les nouveaux e-mails envoyés à cet alias n'arrivent pas dans votre boîte de réception.",
+    alias_never_inbox_info:
+      "Lorsque cette option est activée, les nouveaux e-mails reçus via cet alias sont tenus à l'écart de votre boîte de réception principale. Vous pouvez toujours les retrouver dans Tous les courriers et en ouvrant cet alias dans la barre latérale.",
+    alias_never_inbox_error:
+      "Échec de la mise à jour de la distribution de l'alias",
     alias_pref_always_expand: "Toujours afficher les détails de l'alias",
     alias_pref_always_expand_desc:
       "Affiche le panneau complet des paramètres de l'alias par défaut au lieu de le masquer derrière l'icône d'engrenage.",
@@ -3311,6 +3323,9 @@ export const fr = {
       "Enregistrer automatiquement les destinataires récents dans les contacts",
     auto_save_recipients_to_contacts_description:
       "Automatically add email addresses you send to as contacts",
+    reactions_enabled: "Envoyer des réactions",
+    reactions_enabled_description:
+      "Permet d'envoyer des réactions emoji aux messages. Vous pouvez toujours recevoir des réactions lorsque cette option est désactivée.",
     confirmations: "Confirmations",
     confirm_actions_description: "Demander une confirmation avant ces actions",
     confirm_delete: "Confirmer la suppression",
@@ -5803,6 +5818,10 @@ export const fr = {
     reply: "Répondre",
     reply_all: "Répondre à tous",
     forward: "Transférer",
+    react: "Réagir",
+    you_reacted_with: "Vous avez réagi avec {{ emoji }}",
+    reacted_with: "{{ name }} a réagi avec {{ emoji }}",
+    already_reacted: "Vous avez déjà réagi avec ceci",
     to: "À",
     cc: "Cc",
     bcc: "Cci",
@@ -6352,6 +6371,8 @@ export const fr = {
     image: "Image",
     images: "Images",
     indexing_messages: "Indexation des messages...",
+    body_search_unavailable_large_mailbox:
+      "La recherche dans le contenu des messages n'est pas disponible pour cette grande boîte de réception ; seules les correspondances d'objet et d'expéditeur sont affichées",
     insert_link_title: "Insérer un lien",
     last_forwarded: "Dernier : {{ date }}",
     link_text_optional: "Texte du lien (facultatif)",
@@ -7180,6 +7201,8 @@ export const fr = {
       "Ce fichier PST n'a pas pu être lu : {{error}}. L'exportation depuis votre client de messagerie au format MBOX fonctionne généralement.",
     failed_queue_email: "Échec de la mise en file d'attente de l'e-mail",
     failed_queue_forward: "Échec de la mise en file d'attente du transfert",
+    failed_send_reaction: "Échec de l'envoi de votre réaction",
+    reactions_disabled: "L'envoi de réactions est désactivé. Activez-le dans Paramètres > Comportement.",
     failed_queue_reply: "Échec de la mise en file d'attente de la réponse",
     failed_send: "Échec de l'envoi",
     failed_send_email: "Échec de l'envoi de l'e-mail",

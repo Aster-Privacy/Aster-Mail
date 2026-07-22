@@ -401,42 +401,63 @@ export async function list_domain_addresses(
   );
 }
 
+const BULK_ADD_ADDRESS_ENCRYPT_BATCH_SIZE = 50;
+
+interface BulkAddressEntry {
+  encrypted_local_part: string;
+  local_part_nonce: string;
+  local_part_hash: string;
+  address_routing_hash: string;
+  encrypted_display_name?: string;
+  display_name_nonce?: string;
+  is_enabled?: boolean;
+}
+
+async function encrypt_bulk_address_entry(
+  item: { local_part: string; display_name?: string; is_enabled?: boolean },
+  domain_name: string,
+): Promise<BulkAddressEntry> {
+  const normalized = item.local_part.toLowerCase().trim();
+  const [local_part_hash, address_routing_hash, enc] = await Promise.all([
+    compute_address_hash(normalized, domain_name),
+    compute_address_routing_hash(normalized, domain_name),
+    encrypt_address_field(normalized),
+  ]);
+  const entry: BulkAddressEntry = {
+    encrypted_local_part: enc.encrypted,
+    local_part_nonce: enc.nonce,
+    local_part_hash,
+    address_routing_hash,
+  };
+  if (item.is_enabled !== undefined) entry.is_enabled = item.is_enabled;
+  if (item.display_name) {
+    const enc_dn = await encrypt_address_field(item.display_name);
+    entry.encrypted_display_name = enc_dn.encrypted;
+    entry.display_name_nonce = enc_dn.nonce;
+  }
+  return entry;
+}
+
 export async function bulk_add_domain_addresses(
   domain_id: string,
   domain_name: string,
   items: Array<{ local_part: string; display_name?: string; is_enabled?: boolean }>,
 ): Promise<ApiResponse<{ created: number; failed: number }>> {
-  const addresses = await Promise.all(
-    items.map(async (item) => {
-      const normalized = item.local_part.toLowerCase().trim();
-      const [local_part_hash, address_routing_hash, enc] = await Promise.all([
-        compute_address_hash(normalized, domain_name),
-        compute_address_routing_hash(normalized, domain_name),
-        encrypt_address_field(normalized),
-      ]);
-      const entry: {
-        encrypted_local_part: string;
-        local_part_nonce: string;
-        local_part_hash: string;
-        address_routing_hash: string;
-        encrypted_display_name?: string;
-        display_name_nonce?: string;
-        is_enabled?: boolean;
-      } = {
-        encrypted_local_part: enc.encrypted,
-        local_part_nonce: enc.nonce,
-        local_part_hash,
-        address_routing_hash,
-      };
-      if (item.is_enabled !== undefined) entry.is_enabled = item.is_enabled;
-      if (item.display_name) {
-        const enc_dn = await encrypt_address_field(item.display_name);
-        entry.encrypted_display_name = enc_dn.encrypted;
-        entry.display_name_nonce = enc_dn.nonce;
-      }
-      return entry;
-    }),
-  );
+  const addresses: BulkAddressEntry[] = [];
+
+  for (let i = 0; i < items.length; i += BULK_ADD_ADDRESS_ENCRYPT_BATCH_SIZE) {
+    const batch = items.slice(i, i + BULK_ADD_ADDRESS_ENCRYPT_BATCH_SIZE);
+    const results = await Promise.all(
+      batch.map((item) => encrypt_bulk_address_entry(item, domain_name)),
+    );
+
+    addresses.push(...results);
+
+    if (i + BULK_ADD_ADDRESS_ENCRYPT_BATCH_SIZE < items.length) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
   return api_client.post<{ created: number; failed: number }>(
     `/addresses/v1/domains/${domain_id}/bulk-addresses`,
     { addresses },

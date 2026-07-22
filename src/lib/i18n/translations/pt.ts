@@ -568,6 +568,7 @@ export const pt = {
     import_complete: "Importação Concluída",
     contacts_imported_desc: "Seus contatos foram importados",
     importing: "Importando...",
+    import_progress: "Importando lote {{current}} de {{total}}...",
     imported: "Importado",
     skipped: "Ignorado",
     failed: "Falhou",
@@ -1273,8 +1274,10 @@ export const pt = {
     contact_count_one: "{{ count }} contato",
     contact_count_other: "{{ count }} contatos",
     contacts_deleted: "{{ count }} contato(s) excluído(s)",
+    contacts_deleted_partial: "{{ count }} contato(s) excluído(s), {{ failed }} falharam",
     contacts_starred: "{{ count }} contato(s) marcado(s) como favorito",
     contacts_unstarred: "{{ count }} contato(s) desmarcado(s) como favorito",
+    contacts_favorites_updated_partial: "{{ count }} contato(s) atualizado(s), {{ failed }} falharam",
     continue_label: "Continuar",
     conversations_starred_bulk: "{{count}} conversa(s) marcadas como favorito",
     conversations_unstarred_bulk:
@@ -1414,6 +1417,7 @@ export const pt = {
     n_of_n_contacts: "{{ filtered }} de {{ total }}",
     name_section: "Nome",
     new_email_body: "Você tem um novo e-mail",
+    new_emails_burst_body: "Você tem {{count}} novos e-mails",
     new_email_notification: "Novo e-mail de {{ sender }}",
     no_contacts_match: 'Nenhum contato corresponde a "{{ query }}"',
     no_contacts_yet: "Nenhum contato ainda",
@@ -2461,6 +2465,13 @@ export const pt = {
     alias_pref_readable_reverse: "Incluir remetente nos aliases reversos",
     alias_pref_readable_reverse_desc:
       "Os novos aliases reversos usarão o endereço do remetente para que você saiba quem está enviando o e-mail de relance.",
+    alias_delivery_title: "Entrega",
+    alias_never_inbox: "Nunca enviar para a caixa de entrada",
+    alias_never_inbox_desc:
+      "Novos e-mails para este alias não passam pela sua caixa de entrada.",
+    alias_never_inbox_info:
+      "Quando ativado, os novos e-mails recebidos através deste alias ficam fora da sua caixa de entrada principal. Você ainda pode encontrá-los em Todos os E-mails e ao abrir este alias na barra lateral.",
+    alias_never_inbox_error: "Falha ao atualizar a entrega do alias",
     alias_pref_always_expand: "Sempre mostrar detalhes do alias",
     alias_pref_always_expand_desc:
       "Mostra o painel completo de configurações do alias por padrão, em vez de ocultá-lo atrás do ícone de engrenagem.",
@@ -3294,6 +3305,9 @@ export const pt = {
       "Salvar destinatários recentes nos contatos automaticamente",
     auto_save_recipients_to_contacts_description:
       "Adicionar automaticamente os endereços de e-mail para os quais você envia como contatos",
+    reactions_enabled: "Enviar reações",
+    reactions_enabled_description:
+      "Permite enviar reações com emoji para as mensagens. Você ainda pode receber reações quando isso estiver desativado.",
     confirmations: "Confirmações",
     confirm_actions_description: "Pedir confirmação antes destas ações",
     confirm_delete: "Confirmar Exclusão",
@@ -5809,6 +5823,10 @@ export const pt = {
     reply: "Responder",
     reply_all: "Responder a Todos",
     forward: "Encaminhar",
+    react: "Reagir",
+    you_reacted_with: "Você reagiu com {{ emoji }}",
+    reacted_with: "{{ name }} reagiu com {{ emoji }}",
+    already_reacted: "Você já reagiu com isso",
     to: "Para",
     cc: "Cc",
     bcc: "Cco",
@@ -6338,6 +6356,8 @@ export const pt = {
     folder_item_count: "{{count}} itens",
     folder_item_count_singular: "{{count}} item",
     indexing_messages: "Indexando mensagens...",
+    body_search_unavailable_large_mailbox:
+      "A busca no conteúdo das mensagens não está disponível para esta caixa de entrada grande; mostrando apenas correspondências de assunto e remetente",
     searching_message_content: "Pesquisando conteúdo das mensagens",
     search_taking_too_long: "A pesquisa está demorando muito",
     search_refine_terms:
@@ -7197,6 +7217,8 @@ export const pt = {
       "Não foi possível salvar este e-mail para envio posterior. Outra tentativa deve funcionar. Seu rascunho está salvo.",
     failed_queue_forward:
       "Não foi possível salvar este encaminhamento para envio posterior. Outra tentativa deve funcionar. Seu rascunho está salvo.",
+    failed_send_reaction: "Não foi possível enviar sua reação. Outra tentativa deve funcionar.",
+    reactions_disabled: "O envio de reações está desativado. Ative em Configurações > Comportamento.",
     failed_queue_reply:
       "Não foi possível salvar esta resposta para envio posterior. Outra tentativa deve funcionar. Seu rascunho está salvo.",
     failed_send:

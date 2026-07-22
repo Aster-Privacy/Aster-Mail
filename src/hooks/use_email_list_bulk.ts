@@ -27,7 +27,7 @@ import { DEFAULT_PAGE_SIZE } from "./email_list_helpers";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { trash_thread } from "@/services/api/mail";
 import {
-  batch_archive as api_batch_archive,
+  batched_archive,
   batch_unarchive as api_batch_unarchive,
 } from "@/services/api/archive";
 import {
@@ -44,6 +44,18 @@ import {
   remove_thread_entries,
   reindex_ids,
 } from "@/services/category_index";
+
+const THREAD_TRASH_CHUNK_SIZE = 25;
+
+function chunk_thread_tokens(tokens: string[]): string[][] {
+  const chunks: string[][] = [];
+
+  for (let i = 0; i < tokens.length; i += THREAD_TRASH_CHUNK_SIZE) {
+    chunks.push(tokens.slice(i, i + THREAD_TRASH_CHUNK_SIZE));
+  }
+
+  return chunks;
+}
 
 interface UseEmailListBulkParams {
   state: EmailListState;
@@ -150,9 +162,16 @@ export function use_email_list_bulk({
         const unique_thread_tokens = Array.from(
           new Set(threaded_emails.map((e) => e.thread_token!)),
         );
-        const thread_results = await Promise.all(
-          unique_thread_tokens.map((token) => trash_thread(token, true)),
-        );
+        const thread_token_chunks = chunk_thread_tokens(unique_thread_tokens);
+        const thread_results = [];
+
+        for (const chunk of thread_token_chunks) {
+          thread_results.push(
+            ...(await Promise.all(
+              chunk.map((token) => trash_thread(token, true)),
+            )),
+          );
+        }
 
         if (thread_results.some((r) => !r.data)) {
           throw new Error("thread trash failed");
@@ -257,28 +276,31 @@ export function use_email_list_bulk({
       stale_all_view_caches();
 
       try {
-        const result = await api_batch_archive({
-          ids: expanded_ids,
-          tier: "hot",
-        });
+        const archive_result = await batched_archive(expanded_ids, "hot");
 
-        if (result.error || !result.data?.success) {
+        if (archive_result.succeeded_ids.length === 0) {
           throw new Error("batch archive failed");
+        }
+        if (archive_result.failed_ids.length > 0) {
+          reindex_ids(archive_result.failed_ids);
         }
 
         let blob_updated = false;
 
         try {
-          const blob_result = await bulk_update_metadata_by_ids(expanded_ids, {
-            is_archived: true,
-          });
+          const blob_result = await bulk_update_metadata_by_ids(
+            archive_result.succeeded_ids,
+            {
+              is_archived: true,
+            },
+          );
 
           blob_updated = blob_result.success;
         } catch {
           blob_updated = false;
         }
         if (!blob_updated) {
-          reindex_ids(expanded_ids);
+          reindex_ids(archive_result.succeeded_ids);
         }
 
         set_state((prev) => {

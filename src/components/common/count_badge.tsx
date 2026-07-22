@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { format_capped_count } from "@/lib/count_display";
+
 interface CountBadgeProps {
   count: number;
   show_zero?: boolean;
@@ -48,7 +50,7 @@ export function CountBadge({
     return null;
   }
 
-  const display_value = safe_count.toLocaleString();
+  const display_value = format_capped_count(safe_count);
 
   return (
     <span

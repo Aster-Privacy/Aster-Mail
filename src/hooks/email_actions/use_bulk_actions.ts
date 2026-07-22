@@ -50,6 +50,7 @@ import {
   show_action_toast,
   update_progress_toast,
   hide_action_toast,
+  replace_active_toast,
 } from "@/components/toast/action_toast";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
@@ -330,22 +331,85 @@ export function use_bulk_actions(
                   }
                 }
 
+                const undo_total = successful_emails.length;
+                const show_undo_progress =
+                  undo_total >= PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS;
+
+                bulk_abort_ref.current = new AbortController();
+
+                if (show_undo_progress) {
+                  replace_active_toast({
+                    message: t("common.processing_count", {
+                      completed: "0",
+                      total: String(undo_total),
+                    }),
+                    action_type: "progress",
+                    email_ids: successful_ids,
+                    progress: { completed: 0, total: undo_total },
+                    on_cancel: () => bulk_abort_ref.current.abort(),
+                  });
+                }
+
+                let completed_before = 0;
+
                 for (const { meta, emails: group } of groups.values()) {
                   await apply_archive_batch_for_undo(
                     meta,
                     group.map((e) => e.id),
                   );
-                  await bulk_update_with_metadata(group, meta);
+                  await bulk_update_with_metadata(group, meta, {
+                    signal: bulk_abort_ref.current.signal,
+                    on_progress: (completed) => {
+                      if (show_undo_progress) {
+                        update_progress_toast(
+                          completed_before + completed,
+                          undo_total,
+                          t,
+                        );
+                      }
+                    },
+                  });
+                  completed_before += group.length;
                 }
+
+                if (show_undo_progress) hide_action_toast();
                 emit_mail_soft_refresh();
               };
             } else if (fixed_undo) {
               toast_config.on_undo = async () => {
+                const undo_total = successful_emails.length;
+                const show_undo_progress =
+                  undo_total >= PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS;
+
+                bulk_abort_ref.current = new AbortController();
+
+                if (show_undo_progress) {
+                  replace_active_toast({
+                    message: t("common.processing_count", {
+                      completed: "0",
+                      total: String(undo_total),
+                    }),
+                    action_type: "progress",
+                    email_ids: successful_ids,
+                    progress: { completed: 0, total: undo_total },
+                    on_cancel: () => bulk_abort_ref.current.abort(),
+                  });
+                }
+
                 await apply_archive_batch_for_undo(
                   fixed_undo,
                   successful_emails.map((e) => e.id),
                 );
-                await bulk_update_with_metadata(successful_emails, fixed_undo);
+                await bulk_update_with_metadata(successful_emails, fixed_undo, {
+                  signal: bulk_abort_ref.current.signal,
+                  on_progress: (completed, total) => {
+                    if (show_undo_progress) {
+                      update_progress_toast(completed, total, t);
+                    }
+                  },
+                });
+
+                if (show_undo_progress) hide_action_toast();
                 emit_mail_soft_refresh();
               };
             }

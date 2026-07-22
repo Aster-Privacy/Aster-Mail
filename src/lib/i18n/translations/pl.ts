@@ -665,6 +665,7 @@ export const pl = {
     import_complete: "Import zakończony",
     contacts_imported_desc: "Twoje kontakty zostały zaimportowane",
     importing: "Importowanie...",
+    import_progress: "Importowanie partii {{current}} z {{total}}...",
     imported: "Zaimportowano",
     skipped: "Pominięto",
     failed: "Niepowodzenie",
@@ -1349,6 +1350,7 @@ export const pl = {
     settings_disabled_suspended:
       "Ustawienia są wyłączone, gdy konto jest zawieszone. hello@astermail.org może pomóc z odwołaniem lub szczegółami.",
     new_email_body: "Masz nowy e-mail",
+    new_emails_burst_body: "Masz {{count}} nowych e-maili",
     create_ghost_alias: "Utwórz alias Ghost",
     hide_real_address_expiry:
       "Ukryj swój prawdziwy adres (wygasa po {{days}} d)",
@@ -1640,8 +1642,10 @@ export const pl = {
     n_contacts_imported: "Zaimportowano {{ count }} kontaktów",
     yourname_placeholder: "twojanazwa",
     contacts_deleted: "Usunięto {{ count }} kontakt(ów)",
+    contacts_deleted_partial: "Usunięto {{ count }} kontakt(ów), {{ failed }} nieudanych",
     contacts_starred: "Oznaczono gwiazdką {{ count }} kontakt(ów)",
     contacts_unstarred: "Usunięto gwiazdkę z {{ count }} kontakt(ów)",
+    contacts_favorites_updated_partial: "Zaktualizowano {{ count }} kontakt(ów), {{ failed }} nieudanych",
     auth_fail_tooltip_intro:
       "Ta wiadomość nie przeszła następujących kontroli nadawcy:",
     auth_fail_tooltip_spf:
@@ -2465,6 +2469,14 @@ export const pl = {
     alias_pref_readable_reverse: "Uwzględnij nadawcę w aliasach odwrotnych",
     alias_pref_readable_reverse_desc:
       "Nowe aliasy odwrotne będą używać adresu nadawcy, dzięki czemu od razu zobaczysz, kto pisze.",
+    alias_delivery_title: "Dostarczanie",
+    alias_never_inbox: "Nigdy nie dostarczaj do skrzynki odbiorczej",
+    alias_never_inbox_desc:
+      "Nowe wiadomości na ten alias omijają Twoją skrzynkę odbiorczą.",
+    alias_never_inbox_info:
+      "Gdy włączone, nowe wiadomości otrzymane przez ten alias nie trafiają do Twojej głównej skrzynki odbiorczej. Nadal znajdziesz je w Całej poczcie oraz otwierając ten alias na pasku bocznym.",
+    alias_never_inbox_error:
+      "Nie udało się zaktualizować dostarczania aliasu",
     alias_pref_always_expand: "Zawsze pokazuj szczegóły aliasu",
     alias_pref_always_expand_desc:
       "Domyślnie pokazuj pełny panel ustawień aliasu zamiast ukrywać go za ikoną koła zębatego.",
@@ -3299,6 +3311,9 @@ export const pl = {
       "Automatycznie zapisuj ostatnich odbiorców w kontaktach",
     auto_save_recipients_to_contacts_description:
       "Automatycznie dodawaj adresy e-mail, do których wysyłasz, jako kontakty",
+    reactions_enabled: "Wysyłaj reakcje",
+    reactions_enabled_description:
+      "Zezwól na wysyłanie reakcji emoji na wiadomości. Nadal możesz otrzymywać reakcje, gdy ta opcja jest wyłączona.",
     confirmations: "Potwierdzenia",
     confirm_actions_description: "Pytaj o potwierdzenie przed tymi akcjami",
     confirm_delete: "Potwierdź usunięcie",
@@ -5807,6 +5822,10 @@ export const pl = {
     reply: "Odpowiedz",
     reply_all: "Odpowiedz wszystkim",
     forward: "Przekaż dalej",
+    react: "Zareaguj",
+    you_reacted_with: "Zareagowałeś {{ emoji }}",
+    reacted_with: "{{ name }} zareagował(a) {{ emoji }}",
+    already_reacted: "Już zareagowałeś w ten sposób",
     to: "Do",
     cc: "DW",
     bcc: "UDW",
@@ -6359,6 +6378,8 @@ export const pl = {
     folder_item_count: "{{count}} elementów",
     folder_item_count_singular: "{{count}} element",
     indexing_messages: "Indeksowanie wiadomości...",
+    body_search_unavailable_large_mailbox:
+      "Wyszukiwanie treści wiadomości jest niedostępne dla tak dużej skrzynki; pokazywane są tylko dopasowania tematu i nadawcy",
     searching_message_content: "Wyszukiwanie w treści wiadomości",
     search_taking_too_long: "Wyszukiwanie trwa zbyt długo",
     search_refine_terms:
@@ -7169,6 +7190,8 @@ export const pl = {
     no_recipients: "Przed wysłaniem wymagany jest co najmniej jeden odbiorca.",
     failed_queue_forward:
       "Nie udało się zapisać tego przekazania do późniejszego wysłania. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+    failed_send_reaction: "Nie udało się wysłać Twojej reakcji. Spróbuj jeszcze raz.",
+    reactions_disabled: "Wysyłanie reakcji jest wyłączone. Włącz je w Ustawienia > Zachowanie.",
     failed_send:
       "Ta wiadomość nie została wysłana. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
     incorrect_password:

@@ -25,6 +25,8 @@ import {
   BoltIcon,
   Squares2X2Icon,
   ClockIcon,
+  EllipsisHorizontalIcon,
+  PlayIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -35,6 +37,13 @@ import {
   ModalDescription,
   ModalFooter,
 } from "@/components/ui/modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
@@ -43,6 +52,7 @@ import {
   use_mail_rules_store,
   load_rules,
   reorder,
+  run_on_existing,
 } from "@/stores/mail_rules_store";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { ActionChip } from "@/components/mail_rules/action_chip";
@@ -81,6 +91,12 @@ export function MailRulesSection() {
   const [show_upgrade_modal, set_show_upgrade_modal] = React.useState(false);
   const [drag_index, set_drag_index] = React.useState<number | null>(null);
   const [drag_over_index, set_drag_over_index] = React.useState<number | null>(
+    null,
+  );
+  const [confirm_run_rule, set_confirm_run_rule] = React.useState<Rule | null>(
+    null,
+  );
+  const [running_rule_id, set_running_rule_id] = React.useState<string | null>(
     null,
   );
 
@@ -172,6 +188,23 @@ export function MailRulesSection() {
     }
   };
 
+  const handle_run_existing = async (rule: Rule) => {
+    set_confirm_run_rule(null);
+    set_running_rule_id(rule.id);
+    const result = await run_on_existing(rule.id);
+
+    set_running_rule_id(null);
+
+    if (result) {
+      show_toast(
+        t("mail_rules.run_on_existing_success", { count: result.applied }),
+        "success",
+      );
+    } else {
+      show_toast(t("mail_rules.run_on_existing_failed"), "error");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -251,6 +284,8 @@ export function MailRulesSection() {
               on_drag_end={handle_drop}
               on_drop={handle_drop}
               on_edit={() => open_edit(rule)}
+              on_run_existing={() => set_confirm_run_rule(rule)}
+              is_running={running_rule_id === rule.id}
             />
           ))}
         </div>
@@ -330,6 +365,18 @@ export function MailRulesSection() {
         is_open={retention.show_upgrade}
         on_close={() => retention.set_show_upgrade(false)}
       />
+
+      <ConfirmationModal
+        is_open={confirm_run_rule !== null}
+        on_cancel={() => set_confirm_run_rule(null)}
+        title={t("mail_rules.run_on_existing_confirm_title")}
+        message={t("mail_rules.run_on_existing_confirm_body")}
+        confirm_text={t("mail_rules.menu_run_on_existing")}
+        on_confirm={() => {
+          if (confirm_run_rule) handle_run_existing(confirm_run_rule);
+        }}
+        variant="warning"
+      />
     </div>
   );
 }
@@ -342,6 +389,8 @@ interface RuleCardProps {
   on_drag_end: () => void;
   on_drop: () => void;
   on_edit: () => void;
+  on_run_existing: () => void;
+  is_running: boolean;
 }
 
 function RuleCard({
@@ -352,6 +401,8 @@ function RuleCard({
   on_drag_end,
   on_drop,
   on_edit,
+  on_run_existing,
+  is_running,
 }: RuleCardProps) {
   const { t } = use_i18n();
   const [draggable_on, set_draggable_on] = React.useState(false);
@@ -428,6 +479,30 @@ function RuleCard({
           </div>
         </button>
         <div className="flex items-center gap-1 flex-shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                data-no-drag
+                size="icon"
+                variant="ghost"
+                disabled={is_running}
+                className="h-7 w-7 text-txt-muted hover:text-txt-primary opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
+                onClick={(e) => e.stopPropagation()}
+                aria-label={t("mail_rules.menu_run_on_existing")}
+              >
+                <EllipsisHorizontalIcon className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DropdownMenuItem disabled={is_running} onClick={on_run_existing}>
+                <PlayIcon className="w-4 h-4 mr-2" />
+                {t("mail_rules.menu_run_on_existing")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <span
             className="text-neutral-400 cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
             onMouseDown={() => set_draggable_on(true)}

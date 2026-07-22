@@ -48,7 +48,7 @@ const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
 const BUILD_FETCH_SIZE = 1000;
 const BUILD_DECRYPT_CHUNK = 100;
-const BUILD_CAP = 10000;
+const BUILD_CAP = 25000;
 const MAX_ENTRIES = 20000;
 const CAP_TARGET = 12000;
 const PERSIST_DEBOUNCE_MS = 1500;
@@ -247,14 +247,14 @@ async function persist_now(): Promise<void> {
   if (loaded_for_account !== active_account_id) return;
 
   const account_key = active_account_id;
+  const payload: PersistedIndex = {
+    entries: Array.from(entries_map.values()),
+    built_at_ms: last_build_ms,
+    fully_built,
+    seen_ts,
+  };
 
   try {
-    const payload: PersistedIndex = {
-      entries: Array.from(entries_map.values()),
-      built_at_ms: last_build_ms,
-      fully_built,
-      seen_ts,
-    };
     const encrypted = await secure_encrypt(JSON.stringify(payload));
     const db = await open_db();
 
@@ -269,9 +269,20 @@ async function persist_now(): Promise<void> {
     db.close();
   } catch (e) {
     const is_quota = e instanceof DOMException && e.name === "QuotaExceededError";
+    const approx_size_bytes = (() => {
+      try {
+        return JSON.stringify(payload).length;
+      } catch {
+        return -1;
+      }
+    })();
 
     console.warn(
-      `category_index: failed to persist index${is_quota ? " (quota exceeded)" : ""}`,
+      `category_index: failed to persist index (entries=${
+        payload.entries.length
+      }, approx_size_bytes=${approx_size_bytes}${
+        is_quota ? ", quota exceeded" : ""
+      })`,
       e,
     );
 
@@ -1058,10 +1069,14 @@ export async function build_index(options?: {
   build_in_progress = true;
   build_progress_ms = now_ms();
 
+  const suppress_chunk_notify = options?.force === true;
+
   try {
     let cursor: string | undefined;
     let processed = 0;
     let reached_end = false;
+    let scanned_ts_min = Infinity;
+    let scanned_ts_max = 0;
     const seen = new Set<string>();
     const prebuild_ids = new Set(entries_map.keys());
 
@@ -1088,6 +1103,13 @@ export async function build_index(options?: {
 
       for (const it of items) {
         seen.add(it.id);
+
+        const ts = safe_ts(it.message_ts || it.created_at);
+
+        if (ts > 0) {
+          if (ts < scanned_ts_min) scanned_ts_min = ts;
+          if (ts > scanned_ts_max) scanned_ts_max = ts;
+        }
       }
 
       for (let start = 0; start < items.length; start += BUILD_DECRYPT_CHUNK) {
@@ -1101,7 +1123,7 @@ export async function build_index(options?: {
         for (const id of removals) {
           if (entries_map.delete(id)) chunk_changed = true;
         }
-        if (chunk_changed) {
+        if (chunk_changed && !suppress_chunk_notify) {
           notify_soon();
         }
 
@@ -1138,6 +1160,22 @@ export async function build_index(options?: {
           }
           entries_map.delete(id);
         }
+      }
+    } else if (processed >= BUILD_CAP && scanned_ts_min !== Infinity) {
+      // Capped before reaching the end: a full sweep would wrongly evict
+      // entries outside the range this pass actually re-scanned. Scope the
+      // eviction to that scanned window only, so ids that vanished from the
+      // server (read elsewhere, superseded) inside the scanned range are
+      // still cleared instead of drifting stale forever.
+      for (const [id, entry] of Array.from(entries_map.entries())) {
+        if (seen.has(id) || !prebuild_ids.has(id)) continue;
+        const ts = safe_ts(entry.message_ts);
+
+        if (ts < scanned_ts_min || ts > scanned_ts_max) continue;
+        if (entry.snoozed_until && safe_ts(entry.snoozed_until) > now_ms()) {
+          continue;
+        }
+        entries_map.delete(id);
       }
     }
 
@@ -1337,6 +1375,56 @@ async function reclassify_id(id: string): Promise<void> {
   }
 }
 
+const EMAIL_RECEIVED_BATCH_WINDOW_MS = 300;
+const EMAIL_RECEIVED_BATCH_MAX_WAIT_MS = 1000;
+
+let email_received_batch: Set<string> = new Set();
+let email_received_batch_timer: ReturnType<typeof setTimeout> | null = null;
+let email_received_batch_started_ms = 0;
+
+function flush_email_received_batch(): void {
+  if (email_received_batch_timer) {
+    clearTimeout(email_received_batch_timer);
+    email_received_batch_timer = null;
+  }
+  email_received_batch_started_ms = 0;
+
+  const ids = Array.from(email_received_batch);
+
+  email_received_batch = new Set();
+
+  if (ids.length === 0) return;
+
+  if (ids.length === 1) {
+    void reclassify_id(ids[0]);
+
+    return;
+  }
+
+  void reclassify_many(ids);
+}
+
+function queue_email_received(id: string): void {
+  if (!id) return;
+
+  email_received_batch.add(id);
+
+  const now = now_ms();
+
+  if (email_received_batch_started_ms === 0) {
+    email_received_batch_started_ms = now;
+  }
+
+  const elapsed = now - email_received_batch_started_ms;
+  const wait = Math.min(
+    EMAIL_RECEIVED_BATCH_WINDOW_MS,
+    Math.max(EMAIL_RECEIVED_BATCH_MAX_WAIT_MS - elapsed, 0),
+  );
+
+  if (email_received_batch_timer) clearTimeout(email_received_batch_timer);
+  email_received_batch_timer = setTimeout(flush_email_received_batch, wait);
+}
+
 const REINDEX_DIRECT_CAP = 20;
 
 // Forces a full reconcile against the server inbox. Used when a thread-level
@@ -1445,6 +1533,12 @@ export function clear_category_index_memory(): void {
     clearTimeout(wake_timer);
     wake_timer = null;
   }
+  if (email_received_batch_timer) {
+    clearTimeout(email_received_batch_timer);
+    email_received_batch_timer = null;
+  }
+  email_received_batch = new Set();
+  email_received_batch_started_ms = 0;
 
   build_token += 1;
   index_generation += 1;
@@ -1474,7 +1568,7 @@ export function start_event_listeners(): void {
   });
 
   on_mail_event(MAIL_EVENTS.EMAIL_RECEIVED, (detail) => {
-    void reclassify_id(detail.email_id);
+    queue_email_received(detail.email_id);
   });
 
   on_mail_event(MAIL_EVENTS.MAIL_ITEMS_REMOVED, (detail) => {
@@ -1672,6 +1766,12 @@ export async function clear_category_index(): Promise<void> {
     clearTimeout(wake_timer);
     wake_timer = null;
   }
+  if (email_received_batch_timer) {
+    clearTimeout(email_received_batch_timer);
+    email_received_batch_timer = null;
+  }
+  email_received_batch = new Set();
+  email_received_batch_started_ms = 0;
 
   build_token += 1;
   index_generation += 1;
