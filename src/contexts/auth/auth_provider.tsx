@@ -68,7 +68,11 @@ import {
   perform_shared_mailbox_login,
   clear_shared_mailbox_session,
 } from "@/services/shared_mailbox_session";
-import { get_account_limit } from "@/services/api/switch";
+import {
+  get_account_limit,
+  link_account_device,
+  unlink_account_device,
+} from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
 import {
   start_session_timeout,
@@ -611,6 +615,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return result;
       }
 
+      const link_result = await link_account_device();
+
+      if (link_result.error) {
+        await storage_remove_account(user.id);
+        clear_vault_from_memory();
+        set_is_adding_account(false);
+
+        return {
+          success: false,
+          error:
+            link_result.code === "FORBIDDEN"
+              ? t("auth.account_limit_for_plan", {
+                  max: String(link_result.data?.max_accounts ?? 0),
+                })
+              : link_result.error,
+        };
+      }
+
       if (result.success) {
         await clear_account_scoped_caches();
 
@@ -663,6 +685,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (is_current) {
         sync_client.disconnect();
+        try {
+          await unlink_account_device();
+        } catch (e) {
+          safe_log_error(e);
+        }
         try {
           await api_client.post("/core/v1/auth/logout", {});
         } catch {
@@ -1155,6 +1182,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!state.is_authenticated) return;
     let cancelled = false;
 
+    link_account_device().catch((e) => {
+      safe_log_error(e);
+    });
+
     get_account_limit()
       .then((res) => {
         if (cancelled) return;
@@ -1167,7 +1198,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       cancelled = true;
     };
-  }, [state.is_authenticated]);
+  }, [state.is_authenticated, state.current_account_id]);
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
