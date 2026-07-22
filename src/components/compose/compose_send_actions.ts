@@ -69,7 +69,6 @@ function save_and_close(
   ctx: SendActionContext,
   email_id: string,
   email_data: { to: string[]; cc?: string[]; bcc?: string[]; subject: string },
-  defer_close = false,
 ) {
   const saved_data = {
     to_recipients: email_data.to,
@@ -83,9 +82,7 @@ function save_and_close(
   sessionStorage.setItem(ctx.session_storage_key, JSON.stringify(saved_data));
 
   ctx.reset_form();
-  if (!defer_close) {
-    ctx.on_close();
-  }
+  ctx.on_close();
   if (ctx.edit_draft && ctx.on_draft_cleared) {
     ctx.on_draft_cleared();
   }
@@ -178,7 +175,7 @@ export async function execute_internal_send(
       server_queue_id: result.queue_id,
     });
 
-    save_and_close(ctx, result.queue_id, email_data, true);
+    save_and_close(ctx, result.queue_id, email_data);
   } else {
     const email_id = queue_email(
       {
@@ -289,7 +286,7 @@ export async function execute_external_email_send(
       server_queue_id: result.queue_id,
     });
 
-    save_and_close(ctx, result.queue_id, email_data, true);
+    save_and_close(ctx, result.queue_id, email_data);
   } else if (delay_seconds > 0 && email_data.secure_external) {
     const email_id = crypto.randomUUID();
 
@@ -352,7 +349,7 @@ export async function execute_external_email_send(
       },
     });
 
-    save_and_close(ctx, email_id, email_data, true);
+    save_and_close(ctx, email_id, email_data);
   } else {
     try {
       await execute_external_send(external_email_data, true);
@@ -499,7 +496,7 @@ export async function execute_external_account_email_send(
       },
     });
 
-    save_and_close(ctx, email_id, email_data, true);
+    save_and_close(ctx, email_id, email_data);
 
     return true;
   }

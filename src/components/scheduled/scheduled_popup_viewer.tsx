@@ -508,7 +508,7 @@ export function ScheduledPopupViewer({
                   >
                     <div className="mt-2 p-2 rounded-md text-xs space-y-1 bg-surf-secondary">
                       <div className="flex items-start">
-                        <span className="w-14 flex-shrink-0 pt-0.5 text-txt-muted">
+                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 pt-0.5 text-txt-muted">
                           {t("common.to_label")}
                         </span>
                         <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -528,7 +528,7 @@ export function ScheduledPopupViewer({
                       </div>
                       {scheduled_data.cc_recipients.length > 0 && (
                         <div className="flex items-start">
-                          <span className="w-14 flex-shrink-0 pt-0.5 text-txt-muted">
+                          <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 pt-0.5 text-txt-muted">
                             {t("common.cc_label")}
                           </span>
                           <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -550,7 +550,7 @@ export function ScheduledPopupViewer({
                       )}
                       {scheduled_data.bcc_recipients.length > 0 && (
                         <div className="flex items-start">
-                          <span className="w-14 flex-shrink-0 pt-0.5 text-txt-muted">
+                          <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 pt-0.5 text-txt-muted">
                             {t("common.bcc_label")}
                           </span>
                           <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -571,7 +571,7 @@ export function ScheduledPopupViewer({
                         </div>
                       )}
                       <div className="flex">
-                        <span className="w-14 flex-shrink-0 text-txt-muted">
+                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 text-txt-muted">
                           {t("common.subject_label")}
                         </span>
                         <span className="text-txt-secondary">
@@ -579,7 +579,7 @@ export function ScheduledPopupViewer({
                         </span>
                       </div>
                       <div className="flex">
-                        <span className="w-14 flex-shrink-0 text-txt-muted">
+                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 text-txt-muted">
                           {t("common.send_at_label")}
                         </span>
                         <span className="text-txt-secondary">
