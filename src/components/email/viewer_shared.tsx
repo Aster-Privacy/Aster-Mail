@@ -781,17 +781,17 @@ export function ViewerEmailHeader({
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-80 p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                className="w-80 max-w-[calc(100vw-1rem)] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
                 side="bottom"
               >
-                <div className="flex">
+                <div className="flex min-w-0">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                     {t("common.from_label")}
                   </span>
-                  <span className="text-txt-secondary">
+                  <span className="min-w-0 flex-1 break-words text-txt-secondary">
                     {email.sender ? `${email.sender} ` : ""}
                     <button
-                      className="hover:underline text-txt-muted"
+                      className="break-words hover:underline text-txt-muted"
                       onClick={() =>
                         copy_to_clipboard(email.sender_email, t("common.email"))
                       }
@@ -800,16 +800,16 @@ export function ViewerEmailHeader({
                     </button>
                   </span>
                 </div>
-                <div className="flex items-start">
+                <div className="flex min-w-0 items-start">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
                     {t("common.to_label")}
                   </span>
-                  <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
+                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-txt-secondary">
                     {email.to.length > 0
                       ? email.to.map((r, i) => (
                           <span
                             key={r.email || i}
-                            className="inline-flex items-center gap-1"
+                            className="inline-flex min-w-0 max-w-full items-center gap-1"
                           >
                             <ProfileAvatar
                               use_domain_logo
@@ -817,7 +817,7 @@ export function ViewerEmailHeader({
                               name={r.name || ""}
                               size="xs"
                             />
-                            <span>
+                            <span className="min-w-0 break-words">
                               {r.name || r.email || t("common.unknown")}
                             </span>
                             {i < email.to.length - 1 && <span>,</span>}
@@ -827,15 +827,15 @@ export function ViewerEmailHeader({
                   </span>
                 </div>
                 {email.cc.length > 0 && (
-                  <div className="flex items-start">
+                  <div className="flex min-w-0 items-start">
                     <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
                       {t("common.cc_label")}
                     </span>
-                    <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
+                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-txt-secondary">
                       {email.cc.map((r, i) => (
                         <span
                           key={r.email || i}
-                          className="inline-flex items-center gap-1"
+                          className="inline-flex min-w-0 max-w-full items-center gap-1"
                         >
                           <ProfileAvatar
                             use_domain_logo
@@ -843,7 +843,7 @@ export function ViewerEmailHeader({
                             name={r.name || ""}
                             size="xs"
                           />
-                          <span>
+                          <span className="min-w-0 break-words">
                             {r.name || r.email || t("common.unknown")}
                           </span>
                           {i < email.cc.length - 1 && <span>,</span>}
@@ -853,15 +853,15 @@ export function ViewerEmailHeader({
                   </div>
                 )}
                 {email.bcc.length > 0 && (
-                  <div className="flex items-start">
+                  <div className="flex min-w-0 items-start">
                     <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
                       {t("common.bcc_label")}
                     </span>
-                    <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
+                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-txt-secondary">
                       {email.bcc.map((r, i) => (
                         <span
                           key={r.email || i}
-                          className="inline-flex items-center gap-1"
+                          className="inline-flex min-w-0 max-w-full items-center gap-1"
                         >
                           <ProfileAvatar
                             use_domain_logo
@@ -869,7 +869,7 @@ export function ViewerEmailHeader({
                             name={r.name || ""}
                             size="xs"
                           />
-                          <span>
+                          <span className="min-w-0 break-words">
                             {r.name || r.email || t("common.unknown")}
                           </span>
                           {i < email.bcc.length - 1 && <span>,</span>}
@@ -878,19 +878,19 @@ export function ViewerEmailHeader({
                     </span>
                   </div>
                 )}
-                <div className="flex">
+                <div className="flex min-w-0">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                     {t("common.date_label")}
                   </span>
-                  <span className="text-txt-secondary">
+                  <span className="min-w-0 break-words text-txt-secondary">
                     {format_email_detail(new Date(email.timestamp))}
                   </span>
                 </div>
-                <div className="flex">
+                <div className="flex min-w-0">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                     {t("common.subject_label")}
                   </span>
-                  <span className="min-w-0 text-txt-secondary break-words">{email.subject || t("mail.no_subject")}</span>
+                  <span className="min-w-0 flex-1 break-words text-txt-secondary">{email.subject || t("mail.no_subject")}</span>
                 </div>
               </PopoverContent>
             </Popover>

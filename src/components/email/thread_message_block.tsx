@@ -790,14 +790,14 @@ export function ThreadMessageBlock({
               side="bottom"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              <div className="flex">
+              <div className="flex min-w-0">
                 <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                   {t("common.from_label")}
                 </span>
-                <span className="min-w-0 text-txt-secondary break-words">
+                <span className="min-w-0 flex-1 break-words text-txt-secondary">
                   {show_sender_name}{" "}
                   <button
-                    className="hover:underline text-txt-muted"
+                    className="break-words hover:underline text-txt-muted"
                     onClick={() => {
                       navigator.clipboard
                         .writeText(show_sender_email)
@@ -810,25 +810,25 @@ export function ThreadMessageBlock({
                 </span>
               </div>
               {received_on_address && (
-                <div className="flex">
+                <div className="flex min-w-0">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                     {t("common.received_on_label")}
                   </span>
-                  <span className="min-w-0 text-txt-secondary break-words">
+                  <span className="min-w-0 flex-1 break-words text-txt-secondary">
                     {received_on_address}
                   </span>
                 </div>
               )}
               {message.to_recipients && message.to_recipients.length > 0 && (
-                <div className="flex items-start">
+                <div className="flex min-w-0 items-start">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
                     {t("common.to_label")}
                   </span>
-                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-txt-secondary">
                     {message.to_recipients.map((r, i) => (
                       <span
                         key={r.email}
-                        className="inline-flex items-center gap-1"
+                        className="inline-flex min-w-0 max-w-full items-center gap-1"
                       >
                         <ProfileAvatar
                           use_domain_logo
@@ -837,7 +837,7 @@ export function ThreadMessageBlock({
                           size="xs"
                         />
                         <button
-                          className="hover:underline"
+                          className="min-w-0 break-words hover:underline"
                           onClick={() => {
                             navigator.clipboard
                               .writeText(r.email)
@@ -856,15 +856,15 @@ export function ThreadMessageBlock({
                 </div>
               )}
               {message.cc_recipients && message.cc_recipients.length > 0 && (
-                <div className="flex items-start">
+                <div className="flex min-w-0 items-start">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
                     {t("common.cc_label")}
                   </span>
-                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-txt-secondary">
                     {message.cc_recipients.map((r, i) => (
                       <span
                         key={r.email}
-                        className="inline-flex items-center gap-1"
+                        className="inline-flex min-w-0 max-w-full items-center gap-1"
                       >
                         <ProfileAvatar
                           use_domain_logo
@@ -873,7 +873,7 @@ export function ThreadMessageBlock({
                           size="xs"
                         />
                         <button
-                          className="hover:underline"
+                          className="min-w-0 break-words hover:underline"
                           onClick={() => {
                             navigator.clipboard
                               .writeText(r.email)
@@ -892,15 +892,15 @@ export function ThreadMessageBlock({
                 </div>
               )}
               {message.bcc_recipients && message.bcc_recipients.length > 0 && (
-                <div className="flex items-start">
+                <div className="flex min-w-0 items-start">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
                     {t("common.bcc_label")}
                   </span>
-                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-txt-secondary">
                     {message.bcc_recipients.map((r, i) => (
                       <span
                         key={r.email}
-                        className="inline-flex items-center gap-1"
+                        className="inline-flex min-w-0 max-w-full items-center gap-1"
                       >
                         <ProfileAvatar
                           use_domain_logo
@@ -909,7 +909,7 @@ export function ThreadMessageBlock({
                           size="xs"
                         />
                         <button
-                          className="hover:underline"
+                          className="min-w-0 break-words hover:underline"
                           onClick={() => {
                             navigator.clipboard
                               .writeText(r.email)
@@ -927,19 +927,19 @@ export function ThreadMessageBlock({
                   </span>
                 </div>
               )}
-              <div className="flex">
+              <div className="flex min-w-0">
                 <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                   {t("common.date_label")}
                 </span>
-                <span className="text-txt-secondary">
+                <span className="min-w-0 flex-1 break-words text-txt-secondary">
                   {format_email_detail(new Date(message.timestamp))}
                 </span>
               </div>
-              <div className="flex">
+              <div className="flex min-w-0">
                 <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                   {t("common.subject_label")}
                 </span>
-                <span className="min-w-0 text-txt-secondary break-words">
+                <span className="min-w-0 flex-1 break-words text-txt-secondary">
                   {message.subject || t("mail.no_subject")}
                 </span>
               </div>
@@ -1290,6 +1290,7 @@ export function ThreadMessageBlock({
             on_forward={on_forward}
             on_reply={on_reply}
             on_reply_all={on_reply_all}
+            thread_token={inline_reply_thread_token}
           />
         </div>
       )}

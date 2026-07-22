@@ -57,6 +57,13 @@ function match_from_line(bytes: Uint8Array, start: number): number | null {
   return k + 1;
 }
 
+const SCAN_CHUNK_SIZE = 16 * 1024 * 1024;
+const PARSE_YIELD_INTERVAL = 200;
+
+function yield_to_main_thread(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 export async function parse_mbox_file(
   file: File,
   on_progress?: ParseProgressCallback,
@@ -71,8 +78,6 @@ export async function parse_mbox_file(
     };
   }
 
-  const buffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
   const decoder = new TextDecoder("iso-8859-1");
   const emails: ParsedEmail[] = [];
   const errors: string[] = [];
@@ -81,30 +86,49 @@ export async function parse_mbox_file(
   const message_starts: number[] = [];
   const separator_starts: number[] = [];
 
-  let pos = 0;
+  let carry = new Uint8Array(0);
+  let carry_file_offset = 0;
+  let prefix_probe_text: string | null = null;
 
-  while (pos <= bytes.length) {
-    const match_end = match_from_line(bytes, pos);
+  for (let read_at = 0; read_at < file.size || read_at === 0; read_at += SCAN_CHUNK_SIZE) {
+    const chunk_bytes = new Uint8Array(
+      await file.slice(read_at, Math.min(read_at + SCAN_CHUNK_SIZE, file.size)).arrayBuffer(),
+    );
+    const buffer = new Uint8Array(carry.length + chunk_bytes.length);
 
-    if (match_end !== null) {
-      separator_starts.push(pos);
-      message_starts.push(match_end);
-      pos = match_end;
-      continue;
+    buffer.set(carry, 0);
+    buffer.set(chunk_bytes, carry.length);
+
+    if (read_at === 0) {
+      prefix_probe_text = decoder.decode(buffer.subarray(0, Math.min(buffer.length, 65536)));
     }
 
-    const next_lf = bytes.indexOf(BYTE_LF, pos);
+    let pos = 0;
 
-    if (next_lf === -1) break;
-    pos = next_lf + 1;
+    while (pos <= buffer.length) {
+      const match_end = match_from_line(buffer, pos);
+
+      if (match_end !== null) {
+        separator_starts.push(carry_file_offset + pos);
+        message_starts.push(carry_file_offset + match_end);
+        pos = match_end;
+        continue;
+      }
+
+      const next_lf = buffer.indexOf(BYTE_LF, pos);
+
+      if (next_lf === -1) break;
+      pos = next_lf + 1;
+    }
+
+    carry_file_offset += pos;
+    carry = buffer.slice(pos);
   }
 
   if (message_starts.length === 0) {
     const alt_pattern = /^From:/im;
-    const prefix_probe_length = Math.min(bytes.length, 65536);
-    const prefix_text = decoder.decode(bytes.subarray(0, prefix_probe_length));
 
-    if (alt_pattern.test(prefix_text)) {
+    if (prefix_probe_text !== null && alt_pattern.test(prefix_probe_text)) {
       separator_starts.push(0);
       message_starts.push(0);
     }
@@ -122,8 +146,9 @@ export async function parse_mbox_file(
 
   for (let i = 0; i < message_starts.length; i++) {
     const start = message_starts[i];
-    const end = separator_starts[i + 1] ?? bytes.length;
-    const raw_segment = decoder.decode(bytes.subarray(start, end)).trim();
+    const end = separator_starts[i + 1] ?? file.size;
+    const segment_bytes = new Uint8Array(await file.slice(start, end).arrayBuffer());
+    const raw_segment = decoder.decode(segment_bytes).trim();
     const raw_email = raw_segment.replace(/^>From /gm, "From ");
 
     if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {
@@ -151,6 +176,10 @@ export async function parse_mbox_file(
         total,
         percentage: Math.round(((i + 1) / total) * 100),
       });
+    }
+
+    if (i % PARSE_YIELD_INTERVAL === 0) {
+      await yield_to_main_thread();
     }
   }
 
