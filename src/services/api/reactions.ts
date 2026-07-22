@@ -22,7 +22,7 @@ import { api_client, type ApiResponse } from "./client";
 
 export interface ReactRequest {
   target_message_id: string;
-  message_group_id: string;
+  message_group_id?: string;
   thread_token?: string;
   to: string[];
   body: string;
