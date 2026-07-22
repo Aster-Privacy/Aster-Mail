@@ -97,6 +97,7 @@ vi.mock("@/services/category_index", () => ({
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),
   reconcile_server_read: vi.fn(),
+  reconcile_unread_thread_siblings: vi.fn(),
   set_thread_grouping: vi.fn(),
   get_thread_rep_id: () => null,
 }));
