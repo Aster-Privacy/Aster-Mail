@@ -89,5 +89,5 @@ export interface CsvRow {
   [key: string]: string;
 }
 
-export const MAX_FILE_SIZE = 500 * 1024 * 1024;
+export const MAX_FILE_SIZE = 4 * 1024 * 1024 * 1024;
 export const MAX_SINGLE_EMAIL_SIZE = 50 * 1024 * 1024;

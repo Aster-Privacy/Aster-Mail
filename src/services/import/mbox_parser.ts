@@ -24,6 +24,39 @@ import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE, MAX_SINGLE_EMAIL_SIZE } from "./types";
 import { parse_eml } from "./eml_parser";
 
+const BYTE_F = 0x46;
+const BYTE_R = 0x72;
+const BYTE_O = 0x6f;
+const BYTE_M = 0x6d;
+const BYTE_SPACE = 0x20;
+const BYTE_CR = 0x0d;
+const BYTE_LF = 0x0a;
+
+function match_from_line(bytes: Uint8Array, start: number): number | null {
+  if (start + 5 > bytes.length) return null;
+  if (bytes[start] !== BYTE_F) return null;
+  if (bytes[start + 1] !== BYTE_R) return null;
+  if (bytes[start + 2] !== BYTE_O) return null;
+  if (bytes[start + 3] !== BYTE_M) return null;
+  if (bytes[start + 4] !== BYTE_SPACE) return null;
+
+  const content_start = start + 5;
+  let j = content_start;
+
+  while (j < bytes.length && bytes[j] !== BYTE_CR && bytes[j] !== BYTE_LF) {
+    j++;
+  }
+
+  if (j === content_start) return null;
+
+  let k = j;
+
+  if (k < bytes.length && bytes[k] === BYTE_CR) k++;
+  if (k >= bytes.length || bytes[k] !== BYTE_LF) return null;
+
+  return k + 1;
+}
+
 export async function parse_mbox_file(
   file: File,
   on_progress?: ParseProgressCallback,
@@ -32,32 +65,46 @@ export async function parse_mbox_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
+        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", String(Math.round(MAX_FILE_SIZE / 1024 / 1024))),
       ],
       warnings: [],
     };
   }
 
   const buffer = await file.arrayBuffer();
-  const text = new TextDecoder("iso-8859-1").decode(buffer);
+  const bytes = new Uint8Array(buffer);
+  const decoder = new TextDecoder("iso-8859-1");
   const emails: ParsedEmail[] = [];
   const errors: string[] = [];
   const warnings: string[] = [];
 
   const message_starts: number[] = [];
   const separator_starts: number[] = [];
-  const from_pattern = /^From [^\r\n]+\r?\n/gm;
-  let match;
 
-  while ((match = from_pattern.exec(text)) !== null) {
-    separator_starts.push(match.index);
-    message_starts.push(match.index + match[0].length);
+  let pos = 0;
+
+  while (pos <= bytes.length) {
+    const match_end = match_from_line(bytes, pos);
+
+    if (match_end !== null) {
+      separator_starts.push(pos);
+      message_starts.push(match_end);
+      pos = match_end;
+      continue;
+    }
+
+    const next_lf = bytes.indexOf(BYTE_LF, pos);
+
+    if (next_lf === -1) break;
+    pos = next_lf + 1;
   }
 
   if (message_starts.length === 0) {
     const alt_pattern = /^From:/im;
+    const prefix_probe_length = Math.min(bytes.length, 65536);
+    const prefix_text = decoder.decode(bytes.subarray(0, prefix_probe_length));
 
-    if (alt_pattern.test(text)) {
+    if (alt_pattern.test(prefix_text)) {
       separator_starts.push(0);
       message_starts.push(0);
     }
@@ -75,8 +122,8 @@ export async function parse_mbox_file(
 
   for (let i = 0; i < message_starts.length; i++) {
     const start = message_starts[i];
-    const end = separator_starts[i + 1] ?? text.length;
-    const raw_segment = text.substring(start, end).trim();
+    const end = separator_starts[i + 1] ?? bytes.length;
+    const raw_segment = decoder.decode(bytes.subarray(start, end)).trim();
     const raw_email = raw_segment.replace(/^>From /gm, "From ");
 
     if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {

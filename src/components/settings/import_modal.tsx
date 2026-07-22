@@ -418,6 +418,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       }
 
       const folder_token_map = new Map<string, string>();
+      const BATCH_SIZE = 10;
 
       let job_id: string | null = null;
 
@@ -440,10 +441,19 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
         const message_id_hashes = new Map<string, string>();
 
-        for (const email of emails) {
+        for (let i = 0; i < emails.length; i++) {
+          const email = emails[i];
           const hash = await compute_message_id_hash(email.message_id);
 
           message_id_hashes.set(email.message_id, hash);
+
+          if (i % BATCH_SIZE === 0 || i === emails.length - 1) {
+            set_progress({
+              current: i + 1,
+              total: emails.length,
+              percentage: Math.round(((i + 1) / emails.length) * 100),
+            });
+          }
         }
 
         const all_hashes = Array.from(message_id_hashes.values());
@@ -469,6 +479,17 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               existing_hashes.add(hash);
             }
           }
+
+          const dedup_current = Math.min(
+            i + DUPLICATE_CHECK_BATCH_SIZE,
+            all_hashes.length,
+          );
+
+          set_progress({
+            current: dedup_current,
+            total: all_hashes.length,
+            percentage: Math.round((dedup_current / all_hashes.length) * 100),
+          });
         }
 
         const seen_hashes = new Set<string>();
@@ -539,7 +560,6 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           });
         }
 
-        const BATCH_SIZE = 10;
         let quota_exceeded = false;
 
         for (let i = 0; i < emails_to_import.length; i += BATCH_SIZE) {
@@ -591,30 +611,35 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           }
 
           if (encrypted_batch.length > 0) {
-            const store_response = await store_imported_emails(
-              job_id!,
-              encrypted_batch,
-            );
+            try {
+              const store_response = await store_imported_emails(
+                job_id!,
+                encrypted_batch,
+              );
 
-            if (store_response.data) {
-              const {
-                stored_count,
-                duplicate_count,
-                skipped_quota_count,
-              } = store_response.data;
+              if (store_response.data) {
+                const {
+                  stored_count,
+                  duplicate_count,
+                  skipped_quota_count,
+                } = store_response.data;
 
-              imported_count += stored_count;
-              store_duplicate_count += duplicate_count;
-              failed_count +=
-                encrypted_batch.length -
-                stored_count -
-                duplicate_count -
-                skipped_quota_count;
+                imported_count += stored_count;
+                store_duplicate_count += duplicate_count;
+                failed_count +=
+                  encrypted_batch.length -
+                  stored_count -
+                  duplicate_count -
+                  skipped_quota_count;
 
-              if (store_response.data.quota_exceeded) {
-                quota_exceeded = true;
+                if (store_response.data.quota_exceeded) {
+                  quota_exceeded = true;
+                }
+              } else {
+                failed_count += encrypted_batch.length;
               }
-            } else {
+            } catch (error) {
+              if (import.meta.env.DEV) console.error(error);
               failed_count += encrypted_batch.length;
             }
           }

@@ -22,22 +22,22 @@ describe("import error messages substitute placeholders (no literal {{ }})", () 
 
   it("csv oversized error fills size and limit", async () => {
     const result = await parse_csv_file(
-      oversized_file("big.csv", 600 * 1024 * 1024),
+      oversized_file("big.csv", 5000 * 1024 * 1024),
     );
 
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).not.toContain("{{");
-    expect(result.errors[0]).toContain("600.0");
-    expect(result.errors[0]).toContain("500");
+    expect(result.errors[0]).toContain("5000.0");
+    expect(result.errors[0]).toContain("4096");
   });
 
   it("pst oversized error fills size and limit", async () => {
     const result = await parse_pst_file(
-      oversized_file("big.pst", 600 * 1024 * 1024),
+      oversized_file("big.pst", 5000 * 1024 * 1024),
     );
 
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).not.toContain("{{");
-    expect(result.errors[0]).toContain("600.0");
+    expect(result.errors[0]).toContain("5000.0");
   });
 });

@@ -315,34 +315,38 @@ export function decode_body(
   return reinterpret_as_utf8(result);
 }
 
-function estimate_decoded_size(
+function decode_attachment_bytes(
   part_body: string,
   encoding: string | undefined,
-): number {
-  if (encoding?.toLowerCase() === "base64") {
-    const cleaned = part_body.replace(/[\r\n\s]/g, "");
-    const padding = (cleaned.match(/=+$/)?.[0].length ?? 0);
+): Uint8Array {
+  const enc = encoding?.toLowerCase();
 
-    return Math.max(0, Math.floor((cleaned.length * 3) / 4) - padding);
+  if (enc === "base64") {
+    const decoded = decode_base64_safe(part_body);
+
+    return Uint8Array.from(decoded, (c) => c.charCodeAt(0) & 0xff);
   }
 
-  return part_body.length;
+  if (enc === "quoted-printable") {
+    return decode_quoted_printable_bytes(part_body);
+  }
+
+  return Uint8Array.from(part_body, (c) => c.charCodeAt(0) & 0xff);
 }
 
-// Imported mail is stored envelope-only: attachment bytes are never persisted,
-// so we record metadata (filename, type, size) without decoding the payload to
-// avoid holding large binary buffers in memory during bulk imports.
 function attachment_metadata(
   filename: string,
   content_type: string,
   part_body: string,
   encoding: string | undefined,
 ): ParsedAttachment {
+  const content = decode_attachment_bytes(part_body, encoding);
+
   return {
     filename,
     content_type: content_type.split(";")[0].trim(),
-    content: new Uint8Array(0),
-    size: estimate_decoded_size(part_body, encoding),
+    content,
+    size: content.length,
   };
 }
 

@@ -20,6 +20,10 @@
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { ParsedEmail } from "./parser";
+import type { Attachment } from "@/components/compose/compose_shared";
+import type { CreateAttachmentRequest } from "@/services/api/attachments";
+
+import { encrypt_attachments_for_send } from "@/services/crypto/attachment_crypto";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const IMPORT_KEY_VERSION = "astermail-import-v1";
@@ -99,6 +103,38 @@ export interface EncryptedImportEmail {
   thread_token?: string;
   item_type?: string;
   folder_token?: string;
+  attachments?: CreateAttachmentRequest[];
+}
+
+async function encrypt_imported_attachments(
+  email: ParsedEmail,
+): Promise<CreateAttachmentRequest[]> {
+  if (email.attachments.length === 0) return [];
+
+  const attachments_to_encrypt: Attachment[] = email.attachments.map(
+    (attachment, index) => ({
+      id: `${email.message_id}-${index}`,
+      name: attachment.filename,
+      size: String(attachment.size),
+      size_bytes: attachment.content.byteLength,
+      mime_type: attachment.content_type,
+      data: attachment.content.buffer.slice(
+        attachment.content.byteOffset,
+        attachment.content.byteOffset + attachment.content.byteLength,
+      ),
+    }),
+  );
+
+  const encrypted = await encrypt_attachments_for_send(attachments_to_encrypt);
+
+  return encrypted.map((att, seq_num) => ({
+    encrypted_data: att.encrypted_data,
+    data_nonce: att.data_nonce,
+    encrypted_meta: att.sender_encrypted_meta,
+    meta_nonce: att.sender_meta_nonce,
+    size_bytes: att.size_bytes,
+    seq_num,
+  }));
 }
 
 // Deterministic hash of the message content so re-importing the same email
@@ -175,6 +211,7 @@ export async function encrypt_imported_email(
   };
 
   const content_hash = await compute_content_hash(email);
+  const attachments = await encrypt_imported_attachments(email);
 
   const key = await derive_import_encryption_key(vault);
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
@@ -198,6 +235,7 @@ export async function encrypt_imported_email(
     envelope_nonce: uint8_array_to_base64(nonce),
     content_hash,
     received_at: email.date.toISOString(),
+    attachments: attachments.length > 0 ? attachments : undefined,
   };
 }
 

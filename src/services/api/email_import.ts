@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import type { CreateAttachmentRequest } from "./attachments";
 
 export type ImportSource =
   | "gmail"
@@ -85,6 +86,7 @@ export interface ImportedEmailData {
   item_type?: string;
   received_at?: string;
   thread_token?: string;
+  attachments?: CreateAttachmentRequest[];
 }
 
 export interface StoreEmailsRequest {

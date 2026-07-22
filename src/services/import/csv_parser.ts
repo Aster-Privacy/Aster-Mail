@@ -214,7 +214,7 @@ export async function parse_csv_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
+        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", String(Math.round(MAX_FILE_SIZE / 1024 / 1024))),
       ],
       warnings: [],
     };
