@@ -227,7 +227,7 @@ export function AliasesSection() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={alias_csv_locked ? () => prompt_upgrade(t("settings.feature_requires_upgrade")) : () => set_show_import_modal(true)}
+                    onClick={() => set_show_import_modal(true)}
                   >
                     {t("settings.alias_import_csv")}
                   </Button>
