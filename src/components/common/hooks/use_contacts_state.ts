@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedContact, ContactFormData } from "@/types/contacts";
+import type { DecryptedContact, ContactFormData, Contact } from "@/types/contacts";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import {
   list_contacts,
@@ -51,6 +52,8 @@ export type FilterOption =
 export type ViewMode = "list" | "compact";
 
 const BATCH_SIZE = 10;
+const CONTACTS_SEARCH_DEBOUNCE_MS = 200;
+const CSV_EXPORT_CHUNK_SIZE = 500;
 
 export function contact_to_form_data(contact: DecryptedContact): ContactFormData {
   const {
@@ -77,6 +80,7 @@ export function use_contacts_state() {
   const [search_params, set_search_params] = useSearchParams();
   const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
   const [search_query, set_search_query] = useState("");
+  const [debounced_search_query, set_debounced_search_query] = useState("");
   const [is_form_open, set_is_form_open] = useState(false);
   const [editing_contact, set_editing_contact] =
     useState<DecryptedContact | null>(null);
@@ -86,6 +90,10 @@ export function use_contacts_state() {
     useState<DecryptedContact | null>(null);
   const [is_submitting, set_is_submitting] = useState(false);
   const [is_loading, set_is_loading] = useState(true);
+  const [fetch_progress, set_fetch_progress] = useState<{
+    loaded: number;
+    total?: number;
+  } | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_bulk_deleting, set_is_bulk_deleting] = useState(false);
@@ -107,7 +115,14 @@ export function use_contacts_state() {
   const search_input_ref = useRef<HTMLInputElement>(null);
   const file_input_ref = useRef<HTMLInputElement>(null);
   const list_container_ref = useRef<HTMLDivElement>(null);
-  const contact_refs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      set_debounced_search_query(search_query);
+    }, CONTACTS_SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeout);
+  }, [search_query]);
 
   const filtered_contacts = useMemo(() => {
     let result = [...contacts];
@@ -134,8 +149,8 @@ export function use_contacts_state() {
       });
     }
 
-    if (search_query.trim()) {
-      const query = search_query.toLowerCase();
+    if (debounced_search_query.trim()) {
+      const query = debounced_search_query.toLowerCase();
 
       result = result.filter((contact) => {
         const parts: string[] = [
@@ -209,7 +224,7 @@ export function use_contacts_state() {
     });
 
     return result;
-  }, [contacts, search_query, sort_by, filter_by]);
+  }, [contacts, debounced_search_query, sort_by, filter_by]);
 
   const selection_state = useMemo(() => {
     const filtered_ids = new Set(filtered_contacts.map((c) => c.id));
@@ -302,15 +317,33 @@ export function use_contacts_state() {
 
     try {
       set_error(null);
-      const response = await list_contacts({ limit: 100 });
+      set_fetch_progress(null);
 
-      if (response.error || !response.data) {
-        set_error(response.error || t("common.failed_to_fetch_contacts"));
-        set_is_loading(false);
+      const all_items: Contact[] = [];
+      let cursor: string | undefined;
 
-        return;
+      for (;;) {
+        const response = await list_contacts({ limit: 100, cursor });
+
+        if (response.error || !response.data) {
+          set_error(response.error || t("common.failed_to_fetch_contacts"));
+          set_is_loading(false);
+
+          return;
+        }
+
+        all_items.push(...response.data.items);
+        set_fetch_progress({ loaded: all_items.length });
+
+        if (!response.data.has_more || !response.data.next_cursor) break;
+        cursor = response.data.next_cursor;
       }
-      const decrypted = await decrypt_contacts(response.data.items);
+
+      set_fetch_progress({ loaded: 0, total: all_items.length });
+
+      const decrypted = await decrypt_contacts(all_items, (loaded) => {
+        set_fetch_progress({ loaded, total: all_items.length });
+      });
 
       set_contacts(decrypted);
     } catch (err) {
@@ -321,6 +354,7 @@ export function use_contacts_state() {
       );
     } finally {
       set_is_loading(false);
+      set_fetch_progress(null);
     }
   }, [has_keys]);
 
@@ -348,6 +382,14 @@ export function use_contacts_state() {
       }
     };
   }, []);
+
+  const row_virtualizer = useVirtualizer({
+    count: filtered_contacts.length,
+    getScrollElement: () => list_container_ref.current,
+    estimateSize: () => 56,
+    overscan: 8,
+    getItemKey: (index) => filtered_contacts[index].id,
+  });
 
   const shift_ref = use_shift_key_ref();
   const last_selected_id_ref = useRef<string | null>(null);
@@ -438,12 +480,9 @@ export function use_contacts_state() {
         e.preventDefault();
         set_focused_index((prev) => {
           const next = Math.min(prev + 1, filtered_contacts.length - 1);
-          const contact = filtered_contacts[next];
 
-          if (contact) {
-            const el = contact_refs.current.get(contact.id);
-
-            el?.scrollIntoView({ block: "nearest" });
+          if (filtered_contacts[next]) {
+            row_virtualizer.scrollToIndex(next, { align: "auto" });
           }
 
           return next;
@@ -456,12 +495,9 @@ export function use_contacts_state() {
         e.preventDefault();
         set_focused_index((prev) => {
           const next = Math.max(prev - 1, 0);
-          const contact = filtered_contacts[next];
 
-          if (contact) {
-            const el = contact_refs.current.get(contact.id);
-
-            el?.scrollIntoView({ block: "nearest" });
+          if (filtered_contacts[next]) {
+            row_virtualizer.scrollToIndex(next, { align: "auto" });
           }
 
           return next;
@@ -523,24 +559,22 @@ export function use_contacts_state() {
     selected_contact,
     selected_ids,
     handle_toggle_select,
+    row_virtualizer,
   ]);
 
   const scroll_to_letter = useCallback(
     (letter: string) => {
       const index = alphabetical_index.get(letter);
 
-      if (index !== undefined) {
-        const contact = filtered_contacts[index];
-
-        if (contact) {
-          const el = contact_refs.current.get(contact.id);
-
-          el?.scrollIntoView({ block: "start", behavior: "smooth" });
-          set_focused_index(index);
-        }
+      if (index !== undefined && filtered_contacts[index]) {
+        row_virtualizer.scrollToIndex(index, {
+          align: "start",
+          behavior: "smooth",
+        });
+        set_focused_index(index);
       }
     },
-    [alphabetical_index, filtered_contacts],
+    [alphabetical_index, filtered_contacts, row_virtualizer],
   );
 
   const handle_import_csv = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -920,31 +954,68 @@ export function use_contacts_state() {
     if (selected_ids.size === 0) return;
 
     const ids_to_delete = Array.from(selected_ids);
-    const delete_count = ids_to_delete.length;
 
-    set_contacts((prev) => prev.filter((c) => !selected_ids.has(c.id)));
-    set_selected_ids(new Set());
-    if (selected_contact && selected_ids.has(selected_contact.id)) {
-      set_selected_contact(null);
-    }
     set_is_bulk_deleting(false);
+
+    const succeeded_ids = new Set<string>();
+    let failure_count = 0;
 
     try {
       for (let i = 0; i < ids_to_delete.length; i += BATCH_SIZE) {
         const batch = ids_to_delete.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => api_delete_contact(id)),
+        );
 
-        await Promise.allSettled(batch.map((id) => api_delete_contact(id)));
+        results.forEach((result, index) => {
+          const id = batch[index];
+
+          if (result.status === "fulfilled" && !result.value.error) {
+            succeeded_ids.add(id);
+          } else {
+            failure_count += 1;
+          }
+        });
       }
-      show_toast(
-        t("common.contacts_deleted", { count: delete_count }),
-        "success",
-      );
     } catch (err) {
       show_toast(
         err instanceof Error
           ? err.message
           : t("common.failed_to_delete_contacts"),
         "error",
+      );
+    }
+
+    if (succeeded_ids.size > 0) {
+      set_contacts((prev) => prev.filter((c) => !succeeded_ids.has(c.id)));
+      set_selected_ids((prev) => {
+        const new_set = new Set(prev);
+
+        for (const id of succeeded_ids) {
+          new_set.delete(id);
+        }
+
+        return new_set;
+      });
+      if (selected_contact && succeeded_ids.has(selected_contact.id)) {
+        set_selected_contact(null);
+      }
+    }
+
+    if (failure_count > 0) {
+      show_toast(
+        succeeded_ids.size > 0
+          ? t("common.contacts_deleted_partial", {
+              count: succeeded_ids.size,
+              failed: failure_count,
+            })
+          : t("common.failed_to_delete_contacts"),
+        "error",
+      );
+    } else if (succeeded_ids.size > 0) {
+      show_toast(
+        t("common.contacts_deleted", { count: succeeded_ids.size }),
+        "success",
       );
     }
   }, [selected_ids, selected_contact, t]);
@@ -971,21 +1042,14 @@ export function use_contacts_state() {
     const contacts_to_update = selected_contacts.filter(
       (contact) => contact.is_favorite !== new_favorite_state,
     );
-    const update_count = contacts_to_update.length;
 
-    set_contacts((prev) =>
-      prev.map((c) =>
-        selected_ids.has(c.id)
-          ? { ...c, is_favorite: new_favorite_state }
-          : c,
-      ),
-    );
+    const succeeded_ids = new Set<string>();
+    let failure_count = 0;
 
     try {
       for (let i = 0; i < contacts_to_update.length; i += BATCH_SIZE) {
         const batch = contacts_to_update.slice(i, i + BATCH_SIZE);
-
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
           batch.map((contact) =>
             update_contact_encrypted(contact.id, {
               ...contact_to_form_data(contact),
@@ -993,26 +1057,18 @@ export function use_contacts_state() {
             }),
           ),
         );
-      }
-      if (update_count > 0) {
-        show_toast(
-          t(
-            new_favorite_state
-              ? "common.contacts_starred"
-              : "common.contacts_unstarred",
-            { count: update_count },
-          ),
-          "success",
-        );
+
+        results.forEach((result, index) => {
+          const id = batch[index].id;
+
+          if (result.status === "fulfilled" && !result.value.error) {
+            succeeded_ids.add(id);
+          } else {
+            failure_count += 1;
+          }
+        });
       }
     } catch (err) {
-      set_contacts((prev) =>
-        prev.map((c) =>
-          contacts_to_update.find((u) => u.id === c.id)
-            ? { ...c, is_favorite: !new_favorite_state }
-            : c,
-        ),
-      );
       show_toast(
         err instanceof Error
           ? err.message
@@ -1020,10 +1076,42 @@ export function use_contacts_state() {
         "error",
       );
     }
+
+    if (succeeded_ids.size > 0) {
+      set_contacts((prev) =>
+        prev.map((c) =>
+          succeeded_ids.has(c.id)
+            ? { ...c, is_favorite: new_favorite_state }
+            : c,
+        ),
+      );
+    }
+
+    if (failure_count > 0) {
+      show_toast(
+        succeeded_ids.size > 0
+          ? t("common.contacts_favorites_updated_partial", {
+              count: succeeded_ids.size,
+              failed: failure_count,
+            })
+          : t("common.failed_to_update_favorites"),
+        "error",
+      );
+    } else if (succeeded_ids.size > 0) {
+      show_toast(
+        t(
+          new_favorite_state
+            ? "common.contacts_starred"
+            : "common.contacts_unstarred",
+          { count: succeeded_ids.size },
+        ),
+        "success",
+      );
+    }
   }, [contacts, selected_ids, t]);
 
   const handle_export_contacts = useCallback(
-    (export_selected: boolean) => {
+    async (export_selected: boolean) => {
       const contacts_to_export = export_selected
         ? contacts.filter((c) => selected_ids.has(c.id))
         : contacts;
@@ -1054,27 +1142,41 @@ export function use_contacts_state() {
         return `"${safe.replace(/"/g, '""')}"`;
       };
 
-      const csv_rows = contacts_to_export.map((contact) => [
-        contact.first_name,
-        contact.last_name,
-        contact.emails.join("; "),
-        contact.phone || "",
-        contact.company || "",
-        contact.job_title || "",
-        contact.address?.street || "",
-        contact.address?.city || "",
-        contact.address?.state || "",
-        contact.address?.postal_code || "",
-        contact.address?.country || "",
-        contact.birthday || "",
-        contact.notes || "",
-        contact.is_favorite ? t("common.yes") : t("common.no"),
-      ]);
+      const contact_to_csv_row = (contact: DecryptedContact): string =>
+        [
+          contact.first_name,
+          contact.last_name,
+          contact.emails.join("; "),
+          contact.phone || "",
+          contact.company || "",
+          contact.job_title || "",
+          contact.address?.street || "",
+          contact.address?.city || "",
+          contact.address?.state || "",
+          contact.address?.postal_code || "",
+          contact.address?.country || "",
+          contact.birthday || "",
+          contact.notes || "",
+          contact.is_favorite ? t("common.yes") : t("common.no"),
+        ]
+          .map(escape_csv_cell)
+          .join(",");
 
-      const csv_content = [
-        csv_headers.map(escape_csv_cell).join(","),
-        ...csv_rows.map((row) => row.map(escape_csv_cell).join(",")),
-      ].join("\r\n");
+      const csv_parts: string[] = [csv_headers.map(escape_csv_cell).join(",")];
+
+      for (let i = 0; i < contacts_to_export.length; i += CSV_EXPORT_CHUNK_SIZE) {
+        const chunk = contacts_to_export.slice(i, i + CSV_EXPORT_CHUNK_SIZE);
+
+        for (const contact of chunk) {
+          csv_parts.push(contact_to_csv_row(contact));
+        }
+
+        if (i + CSV_EXPORT_CHUNK_SIZE < contacts_to_export.length) {
+          await new Promise<void>((r) => setTimeout(r, 0));
+        }
+      }
+
+      const csv_content = csv_parts.join("\r\n");
 
       const blob = new Blob([csv_content], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -1087,7 +1189,7 @@ export function use_contacts_state() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     },
-    [contacts, selected_ids],
+    [contacts, selected_ids, t],
   );
 
   const handle_copy_emails = useCallback(() => {
@@ -1136,6 +1238,7 @@ export function use_contacts_state() {
     set_contact_to_delete,
     is_submitting,
     is_loading,
+    fetch_progress,
     error,
     selected_ids,
     is_bulk_deleting,
@@ -1161,7 +1264,7 @@ export function use_contacts_state() {
     search_input_ref,
     file_input_ref,
     list_container_ref,
-    contact_refs,
+    row_virtualizer,
     filtered_contacts,
     selection_state,
     has_selection,

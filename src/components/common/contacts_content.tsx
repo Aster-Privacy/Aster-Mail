@@ -61,7 +61,7 @@ export function ContactsContent({
       <div className="flex h-full min-h-0 w-full">
         <ContactList
           alphabetical_index={state.alphabetical_index}
-          contact_refs={state.contact_refs}
+          row_virtualizer={state.row_virtualizer}
           contacts={state.contacts}
           copied_field={state.copied_field}
           error={state.error}

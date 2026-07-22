@@ -81,6 +81,10 @@ export function ContactImportModal({
     Record<string, keyof ContactFormData | null>
   >({});
   const [is_importing, set_is_importing] = useState(false);
+  const [import_progress, set_import_progress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
   const [import_result, set_import_result] = useState<{
     imported: number;
     skipped: number;
@@ -175,36 +179,58 @@ export function ContactImportModal({
   const handle_import = useCallback(async () => {
     set_is_importing(true);
     set_error(null);
+    set_import_progress(null);
 
-    try {
-      const batch_size = 50;
-      let imported = 0;
-      let skipped = 0;
-      let failed = 0;
+    const batch_size = 50;
+    const total_batches = Math.ceil(parsed_contacts.length / batch_size);
+    const consecutive_failure_limit = 5;
 
-      for (let i = 0; i < parsed_contacts.length; i += batch_size) {
-        const batch = parsed_contacts.slice(i, i + batch_size);
+    let imported = 0;
+    let skipped = 0;
+    let failed = 0;
+    let consecutive_failures = 0;
+    let last_batch_error: string | null = null;
+
+    for (let i = 0; i < parsed_contacts.length; i += batch_size) {
+      const batch = parsed_contacts.slice(i, i + batch_size);
+      const batch_number = Math.floor(i / batch_size) + 1;
+
+      set_import_progress({ current: batch_number, total: total_batches });
+
+      try {
         const response = await import_csv(batch);
 
         if (response.error || !response.data) {
-          set_error(response.error || t("common.import_failed"));
-
-          return;
+          failed += batch.length;
+          consecutive_failures += 1;
+          last_batch_error = response.error || t("common.import_failed");
+        } else {
+          imported += response.data.imported;
+          skipped += response.data.skipped;
+          failed += response.data.failed;
+          consecutive_failures = 0;
         }
-
-        imported += response.data.imported;
-        skipped += response.data.skipped;
-        failed += response.data.failed;
+      } catch (err) {
+        failed += batch.length;
+        consecutive_failures += 1;
+        last_batch_error =
+          err instanceof Error ? err.message : t("common.import_failed");
       }
 
-      set_import_result({ imported, skipped, failed });
-      set_step("complete");
-    } catch (err) {
-      set_error(err instanceof Error ? err.message : t("common.import_failed"));
-    } finally {
-      set_is_importing(false);
+      if (consecutive_failures >= consecutive_failure_limit) {
+        break;
+      }
     }
-  }, [parsed_contacts]);
+
+    if (consecutive_failures >= consecutive_failure_limit && last_batch_error) {
+      set_error(last_batch_error);
+    }
+
+    set_import_progress(null);
+    set_import_result({ imported, skipped, failed });
+    set_step("complete");
+    set_is_importing(false);
+  }, [parsed_contacts, t]);
 
   const handle_done = useCallback(() => {
     on_import_complete(import_result?.imported || 0);
@@ -390,7 +416,12 @@ export function ContactImportModal({
                   {is_importing ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
-                      {t("common.importing")}
+                      {import_progress
+                        ? t("common.import_progress", {
+                            current: import_progress.current,
+                            total: import_progress.total,
+                          })
+                        : t("common.importing")}
                     </>
                   ) : (
                     <>

@@ -44,46 +44,56 @@ export async function list_duplicate_candidates(): Promise<
     return { error: response.error || "Failed to fetch duplicates" };
   }
 
-  try {
-    const items = await Promise.all(
-      response.data.items.map(async (item) => {
-        const [contact1_response, contact2_response] = await Promise.all([
-          get_contact(item.contact_id_1),
-          get_contact(item.contact_id_2),
-        ]);
+  const settled = await Promise.allSettled(
+    response.data.items.map(async (item) => {
+      const [contact1_response, contact2_response] = await Promise.all([
+        get_contact(item.contact_id_1),
+        get_contact(item.contact_id_2),
+      ]);
 
-        if (
-          contact1_response.error ||
-          !contact1_response.data ||
-          contact2_response.error ||
-          !contact2_response.data
-        ) {
-          throw new Error("Failed to fetch contact data for duplicates");
-        }
+      if (
+        contact1_response.error ||
+        !contact1_response.data ||
+        contact2_response.error ||
+        !contact2_response.data
+      ) {
+        throw new Error("Failed to fetch contact data for duplicates");
+      }
 
-        const [contact_1, contact_2] = await Promise.all([
-          decrypt_contact(contact1_response.data),
-          decrypt_contact(contact2_response.data),
-        ]);
+      const [contact_1, contact_2] = await Promise.all([
+        decrypt_contact(contact1_response.data),
+        decrypt_contact(contact2_response.data),
+      ]);
 
-        return {
-          id: item.id,
-          contact_1,
-          contact_2,
-          similarity_score: item.similarity_score,
-          match_reason: item.match_reason,
-          created_at: item.created_at,
-        };
-      }),
-    );
+      return {
+        id: item.id,
+        contact_1,
+        contact_2,
+        similarity_score: item.similarity_score,
+        match_reason: item.match_reason,
+        created_at: item.created_at,
+      };
+    }),
+  );
 
-    return { data: { items, total: response.data.total } };
-  } catch (err) {
-    return {
-      error:
-        err instanceof Error ? err.message : "Failed to process duplicates",
-    };
+  const items: DuplicateCandidateWithContacts[] = [];
+  let skipped_count = 0;
+
+  for (const result of settled) {
+    if (result.status === "fulfilled") {
+      items.push(result.value);
+    } else {
+      skipped_count += 1;
+    }
   }
+
+  if (skipped_count > 0) {
+    console.warn(
+      `list_duplicate_candidates skipped ${skipped_count} candidate(s) that failed to fetch or decrypt`,
+    );
+  }
+
+  return { data: { items, total: response.data.total } };
 }
 
 export async function merge_contacts(

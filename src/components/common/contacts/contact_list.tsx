@@ -21,6 +21,7 @@
 import type { DecryptedContact } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 import type { RefObject } from "react";
+import type { Virtualizer } from "@tanstack/react-virtual";
 import type {
   SortOption,
   FilterOption,
@@ -84,7 +85,7 @@ interface ContactListProps {
   upcoming_birthdays_count: number;
   search_input_ref: RefObject<HTMLInputElement>;
   list_container_ref: RefObject<HTMLDivElement>;
-  contact_refs: RefObject<Map<string, HTMLDivElement>>;
+  row_virtualizer: Virtualizer<HTMLDivElement, Element>;
   on_mobile_menu_toggle: () => void;
   on_add_click: () => void;
   on_import_modal_open: () => void;
@@ -117,7 +118,7 @@ export function ContactList({
   error,
   search_input_ref,
   list_container_ref,
-  contact_refs,
+  row_virtualizer,
   on_mobile_menu_toggle,
   on_add_click,
   on_import_modal_open,
@@ -327,98 +328,103 @@ export function ContactList({
             </p>
           </div>
         ) : (
-          filtered_contacts.map((contact) => {
-            const name = `${contact.first_name} ${contact.last_name}`.trim();
-            const primary_email = contact.emails[0];
-            const is_active = selected_contact?.id === contact.id;
-            const is_selected = selected_ids.has(contact.id);
+          <div
+            className="relative w-full"
+            style={{ height: row_virtualizer.getTotalSize() }}
+          >
+            {row_virtualizer.getVirtualItems().map((virtual_row) => {
+              const contact = filtered_contacts[virtual_row.index];
+              const name = `${contact.first_name} ${contact.last_name}`.trim();
+              const primary_email = contact.emails[0];
+              const is_active = selected_contact?.id === contact.id;
+              const is_selected = selected_ids.has(contact.id);
 
-            return (
-              <button
-                key={contact.id}
-                ref={(el) => {
-                  if (el)
-                    contact_refs.current?.set(
-                      contact.id,
-                      el as unknown as HTMLDivElement,
-                    );
-                  else contact_refs.current?.delete(contact.id);
-                }}
-                className={cn(
-                  "group/contact w-full flex items-center gap-3 px-3 py-1 my-0.5 rounded-[12px] text-left transition-colors",
-                  is_selected
-                    ? "bg-[var(--accent-blue,#3b82f6)]/10"
-                    : is_active
-                      ? "bg-black/10 dark:bg-white/10"
-                      : "hover:bg-black/5 dark:hover:bg-white/5",
-                )}
-                onClick={() =>
-                  set_selected_contact(is_active ? null : contact)
-                }
-              >
+              return (
                 <div
-                  aria-label={t("mail.select")}
-                  aria-pressed={is_selected}
-                  className="group/avatar relative flex-shrink-0 w-10 h-10 cursor-pointer"
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle_select(contact.id);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e["key"] === "Enter" || e["key"] === " ") {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      on_toggle_select(contact.id);
-                    }
-                  }}
+                  key={virtual_row.key}
+                  ref={row_virtualizer.measureElement}
+                  className="absolute top-0 left-0 w-full py-0.5"
+                  data-index={virtual_row.index}
+                  style={{ transform: `translateY(${virtual_row.start}px)` }}
                 >
-                  <ContactAvatar
-                    avatar_url={contact.avatar_url}
+                  <button
                     className={cn(
-                      "transition-opacity duration-150",
+                      "group/contact w-full flex items-center gap-3 px-3 py-1 rounded-[12px] text-left transition-colors",
                       is_selected
-                        ? "opacity-0"
-                        : "group-hover/avatar:opacity-0",
+                        ? "bg-[var(--accent-blue,#3b82f6)]/10"
+                        : is_active
+                          ? "bg-black/10 dark:bg-white/10"
+                          : "hover:bg-black/5 dark:hover:bg-white/5",
                     )}
-                    email={primary_email}
-                    name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
-                    profile_color={contact.profile_color}
-                    size_px={40}
-                  />
-                  <div
-                    className={cn(
-                      "absolute inset-0 rounded-xl flex items-center justify-center transition-opacity duration-150",
-                      is_selected
-                        ? "opacity-100 bg-[var(--accent-blue,#3b82f6)]"
-                        : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",
-                    )}
+                    onClick={() =>
+                      set_selected_contact(is_active ? null : contact)
+                    }
                   >
-                    <CheckIcon className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  {name ? (
-                    <>
-                      <p className="text-[14px] font-medium truncate text-txt-primary">
-                        {name}
-                      </p>
-                      {primary_email && (
-                        <p className="text-[12px] truncate text-txt-muted">
-                          {primary_email}
+                    <div
+                      aria-label={t("mail.select")}
+                      aria-pressed={is_selected}
+                      className="group/avatar relative flex-shrink-0 w-10 h-10 cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        on_toggle_select(contact.id);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e["key"] === "Enter" || e["key"] === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          on_toggle_select(contact.id);
+                        }
+                      }}
+                    >
+                      <ContactAvatar
+                        avatar_url={contact.avatar_url}
+                        className={cn(
+                          "transition-opacity duration-150",
+                          is_selected
+                            ? "opacity-0"
+                            : "group-hover/avatar:opacity-0",
+                        )}
+                        email={primary_email}
+                        name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
+                        profile_color={contact.profile_color}
+                        size_px={40}
+                      />
+                      <div
+                        className={cn(
+                          "absolute inset-0 rounded-xl flex items-center justify-center transition-opacity duration-150",
+                          is_selected
+                            ? "opacity-100 bg-[var(--accent-blue,#3b82f6)]"
+                            : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",
+                        )}
+                      >
+                        <CheckIcon className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {name ? (
+                        <>
+                          <p className="text-[14px] font-medium truncate text-txt-primary">
+                            {name}
+                          </p>
+                          {primary_email && (
+                            <p className="text-[12px] truncate text-txt-muted">
+                              {primary_email}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-[14px] font-medium truncate text-txt-primary">
+                          {primary_email || t("common.unnamed")}
                         </p>
                       )}
-                    </>
-                  ) : (
-                    <p className="text-[14px] font-medium truncate text-txt-primary">
-                      {primary_email || t("common.unnamed")}
-                    </p>
-                  )}
+                    </div>
+                  </button>
                 </div>
-              </button>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

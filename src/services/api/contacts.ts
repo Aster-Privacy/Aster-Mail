@@ -330,19 +330,35 @@ export async function decrypt_contact(
   };
 }
 
+const DECRYPT_CONTACTS_CHUNK_SIZE = 200;
+
 export async function decrypt_contacts(
   contacts: Contact[],
+  on_progress?: (loaded: number, total: number) => void,
 ): Promise<DecryptedContact[]> {
-  const results = await Promise.allSettled(
-    contacts.map((contact) => decrypt_contact(contact)),
-  );
+  const decrypted: DecryptedContact[] = [];
 
-  return results
-    .filter(
-      (r): r is PromiseFulfilledResult<DecryptedContact> =>
-        r.status === "fulfilled",
-    )
-    .map((r) => r.value);
+  for (let i = 0; i < contacts.length; i += DECRYPT_CONTACTS_CHUNK_SIZE) {
+    const chunk = contacts.slice(i, i + DECRYPT_CONTACTS_CHUNK_SIZE);
+    const results = await Promise.allSettled(
+      chunk.map((contact) => decrypt_contact(contact)),
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled") decrypted.push(result.value);
+    }
+
+    on_progress?.(
+      Math.min(i + DECRYPT_CONTACTS_CHUNK_SIZE, contacts.length),
+      contacts.length,
+    );
+
+    if (i + DECRYPT_CONTACTS_CHUNK_SIZE < contacts.length) {
+      await new Promise<void>((r) => setTimeout(r, 0));
+    }
+  }
+
+  return decrypted;
 }
 
 export async function decrypt_contact_group(
