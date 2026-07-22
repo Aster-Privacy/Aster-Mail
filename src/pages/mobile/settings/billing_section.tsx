@@ -633,7 +633,7 @@ export function BillingSection({
                 className="relative overflow-hidden rounded-2xl p-5"
                 style={{
                   background:
-                    "linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 70%, black) 0%, color-mix(in srgb, var(--accent-color) 85%, black) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
+                    "linear-gradient(135deg, var(--accent-mix-b70, #295bac) 0%, var(--accent-mix-b85, #326fd1) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
                   boxShadow:
                     "0 1px 3px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
                 }}
@@ -761,7 +761,7 @@ export function BillingSection({
                           disabled={is_action_loading}
                           style={{
                             background:
-                              "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
+                              "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
                             boxShadow:
                               "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                           }}
@@ -786,7 +786,7 @@ export function BillingSection({
                       className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white"
                       style={{
                         background:
-                          "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
+                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
                         boxShadow:
                           "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                       }}
@@ -840,7 +840,7 @@ export function BillingSection({
                   disabled={!selected_storage || is_action_loading}
                   style={{
                     background:
-                      "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
+                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
                     boxShadow:
                       "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}

@@ -115,7 +115,7 @@ export default function MobileBrowserLoginPage() {
           <motion.div
             className="flex h-16 w-16 items-center justify-center rounded-2xl"
             style={{
-              background: "linear-gradient(135deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 80%, white) 100%)",
+              background: "linear-gradient(135deg, var(--accent-color) 0%, var(--accent-mix-w80, #629bf8) 100%)",
               boxShadow: "0 8px 32px color-mix(in srgb, var(--accent-color) 25%, transparent)",
             }}
             variants={reduce_motion ? undefined : fade_up_item}

@@ -149,6 +149,58 @@ function tone_to_hex(hue: number, chroma: number, tone_percent: number): string 
   );
 }
 
+export function mix_hex_srgb(hex: string, other: string, ratio: number): string {
+  const [r1, g1, b1] = hex_to_rgb(hex);
+  const [r2, g2, b2] = hex_to_rgb(other);
+
+  return rgb_to_hex(
+    r1 * ratio + r2 * (1 - ratio),
+    g1 * ratio + g2 * (1 - ratio),
+    b1 * ratio + b2 * (1 - ratio),
+  );
+}
+
+export function hex_to_rgba(hex: string, alpha: number): string {
+  const [r, g, b] = hex_to_rgb(hex);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export interface AccentDerivedVars {
+  "--accent-mix-w70": string;
+  "--accent-mix-w80": string;
+  "--accent-mix-w85": string;
+  "--accent-mix-b70": string;
+  "--accent-mix-b75": string;
+  "--accent-mix-b80": string;
+  "--accent-mix-b85": string;
+  "--accent-alpha-75": string;
+}
+
+export function derive_accent_vars(accent_hex: string): AccentDerivedVars {
+  return {
+    "--accent-mix-w70": mix_hex_srgb(accent_hex, "#ffffff", 0.7),
+    "--accent-mix-w80": mix_hex_srgb(accent_hex, "#ffffff", 0.8),
+    "--accent-mix-w85": mix_hex_srgb(accent_hex, "#ffffff", 0.85),
+    "--accent-mix-b70": mix_hex_srgb(accent_hex, "#000000", 0.7),
+    "--accent-mix-b75": mix_hex_srgb(accent_hex, "#000000", 0.75),
+    "--accent-mix-b80": mix_hex_srgb(accent_hex, "#000000", 0.8),
+    "--accent-mix-b85": mix_hex_srgb(accent_hex, "#000000", 0.85),
+    "--accent-alpha-75": hex_to_rgba(accent_hex, 0.75),
+  };
+}
+
+export const ACCENT_DERIVED_KEYS: (keyof AccentDerivedVars)[] = [
+  "--accent-mix-w70",
+  "--accent-mix-w80",
+  "--accent-mix-w85",
+  "--accent-mix-b70",
+  "--accent-mix-b75",
+  "--accent-mix-b80",
+  "--accent-mix-b85",
+  "--accent-alpha-75",
+];
+
 export interface MaterialThemeVars {
   "--bg-primary": string;
   "--bg-secondary": string;
@@ -271,15 +323,24 @@ export function compute_custom_theme_vars(
   return merged;
 }
 
-export function apply_material_theme(seed_hex: string, is_dark: boolean): void {
-  if (typeof document === "undefined") return;
-
-  const vars = generate_material_theme(seed_hex, is_dark);
+function apply_vars_with_derived(vars: MaterialThemeVars): void {
   const root = document.documentElement;
 
   for (const [key, value] of Object.entries(vars)) {
     root.style.setProperty(key, value);
   }
+
+  const derived = derive_accent_vars(vars["--accent-color"]);
+
+  for (const [key, value] of Object.entries(derived)) {
+    root.style.setProperty(key, value);
+  }
+}
+
+export function apply_material_theme(seed_hex: string, is_dark: boolean): void {
+  if (typeof document === "undefined") return;
+
+  apply_vars_with_derived(generate_material_theme(seed_hex, is_dark));
 }
 
 export function apply_custom_theme(
@@ -289,12 +350,7 @@ export function apply_custom_theme(
 ): void {
   if (typeof document === "undefined") return;
 
-  const vars = compute_custom_theme_vars(seed_hex, is_dark, overrides);
-  const root = document.documentElement;
-
-  for (const [key, value] of Object.entries(vars)) {
-    root.style.setProperty(key, value);
-  }
+  apply_vars_with_derived(compute_custom_theme_vars(seed_hex, is_dark, overrides));
 }
 
 const MATERIAL_THEME_KEYS: (keyof MaterialThemeVars)[] = [
@@ -326,6 +382,10 @@ export function clear_material_theme(): void {
   const root = document.documentElement;
 
   for (const key of MATERIAL_THEME_KEYS) {
+    root.style.removeProperty(key);
+  }
+
+  for (const key of ACCENT_DERIVED_KEYS) {
     root.style.removeProperty(key);
   }
 }

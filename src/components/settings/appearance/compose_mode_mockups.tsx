@@ -31,7 +31,7 @@ function get_colors(theme: "light" | "dark") {
       sidebar_border: "#e8e8e8",
       brand: "var(--accent-color, #3b82f6)",
       compose_gradient:
-        "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))",
+        "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color, #4f6ef7), var(--accent-mix-b80, #2f68c5))",
       compose_border_top: "rgba(255,255,255,0.15)",
       compose_border_bottom: "rgba(0,0,0,0.15)",
       text_primary: "#111827",
@@ -60,7 +60,7 @@ function get_colors(theme: "light" | "dark") {
     sidebar_border: "#2a2a2a",
     brand: "var(--accent-color, #3b82f6)",
     compose_gradient:
-      "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, white), var(--accent-color, #4f6ef7), color-mix(in srgb, var(--accent-color, #4f6ef7) 80%, black))",
+      "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color, #4f6ef7), var(--accent-mix-b80, #2f68c5))",
     compose_border_top: "rgba(255,255,255,0.15)",
     compose_border_bottom: "rgba(0,0,0,0.15)",
     text_primary: "#ffffff",

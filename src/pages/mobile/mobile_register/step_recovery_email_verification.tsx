@@ -56,7 +56,7 @@ export function StepRecoveryEmailVerification({
               style={{
                 background: reg.is_email_verified
                   ? "linear-gradient(180deg, #34d399 0%, #10b981 100%)"
-                  : "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 100%)",
+                  : "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 100%)",
                 boxShadow: reg.is_email_verified
                   ? "0 4px 12px rgba(16, 185, 129, 0.3)"
                   : "0 4px 12px color-mix(in srgb, var(--accent-color) 30%, transparent)",

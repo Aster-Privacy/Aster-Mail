@@ -64,8 +64,10 @@ import { set_low_network_mode } from "@/services/low_network_state";
 import { stop_version_check } from "@/lib/version_check";
 import { set_preload_email_font_px } from "@/components/email/hooks/preload_cache";
 import {
+  ACCENT_DERIVED_KEYS,
   apply_custom_theme,
   clear_material_theme,
+  derive_accent_vars,
   is_valid_hex_color,
   type CustomThemeOverrides,
 } from "@/lib/material_theme";
@@ -112,13 +114,23 @@ function apply_color_theme_class(
     root.classList.remove(cls);
   }
 
+  const set_inline_accent = () => {
+    root.style.setProperty("--accent-color", accent_color);
+    root.style.setProperty("--accent-color-hover", accent_color_hover);
+
+    if (is_valid_hex_color(accent_color)) {
+      for (const [key, value] of Object.entries(derive_accent_vars(accent_color))) {
+        root.style.setProperty(key, value);
+      }
+    }
+  };
+
   if (color_theme === "custom") {
     if (is_valid_hex_color(custom_theme_seed)) {
       apply_custom_theme(custom_theme_seed, is_dark, custom_theme_overrides);
     } else {
       clear_material_theme();
-      root.style.setProperty("--accent-color", accent_color);
-      root.style.setProperty("--accent-color-hover", accent_color_hover);
+      set_inline_accent();
     }
   } else {
     clear_material_theme();
@@ -127,9 +139,12 @@ function apply_color_theme_class(
       root.classList.add(`theme-${color_theme}`);
       root.style.removeProperty("--accent-color");
       root.style.removeProperty("--accent-color-hover");
+
+      for (const key of ACCENT_DERIVED_KEYS) {
+        root.style.removeProperty(key);
+      }
     } else {
-      root.style.setProperty("--accent-color", accent_color);
-      root.style.setProperty("--accent-color-hover", accent_color_hover);
+      set_inline_accent();
     }
   }
 

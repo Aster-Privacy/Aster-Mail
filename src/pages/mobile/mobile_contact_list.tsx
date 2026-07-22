@@ -167,7 +167,7 @@ export function MobileContactList({
                 className="flex h-8 w-8 items-center justify-center rounded-full text-white active:brightness-90"
                 style={{
                   background:
-                    "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
+                    "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
                   border: "1px solid rgba(255, 255, 255, 0.15)",
                   borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
@@ -216,7 +216,7 @@ export function MobileContactList({
             filter === "all"
               ? {
                   background:
-                    "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
+                    "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
                   border: "1px solid rgba(255, 255, 255, 0.15)",
                   borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
@@ -239,7 +239,7 @@ export function MobileContactList({
               filter === "favorites"
                 ? {
                     background:
-                      "linear-gradient(to bottom, color-mix(in srgb, var(--accent-color) 80%, white) 0%, var(--accent-color) 50%, color-mix(in srgb, var(--accent-color) 80%, black) 100%)",
+                      "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
                     border: "1px solid rgba(255, 255, 255, 0.15)",
                     borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
                     boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
