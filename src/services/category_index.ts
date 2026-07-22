@@ -837,6 +837,53 @@ export function reconcile_server_read(
   }
 }
 
+const sibling_verify_at = new Map<string, number>();
+const SIBLING_VERIFY_COOLDOWN_MS = 60000;
+const SIBLING_VERIFY_MAP_CAP = 5000;
+
+export function reconcile_unread_thread_siblings(
+  rows: { id: string; is_read?: boolean }[],
+): void {
+  const read_tokens = new Set<string>();
+  const row_ids = new Set<string>();
+
+  for (const row of rows) {
+    row_ids.add(row.id);
+    if (row.is_read !== true) continue;
+    const token = entries_map.get(row.id)?.thread_token;
+
+    if (token) read_tokens.add(token);
+  }
+
+  if (read_tokens.size === 0) return;
+
+  const wall = now_ms();
+  const stale_ids: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (entry.is_read) continue;
+    if (row_ids.has(id)) continue;
+    if (!entry.thread_token || !read_tokens.has(entry.thread_token)) continue;
+    const verified = sibling_verify_at.get(id);
+
+    if (verified && wall - verified < SIBLING_VERIFY_COOLDOWN_MS) continue;
+    sibling_verify_at.set(id, wall);
+    stale_ids.push(id);
+  }
+
+  if (sibling_verify_at.size > SIBLING_VERIFY_MAP_CAP) {
+    for (const [id, ts] of sibling_verify_at) {
+      if (wall - ts >= SIBLING_VERIFY_COOLDOWN_MS) {
+        sibling_verify_at.delete(id);
+      }
+    }
+  }
+
+  if (stale_ids.length > 0) {
+    reindex_ids(stale_ids);
+  }
+}
+
 export function is_fully_built(): boolean {
   return fully_built;
 }
@@ -1406,6 +1453,7 @@ export function clear_category_index_memory(): void {
   resync_failures = 0;
   entries_map = new Map();
   recently_read.clear();
+  sibling_verify_at.clear();
   derived = null;
   seen_ts = {};
   fully_built = false;
@@ -1629,6 +1677,7 @@ export async function clear_category_index(): Promise<void> {
   index_generation += 1;
   entries_map = new Map();
   recently_read.clear();
+  sibling_verify_at.clear();
   fully_built = false;
   build_capped = false;
   resync_failures = 0;

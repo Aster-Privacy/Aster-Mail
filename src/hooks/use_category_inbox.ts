@@ -64,6 +64,7 @@ import {
   sync_recent,
   set_sort_order,
   reconcile_server_read,
+  reconcile_unread_thread_siblings,
   get_thread_rep_id,
   set_thread_grouping,
   set_ids_read,
@@ -444,6 +445,7 @@ export function use_category_inbox(
         }
 
         reconcile_server_read(fetched);
+        reconcile_unread_thread_siblings(fetched);
 
         const belongs_in_inbox = (email: InboxEmail) =>
           email.item_type === "received" &&
