@@ -59,12 +59,6 @@ function collapse_forwarded_content(
       }
     }
 
-    const parent = proton_wrapper.parentNode!;
-
-    while (content_bq.firstChild) {
-      parent.insertBefore(content_bq.firstChild, proton_wrapper);
-    }
-
     metadata_nodes.push(proton_wrapper);
 
     const details = doc.createElement("details");

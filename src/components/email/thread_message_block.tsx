@@ -786,21 +786,32 @@ export function ThreadMessageBlock({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-80 p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+              className="w-[26rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
               side="bottom"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex">
-                <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                   {t("common.from_label")}
                 </span>
                 <span className="min-w-0 text-txt-secondary break-words">
-                  {show_sender_name} &lt;{show_sender_email}&gt;
+                  {show_sender_name}{" "}
+                  <button
+                    className="hover:underline text-txt-muted"
+                    onClick={() => {
+                      navigator.clipboard
+                        .writeText(show_sender_email)
+                        .then(() => show_toast(t("common.email_copied"), "success"))
+                        .catch(() => {});
+                    }}
+                  >
+                    &lt;{show_sender_email}&gt;
+                  </button>
                 </span>
               </div>
               {received_on_address && (
                 <div className="flex">
-                  <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                     {t("common.received_on_label")}
                   </span>
                   <span className="min-w-0 text-txt-secondary break-words">
@@ -810,7 +821,7 @@ export function ThreadMessageBlock({
               )}
               {message.to_recipients && message.to_recipients.length > 0 && (
                 <div className="flex items-start">
-                  <span className="w-14 flex-shrink-0 font-medium pt-0.5 text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
                     {t("common.to_label")}
                   </span>
                   <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -825,7 +836,17 @@ export function ThreadMessageBlock({
                           name={r.name || ""}
                           size="xs"
                         />
-                        <span>{r.name || r.email}</span>
+                        <button
+                          className="hover:underline"
+                          onClick={() => {
+                            navigator.clipboard
+                              .writeText(r.email)
+                              .then(() => show_toast(t("common.email_copied"), "success"))
+                              .catch(() => {});
+                          }}
+                        >
+                          {r.name || r.email}
+                        </button>
                         {i < (message.to_recipients?.length ?? 0) - 1 && (
                           <span>,</span>
                         )}
@@ -834,8 +855,44 @@ export function ThreadMessageBlock({
                   </span>
                 </div>
               )}
+              {message.cc_recipients && message.cc_recipients.length > 0 && (
+                <div className="flex items-start">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                    {t("common.cc_label")}
+                  </span>
+                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                    {message.cc_recipients.map((r, i) => (
+                      <span
+                        key={r.email}
+                        className="inline-flex items-center gap-1"
+                      >
+                        <ProfileAvatar
+                          use_domain_logo
+                          email={r.email}
+                          name={r.name || ""}
+                          size="xs"
+                        />
+                        <button
+                          className="hover:underline"
+                          onClick={() => {
+                            navigator.clipboard
+                              .writeText(r.email)
+                              .then(() => show_toast(t("common.email_copied"), "success"))
+                              .catch(() => {});
+                          }}
+                        >
+                          {r.name || r.email}
+                        </button>
+                        {i < (message.cc_recipients?.length ?? 0) - 1 && (
+                          <span>,</span>
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )}
               <div className="flex">
-                <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                   {t("common.date_label")}
                 </span>
                 <span className="text-txt-secondary">
@@ -843,7 +900,7 @@ export function ThreadMessageBlock({
                 </span>
               </div>
               <div className="flex">
-                <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                   {t("common.subject_label")}
                 </span>
                 <span className="min-w-0 text-txt-secondary break-words">

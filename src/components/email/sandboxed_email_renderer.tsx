@@ -18,11 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { build_email_body_css, build_forced_dark_mode_css } from "@/lib/email_body_styles";
-import { sanitize_preview_html } from "@/lib/html_sanitizer";
+import { sanitize_preview_html, is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -217,6 +217,7 @@ export function SandboxedEmailRenderer({
   const [height_ready, set_height_ready] = useState(!!cached_height);
   const prev_html_ref = useRef(sanitized_html);
   const iframe_ref = useRef<HTMLIFrameElement | null>(null);
+  const doc_nonce_ref = useRef(0);
   const observer_ref = useRef<ResizeObserver | null>(null);
   const mutation_observer_ref = useRef<MutationObserver | null>(null);
   const raf_ref = useRef<number>(0);
@@ -324,7 +325,19 @@ export function SandboxedEmailRenderer({
   const literal_plain_text =
     (is_literal_plain_text ?? is_plain_text) && !has_block_html;
   const has_table_layout = /<table\b/i.test(layout_probe);
-  const has_designed_bg = /background(?:-color)?\s*:\s*(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(layout_probe);
+  const has_designed_bg = (
+    layout_probe.match(/background(?:-color)?\s*:\s*[^;"'}]+/gi) ?? []
+  ).some((declaration) => {
+    const value_match = declaration.match(
+      /background(?:-color)?\s*:\s*([^;"'}]+)$/i,
+    );
+    const value = value_match ? value_match[1].trim() : "";
+
+    return (
+      /^(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(value) &&
+      !is_transparent_color_value(value)
+    );
+  });
   const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(layout_probe);
   const has_centered_card = /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(layout_probe);
   const has_newsletter_layout = (has_table_layout && (
@@ -358,11 +371,14 @@ export function SandboxedEmailRenderer({
 .aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
 .aster-quoted-content { border-left-color: ${preferences.accent_color_hover} !important; }`;
 
+  const QUOTE_SCOPE_EXCLUDE =
+    ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
   const plain_dark_css =
     is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html)
       ? `html { color-scheme: dark !important; }
 html, body { background-color: transparent !important; color: ${plain_text_color} !important; }
-body * { color: inherit !important; }
+body *${QUOTE_SCOPE_EXCLUDE} { color: inherit !important; }
+body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
 a, a * { color: ${preferences.accent_color_hover} !important; }`
       : "";
   const dark_mode_css = force_dark_mode
@@ -394,8 +410,14 @@ a, a * { color: ${preferences.accent_color_hover} !important; }`
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
     : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
 
+  const doc_nonce = useMemo(() => {
+    doc_nonce_ref.current += 1;
+
+    return doc_nonce_ref.current;
+  }, [resolved_html, email_id, is_html_email]);
+
   const srcdoc_html = `<!DOCTYPE html>
-<html${html_el_style}>
+<html${html_el_style} data-aster-doc-nonce="${doc_nonce}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -673,6 +695,66 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     });
   }, []);
 
+  const trim_trailing_empty_blocks = useCallback((doc: Document) => {
+    const body = doc.body;
+
+    if (!body) return;
+
+    const is_removable = (node: Node): boolean => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return !(node.textContent || "").trim();
+      }
+      if (node.nodeType === Node.COMMENT_NODE) return true;
+      if (node.nodeType !== Node.ELEMENT_NODE) return false;
+      const el = node as Element;
+
+      if (el.tagName === "BR") return true;
+      if (!["DIV", "P", "SECTION", "SPAN"].includes(el.tagName)) return false;
+      if ((el.textContent || "").trim()) return false;
+      if (el.querySelector("img,hr,table,iframe,svg,video,object,embed,input,button")) {
+        return false;
+      }
+
+      return !/background|height|border|padding/i.test(el.getAttribute("style") || "");
+    };
+
+    let container: Element = body;
+
+    for (;;) {
+      let last: Node | null = container.lastChild;
+
+      for (;;) {
+        while (last && is_removable(last)) {
+          const removed = last;
+
+          last = last.previousSibling;
+          removed.parentNode?.removeChild(removed);
+        }
+        if (
+          last &&
+          last.nodeType === Node.ELEMENT_NODE &&
+          (last as Element).matches(
+            ".aster-quoted-wrapper, details.aster-forwarded-collapse",
+          )
+        ) {
+          last = last.previousSibling;
+          continue;
+        }
+        break;
+      }
+      if (
+        last &&
+        last.nodeType === Node.ELEMENT_NODE &&
+        ["DIV", "P"].includes((last as Element).tagName) &&
+        !(last as Element).matches("[class*='quote'], [class*='cite']")
+      ) {
+        container = last as Element;
+        continue;
+      }
+      break;
+    }
+  }, []);
+
   const collapse_quoted_replies = useCallback((doc: Document) => {
     const body = doc.body;
 
@@ -912,6 +994,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     const iframe = iframe_ref.current;
 
     if (!iframe?.contentDocument?.body) return;
+    if (iframe.contentDocument.body.hasAttribute("data-aster-processed")) return;
+    iframe.contentDocument.body.setAttribute("data-aster-processed", "1");
 
     if (observer_ref.current) {
       observer_ref.current.disconnect();
@@ -964,6 +1048,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     collapse_quoted_replies(iframe.contentDocument);
     if (!preserve_formatting) {
       collapse_empty_block_runs(iframe.contentDocument);
+      if (is_plain_text || !has_rich_layout) {
+        trim_trailing_empty_blocks(iframe.contentDocument);
+      }
     }
 
     const MAX_IFRAME_HEIGHT = 12000;
@@ -1073,9 +1160,38 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       });
     };
 
+    const apply_fast_height = (entry: ResizeObserverEntry) => {
+      const box_height =
+        entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+
+      if (!box_height || box_height <= 0) return false;
+
+      const candidate = Math.min(box_height + 8, MAX_IFRAME_HEIGHT);
+
+      if (Math.round(candidate) === Math.round(last_height)) return true;
+      if (Math.abs(candidate - last_height) < 2) return true;
+
+      last_height = candidate;
+      set_iframe_height(`${candidate}px`);
+      set_height_ready(true);
+      if (email_id) {
+        iframe_height_cache.set(email_id, candidate);
+        schedule_ready();
+      }
+
+      return true;
+    };
+
     const attach_observer = () => {
       if (!iframe.contentDocument?.body) return;
-      observer_ref.current = new ResizeObserver(() => {
+      observer_ref.current = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        const doc = iframe.contentDocument;
+        const active_selection = doc?.getSelection();
+
+        if (active_selection && !active_selection.isCollapsed) return;
+        if (entry && apply_fast_height(entry)) return;
+
         update_height();
       });
       observer_ref.current.observe(iframe.contentDocument.body);
@@ -1281,8 +1397,10 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     collapse_forwarded_content,
     collapse_quoted_replies,
     collapse_empty_block_runs,
+    trim_trailing_empty_blocks,
     unblock_remote_content,
     preserve_formatting,
+    is_plain_text,
   ]);
 
   useEffect(() => {
@@ -1367,6 +1485,39 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       requestAnimationFrame(() => set_iframe_loaded(true));
     });
   }, [handle_load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let attempts = 0;
+
+    const expected_nonce = String(doc_nonce);
+
+    const poll = () => {
+      if (cancelled) return;
+      const doc = iframe_ref.current?.contentDocument;
+      const body = doc?.body;
+      const doc_matches =
+        doc?.documentElement?.getAttribute("data-aster-doc-nonce") ===
+        expected_nonce;
+
+      if (doc_matches) {
+        if (body?.hasAttribute("data-aster-processed")) return;
+        if (doc && body && doc.readyState !== "loading" && body.childNodes.length > 0) {
+          handle_load_with_swap();
+
+          return;
+        }
+      }
+      attempts += 1;
+      if (attempts < 100) setTimeout(poll, 50);
+    };
+
+    poll();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [srcdoc_html, doc_nonce, handle_load_with_swap]);
 
   const show_preview = height_ready && !iframe_loaded;
   const show_skeleton = !height_ready && !iframe_loaded;

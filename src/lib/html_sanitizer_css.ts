@@ -24,6 +24,13 @@ import {
   COMPOSE_ALLOWED_CSS_PROPERTIES,
 } from "./html_sanitizer_constants";
 
+const TRANSPARENT_COLOR_VALUE_RE =
+  /^(?:transparent|inherit|initial|unset|revert|none|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*0(?:\.0+)?\s*\)|rgba\(\s*\d+\s+\d+\s+\d+\s*\/\s*0(?:\.0+)?\s*\)|hsla?\(\s*[\d.]+(?:deg)?\s*,\s*[\d.]+%\s*,\s*[\d.]+%\s*,\s*0(?:\.0+)?\s*\))$/i;
+
+export function is_transparent_color_value(value: string): boolean {
+  return TRANSPARENT_COLOR_VALUE_RE.test(value.trim());
+}
+
 function decode_css_escapes(css: string): string {
   return css
     .replace(/\\([0-9a-fA-F]{1,6})\s?/g, (_, hex) => {

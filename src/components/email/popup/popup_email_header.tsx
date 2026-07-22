@@ -147,9 +147,6 @@ export function PopupEmailHeader({
         {email.expires_at && (
           <ExpirationCountdown expires_at={email.expires_at} size="sm" />
         )}
-        <span className="text-sm flex-shrink-0 text-txt-muted">
-          {email.timestamp}
-        </span>
         {is_fullscreen && (
           <button
             className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex-shrink-0"
@@ -202,14 +199,14 @@ export function PopupEmailHeader({
                 </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-80 p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
                 side="bottom"
               >
-                <div className="flex">
-                  <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                  <span className="whitespace-nowrap font-medium text-txt-muted">
                     {t("common.from_label")}
                   </span>
-                  <span className="text-txt-secondary">
+                  <span className="min-w-0 text-txt-secondary break-words">
                     {show_sender_name ? `${show_sender_name} ` : ""}
                     <button
                       className="hover:underline text-txt-muted"
@@ -226,11 +223,11 @@ export function PopupEmailHeader({
                     </button>
                   </span>
                 </div>
-                <div className="flex items-start">
-                  <span className="w-14 flex-shrink-0 font-medium pt-0.5 text-txt-muted">
+                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                  <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
                     {t("common.to_label")}
                   </span>
-                  <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
+                  <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
                     {email.to.length > 0
                       ? email.to.map((r, i) => (
                           <span
@@ -243,7 +240,18 @@ export function PopupEmailHeader({
                               name={r.name || ""}
                               size="xs"
                             />
-                            <span>{r.name || r.email || t("common.unknown")}</span>
+                            <button
+                              className="hover:underline"
+                              onClick={() => {
+                                if (!r.email) return;
+                                navigator.clipboard
+                                  .writeText(r.email)
+                                  .then(() => show_toast(t("common.email_copied"), "success"))
+                                  .catch(() => {});
+                              }}
+                            >
+                              {r.name || r.email || t("common.unknown")}
+                            </button>
                             {i < email.to.length - 1 && <span>,</span>}
                           </span>
                         ))
@@ -251,11 +259,11 @@ export function PopupEmailHeader({
                   </span>
                 </div>
                 {email.cc.length > 0 && (
-                  <div className="flex items-start">
-                    <span className="w-14 flex-shrink-0 font-medium pt-0.5 text-txt-muted">
+                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                    <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
                       {t("common.cc_label")}
                     </span>
-                    <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
+                    <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
                       {email.cc.map((r, i) => (
                         <span
                           key={r.email || i}
@@ -267,7 +275,18 @@ export function PopupEmailHeader({
                             name={r.name || ""}
                             size="xs"
                           />
-                          <span>{r.name || r.email || t("common.unknown")}</span>
+                          <button
+                            className="hover:underline"
+                            onClick={() => {
+                              if (!r.email) return;
+                              navigator.clipboard
+                                .writeText(r.email)
+                                .then(() => show_toast(t("common.email_copied"), "success"))
+                                .catch(() => {});
+                            }}
+                          >
+                            {r.name || r.email || t("common.unknown")}
+                          </button>
                           {i < email.cc.length - 1 && <span>,</span>}
                         </span>
                       ))}
@@ -275,11 +294,11 @@ export function PopupEmailHeader({
                   </div>
                 )}
                 {email.bcc.length > 0 && (
-                  <div className="flex items-start">
-                    <span className="w-14 flex-shrink-0 font-medium pt-0.5 text-txt-muted">
+                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                    <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
                       {t("common.bcc_label")}
                     </span>
-                    <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
+                    <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
                       {email.bcc.map((r, i) => (
                         <span
                           key={r.email || i}
@@ -291,28 +310,39 @@ export function PopupEmailHeader({
                             name={r.name || ""}
                             size="xs"
                           />
-                          <span>{r.name || r.email || t("common.unknown")}</span>
+                          <button
+                            className="hover:underline"
+                            onClick={() => {
+                              if (!r.email) return;
+                              navigator.clipboard
+                                .writeText(r.email)
+                                .then(() => show_toast(t("common.email_copied"), "success"))
+                                .catch(() => {});
+                            }}
+                          >
+                            {r.name || r.email || t("common.unknown")}
+                          </button>
                           {i < email.bcc.length - 1 && <span>,</span>}
                         </span>
                       ))}
                     </span>
                   </div>
                 )}
-                <div className="flex">
-                  <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                  <span className="whitespace-nowrap font-medium text-txt-muted">
                     {t("common.date_label")}
                   </span>
-                  <span className="text-txt-secondary">
+                  <span className="min-w-0 text-txt-secondary">
                     {timestamp_date.current
                       ? format_email_popup(timestamp_date.current)
                       : email.timestamp}
                   </span>
                 </div>
-                <div className="flex">
-                  <span className="w-14 flex-shrink-0 font-medium text-txt-muted">
+                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                  <span className="whitespace-nowrap font-medium text-txt-muted">
                     {t("common.subject_label")}
                   </span>
-                  <span className="text-txt-secondary">{email.subject || t("mail.no_subject")}</span>
+                  <span className="min-w-0 text-txt-secondary break-words">{email.subject || t("mail.no_subject")}</span>
                 </div>
                 {email.raw_headers && email.raw_headers.length > 0 && (
                   <>

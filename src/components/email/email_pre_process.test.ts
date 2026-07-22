@@ -119,4 +119,25 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     expect(out).toContain("aster-quote-toggle");
     expect(out).toContain("aster-quoted-content");
   });
+
+  it("keeps the quoted original message inside the collapsed protonmail_quote section instead of hoisting it to the visible reply", () => {
+    const html = `<div>Hello!</div><div class="protonmail_quote">Sent with <a href="https://proton.me">Proton Mail</a> secure email.<br><br>On Wednesday, July 22nd, 2026 at 1:14 PM, findley@aster.cx &lt;findley@aster.cx&gt; wrote:<br><br><blockquote class="protonmail_quote">Hello from Aster!<br><br>Thanks,<br>Findley</blockquote></div>`;
+
+    const out = pre_process_email_html(html, options);
+    const details_match = out.match(
+      /<details class="aster-forwarded-collapse">([\s\S]*)<\/details>/,
+    );
+
+    expect(out).toContain("Hello!");
+    expect(details_match).not.toBeNull();
+    expect(details_match?.[1]).toContain("Hello from Aster!");
+    expect(details_match?.[1]).toContain("Sent with");
+
+    const visible_before_details = out.slice(
+      0,
+      out.indexOf("<details"),
+    );
+
+    expect(visible_before_details).not.toContain("Hello from Aster!");
+  });
 });
