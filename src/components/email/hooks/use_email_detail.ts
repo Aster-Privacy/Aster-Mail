@@ -938,6 +938,7 @@ export function use_email_detail() {
         body: msg.html_content || msg.body,
         to_recipients: msg.to_recipients,
         cc_recipients: msg.cc_recipients,
+        bcc_recipients: msg.bcc_recipients,
       })),
     };
   }, [email, thread_messages]);

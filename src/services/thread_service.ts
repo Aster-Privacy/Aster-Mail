@@ -69,6 +69,7 @@ interface DecryptedEnvelope {
   from: { name: string; email: string };
   to: { name: string; email: string }[];
   cc: { name: string; email: string }[];
+  bcc: { name: string; email: string }[];
   sent_at: string;
   raw_headers?: { name: string; value: string }[];
 }
@@ -392,6 +393,7 @@ export async function fetch_and_decrypt_thread_messages(
       metadata_nonce: msg.metadata_nonce,
       to_recipients: envelope.to || [],
       cc_recipients: envelope.cc || [],
+      bcc_recipients: envelope.bcc || [],
       raw_headers: envelope.raw_headers,
       spf_result: msg.spf_result,
       dkim_result: msg.dkim_result,
@@ -574,6 +576,7 @@ export async function fetch_and_decrypt_virtual_group(
       metadata_nonce: item.metadata_nonce,
       to_recipients: envelope.to || [],
       cc_recipients: envelope.cc || [],
+      bcc_recipients: envelope.bcc || [],
       raw_headers: envelope.raw_headers,
     };
   });

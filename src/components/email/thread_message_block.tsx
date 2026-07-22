@@ -891,6 +891,42 @@ export function ThreadMessageBlock({
                   </span>
                 </div>
               )}
+              {message.bcc_recipients && message.bcc_recipients.length > 0 && (
+                <div className="flex items-start">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                    {t("common.bcc_label")}
+                  </span>
+                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                    {message.bcc_recipients.map((r, i) => (
+                      <span
+                        key={r.email}
+                        className="inline-flex items-center gap-1"
+                      >
+                        <ProfileAvatar
+                          use_domain_logo
+                          email={r.email}
+                          name={r.name || ""}
+                          size="xs"
+                        />
+                        <button
+                          className="hover:underline"
+                          onClick={() => {
+                            navigator.clipboard
+                              .writeText(r.email)
+                              .then(() => show_toast(t("common.email_copied"), "success"))
+                              .catch(() => {});
+                          }}
+                        >
+                          {r.name || r.email}
+                        </button>
+                        {i < (message.bcc_recipients?.length ?? 0) - 1 && (
+                          <span>,</span>
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )}
               <div className="flex">
                 <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                   {t("common.date_label")}

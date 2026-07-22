@@ -5802,6 +5802,7 @@ export const ja = {
     draft: "下書き",
     to_label: "宛先",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "暗号化済み",
     read_receipt: "開封確認",
     snooze: "スヌーズ",

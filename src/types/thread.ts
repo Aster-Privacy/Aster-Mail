@@ -57,6 +57,7 @@ export interface DecryptedThreadMessage {
   attachments?: ThreadAttachment[];
   to_recipients?: { name: string; email: string }[];
   cc_recipients?: { name: string; email: string }[];
+  bcc_recipients?: { name: string; email: string }[];
   raw_headers?: { name: string; value: string }[];
   spf_result?: string;
   dkim_result?: string;

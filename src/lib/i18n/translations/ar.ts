@@ -5605,6 +5605,7 @@ export const ar = {
     draft: "مسودة",
     to_label: "إلى",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "مشفر",
     read_receipt: "إيصال قراءة",
     snooze: "تأجيل",

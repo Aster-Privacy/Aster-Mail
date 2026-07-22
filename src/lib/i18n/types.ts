@@ -5142,6 +5142,7 @@ export interface MailTranslations {
   draft: string;
   to_label: string;
   cc_label: string;
+  bcc_label: string;
   encrypted: string;
   read_receipt: string;
   snooze: string;

@@ -387,6 +387,12 @@ export function EmailDetailBody({
                             name: r.name || "",
                             email: r.email as string,
                           })),
+                        bcc_recipients: (email.bcc || [])
+                          .filter((r) => r.email)
+                          .map((r) => ({
+                            name: r.name || "",
+                            email: r.email as string,
+                          })),
                       },
                     ]
               }

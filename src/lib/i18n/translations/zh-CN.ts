@@ -5258,6 +5258,7 @@ export const zh_CN = {
     draft: "草稿",
     to_label: "收件人",
     cc_label: "Cc",
+    bcc_label: "Bcc",
     encrypted: "已加密",
     read_receipt: "已读回执",
     snooze: "暂停提醒",

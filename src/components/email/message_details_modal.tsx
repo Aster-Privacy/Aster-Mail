@@ -135,6 +135,19 @@ export function MessageDetailsModal({
           </div>
         )}
 
+        {message.bcc_recipients && message.bcc_recipients.length > 0 && (
+          <div className="flex">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+              {t("common.bcc_label")}
+            </span>
+            <span className="min-w-0 text-txt-secondary break-words">
+              {message.bcc_recipients
+                .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
+                .join(", ")}
+            </span>
+          </div>
+        )}
+
         {(() => {
           const received_on =
             message.item_type === "received"

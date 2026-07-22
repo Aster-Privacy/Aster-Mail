@@ -627,6 +627,7 @@ export async function preload_email_detail(
         metadata_nonce: item.metadata_nonce,
         to_recipients: envelope.to || [],
         cc_recipients: envelope.cc || [],
+        bcc_recipients: envelope.bcc || [],
         raw_headers: envelope.raw_headers,
       };
 

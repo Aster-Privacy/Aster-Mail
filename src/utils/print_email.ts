@@ -295,6 +295,7 @@ export interface PrintThreadMessage {
   body: string;
   to_recipients?: Array<{ name?: string; email: string }>;
   cc_recipients?: Array<{ name?: string; email?: string }>;
+  bcc_recipients?: Array<{ name?: string; email?: string }>;
 }
 
 export interface PrintThreadData {
@@ -309,6 +310,9 @@ function build_thread_message_html(msg: PrintThreadMessage): string {
     : "";
   const cc_formatted = msg.cc_recipients
     ? format_recipients(msg.cc_recipients)
+    : "";
+  const bcc_formatted = msg.bcc_recipients
+    ? format_recipients(msg.bcc_recipients)
     : "";
 
   let html = `<div class="ap-thread-msg">
@@ -329,6 +333,13 @@ function build_thread_message_html(msg: PrintThreadMessage): string {
     html += `<div class="ap-meta">
         <span class="ap-label">Cc:</span>
         <span class="ap-value">${escape_html(cc_formatted)}</span>
+      </div>`;
+  }
+
+  if (bcc_formatted) {
+    html += `<div class="ap-meta">
+        <span class="ap-label">Bcc:</span>
+        <span class="ap-value">${escape_html(bcc_formatted)}</span>
       </div>`;
   }
 

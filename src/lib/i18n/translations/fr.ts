@@ -5847,6 +5847,7 @@ export const fr = {
     draft: "Brouillon",
     to_label: "À",
     cc_label: "Cc",
+    bcc_label: "Cci",
     encrypted: "Chiffré",
     read_receipt: "Accusé de réception",
     snooze: "Mise en veille",

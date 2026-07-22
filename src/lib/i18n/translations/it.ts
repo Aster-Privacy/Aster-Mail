@@ -5886,6 +5886,7 @@ export const it = {
     draft: "Bozza",
     to_label: "A",
     cc_label: "Cc",
+    bcc_label: "Ccn",
     encrypted: "Crittografato",
     read_receipt: "Conferma di lettura",
     snooze: "Posticipa",
