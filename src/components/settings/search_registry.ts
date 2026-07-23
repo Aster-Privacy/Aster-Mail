@@ -40,10 +40,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Color theme",          section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["purple", "green", "rose", "orange", "teal", "indigo", "amber", "cyan", "slate", "aster blue", "blue", "lime", "fuchsia", "magenta", "emerald", "pink", "black", "dark", "oled", "accent color"] },
   { label: "Custom theme",         section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["custom color", "palette", "seed color", "custom palette", "starplan", "premium theme"] },
   { label: "Font",                 section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["font switcher", "typeface", "font family", "starplan"] },
+  { label: "Email font",           section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["monospace", "mono", "message font", "reading font", "email typeface", "courier"] },
   { label: "Layout density",       section: "appearance", breadcrumb: "Appearance > Layout", keywords: ["compact", "comfortable", "cozy"] },
   { label: "Language",             section: "appearance", breadcrumb: "Appearance > Language", keywords: ["locale", "region"] },
   { label: "Date Format",          section: "appearance", breadcrumb: "Appearance > Language & format" },
-  { label: "Time format",          section: "appearance", breadcrumb: "Appearance > Language & format", keywords: ["12 hour", "24 hour", "clock", "timezone"] },
+  { label: "Time format",          section: "appearance", breadcrumb: "Appearance > Language & format", keywords: ["12 hour", "24 hour", "clock"] },
+  { label: "Time Zone",            section: "appearance", breadcrumb: "Appearance > Language & format", keywords: ["timezone", "utc", "region", "local time"] },
 
   // ── Account ──────────────────────────────────────────────────────────────
   { label: "Display name",         section: "account", breadcrumb: "Account > Profile", keywords: ["change name"] },

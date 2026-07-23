@@ -659,6 +659,28 @@ export async function delete_draft(
   return { data: { success: response.data.success } };
 }
 
+export async function delete_thread_draft(
+  draft_id: string,
+  thread_token?: string,
+): Promise<ApiResponse<DeleteDraftResult>> {
+  const by_id = await delete_draft(draft_id);
+
+  if (by_id.data?.success) return by_id;
+  if (by_id.code !== "NOT_FOUND") return by_id;
+  if (!thread_token) return { data: { success: true } };
+
+  const current = await api_client.get<DraftApiResponse | null>(
+    `/mail/v1/drafts/thread/${encodeURIComponent(thread_token)}`,
+    { skip_cache: true },
+  );
+
+  if (current.error || !current.data?.id || current.data.id === draft_id) {
+    return { data: { success: true } };
+  }
+
+  return delete_draft(current.data.id);
+}
+
 export async function get_draft_by_thread(
   thread_token: string,
   vault: EncryptedVault,

@@ -129,6 +129,7 @@ export interface UserPreferences {
   custom_theme_seed: string;
   custom_theme_overrides: Record<string, string>;
   font_choice: string;
+  email_font_choice: string;
   reduce_motion: boolean;
   compact_mode: boolean;
   font_size_scale: number;
@@ -371,7 +372,7 @@ export function cache_sidebar_state(key: string, value: boolean): void {
 export const DEFAULT_PREFERENCES: UserPreferences = {
   theme: "light",
   language: "English",
-  time_zone: "UTC-5 (Eastern)",
+  time_zone: "auto",
   date_format: "MM/DD/YYYY",
   time_format: "12h",
   auto_save_drafts: true,
@@ -444,6 +445,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   custom_theme_seed: "#3b82f6",
   custom_theme_overrides: {},
   font_choice: "default",
+  email_font_choice: "match_app",
   reduce_motion: false,
   compact_mode: false,
   font_size_scale: 15,

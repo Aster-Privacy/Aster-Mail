@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { LanguageCode, SettingsTranslations } from "@/lib/i18n/types";
 
@@ -53,7 +53,11 @@ import { SettingRow } from "@/components/settings/appearance/setting_row";
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { go_to_billing } from "@/components/settings/aliases/feature_lock";
-import { FONT_OPTIONS, DEFAULT_FONT_ID } from "@/lib/font_options";
+import {
+  FONT_OPTIONS,
+  DEFAULT_FONT_ID,
+  EMAIL_FONT_MATCH_APP_ID,
+} from "@/lib/font_options";
 import {
   is_valid_hex_color,
   generate_material_theme,
@@ -134,6 +138,10 @@ export function AppearanceSection() {
     update_preference("font_choice", value, true);
   };
 
+  const handle_email_font_change = (value: string) => {
+    update_preference("email_font_choice", value, true);
+  };
+
   const custom_theme_base = generate_material_theme(
     is_valid_hex_color(preferences.custom_theme_seed)
       ? preferences.custom_theme_seed
@@ -191,6 +199,23 @@ export function AppearanceSection() {
     preferences.time_format === "24h"
       ? t("settings.twenty_four_hours")
       : t("settings.twelve_hours");
+
+  const available_time_zones = useMemo<string[]>(
+    () =>
+      (
+        Intl as unknown as { supportedValuesOf: (key: string) => string[] }
+      ).supportedValuesOf("timeZone"),
+    [],
+  );
+
+  const time_zone_value =
+    preferences.time_zone && available_time_zones.includes(preferences.time_zone)
+      ? preferences.time_zone
+      : "auto";
+
+  const handle_time_zone_change = (value: string) => {
+    update_preference("time_zone", value, true);
+  };
 
   return (
     <div className="space-y-4">
@@ -377,6 +402,34 @@ export function AppearanceSection() {
           </Select>
         </SettingRow>
 
+        <SettingRow
+          description={t("settings.email_font_choice_description")}
+          label={t("settings.email_font_choice_title")}
+        >
+          <Select
+            value={preferences.email_font_choice ?? EMAIL_FONT_MATCH_APP_ID}
+            onValueChange={handle_email_font_change}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={EMAIL_FONT_MATCH_APP_ID}>
+                {t("settings.email_font_option_match_app")}
+              </SelectItem>
+              {FONT_OPTIONS.map((font) => (
+                <SelectItem key={font.id} value={font.id}>
+                  {font.id === "default"
+                    ? t("settings.font_option_default")
+                    : font.id === "system"
+                      ? t("settings.font_option_system")
+                      : font.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingRow>
+
         <div className="mt-6">
           {is_paid_plan ? (
             <>
@@ -531,6 +584,34 @@ export function AppearanceSection() {
               <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
               <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
               <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+            </SelectContent>
+          </Select>
+        </SettingRow>
+
+        <SettingRow
+          description={t("settings.time_zone_description")}
+          label={t("settings.time_zone")}
+        >
+          <Select
+            value={time_zone_value}
+            onValueChange={handle_time_zone_change}
+          >
+            <SelectTrigger className="w-[240px]">
+              <SelectValue>
+                {time_zone_value === "auto"
+                  ? t("settings.time_zone_auto")
+                  : time_zone_value.replace(/_/g, " ")}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              <SelectItem value="auto">
+                {t("settings.time_zone_auto")}
+              </SelectItem>
+              {available_time_zones.map((zone) => (
+                <SelectItem key={zone} value={zone}>
+                  {zone.replace(/_/g, " ")}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </SettingRow>
