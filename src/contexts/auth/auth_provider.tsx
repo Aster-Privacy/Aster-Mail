@@ -49,6 +49,7 @@ import {
   get_vault_from_memory,
   clear_vault_from_memory,
   has_vault_in_memory,
+  has_vault_in_memory_for,
   re_trigger_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import {
@@ -179,6 +180,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
     null,
   );
 
+  const handle_identity_mismatch = useCallback(async () => {
+    api_client.begin_intentional_logout();
+    sync_client.disconnect();
+    stop_session_timeout();
+    clear_vault_from_memory();
+
+    try {
+      await purge_all_local_data();
+    } catch (e) {
+      safe_log_error(e);
+    }
+
+    try {
+      await api_client.clear_session_cookies();
+    } catch (e) {
+      safe_log_error(e);
+    }
+
+    api_client.set_expected_user_id(null);
+    api_client.set_authenticated(false);
+
+    set_state({
+      user: null,
+      is_loading: false,
+      is_authenticated: false,
+      has_keys: false,
+      accounts: [],
+      current_account_id: null,
+    });
+
+    show_toast(t("errors.session_identity_mismatch"), "error");
+    hard_redirect("/sign-in");
+  }, [t]);
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -198,6 +233,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         await api_client.load_tokens_for_account(current.id);
+        api_client.set_expected_user_id(current.user.id);
 
         if ("__TAURI_INTERNALS__" in window) {
           const logout_flag = sessionStorage.getItem("aster_tauri_logout");
@@ -227,7 +263,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
             safe_log_error(e);
           });
 
-          let has_keys = has_vault_in_memory();
+          let has_keys = has_vault_in_memory_for(current.user.id);
+
+          if (has_vault_in_memory() && !has_keys) {
+            clear_vault_from_memory();
+          }
 
           if (!has_keys) {
             let stored_passphrase: string | null = null;
@@ -245,6 +285,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                   stored_vault.encrypted_vault,
                   stored_vault.vault_nonce,
                   stored_passphrase,
+                  current.user.id,
                 );
 
                 has_keys = vault !== null;
@@ -271,6 +312,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                       stored_vault.encrypted_vault,
                       stored_vault.vault_nonce,
                       native_passphrase,
+                      current.user.id,
                     );
                     if (recovered !== null) {
                       has_keys = true;
@@ -346,7 +388,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           let synced_user = current.user;
           const cached_info = api_client.get_cached_user_info();
 
-          if (cached_info && cached_info.user_id === current.user.id) {
+          if (cached_info && cached_info.user_id !== current.user.id) {
+            sync_client.disconnect();
+            clear_vault_from_memory();
+            await handle_identity_mismatch();
+
+            return;
+          }
+
+          if (cached_info) {
             synced_user = {
               id: cached_info.user_id,
               username: cached_info.username ?? current.user.username,
@@ -495,7 +545,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       encrypted_vault?: string,
       vault_nonce?: string,
     ) => {
-      await store_vault_in_memory(vault, passphrase);
+      await store_vault_in_memory(vault, passphrase, user.id);
+      api_client.set_expected_user_id(user.id);
 
       try {
         await Promise.race([
@@ -588,7 +639,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       encrypted_vault?: string,
       vault_nonce?: string,
     ) => {
-      await store_vault_in_memory(vault, passphrase);
+      await store_vault_in_memory(vault, passphrase, user.id);
+      api_client.set_expected_user_id(user.id);
 
       try {
         await Promise.race([
@@ -794,6 +846,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         await storage_switch_account(target.id);
+        api_client.set_expected_user_id(target.user.id);
 
         if (target_kind === "shared") {
           try {
@@ -1117,9 +1170,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       navigate("/sign-in");
     };
 
+    const handle_identity_mismatch_event = () => {
+      handle_identity_mismatch().catch((e) => {
+        safe_log_error(e);
+      });
+    };
+
     window.addEventListener(
       "astermail:session-expired",
       handle_session_expired,
+    );
+
+    window.addEventListener(
+      "astermail:identity-mismatch",
+      handle_identity_mismatch_event,
     );
 
     window.addEventListener(
@@ -1138,6 +1202,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         handle_session_expired,
       );
       window.removeEventListener(
+        "astermail:identity-mismatch",
+        handle_identity_mismatch_event,
+      );
+      window.removeEventListener(
         "astermail:session-timeout",
         handle_session_timeout,
       );
@@ -1148,6 +1216,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [
     clear_local_auth_data,
+    handle_identity_mismatch,
     set_is_adding_account,
     state.current_account_id,
     t,
@@ -1202,7 +1271,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
-      await store_vault_in_memory(vault, passphrase);
+      await store_vault_in_memory(
+        vault,
+        passphrase,
+        state.user?.id ?? state.current_account_id ?? undefined,
+      );
 
       if (state.current_account_id) {
         start_session_timeout(state.current_account_id);
@@ -1212,7 +1285,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       set_state((prev) => ({ ...prev, has_keys: true }));
     },
-    [state.current_account_id, t],
+    [state.current_account_id, state.user?.id, t],
   );
 
   const can_add = useCallback(async () => {

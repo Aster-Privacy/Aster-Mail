@@ -7206,6 +7206,7 @@ export const fr = {
     incorrect_password: "Mot de passe incorrect",
     internal_error: "Erreur interne",
     invalid_request: "Requête invalide",
+    session_identity_mismatch: "Cet appareil était connecté à un autre compte, nous vous avons donc déconnecté pour garder les comptes séparés. Il suffit de vous reconnecter. Vos données sont intactes.",
     key_material_unavailable: "Matériel de clé indisponible",
     max_accounts:
       "Un maximum de {{max}} comptes peuvent être actifs simultanément. En supprimer un libérera une place.",

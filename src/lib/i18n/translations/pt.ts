@@ -7238,6 +7238,7 @@ export const pt = {
       "O servidor teve um problema do nosso lado. Outra tentativa em breve geralmente resolve. Estamos trabalhando nisso.",
     invalid_request:
       "Não foi possível processar essa solicitação. Atualizar a página e tentar novamente geralmente resolve.",
+    session_identity_mismatch: "Este dispositivo estava com sessão iniciada noutra conta, por isso terminámos a sessão para manter as contas separadas. Basta iniciar sessão novamente. Os seus dados estão intactos.",
     key_material_unavailable:
       "Suas chaves privadas estão bloqueadas neste dispositivo. Sua senha as desbloqueará. Suas chaves no servidor estão intactas.",
     max_accounts:

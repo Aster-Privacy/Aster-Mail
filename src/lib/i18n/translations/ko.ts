@@ -6923,6 +6923,7 @@ export const ko = {
     failed_send: "발송에 실패했습니다. 다시 시도하면 됩니다.",
     no_keys_available:
       "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
+    session_identity_mismatch: "이 기기가 다른 계정으로 로그인되어 있어 계정을 분리하기 위해 로그아웃했습니다. 다시 로그인하기만 하면 됩니다. 데이터는 그대로입니다.",
     key_material_unavailable:
       "키 자료를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
     storage_compromised:

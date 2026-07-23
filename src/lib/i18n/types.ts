@@ -6230,6 +6230,7 @@ export interface ErrorTranslations {
   incorrect_password: string;
   no_keys_available: string;
   session_expired_login: string;
+  session_identity_mismatch: string;
   key_material_unavailable: string;
   storage_compromised: string;
   registration_failed: string;
