@@ -123,6 +123,7 @@ export function EmailList({
   const last_preloaded_ref = useRef<string | null>(null);
   const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
   const close_time_ref = useRef(0);
+  const closed_email_id_ref = useRef<string | null>(null);
   const menu_email_ref = useRef<InboxEmail | null>(null);
   const on_tag_toggle_ref = useRef(on_tag_toggle);
   on_tag_toggle_ref.current = on_tag_toggle;
@@ -172,11 +173,15 @@ export function EmailList({
   const handle_menu_open_change = useCallback((open: boolean) => {
     if (!open) {
       close_time_ref.current = Date.now();
+      closed_email_id_ref.current = menu_email_ref.current?.id ?? null;
     }
   }, []);
 
   const handle_trigger_context_menu = useCallback((e: React.MouseEvent) => {
-    if (Date.now() - close_time_ref.current < 300) {
+    if (
+      Date.now() - close_time_ref.current < 300 &&
+      menu_email_ref.current?.id === closed_email_id_ref.current
+    ) {
       e.preventDefault();
       e.stopPropagation();
     }
@@ -345,6 +350,7 @@ export function EmailList({
 
       {live_menu_email && (
         <EmailContextMenuContent
+          key={live_menu_email.id}
           categories_enabled={categories_enabled}
           current_view={current_view}
           email={live_menu_email}
