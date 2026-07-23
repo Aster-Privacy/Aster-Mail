@@ -441,12 +441,7 @@ export function MassUnsubscribeModal({
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
               >
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                  style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-                >
-                  <CheckCircleIcon className="w-8 h-8 text-green-500" />
-                </div>
+                <CheckCircleIcon className="w-8 h-8 text-green-500 mb-4" />
                 <p
                   className="text-[15px] font-medium mb-1"
                   style={{ color: "var(--text-primary)" }}
