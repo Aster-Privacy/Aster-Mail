@@ -43,8 +43,8 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import {
-  update_item_metadata,
   bulk_update_metadata_by_ids,
+  bulk_update_items_metadata,
 } from "@/services/crypto/mail_metadata";
 import {
   batched_bulk_permanent_delete,
@@ -60,6 +60,70 @@ import {
   remove_thread_entries,
   reindex_ids,
 } from "@/services/category_index";
+
+const EMIT_UPDATED_MAX = 200;
+const THREAD_READ_CONCURRENCY = 10;
+
+async function run_bulk_metadata_update(
+  emails: InboxEmail[],
+  updates: { is_read?: boolean; is_starred?: boolean },
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): Promise<Set<string>> {
+  const total = emails.length;
+  const result = await bulk_update_items_metadata(
+    emails.map((email) => ({
+      id: email.id,
+      encrypted_metadata: email.encrypted_metadata,
+      metadata_nonce: email.metadata_nonce,
+      metadata_version: email.metadata_version,
+    })),
+    updates,
+    total > 5
+      ? {
+          on_progress: (completed) => update_progress_toast(completed, total, t),
+        }
+      : undefined,
+  );
+  const failed_id_set = new Set(result.failed_ids);
+
+  if (total - failed_id_set.size > EMIT_UPDATED_MAX) {
+    emit_mail_soft_refresh();
+  } else {
+    for (const email of emails) {
+      if (failed_id_set.has(email.id)) continue;
+      const encrypted = result.encrypted_by_id.get(email.id);
+
+      emit_mail_item_updated({
+        id: email.id,
+        ...updates,
+        ...(encrypted
+          ? {
+              encrypted_metadata: encrypted.encrypted_metadata,
+              metadata_nonce: encrypted.metadata_nonce,
+            }
+          : {}),
+      });
+    }
+  }
+
+  return failed_id_set;
+}
+
+async function mark_threads_read_limited(thread_tokens: string[]): Promise<void> {
+  for (let i = 0; i < thread_tokens.length; i += THREAD_READ_CONCURRENCY) {
+    const chunk = thread_tokens.slice(i, i + THREAD_READ_CONCURRENCY);
+
+    await Promise.all(
+      chunk.map((token) =>
+        mark_thread_read(token)
+          .then((result) => {
+            if (!result.error) mark_thread_read_entries(token);
+          })
+          .catch(() => {}),
+      ),
+    );
+  }
+}
 
 interface UseInboxToolbarActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -398,39 +462,12 @@ export function use_inbox_toolbar_actions({
       });
     }
 
-    let completed = 0;
-    const results = await Promise.all(
-      selected.map(async (email) => {
-        const result = await update_item_metadata(
-          email.id,
-          {
-            encrypted_metadata: email.encrypted_metadata,
-            metadata_nonce: email.metadata_nonce,
-            metadata_version: email.metadata_version,
-          },
-          { is_read: new_state },
-        );
-
-        if (total > 5) update_progress_toast(++completed, total, t);
-
-        return result;
-      }),
+    const failed_id_set = await run_bulk_metadata_update(
+      selected,
+      { is_read: new_state },
+      t,
     );
-
-    selected.forEach((email, index) => {
-      const result = results[index];
-
-      if (result.success && result.encrypted) {
-        emit_mail_item_updated({
-          id: email.id,
-          is_read: new_state,
-          encrypted_metadata: result.encrypted.encrypted_metadata,
-          metadata_nonce: result.encrypted.metadata_nonce,
-        });
-      }
-    });
-
-    const failed = selected.filter((_, index) => !results[index].success);
+    const failed = selected.filter((email) => failed_id_set.has(email.id));
 
     if (failed.length > 0) {
       for (const email of failed) {
@@ -452,27 +489,21 @@ export function use_inbox_toolbar_actions({
     if (new_state) {
       const thread_tokens = new Set<string>();
 
-      selected.forEach((email, index) => {
+      for (const email of selected) {
         if (
-          results[index]?.success &&
+          !failed_id_set.has(email.id) &&
           email.item_type === "received" &&
           email.thread_token &&
           (email.grouped_email_ids?.length ?? 0) > 1
         ) {
           thread_tokens.add(email.thread_token);
         }
-      });
+      }
 
       if (thread_tokens.size > 0) {
-        void Promise.all(
-          Array.from(thread_tokens).map((token) =>
-            mark_thread_read(token)
-              .then((result) => {
-                if (!result.error) mark_thread_read_entries(token);
-              })
-              .catch(() => {}),
-          ),
-        ).then(() => emit_mail_soft_refresh());
+        void mark_threads_read_limited(Array.from(thread_tokens)).then(() =>
+          emit_mail_soft_refresh(),
+        );
       }
     }
     if (failed.length > 0) {
@@ -526,39 +557,12 @@ export function use_inbox_toolbar_actions({
       });
     }
 
-    let completed = 0;
-    const results = await Promise.all(
-      selected.map(async (email) => {
-        const result = await update_item_metadata(
-          email.id,
-          {
-            encrypted_metadata: email.encrypted_metadata,
-            metadata_nonce: email.metadata_nonce,
-            metadata_version: email.metadata_version,
-          },
-          { is_read: false },
-        );
-
-        if (total > 5) update_progress_toast(++completed, total, t);
-
-        return result;
-      }),
+    const failed_id_set = await run_bulk_metadata_update(
+      selected,
+      { is_read: false },
+      t,
     );
-
-    selected.forEach((email, index) => {
-      const result = results[index];
-
-      if (result.success && result.encrypted) {
-        emit_mail_item_updated({
-          id: email.id,
-          is_read: false,
-          encrypted_metadata: result.encrypted.encrypted_metadata,
-          metadata_nonce: result.encrypted.metadata_nonce,
-        });
-      }
-    });
-
-    const failed = selected.filter((_, index) => !results[index].success);
+    const failed = selected.filter((email) => failed_id_set.has(email.id));
 
     if (failed.length > 0) {
       for (const email of failed) {
@@ -612,39 +616,12 @@ export function use_inbox_toolbar_actions({
       });
     }
 
-    let completed = 0;
-    const results = await Promise.all(
-      changed.map(async (email) => {
-        const result = await update_item_metadata(
-          email.id,
-          {
-            encrypted_metadata: email.encrypted_metadata,
-            metadata_nonce: email.metadata_nonce,
-            metadata_version: email.metadata_version,
-          },
-          { is_starred: new_state },
-        );
-
-        if (total > 5) update_progress_toast(++completed, total, t);
-
-        return result;
-      }),
+    const failed_id_set = await run_bulk_metadata_update(
+      changed,
+      { is_starred: new_state },
+      t,
     );
-
-    changed.forEach((email, index) => {
-      const result = results[index];
-
-      if (result.success && result.encrypted) {
-        emit_mail_item_updated({
-          id: email.id,
-          is_starred: new_state,
-          encrypted_metadata: result.encrypted.encrypted_metadata,
-          metadata_nonce: result.encrypted.metadata_nonce,
-        });
-      }
-    });
-
-    const failed = changed.filter((_, index) => !results[index].success);
+    const failed = changed.filter((email) => failed_id_set.has(email.id));
 
     if (failed.length > 0) {
       for (const email of failed) {

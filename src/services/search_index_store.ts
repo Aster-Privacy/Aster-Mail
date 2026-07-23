@@ -36,6 +36,21 @@ import { get_current_account_id } from "@/services/account_manager";
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
+const MANIFEST_VERSION = 2;
+const SNAPSHOT_CHUNK_SIZE = 2000;
+
+interface SearchIndexManifest {
+  version: number;
+  user_email: string;
+  saved_at: number;
+  chunk_count: number;
+}
+
+interface SearchIndexChunk {
+  saved_at: number;
+  items: MailItem[];
+  entries: PersistedSearchEntry[];
+}
 
 export interface PersistedSearchEntry {
   id: string;
@@ -86,6 +101,10 @@ async function snapshot_key(): Promise<string> {
   return `${KEY_PREFIX}${account_id ?? "unknown"}`;
 }
 
+function chunk_record_key(base_key: string, index: number): string {
+  return `${base_key}_chunk_${index}`;
+}
+
 export async function save_search_snapshot(
   snapshot: SearchIndexSnapshot,
 ): Promise<void> {
@@ -95,8 +114,47 @@ export async function save_search_snapshot(
     if (!encryption_key) return;
 
     const key = await snapshot_key();
+    const chunk_count = Math.max(
+      1,
+      Math.ceil(
+        Math.max(snapshot.items.length, snapshot.entries.length) /
+          SNAPSHOT_CHUNK_SIZE,
+      ),
+    );
 
-    await encrypted_set(key, snapshot, encryption_key);
+    for (let i = 0; i < chunk_count; i++) {
+      const start = i * SNAPSHOT_CHUNK_SIZE;
+      const chunk: SearchIndexChunk = {
+        saved_at: snapshot.saved_at,
+        items: snapshot.items.slice(start, start + SNAPSHOT_CHUNK_SIZE),
+        entries: snapshot.entries.slice(start, start + SNAPSHOT_CHUNK_SIZE),
+      };
+
+      await encrypted_set(chunk_record_key(key, i), chunk, encryption_key);
+    }
+
+    const manifest: SearchIndexManifest = {
+      version: MANIFEST_VERSION,
+      user_email: snapshot.user_email,
+      saved_at: snapshot.saved_at,
+      chunk_count,
+    };
+
+    await encrypted_set(key, manifest, encryption_key);
+
+    const keys = await encrypted_list_keys();
+    const stale_prefix = `${key}_chunk_`;
+
+    await Promise.all(
+      keys
+        .filter((k) => {
+          if (!k.startsWith(stale_prefix)) return false;
+          const index = Number(k.slice(stale_prefix.length));
+
+          return !Number.isInteger(index) || index >= chunk_count;
+        })
+        .map((k) => secure_overwrite_and_delete(k)),
+    );
   } catch (error) {
     if (import.meta.env.DEV) console.error("search_snapshot_save", error);
   }
@@ -111,22 +169,64 @@ export async function load_search_snapshot(
     if (!encryption_key) return null;
 
     const key = await snapshot_key();
-    const snapshot = await encrypted_get<SearchIndexSnapshot>(
+    const record = await encrypted_get<SearchIndexManifest | SearchIndexSnapshot>(
       key,
       encryption_key,
     );
 
+    if (!record || record.user_email !== user_email) return null;
+
+    if (record.version === SNAPSHOT_VERSION) {
+      const legacy = record as SearchIndexSnapshot;
+
+      if (!Array.isArray(legacy.items) || !Array.isArray(legacy.entries)) {
+        return null;
+      }
+
+      return legacy;
+    }
+
+    if (record.version !== MANIFEST_VERSION) return null;
+
+    const manifest = record as SearchIndexManifest;
+
     if (
-      !snapshot ||
-      snapshot.version !== SNAPSHOT_VERSION ||
-      snapshot.user_email !== user_email ||
-      !Array.isArray(snapshot.items) ||
-      !Array.isArray(snapshot.entries)
+      !Number.isInteger(manifest.chunk_count) ||
+      manifest.chunk_count < 1 ||
+      manifest.chunk_count > 1000
     ) {
       return null;
     }
 
-    return snapshot;
+    const items: MailItem[] = [];
+    const entries: PersistedSearchEntry[] = [];
+
+    for (let i = 0; i < manifest.chunk_count; i++) {
+      const chunk = await encrypted_get<SearchIndexChunk>(
+        chunk_record_key(key, i),
+        encryption_key,
+      );
+
+      if (
+        !chunk ||
+        chunk.saved_at !== manifest.saved_at ||
+        !Array.isArray(chunk.items) ||
+        !Array.isArray(chunk.entries)
+      ) {
+        return null;
+      }
+
+      items.push(...chunk.items);
+      entries.push(...chunk.entries);
+    }
+
+    return {
+      version: SNAPSHOT_VERSION,
+      user_email: manifest.user_email,
+      saved_at: manifest.saved_at,
+      items,
+      entries,
+    };
   } catch (error) {
     if (import.meta.env.DEV) console.error("search_snapshot_load", error);
 

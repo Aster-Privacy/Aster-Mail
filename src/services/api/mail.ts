@@ -101,12 +101,14 @@ export interface ListMailItemsParams {
   routing_token?: string;
   group_by_thread?: boolean;
   order?: "asc" | "desc";
+  skip_total?: boolean;
 }
 
 export interface ListEncryptedMailItemsParams {
   limit?: number;
   cursor?: string;
   item_type?: "received" | "sent" | "draft" | "scheduled";
+  include_envelope?: boolean;
 }
 
 export interface CreateMailItemRequest {
@@ -216,6 +218,7 @@ export async function list_mail_items(
   if (params.group_by_thread !== undefined)
     query_params.set("group_by_thread", params.group_by_thread.toString());
   if (params.order) query_params.set("order", params.order);
+  if (params.skip_total) query_params.set("skip_total", "true");
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;
@@ -231,6 +234,8 @@ export async function list_encrypted_mail_items(
   if (params.limit) query_params.set("limit", params.limit.toString());
   if (params.cursor) query_params.set("cursor", params.cursor);
   if (params.item_type) query_params.set("item_type", params.item_type);
+  if (params.include_envelope === false)
+    query_params.set("include_envelope", "false");
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages/encrypted${query_string ? `?${query_string}` : ""}`;

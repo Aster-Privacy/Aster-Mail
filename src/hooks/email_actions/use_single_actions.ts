@@ -45,7 +45,9 @@ import {
   permanent_delete_mail_item,
   report_spam_sender,
   remove_spam_sender,
+  trash_thread,
 } from "@/services/api/mail";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
@@ -419,10 +421,14 @@ export function use_single_actions(
   const archive_email = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
       const deltas = compute_archive_deltas(email);
+      const grouped_ids =
+        email.grouped_email_ids && email.grouped_email_ids.length > 1
+          ? email.grouped_email_ids
+          : [email.id];
 
       const offline_result = await try_enqueue_offline_action(
         "archive",
-        [email.id],
+        grouped_ids,
         t,
       );
 
@@ -453,7 +459,7 @@ export function use_single_actions(
         archive_update,
         async () => {
           const batch_result = await api_batch_archive({
-            ids: [email.id],
+            ids: grouped_ids,
             tier: "hot",
           });
 
@@ -461,6 +467,22 @@ export function use_single_actions(
             return {
               error: batch_result.error || t("common.failed_to_archive_emails"),
             };
+          }
+
+          if (grouped_ids.length > 1) {
+            const meta = await bulk_update_metadata_by_ids(
+              grouped_ids,
+              archive_update,
+            );
+
+            if (!meta.success) {
+              return { error: t("common.failed_to_archive_emails") };
+            }
+            for (const id of grouped_ids) {
+              emit_mail_item_updated({ id, ...archive_update });
+            }
+
+            return { data: {} };
           }
 
           return update_with_metadata(email, archive_update);
@@ -472,10 +494,10 @@ export function use_single_actions(
         show_action_toast({
           message: t("common.conversation_archived"),
           action_type: "archive",
-          email_ids: [email.id],
+          email_ids: grouped_ids,
           on_undo: async () => {
             const undo_result = await api_batch_unarchive({
-              ids: [email.id],
+              ids: grouped_ids,
             });
 
             if (undo_result.error || !undo_result.data?.success) {
@@ -484,7 +506,14 @@ export function use_single_actions(
               );
             }
             revert_stat_deltas(deltas);
-            await update_with_metadata(email, original_state);
+            if (grouped_ids.length > 1) {
+              await bulk_update_metadata_by_ids(grouped_ids, original_state);
+              for (const id of grouped_ids) {
+                emit_mail_item_updated({ id, ...original_state });
+              }
+            } else {
+              await update_with_metadata(email, original_state);
+            }
             emit_mail_soft_refresh();
           },
         });
@@ -561,10 +590,14 @@ export function use_single_actions(
   const delete_email = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
       const deltas = compute_trash_deltas(email);
+      const grouped_ids =
+        email.grouped_email_ids && email.grouped_email_ids.length > 1
+          ? email.grouped_email_ids
+          : [email.id];
 
       const offline_result = await try_enqueue_offline_action(
         "delete",
-        [email.id],
+        grouped_ids,
         t,
       );
 
@@ -577,13 +610,45 @@ export function use_single_actions(
       }
 
       apply_stat_deltas(deltas);
-      remove_email_from_view_cache(email.id);
+      for (const id of grouped_ids) {
+        remove_email_from_view_cache(id);
+      }
 
       const success = await execute_single_action(
         email,
         "delete",
         { is_trashed: true },
-        () => update_with_metadata(email, { is_trashed: true }),
+        async () => {
+          if (email.thread_token) {
+            const result = await trash_thread(email.thread_token, true);
+
+            if (!result.data) {
+              return { error: t("common.failed_to_delete_emails") };
+            }
+            for (const id of grouped_ids) {
+              emit_mail_item_updated({ id, is_trashed: true });
+            }
+
+            return { data: {} };
+          }
+
+          if (grouped_ids.length > 1) {
+            const meta = await bulk_update_metadata_by_ids(grouped_ids, {
+              is_trashed: true,
+            });
+
+            if (!meta.success) {
+              return { error: t("common.failed_to_delete_emails") };
+            }
+            for (const id of grouped_ids) {
+              emit_mail_item_updated({ id, is_trashed: true });
+            }
+
+            return { data: {} };
+          }
+
+          return update_with_metadata(email, { is_trashed: true });
+        },
         true,
       );
 
@@ -591,10 +656,24 @@ export function use_single_actions(
         show_action_toast({
           message: t("common.conversation_moved_to_trash_toast"),
           action_type: "trash",
-          email_ids: [email.id],
+          email_ids: grouped_ids,
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            await update_with_metadata(email, { is_trashed: false });
+            if (email.thread_token) {
+              await trash_thread(email.thread_token, false);
+              for (const id of grouped_ids) {
+                emit_mail_item_updated({ id, is_trashed: false });
+              }
+            } else if (grouped_ids.length > 1) {
+              await bulk_update_metadata_by_ids(grouped_ids, {
+                is_trashed: false,
+              });
+              for (const id of grouped_ids) {
+                emit_mail_item_updated({ id, is_trashed: false });
+              }
+            } else {
+              await update_with_metadata(email, { is_trashed: false });
+            }
             emit_mail_soft_refresh();
           },
         });

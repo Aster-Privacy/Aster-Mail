@@ -595,12 +595,17 @@ export async function bulk_update_items_metadata(
     metadata_version?: number;
   }>,
   updates: Partial<MailItemMetadata>,
+  options?: { on_progress?: (completed: number, total: number) => void },
 ): Promise<{
   success: boolean;
   updated_count: number;
   failed_ids: string[];
+  encrypted_by_id: Map<
+    string,
+    { encrypted_metadata: string; metadata_nonce: string }
+  >;
 }> {
-  const { bulk_patch_metadata } = await import("@/services/api/mail");
+  const { batched_bulk_patch_metadata } = await import("@/services/api/mail");
 
   const bulk_items: Array<{
     id: string;
@@ -674,24 +679,36 @@ export async function bulk_update_items_metadata(
     }
   }
 
-  if (bulk_items.length === 0) {
-    return { success: false, updated_count: 0, failed_ids };
+  const encrypted_by_id = new Map<
+    string,
+    { encrypted_metadata: string; metadata_nonce: string }
+  >();
+
+  for (const item of bulk_items) {
+    encrypted_by_id.set(item.id, {
+      encrypted_metadata: item.encrypted_metadata,
+      metadata_nonce: item.metadata_nonce,
+    });
   }
 
-  const result = await bulk_patch_metadata({ items: bulk_items });
+  if (bulk_items.length === 0) {
+    return { success: false, updated_count: 0, failed_ids, encrypted_by_id };
+  }
 
-  if (result.error) {
-    return {
-      success: false,
-      updated_count: 0,
-      failed_ids: items.map((i) => i.id),
-    };
+  const result = await batched_bulk_patch_metadata(bulk_items, {
+    on_progress: options?.on_progress,
+  });
+
+  failed_ids.push(...result.failed_ids);
+  for (const failed_id of result.failed_ids) {
+    encrypted_by_id.delete(failed_id);
   }
 
   return {
-    success: failed_ids.length === 0,
-    updated_count: result.data?.updated_count ?? 0,
+    success: failed_ids.length === 0 && !result.was_cancelled,
+    updated_count: result.succeeded_ids.length,
     failed_ids,
+    encrypted_by_id,
   };
 }
 

@@ -32,6 +32,7 @@ import {
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   list_encrypted_mail_items,
+  list_mail_items,
   reencrypt_mail_item_envelope,
   type MailItem,
 } from "@/services/api/mail";
@@ -444,6 +445,9 @@ interface CachedIndex {
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
+const ENVELOPE_FETCH_CHUNK = 100;
+const MAX_INDEX_ITEMS = 30000;
+const MAX_SEARCH_RESULTS = 500;
 const INDEX_TTL_MS = 5 * 60 * 1000;
 const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
 
@@ -495,6 +499,14 @@ const legacy_migration_attempted = new Set<string>();
 let legacy_migration_inflight = 0;
 const LEGACY_MIGRATION_MAX_INFLIGHT = 4;
 const legacy_migration_queue: Array<() => void> = [];
+let legacy_migration_disabled = true;
+
+export function reset_legacy_migration_state(): void {
+  legacy_migration_attempted.clear();
+  legacy_migration_queue.length = 0;
+  legacy_migration_inflight = 0;
+  legacy_migration_disabled = false;
+}
 
 export function schedule_legacy_envelope_migration(
   item_id: string,
@@ -502,6 +514,7 @@ export function schedule_legacy_envelope_migration(
   envelope: DecryptedEnvelope,
 ): void {
   if (item_type !== "received") return;
+  if (legacy_migration_disabled) return;
   if (legacy_migration_attempted.has(item_id)) return;
 
   const has_body =
@@ -534,11 +547,18 @@ export function schedule_legacy_envelope_migration(
         vault.identity_key,
       );
 
-      await reencrypt_mail_item_envelope(item_id, {
+      const response = await reencrypt_mail_item_envelope(item_id, {
         encrypted_envelope: encrypted,
         envelope_nonce: nonce,
       });
+
+      if (!response.data) {
+        legacy_migration_disabled = true;
+        legacy_migration_queue.length = 0;
+      }
     } catch {
+      legacy_migration_disabled = true;
+      legacy_migration_queue.length = 0;
     } finally {
       legacy_migration_inflight--;
       const next = legacy_migration_queue.shift();
@@ -708,14 +728,19 @@ async function do_build_search_index(
   prior?: Map<string, DecryptedIndexEntry>,
 ): Promise<CachedIndex> {
   const my_gen = build_generation;
-  let all_items: MailItem[] = [];
+  const all_items: MailItem[] = [];
   let cursor: string | undefined;
   let page_count = 0;
+  const incremental = !!prior && prior.size > 0;
 
   emit_indexing({ building: true, current: 0, total: 0 });
 
   do {
-    const response = await list_encrypted_mail_items({ cursor, limit: 1000 });
+    const response = await list_encrypted_mail_items({
+      cursor,
+      limit: 1000,
+      include_envelope: incremental ? false : undefined,
+    });
 
     if (my_gen !== build_generation) {
       emit_indexing({ building: false, current: 0, total: 0 });
@@ -731,7 +756,50 @@ async function do_build_search_index(
     all_items.push(...response.data.items);
     cursor = response.data.next_cursor;
     page_count++;
-  } while (cursor);
+  } while (cursor && all_items.length < MAX_INDEX_ITEMS);
+
+  if (all_items.length > MAX_INDEX_ITEMS) {
+    all_items.length = MAX_INDEX_ITEMS;
+  }
+
+  const is_reusable = (item: MailItem): boolean => {
+    const prior_entry = prior?.get(item.id);
+    const immutable =
+      item.item_type === "received" || item.item_type === "sent";
+
+    return (
+      !!prior_entry && immutable && (prior_entry.has_body || !include_body)
+    );
+  };
+
+  let envelope_by_id: Map<string, MailItem> | null = null;
+
+  if (incremental) {
+    const need_envelope = all_items
+      .filter((item) => !is_reusable(item))
+      .map((item) => item.id);
+
+    envelope_by_id = new Map<string, MailItem>();
+
+    for (let i = 0; i < need_envelope.length; i += ENVELOPE_FETCH_CHUNK) {
+      const chunk = need_envelope.slice(i, i + ENVELOPE_FETCH_CHUNK);
+      const response = await list_mail_items({ ids: chunk });
+
+      if (my_gen !== build_generation) {
+        emit_indexing({ building: false, current: 0, total: 0 });
+        throw new Error("search_index_cancelled");
+      }
+
+      if (response.error) {
+        emit_indexing({ building: false, current: 0, total: 0 });
+        throw new Error(`search_fetch_failed:${response.error}`);
+      }
+
+      for (const full of response.data?.items ?? []) {
+        envelope_by_id.set(full.id, full);
+      }
+    }
+  }
 
   emit_indexing({ total: all_items.length, current: 0 });
 
@@ -783,9 +851,27 @@ async function do_build_search_index(
             };
           }
 
+          const source = envelope_by_id
+            ? (envelope_by_id.get(item.id) ?? null)
+            : item;
+
+          if (!source?.encrypted_envelope) {
+            return {
+              id: item.id,
+              entry: prior_entry ?? {
+                envelope: null,
+                metadata: null,
+                search_body_text: "",
+                meta_fp,
+                has_body: include_body,
+              },
+              fresh: false,
+            };
+          }
+
           const envelope = await decrypt_envelope_for_search(
-            item.encrypted_envelope,
-            item.envelope_nonce,
+            source.encrypted_envelope,
+            source.envelope_nonce,
             item.id,
             item.item_type,
           );
@@ -1530,11 +1616,17 @@ export function use_search() {
             new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
         );
 
+        const total_results = results.length;
+
+        if (results.length > MAX_SEARCH_RESULTS) {
+          results.length = MAX_SEARCH_RESULTS;
+        }
+
         set_state((prev) => ({
           ...prev,
           results,
           is_searching: false,
-          total_results: results.length,
+          total_results,
           search_time_ms: Date.now() - start,
           has_more: false,
         }));

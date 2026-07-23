@@ -48,17 +48,25 @@ import {
   emit_mail_items_removed,
   emit_mail_item_updated,
   emit_mail_soft_refresh,
+  emit_mail_stats_stale,
 } from "@/hooks/mail_events";
 import { use_show_mobile_ui } from "@/hooks/use_platform";
 import { adjust_inbox_count } from "@/hooks/use_mail_counts";
 import { adjust_stats_archived } from "@/hooks/use_mail_stats";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
-import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
+import {
+  batched_bulk_add_folder,
+  batched_bulk_remove_folder,
+} from "@/services/api/mail";
 import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
 } from "@/services/api/archive";
-import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
+import {
+  batched_bulk_add_tag,
+  batched_bulk_remove_tag,
+} from "@/services/api/tags";
+import { remove_ids as remove_category_index_ids } from "@/services/category_index";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
@@ -72,6 +80,34 @@ export interface ForwardData {
   email_timestamp: string;
   is_external?: boolean;
   original_mail_id?: string;
+}
+
+const ARCHIVE_CHUNK_SIZE = 100;
+
+async function api_batch_archive_chunked(
+  ids: string[],
+): Promise<{ success: boolean }> {
+  for (let i = 0; i < ids.length; i += ARCHIVE_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + ARCHIVE_CHUNK_SIZE);
+    const result = await api_batch_archive({ ids: chunk, tier: "hot" });
+
+    if (result.error || !result.data?.success) return { success: false };
+  }
+
+  return { success: true };
+}
+
+async function api_batch_unarchive_chunked(
+  ids: string[],
+): Promise<{ success: boolean }> {
+  for (let i = 0; i < ids.length; i += ARCHIVE_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + ARCHIVE_CHUNK_SIZE);
+    const result = await api_batch_unarchive({ ids: chunk });
+
+    if (result.error || !result.data?.success) return { success: false };
+  }
+
+  return { success: true };
 }
 
 export function use_index_page_state() {
@@ -720,9 +756,12 @@ export function use_index_page_state() {
         emit_mail_items_removed({ ids: email_ids });
       }
 
-      const result = await bulk_add_folder(email_ids, folder_token);
+      const result = await batched_bulk_add_folder(email_ids, folder_token);
+      const moved_ids = email_ids.filter(
+        (id) => !result.failed_ids.includes(id),
+      );
 
-      if (result.error) {
+      if (moved_ids.length === 0) {
         if (is_inbox_like_view || is_source_folder_view) {
           emit_mail_soft_refresh();
         }
@@ -730,22 +769,24 @@ export function use_index_page_state() {
         return;
       }
 
+      if (result.failed_ids.length > 0) {
+        emit_mail_soft_refresh();
+      }
+
       let archived = false;
 
       if (is_inbox_like_view) {
-        const archive_result = await api_batch_archive({
-          ids: email_ids,
-          tier: "hot",
-        });
+        const archive_result = await api_batch_archive_chunked(moved_ids);
 
-        if (!archive_result.error && archive_result.data?.success) {
+        if (archive_result.success) {
           archived = true;
-          void bulk_update_metadata_by_ids(email_ids, {
+          void bulk_update_metadata_by_ids(moved_ids, {
             is_archived: true,
           }).catch(() => {});
-          adjust_inbox_count(-email_ids.length);
-          adjust_stats_archived(email_ids.length);
+          adjust_inbox_count(-moved_ids.length);
+          adjust_stats_archived(moved_ids.length);
           stale_all_view_caches();
+          remove_category_index_ids(moved_ids);
         } else {
           emit_mail_soft_refresh();
         }
@@ -753,36 +794,39 @@ export function use_index_page_state() {
 
       const new_folders = [{ folder_token, name: folder_name }];
 
-      for (const id of email_ids) {
+      for (const id of moved_ids) {
         emit_mail_item_updated({ id, folders: new_folders });
       }
 
+      emit_mail_stats_stale();
+
       show_action_toast({
         message:
-          email_ids.length === 1
+          moved_ids.length === 1
             ? t("common.moved_to_folder", { folder: folder_name })
             : t("common.conversations_moved_to_folder", {
-                count: email_ids.length,
+                count: moved_ids.length,
                 folder: folder_name,
               }),
         action_type: "folder",
-        email_ids,
+        email_ids: moved_ids,
         on_undo: async () => {
-          await bulk_remove_folder(email_ids, folder_token);
+          await batched_bulk_remove_folder(moved_ids, folder_token);
           if (archived) {
-            const unarchive_result = await api_batch_unarchive({
-              ids: email_ids,
-            });
+            const unarchive_result = await api_batch_unarchive_chunked(
+              moved_ids,
+            );
 
-            if (!unarchive_result.error && unarchive_result.data?.success) {
-              void bulk_update_metadata_by_ids(email_ids, {
+            if (unarchive_result.success) {
+              void bulk_update_metadata_by_ids(moved_ids, {
                 is_archived: false,
               }).catch(() => {});
-              adjust_inbox_count(email_ids.length);
-              adjust_stats_archived(-email_ids.length);
+              adjust_inbox_count(moved_ids.length);
+              adjust_stats_archived(-moved_ids.length);
               stale_all_view_caches();
             }
           }
+          emit_mail_stats_stale();
           emit_mail_soft_refresh();
         },
       });
@@ -797,19 +841,22 @@ export function use_index_page_state() {
 
         return;
       }
-      const result = await bulk_add_tag(email_ids, tag_token);
+      const result = await batched_bulk_add_tag(email_ids, tag_token);
+      const tagged_ids = email_ids.filter(
+        (id) => !result.failed_ids.includes(id),
+      );
 
-      if (result.error) return;
+      if (tagged_ids.length === 0) return;
       emit_mail_soft_refresh();
       show_action_toast({
         message: t("common.conversations_added_label", {
-          count: email_ids.length,
+          count: tagged_ids.length,
           label: tag_name,
         }),
         action_type: "tag",
-        email_ids,
+        email_ids: tagged_ids,
         on_undo: async () => {
-          await bulk_remove_tag(email_ids, tag_token);
+          await batched_bulk_remove_tag(tagged_ids, tag_token);
           emit_mail_soft_refresh();
         },
       });

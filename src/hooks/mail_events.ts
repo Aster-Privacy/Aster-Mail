@@ -325,6 +325,10 @@ export function emit_mail_soft_refresh(): void {
   mail_event_bus.emit(MAIL_EVENTS.MAIL_SOFT_REFRESH);
 }
 
+export function emit_mail_stats_stale(): void {
+  mail_event_bus.emit(MAIL_EVENTS.MAIL_STATS_STALE);
+}
+
 export function emit_thread_reply_optimistic(
   detail: ThreadReplyOptimisticEventDetail,
 ): void {
