@@ -35,10 +35,38 @@ const SelectTrigger = React.forwardRef<
 
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
+function use_wheel_scroll() {
+  return React.useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+
+    const handle_wheel = (event: WheelEvent) => {
+      if (node.scrollHeight <= node.clientHeight) return;
+
+      const line_height = 16;
+      const page_height = node.clientHeight;
+      const delta =
+        event.deltaMode === 1
+          ? event.deltaY * line_height
+          : event.deltaMode === 2
+            ? event.deltaY * page_height
+            : event.deltaY;
+
+      event.preventDefault();
+      event.stopPropagation();
+      node.scrollTop += delta;
+    };
+
+    node.addEventListener("wheel", handle_wheel, { passive: false });
+  }, []);
+}
+
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
+>(({ className, children, position = "popper", ...props }, ref) => {
+  const viewport_ref = use_wheel_scroll();
+
+  return (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
@@ -52,8 +80,9 @@ const SelectContent = React.forwardRef<
       {...props}
     >
       <SelectPrimitive.Viewport
+        ref={viewport_ref}
         className={cn(
-          "p-1.5",
+          "p-1.5 max-h-[inherit] overflow-y-auto overscroll-contain",
           position === "popper" &&
             "w-full min-w-[var(--radix-select-trigger-width)]",
         )}
@@ -62,7 +91,8 @@ const SelectContent = React.forwardRef<
       </SelectPrimitive.Viewport>
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
-));
+  );
+});
 
 SelectContent.displayName = SelectPrimitive.Content.displayName;
 

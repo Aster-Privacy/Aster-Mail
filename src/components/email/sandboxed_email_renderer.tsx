@@ -378,7 +378,7 @@ export function SandboxedEmailRenderer({
     : build_font_face_css(resolved_email_font_id);
   const email_font_override_css =
     !preferences.dyslexia_font && is_email_font_override(preferences.email_font_choice)
-      ? `body, body *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }`
+      ? `html body, html body *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }`
       : "";
 
   const link_underline_css = preferences.link_underlines
@@ -470,7 +470,7 @@ ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
-<body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html.replace(/src=["']cid:[^"']*["']/gi, 'src="data:,"')}</body>
+<body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html.replace(/src=["']cid:[^"']*["']/gi, 'src="data:,"')}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
 </html>`;
 
   const collapse_forwarded_content = useCallback(
@@ -1470,11 +1470,15 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word;zoom:${email_zoom}`;
 
       shadow.innerHTML =
-        `<style>${iframe_css}` +
+        `<style>${email_font_face_css}${iframe_css}` +
         (dark_mode_css ? dark_mode_css : "") +
         link_underline_css +
         `a{pointer-events:none}</style>` +
-        `<div style="${body_style}">${strip_remote_css_fetches(sanitize_preview_html(resolved_html))}</div>`;
+        `<div style="${body_style}">${strip_remote_css_fetches(sanitize_preview_html(resolved_html))}` +
+        (email_font_override_css
+          ? `<style>div, div *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }</style>`
+          : "") +
+        `</div>`;
     },
     [
       resolved_html,
@@ -1488,6 +1492,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       literal_plain_text,
       email_zoom,
       iframe_css,
+      email_font_face_css,
+      email_font_override_css,
+      base_font,
     ],
   );
 
