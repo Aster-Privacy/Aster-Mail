@@ -25,6 +25,8 @@ import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 import { use_email_selection } from "@/hooks/use_email_selection";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 
+const MAX_SELECT_ALL_LOADED = 2000;
+
 interface UseInboxSelectionOptions {
   current_view: string;
   active_category: string;
@@ -127,7 +129,7 @@ export function use_inbox_selection({
   useEffect(() => {
     if (!pending_select_all_load_ref.current) return;
 
-    if (has_more) {
+    if (has_more && page_emails.length < MAX_SELECT_ALL_LOADED) {
       void load_more();
 
       return;

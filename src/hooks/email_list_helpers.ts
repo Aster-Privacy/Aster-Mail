@@ -759,6 +759,9 @@ export async function fetch_mail_from_api(
     ...VIEW_PARAMS[view as MailView],
     ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
     ...(offset !== undefined ? { group_by_thread: should_group } : {}),
+    ...((offset !== undefined && offset > 0) || cursor
+      ? { skip_total: true }
+      : {}),
   };
 
   if (view.startsWith("folder-")) {

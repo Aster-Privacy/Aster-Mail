@@ -187,3 +187,46 @@ export async function bulk_remove_tag(
     { ids, tag_token },
   );
 }
+
+const TAG_BATCH_CHUNK_SIZE = 100;
+
+async function run_batched_tag_operation(
+  ids: string[],
+  tag_token: string,
+  api_call: (
+    batch: string[],
+    tag_token: string,
+  ) => Promise<ApiResponse<{ status: string; affected: number }>>,
+): Promise<{ error?: string; affected: number; failed_ids: string[] }> {
+  let affected = 0;
+  const failed_ids: string[] = [];
+  let last_error: string | undefined;
+
+  for (let i = 0; i < ids.length; i += TAG_BATCH_CHUNK_SIZE) {
+    const batch = ids.slice(i, i + TAG_BATCH_CHUNK_SIZE);
+    const result = await api_call(batch, tag_token).catch(() => null);
+
+    if (!result || result.error) {
+      failed_ids.push(...batch);
+      last_error = result?.error || "tag batch failed";
+    } else {
+      affected += result.data?.affected ?? batch.length;
+    }
+  }
+
+  return { error: last_error, affected, failed_ids };
+}
+
+export async function batched_bulk_add_tag(
+  ids: string[],
+  tag_token: string,
+): Promise<{ error?: string; affected: number; failed_ids: string[] }> {
+  return run_batched_tag_operation(ids, tag_token, bulk_add_tag);
+}
+
+export async function batched_bulk_remove_tag(
+  ids: string[],
+  tag_token: string,
+): Promise<{ error?: string; affected: number; failed_ids: string[] }> {
+  return run_batched_tag_operation(ids, tag_token, bulk_remove_tag);
+}

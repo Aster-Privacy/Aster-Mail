@@ -56,7 +56,10 @@ vi.mock("@/workers/pgp_decrypt_pool", () => ({
   decrypt_pgp_message_parallel: vi.fn(),
 }));
 
-import { schedule_legacy_envelope_migration } from "@/hooks/use_search";
+import {
+  schedule_legacy_envelope_migration,
+  reset_legacy_migration_state,
+} from "@/hooks/use_search";
 
 function make_envelope(overrides: Partial<DecryptedEnvelope> = {}): DecryptedEnvelope {
   return {
@@ -79,6 +82,7 @@ describe("schedule_legacy_envelope_migration", () => {
     reencrypt_mail_item_envelope.mockClear();
     encrypt_envelope_with_identity_key.mockClear();
     get_vault_from_memory.mockClear();
+    reset_legacy_migration_state();
   });
 
   it("re-encrypts the body captured at schedule time even if the caller later strips it", async () => {

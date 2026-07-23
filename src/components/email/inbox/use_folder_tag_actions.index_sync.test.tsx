@@ -24,18 +24,50 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-const mail_api = vi.hoisted(() => ({
-  bulk_add_folder: vi.fn(
-    async (): Promise<{ data?: unknown; error?: string }> => ({
+const mail_api = vi.hoisted(() => {
+  const bulk_add_folder = vi.fn(
+    async (
+      _ids: string[],
+      _folder_token: string,
+    ): Promise<{ data?: unknown; error?: string }> => ({
       data: { status: "ok", affected: 3 },
     }),
-  ),
-  bulk_remove_folder: vi.fn(
-    async (): Promise<{ data?: unknown; error?: string }> => ({
+  );
+  const bulk_remove_folder = vi.fn(
+    async (
+      _ids: string[],
+      _folder_token: string,
+    ): Promise<{ data?: unknown; error?: string }> => ({
       data: { status: "ok", affected: 3 },
     }),
-  ),
-}));
+  );
+
+  async function as_batched(
+    call: () => Promise<{ error?: string }>,
+    ids: string[],
+  ) {
+    const response = await call();
+    const failed = Boolean(response.error);
+
+    return {
+      success: !failed,
+      affected_total: failed ? 0 : ids.length,
+      failed_ids: failed ? ids : [],
+      was_cancelled: false,
+    };
+  }
+
+  return {
+    bulk_add_folder,
+    bulk_remove_folder,
+    batched_bulk_add_folder: vi.fn((ids: string[], folder_token: string) =>
+      as_batched(() => bulk_add_folder(ids, folder_token), ids),
+    ),
+    batched_bulk_remove_folder: vi.fn((ids: string[], folder_token: string) =>
+      as_batched(() => bulk_remove_folder(ids, folder_token), ids),
+    ),
+  };
+});
 
 const events_mock = vi.hoisted(() => ({
   removed_ids: [] as string[][],

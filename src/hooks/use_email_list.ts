@@ -291,7 +291,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
             emails,
             is_loading: false,
             is_loading_more: false,
-            total_messages: result.total,
+            total_messages:
+              typeof result.total === "number" && result.total >= 0
+                ? result.total
+                : prev.total_messages,
             has_more: result.has_more,
             has_initial_load: true,
             has_load_error: false,
@@ -444,7 +447,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           emails: [...prev.emails, ...appended],
           is_loading: false,
           is_loading_more: false,
-          total_messages: result.total,
+          total_messages:
+            typeof result.total === "number" && result.total >= 0
+              ? result.total
+              : prev.total_messages,
           has_more: result.has_more,
           has_initial_load: true,
         };

@@ -88,6 +88,44 @@ interface PersistedIndex {
   seen_ts?: Record<string, number>;
 }
 
+interface PersistedMeta {
+  chunked: true;
+  chunk_count: number;
+  built_at_ms: number;
+  fully_built: boolean;
+  seen_ts?: Record<string, number>;
+}
+
+const PERSIST_CHUNK_COUNT = 32;
+
+const dirty_chunks = new Set<number>();
+let persist_running = false;
+let persist_rerun = false;
+
+function chunk_of(id: string): number {
+  let hash = 0;
+
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+
+  return hash % PERSIST_CHUNK_COUNT;
+}
+
+function chunk_record_key(account_key: string, index: number): string {
+  return `${account_key}:c${index}`;
+}
+
+function mark_dirty(id: string): void {
+  dirty_chunks.add(chunk_of(id));
+}
+
+function mark_all_dirty(): void {
+  for (let i = 0; i < PERSIST_CHUNK_COUNT; i++) {
+    dirty_chunks.add(i);
+  }
+}
+
 let active_account_id: string | null = null;
 let index_generation = 0;
 let entries_map: Map<string, CategoryIndexEntry> = new Map();
@@ -246,54 +284,140 @@ async function persist_now(): Promise<void> {
   if (!active_account_id) return;
   if (loaded_for_account !== active_account_id) return;
 
+  if (persist_running) {
+    persist_rerun = true;
+
+    return;
+  }
+
+  persist_running = true;
+
   const account_key = active_account_id;
+  const writing = Array.from(dirty_chunks);
+
+  dirty_chunks.clear();
 
   try {
-    const payload: PersistedIndex = {
-      entries: Array.from(entries_map.values()),
+    const chunk_entries: CategoryIndexEntry[][] = writing.map(() => []);
+
+    if (writing.length > 0) {
+      const slot_by_chunk = new Map<number, number>();
+
+      writing.forEach((chunk_index, slot) => slot_by_chunk.set(chunk_index, slot));
+
+      for (const entry of entries_map.values()) {
+        const slot = slot_by_chunk.get(chunk_of(entry.id));
+
+        if (slot !== undefined) chunk_entries[slot].push(entry);
+      }
+    }
+
+    const meta: PersistedMeta = {
+      chunked: true,
+      chunk_count: PERSIST_CHUNK_COUNT,
       built_at_ms: last_build_ms,
       fully_built,
       seen_ts,
     };
-    const encrypted = await secure_encrypt(JSON.stringify(payload));
+    const encrypted_meta = await secure_encrypt(JSON.stringify(meta));
+    const encrypted_chunks: [number, string][] = [];
+
+    for (let slot = 0; slot < writing.length; slot++) {
+      encrypted_chunks.push([
+        writing[slot],
+        await secure_encrypt(JSON.stringify(chunk_entries[slot])),
+      ]);
+    }
+
     const db = await open_db();
 
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
 
-      tx.objectStore(STORE_NAME).put(encrypted, account_key);
+      store.put(encrypted_meta, account_key);
+      for (const [chunk_index, blob] of encrypted_chunks) {
+        store.put(blob, chunk_record_key(account_key, chunk_index));
+      }
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
 
     db.close();
   } catch (e) {
+    for (const chunk_index of writing) {
+      dirty_chunks.add(chunk_index);
+    }
+
     const is_quota = e instanceof DOMException && e.name === "QuotaExceededError";
 
     console.warn(
       `category_index: failed to persist index${is_quota ? " (quota exceeded)" : ""}`,
       e,
     );
+  } finally {
+    persist_running = false;
 
-    return;
+    if (persist_rerun) {
+      persist_rerun = false;
+      void persist_now();
+    }
+  }
+}
+
+function read_store_record(
+  db: IDBDatabase,
+  key: string,
+): Promise<string | undefined> {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const request = tx.objectStore(STORE_NAME).get(key);
+
+    request.onsuccess = () => resolve(request.result as string | undefined);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function clean_seen_map(raw_seen: unknown): Record<string, number> {
+  const clean_seen: Record<string, number> = Object.create(null);
+
+  if (raw_seen && typeof raw_seen === "object") {
+    for (const [tab, value] of Object.entries(
+      raw_seen as Record<string, unknown>,
+    )) {
+      if (
+        (BUILTIN_CATEGORY_ID_SET.has(tab) || is_custom_category_id(tab)) &&
+        typeof value === "number" &&
+        Number.isFinite(value)
+      ) {
+        clean_seen[tab] = value;
+      }
+    }
+  }
+
+  return clean_seen;
+}
+
+function collect_valid_entries(
+  raw_entries: unknown,
+  into: [string, CategoryIndexEntry][],
+): void {
+  if (!Array.isArray(raw_entries)) return;
+
+  for (const e of raw_entries as CategoryIndexEntry[]) {
+    if (e && typeof e.id === "string" && typeof e.message_ts === "string") {
+      into.push([e.id, e]);
+    }
   }
 }
 
 async function load_from_disk(account_id: string): Promise<void> {
+  let db: IDBDatabase | null = null;
+
   try {
-    const db = await open_db();
+    db = await open_db();
 
-    const encrypted = await new Promise<string | undefined>(
-      (resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, "readonly");
-        const request = tx.objectStore(STORE_NAME).get(account_id);
-
-        request.onsuccess = () => resolve(request.result as string | undefined);
-        request.onerror = () => reject(request.error);
-      },
-    );
-
-    db.close();
+    const encrypted = await read_store_record(db, account_id);
 
     if (!encrypted) return;
     if (active_account_id !== account_id) return;
@@ -302,45 +426,54 @@ async function load_from_disk(account_id: string): Promise<void> {
 
     if (active_account_id !== account_id) return;
 
-    const payload = JSON.parse(decrypted) as Partial<PersistedIndex>;
-
     // Defense in depth: the blob is HMAC-authenticated, but still validate the
     // decoded shape before trusting it. Build a null-prototype seen map keyed
     // only by known tabs, and accept only well-formed entries.
-    if (!Array.isArray(payload.entries)) return;
-
+    const payload = JSON.parse(decrypted) as Partial<PersistedIndex> &
+      Partial<PersistedMeta>;
     const valid_entries: [string, CategoryIndexEntry][] = [];
 
-    for (const e of payload.entries) {
-      if (e && typeof e.id === "string" && typeof e.message_ts === "string") {
-        valid_entries.push([e.id, e]);
-      }
-    }
+    if (payload.chunked === true) {
+      const chunk_count =
+        Number.isInteger(payload.chunk_count) &&
+        (payload.chunk_count as number) > 0 &&
+        (payload.chunk_count as number) <= 256
+          ? (payload.chunk_count as number)
+          : 0;
 
-    const clean_seen: Record<string, number> = Object.create(null);
-    const raw_seen = payload.seen_ts;
+      if (chunk_count === 0) return;
 
-    if (raw_seen && typeof raw_seen === "object") {
-      for (const [tab, value] of Object.entries(
-        raw_seen as Record<string, unknown>,
-      )) {
-        if (
-          (BUILTIN_CATEGORY_ID_SET.has(tab) || is_custom_category_id(tab)) &&
-          typeof value === "number" &&
-          Number.isFinite(value)
-        ) {
-          clean_seen[tab] = value;
-        }
+      for (let i = 0; i < chunk_count; i++) {
+        const encrypted_chunk = await read_store_record(
+          db,
+          chunk_record_key(account_id, i),
+        );
+
+        if (!encrypted_chunk) continue;
+        if (active_account_id !== account_id) return;
+
+        const decrypted_chunk = await secure_decrypt(encrypted_chunk);
+
+        if (active_account_id !== account_id) return;
+
+        collect_valid_entries(JSON.parse(decrypted_chunk), valid_entries);
       }
+    } else {
+      if (!Array.isArray(payload.entries)) return;
+
+      collect_valid_entries(payload.entries, valid_entries);
+      mark_all_dirty();
     }
 
     entries_map = new Map(valid_entries);
     fully_built = payload.fully_built === true;
     last_build_ms =
       typeof payload.built_at_ms === "number" ? payload.built_at_ms : 0;
-    seen_ts = clean_seen;
+    seen_ts = clean_seen_map(payload.seen_ts);
   } catch {
     return;
+  } finally {
+    db?.close();
   }
 }
 
@@ -370,6 +503,7 @@ async function ensure_loaded(): Promise<boolean> {
       index_generation += 1;
       active_account_id = account_id;
       entries_map = new Map();
+      dirty_chunks.clear();
       fully_built = false;
       last_build_ms = 0;
 
@@ -433,6 +567,7 @@ function apply_upsert(
       (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "")
     ) {
       entries_map.set(entry.id, entry);
+      mark_dirty(entry.id);
       changed = true;
     }
   }
@@ -452,6 +587,7 @@ function enforce_cap(): void {
     .slice(0, CAP_TARGET);
 
   entries_map = new Map(newest.map((e) => [e.id, e]));
+  mark_all_dirty();
 }
 
 export function get_index_generation(): number {
@@ -481,6 +617,7 @@ export function set_ids_read(ids: string[], is_read: boolean): void {
 
     if (entry && entry.is_read !== is_read) {
       entries_map.set(id, { ...entry, is_read });
+      mark_dirty(id);
       if (is_read) note_recently_read(id);
       changed = true;
     }
@@ -500,6 +637,7 @@ export function mark_thread_read_entries(thread_token: string): void {
   for (const [id, entry] of entries_map) {
     if (entry.thread_token === thread_token && !entry.is_read) {
       entries_map.set(id, { ...entry, is_read: true });
+      mark_dirty(id);
       note_recently_read(id);
       changed = true;
     }
@@ -519,6 +657,7 @@ export function remove_thread_entries(thread_token: string): string[] {
   for (const [id, entry] of entries_map) {
     if (entry.thread_token === thread_token) {
       entries_map.delete(id);
+      mark_dirty(id);
       removed.push(id);
     }
   }
@@ -536,6 +675,7 @@ export function remove_ids(ids: string[]): void {
 
   for (const id of ids) {
     if (entries_map.delete(id)) {
+      mark_dirty(id);
       changed = true;
     }
   }
@@ -826,6 +966,7 @@ export function reconcile_server_read(
 
     if (entry && !entry.is_read) {
       entries_map.set(row.id, { ...entry, is_read: true });
+      mark_dirty(row.id);
       note_recently_read(row.id);
       changed = true;
     }
@@ -1099,7 +1240,10 @@ export async function build_index(options?: {
         let chunk_changed = apply_upsert(upserts, true);
 
         for (const id of removals) {
-          if (entries_map.delete(id)) chunk_changed = true;
+          if (entries_map.delete(id)) {
+            mark_dirty(id);
+            chunk_changed = true;
+          }
         }
         if (chunk_changed) {
           notify_soon();
@@ -1137,6 +1281,7 @@ export async function build_index(options?: {
             continue;
           }
           entries_map.delete(id);
+          mark_dirty(id);
         }
       }
     }
@@ -1208,7 +1353,10 @@ export async function sync_recent(notify_new = false): Promise<void> {
     }
 
     for (const id of removals) {
-      if (entries_map.delete(id)) changed = true;
+      if (entries_map.delete(id)) {
+        mark_dirty(id);
+        changed = true;
+      }
     }
 
     // Prune removals within the freshest window: any indexed entry newer than
@@ -1248,6 +1396,7 @@ export async function sync_recent(notify_new = false): Promise<void> {
               continue;
             }
             entries_map.delete(id);
+            mark_dirty(id);
             changed = true;
           }
         }
@@ -1454,6 +1603,7 @@ export function clear_category_index_memory(): void {
   entries_map = new Map();
   recently_read.clear();
   sibling_verify_at.clear();
+  dirty_chunks.clear();
   derived = null;
   seen_ts = {};
   fully_built = false;
@@ -1678,6 +1828,7 @@ export async function clear_category_index(): Promise<void> {
   entries_map = new Map();
   recently_read.clear();
   sibling_verify_at.clear();
+  dirty_chunks.clear();
   fully_built = false;
   build_capped = false;
   resync_failures = 0;
@@ -1718,8 +1869,12 @@ export async function delete_category_index_for_account(
 
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
 
-      tx.objectStore(STORE_NAME).delete(account_id);
+      store.delete(account_id);
+      for (let i = 0; i < PERSIST_CHUNK_COUNT; i++) {
+        store.delete(chunk_record_key(account_id, i));
+      }
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });

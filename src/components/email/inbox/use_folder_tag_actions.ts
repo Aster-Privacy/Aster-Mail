@@ -29,8 +29,14 @@ import {
   emit_mail_item_updated,
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
-import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
-import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
+import {
+  batched_bulk_add_folder,
+  batched_bulk_remove_folder,
+} from "@/services/api/mail";
+import {
+  batched_bulk_add_tag,
+  batched_bulk_remove_tag,
+} from "@/services/api/tags";
 import {
   remove_ids as remove_index_ids,
   reindex_ids,
@@ -105,10 +111,10 @@ export function use_folder_tag_actions({
         }
       }
       const result = should_remove
-        ? await bulk_remove_folder(all_ids, folder_token)
-        : await bulk_add_folder(all_ids, folder_token);
+        ? await batched_bulk_remove_folder(all_ids, folder_token)
+        : await batched_bulk_add_folder(all_ids, folder_token);
 
-      if (result.error) {
+      if (result.affected_total === 0 && all_ids.length > 0) {
         for (const prev of previous_states) {
           update_email(prev.id, { folders: prev.folders });
         }
@@ -147,10 +153,10 @@ export function use_folder_tag_actions({
         email_ids: all_ids,
         on_undo: async () => {
           if (should_remove) {
-            await bulk_add_folder(all_ids, folder_token);
+            await batched_bulk_add_folder(all_ids, folder_token);
             remove_index_ids(all_ids);
           } else {
-            await bulk_remove_folder(all_ids, folder_token);
+            await batched_bulk_remove_folder(all_ids, folder_token);
             reindex_ids(all_ids);
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
@@ -205,10 +211,10 @@ export function use_folder_tag_actions({
         }
       }
       const result = should_remove
-        ? await bulk_remove_tag(all_ids, tag_token)
-        : await bulk_add_tag(all_ids, tag_token);
+        ? await batched_bulk_remove_tag(all_ids, tag_token)
+        : await batched_bulk_add_tag(all_ids, tag_token);
 
-      if (result.error) {
+      if (result.affected === 0 && all_ids.length > 0) {
         for (const prev of previous_states) {
           update_email(prev.id, { tags: prev.tags });
         }
@@ -245,9 +251,9 @@ export function use_folder_tag_actions({
         email_ids: all_ids,
         on_undo: async () => {
           if (should_remove) {
-            await bulk_add_tag(all_ids, tag_token);
+            await batched_bulk_add_tag(all_ids, tag_token);
           } else {
-            await bulk_remove_tag(all_ids, tag_token);
+            await batched_bulk_remove_tag(all_ids, tag_token);
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },

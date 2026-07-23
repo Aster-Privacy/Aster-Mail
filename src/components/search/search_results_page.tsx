@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail } from "@/types/email";
+import type { MailItem } from "@/services/api/mail";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
@@ -28,7 +29,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
-import { get_mail_item } from "@/services/api/mail";
+import { list_mail_items } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
@@ -442,13 +443,18 @@ export function SearchResultsPage({
 
   const fetch_as_minimal_emails = useCallback(
     async (ids: string[]): Promise<InboxEmail[]> => {
+      const FETCH_CHUNK_SIZE = 100;
+      const items: MailItem[] = [];
+
+      for (let i = 0; i < ids.length; i += FETCH_CHUNK_SIZE) {
+        const slice = ids.slice(i, i + FETCH_CHUNK_SIZE);
+        const res = await list_mail_items({ ids: slice });
+
+        if (res.data) items.push(...res.data.items);
+      }
+
       const loaded = await Promise.all(
-        ids.map(async (id) => {
-          const res = await get_mail_item(id);
-
-          if (res.error || !res.data) return null;
-          const m = res.data;
-
+        items.map(async (m) => {
           let metadata = m.metadata ?? null;
 
           if (!metadata && m.encrypted_metadata && m.metadata_nonce) {
