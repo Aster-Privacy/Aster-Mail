@@ -1351,7 +1351,17 @@ export default function SignInPage() {
               )}
             </AnimatePresence>
 
-            <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-4`}>
+            <form
+              className="contents"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (is_loading || (!!TURNSTILE_SITE_KEY && !captcha_token)) {
+                  return;
+                }
+                handle_login();
+              }}
+            >
+              <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-4`}>
               <div>
                 <label className="block text-sm font-medium mb-2 text-txt-primary">
                   {t("auth.username")}
@@ -1398,9 +1408,6 @@ export default function SignInPage() {
                       set_username(sanitize_username(raw));
                     }
                   }}
-                  onKeyDown={(e) =>
-                    e["key"] === "Enter" && !is_loading && handle_login()
-                  }
                 />
                 <div className="relative flex mt-2 aster_input !p-1 !h-auto">
                   <div
@@ -1455,9 +1462,6 @@ export default function SignInPage() {
                     onChange={(e) =>
                       set_password(clamp_password(e.target.value))
                     }
-                    onKeyDown={(e) =>
-                      e["key"] === "Enter" && !is_loading && handle_login()
-                    }
                   />
                   <button
                     aria-label={
@@ -1494,8 +1498,8 @@ export default function SignInPage() {
               className="w-full mt-6"
               disabled={is_loading || (!!TURNSTILE_SITE_KEY && !captcha_token)}
               size="xl"
+              type="submit"
               variant="depth"
-              onClick={handle_login}
             >
               {is_loading ? (
                 <>
@@ -1506,6 +1510,7 @@ export default function SignInPage() {
                 t("auth.sign_in")
               )}
             </Button>
+            </form>
 
             <Button
               className="w-full mt-3"
