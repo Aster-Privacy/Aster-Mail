@@ -20,7 +20,10 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 const HASH_ALG = ["SHA", "256"].join("-");
-const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_ITERATIONS_LEGACY = 100000;
+const PBKDF2_ITERATIONS = 310000;
+const SALT_BYTES_LEGACY = 16;
+const SALT_BYTES = 32;
 const AUTH_KEY_CONTEXT = "astermail-folder-auth-v1";
 const ENCRYPT_KEY_CONTEXT = "astermail-folder-encrypt-v1";
 
@@ -86,7 +89,13 @@ export async function derive_password_keys(
   password: string,
   existing_salt?: Uint8Array,
 ): Promise<DerivedKeys> {
-  const salt = existing_salt ?? crypto.getRandomValues(new Uint8Array(16));
+  const salt =
+    existing_salt ?? crypto.getRandomValues(new Uint8Array(SALT_BYTES));
+
+  const iterations =
+    salt.length <= SALT_BYTES_LEGACY
+      ? PBKDF2_ITERATIONS_LEGACY
+      : PBKDF2_ITERATIONS;
 
   const encoder = new TextEncoder();
   const password_bytes = encoder.encode(password);
@@ -103,7 +112,7 @@ export async function derive_password_keys(
     {
       name: "PBKDF2",
       salt: salt,
-      iterations: PBKDF2_ITERATIONS,
+      iterations,
       hash: HASH_ALG,
     },
     key_material,

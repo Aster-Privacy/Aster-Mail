@@ -22,7 +22,7 @@ assert_eq!(plaintext, b"Hello from Aster!");
 
 | Module | Purpose |
 | --- | --- |
-| `keys` | RSA-4096 key pair generation, import, export, optional passphrase protection. |
+| `keys` | OpenPGP key pair generation, import, export, optional passphrase protection. |
 | `encrypt` | Encrypt to one or many recipients in armored or binary form. `encrypt_and_sign` bundles signing in. |
 | `decrypt` | Decrypt with any of several candidate secret keys. `decrypt_and_verify` checks the sender too. |
 | `sign` | Inline OpenPGP signatures, verified against a set of trusted signer keys. |

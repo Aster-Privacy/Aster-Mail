@@ -45,7 +45,7 @@ All encryption and decryption is performed client-side. We will never have acces
 | Channel | Protocol |
 |---|---|
 | Aster → Aster | X3DH + Double Ratchet with ML-KEM-768 (post-quantum) |
-| Aster → External | RSA-4096 OpenPGP – portable, works with GPG, Thunderbird, any PGP client |
+| Aster → External | Ed25519 OpenPGP – portable, works with GPG, Thunderbird, any PGP client |
 
 **Metadata encrypted:** subject lines, content, contacts, folder structure, search indices, timestamps, attachment data, and much more.
 
