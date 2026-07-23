@@ -186,6 +186,7 @@ export interface UserPreferences {
   thread_count_position: "left" | "right";
   compose_window_mode: "default" | "fullscreen" | "minimized";
   reactions_enabled: boolean;
+  family_setup_wizard_dismissed: boolean;
 }
 
 export async function sync_quiet_hours_to_server(
@@ -497,6 +498,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   thread_count_position: "left",
   compose_window_mode: "default",
   reactions_enabled: true,
+  family_setup_wizard_dismissed: false,
 };
 
 type GetPreferencesViaHttpResult =
