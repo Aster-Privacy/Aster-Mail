@@ -87,6 +87,7 @@ import { StatRing } from "@/components/settings/stat_ring";
 import { show_toast } from "@/components/toast/simple_toast";
 import { check_alias_availability } from "@/services/api/aliases";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { format_bytes } from "@/lib/utils";
 import {
@@ -1820,6 +1821,7 @@ function RetentionContent({ other_member_count, initial_retention }: { other_mem
 
 export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const { t } = use_i18n();
+  const { preferences, update_preference, has_loaded_from_server } = use_preferences();
   const [group, set_group] = useState<FamilyGroupResponse | null>(null);
   const [loading, set_loading] = useState(true);
   const [tab, set_tab] = useState<FamilyTab>("overview");
@@ -1839,6 +1841,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [compliance_map, set_compliance_map] = useState<Record<string, MemberComplianceInfo>>({});
   const [compliance_loaded, set_compliance_loaded] = useState(false);
   const [wizard_open, set_wizard_open] = useState(false);
+  const [wizard_eligible_group_id, set_wizard_eligible_group_id] = useState<string | null>(null);
   const [wizard_step, set_wizard_step] = useState(1);
   const [wizard_invite_email, set_wizard_invite_email] = useState("");
   const [wizard_invite_gb, set_wizard_invite_gb] = useState("500");
@@ -1918,10 +1921,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         } catch {}
         if (
           res.data.viewer_role === "owner" &&
-          res.data.members.filter(m => m.status === "active").length === 1 &&
-          !localStorage.getItem(`aster_family_setup_${res.data.id}`)
+          res.data.members.filter(m => m.status === "active").length === 1
         ) {
-          set_wizard_open(true);
+          set_wizard_eligible_group_id(res.data.id);
         }
       }
     } catch { /* not in a group */ }
@@ -1932,6 +1934,17 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     if (is_family_plan) load_group();
     else set_loading(false);
   }, [is_family_plan, load_group]);
+
+  useEffect(() => {
+    if (!wizard_eligible_group_id || wizard_open) return;
+    if (!has_loaded_from_server) return;
+    if (preferences.family_setup_wizard_dismissed) return;
+    if (localStorage.getItem(`aster_family_setup_${wizard_eligible_group_id}`)) {
+      update_preference("family_setup_wizard_dismissed", true, true);
+      return;
+    }
+    set_wizard_open(true);
+  }, [wizard_eligible_group_id, wizard_open, has_loaded_from_server, preferences.family_setup_wizard_dismissed, update_preference]);
 
   useEffect(() => {
     const on_visible = () => { if (!document.hidden && is_family_plan) load_group(); };
@@ -1977,7 +1990,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   };
 
   const close_wizard = () => {
-    if (group) localStorage.setItem(`aster_family_setup_${group.id}`, "1");
+    try {
+      if (group) localStorage.setItem(`aster_family_setup_${group.id}`, "1");
+    } catch {}
+    update_preference("family_setup_wizard_dismissed", true, true);
+    set_wizard_eligible_group_id(null);
     set_wizard_open(false);
     set_wizard_step(1);
     set_wizard_invite_email("");
