@@ -90,9 +90,17 @@ export function escape_style_terminator(css: string): string {
 export function strip_css_urls(css: string): string {
   const decoded = decode_css_escapes(css);
   const url_stripped = decoded.replace(
-    /url\s*\(\s*["']?([\s\S]*?)["']?\s*\)/gi,
+    /url\s*\(([^)]*)\)/gi,
     (_match, url_content) => {
-      const trimmed = (url_content || "").trim().toLowerCase();
+      let inner = (url_content || "").trim();
+      if (
+        inner.length >= 2 &&
+        (inner[0] === '"' || inner[0] === "'") &&
+        inner[inner.length - 1] === inner[0]
+      ) {
+        inner = inner.slice(1, -1).trim();
+      }
+      const trimmed = inner.toLowerCase();
 
       if (trimmed.startsWith("data:")) {
         const safe_css_data_types = [
