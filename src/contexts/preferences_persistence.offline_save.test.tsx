@@ -123,6 +123,7 @@ vi.mock("@/lib/version_check", () => ({ stop_version_check: vi.fn() }));
 
 vi.mock("@/components/email/hooks/preload_cache", () => ({
   set_preload_email_font_px: vi.fn(),
+  set_preload_email_font_stack: vi.fn(),
 }));
 
 declare global {

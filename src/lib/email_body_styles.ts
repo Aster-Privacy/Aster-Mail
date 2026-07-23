@@ -18,7 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export function build_email_body_css(accent_color = "#3b82f6") {
+const DEFAULT_BODY_FONT_STACK =
+  "'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+export function build_email_body_css(
+  accent_color = "#3b82f6",
+  body_font_stack = DEFAULT_BODY_FONT_STACK,
+) {
   return `
 @font-face {
   font-family: 'Google Sans Flex';
@@ -65,7 +71,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: transparent;
-  font-family: 'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: ${body_font_stack};
   font-size: 14px;
   line-height: 1.6;
   word-wrap: break-word;

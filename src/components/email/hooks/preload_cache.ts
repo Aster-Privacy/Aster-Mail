@@ -389,6 +389,13 @@ export function set_preload_email_font_px(px: number): void {
   _email_zoom = (px / 14).toFixed(3);
 }
 
+let _email_font_stack =
+  "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+
+export function set_preload_email_font_stack(stack: string): void {
+  _email_font_stack = stack;
+}
+
 let measure_container: HTMLDivElement | null = null;
 
 // The height pre-measurement renders sanitized email markup into a top-origin
@@ -430,7 +437,7 @@ function premeasure_height(
   wrapper.style.cssText = `width:${viewer_width}px;position:absolute;left:0;top:0`;
 
   const body_style = is_plain_text
-    ? `margin:0;padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${_email_zoom}`
+    ? `margin:0;padding:16px 20px;font-family:${_email_font_stack};font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${_email_zoom}`
     : `margin:0;padding:8px 16px 16px 16px;background-color:${body_background || "transparent"};zoom:${_email_zoom}`;
 
   shadow.innerHTML =

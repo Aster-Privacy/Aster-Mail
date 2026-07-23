@@ -24,6 +24,12 @@ import { Capacitor } from "@capacitor/core";
 import { build_email_body_css, build_forced_dark_mode_css } from "@/lib/email_body_styles";
 import { sanitize_preview_html, is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
+  build_font_face_css,
+  get_email_font_stack,
+  is_email_font_override,
+  EMAIL_FONT_MATCH_APP_ID,
+} from "@/lib/font_options";
+import {
   extract_cid_references,
   resolve_cid_references,
   revoke_cid_blob_urls,
@@ -359,9 +365,21 @@ export function SandboxedEmailRenderer({
     : body_background || "transparent";
   const dyslexia_font_stack =
     "'OpenDyslexic','Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+  const email_font_id = preferences.email_font_choice ?? EMAIL_FONT_MATCH_APP_ID;
+  const resolved_email_font_id =
+    email_font_id === EMAIL_FONT_MATCH_APP_ID
+      ? (preferences.font_choice ?? "default")
+      : email_font_id;
   const base_font = preferences.dyslexia_font
     ? dyslexia_font_stack
-    : "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+    : get_email_font_stack(preferences.email_font_choice, preferences.font_choice);
+  const email_font_face_css = preferences.dyslexia_font
+    ? ""
+    : build_font_face_css(resolved_email_font_id);
+  const email_font_override_css =
+    !preferences.dyslexia_font && is_email_font_override(preferences.email_font_choice)
+      ? `body, body *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }`
+      : "";
 
   const link_underline_css = preferences.link_underlines
     ? "a, a * { text-decoration: underline !important; }"
@@ -393,7 +411,7 @@ a, a * { color: ${preferences.accent_color_hover} !important; }`
     : `background-color:${html_bg}`;
   const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
-  const iframe_css = build_email_body_css(preferences.accent_color);
+  const iframe_css = build_email_body_css(preferences.accent_color, base_font);
 
   const html_el_style =
     is_html_email && !force_dark_mode && !simple_dark_html
@@ -446,6 +464,8 @@ ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important
 <style>${quote_toggle_css}</style>
 <style>::selection { background: rgba(96, 165, 250, 0.35); }
 .aster-quote-toggle, .aster-forwarded-collapse > summary, .remote-content-banner { -webkit-user-select: none !important; user-select: none !important; }</style>
+${email_font_face_css ? `<style>${email_font_face_css}</style>` : ""}
+${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
