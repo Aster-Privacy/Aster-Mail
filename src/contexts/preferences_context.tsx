@@ -50,6 +50,7 @@ import { get_csrf_token_from_cookie } from "@/services/api/csrf";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { sync_haptic_state } from "@/native/haptic_feedback";
+import { set_display_time_zone } from "@/utils/date_format";
 import {
   load_notification_preferences,
   request_notification_permission,
@@ -62,7 +63,10 @@ import {
 import { configure_session_timeout } from "@/services/session_timeout_service";
 import { set_low_network_mode } from "@/services/low_network_state";
 import { stop_version_check } from "@/lib/version_check";
-import { set_preload_email_font_px } from "@/components/email/hooks/preload_cache";
+import {
+  set_preload_email_font_px,
+  set_preload_email_font_stack,
+} from "@/components/email/hooks/preload_cache";
 import {
   ACCENT_DERIVED_KEYS,
   apply_custom_theme,
@@ -71,7 +75,7 @@ import {
   is_valid_hex_color,
   type CustomThemeOverrides,
 } from "@/lib/material_theme";
-import { get_font_stack } from "@/lib/font_options";
+import { get_font_stack, get_email_font_stack } from "@/lib/font_options";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -241,6 +245,9 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       String(scale / FONT_SIZE_DEFAULT),
     );
     set_preload_email_font_px(Math.round(14 * (scale / FONT_SIZE_DEFAULT)));
+    set_preload_email_font_stack(
+      get_email_font_stack(base.email_font_choice, base.font_choice),
+    );
 
     return {
       ...base,
@@ -649,6 +656,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       String(email_scale / FONT_SIZE_DEFAULT),
     );
     set_preload_email_font_px(Math.round(14 * (email_scale / FONT_SIZE_DEFAULT)));
+    set_preload_email_font_stack(
+      get_email_font_stack(
+        prefs.email_font_choice ?? DEFAULT_PREFERENCES.email_font_choice,
+        prefs.font_choice ?? DEFAULT_PREFERENCES.font_choice,
+      ),
+    );
 
     root.classList.toggle("high-contrast", prefs.high_contrast ?? false);
     root.classList.toggle(
@@ -858,6 +871,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       cancelled = true;
     };
   }, [vault_identity, is_completing_registration]);
+
+  useEffect(() => {
+    set_display_time_zone(preferences.time_zone);
+  }, [preferences.time_zone]);
 
   useEffect(() => {
     document.documentElement.classList.toggle(

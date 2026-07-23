@@ -23,8 +23,9 @@ import type { DraftWithContent } from "@/services/api/multi_drafts";
 import { useState, useCallback } from "react";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { delete_draft } from "@/services/api/multi_drafts";
+import { delete_thread_draft } from "@/services/api/multi_drafts";
 import { show_toast } from "@/components/toast/simple_toast";
+import { emit_drafts_changed } from "@/hooks/mail_events";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -32,6 +33,7 @@ interface ThreadDraftBadgeProps {
   draft: DraftWithContent;
   current_user_email: string;
   current_user_name?: string;
+  thread_token?: string;
   on_edit: (draft: DraftWithContent) => void;
   on_deleted: () => void;
 }
@@ -40,6 +42,7 @@ export function ThreadDraftBadge({
   draft,
   current_user_email,
   current_user_name,
+  thread_token,
   on_edit,
   on_deleted,
 }: ThreadDraftBadgeProps) {
@@ -52,18 +55,22 @@ export function ThreadDraftBadge({
       if (is_deleting) return;
 
       set_is_deleting(true);
-      const result = await delete_draft(draft.id);
+      const result = await delete_thread_draft(
+        draft.id,
+        draft.thread_token ?? thread_token,
+      );
 
       set_is_deleting(false);
 
       if (result.data?.success) {
         on_deleted();
+        emit_drafts_changed();
         show_toast(t("common.draft_deleted"), "success");
       } else {
         show_toast(t("common.failed_to_delete_draft"), "error");
       }
     },
-    [draft.id, is_deleting, on_deleted],
+    [draft.id, draft.thread_token, thread_token, is_deleting, on_deleted],
   );
 
   const handle_edit = useCallback(() => {

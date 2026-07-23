@@ -37,6 +37,77 @@ const DEFAULT_OPTIONS: FormatOptions = {
   time_format: "12h",
 };
 
+let display_time_zone: string | undefined;
+
+export function set_display_time_zone(zone: string | undefined): void {
+  if (!zone || zone === "auto") {
+    display_time_zone = undefined;
+    return;
+  }
+
+  try {
+    new Intl.DateTimeFormat(undefined, { timeZone: zone });
+    display_time_zone = zone;
+  } catch {
+    display_time_zone = undefined;
+  }
+}
+
+export function get_display_time_zone(): string | undefined {
+  return display_time_zone;
+}
+
+function zoned(opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions {
+  return display_time_zone ? { ...opts, timeZone: display_time_zone } : opts;
+}
+
+interface ZonedParts {
+  year: number;
+  month: number;
+  day: number;
+  hours: number;
+  minutes: number;
+}
+
+function get_zoned_parts(date: Date): ZonedParts {
+  if (!display_time_zone) {
+    return {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+    };
+  }
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: display_time_zone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(date);
+
+  const read = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value ?? 0);
+
+  return {
+    year: read("year"),
+    month: read("month"),
+    day: read("day"),
+    hours: read("hour") % 24,
+    minutes: read("minute"),
+  };
+}
+
+function day_key(date: Date): string {
+  const p = get_zoned_parts(date);
+
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+}
+
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`;
 }
@@ -45,9 +116,10 @@ export function format_date(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
-  const day = pad(date.getDate());
-  const month = pad(date.getMonth() + 1);
-  const year = date.getFullYear();
+  const parts = get_zoned_parts(date);
+  const day = pad(parts.day);
+  const month = pad(parts.month);
+  const year = parts.year;
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
@@ -64,17 +136,18 @@ export function format_time(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
-  const hours = date.getHours();
-  const minutes = pad(date.getMinutes());
+  const zoned_parts = get_zoned_parts(date);
+  const hours = zoned_parts.hours;
+  const minutes = pad(zoned_parts.minutes);
 
   if (options.time_format === "24h") {
     return `${pad(hours)}:${minutes}`;
   }
 
-  const parts = new Intl.DateTimeFormat(undefined, {
+  const parts = new Intl.DateTimeFormat(undefined, zoned({
     hour: "numeric",
     hour12: true,
-  }).formatToParts(date);
+  })).formatToParts(date);
   const period = parts.find((p) => p.type === "dayPeriod")?.value ?? (hours >= 12 ? "PM" : "AM");
   const hours_12 = hours % 12 || 12;
 
@@ -85,8 +158,8 @@ export function format_date_short(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
-  const day = date.getDate();
-  const month = new Intl.DateTimeFormat(undefined, { month: "short" }).format(date);
+  const day = get_zoned_parts(date).day;
+  const month = new Intl.DateTimeFormat(undefined, zoned({ month: "short" })).format(date);
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
@@ -100,16 +173,16 @@ export function format_date_short(
 }
 
 export function format_weekday_short(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date);
+  return new Intl.DateTimeFormat(undefined, zoned({ weekday: "short" })).format(date);
 }
 
 export function format_full_date(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
 ): string {
-  const weekday = new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
-  const month = new Intl.DateTimeFormat(undefined, { month: "long" }).format(date);
-  const day = date.getDate();
+  const weekday = new Intl.DateTimeFormat(undefined, zoned({ weekday: "long" })).format(date);
+  const month = new Intl.DateTimeFormat(undefined, zoned({ month: "long" })).format(date);
+  const day = get_zoned_parts(date).day;
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
@@ -134,14 +207,14 @@ export function format_full_datetime(
     });
   }
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(undefined, zoned({
     weekday: "long",
     month: "long",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     hour12: options.time_format === "12h",
-  }).format(date);
+  })).format(date);
 }
 
 export function format_timestamp_smart(
@@ -151,12 +224,10 @@ export function format_timestamp_smart(
 ): string {
   const now = new Date();
 
-  const is_today = date.toDateString() === now.toDateString();
+  const is_today = day_key(date) === day_key(now);
 
-  const yesterday = new Date(now);
-
-  yesterday.setDate(yesterday.getDate() - 1);
-  const is_yesterday = date.toDateString() === yesterday.toDateString();
+  const yesterday = new Date(now.getTime() - 86400000);
+  const is_yesterday = day_key(date) === day_key(yesterday);
 
   if (is_today) {
     return format_time(date, options);
@@ -176,7 +247,7 @@ export function format_email_list_timestamp(
   if (!date || isNaN(date.getTime())) return "";
 
   const now = new Date();
-  const is_today = date.toDateString() === now.toDateString();
+  const is_today = day_key(date) === day_key(now);
 
   if (is_today) {
     return format_time(date, options);
@@ -193,12 +264,10 @@ export function format_email_detail_timestamp(
   if (!date || isNaN(date.getTime())) return "";
 
   const now = new Date();
-  const is_today = date.toDateString() === now.toDateString();
+  const is_today = day_key(date) === day_key(now);
 
-  const yesterday = new Date(now);
-
-  yesterday.setDate(yesterday.getDate() - 1);
-  const is_yesterday = date.toDateString() === yesterday.toDateString();
+  const yesterday = new Date(now.getTime() - 86400000);
+  const is_yesterday = day_key(date) === day_key(yesterday);
 
   const time_str = format_time(date, options);
 
@@ -268,38 +337,27 @@ export function format_snooze_target(
   t?: TranslateFn,
 ): string {
   const now = new Date();
-  const tomorrow = new Date(now);
+  const tomorrow = new Date(now.getTime() + 86400000);
 
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-
-  const snooze_day = new Date(snooze_date);
-
-  snooze_day.setHours(0, 0, 0, 0);
-
-  const today = new Date(now);
-
-  today.setHours(0, 0, 0, 0);
-
-  const time_str = snooze_date.toLocaleTimeString([], {
+  const time_str = snooze_date.toLocaleTimeString([], zoned({
     hour: "numeric",
     minute: "2-digit",
-  });
+  }));
 
-  if (snooze_day.getTime() === today.getTime()) {
+  if (day_key(snooze_date) === day_key(now)) {
     return t
       ? t("common.today_at_time", { time: time_str })
       : `Today at ${time_str}`;
-  } else if (snooze_day.getTime() === tomorrow.getTime()) {
+  } else if (day_key(snooze_date) === day_key(tomorrow)) {
     return t
       ? t("common.tomorrow_at_time", { time: time_str })
       : `Tomorrow at ${time_str}`;
   } else {
-    const date_str = snooze_date.toLocaleDateString([], {
+    const date_str = snooze_date.toLocaleDateString([], zoned({
       weekday: "long",
       month: "short",
       day: "numeric",
-    });
+    }));
 
     return t
       ? t("common.date_at_time", { date: date_str, time: time_str })

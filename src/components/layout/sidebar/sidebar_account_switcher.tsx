@@ -259,6 +259,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
             </button>
             <button
               className="p-1.5 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
+              title={t("settings.title")}
               onClick={() => on_settings_click()}
             >
               <Cog6ToothIcon className="w-4 h-4" />

@@ -1246,6 +1246,7 @@ export function ViewerThreadContent({
           current_user_email={current_user_email}
           current_user_name={current_user_name}
           draft={thread_draft}
+          thread_token={email.thread_token}
           on_deleted={() => on_thread_draft_deleted?.()}
           on_edit={(draft) => {
             const target =

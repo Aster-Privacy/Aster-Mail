@@ -1942,6 +1942,9 @@ export interface SettingsTranslations {
   font_choice_description: string;
   font_option_default: string;
   font_option_system: string;
+  email_font_choice_title: string;
+  email_font_choice_description: string;
+  email_font_option_match_app: string;
   email_address: string;
   email_address_description: string;
   badges_title: string;
@@ -1957,6 +1960,7 @@ export interface SettingsTranslations {
   custom_signature: string;
   time_zone: string;
   time_zone_description: string;
+  time_zone_auto: string;
   date_format: string;
   date_format_description: string;
   density: string;

@@ -20,6 +20,8 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { get_display_time_zone } from "@/utils/date_format";
+
 type TranslateFn = (
   key: TranslationKey,
   params?: Record<string, string | number>,
@@ -72,9 +74,12 @@ export function format_relative_time(
       : `${diff_months} month${diff_months === 1 ? "" : "s"} ago`;
   }
 
+  const zone = get_display_time_zone();
+
   return date.toLocaleDateString([], {
     month: "short",
     day: "numeric",
     year: "numeric",
+    ...(zone ? { timeZone: zone } : {}),
   });
 }
