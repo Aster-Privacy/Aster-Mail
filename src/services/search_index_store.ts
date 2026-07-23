@@ -35,7 +35,7 @@ import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_current_account_id } from "@/services/account_manager";
 
 const KEY_PREFIX = "search_index_";
-const SNAPSHOT_VERSION = 1;
+const SNAPSHOT_VERSION = 2;
 const MAX_SNAPSHOT_ENTRIES = 20000;
 const SNAPSHOT_CAP_TARGET = 12000;
 
@@ -44,6 +44,7 @@ export interface PersistedSearchEntry {
   envelope: DecryptedEnvelope | null;
   metadata: MailItemMetadata | null;
   search_body_text: string;
+  search_snippet?: string;
   meta_fp: string;
   has_body: boolean;
 }
@@ -190,6 +191,7 @@ export function build_snapshot(
       envelope: DecryptedEnvelope | null;
       metadata: MailItemMetadata | null;
       search_body_text: string;
+      search_snippet?: string;
       meta_fp: string;
       has_body: boolean;
     }
@@ -219,10 +221,11 @@ export function build_snapshot(
     trimmed_entries.push({
       id,
       envelope: entry.envelope
-        ? { ...entry.envelope, body_html: "", html_body: "" }
+        ? { ...entry.envelope, body_text: "", body_html: "", html_body: "" }
         : null,
       metadata: entry.metadata,
       search_body_text: entry.search_body_text,
+      search_snippet: entry.search_snippet,
       meta_fp: entry.meta_fp,
       has_body: entry.has_body,
     });

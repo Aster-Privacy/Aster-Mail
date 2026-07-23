@@ -432,6 +432,7 @@ export interface DecryptedIndexEntry {
   envelope: DecryptedEnvelope | null;
   metadata: MailItemMetadata | null;
   search_body_text: string;
+  search_snippet?: string;
   meta_fp: string;
   has_body: boolean;
 }
@@ -449,6 +450,18 @@ const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 const INDEX_TTL_MS = 5 * 60 * 1000;
 const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
+const SEARCH_BODY_TEXT_CAP = 50_000;
+const SEARCH_SNIPPET_LENGTH = 160;
+
+function release_item_payload(item: MailItem): void {
+  item.encrypted_envelope = "";
+  item.envelope_nonce = "";
+  item.encrypted_metadata = "";
+  item.metadata_nonce = undefined;
+  item.ephemeral_key = undefined;
+  item.ephemeral_pq_key = undefined;
+  item.sender_sealed = undefined;
+}
 
 let cached_index: CachedIndex | null = null;
 let index_build_promise: Promise<CachedIndex> | null = null;
@@ -847,35 +860,10 @@ async function do_build_search_index(
   prior?: Map<string, DecryptedIndexEntry>,
 ): Promise<CachedIndex> {
   const my_gen = build_generation;
-  let all_items: MailItem[] = [];
+  const all_items: MailItem[] = [];
   let cursor: string | undefined;
-  let page_count = 0;
 
   emit_indexing({ building: true, current: 0, total: 0 });
-
-  do {
-    const response = await list_encrypted_mail_items({ cursor, limit: 1000 });
-
-    if (my_gen !== build_generation) {
-      emit_indexing({ building: false, current: 0, total: 0 });
-      throw new Error("search_index_cancelled");
-    }
-
-    if (response.error) {
-      emit_indexing({ building: false, current: 0, total: 0 });
-      throw new Error(`search_fetch_failed:${response.error}`);
-    }
-
-    if (!response.data?.items) break;
-    all_items.push(...response.data.items);
-    cursor = response.data.next_cursor;
-    page_count++;
-    emit_indexing({ current: all_items.length });
-  } while (cursor);
-
-  emit_indexing({ total: all_items.length, current: 0 });
-
-  const metadata_map = await decrypt_mail_metadata_batch(all_items);
 
   const vault_for_keys = get_vault_from_memory();
   const precomputed_envelope_keys = vault_for_keys?.identity_key
@@ -885,18 +873,22 @@ async function do_build_search_index(
       ])
     : [];
 
-  if (my_gen !== build_generation) {
-    emit_indexing({ building: false, current: 0, total: 0 });
-    throw new Error("search_index_cancelled");
-  }
-
   const decrypted = new Map<string, DecryptedIndexEntry>();
   let fresh_count = 0;
 
   const batch_size = include_body ? 40 : 250;
 
-  for (let i = 0; i < all_items.length; i += batch_size) {
-    const batch = all_items.slice(i, i + batch_size);
+  const cancel_build = (): never => {
+    decrypted.clear();
+    emit_indexing({ building: false, current: 0, total: 0 });
+    throw new Error("search_index_cancelled");
+  };
+
+  const process_page = async (page_items: MailItem[]) => {
+    const metadata_map = await decrypt_mail_metadata_batch(page_items);
+
+    for (let i = 0; i < page_items.length; i += batch_size) {
+      const batch = page_items.slice(i, i + batch_size);
 
     const results = await Promise.allSettled(
       batch.map(
@@ -917,6 +909,8 @@ async function do_build_search_index(
             immutable &&
             (prior_entry.has_body || !include_body)
           ) {
+            release_item_payload(item);
+
             if (prior_entry.meta_fp === meta_fp) {
               return { id: item.id, entry: prior_entry, fresh: false };
             }
@@ -957,10 +951,27 @@ async function do_build_search_index(
               envelope.body_text = "";
             }
           }
-          if (envelope && !include_body) {
+
+          let search_body_text = "";
+          let search_snippet = "";
+          const raw_body = include_body
+            ? envelope?.body_text || envelope?.body_html || envelope?.html_body
+            : "";
+
+          if (raw_body) {
+            const stripped = strip_html_tags(raw_body);
+
+            search_snippet = stripped.substring(0, SEARCH_SNIPPET_LENGTH);
+            search_body_text = stripped
+              .toLowerCase()
+              .slice(0, SEARCH_BODY_TEXT_CAP);
+          }
+          if (envelope) {
+            envelope.body_text = "";
             envelope.body_html = "";
             envelope.html_body = "";
           }
+          release_item_payload(item);
 
           const metadata = metadata_map.get(item.id) ?? null;
 
@@ -969,9 +980,8 @@ async function do_build_search_index(
             entry: {
               envelope,
               metadata,
-              search_body_text: envelope?.body_text
-                ? strip_html_tags(envelope.body_text).toLowerCase()
-                : "",
+              search_body_text,
+              search_snippet,
               meta_fp,
               has_body: include_body,
             },
@@ -981,33 +991,50 @@ async function do_build_search_index(
       ),
     );
 
-    for (const result of results) {
-      if (result.status === "fulfilled") {
-        if (result.value.fresh) fresh_count++;
-        decrypted.set(result.value.id, result.value.entry);
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          if (result.value.fresh) fresh_count++;
+          decrypted.set(result.value.id, result.value.entry);
+        }
       }
-    }
 
-    if (my_gen !== build_generation) {
-      decrypted.clear();
-      emit_indexing({ building: false, current: 0, total: 0 });
-      throw new Error("search_index_cancelled");
-    }
+      if (my_gen !== build_generation) cancel_build();
 
-    emit_indexing({
-      current: Math.min(i + batch.length, all_items.length),
-    });
+      emit_indexing({ current: decrypted.size });
 
-    if (i > 0 && i % 100 === 0) {
       await new Promise<void>((r) => setTimeout(r, 0));
     }
-  }
+  };
 
-  if (my_gen !== build_generation) {
-    decrypted.clear();
-    emit_indexing({ building: false, current: 0, total: 0 });
-    throw new Error("search_index_cancelled");
-  }
+  let next_page = list_encrypted_mail_items({ cursor, limit: 1000 });
+
+  do {
+    const response = await next_page;
+
+    if (my_gen !== build_generation) cancel_build();
+
+    if (response.error) {
+      emit_indexing({ building: false, current: 0, total: 0 });
+      throw new Error(`search_fetch_failed:${response.error}`);
+    }
+
+    if (!response.data?.items) break;
+
+    const page_items = response.data.items;
+
+    all_items.push(...page_items);
+    cursor = response.data.next_cursor;
+
+    if (cursor) {
+      next_page = list_encrypted_mail_items({ cursor, limit: 1000 });
+    }
+
+    await process_page(page_items);
+  } while (cursor);
+
+  if (my_gen !== build_generation) cancel_build();
+
+  emit_indexing({ total: all_items.length, current: decrypted.size });
 
   const built_text_index = await build_text_index(all_items, decrypted);
 
@@ -1143,6 +1170,7 @@ async function build_search_index(
         envelope: e.envelope,
         metadata: e.metadata,
         search_body_text: e.search_body_text,
+        search_snippet: e.search_snippet,
         meta_fp: e.meta_fp,
         has_body: e.has_body,
       },
@@ -1196,6 +1224,7 @@ function matches_operator(
   metadata: MailItemMetadata | null,
   item: MailItem,
   label_name_to_tokens?: Map<string, string[]>,
+  search_body_text?: string,
 ): boolean {
   const val = op.value.toLowerCase();
 
@@ -1230,13 +1259,13 @@ function matches_operator(
       if (val === "attachment" || val === "attachments")
         return entry_has_attachment(envelope, metadata);
       if (!entry_has_attachment(envelope, metadata)) return false;
-      const body_lower = (envelope.body_text || "").toLowerCase();
-      const html_lower = (
-        envelope.body_html ||
-        envelope.html_body ||
-        ""
-      ).toLowerCase();
-      const combined = body_lower + " " + html_lower;
+      const combined =
+        search_body_text ??
+        (
+          (envelope.body_text || "") +
+          " " +
+          (envelope.body_html || envelope.html_body || "")
+        ).toLowerCase();
       const ext_map: Record<string, string[]> = {
         pdf: [".pdf"],
         image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp"],
@@ -1307,11 +1336,13 @@ function matches_operator(
     case "filename":
     case "attachment": {
       if (!entry_has_attachment(envelope, metadata)) return false;
-      const content = (
-        (envelope.body_text || "") +
-        " " +
-        (envelope.body_html || envelope.html_body || "")
-      ).toLowerCase();
+      const content =
+        search_body_text ??
+        (
+          (envelope.body_text || "") +
+          " " +
+          (envelope.body_html || envelope.html_body || "")
+        ).toLowerCase();
 
       return content.includes(val);
     }
@@ -1413,6 +1444,7 @@ export function matches_query(
       metadata,
       item,
       label_name_to_tokens,
+      search_body_text,
     );
 
     if (op.negated ? result : !result) return false;
@@ -1471,6 +1503,7 @@ function to_search_result(
   item: MailItem,
   envelope: DecryptedEnvelope | null,
   metadata: MailItemMetadata | null,
+  search_snippet?: string,
 ): SearchResultItem {
   const forwarding_display = resolve_forwarding_display(
     envelope?.from,
@@ -1480,9 +1513,11 @@ function to_search_result(
   return {
     id: item.id,
     subject: envelope?.subject || "(Encrypted)",
-    preview: envelope
-      ? strip_html_tags(envelope.body_text || "").substring(0, 150)
-      : "",
+    preview:
+      search_snippet ||
+      (envelope
+        ? strip_html_tags(envelope.body_text || "").substring(0, 150)
+        : ""),
     sender_name:
       forwarding_display?.display_sender_name ||
       envelope?.from?.name ||
@@ -1655,7 +1690,7 @@ export function use_search() {
 
           if (!data) return;
 
-          const { envelope, metadata, search_body_text } = data;
+          const { envelope, metadata, search_body_text, search_snippet } = data;
 
           if (
             !matches_query(
@@ -1698,7 +1733,9 @@ export function use_search() {
             }
           }
 
-          results.push(to_search_result(item, envelope, metadata));
+          results.push(
+            to_search_result(item, envelope, metadata, search_snippet),
+          );
         };
 
         if (candidate_indices) {
