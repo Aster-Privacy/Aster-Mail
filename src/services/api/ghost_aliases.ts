@@ -196,7 +196,7 @@ const SECOND_WORDS = [
   "umber",
 ] as const;
 
-function uniform_random_index(modulus: number): number {
+export function uniform_random_index(modulus: number): number {
   const range = 0x100000000;
   const limit = range - (range % modulus);
   const buf = new Uint32Array(1);

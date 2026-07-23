@@ -20,7 +20,11 @@
 //
 import { api_client, type ApiResponse } from "./client";
 import { encrypt_alias_field, decrypt_alias_field } from "./aliases";
-import { generate_ghost_local_part, GHOST_DOMAIN } from "./ghost_aliases";
+import {
+  generate_ghost_local_part,
+  uniform_random_index,
+  GHOST_DOMAIN,
+} from "./ghost_aliases";
 import { sha256_base64 } from "./alias_hash";
 
 export interface AliasContact {
@@ -65,7 +69,7 @@ export async function add_alias_contact(
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const reverse_local = readable
-      ? `${make_readable_reverse_local(contact_email)}_${Math.floor(Math.random() * 10000)}`
+      ? `${make_readable_reverse_local(contact_email)}_${uniform_random_index(10000)}`
       : generate_ghost_local_part();
     const reverse_alias_hash = await sha256_base64(
       `${reverse_local}@${GHOST_DOMAIN}`,
