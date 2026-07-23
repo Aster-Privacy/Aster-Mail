@@ -1961,6 +1961,9 @@ export interface SettingsTranslations {
   time_zone: string;
   time_zone_description: string;
   time_zone_auto: string;
+  time_zone_search_placeholder: string;
+  time_zone_no_results: string;
+  time_zone_show_all: string;
   date_format: string;
   date_format_description: string;
   density: string;

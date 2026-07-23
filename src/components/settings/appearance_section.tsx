@@ -51,6 +51,8 @@ import { ViewModeCard } from "@/components/settings/appearance/view_mode_card";
 import { ComposeModeCard } from "@/components/settings/appearance/compose_mode_card";
 import { SettingRow } from "@/components/settings/appearance/setting_row";
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
+import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
+import { get_supported_time_zones } from "@/lib/time_zones";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 import {
@@ -201,10 +203,7 @@ export function AppearanceSection() {
       : t("settings.twelve_hours");
 
   const available_time_zones = useMemo<string[]>(
-    () =>
-      (
-        Intl as unknown as { supportedValuesOf: (key: string) => string[] }
-      ).supportedValuesOf("timeZone"),
+    () => get_supported_time_zones(),
     [],
   );
 
@@ -230,36 +229,43 @@ export function AppearanceSection() {
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.change_appearance")}
         </p>
-        <div className="flex gap-4 flex-wrap">
+        <div
+          className={
+            show_more_themes
+              ? "flex gap-4 flex-wrap"
+              : "grid grid-cols-2 sm:grid-cols-4 gap-4"
+          }
+        >
           <ThemeCard
             is_selected={theme_preference === "system" && is_default_color}
             label={t("settings.theme_system")}
             mode="system"
-            size={show_more_themes ? "default" : "lg"}
+            full_width={!show_more_themes}
             on_select={() => handle_theme_select("system")}
           />
           <ThemeCard
             is_selected={theme_preference === "light" && is_default_color}
             label={t("settings.theme_light")}
             mode="light"
-            size={show_more_themes ? "default" : "lg"}
+            full_width={!show_more_themes}
             on_select={() => handle_theme_select("light")}
           />
           <ThemeCard
             is_selected={theme_preference === "dark" && is_default_color}
             label={t("settings.theme_dark")}
             mode="dark"
-            size={show_more_themes ? "default" : "lg"}
+            full_width={!show_more_themes}
             on_select={() => handle_theme_select("dark")}
+          />
+          <ThemeCard
+            is_selected={preferences.color_theme === "aster-blue"}
+            label={t("settings.color_theme_aster_blue")}
+            mode="aster-blue"
+            full_width={!show_more_themes}
+            on_select={() => handle_color_theme_select("aster-blue")}
           />
           {show_more_themes && (
             <>
-              <ThemeCard
-                is_selected={preferences.color_theme === "aster-blue"}
-                label={t("settings.color_theme_aster_blue")}
-                mode="aster-blue"
-                on_select={() => handle_color_theme_select("aster-blue")}
-              />
               <ThemeCard
                 is_selected={preferences.color_theme === "purple"}
                 label={t("settings.color_theme_purple")}
@@ -592,28 +598,11 @@ export function AppearanceSection() {
           description={t("settings.time_zone_description")}
           label={t("settings.time_zone")}
         >
-          <Select
+          <TimeZonePicker
             value={time_zone_value}
-            onValueChange={handle_time_zone_change}
-          >
-            <SelectTrigger className="w-[240px]">
-              <SelectValue>
-                {time_zone_value === "auto"
-                  ? t("settings.time_zone_auto")
-                  : time_zone_value.replace(/_/g, " ")}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              <SelectItem value="auto">
-                {t("settings.time_zone_auto")}
-              </SelectItem>
-              {available_time_zones.map((zone) => (
-                <SelectItem key={zone} value={zone}>
-                  {zone.replace(/_/g, " ")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            on_change={handle_time_zone_change}
+            use_24h={preferences.time_format === "24h"}
+          />
         </SettingRow>
       </div>
 
