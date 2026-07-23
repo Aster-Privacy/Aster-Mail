@@ -31,10 +31,27 @@ const PASSPHRASE = "correct horse battery staple";
 
 const KEM_IDENTITY = array_to_base64(new Uint8Array(65).fill(7));
 const SIGNED_PREKEY = array_to_base64(new Uint8Array(65).fill(9));
+const PQ_IDENTITY = array_to_base64(new Uint8Array(1184).fill(11));
 
 let owner_private = "";
 let owner_public = "";
 let attacker_public = "";
+
+async function sign_canonical(text: string): Promise<string> {
+  const identity_key = await openpgp.decryptKey({
+    privateKey: await openpgp.readPrivateKey({ armoredKey: owner_private }),
+    passphrase: PASSPHRASE,
+  });
+
+  const message = await openpgp.createCleartextMessage({ text });
+  const signed = await openpgp.sign({
+    message,
+    signingKeys: identity_key,
+    format: "armored",
+  });
+
+  return array_to_base64(new TextEncoder().encode(String(signed)));
+}
 
 async function generate_pgp(): Promise<{ privateKey: string; publicKey: string }> {
   const { privateKey, publicKey } = await openpgp.generateKey({
@@ -165,6 +182,57 @@ describe("ratchet prekey bundle signature", () => {
     );
 
     expect(verdict).toBe("unknown");
+  });
+
+  it("verifies a v2 canonical binding the pq identity key", async () => {
+    const v2_text = `aster-ratchet-prekey-v2:${KEM_IDENTITY}.${SIGNED_PREKEY}.${PQ_IDENTITY}`;
+    const field = await sign_canonical(v2_text);
+
+    const verdict = await verify_ratchet_prekey_bundle(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+      PQ_IDENTITY,
+    );
+
+    expect(verdict).toBe("verified");
+  });
+
+  it("flags a v2 bundle with a swapped pq identity key as 'tampered'", async () => {
+    const v2_text = `aster-ratchet-prekey-v2:${KEM_IDENTITY}.${SIGNED_PREKEY}.${PQ_IDENTITY}`;
+    const field = await sign_canonical(v2_text);
+
+    const swapped_pq = array_to_base64(new Uint8Array(1184).fill(42));
+
+    const verdict = await verify_ratchet_prekey_bundle(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+      swapped_pq,
+    );
+
+    expect(verdict).toBe("tampered");
+  });
+
+  it("still verifies a v1 bundle when a pq identity key is also supplied", async () => {
+    const field = await sign_ratchet_prekey_bundle(
+      owner_private,
+      PASSPHRASE,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+    );
+
+    const verdict = await verify_ratchet_prekey_bundle(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+      PQ_IDENTITY,
+    );
+
+    expect(verdict).toBe("verified");
   });
 
   it("never returns 'tampered' for a legacy bundle even with a wrong key", async () => {

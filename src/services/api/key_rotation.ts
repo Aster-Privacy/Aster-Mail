@@ -30,6 +30,7 @@ export interface IdentityKeyStatus {
 export interface RotateIdentityKeyRequest {
   new_identity_key: string;
   rotation_signature: string;
+  rotation_signature_pgp?: string;
   new_signed_prekey?: string;
   new_signed_prekey_id?: number;
   new_signed_prekey_signature?: string;

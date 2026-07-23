@@ -48,7 +48,7 @@ import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 // cannot recover kem_ss without also breaking ML-KEM-768's lattice problem.
 //
 
-const AEAD_BINDING_WRITE_ENABLED = false;
+const AEAD_BINDING_WRITE_ENABLED = true;
 
 const PBKDF2_ITERATIONS = 310000;
 const HASH_ALG = ["SHA", "256"].join("-");

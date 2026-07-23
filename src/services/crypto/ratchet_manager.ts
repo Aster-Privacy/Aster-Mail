@@ -400,6 +400,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         bundle.kem_identity_key,
         bundle.signed_prekey,
         owner_key.data?.public_key ?? null,
+        bundle.pq_kem_public_key ?? null,
       );
 
       if (bundle_verdict === "tampered") {
