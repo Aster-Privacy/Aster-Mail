@@ -7282,6 +7282,7 @@ export const it = {
       "Il server ha avuto un intoppo dalla nostra parte. Un altro tentativo a breve di solito risolve. Ci stiamo lavorando.",
     invalid_request:
       "Non siamo riusciti a elaborare quella richiesta. Aggiornare la pagina e riprovare di solito risolve.",
+    session_identity_mismatch: "Questo dispositivo era connesso a un altro account, quindi ti abbiamo disconnesso per tenere gli account separati. Basta accedere di nuovo. I tuoi dati sono intatti.",
     key_material_unavailable:
       "Le sue chiavi private sono bloccate su questo dispositivo. La sua password le sbloccherà. Le sue chiavi sul server sono intatte.",
     max_accounts:

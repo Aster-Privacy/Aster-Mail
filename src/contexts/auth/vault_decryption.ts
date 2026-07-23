@@ -25,6 +25,7 @@ import {
   store_vault_in_memory,
   get_vault_from_memory,
   has_vault_in_memory,
+  has_vault_in_memory_for,
 } from "@/services/crypto/memory_key_store";
 import { auto_rekey_if_needed, reset_rekey_flag } from "@/services/crypto/auto_rekey";
 import { adopt_master_key_if_needed } from "@/services/crypto/mk_adoption";
@@ -95,14 +96,20 @@ export async function decrypt_vault_with_lock(
   encrypted_vault: string,
   vault_nonce: string,
   passphrase: string,
+  owner_user_id?: string,
 ): Promise<EncryptedVault | null> {
-  if (has_vault_in_memory()) {
+  const reusable = (): boolean =>
+    owner_user_id
+      ? has_vault_in_memory_for(owner_user_id)
+      : has_vault_in_memory();
+
+  if (reusable()) {
     return get_vault_from_memory();
   }
 
   if (vault_decryption_lock) {
     await vault_decryption_lock;
-    if (has_vault_in_memory()) {
+    if (reusable()) {
       return get_vault_from_memory();
     }
   }
@@ -114,14 +121,14 @@ export async function decrypt_vault_with_lock(
   });
 
   try {
-    if (has_vault_in_memory()) {
+    if (reusable()) {
       return get_vault_from_memory();
     }
 
     const vault = await decrypt_vault(encrypted_vault, vault_nonce, passphrase);
 
     reset_rekey_flag();
-    await store_vault_in_memory(vault, passphrase);
+    await store_vault_in_memory(vault, passphrase, owner_user_id);
 
     backfill_password_strength_tier(
       compute_password_strength_tier(passphrase),

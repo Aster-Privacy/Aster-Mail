@@ -7124,6 +7124,7 @@ export const nl = {
       "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
     session_expired_login:
       "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
+    session_identity_mismatch: "Op dit apparaat was een ander account aangemeld, dus hebben we je afgemeld om de accounts gescheiden te houden. Opnieuw aanmelden is genoeg. Je gegevens zijn onaangetast.",
     key_material_unavailable:
       "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
     storage_compromised:

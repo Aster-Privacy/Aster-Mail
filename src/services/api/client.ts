@@ -215,6 +215,20 @@ export interface RequestConfig extends RequestInit {
   skip_dedup?: boolean;
 }
 
+const IDENTITY_CHECK_MIN_INTERVAL_MS = 30000;
+const IDENTITY_ESTABLISHING_ENDPOINTS = [
+  "/core/v1/auth/login",
+  "/core/v1/auth/register",
+  "/core/v1/auth/logout",
+  "/core/v1/auth/clear-session",
+];
+
+function is_identity_establishing_endpoint(endpoint: string): boolean {
+  const path = endpoint.split("?")[0];
+
+  return IDENTITY_ESTABLISHING_ENDPOINTS.includes(path);
+}
+
 const DEFAULT_TIMEOUT = 30000;
 const DEFAULT_RETRY_COUNT = 0;
 const DEFAULT_RETRY_DELAY = 1000;
@@ -246,6 +260,9 @@ class ApiClient {
   private intentional_logout: boolean = false;
   private has_ever_authenticated: boolean = false;
   private account_add_in_progress: boolean = false;
+  private expected_user_id: string | null = null;
+  private identity_mismatch_dispatched: boolean = false;
+  private last_identity_check_timestamp: number = 0;
 
   constructor() {
     this.load_stored_tokens();
@@ -258,6 +275,8 @@ class ApiClient {
         document.visibilityState === "visible" &&
         this.is_authenticated_flag
       ) {
+        this.verify_identity();
+
         const minutes_since_refresh =
           (Date.now() - this.last_refresh_timestamp) / 60_000;
 
@@ -266,6 +285,67 @@ class ApiClient {
         }
       }
     });
+  }
+
+  set_expected_user_id(user_id: string | null): void {
+    if (user_id && this.expected_user_id !== user_id) {
+      this.identity_mismatch_dispatched = false;
+    }
+    this.expected_user_id = user_id;
+  }
+
+  get_expected_user_id(): string | null {
+    return this.expected_user_id;
+  }
+
+  private is_identity_mismatch(actual_user_id: string | undefined): boolean {
+    if (!this.expected_user_id) return false;
+    if (!actual_user_id) return false;
+    if (this.account_add_in_progress) return false;
+    if (this.intentional_logout) return false;
+
+    return actual_user_id !== this.expected_user_id;
+  }
+
+  private dispatch_identity_mismatch(actual_user_id: string): void {
+    this.is_authenticated_flag = false;
+    request_cache.clear();
+    this._cached_user_info = null;
+    if (this.refresh_timeout) {
+      clearTimeout(this.refresh_timeout);
+      this.refresh_timeout = null;
+    }
+    if (this.identity_mismatch_dispatched) return;
+    this.identity_mismatch_dispatched = true;
+    try {
+      window.dispatchEvent(
+        new CustomEvent("astermail:identity-mismatch", {
+          detail: {
+            expected_user_id: this.expected_user_id,
+            actual_user_id,
+          },
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async verify_identity(force: boolean = false): Promise<boolean> {
+    if (!this.expected_user_id) return true;
+    if (!this.is_authenticated_flag) return true;
+    if (this.account_add_in_progress || this.intentional_logout) return true;
+    if (!navigator.onLine) return true;
+
+    const elapsed = Date.now() - this.last_identity_check_timestamp;
+
+    if (!force && elapsed < IDENTITY_CHECK_MIN_INTERVAL_MS) {
+      return true;
+    }
+
+    this.last_identity_check_timestamp = Date.now();
+
+    return this.check_auth_status();
   }
 
   private load_stored_tokens(): void {
@@ -656,6 +736,7 @@ class ApiClient {
             this.persist_native_refresh_token(response.data.refresh_token);
           }
           this.schedule_token_refresh();
+          this.verify_identity(true);
 
           return;
         }
@@ -690,6 +771,11 @@ class ApiClient {
           }
 
           if (me_response.data?.user_id) {
+            if (this.is_identity_mismatch(me_response.data.user_id)) {
+              this.dispatch_identity_mismatch(me_response.data.user_id);
+
+              return;
+            }
             this.refresh_denied_streak += 1;
             if (!this.refresh_denied_streak_started_at) {
               this.refresh_denied_streak_started_at = Date.now();
@@ -785,6 +871,9 @@ class ApiClient {
   private clear_auth_state(): void {
     this.is_authenticated_flag = false;
     this.initial_auth_verified = false;
+    this.expected_user_id = null;
+    this.identity_mismatch_dispatched = false;
+    this.last_identity_check_timestamp = 0;
     this.clear_dev_token();
     clear_csrf_cache();
     request_cache.clear();
@@ -1044,9 +1133,15 @@ class ApiClient {
         });
 
         if (response.data?.user_id) {
+          if (this.is_identity_mismatch(response.data.user_id)) {
+            this.dispatch_identity_mismatch(response.data.user_id);
+
+            return false;
+          }
           this.is_authenticated_flag = true;
           this.has_ever_authenticated = true;
           this._cached_user_info = response.data;
+          this.last_identity_check_timestamp = Date.now();
 
           return true;
         }
@@ -1145,12 +1240,39 @@ class ApiClient {
     }
   }
 
+  private async ensure_csrf_token(
+    endpoint: string,
+    skip_session_refresh: boolean,
+  ): Promise<string | null> {
+    if (
+      skip_session_refresh ||
+      !this.is_authenticated_flag ||
+      endpoint.includes("/auth/refresh") ||
+      endpoint.includes("/auth/login") ||
+      endpoint.includes("/auth/register") ||
+      endpoint.includes("/auth/logout") ||
+      endpoint.includes("/auth/clear-session")
+    ) {
+      return null;
+    }
+
+    try {
+      await this.refresh_session();
+    } catch {}
+
+    return get_csrf_token_from_cookie();
+  }
+
   private async request<T>(
     endpoint: string,
     config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
     if (is_app_network_locked() && !is_endpoint_allowed_while_locked(endpoint)) {
       return { error: "App is locked", code: "APP_LOCKED" };
+    }
+
+    if (is_identity_establishing_endpoint(endpoint)) {
+      this.set_expected_user_id(null);
     }
 
     await this.ensure_fresh_token(endpoint, config.skip_session_refresh);
@@ -1184,7 +1306,14 @@ class ApiClient {
     const method = options.method || "GET";
 
     if (is_state_changing_method(method)) {
-      const csrf_token = get_csrf_token_from_cookie();
+      let csrf_token = get_csrf_token_from_cookie();
+
+      if (!csrf_token) {
+        csrf_token = await this.ensure_csrf_token(
+          endpoint,
+          skip_session_refresh,
+        );
+      }
 
       if (csrf_token) {
         headers["X-CSRF-Token"] = csrf_token;

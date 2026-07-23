@@ -7167,6 +7167,7 @@ export const tr = {
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     session_expired_login:
       "Oturumunuz sona erdi. Yeniden oturum açmak kaldığınız yerden devam etmenizi sağlar. Veri ve taslaklar sunucuda kaydedildi.",
+    session_identity_mismatch: "Bu cihazda başka bir hesapla oturum açılmıştı, hesapları ayrı tutmak için oturumunuzu kapattık. Yeniden giriş yapmanız yeterli. Verileriniz olduğu gibi duruyor.",
     key_material_unavailable:
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     storage_compromised:
