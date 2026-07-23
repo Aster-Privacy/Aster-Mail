@@ -7,7 +7,7 @@ Aster Mail is a free, open-source, end-to-end encrypted mail service. Every mess
 You can sign up at [astermail.org](https://astermail.org). A phone number and recovery email are not required.
 ## How it works
 
-All Aster-to-Aster messages are end-to-end encrypted using the standard OpenPGP (RSA-4096). Subject lines are also encrypted. This means that we cannot read your subject lines, unlike other providers. Aster-to-Aster messages also use ML-KEM-768 inside an X3DH/Double Ratchet protocol, this provides complete post-quantum protection. 
+All Aster-to-Aster messages are end-to-end encrypted using the standard OpenPGP (Ed25519 and Curve25519). Subject lines are also encrypted. This means that we cannot read your subject lines, unlike other providers. Aster-to-Aster messages also use ML-KEM-768 inside an X3DH/Double Ratchet protocol, this provides complete post-quantum protection. 
 
 Your keys are yours, and they are fully portable. You can export them and use them with any compatible PGP client, such as Thunderbird or GPG. Public keys are published via WKD and key servers automatically, so encrypting to other Aster users just works. 
 

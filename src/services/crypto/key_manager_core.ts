@@ -418,7 +418,7 @@ export function create_encrypted_key_handle(
   encrypted_key: Uint8Array,
   fingerprint: string,
   key_type: KeyType,
-  algorithm: string = "RSA-4096",
+  algorithm: string = "ecc_curve25519",
 ): EncryptedKeyHandle {
   return {
     encrypted_key: encrypted_key.slice(),
