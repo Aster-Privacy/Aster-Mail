@@ -372,6 +372,7 @@ export async function verify_key_binding(
 }
 
 const RATCHET_PREKEY_SIG_PREFIX = "aster-ratchet-prekey-v1:";
+const RATCHET_PREKEY_SIG_PREFIX_V2 = "aster-ratchet-prekey-v2:";
 const PGP_CLEARTEXT_HEADER = "-----BEGIN PGP SIGNED MESSAGE-----";
 
 function build_ratchet_prekey_canonical(
@@ -379,6 +380,14 @@ function build_ratchet_prekey_canonical(
   signed_prekey: string,
 ): string {
   return `${RATCHET_PREKEY_SIG_PREFIX}${kem_identity_key}.${signed_prekey}`;
+}
+
+function build_ratchet_prekey_canonical_v2(
+  kem_identity_key: string,
+  signed_prekey: string,
+  pq_identity_key: string,
+): string {
+  return `${RATCHET_PREKEY_SIG_PREFIX_V2}${kem_identity_key}.${signed_prekey}.${pq_identity_key}`;
 }
 
 /*
@@ -433,6 +442,7 @@ export async function verify_ratchet_prekey_bundle(
   kem_identity_key: string,
   signed_prekey: string,
   owner_pgp_public_key: string | null,
+  pq_identity_key?: string | null,
 ): Promise<RatchetPrekeyVerdict> {
   let armored: string;
 
@@ -450,16 +460,26 @@ export async function verify_ratchet_prekey_bundle(
     return "unknown";
   }
 
-  const text = build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
+  const v1_text = build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
 
   try {
-    const ok = await verify_prekey_signature(
-      text,
-      armored,
-      owner_pgp_public_key,
-    );
+    if (await verify_prekey_signature(v1_text, armored, owner_pgp_public_key)) {
+      return "verified";
+    }
 
-    return ok ? "verified" : "tampered";
+    if (pq_identity_key) {
+      const v2_text = build_ratchet_prekey_canonical_v2(
+        kem_identity_key,
+        signed_prekey,
+        pq_identity_key,
+      );
+
+      if (await verify_prekey_signature(v2_text, armored, owner_pgp_public_key)) {
+        return "verified";
+      }
+    }
+
+    return "tampered";
   } catch {
     return "unknown";
   }

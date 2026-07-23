@@ -180,11 +180,9 @@ export async function perform_x3dh_sender(
   let pq_key_id: number | undefined;
 
   if (!recipient_bundle.pq_prekey && recipient_bundle.pq_kem_public_key) {
-    if (import.meta.env.DEV) {
-      console.warn(
-        "x3dh sender: PQ-capable peer has no available pq_prekey, falling back to classical bootstrap",
-      );
-    }
+    console.warn(
+      "x3dh sender: PQ-capable peer has no available pq_prekey, falling back to classical bootstrap",
+    );
   }
 
   if (recipient_bundle.pq_prekey) {

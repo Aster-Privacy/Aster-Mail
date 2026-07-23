@@ -143,6 +143,33 @@ async function compute_key_hash(public_key: string): Promise<Uint8Array> {
   return new Uint8Array(hash);
 }
 
+async function sign_new_identity_key(
+  current_identity_key: string,
+  password: string,
+  new_key_bytes: Uint8Array,
+): Promise<string | null> {
+  try {
+    const signing_key = await openpgp.decryptKey({
+      privateKey: await openpgp.readPrivateKey({
+        armoredKey: current_identity_key,
+      }),
+      passphrase: password,
+    });
+
+    const message = await openpgp.createMessage({ binary: new_key_bytes });
+    const detached = await openpgp.sign({
+      message,
+      signingKeys: signing_key,
+      detached: true,
+      format: "armored",
+    });
+
+    return btoa(String(detached));
+  } catch {
+    return null;
+  }
+}
+
 export async function check_rotation_needed(
   preferences: UserPreferences,
 ): Promise<RotationCheckResult> {
@@ -314,9 +341,16 @@ export async function perform_key_rotation(
     crypto.getRandomValues(prekey_id_bytes);
     const prekey_id = prekey_id_bytes[0] % 2147483647;
 
+    const rotation_signature_pgp = await sign_new_identity_key(
+      current_vault.identity_key,
+      password,
+      new_key_bytes,
+    );
+
     const request: RotateIdentityKeyRequest = {
       new_identity_key: btoa(new_keypair.public_key),
       rotation_signature: rotation_proof,
+      ...(rotation_signature_pgp ? { rotation_signature_pgp } : {}),
       new_signed_prekey: btoa(new_prekey.public_key),
       new_signed_prekey_id: prekey_id,
       new_signed_prekey_signature: btoa(prekey_signature),
