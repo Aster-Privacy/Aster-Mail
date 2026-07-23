@@ -7185,6 +7185,7 @@ export const pl = {
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     session_expired_login:
       "Twoja sesja wygasła. Zalogowanie ponownie pozwoli kontynuować od miejsca, w którym skończyłeś(-aś). Dane i wersje robocze są zapisane na serwerze.",
+    session_identity_mismatch: "To urządzenie było zalogowane na inne konto, więc wylogowaliśmy Cię, aby konta pozostały oddzielone. Wystarczy zalogować się ponownie. Twoje dane są nienaruszone.",
     key_material_unavailable:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     storage_compromised:

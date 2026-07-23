@@ -7113,6 +7113,7 @@ export const es = {
     incorrect_password: "Contraseña incorrecta",
     internal_error: "Error interno",
     invalid_request: "Solicitud inválida",
+    session_identity_mismatch: "Este dispositivo tenía la sesión iniciada en otra cuenta, así que cerramos la sesión para mantener las cuentas separadas. Basta con volver a iniciar sesión. Tus datos están intactos.",
     key_material_unavailable: "Material de clave no disponible",
     max_accounts:
       "Se pueden tener hasta {{max}} cuentas a la vez. Eliminar una hará espacio para otra.",

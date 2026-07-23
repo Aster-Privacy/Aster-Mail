@@ -7342,6 +7342,7 @@ export const de = {
       "Der Server hat auf unserer Seite einen Fehler verursacht. Ein kurzer Versuch danach löst das Problem in der Regel. Wir untersuchen es.",
     invalid_request:
       "Wir konnten diese Anfrage nicht bearbeiten. Ein Neuladen der Seite und ein erneuter Versuch lösen das Problem in der Regel.",
+    session_identity_mismatch: "Auf diesem Gerät war ein anderes Konto angemeldet, deshalb haben wir dich abgemeldet, damit die Konten getrennt bleiben. Melde dich einfach erneut an. Deine Daten sind unberührt.",
     key_material_unavailable:
       "Ihre privaten Schlüssel sind auf diesem Gerät gesperrt. Ihr Passwort entsperrt sie. Ihre Schlüssel auf dem Server sind unverändert.",
     max_accounts:
