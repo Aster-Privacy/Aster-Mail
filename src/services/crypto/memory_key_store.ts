@@ -91,9 +91,11 @@ interface HmrState {
   vault_in_memory: EncryptedVault | null;
   derived_encryption_key: Uint8Array | null;
   passphrase_string: string | null;
+  vault_owner_id: string | null;
 }
 
 let vault_in_memory: EncryptedVault | null = null;
+let vault_owner_id: string | null = null;
 let secure_passphrase: SecureBuffer | null = null;
 let derived_encryption_key: Uint8Array | null = null;
 let session_expire_unsubscribe: (() => void) | null = null;
@@ -115,6 +117,9 @@ if (import.meta.hot) {
   if (hmr_state?.vault_in_memory) {
     vault_in_memory = hmr_state.vault_in_memory;
   }
+  if (hmr_state?.vault_owner_id) {
+    vault_owner_id = hmr_state.vault_owner_id;
+  }
   if (hmr_state?.derived_encryption_key) {
     derived_encryption_key = hmr_state.derived_encryption_key;
   }
@@ -129,6 +134,7 @@ if (import.meta.hot) {
     data.vault_in_memory = vault_in_memory;
     data.derived_encryption_key = derived_encryption_key;
     data.passphrase_string = secure_passphrase?.to_string() ?? null;
+    data.vault_owner_id = vault_owner_id;
   });
 }
 
@@ -186,8 +192,13 @@ export async function derive_encryption_key_from_passphrase(
 export async function store_vault_in_memory(
   vault: EncryptedVault,
   passphrase: string,
+  owner_user_id?: string,
 ): Promise<void> {
+  const previous_owner_id = vault_owner_id;
+
   clear_vault_from_memory();
+
+  vault_owner_id = owner_user_id ?? previous_owner_id;
 
   vault_in_memory = {
     identity_key: vault.identity_key,
@@ -368,6 +379,7 @@ export function clear_vault_from_memory(): void {
   clear_passphrase();
   clear_legacy_keks_from_memory();
   vault_in_memory = null;
+  vault_owner_id = null;
   clear_crypto_key_cache();
   keys_ready_seen = false;
 
@@ -387,6 +399,28 @@ export function clear_vault_from_memory(): void {
 
 export function has_vault_in_memory(): boolean {
   return vault_in_memory !== null;
+}
+
+export function get_vault_owner_id(): string | null {
+  return vault_owner_id;
+}
+
+export function set_vault_owner_id(user_id: string | null): void {
+  vault_owner_id = user_id;
+}
+
+export function is_vault_owned_by(user_id: string | null | undefined): boolean {
+  if (!user_id) {
+    return false;
+  }
+
+  return vault_owner_id === null || vault_owner_id === user_id;
+}
+
+export function has_vault_in_memory_for(
+  user_id: string | null | undefined,
+): boolean {
+  return vault_in_memory !== null && is_vault_owned_by(user_id);
 }
 
 export function has_passphrase_in_memory(): boolean {

@@ -6481,6 +6481,7 @@ export const en: Translations = {
     incorrect_password: "Incorrect password. Please try again - your account is not locked.",
     no_keys_available: "Your private keys are locked on this device. Your password will unlock them. Your keys on the server are untouched.",
     session_expired_login: "Your session has ended. Signing in again will pick up where you left off. Your data and drafts are saved on the server.",
+    session_identity_mismatch: "This device was signed in to a different account, so we signed you out to keep the accounts separate. Signing in again is all that is needed. Your data is untouched.",
     key_material_unavailable: "Your private keys are locked on this device. Your password will unlock them. Your keys on the server are untouched.",
     storage_compromised: "The encrypted data on this device does not match what we expected, which can indicate tampering. Signing out and back in often clears it. If the warning returns, contact hello@astermail.org right away. Your data on the server is untouched.",
     registration_failed: "Sign-up did not finish. Starting over and trying again usually does it. No account was created.",
