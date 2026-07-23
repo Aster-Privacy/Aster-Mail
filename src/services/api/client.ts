@@ -98,7 +98,7 @@ function detect_client_platform(): string {
   return "web";
 }
 
-const CLIENT_PLATFORM_HEADER = detect_client_platform();
+export const CLIENT_PLATFORM_HEADER = detect_client_platform();
 
 function is_local_hostname(): boolean {
   if (typeof window === "undefined") return false;

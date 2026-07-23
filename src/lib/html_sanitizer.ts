@@ -357,9 +357,42 @@ function sanitize_html_impl(
     while ((style_match = style_regex.exec(head_match[0])) !== null) {
       let sanitized_css = sanitize_css_block(style_match[1], sandbox_mode);
 
-      if (lockdown_mode) {
+      if (/@font-face\s*\{/i.test(sanitized_css) && block_fonts) {
+        external_content.has_remote_fonts = true;
+        const font_matches = sanitized_css.match(/@font-face\s*\{/gi) || [];
+
+        external_content.blocked_count += font_matches.length;
+        for (let i = 0; i < font_matches.length; i++) {
+          external_content.blocked_items.push({
+            url: "@font-face",
+            type: "font",
+          });
+        }
+        sanitized_css = block_remote_fonts(sanitized_css);
+      }
+
+      if (
+        /url\s*\(\s*["']?\s*(?:https?:)?\/\//i.test(sanitized_css) &&
+        (lockdown_mode || block_css || block_images)
+      ) {
+        external_content.has_remote_css = true;
+        const css_url_matches =
+          sanitized_css.match(
+            /url\s*\(\s*["']?(https?:\/\/[^"')]+)["']?\s*\)/gi,
+          ) || [];
+
+        external_content.blocked_count += css_url_matches.length;
+        for (const match of css_url_matches) {
+          const url_extract = match.match(/https?:\/\/[^"')]+/i);
+
+          external_content.blocked_items.push({
+            url: url_extract?.[0] || "stylesheet URL",
+            type: "css",
+          });
+        }
         sanitized_css = strip_css_urls(sanitized_css);
       }
+
       if (sanitized_css.trim()) {
         head_styles.push(sanitized_css);
       }
@@ -515,7 +548,7 @@ function sanitize_html_impl(
         sanitized_css = block_remote_fonts(sanitized_css);
       }
 
-      if (has_urls && block_css) {
+      if (has_urls && (lockdown_mode || block_css || block_images)) {
         external_content.has_remote_css = true;
         const css_url_matches =
           sanitized_css.match(
