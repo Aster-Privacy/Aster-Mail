@@ -154,4 +154,35 @@ describe("remote css urls in sandboxed rendering", () => {
 
     expect(result.html).toContain("tracker.example.com");
   });
+
+  it("processes a malformed unterminated url() in reasonable time", () => {
+    const evil = `.a { background-image: url(${" ".repeat(60000)}`;
+    const started = Date.now();
+    sanitize_html(head_style_email(evil), options("never"));
+    const elapsed = Date.now() - started;
+
+    expect(elapsed).toBeLessThan(4000);
+  });
+
+  it("strips a terminated tracker url padded with whitespace in reasonable time", () => {
+    const evil = `.a { background-image: url(${TRACKER}${" ".repeat(60000)}); }`;
+    const started = Date.now();
+    const result = sanitize_html(head_style_email(evil), options("never"));
+    const elapsed = Date.now() - started;
+
+    expect(elapsed).toBeLessThan(4000);
+    expect(result.html).not.toContain("tracker.example.com");
+  });
+
+  it("processes many url() declarations with trailing junk in reasonable time", () => {
+    const evil = Array.from(
+      { length: 400 },
+      () => `.x { background: url(https://a.example${" ".repeat(200)}`,
+    ).join("\n");
+    const started = Date.now();
+    sanitize_html(head_style_email(evil), options("never"));
+    const elapsed = Date.now() - started;
+
+    expect(elapsed).toBeLessThan(4000);
+  });
 });

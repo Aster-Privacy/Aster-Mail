@@ -372,18 +372,18 @@ function sanitize_html_impl(
       }
 
       if (
-        /url\s*\(\s*["']?\s*(?:https?:)?\/\//i.test(sanitized_css) &&
+        /url\s*\(\s*(?:["']\s*)?(?:https?:)?\/\//i.test(sanitized_css) &&
         (lockdown_mode || block_css || block_images)
       ) {
         external_content.has_remote_css = true;
         const css_url_matches =
           sanitized_css.match(
-            /url\s*\(\s*["']?(https?:\/\/[^"')]+)["']?\s*\)/gi,
+            /url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi,
           ) || [];
 
         external_content.blocked_count += css_url_matches.length;
         for (const match of css_url_matches) {
-          const url_extract = match.match(/https?:\/\/[^"')]+/i);
+          const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
 
           external_content.blocked_items.push({
             url: url_extract?.[0] || "stylesheet URL",
@@ -532,7 +532,7 @@ function sanitize_html_impl(
       let sanitized_css = sanitize_css_block(raw_css, sandbox_mode);
 
       const has_fonts = /@font-face\s*\{/i.test(sanitized_css);
-      const has_urls = /url\s*\(\s*["']?\s*(?:https?:)?\/\//i.test(sanitized_css);
+      const has_urls = /url\s*\(\s*(?:["']\s*)?(?:https?:)?\/\//i.test(sanitized_css);
 
       if (has_fonts && block_fonts) {
         external_content.has_remote_fonts = true;
@@ -552,12 +552,12 @@ function sanitize_html_impl(
         external_content.has_remote_css = true;
         const css_url_matches =
           sanitized_css.match(
-            /url\s*\(\s*["']?(https?:\/\/[^"')]+)["']?\s*\)/gi,
+            /url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi,
           ) || [];
 
         external_content.blocked_count += css_url_matches.length;
         for (const match of css_url_matches) {
-          const url_extract = match.match(/https?:\/\/[^"')]+/i);
+          const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
 
           external_content.blocked_items.push({
             url: url_extract?.[0] || "stylesheet URL",
