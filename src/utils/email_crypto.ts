@@ -362,11 +362,97 @@ export function build_subject_bundle(subject: string, body: string): string {
   );
 }
 
+const BUNDLE_FRAMING_PATTERN = /^[\s\u0000-\u001f\u007f\ufeff\u200b-\u200f]*$/;
+
+const JSON_STRING_ESCAPES: Record<string, string> = {
+  '"': '"',
+  "\\": "\\",
+  "/": "/",
+  b: "\b",
+  f: "\f",
+  n: "\n",
+  r: "\r",
+  t: "\t",
+};
+
+function read_lenient_json_string(
+  text: string,
+  open_quote_index: number,
+): { value: string; next_index: number } | null {
+  if (text[open_quote_index] !== '"') return null;
+  let value = "";
+  let index = open_quote_index + 1;
+  while (index < text.length) {
+    const char = text[index];
+    if (char === '"') return { value, next_index: index + 1 };
+    if (char !== "\\") {
+      value += char;
+      index += 1;
+      continue;
+    }
+    const escape = text[index + 1];
+    if (escape === undefined) break;
+    if (escape === "u") {
+      const code = text.slice(index + 2, index + 6);
+      if (/^[0-9a-fA-F]{4}$/.test(code)) {
+        value += String.fromCharCode(parseInt(code, 16));
+        index += 6;
+        continue;
+      }
+      value += escape;
+      index += 2;
+      continue;
+    }
+    value += JSON_STRING_ESCAPES[escape] ?? escape;
+    index += 2;
+  }
+  return { value, next_index: text.length };
+}
+
+function scan_bundle_payload(payload: string): SubjectBundle | null {
+  const open_brace = payload.indexOf("{");
+  if (open_brace === -1) return null;
+
+  let subject: string | null = null;
+  let body: string | null = null;
+  let index = open_brace + 1;
+
+  while (index < payload.length) {
+    const key_quote = payload.indexOf('"', index);
+    if (key_quote === -1) break;
+    const key = read_lenient_json_string(payload, key_quote);
+    if (!key) break;
+    const colon = payload.indexOf(":", key.next_index);
+    if (colon === -1) break;
+    const value_quote = payload.indexOf('"', colon + 1);
+    if (value_quote === -1) break;
+    const value = read_lenient_json_string(payload, value_quote);
+    if (!value) break;
+    if (key.value === "s") subject = value.value;
+    if (key.value === "b") body = value.value;
+    if (subject !== null && body !== null) break;
+    index = value.next_index;
+  }
+
+  if (body === null) return null;
+  return { subject, body };
+}
+
 export function extract_subject_bundle(decrypted: string): SubjectBundle {
-  if (!decrypted || !decrypted.startsWith(ASTER_SUBJECT_BUNDLE_PREFIX)) {
+  if (!decrypted) return { subject: null, body: decrypted };
+
+  const prefix_index = decrypted.indexOf(ASTER_SUBJECT_BUNDLE_PREFIX);
+  if (
+    prefix_index === -1 ||
+    !BUNDLE_FRAMING_PATTERN.test(decrypted.slice(0, prefix_index))
+  ) {
     return { subject: null, body: decrypted };
   }
-  const payload = decrypted.slice(ASTER_SUBJECT_BUNDLE_PREFIX.length);
+
+  const payload = decrypted.slice(
+    prefix_index + ASTER_SUBJECT_BUNDLE_PREFIX.length,
+  );
+
   try {
     const parsed = JSON.parse(payload);
     if (
@@ -377,10 +463,9 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
     ) {
       return { subject: parsed.s, body: parsed.b };
     }
-  } catch {
-    // non-JSON payload: fall back to returning the raw decrypted body
-  }
-  return { subject: null, body: decrypted };
+  } catch {}
+
+  return scan_bundle_payload(payload) ?? { subject: null, body: decrypted };
 }
 
 export async function decrypt_body_text(

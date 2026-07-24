@@ -42,6 +42,7 @@ const PREVIOUS_KEY_CONTEXTS = [
 ];
 
 let legacy_crypto_keys: CryptoKey[] = [];
+let legacy_hkdf_keys: CryptoKey[] = [];
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -146,6 +147,18 @@ async function import_raw_as_aes_key(raw: Uint8Array): Promise<CryptoKey> {
   );
 }
 
+async function import_raw_as_hkdf_key(raw: Uint8Array): Promise<CryptoKey> {
+  return crypto.subtle.importKey("raw", raw, "HKDF", false, ["deriveKey"]);
+}
+
+async function remember_legacy_raw(raw: Uint8Array): Promise<void> {
+  legacy_crypto_keys.push(await import_raw_as_aes_key(raw));
+
+  try {
+    legacy_hkdf_keys.push(await import_raw_as_hkdf_key(raw));
+  } catch {}
+}
+
 export async function load_legacy_keks_into_memory(
   list: LegacyDerivedKek[] | undefined,
 ): Promise<void> {
@@ -155,21 +168,16 @@ export async function load_legacy_keks_into_memory(
     return;
   }
 
-  const imported: CryptoKey[] = [];
-
   for (const entry of list) {
     try {
       const raw = from_base64(entry.k);
-      const key = await import_raw_as_aes_key(raw);
 
-      imported.push(key);
+      await remember_legacy_raw(raw);
       zero_uint8_array(raw);
     } catch {
       continue;
     }
   }
-
-  legacy_crypto_keys = imported;
 }
 
 export async function load_previous_key_derived_keks_into_memory(
@@ -186,9 +194,8 @@ export async function load_previous_key_derived_keks_into_memory(
         const raw = new Uint8Array(
           await crypto.subtle.digest(HASH_ALG, material),
         );
-        const key = await import_raw_as_aes_key(raw);
 
-        legacy_crypto_keys.push(key);
+        await remember_legacy_raw(raw);
         zero_uint8_array(raw);
       } catch {
         continue;
@@ -199,10 +206,33 @@ export async function load_previous_key_derived_keks_into_memory(
 
 export function clear_legacy_keks_from_memory(): void {
   legacy_crypto_keys = [];
+  legacy_hkdf_keys = [];
 }
 
 export function get_legacy_crypto_keys(): CryptoKey[] {
   return legacy_crypto_keys;
+}
+
+export function get_legacy_hkdf_keys(): CryptoKey[] {
+  return legacy_hkdf_keys;
+}
+
+export async function decrypt_with_legacy_derived_keys(
+  derive: (base: CryptoKey) => Promise<CryptoKey>,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+): Promise<ArrayBuffer | null> {
+  for (const base of legacy_hkdf_keys) {
+    try {
+      const key = await derive(base);
+
+      return await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
 }
 
 export function has_legacy_keks(): boolean {
@@ -213,9 +243,7 @@ export async function append_legacy_key_raw_bytes(
   raw: Uint8Array,
 ): Promise<void> {
   try {
-    const key = await import_raw_as_aes_key(raw);
-
-    legacy_crypto_keys.push(key);
+    await remember_legacy_raw(raw);
   } catch {}
 }
 

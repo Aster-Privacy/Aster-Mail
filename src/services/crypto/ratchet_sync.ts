@@ -470,17 +470,9 @@ export async function sync_all_ratchet_states(
   return result;
 }
 
-export async function derive_ratchet_encryption_key(
-  master_key: Uint8Array,
+export async function derive_ratchet_encryption_key_from_base(
+  key_material: CryptoKey,
 ): Promise<CryptoKey> {
-  const key_material = await crypto.subtle.importKey(
-    "raw",
-    master_key,
-    "HKDF",
-    false,
-    ["deriveKey"],
-  );
-
   return crypto.subtle.deriveKey(
     {
       name: "HKDF",
@@ -493,4 +485,18 @@ export async function derive_ratchet_encryption_key(
     false,
     ["encrypt", "decrypt"],
   );
+}
+
+export async function derive_ratchet_encryption_key(
+  master_key: Uint8Array,
+): Promise<CryptoKey> {
+  const key_material = await crypto.subtle.importKey(
+    "raw",
+    master_key,
+    "HKDF",
+    false,
+    ["deriveKey"],
+  );
+
+  return derive_ratchet_encryption_key_from_base(key_material);
 }

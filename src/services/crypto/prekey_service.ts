@@ -25,6 +25,7 @@ import {
   save_pq_secrets_bulk,
   delete_pq_secret,
   is_pq_upload_rate_limited,
+  list_pq_secret_ids,
 } from "./pq_prekey_store";
 
 const ONE_TIME_PREKEY_BATCH_SIZE = 50;
@@ -54,11 +55,37 @@ function array_to_base64(array: Uint8Array): string {
   return btoa(binary);
 }
 
-function generate_key_id_start(): number {
+function random_key_id(): number {
   const bytes = crypto.getRandomValues(new Uint8Array(4));
   const view = new DataView(bytes.buffer);
+  const value = view.getUint32(0, false) & 0x7fffffff;
 
-  return (Math.abs(view.getInt32(0, true)) % 1000000) + 1;
+  return value === 0 ? 1 : value;
+}
+
+function allocate_key_ids(count: number, taken: Set<number>): number[] {
+  const ids: number[] = [];
+
+  while (ids.length < count) {
+    const id = random_key_id();
+
+    if (taken.has(id)) {
+      continue;
+    }
+
+    taken.add(id);
+    ids.push(id);
+  }
+
+  return ids;
+}
+
+async function load_taken_key_ids(): Promise<Set<number>> {
+  try {
+    return new Set(await list_pq_secret_ids());
+  } catch {
+    return new Set();
+  }
 }
 
 function generate_ml_kem_keypairs(count: number): {
@@ -78,36 +105,39 @@ function generate_ml_kem_keypairs(count: number): {
   return { public_keys, secret_keys };
 }
 
-export function generate_one_time_prekeys(
-  count: number = ONE_TIME_PREKEY_BATCH_SIZE,
-): {
-  prekeys: PrekeyData[];
-  secret_keys: Uint8Array[];
-} {
-  const base_id = generate_key_id_start();
+function build_prekey_batch(
+  count: number,
+  taken: Set<number>,
+): { prekeys: PrekeyData[]; secret_keys: Uint8Array[] } {
+  const key_ids = allocate_key_ids(count, taken);
   const { public_keys, secret_keys } = generate_ml_kem_keypairs(count);
 
   const prekeys: PrekeyData[] = public_keys.map((pk, i) => ({
-    key_id: base_id + i,
+    key_id: key_ids[i],
     public_key: array_to_base64(pk),
   }));
 
   return { prekeys, secret_keys };
 }
 
-export function generate_pq_prekeys(count: number = PQ_PREKEY_BATCH_SIZE): {
+export function generate_one_time_prekeys(
+  count: number = ONE_TIME_PREKEY_BATCH_SIZE,
+  taken: Set<number> = new Set(),
+): {
   prekeys: PrekeyData[];
   secret_keys: Uint8Array[];
 } {
-  const base_id = generate_key_id_start();
-  const { public_keys, secret_keys } = generate_ml_kem_keypairs(count);
+  return build_prekey_batch(count, taken);
+}
 
-  const prekeys: PrekeyData[] = public_keys.map((pk, i) => ({
-    key_id: base_id + i,
-    public_key: array_to_base64(pk),
-  }));
-
-  return { prekeys, secret_keys };
+export function generate_pq_prekeys(
+  count: number = PQ_PREKEY_BATCH_SIZE,
+  taken: Set<number> = new Set(),
+): {
+  prekeys: PrekeyData[];
+  secret_keys: Uint8Array[];
+} {
+  return build_prekey_batch(count, taken);
 }
 
 export async function upload_prekeys(
@@ -154,8 +184,9 @@ export async function generate_and_upload_prekeys(
   last_replenishment_time = now;
 
   try {
-    const otp = generate_one_time_prekeys(ONE_TIME_PREKEY_BATCH_SIZE);
-    const pq = generate_pq_prekeys(PQ_PREKEY_BATCH_SIZE);
+    const taken = await load_taken_key_ids();
+    const otp = generate_one_time_prekeys(ONE_TIME_PREKEY_BATCH_SIZE, taken);
+    const pq = generate_pq_prekeys(PQ_PREKEY_BATCH_SIZE, taken);
 
     const persisted_otp_ids: number[] = [];
     const persisted_pq_ids: number[] = [];

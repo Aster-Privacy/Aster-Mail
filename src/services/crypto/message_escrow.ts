@@ -20,6 +20,7 @@
 //
 import { api_client } from "@/services/api/client";
 import { get_derived_encryption_key } from "./memory_key_store";
+import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
 import {
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
@@ -51,15 +52,9 @@ function base64_to_array(b64: string): Uint8Array {
   return bytes;
 }
 
-async function derive_escrow_key(master_key: Uint8Array): Promise<CryptoKey> {
-  const key_material = await crypto.subtle.importKey(
-    "raw",
-    master_key,
-    "HKDF",
-    false,
-    ["deriveKey"],
-  );
-
+async function derive_escrow_key_from_base(
+  key_material: CryptoKey,
+): Promise<CryptoKey> {
   return crypto.subtle.deriveKey(
     {
       name: "HKDF",
@@ -74,6 +69,18 @@ async function derive_escrow_key(master_key: Uint8Array): Promise<CryptoKey> {
   );
 }
 
+async function derive_escrow_key(master_key: Uint8Array): Promise<CryptoKey> {
+  const key_material = await crypto.subtle.importKey(
+    "raw",
+    master_key,
+    "HKDF",
+    false,
+    ["deriveKey"],
+  );
+
+  return derive_escrow_key_from_base(key_material);
+}
+
 async function get_escrow_key(): Promise<CryptoKey | null> {
   const master_key = get_derived_encryption_key();
 
@@ -84,6 +91,32 @@ async function get_escrow_key(): Promise<CryptoKey | null> {
   master_key.fill(0);
 
   return key;
+}
+
+async function decrypt_escrow_payload(
+  escrow_key: CryptoKey,
+  ciphertext: Uint8Array,
+  nonce: Uint8Array,
+): Promise<ArrayBuffer> {
+  try {
+    return await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      escrow_key,
+      ciphertext,
+    );
+  } catch (primary_error) {
+    const recovered = await decrypt_with_legacy_derived_keys(
+      derive_escrow_key_from_base,
+      ciphertext,
+      nonce,
+    );
+
+    if (!recovered) {
+      throw primary_error;
+    }
+
+    return recovered;
+  }
 }
 
 export async function upload_to_escrow(
@@ -136,10 +169,10 @@ export async function fetch_from_escrow(
     const ciphertext = base64_to_array(response.data.encrypted_plaintext);
     const nonce = base64_to_array(response.data.plaintext_nonce);
 
-    const plaintext_bytes = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
+    const plaintext_bytes = await decrypt_escrow_payload(
       escrow_key,
       ciphertext,
+      nonce,
     );
 
     const plaintext = new TextDecoder().decode(plaintext_bytes);
@@ -168,10 +201,10 @@ export async function sync_escrow_to_cache(): Promise<void> {
       const ciphertext = base64_to_array(entry.encrypted_plaintext);
       const nonce = base64_to_array(entry.plaintext_nonce);
 
-      const plaintext_bytes = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: nonce },
+      const plaintext_bytes = await decrypt_escrow_payload(
         escrow_key,
         ciphertext,
+        nonce,
       );
 
       const plaintext = new TextDecoder().decode(plaintext_bytes);
