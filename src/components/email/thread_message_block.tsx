@@ -329,6 +329,7 @@ export function ThreadMessageBlock({
   ]);
 
   const translation = use_email_translation({
+    account_id,
     email_id: message.id,
     subject: message.subject ?? "",
     translatable:

@@ -24,6 +24,7 @@ export const MAX_CACHE_ENTRIES = 2000;
 export const MAX_CACHE_BYTES = 50 * 1024 * 1024;
 
 export interface CacheKeyParts {
+  account_id: string;
   message_id: string;
   source: LanguageCode;
   target: LanguageCode;
@@ -39,7 +40,7 @@ const entries = new Map<string, CacheEntry>();
 let total_bytes = 0;
 
 export function cache_key(parts: CacheKeyParts): string {
-  return `${parts.message_id}|${parts.source}|${parts.target}|${parts.model_version}`;
+  return `${parts.account_id}|${parts.message_id}|${parts.source}|${parts.target}|${parts.model_version}`;
 }
 
 function measure(segments: readonly string[]): number {

@@ -45,6 +45,7 @@ import {
 
 export interface TranslateBodyOptions {
   root: HTMLElement;
+  account_id: string;
   message_id: string;
   from: LanguageCode;
   to: LanguageCode;
@@ -104,6 +105,7 @@ async function translate_segments(
 
 export async function translate_message_body({
   root,
+  account_id,
   message_id,
   from,
   to,
@@ -116,6 +118,7 @@ export async function translate_message_body({
   if (nodes.length === 0) return EMPTY_RESULT;
 
   const cache_parts = {
+    account_id,
     message_id,
     source: from,
     target: to,

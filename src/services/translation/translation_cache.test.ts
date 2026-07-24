@@ -31,6 +31,7 @@ import {
 
 function key(message_id: string) {
   return {
+    account_id: "acct-1",
     message_id,
     source: "de" as const,
     target: "en" as const,
@@ -54,6 +55,7 @@ describe("translation_cache", () => {
 
     expect(
       read_translation({
+        account_id: "acct-1",
         message_id: "m1",
         source: "de",
         target: "de",
@@ -67,6 +69,7 @@ describe("translation_cache", () => {
 
     expect(
       read_translation({
+        account_id: "acct-1",
         message_id: "m1",
         source: "fr",
         target: "en",
@@ -80,10 +83,25 @@ describe("translation_cache", () => {
 
     expect(
       read_translation({
+        account_id: "acct-1",
         message_id: "m1",
         source: "de",
         target: "en",
         model_version: "v2",
+      }),
+    ).toBeNull();
+  });
+
+  it("misses on a different account", () => {
+    write_translation(key("m1"), ["one"]);
+
+    expect(
+      read_translation({
+        account_id: "acct-2",
+        message_id: "m1",
+        source: "de",
+        target: "en",
+        model_version: "v1",
       }),
     ).toBeNull();
   });
