@@ -32,6 +32,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
+  use_translation: () => ({ t: (key: string) => key }),
 }));
 
 vi.mock("@/provider", () => ({
@@ -108,7 +109,7 @@ function open_dropdown() {
 }
 
 function get_search_input(): HTMLInputElement | null {
-  return container.querySelector("input[type=text]");
+  return document.body.querySelector("input[type=text]");
 }
 
 function type_query(input: HTMLInputElement, value: string) {
@@ -132,7 +133,7 @@ function press_key(input: HTMLInputElement, key: string) {
 }
 
 function visible_emails(): string[] {
-  return Array.from(container.querySelectorAll("p.text-sm.truncate")).map(
+  return Array.from(document.body.querySelectorAll("p.text-sm.truncate")).map(
     (el) => el.textContent ?? "",
   );
 }
@@ -184,7 +185,7 @@ describe("SenderSelector search", () => {
     type_query(get_search_input()!, "zzz-no-match");
 
     expect(visible_emails()).toHaveLength(0);
-    expect(container.textContent).toContain("common.no_results");
+    expect(document.body.textContent).toContain("common.no_results");
   });
 
   it("selects the first match on enter", () => {
@@ -235,7 +236,9 @@ describe("SenderSelector search", () => {
 
     type_query(get_search_input()!, "alias7");
 
-    const option_button = Array.from(container.querySelectorAll("button")).find(
+    const option_button = Array.from(
+      document.body.querySelectorAll("button"),
+    ).find(
       (b) => b.textContent?.includes("alias7@astermail.org"),
     );
 

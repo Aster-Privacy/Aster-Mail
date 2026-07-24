@@ -76,6 +76,7 @@ interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   is_active?: boolean;
   is_focused?: boolean;
   selected_ids?: string[];
+  selected_grouped_ids?: string[];
   selected_folder_tokens?: string[];
   selected_tag_tokens?: string[];
   on_toggle_select: (id: string) => void;
@@ -184,6 +185,7 @@ export const InboxEmailListItem = memo(
         is_active,
         is_focused: _is_focused,
         selected_ids,
+        selected_grouped_ids,
         selected_folder_tokens,
         selected_tag_tokens,
         on_toggle_select,
@@ -283,8 +285,14 @@ export const InboxEmailListItem = memo(
 
         const is_multi =
           email.is_selected && selected_ids && selected_ids.length > 1;
-        const ids = is_multi ? selected_ids : [email.id];
-        const count = ids.length;
+        const ids = is_multi
+          ? selected_grouped_ids && selected_grouped_ids.length > 0
+            ? selected_grouped_ids
+            : selected_ids
+          : email.grouped_email_ids && email.grouped_email_ids.length > 1
+            ? email.grouped_email_ids
+            : [email.id];
+        const count = is_multi ? selected_ids.length : 1;
 
         const drag_el = document.createElement("div");
 

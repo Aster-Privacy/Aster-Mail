@@ -33,11 +33,12 @@ const update_member_storage = vi.fn(async (_user_id: string, _bytes: number) => 
   error: null,
 }));
 
+const translate = (key: string, params?: Record<string, unknown>) =>
+  params ? `${key} ${Object.values(params).join(",")}` : key;
+
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({
-    t: (key: string, params?: Record<string, unknown>) =>
-      params ? `${key} ${Object.values(params).join(",")}` : key,
-  }),
+  use_i18n: () => ({ t: translate }),
+  use_translation: () => ({ t: translate }),
 }));
 
 vi.mock("@/services/api/family", () => ({
@@ -67,6 +68,8 @@ vi.mock("@aster/ui", () => ({
   Button: ({ children, onClick }: { children?: React.ReactNode; onClick?: () => void }) => (
     <button onClick={onClick}>{children}</button>
   ),
+  Badge: ({ children }: { children?: React.ReactNode }) => <span>{children}</span>,
+  Tooltip: ({ children }: { children?: React.ReactNode }) => <span>{children}</span>,
 }));
 
 import { MemberRow } from "./family_section";
@@ -117,6 +120,27 @@ function set_range(input: HTMLInputElement, value: string) {
     setter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
+}
+
+function slider_value(thumb: HTMLElement): number {
+  return Number(thumb.getAttribute("aria-valuenow"));
+}
+
+function press_slider_key(thumb: HTMLElement, key: string) {
+  act(() => {
+    thumb.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+  });
+}
+
+function set_slider(thumb: HTMLElement, target: number) {
+  press_slider_key(thumb, "Home");
+
+  let guard = 0;
+
+  while (slider_value(thumb) < target && guard < 10000) {
+    press_slider_key(thumb, "ArrowRight");
+    guard += 1;
+  }
 }
 
 beforeEach(() => {
@@ -191,12 +215,12 @@ describe("MemberRow owner self storage management", () => {
     act(() => {
       (host.querySelector(EDIT) as HTMLButtonElement).click();
     });
-    const slider = host.querySelector('input[type="range"]') as HTMLInputElement;
+    const slider = host.querySelector('[role="slider"]') as HTMLElement;
     expect(slider).not.toBeNull();
-    expect(Number(slider.min)).toBe(1);
-    expect(Number(slider.max)).toBe(3073);
+    expect(Number(slider.getAttribute("aria-valuemin"))).toBe(1);
+    expect(Number(slider.getAttribute("aria-valuemax"))).toBe(3073);
 
-    set_range(slider, "512");
+    set_slider(slider, 512);
     expect(host.textContent).toContain("2560");
   });
 
@@ -215,8 +239,8 @@ describe("MemberRow owner self storage management", () => {
     act(() => {
       (host.querySelector(EDIT) as HTMLButtonElement).click();
     });
-    const slider = host.querySelector('input[type="range"]') as HTMLInputElement;
-    set_range(slider, "512");
+    const slider = host.querySelector('[role="slider"]') as HTMLElement;
+    set_slider(slider, 512);
 
     const save_btn = Array.from(host.querySelectorAll("button")).find(
       (b) => b.textContent === "settings.fam_org_member_save"
