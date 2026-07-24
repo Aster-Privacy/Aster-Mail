@@ -52,6 +52,7 @@ export const SUBSCRIPTION_CACHE_VERSION = 2;
 export interface SubscriptionCacheData {
   subscriptions: CachedSubscription[];
   last_scan_ts: string;
+  last_scan_message_ts?: string;
   version?: number;
 }
 
@@ -119,7 +120,11 @@ async function decrypt_subscriptions(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_data,
+    nonce_data,
+  );
 
   return JSON.parse(new TextDecoder().decode(decrypted));
 }
