@@ -1,4 +1,7 @@
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  decrypt_aes_gcm_with_fallback,
+  decrypt_with_legacy_derived_keys,
+} from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 //
 // Aster Communications Inc.
@@ -88,6 +91,38 @@ async function open_database(): Promise<IDBDatabase> {
   });
 
   return db_promise;
+}
+
+async function derive_storage_key_from_hkdf_key(
+  key_material: CryptoKey,
+  purpose: string,
+): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "HKDF",
+      hash: HASH_ALG,
+      salt: encoder.encode(`astermail_encrypted_storage_${purpose}`),
+      info: encoder.encode("aes-gcm-key"),
+    },
+    key_material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+async function decrypt_entry_with_legacy_storage_keys(
+  purpose: string,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+): Promise<ArrayBuffer | null> {
+  return decrypt_with_legacy_derived_keys(
+    (base) => derive_storage_key_from_hkdf_key(base, purpose),
+    ciphertext,
+    iv,
+  );
 }
 
 async function derive_storage_key_from_crypto_key(
@@ -199,7 +234,27 @@ export async function encrypted_get<T>(
   }
 
   try {
-    const decrypted_buffer = await decrypt_aes_gcm_with_fallback(storage_key, entry.ciphertext, entry.iv);
+    let decrypted_buffer: ArrayBuffer;
+
+    try {
+      decrypted_buffer = await decrypt_aes_gcm_with_fallback(
+        storage_key,
+        entry.ciphertext,
+        entry.iv,
+      );
+    } catch (primary_error) {
+      const recovered = await decrypt_entry_with_legacy_storage_keys(
+        key,
+        entry.ciphertext,
+        entry.iv,
+      );
+
+      if (!recovered) {
+        throw primary_error;
+      }
+
+      decrypted_buffer = recovered;
+    }
 
     const decoder = new TextDecoder();
     const json_string = decoder.decode(decrypted_buffer);

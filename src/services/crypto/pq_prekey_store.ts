@@ -28,7 +28,11 @@ import {
   has_vault_in_memory,
 } from "./memory_key_store";
 import { api_client } from "@/services/api/client";
-import { derive_ratchet_encryption_key } from "./ratchet_sync";
+import {
+  derive_ratchet_encryption_key,
+  derive_ratchet_encryption_key_from_base,
+} from "./ratchet_sync";
+import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
 
 const PQ_PREKEY_STORAGE_PREFIX = "pq_prekey_secret_";
 const PQ_PREKEY_INDEX_KEY = "pq_prekey_secret_index";
@@ -71,7 +75,79 @@ function secure_zero(buffer: Uint8Array): void {
 // only, expire after a TTL so a secret that later becomes available can be
 // retried, and are cleared the moment the secret is saved locally.
 const PQ_MISSING_TTL_MS = 24 * 60 * 60 * 1000;
+const PQ_MISSING_STORAGE_PREFIX = "pq_prekey_missing_";
+const PQ_MISSING_PERSIST_DEBOUNCE_MS = 2000;
 const missing_cache = new Map<string, number>();
+
+let missing_cache_scope: string | null = null;
+let missing_cache_load: Promise<void> | null = null;
+let missing_cache_persist_timer: ReturnType<typeof setTimeout> | null = null;
+
+function missing_storage_key(uid: string | null): string {
+  return `${PQ_MISSING_STORAGE_PREFIX}${uid ?? "unknown"}`;
+}
+
+async function ensure_missing_cache_loaded(uid: string | null): Promise<void> {
+  const scope = uid ?? "unknown";
+
+  if (missing_cache_scope === scope) return;
+  if (missing_cache_load) return missing_cache_load;
+
+  missing_cache_load = (async () => {
+    missing_cache.clear();
+
+    try {
+      const storage_key = await get_storage_key();
+      const stored = await encrypted_get<Record<string, number>>(
+        missing_storage_key(uid),
+        storage_key,
+      );
+
+      if (stored) {
+        const now = Date.now();
+
+        for (const [rk, ts] of Object.entries(stored)) {
+          if (now - ts < PQ_MISSING_TTL_MS) missing_cache.set(rk, ts);
+        }
+      }
+    } catch {
+      /* memory-only for this session */
+    } finally {
+      missing_cache_scope = scope;
+      missing_cache_load = null;
+    }
+  })();
+
+  return missing_cache_load;
+}
+
+function persist_missing_cache(uid: string | null): void {
+  if (missing_cache_persist_timer) clearTimeout(missing_cache_persist_timer);
+
+  missing_cache_persist_timer = setTimeout(() => {
+    missing_cache_persist_timer = null;
+
+    void (async () => {
+      try {
+        const storage_key = await get_storage_key();
+        const now = Date.now();
+        const snapshot: Record<string, number> = {};
+
+        for (const [rk, ts] of missing_cache) {
+          if (now - ts < PQ_MISSING_TTL_MS) snapshot[rk] = ts;
+        }
+
+        if (Object.keys(snapshot).length === 0) {
+          await encrypted_delete(missing_storage_key(uid));
+        } else {
+          await encrypted_set(missing_storage_key(uid), snapshot, storage_key);
+        }
+      } catch {
+        /* best-effort */
+      }
+    })();
+  }, PQ_MISSING_PERSIST_DEBOUNCE_MS);
+}
 
 function is_pq_secret_missing(rk: string): boolean {
   const ts = missing_cache.get(rk);
@@ -86,8 +162,9 @@ function is_pq_secret_missing(rk: string): boolean {
   return true;
 }
 
-function mark_pq_secret_missing(rk: string): void {
+function mark_pq_secret_missing(rk: string, uid: string | null): void {
   missing_cache.set(rk, Date.now());
+  persist_missing_cache(uid);
 }
 
 const pq_inflight = new Map<string, Promise<Uint8Array | null>>();
@@ -106,8 +183,8 @@ function enter_pq_upload_cooldown(): void {
   pq_upload_rate_limited_until = Date.now() + PQ_UPLOAD_RATE_LIMIT_COOLDOWN_MS;
 }
 
-function clear_pq_secret_missing(rk: string): void {
-  missing_cache.delete(rk);
+function clear_pq_secret_missing(rk: string, uid: string | null): void {
+  if (missing_cache.delete(rk)) persist_missing_cache(uid);
 }
 
 async function get_storage_key(): Promise<CryptoKey> {
@@ -227,13 +304,28 @@ async function decrypt_pq_from_server(
 ): Promise<Uint8Array> {
   const ciphertext = base64_to_array(encrypted_secret);
   const nonce = base64_to_array(secret_nonce);
-  const plaintext = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    sync_key,
-    ciphertext,
-  );
 
-  return new Uint8Array(plaintext);
+  try {
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      sync_key,
+      ciphertext,
+    );
+
+    return new Uint8Array(plaintext);
+  } catch (primary_error) {
+    const recovered = await decrypt_with_legacy_derived_keys(
+      derive_ratchet_encryption_key_from_base,
+      ciphertext,
+      nonce,
+    );
+
+    if (!recovered) {
+      throw primary_error;
+    }
+
+    return new Uint8Array(recovered);
+  }
 }
 
 async function upload_pq_secret_to_server(
@@ -255,6 +347,50 @@ async function upload_pq_secret_to_server(
       encrypted_secret,
       secret_nonce,
     });
+
+    if (response.code === "RATE_LIMIT_EXCEEDED") {
+      enter_pq_upload_cooldown();
+      throw new Error("pq_upload_rate_limited");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message === "pq_upload_rate_limited") {
+      throw error;
+    }
+    /* best-effort */
+  }
+}
+
+const PQ_BACKFILL_CHUNK = 200;
+
+async function upload_pq_secrets_bulk(
+  items: { key_id: number; secret: Uint8Array }[],
+): Promise<void> {
+  if (items.length === 0) return;
+
+  try {
+    const sync_key = await get_sync_key();
+
+    if (!sync_key) return;
+
+    const secrets: {
+      key_id: number;
+      encrypted_secret: string;
+      secret_nonce: string;
+    }[] = [];
+
+    for (const { key_id, secret } of items) {
+      const { encrypted_secret, secret_nonce } = await encrypt_pq_for_server(
+        secret,
+        sync_key,
+      );
+
+      secrets.push({ key_id, encrypted_secret, secret_nonce });
+    }
+
+    const response = await api_client.post(
+      "/crypto/v1/ratchet/pq-secret/bulk",
+      { secrets },
+    );
 
     if (response.code === "RATE_LIMIT_EXCEEDED") {
       enter_pq_upload_cooldown();
@@ -318,7 +454,7 @@ export async function save_pq_secret(
   };
 
   await encrypted_set(record_key(uid, key_id), record, storage_key);
-  clear_pq_secret_missing(record_key(uid, key_id));
+  clear_pq_secret_missing(record_key(uid, key_id), uid);
 
   await update_index(storage_key, uid, (current) => {
     if (current.includes(key_id)) {
@@ -346,7 +482,7 @@ export async function save_pq_secrets_bulk(
     };
 
     await encrypted_set(record_key(uid, key_id), record, storage_key);
-    clear_pq_secret_missing(record_key(uid, key_id));
+    clear_pq_secret_missing(record_key(uid, key_id), uid);
 
     await update_index(storage_key, uid, (current) => {
       if (current.includes(key_id)) {
@@ -357,41 +493,7 @@ export async function save_pq_secrets_bulk(
     });
   }
 
-  try {
-    const sync_key = await get_sync_key();
-
-    if (!sync_key) return;
-
-    const secrets: {
-      key_id: number;
-      encrypted_secret: string;
-      secret_nonce: string;
-    }[] = [];
-
-    for (const { key_id, secret } of items) {
-      const { encrypted_secret, secret_nonce } = await encrypt_pq_for_server(
-        secret,
-        sync_key,
-      );
-
-      secrets.push({ key_id, encrypted_secret, secret_nonce });
-    }
-
-    const response = await api_client.post(
-      "/crypto/v1/ratchet/pq-secret/bulk",
-      { secrets },
-    );
-
-    if (response.code === "RATE_LIMIT_EXCEEDED") {
-      enter_pq_upload_cooldown();
-      throw new Error("pq_upload_rate_limited");
-    }
-  } catch (error) {
-    if (error instanceof Error && error.message === "pq_upload_rate_limited") {
-      throw error;
-    }
-    /* best-effort */
-  }
+  await upload_pq_secrets_bulk(items);
 }
 
 export async function load_pq_secret(
@@ -405,7 +507,7 @@ export async function load_pq_secret(
     const record = await encrypted_get<StoredPqSecret>(rk, storage_key);
 
     if (record) {
-      clear_pq_secret_missing(rk);
+      clear_pq_secret_missing(rk, uid);
 
       return base64_to_array(record.secret_key_b64);
     }
@@ -426,7 +528,7 @@ export async function load_pq_secret(
           /* best-effort migration */
         }
 
-        clear_pq_secret_missing(rk);
+        clear_pq_secret_missing(rk, uid);
 
         return base64_to_array(legacy.secret_key_b64);
       }
@@ -434,6 +536,8 @@ export async function load_pq_secret(
   } catch {
     /* fall through */
   }
+
+  await ensure_missing_cache_loaded(uid);
 
   if (is_pq_secret_missing(rk)) {
     return null;
@@ -454,7 +558,7 @@ export async function load_pq_secret(
     );
 
     if (remote) {
-      clear_pq_secret_missing(rk);
+      clear_pq_secret_missing(rk, uid);
 
       try {
         const storage_key = await get_storage_key();
@@ -471,7 +575,7 @@ export async function load_pq_secret(
         /* best-effort cache */
       }
     } else if (not_found) {
-      mark_pq_secret_missing(rk);
+      mark_pq_secret_missing(rk, uid);
     } else {
       pq_transient_errors.set(rk, Date.now() + PQ_TRANSIENT_ERROR_TTL_MS);
     }
@@ -513,6 +617,14 @@ export async function backfill_pq_secrets_to_server(): Promise<void> {
     const storage_key = await get_storage_key();
     const uid = await current_account_uid();
     const ids = await read_index(storage_key, uid);
+    const pending: { key_id: number; secret: Uint8Array }[] = [];
+
+    const flush = async () => {
+      if (pending.length === 0) return;
+      await upload_pq_secrets_bulk(pending);
+      for (const entry of pending) entry.secret.fill(0);
+      pending.length = 0;
+    };
 
     for (const key_id of ids) {
       let record = await encrypted_get<StoredPqSecret>(
@@ -529,11 +641,12 @@ export async function backfill_pq_secrets_to_server(): Promise<void> {
 
       if (!record) continue;
 
-      const secret = base64_to_array(record.secret_key_b64);
+      pending.push({ key_id, secret: base64_to_array(record.secret_key_b64) });
 
-      await upload_pq_secret_to_server(key_id, secret);
-      secret.fill(0);
+      if (pending.length >= PQ_BACKFILL_CHUNK) await flush();
     }
+
+    await flush();
   } catch {
     /* best-effort */
   }
