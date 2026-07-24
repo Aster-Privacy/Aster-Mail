@@ -29,6 +29,10 @@ import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Separator } from "@/components/ui/separator";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
+import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
+import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
+import { extract_email_details } from "@/services/extraction/extractor";
 import { ExternalContentBanner } from "@/components/email/external_content_banner";
 import { ExpirationBanner } from "@/components/email/expiration_countdown";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
@@ -42,6 +46,10 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
+import { TranslationBanner } from "@/components/email/banners/translation_banner";
+import { use_email_translation } from "@/components/email/hooks/use_email_translation";
+import { analyze_email_content } from "@/lib/phishing_analyzer";
+import type { PhishingLevel } from "@/lib/phishing_analyzer";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
@@ -101,6 +109,25 @@ export function EmailViewerContent({
   }, [email.unsubscribe_info, email.html_content, email.body, email.preview]);
 
   const raw_content = email.html_content || email.body || email.preview;
+
+  const extraction = useMemo(
+    () =>
+      extract_email_details(
+        email.subject ?? "",
+        email.body ?? email.preview ?? "",
+        email.html_content,
+        email.sender.email,
+        email.sender.name ?? "",
+      ),
+    [
+      email.subject,
+      email.body,
+      email.preview,
+      email.html_content,
+      email.sender.email,
+      email.sender.name,
+    ],
+  );
 
   const is_system = is_system_email(email.sender.email);
   const is_plain_text = !raw_content || !has_rich_html(raw_content);
@@ -278,6 +305,56 @@ export function EmailViewerContent({
 
   const effective_html = cid_resolved_html ?? sanitize_result.html;
 
+  const [phishing_level, set_phishing_level] = useState<PhishingLevel>("safe");
+  const [phishing_checked, set_phishing_checked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    set_phishing_level("safe");
+    set_phishing_checked(false);
+
+    analyze_email_content(
+      email.html_content ?? "",
+      email.body ?? email.preview ?? "",
+      email.sender.name ?? "",
+      email.sender.email ?? "",
+      !is_system,
+    )
+      .then((result) => {
+        if (!cancelled) set_phishing_level(result.level);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) set_phishing_checked(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    email.id,
+    email.html_content,
+    email.body,
+    email.preview,
+    email.sender.name,
+    email.sender.email,
+    is_system,
+  ]);
+
+  const translation = use_email_translation({
+    email_id: email.id,
+    subject: email.subject ?? "",
+    translatable: phishing_checked && phishing_level === "safe",
+  });
+
+  const display_subject =
+    translation.status === "translated" &&
+    !translation.showing_original &&
+    translation.translated_subject
+      ? translation.translated_subject
+      : email.subject || t("mail.no_subject");
+
   const handle_load_remote = useCallback(() => {
     set_force_load_content(true);
   }, []);
@@ -293,6 +370,25 @@ export function EmailViewerContent({
           sender_email={email.sender.email}
           sender_name={email.sender.name}
           unsubscribe_info={unsubscribe_info}
+        />
+      )}
+      <CalendarInviteBanner
+        className="mx-6 mt-4"
+        body={email.body}
+        html_content={email.html_content}
+      />
+      {extraction.has_purchase_details && extraction.purchase && (
+        <PurchaseDetailsBanner
+          className="mx-6 mt-4"
+          details={extraction.purchase}
+        />
+      )}
+      {extraction.has_shipping_details && extraction.shipping && (
+        <ShippingDetailsBanner
+          className="mx-6 mt-4"
+          details={extraction.shipping}
+          sender_email={email.sender.email}
+          sender_name={email.sender.name ?? undefined}
         />
       )}
       {email.expires_at && (
@@ -312,7 +408,7 @@ export function EmailViewerContent({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-2xl font-semibold break-words text-txt-primary">
-                {email.subject || t("mail.no_subject")}
+                {display_subject}
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -345,11 +441,20 @@ export function EmailViewerContent({
               on_load={handle_load_remote}
             />
           )}
+          <TranslationBanner
+            limited_quality={translation.limited_quality}
+            on_show_original={translation.show_original}
+            on_translate={translation.translate}
+            showing_original={translation.showing_original}
+            source_language={translation.source_language}
+            status={translation.status}
+          />
           {html_blocked ? (
             <SandboxedEmailRenderer
               email_id={email.id}
               is_literal_plain_text
               is_plain_text
+              on_document_ready={translation.on_document_ready}
               sanitized_html={plain_text_html ?? ""}
             />
           ) : (
@@ -359,6 +464,7 @@ export function EmailViewerContent({
               is_literal_plain_text={is_literal_plain_text}
               is_plain_text={is_plain_text}
               load_remote_content={!lockdown_active && force_load_content}
+              on_document_ready={translation.on_document_ready}
               sanitized_html={effective_html}
             />
           )}

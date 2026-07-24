@@ -57,6 +57,65 @@ export interface TranslationNamespace {
   passkeys: PasskeysTranslations;
   shared_mailboxes: SharedMailboxesTranslations;
   survey: SurveyTranslations;
+  calendar: CalendarTranslations;
+}
+
+export interface CalendarTranslations {
+  invite_yes: string;
+  invite_maybe: string;
+  invite_no: string;
+  invite_status_going: string;
+  invite_status_maybe: string;
+  invite_status_declined: string;
+  invite_change_response: string;
+  invite_added_toast: string;
+  invite_declined_toast: string;
+  invite_save_failed: string;
+  invite_saved_locally: string;
+  calendar: string;
+  month: string;
+  week: string;
+  day: string;
+  agenda: string;
+  today: string;
+  previous_period: string;
+  next_period: string;
+  search_events: string;
+  only_you_can_read_calendar: string;
+  all_day: string;
+  more_events: string;
+  no_upcoming_events: string;
+  no_upcoming_events_hint: string;
+  new_event: string;
+  edit_event: string;
+  delete_event: string;
+  delete_event_confirmation: string;
+  event_title: string;
+  event_title_placeholder: string;
+  starts: string;
+  ends: string;
+  location: string;
+  location_placeholder: string;
+  description: string;
+  description_placeholder: string;
+  reminder: string;
+  reminder_none: string;
+  reminder_at_start: string;
+  reminder_minutes_before: string;
+  title_required: string;
+  invalid_dates: string;
+  end_before_start: string;
+  weekday_sun: string;
+  weekday_mon: string;
+  weekday_tue: string;
+  weekday_wed: string;
+  weekday_thu: string;
+  weekday_fri: string;
+  weekday_sat: string;
+  calendar_navigation: string;
+  aster_calendar: string;
+  back_to_mail: string;
+  my_calendars: string;
 }
 
 export interface SharedMailboxesTranslations {
@@ -1265,6 +1324,7 @@ export interface CommonTranslations {
   encrypted_attachment: string;
   image: string;
   system: string;
+  beta: string;
   failed_to_permanently_delete: string;
   failed_to_delete_emails: string;
   failed_to_mark_as_read: string;
@@ -2364,6 +2424,19 @@ export interface SettingsTranslations {
   show_message_size_description: string;
   force_dark_mode_emails: string;
   force_dark_mode_emails_description: string;
+  translation: string;
+  translate_incoming: string;
+  translate_incoming_description: string;
+  translate_incoming_info: string;
+  translate_off: string;
+  translate_ask: string;
+  translate_always: string;
+  translate_my_languages: string;
+  translate_my_languages_description: string;
+  translate_never_languages: string;
+  translate_never_languages_description: string;
+  translate_add_language: string;
+  translate_auto_detected: string;
   block_external_content: string;
   block_external_content_description: string;
   blocking_mode: string;
@@ -5115,6 +5188,15 @@ export interface MailTranslations {
   total_pages_label: string;
   loading_preview: string;
   preview_failed: string;
+  translation_offer: string;
+  translation_translate: string;
+  translation_in_progress: string;
+  translation_translated_from: string;
+  translation_limited_quality: string;
+  translation_show_original: string;
+  translation_show_translation: string;
+  translation_showing_original: string;
+  translation_unavailable: string;
   no_subject: string;
   no_messages: string;
   unread: string;
@@ -6407,6 +6489,7 @@ export type TranslationKey =
   | `compose.${keyof ComposeTranslations}`
   | `passkeys.${keyof PasskeysTranslations}`
   | `shared_mailboxes.${keyof SharedMailboxesTranslations}`
-  | `survey.${keyof SurveyTranslations}`;
+  | `survey.${keyof SurveyTranslations}`
+  | `calendar.${keyof CalendarTranslations}`;
 
 export type Translations = TranslationNamespace;

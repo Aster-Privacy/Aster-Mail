@@ -37,6 +37,7 @@ import { Button } from "@aster/ui";
 
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
+import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -258,8 +259,16 @@ export function PopupEmailBody({
             <ShippingDetailsBanner
               className="mx-4 mt-4"
               details={extraction_result.shipping}
+              sender_email={email.sender_email}
+              sender_name={email.sender}
             />
           )}
+
+        <CalendarInviteBanner
+          className="mx-4 mt-4"
+          body={email.body}
+          html_content={email.html_content}
+        />
 
         <div className="p-4">
           <PopupEmailHeader

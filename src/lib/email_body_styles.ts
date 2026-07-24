@@ -253,6 +253,26 @@ img {
   height: auto;
 }
 
+[data-aster-translated] {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+[data-aster-translated] p,
+[data-aster-translated] div,
+[data-aster-translated] span,
+[data-aster-translated] td,
+[data-aster-translated] th,
+[data-aster-translated] li,
+[data-aster-translated] a {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+[data-aster-translated] * {
+  max-width: 100% !important;
+}
+
 @media print {
   body {
     overflow: visible !important;

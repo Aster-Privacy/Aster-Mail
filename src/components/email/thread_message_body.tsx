@@ -41,6 +41,10 @@ interface ThreadMessageBodyProps {
   body_background?: string;
   email_id?: string;
   preserve_formatting?: boolean;
+  on_document_ready?: (
+    body: HTMLElement,
+    request_remeasure: () => void,
+  ) => (() => void) | void;
 }
 
 export function ThreadMessageBody({
@@ -55,6 +59,7 @@ export function ThreadMessageBody({
   body_background,
   email_id,
   preserve_formatting,
+  on_document_ready,
 }: ThreadMessageBodyProps): React.ReactElement {
   const { t } = use_i18n();
 
@@ -153,6 +158,7 @@ export function ThreadMessageBody({
           force_dark_mode={force_dark_mode}
           is_plain_text={is_plain_text}
           load_remote_content={load_remote_content}
+          on_document_ready={on_document_ready}
           preserve_formatting={preserve_formatting}
           sanitized_html={sanitized_html}
         />
