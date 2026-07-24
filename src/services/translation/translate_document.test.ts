@@ -77,6 +77,7 @@ describe("translate_message_body", () => {
 
     const result = await translate_message_body({
       root,
+      account_id: "acct-1",
       message_id: "happy",
       from: "de",
       to: "en",
@@ -96,6 +97,7 @@ describe("translate_message_body", () => {
 
     const result = await translate_message_body({
       root,
+      account_id: "acct-1",
       message_id: "mismatch",
       from: "de",
       to: "en",
@@ -116,6 +118,7 @@ describe("translate_message_body", () => {
 
     const result = await translate_message_body({
       root,
+      account_id: "acct-1",
       message_id: "dropped",
       from: "de",
       to: "en",
@@ -139,6 +142,7 @@ describe("translate_message_body", () => {
 
     await translate_message_body({
       root,
+      account_id: "acct-1",
       message_id: "quoted",
       from: "de",
       to: "en",
@@ -162,6 +166,7 @@ describe("translate_message_body", () => {
 
     const result = await translate_message_body({
       root,
+      account_id: "acct-1",
       message_id: "aborted",
       from: "de",
       to: "en",
@@ -177,6 +182,7 @@ describe("translate_message_body", () => {
 
     const result = await translate_message_body({
       root,
+      account_id: "acct-1",
       message_id: "same",
       from: "de",
       to: "de",

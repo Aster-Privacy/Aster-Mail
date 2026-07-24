@@ -54,6 +54,11 @@ import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
+  is_ratchet_envelope,
+} from "@/utils/email_crypto";
 import { EmailTag } from "@/components/ui/email_tag";
 import {
   extract_cid_references,
@@ -342,10 +347,18 @@ export function EmailViewerContent({
     is_system,
   ]);
 
+  const is_ratchet_undecryptable =
+    email.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    email.body === PGP_UNDECRYPTABLE_SENTINEL ||
+    is_ratchet_envelope(email.body) ||
+    is_ratchet_envelope(email.html_content);
+
   const translation = use_email_translation({
+    account_id,
     email_id: email.id,
     subject: email.subject ?? "",
-    translatable: phishing_checked && phishing_level === "safe",
+    translatable:
+      !is_ratchet_undecryptable && phishing_checked && phishing_level === "safe",
   });
 
   const display_subject =

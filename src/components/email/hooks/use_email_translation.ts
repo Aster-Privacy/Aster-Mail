@@ -68,6 +68,7 @@ export interface EmailTranslationControl {
 }
 
 export interface EmailTranslationInput {
+  account_id: string;
   email_id: string;
   subject: string;
   translatable: boolean;
@@ -111,6 +112,7 @@ function animate_body_swap(body: HTMLElement, remeasure: () => void): void {
 }
 
 export function use_email_translation({
+  account_id,
   email_id,
   subject,
   translatable,
@@ -225,6 +227,7 @@ export function use_email_translation({
 
       const result = await translate_message_body({
         root: render.body,
+        account_id,
         message_id: email_id,
         from,
         to,
@@ -256,7 +259,7 @@ export function use_email_translation({
       last_translated_subject_ref.current = next_subject;
       set_translated_subject(next_subject);
     },
-    [email_id, subject, abort_active],
+    [account_id, email_id, subject, abort_active],
   );
 
   const run_detection = useCallback(
