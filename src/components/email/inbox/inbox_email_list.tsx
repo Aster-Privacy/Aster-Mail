@@ -237,6 +237,18 @@ export function EmailList({
     [all_emails],
   );
 
+  const selected_grouped_ids = useMemo(
+    () =>
+      all_emails
+        .filter((e) => e.is_selected)
+        .flatMap((e) =>
+          e.grouped_email_ids && e.grouped_email_ids.length > 1
+            ? e.grouped_email_ids
+            : [e.id],
+        ),
+    [all_emails],
+  );
+
   const selected_folder_tokens = useMemo(() => {
     const tokens = new Set<string>();
 
@@ -290,6 +302,7 @@ export function EmailList({
       on_toggle_star={hover_toggle_star}
       selected_folder_tokens={selected_folder_tokens}
       selected_ids={selected_ids}
+      selected_grouped_ids={selected_grouped_ids}
       selected_tag_tokens={selected_tag_tokens}
       show_email_preview={show_email_preview}
       show_message_size={show_message_size}

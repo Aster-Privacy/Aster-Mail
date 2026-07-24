@@ -144,7 +144,8 @@ describe("mail stats reliability", () => {
     await flush();
     await flush();
 
-    expect(update_pwa_badge.mock.calls.at(-1)?.[0]).toBe(7);
+    expect(vi.mocked(get_mail_stats)).toHaveBeenCalledTimes(2);
+    expect(update_pwa_badge.mock.calls.at(-1)?.[0]).toBe(4);
   });
 
   it("keeps an optimistic mark-read applied during an in-flight reconcile", async () => {

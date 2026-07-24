@@ -147,4 +147,51 @@ describe("extract_subject_bundle", () => {
     expect(result.subject).toBe("");
     expect(result.body).toBe("body only");
   });
+  it("decodes a bundle framed by control characters", () => {
+    const framed =
+      "" + ASTER_SUBJECT_BUNDLE_PREFIX + JSON.stringify({ s: "Re: ", b: "<p>Thanks!</p>" });
+    const result = extract_subject_bundle(framed);
+    expect(result.subject).toBe("Re: ");
+    expect(result.body).toBe("<p>Thanks!</p>");
+  });
+
+  it("decodes a bundle framed by a byte order mark", () => {
+    const framed = "﻿" + encode_bundle("Hi", "there");
+    const result = extract_subject_bundle(framed);
+    expect(result.subject).toBe("Hi");
+    expect(result.body).toBe("there");
+  });
+
+  it("recovers a payload with raw newlines inside string values", () => {
+    const broken =
+      ASTER_SUBJECT_BUNDLE_PREFIX +
+      '{"s":"Re: ","b":"line one\nline two"}';
+    const result = extract_subject_bundle(broken);
+    expect(result.subject).toBe("Re: ");
+    expect(result.body).toBe("line one\nline two");
+  });
+
+  it("recovers a truncated payload", () => {
+    const truncated =
+      ASTER_SUBJECT_BUNDLE_PREFIX + '{"s":"Re: ","b":"<p>Thanks!</p>';
+    const result = extract_subject_bundle(truncated);
+    expect(result.subject).toBe("Re: ");
+    expect(result.body).toBe("<p>Thanks!</p>");
+  });
+
+  it("recovers a payload whose keys are ordered body first", () => {
+    const reordered =
+      ASTER_SUBJECT_BUNDLE_PREFIX + '{"b":"body text","s":"Subject"}';
+    const result = extract_subject_bundle(reordered);
+    expect(result.subject).toBe("Subject");
+    expect(result.body).toBe("body text");
+  });
+
+  it("never leaks the raw bundle marker for a recoverable payload", () => {
+    const messy =
+      "" + ASTER_SUBJECT_BUNDLE_PREFIX + '{"s":"Re: ","b":"hello"}';
+    const result = extract_subject_bundle(messy);
+    expect(result.body).not.toContain(ASTER_SUBJECT_BUNDLE_PREFIX);
+    expect(result.body).toBe("hello");
+  });
 });

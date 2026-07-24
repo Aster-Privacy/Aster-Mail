@@ -237,6 +237,7 @@ export const Sidebar = ({
       "/spam": "spam",
       "/trash": "trash",
       "/contacts": "contacts",
+      "/calendar": "calendar",
       "/subscriptions": "subscriptions",
     };
 
@@ -420,6 +421,7 @@ export const Sidebar = ({
       "/spam": "spam",
       "/trash": "trash",
       "/contacts": "contacts",
+      "/calendar": "calendar",
       "/subscriptions": "subscriptions",
     };
 

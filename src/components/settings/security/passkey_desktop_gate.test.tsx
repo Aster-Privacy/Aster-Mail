@@ -30,6 +30,7 @@ vi.mock("@/native/invoke_bridge", () => ({
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
+  use_translation: () => ({ t: (key: string) => key }),
 }));
 
 vi.mock("@/contexts/auth_context", () => ({
@@ -61,6 +62,12 @@ vi.mock("@aster/ui", () => ({
     children?: unknown;
     onClick?: () => void;
   }) => <button onClick={onClick}>{children as never}</button>,
+  Badge: ({ children }: { children?: unknown }) => (
+    <span>{children as never}</span>
+  ),
+  Tooltip: ({ children }: { children?: unknown }) => (
+    <span>{children as never}</span>
+  ),
 }));
 
 vi.mock("@/components/toast/simple_toast", () => ({

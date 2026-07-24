@@ -43,6 +43,9 @@ vi.mock("@/services/category_index", () => ({
   mark_category_seen: vi.fn(),
   subscribe: () => () => {},
   get_version: () => 0,
+  is_index_loaded: () => false,
+  set_active_tabs: vi.fn(),
+  set_custom_categories: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/secure_storage", () => ({
