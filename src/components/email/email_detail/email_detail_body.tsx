@@ -26,6 +26,7 @@ import type { DecryptedEmail } from "@/components/email/hooks/use_email_detail";
 import type { MailItem } from "@/services/api/mail";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ExclamationCircleIcon,
@@ -43,6 +44,10 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
+import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
+import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
+import { extract_email_details } from "@/services/extraction/extractor";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { use_should_reduce_motion } from "@/provider";
@@ -160,6 +165,24 @@ export function EmailDetailBody({
   const show_sender_name = email?.display_sender_name ?? email?.sender ?? "";
   const show_sender_email =
     email?.display_sender_email ?? email?.sender_email ?? "";
+
+  const extraction = useMemo(
+    () =>
+      extract_email_details(
+        email?.subject ?? "",
+        email?.body ?? "",
+        email?.html_content,
+        email?.sender_email ?? "",
+        email?.sender ?? "",
+      ),
+    [
+      email?.subject,
+      email?.body,
+      email?.html_content,
+      email?.sender_email,
+      email?.sender,
+    ],
+  );
 
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">
@@ -339,6 +362,27 @@ export function EmailDetailBody({
                 />
               </div>
             )}
+
+          <CalendarInviteBanner
+            className="mb-4 sm:mb-6"
+            body={email.body}
+            html_content={email.html_content}
+          />
+
+          {extraction.has_purchase_details && extraction.purchase && (
+            <PurchaseDetailsBanner
+              className="mb-4 sm:mb-6"
+              details={extraction.purchase}
+            />
+          )}
+          {extraction.has_shipping_details && extraction.shipping && (
+            <ShippingDetailsBanner
+              className="mb-4 sm:mb-6"
+              details={extraction.shipping}
+              sender_email={show_sender_email}
+              sender_name={show_sender_name}
+            />
+          )}
 
           {thread_truncated && load_all_thread_messages && (
             <div className="mb-3 flex items-center justify-center">

@@ -22,7 +22,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { build_email_body_css, build_forced_dark_mode_css } from "@/lib/email_body_styles";
-import { sanitize_preview_html, is_transparent_color_value } from "@/lib/html_sanitizer";
+import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
   build_font_face_css,
   get_email_font_stack,
@@ -43,23 +43,9 @@ import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { reveal_on_fonts_ready } from "@/components/email/reveal_on_fonts_ready";
+import { translated_language } from "@/services/translation/dom_translate";
 
 const IMAGE_PROXY_URL = get_image_proxy_url();
-
-/*
- * Mirror of strip_remote_css_fetches in hooks/preload_cache.ts. The live
- * preview renders sandbox-mode HTML (which keeps <style> blocks and remote
- * url()/@import) into a top-origin shadow root, so neutralize remote CSS
- * fetches to stop tracking beacons. The real render happens in the sandboxed
- * iframe, which honors the remote-content setting, so display is unaffected.
- */
-function strip_remote_css_fetches(html: string): string {
-  return html
-    .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
-    .replace(/(?:-webkit-)?image-set\s*\([^)]*\)/gi, "none")
-    .replace(/cross-fade\s*\([^)]*\)/gi, "none")
-    .replace(/@import[^;]*;/gi, "");
-}
 
 function sniff_image_type(bytes: Uint8Array): string | null {
   if (bytes.length >= 4) {
@@ -162,7 +148,32 @@ async function resolve_native_images(doc: Document): Promise<void> {
   );
 }
 
+const BODY_PADDING = "8px 16px 16px 16px";
+
+const IFRAME_HEIGHT_CACHE_LIMIT = 300;
 const iframe_height_cache = new Map<string, number>();
+
+function store_height(email_id: string, height: number): void {
+  if (iframe_height_cache.has(email_id)) {
+    iframe_height_cache.delete(email_id);
+  } else if (iframe_height_cache.size >= IFRAME_HEIGHT_CACHE_LIMIT) {
+    const oldest = iframe_height_cache.keys().next();
+
+    if (!oldest.done) iframe_height_cache.delete(oldest.value);
+  }
+
+  iframe_height_cache.set(email_id, height);
+}
+
+function remember_measured_height(
+  email_id: string,
+  body: HTMLElement | null | undefined,
+  height: number,
+): void {
+  if (body && translated_language(body)) return;
+
+  store_height(email_id, height);
+}
 
 export const CONTENT_READY_FALLBACK_MS = 1500;
 
@@ -180,7 +191,7 @@ export function set_cached_iframe_height(
   email_id: string,
   height: number,
 ): void {
-  iframe_height_cache.set(email_id, height);
+  store_height(email_id, height);
 }
 
 interface SandboxedEmailRendererProps {
@@ -194,6 +205,10 @@ interface SandboxedEmailRendererProps {
   body_background?: string;
   email_id?: string;
   preserve_formatting?: boolean;
+  on_document_ready?: (
+    body: HTMLElement,
+    request_remeasure: () => void,
+  ) => (() => void) | void;
 }
 
 export function SandboxedEmailRenderer({
@@ -207,6 +222,7 @@ export function SandboxedEmailRenderer({
   body_background,
   email_id,
   preserve_formatting = false,
+  on_document_ready,
 }: SandboxedEmailRendererProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -231,6 +247,10 @@ export function SandboxedEmailRenderer({
   const reveal_cleanup_ref = useRef<(() => void) | null>(null);
   const has_fired_ready_ref = useRef(!!cached_height);
   const load_remote_ref = useRef(load_remote_content);
+  const document_ready_cleanup_ref = useRef<(() => void) | null>(null);
+  const on_document_ready_ref = useRef(on_document_ready);
+
+  on_document_ready_ref.current = on_document_ready;
 
   if (prev_html_ref.current !== sanitized_html) {
     prev_html_ref.current = sanitized_html;
@@ -407,9 +427,9 @@ a, a * { color: ${preferences.accent_color_hover} !important; }`
 
   const simple_html = is_html_email && !has_table_layout;
   const html_body_style = simple_html
-    ? `background-color:${html_bg};color:${html_text_color};padding:16px 20px;font-family:${base_font};font-size:14px;line-height:1.6;word-wrap:break-word`
-    : `background-color:${html_bg}`;
-  const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
+    ? `background-color:${html_bg};color:${html_text_color};padding:${BODY_PADDING};font-family:${base_font};font-size:14px;line-height:1.6;word-wrap:break-word`
+    : `background-color:${html_bg};padding:${BODY_PADDING}`;
+  const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:${BODY_PADDING};font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
   const iframe_css = build_email_body_css(preferences.accent_color, base_font);
 
@@ -1043,8 +1063,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         s.textContent?.includes("light only"),
     );
 
-    doc_body.style.padding = "8px 16px 16px 16px";
-
     if (is_html_email && (!doc_body.style.backgroundColor || doc_body.style.backgroundColor === "transparent")) {
       const first_el = doc_body.firstElementChild as HTMLElement | null;
       const detected_bg =
@@ -1090,7 +1108,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
     let last_height = 0;
 
-    const measure_and_apply = () => {
+    const measure_and_apply = (force = false) => {
       const doc = iframe.contentDocument;
       const body = doc?.body;
       const html = doc?.documentElement;
@@ -1099,7 +1117,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
       const active_selection = doc.getSelection();
 
-      if (active_selection && !active_selection.isCollapsed) return;
+      if (!force && active_selection && !active_selection.isCollapsed) return;
 
       const saved_html_h = html.style.getPropertyValue("height");
       const saved_html_h_pri = html.style.getPropertyPriority("height");
@@ -1135,7 +1153,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       set_iframe_height(`${height}px`);
       set_height_ready(true);
       if (email_id) {
-        iframe_height_cache.set(email_id, height);
+        remember_measured_height(email_id, body, height);
         schedule_ready();
       }
     };
@@ -1143,6 +1161,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     const update_height = () => {
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
       raf_ref.current = requestAnimationFrame(() => measure_and_apply());
+    };
+
+    const force_remeasure = () => {
+      if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
+      raf_ref.current = requestAnimationFrame(() => measure_and_apply(true));
     };
 
     const reveal_content = () => {
@@ -1163,7 +1186,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         set_iframe_height(`${clamped}px`);
         set_height_ready(true);
         if (email_id) {
-          iframe_height_cache.set(email_id, clamped);
+          remember_measured_height(email_id, content_doc.body, clamped);
           schedule_ready();
         }
       }
@@ -1181,25 +1204,30 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     };
 
     const apply_fast_height = (entry: ResizeObserverEntry) => {
+      const body = iframe.contentDocument?.body;
       const box_height =
         entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+      const content_height = body
+        ? Math.max(
+            box_height,
+            body.scrollHeight,
+            body.getBoundingClientRect().bottom,
+          )
+        : box_height;
 
-      if (!box_height || box_height <= 0) return false;
+      if (!content_height || content_height <= 0) return;
 
-      const candidate = Math.min(box_height + 8, MAX_IFRAME_HEIGHT);
+      const candidate = Math.min(content_height + 8, MAX_IFRAME_HEIGHT);
 
-      if (Math.round(candidate) === Math.round(last_height)) return true;
-      if (Math.abs(candidate - last_height) < 2) return true;
+      if (Math.abs(candidate - last_height) < 2) return;
 
       last_height = candidate;
       set_iframe_height(`${candidate}px`);
       set_height_ready(true);
       if (email_id) {
-        iframe_height_cache.set(email_id, candidate);
+        remember_measured_height(email_id, body, candidate);
         schedule_ready();
       }
-
-      return true;
     };
 
     const attach_observer = () => {
@@ -1210,7 +1238,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         const active_selection = doc?.getSelection();
 
         if (active_selection && !active_selection.isCollapsed) return;
-        if (entry && apply_fast_height(entry)) return;
+        if (entry) apply_fast_height(entry);
 
         update_height();
       });
@@ -1247,12 +1275,29 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       });
     };
 
+    const notify_document_ready = () => {
+      const body = iframe.contentDocument?.body;
+      const handler = on_document_ready_ref.current;
+
+      document_ready_cleanup_ref.current?.();
+      document_ready_cleanup_ref.current = null;
+
+      if (!body || !handler) return;
+
+      const cleanup = handler(body, force_remeasure);
+
+      if (typeof cleanup === "function") {
+        document_ready_cleanup_ref.current = cleanup;
+      }
+    };
+
     reveal_cleanup_ref.current?.();
     reveal_cleanup_ref.current = reveal_on_fonts_ready(
       iframe.contentDocument.fonts,
       () => {
         reveal_content();
         attach_observer();
+        notify_document_ready();
       },
       update_height,
     );
@@ -1441,6 +1486,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
       if (stable_timer_ref.current) clearTimeout(stable_timer_ref.current);
       reveal_cleanup_ref.current?.();
+      document_ready_cleanup_ref.current?.();
+      document_ready_cleanup_ref.current = null;
     };
   }, []);
 
@@ -1456,62 +1503,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
   }, [zoomed_image]);
 
   const effective_bg = is_html_email ? html_bg : plain_bg;
-
-  const preview_ref = useCallback(
-    (el: HTMLDivElement | null) => {
-      if (!el || !height_ready) return;
-
-      if (el.shadowRoot) return;
-
-      const shadow = el.attachShadow({ mode: "open" });
-
-      const body_style = is_html_email
-        ? `margin:0;background-color:${html_bg};padding:8px 16px 16px 16px;zoom:${email_zoom}`
-        : `margin:0;background-color:${plain_bg};color:${plain_text_color};padding:16px 20px;font-family:'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word;zoom:${email_zoom}`;
-
-      shadow.innerHTML =
-        `<style>${email_font_face_css}${iframe_css}` +
-        (dark_mode_css ? dark_mode_css : "") +
-        link_underline_css +
-        `a{pointer-events:none}</style>` +
-        `<div style="${body_style}">${strip_remote_css_fetches(sanitize_preview_html(resolved_html))}` +
-        (email_font_override_css
-          ? `<style>div, div *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }</style>`
-          : "") +
-        `</div>`;
-    },
-    [
-      resolved_html,
-      height_ready,
-      is_html_email,
-      html_bg,
-      plain_bg,
-      plain_text_color,
-      dark_mode_css,
-      link_underline_css,
-      literal_plain_text,
-      email_zoom,
-      iframe_css,
-      email_font_face_css,
-      email_font_override_css,
-      base_font,
-    ],
-  );
-
-  const [iframe_loaded, set_iframe_loaded] = useState(false);
-  const prev_email_id_ref = useRef(email_id);
-
-  if (prev_email_id_ref.current !== email_id) {
-    prev_email_id_ref.current = email_id;
-    set_iframe_loaded(false);
-  }
-
-  const handle_load_with_swap = useCallback(() => {
-    handle_load();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => set_iframe_loaded(true));
-    });
-  }, [handle_load]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1530,7 +1521,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       if (doc_matches) {
         if (body?.hasAttribute("data-aster-processed")) return;
         if (doc && body && doc.readyState !== "loading" && body.childNodes.length > 0) {
-          handle_load_with_swap();
+          handle_load();
 
           return;
         }
@@ -1544,10 +1535,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     return () => {
       cancelled = true;
     };
-  }, [srcdoc_html, doc_nonce, handle_load_with_swap]);
+  }, [srcdoc_html, doc_nonce, handle_load]);
 
-  const show_preview = height_ready && !iframe_loaded;
-  const show_skeleton = !height_ready && !iframe_loaded;
+  const show_skeleton = !height_ready;
 
   return (
     <>
@@ -1668,22 +1658,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           />
         </div>
       )}
-      {show_preview && (
-        <div
-          ref={preview_ref}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 1,
-            width: "100%",
-            height: iframe_height,
-            maxHeight: "12000px",
-            overflow: "clip",
-            backgroundColor: effective_bg,
-          }}
-        />
-      )}
       <iframe
         key={
           force_dark_mode
@@ -1710,7 +1684,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           touchAction: "pan-y",
         }}
         title={t("mail.email_content")}
-        onLoad={handle_load_with_swap}
+        onLoad={handle_load}
       />
     </div>
     </>

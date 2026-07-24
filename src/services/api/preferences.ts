@@ -187,6 +187,9 @@ export interface UserPreferences {
   compose_window_mode: "default" | "fullscreen" | "minimized";
   reactions_enabled: boolean;
   family_setup_wizard_dismissed: boolean;
+  translate_incoming: "off" | "ask" | "always";
+  translate_languages: string[];
+  translate_never_languages: string[];
 }
 
 export async function sync_quiet_hours_to_server(
@@ -499,6 +502,9 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   compose_window_mode: "default",
   reactions_enabled: true,
   family_setup_wizard_dismissed: false,
+  translate_incoming: "off",
+  translate_languages: [],
+  translate_never_languages: [],
 };
 
 type GetPreferencesViaHttpResult =
@@ -605,6 +611,22 @@ export function build_merged_preferences(
   merged.enabled_categories = Array.isArray(merged.enabled_categories)
     ? merged.enabled_categories.filter((c) => typeof c === "string")
     : [...DEFAULT_ENABLED_CATEGORIES];
+
+  if (
+    merged.translate_incoming !== "off" &&
+    merged.translate_incoming !== "ask" &&
+    merged.translate_incoming !== "always"
+  ) {
+    merged.translate_incoming = "off";
+  }
+  merged.translate_languages = Array.isArray(merged.translate_languages)
+    ? merged.translate_languages.filter((c) => typeof c === "string")
+    : [];
+  merged.translate_never_languages = Array.isArray(
+    merged.translate_never_languages,
+  )
+    ? merged.translate_never_languages.filter((c) => typeof c === "string")
+    : [];
 
   return merged;
 }

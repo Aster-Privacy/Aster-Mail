@@ -23,7 +23,7 @@ import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
 import { useState, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Switch } from "@aster/ui";
+import { Badge, Switch } from "@aster/ui";
 import {
   BookOpenIcon,
   PencilSquareIcon,
@@ -33,6 +33,9 @@ import {
   Cog6ToothIcon,
   ShieldCheckIcon,
   ViewColumnsIcon,
+  LanguageIcon,
+  XMarkIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
@@ -66,6 +69,15 @@ import {
 } from "@/components/ui/alert_dialog";
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_register_search_items } from "@/components/settings/search_context";
+import {
+  SUPPORTED_LANGUAGES,
+  type LanguageCode,
+} from "@/services/translation/engine_types";
+import {
+  language_display_name,
+  derive_accepted_languages,
+} from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -157,6 +169,83 @@ function SelectSetting({
   );
 }
 
+interface LanguagePickerProps {
+  title: string;
+  description: string;
+  selected: readonly string[];
+  is_auto: boolean;
+  ui_locale: string;
+  add_label: string;
+  auto_label: string;
+  on_add: (code: string) => void;
+  on_remove: (code: string) => void;
+}
+
+function LanguagePicker({
+  title,
+  description,
+  selected,
+  is_auto,
+  ui_locale,
+  add_label,
+  auto_label,
+  on_add,
+  on_remove,
+}: LanguagePickerProps) {
+  const available = SUPPORTED_LANGUAGES.filter(
+    (code) => !selected.includes(code),
+  );
+  const display = (code: string) =>
+    language_display_name(code as LanguageCode, ui_locale);
+
+  return (
+    <div className="py-4">
+      <p className="text-sm font-medium text-txt-primary">{title}</p>
+      <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {selected.map((code) => (
+          <span
+            key={code}
+            className="inline-flex items-center gap-1.5 rounded-full border border-edge-primary bg-surf-tertiary pl-3 pr-1.5 py-1 text-sm font-medium text-txt-primary"
+          >
+            {display(code)}
+            <button
+              type="button"
+              onClick={() => on_remove(code)}
+              className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
+              aria-label={display(code)}
+            >
+              <XMarkIcon className="w-3.5 h-3.5" />
+            </button>
+          </span>
+        ))}
+
+        {available.length > 0 && (
+          <Select value="" onValueChange={(v) => v && on_add(v)}>
+            <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-dashed bg-transparent px-3 py-1 text-txt-secondary hover:text-txt-primary">
+              <span className="inline-flex items-center gap-1.5">
+                <PlusIcon className="w-3.5 h-3.5" />
+                {add_label}
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              {available.map((code) => (
+                <SelectItem key={code} value={code}>
+                  {display(code)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {is_auto && selected.length > 0 && (
+          <span className="text-xs text-txt-muted">{auto_label}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const UNDO_PRESET_SECONDS = [3, 5, 10, 15, 30] as const;
 const UNDO_MIN_SECONDS = 1;
 const UNDO_MAX_SECONDS = 30;
@@ -187,8 +276,65 @@ function clamp_undo_seconds(value: number): number {
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
-  const { t } = use_i18n();
+  const { t, language } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
+
+  use_register_search_items("behavior", [
+    {
+      label: t("settings.translate_incoming"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
+      keywords: ["translate", "translation", "language"],
+    },
+    {
+      label: t("settings.translate_my_languages"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
+      keywords: ["translate", "language"],
+    },
+    {
+      label: t("settings.translate_never_languages"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
+      keywords: ["translate", "language"],
+    },
+  ]);
+
+  const navigator_languages =
+    typeof navigator !== "undefined" ? (navigator.languages ?? []) : [];
+  const read_languages_auto = preferences.translate_languages.length === 0;
+  const read_languages = derive_accepted_languages(
+    preferences.translate_languages,
+    language,
+    navigator_languages,
+  );
+
+  const add_read_language = (code: string) => {
+    if (read_languages.includes(code as LanguageCode)) return;
+
+    update_preference("translate_languages", [...read_languages, code], true);
+  };
+
+  const remove_read_language = (code: string) => {
+    update_preference(
+      "translate_languages",
+      read_languages.filter((c) => c !== code),
+      true,
+    );
+  };
+
+  const add_never_language = (code: string) => {
+    const current = preferences.translate_never_languages;
+
+    if (current.includes(code)) return;
+
+    update_preference("translate_never_languages", [...current, code], true);
+  };
+
+  const remove_never_language = (code: string) => {
+    update_preference(
+      "translate_never_languages",
+      preferences.translate_never_languages.filter((c) => c !== code),
+      true,
+    );
+  };
   const [undo_input_value, set_undo_input_value] = useState<string | null>(
     null,
   );
@@ -426,6 +572,67 @@ export function BehaviorSection() {
           }
           title={t("settings.force_dark_mode_emails")}
         />
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <LanguageIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.translation")}
+            <Badge color="purple">{t("common.beta")}</Badge>
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <SelectSetting
+          description={t("settings.translate_incoming_description")}
+          info={{
+            title: t("settings.translate_incoming"),
+            description: t("settings.translate_incoming_info"),
+          }}
+          on_change={(v) =>
+            update_preference(
+              "translate_incoming",
+              v as "off" | "ask" | "always",
+              true,
+            )
+          }
+          options={[
+            { value: "off", label: t("settings.translate_off") },
+            { value: "ask", label: t("settings.translate_ask") },
+            { value: "always", label: t("settings.translate_always") },
+          ]}
+          title={t("settings.translate_incoming")}
+          value={preferences.translate_incoming}
+        />
+
+        {preferences.translate_incoming !== "off" && (
+          <>
+            <LanguagePicker
+              add_label={t("settings.translate_add_language")}
+              auto_label={t("settings.translate_auto_detected")}
+              description={t("settings.translate_my_languages_description")}
+              is_auto={read_languages_auto}
+              on_add={add_read_language}
+              on_remove={remove_read_language}
+              selected={read_languages}
+              title={t("settings.translate_my_languages")}
+              ui_locale={language}
+            />
+
+            <LanguagePicker
+              add_label={t("settings.translate_add_language")}
+              auto_label={t("settings.translate_auto_detected")}
+              description={t("settings.translate_never_languages_description")}
+              is_auto={false}
+              on_add={add_never_language}
+              on_remove={remove_never_language}
+              selected={preferences.translate_never_languages}
+              title={t("settings.translate_never_languages")}
+              ui_locale={language}
+            />
+          </>
+        )}
       </div>
 
       <div>

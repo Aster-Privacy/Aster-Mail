@@ -19,6 +19,8 @@ mail-v*.tar
 backend/.env
 backend/.env.*
 
+public/bergamot/models/
+
 memory.json
 
 !.vscode/extensions.json

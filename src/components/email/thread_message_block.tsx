@@ -86,6 +86,10 @@ import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
 import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banner";
+import { TranslationBanner } from "@/components/email/banners/translation_banner";
+import { use_email_translation } from "@/components/email/hooks/use_email_translation";
+import { analyze_email_content } from "@/lib/phishing_analyzer";
+import type { PhishingLevel } from "@/lib/phishing_analyzer";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
@@ -277,6 +281,63 @@ export function ThreadMessageBlock({
       is_ratchet_envelope(message.html_content));
   const rich_html_source = message.html_content || message.body;
   const is_plain_text = !rich_html_source || !has_rich_html(rich_html_source);
+
+  const translation_enabled = preferences.translate_incoming !== "off";
+
+  const [phishing_level, set_phishing_level] = useState<PhishingLevel>("safe");
+  const [phishing_checked, set_phishing_checked] = useState(false);
+
+  useEffect(() => {
+    if (!translation_enabled) {
+      set_phishing_level("safe");
+      set_phishing_checked(false);
+
+      return;
+    }
+
+    let cancelled = false;
+
+    set_phishing_level("safe");
+    set_phishing_checked(false);
+
+    analyze_email_content(
+      message.html_content ?? "",
+      message.body ?? "",
+      message.sender_name ?? "",
+      message.sender_email ?? "",
+      !is_system,
+    )
+      .then((result) => {
+        if (!cancelled) set_phishing_level(result.level);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) set_phishing_checked(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    translation_enabled,
+    message.id,
+    message.html_content,
+    message.body,
+    message.sender_name,
+    message.sender_email,
+    is_system,
+  ]);
+
+  const translation = use_email_translation({
+    email_id: message.id,
+    subject: message.subject ?? "",
+    translatable:
+      !is_ratchet_undecryptable &&
+      message.is_spam !== true &&
+      message.item_type !== "draft" &&
+      phishing_checked &&
+      phishing_level === "safe",
+  });
 
   useEffect(() => {
     if (is_ratchet_undecryptable) {
@@ -1248,6 +1309,20 @@ export function ThreadMessageBlock({
       )}
 
       <div className={`${is_plain_text || html_blocked ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
+        {!is_ratchet_undecryptable && (
+          <div
+            className={`min-w-0 ${is_plain_text || html_blocked ? "pr-4" : "pl-[52px] pr-4"}`}
+          >
+            <TranslationBanner
+              limited_quality={translation.limited_quality}
+              on_show_original={translation.show_original}
+              on_translate={translation.translate}
+              showing_original={translation.showing_original}
+              source_language={translation.source_language}
+              status={translation.status}
+            />
+          </div>
+        )}
         {is_ratchet_undecryptable ? (
           <p className="px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
@@ -1260,6 +1335,7 @@ export function ThreadMessageBlock({
             force_dark_mode={force_dark_mode}
             is_plain_text={html_blocked ? true : is_plain_text}
             load_remote_content={html_blocked ? false : load_remote_content}
+            on_document_ready={translation.on_document_ready}
             preserve_formatting={message.is_sending === true}
             sanitized_html={html_blocked ? (plain_text_html ?? "") : effective_html}
             set_wrap_source={set_wrap_source}

@@ -90,6 +90,10 @@ import { ViewSourceModal } from "@/components/modals/view_source_modal";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { SendingMessageBlock } from "@/components/email/sending_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
+import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
+import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
+import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { extract_email_details } from "@/services/extraction/extractor";
 
 let loaded_content_email_id: string | null = null;
 
@@ -1199,8 +1203,39 @@ export function ViewerThreadContent({
     [thread_draft?.id, thread_draft?.version, thread_draft?.reply_to_id, thread_draft?.content],
   );
 
+  const extraction = useMemo(
+    () =>
+      extract_email_details(
+        email.subject ?? "",
+        email.body ?? "",
+        email.html_content,
+        email.sender_email ?? "",
+        email.sender ?? "",
+      ),
+    [email.subject, email.body, email.html_content, email.sender_email, email.sender],
+  );
+
   return (
     <div className="mt-4">
+      {extraction.has_purchase_details && extraction.purchase && (
+        <PurchaseDetailsBanner
+          className="mx-3 @md:mx-4 mb-3"
+          details={extraction.purchase}
+        />
+      )}
+      {extraction.has_shipping_details && extraction.shipping && (
+        <ShippingDetailsBanner
+          className="mx-3 @md:mx-4 mb-3"
+          details={extraction.shipping}
+          sender_email={email.sender_email}
+          sender_name={email.sender}
+        />
+      )}
+      <CalendarInviteBanner
+        className="mx-3 @md:mx-4 mb-3"
+        body={email.body}
+        html_content={email.html_content}
+      />
       <ThreadMessagesList
         key={email.id}
         ref={thread_list_ref as React.Ref<ThreadMessagesListRef>}
