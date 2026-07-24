@@ -110,5 +110,5 @@ export const CARRIER_NAMES: Record<ShippingCarrier, string> = {
   amazon: "Amazon Logistics",
   ontrac: "OnTrac",
   lasership: "LaserShip",
-  other: "Carrier",
+  other: "",
 };

@@ -35,6 +35,7 @@ import {
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
 import { list_mail_items } from "@/services/api/mail";
+import type { MailItem } from "@/services/api/mail";
 import {
   base64_to_array,
   decrypt_envelope_with_bytes,
@@ -60,6 +61,47 @@ interface ScanEnvelope {
 
 const HASH_ALG = "SHA-256";
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
+const SCAN_COOLDOWN_MS = 5 * 60 * 1000;
+const DECRYPT_CONCURRENCY = 8;
+const SCAN_IDLE_TIMEOUT_MS = 10000;
+
+let scan_key_cache: {
+  identity_key: string;
+  keys: Map<string, CryptoKey>;
+} | null = null;
+
+async function get_envelope_key(
+  identity_key: string,
+  version: string,
+): Promise<CryptoKey> {
+  if (!scan_key_cache || scan_key_cache.identity_key !== identity_key) {
+    scan_key_cache = { identity_key, keys: new Map() };
+  }
+
+  const cached = scan_key_cache.keys.get(version);
+
+  if (cached) return cached;
+
+  const key_hash = await crypto.subtle.digest(
+    HASH_ALG,
+    new TextEncoder().encode(identity_key + version),
+  );
+  const crypto_key = await crypto.subtle.importKey(
+    "raw",
+    key_hash,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+
+  scan_key_cache.keys.set(version, crypto_key);
+
+  return crypto_key;
+}
+
+function clear_scan_key_cache(): void {
+  scan_key_cache = null;
+}
 
 async function try_decrypt_with_identity_key(
   encrypted: string,
@@ -70,18 +112,12 @@ async function try_decrypt_with_identity_key(
 
   for (const version of ENVELOPE_KEY_VERSIONS) {
     try {
-      const key_hash = await crypto.subtle.digest(
-        HASH_ALG,
-        new TextEncoder().encode(identity_key + version),
+      const crypto_key = await get_envelope_key(identity_key, version);
+      const decrypted = await decrypt_aes_gcm_with_fallback(
+        crypto_key,
+        encrypted_bytes,
+        nonce_bytes,
       );
-      const crypto_key = await crypto.subtle.importKey(
-        "raw",
-        key_hash,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
-      );
-      const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, encrypted_bytes, nonce_bytes);
 
       return JSON.parse(new TextDecoder().decode(decrypted));
     } catch {
@@ -244,6 +280,51 @@ function categorize_sender(
   return "unknown";
 }
 
+export function should_run_full_scan(
+  cached: SubscriptionCacheData | null,
+): boolean {
+  if (!cached) return true;
+
+  const has_watermark = !!(cached.last_scan_ts || cached.last_scan_message_ts);
+
+  return !has_watermark && cached.subscriptions.length === 0;
+}
+
+export interface ScanPageSelection {
+  fresh_items: MailItem[];
+  stop: boolean;
+}
+
+export function select_fresh_scan_items(
+  items: MailItem[],
+  last_scan_ts: string,
+  last_scan_message_ts: string,
+): ScanPageSelection {
+  if (!last_scan_ts) return { fresh_items: items, stop: false };
+
+  const fresh_items: MailItem[] = [];
+  let stop = false;
+
+  for (const item of items) {
+    const sort_ts = item.message_ts || item.created_at;
+
+    if (
+      last_scan_message_ts &&
+      sort_ts <= last_scan_message_ts &&
+      item.created_at <= last_scan_ts
+    ) {
+      stop = true;
+      break;
+    }
+
+    if (item.created_at > last_scan_ts) fresh_items.push(item);
+  }
+
+  if (!last_scan_message_ts && fresh_items.length === 0) stop = true;
+
+  return { fresh_items, stop };
+}
+
 async function run_background_scan(
   vault: NonNullable<ReturnType<typeof use_auth>["vault"]>,
 ): Promise<void> {
@@ -261,9 +342,13 @@ async function run_background_scan(
     }
   }
 
-  const should_full_scan = !cached || cached.subscriptions.length === 0;
+  const should_full_scan = should_run_full_scan(cached);
   const last_scan_ts = should_full_scan ? "" : cached?.last_scan_ts || "";
+  const last_scan_message_ts = should_full_scan
+    ? ""
+    : cached?.last_scan_message_ts || "";
   let max_processed_ts = "";
+  let max_processed_message_ts = "";
 
   const sender_counts = new Map<
     string,
@@ -283,6 +368,7 @@ async function run_background_scan(
 
   let cursor: string | undefined;
   let has_next = true;
+  let aborted = false;
 
   while (has_next) {
     const { data, error } = await list_mail_items({
@@ -291,25 +377,57 @@ async function run_background_scan(
       cursor,
     });
 
-    if (error || !data) break;
+    if (error || !data) {
+      aborted = true;
+      break;
+    }
 
     const { items, has_more, next_cursor } = data;
 
-    for (const item of items) {
-      if (last_scan_ts && item.created_at <= last_scan_ts) continue;
-      if (has_protected_folder_label(item.labels)) continue;
+    const { fresh_items, stop } = select_fresh_scan_items(
+      items,
+      last_scan_ts,
+      last_scan_message_ts,
+    );
 
+    const scannable = fresh_items.filter(
+      (item) => !has_protected_folder_label(item.labels),
+    );
+
+    for (const item of scannable) {
       if (item.created_at > max_processed_ts) {
         max_processed_ts = item.created_at;
       }
 
-      try {
-        const envelope = await decrypt_scan_envelope(
-          item.encrypted_envelope,
-          item.envelope_nonce,
-        );
+      const sort_ts = item.message_ts || item.created_at;
 
-        if (envelope?.from?.email) {
+      if (sort_ts > max_processed_message_ts) {
+        max_processed_message_ts = sort_ts;
+      }
+    }
+
+    for (
+      let start = 0;
+      start < scannable.length;
+      start += DECRYPT_CONCURRENCY
+    ) {
+      const batch = scannable.slice(start, start + DECRYPT_CONCURRENCY);
+      const envelopes = await Promise.all(
+        batch.map((item) =>
+          decrypt_scan_envelope(
+            item.encrypted_envelope,
+            item.envelope_nonce,
+          ).catch(() => null),
+        ),
+      );
+
+      for (let index = 0; index < batch.length; index++) {
+        const item = batch[index];
+        const envelope = envelopes[index];
+
+        try {
+          if (!envelope?.from?.email) continue;
+
           const email = envelope.from.email.toLowerCase();
 
           if (is_system_email(email)) continue;
@@ -375,13 +493,19 @@ async function run_background_scan(
               category,
             });
           }
+        } catch {
+          continue;
         }
-      } catch {}
+      }
     }
+
+    if (stop) break;
 
     has_next = has_more && !!next_cursor;
     cursor = next_cursor;
   }
+
+  if (aborted) return;
 
   for (const [email, sender] of sender_counts) {
     const has_unsub_mechanism =
@@ -433,6 +557,8 @@ async function run_background_scan(
   const new_cache: SubscriptionCacheData = {
     subscriptions: Array.from(existing_map.values()),
     last_scan_ts: max_processed_ts || cached?.last_scan_ts || "",
+    last_scan_message_ts:
+      max_processed_message_ts || cached?.last_scan_message_ts || "",
     version: SUBSCRIPTION_CACHE_VERSION,
   };
 
@@ -443,27 +569,55 @@ export function use_background_subscription_scan(): void {
   const { vault } = use_auth();
   const has_started_ref = useRef(false);
   const is_scanning_ref = useRef(false);
+  const last_scan_completed_at_ref = useRef(0);
 
-  const trigger_scan = useCallback(() => {
-    if (!vault || is_scanning_ref.current) return;
-    is_scanning_ref.current = true;
+  const trigger_scan = useCallback(
+    (respect_cooldown = false) => {
+      if (!vault || is_scanning_ref.current) return;
+      if (
+        respect_cooldown &&
+        last_scan_completed_at_ref.current > 0 &&
+        Date.now() - last_scan_completed_at_ref.current < SCAN_COOLDOWN_MS
+      ) {
+        return;
+      }
+      is_scanning_ref.current = true;
 
-    run_background_scan(vault)
-      .catch(() => {})
-      .finally(() => {
-        is_scanning_ref.current = false;
-      });
-  }, [vault]);
+      run_background_scan(vault)
+        .catch(() => {})
+        .finally(() => {
+          clear_scan_key_cache();
+          is_scanning_ref.current = false;
+          last_scan_completed_at_ref.current = Date.now();
+        });
+    },
+    [vault],
+  );
 
   useEffect(() => {
     if (!vault) return;
     if (has_started_ref.current) return;
     has_started_ref.current = true;
 
-    const timeout_id = setTimeout(trigger_scan, 3000);
+    let idle_handle: number | null = null;
+
+    const timeout_id = setTimeout(() => {
+      if (typeof requestIdleCallback === "function") {
+        idle_handle = requestIdleCallback(() => trigger_scan(), {
+          timeout: SCAN_IDLE_TIMEOUT_MS,
+        });
+
+        return;
+      }
+
+      trigger_scan();
+    }, 3000);
 
     return () => {
       clearTimeout(timeout_id);
+      if (idle_handle !== null && typeof cancelIdleCallback === "function") {
+        cancelIdleCallback(idle_handle);
+      }
     };
   }, [vault, trigger_scan]);
 
@@ -474,7 +628,7 @@ export function use_background_subscription_scan(): void {
 
     const handle_new_email = () => {
       if (scan_timeout) clearTimeout(scan_timeout);
-      scan_timeout = setTimeout(trigger_scan, 5000);
+      scan_timeout = setTimeout(() => trigger_scan(true), 5000);
     };
 
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_new_email);

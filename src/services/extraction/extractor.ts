@@ -41,6 +41,24 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   A$: "AUD",
 };
 
+const CURRENCY_TO_SYMBOL: Record<string, string> = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  INR: "₹",
+  CAD: "C$",
+  AUD: "A$",
+};
+
+function currency_symbol(currency: string): string {
+  return CURRENCY_TO_SYMBOL[currency] ?? currency;
+}
+
+function escape_regex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 const ORDER_ID_PATTERNS = [
   /order\s*(?:#|number|id)?[:\s]*([A-Z0-9][\w-]{5,30})/i,
   /order[:\s]+([0-9]{3}-[0-9]{7}-[0-9]{7})/i,
@@ -53,39 +71,34 @@ const ORDER_ID_PATTERNS = [
 const AMOUNT_PATTERN =
   /([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?\s*([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)\s*([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?/;
 
-const TRACKING_PATTERNS: { carrier: ShippingCarrier; patterns: RegExp[] }[] = [
-  {
-    carrier: "ups",
-    patterns: [/\b(1Z[A-Z0-9]{16})\b/i, /\b(T\d{10})\b/, /\b(\d{18})\b/],
-  },
-  {
-    carrier: "fedex",
-    patterns: [
-      /\b(\d{12,22})\b/,
-      /\b(\d{15})\b/,
-      /\b(96\d{20})\b/,
-      /\b(DT\d{12})\b/i,
-    ],
-  },
+const STRONG_TRACKING_PATTERNS: {
+  carrier: ShippingCarrier;
+  patterns: RegExp[];
+}[] = [
+  { carrier: "ups", patterns: [/\b(1Z[A-Z0-9]{16})\b/i] },
+  { carrier: "fedex", patterns: [/\b(96\d{20})\b/, /\b(DT\d{12})\b/i] },
   {
     carrier: "usps",
     patterns: [
       /\b(94\d{20,22})\b/,
       /\b(92\d{20,22})\b/,
       /\b(93\d{20,22})\b/,
-      /\b([A-Z]{2}\d{9}US)\b/i,
       /\b(420\d{27,31})\b/,
+      /\b([A-Z]{2}\d{9}US)\b/i,
     ],
   },
-  {
-    carrier: "dhl",
-    patterns: [/\b(\d{10,11})\b/, /\b([A-Z]{3}\d{7})\b/i, /\b(JD\d{18})\b/i],
-  },
-  {
-    carrier: "amazon",
-    patterns: [/\b(TBA\d{12,15})\b/i, /\b(AMZN_US\(\w+\))\b/i],
-  },
+  { carrier: "dhl", patterns: [/\b(JD\d{18})\b/i] },
+  { carrier: "amazon", patterns: [/\b(TBA\d{12,15})\b/i] },
 ];
+
+const WEAK_TRACKING_PATTERNS: Partial<Record<ShippingCarrier, RegExp[]>> = {
+  ups: [/\b(T\d{10})\b/, /\b(\d{18})\b/],
+  fedex: [/\b(\d{15})\b/, /\b(\d{12,22})\b/],
+  dhl: [/\b([A-Z]{3}\d{7})\b/i, /\b(\d{10,11})\b/],
+};
+
+const TRACKING_CONTEXT_KEYWORDS =
+  /(tracking\s*(?:number|no|#)|track\s+your|sendungsnummer|numero?\s+de\s+(?:suivi|seguimiento)|suivi|seguimiento|waybill|consignment)/gi;
 
 const CARRIER_DOMAIN_MAP: Record<string, ShippingCarrier> = {
   "ups.com": "ups",
@@ -126,7 +139,7 @@ function parse_amount(text: string): ExtractedAmount | null {
   return {
     value,
     currency,
-    formatted: `${symbol}${value.toFixed(2)}`,
+    formatted: `${currency_symbol(currency)}${value.toFixed(2)}`,
   };
 }
 
@@ -163,7 +176,9 @@ function detect_carrier_from_email(
   const combined = `${subject} ${body}`.toLowerCase();
 
   for (const [name, carrier] of Object.entries(CARRIER_NAME_MAP)) {
-    if (combined.includes(name)) {
+    const boundary = new RegExp(`\\b${escape_regex(name)}\\b`);
+
+    if (boundary.test(combined)) {
       return carrier;
     }
   }
@@ -171,41 +186,92 @@ function detect_carrier_from_email(
   return null;
 }
 
+function match_first_pattern(patterns: RegExp[], text: string): string | null {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+
+    if (match) {
+      return match[1];
+    }
+  }
+
+  return null;
+}
+
+function strong_patterns_for(carrier: ShippingCarrier): RegExp[] {
+  return (
+    STRONG_TRACKING_PATTERNS.find((p) => p.carrier === carrier)?.patterns ?? []
+  );
+}
+
+function tracking_context_windows(body: string): string[] {
+  const windows: string[] = [];
+
+  TRACKING_CONTEXT_KEYWORDS.lastIndex = 0;
+
+  let match: RegExpExecArray | null;
+
+  while ((match = TRACKING_CONTEXT_KEYWORDS.exec(body)) !== null) {
+    windows.push(body.slice(match.index, match.index + 140));
+
+    if (windows.length >= 25) break;
+  }
+
+  return windows;
+}
+
 function extract_tracking_number(
   body: string,
   carrier: ShippingCarrier | null,
+  tracking_url: string | null,
 ): { number: string; carrier: ShippingCarrier } | null {
+  if (tracking_url) {
+    if (carrier) {
+      const from_url = match_first_pattern(
+        strong_patterns_for(carrier),
+        tracking_url,
+      );
+
+      if (from_url) return { number: from_url, carrier };
+    }
+
+    for (const { carrier: c, patterns } of STRONG_TRACKING_PATTERNS) {
+      const from_url = match_first_pattern(patterns, tracking_url);
+
+      if (from_url) return { number: from_url, carrier: c };
+    }
+  }
+
   if (carrier) {
-    const carrier_patterns = TRACKING_PATTERNS.find(
-      (p) => p.carrier === carrier,
-    );
+    const own_strong = match_first_pattern(strong_patterns_for(carrier), body);
 
-    if (carrier_patterns) {
-      for (const pattern of carrier_patterns.patterns) {
-        const match = body.match(pattern);
+    if (own_strong) return { number: own_strong, carrier };
+  }
 
-        if (match) {
-          return { number: match[1], carrier };
-        }
+  for (const { carrier: c, patterns } of STRONG_TRACKING_PATTERNS) {
+    const cross_strong = match_first_pattern(patterns, body);
+
+    if (cross_strong) return { number: cross_strong, carrier: c };
+  }
+
+  if (carrier) {
+    const weak = WEAK_TRACKING_PATTERNS[carrier];
+
+    if (weak) {
+      for (const window of tracking_context_windows(body)) {
+        const weak_match = match_first_pattern(weak, window);
+
+        if (weak_match) return { number: weak_match, carrier };
       }
     }
   }
 
-  for (const { carrier: c, patterns } of TRACKING_PATTERNS) {
-    for (const pattern of patterns) {
-      const match = body.match(pattern);
+  const generic_pattern =
+    /(?:tracking|sendungsnummer|suivi|seguimiento)\s*(?:#|number|no\.?|nummer)?\s*[:\s]\s*([A-Z0-9]{8,35})/i;
+  const generic = body.match(generic_pattern);
 
-      if (match) {
-        return { number: match[1], carrier: c };
-      }
-    }
-  }
-
-  const generic_pattern = /tracking\s*(?:#|number)?[:\s]*([A-Z0-9]{10,30})/i;
-  const match = body.match(generic_pattern);
-
-  if (match) {
-    return { number: match[1], carrier: "other" };
+  if (generic) {
+    return { number: generic[1], carrier: carrier ?? "other" };
   }
 
   return null;
@@ -239,15 +305,14 @@ function extract_tracking_url(
 }
 
 function detect_shipping_status(subject: string, body: string): ShippingStatus {
+  const subj = subject.toLowerCase();
   const combined = `${subject} ${body}`.toLowerCase();
 
-  if (
-    combined.includes("delivered") ||
-    combined.includes("was delivered") ||
-    combined.includes("has been delivered")
-  ) {
-    return "delivered";
-  }
+  const future_deliver =
+    /\b(?:will be|to be|expected|estimated|scheduled|being)\s+deliver/;
+  const strong_past_deliver =
+    /\b(?:was|has been|have been|been|successfully)\s+delivered\b/;
+  const delivered_on = /\bdelivered\s+(?:on|to|at)\b/;
 
   if (
     combined.includes("out for delivery") ||
@@ -257,34 +322,46 @@ function detect_shipping_status(subject: string, body: string): ShippingStatus {
   }
 
   if (
+    /\b(?:delivery exception|delivery attempt|could not be delivered|unable to deliver|delivery failed)\b/.test(
+      combined,
+    )
+  ) {
+    return "exception";
+  }
+
+  if (
+    strong_past_deliver.test(combined) ||
+    (delivered_on.test(combined) && !future_deliver.test(combined)) ||
+    (subj.includes("delivered") && !future_deliver.test(subj))
+  ) {
+    return "delivered";
+  }
+
+  if (
     combined.includes("in transit") ||
     combined.includes("on the way") ||
-    combined.includes("on its way")
+    combined.includes("on its way") ||
+    combined.includes("en route")
   ) {
     return "in_transit";
   }
 
   if (
-    combined.includes("shipped") ||
-    combined.includes("has shipped") ||
-    combined.includes("was shipped")
-  ) {
-    return "shipped";
-  }
-
-  if (
     combined.includes("label created") ||
-    combined.includes("shipping label")
+    combined.includes("shipping label") ||
+    combined.includes("preparing to ship")
   ) {
     return "label_created";
   }
 
   if (
-    combined.includes("delivery exception") ||
-    combined.includes("delivery attempt") ||
-    combined.includes("could not be delivered")
+    combined.includes("has shipped") ||
+    combined.includes("have shipped") ||
+    combined.includes("was shipped") ||
+    combined.includes("order has been shipped") ||
+    combined.includes("shipped")
   ) {
-    return "exception";
+    return "shipped";
   }
 
   return "unknown";
@@ -316,11 +393,12 @@ function extract_items_from_body(body: string): ExtractedItem[] {
 
     while ((match = pattern.exec(body)) !== null) {
       const [, qty_or_name, name_or_qty, price_str] = match;
-      const qty = parseInt(qty_or_name, 10);
-      const is_qty_first = !isNaN(qty);
+      const is_qty_first = /^\d+$/.test((qty_or_name ?? "").trim());
 
       const item_name = is_qty_first ? name_or_qty : qty_or_name;
-      const quantity = is_qty_first ? qty : parseInt(name_or_qty, 10) || 1;
+      const quantity = is_qty_first
+        ? parseInt(qty_or_name, 10)
+        : parseInt(name_or_qty ?? "", 10) || 1;
       const unit_price = parse_amount(price_str);
 
       if (item_name && item_name.length > 2 && item_name.length < 200) {
@@ -332,7 +410,7 @@ function extract_items_from_body(body: string): ExtractedItem[] {
             ? {
                 ...unit_price,
                 value: unit_price.value * quantity,
-                formatted: `${unit_price.currency === "USD" ? "$" : unit_price.currency}${(unit_price.value * quantity).toFixed(2)}`,
+                formatted: `${currency_symbol(unit_price.currency)}${(unit_price.value * quantity).toFixed(2)}`,
               }
             : null,
         });
@@ -345,9 +423,11 @@ function extract_items_from_body(body: string): ExtractedItem[] {
 
 function extract_merchant_name(from_email: string, from_name: string): string {
   if (from_name && !from_name.toLowerCase().includes("noreply")) {
-    return from_name
-      .replace(/\s*(order|shipping|notification|update)s?\s*/gi, "")
+    const stripped = from_name
+      .replace(/(?:\s+(?:order|shipping|notification|update)s?)+\s*$/i, "")
       .trim();
+
+    return stripped || from_name.trim();
   }
 
   const domain = from_email.split("@")[1];
@@ -484,13 +564,13 @@ export function extract_shipping_details(
 
   if (carrier) signals.push(`carrier:${carrier}`);
 
-  const tracking_result = extract_tracking_number(body, carrier);
+  let tracking_url = extract_tracking_url(body, html);
+
+  const tracking_result = extract_tracking_number(body, carrier, tracking_url);
   const tracking_number = tracking_result?.number || null;
   const detected_carrier = tracking_result?.carrier || carrier;
 
   if (tracking_number) signals.push(`tracking:${tracking_number}`);
-
-  let tracking_url = extract_tracking_url(body, html);
 
   if (!tracking_url && tracking_number && detected_carrier) {
     const base_url = CARRIER_TRACKING_URLS[detected_carrier];
