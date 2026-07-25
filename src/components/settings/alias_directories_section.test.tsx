@@ -317,6 +317,14 @@ describe("AliasDirectoriesSection availability", () => {
       "settings.recently_deleted_directories_title",
     );
   });
+
+  it("keeps the key input wide enough to read and lets the row wrap", () => {
+    const input = container.querySelector("input") as HTMLInputElement;
+
+    expect(input.className).toContain("min-w-[180px]");
+    expect(input.className).not.toContain("min-w-0");
+    expect(input.parentElement?.className).toContain("flex-wrap");
+  });
 });
 
 describe("AliasDirectoriesSection recently deleted", () => {
