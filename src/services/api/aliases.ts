@@ -44,6 +44,7 @@ export interface EmailAlias {
   is_enabled: boolean;
   is_random: boolean;
   is_pinned?: boolean;
+  never_inbox?: boolean;
   profile_picture?: string;
   encrypted_note?: string;
   note_nonce?: string;
@@ -66,6 +67,7 @@ export interface DecryptedEmailAlias {
   is_enabled: boolean;
   is_random: boolean;
   is_pinned?: boolean;
+  never_inbox?: boolean;
   decryption_failed?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
@@ -104,6 +106,7 @@ export interface UpdateAliasRequest {
   encrypted_display_name?: string;
   display_name_nonce?: string;
   is_enabled?: boolean;
+  never_inbox?: boolean;
   profile_picture?: string | null;
   encrypted_local_part?: string;
   local_part_nonce?: string;
@@ -351,6 +354,7 @@ export async function decrypt_alias(
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
+      never_inbox: alias.never_inbox ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -412,6 +416,7 @@ export async function decrypt_alias(
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
+      never_inbox: alias.never_inbox ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -427,6 +432,7 @@ export async function decrypt_alias(
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
+      never_inbox: alias.never_inbox ?? false,
       decryption_failed: true,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
@@ -436,7 +442,7 @@ export async function decrypt_alias(
   }
 }
 
-const DECRYPT_BATCH_SIZE = 25;
+const DECRYPT_BATCH_SIZE = 100;
 
 export async function decrypt_aliases(
   aliases: EmailAlias[],
@@ -480,8 +486,21 @@ export async function list_aliases(params?: {
   return api_client.get<AliasListResponse>(endpoint);
 }
 
-const ALIAS_FETCH_PAGE_SIZE = 100;
+const ALIAS_FETCH_PAGE_SIZE = 1000;
 const ALIAS_FETCH_MAX_PAGES = 100;
+
+async function fetch_alias_page_with_retry(
+  limit: number,
+  offset: number,
+): Promise<AliasListResponse | null> {
+  const first_attempt = await list_aliases({ limit, offset });
+
+  if (first_attempt.data) return first_attempt.data;
+
+  const second_attempt = await list_aliases({ limit, offset });
+
+  return second_attempt.data ?? null;
+}
 
 export async function list_all_aliases(): Promise<{
   aliases: EmailAlias[];
@@ -489,33 +508,55 @@ export async function list_all_aliases(): Promise<{
   total: number;
   error?: string;
 }> {
-  const aliases: EmailAlias[] = [];
-  let offset = 0;
-  let max_aliases = 0;
-  let total = 0;
-  let received_any = false;
+  const first_response = await list_aliases({
+    limit: ALIAS_FETCH_PAGE_SIZE,
+    offset: 0,
+  });
 
-  for (let page = 0; page < ALIAS_FETCH_MAX_PAGES; page++) {
-    const response = await list_aliases({
-      limit: ALIAS_FETCH_PAGE_SIZE,
-      offset,
-    });
+  if (!first_response.data) {
+    return {
+      aliases: [],
+      max_aliases: 0,
+      total: 0,
+      error: first_response.error,
+    };
+  }
 
-    if (!response.data) {
-      if (received_any) break;
+  const first_page = first_response.data;
+  const aliases = [...first_page.aliases];
+  const max_aliases = first_page.max_aliases;
+  const total = first_page.total;
 
-      return { aliases, max_aliases, total, error: response.error };
+  if (!first_page.has_more || first_page.aliases.length === 0) {
+    return { aliases, max_aliases, total };
+  }
+
+  const effective_page_size = first_page.aliases.length;
+  const remaining = Math.max(0, total - effective_page_size);
+  const remaining_pages = Math.min(
+    Math.ceil(remaining / effective_page_size),
+    ALIAS_FETCH_MAX_PAGES - 1,
+  );
+
+  const page_results = await Promise.all(
+    Array.from({ length: remaining_pages }, (_, i) =>
+      fetch_alias_page_with_retry(
+        effective_page_size,
+        effective_page_size * (i + 1),
+      ),
+    ),
+  );
+
+  const seen_ids = new Set(aliases.map((a) => a.id));
+
+  for (const page of page_results) {
+    if (!page) continue;
+
+    for (const alias of page.aliases) {
+      if (seen_ids.has(alias.id)) continue;
+      seen_ids.add(alias.id);
+      aliases.push(alias);
     }
-
-    const data = response.data;
-
-    received_any = true;
-    max_aliases = data.max_aliases;
-    total = data.total;
-    aliases.push(...data.aliases);
-
-    if (!data.has_more || data.aliases.length === 0) break;
-    offset += ALIAS_FETCH_PAGE_SIZE;
   }
 
   return { aliases, max_aliases, total };
@@ -576,6 +617,7 @@ export async function update_alias(
   updates: {
     display_name?: string;
     is_enabled?: boolean;
+    never_inbox?: boolean;
     profile_picture?: string | null;
     note?: string | null;
     websites?: string[] | null;
@@ -594,6 +636,10 @@ export async function update_alias(
 
   if (updates.is_enabled !== undefined) {
     request.is_enabled = updates.is_enabled;
+  }
+
+  if (updates.never_inbox !== undefined) {
+    request.never_inbox = updates.never_inbox;
   }
 
   if (updates.profile_picture !== undefined) {
