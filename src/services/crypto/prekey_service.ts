@@ -88,6 +88,94 @@ async function load_taken_key_ids(): Promise<Set<number>> {
   }
 }
 
+async function pending_rollback_storage_key(): Promise<string | null> {
+  try {
+    const { get_current_account_id } = await import(
+      "@/services/account_manager"
+    );
+    const uid = await get_current_account_id();
+
+    return uid ? `aster_pq_pending_rollback:${uid}` : null;
+  } catch {
+    return null;
+  }
+}
+
+async function queue_pending_rollback(ids: number[]): Promise<void> {
+  if (ids.length === 0) {
+    return;
+  }
+
+  const key = await pending_rollback_storage_key();
+  if (!key) {
+    return;
+  }
+
+  try {
+    const existing: number[] = JSON.parse(localStorage.getItem(key) || "[]");
+    const merged = Array.from(new Set([...existing, ...ids]));
+    localStorage.setItem(key, JSON.stringify(merged));
+  } catch {
+    return;
+  }
+}
+
+async function drain_pending_rollbacks(): Promise<void> {
+  if (is_pq_upload_rate_limited()) {
+    return;
+  }
+
+  const key = await pending_rollback_storage_key();
+  if (!key) {
+    return;
+  }
+
+  let ids: number[] = [];
+  try {
+    ids = JSON.parse(localStorage.getItem(key) || "[]");
+  } catch {
+    localStorage.removeItem(key);
+
+    return;
+  }
+
+  if (ids.length === 0) {
+    return;
+  }
+
+  const failed: number[] = [];
+  for (const id of ids) {
+    const ok = await delete_pq_secret(id);
+    if (!ok) {
+      failed.push(id);
+    }
+  }
+
+  if (failed.length > 0) {
+    localStorage.setItem(key, JSON.stringify(failed));
+  } else {
+    localStorage.removeItem(key);
+  }
+}
+
+async function rollback_persisted_secrets(ids: number[]): Promise<void> {
+  if (is_pq_upload_rate_limited()) {
+    await queue_pending_rollback(ids);
+
+    return;
+  }
+
+  const failed: number[] = [];
+  for (const id of ids) {
+    const ok = await delete_pq_secret(id);
+    if (!ok) {
+      failed.push(id);
+    }
+  }
+
+  await queue_pending_rollback(failed);
+}
+
 function generate_ml_kem_keypairs(count: number): {
   public_keys: Uint8Array[];
   secret_keys: Uint8Array[];
@@ -184,6 +272,8 @@ export async function generate_and_upload_prekeys(
   last_replenishment_time = now;
 
   try {
+    await drain_pending_rollbacks();
+
     const taken = await load_taken_key_ids();
     const otp = generate_one_time_prekeys(ONE_TIME_PREKEY_BATCH_SIZE, taken);
     const pq = generate_pq_prekeys(PQ_PREKEY_BATCH_SIZE, taken);
@@ -218,27 +308,15 @@ export async function generate_and_upload_prekeys(
     }
 
     if (!persistence_ok) {
-      if (!is_pq_upload_rate_limited()) {
-        for (const id of persisted_otp_ids) {
-          await delete_pq_secret(id);
-        }
-        for (const id of persisted_pq_ids) {
-          await delete_pq_secret(id);
-        }
-      }
+      await rollback_persisted_secrets([...persisted_otp_ids, ...persisted_pq_ids]);
 
       return false;
     }
 
     const success = await upload_prekeys(otp.prekeys, pq.prekeys);
 
-    if (!success && !is_pq_upload_rate_limited()) {
-      for (const id of persisted_otp_ids) {
-        await delete_pq_secret(id);
-      }
-      for (const id of persisted_pq_ids) {
-        await delete_pq_secret(id);
-      }
+    if (!success) {
+      await rollback_persisted_secrets([...persisted_otp_ids, ...persisted_pq_ids]);
     }
 
     return success;

@@ -434,11 +434,15 @@ async function fetch_pq_secret_from_server(
   }
 }
 
-async function delete_pq_secret_on_server(key_id: number): Promise<void> {
+async function delete_pq_secret_on_server(key_id: number): Promise<boolean> {
   try {
-    await api_client.delete(`/crypto/v1/ratchet/pq-secret/${key_id}`);
+    const response = await api_client.delete(
+      `/crypto/v1/ratchet/pq-secret/${key_id}`,
+    );
+
+    return !response.error;
   } catch {
-    /* best-effort */
+    return false;
   }
 }
 
@@ -592,7 +596,7 @@ export async function load_pq_secret(
   }
 }
 
-export async function delete_pq_secret(key_id: number): Promise<void> {
+export async function delete_pq_secret(key_id: number): Promise<boolean> {
   try {
     const storage_key = await get_storage_key();
     const uid = await current_account_uid();
@@ -609,7 +613,7 @@ export async function delete_pq_secret(key_id: number): Promise<void> {
     /* fall through */
   }
 
-  await delete_pq_secret_on_server(key_id);
+  return delete_pq_secret_on_server(key_id);
 }
 
 export async function backfill_pq_secrets_to_server(): Promise<void> {
