@@ -214,6 +214,8 @@ export const fr = {
     lock: "Verrouiller",
     remove_lock: "Retirer le verrou",
     create_subfolder: "Créer un sous-dossier",
+    mute_notifications: "Désactiver les notifications",
+    unmute_notifications: "Réactiver les notifications",
     new_message: "Nouveau message",
     expand: "Agrandir",
     minimize: "Réduire",

@@ -210,6 +210,8 @@ export const de = {
     lock: "Sperren",
     remove_lock: "Sperre entfernen",
     create_subfolder: "Unterordner erstellen",
+    mute_notifications: "Benachrichtigungen stummschalten",
+    unmute_notifications: "Stummschaltung aufheben",
     new_message: "Neue Nachricht",
     expand: "Erweitern",
     minimize: "Minimieren",

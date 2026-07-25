@@ -190,6 +190,7 @@ export interface UserPreferences {
   translate_incoming: "off" | "ask" | "always";
   translate_languages: string[];
   translate_never_languages: string[];
+  muted_folder_tokens: string[];
 }
 
 export async function sync_quiet_hours_to_server(
@@ -505,6 +506,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   translate_incoming: "off",
   translate_languages: [],
   translate_never_languages: [],
+  muted_folder_tokens: [],
 };
 
 type GetPreferencesViaHttpResult =
@@ -626,6 +628,9 @@ export function build_merged_preferences(
     merged.translate_never_languages,
   )
     ? merged.translate_never_languages.filter((c) => typeof c === "string")
+    : [];
+  merged.muted_folder_tokens = Array.isArray(merged.muted_folder_tokens)
+    ? merged.muted_folder_tokens.filter((c) => typeof c === "string")
     : [];
 
   return merged;

@@ -155,6 +155,8 @@ export const nl = {
     undo: "Ongedaan maken",
     send_now: "Nu verzenden",
     create_subfolder: "Create Subfolder",
+    mute_notifications: "Meldingen dempen",
+    unmute_notifications: "Dempen opheffen",
     remove_lock: "Remove Lock",
     lock: "Lock",
     change_color: "Change color",

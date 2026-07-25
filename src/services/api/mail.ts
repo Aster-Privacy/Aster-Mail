@@ -149,7 +149,7 @@ export interface MailItemFolderRequest {
 }
 
 export interface MailItemFoldersResponse {
-  folders: string[];
+  labels: string[];
 }
 
 export type MailItemLabelRequest = MailItemFolderRequest;

@@ -158,6 +158,8 @@ export const es = {
     undo: "Deshacer",
     send_now: "Enviar ahora",
     create_subfolder: "Crear subcarpeta",
+    mute_notifications: "Silenciar notificaciones",
+    unmute_notifications: "Activar notificaciones",
     remove_lock: "Quitar bloqueo",
     lock: "Bloquear",
     change_color: "Cambiar color",

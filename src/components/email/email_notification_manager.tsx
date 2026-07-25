@@ -30,6 +30,31 @@ import {
 import { subscribe_to_push } from "@/services/push_subscription";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_lockdown_enabled } from "@/services/lockdown_store";
+import { get_mail_item_folders } from "@/services/api/mail";
+
+async function is_email_in_muted_folder(
+  email_id: string,
+  muted_folder_tokens: string[],
+): Promise<boolean> {
+  if (!email_id || muted_folder_tokens.length === 0) {
+    return false;
+  }
+
+  try {
+    const response = await get_mail_item_folders(email_id);
+    const folder_tokens = response.data?.labels;
+
+    if (!folder_tokens || folder_tokens.length === 0) {
+      return false;
+    }
+
+    const muted = new Set(muted_folder_tokens);
+
+    return folder_tokens.some((token) => muted.has(token));
+  } catch {
+    return false;
+  }
+}
 
 function is_tauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -73,17 +98,28 @@ export function EmailNotificationManager() {
       const detail = (event as CustomEvent).detail;
       const email_id = detail?.email_id || "";
 
-      show_notification(
-        "new_email",
-        {
-          title: t("common.aster_mail"),
-          body: t("common.new_email_body"),
-          tag: `email-${email_id}`,
-          data: email_id ? { email_id } : undefined,
-        },
-        preferences,
-        is_lockdown_enabled(current_account_id ?? ""),
-      );
+      void (async () => {
+        const muted = await is_email_in_muted_folder(
+          email_id,
+          preferences.muted_folder_tokens ?? [],
+        );
+
+        if (muted) {
+          return;
+        }
+
+        show_notification(
+          "new_email",
+          {
+            title: t("common.aster_mail"),
+            body: t("common.new_email_body"),
+            tag: `email-${email_id}`,
+            data: email_id ? { email_id } : undefined,
+          },
+          preferences,
+          is_lockdown_enabled(current_account_id ?? ""),
+        );
+      })();
     };
 
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handler);

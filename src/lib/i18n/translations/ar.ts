@@ -156,6 +156,8 @@ export const ar = {
     undo: "تراجع",
     send_now: "إرسال الآن",
     create_subfolder: "إنشاء مجلد فرعي",
+    mute_notifications: "كتم الإشعارات",
+    unmute_notifications: "إلغاء كتم الإشعارات",
     remove_lock: "إزالة القفل",
     lock: "قفل",
     change_color: "تغيير اللون",

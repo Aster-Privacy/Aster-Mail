@@ -1091,6 +1091,8 @@ export const pt = {
     files_protected_in_transit:
       "Estes arquivos foram protegidos e criptografados em trânsito.",
     create_subfolder: "Criar subpasta",
+    mute_notifications: "Silenciar notificações",
+    unmute_notifications: "Reativar notificações",
     remove_lock: "Remover bloqueio",
     lock: "Bloquear",
     change_color: "Alterar cor",

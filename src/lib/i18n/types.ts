@@ -624,6 +624,8 @@ export interface CommonTranslations {
   undo: string;
   send_now: string;
   create_subfolder: string;
+  mute_notifications: string;
+  unmute_notifications: string;
   remove_lock: string;
   lock: string;
   change_color: string;

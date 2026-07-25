@@ -22,6 +22,8 @@ import {
   ArrowDownIcon,
   ArrowRightIcon,
   ArrowUpIcon,
+  BellIcon,
+  BellSlashIcon,
   FolderIcon,
   FolderPlusIcon,
   LockClosedIcon,
@@ -37,9 +39,11 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context_menu";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 
 interface FolderContextMenuProps {
   children: React.ReactNode;
+  folder_token?: string;
   folder_color: string;
   password_set: boolean;
   can_have_children?: boolean;
@@ -57,6 +61,7 @@ interface FolderContextMenuProps {
 
 export function FolderContextMenu({
   children,
+  folder_token,
   folder_color,
   password_set,
   can_have_children,
@@ -72,6 +77,20 @@ export function FolderContextMenu({
   can_move_down,
 }: FolderContextMenuProps): React.ReactElement {
   const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
+
+  const muted_tokens = preferences.muted_folder_tokens ?? [];
+  const is_muted = folder_token ? muted_tokens.includes(folder_token) : false;
+
+  const toggle_notifications = () => {
+    if (!folder_token) return;
+
+    const next = is_muted
+      ? muted_tokens.filter((token) => token !== folder_token)
+      : [...muted_tokens, folder_token];
+
+    update_preference("muted_folder_tokens", next, true);
+  };
 
   return (
     <ContextMenu>
@@ -104,6 +123,22 @@ export function FolderContextMenu({
           />
           {t("common.change_color")}
         </ContextMenuItem>
+
+        {folder_token && (
+          <ContextMenuItem
+            data-testid="folder-menu-toggle-notifications"
+            onClick={toggle_notifications}
+          >
+            {is_muted ? (
+              <BellIcon className="mr-2 h-4 w-4" />
+            ) : (
+              <BellSlashIcon className="mr-2 h-4 w-4" />
+            )}
+            {is_muted
+              ? t("common.unmute_notifications")
+              : t("common.mute_notifications")}
+          </ContextMenuItem>
+        )}
 
         {on_move && (
           <ContextMenuItem onClick={on_move}>

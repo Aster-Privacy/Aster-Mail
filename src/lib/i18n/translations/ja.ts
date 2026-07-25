@@ -156,6 +156,8 @@ export const ja = {
     undo: "元に戻す",
     send_now: "今すぐ送信",
     create_subfolder: "サブフォルダを作成",
+    mute_notifications: "通知をミュート",
+    unmute_notifications: "ミュートを解除",
     remove_lock: "ロックを解除",
     lock: "ロック",
     change_color: "色を変更",
