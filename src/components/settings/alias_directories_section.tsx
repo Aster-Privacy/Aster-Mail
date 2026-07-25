@@ -54,7 +54,7 @@ import {
 } from "@/components/auth/turnstile_widget";
 
 const INPUT_CLASS =
-  "flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
+  "flex-1 min-w-[180px] h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
 
 export function AliasDirectoriesSection() {
   const { t } = use_i18n();
@@ -263,7 +263,7 @@ export function AliasDirectoriesSection() {
       ) : (
         <>
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm text-txt-muted">@</span>
               <input
                 className={INPUT_CLASS}
