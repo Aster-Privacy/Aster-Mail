@@ -165,6 +165,8 @@ export const it = {
     undo: "Annulla",
     send_now: "Invia adesso",
     create_subfolder: "Crea sottocartella",
+    mute_notifications: "Silenzia notifiche",
+    unmute_notifications: "Riattiva notifiche",
     remove_lock: "Rimuovi blocco",
     lock: "Blocca",
     change_color: "Cambia colore",

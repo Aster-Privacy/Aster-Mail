@@ -41,6 +41,13 @@ vi.mock("@/hooks/use_protected_folder", () => ({
   is_folder_unlocked: () => true,
 }));
 
+vi.mock("@/contexts/preferences_context", () => ({
+  use_preferences: () => ({
+    preferences: { muted_folder_tokens: [] },
+    update_preference: () => {},
+  }),
+}));
+
 import { SidebarFolders } from "./sidebar_folders";
 
 function folder(

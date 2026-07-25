@@ -158,6 +158,8 @@ export const ru = {
     undo: "Отменить",
     send_now: "Отправить сейчас",
     create_subfolder: "Создать подпапку",
+    mute_notifications: "Отключить уведомления",
+    unmute_notifications: "Включить уведомления",
     remove_lock: "Снять блокировку",
     lock: "Заблокировать",
     change_color: "Изменить цвет",

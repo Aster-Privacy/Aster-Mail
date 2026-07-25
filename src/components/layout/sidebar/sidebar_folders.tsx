@@ -277,6 +277,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                 }
                 can_move_up={sibling_index > 0}
                 folder_color={folder_color}
+                folder_token={folder.folder_token}
                 on_create_subfolder={
                   set_create_folder_parent_token
                     ? () => {

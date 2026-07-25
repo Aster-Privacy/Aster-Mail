@@ -157,6 +157,8 @@ export const tr = {
     undo: "Geri al",
     send_now: "Şimdi gönder",
     create_subfolder: "Alt klasör oluştur",
+    mute_notifications: "Bildirimleri sessize al",
+    unmute_notifications: "Sessize almayı kaldır",
     remove_lock: "Kilidi kaldır",
     lock: "Kilitle",
     change_color: "Rengi değiştir",

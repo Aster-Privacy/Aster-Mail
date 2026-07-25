@@ -158,6 +158,8 @@ export const pl = {
     undo: "Cofnij",
     send_now: "Wyślij teraz",
     create_subfolder: "Utwórz podfolder",
+    mute_notifications: "Wycisz powiadomienia",
+    unmute_notifications: "Wyłącz wyciszenie",
     remove_lock: "Usuń blokadę",
     lock: "Zablokuj",
     change_color: "Zmień kolor",

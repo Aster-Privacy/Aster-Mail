@@ -201,6 +201,8 @@ export const en: Translations = {
     undo: "Undo",
     send_now: "Send now",
     create_subfolder: "Create Subfolder",
+    mute_notifications: "Mute notifications",
+    unmute_notifications: "Unmute notifications",
     remove_lock: "Remove Lock",
     lock: "Lock",
     change_color: "Change color",

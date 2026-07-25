@@ -28,9 +28,10 @@ import {
   ArrowRightStartOnRectangleIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
@@ -409,6 +410,22 @@ export function EditFolderSheet({
   handle_delete,
 }: EditFolderSheetProps) {
   const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
+
+  const muted_tokens = preferences.muted_folder_tokens ?? [];
+  const is_muted = editing_folder
+    ? muted_tokens.includes(editing_folder.folder_token)
+    : false;
+
+  const toggle_notifications = () => {
+    if (!editing_folder) return;
+
+    const next = is_muted
+      ? muted_tokens.filter((token) => token !== editing_folder.folder_token)
+      : [...muted_tokens, editing_folder.folder_token];
+
+    update_preference("muted_folder_tokens", next, true);
+  };
 
   return (
     <MobileBottomSheet is_open={!!editing_folder} on_close={on_close}>
@@ -447,6 +464,15 @@ export function EditFolderSheet({
               onClick={() => set_edit_color(color.hex)}
             />
           ))}
+        </div>
+        <div className="mb-3 flex items-center justify-between py-1">
+          <span className="text-[15px] text-[var(--text-primary)]">
+            {t("settings.notifications")}
+          </span>
+          <Switch
+            checked={!is_muted}
+            onCheckedChange={toggle_notifications}
+          />
         </div>
         <div className="flex gap-2">
           <Button

@@ -154,6 +154,8 @@ export const ko = {
     undo: "실행 취소",
     send_now: "지금 보내기",
     create_subfolder: "하위 폴더 만들기",
+    mute_notifications: "알림 음소거",
+    unmute_notifications: "음소거 해제",
     remove_lock: "잠금 해제",
     lock: "잠금",
     change_color: "색상 변경",
