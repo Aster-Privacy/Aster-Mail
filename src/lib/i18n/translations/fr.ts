@@ -6577,6 +6577,8 @@ export const fr = {
       "Un code de secours fait 12 caractères (8 pour les anciens codes). Vérifier votre saisie suffit en général.",
     two_fa_temporarily_locked:
       "Trop de tentatives échouées. La vérification en deux étapes est bloquée pendant environ 15 minutes.",
+    two_fa_code_already_used:
+      "Ce code vient d'être utilisé. Attendez que votre application d'authentification affiche un nouveau code, puis réessayez.",
     too_many_2fa_attempts:
       "Trop de tentatives 2FA. Veuillez patienter quelques minutes avant de réessayer.",
     sign_in_session_expired:

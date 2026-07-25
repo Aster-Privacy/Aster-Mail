@@ -6501,6 +6501,8 @@ export const nl = {
       "Een back-upcode is 12 tekens lang (8 bij oudere codes). Uw aantal controleren lost dit meestal op.",
     two_fa_temporarily_locked:
       "Te veel mislukte pogingen. Tweestapsverificatie is ongeveer 15 minuten geblokkeerd.",
+    two_fa_code_already_used:
+      "Deze code is zojuist gebruikt. Wacht tot je authenticator-app een nieuwe code toont en probeer het opnieuw.",
     too_many_2fa_attempts:
       "Te veel 2FA-pogingen. Wacht enkele minuten voordat u het opnieuw probeert.",
     sign_in_session_expired:

@@ -6571,6 +6571,8 @@ export const pl = {
       "Kod zapasowy ma 12 znaków (8 w starszych kodach). Sprawdzenie liczby zwykle to rozwiązuje.",
     two_fa_temporarily_locked:
       "Zbyt wiele nieudanych prób. Weryfikacja dwuetapowa jest zablokowana na około 15 minut.",
+    two_fa_code_already_used:
+      "Ten kod został właśnie użyty. Poczekaj, aż aplikacja uwierzytelniająca wyświetli nowy kod, i spróbuj ponownie.",
     too_many_2fa_attempts:
       "Zbyt wiele prób 2FA. Odczekaj kilka minut przed ponowną próbą.",
     sign_in_session_expired:

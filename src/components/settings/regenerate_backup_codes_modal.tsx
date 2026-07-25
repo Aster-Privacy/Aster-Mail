@@ -92,7 +92,9 @@ export function RegenerateBackupCodesModal({
       set_error(
         kind === "locked"
           ? t("auth.two_fa_temporarily_locked")
-          : response.error,
+          : kind === "replayed"
+            ? t("auth.two_fa_code_already_used")
+            : response.error,
       );
       verifying_ref.current = false;
       set_is_loading(false);

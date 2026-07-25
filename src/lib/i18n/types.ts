@@ -5966,6 +5966,7 @@ export interface AuthTranslations {
   enter_backup_code: string;
   backup_code_length_error: string;
   two_fa_temporarily_locked: string;
+  two_fa_code_already_used: string;
   too_many_2fa_attempts: string;
   sign_in_session_expired: string;
   backup_codes_remaining_after_login: string;
