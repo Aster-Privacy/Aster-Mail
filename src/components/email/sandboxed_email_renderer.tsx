@@ -248,6 +248,7 @@ export function SandboxedEmailRenderer({
   const has_fired_ready_ref = useRef(!!cached_height);
   const load_remote_ref = useRef(load_remote_content);
   const document_ready_cleanup_ref = useRef<(() => void) | null>(null);
+  const remeasure_ref = useRef<(() => void) | null>(null);
   const on_document_ready_ref = useRef(on_document_ready);
 
   on_document_ready_ref.current = on_document_ready;
@@ -1034,7 +1035,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     const iframe = iframe_ref.current;
 
     if (!iframe?.contentDocument?.body) return;
-    if (iframe.contentDocument.body.hasAttribute("data-aster-processed")) return;
+    if (iframe.contentDocument.body.hasAttribute("data-aster-processed")) {
+      remeasure_ref.current?.();
+
+      return;
+    }
     iframe.contentDocument.body.setAttribute("data-aster-processed", "1");
 
     if (observer_ref.current) {
@@ -1108,17 +1113,14 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
     let last_height = 0;
 
-    const measure_and_apply = (force = false) => {
+    const measure_decoupled_height = (): number => {
       const doc = iframe.contentDocument;
       const body = doc?.body;
       const html = doc?.documentElement;
 
-      if (!body || !doc || !html) return;
+      if (!body || !doc || !html) return 0;
 
-      const active_selection = doc.getSelection();
-
-      if (!force && active_selection && !active_selection.isCollapsed) return;
-
+      const saved_iframe_height = iframe.style.height;
       const saved_html_h = html.style.getPropertyValue("height");
       const saved_html_h_pri = html.style.getPropertyPriority("height");
       const saved_html_minh = html.style.getPropertyValue("min-height");
@@ -1128,6 +1130,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       const saved_body_minh = body.style.getPropertyValue("min-height");
       const saved_body_minh_pri = body.style.getPropertyPriority("min-height");
 
+      iframe.style.height = "0px";
       html.style.setProperty("height", "auto", "important");
       html.style.setProperty("min-height", "0px", "important");
       body.style.setProperty("height", "auto", "important");
@@ -1144,6 +1147,24 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       else body.style.removeProperty("height");
       if (saved_body_minh) body.style.setProperty("min-height", saved_body_minh, saved_body_minh_pri);
       else body.style.removeProperty("min-height");
+      iframe.style.height = saved_iframe_height;
+
+      return measured;
+    };
+
+    const measure_and_apply = (force = false) => {
+      const doc = iframe.contentDocument;
+      const body = doc?.body;
+
+      if (!body || !doc) return;
+
+      const active_selection = doc.getSelection();
+
+      if (!force && active_selection && !active_selection.isCollapsed) return;
+
+      const measured = measure_decoupled_height();
+
+      if (measured <= 0) return;
 
       const height = Math.min(measured + 8, MAX_IFRAME_HEIGHT);
 
@@ -1168,16 +1189,14 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       raf_ref.current = requestAnimationFrame(() => measure_and_apply(true));
     };
 
+    remeasure_ref.current = update_height;
+
     const reveal_content = () => {
       const content_doc = iframe.contentDocument;
 
       if (!content_doc?.body) return;
 
-      const body_rect = content_doc.body.getBoundingClientRect();
-      const immediate_height = Math.max(
-        body_rect.bottom,
-        content_doc.body.scrollHeight,
-      );
+      const immediate_height = measure_decoupled_height();
 
       if (immediate_height > 0) {
         const clamped = Math.min(immediate_height + 8, MAX_IFRAME_HEIGHT);
@@ -1220,6 +1239,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       const candidate = Math.min(content_height + 8, MAX_IFRAME_HEIGHT);
 
       if (Math.abs(candidate - last_height) < 2) return;
+      if (last_height > 0 && candidate > last_height) return;
 
       last_height = candidate;
       set_iframe_height(`${candidate}px`);
@@ -1232,7 +1252,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
     const attach_observer = () => {
       if (!iframe.contentDocument?.body) return;
-      observer_ref.current = new ResizeObserver((entries) => {
+      const resize_observer_ctor =
+        (iframe.contentWindow as (Window & typeof globalThis) | null)
+          ?.ResizeObserver ?? ResizeObserver;
+
+      observer_ref.current = new resize_observer_ctor((entries) => {
         const entry = entries[0];
         const doc = iframe.contentDocument;
         const active_selection = doc?.getSelection();
@@ -1301,6 +1325,20 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       },
       update_height,
     );
+
+    const doc_at_load = iframe.contentDocument;
+    const doc_fonts = doc_at_load.fonts;
+
+    if (doc_fonts) {
+      const remeasure_if_current_doc = () => {
+        if (iframe.contentDocument === doc_at_load) update_height();
+      };
+
+      Promise.resolve(doc_fonts.ready)
+        .then(remeasure_if_current_doc)
+        .catch(() => {});
+      doc_fonts.addEventListener?.("loadingdone", remeasure_if_current_doc);
+    }
 
     iframe.contentDocument.addEventListener(
       "wheel",
