@@ -6548,6 +6548,8 @@ export const tr = {
       "Bir yedek kod 12 karakter uzunluğundadır (eski kodlarda 8). Sayınızı kontrol etmek çoğunlukla bunu çözer.",
     two_fa_temporarily_locked:
       "Çok fazla başarısız deneme. İki adımlı doğrulama yaklaşık 15 dakika kilitlendi.",
+    two_fa_code_already_used:
+      "Bu kod az önce kullanıldı. Kimlik doğrulayıcı uygulamanız yeni bir kod gösterene kadar bekleyip tekrar deneyin.",
     too_many_2fa_attempts:
       "Çok fazla 2FA denemesi. Lütfen birkaç dakika bekleyip tekrar deneyin.",
     sign_in_session_expired:

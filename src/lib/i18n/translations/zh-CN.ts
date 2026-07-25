@@ -5949,6 +5949,8 @@ export const zh_CN = {
     backup_code_length_error:
       "备份码是 12 个字符（旧版为 8 个），检查一下字符数通常可以解决。",
     two_fa_temporarily_locked: "失败次数过多。两步验证已锁定约 15 分钟。",
+    two_fa_code_already_used:
+      "该验证码刚刚已被使用。请等待验证器应用显示新验证码后再试。",
     too_many_2fa_attempts: "2FA 尝试次数过多。请等待几分钟后重试。",
     sign_in_session_expired: "登录会话已过期。请返回并重新登录。",
     backup_codes_remaining_after_login: "剩余 {{count}} 个备份码",

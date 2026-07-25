@@ -75,6 +75,8 @@ export function TotpVerification({
 
       if (kind === "locked") {
         set_error(t("auth.two_fa_temporarily_locked"));
+      } else if (kind === "replayed") {
+        set_error(t("auth.two_fa_code_already_used"));
       } else if (kind === "rate_limited") {
         set_error(t("auth.too_many_2fa_attempts"));
       } else if (kind === "pending_expired") {

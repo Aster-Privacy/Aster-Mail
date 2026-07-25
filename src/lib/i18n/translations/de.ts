@@ -6657,6 +6657,8 @@ export const de = {
       "Ein Backup-Code ist 12 Zeichen lang (8 bei älteren Codes). Ein Blick auf die Anzahl klärt das meist.",
     two_fa_temporarily_locked:
       "Zu viele Fehlversuche. Die Zwei-Faktor-Prüfung ist für etwa 15 Minuten gesperrt.",
+    two_fa_code_already_used:
+      "Dieser Code wurde gerade verwendet. Warte, bis deine Authenticator-App einen neuen Code anzeigt, und versuche es erneut.",
     too_many_2fa_attempts:
       "Zu viele 2FA-Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
     sign_in_session_expired:

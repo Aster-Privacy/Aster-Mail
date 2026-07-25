@@ -6031,6 +6031,8 @@ export const en: Translations = {
     backup_code_length_error: "A backup code is 12 characters long (8 for older codes). Checking your count usually sorts it.",
     two_fa_temporarily_locked:
       "Too many failed attempts. Two-factor verification is locked for about 15 minutes.",
+    two_fa_code_already_used:
+      "That code was just used. Wait for your authenticator app to show a new code, then try again.",
     too_many_2fa_attempts:
       "Too many 2FA attempts. Please wait a few minutes before trying again.",
     sign_in_session_expired:

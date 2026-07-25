@@ -6345,6 +6345,8 @@ export const ko = {
       "백업 코드는 12자 길이입니다(이전 코드는 8자). 자릿수를 확인하면 보통 해결됩니다.",
     two_fa_temporarily_locked:
       "실패 횟수가 너무 많습니다. 2단계 인증이 약 15분 동안 잠겼습니다.",
+    two_fa_code_already_used:
+      "이 코드는 방금 사용되었습니다. 인증 앱에 새 코드가 표시될 때까지 기다린 후 다시 시도하세요.",
     too_many_2fa_attempts:
       "2FA 시도가 너무 많습니다. 몇 분 기다린 후 다시 시도하세요.",
     sign_in_session_expired:

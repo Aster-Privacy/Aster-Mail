@@ -6577,6 +6577,8 @@ export const pt = {
       "Um código de backup tem 12 caracteres (8 em códigos antigos). Conferir a contagem costuma resolver.",
     two_fa_temporarily_locked:
       "Muitas tentativas falharam. A verificação em duas etapas está bloqueada por cerca de 15 minutos.",
+    two_fa_code_already_used:
+      "Esse código acabou de ser usado. Aguarde até que seu aplicativo autenticador mostre um novo código e tente novamente.",
     too_many_2fa_attempts:
       "Muitas tentativas de 2FA. Aguarde alguns minutos antes de tentar novamente.",
     sign_in_session_expired:

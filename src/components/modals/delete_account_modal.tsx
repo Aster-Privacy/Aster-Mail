@@ -35,7 +35,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { api_client } from "@/services/api/client";
 import { get_user_salt } from "@/services/api/auth";
-import { get_totp_status } from "@/services/api/totp";
+import { classify_totp_error, get_totp_status } from "@/services/api/totp";
 import {
   hash_email,
   derive_password_hash,
@@ -62,11 +62,18 @@ export function DeleteAccountModal({
   const [is_deleting, set_is_deleting] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
+  const is_valid_totp_or_backup_code = (code: string): boolean => {
+    if (/^\d{6}$/.test(code)) return true;
+    const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+    return normalized.length === 8 || normalized.length === 12;
+  };
+
   const is_delete_typed = confirmation_text.toUpperCase() === "DELETE";
   const can_submit =
     is_delete_typed &&
     password.length > 0 &&
-    (!two_factor_enabled || totp_code.length > 0);
+    (!two_factor_enabled || is_valid_totp_or_backup_code(totp_code));
 
   useEffect(() => {
     if (!is_open) {
@@ -131,6 +138,10 @@ export function DeleteAccountModal({
         on_deleted();
       } else if (response.server_code === "INVALID_CREDENTIALS") {
         set_error(t("settings.incorrect_password_error"));
+      } else if (classify_totp_error(response) === "locked") {
+        set_error(t("auth.two_fa_temporarily_locked"));
+      } else if (classify_totp_error(response) === "replayed") {
+        set_error(t("auth.two_fa_code_already_used"));
       } else if (
         response.server_code === "VALIDATION_ERROR" ||
         (response.code === "VALIDATION_ERROR" && !response.server_code)
@@ -197,21 +208,28 @@ export function DeleteAccountModal({
                 htmlFor="delete-totp"
                 style={{ color: "var(--text-secondary)" }}
               >
-                {t("settings.two_factor_code_label")}
+                {t("settings.authenticator_or_backup_code")}
               </label>
               <Input
                 autoComplete="one-time-code"
                 disabled={is_deleting}
                 id="delete-totp"
-                inputMode="numeric"
-                maxLength={6}
+                maxLength={20}
                 placeholder="000000"
                 size="lg"
                 value={totp_code}
                 onChange={(e) =>
-                  set_totp_code(e.target.value.replace(/\D/g, ""))
+                  set_totp_code(
+                    e.target.value
+                      .toUpperCase()
+                      .replace(/[^A-Z0-9-]/g, "")
+                      .slice(0, 20),
+                  )
                 }
               />
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                {t("settings.disable_2fa_code_hint")}
+              </p>
             </div>
           )}
 

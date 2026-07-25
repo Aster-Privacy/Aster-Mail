@@ -6506,6 +6506,8 @@ export const es = {
       "Un código de respaldo tiene 12 caracteres (8 en códigos antiguos). Revisar la cuenta suele resolverlo.",
     two_fa_temporarily_locked:
       "Demasiados intentos fallidos. La verificación en dos pasos está bloqueada durante unos 15 minutos.",
+    two_fa_code_already_used:
+      "Ese código ya se ha usado. Espera a que tu aplicación de autenticación muestre un código nuevo e inténtalo de nuevo.",
     too_many_2fa_attempts:
       "Demasiados intentos de 2FA. Espera unos minutos antes de volver a intentarlo.",
     sign_in_session_expired:

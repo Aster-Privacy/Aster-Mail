@@ -6613,6 +6613,8 @@ export const it = {
       "Un codice di backup è lungo 12 caratteri (8 per i codici più vecchi). Controllare il conteggio di solito risolve la cosa.",
     two_fa_temporarily_locked:
       "Troppi tentativi falliti. La verifica in due passaggi è bloccata per circa 15 minuti.",
+    two_fa_code_already_used:
+      "Questo codice è appena stato usato. Attendi che l'app di autenticazione mostri un nuovo codice e riprova.",
     too_many_2fa_attempts:
       "Troppi tentativi 2FA. Attendi qualche minuto prima di riprovare.",
     sign_in_session_expired:

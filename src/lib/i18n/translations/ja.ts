@@ -6519,6 +6519,8 @@ export const ja = {
       "バックアップコードは 12 文字です（旧形式は 8 文字）。文字数を確認すると解決することが多いです。",
     two_fa_temporarily_locked:
       "失敗回数が多すぎます。2 段階認証は約 15 分間ロックされます。",
+    two_fa_code_already_used:
+      "このコードは使用済みです。認証アプリに新しいコードが表示されるのを待ってから、もう一度お試しください。",
     too_many_2fa_attempts:
       "2FA の試行回数が多すぎます。数分待ってから再試行してください。",
     sign_in_session_expired:
