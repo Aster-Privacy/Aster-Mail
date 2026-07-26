@@ -4696,34 +4696,34 @@ export const es = {
     cancel_reason_continue: "Continuar",
     cancel_impact_title: "Qué cambia si cancelas",
     cancel_impact_description:
-      "Tu plan sigue activo hasta el {date}. Después de eso:",
+      "Tu plan sigue activo hasta el {{date}}. Después de eso:",
     cancel_impact_description_nodate:
       "Cuando termine tu periodo de facturación actual:",
     cancel_impact_loading: "Comprobando qué cambia en tu cuenta...",
     cancel_impact_unavailable:
       "No pudimos cargar los detalles ahora mismo. Puedes continuar igualmente.",
-    cancel_impact_storage: "El almacenamiento baja de {current} a {after}.",
+    cancel_impact_storage: "El almacenamiento baja de {{current}} a {{after}}.",
     cancel_impact_storage_over:
-      "Estás usando {used}, por encima de ese límite. Mientras lo superes, el correo entrante se rechaza, y tras 7 días se rechaza de forma permanente.",
+      "Estás usando {{used}}, por encima de ese límite. Mientras lo superes, el correo entrante se rechaza, y tras 7 días se rechaza de forma permanente.",
     cancel_impact_aliases:
-      "{count} alias dejan de recibir correo {days} días después.",
-    cancel_impact_domains: "{count} dominios propios quedan suspendidos.",
+      "{{count}} alias dejan de recibir correo {{days}} días después.",
+    cancel_impact_domains: "{{count}} dominios propios quedan suspendidos.",
     cancel_impact_catch_all: "Se desactiva la dirección catch-all.",
-    cancel_impact_templates: "{count} plantillas de correo se desactivan.",
-    cancel_impact_signatures: "{count} firmas se desactivan.",
+    cancel_impact_templates: "{{count}} plantillas de correo se desactivan.",
+    cancel_impact_signatures: "{{count}} firmas se desactivan.",
     cancel_impact_family:
-      "{count} miembros de la familia pasan a un periodo de gracia de {days} días.",
+      "{{count}} miembros de la familia pasan a un periodo de gracia de {{days}} días.",
     cancel_impact_family_addresses:
-      "Se liberan {count} direcciones familiares reservadas.",
-    cancel_impact_features: "{count} funciones de pago se desactivan.",
+      "Se liberan {{count}} direcciones familiares reservadas.",
+    cancel_impact_features: "{{count}} funciones de pago se desactivan.",
     cancel_impact_reactivate_hint:
       "No se elimina nada. Al volver a suscribirte se restaura lo desactivado, dentro de los límites de tu nuevo plan.",
     cancel_impact_continue: "Continuar con la cancelación",
     cancel_final_title: "Confirmar cancelación",
     cancel_final_description:
-      "Tu plan {plan} se cancelará y finaliza el {date}. Mantienes el acceso completo hasta entonces.",
+      "Tu plan {{plan}} se cancelará y finaliza el {{date}}. Mantienes el acceso completo hasta entonces.",
     cancel_final_description_nodate:
-      "Tu plan {plan} se cancelará al final del periodo de facturación actual. Mantienes el acceso completo hasta entonces.",
+      "Tu plan {{plan}} se cancelará al final del periodo de facturación actual. Mantienes el acceso completo hasta entonces.",
     cancel_final_confirm: "Cancelar mi plan",
     cancel_confirm_title: "Cancelar suscripción",
     cancel_enter_password:
@@ -5161,7 +5161,7 @@ export const es = {
     domain_purchase_discount_tooltip:
       "Precio de oferta del primer año de nuestro registrador. Después se renueva a {{price}} al año.",
     domain_purchase_purchased_info:
-      "Estos son los dominios que compraste a través de Aster. Los registramos por ti con privacidad WHOIS, configuramos todo el DNS de correo automáticamente y puedes crear direcciones en ellos de inmediato. Cada uno se renueva solo cuando tú lo apruebas, y puedes transferirlo a otro registrador cuando quieras.",
+      "Estos son los dominios que compraste a través de Aster. Los registramos por ti con privacidad WHOIS, configuramos todo el DNS de correo automáticamente y puedes crear direcciones en ellos de inmediato. Cada uno se renueva solo cuando tú lo apruebas. La ICANN bloquea los registros nuevos durante sus primeros 60 días y, después, nuestro equipo de soporte gestiona el traslado a otro registrador.",
     domain_purchase_dont_have:
       "¿No tienes un dominio? Haz clic aquí para comprar uno.",
     domain_purchase_sort_price: "Menor precio",
@@ -5172,6 +5172,15 @@ export const es = {
     domain_purchase_purchased_empty: "Aún no hay dominios comprados",
     domain_purchase_purchased_expires: "Caduca el {{date}}",
     domain_purchase_purchased_in_progress: "Configurándose...",
+    domain_purchase_purchased_lapsed: "Caducado - comprar de nuevo",
+    domain_purchase_error_paused:
+      "Las compras de dominios están en pausa unos minutos. Vuelve a intentarlo en un momento.",
+    domain_purchase_error_not_allowed:
+      "Este dominio no está disponible en tu cuenta ahora mismo. Prueba con otro nombre o escribe al soporte.",
+    domain_purchase_order_expired:
+      "Este pedido caducó antes de pagarse. Inicia una compra nueva para conseguir el dominio.",
+    domain_purchase_order_lapsed:
+      "Este dominio llegó a su fecha de caducidad y ya no está activo. Cómpralo de nuevo para recuperarlo.",
     domain_purchase_terms_notice:
       "Aster registra el dominio en tu nombre a través de nuestro registrador asociado, y el precio de renovación siempre se muestra antes de pagar. Si alguna vez dejas caducar un dominio, el registrador puede cobrar una tarifa de recuperación para devolvértelo.",
     domain_purchase_terms_aster: "Términos del servicio de Aster",

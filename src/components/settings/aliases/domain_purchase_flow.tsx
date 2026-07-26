@@ -63,9 +63,21 @@ import type { ApiErrorCode } from "@/services/api/client";
 
 type PurchaseView = "search" | "confirm" | "progress";
 
+const TERMINAL_ORDER_STATUSES = new Set([
+  "complete",
+  "failed",
+  "refund_pending",
+  "refunded",
+  "expired",
+  "lapsed",
+]);
+
 function checkout_error_key(code?: ApiErrorCode, server_code?: string) {
   if (server_code === "PLAN_LIMIT_EXCEEDED") return "settings.domain_purchase_error_limit" as const;
+  if (server_code === "SERVICE_UNAVAILABLE")
+    return "settings.domain_purchase_error_paused" as const;
   if (code === "CONFLICT") return "settings.domain_purchase_error_taken" as const;
+  if (code === "FORBIDDEN") return "settings.domain_purchase_error_not_allowed" as const;
   if (code === "RATE_LIMIT_EXCEEDED") return "settings.domain_purchase_error_slow_down" as const;
   return "settings.domain_purchase_error" as const;
 }
@@ -491,6 +503,7 @@ export function DomainPurchaseFlow({
   useEffect(() => {
     if (view !== "progress" || !order_id) return;
     let cancelled = false;
+    let timer: ReturnType<typeof setInterval> | null = null;
     const poll = async () => {
       try {
         const response = await get_domain_order(order_id);
@@ -505,6 +518,10 @@ export function DomainPurchaseFlow({
             purchased_notified.current = true;
             on_purchased();
           }
+          if (TERMINAL_ORDER_STATUSES.has(response.data.status) && timer) {
+            clearInterval(timer);
+            timer = null;
+          }
         }
       } catch {
         return;
@@ -512,14 +529,14 @@ export function DomainPurchaseFlow({
     };
 
     poll();
-    const timer = setInterval(() => {
+    timer = setInterval(() => {
       set_poll_count((c) => c + 1);
       poll();
     }, 3000);
 
     return () => {
       cancelled = true;
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
     };
   }, [view, order_id, on_purchased]);
 
@@ -569,7 +586,9 @@ export function DomainPurchaseFlow({
         );
   const failed =
     status === "refund_pending" || status === "refunded" || status === "failed";
-  const slow = poll_count > 20 && status !== "complete" && !failed;
+  const closed = status === "expired" || status === "lapsed";
+  const slow =
+    poll_count > 20 && status !== "complete" && !failed && !closed;
   const complete = status === "complete" && order !== null;
 
   const selected_total =
@@ -651,11 +670,15 @@ export function DomainPurchaseFlow({
   if (view === "progress") {
     return (
       <div className="max-w-[440px] mx-auto py-6">
-        {failed ? (
+        {failed || closed ? (
           <div className="flex flex-col items-center text-center py-4">
             <ExclamationTriangleIcon className="w-9 h-9 text-yellow-500 mb-4" />
             <p className="text-sm text-txt-primary max-w-[360px] mb-5">
-              {t("settings.domain_purchase_refunded")}
+              {closed
+                ? status === "lapsed"
+                  ? t("settings.domain_purchase_order_lapsed")
+                  : t("settings.domain_purchase_order_expired")
+                : t("settings.domain_purchase_refunded")}
             </p>
             <Button variant="outline" onClick={on_done}>
               {t("common.close")}

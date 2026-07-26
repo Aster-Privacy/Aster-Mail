@@ -4604,33 +4604,33 @@ export const ar = {
     cancel_reason_skip: "تخطٍ",
     cancel_reason_continue: "متابعة",
     cancel_impact_title: "ما الذي يتغير إذا ألغيت",
-    cancel_impact_description: "تظل خطتك نشطة حتى {date}. بعد ذلك:",
+    cancel_impact_description: "تظل خطتك نشطة حتى {{date}}. بعد ذلك:",
     cancel_impact_description_nodate: "عند انتهاء دورة الفوترة الحالية:",
     cancel_impact_loading: "جارٍ التحقق مما سيتغير في حسابك...",
     cancel_impact_unavailable:
       "تعذر تحميل التفاصيل الآن. لا يزال بإمكانك المتابعة.",
-    cancel_impact_storage: "تنخفض المساحة من {current} إلى {after}.",
+    cancel_impact_storage: "تنخفض المساحة من {{current}} إلى {{after}}.",
     cancel_impact_storage_over:
-      "تستخدم {used}، وهو أعلى من هذا الحد. طالما تجاوزت الحد يُرفض البريد الوارد، وبعد 7 أيام يُرفض بشكل دائم.",
+      "تستخدم {{used}}، وهو أعلى من هذا الحد. طالما تجاوزت الحد يُرفض البريد الوارد، وبعد 7 أيام يُرفض بشكل دائم.",
     cancel_impact_aliases:
-      "يتوقف {count} من الأسماء المستعارة عن استقبال البريد بعد {days} يومًا.",
-    cancel_impact_domains: "يتم تعليق {count} من النطاقات المخصصة.",
+      "يتوقف {{count}} من الأسماء المستعارة عن استقبال البريد بعد {{days}} يومًا.",
+    cancel_impact_domains: "يتم تعليق {{count}} من النطاقات المخصصة.",
     cancel_impact_catch_all: "يتم إيقاف العنونة الشاملة.",
-    cancel_impact_templates: "يتم تعطيل {count} من قوالب البريد.",
-    cancel_impact_signatures: "يتم تعطيل {count} من التواقيع.",
+    cancel_impact_templates: "يتم تعطيل {{count}} من قوالب البريد.",
+    cancel_impact_signatures: "يتم تعطيل {{count}} من التواقيع.",
     cancel_impact_family:
-      "ينتقل {count} من أفراد العائلة إلى فترة سماح مدتها {days} يومًا.",
+      "ينتقل {{count}} من أفراد العائلة إلى فترة سماح مدتها {{days}} يومًا.",
     cancel_impact_family_addresses:
-      "يتم تحرير {count} من عناوين العائلة المحجوزة.",
-    cancel_impact_features: "يتم إيقاف {count} من الميزات المدفوعة.",
+      "يتم تحرير {{count}} من عناوين العائلة المحجوزة.",
+    cancel_impact_features: "يتم إيقاف {{count}} من الميزات المدفوعة.",
     cancel_impact_reactivate_hint:
       "لا يتم حذف أي شيء. إعادة الاشتراك تستعيد ما تم تعطيله، ضمن حدود خطتك الجديدة.",
     cancel_impact_continue: "المتابعة إلى الإلغاء",
     cancel_final_title: "تأكيد الإلغاء",
     cancel_final_description:
-      "سيتم إلغاء خطة {plan} وتنتهي في {date}. تحتفظ بالوصول الكامل حتى ذلك الحين.",
+      "سيتم إلغاء خطة {{plan}} وتنتهي في {{date}}. تحتفظ بالوصول الكامل حتى ذلك الحين.",
     cancel_final_description_nodate:
-      "سيتم إلغاء خطة {plan} في نهاية دورة الفوترة الحالية. تحتفظ بالوصول الكامل حتى ذلك الحين.",
+      "سيتم إلغاء خطة {{plan}} في نهاية دورة الفوترة الحالية. تحتفظ بالوصول الكامل حتى ذلك الحين.",
     cancel_final_confirm: "إلغاء خطتي",
     cancel_confirm_title: "إلغاء الاشتراك",
     cancel_confirm_description:
@@ -4922,7 +4922,7 @@ export const ar = {
     domain_purchase_discount_tooltip:
       "سعر السنة الأولى المخفض من المسجّل لدينا. بعد ذلك يتجدد بسعر {{price}} سنويًا.",
     domain_purchase_purchased_info:
-      "هذه هي النطاقات التي اشتريتها عبر Aster. نسجلها لك مع خصوصية WHOIS، ونعد جميع سجلات DNS للبريد تلقائيًا، ويمكنك إنشاء عناوين عليها فورًا. لا يتجدد أي نطاق إلا بموافقتك، ويمكنك نقله إلى مسجل آخر متى شئت.",
+      "هذه هي النطاقات التي اشتريتها عبر Aster. نسجلها لك مع خصوصية WHOIS، ونعد جميع سجلات DNS للبريد تلقائيًا، ويمكنك إنشاء عناوين عليها فورًا. لا يتجدد أي نطاق إلا بموافقتك. تقفل ICANN التسجيلات الجديدة خلال أول 60 يومًا، وبعد ذلك يتولى فريق الدعم لدينا نقل النطاق إلى مسجل آخر.",
     domain_purchase_dont_have: "لا تملك نطاقًا؟ انقر هنا لشراء واحد.",
     domain_purchase_sort_price: "الأقل سعرًا",
     domain_purchase_leave_title: "هل تريد مغادرة Aster Mail؟",
@@ -4932,6 +4932,15 @@ export const ar = {
     domain_purchase_purchased_empty: "لا توجد نطاقات مشتراة بعد",
     domain_purchase_purchased_expires: "تنتهي في {{date}}",
     domain_purchase_purchased_in_progress: "قيد الإعداد...",
+    domain_purchase_purchased_lapsed: "منتهٍ - اشترِ مجددًا",
+    domain_purchase_error_paused:
+      "تم إيقاف شراء النطاقات مؤقتًا لبضع دقائق. يرجى المحاولة مرة أخرى بعد قليل.",
+    domain_purchase_error_not_allowed:
+      "هذا النطاق غير متاح على حسابك حاليًا. جرّب اسمًا آخر أو تواصل مع الدعم.",
+    domain_purchase_order_expired:
+      "انتهت صلاحية هذا الطلب قبل دفعه. ابدأ عملية شراء جديدة للحصول على النطاق.",
+    domain_purchase_order_lapsed:
+      "وصل هذا النطاق إلى تاريخ انتهائه ولم يعد نشطًا. اشترِه مرة أخرى لاستعادته.",
     domain_purchase_terms_notice:
       "تسجّل Aster النطاق نيابةً عنك عبر شريكنا المسجّل، ويظهر سعر التجديد دائمًا قبل أن تدفع. وإذا تركت نطاقًا ينتهي يومًا ما، فقد يفرض المسجّل رسوم استرداد لإعادته.",
     domain_purchase_terms_aster: "شروط خدمة Aster",

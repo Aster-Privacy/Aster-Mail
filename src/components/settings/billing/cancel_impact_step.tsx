@@ -30,6 +30,12 @@ import {
 
 export type CancelStep = "reason" | "impact" | "password" | "confirm";
 
+interface ImpactLine {
+  key: string;
+  text: string;
+  is_warning?: boolean;
+}
+
 interface CancelImpactStepProps {
   impact: CancelImpactResponse | null;
   is_loading: boolean;
@@ -47,116 +53,130 @@ export function CancelImpactStep({
 }: CancelImpactStepProps) {
   const { t } = use_i18n();
 
-  const lines: string[] = [];
+  const lines: ImpactLine[] = [];
 
   if (impact) {
-    lines.push(
-      t("settings.cancel_impact_storage", {
+    lines.push({
+      key: "storage",
+      text: t("settings.cancel_impact_storage", {
         current: format_storage(impact.storage_limit_bytes),
         after: format_storage(impact.storage_limit_after_bytes),
       }),
-    );
+    });
 
     if (impact.storage_over_limit) {
-      lines.push(
-        t("settings.cancel_impact_storage_over", {
+      lines.push({
+        key: "storage_over",
+        is_warning: true,
+        text: t("settings.cancel_impact_storage_over", {
           used: format_storage(impact.storage_used_bytes),
         }),
-      );
+      });
     }
 
     if (impact.aliases_to_disable > 0) {
-      lines.push(
-        t("settings.cancel_impact_aliases", {
+      lines.push({
+        key: "aliases",
+        text: t("settings.cancel_impact_aliases", {
           count: String(impact.aliases_to_disable),
           days: String(impact.alias_grace_days),
         }),
-      );
+      });
     }
 
     if (impact.domains_to_suspend > 0) {
-      lines.push(
-        t("settings.cancel_impact_domains", {
+      lines.push({
+        key: "domains",
+        text: t("settings.cancel_impact_domains", {
           count: String(impact.domains_to_suspend),
         }),
-      );
+      });
     }
 
     if (impact.catch_all_to_revoke > 0) {
-      lines.push(t("settings.cancel_impact_catch_all"));
+      lines.push({
+        key: "catch_all",
+        text: t("settings.cancel_impact_catch_all"),
+      });
     }
 
     if (impact.templates_to_disable > 0) {
-      lines.push(
-        t("settings.cancel_impact_templates", {
+      lines.push({
+        key: "templates",
+        text: t("settings.cancel_impact_templates", {
           count: String(impact.templates_to_disable),
         }),
-      );
+      });
     }
 
     if (impact.signatures_to_disable > 0) {
-      lines.push(
-        t("settings.cancel_impact_signatures", {
+      lines.push({
+        key: "signatures",
+        text: t("settings.cancel_impact_signatures", {
           count: String(impact.signatures_to_disable),
         }),
-      );
+      });
     }
 
     if (impact.family_members_affected > 0) {
-      lines.push(
-        t("settings.cancel_impact_family", {
+      lines.push({
+        key: "family",
+        text: t("settings.cancel_impact_family", {
           count: String(impact.family_members_affected),
           days: String(impact.family_grace_days),
         }),
-      );
+      });
     }
 
     if (impact.family_addresses_released > 0) {
-      lines.push(
-        t("settings.cancel_impact_family_addresses", {
+      lines.push({
+        key: "family_addresses",
+        text: t("settings.cancel_impact_family_addresses", {
           count: String(impact.family_addresses_released),
         }),
-      );
+      });
     }
 
     if (impact.features_lost.length > 0) {
-      lines.push(
-        t("settings.cancel_impact_features", {
+      lines.push({
+        key: "features",
+        text: t("settings.cancel_impact_features", {
           count: String(impact.features_lost.length),
         }),
-      );
+      });
     }
   }
 
   return (
     <div className="py-1">
       {is_loading ? (
-        <p className="text-sm text-txt-muted">
-          {t("settings.cancel_impact_loading")}
-        </p>
+        <div className="flex items-center gap-2.5 rounded-lg border border-edge-secondary px-3 py-6">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-edge-secondary border-t-txt-muted" />
+          <span className="text-sm text-txt-muted">
+            {t("settings.cancel_impact_loading")}
+          </span>
+        </div>
       ) : lines.length === 0 ? (
-        <p className="text-sm text-txt-secondary">
+        <p className="rounded-lg border border-edge-secondary px-3 py-4 text-sm text-txt-secondary">
           {t("settings.cancel_impact_unavailable")}
         </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="max-h-[40vh] divide-y divide-edge-secondary overflow-y-auto rounded-lg border border-edge-secondary">
           {lines.map((line) => (
             <li
-              key={line}
-              className="flex items-start gap-2.5 text-sm text-txt-secondary"
+              key={line.key}
+              className="px-3.5 py-2.5 text-sm leading-relaxed text-txt-secondary"
+              style={
+                line.is_warning ? { color: "var(--destructive)" } : undefined
+              }
             >
-              <span
-                aria-hidden="true"
-                className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                style={{ backgroundColor: "var(--destructive)" }}
-              />
-              <span>{line}</span>
+              {line.text}
             </li>
           ))}
         </ul>
       )}
 
-      <p className="mt-4 text-xs text-txt-muted">
+      <p className="mt-3 text-xs leading-relaxed text-txt-muted">
         {t("settings.cancel_impact_reactivate_hint")}
       </p>
 

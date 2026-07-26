@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { clamp_password } from "@/services/sanitize";
 import {
   Modal,
@@ -76,6 +77,10 @@ import {
   CancelImpactStep,
   type CancelStep,
 } from "@/components/settings/billing/cancel_impact_step";
+import {
+  clear_cancel_password_cache,
+  verify_cancel_password,
+} from "@/components/settings/billing/cancel_password";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface BillingDialogsProps {
@@ -176,6 +181,7 @@ export function BillingDialogs({
   const { t } = use_i18n();
   const redirect_handled = useRef(false);
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_impact, set_cancel_impact] =
     useState<CancelImpactResponse | null>(null);
   const [is_impact_loading, set_is_impact_loading] = useState(false);
@@ -189,6 +195,8 @@ export function BillingDialogs({
     set_cancel_reason_text("");
     set_cancel_step("reason");
     set_cancel_impact(null);
+    set_is_verifying_password(false);
+    clear_cancel_password_cache();
   }, [
     show_cancel_dialog,
     set_cancel_password,
@@ -226,6 +234,26 @@ export function BillingDialogs({
     : subscription?.current_period_end
       ? format_date(subscription.current_period_end)
       : null;
+
+  const handle_password_continue = async () => {
+    if (!cancel_password.trim() || is_verifying_password) return;
+    set_is_verifying_password(true);
+    set_cancel_password_error("");
+    const outcome = await verify_cancel_password(cancel_password);
+
+    set_is_verifying_password(false);
+
+    if (outcome === "verified") {
+      set_cancel_step("confirm");
+
+      return;
+    }
+    set_cancel_password_error(
+      outcome === "invalid"
+        ? t("settings.incorrect_password_error")
+        : t("settings.cancel_password_error"),
+    );
+  };
 
   useEffect(() => {
     if (redirect_handled.current) return;
@@ -325,13 +353,7 @@ export function BillingDialogs({
           set_show_cancel_dialog(open);
         }}
       >
-        <AlertDialogContent
-          className={
-            cancel_step === "reason" || cancel_step === "impact"
-              ? "max-w-[520px]"
-              : undefined
-          }
-        >
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {cancel_step === "reason"
@@ -355,10 +377,16 @@ export function BillingDialogs({
                     ? cancel_effective_date
                       ? t("settings.cancel_final_description", {
                           date: cancel_effective_date,
-                          plan: subscription?.plan.name ?? "",
+                          plan:
+                            cancel_impact?.plan_name ??
+                            subscription?.plan.name ??
+                            "",
                         })
                       : t("settings.cancel_final_description_nodate", {
-                          plan: subscription?.plan.name ?? "",
+                          plan:
+                            cancel_impact?.plan_name ??
+                            subscription?.plan.name ??
+                            "",
                         })
                     : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
@@ -426,8 +454,9 @@ export function BillingDialogs({
                       set_cancel_password_error("");
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && cancel_password.trim()) {
-                        set_cancel_step("confirm");
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handle_password_continue();
                       }
                     }}
                   />
@@ -461,13 +490,16 @@ export function BillingDialogs({
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="max-sm:flex-1"
-                  disabled={!cancel_password.trim()}
+                  disabled={!cancel_password.trim() || is_verifying_password}
                   onClick={(e) => {
                     e.preventDefault();
-                    set_cancel_step("confirm");
+                    handle_password_continue();
                   }}
                 >
-                  {t("settings.cancel_reason_continue")}
+                  <span className="flex items-center justify-center gap-2">
+                    {is_verifying_password && <Spinner size="xs" />}
+                    {t("settings.cancel_reason_continue")}
+                  </span>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>

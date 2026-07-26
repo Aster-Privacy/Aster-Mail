@@ -4664,32 +4664,34 @@ export const ko = {
     cancel_reason_skip: "건너뛰기",
     cancel_reason_continue: "계속",
     cancel_impact_title: "취소하면 달라지는 점",
-    cancel_impact_description: "플랜은 {date}까지 유지됩니다. 그 이후:",
+    cancel_impact_description: "플랜은 {{date}}까지 유지됩니다. 그 이후:",
     cancel_impact_description_nodate: "현재 결제 주기가 끝나면:",
     cancel_impact_loading: "계정에 어떤 변화가 있는지 확인하는 중...",
     cancel_impact_unavailable:
       "지금은 세부 정보를 불러오지 못했습니다. 그대로 계속할 수 있습니다.",
-    cancel_impact_storage: "저장 용량이 {current}에서 {after}로 줄어듭니다.",
+    cancel_impact_storage:
+      "저장 용량이 {{current}}에서 {{after}}로 줄어듭니다.",
     cancel_impact_storage_over:
-      "현재 {used}을(를) 사용 중이며 한도를 초과했습니다. 초과하는 동안 수신 메일이 거부되고, 7일 후에는 영구적으로 거부됩니다.",
+      "현재 {{used}}을(를) 사용 중이며 한도를 초과했습니다. 초과하는 동안 수신 메일이 거부되고, 7일 후에는 영구적으로 거부됩니다.",
     cancel_impact_aliases:
-      "별칭 {count}개가 {days}일 후 메일 수신을 중단합니다.",
-    cancel_impact_domains: "사용자 지정 도메인 {count}개가 정지됩니다.",
+      "별칭 {{count}}개가 {{days}}일 후 메일 수신을 중단합니다.",
+    cancel_impact_domains: "사용자 지정 도메인 {{count}}개가 정지됩니다.",
     cancel_impact_catch_all: "캐치올 주소가 해제됩니다.",
-    cancel_impact_templates: "이메일 템플릿 {count}개가 비활성화됩니다.",
-    cancel_impact_signatures: "서명 {count}개가 비활성화됩니다.",
+    cancel_impact_templates: "이메일 템플릿 {{count}}개가 비활성화됩니다.",
+    cancel_impact_signatures: "서명 {{count}}개가 비활성화됩니다.",
     cancel_impact_family:
-      "가족 구성원 {count}명이 {days}일 유예 기간으로 전환됩니다.",
-    cancel_impact_family_addresses: "예약된 가족 주소 {count}개가 해제됩니다.",
-    cancel_impact_features: "유료 기능 {count}개가 꺼집니다.",
+      "가족 구성원 {{count}}명이 {{days}}일 유예 기간으로 전환됩니다.",
+    cancel_impact_family_addresses:
+      "예약된 가족 주소 {{count}}개가 해제됩니다.",
+    cancel_impact_features: "유료 기능 {{count}}개가 꺼집니다.",
     cancel_impact_reactivate_hint:
       "삭제되는 항목은 없습니다. 다시 구독하면 새 플랜 한도 내에서 비활성화된 항목이 복원됩니다.",
     cancel_impact_continue: "취소 계속하기",
     cancel_final_title: "취소 확인",
     cancel_final_description:
-      "{plan} 플랜이 취소되며 {date}에 종료됩니다. 그때까지는 모든 기능을 계속 사용할 수 있습니다.",
+      "{{plan}} 플랜이 취소되며 {{date}}에 종료됩니다. 그때까지는 모든 기능을 계속 사용할 수 있습니다.",
     cancel_final_description_nodate:
-      "{plan} 플랜이 현재 결제 주기가 끝날 때 취소됩니다. 그때까지는 모든 기능을 계속 사용할 수 있습니다.",
+      "{{plan}} 플랜이 현재 결제 주기가 끝날 때 취소됩니다. 그때까지는 모든 기능을 계속 사용할 수 있습니다.",
     cancel_final_confirm: "내 플랜 취소",
     cancel_confirm_title: "구독 취소",
     cancel_confirm_description:
@@ -4986,7 +4988,7 @@ export const ko = {
     domain_purchase_discount_tooltip:
       "등록기관의 첫해 할인 가격입니다. 이후에는 연 {{price}}에 갱신됩니다.",
     domain_purchase_purchased_info:
-      "Aster를 통해 구매한 도메인이 여기에 표시됩니다. WHOIS 개인정보 보호와 함께 등록해 드리고 메일 DNS를 모두 자동으로 설정하므로 바로 주소를 만들 수 있습니다. 각 도메인은 회원님이 승인할 때만 갱신되며 언제든 다른 등록기관으로 이전할 수 있습니다.",
+      "Aster를 통해 구매한 도메인이 여기에 표시됩니다. WHOIS 개인정보 보호와 함께 등록해 드리고 메일 DNS를 모두 자동으로 설정하므로 바로 주소를 만들 수 있습니다. 각 도메인은 회원님이 승인할 때만 갱신됩니다. ICANN 규정에 따라 신규 등록은 첫 60일 동안 이전이 잠기며, 그 이후에는 지원팀이 다른 등록기관으로의 이전을 처리해 드립니다.",
     domain_purchase_dont_have: "도메인이 없으신가요? 여기를 클릭해 구매하세요.",
     domain_purchase_sort_price: "낮은 가격순",
     domain_purchase_leave_title: "Aster Mail을 떠나시겠어요?",
@@ -4995,6 +4997,15 @@ export const ko = {
     domain_purchase_purchased_empty: "구매한 도메인이 아직 없습니다",
     domain_purchase_purchased_expires: "{{date}} 만료",
     domain_purchase_purchased_in_progress: "설정 중...",
+    domain_purchase_purchased_lapsed: "만료됨 - 다시 구매",
+    domain_purchase_error_paused:
+      "도메인 구매가 몇 분 동안 일시 중지되었습니다. 잠시 후 다시 시도해 주세요.",
+    domain_purchase_error_not_allowed:
+      "이 도메인은 현재 회원님 계정에서 구매할 수 없습니다. 다른 이름을 사용하거나 지원팀에 문의해 주세요.",
+    domain_purchase_order_expired:
+      "이 주문은 결제 전에 만료되었습니다. 새로 구매를 시작해 주세요.",
+    domain_purchase_order_lapsed:
+      "이 도메인은 만료일이 지나 더 이상 활성 상태가 아닙니다. 다시 구매하면 되찾을 수 있습니다.",
     domain_purchase_terms_notice:
       "Aster는 등록기관 파트너를 통해 회원님 대신 도메인을 등록하며, 갱신 요금은 결제 전에 항상 표시됩니다. 도메인을 만료되도록 두신 경우, 되찾으려면 등록기관의 복구 수수료가 부과될 수 있습니다.",
     domain_purchase_terms_aster: "Aster 서비스 약관",

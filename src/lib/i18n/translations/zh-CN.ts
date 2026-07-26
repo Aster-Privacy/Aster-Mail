@@ -4302,29 +4302,29 @@ export const zh_CN = {
     cancel_reason_skip: "跳过",
     cancel_reason_continue: "继续",
     cancel_impact_title: "取消后会有哪些变化",
-    cancel_impact_description: "您的方案在 {date} 前仍然有效。之后：",
+    cancel_impact_description: "您的方案在 {{date}} 前仍然有效。之后：",
     cancel_impact_description_nodate: "当前计费周期结束时：",
     cancel_impact_loading: "正在检查您的账户会有哪些变化...",
     cancel_impact_unavailable: "暂时无法加载详情。您仍可以继续。",
-    cancel_impact_storage: "存储空间从 {current} 降为 {after}。",
+    cancel_impact_storage: "存储空间从 {{current}} 降为 {{after}}。",
     cancel_impact_storage_over:
-      "您正在使用 {used}，已超出该限额。超出期间收到的邮件会被拒收，7 天后将被永久拒收。",
-    cancel_impact_aliases: "{count} 个别名将在 {days} 天后停止收信。",
-    cancel_impact_domains: "{count} 个自定义域名将被暂停。",
+      "您正在使用 {{used}}，已超出该限额。超出期间收到的邮件会被拒收，7 天后将被永久拒收。",
+    cancel_impact_aliases: "{{count}} 个别名将在 {{days}} 天后停止收信。",
+    cancel_impact_domains: "{{count}} 个自定义域名将被暂停。",
     cancel_impact_catch_all: "通配收件地址将被关闭。",
-    cancel_impact_templates: "{count} 个邮件模板将被停用。",
-    cancel_impact_signatures: "{count} 个签名将被停用。",
-    cancel_impact_family: "{count} 位家庭成员将进入 {days} 天的宽限期。",
-    cancel_impact_family_addresses: "{count} 个已保留的家庭地址将被释放。",
-    cancel_impact_features: "{count} 项付费功能将被关闭。",
+    cancel_impact_templates: "{{count}} 个邮件模板将被停用。",
+    cancel_impact_signatures: "{{count}} 个签名将被停用。",
+    cancel_impact_family: "{{count}} 位家庭成员将进入 {{days}} 天的宽限期。",
+    cancel_impact_family_addresses: "{{count}} 个已保留的家庭地址将被释放。",
+    cancel_impact_features: "{{count}} 项付费功能将被关闭。",
     cancel_impact_reactivate_hint:
       "不会删除任何内容。重新订阅后，被停用的内容会在新方案的限额范围内恢复。",
     cancel_impact_continue: "继续取消",
     cancel_final_title: "确认取消",
     cancel_final_description:
-      "您的 {plan} 方案将被取消，并于 {date} 结束。在此之前您仍拥有完整权限。",
+      "您的 {{plan}} 方案将被取消，并于 {{date}} 结束。在此之前您仍拥有完整权限。",
     cancel_final_description_nodate:
-      "您的 {plan} 方案将在当前计费周期结束时取消。在此之前您仍拥有完整权限。",
+      "您的 {{plan}} 方案将在当前计费周期结束时取消。在此之前您仍拥有完整权限。",
     cancel_final_confirm: "取消我的方案",
     cancel_confirm_title: "取消订阅",
     cancel_confirm_description:
@@ -4608,7 +4608,7 @@ export const zh_CN = {
     domain_purchase_discount_tooltip:
       "注册商提供的首年优惠价。此后每年以 {{price}} 续费。",
     domain_purchase_purchased_info:
-      "这些是您通过 Aster 购买的域名。我们会以 WHOIS 隐私保护为您注册,自动配置全部邮件 DNS,您可以立即在上面创建地址。每个域名仅在您批准时才会续费,并且您可以随时将其转移到其他注册商。",
+      "这些是您通过 Aster 购买的域名。我们会以 WHOIS 隐私保护为您注册,自动配置全部邮件 DNS,您可以立即在上面创建地址。每个域名仅在您批准时才会续费。根据 ICANN 规定，新注册的域名在前 60 天内无法转出，之后由我们的客服团队协助转移到其他注册商。",
     domain_purchase_dont_have: "还没有域名?点击这里购买。",
     domain_purchase_sort_price: "价格从低到高",
     domain_purchase_leave_title: "离开 Aster Mail？",
@@ -4617,6 +4617,15 @@ export const zh_CN = {
     domain_purchase_purchased_empty: "暂无已购域名",
     domain_purchase_purchased_expires: "{{date}} 到期",
     domain_purchase_purchased_in_progress: "正在设置...",
+    domain_purchase_purchased_lapsed: "已过期 - 重新购买",
+    domain_purchase_error_paused:
+      "域名购买暂停几分钟，请稍后再试。",
+    domain_purchase_error_not_allowed:
+      "此域名目前无法在您的账户中购买。请换一个名称或联系客服。",
+    domain_purchase_order_expired:
+      "该订单在付款前已过期。请重新发起购买以获取该域名。",
+    domain_purchase_order_lapsed:
+      "该域名已到期，目前已停用。重新购买即可找回。",
     domain_purchase_terms_notice:
       "Aster 通过我们的注册商合作伙伴代表您注册域名，续费价格始终会在您付款前展示。如果您让某个域名过期失效，注册商可能会收取赎回费用才能将其找回。",
     domain_purchase_terms_aster: "Aster 服务条款",

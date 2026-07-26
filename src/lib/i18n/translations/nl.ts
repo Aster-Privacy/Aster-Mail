@@ -4690,35 +4690,35 @@ export const nl = {
     cancel_reason_continue: "Doorgaan",
     cancel_impact_title: "Wat er verandert als je opzegt",
     cancel_impact_description:
-      "Je abonnement blijft actief tot {date}. Daarna:",
+      "Je abonnement blijft actief tot {{date}}. Daarna:",
     cancel_impact_description_nodate:
       "Aan het einde van je huidige factuurperiode:",
     cancel_impact_loading:
       "Bezig met controleren wat er verandert voor je account...",
     cancel_impact_unavailable:
       "We konden de details nu niet laden. Je kunt toch doorgaan.",
-    cancel_impact_storage: "Opslag daalt van {current} naar {after}.",
+    cancel_impact_storage: "Opslag daalt van {{current}} naar {{after}}.",
     cancel_impact_storage_over:
-      "Je gebruikt {used}, dat is boven die limiet. Zolang je erboven zit wordt inkomende mail geweigerd, en na 7 dagen definitief.",
+      "Je gebruikt {{used}}, dat is boven die limiet. Zolang je erboven zit wordt inkomende mail geweigerd, en na 7 dagen definitief.",
     cancel_impact_aliases:
-      "{count} aliassen ontvangen {days} dagen later geen mail meer.",
-    cancel_impact_domains: "{count} eigen domeinen worden opgeschort.",
+      "{{count}} aliassen ontvangen {{days}} dagen later geen mail meer.",
+    cancel_impact_domains: "{{count}} eigen domeinen worden opgeschort.",
     cancel_impact_catch_all: "Catch-all-adressering wordt uitgeschakeld.",
-    cancel_impact_templates: "{count} e-mailsjablonen worden uitgeschakeld.",
-    cancel_impact_signatures: "{count} handtekeningen worden uitgeschakeld.",
+    cancel_impact_templates: "{{count}} e-mailsjablonen worden uitgeschakeld.",
+    cancel_impact_signatures: "{{count}} handtekeningen worden uitgeschakeld.",
     cancel_impact_family:
-      "{count} gezinsleden gaan naar een respijtperiode van {days} dagen.",
+      "{{count}} gezinsleden gaan naar een respijtperiode van {{days}} dagen.",
     cancel_impact_family_addresses:
-      "{count} gereserveerde gezinsadressen komen vrij.",
-    cancel_impact_features: "{count} betaalde functies worden uitgeschakeld.",
+      "{{count}} gereserveerde gezinsadressen komen vrij.",
+    cancel_impact_features: "{{count}} betaalde functies worden uitgeschakeld.",
     cancel_impact_reactivate_hint:
       "Er wordt niets verwijderd. Opnieuw abonneren herstelt wat is uitgeschakeld, binnen de limieten van je nieuwe abonnement.",
     cancel_impact_continue: "Doorgaan met opzeggen",
     cancel_final_title: "Opzegging bevestigen",
     cancel_final_description:
-      "Je {plan}-abonnement wordt opgezegd en eindigt op {date}. Tot dan houd je volledige toegang.",
+      "Je {{plan}}-abonnement wordt opgezegd en eindigt op {{date}}. Tot dan houd je volledige toegang.",
     cancel_final_description_nodate:
-      "Je {plan}-abonnement wordt opgezegd aan het einde van de huidige factuurperiode. Tot dan houd je volledige toegang.",
+      "Je {{plan}}-abonnement wordt opgezegd aan het einde van de huidige factuurperiode. Tot dan houd je volledige toegang.",
     cancel_final_confirm: "Mijn abonnement opzeggen",
     cancel_confirm_title: "Abonnement opzeggen",
     cancel_confirm_description:
@@ -5045,7 +5045,7 @@ export const nl = {
     domain_purchase_discount_tooltip:
       "Aanbiedingsprijs voor het eerste jaar van onze registrar. Daarna verlenging voor {{price}} per jaar.",
     domain_purchase_purchased_info:
-      "Dit zijn de domeinen die je via Aster hebt gekocht. We registreren ze voor je met WHOIS privacy, stellen alle mail DNS automatisch in, en je kunt er direct adressen op aanmaken. Elk domein wordt alleen verlengd met jouw goedkeuring en je kunt het verhuizen naar een andere registrar wanneer je wilt.",
+      "Dit zijn de domeinen die je via Aster hebt gekocht. We registreren ze voor je met WHOIS privacy, stellen alle mail DNS automatisch in, en je kunt er direct adressen op aanmaken. Elk domein wordt alleen verlengd met jouw goedkeuring. ICANN vergrendelt nieuwe registraties de eerste 60 dagen, daarna regelt ons supportteam de verhuizing naar een andere registrar.",
     domain_purchase_dont_have: "Nog geen domein? Klik hier om er een te kopen.",
     domain_purchase_sort_price: "Laagste prijs",
     domain_purchase_leave_title: "Aster Mail verlaten?",
@@ -5055,6 +5055,15 @@ export const nl = {
     domain_purchase_purchased_empty: "Nog geen gekochte domeinen",
     domain_purchase_purchased_expires: "Verloopt op {{date}}",
     domain_purchase_purchased_in_progress: "Wordt ingesteld...",
+    domain_purchase_purchased_lapsed: "Verlopen - opnieuw kopen",
+    domain_purchase_error_paused:
+      "Domeinaankopen zijn een paar minuten gepauzeerd. Probeer het zo meteen opnieuw.",
+    domain_purchase_error_not_allowed:
+      "Dit domein is nu niet beschikbaar op je account. Probeer een andere naam of neem contact op met support.",
+    domain_purchase_order_expired:
+      "Deze bestelling is verlopen voordat er betaald werd. Start een nieuwe aankoop om het domein te krijgen.",
+    domain_purchase_order_lapsed:
+      "Dit domein heeft zijn vervaldatum bereikt en is niet meer actief. Koop het opnieuw om het terug te halen.",
     domain_purchase_terms_notice:
       "Aster registreert het domein namens jou via onze registrar-partner, en de verlengingsprijs zie je altijd voordat je betaalt. Laat je een domein ooit verlopen, dan kan de registrar herstelkosten rekenen om het terug te krijgen.",
     domain_purchase_terms_aster: "Servicevoorwaarden van Aster",

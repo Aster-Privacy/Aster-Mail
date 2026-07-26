@@ -898,7 +898,7 @@ export const en: Translations = {
     failed_to_remove_folder_password:
       "We could not remove the folder password. Another attempt should do it. The folder stays locked as before.",
     incorrect_password:
-      "Incorrect password. Please try again - your account is not locked.",
+      "Incorrect password. Please try again. Your account is not locked.",
     folder_no_password_protection:
       "This folder does not currently have a password, so there is nothing to change.",
     password_already_set:
@@ -3718,33 +3718,33 @@ export const en: Translations = {
     cancel_reason_continue: "Continue",
     cancel_impact_title: "What changes if you cancel",
     cancel_impact_description:
-      "Your plan stays active until {date}. After that:",
+      "Your plan stays active until {{date}}. After that:",
     cancel_impact_description_nodate: "When your current billing period ends:",
     cancel_impact_loading: "Checking what changes for your account...",
     cancel_impact_unavailable:
       "We could not load the details right now. You can still continue.",
-    cancel_impact_storage: "Storage drops from {current} to {after}.",
+    cancel_impact_storage: "Storage drops from {{current}} to {{after}}.",
     cancel_impact_storage_over:
-      "You are using {used}, which is over that limit. While you are over it, incoming mail is rejected, and after 7 days it is rejected permanently.",
+      "You are using {{used}}, which is over that limit. While you are over it, incoming mail is rejected, and after 7 days it is rejected permanently.",
     cancel_impact_aliases:
-      "{count} aliases stop receiving mail {days} days later.",
-    cancel_impact_domains: "{count} custom domains are suspended.",
+      "{{count}} aliases stop receiving mail {{days}} days later.",
+    cancel_impact_domains: "{{count}} custom domains are suspended.",
     cancel_impact_catch_all: "Catch-all addressing is turned off.",
-    cancel_impact_templates: "{count} email templates are disabled.",
-    cancel_impact_signatures: "{count} signatures are disabled.",
+    cancel_impact_templates: "{{count}} email templates are disabled.",
+    cancel_impact_signatures: "{{count}} signatures are disabled.",
     cancel_impact_family:
-      "{count} family members move to a {days} day grace period.",
+      "{{count}} family members move to a {{days}} day grace period.",
     cancel_impact_family_addresses:
-      "{count} reserved family addresses are released.",
-    cancel_impact_features: "{count} paid features are switched off.",
+      "{{count}} reserved family addresses are released.",
+    cancel_impact_features: "{{count}} paid features are switched off.",
     cancel_impact_reactivate_hint:
       "Nothing is deleted. Resubscribing restores what was disabled, up to your new plan's limits.",
     cancel_impact_continue: "Continue to cancel",
     cancel_final_title: "Confirm cancellation",
     cancel_final_description:
-      "Your {plan} plan will be cancelled and ends on {date}. You keep full access until then.",
+      "Your {{plan}} plan will be cancelled and ends on {{date}}. You keep full access until then.",
     cancel_final_description_nodate:
-      "Your {plan} plan will be cancelled at the end of the current billing period. You keep full access until then.",
+      "Your {{plan}} plan will be cancelled at the end of the current billing period. You keep full access until then.",
     cancel_final_confirm: "Cancel my plan",
     cancel_confirm_title: "Cancel Subscription",
     cancel_confirm_description:
@@ -4021,7 +4021,7 @@ export const en: Translations = {
     enter_password_confirm: "Enter your password to confirm:",
     verifying_credentials: "Verifying credentials...",
     failed_verify_credentials:
-      "Incorrect password. Please try again - your account is unchanged.",
+      "Incorrect password. Please try again. Your account is unchanged.",
     deleting_account: "Deleting account...",
     failed_delete_account:
       "We could not delete your account. Checking your password and trying again usually sorts it. Your account is unchanged.",
@@ -4421,7 +4421,7 @@ export const en: Translations = {
     invalid_2fa_code:
       "That code did not match. The current code from your authenticator app will work.",
     incorrect_password_error:
-      "Incorrect password. Please try again - your account is not locked.",
+      "Incorrect password. Please try again. Your account is not locked.",
     failed_retrieve_auth:
       "We could not load your sign-in info. Another attempt should do it.",
     failed_verify_password: "Incorrect password. Please try again.",
@@ -4694,6 +4694,10 @@ export const en: Translations = {
       "You have reached the domain limit for your plan. Upgrade to add more.",
     domain_purchase_error_slow_down:
       "Too many domain orders right now. Finish or wait for the ones in progress.",
+    domain_purchase_error_paused:
+      "Domain purchases are paused for a few minutes. Please try again shortly.",
+    domain_purchase_error_not_allowed:
+      "This domain isn't available on your account right now. Try a different name or contact support.",
     domain_purchase_progress_title: "Setting up {{domain}}",
     domain_purchase_step_payment: "Payment received",
     domain_purchase_step_registering: "Registering with NameSilo",
@@ -4706,6 +4710,10 @@ export const en: Translations = {
       "Taking longer than usual. We'll finish in the background and email you when it's done.",
     domain_purchase_refunded:
       "This domain became unavailable before we could register it. Your payment has been refunded.",
+    domain_purchase_order_expired:
+      "This order expired before it was paid. Start a new purchase to get the domain.",
+    domain_purchase_order_lapsed:
+      "This domain reached its expiry date and is no longer active. Buy it again to bring it back.",
     domain_purchase_try_instead: "Try one of these instead",
     domain_purchase_empty_subtitle:
       "Enter a word, a name, or a full domain. We check every ending we sell and show you what is free.",
@@ -4773,7 +4781,7 @@ export const en: Translations = {
     domain_purchase_discount_tooltip:
       "First year sale price from our registrar. Renews at {{price}} per year afterwards.",
     domain_purchase_purchased_info:
-      "These are domains you bought through Aster. We register them for you with WHOIS privacy, set up all the mail DNS automatically, and you can create addresses on them right away. Each one renews only when you approve it, and you can transfer it to another registrar whenever you want.",
+      "These are domains you bought through Aster. We register them for you with WHOIS privacy, set up all the mail DNS automatically, and you can create addresses on them right away. Each one renews only when you approve it. ICANN locks new registrations for their first 60 days, and after that our support team handles transfers out to another registrar.",
     domain_purchase_dont_have:
       "Don't have a domain? Click here to purchase one.",
     domain_purchase_sort_price: "Lowest price",
@@ -4783,6 +4791,7 @@ export const en: Translations = {
     domain_purchase_purchased_empty: "No purchased domains yet",
     domain_purchase_purchased_expires: "Expires {{date}}",
     domain_purchase_purchased_in_progress: "Being set up...",
+    domain_purchase_purchased_lapsed: "Expired - buy again",
     domain_purchase_terms_notice:
       "Aster registers the domain on your behalf through our registrar partner, and the renewal price is always shown before you pay. If you ever let a domain lapse, the registrar may charge a recovery fee to get it back.",
     domain_purchase_terms_aster: "Aster Terms of Service",
@@ -7369,7 +7378,7 @@ export const en: Translations = {
     failed_send:
       "This email did not send. Another attempt should do it. Your draft is saved.",
     incorrect_password:
-      "Incorrect password. Please try again - your account is not locked.",
+      "Incorrect password. Please try again. Your account is not locked.",
     no_keys_available:
       "Your private keys are locked on this device. Your password will unlock them. Your keys on the server are untouched.",
     session_expired_login:
@@ -7468,7 +7477,7 @@ export const en: Translations = {
     vault_missing_key:
       "We could not find the device key needed to read this storage. Signing out and back in will re-link this device. Your data on the server is untouched.",
     wrong_folder_password:
-      "Incorrect folder password. Please try again - the folder stays locked.",
+      "Incorrect folder password. Please try again. The folder stays locked.",
     wrong_external_account_password:
       "That outside account password did not match. Checking it in Settings, then another attempt, usually does it. Your saved connection is unchanged.",
     decrypt_wrong_key:

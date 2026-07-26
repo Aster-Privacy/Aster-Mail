@@ -69,17 +69,13 @@ import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_chang
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
-import { use_auth } from "@/contexts/auth_context";
-import { get_user_salt } from "@/services/api/auth";
 import {
-  hash_email,
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
+  clear_cancel_password_cache,
+  get_cancel_password_hash,
+} from "@/components/settings/billing/cancel_password";
 
 export function BillingSection() {
   const { t } = use_i18n();
-  const { user } = use_auth();
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
@@ -117,7 +113,9 @@ export function BillingSection() {
   const [cancel_password, set_cancel_password] = useState("");
   const [cancel_password_error, set_cancel_password_error] = useState("");
   const [show_cancel_password, set_show_cancel_password] = useState(false);
-  const [cancel_reason, set_cancel_reason] = useState<CancelReason | null>(null);
+  const [cancel_reason, set_cancel_reason] = useState<CancelReason | null>(
+    null,
+  );
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [show_payment_methods, set_show_payment_methods] = useState(false);
   const [show_manage_plan, set_show_manage_plan] = useState(false);
@@ -131,14 +129,17 @@ export function BillingSection() {
   const [show_method_modal, set_show_method_modal] = useState(false);
   const [method_modal_plan, set_method_modal_plan] =
     useState<AvailablePlan | null>(null);
-  const [show_addon_method_modal, set_show_addon_method_modal] = useState(false);
+  const [show_addon_method_modal, set_show_addon_method_modal] =
+    useState(false);
   const [addon_method_target, set_addon_method_target] =
     useState<StorageAddonItem | null>(null);
-  const [show_crypto_addon_modal, set_show_crypto_addon_modal] = useState(false);
+  const [show_crypto_addon_modal, set_show_crypto_addon_modal] =
+    useState(false);
   const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
     null,
   );
-  const [show_plan_change_confirm, set_show_plan_change_confirm] = useState(false);
+  const [show_plan_change_confirm, set_show_plan_change_confirm] =
+    useState(false);
   const [plan_change_confirm_target, set_plan_change_confirm_target] =
     useState<{ plan: AvailablePlan; interval: string } | null>(null);
   const pending_tauri_checkout_ref = useRef(false);
@@ -163,71 +164,72 @@ export function BillingSection() {
     refresh_academic_status();
   }, [refresh_academic_status]);
 
-  const plan_features: Record<string, { label: string; on: boolean }[]> = useMemo(
-    () => ({
-      star: [
-        { label: t("settings.plan_feat_storage_50"), on: true },
-        { label: t("settings.plan_feat_aliases_15"), on: true },
-        { label: t("settings.plan_feat_domains_5"), on: true },
-        { label: t("settings.plan_feat_attachments_50"), on: true },
-        { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
-        { label: t("settings.plan_feat_e2ee"), on: true },
-        { label: t("settings.plan_feat_zero_knowledge"), on: true },
-        { label: t("settings.plan_feat_tracker"), on: true },
-        { label: t("settings.plan_feat_advanced_aliases"), on: true },
-        { label: t("settings.plan_feat_catch_all"), on: true },
-        { label: t("settings.plan_feat_auto_forward"), on: true },
-        { label: t("settings.plan_feat_priority_support"), on: true },
-        { label: t("settings.plan_feat_imap_smtp"), on: true },
-        { label: t("settings.plan_feat_folder_lock"), on: false },
-        { label: t("settings.plan_feat_smart_folders"), on: false },
-        { label: t("settings.plan_feat_vanguard"), on: false },
-        { label: t("settings.lockdown_title"), on: false },
-        { label: t("settings.plan_feat_read_receipts"), on: false },
-      ],
-      nova: [
-        { label: t("settings.plan_feat_storage_500"), on: true },
-        { label: t("settings.plan_feat_aliases_unlimited"), on: true },
-        { label: t("settings.plan_feat_domains_30"), on: true },
-        { label: t("settings.plan_feat_attachments_100"), on: true },
-        { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
-        { label: t("settings.plan_feat_e2ee"), on: true },
-        { label: t("settings.plan_feat_zero_knowledge"), on: true },
-        { label: t("settings.plan_feat_tracker"), on: true },
-        { label: t("settings.plan_feat_advanced_aliases"), on: true },
-        { label: t("settings.plan_feat_catch_all"), on: true },
-        { label: t("settings.plan_feat_auto_forward"), on: true },
-        { label: t("settings.plan_feat_priority_support"), on: true },
-        { label: t("settings.plan_feat_imap_smtp"), on: true },
-        { label: t("settings.plan_feat_folder_lock"), on: true },
-        { label: t("settings.plan_feat_smart_folders"), on: true },
-        { label: t("settings.plan_feat_vanguard"), on: true },
-        { label: t("settings.lockdown_title"), on: true },
-        { label: t("settings.plan_feat_read_receipts"), on: false },
-      ],
-      supernova: [
-        { label: t("settings.plan_feat_storage_5tb"), on: true },
-        { label: t("settings.plan_feat_aliases_unlimited"), on: true },
-        { label: t("settings.plan_feat_domains_unlimited"), on: true },
-        { label: t("settings.plan_feat_attachments_250"), on: true },
-        { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
-        { label: t("settings.plan_feat_e2ee"), on: true },
-        { label: t("settings.plan_feat_zero_knowledge"), on: true },
-        { label: t("settings.plan_feat_tracker"), on: true },
-        { label: t("settings.plan_feat_advanced_aliases"), on: true },
-        { label: t("settings.plan_feat_catch_all"), on: true },
-        { label: t("settings.plan_feat_auto_forward"), on: true },
-        { label: t("settings.plan_feat_priority_support"), on: true },
-        { label: t("settings.plan_feat_imap_smtp"), on: true },
-        { label: t("settings.plan_feat_folder_lock"), on: true },
-        { label: t("settings.plan_feat_smart_folders"), on: true },
-        { label: t("settings.plan_feat_vanguard"), on: true },
-        { label: t("settings.lockdown_title"), on: true },
-        { label: t("settings.plan_feat_read_receipts"), on: true },
-      ],
-    }),
-    [t],
-  );
+  const plan_features: Record<string, { label: string; on: boolean }[]> =
+    useMemo(
+      () => ({
+        star: [
+          { label: t("settings.plan_feat_storage_50"), on: true },
+          { label: t("settings.plan_feat_aliases_15"), on: true },
+          { label: t("settings.plan_feat_domains_5"), on: true },
+          { label: t("settings.plan_feat_attachments_50"), on: true },
+          { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
+          { label: t("settings.plan_feat_e2ee"), on: true },
+          { label: t("settings.plan_feat_zero_knowledge"), on: true },
+          { label: t("settings.plan_feat_tracker"), on: true },
+          { label: t("settings.plan_feat_advanced_aliases"), on: true },
+          { label: t("settings.plan_feat_catch_all"), on: true },
+          { label: t("settings.plan_feat_auto_forward"), on: true },
+          { label: t("settings.plan_feat_priority_support"), on: true },
+          { label: t("settings.plan_feat_imap_smtp"), on: true },
+          { label: t("settings.plan_feat_folder_lock"), on: false },
+          { label: t("settings.plan_feat_smart_folders"), on: false },
+          { label: t("settings.plan_feat_vanguard"), on: false },
+          { label: t("settings.lockdown_title"), on: false },
+          { label: t("settings.plan_feat_read_receipts"), on: false },
+        ],
+        nova: [
+          { label: t("settings.plan_feat_storage_500"), on: true },
+          { label: t("settings.plan_feat_aliases_unlimited"), on: true },
+          { label: t("settings.plan_feat_domains_30"), on: true },
+          { label: t("settings.plan_feat_attachments_100"), on: true },
+          { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
+          { label: t("settings.plan_feat_e2ee"), on: true },
+          { label: t("settings.plan_feat_zero_knowledge"), on: true },
+          { label: t("settings.plan_feat_tracker"), on: true },
+          { label: t("settings.plan_feat_advanced_aliases"), on: true },
+          { label: t("settings.plan_feat_catch_all"), on: true },
+          { label: t("settings.plan_feat_auto_forward"), on: true },
+          { label: t("settings.plan_feat_priority_support"), on: true },
+          { label: t("settings.plan_feat_imap_smtp"), on: true },
+          { label: t("settings.plan_feat_folder_lock"), on: true },
+          { label: t("settings.plan_feat_smart_folders"), on: true },
+          { label: t("settings.plan_feat_vanguard"), on: true },
+          { label: t("settings.lockdown_title"), on: true },
+          { label: t("settings.plan_feat_read_receipts"), on: false },
+        ],
+        supernova: [
+          { label: t("settings.plan_feat_storage_5tb"), on: true },
+          { label: t("settings.plan_feat_aliases_unlimited"), on: true },
+          { label: t("settings.plan_feat_domains_unlimited"), on: true },
+          { label: t("settings.plan_feat_attachments_250"), on: true },
+          { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
+          { label: t("settings.plan_feat_e2ee"), on: true },
+          { label: t("settings.plan_feat_zero_knowledge"), on: true },
+          { label: t("settings.plan_feat_tracker"), on: true },
+          { label: t("settings.plan_feat_advanced_aliases"), on: true },
+          { label: t("settings.plan_feat_catch_all"), on: true },
+          { label: t("settings.plan_feat_auto_forward"), on: true },
+          { label: t("settings.plan_feat_priority_support"), on: true },
+          { label: t("settings.plan_feat_imap_smtp"), on: true },
+          { label: t("settings.plan_feat_folder_lock"), on: true },
+          { label: t("settings.plan_feat_smart_folders"), on: true },
+          { label: t("settings.plan_feat_vanguard"), on: true },
+          { label: t("settings.lockdown_title"), on: true },
+          { label: t("settings.plan_feat_read_receipts"), on: true },
+        ],
+      }),
+      [t],
+    );
 
   const storage_limit_bytes =
     stats.storage_total_bytes ||
@@ -367,7 +369,10 @@ export function BillingSection() {
     set_show_method_modal(true);
   };
 
-  const handle_family_plan_change = async (plan_code: string, interval: "month" | "year") => {
+  const handle_family_plan_change = async (
+    plan_code: string,
+    interval: "month" | "year",
+  ) => {
     const is_tauri =
       typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
@@ -392,20 +397,22 @@ export function BillingSection() {
       return;
     }
 
-    const plan = plans.find((p) => p.code === plan_code) ?? ({
-      id: plan_code,
-      code: plan_code,
-      name: plan_code,
-      description: null,
-      storage_limit_bytes: 0,
-      max_attachment_size_bytes: 0,
-      max_email_aliases: 0,
-      max_custom_domains: 0,
-      price_cents: 0,
-      billing_period: interval,
-      stripe_price_id: null,
-      is_current: false,
-    } as AvailablePlan);
+    const plan =
+      plans.find((p) => p.code === plan_code) ??
+      ({
+        id: plan_code,
+        code: plan_code,
+        name: plan_code,
+        description: null,
+        storage_limit_bytes: 0,
+        max_attachment_size_bytes: 0,
+        max_email_aliases: 0,
+        max_custom_domains: 0,
+        price_cents: 0,
+        billing_period: interval,
+        stripe_price_id: null,
+        is_current: false,
+      } as AvailablePlan);
 
     set_plan_change_confirm_target({ plan, interval });
     set_show_plan_change_confirm(true);
@@ -511,7 +518,10 @@ export function BillingSection() {
 
     set_is_action_loading(true);
     try {
-      const response = await purchase_storage_addon(addon.id, credit_balance?.balance_cents);
+      const response = await purchase_storage_addon(
+        addon.id,
+        credit_balance?.balance_cents,
+      );
       const url = response.data?.url;
 
       if (url) {
@@ -546,28 +556,16 @@ export function BillingSection() {
 
       return;
     }
-    if (!user?.email) {
-      set_cancel_password_error(t("settings.cancel_password_error"));
-
-      return;
-    }
     set_cancel_password_error("");
     set_is_action_loading(true);
     try {
-      const user_hash = await hash_email(user.email);
-      const salt_response = await get_user_salt({ user_hash });
+      const password_hash = await get_cancel_password_hash(cancel_password);
 
-      if (salt_response.error || !salt_response.data) {
+      if (!password_hash) {
         set_cancel_password_error(t("settings.cancel_password_error"));
 
         return;
       }
-
-      const salt = base64_to_array(salt_response.data.salt);
-      const { hash: password_hash } = await derive_password_hash(
-        cancel_password,
-        salt,
-      );
 
       const response = await cancel_subscription(
         password_hash,
@@ -590,6 +588,7 @@ export function BillingSection() {
       if (import.meta.env.DEV) console.error(error);
       set_cancel_password_error(t("settings.cancel_password_error"));
     } finally {
+      clear_cancel_password_cache();
       set_is_action_loading(false);
       set_show_cancel_dialog(false);
     }
@@ -624,7 +623,10 @@ export function BillingSection() {
     (tier) => tier.id === subscription?.plan.code,
   );
   const yearly_savings = current_tier
-    ? format_price(convert_cents(current_tier.savings_cents, preferred_currency), preferred_currency)
+    ? format_price(
+        convert_cents(current_tier.savings_cents, preferred_currency),
+        preferred_currency,
+      )
     : null;
 
   const handle_switch_billing = async () => {
@@ -695,7 +697,9 @@ export function BillingSection() {
         handle_currency_change={handle_currency_change}
         is_action_loading={is_action_loading}
         on_family_plan_change={handle_family_plan_change}
-        on_tauri_checkout_opened={() => { pending_tauri_checkout_ref.current = true; }}
+        on_tauri_checkout_opened={() => {
+          pending_tauri_checkout_ref.current = true;
+        }}
         on_upgrade={handle_select_plan}
         plan_features={plan_features}
         plans={plans}
@@ -749,7 +753,8 @@ export function BillingSection() {
         (() => {
           const tier = PLAN_TIERS.find((p) => p.id === crypto_plan.code);
           const monthly_cents = tier?.monthly_cents ?? crypto_plan.price_cents;
-          const yearly_cents = tier?.yearly_cents ?? crypto_plan.price_cents * 12;
+          const yearly_cents =
+            tier?.yearly_cents ?? crypto_plan.price_cents * 12;
 
           return (
             <CryptoTermModal
@@ -782,8 +787,7 @@ export function BillingSection() {
               subscription.payment_provider !== "stripe_crypto" &&
               subscription.has_stripe_subscription !== false &&
               !(
-                typeof window !== "undefined" &&
-                "__TAURI_INTERNALS__" in window
+                typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
               )
             )
           }

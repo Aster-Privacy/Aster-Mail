@@ -4677,33 +4677,34 @@ export const tr = {
     cancel_reason_continue: "Devam",
     cancel_impact_title: "İptal ederseniz neler değişir",
     cancel_impact_description:
-      "Planınız {date} tarihine kadar etkin kalır. Sonrasında:",
+      "Planınız {{date}} tarihine kadar etkin kalır. Sonrasında:",
     cancel_impact_description_nodate: "Mevcut faturalama döneminiz bittiğinde:",
     cancel_impact_loading: "Hesabınızda nelerin değişeceği kontrol ediliyor...",
     cancel_impact_unavailable:
       "Ayrıntıları şu anda yükleyemedik. Yine de devam edebilirsiniz.",
     cancel_impact_storage:
-      "Depolama {current} değerinden {after} değerine düşer.",
+      "Depolama {{current}} değerinden {{after}} değerine düşer.",
     cancel_impact_storage_over:
-      "{used} kullanıyorsunuz, bu sınırın üzerinde. Sınırın üzerindeyken gelen postalar reddedilir, 7 gün sonra kalıcı olarak reddedilir.",
+      "{{used}} kullanıyorsunuz, bu sınırın üzerinde. Sınırın üzerindeyken gelen postalar reddedilir, 7 gün sonra kalıcı olarak reddedilir.",
     cancel_impact_aliases:
-      "{count} takma ad {days} gün sonra posta almayı durdurur.",
-    cancel_impact_domains: "{count} özel alan adı askıya alınır.",
+      "{{count}} takma ad {{days}} gün sonra posta almayı durdurur.",
+    cancel_impact_domains: "{{count}} özel alan adı askıya alınır.",
     cancel_impact_catch_all: "Catch-all adresleme kapatılır.",
-    cancel_impact_templates: "{count} e-posta şablonu devre dışı bırakılır.",
-    cancel_impact_signatures: "{count} imza devre dışı bırakılır.",
-    cancel_impact_family: "{count} aile üyesi {days} günlük ek süreye geçer.",
+    cancel_impact_templates: "{{count}} e-posta şablonu devre dışı bırakılır.",
+    cancel_impact_signatures: "{{count}} imza devre dışı bırakılır.",
+    cancel_impact_family:
+      "{{count}} aile üyesi {{days}} günlük ek süreye geçer.",
     cancel_impact_family_addresses:
-      "{count} ayrılmış aile adresi serbest bırakılır.",
-    cancel_impact_features: "{count} ücretli özellik kapatılır.",
+      "{{count}} ayrılmış aile adresi serbest bırakılır.",
+    cancel_impact_features: "{{count}} ücretli özellik kapatılır.",
     cancel_impact_reactivate_hint:
       "Hiçbir şey silinmez. Yeniden abone olduğunuzda devre dışı bırakılanlar, yeni planınızın sınırları içinde geri gelir.",
     cancel_impact_continue: "İptale devam et",
     cancel_final_title: "İptali onayla",
     cancel_final_description:
-      "{plan} planınız iptal edilecek ve {date} tarihinde sona erecek. O zamana kadar tam erişiminiz sürer.",
+      "{{plan}} planınız iptal edilecek ve {{date}} tarihinde sona erecek. O zamana kadar tam erişiminiz sürer.",
     cancel_final_description_nodate:
-      "{plan} planınız mevcut faturalama döneminin sonunda iptal edilecek. O zamana kadar tam erişiminiz sürer.",
+      "{{plan}} planınız mevcut faturalama döneminin sonunda iptal edilecek. O zamana kadar tam erişiminiz sürer.",
     cancel_final_confirm: "Planımı iptal et",
     cancel_confirm_title: "Aboneliği İptal Et",
     cancel_enter_password: "İptal işlemini onaylamak için parolanızı girin:",
@@ -5100,7 +5101,7 @@ export const tr = {
     domain_purchase_discount_tooltip:
       "Kayıt şirketimizin ilk yıl indirimli fiyatı. Sonrasında yılda {{price}} ile yenilenir.",
     domain_purchase_purchased_info:
-      "Bunlar Aster üzerinden satın aldığınız alan adlarıdır. Onları sizin için WHOIS gizliliğiyle kaydeder, tüm posta DNS kayıtlarını otomatik olarak kurarız ve üzerlerinde hemen adres oluşturabilirsiniz. Her alan adı yalnızca sizin onayınızla yenilenir ve dilediğiniz zaman başka bir kayıt şirketine taşıyabilirsiniz.",
+      "Bunlar Aster üzerinden satın aldığınız alan adlarıdır. Onları sizin için WHOIS gizliliğiyle kaydeder, tüm posta DNS kayıtlarını otomatik olarak kurarız ve üzerlerinde hemen adres oluşturabilirsiniz. Her alan adı yalnızca sizin onayınızla yenilenir. ICANN yeni kayıtları ilk 60 gün boyunca kilitler, sonrasında başka bir kayıt şirketine taşıma işlemini destek ekibimiz yürütür.",
     domain_purchase_dont_have:
       "Alan adınız yok mu? Satın almak için buraya tıklayın.",
     domain_purchase_sort_price: "En düşük fiyat",
@@ -5111,6 +5112,15 @@ export const tr = {
     domain_purchase_purchased_empty: "Henüz satın alınmış alan adı yok",
     domain_purchase_purchased_expires: "{{date}} tarihinde sona eriyor",
     domain_purchase_purchased_in_progress: "Ayarlanıyor...",
+    domain_purchase_purchased_lapsed: "Süresi doldu - yeniden al",
+    domain_purchase_error_paused:
+      "Alan adı satın alma işlemleri birkaç dakikalığına duraklatıldı. Lütfen kısa süre sonra tekrar deneyin.",
+    domain_purchase_error_not_allowed:
+      "Bu alan adı şu anda hesabınızda kullanılamıyor. Farklı bir ad deneyin veya destek ekibine yazın.",
+    domain_purchase_order_expired:
+      "Bu sipariş ödenmeden önce süresi doldu. Alan adını almak için yeni bir satın alma başlatın.",
+    domain_purchase_order_lapsed:
+      "Bu alan adının süresi doldu ve artık etkin değil. Geri almak için yeniden satın alın.",
     domain_purchase_terms_notice:
       "Aster, alan adını kayıt şirketi ortağımız aracılığıyla sizin adınıza kaydeder ve yenileme fiyatı ödeme yapmadan önce her zaman gösterilir. Bir alan adının süresinin dolmasına izin verirseniz, kayıt şirketi onu geri almak için kurtarma ücreti talep edebilir.",
     domain_purchase_terms_aster: "Aster Hizmet Şartları",
