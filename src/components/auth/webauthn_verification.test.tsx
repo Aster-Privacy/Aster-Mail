@@ -29,6 +29,7 @@ import {
 } from "@/services/api/webauthn";
 
 vi.mock("@/services/api/webauthn", () => ({
+  WEBAUTHN_PROMPT_DISMISSED: "webauthn_prompt_dismissed",
   initiate_webauthn_assertion: vi.fn(),
   perform_webauthn_assertion: vi.fn(),
 }));
@@ -166,5 +167,43 @@ describe("WebauthnVerification", () => {
     });
 
     expect(mocked_initiate).toHaveBeenCalledTimes(2);
+  });
+
+  it("offers a passkey button instead of an error when the auto-start is blocked", async () => {
+    mocked_initiate.mockResolvedValue({ data: assertion_options });
+    mocked_perform.mockResolvedValueOnce({
+      data: undefined,
+      error: "authentication_cancelled",
+      server_code: "webauthn_prompt_dismissed",
+    });
+
+    const p = await render();
+
+    expect(container.querySelector(".text-red-500")).toBeNull();
+    expect(button_by_text("common.try_again")).toBeUndefined();
+    expect(button_by_text("auth.passkey_sign_in")).toBeTruthy();
+    expect(p.on_success).not.toHaveBeenCalled();
+  });
+
+  it("keeps options ready so the passkey button reaches the authenticator without a round trip", async () => {
+    mocked_initiate.mockResolvedValue({ data: assertion_options });
+    mocked_perform.mockResolvedValueOnce({
+      data: undefined,
+      error: "authentication_cancelled",
+      server_code: "webauthn_prompt_dismissed",
+    });
+
+    const p = await render();
+    const calls_before_click = mocked_initiate.mock.calls.length;
+
+    expect(calls_before_click).toBe(2);
+
+    mocked_perform.mockResolvedValueOnce(success_response);
+    await act(async () => {
+      button_by_text("auth.passkey_sign_in")!.click();
+    });
+
+    expect(mocked_initiate).toHaveBeenCalledTimes(calls_before_click);
+    expect(p.on_success).toHaveBeenCalledTimes(1);
   });
 });

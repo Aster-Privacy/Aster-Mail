@@ -26,7 +26,11 @@ import { TotpVerifyResponse } from "@/services/api/totp";
 import {
   initiate_webauthn_assertion,
   perform_webauthn_assertion,
+  WebAuthnAssertionOptions,
+  WEBAUTHN_PROMPT_DISMISSED,
 } from "@/services/api/webauthn";
+
+const OPTIONS_MAX_AGE_MS = 90_000;
 
 interface WebauthnVerificationProps {
   pending_login_token: string;
@@ -44,52 +48,99 @@ export function WebauthnVerification({
   remember_me = true,
 }: WebauthnVerificationProps) {
   const { t } = use_i18n();
-  const [is_loading, set_is_loading] = useState(false);
+  const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState("");
+  const [needs_gesture, set_needs_gesture] = useState(false);
   const has_started = useRef(false);
+  const options_ref = useRef<WebAuthnAssertionOptions | null>(null);
+  const options_at_ref = useRef(0);
+  const in_flight_ref = useRef<Promise<string> | null>(null);
 
-  const start_assertion = useCallback(async () => {
-    set_is_loading(true);
-    set_error("");
+  const load_options = useCallback(async (): Promise<string> => {
+    const response = await initiate_webauthn_assertion(pending_login_token);
 
-    const options_response =
-      await initiate_webauthn_assertion(pending_login_token);
+    if (response.error || !response.data) {
+      options_ref.current = null;
 
-    if (options_response.error || !options_response.data) {
-      set_error(options_response.error || t("common.something_went_wrong"));
-      set_is_loading(false);
-
-      return;
+      return response.error || t("common.something_went_wrong");
     }
 
-    const result = await perform_webauthn_assertion(
-      options_response.data,
-      pending_login_token,
-      remember_me,
-    );
+    options_ref.current = response.data;
+    options_at_ref.current = Date.now();
 
-    if (result.error) {
-      set_error(result.error);
-      set_is_loading(false);
+    return "";
+  }, [pending_login_token, t]);
 
-      return;
+  const ensure_options = useCallback(async (): Promise<string> => {
+    if (
+      options_ref.current &&
+      Date.now() - options_at_ref.current < OPTIONS_MAX_AGE_MS
+    ) {
+      return "";
     }
 
-    if (result.data) {
-      set_is_loading(false);
-      on_success(result.data);
-
-      return;
+    if (!in_flight_ref.current) {
+      in_flight_ref.current = load_options();
     }
 
-    set_is_loading(false);
-  }, [pending_login_token, on_success, remember_me, t]);
+    const load_error = await in_flight_ref.current;
+
+    in_flight_ref.current = null;
+
+    return load_error;
+  }, [load_options]);
+
+  const run_assertion = useCallback(
+    async (is_auto_start: boolean) => {
+      set_is_loading(true);
+      set_error("");
+      set_needs_gesture(false);
+
+      const load_error = await ensure_options();
+      const options = options_ref.current;
+
+      if (load_error || !options) {
+        set_error(load_error || t("common.something_went_wrong"));
+        set_is_loading(false);
+
+        return;
+      }
+
+      const result = await perform_webauthn_assertion(
+        options,
+        pending_login_token,
+        remember_me,
+      );
+
+      options_ref.current = null;
+
+      if (result.data) {
+        set_is_loading(false);
+        on_success(result.data);
+
+        return;
+      }
+
+      set_is_loading(false);
+      if (result.server_code === WEBAUTHN_PROMPT_DISMISSED) {
+        set_needs_gesture(true);
+        if (!is_auto_start) {
+          set_error(result.error || "");
+        }
+      } else {
+        set_error(result.error || t("common.something_went_wrong"));
+      }
+
+      ensure_options();
+    },
+    [ensure_options, pending_login_token, on_success, remember_me, t],
+  );
 
   useEffect(() => {
     if (has_started.current) return;
     has_started.current = true;
-    start_assertion();
-  }, [start_assertion]);
+    run_assertion(true);
+  }, [run_assertion]);
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -115,15 +166,19 @@ export function WebauthnVerification({
           </div>
         )}
 
-        {error && (
+        {!is_loading && (error || needs_gesture) && (
           <div className="space-y-3">
-            <p className="text-sm text-center text-red-500">{error}</p>
+            {error && (
+              <p className="text-sm text-center text-red-500">{error}</p>
+            )}
             <Button
               className="w-full"
               variant="depth"
-              onClick={start_assertion}
+              onClick={() => run_assertion(false)}
             >
-              {t("common.try_again")}
+              {needs_gesture
+                ? t("auth.passkey_sign_in")
+                : t("common.try_again")}
             </Button>
           </div>
         )}
