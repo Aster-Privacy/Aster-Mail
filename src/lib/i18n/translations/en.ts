@@ -3004,6 +3004,40 @@ export const en: Translations = {
     fam_org_event_invite_revoked: "Invite revoked",
     fam_org_event_storage_updated: "Storage updated",
     fam_org_event_security_notify_sent: "2FA reminder sent",
+    fam_org_event_address_reserved: "Address reserved",
+    fam_org_event_reservation_released: "Reservation released",
+    fam_org_event_shared_mailbox_created: "Shared mailbox created",
+    fam_org_event_shared_mailbox_deleted: "Shared mailbox deleted",
+    fam_org_event_shared_mailbox_grant_added: "Shared mailbox access granted",
+    fam_org_event_shared_mailbox_grant_revoked: "Shared mailbox access removed",
+    fam_org_event_shared_mailbox_rotated: "Shared mailbox keys rotated",
+    fam_org_event_consent_request_created: "Consent requested",
+    fam_org_event_consent_declined: "Consent declined",
+    fam_org_event_consent_all_accepted: "Consent completed",
+    fam_org_activity_address_reserved: "{{actor}} reserved an address for a kid",
+    fam_org_activity_reservation_released:
+      "{{actor}} released a reserved address",
+    fam_org_activity_shared_mailbox_created:
+      "{{actor}} created a shared mailbox",
+    fam_org_activity_shared_mailbox_deleted:
+      "{{actor}} deleted a shared mailbox",
+    fam_org_activity_shared_mailbox_grant_added:
+      "{{actor}} gave access to a shared mailbox",
+    fam_org_activity_shared_mailbox_grant_revoked:
+      "{{actor}} removed access to a shared mailbox",
+    fam_org_activity_shared_mailbox_rotated:
+      "{{actor}} rotated shared mailbox keys",
+    fam_org_activity_group_member_added:
+      "{{actor}} added {{target}} to a group",
+    fam_org_activity_group_member_added_generic:
+      "{{actor}} added a member to a group",
+    fam_org_activity_group_member_removed:
+      "{{actor}} removed {{target}} from a group",
+    fam_org_activity_group_member_removed_generic:
+      "{{actor}} removed a member from a group",
+    fam_org_activity_consent_request_created: "{{actor}} requested consent",
+    fam_org_activity_consent_declined: "{{actor}} declined a consent request",
+    fam_org_activity_consent_all_accepted: "Everyone accepted the consent request",
     fam_org_activity_someone: "Someone",
     fam_org_activity_member_joined: "{{target}} joined the family",
     fam_org_activity_member_joined_generic: "A member joined",
@@ -4724,6 +4758,8 @@ export const en: Translations = {
     domain_purchase_empty_title: "Type in something to start",
     domain_purchase_search_failed:
       "The search didn't go through. Please try again.",
+    domain_purchase_not_released:
+      "Buying domains isn't live yet. It's coming in an upcoming update.",
     domain_purchase_retry: "Try again",
     domain_purchase_step_choose: "Choose a name",
     domain_purchase_step_checkout: "Checkout",
@@ -6696,6 +6732,8 @@ export const en: Translations = {
     block_sender_on_alias_tooltip: "Block this sender from reaching {{alias}}",
   },
   auth: {
+    captcha_load_failed:
+      "The security check could not load. Check your connection or any content blocker, then try again.",
     sign_in: "Sign In",
     sign_out: "Log out",
     sign_up: "Sign Up",

@@ -130,7 +130,23 @@ function event_labels(t: TFn): Record<string, string> {
     invite_revoked: t("settings.fam_org_event_invite_revoked"),
     storage_updated: t("settings.fam_org_event_storage_updated"),
     security_notify_sent: t("settings.fam_org_event_security_notify_sent"),
+    address_reserved: t("settings.fam_org_event_address_reserved"),
+    reservation_released: t("settings.fam_org_event_reservation_released"),
+    shared_mailbox_created: t("settings.fam_org_event_shared_mailbox_created"),
+    shared_mailbox_deleted: t("settings.fam_org_event_shared_mailbox_deleted"),
+    shared_mailbox_grant_added: t("settings.fam_org_event_shared_mailbox_grant_added"),
+    shared_mailbox_grant_revoked: t("settings.fam_org_event_shared_mailbox_grant_revoked"),
+    shared_mailbox_rotated: t("settings.fam_org_event_shared_mailbox_rotated"),
+    consent_request_created: t("settings.fam_org_event_consent_request_created"),
+    consent_declined: t("settings.fam_org_event_consent_declined"),
+    consent_all_accepted: t("settings.fam_org_event_consent_all_accepted"),
   };
+}
+
+function humanize_event_type(event_type: string): string {
+  const words = event_type.replace(/_/g, " ").trim();
+
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : event_type;
 }
 
 interface FamilySectionProps {
@@ -189,7 +205,19 @@ function activity_event_text(t: TFn, entry: { event_type: string; actor_username
     case "invite_sent": return target ? t("settings.fam_org_activity_invite_sent", { actor, target }) : t("settings.fam_org_activity_invite_sent_generic", { actor });
     case "invite_revoked": return target ? t("settings.fam_org_activity_invite_revoked", { actor, target }) : t("settings.fam_org_activity_invite_revoked_generic", { actor });
     case "storage_updated": return target ? t("settings.fam_org_activity_storage_updated", { actor, target }) : t("settings.fam_org_activity_storage_updated_generic", { actor });
-    default: return event_labels(t)[entry.event_type] ?? entry.event_type;
+    case "group_member_added": return target ? t("settings.fam_org_activity_group_member_added", { actor, target }) : t("settings.fam_org_activity_group_member_added_generic", { actor });
+    case "group_member_removed": return target ? t("settings.fam_org_activity_group_member_removed", { actor, target }) : t("settings.fam_org_activity_group_member_removed_generic", { actor });
+    case "address_reserved": return t("settings.fam_org_activity_address_reserved", { actor });
+    case "reservation_released": return t("settings.fam_org_activity_reservation_released", { actor });
+    case "shared_mailbox_created": return t("settings.fam_org_activity_shared_mailbox_created", { actor });
+    case "shared_mailbox_deleted": return t("settings.fam_org_activity_shared_mailbox_deleted", { actor });
+    case "shared_mailbox_grant_added": return t("settings.fam_org_activity_shared_mailbox_grant_added", { actor });
+    case "shared_mailbox_grant_revoked": return t("settings.fam_org_activity_shared_mailbox_grant_revoked", { actor });
+    case "shared_mailbox_rotated": return t("settings.fam_org_activity_shared_mailbox_rotated", { actor });
+    case "consent_request_created": return t("settings.fam_org_activity_consent_request_created", { actor });
+    case "consent_declined": return t("settings.fam_org_activity_consent_declined", { actor });
+    case "consent_all_accepted": return t("settings.fam_org_activity_consent_all_accepted");
+    default: return event_labels(t)[entry.event_type] ?? humanize_event_type(entry.event_type);
   }
 }
 
