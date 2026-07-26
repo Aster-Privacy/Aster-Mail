@@ -71,6 +71,7 @@ import { get_current_account } from "@/services/account_manager";
 import {
   set_cached_iframe_height,
   clear_iframe_height_cache,
+  email_viewer_measure_width,
 } from "@/components/email/sandboxed_email_renderer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
@@ -436,11 +437,7 @@ function premeasure_height(
     document.body.appendChild(measure_container);
   }
 
-  const viewer_width = Math.max(
-    400,
-    document.querySelector(".email-frame-container")?.clientWidth ||
-      window.innerWidth - 320,
-  );
+  const viewer_width = Math.max(400, email_viewer_measure_width());
 
   const wrapper = document.createElement("div");
   const shadow = wrapper.attachShadow({ mode: "open" });
