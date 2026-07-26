@@ -182,8 +182,8 @@ export default function IndexPage() {
         {t("common.skip_to_content")}
       </a>
       <div
-        className="h-dvh w-full flex flex-col overflow-hidden"
-        style={{ backgroundColor: "var(--bg-secondary)" }}
+        className="h-screen w-full flex flex-col overflow-hidden"
+        style={{ height: "100dvh", backgroundColor: "var(--bg-secondary)" }}
       >
         <NotificationBanner />
         <SurveyBanner />
