@@ -35,11 +35,17 @@ import {
   StarIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { CheckIcon, StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import {
+  CheckIcon,
+  StarIcon as StarIconSolid,
+} from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
+} from "@/utils/email_crypto";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { BadgeChip } from "@/components/ui/badge_chip";
@@ -63,6 +69,10 @@ import {
   outgoing_recipient_names,
   resolve_list_display_name,
 } from "@/hooks/email_list_helpers";
+import {
+  empty_selection_snapshot,
+  type SelectionSnapshot,
+} from "@/components/email/inbox/selection_snapshot";
 
 interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   email: InboxEmail;
@@ -75,10 +85,7 @@ interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   current_view?: string;
   is_active?: boolean;
   is_focused?: boolean;
-  selected_ids?: string[];
-  selected_grouped_ids?: string[];
-  selected_folder_tokens?: string[];
-  selected_tag_tokens?: string[];
+  selection?: React.RefObject<SelectionSnapshot>;
   on_toggle_select: (id: string) => void;
   on_email_click: (id: string) => void;
   on_archive?: (email: InboxEmail) => void;
@@ -106,7 +113,11 @@ function get_density_classes(density: string, compact_mode: boolean): string {
   return "py-2.5";
 }
 
-function truncate_preview(preview: string, subject_length: number, max_cap?: number): string {
+function truncate_preview(
+  preview: string,
+  subject_length: number,
+  max_cap?: number,
+): string {
   const char_budget = Math.min(
     max_cap ?? Infinity,
     Math.max(30, 100 - subject_length),
@@ -184,10 +195,7 @@ export const InboxEmailListItem = memo(
         current_view,
         is_active,
         is_focused: _is_focused,
-        selected_ids,
-        selected_grouped_ids,
-        selected_folder_tokens,
-        selected_tag_tokens,
+        selection,
         on_toggle_select,
         on_email_click,
         on_archive,
@@ -283,16 +291,16 @@ export const InboxEmailListItem = memo(
           .querySelectorAll('[data-astermail-drag-image="1"]')
           .forEach((n) => n.remove());
 
-        const is_multi =
-          email.is_selected && selected_ids && selected_ids.length > 1;
+        const snapshot = selection?.current ?? empty_selection_snapshot;
+        const is_multi = !!email.is_selected && snapshot.ids.length > 1;
         const ids = is_multi
-          ? selected_grouped_ids && selected_grouped_ids.length > 0
-            ? selected_grouped_ids
-            : selected_ids
+          ? snapshot.grouped_ids.length > 0
+            ? snapshot.grouped_ids
+            : snapshot.ids
           : email.grouped_email_ids && email.grouped_email_ids.length > 1
             ? email.grouped_email_ids
             : [email.id];
-        const count = is_multi ? selected_ids.length : 1;
+        const count = is_multi ? snapshot.ids.length : 1;
 
         const drag_el = document.createElement("div");
 
@@ -347,10 +355,10 @@ export const InboxEmailListItem = memo(
         );
 
         const folder_tokens = is_multi
-          ? selected_folder_tokens || []
+          ? snapshot.folder_tokens
           : (email.folders || []).map((f) => f.folder_token);
         const tag_tokens = is_multi
-          ? selected_tag_tokens || []
+          ? snapshot.tag_tokens
           : (email.tags || []).map((t) => t.id);
 
         e.dataTransfer.setData(
@@ -460,7 +468,9 @@ export const InboxEmailListItem = memo(
                       <ProfileAvatar
                         use_domain_logo={show_profile_pictures}
                         email={show_sender_email}
-                        image_url={peer_profile?.profile_picture ?? email.avatar_url}
+                        image_url={
+                          peer_profile?.profile_picture ?? email.avatar_url
+                        }
                         name={peer_profile?.display_name ?? show_sender_name}
                         size="sm"
                       />
@@ -525,7 +535,9 @@ export const InboxEmailListItem = memo(
 
               <OfficialBadge
                 className="hidden sm:inline"
-                email={outgoing_names ? profile_target_email : email.sender_email}
+                email={
+                  outgoing_names ? profile_target_email : email.sender_email
+                }
               />
 
               {show_thread_count &&
@@ -552,7 +564,6 @@ export const InboxEmailListItem = memo(
                   size="sm"
                 />
               )}
-
             </div>
 
             <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-1.5">
@@ -970,7 +981,13 @@ export const InboxEmailListItem = memo(
                 )}
 
                 {on_delete && (
-                  <Tooltip tip={is_trash_view ? t("mail.delete_permanently") : t("mail.move_to_trash")}>
+                  <Tooltip
+                    tip={
+                      is_trash_view
+                        ? t("mail.delete_permanently")
+                        : t("mail.move_to_trash")
+                    }
+                  >
                     <button
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_delete(email)}

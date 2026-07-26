@@ -50,6 +50,13 @@ import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { use_i18n } from "@/lib/i18n/context";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { use_platform } from "@/hooks/use_platform";
+import {
+  average_measured_height,
+  compute_mobile_list_window,
+  full_list_window,
+  MOBILE_WINDOW_MIN_ROWS,
+  type MobileListWindow,
+} from "@/components/mobile/list_window";
 
 interface MobileEmailListProps {
   emails: InboxEmail[];
@@ -202,7 +209,98 @@ export const MobileEmailList = memo(function MobileEmailList({
   const { t } = use_i18n();
   const { safe_area_insets } = use_platform();
   const scroll_ref = useRef<HTMLDivElement>(null);
+  const list_ref = useRef<HTMLDivElement>(null);
+  const row_heights_ref = useRef<number[]>([]);
   const [show_jump_to_top, set_show_jump_to_top] = useState(false);
+  const windowing_enabled = emails.length > MOBILE_WINDOW_MIN_ROWS;
+  const [list_window, set_list_window] = useState<MobileListWindow>(() =>
+    emails.length > MOBILE_WINDOW_MIN_ROWS
+      ? compute_mobile_list_window({
+          total: emails.length,
+          scroll_top: 0,
+          viewport_height:
+            typeof window === "undefined" ? 0 : window.innerHeight,
+        })
+      : full_list_window(emails.length),
+  );
+
+  const apply_window = useCallback((next: MobileListWindow) => {
+    set_list_window((prev) =>
+      prev.start === next.start &&
+      prev.end === next.end &&
+      prev.top_pad === next.top_pad &&
+      prev.bottom_pad === next.bottom_pad
+        ? prev
+        : next,
+    );
+  }, []);
+
+  const recompute_window = useCallback(() => {
+    if (!windowing_enabled) {
+      apply_window(full_list_window(emails.length));
+
+      return;
+    }
+
+    const scroller = scroll_ref.current;
+
+    if (!scroller) return;
+
+    const list = list_ref.current;
+    const list_offset = list
+      ? Math.max(0, list.offsetTop - scroller.offsetTop)
+      : 0;
+
+    apply_window(
+      compute_mobile_list_window({
+        total: emails.length,
+        scroll_top: scroller.scrollTop - list_offset,
+        viewport_height: scroller.clientHeight,
+        average_height: average_measured_height(row_heights_ref.current),
+        measured: row_heights_ref.current,
+      }),
+    );
+  }, [apply_window, emails.length, windowing_enabled]);
+
+  useEffect(() => {
+    row_heights_ref.current = [];
+  }, [current_view]);
+
+  useEffect(() => {
+    const el = scroll_ref.current;
+
+    if (!el) return;
+
+    recompute_window();
+
+    const handle_window_scroll = () => recompute_window();
+
+    el.addEventListener("scroll", handle_window_scroll, { passive: true });
+
+    return () => el.removeEventListener("scroll", handle_window_scroll);
+  }, [recompute_window, is_loading]);
+
+  useEffect(() => {
+    if (!windowing_enabled) return;
+
+    const list = list_ref.current;
+
+    if (!list) return;
+
+    const heights = row_heights_ref.current;
+    let changed = false;
+
+    for (const node of list.querySelectorAll<HTMLElement>("[data-row-index]")) {
+      const index = Number(node.dataset.rowIndex);
+      const height = node.offsetHeight;
+
+      if (!height || heights[index] === height) continue;
+      heights[index] = height;
+      changed = true;
+    }
+
+    if (changed) recompute_window();
+  });
 
   const handle_jump_to_top = useCallback(() => {
     haptic_impact("light");
@@ -496,25 +594,36 @@ export const MobileEmailList = memo(function MobileEmailList({
           </>
         )}
 
-        {emails.map((email) => (
-          <MobileEmailRow
-            key={email.id}
-            current_view={current_view}
-            email={email}
-            is_selected={selected_ids?.has(email.id)}
-            on_archive={on_archive}
-            on_delete={on_delete}
-            on_long_press={on_long_press}
-            on_mark_spam={on_mark_spam}
-            on_press={on_email_press}
-            on_snooze={on_snooze}
-            on_toggle_read={on_toggle_read}
-            on_toggle_star={on_toggle_star}
-            selection_mode={selection_mode}
-            swipe_left_action={swipe_left_action}
-            swipe_right_action={swipe_right_action}
-          />
-        ))}
+        <div ref={list_ref}>
+          {list_window.top_pad > 0 && (
+            <div style={{ height: list_window.top_pad }} />
+          )}
+          {emails
+            .slice(list_window.start, list_window.end)
+            .map((email, offset) => (
+              <div key={email.id} data-row-index={list_window.start + offset}>
+                <MobileEmailRow
+                  current_view={current_view}
+                  email={email}
+                  is_selected={selected_ids?.has(email.id)}
+                  on_archive={on_archive}
+                  on_delete={on_delete}
+                  on_long_press={on_long_press}
+                  on_mark_spam={on_mark_spam}
+                  on_press={on_email_press}
+                  on_snooze={on_snooze}
+                  on_toggle_read={on_toggle_read}
+                  on_toggle_star={on_toggle_star}
+                  selection_mode={selection_mode}
+                  swipe_left_action={swipe_left_action}
+                  swipe_right_action={swipe_right_action}
+                />
+              </div>
+            ))}
+          {list_window.bottom_pad > 0 && (
+            <div style={{ height: list_window.bottom_pad }} />
+          )}
+        </div>
 
         {has_more && (
           <div className="flex items-center justify-center py-4">
