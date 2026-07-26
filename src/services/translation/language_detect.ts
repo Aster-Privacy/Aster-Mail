@@ -21,6 +21,7 @@
 import { type LanguageCode, normalize_language } from "./engine_types";
 
 export const MIN_DETECTION_LENGTH = 40;
+export const MIN_CJK_DETECTION_LENGTH = 12;
 export const MIN_DETECTION_CONFIDENCE = 0.62;
 
 const MIN_STOPWORD_HIT_RATE = 0.04;
@@ -55,23 +56,43 @@ const SCRIPT_TESTS: ReadonlyArray<{ language: LanguageCode; pattern: RegExp }> =
 ];
 
 const SCRIPT_SHARE_THRESHOLD = 0.1;
+const KANA_JA_FLOOR = 0.05;
+const JA_KANA_PATTERN = /[぀-ゟ゠-ヿ]/g;
 
 function detect_by_script(text: string): DetectionResult | null {
   const total = text.replace(/\s/g, "").length;
 
   if (total === 0) return null;
 
+  let best: LanguageCode | null = null;
+  let best_share = 0;
+
   for (const test of SCRIPT_TESTS) {
     test.pattern.lastIndex = 0;
 
     const matches = text.match(test.pattern);
+    const share = matches ? matches.length / total : 0;
 
-    if (matches && matches.length / total >= SCRIPT_SHARE_THRESHOLD) {
-      return { language: test.language, confidence: SCRIPT_CONFIDENCE };
+    if (share > best_share) {
+      best_share = share;
+      best = test.language;
     }
   }
 
-  return null;
+  if (!best || best_share < SCRIPT_SHARE_THRESHOLD) return null;
+
+  if (best === "zh") {
+    JA_KANA_PATTERN.lastIndex = 0;
+
+    const kana = text.match(JA_KANA_PATTERN);
+    const kana_share = kana ? kana.length / total : 0;
+
+    if (kana_share >= KANA_JA_FLOOR) {
+      return { language: "ja", confidence: SCRIPT_CONFIDENCE };
+    }
+  }
+
+  return { language: best, confidence: SCRIPT_CONFIDENCE };
 }
 
 const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
@@ -201,9 +222,15 @@ function detect_by_stopwords(text: string): DetectionResult | null {
 export function detect_language(text: string): DetectionResult | null {
   const stripped = strip_for_detection(text);
 
+  if (stripped.length >= MIN_CJK_DETECTION_LENGTH) {
+    const script = detect_by_script(stripped);
+
+    if (script) return script;
+  }
+
   if (stripped.length < MIN_DETECTION_LENGTH) return null;
 
-  return detect_by_script(stripped) ?? detect_by_stopwords(stripped);
+  return detect_by_stopwords(stripped);
 }
 
 const negative_cache = new Set<string>();
@@ -237,9 +264,15 @@ export function detect_translatable_language(
 
   const stripped = strip_for_detection(text);
 
-  if (stripped.length < MIN_DETECTION_LENGTH) return null;
+  const result =
+    (stripped.length >= MIN_CJK_DETECTION_LENGTH
+      ? detect_by_script(stripped)
+      : null) ??
+    (stripped.length >= MIN_DETECTION_LENGTH
+      ? detect_by_stopwords(stripped)
+      : null);
 
-  const result = detect_by_script(stripped) ?? detect_by_stopwords(stripped);
+  if (stripped.length < MIN_DETECTION_LENGTH && !result) return null;
 
   if (!result || accepted.includes(result.language)) {
     remember_negative(key);

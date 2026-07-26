@@ -29,6 +29,10 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const h = vi.hoisted(() => ({
+  i18n: {
+    t: (key: string, params?: Record<string, unknown>) =>
+      params ? `${key}:${JSON.stringify(params)}` : key,
+  },
   plan_state: {
     limits: { limits: { has_folder_retention: { limit: 1 } } } as {
       limits: Record<string, { limit: number }>;
@@ -49,10 +53,7 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({
-    t: (key: string, params?: Record<string, unknown>) =>
-      params ? `${key}:${JSON.stringify(params)}` : key,
-  }),
+  use_i18n: () => h.i18n,
 }));
 
 vi.mock("@aster/ui", () => ({
@@ -178,11 +179,10 @@ function flush() {
 }
 
 async function render() {
-  act(() => {
+  await act(async () => {
     root.render(<FolderRetentionSection />);
+    await flush();
   });
-  await flush();
-  act(() => {});
 }
 
 async function click_button_containing(text: string) {
@@ -190,11 +190,10 @@ async function click_button_containing(text: string) {
     (b.textContent ?? "").includes(text),
   ) as HTMLButtonElement | undefined;
   if (!btn) throw new Error(`button containing "${text}" not found`);
-  act(() => {
+  await act(async () => {
     btn.click();
+    await flush();
   });
-  await flush();
-  act(() => {});
 }
 
 async function set_select(value: string) {
@@ -203,12 +202,11 @@ async function set_select(value: string) {
     window.HTMLSelectElement.prototype,
     "value",
   )!.set!;
-  act(() => {
+  await act(async () => {
     setter.call(sel, value);
     sel.dispatchEvent(new Event("change", { bubbles: true }));
+    await flush();
   });
-  await flush();
-  act(() => {});
 }
 
 describe("FolderRetentionSection", () => {
@@ -369,10 +367,10 @@ describe("FolderRetentionSection", () => {
     const checkbox = container.querySelector(
       'input[type="checkbox"]',
     ) as HTMLInputElement;
-    act(() => {
+    await act(async () => {
       checkbox.click();
+      await flush();
     });
-    await flush();
     expect(h.api.update_retention_policy).toHaveBeenCalledWith("p1", {
       enabled: false,
     });

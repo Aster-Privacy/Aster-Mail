@@ -22,6 +22,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createElement, act, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 const prefs_state = vi.hoisted(() => ({
   inbox_categories_enabled: true as boolean,
   has_loaded_from_server: false as boolean,

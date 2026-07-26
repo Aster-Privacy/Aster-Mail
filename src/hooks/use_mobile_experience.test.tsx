@@ -22,6 +22,11 @@ import { describe, it, expect, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 import { use_mobile_experience } from "./use_mobile_experience";
 
 function set_viewport(width: number, user_agent: string) {

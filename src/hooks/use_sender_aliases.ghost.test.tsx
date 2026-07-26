@@ -22,6 +22,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 const GHOST_LOCAL = "sage.ridgeq2m7x";
 const GHOST_ADDRESS = `${GHOST_LOCAL}@astermail.org`;
 

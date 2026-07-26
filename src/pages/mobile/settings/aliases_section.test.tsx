@@ -68,6 +68,7 @@ vi.mock("@/services/api/domains", () => ({
   get_dns_records: vi.fn(),
   get_status_color: () => "",
   get_status_label: () => "",
+  list_domain_orders: vi.fn(() => Promise.resolve({ data: { orders: [] } })),
 }));
 
 vi.mock(
@@ -141,8 +142,8 @@ import { AliasesSection } from "./aliases_section";
 let host: HTMLDivElement;
 let root: Root;
 
-function render(node: React.ReactElement) {
-  act(() => {
+async function render(node: React.ReactElement) {
+  await act(async () => {
     root.render(node);
   });
 }
@@ -163,16 +164,16 @@ afterEach(() => {
 });
 
 describe("mobile AliasesSection recently-deleted parity", () => {
-  it("renders the RecentlyDeletedAliasesSection like desktop web does", () => {
-    render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+  it("renders the RecentlyDeletedAliasesSection like desktop web does", async () => {
+    await render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
 
     expect(
       host.querySelector('[data-testid="recently-deleted-mock"]'),
     ).not.toBeNull();
   });
 
-  it("reloads aliases and counts when a deleted alias is restored", () => {
-    render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+  it("reloads aliases and counts when a deleted alias is restored", async () => {
+    await render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
 
     expect(captured_on_restored).not.toBeNull();
     act(() => {
@@ -210,19 +211,19 @@ describe("mobile AliasesSection alias search", () => {
     is_enabled: true,
   });
 
-  it("hides the search box when there is nothing to search", () => {
-    render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+  it("hides the search box when there is nothing to search", async () => {
+    await render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
 
     expect(search_input()).toBeNull();
   });
 
-  it("filters aliases by address and display name, case-insensitively", () => {
+  it("filters aliases by address and display name, case-insensitively", async () => {
     mock_state.aliases = [
       alias("1", "shopping@astermail.org"),
       alias("2", "bank@astermail.org", "My Bank"),
       alias("3", "news@aster.cx"),
     ];
-    render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+    await render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
 
     expect(host.textContent).toContain("shopping@astermail.org");
     expect(search_input()).not.toBeNull();

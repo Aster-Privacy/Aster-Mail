@@ -28,6 +28,7 @@ import { Capacitor } from "@capacitor/core";
 import { fetch_mail_from_api, DEFAULT_PAGE_SIZE } from "./email_list_helpers";
 import {
   view_cache,
+  set_view_cache,
   invalidate_mail_cache,
   clear_mail_cache,
   remove_email_from_view_cache,
@@ -548,7 +549,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       !state.has_load_error &&
       state_view_ref.current === current_view
     ) {
-      view_cache.set(current_view, {
+      set_view_cache(current_view, {
         state,
         time: Date.now(),
         is_stale: false,

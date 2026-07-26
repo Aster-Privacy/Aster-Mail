@@ -31,6 +31,7 @@ import {
   TrashIcon,
   CheckCircleIcon,
   XCircleIcon,
+  ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
@@ -45,12 +46,15 @@ import { BottomPagination } from "@/components/email/inbox/inbox_bottom_paginati
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
+import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purchase_modal";
 import {
   get_dns_records,
   get_status_color,
   get_status_label,
+  list_domain_orders,
   type DnsRecord,
   type DnsRecordsResponse,
+  type DomainOrder,
 } from "@/services/api/domains";
 import { update_alias } from "@/services/api/aliases";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
@@ -68,6 +72,57 @@ export function AliasesSection({
   const { t } = use_i18n();
   const hook = use_aliases();
   const [expanded_domain, set_expanded_domain] = useState<string | null>(null);
+  const [purchase_open, set_purchase_open] = useState(false);
+  const [purchase_order_id, set_purchase_order_id] = useState<string | null>(
+    null,
+  );
+  const [purchased_orders, set_purchased_orders] = useState<DomainOrder[]>([]);
+  const [purchased_loading, set_purchased_loading] = useState(false);
+
+  useEffect(() => {
+    if (purchase_open) return;
+    set_purchased_loading(true);
+    list_domain_orders()
+      .then((r) => {
+        if (r.data) {
+          set_purchased_orders(
+            r.data.orders.filter(
+              (o) =>
+                o.order_type === "registration" &&
+                !["expired", "refunded", "failed", "pending_payment"].includes(
+                  o.status,
+                ),
+            ),
+          );
+        }
+      })
+      .catch(() => {})
+      .finally(() => set_purchased_loading(false));
+  }, [purchase_open]);
+
+  useEffect(() => {
+    const open_purchase = () => {
+      set_purchase_order_id(null);
+      set_purchase_open(true);
+    };
+
+    window.addEventListener("aster:open-domain-purchase", open_purchase);
+
+    return () =>
+      window.removeEventListener("aster:open-domain-purchase", open_purchase);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stashed = sessionStorage.getItem("aster_pending_domain_order");
+
+      if (stashed) {
+        sessionStorage.removeItem("aster_pending_domain_order");
+        set_purchase_order_id(stashed);
+        set_purchase_open(true);
+      }
+    } catch {}
+  }, []);
   const [current_page, set_current_page] = useState(0);
   const [search_query, set_search_query] = useState("");
   const scroll_ref = useRef<HTMLDivElement>(null);
@@ -190,13 +245,13 @@ export function AliasesSection({
                 className="text-[17px] font-bold text-white mb-1 tracking-tight"
                 style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
               >
-                {t("settings.domain_promo_title")}
+                {t("settings.domain_purchase_banner_title")}
               </h3>
               <p
                 className="text-[13px] text-blue-100/70 mb-4"
                 style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
               >
-                {t("settings.domain_promo_subtitle")}
+                {t("settings.domain_purchase_banner_subtitle")}
               </p>
               <button
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[14px] text-[14px] font-semibold bg-white text-blue-900"
@@ -205,9 +260,12 @@ export function AliasesSection({
                   WebkitTapHighlightColor: "transparent",
                 }}
                 type="button"
-                onClick={hook.handle_open_add_domain}
+                onClick={() => {
+                  set_purchase_order_id(null);
+                  set_purchase_open(true);
+                }}
               >
-                {t("settings.domain_promo_cta")}
+                {t("settings.domain_purchase_banner_cta")}
                 <ChevronRightIcon className="w-4 h-4" />
               </button>
             </div>
@@ -669,6 +727,86 @@ export function AliasesSection({
             </>
           )}
         </div>
+
+        <div className="px-4 pt-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="flex items-center gap-2 text-[14px] font-semibold text-[var(--text-primary)]">
+              <ShoppingBagIcon className="h-4 w-4 flex-shrink-0" />
+              {t("settings.domain_purchase_purchased_label")}
+            </p>
+            {purchased_orders.length > 0 && (
+              <span className="text-[12px] text-[var(--text-muted)]">
+                {purchased_orders.length}
+              </span>
+            )}
+          </div>
+          <p className="text-[13px] text-[var(--text-muted)] mt-1 mb-3">
+            {t("settings.domain_purchase_purchased_desc")}
+          </p>
+          <motion.button
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-3 mb-3 text-[15px] font-semibold text-white"
+            style={{
+              background:
+                "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
+              boxShadow:
+                "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+            }}
+            type="button"
+            onClick={() => {
+              set_purchase_order_id(null);
+              set_purchase_open(true);
+            }}
+          >
+            <ShoppingBagIcon className="h-5 w-5" />
+            {t("settings.domain_purchase_banner_cta")}
+          </motion.button>
+
+          {purchased_loading && purchased_orders.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <Spinner size="md" />
+            </div>
+          ) : purchased_orders.length === 0 ? (
+            <div className="flex flex-col items-center rounded-xl border border-dashed border-[var(--border-primary)] py-8 px-4">
+              <ShoppingBagIcon className="h-12 w-12 text-[var(--mobile-text-muted)] opacity-40 mb-2" />
+              <p className="text-center text-[13px] text-[var(--mobile-text-muted)]">
+                {t("settings.domain_purchase_purchased_empty")}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {purchased_orders.map((order) => (
+                <button
+                  key={order.id}
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl bg-[var(--mobile-bg-card)] p-4 text-left ${
+                    order.status === "complete" ? "cursor-default" : ""
+                  }`}
+                  type="button"
+                  onClick={() => {
+                    if (order.status !== "complete") {
+                      set_purchase_order_id(order.id);
+                      set_purchase_open(true);
+                    }
+                  }}
+                >
+                  <span className="truncate text-[15px] font-medium text-[var(--mobile-text-primary)]">
+                    {order.domain}
+                  </span>
+                  <span className="flex-shrink-0 text-[12px] text-[var(--mobile-text-muted)]">
+                    {order.status === "complete"
+                      ? order.expires_at
+                        ? t("settings.domain_purchase_purchased_expires", {
+                            date: new Date(
+                              order.expires_at,
+                            ).toLocaleDateString(),
+                          })
+                        : ""
+                      : t("settings.domain_purchase_purchased_in_progress")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <CreateAliasModal
@@ -697,6 +835,16 @@ export function AliasesSection({
         on_close={hook.handle_wizard_close}
         on_domain_added={hook.handle_domain_added}
         on_domains_changed={hook.load_domains}
+      />
+
+      <DomainPurchaseModal
+        initial_order_id={purchase_order_id}
+        is_open={purchase_open}
+        on_close={() => {
+          set_purchase_open(false);
+          set_purchase_order_id(null);
+        }}
+        on_purchased={hook.load_domains}
       />
 
       <ConfirmationModal

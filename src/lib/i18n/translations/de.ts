@@ -2362,6 +2362,11 @@ export const de = {
     alias_delivery_log_reason_alias_rule: "Durch Regel verworfen",
     alias_delivery_log_reason_alias_disabled: "Alias war deaktiviert",
     alias_delivery_log_reason_unknown: "Blockiert",
+    alias_delivery_title: "Zustellung",
+    alias_never_inbox: "Posteingang überspringen",
+    alias_never_inbox_desc: "An diesen Alias gesendete Mail wird beim Empfang archiviert. Sie bleibt durchsuchbar und in Alle Nachrichten.",
+    alias_never_inbox_info: "Praktisch für Anmeldungen und Belege, die Sie behalten, aber nicht im Posteingang sehen möchten.",
+    alias_never_inbox_error: "Diese Einstellung wurde nicht gespeichert. Ein weiterer Versuch sollte genügen.",
     alias_relay_title: "Zustellung",
     alias_relay_description:
       "Wähle, wie Mails an diesen Alias zugestellt werden.",
@@ -3303,7 +3308,8 @@ export const de = {
     reply_to_all: "Allen antworten",
     force_dark_mode_emails: "Dunkelmodus für E-Mails erzwingen",
     force_dark_mode_emails_description:
-      "E-Mail-Inhalte immer im Dunkelmodus rendern und das ursprüngliche Styling der E-Mail überschreiben",    translation: "Übersetzung",
+      "E-Mail-Inhalte immer im Dunkelmodus rendern und das ursprüngliche Styling der E-Mail überschreiben",
+    translation: "Übersetzung",
     translate_incoming: "Eingehende Mail übersetzen",
     translate_incoming_description: "Nachrichten in anderen Sprachen auf Ihrem Gerät übersetzen.",
     translate_incoming_info: "Die Übersetzung läuft vollständig auf Ihrem Gerät mit selbst gehosteten Modellen. Nichts, was Sie lesen, wird jemals an einen Übersetzungsdienst gesendet.",
@@ -4718,6 +4724,20 @@ export const de = {
     default_updated: "Standard-Zahlungsmethode aktualisiert",
     no_payment_methods: "Keine Zahlungsmethoden gespeichert",
     save_card: "Karte speichern",
+    cancel_reason_title: "Bevor Sie gehen",
+    cancel_reason_description:
+      "Warum haben Sie sich für die Kündigung entschieden? Freiwillig, hilft uns aber weiter.",
+    cancel_reason_too_expensive: "Zu teuer",
+    cancel_reason_not_using: "Ich nutze es zu wenig",
+    cancel_reason_missing_feature: "Eine benötigte Funktion fehlt",
+    cancel_reason_switched_provider: "Zu einem anderen Anbieter gewechselt",
+    cancel_reason_bugs: "Zu viele Fehler oder Probleme",
+    cancel_reason_privacy_trust: "Bedenken bei Datenschutz oder Vertrauen",
+    cancel_reason_just_testing: "Ich habe es nur ausprobiert",
+    cancel_reason_other: "Etwas anderes",
+    cancel_reason_text_placeholder: "Möchten Sie etwas ergänzen? (optional)",
+    cancel_reason_skip: "Überspringen",
+    cancel_reason_continue: "Weiter",
     cancel_confirm_title: "Abonnement kündigen",
     cancel_confirm_description:
       "Sind Sie sicher, dass Sie Ihr Abonnement kündigen möchten? Ihr Tarif bleibt bis zum Ende des aktuellen Abrechnungszeitraums aktiv.",
@@ -4969,6 +4989,132 @@ export const de = {
     domain_promo_title: "Verwenden Sie Ihre eigene Domain",
     domain_promo_subtitle:
       "Verknüpfen Sie Ihre Domain, um E-Mails mit Ihrer eigenen personalisierten Adresse zu senden und zu empfangen",
+    domain_purchase_banner_title: "Ihre eigene E-Mail-Domain",
+    domain_purchase_banner_subtitle:
+      "Suchen, kaufen und in Sekunden E-Mails empfangen. DNS wird automatisch eingerichtet.",
+    domain_purchase_banner_cta: "Domain kaufen",
+    domain_purchase_title: "Domain kaufen",
+    domain_purchase_search_placeholder: "Nach einem Domainnamen suchen",
+    domain_purchase_per_year: "{{price}}/Jahr",
+    domain_purchase_taken: "Vergeben",
+    domain_purchase_no_results: "Keine verfügbaren Domains gefunden",
+    domain_purchase_renews_at: "Verlängerung: {{price}}/Jahr",
+    domain_purchase_years: "Registrierungszeitraum",
+    domain_purchase_one_year: "1 Jahr",
+    domain_purchase_n_years: "{{count}} Jahre",
+    domain_purchase_pay_with: "Bezahlen mit",
+    domain_purchase_pay_card: "Karte",
+    domain_purchase_pay_crypto: "Krypto",
+    domain_purchase_buy: "Für {{price}} kaufen",
+    domain_purchase_error:
+      "Kauf fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    domain_purchase_error_taken:
+      "Diese Domain wurde gerade vergeben. Bitte wählen Sie eine andere.",
+    domain_purchase_error_limit:
+      "Sie haben das Domain-Limit Ihres Tarifs erreicht. Führen Sie ein Upgrade durch, um weitere hinzuzufügen.",
+    domain_purchase_error_slow_down:
+      "Zu viele Domain-Bestellungen gleichzeitig. Schließen Sie die laufenden ab oder warten Sie kurz.",
+    domain_purchase_progress_title: "{{domain}} wird eingerichtet",
+    domain_purchase_step_payment: "Zahlung eingegangen",
+    domain_purchase_step_registering: "Registrierung bei NameSilo",
+    domain_purchase_step_dns: "DNS wird konfiguriert",
+    domain_purchase_step_activating: "Postfächer werden aktiviert",
+    domain_purchase_step_done: "Domain aktiv",
+    domain_purchase_done_note:
+      "Ihre Domain ist bereit. Sie können jetzt Adressen und Aliasse darauf erstellen.",
+    domain_purchase_slow_note:
+      "Dauert länger als üblich. Wir schließen die Einrichtung im Hintergrund ab und benachrichtigen Sie per E-Mail.",
+    domain_purchase_refunded:
+      "Diese Domain war nicht mehr verfügbar, bevor wir sie registrieren konnten. Ihre Zahlung wurde erstattet.",
+    domain_purchase_try_instead: "Versuchen Sie stattdessen eine dieser Alternativen",
+    domain_purchase_empty_subtitle: "Geben Sie ein Wort, einen Namen oder eine vollständige Domain ein. Wir prüfen jede Endung, die wir anbieten, und zeigen Ihnen, was frei ist.",
+    domain_purchase_empty_included: "Jede Domain enthält WHOIS-Datenschutz, eingerichtetes DNS und unbegrenzte Adressen.",
+    domain_purchase_terms_inline: "Domains werden über NameSilo registriert. Mit dem Kauf akzeptieren Sie die {{aster}}, {{registrar}} und {{icann}}. Registrierungen sind endgültig, sobald die Domain erstellt wurde.",
+    domain_purchase_empty_title: "Tippen Sie etwas ein, um zu starten",
+    domain_purchase_search_failed:
+      "Die Suche ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    domain_purchase_retry: "Erneut versuchen",
+    domain_purchase_step_choose: "Namen wählen",
+    domain_purchase_step_checkout: "Bezahlen",
+    domain_purchase_step_activate: "Loslegen",
+    domain_purchase_intro_title: "Finden wir Ihre E-Mail-Domain",
+    domain_purchase_intro_sub: "Beantworten Sie zwei kurze Fragen und wir zeigen Ihnen, was verfügbar ist.",
+    domain_purchase_intro_name_q: "Welchen Namen möchten Sie? Ihr Unternehmen, Ihr Projekt oder einfach Sie selbst.",
+    domain_purchase_intro_name_ph: "Geben Sie einen Namen ein, z. B. hafenkaffee oder alexcarter",
+    domain_purchase_intro_tld_q: "Haben Sie eine Lieblingsendung?",
+    domain_purchase_intro_cta: "Verfügbarkeit anzeigen",
+    domain_purchase_intro_skip: "Überspringen, ich suche selbst",
+    domain_purchase_intro_replay: "Geführten Start erneut anzeigen",
+    domain_purchase_intro_examples: "Oder mit einem Beispiel starten",
+    domain_purchase_intro_tld_title: "Wählen Sie jetzt eine Endung",
+    domain_purchase_intro_tld_sub:
+      "Die Endung bestimmt den Preis und den Charakter Ihrer Adresse. Wenn Sie unsicher sind, lassen Sie Alle ausgewählt und wir zeigen Ihnen alles, was passt.",
+    domain_purchase_results_for: "Das haben wir für {{name}} gefunden",
+    domain_purchase_results_for_sub:
+      "Wählen Sie den Namen, der sich richtig anfühlt. Der Kauf dauert nur eine Minute, und Ihre neue Adresse kann sofort E-Mails empfangen.",
+    domain_purchase_change_name: "Namen ändern",
+    domain_purchase_purchased_desc:
+      "Domains, die Sie über Aster kaufen, erscheinen hier und funktionieren automatisch als eigene Domains. Namen wählen, bezahlen und sofort loslegen.",
+    domain_purchase_filter_price: "Maximaler Preis",
+    domain_purchase_filter_price_any: "Beliebiger Preis",
+    domain_purchase_more_suggestions: "Weitere Ideen generieren",
+    domain_purchase_sort_by: "Sortieren nach",
+    domain_purchase_order_summary: "Bestellübersicht",
+    domain_purchase_summary_whois: "WHOIS-Datenschutz",
+    domain_purchase_summary_dns: "Automatische DNS-Einrichtung",
+    domain_purchase_summary_included: "Inbegriffen",
+    domain_purchase_total_today: "Heute fällig",
+    domain_purchase_years_line: "Registrierung für {{count}} Jahr(e)",
+    domain_purchase_secure_checkout: "Sichere Zahlung über Stripe",
+    domain_purchase_crypto_warning_title: "Laden Sie zuerst Ihr Krypto-Guthaben auf",
+    domain_purchase_crypto_warning_body: "Krypto-Bestellungen werden von Ihrem Aster-Krypto-Guthaben bezahlt. Laden Sie vor dem Kauf Guthaben auf, sonst bleibt die Domain zurückgestellt, bis das Guthaben den vollen Betrag deckt.",
+    domain_purchase_crypto_warning_hint: "Sie können in der Abrechnung aufladen, es ist dasselbe Guthaben wie das Kontoguthaben.",
+    domain_purchase_included_heading: "Alles, was in Ihrer Domain enthalten ist",
+    domain_purchase_renew: "Verlängern",
+    domain_purchase_filter_all: "Alle",
+    domain_purchase_filter_available: "Verfügbar",
+    domain_purchase_filter_taken: "Vergeben",
+    domain_purchase_sort_label: "Sortieren",
+    domain_purchase_sort_relevance: "Relevanz",
+    domain_purchase_sort_price_low: "Preis: aufsteigend",
+    domain_purchase_sort_price_high: "Preis: absteigend",
+    domain_purchase_sort_az: "Name: A bis Z",
+    domain_purchase_sort_discount: "Größter Rabatt",
+    domain_purchase_show_more: "Weitere Ergebnisse anzeigen",
+    domain_purchase_results_count: "{{count}} Ergebnisse",
+    domain_purchase_discount_tooltip:
+      "Aktionspreis für das erste Jahr von unserem Registrar. Danach Verlängerung für {{price}} pro Jahr.",
+    domain_purchase_purchased_info:
+      "Hier finden Sie Domains, die Sie über Aster gekauft haben. Wir registrieren sie für Sie mit WHOIS Datenschutz, richten alle Mail DNS Einträge automatisch ein, und Sie können sofort Adressen darauf erstellen. Jede Domain wird nur mit Ihrer Zustimmung verlängert und kann jederzeit zu einem anderen Registrar umziehen.",
+    domain_purchase_dont_have: "Keine eigene Domain? Hier klicken und eine kaufen.",
+    domain_purchase_sort_price: "Niedrigster Preis",
+    domain_purchase_leave_title: "Aster Mail verlassen?",
+    domain_purchase_leave_message:
+      "Dieser Link öffnet {{host}} in einem neuen Tab.",
+    domain_purchase_purchased_label:
+      "Gekaufte Domains",
+    domain_purchase_purchased_empty:
+      "Noch keine gekauften Domains",
+    domain_purchase_purchased_expires:
+      "Läuft ab am {{date}}",
+    domain_purchase_purchased_in_progress:
+      "Wird eingerichtet...",
+    domain_purchase_terms_notice:
+      "Aster registriert die Domain in Ihrem Auftrag über unseren Registrar-Partner, und der Verlängerungspreis wird Ihnen immer vor der Zahlung angezeigt. Sollten Sie eine Domain einmal auslaufen lassen, kann der Registrar für die Wiederherstellung eine Gebühr erheben.",
+    domain_purchase_terms_aster:
+      "Aster Nutzungsbedingungen",
+    domain_purchase_terms_registrar:
+      "NameSilo Geschäftsbedingungen",
+    domain_purchase_terms_icann:
+      "ICANN-Rechte und -Pflichten für Domaininhaber",
+    domain_purchase_detail_privacy_title:
+      "Standardmäßig privat",
+    domain_purchase_detail_setup_title:
+      "Null Einrichtung",
+    domain_purchase_detail_instant_title:
+      "In Sekunden bereit",
+    domain_purchase_detail_ownership_title:
+      "Gehört Ihnen",
     domain_promo_cta: "Domain verknüpfen",
     verification_failed_retry:
       "Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.",
@@ -5695,7 +5841,7 @@ export const de = {
       "Journalist? Kontaktiere den Support mit deinem Presseausweis, um deinen Code zu erhalten.",
     refer_a_friend: "Freund einladen",
     referral_email_body:
-      "Hallo!\n\nIch benutze Aster Mail und mag es wirklich. Es ist Ende-zu-Ende-verschlüsselt, sodass niemand Ihre E-Mails lesen kann außer Ihnen - nicht einmal Aster selbst.\n\nFalls Sie es ausprobieren möchten, hier ist mein Empfehlungslink:\n\n{{ referral_link }}\n\nWir erhalten beide Guthaben, wenn Sie sich anschließend anmelden, aber kein Druck. Dachte nur, es könnte Sie interessieren.\n\nViele Grüße",
+      "Hallo!\n\nIch benutze Aster Mail und mag es wirklich. Es ist Ende-zu-Ende-verschlüsselt, sodass niemand Ihre E-Mails lesen kann außer Ihnen. Nicht einmal Aster selbst.\n\nFalls Sie es ausprobieren möchten, hier ist mein Empfehlungslink:\n\n{{ referral_link }}\n\nWir erhalten beide Guthaben, wenn Sie sich anschließend anmelden, aber kein Druck. Dachte nur, es könnte Sie interessieren.\n\nViele Grüße",
     referral_email_subject:
       "Aster Mail ausprobieren - private E-Mails für alle",
     referral_how_it_works: "So funktioniert es",
@@ -5922,7 +6068,8 @@ export const de = {
     subject: "Betreff",
     from: "Von",
     date: "Datum",
-    attachments: "Anhänge",    translation_offer: "Diese Nachricht ist auf {{language}}.",
+    attachments: "Anhänge",
+    translation_offer: "Diese Nachricht ist auf {{language}}.",
     translation_translate: "Übersetzen",
     translation_in_progress: "Wird auf Ihrem Gerät übersetzt…",
     translation_translated_from: "Auf Ihrem Gerät aus dem {{language}} übersetzt.",
@@ -7445,6 +7592,8 @@ export const de = {
     and_label: "UND",
     applied_count: "Auf {{count}} Nachrichten angewendet",
     apply_to_existing: "Jetzt auf vorhandene E-Mails anwenden",
+    apply_to_existing_started: "Diese Regel wird auf Ihre vorhandenen E-Mails angewendet. Der Vorgang läuft im Hintergrund.",
+    apply_to_existing_failed: "Die Regel konnte nicht angewendet werden.",
     at_limit_upgrade:
       "Sie haben das Regelimit Ihres Tarifs erreicht. Ein Upgrade ermöglicht mehr.",
     auth_fail: "fehlgeschlagen",
@@ -7561,6 +7710,8 @@ export const de = {
     pick_labels: "Labels auswählen",
     pin_label: "Anheften",
     read: "Gelesen",
+    regex_backreference: "Rückverweise wie \\1 werden nicht unterstützt. Formulieren Sie das Muster ohne sie.",
+    regex_lookaround: "Lookahead und Lookbehind werden nicht unterstützt. Formulieren Sie das Muster ohne sie.",
     regex_empty: "Ein Regex-Muster wird vor dem Speichern benötigt.",
     regex_invalid:
       "Dieses Regex-Muster hat einen Tippfehler. Eine Syntaxprüfung löst das Problem in der Regel.",

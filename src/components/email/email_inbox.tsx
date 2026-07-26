@@ -79,6 +79,11 @@ import {
   type BulkScopeAction,
   type BulkScopeFilter,
 } from "@/services/api/mail";
+import {
+  await_preloaded_email,
+  get_preloaded_email,
+  preload_email_detail,
+} from "@/components/email/hooks/preload_cache";
 import { thread_imported_emails } from "@/services/import/repair_threads";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
@@ -524,16 +529,8 @@ export function EmailInbox({
 
   const email_state = raw_email_state;
 
-  const handle_open_compose = useCallback(
-    (mode: "reply" | "forward", email: InboxEmail) => {
-      const is_sentinel = (value: string | undefined): boolean =>
-        value === RATCHET_UNDECRYPTABLE_SENTINEL ||
-        value === PGP_UNDECRYPTABLE_SENTINEL;
-      const safe_body =
-        (is_sentinel(email.body_html) ? "" : email.body_html) ||
-        (is_sentinel(email.preview) ? "" : email.preview) ||
-        "";
-
+  const open_compose = useCallback(
+    (mode: "reply" | "forward", email: InboxEmail, safe_body: string) => {
       if (mode === "reply" && on_reply) {
         const is_own_message = email.item_type === "sent";
         const is_forwarded = !is_own_message && !!email.display_sender_email;
@@ -579,6 +576,47 @@ export function EmailInbox({
       }
     },
     [on_reply, on_forward],
+  );
+
+  const handle_open_compose = useCallback(
+    (mode: "reply" | "forward", email: InboxEmail) => {
+      const is_sentinel = (value: string | undefined): boolean =>
+        value === RATCHET_UNDECRYPTABLE_SENTINEL ||
+        value === PGP_UNDECRYPTABLE_SENTINEL;
+      const fallback_body =
+        (is_sentinel(email.body_html) ? "" : email.body_html) ||
+        (is_sentinel(email.preview) ? "" : email.preview) ||
+        "";
+      const cached_body = get_preloaded_email(email.id)?.email.body ?? "";
+
+      if (!cached_body) {
+        void (async () => {
+          let resolved = fallback_body;
+
+          try {
+            await preload_email_detail(email.id, user?.email);
+
+            const preloaded = await await_preloaded_email(email.id);
+            const body = preloaded?.email.body ?? "";
+
+            if (body && !is_sentinel(body)) resolved = body;
+          } catch {
+            resolved = fallback_body;
+          }
+
+          open_compose(mode, email, resolved);
+        })();
+
+        return;
+      }
+
+      open_compose(
+        mode,
+        email,
+        is_sentinel(cached_body) ? fallback_body : cached_body,
+      );
+    },
+    [open_compose, user?.email],
   );
 
   const handle_edit_thread_draft = useCallback(

@@ -2119,7 +2119,8 @@ export const en: Translations = {
       "Display the size of each email in the inbox list",
     force_dark_mode_emails: "Force Dark Mode for Emails",
     force_dark_mode_emails_description:
-      "Always render email content in dark mode, overriding the email's original styling",    translation: "Translation",
+      "Always render email content in dark mode, overriding the email's original styling",
+    translation: "Translation",
     translate_incoming: "Translate incoming mail",
     translate_incoming_description: "Translate messages written in other languages on your device.",
     translate_incoming_info: "Translation runs entirely on your device using self-hosted models. Nothing you read is ever sent to a translation service.",
@@ -3296,6 +3297,50 @@ export const en: Translations = {
     default_updated: "Default payment method updated",
     no_payment_methods: "No payment methods saved",
     save_card: "Save Card",
+    cancel_reason_title: "Before you go",
+    cancel_reason_description:
+      "What made you decide to cancel? This is optional and helps us improve.",
+    cancel_reason_too_expensive: "Too expensive",
+    cancel_reason_not_using: "I am not using it enough",
+    cancel_reason_missing_feature: "Missing a feature I need",
+    cancel_reason_switched_provider: "Switched to another provider",
+    cancel_reason_bugs: "Too many bugs or problems",
+    cancel_reason_privacy_trust: "Privacy or trust concerns",
+    cancel_reason_just_testing: "I was just testing it out",
+    cancel_reason_other: "Something else",
+    cancel_reason_text_placeholder: "Anything you want to add? (optional)",
+    cancel_reason_skip: "Skip",
+    cancel_reason_continue: "Continue",
+    cancel_impact_title: "What changes if you cancel",
+    cancel_impact_description: "Your plan stays active until {date}. After that:",
+    cancel_impact_description_nodate:
+      "When your current billing period ends:",
+    cancel_impact_loading: "Checking what changes for your account...",
+    cancel_impact_unavailable:
+      "We could not load the details right now. You can still continue.",
+    cancel_impact_storage: "Storage drops from {current} to {after}.",
+    cancel_impact_storage_over:
+      "You are using {used}, which is over that limit. While you are over it, incoming mail is rejected, and after 7 days it is rejected permanently.",
+    cancel_impact_aliases:
+      "{count} aliases stop receiving mail {days} days later.",
+    cancel_impact_domains: "{count} custom domains are suspended.",
+    cancel_impact_catch_all: "Catch-all addressing is turned off.",
+    cancel_impact_templates: "{count} email templates are disabled.",
+    cancel_impact_signatures: "{count} signatures are disabled.",
+    cancel_impact_family:
+      "{count} family members move to a {days} day grace period.",
+    cancel_impact_family_addresses:
+      "{count} reserved family addresses are released.",
+    cancel_impact_features: "{count} paid features are switched off.",
+    cancel_impact_reactivate_hint:
+      "Nothing is deleted. Resubscribing restores what was disabled, up to your new plan's limits.",
+    cancel_impact_continue: "Continue to cancel",
+    cancel_final_title: "Confirm cancellation",
+    cancel_final_description:
+      "Your {plan} plan will be cancelled and ends on {date}. You keep full access until then.",
+    cancel_final_description_nodate:
+      "Your {plan} plan will be cancelled at the end of the current billing period. You keep full access until then.",
+    cancel_final_confirm: "Cancel my plan",
     cancel_confirm_title: "Cancel Subscription",
     cancel_confirm_description:
       "Are you sure you want to cancel your subscription? Your plan will remain active until the end of the current billing period.",
@@ -3411,9 +3456,9 @@ export const en: Translations = {
     referral_gauge_earned_label: "Earned",
     total_earned: "Total Earned",
     send_referral_to_contacts: "Email All Contacts",
-    referral_email_subject: "Try Aster Mail - private email for everyone",
+    referral_email_subject: "You should try Aster Mail",
     referral_email_body:
-      "Hey!\n\nI've been using Aster Mail and really like it. It's end-to-end encrypted so nobody can read your emails except you - not even Aster themselves.\n\nIf you want to give it a shot, here's my referral link:\n\n{{ referral_link }}\n\nWe both get credits if you end up subscribing, but no pressure. Just thought you'd appreciate it.\n\nCheers",
+      "Hey!\n\nI've been using Aster Mail for a while now and really like it. Everything is end to end encrypted, so nobody can read your emails except you. Not even the people who run it.\n\nIf you ever want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nWe both get some credit if you end up subscribing, but no pressure either way. Just figured you might like it.\n\nCheers",
     referral_no_contacts: "No contacts found. Add some contacts first!",
     referral_loading_contacts: "Loading contacts...",
     referral_your_discount: "Your Discount",
@@ -4154,6 +4199,126 @@ export const en: Translations = {
     domain_promo_title: "Use your own custom domain",
     domain_promo_subtitle:
       "Link your domain to send and receive email with your own personalized address",
+    domain_purchase_banner_title: "Get your own email domain",
+    domain_purchase_banner_subtitle:
+      "Search, buy, and start receiving mail in seconds. DNS is set up for you.",
+    domain_purchase_banner_cta: "Buy a domain",
+    domain_purchase_title: "Buy a domain",
+    domain_purchase_search_placeholder: "Search for a domain name",
+    domain_purchase_per_year: "{{price}}/yr",
+    domain_purchase_taken: "Taken",
+    domain_purchase_no_results: "No available domains found",
+    domain_purchase_renews_at: "Renews at {{price}}/yr",
+    domain_purchase_years: "Registration period",
+    domain_purchase_one_year: "1 year",
+    domain_purchase_n_years: "{{count}} years",
+    domain_purchase_pay_with: "Pay with",
+    domain_purchase_pay_card: "Card",
+    domain_purchase_pay_crypto: "Crypto",
+    domain_purchase_buy: "Buy for {{price}}",
+    domain_purchase_error: "Purchase failed. Please try again.",
+    domain_purchase_error_taken: "That domain was just taken. Pick another one.",
+    domain_purchase_error_limit: "You have reached the domain limit for your plan. Upgrade to add more.",
+    domain_purchase_error_slow_down: "Too many domain orders right now. Finish or wait for the ones in progress.",
+    domain_purchase_progress_title: "Setting up {{domain}}",
+    domain_purchase_step_payment: "Payment received",
+    domain_purchase_step_registering: "Registering with NameSilo",
+    domain_purchase_step_dns: "Configuring DNS",
+    domain_purchase_step_activating: "Activating mailboxes",
+    domain_purchase_step_done: "Domain active",
+    domain_purchase_done_note:
+      "Your domain is ready. You can now create addresses and aliases on it.",
+    domain_purchase_slow_note:
+      "Taking longer than usual. We'll finish in the background and email you when it's done.",
+    domain_purchase_refunded:
+      "This domain became unavailable before we could register it. Your payment has been refunded.",
+    domain_purchase_try_instead: "Try one of these instead",
+    domain_purchase_empty_subtitle: "Enter a word, a name, or a full domain. We check every ending we sell and show you what is free.",
+    domain_purchase_empty_included: "Every domain comes with WHOIS privacy, DNS set up for you, and unlimited addresses.",
+    domain_purchase_terms_inline: "Domains are registered through NameSilo. By buying, you accept the {{aster}}, {{registrar}}, and {{icann}}. Registrations are final once the domain is created.",
+    domain_purchase_empty_title: "Type in something to start",
+    domain_purchase_search_failed:
+      "The search didn't go through. Please try again.",
+    domain_purchase_retry: "Try again",
+    domain_purchase_step_choose: "Choose a name",
+    domain_purchase_step_checkout: "Checkout",
+    domain_purchase_step_activate: "Go live",
+    domain_purchase_intro_title: "Let's find your email domain",
+    domain_purchase_intro_sub: "Answer two quick questions and we'll show you what's available.",
+    domain_purchase_intro_name_q: "What name do you want? Your business, your project, or just you.",
+    domain_purchase_intro_name_ph: "Type a name, like harborcoffee or alexcarter",
+    domain_purchase_intro_tld_q: "Any favorite ending?",
+    domain_purchase_intro_cta: "Show me what's available",
+    domain_purchase_intro_skip: "Skip, I'll just search",
+    domain_purchase_intro_replay: "Show the guided start again",
+    domain_purchase_intro_examples: "Or start from an example",
+    domain_purchase_intro_tld_title: "Now pick an ending",
+    domain_purchase_intro_tld_sub:
+      "The ending changes the price and the personality of your address. If you are not sure, leave it on All and we will show you everything that fits.",
+    domain_purchase_results_for: "Here's what we found for {{name}}",
+    domain_purchase_results_for_sub:
+      "Pick the one that feels right. Checkout only takes a minute, and your new address is ready to receive mail the moment you finish.",
+    domain_purchase_change_name: "Change name",
+    domain_purchase_purchased_desc:
+      "Domains you buy through Aster appear here and work as custom domains automatically. Pick a name, pay, and start using it right away.",
+    domain_purchase_filter_price: "Max price",
+    domain_purchase_filter_price_any: "Any price",
+    domain_purchase_more_suggestions: "Generate more ideas",
+    domain_purchase_sort_by: "Sort by",
+    domain_purchase_order_summary: "Order summary",
+    domain_purchase_summary_whois: "WHOIS privacy",
+    domain_purchase_summary_dns: "Automatic DNS setup",
+    domain_purchase_summary_included: "Included",
+    domain_purchase_total_today: "Total today",
+    domain_purchase_years_line: "{{count}} year registration",
+    domain_purchase_secure_checkout: "Secure checkout by Stripe",
+    domain_purchase_crypto_warning_title: "Top up your crypto balance first",
+    domain_purchase_crypto_warning_body: "Crypto orders are paid from your Aster crypto balance. Add funds before you buy, or the domain will stay on hold until the balance covers the full amount.",
+    domain_purchase_crypto_warning_hint: "You can top up from Billing, the same balance used for account credit.",
+    domain_purchase_included_heading: "Everything included with your domain",
+    domain_purchase_renew: "Renew",
+    domain_purchase_filter_all: "All",
+    domain_purchase_filter_available: "Available",
+    domain_purchase_filter_taken: "Taken",
+    domain_purchase_sort_label: "Sort",
+    domain_purchase_sort_relevance: "Relevance",
+    domain_purchase_sort_price_low: "Price: low to high",
+    domain_purchase_sort_price_high: "Price: high to low",
+    domain_purchase_sort_az: "Name: A to Z",
+    domain_purchase_sort_discount: "Biggest discount",
+    domain_purchase_show_more: "Show more results",
+    domain_purchase_results_count: "{{count}} results",
+    domain_purchase_discount_tooltip:
+      "First year sale price from our registrar. Renews at {{price}} per year afterwards.",
+    domain_purchase_purchased_info:
+      "These are domains you bought through Aster. We register them for you with WHOIS privacy, set up all the mail DNS automatically, and you can create addresses on them right away. Each one renews only when you approve it, and you can transfer it to another registrar whenever you want.",
+    domain_purchase_dont_have: "Don't have a domain? Click here to purchase one.",
+    domain_purchase_sort_price: "Lowest price",
+    domain_purchase_leave_title: "Leave Aster Mail?",
+    domain_purchase_leave_message:
+      "This link opens {{host}} in a new tab.",
+    domain_purchase_purchased_label:
+      "Purchased domains",
+    domain_purchase_purchased_empty:
+      "No purchased domains yet",
+    domain_purchase_purchased_expires:
+      "Expires {{date}}",
+    domain_purchase_purchased_in_progress:
+      "Being set up...",
+    domain_purchase_terms_notice:
+      "Aster registers the domain on your behalf through our registrar partner, and the renewal price is always shown before you pay. If you ever let a domain lapse, the registrar may charge a recovery fee to get it back.",
+    domain_purchase_terms_aster: "Aster Terms of Service",
+    domain_purchase_terms_registrar: "NameSilo Terms and Conditions",
+    domain_purchase_terms_icann:
+      "ICANN Registrants' Benefits and Responsibilities",
+    domain_purchase_detail_privacy_title:
+      "Private by default",
+    domain_purchase_detail_setup_title:
+      "Zero setup",
+    domain_purchase_detail_instant_title:
+      "Ready in seconds",
+    domain_purchase_detail_ownership_title:
+      "Yours to keep",
     domain_promo_cta: "Link your domain",
     domains_description:
       "Add your own domain to create addresses and send email from your domain. Verified domains appear in the alias domain selector.",
@@ -4910,6 +5075,11 @@ export const en: Translations = {
     alias_delivery_log_reason_alias_rule: "Dropped by rule",
     alias_delivery_log_reason_alias_disabled: "Alias was disabled",
     alias_delivery_log_reason_unknown: "Blocked",
+    alias_delivery_title: "Delivery",
+    alias_never_inbox: "Skip the inbox",
+    alias_never_inbox_desc: "Mail sent to this alias is archived on arrival. It stays searchable and in All Mail.",
+    alias_never_inbox_info: "Useful for signups and receipts you want kept but not shown in the inbox.",
+    alias_never_inbox_error: "That setting did not save. Another attempt should do it.",
     alias_relay_title: "Delivery",
     alias_relay_description:
       "Choose how mail to this alias is delivered.",
@@ -5248,7 +5418,8 @@ export const en: Translations = {
     page_of_total: "Page {{current}} of {{total}}",
     total_pages_label: "{{count}} pages",
     loading_preview: "Loading preview\u2026",
-    preview_failed: "The preview did not load. Opening the email will show it.",    translation_offer: "This message is in {{language}}.",
+    preview_failed: "The preview did not load. Opening the email will show it.",
+    translation_offer: "This message is in {{language}}.",
     translation_translate: "Translate",
     translation_in_progress: "Translating on your device…",
     translation_translated_from: "Translated from {{language}} on your device.",
@@ -6643,6 +6814,8 @@ export const en: Translations = {
     do_this: "Do this",
     add_condition: "Add condition",
     apply_to_existing: "Apply to existing mail now",
+    apply_to_existing_started: "Applying this rule to your existing mail. This runs in the background.",
+    apply_to_existing_failed: "Could not start applying this rule.",
     empty_title: "No rules yet",
     empty_description:
       "Create your first rule to automatically organize incoming mail.",
@@ -6702,6 +6875,8 @@ export const en: Translations = {
     op_equals: "equals",
     op_older_than_days: "older than (days)",
     op_newer_than_days: "newer than (days)",
+    regex_backreference: "Backreferences like \\1 are not supported. Rewrite the pattern without them.",
+    regex_lookaround: "Lookahead and lookbehind are not supported. Rewrite the pattern without them.",
     regex_invalid: "This regex pattern has a typo. Checking the syntax usually sorts it.",
     regex_empty: "A regex pattern is needed before saving.",
     regex_too_long: "This regex is too long. A trimmed version will work.",
@@ -6824,9 +6999,6 @@ export const en: Translations = {
     tpl_auth_failures_name: "Hold suspicious mail",
     tpl_auth_failures_desc:
       "When a message fails its SPF, DKIM, or DMARC checks (a common sign of spoofing), keep it out of the inbox and mark it read.",
-    tpl_forward_copy_name: "Forward a copy",
-    tpl_forward_copy_desc:
-      "When mail arrives from a sender you choose, forward a copy to another address. Enter both addresses before saving.",
   },
   badges: {
     title: "Badges",

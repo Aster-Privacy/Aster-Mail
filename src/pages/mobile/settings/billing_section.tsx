@@ -59,6 +59,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
+import {
+  CancelReasonStep,
+  type CancelReason,
+} from "@/components/settings/billing/cancel_reason_step";
+import {
+  CancelImpactStep,
+  type CancelStep,
+} from "@/components/settings/billing/cancel_impact_step";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -66,10 +74,7 @@ import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_chang
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { show_toast } from "@/components/toast/simple_toast";
-import {
-  list_contacts,
-  decrypt_contacts,
-} from "@/services/api/contacts";
+import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -87,6 +92,7 @@ import {
   get_referral_history,
   get_credits,
   build_referral_invite_url,
+  get_cancel_impact,
   format_storage,
   format_price,
   format_date,
@@ -94,6 +100,7 @@ import {
   type ReferralHistoryItem,
   type CreditBalanceResponse,
   type StorageAddonItem,
+  type CancelImpactResponse,
 } from "@/services/api/billing";
 import { use_auth } from "@/contexts/auth_context";
 import { get_user_salt } from "@/services/api/auth";
@@ -165,6 +172,55 @@ export function BillingSection({
   const [cancel_password, set_cancel_password] = useState("");
   const [cancel_password_error, set_cancel_password_error] = useState("");
   const [show_cancel_password, set_show_cancel_password] = useState(false);
+  const [cancel_reason, set_cancel_reason] = useState<CancelReason | null>(
+    null,
+  );
+  const [cancel_reason_text, set_cancel_reason_text] = useState("");
+  const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const [cancel_impact, set_cancel_impact] =
+    useState<CancelImpactResponse | null>(null);
+  const [is_impact_loading, set_is_impact_loading] = useState(false);
+
+  useEffect(() => {
+    if (!show_cancel_dialog) return;
+    set_cancel_password("");
+    set_cancel_password_error("");
+    set_show_cancel_password(false);
+    set_cancel_reason(null);
+    set_cancel_reason_text("");
+    set_cancel_step("reason");
+    set_cancel_impact(null);
+  }, [show_cancel_dialog]);
+
+  useEffect(() => {
+    if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact)
+      return;
+    let cancelled = false;
+
+    set_is_impact_loading(true);
+    (async () => {
+      try {
+        const response = await get_cancel_impact();
+
+        if (!cancelled && response.data) set_cancel_impact(response.data);
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+      } finally {
+        if (!cancelled) set_is_impact_loading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [show_cancel_dialog, cancel_step, cancel_impact]);
+
+  const cancel_effective_date = cancel_impact?.effective_at
+    ? format_date(cancel_impact.effective_at)
+    : subscription?.current_period_end
+      ? format_date(subscription.current_period_end)
+      : null;
+
   const [selected_storage, set_selected_storage] = useState<string | null>(
     null,
   );
@@ -177,22 +233,29 @@ export function BillingSection({
     useState<AvailablePlan | null>(null);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
-  const [show_addon_method_modal, set_show_addon_method_modal] = useState(false);
+  const [show_addon_method_modal, set_show_addon_method_modal] =
+    useState(false);
   const [addon_method_target, set_addon_method_target] =
     useState<StorageAddonItem | null>(null);
-  const [show_crypto_addon_modal, set_show_crypto_addon_modal] = useState(false);
+  const [show_crypto_addon_modal, set_show_crypto_addon_modal] =
+    useState(false);
   const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
     null,
   );
-  const [show_plan_change_confirm, set_show_plan_change_confirm] = useState(false);
+  const [show_plan_change_confirm, set_show_plan_change_confirm] =
+    useState(false);
   const [plan_change_confirm_target, set_plan_change_confirm_target] =
     useState<{ plan: AvailablePlan; interval: string } | null>(null);
   const [preferred_currency] = useState(detect_currency_from_locale);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
   >("monthly");
-  const [referral_info, set_referral_info] = useState<ReferralInfo | null>(null);
-  const [referral_history_list, set_referral_history_list] = useState<ReferralHistoryItem[]>([]);
+  const [referral_info, set_referral_info] = useState<ReferralInfo | null>(
+    null,
+  );
+  const [referral_history_list, set_referral_history_list] = useState<
+    ReferralHistoryItem[]
+  >([]);
   const [is_sending_referral, set_is_sending_referral] = useState(false);
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
@@ -236,9 +299,7 @@ export function BillingSection({
 
       const body_html = body_text
         .split("\n")
-        .map((line: string) =>
-          line.trim() === "" ? "<br>" : `<p>${line}</p>`,
-        )
+        .map((line: string) => (line.trim() === "" ? "<br>" : `<p>${line}</p>`))
         .join("");
 
       window.dispatchEvent(
@@ -340,7 +401,8 @@ export function BillingSection({
       if (addons_res.data)
         set_available_addons(addons_res.data.available_addons);
       if (ref_res.data) set_referral_info(ref_res.data);
-      if (ref_hist_res.data) set_referral_history_list(ref_hist_res.data.referrals);
+      if (ref_hist_res.data)
+        set_referral_history_list(ref_hist_res.data.referrals);
       if (credits_res.data) set_credit_balance(credits_res.data);
     } catch {
     } finally {
@@ -471,12 +533,18 @@ export function BillingSection({
         salt,
       );
 
-      const response = await cancel_subscription(password_hash);
+      const response = await cancel_subscription(
+        password_hash,
+        cancel_reason ?? undefined,
+        cancel_reason_text.trim() || undefined,
+      );
 
       if (response.data) {
         show_toast(t("settings.subscription_cancelled"), "success");
         set_cancel_password("");
         set_show_cancel_password(false);
+        set_cancel_reason(null);
+        set_cancel_reason_text("");
         await load_data();
       } else {
         set_cancel_password_error(t("settings.cancel_password_error"));
@@ -691,11 +759,12 @@ export function BillingSection({
                       <span className="text-[17px] font-semibold text-[var(--text-primary)]">
                         {subscription.plan.name}
                       </span>
-                      {is_paid_plan && subscription.active_discount_description && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-500/15 text-green-500">
-                          {subscription.active_discount_description}
-                        </span>
-                      )}
+                      {is_paid_plan &&
+                        subscription.active_discount_description && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-500/15 text-green-500">
+                            {subscription.active_discount_description}
+                          </span>
+                        )}
                       {!is_paid_plan && (
                         <p className="text-[12px] mt-0.5 text-[var(--text-muted)]">
                           {t("settings.free_plan_description")}
@@ -710,9 +779,17 @@ export function BillingSection({
                     {is_paid_plan && subscription.current_period_end && (
                       <div className="text-right">
                         <span className="text-[14px] font-medium text-[var(--text-secondary)]">
-                          {format_price(convert_cents(subscription.plan.price_cents, preferred_currency), preferred_currency)}
+                          {format_price(
+                            convert_cents(
+                              subscription.plan.price_cents,
+                              preferred_currency,
+                            ),
+                            preferred_currency,
+                          )}
                           <span className="text-[11px] font-normal text-[var(--text-muted)]">
-                            /{subscription.plan.billing_period || t("settings.per_month_short")}
+                            /
+                            {subscription.plan.billing_period ||
+                              t("settings.per_month_short")}
                           </span>
                         </span>
                         <p className="text-[11px] mt-0.5 text-[var(--text-muted)]">
@@ -829,7 +906,10 @@ export function BillingSection({
                         {addon.name}
                       </p>
                       <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
-                        {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
+                        {format_price(
+                          convert_cents(addon.price_cents, preferred_currency),
+                          preferred_currency,
+                        )}
                         {t("settings.per_month_short")}
                       </p>
                     </button>
@@ -919,9 +999,11 @@ export function BillingSection({
                               <span
                                 className="inline-flex px-3 py-1 rounded-full text-[11px] font-medium mb-2"
                                 style={{
-                                  backgroundColor: "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+                                  backgroundColor:
+                                    "color-mix(in srgb, var(--accent-color) 10%, transparent)",
                                   color: "var(--color-info)",
-                                  border: "1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)",
+                                  border:
+                                    "1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)",
                                 }}
                               >
                                 {t("settings.current_plan")}
@@ -950,10 +1032,22 @@ export function BillingSection({
                             </div>
                             {billing_period === "monthly" ? (
                               <p className="text-[11px] text-[var(--text-muted)] mt-1">
-                                {format_price(convert_cents(tier.yearly_cents, preferred_currency), preferred_currency)}
+                                {format_price(
+                                  convert_cents(
+                                    tier.yearly_cents,
+                                    preferred_currency,
+                                  ),
+                                  preferred_currency,
+                                )}
                                 {t("settings.per_year_short")} ·{" "}
                                 {t("settings.save_yearly", {
-                                  amount: format_price(convert_cents(tier.savings_cents, preferred_currency), preferred_currency),
+                                  amount: format_price(
+                                    convert_cents(
+                                      tier.savings_cents,
+                                      preferred_currency,
+                                    ),
+                                    preferred_currency,
+                                  ),
                                 })}
                               </p>
                             ) : (
@@ -962,7 +1056,13 @@ export function BillingSection({
                                 style={{ color: "var(--color-success)" }}
                               >
                                 {t("settings.save_yearly", {
-                                  amount: format_price(convert_cents(tier.savings_cents, preferred_currency), preferred_currency),
+                                  amount: format_price(
+                                    convert_cents(
+                                      tier.savings_cents,
+                                      preferred_currency,
+                                    ),
+                                    preferred_currency,
+                                  ),
                                 })}
                               </p>
                             )}
@@ -1122,13 +1222,17 @@ export function BillingSection({
                         <input
                           readOnly
                           className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
-                          value={build_referral_invite_url(referral_info.referral_code)}
+                          value={build_referral_invite_url(
+                            referral_info.referral_code,
+                          )}
                         />
                         <button
                           className="h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
                           onClick={() => {
                             navigator.clipboard.writeText(
-                              build_referral_invite_url(referral_info.referral_code),
+                              build_referral_invite_url(
+                                referral_info.referral_code,
+                              ),
                             );
                             show_toast(t("settings.link_copied"), "success");
                           }}
@@ -1154,7 +1258,9 @@ export function BillingSection({
                       </p>
                       <p className="text-xs text-txt-muted mt-1">
                         {t("settings.referral_commission_info", {
-                          percent: String(referral_info.commission_percent || 5),
+                          percent: String(
+                            referral_info.commission_percent || 5,
+                          ),
                         })}
                       </p>
                     </div>
@@ -1230,7 +1336,10 @@ export function BillingSection({
                                 </span>
                                 {ref_item.referrer_credit_cents > 0 && (
                                   <p className="text-sm font-medium text-green-500">
-                                    +{format_price(ref_item.referrer_credit_cents)}
+                                    +
+                                    {format_price(
+                                      ref_item.referrer_credit_cents,
+                                    )}
                                   </p>
                                 )}
                               </div>
@@ -1263,81 +1372,149 @@ export function BillingSection({
         open={show_cancel_dialog}
         onOpenChange={(open) => {
           set_show_cancel_dialog(open);
-          if (!open) {
-            set_cancel_password("");
-            set_cancel_password_error("");
-            set_show_cancel_password(false);
-          }
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t("settings.cancel_confirm_title")}
+              {cancel_step === "reason"
+                ? t("settings.cancel_reason_title")
+                : cancel_step === "impact"
+                  ? t("settings.cancel_impact_title")
+                  : cancel_step === "confirm"
+                    ? t("settings.cancel_final_title")
+                    : t("settings.cancel_confirm_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("settings.cancel_confirm_description")}
+              {cancel_step === "reason"
+                ? t("settings.cancel_reason_description")
+                : cancel_step === "impact"
+                  ? cancel_effective_date
+                    ? t("settings.cancel_impact_description", {
+                        date: cancel_effective_date,
+                      })
+                    : t("settings.cancel_impact_description_nodate")
+                  : cancel_step === "confirm"
+                    ? cancel_effective_date
+                      ? t("settings.cancel_final_description", {
+                          date: cancel_effective_date,
+                          plan: subscription?.plan.name ?? "",
+                        })
+                      : t("settings.cancel_final_description_nodate", {
+                          plan: subscription?.plan.name ?? "",
+                        })
+                    : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-2">
-            <label className="block text-sm font-medium text-txt-secondary mb-2">
-              {t("settings.cancel_enter_password")}
-            </label>
-            <div className="relative">
-              <Input
-                className="w-full pr-10"
-                placeholder={t("settings.cancel_password_placeholder")}
-                status={cancel_password_error ? "error" : "default"}
-                type={show_cancel_password ? "text" : "password"}
-                value={cancel_password}
-                maxLength={128}
-                onChange={(e) => {
-                  set_cancel_password(clamp_password(e.target.value));
-                  set_cancel_password_error("");
+          {cancel_step === "reason" ? (
+            <CancelReasonStep
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_continue={() => set_cancel_step("impact")}
+              on_skip={() => set_cancel_step("impact")}
+              reason={cancel_reason}
+              reason_text={cancel_reason_text}
+              set_reason={set_cancel_reason}
+              set_reason_text={set_cancel_reason_text}
+            />
+          ) : cancel_step === "impact" ? (
+            <CancelImpactStep
+              impact={cancel_impact}
+              is_loading={is_impact_loading}
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_back={() => set_cancel_step("reason")}
+              on_continue={() => set_cancel_step("password")}
+            />
+          ) : cancel_step === "confirm" ? (
+            <AlertDialogFooter className="flex-row gap-3">
+              <AlertDialogCancel className="flex-1">
+                {t("settings.keep_plan")}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="aster_btn_destructive flex-1"
+                disabled={is_action_loading}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handle_cancel();
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handle_cancel();
-                }}
-              />
-              <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
-                tabIndex={-1}
-                type="button"
-                onClick={() => set_show_cancel_password(!show_cancel_password)}
               >
-                {show_cancel_password ? (
-                  <EyeSlashIcon className="w-4 h-4" />
-                ) : (
-                  <EyeIcon className="w-4 h-4" />
+                {is_action_loading
+                  ? t("settings.cancelling")
+                  : t("settings.cancel_final_confirm")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          ) : (
+            <>
+              <div className="py-2">
+                <label className="block text-sm font-medium text-txt-secondary mb-2">
+                  {t("settings.cancel_enter_password")}
+                </label>
+                <div className="relative">
+                  <Input
+                    className="w-full pr-10"
+                    placeholder={t("settings.cancel_password_placeholder")}
+                    status={cancel_password_error ? "error" : "default"}
+                    type={show_cancel_password ? "text" : "password"}
+                    value={cancel_password}
+                    maxLength={128}
+                    onChange={(e) => {
+                      set_cancel_password(clamp_password(e.target.value));
+                      set_cancel_password_error("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && cancel_password.trim()) {
+                        set_cancel_step("confirm");
+                      }
+                    }}
+                  />
+                  <button
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
+                    tabIndex={-1}
+                    type="button"
+                    onClick={() =>
+                      set_show_cancel_password(!show_cancel_password)
+                    }
+                  >
+                    {show_cancel_password ? (
+                      <EyeSlashIcon className="w-4 h-4" />
+                    ) : (
+                      <EyeIcon className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                {cancel_password_error && (
+                  <p
+                    className="text-xs mt-1.5"
+                    style={{ color: "var(--destructive)" }}
+                  >
+                    {cancel_password_error}
+                  </p>
                 )}
-              </button>
-            </div>
-            {cancel_password_error && (
-              <p
-                className="text-xs mt-1.5"
-                style={{ color: "var(--destructive)" }}
-              >
-                {cancel_password_error}
-              </p>
-            )}
-          </div>
-          <AlertDialogFooter className="flex-row gap-3">
-            <AlertDialogCancel className="flex-1">
-              {t("settings.keep_plan")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="aster_btn_destructive flex-1"
-              disabled={!cancel_password.trim()}
-              onClick={(e) => {
-                e.preventDefault();
-                handle_cancel();
-              }}
-            >
-              {is_action_loading
-                ? t("settings.cancelling")
-                : t("settings.cancel_confirm_button")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
+              </div>
+              <AlertDialogFooter className="flex-row gap-3">
+                <AlertDialogCancel className="flex-1">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="flex-1"
+                  disabled={!cancel_password.trim()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    set_cancel_step("confirm");
+                  }}
+                >
+                  {t("settings.cancel_reason_continue")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
         </AlertDialogContent>
       </AlertDialog>
 

@@ -73,6 +73,7 @@ export interface MailItem {
   expiry_type?: "sender" | "recipient";
   phishing_level?: "safe" | "suspicious" | "dangerous";
   message_group_id?: string;
+  rule_category?: string;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
 }
@@ -240,7 +241,7 @@ export async function list_encrypted_mail_items(
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages/encrypted${query_string ? `?${query_string}` : ""}`;
 
-  return api_client.get<MailItemsListResponse>(endpoint);
+  return api_client.get<MailItemsListResponse>(endpoint, { cache_ttl: 0 });
 }
 
 const prefetch_cache = new Map<string, Promise<ApiResponse<MailItem>>>();
@@ -749,6 +750,7 @@ export interface ThreadMessageItem {
   spam_signals?: SpamSignal[];
   is_spam?: boolean;
   message_group_id?: string;
+  rule_category?: string;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
 }

@@ -50,15 +50,18 @@ export function InfoPopover({ title, description, learn_more_url, learn_more_lab
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-80 border border-edge-primary bg-modal-bg shadow-lg rounded-xl p-4 z-[200]"
+        className="w-80 max-w-[calc(100vw-24px)] border border-edge-primary bg-modal-bg shadow-lg rounded-xl p-4 z-[200]"
+        collisionPadding={12}
         sideOffset={6}
       >
         {title && (
-          <p className="text-sm font-semibold text-txt-primary mb-1.5">
+          <p className="text-sm font-semibold text-txt-primary mb-1.5 break-words">
             {title}
           </p>
         )}
-        <p className="text-sm text-txt-muted leading-relaxed">{description}</p>
+        <p className="text-sm text-txt-muted leading-relaxed break-words">
+          {description}
+        </p>
         {learn_more_url && (
           <a
             href={learn_more_url}

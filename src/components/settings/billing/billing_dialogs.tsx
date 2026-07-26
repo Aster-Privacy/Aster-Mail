@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -50,9 +50,12 @@ import { CheckoutModal } from "@/components/settings/checkout_modal";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import {
   format_price,
+  format_date,
   get_subscription,
+  get_cancel_impact,
   cancel_storage_addon,
   activate_subscription,
+  type CancelImpactResponse,
   type SubscriptionResponse,
   type AvailablePlan,
   type StorageAddonItem,
@@ -61,7 +64,18 @@ import {
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
-import { PLAN_TIERS, convert_cents } from "@/components/settings/billing/billing_constants";
+import {
+  PLAN_TIERS,
+  convert_cents,
+} from "@/components/settings/billing/billing_constants";
+import {
+  CancelReasonStep,
+  type CancelReason,
+} from "@/components/settings/billing/cancel_reason_step";
+import {
+  CancelImpactStep,
+  type CancelStep,
+} from "@/components/settings/billing/cancel_impact_step";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface BillingDialogsProps {
@@ -80,6 +94,10 @@ interface BillingDialogsProps {
   set_cancel_password_error: React.Dispatch<React.SetStateAction<string>>;
   show_cancel_password: boolean;
   set_show_cancel_password: React.Dispatch<React.SetStateAction<boolean>>;
+  cancel_reason: CancelReason | null;
+  set_cancel_reason: React.Dispatch<React.SetStateAction<CancelReason | null>>;
+  cancel_reason_text: string;
+  set_cancel_reason_text: React.Dispatch<React.SetStateAction<string>>;
   handle_cancel: () => void;
   show_checkout_modal: boolean;
   set_show_checkout_modal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -125,6 +143,10 @@ export function BillingDialogs({
   set_cancel_password_error,
   show_cancel_password,
   set_show_cancel_password,
+  cancel_reason,
+  set_cancel_reason,
+  cancel_reason_text,
+  set_cancel_reason_text,
   handle_cancel,
   show_checkout_modal,
   set_show_checkout_modal,
@@ -153,6 +175,56 @@ export function BillingDialogs({
 }: BillingDialogsProps) {
   const { t } = use_i18n();
   const redirect_handled = useRef(false);
+  const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const [cancel_impact, set_cancel_impact] =
+    useState<CancelImpactResponse | null>(null);
+  const [is_impact_loading, set_is_impact_loading] = useState(false);
+
+  useEffect(() => {
+    if (!show_cancel_dialog) return;
+    set_cancel_password("");
+    set_cancel_password_error("");
+    set_show_cancel_password(false);
+    set_cancel_reason(null);
+    set_cancel_reason_text("");
+    set_cancel_step("reason");
+    set_cancel_impact(null);
+  }, [
+    show_cancel_dialog,
+    set_cancel_password,
+    set_cancel_password_error,
+    set_show_cancel_password,
+    set_cancel_reason,
+    set_cancel_reason_text,
+  ]);
+
+  useEffect(() => {
+    if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact) return;
+    let cancelled = false;
+
+    set_is_impact_loading(true);
+    (async () => {
+      try {
+        const response = await get_cancel_impact();
+
+        if (!cancelled && response.data) set_cancel_impact(response.data);
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+      } finally {
+        if (!cancelled) set_is_impact_loading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [show_cancel_dialog, cancel_step, cancel_impact]);
+
+  const cancel_effective_date = cancel_impact?.effective_at
+    ? format_date(cancel_impact.effective_at)
+    : subscription?.current_period_end
+      ? format_date(subscription.current_period_end)
+      : null;
 
   useEffect(() => {
     if (redirect_handled.current) return;
@@ -250,81 +322,155 @@ export function BillingDialogs({
         open={show_cancel_dialog}
         onOpenChange={(open) => {
           set_show_cancel_dialog(open);
-          if (!open) {
-            set_cancel_password("");
-            set_cancel_password_error("");
-            set_show_cancel_password(false);
-          }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent
+          className={
+            cancel_step === "reason" || cancel_step === "impact"
+              ? "max-w-[520px]"
+              : undefined
+          }
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t("settings.cancel_confirm_title")}
+              {cancel_step === "reason"
+                ? t("settings.cancel_reason_title")
+                : cancel_step === "impact"
+                  ? t("settings.cancel_impact_title")
+                  : cancel_step === "confirm"
+                    ? t("settings.cancel_final_title")
+                    : t("settings.cancel_confirm_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("settings.cancel_confirm_description")}
+              {cancel_step === "reason"
+                ? t("settings.cancel_reason_description")
+                : cancel_step === "impact"
+                  ? cancel_effective_date
+                    ? t("settings.cancel_impact_description", {
+                        date: cancel_effective_date,
+                      })
+                    : t("settings.cancel_impact_description_nodate")
+                  : cancel_step === "confirm"
+                    ? cancel_effective_date
+                      ? t("settings.cancel_final_description", {
+                          date: cancel_effective_date,
+                          plan: subscription?.plan.name ?? "",
+                        })
+                      : t("settings.cancel_final_description_nodate", {
+                          plan: subscription?.plan.name ?? "",
+                        })
+                    : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-2">
-            <label className="block text-sm font-medium text-txt-secondary mb-2">
-              {t("settings.cancel_enter_password")}
-            </label>
-            <div className="relative">
-              <Input
-                className="w-full pr-10"
-                placeholder={t("settings.cancel_password_placeholder")}
-                status={cancel_password_error ? "error" : "default"}
-                type={show_cancel_password ? "text" : "password"}
-                value={cancel_password}
-                maxLength={128}
-                onChange={(e) => {
-                  set_cancel_password(clamp_password(e.target.value));
-                  set_cancel_password_error("");
+          {cancel_step === "reason" ? (
+            <CancelReasonStep
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_continue={() => set_cancel_step("impact")}
+              on_skip={() => set_cancel_step("impact")}
+              reason={cancel_reason}
+              reason_text={cancel_reason_text}
+              set_reason={set_cancel_reason}
+              set_reason_text={set_cancel_reason_text}
+            />
+          ) : cancel_step === "impact" ? (
+            <CancelImpactStep
+              impact={cancel_impact}
+              is_loading={is_impact_loading}
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_back={() => set_cancel_step("reason")}
+              on_continue={() => set_cancel_step("password")}
+            />
+          ) : cancel_step === "confirm" ? (
+            <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+              <AlertDialogCancel className="max-sm:flex-1">
+                {t("settings.keep_plan")}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="aster_btn_destructive max-sm:flex-1"
+                disabled={is_action_loading}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handle_cancel();
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handle_cancel();
-                }}
-              />
-              <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
-                tabIndex={-1}
-                type="button"
-                onClick={() => set_show_cancel_password(!show_cancel_password)}
               >
-                {show_cancel_password ? (
-                  <EyeSlashIcon className="w-4 h-4" />
-                ) : (
-                  <EyeIcon className="w-4 h-4" />
+                {is_action_loading
+                  ? t("settings.cancelling")
+                  : t("settings.cancel_final_confirm")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          ) : (
+            <>
+              <div className="py-2">
+                <label className="block text-sm font-medium text-txt-secondary mb-2">
+                  {t("settings.cancel_enter_password")}
+                </label>
+                <div className="relative">
+                  <Input
+                    className="w-full pr-10"
+                    placeholder={t("settings.cancel_password_placeholder")}
+                    status={cancel_password_error ? "error" : "default"}
+                    type={show_cancel_password ? "text" : "password"}
+                    value={cancel_password}
+                    maxLength={128}
+                    onChange={(e) => {
+                      set_cancel_password(clamp_password(e.target.value));
+                      set_cancel_password_error("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && cancel_password.trim()) {
+                        set_cancel_step("confirm");
+                      }
+                    }}
+                  />
+                  <button
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
+                    tabIndex={-1}
+                    type="button"
+                    onClick={() =>
+                      set_show_cancel_password(!show_cancel_password)
+                    }
+                  >
+                    {show_cancel_password ? (
+                      <EyeSlashIcon className="w-4 h-4" />
+                    ) : (
+                      <EyeIcon className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                {cancel_password_error && (
+                  <p
+                    className="text-xs mt-1.5"
+                    style={{ color: "var(--destructive)" }}
+                  >
+                    {cancel_password_error}
+                  </p>
                 )}
-              </button>
-            </div>
-            {cancel_password_error && (
-              <p
-                className="text-xs mt-1.5"
-                style={{ color: "var(--destructive)" }}
-              >
-                {cancel_password_error}
-              </p>
-            )}
-          </div>
-          <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
-            <AlertDialogCancel className="max-sm:flex-1">
-              {t("settings.keep_plan")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="aster_btn_destructive max-sm:flex-1"
-              disabled={!cancel_password.trim()}
-              onClick={(e) => {
-                e.preventDefault();
-                handle_cancel();
-              }}
-            >
-              {is_action_loading
-                ? t("settings.cancelling")
-                : t("settings.cancel_confirm_button")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
+              </div>
+              <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+                <AlertDialogCancel className="max-sm:flex-1">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="max-sm:flex-1"
+                  disabled={!cancel_password.trim()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    set_cancel_step("confirm");
+                  }}
+                >
+                  {t("settings.cancel_reason_continue")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
         </AlertDialogContent>
       </AlertDialog>
 
@@ -565,7 +711,10 @@ export function BillingDialogs({
           plan_code="addon"
           plan_name={checkout_addon.name}
           price_cents={checkout_addon.price_cents}
-          price_display={format_price(convert_cents(checkout_addon.price_cents, preferred_currency), preferred_currency)}
+          price_display={format_price(
+            convert_cents(checkout_addon.price_cents, preferred_currency),
+            preferred_currency,
+          )}
         />
       )}
 
@@ -635,7 +784,13 @@ export function BillingDialogs({
               {addon_to_cancel && (
                 <span className="block mt-2 font-medium text-txt-primary">
                   {addon_to_cancel.size_label} -{" "}
-                  {format_price(convert_cents(addon_to_cancel.price_cents, preferred_currency), preferred_currency)}
+                  {format_price(
+                    convert_cents(
+                      addon_to_cancel.price_cents,
+                      preferred_currency,
+                    ),
+                    preferred_currency,
+                  )}
                   {t("settings.per_month_short")}
                 </span>
               )}

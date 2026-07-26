@@ -111,6 +111,45 @@ export interface DomainLimitResponse {
   can_add: boolean;
 }
 
+export interface DomainSearchResult {
+  domain: string;
+  available: boolean;
+  price_cents: number | null;
+  renewal_price_cents: number | null;
+  currency: string;
+}
+
+export interface DomainSearchResponse {
+  results: DomainSearchResult[];
+  suggestions?: DomainSearchResult[];
+  has_more_suggestions?: boolean;
+  next_suggest_page?: number;
+}
+
+export interface DomainCheckoutResponse {
+  order_id: string;
+  checkout_url: string;
+}
+
+export interface DomainOrder {
+  id: string;
+  domain: string;
+  status: string;
+  order_type: string;
+  fulfillment_step: string | null;
+  years: number;
+  price_cents: number;
+  currency: string;
+  custom_domain_id: string | null;
+  expires_at: string | null;
+  last_error: string | null;
+  created_at: string;
+}
+
+export interface DomainOrderListResponse {
+  orders: DomainOrder[];
+}
+
 export interface DkimRotationResponse {
   success: boolean;
   new_selector: string;
@@ -544,6 +583,70 @@ export async function delete_domain_address(
   return api_client.delete<{ success: boolean }>(
     `/addresses/v1/domains/${domain_id}/addresses/${address_id}`,
   );
+}
+
+export async function search_purchasable_domains(
+  query: string,
+  suggest_page?: number,
+): Promise<ApiResponse<DomainSearchResponse>> {
+  const page_param =
+    suggest_page !== undefined ? `&suggest_page=${suggest_page}` : "";
+
+  return api_client.get<DomainSearchResponse>(
+    `/addresses/v1/domains/purchase/search?query=${encodeURIComponent(query)}${page_param}`,
+  );
+}
+
+export async function create_domain_checkout(
+  domain: string,
+  years: number,
+  payment_method: "stripe" | "crypto",
+  captcha_token?: string,
+): Promise<ApiResponse<DomainCheckoutResponse>> {
+  return api_client.post<DomainCheckoutResponse>(
+    "/addresses/v1/domains/purchase/checkout",
+    { domain, years, payment_method, captcha_token },
+  );
+}
+
+export async function get_domain_order(
+  order_id: string,
+): Promise<ApiResponse<DomainOrder>> {
+  return api_client.get<DomainOrder>(
+    `/addresses/v1/domains/purchase/orders/${order_id}`,
+  );
+}
+
+export async function list_domain_orders(): Promise<
+  ApiResponse<DomainOrderListResponse>
+> {
+  return api_client.get<DomainOrderListResponse>(
+    "/addresses/v1/domains/purchase/orders",
+  );
+}
+
+export async function renew_domain_order(
+  order_id: string,
+  years: number,
+  payment_method: "stripe" | "crypto",
+  captcha_token?: string,
+): Promise<ApiResponse<DomainCheckoutResponse>> {
+  return api_client.post<DomainCheckoutResponse>(
+    `/addresses/v1/domains/purchase/orders/${order_id}/renew`,
+    { years, payment_method, captcha_token },
+  );
+}
+
+export function format_domain_price(
+  cents: number | null,
+  currency: string = "usd",
+): string {
+  if (cents === null) return "";
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
 }
 
 export function validate_domain_name(domain: string): {

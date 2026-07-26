@@ -21,6 +21,7 @@
 
 const DEFAULT_CACHE_TTL = 15_000;
 const MAX_CACHE_ENTRIES = 200;
+const SWEEP_GRACE_MS = 500;
 
 interface CacheEntry {
   response: unknown;
@@ -32,6 +33,7 @@ export class RequestCache {
   private response_cache = new Map<string, CacheEntry>();
   private in_flight = new Map<string, Promise<unknown>>();
   private generation = 0;
+  private sweep_timer: ReturnType<typeof setTimeout> | null = null;
 
   async get_or_fetch<T>(
     cache_key: string,
@@ -45,8 +47,12 @@ export class RequestCache {
     if (!skip_cache && ttl > 0) {
       const cached = this.response_cache.get(cache_key);
 
-      if (cached && Date.now() - cached.timestamp < cached.ttl) {
-        return cached.response as T;
+      if (cached) {
+        if (Date.now() - cached.timestamp < cached.ttl) {
+          return cached.response as T;
+        }
+
+        this.response_cache.delete(cache_key);
       }
     }
 
@@ -130,6 +136,11 @@ export class RequestCache {
     this.response_cache.clear();
     this.in_flight.clear();
     this.generation++;
+
+    if (this.sweep_timer !== null) {
+      clearTimeout(this.sweep_timer);
+      this.sweep_timer = null;
+    }
   }
 
   get size(): number {
@@ -148,7 +159,31 @@ export class RequestCache {
     return true;
   }
 
+  private sweep_expired(): void {
+    const now = Date.now();
+
+    for (const [key, entry] of this.response_cache) {
+      if (now - entry.timestamp >= entry.ttl) {
+        this.response_cache.delete(key);
+      }
+    }
+  }
+
+  private schedule_sweep(ttl: number): void {
+    if (this.sweep_timer !== null) return;
+
+    this.sweep_timer = setTimeout(
+      () => {
+        this.sweep_timer = null;
+        this.sweep_expired();
+      },
+      Math.max(ttl, 1_000) + SWEEP_GRACE_MS,
+    );
+  }
+
   private set_entry(key: string, response: unknown, ttl: number): void {
+    this.sweep_expired();
+
     if (this.response_cache.size >= MAX_CACHE_ENTRIES) {
       const oldest_key = this.response_cache.keys().next().value;
 
@@ -162,6 +197,7 @@ export class RequestCache {
       timestamp: Date.now(),
       ttl,
     });
+    this.schedule_sweep(ttl);
   }
 
   private extract_resource_base(endpoint: string): string | null {

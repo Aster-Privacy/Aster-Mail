@@ -31,15 +31,30 @@ import {
 } from "@/services/offline_email_cache";
 import { request_cache } from "@/services/api/request_cache";
 
-export const view_cache = new Map<
-  string,
-  {
-    state: EmailListState;
-    time: number;
-    is_stale: boolean;
-    conversation_grouping: boolean;
+interface ViewCacheEntry {
+  state: EmailListState;
+  time: number;
+  is_stale: boolean;
+  conversation_grouping: boolean;
+}
+
+const MAX_VIEW_CACHE_ENTRIES = 8;
+
+export const view_cache = new Map<string, ViewCacheEntry>();
+
+export function set_view_cache(view: string, entry: ViewCacheEntry): void {
+  view_cache.set(view, entry);
+
+  if (view_cache.size <= MAX_VIEW_CACHE_ENTRIES) return;
+
+  const by_age = [...view_cache.entries()].sort((a, b) => a[1].time - b[1].time);
+
+  for (let i = 0; i < by_age.length - MAX_VIEW_CACHE_ENTRIES; i++) {
+    if (by_age[i][0] === view) continue;
+
+    view_cache.delete(by_age[i][0]);
   }
->();
+}
 
 export function invalidate_mail_cache(view?: string): void {
   if (view) {

@@ -859,7 +859,7 @@ export function ThreadMessageBlock({
                 <span className="min-w-0 text-txt-secondary break-words">
                   {show_sender_name}{" "}
                   <button
-                    className="hover:underline text-txt-muted"
+                    className="hover:underline text-txt-muted break-all text-left"
                     onClick={() => {
                       navigator.clipboard
                         .writeText(show_sender_email)

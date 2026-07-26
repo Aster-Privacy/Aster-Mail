@@ -1130,7 +1130,10 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       thread_token: item.thread_token,
       message_ts: item.message_ts || item.created_at,
       is_read: item.is_read === true || (metadata?.is_read ?? false),
-      category: classify(envelope, metadata, { custom_categories }),
+      category: classify(envelope, metadata, {
+        custom_categories,
+        rule_category: item.rule_category,
+      }),
       category_pinned:
         metadata?.category_pinned === true && !!metadata?.category,
       ...(snoozed_until ? { snoozed_until } : {}),

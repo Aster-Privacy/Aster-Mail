@@ -158,6 +158,12 @@ export default function IndexPage() {
 
     const handle_navigate_sent = () => navigate("/sent");
 
+    try {
+      if (sessionStorage.getItem("aster_pending_domain_order")) {
+        state.open_settings("aliases" as SettingsSection);
+      }
+    } catch {}
+
     window.addEventListener("navigate-settings", handle_navigate);
     window.addEventListener("astermail:navigate-to-sent", handle_navigate_sent);
 

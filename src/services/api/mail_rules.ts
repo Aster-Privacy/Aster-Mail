@@ -184,21 +184,102 @@ export interface RulesListResponse {
 }
 
 export interface RunRuleResponse {
-  matched: number;
-  applied: number;
+  status: string;
 }
 
 export const REGEX_MAX_LENGTH = 512;
 
+export function detect_unsupported_regex_syntax(
+  pattern: string,
+): "regex_backreference" | "regex_lookaround" | null {
+  let index = 0;
+  let in_class = false;
+
+  while (index < pattern.length) {
+    const ch = pattern[index];
+
+    if (ch === "\\") {
+      const next = pattern[index + 1];
+
+      if (!in_class && next !== undefined) {
+        if (next >= "1" && next <= "9") return "regex_backreference";
+        if (next === "k") return "regex_backreference";
+      }
+      index += 2;
+      continue;
+    }
+    if (in_class) {
+      if (ch === "]") in_class = false;
+      index += 1;
+      continue;
+    }
+    if (ch === "[") {
+      in_class = true;
+      index += 1;
+      continue;
+    }
+    if (ch === "(" && pattern[index + 1] === "?") {
+      const third = pattern[index + 2];
+
+      if (third === "=" || third === "!") return "regex_lookaround";
+      if (
+        third === "<" &&
+        (pattern[index + 3] === "=" || pattern[index + 3] === "!")
+      ) {
+        return "regex_lookaround";
+      }
+    }
+    index += 1;
+  }
+
+  return null;
+}
+
 export function validate_regex_pattern(pattern: string): string | null {
   if (!pattern) return "regex_empty";
   if (pattern.length > REGEX_MAX_LENGTH) return "regex_too_long";
+  const unsupported = detect_unsupported_regex_syntax(pattern);
+
+  if (unsupported) return unsupported;
   try {
     new RegExp(pattern);
     return null;
   } catch {
     return "regex_invalid";
   }
+}
+
+const REGEX_OPERATOR = "matches_regex";
+
+export function find_regex_condition_error(
+  conditions: Condition[],
+): string | null {
+  for (const c of conditions) {
+    if (c.type === "and" || c.type === "or") {
+      const nested = find_regex_condition_error(c.conditions);
+
+      if (nested) return nested;
+      continue;
+    }
+    if (c.type === "not") {
+      const nested = find_regex_condition_error([c.condition]);
+
+      if (nested) return nested;
+      continue;
+    }
+    const candidate = c as { operator?: string; value?: unknown };
+
+    if (
+      candidate.operator === REGEX_OPERATOR &&
+      typeof candidate.value === "string"
+    ) {
+      const error = validate_regex_pattern(candidate.value);
+
+      if (error) return error;
+    }
+  }
+
+  return null;
 }
 
 interface WireRule {
@@ -583,7 +664,7 @@ export async function run_on_existing(
     {},
   );
   if (response.data) {
-    return { data: { matched: 0, applied: 0 } };
+    return { data: { status: response.data.status } };
   }
   return { error: response.error, code: response.code };
 }

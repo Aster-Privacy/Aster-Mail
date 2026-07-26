@@ -269,6 +269,24 @@ export async function decrypt_attachment_meta(
   }
 }
 
+const UNENCRYPTED_NONCE_LENGTH = 12;
+
+function is_unencrypted_stored_attachment(data_nonce_b64: string): boolean {
+  if (!data_nonce_b64) return false;
+
+  let nonce: Uint8Array;
+
+  try {
+    nonce = base64_to_array(data_nonce_b64);
+  } catch {
+    return false;
+  }
+
+  return (
+    nonce.length === UNENCRYPTED_NONCE_LENGTH && nonce.every((b) => b === 0)
+  );
+}
+
 export async function decrypt_attachment_data(
   encrypted_data_b64: string,
   data_nonce_b64: string,
@@ -284,6 +302,21 @@ export async function decrypt_attachment_data(
         : "";
 
   if (!resolved_key || resolved_key.length === 0) {
+    if (is_unencrypted_stored_attachment(data_nonce_b64)) {
+      const bytes = base64_to_array(encrypted_data_b64);
+
+      if (bytes.byteLength === 0) {
+        throw new Error(
+          "attachment payload is empty; storage fetch failed upstream",
+        );
+      }
+
+      return bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      ) as ArrayBuffer;
+    }
+
     throw new Error(
       "attachment decryption key unavailable; refusing to return ciphertext",
     );

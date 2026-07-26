@@ -42,6 +42,7 @@ const PHONE_PATTERN = "\\+?\\d[\\d\\s().-]{7,}\\d";
 const ORDER_ID_PATTERN = "#?\\b[A-Z0-9]{2,}(?:-[A-Z0-9]{2,}){1,}\\b";
 const TRACKING_PATTERN = "\\b(?=[A-Z0-9]*\\d)[A-Z0-9]{8,}\\b";
 const GROUPED_NUMBER_PATTERN = "\\b\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,2})?\\b";
+const EU_GROUPED_NUMBER_PATTERN = "\\b\\d{1,3}(?:\\.\\d{3})+(?:,\\d{1,2})?\\b";
 const SEPARATED_CODE_PATTERN = "\\b\\d{3,4}[ -]\\d{3,4}\\b";
 const CODE_PATTERN = "\\b\\d{4,10}\\b";
 
@@ -57,12 +58,27 @@ const PROTECTED_PATTERN = new RegExp(
     BASE64_PATTERN,
     ORDER_ID_PATTERN,
     TRACKING_PATTERN,
+    EU_GROUPED_NUMBER_PATTERN,
     GROUPED_NUMBER_PATTERN,
     SEPARATED_CODE_PATTERN,
     CODE_PATTERN,
   ].join("|"),
   "g",
 );
+
+const NON_ASCII_NUMERIC_PATTERN = /\p{Nd}+/gu;
+const DECIMAL_DIGIT_PATTERN = /\p{Nd}/u;
+
+function has_non_ascii_digit(value: string): boolean {
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0;
+    const is_ascii_digit = code >= 0x30 && code <= 0x39;
+
+    if (!is_ascii_digit && DECIMAL_DIGIT_PATTERN.test(character)) return true;
+  }
+
+  return false;
+}
 
 const TOKEN_PREFIX = "ZQX";
 const TOKEN_SUFFIX = "QZX";
@@ -100,13 +116,19 @@ const TOKEN_PATTERN = /ZQX\s*([A-Za-z]{1,4})\s*QZX/gi;
 export function protect_entities(text: string): ProtectedText {
   const entities: string[] = [];
 
-  const masked = text.replace(PROTECTED_PATTERN, (match) => {
+  const push_token = (match: string): string => {
     const index = entities.length;
 
     entities.push(match);
 
     return token_for(index);
-  });
+  };
+
+  const ascii_masked = text.replace(PROTECTED_PATTERN, push_token);
+
+  const masked = ascii_masked.replace(NON_ASCII_NUMERIC_PATTERN, (match) =>
+    has_non_ascii_digit(match) ? push_token(match) : match,
+  );
 
   return { masked, entities };
 }
@@ -116,7 +138,6 @@ export function restore_entities(
   entities: string[],
 ): RestoreResult {
   const counts = new Array<number>(entities.length).fill(0);
-  const order: number[] = [];
   let stray = 0;
 
   const text = masked.replace(TOKEN_PATTERN, (match, letters: string) => {
@@ -129,7 +150,6 @@ export function restore_entities(
     }
 
     counts[index] += 1;
-    order.push(index);
 
     return entities[index];
   });
@@ -138,13 +158,6 @@ export function restore_entities(
 
   for (const count of counts) {
     if (count !== 1) missing += 1;
-  }
-
-  for (let position = 1; position < order.length; position += 1) {
-    if (order[position] <= order[position - 1]) {
-      missing += 1;
-      break;
-    }
   }
 
   return { text, missing };

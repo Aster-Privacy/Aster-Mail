@@ -192,6 +192,21 @@ function match_custom_category(
 
 export interface ClassifyOptions {
   custom_categories?: readonly CustomCategoryRule[] | null;
+  rule_category?: string | null;
+}
+
+function resolve_rule_category(
+  rule_category: string | null | undefined,
+  custom_categories?: readonly CustomCategoryRule[] | null,
+): EmailCategory | null {
+  if (!rule_category) return null;
+  if (BUILTIN_CATEGORY_ID_SET.has(rule_category)) return rule_category;
+
+  const custom = custom_categories?.some(
+    (rule) => rule.id === rule_category && rule.enabled,
+  );
+
+  return custom ? rule_category : null;
 }
 
 export function classify(
@@ -202,6 +217,13 @@ export function classify(
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;
   }
+
+  const from_rule = resolve_rule_category(
+    options?.rule_category,
+    options?.custom_categories,
+  );
+
+  if (from_rule) return from_rule;
 
   const email = envelope.from?.email || "";
   const from_domain = get_sender_domain(email);

@@ -93,6 +93,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   // ── Aliases & Domains ─────────────────────────────────────────────────────
   { label: "Create alias",         section: "aliases", breadcrumb: "Aliases > Create" },
   { label: "Custom domain",        section: "aliases", breadcrumb: "Aliases > Domains", keywords: ["add domain", "domain setup"] },
+  { label: "Buy a domain",         section: "aliases", breadcrumb: "Aliases > Domains", keywords: ["purchase domain", "register domain", "domain search", "new domain"] },
   { label: "Domain verification",  section: "aliases", breadcrumb: "Aliases > Domains", keywords: ["verify domain", "dns setup"] },
   { label: "DNS records",          section: "aliases", breadcrumb: "Aliases > Domains", keywords: ["mx record", "dkim", "spf", "dmarc"] },
   { label: "Delete alias",         section: "aliases", breadcrumb: "Aliases > Manage", keywords: ["remove alias", "deactivate alias"] },

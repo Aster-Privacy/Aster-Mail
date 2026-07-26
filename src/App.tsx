@@ -253,6 +253,17 @@ function BillingSuccessHandler() {
 }
 
 function App() {
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const order_id = params.get("domain_order");
+
+      if (order_id && params.get("cancelled") !== "1") {
+        sessionStorage.setItem("aster_pending_domain_order", order_id);
+      }
+    } catch {}
+  }, []);
+
   return (
     <AppLock>
       <BillingSuccessHandler />

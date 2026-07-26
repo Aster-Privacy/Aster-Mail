@@ -67,6 +67,21 @@ export function pick_unit_for_bytes(bytes: number): {
   return { unit: "B", display: bytes };
 }
 
+function parse_numeric_draft(draft: string): number | null {
+  const trimmed = draft.trim();
+
+  if (trimmed === "") return null;
+  const parsed = Number(trimmed);
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function clamp_to_safe_int(value: number): number {
+  if (value <= 0) return 0;
+
+  return Math.min(Math.floor(value), Number.MAX_SAFE_INTEGER);
+}
+
 const AUTH_OPTIONS: AuthResultValue[] = ["pass", "fail", "none", "missing"];
 
 interface ValueDropdownProps {
@@ -275,24 +290,33 @@ function NumericInput({
     set_draft(String(value));
   }, [value]);
 
+  const commit = () => {
+    const parsed = parse_numeric_draft(draft);
+
+    if (parsed === null) {
+      set_draft(String(value));
+
+      return;
+    }
+    const next = clamp_to_safe_int(parsed);
+
+    set_draft(String(next));
+    if (next !== value) on_commit(next);
+  };
+
   return (
     <Input
       autoFocus
       size="sm"
       type="number"
+      min={0}
       value={draft}
       onChange={(e) => set_draft(e.target.value)}
-      onBlur={() => {
-        const n = Number(draft);
-
-        if (!Number.isNaN(n) && n !== value) on_commit(n);
-      }}
+      onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          const n = Number(draft);
-
-          if (!Number.isNaN(n)) on_commit(n);
+          commit();
         }
       }}
       className="w-32"
@@ -312,19 +336,30 @@ function NumericSizeInput({
   on_commit_unit?: (unit: SizeUnit) => void;
 }) {
   const { t } = use_i18n();
-  const initial_display = value / UNIT_MULTIPLIER[unit];
-  const [draft, set_draft] = React.useState(String(initial_display || 0));
+  const [active_unit, set_active_unit] = React.useState<SizeUnit>(unit);
+  const [draft, set_draft] = React.useState(
+    String(value / UNIT_MULTIPLIER[unit] || 0),
+  );
 
   React.useEffect(() => {
-    set_draft(String(value / UNIT_MULTIPLIER[unit] || 0));
-  }, [value, unit]);
+    set_active_unit(unit);
+  }, [unit]);
+
+  React.useEffect(() => {
+    set_draft(String(value / UNIT_MULTIPLIER[active_unit] || 0));
+  }, [value, active_unit]);
 
   const commit = (next_unit: SizeUnit, next_draft: string) => {
-    const n = Number(next_draft);
+    const parsed = parse_numeric_draft(next_draft);
 
-    if (Number.isNaN(n)) return;
-    const bytes = Math.floor(n * UNIT_MULTIPLIER[next_unit]);
+    if (parsed === null) {
+      set_draft(String(value / UNIT_MULTIPLIER[next_unit] || 0));
 
+      return;
+    }
+    const bytes = clamp_to_safe_int(parsed * UNIT_MULTIPLIER[next_unit]);
+
+    set_draft(String(bytes / UNIT_MULTIPLIER[next_unit] || 0));
     on_commit(bytes);
   };
 
@@ -343,19 +378,21 @@ function NumericSizeInput({
         type="number"
         value={draft}
         onChange={(e) => set_draft(e.target.value)}
-        onBlur={() => commit(unit, draft)}
+        onBlur={() => commit(active_unit, draft)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            commit(unit, draft);
+            commit(active_unit, draft);
           }
         }}
         className="w-24"
       />
       <UnitDropdown
-        unit={unit}
+        unit={active_unit}
         unit_label={unit_label}
         on_pick={(next) => {
+          if (next === active_unit) return;
+          set_active_unit(next);
           on_commit_unit?.(next);
           commit(next, draft);
         }}
@@ -422,6 +459,20 @@ function DateDaysInput({
     set_draft(String(value));
   }, [value]);
 
+  const commit = () => {
+    const parsed = parse_numeric_draft(draft);
+
+    if (parsed === null) {
+      set_draft(String(value));
+
+      return;
+    }
+    const next = clamp_to_safe_int(parsed);
+
+    set_draft(String(next));
+    if (next !== value) on_commit(next);
+  };
+
   return (
     <div className="flex items-center gap-1.5">
       <Input
@@ -431,17 +482,11 @@ function DateDaysInput({
         min={0}
         value={draft}
         onChange={(e) => set_draft(e.target.value)}
-        onBlur={() => {
-          const n = Number(draft);
-
-          if (!Number.isNaN(n) && n !== value) on_commit(n);
-        }}
+        onBlur={commit}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            const n = Number(draft);
-
-            if (!Number.isNaN(n)) on_commit(n);
+            commit();
           }
         }}
         className="w-24"
@@ -494,7 +539,9 @@ function TextValueInput({
           {t(`mail_rules.${regex_error}` as
             | "mail_rules.regex_invalid"
             | "mail_rules.regex_empty"
-            | "mail_rules.regex_too_long")}
+            | "mail_rules.regex_too_long"
+            | "mail_rules.regex_backreference"
+            | "mail_rules.regex_lookaround")}
         </div>
       )}
     </div>
