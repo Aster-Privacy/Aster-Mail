@@ -153,7 +153,45 @@ const BODY_PADDING = "8px 16px 16px 16px";
 const IFRAME_HEIGHT_CACHE_LIMIT = 300;
 const iframe_height_cache = new Map<string, number>();
 
+let last_viewer_width = 0;
+let cache_measure_width = 0;
+
+export function email_viewer_measure_width(): number {
+  if (typeof document === "undefined") return 0;
+
+  const container = document.querySelector(".email-frame-container");
+  const width = container?.clientWidth ?? 0;
+
+  if (width > 0) last_viewer_width = width;
+  if (last_viewer_width > 0) return last_viewer_width;
+
+  return Math.max(400, window.innerWidth - 320);
+}
+
+let width_checked_at = 0;
+
+function sync_cache_measure_width(): void {
+  const now = typeof performance !== "undefined" ? performance.now() : 0;
+
+  if (cache_measure_width > 0 && now - width_checked_at < 250) return;
+  width_checked_at = now;
+
+  const width = email_viewer_measure_width();
+
+  if (width <= 0) return;
+  if (cache_measure_width === 0) {
+    cache_measure_width = width;
+
+    return;
+  }
+  if (Math.abs(width - cache_measure_width) > 8) {
+    iframe_height_cache.clear();
+    cache_measure_width = width;
+  }
+}
+
 function store_height(email_id: string, height: number): void {
+  sync_cache_measure_width();
   if (iframe_height_cache.has(email_id)) {
     iframe_height_cache.delete(email_id);
   } else if (iframe_height_cache.size >= IFRAME_HEIGHT_CACHE_LIMIT) {
@@ -184,6 +222,8 @@ export function dispatch_iframe_ready(email_id: string): void {
 }
 
 export function get_cached_iframe_height(email_id: string): number | undefined {
+  sync_cache_measure_width();
+
   return iframe_height_cache.get(email_id);
 }
 
@@ -235,7 +275,7 @@ export function SandboxedEmailRenderer({
   const zoom_fn_ref = useRef<((src: string | null) => void) | null>(null);
   zoom_fn_ref.current = set_zoomed_image;
   const cached_height = email_id
-    ? iframe_height_cache.get(email_id)
+    ? get_cached_iframe_height(email_id)
     : undefined;
   const [iframe_height, set_iframe_height] = useState(
     cached_height ? `${cached_height}px` : "0px",
@@ -259,7 +299,7 @@ export function SandboxedEmailRenderer({
 
   if (prev_html_ref.current !== sanitized_html) {
     prev_html_ref.current = sanitized_html;
-    const new_cached = email_id ? iframe_height_cache.get(email_id) : undefined;
+    const new_cached = email_id ? get_cached_iframe_height(email_id) : undefined;
 
     set_iframe_height(new_cached ? `${new_cached}px` : "0px");
     set_height_ready(!!new_cached);
@@ -1390,6 +1430,18 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         const container = iframe.parentElement;
 
         if (!container) return;
+
+        const scroller = iframe.contentDocument?.scrollingElement;
+
+        if (scroller && scroller.scrollHeight > scroller.clientHeight + 1) {
+          const at_top = scroller.scrollTop <= 0;
+          const at_bottom =
+            scroller.scrollTop + scroller.clientHeight >=
+            scroller.scrollHeight - 1;
+
+          if ((e.deltaY < 0 && !at_top) || (e.deltaY > 0 && !at_bottom)) return;
+        }
+
         container.dispatchEvent(
           new WheelEvent("wheel", {
             deltaX: e.deltaX,
@@ -1609,7 +1661,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         }
       }
       attempts += 1;
-      if (attempts < 100) setTimeout(poll, 50);
+      if (attempts < 100) {
+        setTimeout(poll, 50);
+
+        return;
+      }
+      if (body && body.childNodes.length > 0) handle_load();
     };
 
     poll();
