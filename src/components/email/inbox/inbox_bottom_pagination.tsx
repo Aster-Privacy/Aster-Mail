@@ -94,7 +94,8 @@ export function BottomPagination({
             <Input
               key={`e-${idx}`}
               ref={input_ref}
-              className="w-12 bg-transparent border-none text-center"
+              className="text-center"
+              style={{ width: "3rem", flex: "0 0 auto" }}
               size="sm"
               value={input_value}
               onBlur={handle_submit}
