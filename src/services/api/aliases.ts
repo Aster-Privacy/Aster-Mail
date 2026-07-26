@@ -999,6 +999,10 @@ export interface AliasStats {
   blocked: number;
   replied: number;
   distinct_senders: number;
+  created_at: string;
+  last_sender_at?: string | null;
+  last_sender_encrypted?: string | null;
+  last_sender_nonce?: string | null;
 }
 
 export async function list_deleted_aliases(): Promise<

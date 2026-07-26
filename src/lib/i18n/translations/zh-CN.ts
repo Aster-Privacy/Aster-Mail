@@ -2022,6 +2022,8 @@ export const zh_CN = {
     alias_stats_received: "已接收 {{ count }} 封",
     alias_stats_forwarded: "已转发 {{ count }} 封",
     alias_stats_blocked: "已屏蔽 {{ count }} 封",
+    alias_stats_replied: "已回复 {{ count }} 封",
+    alias_stats_created: "创建于 {{ date }}",
     alias_generate_random: "生成随机别名",
     alias_pin: "置顶别名",
     alias_unpin: "取消置顶别名",

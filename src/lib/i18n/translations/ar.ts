@@ -2139,6 +2139,8 @@ export const ar = {
     alias_stats_received: "{{ count }} مستلَمة",
     alias_stats_forwarded: "{{ count }} مُعادة التوجيه",
     alias_stats_blocked: "{{ count }} محظورة",
+    alias_stats_replied: "{{ count }} رد",
+    alias_stats_created: "أُنشئ في {{ date }}",
     alias_generate_random: "توليد اسم مستعار عشوائي",
     alias_pin: "تثبيت الاسم المستعار",
     alias_unpin: "إلغاء تثبيت الاسم المستعار",

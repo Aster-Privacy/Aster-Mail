@@ -2223,6 +2223,8 @@ export const fr = {
     alias_stats_received: "{{ count }} reçu(s)",
     alias_stats_forwarded: "{{ count }} transféré(s)",
     alias_stats_blocked: "{{ count }} bloqué(s)",
+    alias_stats_replied: "{{ count }} répondu(s)",
+    alias_stats_created: "Créé le {{ date }}",
     alias_generate_random: "Générer un alias aléatoire",
     alias_pin: "Épingler l'alias",
     alias_unpin: "Désépingler l'alias",

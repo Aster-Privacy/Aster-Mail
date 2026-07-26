@@ -2234,6 +2234,8 @@ export const pl = {
     alias_stats_received: "Odebrano: {{ count }}",
     alias_stats_forwarded: "Przekazano: {{ count }}",
     alias_stats_blocked: "Zablokowano: {{ count }}",
+    alias_stats_replied: "Odpowiedziano: {{ count }}",
+    alias_stats_created: "Utworzono {{ date }}",
     alias_generate_random: "Wygeneruj losowy alias",
     alias_pin: "Przypnij alias",
     alias_unpin: "Odepnij alias",

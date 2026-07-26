@@ -5505,6 +5505,8 @@ export const en: Translations = {
     alias_stats_received: "{{ count }} received",
     alias_stats_forwarded: "{{ count }} forwarded",
     alias_stats_blocked: "{{ count }} blocked",
+    alias_stats_replied: "{{ count }} replied",
+    alias_stats_created: "Created {{ date }}",
     alias_generate_random: "Generate random alias",
     alias_pin: "Pin alias",
     alias_unpin: "Unpin alias",
