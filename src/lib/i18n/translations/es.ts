@@ -2210,6 +2210,8 @@ export const es = {
     alias_stats_received: "{{ count }} recibidos",
     alias_stats_forwarded: "{{ count }} reenviados",
     alias_stats_blocked: "{{ count }} bloqueados",
+    alias_stats_replied: "{{ count }} respondidos",
+    alias_stats_created: "Creado el {{ date }}",
     alias_generate_random: "Generar alias aleatorio",
     alias_pin: "Fijar alias",
     alias_unpin: "Desfijar alias",

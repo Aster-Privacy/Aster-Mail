@@ -2163,6 +2163,8 @@ export const nl = {
     alias_stats_received: "{{ count }} ontvangen",
     alias_stats_forwarded: "{{ count }} doorgestuurd",
     alias_stats_blocked: "{{ count }} geblokkeerd",
+    alias_stats_replied: "{{ count }} beantwoord",
+    alias_stats_created: "Aangemaakt op {{ date }}",
     alias_generate_random: "Willekeurige alias genereren",
     alias_pin: "Alias vastzetten",
     alias_unpin: "Alias losmaken",

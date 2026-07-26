@@ -4972,6 +4972,8 @@ export interface SettingsTranslations {
   alias_stats_received: string;
   alias_stats_forwarded: string;
   alias_stats_blocked: string;
+  alias_stats_replied: string;
+  alias_stats_created: string;
   alias_generate_random: string;
   alias_pin: string;
   alias_unpin: string;

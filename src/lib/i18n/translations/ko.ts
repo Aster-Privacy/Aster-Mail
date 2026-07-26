@@ -2123,6 +2123,8 @@ export const ko = {
     alias_stats_received: "{{ count }}건 수신",
     alias_stats_forwarded: "{{ count }}건 전달",
     alias_stats_blocked: "{{ count }}건 차단",
+    alias_stats_replied: "{{ count }}건 답장",
+    alias_stats_created: "생성일 {{ date }}",
     alias_generate_random: "무작위 별칭 생성",
     alias_pin: "별칭 고정",
     alias_unpin: "별칭 고정 해제",

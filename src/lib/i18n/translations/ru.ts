@@ -2221,6 +2221,8 @@ export const ru = {
     alias_stats_received: "Получено: {{ count }}",
     alias_stats_forwarded: "Переслано: {{ count }}",
     alias_stats_blocked: "Заблокировано: {{ count }}",
+    alias_stats_replied: "Отвечено: {{ count }}",
+    alias_stats_created: "Создан {{ date }}",
     alias_generate_random: "Сгенерировать случайный псевдоним",
     alias_pin: "Закрепить псевдоним",
     alias_unpin: "Открепить псевдоним",

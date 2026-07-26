@@ -2239,6 +2239,8 @@ export const it = {
     alias_stats_received: "{{ count }} ricevute",
     alias_stats_forwarded: "{{ count }} inoltrate",
     alias_stats_blocked: "{{ count }} bloccate",
+    alias_stats_replied: "{{ count }} risposte",
+    alias_stats_created: "Creato il {{ date }}",
     alias_generate_random: "Genera alias casuale",
     alias_pin: "Fissa alias",
     alias_unpin: "Sblocca alias",

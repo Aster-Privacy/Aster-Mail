@@ -2213,6 +2213,8 @@ export const tr = {
     alias_stats_received: "{{ count }} alındı",
     alias_stats_forwarded: "{{ count }} yönlendirildi",
     alias_stats_blocked: "{{ count }} engellendi",
+    alias_stats_replied: "{{ count }} yanıtlandı",
+    alias_stats_created: "{{ date }} tarihinde oluşturuldu",
     alias_generate_random: "Rastgele rumuz oluştur",
     alias_pin: "Rumuzu sabitle",
     alias_unpin: "Rumuz sabitlemesini kaldır",

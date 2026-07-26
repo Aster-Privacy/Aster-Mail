@@ -2209,6 +2209,8 @@ export const ja = {
     alias_stats_received: "{{ count }}件受信",
     alias_stats_forwarded: "{{ count }}件転送",
     alias_stats_blocked: "{{ count }}件ブロック",
+    alias_stats_replied: "{{ count }}件返信",
+    alias_stats_created: "作成日 {{ date }}",
     alias_generate_random: "ランダムなエイリアスを生成",
     alias_pin: "エイリアスをピン留め",
     alias_unpin: "エイリアスのピン留めを解除",

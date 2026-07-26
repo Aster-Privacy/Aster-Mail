@@ -30,6 +30,7 @@ import {
   EyeSlashIcon,
   ChartBarIcon,
   InboxArrowDownIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
@@ -37,6 +38,11 @@ import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_disp
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import {
+  format_created_at,
+  format_relative_time,
+} from "./alias_stats_format";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -733,25 +739,6 @@ function delivery_reason_icon(reason: string): React.ReactNode {
   }
 }
 
-function format_relative_time(
-  t: ReturnType<typeof use_i18n>["t"],
-  iso: string,
-): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  if (mins < 2) return t("settings.fam_org_time_just_now");
-  if (mins < 60) return t("settings.fam_org_time_minutes", { count: mins });
-  if (hours < 24)
-    return hours === 1
-      ? t("settings.fam_org_time_hour", { count: hours })
-      : t("settings.fam_org_time_hours", { count: hours });
-  return days === 1
-    ? t("settings.fam_org_time_yesterday")
-    : t("settings.fam_org_time_days", { count: days });
-}
-
 function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
   const { t } = use_i18n();
   const [events, set_events] = useState<DeliveryEvent[]>([]);
@@ -847,17 +834,29 @@ function LockedSection({
 }
 
 function StatsPanel({ alias_id }: { alias_id: string }) {
-  const { t } = use_i18n();
+  const { t, language } = use_i18n();
   const [stats, set_stats] = useState<AliasStats | null>(null);
+  const [last_sender, set_last_sender] = useState<string | null>(null);
   const [loading, set_loading] = useState(true);
 
   useEffect(() => {
     let active = true;
     set_loading(true);
+    set_last_sender(null);
     get_alias_stats(alias_id)
-      .then((stats_response) => {
-        if (!active) return;
-        if (stats_response.data) set_stats(stats_response.data);
+      .then(async (stats_response) => {
+        if (!active || !stats_response.data) return;
+        set_stats(stats_response.data);
+
+        const { last_sender_encrypted, last_sender_nonce } = stats_response.data;
+
+        if (!last_sender_encrypted) return;
+
+        const envelope = await decrypt_mail_envelope<{
+          from: { name: string; email: string };
+        }>(last_sender_encrypted, last_sender_nonce ?? "");
+
+        if (active && envelope?.from?.email) set_last_sender(envelope.from.email);
       })
       .catch(() => {})
       .finally(() => {
@@ -881,6 +880,8 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
 
   if (!stats) return null;
 
+  const created_label = format_created_at(stats.created_at, language);
+
   return (
     <div className="space-y-3">
       <SectionTitle icon={<ChartBarIcon className="w-4 h-4" />}>
@@ -903,7 +904,31 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
             count: stats.blocked,
           })}
         </span>
+        <span>
+          {t("settings.alias_stats_replied" as TranslationKey, {
+            count: stats.replied ?? 0,
+          })}
+        </span>
       </div>
+
+      {last_sender && stats.last_sender_at && (
+        <div className="flex items-center gap-1.5 text-sm text-txt-muted">
+          <PaperAirplaneIcon className="w-4 h-4 shrink-0" />
+          <span className="break-all">{last_sender}</span>
+          <span aria-hidden="true">&middot;</span>
+          <span className="whitespace-nowrap">
+            {format_relative_time(t, stats.last_sender_at)}
+          </span>
+        </div>
+      )}
+
+      {created_label && (
+        <div className="text-sm text-txt-muted">
+          {t("settings.alias_stats_created" as TranslationKey, {
+            date: created_label,
+          })}
+        </div>
+      )}
     </div>
   );
 }
