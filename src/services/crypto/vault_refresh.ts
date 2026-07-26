@@ -81,7 +81,7 @@ async function run(): Promise<RefreshedVault | null> {
     const response = await api_client.get<{
       encrypted_vault: string;
       vault_nonce: string;
-    }>("/auth/vault");
+    }>("/core/v1/auth/vault");
 
     if (
       response.error ||

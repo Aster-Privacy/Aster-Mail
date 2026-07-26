@@ -63,7 +63,7 @@ vi.mock("@/services/api/client", () => ({
     get: vi.fn(async (url: string) => {
       if (url.includes("prekey-bundle")) return { data: h.bundle };
 
-      if (url === "/auth/vault") {
+      if (url === "/core/v1/auth/vault") {
         h.vault_fetches++;
 
         return h.refreshed_vault
