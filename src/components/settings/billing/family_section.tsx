@@ -1560,7 +1560,7 @@ function SecurityContent({ other_member_count, initial_security, initial_complia
             <p className="text-sm mt-0.5 text-txt-muted">{t("settings.fam_org_sec_max_sessions_desc")}</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Input type="number" min="1" className="w-16" placeholder={t("settings.fam_org_sec_no_limit")}
+            <Input type="number" min="1" style={{ width: "4rem", flex: "0 0 auto" }} placeholder={t("settings.fam_org_sec_no_limit")}
               value={policy.max_sessions_per_member ?? ""}
               onChange={e => patch_draft({ max_sessions_per_member: e.target.value ? parseInt(e.target.value) : null })} />
             <span className="text-xs text-txt-muted">{t("settings.fam_org_sec_sessions")}</span>
@@ -1575,7 +1575,7 @@ function SecurityContent({ other_member_count, initial_security, initial_complia
             <p className="text-sm mt-0.5 text-txt-muted">{t("settings.fam_org_sec_auto_signout_desc")}</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Input type="number" min="1" className="w-16" placeholder={t("settings.fam_org_sec_never")}
+            <Input type="number" min="1" style={{ width: "4rem", flex: "0 0 auto" }} placeholder={t("settings.fam_org_sec_never")}
               value={policy.session_timeout_hours ?? ""}
               onChange={e => patch_draft({ session_timeout_hours: e.target.value ? parseInt(e.target.value) : null })} />
             <span className="text-xs text-txt-muted">{t("settings.fam_org_sec_hours")}</span>
@@ -2457,7 +2457,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-txt-muted mb-1 block">{t("settings.family_invite_storage")}</label>
                       <div className="flex items-center gap-1">
-                        <Input type="number" min="1" value={invite_storage_gb} onChange={e => set_invite_storage_gb(e.target.value)} className="w-20" />
+                        <Input type="number" min="1" value={invite_storage_gb} onChange={e => set_invite_storage_gb(e.target.value)} style={{ width: "5rem", flex: "0 0 auto" }} />
                         <span className="text-sm text-txt-muted">{t("settings.fam_org_gb")}</span>
                       </div>
                     </div>
