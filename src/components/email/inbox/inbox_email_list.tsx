@@ -47,6 +47,11 @@ import { preload_email_detail } from "@/components/email/hooks/use_email_detail"
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
+import {
+  build_selection_snapshot,
+  empty_selection_snapshot,
+  type SelectionSnapshot,
+} from "@/components/email/inbox/selection_snapshot";
 
 export interface EmailListProps {
   pinned_emails: InboxEmail[];
@@ -232,46 +237,12 @@ export function EmailList({
   }, []);
   const show_hover_actions = !is_special_view;
 
-  const selected_ids = useMemo(
-    () => all_emails.filter((e) => e.is_selected).map((e) => e.id),
+  const selection_ref = useRef<SelectionSnapshot>(empty_selection_snapshot);
+
+  selection_ref.current = useMemo(
+    () => build_selection_snapshot(all_emails),
     [all_emails],
   );
-
-  const selected_grouped_ids = useMemo(
-    () =>
-      all_emails
-        .filter((e) => e.is_selected)
-        .flatMap((e) =>
-          e.grouped_email_ids && e.grouped_email_ids.length > 1
-            ? e.grouped_email_ids
-            : [e.id],
-        ),
-    [all_emails],
-  );
-
-  const selected_folder_tokens = useMemo(() => {
-    const tokens = new Set<string>();
-
-    for (const e of all_emails) {
-      if (e.is_selected && e.folders) {
-        for (const f of e.folders) tokens.add(f.folder_token);
-      }
-    }
-
-    return Array.from(tokens);
-  }, [all_emails]);
-
-  const selected_tag_tokens = useMemo(() => {
-    const tokens = new Set<string>();
-
-    for (const e of all_emails) {
-      if (e.is_selected && e.tags) {
-        for (const t of e.tags) tokens.add(t.id);
-      }
-    }
-
-    return Array.from(tokens);
-  }, [all_emails]);
 
   const hover_archive = show_hover_actions ? on_archive : undefined;
   const hover_delete = show_hover_actions ? on_delete : undefined;
@@ -300,10 +271,7 @@ export function EmailList({
       on_toggle_read={hover_toggle_read}
       on_toggle_select={on_toggle_select}
       on_toggle_star={hover_toggle_star}
-      selected_folder_tokens={selected_folder_tokens}
-      selected_ids={selected_ids}
-      selected_grouped_ids={selected_grouped_ids}
-      selected_tag_tokens={selected_tag_tokens}
+      selection={selection_ref}
       show_email_preview={show_email_preview}
       show_message_size={show_message_size}
       show_profile_pictures={show_profile_pictures}
@@ -323,7 +291,7 @@ export function EmailList({
                   className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
-                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : (email.has_attachment ? 76 : 48)}px`,
+                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : email.has_attachment ? 76 : 48}px`,
                   }}
                   onContextMenu={() => {
                     set_menu_email(email);
@@ -345,7 +313,7 @@ export function EmailList({
                   className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
-                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : (email.has_attachment ? 76 : 48)}px`,
+                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : email.has_attachment ? 76 : 48}px`,
                   }}
                   onContextMenu={() => {
                     set_menu_email(email);
@@ -489,7 +457,12 @@ export function EmptyState({
             {t("errors.connection_failed")}
           </p>
           {on_retry && (
-            <Button variant="outline" size="sm" className="mt-3" onClick={on_retry}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={on_retry}
+            >
               {t("common.retry")}
             </Button>
           )}

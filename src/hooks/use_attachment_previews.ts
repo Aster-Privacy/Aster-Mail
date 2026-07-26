@@ -93,6 +93,21 @@ function build_initial_state(
   return map;
 }
 
+export function same_preview_entry(
+  previous: AttachmentPreviewEntry,
+  state: AttachmentPreviewEntry["state"],
+  attachments: AttachmentPreviewInfo[],
+): boolean {
+  if (previous.state !== state) return false;
+  if (previous.attachments.length !== attachments.length) return false;
+
+  for (let i = 0; i < attachments.length; i++) {
+    if (previous.attachments[i].id !== attachments[i].id) return false;
+  }
+
+  return true;
+}
+
 export function use_attachment_previews(
   emails: InboxEmail[],
   enabled = true,
@@ -135,6 +150,7 @@ export function use_attachment_previews(
   >(() => (enabled ? build_initial_state(all_ids) : new Map()));
   const abort_ref = useRef<AbortController | null>(null);
   const fetching_ref = useRef<Set<string>>(new Set());
+  const merged_ref = useRef<Map<string, AttachmentPreviewEntry>>(new Map());
 
   const fetch_previews = useCallback(async (ids_to_fetch: string[]) => {
     if (ids_to_fetch.length === 0) return;
@@ -347,8 +363,17 @@ export function use_attachment_previews(
             ? ("loading" as const)
             : ("error" as const);
 
-      result.set(email_id, { state, attachments: all_attachments });
+      const previous = merged_ref.current.get(email_id);
+
+      result.set(
+        email_id,
+        previous && same_preview_entry(previous, state, all_attachments)
+          ? previous
+          : { state, attachments: all_attachments },
+      );
     }
+
+    merged_ref.current = result;
 
     return result;
   }, [raw_previews, group_map]);
