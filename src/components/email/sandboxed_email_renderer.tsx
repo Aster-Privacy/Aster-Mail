@@ -215,6 +215,8 @@ function remember_measured_height(
 
 export const CONTENT_READY_FALLBACK_MS = 1500;
 
+export const SETTLE_REMEASURE_DELAYS_MS = [250, 700, 1600, 3000];
+
 export function dispatch_iframe_ready(email_id: string): void {
   window.dispatchEvent(
     new CustomEvent("astermail:iframe-ready", { detail: email_id }),
@@ -293,6 +295,7 @@ export function SandboxedEmailRenderer({
   const load_remote_ref = useRef(load_remote_content);
   const document_ready_cleanup_ref = useRef<(() => void) | null>(null);
   const remeasure_ref = useRef<(() => void) | null>(null);
+  const settle_timers_ref = useRef<ReturnType<typeof setTimeout>[]>([]);
   const on_document_ready_ref = useRef(on_document_ready);
 
   on_document_ready_ref.current = on_document_ready;
@@ -1410,6 +1413,16 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       update_height,
     );
 
+    const doc_for_settle = iframe.contentDocument;
+
+    settle_timers_ref.current.forEach(clearTimeout);
+    settle_timers_ref.current = SETTLE_REMEASURE_DELAYS_MS.map((delay) =>
+      setTimeout(() => {
+        if (iframe.contentDocument !== doc_for_settle) return;
+        measure_and_apply();
+      }, delay),
+    );
+
     const doc_at_load = iframe.contentDocument;
     const doc_fonts = doc_at_load.fonts;
 
@@ -1454,6 +1467,44 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       },
       { passive: true },
     );
+
+    const find_outer_scroller = (): HTMLElement | null => {
+      let node = iframe.parentElement;
+
+      while (node) {
+        const overflow_y = window.getComputedStyle(node).overflowY;
+
+        if (
+          (overflow_y === "auto" || overflow_y === "scroll") &&
+          node.scrollHeight > node.clientHeight + 1
+        ) {
+          return node;
+        }
+        node = node.parentElement;
+      }
+
+      return null;
+    };
+
+    iframe.contentDocument.addEventListener("mousedown", (e) => {
+      if ((e as MouseEvent).button !== 1) return;
+
+      e.preventDefault();
+
+      const outer = find_outer_scroller();
+
+      if (!outer) return;
+
+      const restore_top = outer.scrollTop;
+      let frames = 0;
+      const restore_scroll = () => {
+        if (outer.scrollTop !== restore_top) outer.scrollTop = restore_top;
+        frames += 1;
+        if (frames < 8) requestAnimationFrame(restore_scroll);
+      };
+
+      requestAnimationFrame(restore_scroll);
+    });
 
     const forward_touch = (name: string) => (e: TouchEvent) => {
       const touch = e.touches[0] || e.changedTouches[0];
@@ -1619,6 +1670,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
       if (stable_timer_ref.current) clearTimeout(stable_timer_ref.current);
+      settle_timers_ref.current.forEach(clearTimeout);
+      settle_timers_ref.current = [];
       reveal_cleanup_ref.current?.();
       document_ready_cleanup_ref.current?.();
       document_ready_cleanup_ref.current = null;
