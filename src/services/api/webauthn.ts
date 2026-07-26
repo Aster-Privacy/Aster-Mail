@@ -69,6 +69,8 @@ export interface WebAuthnAssertionOptions {
   userVerification: string;
 }
 
+export const WEBAUTHN_PROMPT_DISMISSED = "webauthn_prompt_dismissed";
+
 export interface StepUpHardwareKeyAssertion {
   raw_id: string;
   response: {
@@ -310,14 +312,22 @@ export async function perform_webauthn_assertion(
       err instanceof Error &&
       (err.name === "NotAllowedError" || err.name === "AbortError")
     ) {
-      return { data: undefined, error: en.errors.authentication_cancelled };
+      return {
+        data: undefined,
+        error: en.errors.authentication_cancelled,
+        server_code: WEBAUTHN_PROMPT_DISMISSED,
+      };
     }
 
     return { data: undefined, error: en.errors.authentication_failed_webauthn };
   }
 
   if (!credential) {
-    return { data: undefined, error: en.errors.authentication_cancelled };
+    return {
+      data: undefined,
+      error: en.errors.authentication_cancelled,
+      server_code: WEBAUTHN_PROMPT_DISMISSED,
+    };
   }
 
   const assertion_response =
