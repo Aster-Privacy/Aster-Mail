@@ -38,7 +38,7 @@ export const BERGAMOT_ENGINE_ID = "bergamot";
 export const MODEL_VERSION = "v1";
 
 const WORKER_URL = "/bergamot/translator-worker.js";
-const DEFAULT_MODEL_BASE = "https://relay.astermail.org/models/bergamot/v1";
+const DEFAULT_MODEL_BASE = "/bergamot/models/v1";
 
 function model_base(): string {
   const configured =
@@ -57,7 +57,9 @@ function model_base(): string {
 
 function join_url(base: string, name: string): string {
   const origin_ref =
-    typeof location !== "undefined" ? location.href : DEFAULT_MODEL_BASE;
+    typeof location !== "undefined"
+      ? location.href
+      : "https://app.astermail.org/";
   const root = new URL(base, origin_ref);
   const root_dir = root.href.endsWith("/") ? root.href : `${root.href}/`;
   const resolved = new URL(name, root_dir);
