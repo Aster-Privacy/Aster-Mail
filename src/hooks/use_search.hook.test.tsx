@@ -93,7 +93,11 @@ vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: { low_network_mode: false } }),
 }));
 
-import { invalidate_snapshot_caches } from "@/services/search_index_store";
+import {
+  invalidate_snapshot_caches,
+  MAX_INDEX_BODY_CHARS,
+  MAX_INDEX_PREVIEW_CHARS,
+} from "@/services/search_index_store";
 import { use_search } from "@/hooks/use_search";
 
 declare global {
@@ -147,6 +151,15 @@ const fixtures: Fixture[] = [
     from_email: "carol@example.com",
     body: "unrelated text",
     message_ts: "2026-03-01T10:00:00Z",
+    is_starred: false,
+  },
+  {
+    id: "m5",
+    subject: "Newsletter",
+    from_name: "Dana",
+    from_email: "dana@example.com",
+    body: `shallowterm ${"filler ".repeat(MAX_INDEX_BODY_CHARS)} deepterm`,
+    message_ts: "2026-02-28T10:00:00Z",
     is_starred: false,
   },
 ];
@@ -319,6 +332,33 @@ describe("use_search progressive scan and refinement", () => {
     });
 
     expect(result_ids()).toEqual(["m1", "m2", "m3"]);
+  });
+
+  it("matches body text inside the indexed budget", async () => {
+    await act(async () => {
+      await hook.search("shallowterm");
+    });
+
+    expect(result_ids()).toEqual(["m5"]);
+  });
+
+  it("does not retain body text past the indexed budget", async () => {
+    await act(async () => {
+      await hook.search("deepterm");
+    });
+
+    expect(result_ids()).toEqual([]);
+  });
+
+  it("bounds the preview it keeps for a long body", async () => {
+    await act(async () => {
+      await hook.search("shallowterm");
+    });
+
+    const preview = hook.state.results[0].preview;
+
+    expect(preview.length).toBeLessThanOrEqual(MAX_INDEX_PREVIEW_CHARS);
+    expect(preview.startsWith("shallowterm")).toBe(true);
   });
 
   it("keeps the query but empties results below the minimum length", async () => {
