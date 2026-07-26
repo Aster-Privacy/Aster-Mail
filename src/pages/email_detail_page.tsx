@@ -64,7 +64,7 @@ export default function EmailDetailPage() {
 
   return (
     <>
-      <div className="h-dvh w-full flex transition-colors duration-200 overflow-hidden bg-[var(--bg-secondary)]">
+      <div className="h-screen w-full flex transition-colors duration-200 overflow-hidden bg-[var(--bg-secondary)]" style={{ height: "100dvh" }}>
         <Sidebar
           is_mobile_open={detail.is_mobile_sidebar_open}
           on_compose={detail.open_compose}
