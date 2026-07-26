@@ -388,6 +388,7 @@ export function DomainPurchaseFlow({
   const [loading_more_suggestions, set_loading_more_suggestions] =
     useState(false);
   const [error, set_error] = useState<string | null>(null);
+  const [unavailable, set_unavailable] = useState(false);
   const [selected, set_selected] = useState<DomainSearchResult | null>(
     restored_checkout.current?.selected ?? null,
   );
@@ -431,6 +432,7 @@ export function DomainPurchaseFlow({
       }
       set_searching(true);
       set_error(null);
+      set_unavailable(false);
       try {
         const response = await search_purchasable_domains(trimmed);
 
@@ -454,7 +456,12 @@ export function DomainPurchaseFlow({
             return;
           }
           set_searching(false);
-          set_error(t("settings.domain_purchase_search_failed"));
+          if (response.code === "NOT_FOUND") {
+            set_unavailable(true);
+            set_error(t("settings.domain_purchase_not_released"));
+          } else {
+            set_error(t("settings.domain_purchase_search_failed"));
+          }
         }
       } catch {
         if (query_ref.current.trim() !== trimmed) return;
@@ -1134,14 +1141,18 @@ export function DomainPurchaseFlow({
         <div className={query.trim() ? "mt-3 min-h-[300px]" : ""}>
           {!query.trim() ? null : error ? (
             <div className="flex flex-col items-center justify-center text-center h-[280px]">
-              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500 mb-3" />
+              {!unavailable && (
+                <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500 mb-3" />
+              )}
               <p className="text-sm text-txt-secondary max-w-[300px] mb-4">
                 {error}
               </p>
-              <Button size="sm" variant="outline" onClick={() => run_search(query)}>
-                <ArrowPathIcon className="w-4 h-4 mr-1.5" />
-                {t("settings.domain_purchase_retry")}
-              </Button>
+              {!unavailable && (
+                <Button size="sm" variant="outline" onClick={() => run_search(query)}>
+                  <ArrowPathIcon className="w-4 h-4 mr-1.5" />
+                  {t("settings.domain_purchase_retry")}
+                </Button>
+              )}
             </div>
           ) : !has_rows ? (
             searching || !results_query ? (

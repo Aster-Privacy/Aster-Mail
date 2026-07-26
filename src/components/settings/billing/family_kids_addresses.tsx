@@ -306,9 +306,9 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
             />
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg bg-surf-secondary px-3 py-2.5">
+          <div className="flex items-end gap-3 rounded-lg bg-surf-secondary px-3 py-2.5">
             <Switch size="lg" checked={consent} onCheckedChange={set_consent} />
-            <span className="text-xs text-txt-secondary leading-relaxed">{t("settings.fam_kids_consent_label")}</span>
+            <span className="text-xs text-txt-secondary leading-relaxed pb-0.5">{t("settings.fam_kids_consent_label")}</span>
           </div>
 
           <p className="text-xs text-txt-muted leading-relaxed">{t("settings.fam_kids_link_hint")}</p>

@@ -2954,6 +2954,30 @@ export interface SettingsTranslations {
   fam_org_event_invite_revoked: string;
   fam_org_event_storage_updated: string;
   fam_org_event_security_notify_sent: string;
+  fam_org_event_address_reserved: string;
+  fam_org_event_reservation_released: string;
+  fam_org_event_shared_mailbox_created: string;
+  fam_org_event_shared_mailbox_deleted: string;
+  fam_org_event_shared_mailbox_grant_added: string;
+  fam_org_event_shared_mailbox_grant_revoked: string;
+  fam_org_event_shared_mailbox_rotated: string;
+  fam_org_event_consent_request_created: string;
+  fam_org_event_consent_declined: string;
+  fam_org_event_consent_all_accepted: string;
+  fam_org_activity_address_reserved: string;
+  fam_org_activity_reservation_released: string;
+  fam_org_activity_shared_mailbox_created: string;
+  fam_org_activity_shared_mailbox_deleted: string;
+  fam_org_activity_shared_mailbox_grant_added: string;
+  fam_org_activity_shared_mailbox_grant_revoked: string;
+  fam_org_activity_shared_mailbox_rotated: string;
+  fam_org_activity_group_member_added: string;
+  fam_org_activity_group_member_added_generic: string;
+  fam_org_activity_group_member_removed: string;
+  fam_org_activity_group_member_removed_generic: string;
+  fam_org_activity_consent_request_created: string;
+  fam_org_activity_consent_declined: string;
+  fam_org_activity_consent_all_accepted: string;
   fam_org_activity_someone: string;
   fam_org_activity_member_joined: string;
   fam_org_activity_member_joined_generic: string;
@@ -3746,6 +3770,7 @@ export interface SettingsTranslations {
   domain_purchase_terms_inline: string;
   domain_purchase_empty_title: string;
   domain_purchase_search_failed: string;
+  domain_purchase_not_released: string;
   domain_purchase_retry: string;
   domain_purchase_step_choose: string;
   domain_purchase_step_checkout: string;
@@ -6043,6 +6068,7 @@ export interface MailTranslations {
 }
 
 export interface AuthTranslations {
+  captcha_load_failed: string;
   sign_in: string;
   sign_out: string;
   sign_up: string;

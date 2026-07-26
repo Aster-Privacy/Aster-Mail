@@ -68,14 +68,6 @@ function ClaimFlow({ token, username, domain }: { token: string; username: strin
 
   return (
     <div className="w-full flex flex-col items-center">
-      {reg.claim_address && (
-        <div className="w-full max-w-md mb-4 rounded-xl border border-black/10 dark:border-white/10 px-4 py-3 text-center">
-          <p className="text-sm font-semibold text-txt-primary">
-            {reg.t("settings.fam_kids_claim_setup_for", { address: reg.claim_address })}
-          </p>
-          <p className="text-xs text-txt-muted mt-0.5">{reg.t("settings.fam_kids_claim_intro")}</p>
-        </div>
-      )}
       <ErrorBoundary>
         <AnimatePresence mode="wait">{render_step_content()}</AnimatePresence>
       </ErrorBoundary>
@@ -83,7 +75,7 @@ function ClaimFlow({ token, username, domain }: { token: string; username: strin
   );
 }
 
-function SignedInPanel({ username, domain }: { username: string; domain: string }) {
+function SignedInPanel() {
   const { t } = use_i18n();
 
   const handle_copy = async () => {
@@ -97,10 +89,6 @@ function SignedInPanel({ username, domain }: { username: string; domain: string 
 
   return (
     <div className="max-w-sm w-full space-y-5 text-center">
-      <div className="rounded-xl border border-edge-secondary px-5 py-4">
-        <p className="text-sm font-semibold text-txt-primary">{username}@{domain}</p>
-        <p className="text-xs text-txt-muted mt-1">{t("settings.fam_kids_claim_intro")}</p>
-      </div>
       <div>
         <h2 className="text-base font-semibold text-txt-primary">{t("settings.fam_kids_claim_signed_in_title")}</h2>
         <p className="text-sm text-txt-secondary mt-2 leading-relaxed">{t("settings.fam_kids_claim_signed_in_body")}</p>
@@ -116,8 +104,17 @@ export default function FamilyClaimPage() {
   const { token } = useParams<{ token: string }>();
   const { t } = use_i18n();
   const auth = use_auth_safe();
-  const is_signed_in = auth?.is_authenticated ?? false;
+  const auth_loading = auth?.is_loading ?? false;
+  const auth_signed_in = auth?.is_authenticated ?? false;
+  const [gate, set_gate] = useState<"unknown" | "signed_in" | "claim">(
+    "unknown",
+  );
   const [preview, set_preview] = useState<Preview>({ state: "loading" });
+
+  useEffect(() => {
+    if (gate !== "unknown" || auth_loading) return;
+    set_gate(auth_signed_in ? "signed_in" : "claim");
+  }, [gate, auth_loading, auth_signed_in]);
 
   useEffect(() => {
     let active = true;
@@ -144,7 +141,7 @@ export default function FamilyClaimPage() {
   }, [token]);
 
   const render_content = () => {
-    if (preview.state === "loading") {
+    if (preview.state === "loading" || gate === "unknown") {
       return (
         <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
           <Spinner />
@@ -159,10 +156,10 @@ export default function FamilyClaimPage() {
         </motion.div>
       );
     }
-    if (is_signed_in) {
+    if (gate === "signed_in") {
       return (
         <motion.div key="signed-in" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-          <SignedInPanel username={preview.username} domain={preview.domain} />
+          <SignedInPanel />
         </motion.div>
       );
     }
@@ -174,11 +171,28 @@ export default function FamilyClaimPage() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
-      <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
-        <AnimatePresence mode="wait">
-          {render_content()}
-        </AnimatePresence>
+    <div className="fixed inset-0 flex flex-col transition-colors duration-200 bg-surf-primary">
+      {preview.state === "ready" && (
+        <div
+          className="w-full flex-shrink-0 text-white"
+          style={{ backgroundColor: "var(--accent-color)" }}
+        >
+          <div className="px-4 py-2 text-center">
+            <p className="text-sm font-semibold">
+              {t("settings.fam_kids_claim_setup_for", {
+                address: `${preview.username}@${preview.domain}`,
+              })}
+            </p>
+            <p className="text-xs opacity-90 mt-0.5">
+              {t("settings.fam_kids_claim_intro")}
+            </p>
+          </div>
+        </div>
+      )}
+      <div className="flex-1 overflow-y-auto">
+        <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
+          <AnimatePresence mode="wait">{render_content()}</AnimatePresence>
+        </div>
       </div>
     </div>
   );

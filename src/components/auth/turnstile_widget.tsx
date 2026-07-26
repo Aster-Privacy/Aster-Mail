@@ -23,10 +23,12 @@ import {
   useEffect,
   useCallback,
   useImperativeHandle,
+  useState,
   forwardRef,
 } from "react";
 
 import { useTheme } from "@/contexts/theme_context";
+import { use_i18n } from "@/lib/i18n/context";
 import { is_onion_host } from "@/lib/onion_host";
 import { is_tauri } from "@/native/desktop_device_auth";
 
@@ -66,10 +68,17 @@ declare global {
 
 let script_loaded = false;
 let script_loading = false;
-const load_callbacks: (() => void)[] = [];
+let script_element: HTMLScriptElement | null = null;
+const load_callbacks: ((ok: boolean) => void)[] = [];
 
-function load_turnstile_script(): Promise<void> {
-  if (script_loaded && window.turnstile) return Promise.resolve();
+function settle_load(ok: boolean) {
+  script_loading = false;
+  load_callbacks.forEach((cb) => cb(ok));
+  load_callbacks.length = 0;
+}
+
+function load_turnstile_script(): Promise<boolean> {
+  if (script_loaded && window.turnstile) return Promise.resolve(true);
 
   return new Promise((resolve) => {
     if (script_loading) {
@@ -81,21 +90,24 @@ function load_turnstile_script(): Promise<void> {
     script_loading = true;
     load_callbacks.push(resolve);
 
+    if (script_element) {
+      script_element.remove();
+      script_element = null;
+    }
+
     const script = document.createElement("script");
 
     script.src = SCRIPT_URL;
     script.async = true;
     script.onload = () => {
       script_loaded = true;
-      script_loading = false;
-      load_callbacks.forEach((cb) => cb());
-      load_callbacks.length = 0;
+      settle_load(!!window.turnstile);
     };
     script.onerror = () => {
-      script_loading = false;
-      load_callbacks.forEach((cb) => cb());
-      load_callbacks.length = 0;
+      script_loaded = false;
+      settle_load(false);
     };
+    script_element = script;
     document.head.appendChild(script);
   });
 }
@@ -108,7 +120,10 @@ export const TurnstileWidget = forwardRef<
   const widget_id_ref = useRef<string | null>(null);
   const on_verify_ref = useRef(on_verify);
   const on_expire_ref = useRef(on_expire);
+  const [attempt, set_attempt] = useState(0);
+  const [failed, set_failed] = useState(false);
   const { theme } = useTheme();
+  const { t } = use_i18n();
 
   on_verify_ref.current = on_verify;
   on_expire_ref.current = on_expire;
@@ -125,9 +140,18 @@ export const TurnstileWidget = forwardRef<
     if (!TURNSTILE_SITE_KEY || !container_ref.current) return;
 
     let mounted = true;
+    const timeout = window.setTimeout(() => {
+      if (mounted && !widget_id_ref.current) set_failed(true);
+    }, 12000);
 
-    load_turnstile_script().then(() => {
-      if (!mounted || !container_ref.current || !window.turnstile) return;
+    load_turnstile_script().then((ok) => {
+      if (!mounted) return;
+
+      if (!ok || !container_ref.current || !window.turnstile) {
+        set_failed(true);
+
+        return;
+      }
 
       if (widget_id_ref.current) {
         window.turnstile.remove(widget_id_ref.current);
@@ -136,33 +160,58 @@ export const TurnstileWidget = forwardRef<
 
       container_ref.current.innerHTML = "";
 
-      widget_id_ref.current = window.turnstile.render(container_ref.current, {
-        sitekey: TURNSTILE_SITE_KEY,
-        theme,
-        callback: (token: string) => on_verify_ref.current(token),
-        "expired-callback": () => on_expire_ref.current?.(),
-      });
+      try {
+        widget_id_ref.current = window.turnstile.render(container_ref.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme,
+          callback: (token: string) => on_verify_ref.current(token),
+          "expired-callback": () => on_expire_ref.current?.(),
+          "error-callback": () => set_failed(true),
+        });
+        set_failed(false);
+      } catch {
+        set_failed(true);
+      }
     });
 
     return () => {
       mounted = false;
+      window.clearTimeout(timeout);
       if (widget_id_ref.current && window.turnstile) {
         window.turnstile.remove(widget_id_ref.current);
         widget_id_ref.current = null;
       }
     };
-  }, [theme]);
+  }, [theme, attempt]);
 
   if (!TURNSTILE_SITE_KEY) return null;
 
   return (
     <div className={class_name || "flex justify-center mt-4"}>
-      <div style={{ overflow: "hidden" }}>
-        <div
-          ref={container_ref}
-          style={{ colorScheme: theme, margin: -3, lineHeight: 0 }}
-        />
-      </div>
+      {failed ? (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <p className="text-xs text-txt-muted max-w-[18rem] leading-relaxed">
+            {t("auth.captcha_load_failed")}
+          </p>
+          <button
+            type="button"
+            className="aster_btn aster_btn_secondary aster_btn_sm"
+            onClick={() => {
+              set_failed(false);
+              set_attempt((n) => n + 1);
+            }}
+          >
+            {t("common.try_again")}
+          </button>
+        </div>
+      ) : (
+        <div style={{ overflow: "hidden" }}>
+          <div
+            ref={container_ref}
+            style={{ colorScheme: theme, margin: -3, lineHeight: 0 }}
+          />
+        </div>
+      )}
     </div>
   );
 });
