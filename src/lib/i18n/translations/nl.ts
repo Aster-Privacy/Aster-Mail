@@ -2272,9 +2272,12 @@ export const nl = {
     alias_delivery_log_reason_unknown: "Geblokkeerd",
     alias_delivery_title: "Bezorging",
     alias_never_inbox: "Postvak IN overslaan",
-    alias_never_inbox_desc: "Mail naar deze alias wordt bij binnenkomst gearchiveerd. Hij blijft doorzoekbaar en staat in Alle mail.",
-    alias_never_inbox_info: "Handig voor aanmeldingen en bonnen die je wilt bewaren maar niet in je postvak IN wilt zien.",
-    alias_never_inbox_error: "Deze instelling is niet opgeslagen. Nog een poging zou moeten werken.",
+    alias_never_inbox_desc:
+      "Mail naar deze alias wordt bij binnenkomst gearchiveerd. Hij blijft doorzoekbaar en staat in Alle mail.",
+    alias_never_inbox_info:
+      "Handig voor aanmeldingen en bonnen die je wilt bewaren maar niet in je postvak IN wilt zien.",
+    alias_never_inbox_error:
+      "Deze instelling is niet opgeslagen. Nog een poging zou moeten werken.",
     alias_relay_title: "Bezorging",
     alias_relay_description: "Kies hoe e-mail naar deze alias wordt bezorgd.",
     alias_relay_mode_native: "Native",
@@ -2968,7 +2971,8 @@ export const nl = {
     theme_dark: "Donker",
     theme_system: "Systeem",
     color_theme: "Kleurthema",
-    color_theme_description: "Kies een vooraf ingesteld kleurenpalet voor de app",
+    color_theme_description:
+      "Kies een vooraf ingesteld kleurenpalet voor de app",
     color_theme_default: "Standaard",
     color_theme_purple: "Paars",
     color_theme_green: "Groen",
@@ -2989,7 +2993,8 @@ export const nl = {
     custom_theme_color_label: "Basiskleur",
     language_format_title: "Taal & notatie",
     custom_theme_active: "Momenteel toegepast",
-    custom_theme_inactive: "Kies een kleur om je aangepaste thema toe te passen",
+    custom_theme_inactive:
+      "Kies een kleur om je aangepaste thema toe te passen",
     custom_theme_role_accent: "Accent",
     custom_theme_role_accent_hover: "Accent (hover)",
     custom_theme_role_background: "Achtergrond",
@@ -3237,7 +3242,8 @@ export const nl = {
     never_manual: "Nooit (alleen handmatig)",
     auto_advance: "Na archiveren of verwijderen",
     reactions_enabled: "Reacties",
-    reactions_enabled_description: "Sta emoji-reacties op berichten toe en toon reacties van anderen",
+    reactions_enabled_description:
+      "Sta emoji-reacties op berichten toe en toon reacties van anderen",
     auto_advance_description:
       "Welke e-mail wordt geopend na het archiveren of verwijderen van de huidige",
     auto_advance_next: "Naar volgende e-mail",
@@ -3256,15 +3262,19 @@ export const nl = {
       "E-mailinhoud altijd in donkere modus weergeven, waarbij de oorspronkelijke stijl wordt overschreven",
     translation: "Vertaling",
     translate_incoming: "Inkomende e-mail vertalen",
-    translate_incoming_description: "Vertaal berichten in andere talen op je apparaat.",
-    translate_incoming_info: "De vertaling gebeurt volledig op je apparaat met zelf gehoste modellen. Niets van wat je leest wordt ooit naar een vertaaldienst gestuurd.",
+    translate_incoming_description:
+      "Vertaal berichten in andere talen op je apparaat.",
+    translate_incoming_info:
+      "De vertaling gebeurt volledig op je apparaat met zelf gehoste modellen. Niets van wat je leest wordt ooit naar een vertaaldienst gestuurd.",
     translate_off: "Uit",
     translate_ask: "Elke keer vragen",
     translate_always: "Altijd vertalen",
     translate_my_languages: "Talen die je leest",
-    translate_my_languages_description: "Talen die je al leest. In de modus 'Elke keer vragen' biedt Aster niet aan om deze te vertalen. Om een taal ook in de modus 'Altijd vertalen' ongewijzigd te laten, voeg je die toe aan 'Nooit vertalen'.",
+    translate_my_languages_description:
+      "Talen die je al leest. In de modus 'Elke keer vragen' biedt Aster niet aan om deze te vertalen. Om een taal ook in de modus 'Altijd vertalen' ongewijzigd te laten, voeg je die toe aan 'Nooit vertalen'.",
     translate_never_languages: "Nooit vertalen",
-    translate_never_languages_description: "E-mail in deze talen in geen enkele modus vertalen.",
+    translate_never_languages_description:
+      "E-mail in deze talen in geen enkele modus vertalen.",
     translate_add_language: "Taal toevoegen",
     translate_auto_detected: "Automatisch gedetecteerd op je apparaat",
 
@@ -4678,6 +4688,38 @@ export const nl = {
     cancel_reason_text_placeholder: "Wil je iets toevoegen? (optioneel)",
     cancel_reason_skip: "Overslaan",
     cancel_reason_continue: "Doorgaan",
+    cancel_impact_title: "Wat er verandert als je opzegt",
+    cancel_impact_description:
+      "Je abonnement blijft actief tot {date}. Daarna:",
+    cancel_impact_description_nodate:
+      "Aan het einde van je huidige factuurperiode:",
+    cancel_impact_loading:
+      "Bezig met controleren wat er verandert voor je account...",
+    cancel_impact_unavailable:
+      "We konden de details nu niet laden. Je kunt toch doorgaan.",
+    cancel_impact_storage: "Opslag daalt van {current} naar {after}.",
+    cancel_impact_storage_over:
+      "Je gebruikt {used}, dat is boven die limiet. Zolang je erboven zit wordt inkomende mail geweigerd, en na 7 dagen definitief.",
+    cancel_impact_aliases:
+      "{count} aliassen ontvangen {days} dagen later geen mail meer.",
+    cancel_impact_domains: "{count} eigen domeinen worden opgeschort.",
+    cancel_impact_catch_all: "Catch-all-adressering wordt uitgeschakeld.",
+    cancel_impact_templates: "{count} e-mailsjablonen worden uitgeschakeld.",
+    cancel_impact_signatures: "{count} handtekeningen worden uitgeschakeld.",
+    cancel_impact_family:
+      "{count} gezinsleden gaan naar een respijtperiode van {days} dagen.",
+    cancel_impact_family_addresses:
+      "{count} gereserveerde gezinsadressen komen vrij.",
+    cancel_impact_features: "{count} betaalde functies worden uitgeschakeld.",
+    cancel_impact_reactivate_hint:
+      "Er wordt niets verwijderd. Opnieuw abonneren herstelt wat is uitgeschakeld, binnen de limieten van je nieuwe abonnement.",
+    cancel_impact_continue: "Doorgaan met opzeggen",
+    cancel_final_title: "Opzegging bevestigen",
+    cancel_final_description:
+      "Je {plan}-abonnement wordt opgezegd en eindigt op {date}. Tot dan houd je volledige toegang.",
+    cancel_final_description_nodate:
+      "Je {plan}-abonnement wordt opgezegd aan het einde van de huidige factuurperiode. Tot dan houd je volledige toegang.",
+    cancel_final_confirm: "Mijn abonnement opzeggen",
     cancel_confirm_title: "Abonnement opzeggen",
     cancel_confirm_description:
       "Weet je zeker dat je je abonnement wilt opzeggen? Je abonnement blijft actief tot het einde van de huidige factureringsperiode.",
@@ -4918,9 +4960,12 @@ export const nl = {
     domain_purchase_pay_crypto: "Crypto",
     domain_purchase_buy: "Kopen voor {{price}}",
     domain_purchase_error: "Aankoop mislukt. Probeer het opnieuw.",
-    domain_purchase_error_taken: "Dit domein is zojuist geregistreerd. Kies een ander domein.",
-    domain_purchase_error_limit: "Je hebt de domeinlimiet van je abonnement bereikt. Upgrade om er meer toe te voegen.",
-    domain_purchase_error_slow_down: "Te veel domeinbestellingen tegelijk. Rond de lopende bestellingen af of wacht even.",
+    domain_purchase_error_taken:
+      "Dit domein is zojuist geregistreerd. Kies een ander domein.",
+    domain_purchase_error_limit:
+      "Je hebt de domeinlimiet van je abonnement bereikt. Upgrade om er meer toe te voegen.",
+    domain_purchase_error_slow_down:
+      "Te veel domeinbestellingen tegelijk. Rond de lopende bestellingen af of wacht even.",
     domain_purchase_progress_title: "{{domain}} wordt ingesteld",
     domain_purchase_step_payment: "Betaling ontvangen",
     domain_purchase_step_registering: "Registreren bij NameSilo",
@@ -4934,9 +4979,12 @@ export const nl = {
     domain_purchase_refunded:
       "Dit domein was niet meer beschikbaar voordat we het konden registreren. Je betaling is terugbetaald.",
     domain_purchase_try_instead: "Probeer een van deze alternatieven",
-    domain_purchase_empty_subtitle: "Voer een woord, een naam of een volledig domein in. We controleren elke extensie die we verkopen en laten zien wat vrij is.",
-    domain_purchase_empty_included: "Elk domein bevat WHOIS-privacy, DNS die voor je is ingesteld en onbeperkte adressen.",
-    domain_purchase_terms_inline: "Domeinen worden geregistreerd via NameSilo. Door te kopen ga je akkoord met de {{aster}}, {{registrar}} en {{icann}}. Registraties zijn definitief zodra het domein is aangemaakt.",
+    domain_purchase_empty_subtitle:
+      "Voer een woord, een naam of een volledig domein in. We controleren elke extensie die we verkopen en laten zien wat vrij is.",
+    domain_purchase_empty_included:
+      "Elk domein bevat WHOIS-privacy, DNS die voor je is ingesteld en onbeperkte adressen.",
+    domain_purchase_terms_inline:
+      "Domeinen worden geregistreerd via NameSilo. Door te kopen ga je akkoord met de {{aster}}, {{registrar}} en {{icann}}. Registraties zijn definitief zodra het domein is aangemaakt.",
     domain_purchase_empty_title: "Typ iets om te beginnen",
     domain_purchase_search_failed:
       "De zoekopdracht is mislukt. Probeer het opnieuw.",
@@ -4945,9 +4993,12 @@ export const nl = {
     domain_purchase_step_checkout: "Afrekenen",
     domain_purchase_step_activate: "Live gaan",
     domain_purchase_intro_title: "Laten we je e-maildomein vinden",
-    domain_purchase_intro_sub: "Beantwoord twee korte vragen en we laten zien wat er beschikbaar is.",
-    domain_purchase_intro_name_q: "Welke naam wil je? Je bedrijf, je project of gewoon jezelf.",
-    domain_purchase_intro_name_ph: "Typ een naam, zoals havenkoffie of alexcarter",
+    domain_purchase_intro_sub:
+      "Beantwoord twee korte vragen en we laten zien wat er beschikbaar is.",
+    domain_purchase_intro_name_q:
+      "Welke naam wil je? Je bedrijf, je project of gewoon jezelf.",
+    domain_purchase_intro_name_ph:
+      "Typ een naam, zoals havenkoffie of alexcarter",
     domain_purchase_intro_tld_q: "Een favoriete extensie?",
     domain_purchase_intro_cta: "Laat zien wat beschikbaar is",
     domain_purchase_intro_skip: "Overslaan, ik zoek zelf",
@@ -4974,8 +5025,10 @@ export const nl = {
     domain_purchase_years_line: "Registratie voor {{count}} jaar",
     domain_purchase_secure_checkout: "Veilig afrekenen via Stripe",
     domain_purchase_crypto_warning_title: "Vul eerst je cryptosaldo aan",
-    domain_purchase_crypto_warning_body: "Cryptobestellingen worden betaald met je Aster-cryptosaldo. Voeg tegoed toe voordat je koopt, anders blijft het domein in de wacht staan totdat het saldo het volledige bedrag dekt.",
-    domain_purchase_crypto_warning_hint: "Je kunt opwaarderen via Facturering, hetzelfde saldo dat voor accounttegoed wordt gebruikt.",
+    domain_purchase_crypto_warning_body:
+      "Cryptobestellingen worden betaald met je Aster-cryptosaldo. Voeg tegoed toe voordat je koopt, anders blijft het domein in de wacht staan totdat het saldo het volledige bedrag dekt.",
+    domain_purchase_crypto_warning_hint:
+      "Je kunt opwaarderen via Facturering, hetzelfde saldo dat voor accounttegoed wordt gebruikt.",
     domain_purchase_included_heading: "Alles wat bij je domein is inbegrepen",
     domain_purchase_renew: "Verlengen",
     domain_purchase_filter_all: "Alle",
@@ -4998,30 +5051,19 @@ export const nl = {
     domain_purchase_leave_title: "Aster Mail verlaten?",
     domain_purchase_leave_message:
       "Deze link opent {{host}} in een nieuw tabblad.",
-    domain_purchase_purchased_label:
-      "Gekochte domeinen",
-    domain_purchase_purchased_empty:
-      "Nog geen gekochte domeinen",
-    domain_purchase_purchased_expires:
-      "Verloopt op {{date}}",
-    domain_purchase_purchased_in_progress:
-      "Wordt ingesteld...",
+    domain_purchase_purchased_label: "Gekochte domeinen",
+    domain_purchase_purchased_empty: "Nog geen gekochte domeinen",
+    domain_purchase_purchased_expires: "Verloopt op {{date}}",
+    domain_purchase_purchased_in_progress: "Wordt ingesteld...",
     domain_purchase_terms_notice:
       "Aster registreert het domein namens jou via onze registrar-partner, en de verlengingsprijs zie je altijd voordat je betaalt. Laat je een domein ooit verlopen, dan kan de registrar herstelkosten rekenen om het terug te krijgen.",
-    domain_purchase_terms_aster:
-      "Servicevoorwaarden van Aster",
-    domain_purchase_terms_registrar:
-      "Algemene voorwaarden van NameSilo",
-    domain_purchase_terms_icann:
-      "ICANN-rechten en -plichten van houders",
-    domain_purchase_detail_privacy_title:
-      "Standaard privé",
-    domain_purchase_detail_setup_title:
-      "Nul instellingen",
-    domain_purchase_detail_instant_title:
-      "Klaar in seconden",
-    domain_purchase_detail_ownership_title:
-      "Van jou",
+    domain_purchase_terms_aster: "Servicevoorwaarden van Aster",
+    domain_purchase_terms_registrar: "Algemene voorwaarden van NameSilo",
+    domain_purchase_terms_icann: "ICANN-rechten en -plichten van houders",
+    domain_purchase_detail_privacy_title: "Standaard privé",
+    domain_purchase_detail_setup_title: "Nul instellingen",
+    domain_purchase_detail_instant_title: "Klaar in seconden",
+    domain_purchase_detail_ownership_title: "Van jou",
     domain_promo_cta: "Koppel je domein",
     catch_all_description:
       "Ontvang e-mails die naar elk adres op dit domein worden gestuurd",
@@ -5439,12 +5481,14 @@ export const nl = {
     export_security_vault_row_title: "Wachtwoordzin voor versleutelingskluis",
     export_security_vault_row_body:
       "Je lokale kluiswachtwoordzin bevestigt dit apparaat voordat e-mail wordt ontsleuteld voor export.",
-    export_security_vault_row_help: "Dit is de wachtwoordzin van de lokale kluis van dit apparaat, niet uw accountwachtwoord. Deze ontgrendelt uw encryptiesleutels alleen op dit apparaat.",
+    export_security_vault_row_help:
+      "Dit is de wachtwoordzin van de lokale kluis van dit apparaat, niet uw accountwachtwoord. Deze ontgrendelt uw encryptiesleutels alleen op dit apparaat.",
     export_security_required_badge: "Vereist",
     export_reauth_prompt: "Voer uw wachtwoord in om door te gaan",
     export_reauth_submit: "Verifiëren",
     export_scope_contacts_body: "Exporteer uw contacten als vCard",
-    export_scope_mail_help: "MBOX bundelt alle berichten in één bestand; .EML slaat elk bericht apart op. Beide formaten werken met de meeste desktop-mailclients.",
+    export_scope_mail_help:
+      "MBOX bundelt alle berichten in één bestand; .EML slaat elk bericht apart op. Beide formaten werken met de meeste desktop-mailclients.",
     export_scope_contacts_title: "Contacten",
     export_scope_date_range: "Datumbereik",
     export_scope_date_from: "Van datum",
@@ -5458,7 +5502,8 @@ export const nl = {
     export_scope_preset_all: "Alles",
     export_scope_preset_custom: "Aangepast",
     export_scope_settings_body: "Exporteer uw instellingen en voorkeuren",
-    export_scope_contacts_help: "vCard 4.0 is het universele contactformaat dat de meeste apps direct importeren. Het extra JSON-bestand bewaart velden die vCard niet kan opslaan.",
+    export_scope_contacts_help:
+      "vCard 4.0 is het universele contactformaat dat de meeste apps direct importeren. Het extra JSON-bestand bewaart velden die vCard niet kan opslaan.",
     export_scope_settings_title: "Instellingen",
     export_start_button: "Exporteren starten",
     export_step_complete_title: "Export voltooid",
@@ -5917,8 +5962,10 @@ export const nl = {
     translation_offer: "Dit bericht is in het {{language}}.",
     translation_translate: "Vertalen",
     translation_in_progress: "Vertalen op je apparaat…",
-    translation_translated_from: "Vertaald uit het {{language}} op je apparaat.",
-    translation_limited_quality: "De vertaalkwaliteit kan lager zijn voor deze taal.",
+    translation_translated_from:
+      "Vertaald uit het {{language}} op je apparaat.",
+    translation_limited_quality:
+      "De vertaalkwaliteit kan lager zijn voor deze taal.",
     translation_show_original: "Origineel tonen",
     translation_show_translation: "Vertaling tonen",
     translation_showing_original: "Het oorspronkelijke bericht wordt getoond.",
@@ -5986,16 +6033,24 @@ export const nl = {
     not_spam: "Geen spam",
     spam_reasons_title: "Dit bericht is naar spam verplaatst",
     spam_reason_content_analysis: "De inhoud van dit bericht lijkt op spam",
-    spam_reason_spf_fail: "De afzender is niet geslaagd voor de SPF-verificatie",
-    spam_reason_dkim_fail: "Het bericht is niet geslaagd voor de DKIM-handtekeningverificatie",
-    spam_reason_dmarc_fail: "Het domein van de afzender is niet geslaagd voor de DMARC-authenticatie",
+    spam_reason_spf_fail:
+      "De afzender is niet geslaagd voor de SPF-verificatie",
+    spam_reason_dkim_fail:
+      "Het bericht is niet geslaagd voor de DKIM-handtekeningverificatie",
+    spam_reason_dmarc_fail:
+      "Het domein van de afzender is niet geslaagd voor de DMARC-authenticatie",
     spam_reason_missing_headers: "Het bericht mist standaard e-mailheaders",
-    spam_reason_reply_to_mismatch: "Het antwoordadres komt niet overeen met de afzender",
+    spam_reason_reply_to_mismatch:
+      "Het antwoordadres komt niet overeen met de afzender",
     spam_reason_future_dated: "Het bericht is gedateerd in de toekomst",
-    spam_reason_phishing_url: "Het bevat een link die op een phishing-blokkeerlijst staat",
-    spam_reason_phishing_domain: "Het verwijst naar een domein dat met phishing wordt geassocieerd",
-    spam_reason_user_spam_learning: "Je hebt eerder spam van het domein van deze afzender gemeld",
-    spam_reason_global_domain_reputation: "Het domein van de afzender heeft een slechte reputatie",
+    spam_reason_phishing_url:
+      "Het bevat een link die op een phishing-blokkeerlijst staat",
+    spam_reason_phishing_domain:
+      "Het verwijst naar een domein dat met phishing wordt geassocieerd",
+    spam_reason_user_spam_learning:
+      "Je hebt eerder spam van het domein van deze afzender gemeld",
+    spam_reason_global_domain_reputation:
+      "Het domein van de afzender heeft een slechte reputatie",
     spam_reason_auth_hard_fail: "De afzender kon niet worden geverifieerd",
     spam_reason_sender_marked_spam: "Je hebt deze afzender als spam gemarkeerd",
     block_sender: "Afzender blokkeren",
@@ -7114,9 +7169,11 @@ export const nl = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "Passkey verwijderen?",
-    delete_passkey_description: "\"{{name}}\" wordt uit je account verwijderd. Je kunt er niet meer mee inloggen.",
+    delete_passkey_description:
+      '"{{name}}" wordt uit je account verwijderd. Je kunt er niet meer mee inloggen.',
     delete_security_key_title: "Beveiligingssleutel verwijderen?",
-    delete_security_key_description: "\"{{name}}\" wordt uit je account verwijderd. Hij werkt niet meer als tweede factor.",
+    delete_security_key_description:
+      '"{{name}}" wordt uit je account verwijderd. Hij werkt niet meer als tweede factor.',
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7133,7 +7190,8 @@ export const nl = {
     rename_saved: "Naam bijgewerkt",
   },
   errors: {
-    failed_send_reaction: "De reactie kon niet worden verzonden. Probeer het opnieuw.",
+    failed_send_reaction:
+      "De reactie kon niet worden verzonden. Probeer het opnieuw.",
     reactions_disabled: "Reacties zijn uitgeschakeld in je instellingen.",
     pending_email_verification:
       "Controleer je e-mail en klik op de verificatielink om dit account te activeren.",
@@ -7293,7 +7351,8 @@ export const nl = {
       "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
     session_expired_login:
       "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
-    session_identity_mismatch: "Op dit apparaat was een ander account aangemeld, dus hebben we je afgemeld om de accounts gescheiden te houden. Opnieuw aanmelden is genoeg. Je gegevens zijn onaangetast.",
+    session_identity_mismatch:
+      "Op dit apparaat was een ander account aangemeld, dus hebben we je afgemeld om de accounts gescheiden te houden. Opnieuw aanmelden is genoeg. Je gegevens zijn onaangetast.",
     key_material_unavailable:
       "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
     storage_compromised:
@@ -7403,7 +7462,8 @@ export const nl = {
     do_this: "Dit doen",
     add_condition: "Voorwaarde toevoegen",
     apply_to_existing: "Nu toepassen op bestaande e-mail",
-    apply_to_existing_started: "Deze regel wordt toegepast op je bestaande e-mail. Dit gebeurt op de achtergrond.",
+    apply_to_existing_started:
+      "Deze regel wordt toegepast op je bestaande e-mail. Dit gebeurt op de achtergrond.",
     apply_to_existing_failed: "Kan het toepassen van deze regel niet starten.",
     empty_title: "Nog geen regels",
     empty_description:
@@ -7464,8 +7524,10 @@ export const nl = {
     op_equals: "gelijk aan",
     op_older_than_days: "ouder dan (dagen)",
     op_newer_than_days: "nieuwer dan (dagen)",
-    regex_backreference: "Terugverwijzingen zoals \\1 worden niet ondersteund. Herschrijf het patroon zonder deze.",
-    regex_lookaround: "Lookahead en lookbehind worden niet ondersteund. Herschrijf het patroon zonder deze.",
+    regex_backreference:
+      "Terugverwijzingen zoals \\1 worden niet ondersteund. Herschrijf het patroon zonder deze.",
+    regex_lookaround:
+      "Lookahead en lookbehind worden niet ondersteund. Herschrijf het patroon zonder deze.",
     regex_invalid:
       "Dit regex-patroon heeft een typefout. De syntaxis controleren lost dit meestal op.",
     regex_empty: "Er is een regex-patroon nodig voor het opslaan.",
@@ -7685,19 +7747,22 @@ export const nl = {
   },
   survey: {
     banner_title: "Help Aster Mail te verbeteren",
-    banner_message: "Help Aster vorm te geven: een eenmalige enquête van ongeveer een minuut. Je antwoorden blijven privé en worden nooit gedeeld.",
+    banner_message:
+      "Help Aster vorm te geven: een eenmalige enquête van ongeveer een minuut. Je antwoorden blijven privé en worden nooit gedeeld.",
     banner_take: "Enquête invullen",
     banner_dismiss: "Sluiten",
     remind_tomorrow: "Herinner me morgen",
     dismiss_forever: "Niet meer vragen",
     modal_title: "Aster Mail enquête",
-    modal_subtitle: "Eenmalig, ongeveer een minuut. Open vragen zijn optioneel.",
+    modal_subtitle:
+      "Eenmalig, ongeveer een minuut. Open vragen zijn optioneel.",
     q_source: "Waar hoorde je voor het eerst over Aster Mail?",
     source_reddit: "Reddit",
     source_youtube: "YouTube of een contentmaker",
     source_friend: "Een vriend of mond-tot-mond",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "Een privacy-overzicht (Privacy Guides, PRISM Break, awesome-privacy)",
+    source_privacy_directory:
+      "Een privacy-overzicht (Privacy Guides, PRISM Break, awesome-privacy)",
     source_search_engine: "Zoekmachine",
     q_signup_reason: "Waar was je vooral naar op zoek toen je je aanmeldde?",
     signup_e2ee: "End-to-end-versleuteling",
@@ -7706,22 +7771,26 @@ export const nl = {
     signup_specific_feature: "Een specifieke functie",
     signup_price: "Prijs",
     signup_curiosity: "Nieuwsgierigheid",
-    q_stood_out: "Wat viel het meest op aan Aster ten opzichte van andere opties?",
+    q_stood_out:
+      "Wat viel het meest op aan Aster ten opzichte van andere opties?",
     stood_openpgp: "Standaard OpenPGP, sleutels werken overal",
     stood_post_quantum: "Post-kwantumversleuteling",
     stood_open_source: "Open source (AGPL)",
     stood_germany: "Gehost in Duitsland",
     stood_price: "Prijs",
     stood_ui: "De interface / personalisatie",
-    q_upgrade_blocker: "Wat weerhoudt je ervan om over te stappen op een betaald abonnement?",
-    q_upgrade_trigger: "Wat heeft je uiteindelijk overgehaald tot een betaald abonnement?",
+    q_upgrade_blocker:
+      "Wat weerhoudt je ervan om over te stappen op een betaald abonnement?",
+    q_upgrade_trigger:
+      "Wat heeft je uiteindelijk overgehaald tot een betaald abonnement?",
     trigger_storage: "Opslag was vol",
     trigger_feature: "Ik wilde een specifieke functie",
     trigger_support_mission: "De missie / het project steunen",
     trigger_switched_fully: "Volledig overgestapt van een andere aanbieder",
     q_plan_reason: "Waarom koos je voor het {{plan}}-abonnement?",
     q_cancel_reason: "Wat zou je doen besluiten je abonnement op te zeggen?",
-    q_hesitation: "Wat was je grootste twijfel voordat je een abonnement kocht?",
+    q_hesitation:
+      "Wat was je grootste twijfel voordat je een abonnement kocht?",
     hesitation_price: "De prijs",
     hesitation_trust: "Ik wist niet zeker of ik het kon vertrouwen",
     hesitation_missing_feature: "Een ontbrekende functie",
@@ -7734,6 +7803,7 @@ export const nl = {
     required_error: "Beantwoord deze vraag",
     submit: "Versturen",
     submit_failed: "Kon de enquête niet versturen. Probeer het opnieuw.",
-    submitted_thanks: "Bedankt! Jouw feedback maakt Aster Mail beter voor iedereen. We lezen elk antwoord.",
+    submitted_thanks:
+      "Bedankt! Jouw feedback maakt Aster Mail beter voor iedereen. We lezen elk antwoord.",
   },
 };

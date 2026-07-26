@@ -199,7 +199,8 @@ export function BillingDialogs({
   ]);
 
   useEffect(() => {
-    if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact) return;
+    if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact)
+      return;
     let cancelled = false;
 
     set_is_impact_loading(true);

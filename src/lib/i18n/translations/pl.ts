@@ -2340,9 +2340,12 @@ export const pl = {
     alias_delivery_log_reason_unknown: "Zablokowane",
     alias_delivery_title: "Dostarczanie",
     alias_never_inbox: "Pomiń skrzynkę odbiorczą",
-    alias_never_inbox_desc: "Poczta wysłana na ten alias jest archiwizowana po odebraniu. Pozostaje wyszukiwalna i widoczna w Cała poczta.",
-    alias_never_inbox_info: "Przydatne przy rejestracjach i paragonach, które chcesz zachować, ale nie widzieć w skrzynce odbiorczej.",
-    alias_never_inbox_error: "To ustawienie nie zostało zapisane. Kolejna próba powinna wystarczyć.",
+    alias_never_inbox_desc:
+      "Poczta wysłana na ten alias jest archiwizowana po odebraniu. Pozostaje wyszukiwalna i widoczna w Cała poczta.",
+    alias_never_inbox_info:
+      "Przydatne przy rejestracjach i paragonach, które chcesz zachować, ale nie widzieć w skrzynce odbiorczej.",
+    alias_never_inbox_error:
+      "To ustawienie nie zostało zapisane. Kolejna próba powinna wystarczyć.",
     alias_relay_title: "Dostarczanie",
     alias_relay_description: "Wybierz sposób dostarczania poczty na ten alias.",
     alias_relay_mode_native: "Natywny",
@@ -3027,7 +3030,8 @@ export const pl = {
     font_option_default: "Domyślna Aster",
     font_option_system: "Czcionka systemowa",
     email_font_choice_title: "Czcionka wiadomości",
-    email_font_choice_description: "Czcionka używana podczas czytania wiadomości",
+    email_font_choice_description:
+      "Czcionka używana podczas czytania wiadomości",
     email_font_option_match_app: "Taka jak w aplikacji",
     email_address: "Adres e-mail",
     email_address_description: "Twój główny adres e-mail",
@@ -3271,7 +3275,8 @@ export const pl = {
     never_manual: "Nigdy (tylko ręcznie)",
     auto_advance: "Po archiwizacji lub usunięciu",
     reactions_enabled: "Reakcje",
-    reactions_enabled_description: "Pozwala reagować na wiadomości emoji i widzieć reakcje innych",
+    reactions_enabled_description:
+      "Pozwala reagować na wiadomości emoji i widzieć reakcje innych",
     auto_advance_description:
       "Która wiadomość otworzy się po zarchiwizowaniu lub usunięciu czytanej",
     auto_advance_next: "Przejdź do następnej wiadomości",
@@ -3291,15 +3296,19 @@ export const pl = {
       "Zawsze renderuj treść e-maili w trybie ciemnym, nadpisując oryginalny styl",
     translation: "Tłumaczenie",
     translate_incoming: "Tłumacz przychodzącą pocztę",
-    translate_incoming_description: "Tłumacz wiadomości w innych językach na swoim urządzeniu.",
-    translate_incoming_info: "Tłumaczenie odbywa się w całości na Twoim urządzeniu przy użyciu samodzielnie hostowanych modeli. Nic, co czytasz, nie jest nigdy wysyłane do usługi tłumaczeniowej.",
+    translate_incoming_description:
+      "Tłumacz wiadomości w innych językach na swoim urządzeniu.",
+    translate_incoming_info:
+      "Tłumaczenie odbywa się w całości na Twoim urządzeniu przy użyciu samodzielnie hostowanych modeli. Nic, co czytasz, nie jest nigdy wysyłane do usługi tłumaczeniowej.",
     translate_off: "Wyłączone",
     translate_ask: "Pytaj za każdym razem",
     translate_always: "Zawsze tłumacz",
     translate_my_languages: "Języki, które czytasz",
-    translate_my_languages_description: "Języki, które już znasz. W trybie „Pytaj za każdym razem” Aster nie zaproponuje ich tłumaczenia. Aby język pozostał nietknięty także w trybie „Zawsze tłumacz”, dodaj go do „Nigdy nie tłumacz”.",
+    translate_my_languages_description:
+      "Języki, które już znasz. W trybie „Pytaj za każdym razem” Aster nie zaproponuje ich tłumaczenia. Aby język pozostał nietknięty także w trybie „Zawsze tłumacz”, dodaj go do „Nigdy nie tłumacz”.",
     translate_never_languages: "Nigdy nie tłumacz",
-    translate_never_languages_description: "Nigdy nie tłumacz poczty w tych językach, w żadnym trybie.",
+    translate_never_languages_description:
+      "Nigdy nie tłumacz poczty w tych językach, w żadnym trybie.",
     translate_add_language: "Dodaj język",
     translate_auto_detected: "Wykryto automatycznie na Twoim urządzeniu",
 
@@ -4734,6 +4743,37 @@ export const pl = {
     cancel_reason_text_placeholder: "Chcesz coś dodać? (opcjonalnie)",
     cancel_reason_skip: "Pomiń",
     cancel_reason_continue: "Dalej",
+    cancel_impact_title: "Co się zmieni po anulowaniu",
+    cancel_impact_description: "Twój plan pozostaje aktywny do {date}. Potem:",
+    cancel_impact_description_nodate:
+      "Gdy zakończy się bieżący okres rozliczeniowy:",
+    cancel_impact_loading: "Sprawdzanie, co zmieni się na Twoim koncie...",
+    cancel_impact_unavailable:
+      "Nie udało się teraz wczytać szczegółów. Możesz mimo to kontynuować.",
+    cancel_impact_storage: "Przestrzeń spada z {current} do {after}.",
+    cancel_impact_storage_over:
+      "Używasz {used}, czyli powyżej tego limitu. Dopóki go przekraczasz, poczta przychodząca jest odrzucana, a po 7 dniach odrzucana na stałe.",
+    cancel_impact_aliases:
+      "{count} aliasów przestaje odbierać pocztę {days} dni później.",
+    cancel_impact_domains: "{count} własnych domen zostaje zawieszonych.",
+    cancel_impact_catch_all: "Adresowanie catch-all zostaje wyłączone.",
+    cancel_impact_templates:
+      "{count} szablonów wiadomości zostaje wyłączonych.",
+    cancel_impact_signatures: "{count} podpisów zostaje wyłączonych.",
+    cancel_impact_family:
+      "{count} członków rodziny przechodzi w {days}-dniowy okres karencji.",
+    cancel_impact_family_addresses:
+      "{count} zarezerwowanych adresów rodzinnych zostaje zwolnionych.",
+    cancel_impact_features: "{count} płatnych funkcji zostaje wyłączonych.",
+    cancel_impact_reactivate_hint:
+      "Nic nie jest usuwane. Ponowna subskrypcja przywraca wyłączone elementy, w granicach nowego planu.",
+    cancel_impact_continue: "Przejdź do anulowania",
+    cancel_final_title: "Potwierdź anulowanie",
+    cancel_final_description:
+      "Twój plan {plan} zostanie anulowany i kończy się {date}. Do tego czasu zachowujesz pełny dostęp.",
+    cancel_final_description_nodate:
+      "Twój plan {plan} zostanie anulowany z końcem bieżącego okresu rozliczeniowego. Do tego czasu zachowujesz pełny dostęp.",
+    cancel_final_confirm: "Anuluj mój plan",
     cancel_confirm_title: "Anuluj subskrypcję",
     cancel_confirm_description:
       "Czy na pewno chcesz anulować subskrypcję? Plan pozostanie aktywny do końca bieżącego okresu rozliczeniowego.",
@@ -4858,8 +4898,7 @@ export const pl = {
     affiliate_email_link_button: "Link E-mail",
     affiliate_payout_amount_label: "Kwota do wypłaty",
     affiliate_payout_amount_max: "Maks.",
-    affiliate_payout_amount_invalid:
-      "Wprowadź prawidłową kwotę do zażądania.",
+    affiliate_payout_amount_invalid: "Wprowadź prawidłową kwotę do zażądania.",
     affiliate_payout_amount_exceeds:
       "Ta kwota przekracza Twoje dostępne saldo.",
     affiliate_payout_amount_below_minimum:
@@ -4950,9 +4989,12 @@ export const pl = {
     domain_purchase_pay_crypto: "Krypto",
     domain_purchase_buy: "Kup za {{price}}",
     domain_purchase_error: "Zakup nie powiódł się. Spróbuj ponownie.",
-    domain_purchase_error_taken: "Ta domena została właśnie zajęta. Wybierz inną.",
-    domain_purchase_error_limit: "Osiągnięto limit domen w Twoim planie. Przejdź na wyższy plan, aby dodać więcej.",
-    domain_purchase_error_slow_down: "Zbyt wiele zamówień domen naraz. Dokończ trwające lub poczekaj na ich zakończenie.",
+    domain_purchase_error_taken:
+      "Ta domena została właśnie zajęta. Wybierz inną.",
+    domain_purchase_error_limit:
+      "Osiągnięto limit domen w Twoim planie. Przejdź na wyższy plan, aby dodać więcej.",
+    domain_purchase_error_slow_down:
+      "Zbyt wiele zamówień domen naraz. Dokończ trwające lub poczekaj na ich zakończenie.",
     domain_purchase_progress_title: "Konfigurowanie {{domain}}",
     domain_purchase_step_payment: "Płatność otrzymana",
     domain_purchase_step_registering: "Rejestrowanie w NameSilo",
@@ -4966,9 +5008,12 @@ export const pl = {
     domain_purchase_refunded:
       "Ta domena przestała być dostępna, zanim zdążyliśmy ją zarejestrować. Płatność została zwrócona.",
     domain_purchase_try_instead: "Wypróbuj jedną z tych propozycji",
-    domain_purchase_empty_subtitle: "Wpisz słowo, nazwę lub pełną domenę. Sprawdzamy każdą sprzedawaną końcówkę i pokazujemy, co jest wolne.",
-    domain_purchase_empty_included: "Każda domena zawiera prywatność WHOIS, skonfigurowany DNS i nieograniczoną liczbę adresów.",
-    domain_purchase_terms_inline: "Domeny są rejestrowane przez NameSilo. Dokonując zakupu, akceptujesz {{aster}}, {{registrar}} oraz {{icann}}. Rejestracja jest ostateczna po utworzeniu domeny.",
+    domain_purchase_empty_subtitle:
+      "Wpisz słowo, nazwę lub pełną domenę. Sprawdzamy każdą sprzedawaną końcówkę i pokazujemy, co jest wolne.",
+    domain_purchase_empty_included:
+      "Każda domena zawiera prywatność WHOIS, skonfigurowany DNS i nieograniczoną liczbę adresów.",
+    domain_purchase_terms_inline:
+      "Domeny są rejestrowane przez NameSilo. Dokonując zakupu, akceptujesz {{aster}}, {{registrar}} oraz {{icann}}. Rejestracja jest ostateczna po utworzeniu domeny.",
     domain_purchase_empty_title: "Wpisz coś, aby zacząć",
     domain_purchase_search_failed:
       "Wyszukiwanie nie powiodło się. Spróbuj ponownie.",
@@ -4977,9 +5022,12 @@ export const pl = {
     domain_purchase_step_checkout: "Płatność",
     domain_purchase_step_activate: "Uruchomienie",
     domain_purchase_intro_title: "Znajdźmy Twoją domenę e-mail",
-    domain_purchase_intro_sub: "Odpowiedz na dwa krótkie pytania, a pokażemy Ci, co jest dostępne.",
-    domain_purchase_intro_name_q: "Jaką nazwę chcesz? Twoja firma, Twój projekt albo po prostu Ty.",
-    domain_purchase_intro_name_ph: "Wpisz nazwę, np. kawiarniaport albo alexcarter",
+    domain_purchase_intro_sub:
+      "Odpowiedz na dwa krótkie pytania, a pokażemy Ci, co jest dostępne.",
+    domain_purchase_intro_name_q:
+      "Jaką nazwę chcesz? Twoja firma, Twój projekt albo po prostu Ty.",
+    domain_purchase_intro_name_ph:
+      "Wpisz nazwę, np. kawiarniaport albo alexcarter",
     domain_purchase_intro_tld_q: "Masz ulubioną końcówkę?",
     domain_purchase_intro_cta: "Pokaż, co jest dostępne",
     domain_purchase_intro_skip: "Pomiń, poszukam samodzielnie",
@@ -5006,8 +5054,10 @@ export const pl = {
     domain_purchase_years_line: "Rejestracja na {{count}} lat(a)",
     domain_purchase_secure_checkout: "Bezpieczna płatność przez Stripe",
     domain_purchase_crypto_warning_title: "Najpierw doładuj saldo kryptowalut",
-    domain_purchase_crypto_warning_body: "Zamówienia kryptowalutowe są opłacane z Twojego salda kryptowalut Aster. Doładuj środki przed zakupem, w przeciwnym razie domena pozostanie wstrzymana, dopóki saldo nie pokryje pełnej kwoty.",
-    domain_purchase_crypto_warning_hint: "Możesz doładować w sekcji Płatności, to jest to samo saldo co kredyt na koncie.",
+    domain_purchase_crypto_warning_body:
+      "Zamówienia kryptowalutowe są opłacane z Twojego salda kryptowalut Aster. Doładuj środki przed zakupem, w przeciwnym razie domena pozostanie wstrzymana, dopóki saldo nie pokryje pełnej kwoty.",
+    domain_purchase_crypto_warning_hint:
+      "Możesz doładować w sekcji Płatności, to jest to samo saldo co kredyt na koncie.",
     domain_purchase_included_heading: "Wszystko, co otrzymujesz razem z domeną",
     domain_purchase_renew: "Odnów",
     domain_purchase_filter_all: "Wszystkie",
@@ -5028,32 +5078,20 @@ export const pl = {
     domain_purchase_dont_have: "Nie masz domeny? Kliknij tutaj, aby ją kupić.",
     domain_purchase_sort_price: "Najniższa cena",
     domain_purchase_leave_title: "Opuścić Aster Mail?",
-    domain_purchase_leave_message:
-      "Ten link otworzy {{host}} w nowej karcie.",
-    domain_purchase_purchased_label:
-      "Kupione domeny",
-    domain_purchase_purchased_empty:
-      "Brak kupionych domen",
-    domain_purchase_purchased_expires:
-      "Wygasa {{date}}",
-    domain_purchase_purchased_in_progress:
-      "W trakcie konfiguracji...",
+    domain_purchase_leave_message: "Ten link otworzy {{host}} w nowej karcie.",
+    domain_purchase_purchased_label: "Kupione domeny",
+    domain_purchase_purchased_empty: "Brak kupionych domen",
+    domain_purchase_purchased_expires: "Wygasa {{date}}",
+    domain_purchase_purchased_in_progress: "W trakcie konfiguracji...",
     domain_purchase_terms_notice:
       "Aster rejestruje domenę w Twoim imieniu za pośrednictwem naszego partnerskiego rejestratora, a cena odnowienia jest zawsze widoczna przed zapłatą. Jeśli kiedykolwiek pozwolisz domenie wygasnąć, rejestrator może pobrać opłatę za jej odzyskanie.",
-    domain_purchase_terms_aster:
-      "Warunki korzystania z Aster",
-    domain_purchase_terms_registrar:
-      "Regulamin NameSilo",
-    domain_purchase_terms_icann:
-      "Prawa i obowiązki abonenta ICANN",
-    domain_purchase_detail_privacy_title:
-      "Domyślnie prywatna",
-    domain_purchase_detail_setup_title:
-      "Zero konfiguracji",
-    domain_purchase_detail_instant_title:
-      "Gotowa w kilka sekund",
-    domain_purchase_detail_ownership_title:
-      "Należy do Ciebie",
+    domain_purchase_terms_aster: "Warunki korzystania z Aster",
+    domain_purchase_terms_registrar: "Regulamin NameSilo",
+    domain_purchase_terms_icann: "Prawa i obowiązki abonenta ICANN",
+    domain_purchase_detail_privacy_title: "Domyślnie prywatna",
+    domain_purchase_detail_setup_title: "Zero konfiguracji",
+    domain_purchase_detail_instant_title: "Gotowa w kilka sekund",
+    domain_purchase_detail_ownership_title: "Należy do Ciebie",
     domain_promo_cta: "Połącz swoją domenę",
     allowlist_popup_description:
       "E-maile od tego nadawcy lub domeny nigdy nie będą oznaczane jako spam i zawsze trafią do skrzynki odbiorczej.",
@@ -5844,7 +5882,8 @@ export const pl = {
     export_security_vault_row_title: "Hasło skarbca szyfrowania",
     export_security_vault_row_body:
       "Twoje lokalne hasło skarbca potwierdza to urządzenie przed odszyfrowaniem poczty do eksportu.",
-    export_security_vault_row_help: "To jest hasło lokalnego sejfu tego urządzenia, a nie hasło konta. Odblokowuje ono klucze szyfrowania tylko na tym urządzeniu.",
+    export_security_vault_row_help:
+      "To jest hasło lokalnego sejfu tego urządzenia, a nie hasło konta. Odblokowuje ono klucze szyfrowania tylko na tym urządzeniu.",
     export_security_required_badge: "Wymagane",
     export_warning_title: "Uwaga",
     export_warning_body:
@@ -5854,11 +5893,13 @@ export const pl = {
     export_scope_mail_title: "Poczta",
     export_scope_mail_body:
       "Wszystkie wiadomości i załączniki w standardowym formacie mbox lub .eml.",
-    export_scope_mail_help: "MBOX łączy wszystkie wiadomości w jeden plik; .EML zapisuje każdą wiadomość osobno. Oba formaty działają z większością klientów pocztowych na komputery.",
+    export_scope_mail_help:
+      "MBOX łączy wszystkie wiadomości w jeden plik; .EML zapisuje każdą wiadomość osobno. Oba formaty działają z większością klientów pocztowych na komputery.",
     export_scope_contacts_title: "Kontakty",
     export_scope_contacts_body:
       "Książka adresowa eksportowana jako vCard 4.0 (możliwa do importu do Apple, Google, Thunderbirda itp.) oraz pełny JSON.",
-    export_scope_contacts_help: "vCard 4.0 to uniwersalny format kontaktów importowany bezpośrednio przez większość aplikacji. Dodatkowy plik JSON zachowuje pola, których vCard nie obsługuje.",
+    export_scope_contacts_help:
+      "vCard 4.0 to uniwersalny format kontaktów importowany bezpośrednio przez większość aplikacji. Dodatkowy plik JSON zachowuje pola, których vCard nie obsługuje.",
     export_scope_settings_title: "Ustawienia i reguły",
     export_scope_settings_body:
       "Aliasy, podpisy, szablony, reguły pocztowe, zablokowani i dozwoleni nadawcy, foldery i inne dane konta.",
@@ -5987,8 +6028,10 @@ export const pl = {
     translation_offer: "Ta wiadomość jest w języku {{language}}.",
     translation_translate: "Przetłumacz",
     translation_in_progress: "Tłumaczenie na Twoim urządzeniu…",
-    translation_translated_from: "Przetłumaczono z języka {{language}} na Twoim urządzeniu.",
-    translation_limited_quality: "Jakość tłumaczenia dla tego języka może być niższa.",
+    translation_translated_from:
+      "Przetłumaczono z języka {{language}} na Twoim urządzeniu.",
+    translation_limited_quality:
+      "Jakość tłumaczenia dla tego języka może być niższa.",
     translation_show_original: "Pokaż oryginał",
     translation_show_translation: "Pokaż tłumaczenie",
     translation_showing_original: "Wyświetlanie oryginalnej wiadomości.",
@@ -6058,16 +6101,21 @@ export const pl = {
     spam_reason_content_analysis: "Treść tej wiadomości wygląda na spam",
     spam_reason_spf_fail: "Nadawca nie przeszedł weryfikacji SPF",
     spam_reason_dkim_fail: "Wiadomość nie przeszła weryfikacji podpisu DKIM",
-    spam_reason_dmarc_fail: "Domena nadawcy nie przeszła uwierzytelniania DMARC",
-    spam_reason_missing_headers: "W wiadomości brakuje standardowych nagłówków e-mail",
+    spam_reason_dmarc_fail:
+      "Domena nadawcy nie przeszła uwierzytelniania DMARC",
+    spam_reason_missing_headers:
+      "W wiadomości brakuje standardowych nagłówków e-mail",
     spam_reason_reply_to_mismatch: "Adres odpowiedzi nie zgadza się z nadawcą",
     spam_reason_future_dated: "Wiadomość ma datę z przyszłości",
-    spam_reason_phishing_url: "Zawiera link znajdujący się na liście blokowanych stron phishingowych",
+    spam_reason_phishing_url:
+      "Zawiera link znajdujący się na liście blokowanych stron phishingowych",
     spam_reason_phishing_domain: "Prowadzi do domeny powiązanej z phishingiem",
-    spam_reason_user_spam_learning: "Wcześniej zgłoszono spam z domeny tego nadawcy",
+    spam_reason_user_spam_learning:
+      "Wcześniej zgłoszono spam z domeny tego nadawcy",
     spam_reason_global_domain_reputation: "Domena nadawcy ma złą reputację",
     spam_reason_auth_hard_fail: "Nie udało się uwierzytelnić nadawcy",
-    spam_reason_sender_marked_spam: "Ten nadawca został oznaczony przez Ciebie jako spam",
+    spam_reason_sender_marked_spam:
+      "Ten nadawca został oznaczony przez Ciebie jako spam",
     block_sender: "Zablokuj nadawcę",
     block_sender_spam_warning:
       "Od teraz nowe wiadomości od tego nadawcy będą trafiać prosto do spamu. Lista zablokowanych ma opcję odblokowania ich później.",
@@ -7174,9 +7222,11 @@ export const pl = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "Usunąć passkey?",
-    delete_passkey_description: "\"{{name}}\" zostanie usunięty z Twojego konta. Nie będzie już można logować się za jego pomocą.",
+    delete_passkey_description:
+      '"{{name}}" zostanie usunięty z Twojego konta. Nie będzie już można logować się za jego pomocą.',
     delete_security_key_title: "Usunąć klucz bezpieczeństwa?",
-    delete_security_key_description: "\"{{name}}\" zostanie usunięty z Twojego konta. Nie będzie już działać jako drugi składnik.",
+    delete_security_key_description:
+      '"{{name}}" zostanie usunięty z Twojego konta. Nie będzie już działać jako drugi składnik.',
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7354,7 +7404,8 @@ export const pl = {
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     session_expired_login:
       "Twoja sesja wygasła. Zalogowanie ponownie pozwoli kontynuować od miejsca, w którym skończyłeś(-aś). Dane i wersje robocze są zapisane na serwerze.",
-    session_identity_mismatch: "To urządzenie było zalogowane na inne konto, więc wylogowaliśmy Cię, aby konta pozostały oddzielone. Wystarczy zalogować się ponownie. Twoje dane są nienaruszone.",
+    session_identity_mismatch:
+      "To urządzenie było zalogowane na inne konto, więc wylogowaliśmy Cię, aby konta pozostały oddzielone. Wystarczy zalogować się ponownie. Twoje dane są nienaruszone.",
     key_material_unavailable:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     storage_compromised:
@@ -7465,7 +7516,8 @@ export const pl = {
     do_this: "Wykonaj to",
     add_condition: "Dodaj warunek",
     apply_to_existing: "Zastosuj do istniejącej poczty teraz",
-    apply_to_existing_started: "Ta reguła jest stosowana do istniejącej poczty. Działa w tle.",
+    apply_to_existing_started:
+      "Ta reguła jest stosowana do istniejącej poczty. Działa w tle.",
     apply_to_existing_failed: "Nie można rozpocząć stosowania tej reguły.",
     empty_title: "Brak reguł",
     empty_description:
@@ -7526,8 +7578,10 @@ export const pl = {
     op_equals: "równa się",
     op_older_than_days: "starszy niż (dni)",
     op_newer_than_days: "nowszy niż (dni)",
-    regex_backreference: "Odwołania wsteczne takie jak \\1 nie są obsługiwane. Zapisz wzorzec bez nich.",
-    regex_lookaround: "Lookahead i lookbehind nie są obsługiwane. Zapisz wzorzec bez nich.",
+    regex_backreference:
+      "Odwołania wsteczne takie jak \\1 nie są obsługiwane. Zapisz wzorzec bez nich.",
+    regex_lookaround:
+      "Lookahead i lookbehind nie są obsługiwane. Zapisz wzorzec bez nich.",
     regex_invalid:
       "Ten wzorzec wyrażenia regularnego ma błąd składni. Sprawdź składnię.",
     regex_empty:
@@ -7746,7 +7800,8 @@ export const pl = {
   },
   survey: {
     banner_title: "Pomóż ulepszyć Aster Mail",
-    banner_message: "Pomóż kształtować Aster: jednorazowa ankieta, około minuty. Twoje odpowiedzi pozostają prywatne i nigdy nie są udostępniane.",
+    banner_message:
+      "Pomóż kształtować Aster: jednorazowa ankieta, około minuty. Twoje odpowiedzi pozostają prywatne i nigdy nie są udostępniane.",
     banner_take: "Wypełnij ankietę",
     banner_dismiss: "Odrzuć",
     remind_tomorrow: "Przypomnij jutro",
@@ -7758,7 +7813,8 @@ export const pl = {
     source_youtube: "YouTube lub twórca treści",
     source_friend: "Znajomy lub polecenie",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "Katalog prywatności (Privacy Guides, PRISM Break, awesome-privacy)",
+    source_privacy_directory:
+      "Katalog prywatności (Privacy Guides, PRISM Break, awesome-privacy)",
     source_search_engine: "Wyszukiwarka",
     q_signup_reason: "Czego głównie szukałeś podczas rejestracji?",
     signup_e2ee: "Szyfrowanie end-to-end",
@@ -7775,7 +7831,8 @@ export const pl = {
     stood_price: "Cena",
     stood_ui: "Interfejs / personalizacja",
     q_upgrade_blocker: "Co powstrzymuje Cię przed przejściem na płatny plan?",
-    q_upgrade_trigger: "Co ostatecznie skłoniło Cię do wykupienia płatnego planu?",
+    q_upgrade_trigger:
+      "Co ostatecznie skłoniło Cię do wykupienia płatnego planu?",
     trigger_storage: "Zabrakło mi miejsca",
     trigger_feature: "Chciałem konkretną funkcję",
     trigger_support_mission: "Wsparcie misji / projektu",
@@ -7795,6 +7852,7 @@ export const pl = {
     required_error: "Odpowiedz na to pytanie",
     submit: "Wyślij",
     submit_failed: "Nie udało się wysłać ankiety. Spróbuj ponownie.",
-    submitted_thanks: "Dziękujemy! Twoja opinia sprawia, że Aster Mail jest lepszy dla wszystkich. Czytamy każdą odpowiedź.",
+    submitted_thanks:
+      "Dziękujemy! Twoja opinia sprawia, że Aster Mail jest lepszy dla wszystkich. Czytamy każdą odpowiedź.",
   },
 };

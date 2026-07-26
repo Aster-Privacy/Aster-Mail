@@ -2329,9 +2329,12 @@ export const fr = {
     alias_delivery_log_reason_unknown: "Bloqué",
     alias_delivery_title: "Distribution",
     alias_never_inbox: "Ignorer la boîte de réception",
-    alias_never_inbox_desc: "Le courrier envoyé à cet alias est archivé à l'arrivée. Il reste consultable et présent dans Tous les messages.",
-    alias_never_inbox_info: "Pratique pour les inscriptions et les reçus que vous souhaitez garder sans les voir dans la boîte de réception.",
-    alias_never_inbox_error: "Ce réglage n'a pas été enregistré. Un nouvel essai devrait suffire.",
+    alias_never_inbox_desc:
+      "Le courrier envoyé à cet alias est archivé à l'arrivée. Il reste consultable et présent dans Tous les messages.",
+    alias_never_inbox_info:
+      "Pratique pour les inscriptions et les reçus que vous souhaitez garder sans les voir dans la boîte de réception.",
+    alias_never_inbox_error:
+      "Ce réglage n'a pas été enregistré. Un nouvel essai devrait suffire.",
     alias_relay_title: "Distribution",
     alias_relay_description:
       "Choisissez comment les e-mails adressés à cet alias sont distribués.",
@@ -3282,7 +3285,8 @@ export const fr = {
     never_manual: "Jamais (manuel uniquement)",
     auto_advance: "Après archivage ou suppression",
     reactions_enabled: "Réactions",
-    reactions_enabled_description: "Permet de réagir aux messages avec des émojis et de voir les réactions des autres",
+    reactions_enabled_description:
+      "Permet de réagir aux messages avec des émojis et de voir les réactions des autres",
     auto_advance_description:
       "Quel e-mail ouvrir après avoir archivé ou supprimé celui en cours de lecture",
     auto_advance_next: "Aller à l'e-mail suivant",
@@ -3303,15 +3307,19 @@ export const fr = {
       "Toujours afficher le contenu des e-mails en mode sombre, en ignorant le style d'origine",
     translation: "Traduction",
     translate_incoming: "Traduire le courrier entrant",
-    translate_incoming_description: "Traduisez les messages rédigés dans d'autres langues sur votre appareil.",
-    translate_incoming_info: "La traduction s'effectue entièrement sur votre appareil avec des modèles auto-hébergés. Rien de ce que vous lisez n'est jamais envoyé à un service de traduction.",
+    translate_incoming_description:
+      "Traduisez les messages rédigés dans d'autres langues sur votre appareil.",
+    translate_incoming_info:
+      "La traduction s'effectue entièrement sur votre appareil avec des modèles auto-hébergés. Rien de ce que vous lisez n'est jamais envoyé à un service de traduction.",
     translate_off: "Désactivé",
     translate_ask: "Demander à chaque fois",
     translate_always: "Toujours traduire",
     translate_my_languages: "Langues que vous lisez",
-    translate_my_languages_description: "Langues que vous lisez déjà. En mode « Demander à chaque fois », Aster ne proposera pas de les traduire. Pour qu'une langue reste aussi intacte en mode « Toujours traduire », ajoutez-la à « Ne jamais traduire ».",
+    translate_my_languages_description:
+      "Langues que vous lisez déjà. En mode « Demander à chaque fois », Aster ne proposera pas de les traduire. Pour qu'une langue reste aussi intacte en mode « Toujours traduire », ajoutez-la à « Ne jamais traduire ».",
     translate_never_languages: "Ne jamais traduire",
-    translate_never_languages_description: "Ne jamais traduire le courrier dans ces langues, quel que soit le mode.",
+    translate_never_languages_description:
+      "Ne jamais traduire le courrier dans ces langues, quel que soit le mode.",
     translate_add_language: "Ajouter une langue",
     translate_auto_detected: "Détecté automatiquement depuis votre appareil",
 
@@ -4722,15 +4730,49 @@ export const fr = {
       "Qu'est-ce qui vous a décidé à annuler ? C'est facultatif et cela nous aide à nous améliorer.",
     cancel_reason_too_expensive: "Trop cher",
     cancel_reason_not_using: "Je ne l'utilise pas assez",
-    cancel_reason_missing_feature: "Il manque une fonctionnalité dont j'ai besoin",
+    cancel_reason_missing_feature:
+      "Il manque une fonctionnalité dont j'ai besoin",
     cancel_reason_switched_provider: "Je suis passé à un autre fournisseur",
     cancel_reason_bugs: "Trop de bugs ou de problèmes",
-    cancel_reason_privacy_trust: "Doutes sur la confidentialité ou la confiance",
+    cancel_reason_privacy_trust:
+      "Doutes sur la confidentialité ou la confiance",
     cancel_reason_just_testing: "Je faisais juste un essai",
     cancel_reason_other: "Autre chose",
     cancel_reason_text_placeholder: "Quelque chose à ajouter ? (facultatif)",
     cancel_reason_skip: "Passer",
     cancel_reason_continue: "Continuer",
+    cancel_impact_title: "Ce qui change si vous annulez",
+    cancel_impact_description:
+      "Votre offre reste active jusqu'au {date}. Ensuite :",
+    cancel_impact_description_nodate:
+      "À la fin de votre période de facturation actuelle :",
+    cancel_impact_loading: "Vérification de ce qui change pour votre compte...",
+    cancel_impact_unavailable:
+      "Impossible de charger les détails pour le moment. Vous pouvez tout de même continuer.",
+    cancel_impact_storage: "Le stockage passe de {current} à {after}.",
+    cancel_impact_storage_over:
+      "Vous utilisez {used}, ce qui dépasse cette limite. Tant que vous la dépassez, les e-mails entrants sont refusés, et après 7 jours ils le sont définitivement.",
+    cancel_impact_aliases:
+      "{count} alias cessent de recevoir des e-mails {days} jours plus tard.",
+    cancel_impact_domains: "{count} domaines personnalisés sont suspendus.",
+    cancel_impact_catch_all: "L'adressage catch-all est désactivé.",
+    cancel_impact_templates: "{count} modèles d'e-mail sont désactivés.",
+    cancel_impact_signatures: "{count} signatures sont désactivées.",
+    cancel_impact_family:
+      "{count} membres de la famille passent en période de grâce de {days} jours.",
+    cancel_impact_family_addresses:
+      "{count} adresses familiales réservées sont libérées.",
+    cancel_impact_features:
+      "{count} fonctionnalités payantes sont désactivées.",
+    cancel_impact_reactivate_hint:
+      "Rien n'est supprimé. Un nouvel abonnement rétablit ce qui a été désactivé, dans les limites de votre nouvelle offre.",
+    cancel_impact_continue: "Continuer vers l'annulation",
+    cancel_final_title: "Confirmer l'annulation",
+    cancel_final_description:
+      "Votre offre {plan} sera annulée et prend fin le {date}. Vous gardez un accès complet jusque-là.",
+    cancel_final_description_nodate:
+      "Votre offre {plan} sera annulée à la fin de la période de facturation en cours. Vous gardez un accès complet jusque-là.",
+    cancel_final_confirm: "Annuler mon offre",
     cancel_confirm_title: "Annuler l'abonnement",
     cancel_enter_password:
       "Saisissez votre mot de passe pour confirmer l'annulation :",
@@ -4858,7 +4900,8 @@ export const fr = {
     affiliate_learn_more_irs_confirm:
       "Vous êtes sur le point d'accéder au site de l'IRS (irs.gov) dans un nouvel onglet.",
     affiliate_payout_history_title: "Historique des Paiements",
-    affiliate_payout_history_empty: "Aucune demande de paiement pour le moment.",
+    affiliate_payout_history_empty:
+      "Aucune demande de paiement pour le moment.",
     affiliate_payout_status_pending: "En attente",
     affiliate_payout_status_accepted: "Payé",
     affiliate_payout_status_rejected: "Rejeté",
@@ -5084,9 +5127,12 @@ export const fr = {
     domain_purchase_pay_crypto: "Crypto",
     domain_purchase_buy: "Acheter pour {{price}}",
     domain_purchase_error: "L'achat a échoué. Veuillez réessayer.",
-    domain_purchase_error_taken: "Ce domaine vient d'être pris. Veuillez en choisir un autre.",
-    domain_purchase_error_limit: "Vous avez atteint la limite de domaines de votre offre. Passez à une offre supérieure pour en ajouter.",
-    domain_purchase_error_slow_down: "Trop de commandes de domaines en cours. Terminez celles en cours ou patientez un instant.",
+    domain_purchase_error_taken:
+      "Ce domaine vient d'être pris. Veuillez en choisir un autre.",
+    domain_purchase_error_limit:
+      "Vous avez atteint la limite de domaines de votre offre. Passez à une offre supérieure pour en ajouter.",
+    domain_purchase_error_slow_down:
+      "Trop de commandes de domaines en cours. Terminez celles en cours ou patientez un instant.",
     domain_purchase_progress_title: "Configuration de {{domain}}",
     domain_purchase_step_payment: "Paiement reçu",
     domain_purchase_step_registering: "Enregistrement auprès de NameSilo",
@@ -5100,20 +5146,25 @@ export const fr = {
     domain_purchase_refunded:
       "Ce domaine est devenu indisponible avant que nous puissions l'enregistrer. Votre paiement a été remboursé.",
     domain_purchase_try_instead: "Essayez plutôt l'une de ces alternatives",
-    domain_purchase_empty_subtitle: "Entrez un mot, un nom ou un domaine complet. Nous vérifions chaque extension que nous vendons et vous montrons ce qui est libre.",
-    domain_purchase_empty_included: "Chaque domaine inclut la confidentialité WHOIS, le DNS configuré pour vous et des adresses illimitées.",
-    domain_purchase_terms_inline: "Les domaines sont enregistrés via NameSilo. En achetant, vous acceptez les {{aster}}, {{registrar}} et {{icann}}. Les enregistrements sont définitifs une fois le domaine créé.",
+    domain_purchase_empty_subtitle:
+      "Entrez un mot, un nom ou un domaine complet. Nous vérifions chaque extension que nous vendons et vous montrons ce qui est libre.",
+    domain_purchase_empty_included:
+      "Chaque domaine inclut la confidentialité WHOIS, le DNS configuré pour vous et des adresses illimitées.",
+    domain_purchase_terms_inline:
+      "Les domaines sont enregistrés via NameSilo. En achetant, vous acceptez les {{aster}}, {{registrar}} et {{icann}}. Les enregistrements sont définitifs une fois le domaine créé.",
     domain_purchase_empty_title: "Saisissez quelque chose pour commencer",
-    domain_purchase_search_failed:
-      "La recherche a échoué. Veuillez réessayer.",
+    domain_purchase_search_failed: "La recherche a échoué. Veuillez réessayer.",
     domain_purchase_retry: "Réessayer",
     domain_purchase_step_choose: "Choisir un nom",
     domain_purchase_step_checkout: "Paiement",
     domain_purchase_step_activate: "Mise en ligne",
     domain_purchase_intro_title: "Trouvons votre domaine e-mail",
-    domain_purchase_intro_sub: "Répondez à deux questions rapides et nous vous montrerons ce qui est disponible.",
-    domain_purchase_intro_name_q: "Quel nom voulez-vous ? Votre entreprise, votre projet ou simplement vous.",
-    domain_purchase_intro_name_ph: "Saisissez un nom, comme cafeduport ou alexcarter",
+    domain_purchase_intro_sub:
+      "Répondez à deux questions rapides et nous vous montrerons ce qui est disponible.",
+    domain_purchase_intro_name_q:
+      "Quel nom voulez-vous ? Votre entreprise, votre projet ou simplement vous.",
+    domain_purchase_intro_name_ph:
+      "Saisissez un nom, comme cafeduport ou alexcarter",
     domain_purchase_intro_tld_q: "Une extension préférée ?",
     domain_purchase_intro_cta: "Voir ce qui est disponible",
     domain_purchase_intro_skip: "Passer, je chercherai moi-même",
@@ -5139,10 +5190,14 @@ export const fr = {
     domain_purchase_total_today: "Total aujourd'hui",
     domain_purchase_years_line: "Enregistrement de {{count}} an(s)",
     domain_purchase_secure_checkout: "Paiement sécurisé par Stripe",
-    domain_purchase_crypto_warning_title: "Rechargez d'abord votre solde crypto",
-    domain_purchase_crypto_warning_body: "Les commandes en crypto sont réglées avec votre solde crypto Aster. Ajoutez des fonds avant d'acheter, sinon le domaine restera en attente jusqu'à ce que le solde couvre la totalité du montant.",
-    domain_purchase_crypto_warning_hint: "Vous pouvez recharger depuis la Facturation, c'est le même solde que le crédit du compte.",
-    domain_purchase_included_heading: "Tout ce qui est inclus avec votre domaine",
+    domain_purchase_crypto_warning_title:
+      "Rechargez d'abord votre solde crypto",
+    domain_purchase_crypto_warning_body:
+      "Les commandes en crypto sont réglées avec votre solde crypto Aster. Ajoutez des fonds avant d'acheter, sinon le domaine restera en attente jusqu'à ce que le solde couvre la totalité du montant.",
+    domain_purchase_crypto_warning_hint:
+      "Vous pouvez recharger depuis la Facturation, c'est le même solde que le crédit du compte.",
+    domain_purchase_included_heading:
+      "Tout ce qui est inclus avec votre domaine",
     domain_purchase_renew: "Renouveler",
     domain_purchase_filter_all: "Tous",
     domain_purchase_filter_available: "Disponibles",
@@ -5159,35 +5214,26 @@ export const fr = {
       "Prix promotionnel de première année de notre registrar. Ensuite, renouvellement à {{price}} par an.",
     domain_purchase_purchased_info:
       "Voici les domaines que vous avez achetés via Aster. Nous les enregistrons pour vous avec la confidentialité WHOIS, configurons automatiquement tout le DNS du courrier, et vous pouvez y créer des adresses immédiatement. Chaque domaine n'est renouvelé qu'avec votre accord et peut être transféré vers un autre registrar quand vous le souhaitez.",
-    domain_purchase_dont_have: "Pas de domaine ? Cliquez ici pour en acheter un.",
+    domain_purchase_dont_have:
+      "Pas de domaine ? Cliquez ici pour en acheter un.",
     domain_purchase_sort_price: "Prix le plus bas",
     domain_purchase_leave_title: "Quitter Aster Mail ?",
     domain_purchase_leave_message:
       "Ce lien ouvre {{host}} dans un nouvel onglet.",
-    domain_purchase_purchased_label:
-      "Domaines achetés",
-    domain_purchase_purchased_empty:
-      "Aucun domaine acheté pour l'instant",
-    domain_purchase_purchased_expires:
-      "Expire le {{date}}",
-    domain_purchase_purchased_in_progress:
-      "Configuration en cours...",
+    domain_purchase_purchased_label: "Domaines achetés",
+    domain_purchase_purchased_empty: "Aucun domaine acheté pour l'instant",
+    domain_purchase_purchased_expires: "Expire le {{date}}",
+    domain_purchase_purchased_in_progress: "Configuration en cours...",
     domain_purchase_terms_notice:
       "Aster enregistre le domaine en votre nom via notre registrar partenaire, et le prix de renouvellement est toujours affiché avant le paiement. Si vous laissez un jour un domaine expirer, le registrar peut facturer des frais de récupération pour le restaurer.",
-    domain_purchase_terms_aster:
-      "Conditions d'utilisation d'Aster",
-    domain_purchase_terms_registrar:
-      "Conditions générales de NameSilo",
+    domain_purchase_terms_aster: "Conditions d'utilisation d'Aster",
+    domain_purchase_terms_registrar: "Conditions générales de NameSilo",
     domain_purchase_terms_icann:
       "Droits et responsabilités des titulaires ICANN",
-    domain_purchase_detail_privacy_title:
-      "Privé par défaut",
-    domain_purchase_detail_setup_title:
-      "Zéro configuration",
-    domain_purchase_detail_instant_title:
-      "Prêt en quelques secondes",
-    domain_purchase_detail_ownership_title:
-      "Il vous appartient",
+    domain_purchase_detail_privacy_title: "Privé par défaut",
+    domain_purchase_detail_setup_title: "Zéro configuration",
+    domain_purchase_detail_instant_title: "Prêt en quelques secondes",
+    domain_purchase_detail_ownership_title: "Il vous appartient",
     allowlist_popup_description:
       "Les e-mails de cet expéditeur ou domaine ne seront jamais marqués comme indésirables et arriveront toujours dans votre boîte de réception.",
     block_sender_popup_description:
@@ -5498,12 +5544,14 @@ export const fr = {
     export_security_vault_row_title: "Phrase secrète du coffre de chiffrement",
     export_security_vault_row_body:
       "Votre phrase secrète locale du coffre confirme cet appareil avant que le courrier ne soit déchiffré pour l'export.",
-    export_security_vault_row_help: "Il s'agit de la phrase secrète du coffre local de cet appareil, pas de votre mot de passe de compte. Elle déverrouille vos clés de chiffrement uniquement sur cet appareil.",
+    export_security_vault_row_help:
+      "Il s'agit de la phrase secrète du coffre local de cet appareil, pas de votre mot de passe de compte. Elle déverrouille vos clés de chiffrement uniquement sur cet appareil.",
     export_security_required_badge: "Requis",
     export_reauth_prompt: "Entrez votre mot de passe pour continuer",
     export_reauth_submit: "Vérifier",
     export_scope_contacts_body: "Exporter tous vos contacts",
-    export_scope_mail_help: "MBOX regroupe tous les messages dans un seul fichier ; .EML enregistre chaque message séparément. Les deux formats fonctionnent avec la plupart des clients de messagerie de bureau.",
+    export_scope_mail_help:
+      "MBOX regroupe tous les messages dans un seul fichier ; .EML enregistre chaque message séparément. Les deux formats fonctionnent avec la plupart des clients de messagerie de bureau.",
     export_scope_contacts_title: "Contacts",
     export_scope_date_range: "Plage de dates",
     export_scope_date_from: "Du",
@@ -5516,7 +5564,8 @@ export const fr = {
     export_scope_preset_all: "Tout",
     export_scope_preset_custom: "Personnalisé",
     export_scope_settings_body: "Exporter vos préférences",
-    export_scope_contacts_help: "vCard 4.0 est le format de contact universel importé directement par la plupart des applications. Le fichier JSON supplémentaire conserve les champs que vCard ne peut pas stocker.",
+    export_scope_contacts_help:
+      "vCard 4.0 est le format de contact universel importé directement par la plupart des applications. Le fichier JSON supplémentaire conserve les champs que vCard ne peut pas stocker.",
     export_scope_settings_title: "Paramètres",
     export_start_button: "Démarrer l'exportation",
     export_step_complete_title: "Exportation terminée",
@@ -5984,7 +6033,8 @@ export const fr = {
     translation_translate: "Traduire",
     translation_in_progress: "Traduction sur votre appareil…",
     translation_translated_from: "Traduit du {{language}} sur votre appareil.",
-    translation_limited_quality: "La qualité de la traduction peut être moindre pour cette langue.",
+    translation_limited_quality:
+      "La qualité de la traduction peut être moindre pour cette langue.",
     translation_show_original: "Afficher l'original",
     translation_show_translation: "Afficher la traduction",
     translation_showing_original: "Affichage du message d'origine.",
@@ -6051,19 +6101,29 @@ export const fr = {
     report_phishing: "Signaler le spam",
     not_spam: "Non indésirable",
     spam_reasons_title: "Ce message a été déplacé vers les indésirables",
-    spam_reason_content_analysis: "Le contenu de ce message ressemble à un courrier indésirable",
+    spam_reason_content_analysis:
+      "Le contenu de ce message ressemble à un courrier indésirable",
     spam_reason_spf_fail: "L'expéditeur a échoué à la vérification SPF",
-    spam_reason_dkim_fail: "Le message a échoué à la vérification de la signature DKIM",
-    spam_reason_dmarc_fail: "Le domaine de l'expéditeur a échoué à l'authentification DMARC",
-    spam_reason_missing_headers: "Le message ne contient pas les en-têtes d'e-mail standard",
-    spam_reason_reply_to_mismatch: "L'adresse de réponse ne correspond pas à l'expéditeur",
+    spam_reason_dkim_fail:
+      "Le message a échoué à la vérification de la signature DKIM",
+    spam_reason_dmarc_fail:
+      "Le domaine de l'expéditeur a échoué à l'authentification DMARC",
+    spam_reason_missing_headers:
+      "Le message ne contient pas les en-têtes d'e-mail standard",
+    spam_reason_reply_to_mismatch:
+      "L'adresse de réponse ne correspond pas à l'expéditeur",
     spam_reason_future_dated: "Le message est daté dans le futur",
-    spam_reason_phishing_url: "Il contient un lien figurant sur une liste de blocage de phishing",
-    spam_reason_phishing_domain: "Il pointe vers un domaine associé au phishing",
-    spam_reason_user_spam_learning: "Vous avez déjà signalé des courriers indésirables provenant du domaine de cet expéditeur",
-    spam_reason_global_domain_reputation: "Le domaine de l'expéditeur a une mauvaise réputation",
+    spam_reason_phishing_url:
+      "Il contient un lien figurant sur une liste de blocage de phishing",
+    spam_reason_phishing_domain:
+      "Il pointe vers un domaine associé au phishing",
+    spam_reason_user_spam_learning:
+      "Vous avez déjà signalé des courriers indésirables provenant du domaine de cet expéditeur",
+    spam_reason_global_domain_reputation:
+      "Le domaine de l'expéditeur a une mauvaise réputation",
     spam_reason_auth_hard_fail: "L'expéditeur n'a pas pu être authentifié",
-    spam_reason_sender_marked_spam: "Vous avez marqué cet expéditeur comme indésirable",
+    spam_reason_sender_marked_spam:
+      "Vous avez marqué cet expéditeur comme indésirable",
     block_sender: "Bloquer l'expéditeur",
     unblock_sender: "Débloquer l'expéditeur",
     unsubscribe: "Se désabonner",
@@ -7187,9 +7247,11 @@ export const fr = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "Supprimer le passkey ?",
-    delete_passkey_description: "« {{name}} » sera supprimé de votre compte. Vous ne pourrez plus l'utiliser pour vous connecter.",
+    delete_passkey_description:
+      "« {{name}} » sera supprimé de votre compte. Vous ne pourrez plus l'utiliser pour vous connecter.",
     delete_security_key_title: "Supprimer la clé de sécurité ?",
-    delete_security_key_description: "« {{name}} » sera supprimée de votre compte. Elle ne pourra plus servir de second facteur.",
+    delete_security_key_description:
+      "« {{name}} » sera supprimée de votre compte. Elle ne pourra plus servir de second facteur.",
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7206,7 +7268,8 @@ export const fr = {
     rename_saved: "Nom mis à jour",
   },
   errors: {
-    failed_send_reaction: "La réaction n'a pas pu être envoyée. Veuillez réessayer.",
+    failed_send_reaction:
+      "La réaction n'a pas pu être envoyée. Veuillez réessayer.",
     reactions_disabled: "Les réactions sont désactivées dans vos paramètres.",
     pending_email_verification:
       "Consultez votre e-mail et cliquez sur le lien de vérification pour activer ce compte.",
@@ -7375,7 +7438,8 @@ export const fr = {
     incorrect_password: "Mot de passe incorrect",
     internal_error: "Erreur interne",
     invalid_request: "Requête invalide",
-    session_identity_mismatch: "Cet appareil était connecté à un autre compte, nous vous avons donc déconnecté pour garder les comptes séparés. Il suffit de vous reconnecter. Vos données sont intactes.",
+    session_identity_mismatch:
+      "Cet appareil était connecté à un autre compte, nous vous avons donc déconnecté pour garder les comptes séparés. Il suffit de vous reconnecter. Vos données sont intactes.",
     key_material_unavailable: "Matériel de clé indisponible",
     max_accounts:
       "Un maximum de {{max}} comptes peuvent être actifs simultanément. En supprimer un libérera une place.",
@@ -7430,8 +7494,10 @@ export const fr = {
     and_label: "ET",
     applied_count: "Appliqué à {{count}} messages",
     apply_to_existing: "Appliquer au courrier existant maintenant",
-    apply_to_existing_started: "Application de cette règle à votre courrier existant. Le traitement s'exécute en arrière-plan.",
-    apply_to_existing_failed: "Impossible de lancer l'application de cette règle.",
+    apply_to_existing_started:
+      "Application de cette règle à votre courrier existant. Le traitement s'exécute en arrière-plan.",
+    apply_to_existing_failed:
+      "Impossible de lancer l'application de cette règle.",
     at_limit_upgrade:
       "Vous avez atteint la limite de règles de votre forfait. Mettez à niveau pour en ajouter.",
     auth_fail: "échoué",
@@ -7550,8 +7616,10 @@ export const fr = {
     pick_labels: "Choisir des étiquettes",
     pin_label: "Épingler",
     read: "Lu",
-    regex_backreference: "Les références arrière comme \\1 ne sont pas prises en charge. Réécrivez le motif sans elles.",
-    regex_lookaround: "Le lookahead et le lookbehind ne sont pas pris en charge. Réécrivez le motif sans eux.",
+    regex_backreference:
+      "Les références arrière comme \\1 ne sont pas prises en charge. Réécrivez le motif sans elles.",
+    regex_lookaround:
+      "Le lookahead et le lookbehind ne sont pas pris en charge. Réécrivez le motif sans eux.",
     regex_empty: "Un motif regex est requis avant d'enregistrer.",
     regex_invalid: "Ce motif regex contient une erreur. Vérifiez la syntaxe.",
     regex_too_long:
@@ -7714,19 +7782,23 @@ export const fr = {
   },
   survey: {
     banner_title: "Aidez-nous à améliorer Aster Mail",
-    banner_message: "Aidez à façonner Aster : un sondage unique d'une minute. Vos réponses restent privées et ne sont jamais partagées.",
+    banner_message:
+      "Aidez à façonner Aster : un sondage unique d'une minute. Vos réponses restent privées et ne sont jamais partagées.",
     banner_take: "Répondre au sondage",
     banner_dismiss: "Ignorer",
     remind_tomorrow: "Me le rappeler demain",
     dismiss_forever: "Ne plus demander",
     modal_title: "Sondage Aster Mail",
-    modal_subtitle: "Une seule fois, environ une minute. Les questions ouvertes sont facultatives.",
-    q_source: "Où avez-vous entendu parler d'Aster Mail pour la première fois ?",
+    modal_subtitle:
+      "Une seule fois, environ une minute. Les questions ouvertes sont facultatives.",
+    q_source:
+      "Où avez-vous entendu parler d'Aster Mail pour la première fois ?",
     source_reddit: "Reddit",
     source_youtube: "YouTube ou un créateur de contenu",
     source_friend: "Un ami ou le bouche-à-oreille",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "Un annuaire de confidentialité (Privacy Guides, PRISM Break, awesome-privacy)",
+    source_privacy_directory:
+      "Un annuaire de confidentialité (Privacy Guides, PRISM Break, awesome-privacy)",
     source_search_engine: "Moteur de recherche",
     q_signup_reason: "Que cherchiez-vous principalement en vous inscrivant ?",
     signup_e2ee: "Chiffrement de bout en bout",
@@ -7742,15 +7814,18 @@ export const fr = {
     stood_germany: "Hébergé en Allemagne",
     stood_price: "Le prix",
     stood_ui: "L'interface / la personnalisation",
-    q_upgrade_blocker: "Qu'est-ce qui vous empêche de passer à un forfait payant ?",
-    q_upgrade_trigger: "Qu'est-ce qui vous a finalement décidé à prendre un forfait payant ?",
+    q_upgrade_blocker:
+      "Qu'est-ce qui vous empêche de passer à un forfait payant ?",
+    q_upgrade_trigger:
+      "Qu'est-ce qui vous a finalement décidé à prendre un forfait payant ?",
     trigger_storage: "Plus d'espace de stockage",
     trigger_feature: "Je voulais une fonctionnalité précise",
     trigger_support_mission: "Soutenir la mission / le projet",
     trigger_switched_fully: "J'ai quitté complètement un autre fournisseur",
     q_plan_reason: "Pourquoi avez-vous choisi le forfait {{plan}} ?",
     q_cancel_reason: "Qu'est-ce qui vous ferait résilier votre forfait ?",
-    q_hesitation: "Quelle a été votre plus grande hésitation avant d'acheter un forfait ?",
+    q_hesitation:
+      "Quelle a été votre plus grande hésitation avant d'acheter un forfait ?",
     hesitation_price: "Le prix",
     hesitation_trust: "Je n'étais pas sûr de pouvoir faire confiance",
     hesitation_missing_feature: "Une fonctionnalité manquante",
@@ -7763,6 +7838,7 @@ export const fr = {
     required_error: "Veuillez répondre à cette question",
     submit: "Envoyer",
     submit_failed: "Impossible d'envoyer le sondage. Veuillez réessayer.",
-    submitted_thanks: "Merci ! Vos retours rendent Aster Mail meilleur pour tout le monde. Nous lisons chaque réponse.",
+    submitted_thanks:
+      "Merci ! Vos retours rendent Aster Mail meilleur pour tout le monde. Nous lisons chaque réponse.",
   },
 };

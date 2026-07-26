@@ -2120,7 +2120,8 @@ export const zh_CN = {
     alias_delivery_log_reason_unknown: "已屏蔽",
     alias_delivery_title: "投递",
     alias_never_inbox: "跳过收件箱",
-    alias_never_inbox_desc: "发送到此别名的邮件在到达时会被归档。仍然可以搜索，并保留在全部邮件中。",
+    alias_never_inbox_desc:
+      "发送到此别名的邮件在到达时会被归档。仍然可以搜索，并保留在全部邮件中。",
     alias_never_inbox_info: "适合想保留但不想显示在收件箱中的注册确认和收据。",
     alias_never_inbox_error: "该设置未能保存。再试一次即可。",
     alias_relay_title: "投递",
@@ -2731,7 +2732,8 @@ export const zh_CN = {
     color_theme_lime: "青柠色",
     color_theme_fuchsia: "紫红色",
     custom_theme_title: "自定义主题",
-    custom_theme_description: "从单一颜色构建您自己的调色板,在您的设备上安全生成",
+    custom_theme_description:
+      "从单一颜色构建您自己的调色板,在您的设备上安全生成",
     custom_theme_colors_title: "主题颜色",
     custom_theme_color_label: "基础颜色",
     language_format_title: "语言与格式",
@@ -2992,14 +2994,17 @@ export const zh_CN = {
     translation: "翻译",
     translate_incoming: "翻译收到的邮件",
     translate_incoming_description: "在您的设备上翻译以其他语言撰写的邮件。",
-    translate_incoming_info: "翻译完全在您的设备上使用自托管模型运行。您阅读的任何内容都不会发送到翻译服务。",
+    translate_incoming_info:
+      "翻译完全在您的设备上使用自托管模型运行。您阅读的任何内容都不会发送到翻译服务。",
     translate_off: "关闭",
     translate_ask: "每次询问",
     translate_always: "始终翻译",
     translate_my_languages: "您能阅读的语言",
-    translate_my_languages_description: "您已经能阅读的语言。在“每次询问”模式下，Aster 不会提示翻译这些语言。若想在“始终翻译”模式下也保持某种语言不变，请将其加入“从不翻译”。",
+    translate_my_languages_description:
+      "您已经能阅读的语言。在“每次询问”模式下，Aster 不会提示翻译这些语言。若想在“始终翻译”模式下也保持某种语言不变，请将其加入“从不翻译”。",
     translate_never_languages: "从不翻译",
-    translate_never_languages_description: "在任何模式下都不翻译这些语言的邮件。",
+    translate_never_languages_description:
+      "在任何模式下都不翻译这些语言的邮件。",
     translate_add_language: "添加语言",
     translate_auto_detected: "已从您的设备自动检测",
 
@@ -4296,6 +4301,31 @@ export const zh_CN = {
     cancel_reason_text_placeholder: "还有什么想补充的吗？（选填）",
     cancel_reason_skip: "跳过",
     cancel_reason_continue: "继续",
+    cancel_impact_title: "取消后会有哪些变化",
+    cancel_impact_description: "您的方案在 {date} 前仍然有效。之后：",
+    cancel_impact_description_nodate: "当前计费周期结束时：",
+    cancel_impact_loading: "正在检查您的账户会有哪些变化...",
+    cancel_impact_unavailable: "暂时无法加载详情。您仍可以继续。",
+    cancel_impact_storage: "存储空间从 {current} 降为 {after}。",
+    cancel_impact_storage_over:
+      "您正在使用 {used}，已超出该限额。超出期间收到的邮件会被拒收，7 天后将被永久拒收。",
+    cancel_impact_aliases: "{count} 个别名将在 {days} 天后停止收信。",
+    cancel_impact_domains: "{count} 个自定义域名将被暂停。",
+    cancel_impact_catch_all: "通配收件地址将被关闭。",
+    cancel_impact_templates: "{count} 个邮件模板将被停用。",
+    cancel_impact_signatures: "{count} 个签名将被停用。",
+    cancel_impact_family: "{count} 位家庭成员将进入 {days} 天的宽限期。",
+    cancel_impact_family_addresses: "{count} 个已保留的家庭地址将被释放。",
+    cancel_impact_features: "{count} 项付费功能将被关闭。",
+    cancel_impact_reactivate_hint:
+      "不会删除任何内容。重新订阅后，被停用的内容会在新方案的限额范围内恢复。",
+    cancel_impact_continue: "继续取消",
+    cancel_final_title: "确认取消",
+    cancel_final_description:
+      "您的 {plan} 方案将被取消，并于 {date} 结束。在此之前您仍拥有完整权限。",
+    cancel_final_description_nodate:
+      "您的 {plan} 方案将在当前计费周期结束时取消。在此之前您仍拥有完整权限。",
+    cancel_final_confirm: "取消我的方案",
     cancel_confirm_title: "取消订阅",
     cancel_confirm_description:
       "确定要取消订阅吗？您的套餐将在当前计费周期结束前保持有效。",
@@ -4402,7 +4432,8 @@ export const zh_CN = {
       "联盟会员及品牌合作伙伴身份仅与单个 Aster Mail 账户绑定，不得授予、转让或在属于同一个人或实体的多个账户之间重复使用。",
     affiliate_info_footer_note:
       "本条款自您加入之日起生效，并可能不定期更新。如果我们做出影响您的佣金比例、月度上限或提现条款的重大变更，我们将在变更生效前直接通知您（通过应用内或电子邮件）。在收到通知后继续参与该计划即视为接受该变更。",
-    affiliate_payout_processing_note: "付款将进行人工审核，通常在3-5个工作日内处理完成。",
+    affiliate_payout_processing_note:
+      "付款将进行人工审核，通常在3-5个工作日内处理完成。",
     affiliate_payout_email_subject: "联盟付款申请",
     affiliate_payout_instructions:
       "在下方申请付款，我们将为您打开一封预填好的邮件发送至 hello@astermail.org。",
@@ -4498,24 +4529,27 @@ export const zh_CN = {
     domain_purchase_buy: "以 {{price}} 购买",
     domain_purchase_error: "购买失败,请重试。",
     domain_purchase_error_taken: "该域名刚刚被注册,请选择其他域名。",
-    domain_purchase_error_limit: "您已达到当前套餐的域名数量上限,升级后可添加更多。",
-    domain_purchase_error_slow_down: "当前域名订单过多。请先完成正在处理的订单,或稍候再试。",
+    domain_purchase_error_limit:
+      "您已达到当前套餐的域名数量上限,升级后可添加更多。",
+    domain_purchase_error_slow_down:
+      "当前域名订单过多。请先完成正在处理的订单,或稍候再试。",
     domain_purchase_progress_title: "正在设置 {{domain}}",
     domain_purchase_step_payment: "已收到付款",
     domain_purchase_step_registering: "正在通过 NameSilo 注册",
     domain_purchase_step_dns: "正在配置 DNS",
     domain_purchase_step_activating: "正在激活邮箱",
     domain_purchase_step_done: "域名已激活",
-    domain_purchase_done_note:
-      "您的域名已就绪,现在可以在其上创建地址和别名。",
+    domain_purchase_done_note: "您的域名已就绪,现在可以在其上创建地址和别名。",
     domain_purchase_slow_note:
       "耗时比平常长。我们将在后台完成设置,并通过邮件通知您。",
-    domain_purchase_refunded:
-      "该域名在我们注册前已被他人注册,您的付款已退款。",
+    domain_purchase_refunded: "该域名在我们注册前已被他人注册,您的付款已退款。",
     domain_purchase_try_instead: "不妨试试这些",
-    domain_purchase_empty_subtitle: "输入一个词、一个名称或完整域名。我们会检查所有在售后缀，并显示哪些还没有被注册。",
-    domain_purchase_empty_included: "每个域名都包含 WHOIS 隐私保护、已配置好的 DNS 和无限地址。",
-    domain_purchase_terms_inline: "域名通过 NameSilo 注册。购买即表示您接受{{aster}}、{{registrar}}以及{{icann}}。域名创建后注册不可撤销。",
+    domain_purchase_empty_subtitle:
+      "输入一个词、一个名称或完整域名。我们会检查所有在售后缀，并显示哪些还没有被注册。",
+    domain_purchase_empty_included:
+      "每个域名都包含 WHOIS 隐私保护、已配置好的 DNS 和无限地址。",
+    domain_purchase_terms_inline:
+      "域名通过 NameSilo 注册。购买即表示您接受{{aster}}、{{registrar}}以及{{icann}}。域名创建后注册不可撤销。",
     domain_purchase_empty_title: "输入内容即可开始",
     domain_purchase_search_failed: "搜索失败,请重试。",
     domain_purchase_retry: "重试",
@@ -4524,8 +4558,10 @@ export const zh_CN = {
     domain_purchase_step_activate: "启用",
     domain_purchase_intro_title: "一起找到你的邮箱域名",
     domain_purchase_intro_sub: "回答两个简单的问题，我们就会显示可注册的域名。",
-    domain_purchase_intro_name_q: "你想要什么名称？你的公司、你的项目，或者就是你自己。",
-    domain_purchase_intro_name_ph: "输入一个名字，例如 harborcoffee 或 alexcarter",
+    domain_purchase_intro_name_q:
+      "你想要什么名称？你的公司、你的项目，或者就是你自己。",
+    domain_purchase_intro_name_ph:
+      "输入一个名字，例如 harborcoffee 或 alexcarter",
     domain_purchase_intro_tld_q: "有偏好的后缀吗？",
     domain_purchase_intro_cta: "查看可注册的域名",
     domain_purchase_intro_skip: "跳过，我自己搜索",
@@ -4552,8 +4588,10 @@ export const zh_CN = {
     domain_purchase_years_line: "{{count}} 年注册",
     domain_purchase_secure_checkout: "由 Stripe 提供安全结账",
     domain_purchase_crypto_warning_title: "请先为加密货币余额充值",
-    domain_purchase_crypto_warning_body: "加密货币订单将从你的 Aster 加密货币余额中扣款。请在购买前充值，否则域名将一直处于待处理状态，直到余额足以支付全额。",
-    domain_purchase_crypto_warning_hint: "你可以在账单页面充值，与账户额度使用的是同一余额。",
+    domain_purchase_crypto_warning_body:
+      "加密货币订单将从你的 Aster 加密货币余额中扣款。请在购买前充值，否则域名将一直处于待处理状态，直到余额足以支付全额。",
+    domain_purchase_crypto_warning_hint:
+      "你可以在账单页面充值，与账户额度使用的是同一余额。",
     domain_purchase_included_heading: "域名包含的全部内容",
     domain_purchase_renew: "续费",
     domain_purchase_filter_all: "全部",
@@ -4574,32 +4612,20 @@ export const zh_CN = {
     domain_purchase_dont_have: "还没有域名?点击这里购买。",
     domain_purchase_sort_price: "价格从低到高",
     domain_purchase_leave_title: "离开 Aster Mail？",
-    domain_purchase_leave_message:
-      "此链接将在新标签页中打开 {{host}}。",
-    domain_purchase_purchased_label:
-      "已购域名",
-    domain_purchase_purchased_empty:
-      "暂无已购域名",
-    domain_purchase_purchased_expires:
-      "{{date}} 到期",
-    domain_purchase_purchased_in_progress:
-      "正在设置...",
+    domain_purchase_leave_message: "此链接将在新标签页中打开 {{host}}。",
+    domain_purchase_purchased_label: "已购域名",
+    domain_purchase_purchased_empty: "暂无已购域名",
+    domain_purchase_purchased_expires: "{{date}} 到期",
+    domain_purchase_purchased_in_progress: "正在设置...",
     domain_purchase_terms_notice:
       "Aster 通过我们的注册商合作伙伴代表您注册域名，续费价格始终会在您付款前展示。如果您让某个域名过期失效，注册商可能会收取赎回费用才能将其找回。",
-    domain_purchase_terms_aster:
-      "Aster 服务条款",
-    domain_purchase_terms_registrar:
-      "NameSilo 条款和条件",
-    domain_purchase_terms_icann:
-      "ICANN 注册人权利与责任",
-    domain_purchase_detail_privacy_title:
-      "默认私密",
-    domain_purchase_detail_setup_title:
-      "零配置",
-    domain_purchase_detail_instant_title:
-      "秒级就绪",
-    domain_purchase_detail_ownership_title:
-      "完全归您所有",
+    domain_purchase_terms_aster: "Aster 服务条款",
+    domain_purchase_terms_registrar: "NameSilo 条款和条件",
+    domain_purchase_terms_icann: "ICANN 注册人权利与责任",
+    domain_purchase_detail_privacy_title: "默认私密",
+    domain_purchase_detail_setup_title: "零配置",
+    domain_purchase_detail_instant_title: "秒级就绪",
+    domain_purchase_detail_ownership_title: "完全归您所有",
     domain_promo_cta: "关联您的域名",
     allowlist_popup_description:
       "来自此发件人或域名的邮件将永远不会被标记为垃圾邮件，并始终到达您的收件箱。",
@@ -4902,11 +4928,16 @@ export const zh_CN = {
     criterion_login_alerts: "登录提醒",
     criterion_forward_secrecy: "前向保密",
     action_recommended: "建议操作",
-    two_step_verification_enabled_description: "您的账户在密码之外还需要验证码。",
-    two_step_verification_recommendation: "开启两步验证，即使密码被盗也能保护您的账户安全。",
-    no_passkeys_recommendation: "添加通行密钥，使用设备的生物识别或PIN码更快、更安全地登录。",
-    password_weak_recommendation: "您的密码强度不够。建议更换为更长、更独特的密码。",
-    login_alerts_off_recommendation: "开启登录提醒，以便在有新设备登录您的账户时收到通知。",
+    two_step_verification_enabled_description:
+      "您的账户在密码之外还需要验证码。",
+    two_step_verification_recommendation:
+      "开启两步验证，即使密码被盗也能保护您的账户安全。",
+    no_passkeys_recommendation:
+      "添加通行密钥，使用设备的生物识别或PIN码更快、更安全地登录。",
+    password_weak_recommendation:
+      "您的密码强度不够。建议更换为更长、更独特的密码。",
+    login_alerts_off_recommendation:
+      "开启登录提醒，以便在有新设备登录您的账户时收到通知。",
     block_tracking_links: "屏蔽追踪链接",
     block_tracking_links_description:
       "去除链接中的重定向追踪器，使链接直接指向目标",
@@ -4936,10 +4967,12 @@ export const zh_CN = {
     export_step_complete_title: "导出完成",
     export_scope_mail_title: "邮件",
     export_scope_mail_body: "导出您的邮件和对话",
-    export_scope_mail_help: "MBOX 将所有邮件合并为一个文件;.EML 将每封邮件单独保存。两种格式都适用于大多数桌面邮件客户端。",
+    export_scope_mail_help:
+      "MBOX 将所有邮件合并为一个文件;.EML 将每封邮件单独保存。两种格式都适用于大多数桌面邮件客户端。",
     export_scope_contacts_title: "联系人",
     export_scope_contacts_body: "导出您的通讯录",
-    export_scope_contacts_help: "vCard 4.0 是大多数应用可直接导入的通用联系人格式。额外的 JSON 文件会保留 vCard 无法存储的字段。",
+    export_scope_contacts_help:
+      "vCard 4.0 是大多数应用可直接导入的通用联系人格式。额外的 JSON 文件会保留 vCard 无法存储的字段。",
     export_scope_settings_title: "设置",
     export_scope_settings_body: "导出您的账户偏好设置",
     export_scope_preset_all: "全部内容",
@@ -4971,7 +5004,8 @@ export const zh_CN = {
     export_security_vault_row_title: "加密保险库密码短语",
     export_security_vault_row_body:
       "本地保险库密码短语用于在导出前确认此设备并解密邮件。",
-    export_security_vault_row_help: "这是此设备本地保险库的密码短语,并非您的账户密码。它仅在此设备上解锁您的加密密钥。",
+    export_security_vault_row_help:
+      "这是此设备本地保险库的密码短语,并非您的账户密码。它仅在此设备上解锁您的加密密钥。",
     export_security_required_badge: "必需",
     export_progress_messages: "{{processed}}/{{total}} 封邮件",
     export_progress_current_folder: "当前文件夹：{{folder}}",
@@ -6504,9 +6538,11 @@ export const zh_CN = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "删除通行密钥？",
-    delete_passkey_description: "“{{name}}”将从您的账户中移除。您将无法再使用它登录。",
+    delete_passkey_description:
+      "“{{name}}”将从您的账户中移除。您将无法再使用它登录。",
     delete_security_key_title: "删除安全密钥？",
-    delete_security_key_description: "“{{name}}”将从您的账户中移除。它将无法再作为第二因素使用。",
+    delete_security_key_description:
+      "“{{name}}”将从您的账户中移除。它将无法再作为第二因素使用。",
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -6663,7 +6699,8 @@ export const zh_CN = {
       "您的私钥在此设备上被锁定。您的密码可以解锁它们。服务器上的密钥未受影响。",
     session_expired_login:
       "您的会话已结束。重新登录后可以接着之前的进度。您的数据和草稿都已保存在服务器上。",
-    session_identity_mismatch: "此设备曾登录另一个账户，为了保持账户彼此独立，我们已将你退出登录。重新登录即可，你的数据未受影响。",
+    session_identity_mismatch:
+      "此设备曾登录另一个账户，为了保持账户彼此独立，我们已将你退出登录。重新登录即可，你的数据未受影响。",
     key_material_unavailable:
       "您的私钥在此设备上被锁定。您的密码可以解锁它们。服务器上的密钥未受影响。",
     storage_compromised:
@@ -7016,7 +7053,8 @@ export const zh_CN = {
   },
   survey: {
     banner_title: "帮助我们改进 Aster Mail",
-    banner_message: "帮助塑造 Aster:一次性问卷,约一分钟。您的回答保持私密,绝不共享。",
+    banner_message:
+      "帮助塑造 Aster:一次性问卷,约一分钟。您的回答保持私密,绝不共享。",
     banner_take: "参与问卷",
     banner_dismiss: "关闭",
     remind_tomorrow: "明天提醒我",
@@ -7028,7 +7066,8 @@ export const zh_CN = {
     source_youtube: "YouTube 或内容创作者",
     source_friend: "朋友或口碑推荐",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "隐私目录 (Privacy Guides、PRISM Break、awesome-privacy)",
+    source_privacy_directory:
+      "隐私目录 (Privacy Guides、PRISM Break、awesome-privacy)",
     source_search_engine: "搜索引擎",
     q_signup_reason: "注册时您主要在寻找什么?",
     signup_e2ee: "端到端加密",
@@ -7065,6 +7104,7 @@ export const zh_CN = {
     required_error: "请回答此问题",
     submit: "提交",
     submit_failed: "无法提交问卷,请重试。",
-    submitted_thanks: "谢谢!您的反馈让 Aster Mail 对每个人都更好。我们会认真阅读每一条回答。",
+    submitted_thanks:
+      "谢谢!您的反馈让 Aster Mail 对每个人都更好。我们会认真阅读每一条回答。",
   },
 };
