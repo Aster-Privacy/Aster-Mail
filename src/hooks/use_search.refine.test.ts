@@ -63,10 +63,12 @@ vi.mock("@/workers/pgp_decrypt_pool", () => ({
 import { parse_search_query } from "@/utils/search_operators";
 import {
   can_refine_scan,
+  candidates_are_cacheable,
   operators_equal,
   options_signature,
   passes_search_filters,
   type ScanCacheEntry,
+  type ScanCandidate,
   type SearchOptions,
 } from "@/hooks/use_search";
 
@@ -274,6 +276,42 @@ describe("can_refine_scan", () => {
         parse_search_query("is:unread").operators,
         options_signature(),
         index_state,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("candidates_are_cacheable", () => {
+  function make_candidate(body_chars: number): ScanCandidate {
+    return {
+      item: make_item(),
+      entry: {
+        envelope: null,
+        metadata: null,
+        search_body_text: "x".repeat(body_chars),
+        meta_fp: "fp",
+        has_body: true,
+      },
+      result: {} as ScanCandidate["result"],
+    };
+  }
+
+  it("accepts an empty candidate set", () => {
+    expect(candidates_are_cacheable([])).toBe(true);
+  });
+
+  it("accepts a modest candidate set", () => {
+    expect(
+      candidates_are_cacheable(
+        Array.from({ length: 100 }, () => make_candidate(1000)),
+      ),
+    ).toBe(true);
+  });
+
+  it("refuses a candidate set that would retain too much body text", () => {
+    expect(
+      candidates_are_cacheable(
+        Array.from({ length: 500 }, () => make_candidate(20_000)),
       ),
     ).toBe(false);
   });
