@@ -19,8 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { act } from "react";
+import { act, forwardRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
+
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (k: string) => k }),
@@ -39,11 +44,14 @@ vi.mock("@/components/mobile/mobile_bottom_sheet", () => ({
 let verify_captcha: ((token: string) => void) | null = null;
 
 vi.mock("@/components/auth/turnstile_widget", () => ({
-  TurnstileWidget: ({ on_verify }: { on_verify: (token: string) => void }) => {
+  TurnstileWidget: forwardRef<
+    HTMLDivElement,
+    { on_verify: (token: string) => void }
+  >(({ on_verify }, ref) => {
     verify_captcha = on_verify;
 
-    return <div data-testid="turnstile" />;
-  },
+    return <div ref={ref} data-testid="turnstile" />;
+  }),
   TURNSTILE_SITE_KEY: "test-site-key",
 }));
 

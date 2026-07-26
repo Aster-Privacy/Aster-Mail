@@ -310,10 +310,12 @@ describe("failure handling", () => {
       createObjectURL: () => "blob:stub",
       revokeObjectURL: () => undefined,
     });
+    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("reports unsupported for a non image payload", async () => {

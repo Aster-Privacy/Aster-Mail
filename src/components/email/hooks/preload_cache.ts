@@ -115,7 +115,7 @@ const EMPTY_EXTERNAL_CONTENT: ExternalContentReport = {
 
 const preload_cache = new Map<string, PreloadedEmail>();
 const preload_in_flight = new Map<string, Promise<void>>();
-const MAX_PRELOAD_CACHE_SIZE = 100;
+const MAX_PRELOAD_CACHE_SIZE = 30;
 
 if (typeof window !== "undefined") {
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, () => clear_preload_cache());

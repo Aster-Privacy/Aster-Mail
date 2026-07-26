@@ -39,6 +39,7 @@ import {
   create_rule,
   update_rule,
   delete_rule,
+  run_on_existing,
 } from "@/stores/mail_rules_store";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import type { ChipSegmentKind } from "@/components/mail_rules/condition_chip";
@@ -62,6 +63,7 @@ import type {
   MatchMode,
   Rule,
 } from "@/services/api/mail_rules";
+import { find_regex_condition_error } from "@/services/api/mail_rules";
 import type { RuleEditorSeed } from "@/components/mail_rules/rule_templates";
 import {
   parse as parse_expression,
@@ -116,6 +118,14 @@ const ADDABLE_ACTION_TYPES: AddableActionType[] = [
   "categorize",
   "notify",
 ];
+
+const UNAVAILABLE_ACTION_TYPES = new Set<AddableActionType>([
+  "forward",
+  "auto_reply",
+]);
+
+const strip_unavailable_actions = (list: Action[]): Action[] =>
+  list.filter((a) => !UNAVAILABLE_ACTION_TYPES.has(a.type as AddableActionType));
 
 const ACTION_LABEL_KEYS: Record<
   AddableActionType,
@@ -252,6 +262,7 @@ export function RuleEditorModal({
     React.useState<ChipSegmentKind>(null);
   const [saving, set_saving] = React.useState(false);
   const [confirm_delete_open, set_confirm_delete_open] = React.useState(false);
+  const [running_existing, set_running_existing] = React.useState(false);
   const [tab, set_tab] = React.useState<EditorTab>("visual");
   const [expression_text, set_expression_text] = React.useState("");
   const [expression_error, set_expression_error] = React.useState<{
@@ -277,7 +288,7 @@ export function RuleEditorModal({
       set_color(rule.color || RULE_COLORS[0]);
       set_match_mode(rule.match_mode);
       set_conditions(rule.conditions);
-      set_actions(rule.actions);
+      set_actions(strip_unavailable_actions(rule.actions));
       if (rule.expression) {
         set_expression_text(rule.expression);
         set_tab("expression");
@@ -300,7 +311,7 @@ export function RuleEditorModal({
       set_color(seed.color || RULE_COLORS[0]);
       set_match_mode(seed.match_mode);
       set_conditions(seed.conditions);
-      set_actions(seed.actions);
+      set_actions(strip_unavailable_actions(seed.actions));
       const nested = has_nested_logic(seed.conditions);
       if (nested) {
         const synthetic: Condition =
@@ -358,16 +369,15 @@ export function RuleEditorModal({
     (type) => ({
       type,
       label_key: ACTION_LABEL_KEYS[type],
-      disabled: action_present[type] || type === "auto_reply",
-      disabled_hint_key:
-        type === "auto_reply"
-          ? ("mail_rules.coming_soon" as "mail_rules.action_move_to")
-          : undefined,
+      disabled: action_present[type] || UNAVAILABLE_ACTION_TYPES.has(type),
+      disabled_hint_key: UNAVAILABLE_ACTION_TYPES.has(type)
+        ? ("mail_rules.coming_soon" as "mail_rules.action_move_to")
+        : undefined,
     }),
   );
 
   const remaining_addable = ADDABLE_ACTION_TYPES.filter(
-    (type) => !action_present[type] && type !== "auto_reply",
+    (type) => !action_present[type] && !UNAVAILABLE_ACTION_TYPES.has(type),
   );
 
   const replace_action_at = (index: number, next: Action) => {
@@ -522,6 +532,19 @@ export function RuleEditorModal({
     }
   };
 
+  const handle_run_on_existing = async () => {
+    if (!rule) return;
+    set_running_existing(true);
+    const ok = await run_on_existing(rule.id);
+    set_running_existing(false);
+    show_toast(
+      ok
+        ? t("mail_rules.apply_to_existing_started")
+        : t("mail_rules.apply_to_existing_failed"),
+      ok ? "success" : "error",
+    );
+  };
+
   const handle_delete = async () => {
     if (!rule) return;
     set_saving(true);
@@ -530,12 +553,29 @@ export function RuleEditorModal({
     on_close();
   };
 
+  const regex_hint = (error: string | null): string | null =>
+    error
+      ? t(`mail_rules.${error}` as
+          | "mail_rules.regex_invalid"
+          | "mail_rules.regex_empty"
+          | "mail_rules.regex_too_long"
+          | "mail_rules.regex_backreference"
+          | "mail_rules.regex_lookaround")
+      : null;
+
   const disabled_hint: string | null = (() => {
     if (!name.trim()) return t("mail_rules.hint_name_required");
     if (tab === "expression") {
       if (!expression_text.trim())
         return t("mail_rules.hint_conditions_required");
       if (expression_error) return t("mail_rules.expression_parse_error");
+      const parsed = parse_expression(expression_text);
+
+      if (parsed.ok) {
+        const hint = regex_hint(find_regex_condition_error([parsed.ast]));
+
+        if (hint) return hint;
+      }
       if (actions.length === 0 || !has_any_action_value(actions)) {
         return t("mail_rules.hint_actions_required");
       }
@@ -556,6 +596,9 @@ export function RuleEditorModal({
       .some((c) => !condition_has_value(c));
 
     if (any_incomplete) return t("mail_rules.hint_condition_incomplete");
+    const regex_problem = regex_hint(find_regex_condition_error(conditions));
+
+    if (regex_problem) return regex_problem;
     if (actions.length === 0 || !has_any_action_value(actions)) {
       return t("mail_rules.hint_actions_required");
     }
@@ -765,16 +808,25 @@ export function RuleEditorModal({
       </ModalBody>
 
       <ModalFooter className="justify-between">
-        <div>
+        <div className="flex items-center gap-1">
           {is_edit && (
-            <Button
-              variant="ghost"
-              onClick={() => set_confirm_delete_open(true)}
-              disabled={saving}
-              className="text-rose-500 hover:text-rose-600"
-            >
-              {t("mail_rules.delete")}
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => set_confirm_delete_open(true)}
+                disabled={saving || running_existing}
+                className="text-rose-500 hover:text-rose-600"
+              >
+                {t("mail_rules.delete")}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handle_run_on_existing}
+                disabled={saving || running_existing}
+              >
+                {t("mail_rules.apply_to_existing")}
+              </Button>
+            </>
           )}
         </div>
         <div className="flex flex-col items-end gap-1">

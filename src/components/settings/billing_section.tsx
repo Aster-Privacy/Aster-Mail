@@ -63,6 +63,7 @@ import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
+import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
@@ -116,6 +117,8 @@ export function BillingSection() {
   const [cancel_password, set_cancel_password] = useState("");
   const [cancel_password_error, set_cancel_password_error] = useState("");
   const [show_cancel_password, set_show_cancel_password] = useState(false);
+  const [cancel_reason, set_cancel_reason] = useState<CancelReason | null>(null);
+  const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [show_payment_methods, set_show_payment_methods] = useState(false);
   const [show_manage_plan, set_show_manage_plan] = useState(false);
   const [credit_balance, set_credit_balance] =
@@ -566,12 +569,18 @@ export function BillingSection() {
         salt,
       );
 
-      const response = await cancel_subscription(password_hash);
+      const response = await cancel_subscription(
+        password_hash,
+        cancel_reason ?? undefined,
+        cancel_reason_text.trim() || undefined,
+      );
 
       if (response.data) {
         show_toast(t("settings.subscription_cancelled"), "success");
         set_cancel_password("");
         set_show_cancel_password(false);
+        set_cancel_reason(null);
+        set_cancel_reason_text("");
         request_cache.invalidate("/payments/v1");
         await load_data();
       } else {
@@ -878,6 +887,8 @@ export function BillingSection() {
         billing_period={billing_period}
         cancel_password={cancel_password}
         cancel_password_error={cancel_password_error}
+        cancel_reason={cancel_reason}
+        cancel_reason_text={cancel_reason_text}
         checkout_addon={checkout_addon}
         handle_cancel={handle_cancel}
         handle_switch_billing={handle_switch_billing}
@@ -888,6 +899,8 @@ export function BillingSection() {
         set_addon_to_cancel={set_addon_to_cancel}
         set_cancel_password={set_cancel_password}
         set_cancel_password_error={set_cancel_password_error}
+        set_cancel_reason={set_cancel_reason}
+        set_cancel_reason_text={set_cancel_reason_text}
         set_checkout_addon={set_checkout_addon}
         set_is_action_loading={set_is_action_loading}
         set_selected_plan={set_selected_plan}

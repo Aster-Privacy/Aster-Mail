@@ -29,6 +29,7 @@ import {
   PencilSquareIcon,
   EyeSlashIcon,
   ChartBarIcon,
+  InboxArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
@@ -908,6 +909,65 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
 }
 
 
+function DeliveryPanel({
+  never_inbox,
+  on_save,
+  on_saved,
+}: {
+  never_inbox?: boolean;
+  on_save: (next: boolean) => Promise<{ error?: unknown }>;
+  on_saved: (next: boolean) => void;
+}) {
+  const { t } = use_i18n();
+  const [enabled, set_enabled] = useState(!!never_inbox);
+  const [saving, set_saving] = useState(false);
+
+  const handle_change = async (next: boolean) => {
+    set_enabled(next);
+    set_saving(true);
+    const response = await on_save(next);
+
+    set_saving(false);
+    if (response.error) {
+      set_enabled(!next);
+      show_toast(t("settings.alias_never_inbox_error"), "error");
+
+      return;
+    }
+    on_saved(next);
+  };
+
+  return (
+    <div className="space-y-2">
+      <SectionTitle icon={<InboxArrowDownIcon className="w-4 h-4" />}>
+        {t("settings.alias_delivery_title")}
+      </SectionTitle>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm text-txt-primary">
+              {t("settings.alias_never_inbox")}
+            </p>
+            <InfoHint
+              tip={t("settings.alias_never_inbox_info")}
+              title={t("settings.alias_never_inbox")}
+            />
+          </div>
+          <p className="text-xs text-txt-muted">
+            {t("settings.alias_never_inbox_desc")}
+          </p>
+        </div>
+        <Switch size="lg"
+          aria-label={t("settings.alias_never_inbox")}
+          checked={enabled}
+          disabled={saving}
+          onCheckedChange={handle_change}
+        />
+      </div>
+    </div>
+  );
+}
+
 interface AliasDetailsProps {
   alias_address: string;
   alias_address_hash?: string;
@@ -967,8 +1027,24 @@ function AliasDetailsPanel({
 }
 
 type AliasAdvancedPanelProps =
-  | (AliasDetailsProps & { alias_id: string; domain_address_id?: never; alias_local_part?: never; alias_domain?: never })
-  | { alias_id?: never; domain_address_id: string; alias_local_part: string; alias_domain: string };
+  | (AliasDetailsProps & {
+      alias_id: string;
+      never_inbox?: boolean;
+      on_save_never_inbox?: (next: boolean) => Promise<{ error?: unknown }>;
+      on_saved_never_inbox?: (next: boolean) => void;
+      domain_address_id?: never;
+      alias_local_part?: never;
+      alias_domain?: never;
+    })
+  | {
+      alias_id?: never;
+      never_inbox?: never;
+      on_save_never_inbox?: never;
+      on_saved_never_inbox?: never;
+      domain_address_id: string;
+      alias_local_part: string;
+      alias_domain: string;
+    };
 
 export function AliasAdvancedPanel(props: AliasAdvancedPanelProps) {
   const { alias_id, domain_address_id, alias_local_part, alias_domain } = props;
@@ -1003,6 +1079,13 @@ export function AliasAdvancedPanel(props: AliasAdvancedPanelProps) {
           on_saved_note={props.on_saved_note}
           on_saved_websites={props.on_saved_websites}
           websites={props.websites}
+        />
+      )}
+      {alias_id && props.on_save_never_inbox && props.on_saved_never_inbox && (
+        <DeliveryPanel
+          never_inbox={props.never_inbox}
+          on_save={props.on_save_never_inbox}
+          on_saved={props.on_saved_never_inbox}
         />
       )}
       {alias_id && !delivery_log_locked && <StatsPanel alias_id={alias_id} />}

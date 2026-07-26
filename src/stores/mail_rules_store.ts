@@ -171,26 +171,16 @@ export async function reorder(ordered_ids: string[]): Promise<boolean> {
   return true;
 }
 
-export async function run_on_existing(
-  id: string,
-): Promise<{ matched: number; applied: number } | null> {
+export async function run_on_existing(id: string): Promise<boolean> {
   const response = await api_run_on_existing(id);
 
   if (response.data) {
-    const next = state.rules.map((r) =>
-      r.id === id
-        ? { ...r, applied_count: r.applied_count + response.data!.applied }
-        : r,
-    );
-
-    set_state({ rules: next });
-
-    return response.data;
+    return true;
   }
 
   set_state({ error: response.error || "Failed to run rule" });
 
-  return null;
+  return false;
 }
 
 export function clear_error(): void {

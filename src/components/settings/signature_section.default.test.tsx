@@ -45,6 +45,26 @@ vi.mock("@/lib/i18n/context", () => ({
   }),
 }));
 
+const MOTION_ONLY_PROPS = vi.hoisted(() => new Set([
+  "initial",
+  "animate",
+  "exit",
+  "transition",
+  "variants",
+  "layout",
+  "layoutId",
+  "whileHover",
+  "whileTap",
+  "whileFocus",
+  "whileDrag",
+  "whileInView",
+  "viewport",
+  "drag",
+  "dragConstraints",
+  "onAnimationStart",
+  "onAnimationComplete",
+]));
+
 vi.mock("framer-motion", () => ({
   motion: new Proxy(
     {},
@@ -52,7 +72,15 @@ vi.mock("framer-motion", () => ({
       get:
         () =>
         ({ children, ...rest }: { children?: React.ReactNode }) => (
-          <div {...rest}>{children}</div>
+          <div
+            {...Object.fromEntries(
+              Object.entries(rest).filter(
+                ([key]) => !MOTION_ONLY_PROPS.has(key),
+              ),
+            )}
+          >
+            {children}
+          </div>
         ),
     },
   ),

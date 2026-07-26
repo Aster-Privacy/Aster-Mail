@@ -43,6 +43,68 @@ vi.mock("@/components/ui/profile_avatar", () => ({
   ProfileAvatar: () => null,
 }));
 
+const MOTION_ONLY_PROPS = vi.hoisted(
+  () =>
+    new Set([
+      "initial",
+      "animate",
+      "exit",
+      "transition",
+      "variants",
+      "layout",
+      "layoutId",
+      "whileHover",
+      "whileTap",
+      "whileFocus",
+      "whileDrag",
+      "whileInView",
+      "viewport",
+      "drag",
+      "dragConstraints",
+      "onAnimationStart",
+      "onAnimationComplete",
+    ]),
+);
+
+vi.mock("framer-motion", async () => {
+  const { forwardRef } = await import("react");
+  const cache = new Map<string, unknown>();
+
+  return {
+    motion: new Proxy(
+      {},
+      {
+        get: (_target, key: string) => {
+          if (!cache.has(key)) {
+            cache.set(
+              key,
+              forwardRef<HTMLDivElement, { children?: React.ReactNode }>(
+                ({ children, ...rest }, ref) => (
+                  <div
+                    ref={ref}
+                    {...Object.fromEntries(
+                      Object.entries(rest).filter(
+                        ([prop]) => !MOTION_ONLY_PROPS.has(prop),
+                      ),
+                    )}
+                  >
+                    {children}
+                  </div>
+                ),
+              ),
+            );
+          }
+
+          return cache.get(key);
+        },
+      },
+    ),
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+      <>{children}</>
+    ),
+  };
+});
+
 import { SenderSelector } from "@/components/compose/sender_selector";
 
 Element.prototype.scrollIntoView = () => {};

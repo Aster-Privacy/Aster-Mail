@@ -476,9 +476,7 @@ export function mail_to_email(
     ...(forwarding ?? {}),
     subject: envelope.subject || "",
     preview: preview_text,
-    body_html: is_undecryptable_body
-      ? RATCHET_UNDECRYPTABLE_SENTINEL
-      : resolved_html || resolved_text,
+    body_html: is_undecryptable_body ? RATCHET_UNDECRYPTABLE_SENTINEL : "",
     timestamp: format_timestamp(new Date(raw_ts), format_options),
     raw_timestamp: raw_ts,
     is_pinned: effective_metadata.is_pinned,
@@ -491,7 +489,9 @@ export function mail_to_email(
     has_attachment: effective_metadata.has_attachments,
     category: "",
     category_color: "",
-    mail_category: classify(envelope, metadata),
+    mail_category: classify(envelope, metadata, {
+      rule_category: item.rule_category,
+    }),
     avatar_url: sender_profile?.profile_picture || "",
     is_encrypted: false,
     is_external: item.is_external,
@@ -872,7 +872,9 @@ export async function fetch_mail_from_api(
               thread_token: item.thread_token,
               message_ts: item.message_ts || item.created_at,
               is_read: item.is_read === true || (metadata?.is_read ?? false),
-              category: classify(envelope!, metadata),
+              category: classify(envelope!, metadata, {
+                rule_category: item.rule_category,
+              }),
               category_pinned:
                 metadata?.category_pinned === true && !!metadata?.category,
             },

@@ -242,6 +242,7 @@ interface AliasItemProps {
   on_display_name_saved?: (alias_id: string, name: string) => void;
   on_note_saved?: (alias_id: string, note: string) => void;
   on_websites_saved?: (alias_id: string, websites: string[]) => void;
+  on_never_inbox_saved?: (alias_id: string, value: boolean) => void;
   toggling: boolean;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -260,6 +261,7 @@ export function AliasItem({
   on_display_name_saved,
   on_note_saved,
   on_websites_saved,
+  on_never_inbox_saved,
   toggling,
   deleting,
   is_avatar_locked,
@@ -527,7 +529,14 @@ export function AliasItem({
             alias_id={alias.id}
             display_name={alias.display_name}
             is_locked={is_avatar_locked}
+            never_inbox={alias.never_inbox}
             note={alias.note}
+            on_save_never_inbox={(value) =>
+              update_alias(alias.id, { never_inbox: value })
+            }
+            on_saved_never_inbox={(value) =>
+              on_never_inbox_saved?.(alias.id, value)
+            }
             on_save_display_name={(name) =>
               update_alias(alias.id, { display_name: name })
             }

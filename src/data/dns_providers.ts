@@ -69,6 +69,12 @@ export const DNS_PROVIDERS: DnsProvider[] = [
     instructions_key: "porkbun",
   },
   {
+    id: "namesilo",
+    name: "NameSilo",
+    ns_patterns: [/\.namesilo\.com$/i, /\.dnsowl\.com$/i],
+    instructions_key: "namesilo",
+  },
+  {
     id: "gandi",
     name: "Gandi",
     ns_patterns: [/\.gandi\.net$/i],

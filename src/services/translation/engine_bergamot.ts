@@ -98,6 +98,7 @@ class SelfHostedBacking extends TranslatorBacking {
 }
 
 const TRANSLATE_TIMEOUT_MS = 30000;
+const COLD_TRANSLATE_TIMEOUT_MS = 120000;
 
 function with_deadline<T>(
   work: Promise<T>,
@@ -165,6 +166,7 @@ class BergamotEngine implements TranslationEngine {
   private backing: SelfHostedBacking | null = null;
   private translator: BatchTranslator | null = null;
   private availability: Promise<AvailabilityMap> | null = null;
+  private warmed = false;
 
   private get_backing(): SelfHostedBacking {
     if (!this.backing) {
@@ -246,12 +248,15 @@ class BergamotEngine implements TranslationEngine {
     if (signal.aborted) throw new EngineUnavailableError("aborted");
 
     const translator = this.get_translator();
+    const timeout = this.warmed
+      ? TRANSLATE_TIMEOUT_MS
+      : COLD_TRANSLATE_TIMEOUT_MS;
 
-    let results: string[];
+    let settled: PromiseSettledResult<string>[];
 
     try {
-      results = await with_deadline(
-        Promise.all(
+      settled = await with_deadline(
+        Promise.allSettled(
           segments.map(async (text) => {
             if (!text.trim()) return text;
 
@@ -266,7 +271,7 @@ class BergamotEngine implements TranslationEngine {
           }),
         ),
         signal,
-        TRANSLATE_TIMEOUT_MS,
+        timeout,
       );
     } catch (error) {
       if (!signal.aborted) this.reset_translator();
@@ -275,6 +280,22 @@ class BergamotEngine implements TranslationEngine {
     }
 
     if (signal.aborted) throw new EngineUnavailableError("aborted");
+
+    const results: string[] = [];
+
+    for (const outcome of settled) {
+      if (outcome.status === "rejected") {
+        this.reset_translator();
+
+        throw outcome.reason instanceof Error
+          ? outcome.reason
+          : new EngineUnavailableError(String(outcome.reason));
+      }
+
+      results.push(outcome.value);
+    }
+
+    this.warmed = true;
 
     return results;
   }
@@ -285,6 +306,7 @@ class BergamotEngine implements TranslationEngine {
     } catch {}
 
     this.translator = null;
+    this.warmed = false;
   }
 
   release(): void {

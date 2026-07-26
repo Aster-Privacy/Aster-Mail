@@ -331,6 +331,18 @@ export function DomainSetupWizard({
               <p className="text-xs mt-2 text-txt-muted">
                 {t("settings.domain_without_www_note")}
               </p>
+              <button
+                className="text-xs mt-1.5 text-txt-muted hover:text-[var(--accent-color)] hover:underline transition-colors"
+                type="button"
+                onClick={() => {
+                  on_close();
+                  window.dispatchEvent(
+                    new CustomEvent("aster:open-domain-purchase"),
+                  );
+                }}
+              >
+                {t("settings.domain_purchase_dont_have")}
+              </button>
               {turnstile_required && (
                 <div className="flex justify-center mt-4">
                   <TurnstileWidget

@@ -71,12 +71,22 @@ import {
   secure_remove,
 } from "@/services/crypto/secure_storage";
 import {
-  build_snapshot,
   clear_search_snapshots,
-  load_search_snapshot,
   metadata_fingerprint,
-  save_search_snapshot,
+  open_snapshot_reader,
+  open_snapshot_writer,
+  slim_envelope_for_index,
+  trim_item_for_index,
+  SNAPSHOT_CHUNK_SIZE,
+  type PersistedSearchEntry,
+  type SnapshotMeta,
+  type SnapshotWriter,
 } from "@/services/search_index_store";
+import {
+  build_chunk_skip_plan,
+  date_boundary_local,
+  type ChunkSkipPlan,
+} from "@/services/search_chunk_filter";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 export interface ActiveFilter {
@@ -415,7 +425,7 @@ interface QuickFilter {
   operator: string;
 }
 
-interface SearchOptions {
+export interface SearchOptions {
   fields?: string[];
   filters?: {
     has_attachments?: boolean;
@@ -427,7 +437,7 @@ interface SearchOptions {
   search_body?: boolean;
 }
 
-interface DecryptedIndexEntry {
+export interface DecryptedIndexEntry {
   envelope: DecryptedEnvelope | null;
   metadata: MailItemMetadata | null;
   search_body_text: string;
@@ -435,18 +445,28 @@ interface DecryptedIndexEntry {
   has_body: boolean;
 }
 
-interface CachedIndex {
+export interface CachedIndex {
   items: MailItem[];
   decrypted: Map<string, DecryptedIndexEntry>;
   built_at: number;
   include_body: boolean;
   user_email: string;
+  disk_chunk_ids: number[];
+  total_indexed: number;
+  complete: boolean;
+  meta: SnapshotMeta | null;
 }
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 const ENVELOPE_FETCH_CHUNK = 100;
-const MAX_INDEX_ITEMS = 30000;
+const INDEX_PAGE_LIMIT = 500;
+const ENVELOPE_PAGE_LIMIT = 200;
+const HOT_CHUNK_COUNT = 6;
+const MAX_RAM_INDEX_ITEMS = HOT_CHUNK_COUNT * SNAPSHOT_CHUNK_SIZE;
+const MAX_INDEX_ITEMS = 1_000_000;
+const DEEP_SEGMENT_ITEMS = 10000;
+const DEEP_SEGMENT_PAUSE_MS = 1500;
 const MAX_SEARCH_RESULTS = 500;
 const INDEX_TTL_MS = 5 * 60 * 1000;
 const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
@@ -454,6 +474,7 @@ const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
 let cached_index: CachedIndex | null = null;
 let index_build_promise: Promise<CachedIndex> | null = null;
 let build_generation = 0;
+let deep_index_active = false;
 
 async function try_decrypt_with_identity_key(
   encrypted: string,
@@ -518,9 +539,7 @@ export function schedule_legacy_envelope_migration(
   if (legacy_migration_attempted.has(item_id)) return;
 
   const has_body =
-    !!envelope.body_text ||
-    !!envelope.body_html ||
-    !!envelope.html_body;
+    !!envelope.body_text || !!envelope.body_html || !!envelope.html_body;
 
   if (!has_body) return;
 
@@ -722,45 +741,50 @@ export function subscribe_index_refresh(cb: () => void): () => void {
   };
 }
 
-async function do_build_search_index(
-  user_email: string,
-  include_body: boolean,
-  prior?: Map<string, DecryptedIndexEntry>,
-): Promise<CachedIndex> {
-  const my_gen = build_generation;
-  const all_items: MailItem[] = [];
-  let cursor: string | undefined;
-  let page_count = 0;
+interface PipelineOptions {
+  user_email: string;
+  include_body: boolean;
+  prior?: Map<string, DecryptedIndexEntry>;
+  my_gen: number;
+  start_cursor?: string;
+  stop_at_id?: string;
+  max_items: number;
+  hot: CachedIndex | null;
+  writer: SnapshotWriter | null;
+  report_progress: boolean;
+}
+
+interface PipelineResult {
+  processed: number;
+  next_cursor?: string;
+  reached_boundary: boolean;
+  fresh_count: number;
+}
+
+async function run_index_pipeline(
+  options: PipelineOptions,
+): Promise<PipelineResult> {
+  const { user_email, include_body, prior, my_gen, hot, writer } = options;
   const incremental = !!prior && prior.size > 0;
+  const batch_size = include_body ? 40 : 250;
+  const page_limit = incremental ? INDEX_PAGE_LIMIT : ENVELOPE_PAGE_LIMIT;
+  let cursor = options.start_cursor;
+  let processed = 0;
+  let fresh_count = 0;
+  let known_total = 0;
+  let reached_boundary = false;
 
-  emit_indexing({ building: true, current: 0, total: 0 });
+  const cancel = (): never => {
+    throw new Error("search_index_cancelled");
+  };
 
-  do {
-    const response = await list_encrypted_mail_items({
-      cursor,
-      limit: 1000,
-      include_envelope: incremental ? false : undefined,
-    });
+  const fail = (error: string): never => {
+    throw new Error(`search_fetch_failed:${error}`);
+  };
 
-    if (my_gen !== build_generation) {
-      emit_indexing({ building: false, current: 0, total: 0 });
-      throw new Error("search_index_cancelled");
-    }
-
-    if (response.error) {
-      emit_indexing({ building: false, current: 0, total: 0 });
-      throw new Error(`search_fetch_failed:${response.error}`);
-    }
-
-    if (!response.data?.items) break;
-    all_items.push(...response.data.items);
-    cursor = response.data.next_cursor;
-    page_count++;
-  } while (cursor && all_items.length < MAX_INDEX_ITEMS);
-
-  if (all_items.length > MAX_INDEX_ITEMS) {
-    all_items.length = MAX_INDEX_ITEMS;
-  }
+  const progress = (next: Partial<IndexingProgress>): void => {
+    if (options.report_progress) emit_indexing(next);
+  };
 
   const is_reusable = (item: MailItem): boolean => {
     const prior_entry = prior?.get(item.id);
@@ -772,205 +796,578 @@ async function do_build_search_index(
     );
   };
 
-  let envelope_by_id: Map<string, MailItem> | null = null;
+  const fetch_envelopes = async (
+    ids: string[],
+  ): Promise<Map<string, MailItem>> => {
+    const by_id = new Map<string, MailItem>();
 
-  if (incremental) {
-    const need_envelope = all_items
-      .filter((item) => !is_reusable(item))
-      .map((item) => item.id);
+    for (let i = 0; i < ids.length; i += ENVELOPE_FETCH_CHUNK) {
+      const response = await list_mail_items({
+        ids: ids.slice(i, i + ENVELOPE_FETCH_CHUNK),
+      });
 
-    envelope_by_id = new Map<string, MailItem>();
-
-    for (let i = 0; i < need_envelope.length; i += ENVELOPE_FETCH_CHUNK) {
-      const chunk = need_envelope.slice(i, i + ENVELOPE_FETCH_CHUNK);
-      const response = await list_mail_items({ ids: chunk });
-
-      if (my_gen !== build_generation) {
-        emit_indexing({ building: false, current: 0, total: 0 });
-        throw new Error("search_index_cancelled");
-      }
-
-      if (response.error) {
-        emit_indexing({ building: false, current: 0, total: 0 });
-        throw new Error(`search_fetch_failed:${response.error}`);
-      }
+      if (my_gen !== build_generation) cancel();
+      if (response.error) fail(response.error);
 
       for (const full of response.data?.items ?? []) {
-        envelope_by_id.set(full.id, full);
+        by_id.set(full.id, full);
       }
     }
-  }
 
-  emit_indexing({ total: all_items.length, current: 0 });
+    return by_id;
+  };
 
-  const decrypted = new Map<string, DecryptedIndexEntry>();
-  let fresh_count = 0;
+  const decrypt_item = async (
+    item: MailItem,
+    envelope_by_id: Map<string, MailItem> | null,
+  ): Promise<{ id: string; entry: DecryptedIndexEntry; fresh: boolean }> => {
+    const meta_fp = metadata_fingerprint(item);
+    const prior_entry = prior?.get(item.id);
+    const immutable =
+      item.item_type === "received" || item.item_type === "sent";
 
-  const batch_size = include_body ? 40 : 250;
+    if (prior_entry && immutable && (prior_entry.has_body || !include_body)) {
+      if (prior_entry.meta_fp === meta_fp) {
+        return { id: item.id, entry: prior_entry, fresh: false };
+      }
 
-  for (let i = 0; i < all_items.length; i += batch_size) {
-    const batch = all_items.slice(i, i + batch_size);
+      let refreshed_metadata: MailItemMetadata | null = null;
 
-    const results = await Promise.allSettled(
-      batch.map(
-        async (
-          item,
-        ): Promise<{
-          id: string;
-          entry: DecryptedIndexEntry;
-          fresh: boolean;
-        }> => {
-          const meta_fp = metadata_fingerprint(item);
-          const prior_entry = prior?.get(item.id);
-          const immutable =
-            item.item_type === "received" || item.item_type === "sent";
+      if (item.encrypted_metadata && item.metadata_nonce) {
+        refreshed_metadata = await decrypt_mail_metadata(
+          item.encrypted_metadata,
+          item.metadata_nonce,
+          item.metadata_version,
+        );
+      }
 
-          if (
-            prior_entry &&
-            immutable &&
-            (prior_entry.has_body || !include_body)
-          ) {
-            if (prior_entry.meta_fp === meta_fp) {
-              return { id: item.id, entry: prior_entry, fresh: false };
-            }
+      return {
+        id: item.id,
+        entry: { ...prior_entry, metadata: refreshed_metadata, meta_fp },
+        fresh: true,
+      };
+    }
 
-            let refreshed_metadata: MailItemMetadata | null = null;
+    const source = envelope_by_id
+      ? (envelope_by_id.get(item.id) ?? null)
+      : item;
 
-            if (item.encrypted_metadata && item.metadata_nonce) {
-              refreshed_metadata = await decrypt_mail_metadata(
-                item.encrypted_metadata,
-                item.metadata_nonce,
-                item.metadata_version,
-              );
-            }
-
-            return {
-              id: item.id,
-              entry: { ...prior_entry, metadata: refreshed_metadata, meta_fp },
-              fresh: true,
-            };
-          }
-
-          const source = envelope_by_id
-            ? (envelope_by_id.get(item.id) ?? null)
-            : item;
-
-          if (!source?.encrypted_envelope) {
-            return {
-              id: item.id,
-              entry: prior_entry ?? {
-                envelope: null,
-                metadata: null,
-                search_body_text: "",
-                meta_fp,
-                has_body: include_body,
-              },
-              fresh: false,
-            };
-          }
-
-          const envelope = await decrypt_envelope_for_search(
-            source.encrypted_envelope,
-            source.envelope_nonce,
-            item.id,
-            item.item_type,
-          );
-
-          if (envelope?.body_text) {
-            if (include_body || !envelope.subject) {
-              const sender_email = envelope.from?.email || "";
-
-              const bundle = await decrypt_body_text_with_bundle(
-                envelope.body_text,
-                user_email,
-                sender_email,
-                item.id,
-              );
-
-              if (bundle.subject !== null && !envelope.subject) {
-                envelope.subject = bundle.subject;
-              }
-              envelope.body_text = include_body ? bundle.body : "";
-            } else {
-              envelope.body_text = "";
-            }
-          }
-          if (envelope && !include_body) {
-            envelope.body_html = "";
-            envelope.html_body = "";
-          }
-
-          let metadata: MailItemMetadata | null = null;
-
-          if (item.encrypted_metadata && item.metadata_nonce) {
-            metadata = await decrypt_mail_metadata(
-              item.encrypted_metadata,
-              item.metadata_nonce,
-              item.metadata_version,
-            );
-          }
-
-          return {
-            id: item.id,
-            entry: {
-              envelope,
-              metadata,
-              search_body_text: envelope?.body_text
-                ? strip_html_tags(envelope.body_text).toLowerCase()
-                : "",
-              meta_fp,
-              has_body: include_body,
-            },
-            fresh: true,
-          };
+    if (!source?.encrypted_envelope) {
+      return {
+        id: item.id,
+        entry: prior_entry ?? {
+          envelope: null,
+          metadata: null,
+          search_body_text: "",
+          meta_fp,
+          has_body: include_body,
         },
-      ),
+        fresh: false,
+      };
+    }
+
+    const envelope = await decrypt_envelope_for_search(
+      source.encrypted_envelope,
+      source.envelope_nonce,
+      item.id,
+      item.item_type,
     );
 
-    for (const result of results) {
-      if (result.status === "fulfilled") {
-        if (result.value.fresh) fresh_count++;
-        decrypted.set(result.value.id, result.value.entry);
+    if (envelope?.body_text) {
+      if (include_body || !envelope.subject) {
+        const sender_email = envelope.from?.email || "";
+
+        const bundle = await decrypt_body_text_with_bundle(
+          envelope.body_text,
+          user_email,
+          sender_email,
+          item.id,
+        );
+
+        if (bundle.subject !== null && !envelope.subject) {
+          envelope.subject = bundle.subject;
+        }
+        envelope.body_text = include_body ? bundle.body : "";
+      } else {
+        envelope.body_text = "";
+      }
+    }
+    if (envelope && !include_body) {
+      envelope.body_html = "";
+      envelope.html_body = "";
+    }
+
+    let metadata: MailItemMetadata | null = null;
+
+    if (item.encrypted_metadata && item.metadata_nonce) {
+      metadata = await decrypt_mail_metadata(
+        item.encrypted_metadata,
+        item.metadata_nonce,
+        item.metadata_version,
+      );
+    }
+
+    return {
+      id: item.id,
+      entry: {
+        envelope: envelope ? slim_envelope_for_index(envelope) : null,
+        metadata,
+        search_body_text: envelope?.body_text
+          ? strip_html_tags(envelope.body_text).toLowerCase()
+          : "",
+        meta_fp,
+        has_body: include_body,
+      },
+      fresh: true,
+    };
+  };
+
+  const decrypt_page = async (
+    page_items: MailItem[],
+    envelope_by_id: Map<string, MailItem> | null,
+  ): Promise<Map<string, DecryptedIndexEntry>> => {
+    const page_entries = new Map<string, DecryptedIndexEntry>();
+
+    for (let i = 0; i < page_items.length; i += batch_size) {
+      const batch = page_items.slice(i, i + batch_size);
+
+      const results = await Promise.allSettled(
+        batch.map((item) => decrypt_item(item, envelope_by_id)),
+      );
+
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          if (result.value.fresh) fresh_count++;
+          page_entries.set(result.value.id, result.value.entry);
+        }
+      }
+
+      if (my_gen !== build_generation) cancel();
+
+      processed += batch.length;
+      progress({ current: processed });
+
+      await new Promise<void>((r) => setTimeout(r, 0));
+    }
+
+    return page_entries;
+  };
+
+  do {
+    const response = await list_encrypted_mail_items({
+      cursor,
+      limit: page_limit,
+      include_envelope: incremental ? false : undefined,
+    });
+
+    if (my_gen !== build_generation) cancel();
+    if (response.error) fail(response.error);
+    if (!response.data?.items?.length) {
+      cursor = undefined;
+      break;
+    }
+
+    cursor = response.data.next_cursor;
+
+    if (response.data.total) {
+      known_total = Math.min(response.data.total, options.max_items);
+    }
+
+    let page_items = response.data.items;
+
+    if (options.stop_at_id) {
+      const boundary = page_items.findIndex(
+        (item) => item.id === options.stop_at_id,
+      );
+
+      if (boundary >= 0) {
+        page_items = page_items.slice(0, boundary);
+        reached_boundary = true;
+      }
+    }
+
+    const room = options.max_items - processed;
+
+    if (page_items.length > room) {
+      page_items = page_items.slice(0, room);
+    }
+
+    progress({
+      total: Math.max(known_total, processed + page_items.length),
+    });
+
+    const envelope_by_id = incremental
+      ? await fetch_envelopes(
+          page_items.filter((item) => !is_reusable(item)).map((it) => it.id),
+        )
+      : null;
+
+    const page_entries = await decrypt_page(page_items, envelope_by_id);
+
+    if (hot) {
+      for (const item of page_items) {
+        if (hot.items.length >= MAX_RAM_INDEX_ITEMS) break;
+
+        const entry = page_entries.get(item.id);
+
+        if (!entry) continue;
+
+        hot.items.push(trim_item_for_index(item));
+        hot.decrypted.set(item.id, entry);
+      }
+    }
+
+    if (writer) {
+      await writer.add_page(page_items, page_entries);
+    }
+
+    page_entries.clear();
+  } while (cursor && !reached_boundary && processed < options.max_items);
+
+  if (my_gen !== build_generation) cancel();
+
+  return {
+    processed,
+    next_cursor: reached_boundary ? undefined : cursor,
+    reached_boundary,
+    fresh_count,
+  };
+}
+
+function empty_index(user_email: string, include_body: boolean): CachedIndex {
+  return {
+    items: [],
+    decrypted: new Map(),
+    built_at: 0,
+    include_body,
+    user_email,
+    disk_chunk_ids: [],
+    total_indexed: 0,
+    complete: false,
+    meta: null,
+  };
+}
+
+function front_chunk_count(index: CachedIndex): number {
+  return Math.ceil(index.items.length / SNAPSHOT_CHUNK_SIZE);
+}
+
+export function disk_ids_after_hot(
+  chunk_ids: number[],
+  hot_count: number,
+): number[] {
+  return chunk_ids.slice(Math.ceil(hot_count / SNAPSHOT_CHUNK_SIZE));
+}
+
+function apply_meta(index: CachedIndex, meta: SnapshotMeta): void {
+  index.meta = meta;
+  index.total_indexed = meta.total;
+  index.complete = meta.complete;
+  index.disk_chunk_ids = disk_ids_after_hot(meta.chunk_ids, index.items.length);
+}
+
+async function build_index_full(
+  user_email: string,
+  include_body: boolean,
+  prior?: Map<string, DecryptedIndexEntry>,
+): Promise<CachedIndex> {
+  const my_gen = build_generation;
+  const index = empty_index(user_email, include_body);
+
+  emit_indexing({ building: true, current: 0, total: 0 });
+
+  const writer = await open_snapshot_writer(user_email);
+
+  try {
+    const result = await run_index_pipeline({
+      user_email,
+      include_body,
+      prior,
+      my_gen,
+      max_items: MAX_RAM_INDEX_ITEMS,
+      hot: index,
+      writer,
+      report_progress: true,
+    });
+
+    index.built_at = Date.now();
+    index.total_indexed = index.items.length;
+    index.complete = !result.next_cursor;
+
+    if (writer) {
+      const meta = await writer.finish({
+        next_cursor: result.next_cursor,
+        complete: !result.next_cursor,
+        include_body,
+      });
+
+      if (meta) apply_meta(index, meta);
+    }
+
+    if (my_gen !== build_generation) {
+      throw new Error("search_index_cancelled");
+    }
+
+    cached_index = index;
+    emit_indexing({ building: false, current: 0, total: 0 });
+
+    if (index.meta && !index.meta.complete) {
+      schedule_deep_index(user_email, include_body, index.meta);
+    }
+
+    return index;
+  } catch (error) {
+    index.items.length = 0;
+    index.decrypted.clear();
+    emit_indexing({ building: false, current: 0, total: 0 });
+    throw error;
+  }
+}
+
+async function build_index_front_refresh(
+  user_email: string,
+  include_body: boolean,
+  stale: CachedIndex,
+): Promise<CachedIndex> {
+  const my_gen = build_generation;
+  const prior = stale.decrypted;
+  const base = stale.meta as SnapshotMeta;
+  const reader = await open_snapshot_reader(user_email);
+  const keep_ids = base.chunk_ids.slice(front_chunk_count(stale));
+  const boundary_chunk = reader ? await reader.read(keep_ids[0]) : null;
+  const boundary_id = boundary_chunk?.items[0]?.id;
+
+  if (!boundary_id) {
+    return build_index_full(user_email, include_body, prior);
+  }
+
+  const index = empty_index(user_email, include_body);
+
+  emit_indexing({ building: true, current: 0, total: 0 });
+
+  try {
+    const result = await run_index_pipeline({
+      user_email,
+      include_body,
+      prior,
+      my_gen,
+      stop_at_id: boundary_id,
+      max_items: MAX_RAM_INDEX_ITEMS,
+      hot: index,
+      writer: null,
+      report_progress: true,
+    });
+
+    if (!result.reached_boundary) {
+      index.items.length = 0;
+      index.decrypted.clear();
+      emit_indexing({ building: false, current: 0, total: 0 });
+
+      return build_index_full(user_email, include_body, prior);
+    }
+
+    index.built_at = Date.now();
+    index.total_indexed = index.items.length;
+    index.complete = base.complete;
+    index.disk_chunk_ids = keep_ids;
+    index.meta = base;
+
+    const unchanged =
+      result.fresh_count === 0 && index.items.length === prior.size;
+
+    if (!unchanged) {
+      const writer = await open_snapshot_writer(user_email, base);
+
+      if (writer) {
+        await writer.add_page(index.items, index.decrypted);
+
+        const meta = await writer.finish({
+          next_cursor: base.next_cursor,
+          complete: base.complete,
+          include_body,
+          keep_chunk_ids: keep_ids,
+          kept_total: Math.max(base.total - stale.items.length, 0),
+        });
+
+        if (meta) apply_meta(index, meta);
       }
     }
 
     if (my_gen !== build_generation) {
-      decrypted.clear();
-      emit_indexing({ building: false, current: 0, total: 0 });
       throw new Error("search_index_cancelled");
     }
 
-    emit_indexing({
-      current: Math.min(i + batch.length, all_items.length),
-    });
-
-    if (i > 0 && i % 100 === 0) {
-      await new Promise<void>((r) => setTimeout(r, 0));
-    }
-  }
-
-  if (my_gen !== build_generation) {
-    decrypted.clear();
+    cached_index = index;
     emit_indexing({ building: false, current: 0, total: 0 });
-    throw new Error("search_index_cancelled");
+
+    if (index.meta && !index.meta.complete) {
+      schedule_deep_index(user_email, include_body, index.meta);
+    }
+
+    return index;
+  } catch (error) {
+    index.items.length = 0;
+    index.decrypted.clear();
+    emit_indexing({ building: false, current: 0, total: 0 });
+    throw error;
+  }
+}
+
+function schedule_deep_index(
+  user_email: string,
+  include_body: boolean,
+  base: SnapshotMeta,
+): void {
+  if (deep_index_active) return;
+
+  deep_index_active = true;
+  void run_deep_index(user_email, include_body, base).finally(() => {
+    deep_index_active = false;
+  });
+}
+
+async function run_deep_index(
+  user_email: string,
+  include_body: boolean,
+  base: SnapshotMeta,
+): Promise<void> {
+  const my_gen = build_generation;
+  let meta = base;
+
+  try {
+    while (
+      !meta.complete &&
+      meta.next_cursor &&
+      meta.total < MAX_INDEX_ITEMS &&
+      my_gen === build_generation
+    ) {
+      await new Promise<void>((r) => setTimeout(r, DEEP_SEGMENT_PAUSE_MS));
+
+      if (my_gen !== build_generation) return;
+
+      const writer = await open_snapshot_writer(user_email, meta);
+
+      if (!writer) return;
+
+      const result = await run_index_pipeline({
+        user_email,
+        include_body,
+        my_gen,
+        start_cursor: meta.next_cursor,
+        max_items: Math.min(DEEP_SEGMENT_ITEMS, MAX_INDEX_ITEMS - meta.total),
+        hot: null,
+        writer,
+        report_progress: false,
+      });
+
+      const next = await writer.finish({
+        next_cursor: result.next_cursor,
+        complete: !result.next_cursor,
+        include_body,
+        keep_chunk_ids: meta.chunk_ids,
+        kept_total: meta.total,
+        keep_first: true,
+      });
+
+      if (!next || my_gen !== build_generation) return;
+
+      meta = next;
+
+      if (
+        cached_index &&
+        cached_index.user_email === user_email &&
+        cached_index.include_body === include_body
+      ) {
+        apply_meta(cached_index, meta);
+      }
+
+      emit_index_refreshed();
+
+      if (result.processed === 0) return;
+    }
+  } catch {
+    return;
+  }
+}
+
+export interface ScanOptions {
+  skip?: ChunkSkipPlan | null;
+  on_chunk?: () => void;
+}
+
+export async function scan_search_index(
+  index: CachedIndex,
+  visit: (item: MailItem, entry: DecryptedIndexEntry) => boolean,
+  is_aborted: () => boolean,
+  options?: ScanOptions,
+): Promise<boolean> {
+  for (const item of index.items) {
+    const entry = index.decrypted.get(item.id);
+
+    if (!entry) continue;
+    if (!visit(item, entry)) return true;
   }
 
-  const index: CachedIndex = {
-    items: all_items,
-    decrypted,
-    built_at: Date.now(),
-    include_body,
-    user_email,
-  };
+  options?.on_chunk?.();
 
-  cached_index = index;
-  emit_indexing({ building: false, current: 0, total: 0 });
+  if (index.disk_chunk_ids.length === 0) return false;
 
-  if (fresh_count > 0 || !prior || prior.size !== decrypted.size) {
-    void save_search_snapshot(build_snapshot(user_email, all_items, decrypted));
+  const reader = await open_snapshot_reader(index.user_email);
+
+  if (!reader) return false;
+
+  const skip = options?.skip ?? null;
+  const summaries = skip?.uses_summary
+    ? await reader.read_summaries(index.disk_chunk_ids)
+    : null;
+
+  for (const chunk_id of index.disk_chunk_ids) {
+    if (is_aborted()) return true;
+
+    if (summaries) {
+      const summary = summaries.get(chunk_id);
+
+      if (summary && skip!.skip_by_summary(summary)) continue;
+    }
+
+    if (skip?.uses_grams) {
+      const filter = await reader.read_grams(chunk_id);
+
+      if (filter && skip.skip_by_grams(filter)) continue;
+    }
+
+    const chunk = await reader.read(chunk_id);
+
+    if (!chunk) continue;
+
+    const entries = new Map<string, DecryptedIndexEntry>();
+
+    for (const entry of chunk.entries) {
+      entries.set(entry.id, entry);
+    }
+
+    let stopped = false;
+
+    for (const item of chunk.items) {
+      const entry = entries.get(item.id);
+
+      if (!entry) continue;
+      if (!visit(item, entry)) {
+        stopped = true;
+        break;
+      }
+    }
+
+    entries.clear();
+
+    if (stopped) return true;
+
+    options?.on_chunk?.();
+
+    await new Promise<void>((r) => setTimeout(r, 0));
   }
 
-  return index;
+  return false;
 }
 
 export function clear_search_index(): void {
@@ -983,7 +1380,7 @@ export function clear_search_index(): void {
 
 export function mark_search_index_stale(): void {
   if (cached_index) {
-    cached_index = { ...cached_index, built_at: 0 };
+    cached_index.built_at = 0;
   }
 }
 
@@ -994,20 +1391,31 @@ export async function prewarm_search_index(
   try {
     await build_search_index(user_email, include_body);
   } catch {
-    // ignore - the next real search will surface the error
+    return;
   }
 }
 
 function start_background_rebuild(
   user_email: string,
   include_body: boolean,
-  prior?: Map<string, DecryptedIndexEntry>,
+  stale?: CachedIndex | null,
 ): Promise<CachedIndex> {
   if (index_build_promise) {
     return index_build_promise;
   }
 
-  const promise = do_build_search_index(user_email, include_body, prior)
+  const can_refresh_front =
+    !!stale &&
+    stale.items.length > 0 &&
+    !!stale.meta &&
+    stale.meta.chunk_ids.length > front_chunk_count(stale) &&
+    (stale.meta.include_body || !include_body);
+
+  const promise = (
+    can_refresh_front && stale
+      ? build_index_front_refresh(user_email, include_body, stale)
+      : build_index_full(user_email, include_body, stale?.decrypted)
+  )
     .then((index) => {
       emit_index_refreshed();
 
@@ -1051,7 +1459,7 @@ async function build_search_index(
   if (body_compatible(cached_index)) {
     const stale = cached_index;
 
-    void start_background_rebuild(user_email, include_body, stale.decrypted);
+    void start_background_rebuild(user_email, include_body, stale);
 
     return stale;
   }
@@ -1060,7 +1468,7 @@ async function build_search_index(
     return index_build_promise;
   }
 
-  const snapshot = await load_search_snapshot(user_email);
+  const reader = await open_snapshot_reader(user_email);
 
   if (index_build_promise) {
     return index_build_promise;
@@ -1069,52 +1477,70 @@ async function build_search_index(
     return cached_index;
   }
 
-  if (!snapshot) {
+  if (!reader || reader.meta.chunk_ids.length === 0) {
     return start_background_rebuild(user_email, include_body);
   }
 
-  const restored = new Map<string, DecryptedIndexEntry>(
-    snapshot.entries.map((e) => [
-      e.id,
-      {
-        envelope: e.envelope,
-        metadata: e.metadata,
-        search_body_text: e.search_body_text,
-        meta_fp: e.meta_fp,
-        has_body: e.has_body,
-      },
-    ]),
-  );
-  const all_have_bodies =
-    snapshot.entries.length > 0 && snapshot.entries.every((e) => e.has_body);
+  const meta = reader.meta;
 
-  if (snapshot.items.length > 0 && (!include_body || all_have_bodies)) {
-    cached_index = {
-      items: snapshot.items,
-      decrypted: restored,
-      built_at: 0,
-      include_body: all_have_bodies,
-      user_email,
-    };
+  if (include_body && !meta.include_body) {
+    return start_background_rebuild(user_email, include_body);
+  }
 
-    void start_background_rebuild(user_email, include_body, restored);
+  const index = empty_index(user_email, meta.include_body);
+  let consumed = 0;
 
+  for (const chunk_id of meta.chunk_ids) {
+    if (index.items.length >= MAX_RAM_INDEX_ITEMS) break;
+
+    const chunk = await reader.read(chunk_id);
+
+    consumed++;
+
+    if (!chunk) continue;
+
+    const entries = new Map<string, PersistedSearchEntry>();
+
+    for (const entry of chunk.entries) {
+      entries.set(entry.id, entry);
+    }
+
+    for (const item of chunk.items) {
+      const entry = entries.get(item.id);
+
+      if (!entry) continue;
+
+      index.items.push(item);
+      index.decrypted.set(item.id, {
+        envelope: entry.envelope,
+        metadata: entry.metadata,
+        search_body_text: entry.search_body_text,
+        meta_fp: entry.meta_fp,
+        has_body: entry.has_body,
+      });
+    }
+  }
+
+  if (index_build_promise) {
+    return index_build_promise;
+  }
+  if (body_compatible(cached_index)) {
     return cached_index;
   }
 
-  return start_background_rebuild(user_email, include_body, restored);
-}
-
-function date_boundary_local(value: string, end_of_day: boolean): number {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-
-  if (m && +m[2] >= 1 && +m[2] <= 12) {
-    return end_of_day
-      ? new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59, 999).getTime()
-      : new Date(+m[1], +m[2] - 1, +m[3], 0, 0, 0, 0).getTime();
+  if (index.items.length === 0) {
+    return start_background_rebuild(user_email, include_body);
   }
 
-  return new Date(value).getTime();
+  index.meta = meta;
+  index.total_indexed = meta.total;
+  index.complete = meta.complete;
+  index.disk_chunk_ids = meta.chunk_ids.slice(consumed);
+  cached_index = index;
+
+  void start_background_rebuild(user_email, include_body, index);
+
+  return index;
 }
 
 function matches_operator(
@@ -1433,6 +1859,115 @@ function to_search_result(
   };
 }
 
+const PROGRESS_FLUSH_MS = 120;
+const REFINE_CACHE_MAX_CHARS = 2_000_000;
+
+export interface ScanCandidate {
+  item: MailItem;
+  entry: DecryptedIndexEntry;
+  result: SearchResultItem;
+}
+
+export function passes_search_filters(
+  item: MailItem,
+  metadata: MailItemMetadata | null,
+  filters?: SearchOptions["filters"],
+): boolean {
+  if (!filters) return true;
+
+  if (
+    filters.has_attachments !== undefined &&
+    (metadata?.has_attachments ?? false) !== filters.has_attachments
+  ) {
+    return false;
+  }
+  if (
+    filters.is_starred !== undefined &&
+    (metadata?.is_starred ?? false) !== filters.is_starred
+  ) {
+    return false;
+  }
+  if (filters.date_from) {
+    const ts = new Date(item.message_ts || item.created_at).getTime();
+
+    if (ts < date_boundary_local(filters.date_from, false)) return false;
+  }
+  if (filters.date_to) {
+    const ts = new Date(item.message_ts || item.created_at).getTime();
+
+    if (ts > date_boundary_local(filters.date_to, true)) return false;
+  }
+
+  return true;
+}
+
+export interface ScanCacheEntry {
+  terms: string[];
+  operators: ParsedOperator[];
+  options_key: string;
+  built_at: number;
+  saved_at: number;
+  candidates: ScanCandidate[];
+}
+
+export function options_signature(options?: SearchOptions): string {
+  const labels = options?.label_name_to_tokens
+    ? [...options.label_name_to_tokens.entries()]
+        .map(([name, tokens]) => `${name}=${tokens.join(",")}`)
+        .sort()
+        .join("|")
+    : "";
+
+  return JSON.stringify([
+    options?.fields ?? null,
+    options?.filters ?? null,
+    options?.search_body ?? null,
+    labels,
+  ]);
+}
+
+export function operators_equal(
+  a: ParsedOperator[],
+  b: ParsedOperator[],
+): boolean {
+  if (a.length !== b.length) return false;
+
+  return a.every(
+    (op, i) =>
+      op.type === b[i].type &&
+      op.value === b[i].value &&
+      !!op.negated === !!b[i].negated,
+  );
+}
+
+export function candidates_are_cacheable(candidates: ScanCandidate[]): boolean {
+  let chars = 0;
+
+  for (const candidate of candidates) {
+    chars += candidate.entry.search_body_text.length;
+
+    if (chars > REFINE_CACHE_MAX_CHARS) return false;
+  }
+
+  return true;
+}
+
+export function can_refine_scan(
+  cache: ScanCacheEntry | null,
+  terms: string[],
+  operators: ParsedOperator[],
+  options_key: string,
+  index: Pick<CachedIndex, "built_at" | "meta">,
+): boolean {
+  if (!cache) return false;
+  if (cache.options_key !== options_key) return false;
+  if (cache.built_at !== index.built_at) return false;
+  if (cache.saved_at !== (index.meta?.saved_at ?? 0)) return false;
+  if (!operators_equal(cache.operators, operators)) return false;
+
+  return cache.terms.every((prev) => terms.some((next) => next.includes(prev)));
+}
+
 export function use_search() {
   const { user } = use_auth();
   const { t } = use_i18n();
@@ -1455,6 +1990,7 @@ export function use_search() {
   });
 
   const abort_ref = useRef<AbortController | null>(null);
+  const last_scan_ref = useRef<ScanCacheEntry | null>(null);
   const last_search_ref = useRef<{
     query: string;
     options?: SearchOptions;
@@ -1469,6 +2005,7 @@ export function use_search() {
     cached_index = null;
     build_generation++;
     index_build_promise = null;
+    last_scan_ref.current = null;
     emit_indexing({ building: false, current: 0, total: 0 });
   }, []);
 
@@ -1480,10 +2017,16 @@ export function use_search() {
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_mail_changed);
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_mail_changed);
-    window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, handle_mail_changed);
+    window.addEventListener(
+      MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+      handle_mail_changed,
+    );
 
     return () => {
-      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
+      window.removeEventListener(
+        MAIL_EVENTS.EMAIL_RECEIVED,
+        handle_mail_changed,
+      );
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_mail_changed);
       window.removeEventListener(
         MAIL_EVENTS.MAIL_ITEM_UPDATED,
@@ -1507,6 +2050,7 @@ export function use_search() {
 
       if (!query || query.length < 2) {
         last_search_ref.current = null;
+        last_scan_ref.current = null;
         set_state((prev) => ({
           ...prev,
           results: [],
@@ -1520,7 +2064,10 @@ export function use_search() {
 
       last_search_ref.current = { query, options };
       abort_ref.current?.abort();
-      abort_ref.current = new AbortController();
+
+      const controller = new AbortController();
+
+      abort_ref.current = controller;
 
       const start = Date.now();
 
@@ -1533,6 +2080,7 @@ export function use_search() {
         const operators = parsed.operators;
 
         if (terms.length === 0 && operators.length === 0) {
+          last_scan_ref.current = null;
           set_state((prev) => ({
             ...prev,
             results: [],
@@ -1547,7 +2095,8 @@ export function use_search() {
         set_state((prev) => ({ ...prev, index_building: true }));
 
         const search_body =
-          options?.search_body !== false && query_requires_body(terms, operators);
+          options?.search_body !== false &&
+          query_requires_body(terms, operators);
         const index = await build_search_index(
           user?.email || "",
           search_body,
@@ -1556,15 +2105,20 @@ export function use_search() {
 
         set_state((prev) => ({ ...prev, index_building: false }));
 
-        if (abort_ref.current?.signal.aborted) return;
+        if (controller.signal.aborted) return;
 
-        const results: SearchResultItem[] = [];
+        const candidates: ScanCandidate[] = [];
 
-        for (const item of index.items) {
-          const data = index.decrypted.get(item.id);
+        const sorted_results = (): SearchResultItem[] =>
+          candidates
+            .map((candidate) => candidate.result)
+            .sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime(),
+            );
 
-          if (!data) continue;
-
+        const visit = (item: MailItem, data: DecryptedIndexEntry): boolean => {
           const { envelope, metadata, search_body_text } = data;
 
           if (
@@ -1580,47 +2134,97 @@ export function use_search() {
               search_body_text,
             )
           ) {
-            continue;
+            return true;
           }
 
-          if (options?.filters) {
-            const f = options.filters;
-
-            if (
-              f.has_attachments !== undefined &&
-              (metadata?.has_attachments ?? false) !== f.has_attachments
-            )
-              continue;
-            if (
-              f.is_starred !== undefined &&
-              (metadata?.is_starred ?? false) !== f.is_starred
-            )
-              continue;
-            if (f.date_from) {
-              const ts = new Date(item.message_ts || item.created_at).getTime();
-
-              if (ts < date_boundary_local(f.date_from, false)) continue;
-            }
-            if (f.date_to) {
-              const ts = new Date(item.message_ts || item.created_at).getTime();
-
-              if (ts > date_boundary_local(f.date_to, true)) continue;
-            }
+          if (!passes_search_filters(item, metadata, options?.filters)) {
+            return true;
           }
 
-          results.push(to_search_result(item, envelope, metadata));
+          candidates.push({
+            item,
+            entry: data,
+            result: to_search_result(item, envelope, metadata),
+          });
+
+          return candidates.length < MAX_SEARCH_RESULTS;
+        };
+
+        let last_flush = 0;
+
+        const flush_progress = () => {
+          if (controller.signal.aborted) return;
+
+          const now = Date.now();
+
+          if (now - last_flush < PROGRESS_FLUSH_MS) return;
+
+          last_flush = now;
+
+          const partial = sorted_results();
+
+          set_state((prev) => ({
+            ...prev,
+            results: partial,
+            total_results: partial.length,
+            search_time_ms: now - start,
+          }));
+        };
+
+        const options_key = options_signature(options);
+        const reusable = last_scan_ref.current;
+
+        let stopped = false;
+
+        if (can_refine_scan(reusable, terms, operators, options_key, index)) {
+          for (const candidate of reusable!.candidates) {
+            if (!visit(candidate.item, candidate.entry)) {
+              stopped = true;
+              break;
+            }
+          }
+        } else {
+          const probe_terms =
+            options?.search_body === false ||
+            (!index.include_body && index.meta?.include_body !== true);
+
+          stopped = await scan_search_index(
+            index,
+            visit,
+            () => controller.signal.aborted,
+            {
+              skip: build_chunk_skip_plan({
+                terms,
+                operators,
+                filters: options?.filters,
+                label_name_to_tokens: options?.label_name_to_tokens,
+                probe_terms,
+              }),
+              on_chunk: flush_progress,
+            },
+          );
         }
 
-        results.sort(
-          (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-        );
+        if (controller.signal.aborted) return;
 
+        const results = sorted_results();
         const total_results = results.length;
 
         if (results.length > MAX_SEARCH_RESULTS) {
           results.length = MAX_SEARCH_RESULTS;
         }
+
+        last_scan_ref.current =
+          stopped || !candidates_are_cacheable(candidates)
+            ? null
+            : {
+                terms,
+                operators,
+                options_key,
+                built_at: index.built_at,
+                saved_at: index.meta?.saved_at ?? 0,
+                candidates,
+              };
 
         set_state((prev) => ({
           ...prev,
@@ -1628,9 +2232,11 @@ export function use_search() {
           is_searching: false,
           total_results,
           search_time_ms: Date.now() - start,
-          has_more: false,
+          has_more: stopped && total_results >= MAX_SEARCH_RESULTS,
         }));
       } catch (err) {
+        if (controller.signal.aborted) return;
+
         const message = err instanceof Error ? err.message : "";
 
         if (message === "search_index_cancelled") {
@@ -1668,6 +2274,7 @@ export function use_search() {
 
   const clear_results = useCallback(() => {
     last_search_ref.current = null;
+    last_scan_ref.current = null;
     set_state({
       query: "",
       results: [],

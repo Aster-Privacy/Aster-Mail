@@ -135,17 +135,6 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     needs_config: true,
   },
   {
-    id: "forward_copy",
-    category: "organize",
-    name_key: "mail_rules.tpl_forward_copy_name",
-    description_key: "mail_rules.tpl_forward_copy_desc",
-    color: "#22c55e",
-    match_mode: "all",
-    conditions: [{ type: "from", operator: "contains", value: "" }],
-    actions: [{ type: "forward", to: "" }],
-    needs_config: true,
-  },
-  {
     id: "receipts",
     category: "cleanup",
     name_key: "mail_rules.tpl_receipts_name",

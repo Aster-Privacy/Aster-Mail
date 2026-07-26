@@ -56,6 +56,9 @@ describe("protect_entities", () => {
       "base64",
       "Token: QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTIzNDU2Nzg5 verwenden.",
     ],
+    ["arabic-indic digits", "رمز التحقق الخاص بك هو ٤٩٣٠٢٨ فقط."],
+    ["devanagari digits", "आपका सत्यापन कोड ४९३०२८ है।"],
+    ["eu grouped amount", "Gesamtbetrag 1.249.900 fällig."],
   ];
 
   for (const [name, text] of fixtures) {
@@ -63,6 +66,19 @@ describe("protect_entities", () => {
       expect(round_trip(text)).toBe(text);
     });
   }
+
+  it("protects non-ascii digit runs so they cannot be mangled", () => {
+    const { masked, entities } = protect_entities("رمز التحقق ٤٩٣٠٢٨ فقط.");
+
+    expect(entities).toEqual(["٤٩٣٠٢٨"]);
+    expect(masked).not.toContain("٤٩٣٠٢٨");
+  });
+
+  it("leaves ascii-only digit runs to the standard patterns", () => {
+    const { entities } = protect_entities("Wert 7 und 42 hier.");
+
+    expect(entities).toHaveLength(0);
+  });
 
   it("does not tokenize ordinary prose", () => {
     const text = "Guten Tag, wir haben Ihre Nachricht erhalten.";
@@ -118,7 +134,7 @@ describe("protect_entities", () => {
     expect(restore_entities(duplicated, entities).missing).toBeGreaterThan(0);
   });
 
-  it("flags transposed tokens so codes and amounts cannot swap", () => {
+  it("keeps reordered tokens since clause order changes are legitimate", () => {
     const { masked, entities } = protect_entities(
       "Erster Code 493028, zweiter Code 581920.",
     );
@@ -134,7 +150,11 @@ describe("protect_entities", () => {
       seen++ === 0 ? second : first,
     );
 
-    expect(restore_entities(swapped, entities).missing).toBeGreaterThan(0);
+    const result = restore_entities(swapped, entities);
+
+    expect(result.missing).toBe(0);
+    expect(result.text).toContain("493028");
+    expect(result.text).toContain("581920");
   });
 
   it("keeps entities that stay in order after translation", () => {

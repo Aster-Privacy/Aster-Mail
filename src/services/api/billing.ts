@@ -111,6 +111,26 @@ export interface CancelSubscriptionResponse {
   current_period_end: string | null;
 }
 
+export interface CancelImpactResponse {
+  plan_code: string;
+  plan_name: string;
+  effective_at: string | null;
+  storage_used_bytes: number;
+  storage_limit_bytes: number;
+  storage_limit_after_bytes: number;
+  storage_over_limit: boolean;
+  aliases_to_disable: number;
+  alias_grace_days: number;
+  domains_to_suspend: number;
+  templates_to_disable: number;
+  signatures_to_disable: number;
+  catch_all_to_revoke: number;
+  family_members_affected: number;
+  family_addresses_released: number;
+  family_grace_days: number;
+  features_lost: string[];
+}
+
 export interface ReactivateResponse {
   cancel_at_period_end: boolean;
 }
@@ -304,10 +324,20 @@ export async function get_billing_history(
   );
 }
 
-export async function cancel_subscription(password_hash: string) {
+export async function cancel_subscription(
+  password_hash: string,
+  cancel_reason?: string,
+  cancel_reason_text?: string,
+) {
   return api_client.post<CancelSubscriptionResponse>("/payments/v1/cancel", {
     password_hash,
+    cancel_reason,
+    cancel_reason_text: cancel_reason_text?.slice(0, 2000),
   });
+}
+
+export async function get_cancel_impact() {
+  return api_client.get<CancelImpactResponse>("/payments/v1/cancel-impact");
 }
 
 export async function reactivate_subscription() {
