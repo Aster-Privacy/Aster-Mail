@@ -194,6 +194,10 @@ export function set_cached_iframe_height(
   store_height(email_id, height);
 }
 
+export function clear_iframe_height_cache(): void {
+  iframe_height_cache.clear();
+}
+
 interface SandboxedEmailRendererProps {
   sanitized_html: string;
   class_name?: string;
@@ -279,6 +283,7 @@ export function SandboxedEmailRenderer({
     prev_email_id_ref.current = email_id;
     if (internal_cid_html !== null) set_internal_cid_html(null);
     stable_cid_html_ref.current = null;
+    if (zoomed_image !== null) set_zoomed_image(null);
   }
 
   useEffect(() => {
@@ -1127,6 +1132,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
       if (!body || !doc || !html) return 0;
 
+      const scroller = doc.scrollingElement;
+      const saved_scroll_top = scroller ? scroller.scrollTop : 0;
       const saved_iframe_height = iframe.style.height;
       const saved_html_h = html.style.getPropertyValue("height");
       const saved_html_h_pri = html.style.getPropertyPriority("height");
@@ -1162,8 +1169,28 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       if (saved_body_minh) body.style.setProperty("min-height", saved_body_minh, saved_body_minh_pri);
       else body.style.removeProperty("min-height");
       iframe.style.height = saved_iframe_height;
+      if (
+        scroller &&
+        saved_scroll_top > 0 &&
+        scroller.scrollTop !== saved_scroll_top
+      ) {
+        scroller.scrollTop = saved_scroll_top;
+      }
 
       return measured;
+    };
+
+    const sync_clip_overflow = (doc: Document, clipped: boolean) => {
+      const body = doc.body;
+
+      if (!body) return;
+      if (clipped) {
+        if (body.style.getPropertyValue("overflow-y") !== "auto") {
+          body.style.setProperty("overflow-y", "auto");
+        }
+      } else if (body.style.getPropertyValue("overflow-y")) {
+        body.style.removeProperty("overflow-y");
+      }
     };
 
     const measure_and_apply = (force = false) => {
@@ -1181,6 +1208,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       if (measured <= 0) return;
 
       const height = Math.min(measured + 8, MAX_IFRAME_HEIGHT);
+
+      sync_clip_overflow(doc, measured + 8 > MAX_IFRAME_HEIGHT);
 
       if (Math.abs(height - last_height) < 2) return;
       last_height = height;
@@ -1215,6 +1244,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       if (immediate_height > 0) {
         const clamped = Math.min(immediate_height + 8, MAX_IFRAME_HEIGHT);
 
+        sync_clip_overflow(content_doc, immediate_height + 8 > MAX_IFRAME_HEIGHT);
         last_height = clamped;
         set_iframe_height(`${clamped}px`);
         set_height_ready(true);
