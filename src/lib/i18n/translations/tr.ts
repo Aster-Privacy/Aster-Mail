@@ -2315,9 +2315,12 @@ export const tr = {
     alias_delivery_log_reason_unknown: "Engellendi",
     alias_delivery_title: "Teslimat",
     alias_never_inbox: "Gelen kutusunu atla",
-    alias_never_inbox_desc: "Bu takma ada gönderilen posta geldiğinde arşivlenir. Aranabilir kalır ve Tüm Posta'da görünür.",
-    alias_never_inbox_info: "Saklamak isteyip gelen kutusunda görmek istemediğiniz kayıtlar ve makbuzlar için kullanışlıdır.",
-    alias_never_inbox_error: "Bu ayar kaydedilmedi. Bir deneme daha yeterli olacaktır.",
+    alias_never_inbox_desc:
+      "Bu takma ada gönderilen posta geldiğinde arşivlenir. Aranabilir kalır ve Tüm Posta'da görünür.",
+    alias_never_inbox_info:
+      "Saklamak isteyip gelen kutusunda görmek istemediğiniz kayıtlar ve makbuzlar için kullanışlıdır.",
+    alias_never_inbox_error:
+      "Bu ayar kaydedilmedi. Bir deneme daha yeterli olacaktır.",
     alias_relay_title: "Teslimat",
     alias_relay_description:
       "Bu rumuza gelen postanın nasıl teslim edileceğini seçin.",
@@ -2965,8 +2968,7 @@ export const tr = {
     theme_dark: "Koyu",
     theme_system: "Sistem",
     color_theme: "Renk teması",
-    color_theme_description:
-      "Uygulama için hazır bir renk paleti seçin",
+    color_theme_description: "Uygulama için hazır bir renk paleti seçin",
     color_theme_default: "Varsayılan",
     color_theme_purple: "Mor",
     color_theme_green: "Yeşil",
@@ -3241,7 +3243,8 @@ export const tr = {
     never_manual: "Asla (yalnızca elle)",
     auto_advance: "Arşivleme veya silme sonrası",
     reactions_enabled: "Tepkiler",
-    reactions_enabled_description: "Mesajlara emoji ile tepki vermeye ve başkalarının tepkilerini görmeye izin verir",
+    reactions_enabled_description:
+      "Mesajlara emoji ile tepki vermeye ve başkalarının tepkilerini görmeye izin verir",
     auto_advance_description:
       "Okuduğunuz e-postayı arşivledikten veya sildikten sonra açılacak e-posta",
     auto_advance_next: "Sonraki e-postaya git",
@@ -3261,15 +3264,19 @@ export const tr = {
       "E-posta içeriğini her zaman karanlık modda göster, orijinal stili geçersiz kılarak",
     translation: "Çeviri",
     translate_incoming: "Gelen postayı çevir",
-    translate_incoming_description: "Diğer dillerdeki iletileri cihazınızda çevirin.",
-    translate_incoming_info: "Çeviri, kendi barındırdığınız modellerle tamamen cihazınızda çalışır. Okuduğunuz hiçbir şey bir çeviri hizmetine gönderilmez.",
+    translate_incoming_description:
+      "Diğer dillerdeki iletileri cihazınızda çevirin.",
+    translate_incoming_info:
+      "Çeviri, kendi barındırdığınız modellerle tamamen cihazınızda çalışır. Okuduğunuz hiçbir şey bir çeviri hizmetine gönderilmez.",
     translate_off: "Kapalı",
     translate_ask: "Her seferinde sor",
     translate_always: "Her zaman çevir",
     translate_my_languages: "Okuduğunuz diller",
-    translate_my_languages_description: "Zaten okuduğunuz diller. “Her seferinde sor” modunda Aster bunları çevirmeyi önermez. Bir dilin “Her zaman çevir” modunda da dokunulmadan kalması için onu “Asla çevirme” listesine ekleyin.",
+    translate_my_languages_description:
+      "Zaten okuduğunuz diller. “Her seferinde sor” modunda Aster bunları çevirmeyi önermez. Bir dilin “Her zaman çevir” modunda da dokunulmadan kalması için onu “Asla çevirme” listesine ekleyin.",
     translate_never_languages: "Asla çevirme",
-    translate_never_languages_description: "Bu dillerdeki postayı hiçbir modda çevirme.",
+    translate_never_languages_description:
+      "Bu dillerdeki postayı hiçbir modda çevirme.",
     translate_add_language: "Dil ekle",
     translate_auto_detected: "Cihazınızdan otomatik algılandı",
 
@@ -4664,9 +4671,40 @@ export const tr = {
     cancel_reason_privacy_trust: "Gizlilik veya güven endişeleri",
     cancel_reason_just_testing: "Sadece deniyordum",
     cancel_reason_other: "Başka bir şey",
-    cancel_reason_text_placeholder: "Eklemek istediğiniz bir şey var mı? (isteğe bağlı)",
+    cancel_reason_text_placeholder:
+      "Eklemek istediğiniz bir şey var mı? (isteğe bağlı)",
     cancel_reason_skip: "Atla",
     cancel_reason_continue: "Devam",
+    cancel_impact_title: "İptal ederseniz neler değişir",
+    cancel_impact_description:
+      "Planınız {date} tarihine kadar etkin kalır. Sonrasında:",
+    cancel_impact_description_nodate: "Mevcut faturalama döneminiz bittiğinde:",
+    cancel_impact_loading: "Hesabınızda nelerin değişeceği kontrol ediliyor...",
+    cancel_impact_unavailable:
+      "Ayrıntıları şu anda yükleyemedik. Yine de devam edebilirsiniz.",
+    cancel_impact_storage:
+      "Depolama {current} değerinden {after} değerine düşer.",
+    cancel_impact_storage_over:
+      "{used} kullanıyorsunuz, bu sınırın üzerinde. Sınırın üzerindeyken gelen postalar reddedilir, 7 gün sonra kalıcı olarak reddedilir.",
+    cancel_impact_aliases:
+      "{count} takma ad {days} gün sonra posta almayı durdurur.",
+    cancel_impact_domains: "{count} özel alan adı askıya alınır.",
+    cancel_impact_catch_all: "Catch-all adresleme kapatılır.",
+    cancel_impact_templates: "{count} e-posta şablonu devre dışı bırakılır.",
+    cancel_impact_signatures: "{count} imza devre dışı bırakılır.",
+    cancel_impact_family: "{count} aile üyesi {days} günlük ek süreye geçer.",
+    cancel_impact_family_addresses:
+      "{count} ayrılmış aile adresi serbest bırakılır.",
+    cancel_impact_features: "{count} ücretli özellik kapatılır.",
+    cancel_impact_reactivate_hint:
+      "Hiçbir şey silinmez. Yeniden abone olduğunuzda devre dışı bırakılanlar, yeni planınızın sınırları içinde geri gelir.",
+    cancel_impact_continue: "İptale devam et",
+    cancel_final_title: "İptali onayla",
+    cancel_final_description:
+      "{plan} planınız iptal edilecek ve {date} tarihinde sona erecek. O zamana kadar tam erişiminiz sürer.",
+    cancel_final_description_nodate:
+      "{plan} planınız mevcut faturalama döneminin sonunda iptal edilecek. O zamana kadar tam erişiminiz sürer.",
+    cancel_final_confirm: "Planımı iptal et",
     cancel_confirm_title: "Aboneliği İptal Et",
     cancel_enter_password: "İptal işlemini onaylamak için parolanızı girin:",
     cancel_password_placeholder: "Parolanızı girin",
@@ -4782,10 +4820,8 @@ export const tr = {
     affiliate_payout_amount_max: "Maks.",
     affiliate_payout_amount_invalid:
       "Talep etmek için geçerli bir tutar girin.",
-    affiliate_payout_amount_exceeds:
-      "Bu tutar, bekleyen bakiyenizden fazla.",
-    affiliate_payout_amount_below_minimum:
-      "Asgari ödeme tutarı 5 $'dır.",
+    affiliate_payout_amount_exceeds: "Bu tutar, bekleyen bakiyenizden fazla.",
+    affiliate_payout_amount_below_minimum: "Asgari ödeme tutarı 5 $'dır.",
     affiliate_learn_more_irs_confirm_title: "Aster Mail'den ayrılınsın mı?",
     affiliate_learn_more_irs_confirm:
       "Yeni bir sekmede IRS web sitesine (irs.gov) gideceksiniz.",
@@ -4979,9 +5015,12 @@ export const tr = {
     domain_purchase_pay_crypto: "Kripto",
     domain_purchase_buy: "{{price}} karşılığında satın al",
     domain_purchase_error: "Satın alma başarısız oldu. Lütfen tekrar deneyin.",
-    domain_purchase_error_taken: "Bu alan adı az önce alındı. Lütfen başka bir tane seçin.",
-    domain_purchase_error_limit: "Planınızdaki alan adı sınırına ulaştınız. Daha fazlasını eklemek için yükseltin.",
-    domain_purchase_error_slow_down: "Şu anda çok fazla alan adı siparişi var. Devam edenleri tamamlayın veya biraz bekleyin.",
+    domain_purchase_error_taken:
+      "Bu alan adı az önce alındı. Lütfen başka bir tane seçin.",
+    domain_purchase_error_limit:
+      "Planınızdaki alan adı sınırına ulaştınız. Daha fazlasını eklemek için yükseltin.",
+    domain_purchase_error_slow_down:
+      "Şu anda çok fazla alan adı siparişi var. Devam edenleri tamamlayın veya biraz bekleyin.",
     domain_purchase_progress_title: "{{domain}} ayarlanıyor",
     domain_purchase_step_payment: "Ödeme alındı",
     domain_purchase_step_registering: "NameSilo üzerinden kaydediliyor",
@@ -4995,9 +5034,12 @@ export const tr = {
     domain_purchase_refunded:
       "Bu alan adı biz kaydedemeden kullanılamaz hale geldi. Ödemeniz iade edildi.",
     domain_purchase_try_instead: "Bunun yerine şunları deneyin",
-    domain_purchase_empty_subtitle: "Bir kelime, bir ad ya da tam bir alan adı girin. Sattığımız tüm uzantıları kontrol edip boş olanları gösteriyoruz.",
-    domain_purchase_empty_included: "Her alan adı WHOIS gizliliği, sizin için yapılan DNS kurulumu ve sınırsız adres içerir.",
-    domain_purchase_terms_inline: "Alan adları NameSilo üzerinden kaydedilir. Satın alarak {{aster}}, {{registrar}} ve {{icann}} belgelerini kabul edersiniz. Alan adı oluşturulduktan sonra kayıt kesinleşir.",
+    domain_purchase_empty_subtitle:
+      "Bir kelime, bir ad ya da tam bir alan adı girin. Sattığımız tüm uzantıları kontrol edip boş olanları gösteriyoruz.",
+    domain_purchase_empty_included:
+      "Her alan adı WHOIS gizliliği, sizin için yapılan DNS kurulumu ve sınırsız adres içerir.",
+    domain_purchase_terms_inline:
+      "Alan adları NameSilo üzerinden kaydedilir. Satın alarak {{aster}}, {{registrar}} ve {{icann}} belgelerini kabul edersiniz. Alan adı oluşturulduktan sonra kayıt kesinleşir.",
     domain_purchase_empty_title: "Başlamak için bir şeyler yazın",
     domain_purchase_search_failed:
       "Arama tamamlanamadı. Lütfen tekrar deneyin.",
@@ -5006,9 +5048,12 @@ export const tr = {
     domain_purchase_step_checkout: "Ödeme",
     domain_purchase_step_activate: "Yayına alma",
     domain_purchase_intro_title: "E-posta alan adınızı bulalım",
-    domain_purchase_intro_sub: "İki kısa soruyu yanıtlayın, size neyin uygun olduğunu gösterelim.",
-    domain_purchase_intro_name_q: "Hangi adı istiyorsunuz? İşletmeniz, projeniz ya da sadece siz.",
-    domain_purchase_intro_name_ph: "Bir ad yazın, örneğin limankahvesi veya alexcarter",
+    domain_purchase_intro_sub:
+      "İki kısa soruyu yanıtlayın, size neyin uygun olduğunu gösterelim.",
+    domain_purchase_intro_name_q:
+      "Hangi adı istiyorsunuz? İşletmeniz, projeniz ya da sadece siz.",
+    domain_purchase_intro_name_ph:
+      "Bir ad yazın, örneğin limankahvesi veya alexcarter",
     domain_purchase_intro_tld_q: "Favori bir uzantınız var mı?",
     domain_purchase_intro_cta: "Neler uygun, göster",
     domain_purchase_intro_skip: "Atla, kendim arayacağım",
@@ -5035,8 +5080,10 @@ export const tr = {
     domain_purchase_years_line: "{{count}} yıllık kayıt",
     domain_purchase_secure_checkout: "Stripe ile güvenli ödeme",
     domain_purchase_crypto_warning_title: "Önce kripto bakiyenizi yükleyin",
-    domain_purchase_crypto_warning_body: "Kripto siparişleri Aster kripto bakiyenizden ödenir. Satın almadan önce bakiye yükleyin, aksi halde bakiye tutarın tamamını karşılayana kadar alan adı beklemede kalır.",
-    domain_purchase_crypto_warning_hint: "Faturalandırma bölümünden yükleme yapabilirsiniz, hesap kredisiyle aynı bakiyedir.",
+    domain_purchase_crypto_warning_body:
+      "Kripto siparişleri Aster kripto bakiyenizden ödenir. Satın almadan önce bakiye yükleyin, aksi halde bakiye tutarın tamamını karşılayana kadar alan adı beklemede kalır.",
+    domain_purchase_crypto_warning_hint:
+      "Faturalandırma bölümünden yükleme yapabilirsiniz, hesap kredisiyle aynı bakiyedir.",
     domain_purchase_included_heading: "Alan adınıza dahil olan her şey",
     domain_purchase_renew: "Yenile",
     domain_purchase_filter_all: "Tümü",
@@ -5054,35 +5101,26 @@ export const tr = {
       "Kayıt şirketimizin ilk yıl indirimli fiyatı. Sonrasında yılda {{price}} ile yenilenir.",
     domain_purchase_purchased_info:
       "Bunlar Aster üzerinden satın aldığınız alan adlarıdır. Onları sizin için WHOIS gizliliğiyle kaydeder, tüm posta DNS kayıtlarını otomatik olarak kurarız ve üzerlerinde hemen adres oluşturabilirsiniz. Her alan adı yalnızca sizin onayınızla yenilenir ve dilediğiniz zaman başka bir kayıt şirketine taşıyabilirsiniz.",
-    domain_purchase_dont_have: "Alan adınız yok mu? Satın almak için buraya tıklayın.",
+    domain_purchase_dont_have:
+      "Alan adınız yok mu? Satın almak için buraya tıklayın.",
     domain_purchase_sort_price: "En düşük fiyat",
     domain_purchase_leave_title: "Aster Mail'den ayrılıyor musunuz?",
     domain_purchase_leave_message:
       "Bu bağlantı {{host}} adresini yeni sekmede açar.",
-    domain_purchase_purchased_label:
-      "Satın alınan alan adları",
-    domain_purchase_purchased_empty:
-      "Henüz satın alınmış alan adı yok",
-    domain_purchase_purchased_expires:
-      "{{date}} tarihinde sona eriyor",
-    domain_purchase_purchased_in_progress:
-      "Ayarlanıyor...",
+    domain_purchase_purchased_label: "Satın alınan alan adları",
+    domain_purchase_purchased_empty: "Henüz satın alınmış alan adı yok",
+    domain_purchase_purchased_expires: "{{date}} tarihinde sona eriyor",
+    domain_purchase_purchased_in_progress: "Ayarlanıyor...",
     domain_purchase_terms_notice:
       "Aster, alan adını kayıt şirketi ortağımız aracılığıyla sizin adınıza kaydeder ve yenileme fiyatı ödeme yapmadan önce her zaman gösterilir. Bir alan adının süresinin dolmasına izin verirseniz, kayıt şirketi onu geri almak için kurtarma ücreti talep edebilir.",
-    domain_purchase_terms_aster:
-      "Aster Hizmet Şartları",
-    domain_purchase_terms_registrar:
-      "NameSilo Şartlar ve Koşullar",
+    domain_purchase_terms_aster: "Aster Hizmet Şartları",
+    domain_purchase_terms_registrar: "NameSilo Şartlar ve Koşullar",
     domain_purchase_terms_icann:
       "ICANN Alan Adı Sahibi Hakları ve Sorumlulukları",
-    domain_purchase_detail_privacy_title:
-      "Varsayılan olarak gizli",
-    domain_purchase_detail_setup_title:
-      "Sıfır kurulum",
-    domain_purchase_detail_instant_title:
-      "Saniyeler içinde hazır",
-    domain_purchase_detail_ownership_title:
-      "Tamamen sizin",
+    domain_purchase_detail_privacy_title: "Varsayılan olarak gizli",
+    domain_purchase_detail_setup_title: "Sıfır kurulum",
+    domain_purchase_detail_instant_title: "Saniyeler içinde hazır",
+    domain_purchase_detail_ownership_title: "Tamamen sizin",
     encryption_banner_subtitle:
       "E-postalar cihazınızdan ayrılmadan önce şifrelenir. Aster yalnızca okunamaz şifreli metin saklar, postanızı asla göremeyiz.",
     folder_lock_locked: "Hassas klasörleri ek bir parolayla koruyun",
@@ -5825,7 +5863,8 @@ export const tr = {
     export_security_vault_row_title: "Şifreleme kasası parolası",
     export_security_vault_row_body:
       "Yerel kasa parolanız, posta dışa aktarma için çözülmeden önce bu cihazı onaylar.",
-    export_security_vault_row_help: "Bu, bu cihazın yerel kasa parolasıdır, hesap parolanız değildir. Yalnızca bu cihazdaki şifreleme anahtarlarınızın kilidini açar.",
+    export_security_vault_row_help:
+      "Bu, bu cihazın yerel kasa parolasıdır, hesap parolanız değildir. Yalnızca bu cihazdaki şifreleme anahtarlarınızın kilidini açar.",
     export_security_required_badge: "Gerekli",
     export_warning_title: "Dikkat",
     export_warning_body:
@@ -5835,11 +5874,13 @@ export const tr = {
     export_scope_mail_title: "Posta",
     export_scope_mail_body:
       "Tüm mesajlarınız ve ekleriniz standart mbox veya .eml biçiminde.",
-    export_scope_mail_help: "MBOX tüm mesajları tek bir dosyada birleştirir; .EML her mesajı ayrı ayrı kaydeder. Her iki format da çoğu masaüstü e-posta istemcisiyle çalışır.",
+    export_scope_mail_help:
+      "MBOX tüm mesajları tek bir dosyada birleştirir; .EML her mesajı ayrı ayrı kaydeder. Her iki format da çoğu masaüstü e-posta istemcisiyle çalışır.",
     export_scope_contacts_title: "Kişiler",
     export_scope_contacts_body:
       "Adres defteri vCard 4.0 olarak dışa aktarıldı (Apple, Google, Thunderbird vb.'ne aktarılabilir) ve tam JSON.",
-    export_scope_contacts_help: "vCard 4.0, çoğu uygulamanın doğrudan içe aktardığı evrensel kişi formatıdır. Ek JSON dosyası, vCard'ın saklayamadığı alanları korur.",
+    export_scope_contacts_help:
+      "vCard 4.0, çoğu uygulamanın doğrudan içe aktardığı evrensel kişi formatıdır. Ek JSON dosyası, vCard'ın saklayamadığı alanları korur.",
     export_scope_settings_title: "Ayarlar ve kurallar",
     export_scope_settings_body:
       "Takma adlar, imzalar, şablonlar, posta kuralları, engellenen ve izin verilen göndericiler, klasörler ve diğer hesap verileri.",
@@ -5965,7 +6006,8 @@ export const tr = {
     translation_translate: "Çevir",
     translation_in_progress: "Cihazınızda çevriliyor…",
     translation_translated_from: "Cihazınızda {{language}} dilinden çevrildi.",
-    translation_limited_quality: "Bu dil için çeviri kalitesi daha düşük olabilir.",
+    translation_limited_quality:
+      "Bu dil için çeviri kalitesi daha düşük olabilir.",
     translation_show_original: "Orijinali göster",
     translation_show_translation: "Çeviriyi göster",
     translation_showing_original: "Orijinal ileti gösteriliyor.",
@@ -6035,14 +6077,19 @@ export const tr = {
     spam_reason_content_analysis: "Bu iletinin içeriği spam gibi görünüyor",
     spam_reason_spf_fail: "Gönderen SPF doğrulamasından geçemedi",
     spam_reason_dkim_fail: "İleti DKIM imza doğrulamasından geçemedi",
-    spam_reason_dmarc_fail: "Gönderenin alan adı DMARC kimlik doğrulamasından geçemedi",
+    spam_reason_dmarc_fail:
+      "Gönderenin alan adı DMARC kimlik doğrulamasından geçemedi",
     spam_reason_missing_headers: "İletide standart e-posta üstbilgileri eksik",
     spam_reason_reply_to_mismatch: "Yanıt adresi gönderenle eşleşmiyor",
     spam_reason_future_dated: "İletinin tarihi gelecekte görünüyor",
-    spam_reason_phishing_url: "Kimlik avı engelleme listesinde yer alan bir bağlantı içeriyor",
-    spam_reason_phishing_domain: "Kimlik avıyla ilişkili bir alan adına bağlantı veriyor",
-    spam_reason_user_spam_learning: "Bu gönderenin alan adından gelen spam'i daha önce bildirdiniz",
-    spam_reason_global_domain_reputation: "Gönderenin alan adının itibarı düşük",
+    spam_reason_phishing_url:
+      "Kimlik avı engelleme listesinde yer alan bir bağlantı içeriyor",
+    spam_reason_phishing_domain:
+      "Kimlik avıyla ilişkili bir alan adına bağlantı veriyor",
+    spam_reason_user_spam_learning:
+      "Bu gönderenin alan adından gelen spam'i daha önce bildirdiniz",
+    spam_reason_global_domain_reputation:
+      "Gönderenin alan adının itibarı düşük",
     spam_reason_auth_hard_fail: "Gönderenin kimliği doğrulanamadı",
     spam_reason_sender_marked_spam: "Bu göndereni spam olarak işaretlediniz",
     block_sender: "Göndereni engelle",
@@ -7155,9 +7202,11 @@ export const tr = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "Passkey silinsin mi?",
-    delete_passkey_description: "\"{{name}}\" hesabınızdan kaldırılacak. Artık onunla oturum açamazsınız.",
+    delete_passkey_description:
+      '"{{name}}" hesabınızdan kaldırılacak. Artık onunla oturum açamazsınız.',
     delete_security_key_title: "Güvenlik anahtarı silinsin mi?",
-    delete_security_key_description: "\"{{name}}\" hesabınızdan kaldırılacak. Artık ikinci faktör olarak çalışmayacak.",
+    delete_security_key_description:
+      '"{{name}}" hesabınızdan kaldırılacak. Artık ikinci faktör olarak çalışmayacak.',
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7336,7 +7385,8 @@ export const tr = {
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     session_expired_login:
       "Oturumunuz sona erdi. Yeniden oturum açmak kaldığınız yerden devam etmenizi sağlar. Veri ve taslaklar sunucuda kaydedildi.",
-    session_identity_mismatch: "Bu cihazda başka bir hesapla oturum açılmıştı, hesapları ayrı tutmak için oturumunuzu kapattık. Yeniden giriş yapmanız yeterli. Verileriniz olduğu gibi duruyor.",
+    session_identity_mismatch:
+      "Bu cihazda başka bir hesapla oturum açılmıştı, hesapları ayrı tutmak için oturumunuzu kapattık. Yeniden giriş yapmanız yeterli. Verileriniz olduğu gibi duruyor.",
     key_material_unavailable:
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     storage_compromised:
@@ -7447,7 +7497,8 @@ export const tr = {
     do_this: "Bunu yap",
     add_condition: "Koşul ekle",
     apply_to_existing: "Mevcut postaya şimdi uygula",
-    apply_to_existing_started: "Bu kural mevcut postanıza uygulanıyor. İşlem arka planda çalışır.",
+    apply_to_existing_started:
+      "Bu kural mevcut postanıza uygulanıyor. İşlem arka planda çalışır.",
     apply_to_existing_failed: "Bu kural uygulanmaya başlanamadı.",
     empty_title: "Henüz kural yok",
     empty_description:
@@ -7508,8 +7559,10 @@ export const tr = {
     op_equals: "eşit",
     op_older_than_days: "daha eski (gün)",
     op_newer_than_days: "daha yeni (gün)",
-    regex_backreference: "\\1 gibi geri referanslar desteklenmiyor. Kalıbı bunlar olmadan yazın.",
-    regex_lookaround: "Lookahead ve lookbehind desteklenmiyor. Kalıbı bunlar olmadan yazın.",
+    regex_backreference:
+      "\\1 gibi geri referanslar desteklenmiyor. Kalıbı bunlar olmadan yazın.",
+    regex_lookaround:
+      "Lookahead ve lookbehind desteklenmiyor. Kalıbı bunlar olmadan yazın.",
     regex_invalid:
       "Bu regex kalıbında bir yazım hatası var. Sözdizimini kontrol etmek genellikle sorunu çözer.",
     regex_empty: "Kaydetmeden önce bir regex kalıbı gerekiyor.",
@@ -7721,19 +7774,22 @@ export const tr = {
   },
   survey: {
     banner_title: "Aster Mail'i geliştirmemize yardım edin",
-    banner_message: "Aster'ı şekillendirmeye yardım edin: tek seferlik, yaklaşık bir dakikalık anket. Yanıtlarınız gizli kalır ve asla paylaşılmaz.",
+    banner_message:
+      "Aster'ı şekillendirmeye yardım edin: tek seferlik, yaklaşık bir dakikalık anket. Yanıtlarınız gizli kalır ve asla paylaşılmaz.",
     banner_take: "Ankete katıl",
     banner_dismiss: "Kapat",
     remind_tomorrow: "Yarın hatırlat",
     dismiss_forever: "Bir daha sorma",
     modal_title: "Aster Mail anketi",
-    modal_subtitle: "Yalnızca bir kez, yaklaşık bir dakika. Açık uçlu sorular isteğe bağlıdır.",
+    modal_subtitle:
+      "Yalnızca bir kez, yaklaşık bir dakika. Açık uçlu sorular isteğe bağlıdır.",
     q_source: "Aster Mail'i ilk nereden duydunuz?",
     source_reddit: "Reddit",
     source_youtube: "YouTube veya bir içerik üreticisi",
     source_friend: "Arkadaş veya kulaktan kulağa",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "Bir gizlilik rehberi (Privacy Guides, PRISM Break, awesome-privacy)",
+    source_privacy_directory:
+      "Bir gizlilik rehberi (Privacy Guides, PRISM Break, awesome-privacy)",
     source_search_engine: "Arama motoru",
     q_signup_reason: "Kaydolurken asıl aradığınız neydi?",
     signup_e2ee: "Uçtan uca şifreleme",
@@ -7770,6 +7826,7 @@ export const tr = {
     required_error: "Lütfen bu soruyu yanıtlayın",
     submit: "Gönder",
     submit_failed: "Anket gönderilemedi. Lütfen tekrar deneyin.",
-    submitted_thanks: "Teşekkürler! Geri bildiriminiz Aster Mail'i herkes için daha iyi yapıyor. Her yanıtı okuyoruz.",
+    submitted_thanks:
+      "Teşekkürler! Geri bildiriminiz Aster Mail'i herkes için daha iyi yapıyor. Her yanıtı okuyoruz.",
   },
 };

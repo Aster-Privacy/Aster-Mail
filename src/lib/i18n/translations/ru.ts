@@ -2329,9 +2329,12 @@ export const ru = {
     alias_delivery_log_reason_unknown: "Заблокировано",
     alias_delivery_title: "Доставка",
     alias_never_inbox: "Не показывать во входящих",
-    alias_never_inbox_desc: "Письма на этот алиас архивируются при получении. Они остаются доступными для поиска и в разделе Вся почта.",
-    alias_never_inbox_info: "Удобно для регистраций и чеков, которые нужно сохранить, но не видеть во входящих.",
-    alias_never_inbox_error: "Эта настройка не сохранилась. Ещё одна попытка должна помочь.",
+    alias_never_inbox_desc:
+      "Письма на этот алиас архивируются при получении. Они остаются доступными для поиска и в разделе Вся почта.",
+    alias_never_inbox_info:
+      "Удобно для регистраций и чеков, которые нужно сохранить, но не видеть во входящих.",
+    alias_never_inbox_error:
+      "Эта настройка не сохранилась. Ещё одна попытка должна помочь.",
     alias_relay_title: "Доставка",
     alias_relay_description:
       "Выберите, как доставляется почта на этот псевдоним.",
@@ -3261,7 +3264,8 @@ export const ru = {
     never_manual: "Никогда (только вручную)",
     auto_advance: "После архивации или удаления",
     reactions_enabled: "Реакции",
-    reactions_enabled_description: "Разрешает реагировать на сообщения эмодзи и видеть реакции других",
+    reactions_enabled_description:
+      "Разрешает реагировать на сообщения эмодзи и видеть реакции других",
     auto_advance_description:
       "Какое письмо открывать после архивации или удаления текущего",
     auto_advance_next: "Перейти к следующему письму",
@@ -3281,15 +3285,19 @@ export const ru = {
       "Всегда отображать содержимое писем в тёмном режиме, переопределяя оригинальное оформление",
     translation: "Перевод",
     translate_incoming: "Переводить входящую почту",
-    translate_incoming_description: "Переводите сообщения на других языках на вашем устройстве.",
-    translate_incoming_info: "Перевод выполняется полностью на вашем устройстве с помощью самостоятельно размещённых моделей. Ничего из прочитанного вами никогда не отправляется в службу перевода.",
+    translate_incoming_description:
+      "Переводите сообщения на других языках на вашем устройстве.",
+    translate_incoming_info:
+      "Перевод выполняется полностью на вашем устройстве с помощью самостоятельно размещённых моделей. Ничего из прочитанного вами никогда не отправляется в службу перевода.",
     translate_off: "Выключено",
     translate_ask: "Спрашивать каждый раз",
     translate_always: "Всегда переводить",
     translate_my_languages: "Языки, которые вы читаете",
-    translate_my_languages_description: "Языки, которые вы уже понимаете. В режиме «Спрашивать каждый раз» Aster не будет предлагать их перевод. Чтобы язык оставался нетронутым и в режиме «Всегда переводить», добавьте его в «Никогда не переводить».",
+    translate_my_languages_description:
+      "Языки, которые вы уже понимаете. В режиме «Спрашивать каждый раз» Aster не будет предлагать их перевод. Чтобы язык оставался нетронутым и в режиме «Всегда переводить», добавьте его в «Никогда не переводить».",
     translate_never_languages: "Никогда не переводить",
-    translate_never_languages_description: "Никогда не переводить почту на этих языках, ни в одном режиме.",
+    translate_never_languages_description:
+      "Никогда не переводить почту на этих языках, ни в одном режиме.",
     translate_add_language: "Добавить язык",
     translate_auto_detected: "Определено автоматически на вашем устройстве",
 
@@ -4682,6 +4690,36 @@ export const ru = {
     cancel_reason_text_placeholder: "Хотите что-то добавить? (необязательно)",
     cancel_reason_skip: "Пропустить",
     cancel_reason_continue: "Продолжить",
+    cancel_impact_title: "Что изменится при отмене",
+    cancel_impact_description: "Ваш план активен до {date}. После этого:",
+    cancel_impact_description_nodate:
+      "Когда закончится текущий расчётный период:",
+    cancel_impact_loading: "Проверяем, что изменится в вашем аккаунте...",
+    cancel_impact_unavailable:
+      "Не удалось загрузить детали. Вы всё равно можете продолжить.",
+    cancel_impact_storage: "Хранилище уменьшится с {current} до {after}.",
+    cancel_impact_storage_over:
+      "Вы используете {used}, это превышает лимит. Пока лимит превышен, входящая почта отклоняется, а через 7 дней отклоняется навсегда.",
+    cancel_impact_aliases:
+      "{count} псевдонимов перестанут получать почту через {days} дней.",
+    cancel_impact_domains: "{count} собственных доменов будут приостановлены.",
+    cancel_impact_catch_all: "Адресация catch-all будет отключена.",
+    cancel_impact_templates: "{count} шаблонов писем будут отключены.",
+    cancel_impact_signatures: "{count} подписей будут отключены.",
+    cancel_impact_family:
+      "{count} участников семьи перейдут в льготный период на {days} дней.",
+    cancel_impact_family_addresses:
+      "{count} зарезервированных семейных адресов будут освобождены.",
+    cancel_impact_features: "{count} платных функций будут отключены.",
+    cancel_impact_reactivate_hint:
+      "Ничего не удаляется. Повторная подписка восстановит отключённое в пределах лимитов нового плана.",
+    cancel_impact_continue: "Продолжить отмену",
+    cancel_final_title: "Подтвердите отмену",
+    cancel_final_description:
+      "Ваш план {plan} будет отменён и завершится {date}. До этого момента доступ сохраняется полностью.",
+    cancel_final_description_nodate:
+      "Ваш план {plan} будет отменён в конце текущего расчётного периода. До этого момента доступ сохраняется полностью.",
+    cancel_final_confirm: "Отменить мой план",
     cancel_confirm_title: "Отмена подписки",
     cancel_enter_password: "Введите пароль для подтверждения отмены:",
     cancel_password_placeholder: "Введите ваш пароль",
@@ -4782,7 +4820,8 @@ export const ru = {
       "Настоящие условия вступают в силу с даты вашей регистрации и могут периодически обновляться. Если мы внесём существенное изменение, влияющее на вашу ставку комиссии, месячный лимит или условия выплаты, мы уведомим вас об этом напрямую (в приложении или по электронной почте) до вступления изменения в силу. Дальнейшее участие в программе после такого уведомления означает согласие с изменением.",
     affiliate_payout_processing_note:
       "Выплаты проверяются вручную и обычно обрабатываются в течение 3-5 рабочих дней.",
-    affiliate_payout_email_subject: "Запрос на выплату по партнёрской программе",
+    affiliate_payout_email_subject:
+      "Запрос на выплату по партнёрской программе",
     affiliate_payout_instructions:
       "Запросите выплату ниже. Мы откроем для вас предзаполненное письмо на hello@astermail.org.",
     affiliate_copy_template: "Запросить выплату",
@@ -4795,8 +4834,7 @@ export const ru = {
     affiliate_email_link_button: "Ссылка по почте",
     affiliate_payout_amount_label: "Сумма запроса",
     affiliate_payout_amount_max: "Макс.",
-    affiliate_payout_amount_invalid:
-      "Введите корректную сумму для запроса.",
+    affiliate_payout_amount_invalid: "Введите корректную сумму для запроса.",
     affiliate_payout_amount_exceeds:
       "Эта сумма превышает ваш доступный остаток.",
     affiliate_payout_amount_below_minimum:
@@ -5029,9 +5067,12 @@ export const ru = {
     domain_purchase_pay_crypto: "Криптовалютой",
     domain_purchase_buy: "Купить за {{price}}",
     domain_purchase_error: "Покупка не удалась. Попробуйте ещё раз.",
-    domain_purchase_error_taken: "Этот домен только что заняли. Выберите другой.",
-    domain_purchase_error_limit: "Вы достигли лимита доменов для вашего тарифа. Перейдите на более высокий тариф, чтобы добавить ещё.",
-    domain_purchase_error_slow_down: "Сейчас слишком много заказов доменов. Завершите текущие или дождитесь их обработки.",
+    domain_purchase_error_taken:
+      "Этот домен только что заняли. Выберите другой.",
+    domain_purchase_error_limit:
+      "Вы достигли лимита доменов для вашего тарифа. Перейдите на более высокий тариф, чтобы добавить ещё.",
+    domain_purchase_error_slow_down:
+      "Сейчас слишком много заказов доменов. Завершите текущие или дождитесь их обработки.",
     domain_purchase_progress_title: "Настройка {{domain}}",
     domain_purchase_step_payment: "Платёж получен",
     domain_purchase_step_registering: "Регистрация в NameSilo",
@@ -5045,9 +5086,12 @@ export const ru = {
     domain_purchase_refunded:
       "Этот домен стал недоступен до того, как мы успели его зарегистрировать. Платёж возвращён.",
     domain_purchase_try_instead: "Попробуйте один из этих вариантов",
-    domain_purchase_empty_subtitle: "Введите слово, имя или полный домен. Мы проверим все продаваемые окончания и покажем, что свободно.",
-    domain_purchase_empty_included: "В каждый домен входят приватность WHOIS, настроенный за вас DNS и неограниченные адреса.",
-    domain_purchase_terms_inline: "Домены регистрируются через NameSilo. Совершая покупку, вы принимаете {{aster}}, {{registrar}} и {{icann}}. После создания домена регистрация не отменяется.",
+    domain_purchase_empty_subtitle:
+      "Введите слово, имя или полный домен. Мы проверим все продаваемые окончания и покажем, что свободно.",
+    domain_purchase_empty_included:
+      "В каждый домен входят приватность WHOIS, настроенный за вас DNS и неограниченные адреса.",
+    domain_purchase_terms_inline:
+      "Домены регистрируются через NameSilo. Совершая покупку, вы принимаете {{aster}}, {{registrar}} и {{icann}}. После создания домена регистрация не отменяется.",
     domain_purchase_empty_title: "Введите что-нибудь, чтобы начать",
     domain_purchase_search_failed: "Поиск не удался. Попробуйте ещё раз.",
     domain_purchase_retry: "Повторить",
@@ -5055,9 +5099,12 @@ export const ru = {
     domain_purchase_step_checkout: "Оплата",
     domain_purchase_step_activate: "Запуск",
     domain_purchase_intro_title: "Давайте найдём ваш почтовый домен",
-    domain_purchase_intro_sub: "Ответьте на два коротких вопроса, и мы покажем, что доступно.",
-    domain_purchase_intro_name_q: "Какое имя вы хотите? Ваш бизнес, ваш проект или просто вы.",
-    domain_purchase_intro_name_ph: "Введите название, например harborcoffee или alexcarter",
+    domain_purchase_intro_sub:
+      "Ответьте на два коротких вопроса, и мы покажем, что доступно.",
+    domain_purchase_intro_name_q:
+      "Какое имя вы хотите? Ваш бизнес, ваш проект или просто вы.",
+    domain_purchase_intro_name_ph:
+      "Введите название, например harborcoffee или alexcarter",
     domain_purchase_intro_tld_q: "Есть любимое окончание?",
     domain_purchase_intro_cta: "Показать, что доступно",
     domain_purchase_intro_skip: "Пропустить, я поищу сам",
@@ -5084,8 +5131,10 @@ export const ru = {
     domain_purchase_years_line: "Регистрация на {{count}} г.",
     domain_purchase_secure_checkout: "Безопасная оплата через Stripe",
     domain_purchase_crypto_warning_title: "Сначала пополните криптобаланс",
-    domain_purchase_crypto_warning_body: "Криптозаказы оплачиваются с вашего криптобаланса Aster. Пополните счёт до покупки, иначе домен останется в ожидании, пока баланс не покроет всю сумму.",
-    domain_purchase_crypto_warning_hint: "Пополнить можно в разделе оплаты, это тот же баланс, что используется для кредита аккаунта.",
+    domain_purchase_crypto_warning_body:
+      "Криптозаказы оплачиваются с вашего криптобаланса Aster. Пополните счёт до покупки, иначе домен останется в ожидании, пока баланс не покроет всю сумму.",
+    domain_purchase_crypto_warning_hint:
+      "Пополнить можно в разделе оплаты, это тот же баланс, что используется для кредита аккаунта.",
     domain_purchase_included_heading: "Что входит в стоимость домена",
     domain_purchase_renew: "Продлить",
     domain_purchase_filter_all: "Все",
@@ -5108,30 +5157,19 @@ export const ru = {
     domain_purchase_leave_title: "Покинуть Aster Mail?",
     domain_purchase_leave_message:
       "Эта ссылка откроет {{host}} в новой вкладке.",
-    domain_purchase_purchased_label:
-      "Купленные домены",
-    domain_purchase_purchased_empty:
-      "Купленных доменов пока нет",
-    domain_purchase_purchased_expires:
-      "Истекает {{date}}",
-    domain_purchase_purchased_in_progress:
-      "Настраивается...",
+    domain_purchase_purchased_label: "Купленные домены",
+    domain_purchase_purchased_empty: "Купленных доменов пока нет",
+    domain_purchase_purchased_expires: "Истекает {{date}}",
+    domain_purchase_purchased_in_progress: "Настраивается...",
     domain_purchase_terms_notice:
       "Aster регистрирует домен от вашего имени через нашего партнёрского регистратора, и цена продления всегда показывается до оплаты. Если вы когда-нибудь дадите домену истечь, регистратор может взять плату за его восстановление.",
-    domain_purchase_terms_aster:
-      "Условия использования Aster",
-    domain_purchase_terms_registrar:
-      "Условия и положения NameSilo",
-    domain_purchase_terms_icann:
-      "Права и обязанности владельцев доменов ICANN",
-    domain_purchase_detail_privacy_title:
-      "Приватность по умолчанию",
-    domain_purchase_detail_setup_title:
-      "Ноль настроек",
-    domain_purchase_detail_instant_title:
-      "Готов за секунды",
-    domain_purchase_detail_ownership_title:
-      "Полностью ваш",
+    domain_purchase_terms_aster: "Условия использования Aster",
+    domain_purchase_terms_registrar: "Условия и положения NameSilo",
+    domain_purchase_terms_icann: "Права и обязанности владельцев доменов ICANN",
+    domain_purchase_detail_privacy_title: "Приватность по умолчанию",
+    domain_purchase_detail_setup_title: "Ноль настроек",
+    domain_purchase_detail_instant_title: "Готов за секунды",
+    domain_purchase_detail_ownership_title: "Полностью ваш",
     allowlist_popup_description:
       "Письма от этого отправителя или домена никогда не будут отмечены как спам и всегда будут попадать во входящие.",
     block_sender_popup_description:
@@ -5464,13 +5502,15 @@ export const ru = {
     export_security_vault_row_title: "Пароль хранилища шифрования",
     export_security_vault_row_body:
       "Локальный пароль хранилища подтверждает это устройство перед расшифровкой почты для экспорта.",
-    export_security_vault_row_help: "Это пароль локального хранилища этого устройства, а не пароль вашей учётной записи. Он разблокирует ваши ключи шифрования только на этом устройстве.",
+    export_security_vault_row_help:
+      "Это пароль локального хранилища этого устройства, а не пароль вашей учётной записи. Он разблокирует ваши ключи шифрования только на этом устройстве.",
     export_security_required_badge: "Обязательно",
     export_reauth_prompt: "Введите пароль аккаунта для авторизации экспорта.",
     export_reauth_submit: "Авторизовать",
     export_scope_contacts_body:
       "Адресная книга в формате vCard 4.0 (импортируется в Apple, Google, Thunderbird и др.) плюс полный JSON.",
-    export_scope_mail_help: "MBOX объединяет все сообщения в один файл; .EML сохраняет каждое сообщение отдельно. Оба формата работают с большинством настольных почтовых клиентов.",
+    export_scope_mail_help:
+      "MBOX объединяет все сообщения в один файл; .EML сохраняет каждое сообщение отдельно. Оба формата работают с большинством настольных почтовых клиентов.",
     export_scope_contacts_title: "Контакты",
     export_scope_date_range: "Диапазон дат",
     export_scope_date_from: "С",
@@ -5485,7 +5525,8 @@ export const ru = {
     export_scope_preset_custom: "Выборочно",
     export_scope_settings_body:
       "Псевдонимы, подписи, шаблоны, правила, чёрный и белый список, папки и другие данные аккаунта.",
-    export_scope_contacts_help: "vCard 4.0 — универсальный формат контактов, который большинство приложений импортирует напрямую. Дополнительный файл JSON сохраняет поля, которые vCard не поддерживает.",
+    export_scope_contacts_help:
+      "vCard 4.0 — универсальный формат контактов, который большинство приложений импортирует напрямую. Дополнительный файл JSON сохраняет поля, которые vCard не поддерживает.",
     export_scope_settings_title: "Настройки и правила",
     export_start_button: "Начать экспорт",
     export_step_complete_title: "Экспорт завершён",
@@ -5982,8 +6023,10 @@ export const ru = {
     translation_offer: "Это сообщение на {{language}}.",
     translation_translate: "Перевести",
     translation_in_progress: "Перевод на вашем устройстве…",
-    translation_translated_from: "Переведено с языка {{language}} на вашем устройстве.",
-    translation_limited_quality: "Качество перевода для этого языка может быть ниже.",
+    translation_translated_from:
+      "Переведено с языка {{language}} на вашем устройстве.",
+    translation_limited_quality:
+      "Качество перевода для этого языка может быть ниже.",
     translation_show_original: "Показать оригинал",
     translation_show_translation: "Показать перевод",
     translation_showing_original: "Показано исходное сообщение.",
@@ -6054,13 +6097,17 @@ export const ru = {
     spam_reason_spf_fail: "Отправитель не прошёл проверку SPF",
     spam_reason_dkim_fail: "Сообщение не прошло проверку подписи DKIM",
     spam_reason_dmarc_fail: "Домен отправителя не прошёл аутентификацию DMARC",
-    spam_reason_missing_headers: "В сообщении отсутствуют стандартные заголовки письма",
-    spam_reason_reply_to_mismatch: "Адрес для ответа не совпадает с отправителем",
+    spam_reason_missing_headers:
+      "В сообщении отсутствуют стандартные заголовки письма",
+    spam_reason_reply_to_mismatch:
+      "Адрес для ответа не совпадает с отправителем",
     spam_reason_future_dated: "Сообщение датировано будущим числом",
     spam_reason_phishing_url: "Оно содержит ссылку из чёрного списка фишинга",
     spam_reason_phishing_domain: "Оно ссылается на домен, связанный с фишингом",
-    spam_reason_user_spam_learning: "Вы ранее сообщали о спаме с домена этого отправителя",
-    spam_reason_global_domain_reputation: "У домена отправителя плохая репутация",
+    spam_reason_user_spam_learning:
+      "Вы ранее сообщали о спаме с домена этого отправителя",
+    spam_reason_global_domain_reputation:
+      "У домена отправителя плохая репутация",
     spam_reason_auth_hard_fail: "Не удалось аутентифицировать отправителя",
     spam_reason_sender_marked_spam: "Вы отметили этого отправителя как спам",
     block_sender: "Заблокировать отправителя",
@@ -7182,9 +7229,11 @@ export const ru = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "Удалить passkey?",
-    delete_passkey_description: "\"{{name}}\" будет удалён из вашего аккаунта. Вы больше не сможете входить с его помощью.",
+    delete_passkey_description:
+      '"{{name}}" будет удалён из вашего аккаунта. Вы больше не сможете входить с его помощью.',
     delete_security_key_title: "Удалить ключ безопасности?",
-    delete_security_key_description: "\"{{name}}\" будет удалён из вашего аккаунта. Он больше не будет работать как второй фактор.",
+    delete_security_key_description:
+      '"{{name}}" будет удалён из вашего аккаунта. Он больше не будет работать как второй фактор.',
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7394,7 +7443,8 @@ export const ru = {
       "На нашей стороне возникла ошибка сервера. Обычно помогает повторная попытка через некоторое время. Мы разбираемся.",
     invalid_request:
       "Не удалось обработать запрос. Обычно помогает перезагрузка страницы и повторная попытка.",
-    session_identity_mismatch: "На этом устройстве был выполнен вход в другую учётную запись, поэтому мы завершили сеанс, чтобы разделить учётные записи. Достаточно войти снова. Ваши данные не затронуты.",
+    session_identity_mismatch:
+      "На этом устройстве был выполнен вход в другую учётную запись, поэтому мы завершили сеанс, чтобы разделить учётные записи. Достаточно войти снова. Ваши данные не затронуты.",
     key_material_unavailable:
       "Ваши закрытые ключи заблокированы на этом устройстве. Пароль их разблокирует. Ключи на сервере не изменились.",
     max_accounts:
@@ -7467,7 +7517,8 @@ export const ru = {
     and_label: "И",
     applied_count: "Применено к {{count}} сообщениям",
     apply_to_existing: "Применить к существующей почте сейчас",
-    apply_to_existing_started: "Правило применяется к вашей существующей почте. Обработка идёт в фоновом режиме.",
+    apply_to_existing_started:
+      "Правило применяется к вашей существующей почте. Обработка идёт в фоновом режиме.",
     apply_to_existing_failed: "Не удалось запустить применение правила.",
     at_limit_upgrade:
       "Вы достигли лимита правил. Обновите тарифный план, чтобы добавить больше.",
@@ -7584,8 +7635,10 @@ export const ru = {
     pick_labels: "Выбрать метки",
     pin_label: "Закрепить",
     read: "Прочитано",
-    regex_backreference: "Обратные ссылки вида \\1 не поддерживаются. Перепишите шаблон без них.",
-    regex_lookaround: "Опережающая и ретроспективная проверки не поддерживаются. Перепишите шаблон без них.",
+    regex_backreference:
+      "Обратные ссылки вида \\1 не поддерживаются. Перепишите шаблон без них.",
+    regex_lookaround:
+      "Опережающая и ретроспективная проверки не поддерживаются. Перепишите шаблон без них.",
     regex_empty: "Перед сохранением нужен шаблон regex.",
     regex_invalid:
       "В этом шаблоне regex есть опечатка. Обычно помогает проверка синтаксиса.",
@@ -7748,19 +7801,22 @@ export const ru = {
   },
   survey: {
     banner_title: "Помогите улучшить Aster Mail",
-    banner_message: "Помогите развитию Aster: разовый опрос, около минуты. Ваши ответы остаются конфиденциальными и никогда не передаются.",
+    banner_message:
+      "Помогите развитию Aster: разовый опрос, около минуты. Ваши ответы остаются конфиденциальными и никогда не передаются.",
     banner_take: "Пройти опрос",
     banner_dismiss: "Скрыть",
     remind_tomorrow: "Напомнить завтра",
     dismiss_forever: "Больше не спрашивать",
     modal_title: "Опрос Aster Mail",
-    modal_subtitle: "Только один раз, около минуты. Открытые вопросы необязательны.",
+    modal_subtitle:
+      "Только один раз, около минуты. Открытые вопросы необязательны.",
     q_source: "Где вы впервые услышали об Aster Mail?",
     source_reddit: "Reddit",
     source_youtube: "YouTube или блогер",
     source_friend: "Друг или сарафанное радио",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "Каталог приватности (Privacy Guides, PRISM Break, awesome-privacy)",
+    source_privacy_directory:
+      "Каталог приватности (Privacy Guides, PRISM Break, awesome-privacy)",
     source_search_engine: "Поисковик",
     q_signup_reason: "Что вы в первую очередь искали при регистрации?",
     signup_e2ee: "Сквозное шифрование",
@@ -7797,6 +7853,7 @@ export const ru = {
     required_error: "Пожалуйста, ответьте на этот вопрос",
     submit: "Отправить",
     submit_failed: "Не удалось отправить опрос. Попробуйте ещё раз.",
-    submitted_thanks: "Спасибо! Ваш отзыв делает Aster Mail лучше для всех. Мы читаем каждый ответ.",
+    submitted_thanks:
+      "Спасибо! Ваш отзыв делает Aster Mail лучше для всех. Мы читаем каждый ответ.",
   },
 };

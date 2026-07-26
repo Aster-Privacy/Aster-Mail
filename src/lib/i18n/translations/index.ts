@@ -27,7 +27,20 @@ type PartialTranslations = {
 };
 
 const SUPPORTED_LOCALE_CODES = new Set<LanguageCode>([
-  "es", "fr", "de", "it", "pt", "pt-BR", "zh-CN", "ja", "ko", "ar", "ru", "nl", "pl", "tr",
+  "es",
+  "fr",
+  "de",
+  "it",
+  "pt",
+  "pt-BR",
+  "zh-CN",
+  "ja",
+  "ko",
+  "ar",
+  "ru",
+  "nl",
+  "pl",
+  "tr",
 ]);
 
 function deep_merge(
@@ -46,29 +59,47 @@ function deep_merge(
   return result as unknown as Translations;
 }
 
-async function load_partial(code: LanguageCode): Promise<PartialTranslations | null> {
+async function load_partial(
+  code: LanguageCode,
+): Promise<PartialTranslations | null> {
   switch (code) {
-    case "es": return (await import("./es")).es;
-    case "fr": return (await import("./fr")).fr;
-    case "de": return (await import("./de")).de;
-    case "it": return (await import("./it")).it;
+    case "es":
+      return (await import("./es")).es;
+    case "fr":
+      return (await import("./fr")).fr;
+    case "de":
+      return (await import("./de")).de;
+    case "it":
+      return (await import("./it")).it;
     case "pt":
-    case "pt-BR": return (await import("./pt")).pt;
-    case "zh-CN": return (await import("./zh-CN")).zh_CN;
-    case "ja": return (await import("./ja")).ja;
-    case "ko": return (await import("./ko")).ko;
-    case "ar": return (await import("./ar")).ar;
-    case "ru": return (await import("./ru")).ru;
-    case "nl": return (await import("./nl")).nl;
-    case "pl": return (await import("./pl")).pl;
-    case "tr": return (await import("./tr")).tr;
-    default: return null;
+    case "pt-BR":
+      return (await import("./pt")).pt;
+    case "zh-CN":
+      return (await import("./zh-CN")).zh_CN;
+    case "ja":
+      return (await import("./ja")).ja;
+    case "ko":
+      return (await import("./ko")).ko;
+    case "ar":
+      return (await import("./ar")).ar;
+    case "ru":
+      return (await import("./ru")).ru;
+    case "nl":
+      return (await import("./nl")).nl;
+    case "pl":
+      return (await import("./pl")).pl;
+    case "tr":
+      return (await import("./tr")).tr;
+    default:
+      return null;
   }
 }
 
 const translations_cache: Partial<Record<LanguageCode, Translations>> = { en };
 
-export async function get_translations_async(code: LanguageCode): Promise<Translations> {
+export async function get_translations_async(
+  code: LanguageCode,
+): Promise<Translations> {
   if (translations_cache[code]) return translations_cache[code]!;
   if (code === "en") return en;
 

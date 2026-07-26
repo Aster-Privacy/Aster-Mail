@@ -2226,9 +2226,12 @@ export const ko = {
     alias_delivery_log_reason_unknown: "차단됨",
     alias_delivery_title: "전달",
     alias_never_inbox: "받은편지함 건너뛰기",
-    alias_never_inbox_desc: "이 별칭으로 온 메일은 도착 시 보관됩니다. 검색할 수 있고 전체 메일에 남아 있습니다.",
-    alias_never_inbox_info: "보관하고 싶지만 받은편지함에는 보이지 않게 하려는 가입 확인과 영수증에 유용합니다.",
-    alias_never_inbox_error: "이 설정이 저장되지 않았습니다. 다시 시도하면 됩니다.",
+    alias_never_inbox_desc:
+      "이 별칭으로 온 메일은 도착 시 보관됩니다. 검색할 수 있고 전체 메일에 남아 있습니다.",
+    alias_never_inbox_info:
+      "보관하고 싶지만 받은편지함에는 보이지 않게 하려는 가입 확인과 영수증에 유용합니다.",
+    alias_never_inbox_error:
+      "이 설정이 저장되지 않았습니다. 다시 시도하면 됩니다.",
     alias_relay_title: "전송",
     alias_relay_description: "이 별칭으로 오는 메일의 전송 방식을 선택하세요.",
     alias_relay_mode_native: "네이티브",
@@ -3235,7 +3238,8 @@ export const ko = {
     never_manual: "사용 안 함 (수동만)",
     auto_advance: "보관 또는 삭제 후",
     reactions_enabled: "반응",
-    reactions_enabled_description: "이모지로 메시지에 반응하고 다른 사람의 반응을 볼 수 있습니다",
+    reactions_enabled_description:
+      "이모지로 메시지에 반응하고 다른 사람의 반응을 볼 수 있습니다",
     auto_advance_description:
       "읽고 있는 이메일을 보관하거나 삭제한 후 열 이메일",
     auto_advance_next: "다음 이메일로 이동",
@@ -3255,15 +3259,19 @@ export const ko = {
       "이메일의 원래 스타일을 무시하고 항상 다크 모드로 이메일 콘텐츠를 렌더링합니다",
     translation: "번역",
     translate_incoming: "받은 메일 번역",
-    translate_incoming_description: "다른 언어로 작성된 메시지를 기기에서 번역합니다.",
-    translate_incoming_info: "번역은 자체 호스팅 모델을 사용하여 전적으로 기기에서 실행됩니다. 읽는 내용은 번역 서비스로 전송되지 않습니다.",
+    translate_incoming_description:
+      "다른 언어로 작성된 메시지를 기기에서 번역합니다.",
+    translate_incoming_info:
+      "번역은 자체 호스팅 모델을 사용하여 전적으로 기기에서 실행됩니다. 읽는 내용은 번역 서비스로 전송되지 않습니다.",
     translate_off: "끄기",
     translate_ask: "매번 확인",
     translate_always: "항상 번역",
     translate_my_languages: "읽는 언어",
-    translate_my_languages_description: "이미 읽을 수 있는 언어입니다. '매번 확인' 모드에서는 Aster가 이 언어의 번역을 제안하지 않습니다. '항상 번역' 모드에서도 그대로 두려면 '번역하지 않을 언어'에 추가하세요.",
+    translate_my_languages_description:
+      "이미 읽을 수 있는 언어입니다. '매번 확인' 모드에서는 Aster가 이 언어의 번역을 제안하지 않습니다. '항상 번역' 모드에서도 그대로 두려면 '번역하지 않을 언어'에 추가하세요.",
     translate_never_languages: "번역하지 않을 언어",
-    translate_never_languages_description: "이 언어의 메일은 어떤 모드에서도 번역하지 않습니다.",
+    translate_never_languages_description:
+      "이 언어의 메일은 어떤 모드에서도 번역하지 않습니다.",
     translate_add_language: "언어 추가",
     translate_auto_detected: "기기에서 자동 감지됨",
 
@@ -4655,6 +4663,34 @@ export const ko = {
     cancel_reason_text_placeholder: "덧붙이실 말씀이 있나요? (선택)",
     cancel_reason_skip: "건너뛰기",
     cancel_reason_continue: "계속",
+    cancel_impact_title: "취소하면 달라지는 점",
+    cancel_impact_description: "플랜은 {date}까지 유지됩니다. 그 이후:",
+    cancel_impact_description_nodate: "현재 결제 주기가 끝나면:",
+    cancel_impact_loading: "계정에 어떤 변화가 있는지 확인하는 중...",
+    cancel_impact_unavailable:
+      "지금은 세부 정보를 불러오지 못했습니다. 그대로 계속할 수 있습니다.",
+    cancel_impact_storage: "저장 용량이 {current}에서 {after}로 줄어듭니다.",
+    cancel_impact_storage_over:
+      "현재 {used}을(를) 사용 중이며 한도를 초과했습니다. 초과하는 동안 수신 메일이 거부되고, 7일 후에는 영구적으로 거부됩니다.",
+    cancel_impact_aliases:
+      "별칭 {count}개가 {days}일 후 메일 수신을 중단합니다.",
+    cancel_impact_domains: "사용자 지정 도메인 {count}개가 정지됩니다.",
+    cancel_impact_catch_all: "캐치올 주소가 해제됩니다.",
+    cancel_impact_templates: "이메일 템플릿 {count}개가 비활성화됩니다.",
+    cancel_impact_signatures: "서명 {count}개가 비활성화됩니다.",
+    cancel_impact_family:
+      "가족 구성원 {count}명이 {days}일 유예 기간으로 전환됩니다.",
+    cancel_impact_family_addresses: "예약된 가족 주소 {count}개가 해제됩니다.",
+    cancel_impact_features: "유료 기능 {count}개가 꺼집니다.",
+    cancel_impact_reactivate_hint:
+      "삭제되는 항목은 없습니다. 다시 구독하면 새 플랜 한도 내에서 비활성화된 항목이 복원됩니다.",
+    cancel_impact_continue: "취소 계속하기",
+    cancel_final_title: "취소 확인",
+    cancel_final_description:
+      "{plan} 플랜이 취소되며 {date}에 종료됩니다. 그때까지는 모든 기능을 계속 사용할 수 있습니다.",
+    cancel_final_description_nodate:
+      "{plan} 플랜이 현재 결제 주기가 끝날 때 취소됩니다. 그때까지는 모든 기능을 계속 사용할 수 있습니다.",
+    cancel_final_confirm: "내 플랜 취소",
     cancel_confirm_title: "구독 취소",
     cancel_confirm_description:
       "구독을 취소하시겠습니까? 현재 결제 기간이 끝날 때까지 플랜이 활성 상태로 유지됩니다.",
@@ -4778,8 +4814,7 @@ export const ko = {
     affiliate_payout_amount_label: "요청 금액",
     affiliate_payout_amount_max: "최대",
     affiliate_payout_amount_invalid: "요청할 유효한 금액을 입력하세요.",
-    affiliate_payout_amount_exceeds:
-      "해당 금액이 미지급 잔액을 초과합니다.",
+    affiliate_payout_amount_exceeds: "해당 금액이 미지급 잔액을 초과합니다.",
     affiliate_payout_amount_below_minimum: "최소 지급 금액은 5달러입니다.",
     affiliate_learn_more_irs_confirm_title: "Aster Mail을 나가시겠습니까?",
     affiliate_learn_more_irs_confirm:
@@ -4867,9 +4902,12 @@ export const ko = {
     domain_purchase_pay_crypto: "암호화폐",
     domain_purchase_buy: "{{price}}에 구매",
     domain_purchase_error: "구매에 실패했습니다. 다시 시도해 주세요.",
-    domain_purchase_error_taken: "방금 다른 사용자가 이 도메인을 등록했습니다. 다른 도메인을 선택해 주세요.",
-    domain_purchase_error_limit: "현재 요금제의 도메인 한도에 도달했습니다. 더 추가하려면 업그레이드해 주세요.",
-    domain_purchase_error_slow_down: "지금은 도메인 주문이 너무 많습니다. 진행 중인 주문을 완료하거나 잠시 기다려 주세요.",
+    domain_purchase_error_taken:
+      "방금 다른 사용자가 이 도메인을 등록했습니다. 다른 도메인을 선택해 주세요.",
+    domain_purchase_error_limit:
+      "현재 요금제의 도메인 한도에 도달했습니다. 더 추가하려면 업그레이드해 주세요.",
+    domain_purchase_error_slow_down:
+      "지금은 도메인 주문이 너무 많습니다. 진행 중인 주문을 완료하거나 잠시 기다려 주세요.",
     domain_purchase_progress_title: "{{domain}} 설정 중",
     domain_purchase_step_payment: "결제 완료",
     domain_purchase_step_registering: "NameSilo에 등록 중",
@@ -4883,20 +4921,25 @@ export const ko = {
     domain_purchase_refunded:
       "등록하기 전에 이 도메인을 사용할 수 없게 되었습니다. 결제가 환불되었습니다.",
     domain_purchase_try_instead: "대신 이런 이름은 어떠세요",
-    domain_purchase_empty_subtitle: "단어, 이름 또는 전체 도메인을 입력하세요. 판매 중인 모든 확장자를 확인해 사용 가능한 것을 보여드립니다.",
-    domain_purchase_empty_included: "모든 도메인에 WHOIS 비공개, 자동 설정된 DNS, 무제한 주소가 포함됩니다.",
-    domain_purchase_terms_inline: "도메인은 NameSilo를 통해 등록됩니다. 구매하면 {{aster}}, {{registrar}} 및 {{icann}}에 동의하게 됩니다. 도메인이 생성되면 등록은 취소할 수 없습니다.",
+    domain_purchase_empty_subtitle:
+      "단어, 이름 또는 전체 도메인을 입력하세요. 판매 중인 모든 확장자를 확인해 사용 가능한 것을 보여드립니다.",
+    domain_purchase_empty_included:
+      "모든 도메인에 WHOIS 비공개, 자동 설정된 DNS, 무제한 주소가 포함됩니다.",
+    domain_purchase_terms_inline:
+      "도메인은 NameSilo를 통해 등록됩니다. 구매하면 {{aster}}, {{registrar}} 및 {{icann}}에 동의하게 됩니다. 도메인이 생성되면 등록은 취소할 수 없습니다.",
     domain_purchase_empty_title: "무엇이든 입력해 시작하세요",
-    domain_purchase_search_failed:
-      "검색에 실패했습니다. 다시 시도해 주세요.",
+    domain_purchase_search_failed: "검색에 실패했습니다. 다시 시도해 주세요.",
     domain_purchase_retry: "다시 시도",
     domain_purchase_step_choose: "이름 선택",
     domain_purchase_step_checkout: "결제",
     domain_purchase_step_activate: "사용 시작",
     domain_purchase_intro_title: "나만의 이메일 도메인을 찾아보세요",
-    domain_purchase_intro_sub: "간단한 두 가지 질문에 답하면 사용 가능한 도메인을 보여드립니다.",
-    domain_purchase_intro_name_q: "어떤 이름을 원하시나요? 비즈니스, 프로젝트 또는 본인 이름도 좋습니다.",
-    domain_purchase_intro_name_ph: "harborcoffee 또는 alexcarter처럼 이름을 입력하세요",
+    domain_purchase_intro_sub:
+      "간단한 두 가지 질문에 답하면 사용 가능한 도메인을 보여드립니다.",
+    domain_purchase_intro_name_q:
+      "어떤 이름을 원하시나요? 비즈니스, 프로젝트 또는 본인 이름도 좋습니다.",
+    domain_purchase_intro_name_ph:
+      "harborcoffee 또는 alexcarter처럼 이름을 입력하세요",
     domain_purchase_intro_tld_q: "선호하는 확장자가 있나요?",
     domain_purchase_intro_cta: "사용 가능한 도메인 보기",
     domain_purchase_intro_skip: "건너뛰고 직접 검색",
@@ -4923,8 +4966,10 @@ export const ko = {
     domain_purchase_years_line: "{{count}}년 등록",
     domain_purchase_secure_checkout: "Stripe 보안 결제",
     domain_purchase_crypto_warning_title: "먼저 암호화폐 잔액을 충전하세요",
-    domain_purchase_crypto_warning_body: "암호화폐 주문은 Aster 암호화폐 잔액에서 결제됩니다. 구매 전에 잔액을 충전하세요. 그렇지 않으면 잔액이 전액을 충당할 때까지 도메인이 보류 상태로 유지됩니다.",
-    domain_purchase_crypto_warning_hint: "결제 페이지에서 충전할 수 있으며, 계정 크레딧과 동일한 잔액입니다.",
+    domain_purchase_crypto_warning_body:
+      "암호화폐 주문은 Aster 암호화폐 잔액에서 결제됩니다. 구매 전에 잔액을 충전하세요. 그렇지 않으면 잔액이 전액을 충당할 때까지 도메인이 보류 상태로 유지됩니다.",
+    domain_purchase_crypto_warning_hint:
+      "결제 페이지에서 충전할 수 있으며, 계정 크레딧과 동일한 잔액입니다.",
     domain_purchase_included_heading: "도메인에 포함된 모든 기능",
     domain_purchase_renew: "갱신",
     domain_purchase_filter_all: "전체",
@@ -4945,32 +4990,20 @@ export const ko = {
     domain_purchase_dont_have: "도메인이 없으신가요? 여기를 클릭해 구매하세요.",
     domain_purchase_sort_price: "낮은 가격순",
     domain_purchase_leave_title: "Aster Mail을 떠나시겠어요?",
-    domain_purchase_leave_message:
-      "이 링크는 새 탭에서 {{host}}을(를) 엽니다.",
-    domain_purchase_purchased_label:
-      "구매한 도메인",
-    domain_purchase_purchased_empty:
-      "구매한 도메인이 아직 없습니다",
-    domain_purchase_purchased_expires:
-      "{{date}} 만료",
-    domain_purchase_purchased_in_progress:
-      "설정 중...",
+    domain_purchase_leave_message: "이 링크는 새 탭에서 {{host}}을(를) 엽니다.",
+    domain_purchase_purchased_label: "구매한 도메인",
+    domain_purchase_purchased_empty: "구매한 도메인이 아직 없습니다",
+    domain_purchase_purchased_expires: "{{date}} 만료",
+    domain_purchase_purchased_in_progress: "설정 중...",
     domain_purchase_terms_notice:
       "Aster는 등록기관 파트너를 통해 회원님 대신 도메인을 등록하며, 갱신 요금은 결제 전에 항상 표시됩니다. 도메인을 만료되도록 두신 경우, 되찾으려면 등록기관의 복구 수수료가 부과될 수 있습니다.",
-    domain_purchase_terms_aster:
-      "Aster 서비스 약관",
-    domain_purchase_terms_registrar:
-      "NameSilo 이용약관",
-    domain_purchase_terms_icann:
-      "ICANN 등록자의 권리와 책임",
-    domain_purchase_detail_privacy_title:
-      "기본적으로 비공개",
-    domain_purchase_detail_setup_title:
-      "설정 불필요",
-    domain_purchase_detail_instant_title:
-      "몇 초 만에 준비 완료",
-    domain_purchase_detail_ownership_title:
-      "온전히 내 것",
+    domain_purchase_terms_aster: "Aster 서비스 약관",
+    domain_purchase_terms_registrar: "NameSilo 이용약관",
+    domain_purchase_terms_icann: "ICANN 등록자의 권리와 책임",
+    domain_purchase_detail_privacy_title: "기본적으로 비공개",
+    domain_purchase_detail_setup_title: "설정 불필요",
+    domain_purchase_detail_instant_title: "몇 초 만에 준비 완료",
+    domain_purchase_detail_ownership_title: "온전히 내 것",
     domain_promo_cta: "도메인 연결",
     allowlist_popup_description:
       "이 발신자 또는 도메인의 이메일은 스팸으로 표시되지 않으며 항상 받은 편지함에 도착합니다.",
@@ -5635,7 +5668,8 @@ export const ko = {
     export_security_vault_row_title: "암호화 보관함 암호",
     export_security_vault_row_body:
       "로컬 보관함 암호는 내보내기를 위해 메일을 복호화하기 전에 이 기기를 확인합니다.",
-    export_security_vault_row_help: "이는 이 기기의 로컬 보관함 암호이며 계정 비밀번호가 아닙니다. 이 기기에서만 암호화 키의 잠금을 해제합니다.",
+    export_security_vault_row_help:
+      "이는 이 기기의 로컬 보관함 암호이며 계정 비밀번호가 아닙니다. 이 기기에서만 암호화 키의 잠금을 해제합니다.",
     export_security_required_badge: "필수",
     export_warning_title: "내보내기 전 확인",
     export_warning_body:
@@ -5644,10 +5678,12 @@ export const ko = {
     export_step_scope_title: "내보낼 내용 선택",
     export_scope_mail_title: "이메일",
     export_scope_mail_body: "선택한 폴더의 모든 메시지",
-    export_scope_mail_help: "MBOX는 모든 메시지를 하나의 파일로 묶고, .EML은 메시지를 개별 파일로 저장합니다. 두 형식 모두 대부분의 데스크톱 메일 클라이언트에서 사용할 수 있습니다.",
+    export_scope_mail_help:
+      "MBOX는 모든 메시지를 하나의 파일로 묶고, .EML은 메시지를 개별 파일로 저장합니다. 두 형식 모두 대부분의 데스크톱 메일 클라이언트에서 사용할 수 있습니다.",
     export_scope_contacts_title: "연락처",
     export_scope_contacts_body: "주소록의 모든 연락처",
-    export_scope_contacts_help: "vCard 4.0은 대부분의 앱이 직접 가져올 수 있는 범용 연락처 형식입니다. 추가 JSON 파일에는 vCard가 저장할 수 없는 필드가 보존됩니다.",
+    export_scope_contacts_help:
+      "vCard 4.0은 대부분의 앱이 직접 가져올 수 있는 범용 연락처 형식입니다. 추가 JSON 파일에는 vCard가 저장할 수 없는 필드가 보존됩니다.",
     export_scope_settings_title: "설정",
     export_scope_settings_body: "계정 환경설정 및 설정",
     export_scope_preset_all: "모두",
@@ -5844,10 +5880,13 @@ export const ko = {
     spam_reason_missing_headers: "메시지에 표준 이메일 헤더가 없습니다",
     spam_reason_reply_to_mismatch: "회신 주소가 발신자와 일치하지 않습니다",
     spam_reason_future_dated: "메시지 날짜가 미래로 되어 있습니다",
-    spam_reason_phishing_url: "피싱 차단 목록에 등록된 링크가 포함되어 있습니다",
+    spam_reason_phishing_url:
+      "피싱 차단 목록에 등록된 링크가 포함되어 있습니다",
     spam_reason_phishing_domain: "피싱과 관련된 도메인으로 연결됩니다",
-    spam_reason_user_spam_learning: "이전에 이 발신자의 도메인에서 온 스팸을 신고했습니다",
-    spam_reason_global_domain_reputation: "발신자의 도메인 평판이 좋지 않습니다",
+    spam_reason_user_spam_learning:
+      "이전에 이 발신자의 도메인에서 온 스팸을 신고했습니다",
+    spam_reason_global_domain_reputation:
+      "발신자의 도메인 평판이 좋지 않습니다",
     spam_reason_auth_hard_fail: "발신자를 인증할 수 없습니다",
     spam_reason_sender_marked_spam: "이 발신자를 스팸으로 표시했습니다",
     block_sender: "발신자 차단",
@@ -6929,9 +6968,11 @@ export const ko = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "패스키를 삭제할까요?",
-    delete_passkey_description: "\"{{name}}\"이(가) 계정에서 제거됩니다. 더 이상 이 패스키로 로그인할 수 없습니다.",
+    delete_passkey_description:
+      '"{{name}}"이(가) 계정에서 제거됩니다. 더 이상 이 패스키로 로그인할 수 없습니다.',
     delete_security_key_title: "보안 키를 삭제할까요?",
-    delete_security_key_description: "\"{{name}}\"이(가) 계정에서 제거됩니다. 더 이상 2차 인증 수단으로 사용할 수 없습니다.",
+    delete_security_key_description:
+      '"{{name}}"이(가) 계정에서 제거됩니다. 더 이상 2차 인증 수단으로 사용할 수 없습니다.',
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7092,7 +7133,8 @@ export const ko = {
     failed_send: "발송에 실패했습니다. 다시 시도하면 됩니다.",
     no_keys_available:
       "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
-    session_identity_mismatch: "이 기기가 다른 계정으로 로그인되어 있어 계정을 분리하기 위해 로그아웃했습니다. 다시 로그인하기만 하면 됩니다. 데이터는 그대로입니다.",
+    session_identity_mismatch:
+      "이 기기가 다른 계정으로 로그인되어 있어 계정을 분리하기 위해 로그아웃했습니다. 다시 로그인하기만 하면 됩니다. 데이터는 그대로입니다.",
     key_material_unavailable:
       "키 자료를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
     storage_compromised:
@@ -7199,7 +7241,8 @@ export const ko = {
     do_this: "이 작업 수행",
     add_condition: "조건 추가",
     apply_to_existing: "기존 메일에 지금 적용",
-    apply_to_existing_started: "이 규칙을 기존 메일에 적용하는 중입니다. 백그라운드에서 실행됩니다.",
+    apply_to_existing_started:
+      "이 규칙을 기존 메일에 적용하는 중입니다. 백그라운드에서 실행됩니다.",
     apply_to_existing_failed: "이 규칙 적용을 시작할 수 없습니다.",
     empty_title: "아직 규칙이 없습니다",
     empty_description: "첫 번째 규칙을 만들어 수신 메일을 자동으로 정리하세요.",
@@ -7259,8 +7302,10 @@ export const ko = {
     op_equals: "같다",
     op_older_than_days: "이전 (일)",
     op_newer_than_days: "이후 (일)",
-    regex_backreference: "\\1 같은 역참조는 지원되지 않습니다. 사용하지 않고 패턴을 다시 작성하세요.",
-    regex_lookaround: "전방 탐색과 후방 탐색은 지원되지 않습니다. 사용하지 않고 패턴을 다시 작성하세요.",
+    regex_backreference:
+      "\\1 같은 역참조는 지원되지 않습니다. 사용하지 않고 패턴을 다시 작성하세요.",
+    regex_lookaround:
+      "전방 탐색과 후방 탐색은 지원되지 않습니다. 사용하지 않고 패턴을 다시 작성하세요.",
     regex_invalid:
       "이 정규식 패턴에 오류가 있습니다. 구문을 확인하면 보통 해결됩니다.",
     regex_empty: "저장하기 전에 정규식 패턴이 필요합니다.",
@@ -7475,19 +7520,22 @@ export const ko = {
   },
   survey: {
     banner_title: "Aster Mail 개선에 도움을 주세요",
-    banner_message: "Aster를 함께 만들어 주세요: 한 번뿐인 약 1분 설문입니다. 답변은 비공개로 유지되며 절대 공유되지 않습니다.",
+    banner_message:
+      "Aster를 함께 만들어 주세요: 한 번뿐인 약 1분 설문입니다. 답변은 비공개로 유지되며 절대 공유되지 않습니다.",
     banner_take: "설문 참여",
     banner_dismiss: "닫기",
     remind_tomorrow: "내일 다시 알림",
     dismiss_forever: "다시 묻지 않기",
     modal_title: "Aster Mail 설문조사",
-    modal_subtitle: "한 번만 진행되며 약 1분 소요됩니다. 주관식 질문은 선택 사항입니다.",
+    modal_subtitle:
+      "한 번만 진행되며 약 1분 소요됩니다. 주관식 질문은 선택 사항입니다.",
     q_source: "Aster Mail을 처음 어디에서 알게 되셨나요?",
     source_reddit: "Reddit",
     source_youtube: "YouTube 또는 콘텐츠 크리에이터",
     source_friend: "친구 또는 입소문",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "프라이버시 디렉터리 (Privacy Guides, PRISM Break, awesome-privacy)",
+    source_privacy_directory:
+      "프라이버시 디렉터리 (Privacy Guides, PRISM Break, awesome-privacy)",
     source_search_engine: "검색 엔진",
     q_signup_reason: "가입할 때 주로 무엇을 찾고 계셨나요?",
     signup_e2ee: "종단 간 암호화",
@@ -7504,7 +7552,8 @@ export const ko = {
     stood_price: "가격",
     stood_ui: "UI / 커스터마이징",
     q_upgrade_blocker: "유료 플랜으로 업그레이드하지 않는 이유는 무엇인가요?",
-    q_upgrade_trigger: "결국 유료 플랜으로 업그레이드하게 된 계기는 무엇인가요?",
+    q_upgrade_trigger:
+      "결국 유료 플랜으로 업그레이드하게 된 계기는 무엇인가요?",
     trigger_storage: "저장 공간 부족",
     trigger_feature: "특정 기능이 필요했음",
     trigger_support_mission: "미션 / 프로젝트 지원",
@@ -7524,6 +7573,7 @@ export const ko = {
     required_error: "이 질문에 답해 주세요",
     submit: "제출",
     submit_failed: "설문을 제출하지 못했습니다. 다시 시도해 주세요.",
-    submitted_thanks: "감사합니다! 보내주신 의견이 모두를 위한 더 나은 Aster Mail을 만듭니다. 모든 답변을 꼼꼼히 읽습니다.",
+    submitted_thanks:
+      "감사합니다! 보내주신 의견이 모두를 위한 더 나은 Aster Mail을 만듭니다. 모든 답변을 꼼꼼히 읽습니다.",
   },
 };

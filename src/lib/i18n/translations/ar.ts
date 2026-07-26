@@ -2241,8 +2241,10 @@ export const ar = {
     alias_delivery_log_reason_unknown: "محظور",
     alias_delivery_title: "التسليم",
     alias_never_inbox: "تخطي صندوق الوارد",
-    alias_never_inbox_desc: "يتم أرشفة البريد المرسل إلى هذا الاسم المستعار عند وصوله. يبقى قابلاً للبحث وموجوداً في كل البريد.",
-    alias_never_inbox_info: "مفيد لعمليات التسجيل والإيصالات التي تريد الاحتفاظ بها دون عرضها في صندوق الوارد.",
+    alias_never_inbox_desc:
+      "يتم أرشفة البريد المرسل إلى هذا الاسم المستعار عند وصوله. يبقى قابلاً للبحث وموجوداً في كل البريد.",
+    alias_never_inbox_info:
+      "مفيد لعمليات التسجيل والإيصالات التي تريد الاحتفاظ بها دون عرضها في صندوق الوارد.",
     alias_never_inbox_error: "لم يتم حفظ هذا الإعداد. محاولة أخرى ستنجح.",
     alias_relay_title: "التسليم",
     alias_relay_description:
@@ -3199,7 +3201,8 @@ export const ar = {
     never_manual: "أبدًا (يدوي فقط)",
     auto_advance: "بعد الأرشفة أو الحذف",
     reactions_enabled: "التفاعلات",
-    reactions_enabled_description: "السماح بالتفاعل مع الرسائل بالرموز التعبيرية وعرض تفاعلات الآخرين",
+    reactions_enabled_description:
+      "السماح بالتفاعل مع الرسائل بالرموز التعبيرية وعرض تفاعلات الآخرين",
     auto_advance_description:
       "البريد الذي يُفتح بعد أرشفة أو حذف البريد الذي تقرأه",
     auto_advance_next: "الانتقال إلى البريد التالي",
@@ -3219,15 +3222,19 @@ export const ar = {
       "عرض محتوى البريد الإلكتروني دائمًا في الوضع الداكن، متجاوزًا التنسيق الأصلي",
     translation: "الترجمة",
     translate_incoming: "ترجمة البريد الوارد",
-    translate_incoming_description: "ترجم الرسائل المكتوبة بلغات أخرى على جهازك.",
-    translate_incoming_info: "تعمل الترجمة بالكامل على جهازك باستخدام نماذج ذاتية الاستضافة. لا يُرسَل أي شيء تقرأه إلى خدمة ترجمة أبدًا.",
+    translate_incoming_description:
+      "ترجم الرسائل المكتوبة بلغات أخرى على جهازك.",
+    translate_incoming_info:
+      "تعمل الترجمة بالكامل على جهازك باستخدام نماذج ذاتية الاستضافة. لا يُرسَل أي شيء تقرأه إلى خدمة ترجمة أبدًا.",
     translate_off: "إيقاف",
     translate_ask: "اسأل في كل مرة",
     translate_always: "ترجمة دائمًا",
     translate_my_languages: "اللغات التي تقرؤها",
-    translate_my_languages_description: "اللغات التي تقرؤها بالفعل. في وضع «اسأل في كل مرة»، لن يعرض Aster ترجمة هذه اللغات. وللإبقاء على لغة دون تغيير في وضع «ترجمة دائمًا» أيضًا، أضِفها إلى «عدم الترجمة أبدًا».",
+    translate_my_languages_description:
+      "اللغات التي تقرؤها بالفعل. في وضع «اسأل في كل مرة»، لن يعرض Aster ترجمة هذه اللغات. وللإبقاء على لغة دون تغيير في وضع «ترجمة دائمًا» أيضًا، أضِفها إلى «عدم الترجمة أبدًا».",
     translate_never_languages: "عدم الترجمة أبدًا",
-    translate_never_languages_description: "لا تترجم البريد بهذه اللغات أبدًا، في أي وضع.",
+    translate_never_languages_description:
+      "لا تترجم البريد بهذه اللغات أبدًا، في أي وضع.",
     translate_add_language: "إضافة لغة",
     translate_auto_detected: "تم اكتشافها تلقائيًا من جهازك",
 
@@ -4596,6 +4603,35 @@ export const ar = {
     cancel_reason_text_placeholder: "هل تود إضافة شيء؟ (اختياري)",
     cancel_reason_skip: "تخطٍ",
     cancel_reason_continue: "متابعة",
+    cancel_impact_title: "ما الذي يتغير إذا ألغيت",
+    cancel_impact_description: "تظل خطتك نشطة حتى {date}. بعد ذلك:",
+    cancel_impact_description_nodate: "عند انتهاء دورة الفوترة الحالية:",
+    cancel_impact_loading: "جارٍ التحقق مما سيتغير في حسابك...",
+    cancel_impact_unavailable:
+      "تعذر تحميل التفاصيل الآن. لا يزال بإمكانك المتابعة.",
+    cancel_impact_storage: "تنخفض المساحة من {current} إلى {after}.",
+    cancel_impact_storage_over:
+      "تستخدم {used}، وهو أعلى من هذا الحد. طالما تجاوزت الحد يُرفض البريد الوارد، وبعد 7 أيام يُرفض بشكل دائم.",
+    cancel_impact_aliases:
+      "يتوقف {count} من الأسماء المستعارة عن استقبال البريد بعد {days} يومًا.",
+    cancel_impact_domains: "يتم تعليق {count} من النطاقات المخصصة.",
+    cancel_impact_catch_all: "يتم إيقاف العنونة الشاملة.",
+    cancel_impact_templates: "يتم تعطيل {count} من قوالب البريد.",
+    cancel_impact_signatures: "يتم تعطيل {count} من التواقيع.",
+    cancel_impact_family:
+      "ينتقل {count} من أفراد العائلة إلى فترة سماح مدتها {days} يومًا.",
+    cancel_impact_family_addresses:
+      "يتم تحرير {count} من عناوين العائلة المحجوزة.",
+    cancel_impact_features: "يتم إيقاف {count} من الميزات المدفوعة.",
+    cancel_impact_reactivate_hint:
+      "لا يتم حذف أي شيء. إعادة الاشتراك تستعيد ما تم تعطيله، ضمن حدود خطتك الجديدة.",
+    cancel_impact_continue: "المتابعة إلى الإلغاء",
+    cancel_final_title: "تأكيد الإلغاء",
+    cancel_final_description:
+      "سيتم إلغاء خطة {plan} وتنتهي في {date}. تحتفظ بالوصول الكامل حتى ذلك الحين.",
+    cancel_final_description_nodate:
+      "سيتم إلغاء خطة {plan} في نهاية دورة الفوترة الحالية. تحتفظ بالوصول الكامل حتى ذلك الحين.",
+    cancel_final_confirm: "إلغاء خطتي",
     cancel_confirm_title: "إلغاء الاشتراك",
     cancel_confirm_description:
       "هل أنت متأكد أنك تريد إلغاء اشتراكك؟ ستظل خطتك نشطة حتى نهاية فترة الفوترة الحالية.",
@@ -4719,8 +4755,7 @@ export const ar = {
     affiliate_payout_amount_label: "المبلغ المطلوب",
     affiliate_payout_amount_max: "الحد الأقصى",
     affiliate_payout_amount_invalid: "أدخل مبلغًا صحيحًا لطلبه.",
-    affiliate_payout_amount_exceeds:
-      "هذا المبلغ أكبر من رصيدك المستحق.",
+    affiliate_payout_amount_exceeds: "هذا المبلغ أكبر من رصيدك المستحق.",
     affiliate_payout_amount_below_minimum:
       "الحد الأدنى لمبلغ الدفع هو 5 دولارات.",
     affiliate_learn_more_irs_confirm_title: "هل تريد مغادرة Aster Mail؟",
@@ -4807,8 +4842,10 @@ export const ar = {
     domain_purchase_buy: "اشترِ مقابل {{price}}",
     domain_purchase_error: "فشل الشراء. حاول مرة أخرى.",
     domain_purchase_error_taken: "تم حجز هذا النطاق للتو. اختر نطاقًا آخر.",
-    domain_purchase_error_limit: "لقد وصلت إلى الحد الأقصى للنطاقات في خطتك. قم بالترقية لإضافة المزيد.",
-    domain_purchase_error_slow_down: "هناك عدد كبير جدًا من طلبات النطاقات الآن. أكمل الطلبات الجارية أو انتظرها.",
+    domain_purchase_error_limit:
+      "لقد وصلت إلى الحد الأقصى للنطاقات في خطتك. قم بالترقية لإضافة المزيد.",
+    domain_purchase_error_slow_down:
+      "هناك عدد كبير جدًا من طلبات النطاقات الآن. أكمل الطلبات الجارية أو انتظرها.",
     domain_purchase_progress_title: "جارٍ إعداد {{domain}}",
     domain_purchase_step_payment: "تم استلام الدفعة",
     domain_purchase_step_registering: "التسجيل لدى NameSilo",
@@ -4822,9 +4859,12 @@ export const ar = {
     domain_purchase_refunded:
       "أصبح هذا النطاق غير متاح قبل أن نتمكن من تسجيله. تم رد المبلغ المدفوع.",
     domain_purchase_try_instead: "جرّب أحد هذه البدائل",
-    domain_purchase_empty_subtitle: "أدخل كلمة أو اسمًا أو نطاقًا كاملًا. نتحقق من كل امتداد نبيعه ونعرض لك المتاح.",
-    domain_purchase_empty_included: "كل نطاق يشمل خصوصية WHOIS، وإعداد DNS نيابةً عنك، وعناوين غير محدودة.",
-    domain_purchase_terms_inline: "يتم تسجيل النطاقات عبر NameSilo. بالشراء، فإنك توافق على {{aster}} و{{registrar}} و{{icann}}. يصبح التسجيل نهائيًا بمجرد إنشاء النطاق.",
+    domain_purchase_empty_subtitle:
+      "أدخل كلمة أو اسمًا أو نطاقًا كاملًا. نتحقق من كل امتداد نبيعه ونعرض لك المتاح.",
+    domain_purchase_empty_included:
+      "كل نطاق يشمل خصوصية WHOIS، وإعداد DNS نيابةً عنك، وعناوين غير محدودة.",
+    domain_purchase_terms_inline:
+      "يتم تسجيل النطاقات عبر NameSilo. بالشراء، فإنك توافق على {{aster}} و{{registrar}} و{{icann}}. يصبح التسجيل نهائيًا بمجرد إنشاء النطاق.",
     domain_purchase_empty_title: "اكتب شيئًا للبدء",
     domain_purchase_search_failed: "تعذر إتمام البحث. حاول مرة أخرى.",
     domain_purchase_retry: "إعادة المحاولة",
@@ -4833,7 +4873,8 @@ export const ar = {
     domain_purchase_step_activate: "التفعيل",
     domain_purchase_intro_title: "لنعثر على نطاق بريدك الإلكتروني",
     domain_purchase_intro_sub: "أجب عن سؤالين سريعين وسنعرض لك ما هو متاح.",
-    domain_purchase_intro_name_q: "ما الاسم الذي تريده؟ عملك أو مشروعك أو اسمك فقط.",
+    domain_purchase_intro_name_q:
+      "ما الاسم الذي تريده؟ عملك أو مشروعك أو اسمك فقط.",
     domain_purchase_intro_name_ph: "اكتب اسمًا، مثل harborcoffee أو alexcarter",
     domain_purchase_intro_tld_q: "هل لديك امتداد مفضل؟",
     domain_purchase_intro_cta: "أرني ما هو متاح",
@@ -4861,8 +4902,10 @@ export const ar = {
     domain_purchase_years_line: "تسجيل لمدة {{count}} سنة",
     domain_purchase_secure_checkout: "دفع آمن عبر Stripe",
     domain_purchase_crypto_warning_title: "اشحن رصيدك من العملات الرقمية أولًا",
-    domain_purchase_crypto_warning_body: "تُدفع طلبات العملات الرقمية من رصيدك الرقمي في Aster. أضف رصيدًا قبل الشراء، وإلا سيظل النطاق معلقًا حتى يغطي الرصيد المبلغ بالكامل.",
-    domain_purchase_crypto_warning_hint: "يمكنك الشحن من صفحة الفوترة، وهو الرصيد نفسه المستخدم لرصيد الحساب.",
+    domain_purchase_crypto_warning_body:
+      "تُدفع طلبات العملات الرقمية من رصيدك الرقمي في Aster. أضف رصيدًا قبل الشراء، وإلا سيظل النطاق معلقًا حتى يغطي الرصيد المبلغ بالكامل.",
+    domain_purchase_crypto_warning_hint:
+      "يمكنك الشحن من صفحة الفوترة، وهو الرصيد نفسه المستخدم لرصيد الحساب.",
     domain_purchase_included_heading: "كل ما يشمله نطاقك",
     domain_purchase_renew: "تجديد",
     domain_purchase_filter_all: "الكل",
@@ -4885,30 +4928,19 @@ export const ar = {
     domain_purchase_leave_title: "هل تريد مغادرة Aster Mail؟",
     domain_purchase_leave_message:
       "يفتح هذا الرابط {{host}} في علامة تبويب جديدة.",
-    domain_purchase_purchased_label:
-      "النطاقات المشتراة",
-    domain_purchase_purchased_empty:
-      "لا توجد نطاقات مشتراة بعد",
-    domain_purchase_purchased_expires:
-      "تنتهي في {{date}}",
-    domain_purchase_purchased_in_progress:
-      "قيد الإعداد...",
+    domain_purchase_purchased_label: "النطاقات المشتراة",
+    domain_purchase_purchased_empty: "لا توجد نطاقات مشتراة بعد",
+    domain_purchase_purchased_expires: "تنتهي في {{date}}",
+    domain_purchase_purchased_in_progress: "قيد الإعداد...",
     domain_purchase_terms_notice:
       "تسجّل Aster النطاق نيابةً عنك عبر شريكنا المسجّل، ويظهر سعر التجديد دائمًا قبل أن تدفع. وإذا تركت نطاقًا ينتهي يومًا ما، فقد يفرض المسجّل رسوم استرداد لإعادته.",
-    domain_purchase_terms_aster:
-      "شروط خدمة Aster",
-    domain_purchase_terms_registrar:
-      "شروط وأحكام NameSilo",
-    domain_purchase_terms_icann:
-      "حقوق ومسؤوليات مالكي النطاقات من ICANN",
-    domain_purchase_detail_privacy_title:
-      "خاص افتراضيًا",
-    domain_purchase_detail_setup_title:
-      "بلا أي إعداد",
-    domain_purchase_detail_instant_title:
-      "جاهز خلال ثوانٍ",
-    domain_purchase_detail_ownership_title:
-      "ملكك دائمًا",
+    domain_purchase_terms_aster: "شروط خدمة Aster",
+    domain_purchase_terms_registrar: "شروط وأحكام NameSilo",
+    domain_purchase_terms_icann: "حقوق ومسؤوليات مالكي النطاقات من ICANN",
+    domain_purchase_detail_privacy_title: "خاص افتراضيًا",
+    domain_purchase_detail_setup_title: "بلا أي إعداد",
+    domain_purchase_detail_instant_title: "جاهز خلال ثوانٍ",
+    domain_purchase_detail_ownership_title: "ملكك دائمًا",
     domain_promo_cta: "اربط نطاقك",
     allowlist_popup_description:
       "لن يتم أبدًا تعليم رسائل هذا المرسل أو النطاق كمزعجة وستصل دائمًا إلى صندوق الوارد.",
@@ -5608,7 +5640,8 @@ export const ar = {
     export_security_vault_row_title: "عبارة مرور خزنة التشفير",
     export_security_vault_row_body:
       "تؤكد عبارة مرور الخزنة المحلية هذا الجهاز قبل فك تشفير البريد من أجل التصدير.",
-    export_security_vault_row_help: "هذه هي عبارة مرور الخزنة المحلية لهذا الجهاز، وليست كلمة مرور حسابك. إنها تفتح مفاتيح التشفير الخاصة بك على هذا الجهاز فقط.",
+    export_security_vault_row_help:
+      "هذه هي عبارة مرور الخزنة المحلية لهذا الجهاز، وليست كلمة مرور حسابك. إنها تفتح مفاتيح التشفير الخاصة بك على هذا الجهاز فقط.",
     export_security_required_badge: "مطلوب",
     export_warning_title: "تنبيه",
     export_warning_body:
@@ -5617,11 +5650,13 @@ export const ar = {
     export_step_scope_title: "ما تريد تصديره",
     export_scope_mail_title: "البريد",
     export_scope_mail_body: "جميع رسائلك ومرفقاتك بصيغة mbox أو .eml القياسية.",
-    export_scope_mail_help: "يجمع MBOX جميع الرسائل في ملف واحد؛ بينما يحفظ .EML كل رسالة في ملف منفصل. تعمل كلتا الصيغتين مع معظم برامج البريد على سطح المكتب.",
+    export_scope_mail_help:
+      "يجمع MBOX جميع الرسائل في ملف واحد؛ بينما يحفظ .EML كل رسالة في ملف منفصل. تعمل كلتا الصيغتين مع معظم برامج البريد على سطح المكتب.",
     export_scope_contacts_title: "جهات الاتصال",
     export_scope_contacts_body:
       "دفتر العناوين مُصدَّرًا بصيغة vCard 4.0 (قابل للاستيراد في Apple وGoogle وThunderbird وغيرها) إضافةً إلى JSON كامل.",
-    export_scope_contacts_help: "vCard 4.0 هو تنسيق جهات الاتصال العالمي الذي تستورده معظم التطبيقات مباشرة. يحافظ ملف JSON الإضافي على الحقول التي لا يمكن لـ vCard تخزينها.",
+    export_scope_contacts_help:
+      "vCard 4.0 هو تنسيق جهات الاتصال العالمي الذي تستورده معظم التطبيقات مباشرة. يحافظ ملف JSON الإضافي على الحقول التي لا يمكن لـ vCard تخزينها.",
     export_scope_settings_title: "الإعدادات والقواعد",
     export_scope_settings_body:
       "الأسماء المستعارة والتوقيعات والقوالب وقواعد البريد والمرسلون المحظورون والمسموح بهم والمجلدات وبيانات الحساب الأخرى.",
@@ -5812,15 +5847,19 @@ export const ar = {
     spam_reason_spf_fail: "فشل المرسل في اجتياز التحقق من SPF",
     spam_reason_dkim_fail: "فشلت الرسالة في اجتياز التحقق من توقيع DKIM",
     spam_reason_dmarc_fail: "فشل نطاق المرسل في اجتياز مصادقة DMARC",
-    spam_reason_missing_headers: "تفتقر الرسالة إلى ترويسات البريد الإلكتروني القياسية",
+    spam_reason_missing_headers:
+      "تفتقر الرسالة إلى ترويسات البريد الإلكتروني القياسية",
     spam_reason_reply_to_mismatch: "عنوان الرد لا يطابق المرسل",
     spam_reason_future_dated: "الرسالة مؤرخة بتاريخ في المستقبل",
-    spam_reason_phishing_url: "تحتوي على رابط مدرج في قائمة حظر التصيد الاحتيالي",
+    spam_reason_phishing_url:
+      "تحتوي على رابط مدرج في قائمة حظر التصيد الاحتيالي",
     spam_reason_phishing_domain: "ترتبط بنطاق مرتبط بالتصيد الاحتيالي",
-    spam_reason_user_spam_learning: "سبق أن أبلغت عن بريد مزعج من نطاق هذا المرسل",
+    spam_reason_user_spam_learning:
+      "سبق أن أبلغت عن بريد مزعج من نطاق هذا المرسل",
     spam_reason_global_domain_reputation: "نطاق المرسل ذو سمعة سيئة",
     spam_reason_auth_hard_fail: "تعذر التحقق من هوية المرسل",
-    spam_reason_sender_marked_spam: "لقد وضعت علامة على هذا المرسل كمرسل بريد مزعج",
+    spam_reason_sender_marked_spam:
+      "لقد وضعت علامة على هذا المرسل كمرسل بريد مزعج",
     block_sender: "حظر المرسل",
     unblock_sender: "إلغاء حظر المرسل",
     unsubscribe: "إلغاء الاشتراك",
@@ -6898,9 +6937,11 @@ export const ar = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "هل تريد حذف مفتاح المرور؟",
-    delete_passkey_description: "سيتم إزالة \"{{name}}\" من حسابك. لن تتمكن من تسجيل الدخول به بعد الآن.",
+    delete_passkey_description:
+      'سيتم إزالة "{{name}}" من حسابك. لن تتمكن من تسجيل الدخول به بعد الآن.',
     delete_security_key_title: "هل تريد حذف مفتاح الأمان؟",
-    delete_security_key_description: "سيتم إزالة \"{{name}}\" من حسابك. لن يعمل بعد الآن كعامل ثانٍ.",
+    delete_security_key_description:
+      'سيتم إزالة "{{name}}" من حسابك. لن يعمل بعد الآن كعامل ثانٍ.',
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7063,7 +7104,8 @@ export const ar = {
       "هذه الرسالة لم تُرسل. محاولة أخرى ينبغي أن تنجح. مسوّدتك محفوظة.",
     no_keys_available:
       "مفاتيحك الخاصة مقفلة على هذا الجهاز. كلمة مرورك ستفتحها. مفاتيحك على الخادم لم تُمَس.",
-    session_identity_mismatch: "تم تسجيل الدخول على هذا الجهاز إلى حساب آخر، لذلك قمنا بتسجيل خروجك للحفاظ على فصل الحسابات. يكفي تسجيل الدخول مرة أخرى. بياناتك لم تُمس.",
+    session_identity_mismatch:
+      "تم تسجيل الدخول على هذا الجهاز إلى حساب آخر، لذلك قمنا بتسجيل خروجك للحفاظ على فصل الحسابات. يكفي تسجيل الدخول مرة أخرى. بياناتك لم تُمس.",
     key_material_unavailable:
       "مفاتيحك الخاصة مقفلة على هذا الجهاز. كلمة مرورك ستفتحها. مفاتيحك على الخادم لم تُمَس.",
     storage_compromised:
@@ -7180,7 +7222,8 @@ export const ar = {
     do_this: "نفّذ هذا",
     add_condition: "إضافة شرط",
     apply_to_existing: "تطبيق على البريد الموجود الآن",
-    apply_to_existing_started: "يتم تطبيق هذه القاعدة على بريدك الحالي. تعمل العملية في الخلفية.",
+    apply_to_existing_started:
+      "يتم تطبيق هذه القاعدة على بريدك الحالي. تعمل العملية في الخلفية.",
     apply_to_existing_failed: "تعذر بدء تطبيق هذه القاعدة.",
     empty_title: "لا توجد قواعد بعد",
     empty_description: "أنشئ قاعدتك الأولى لتنظيم البريد الوارد تلقائيًا.",
@@ -7240,8 +7283,10 @@ export const ar = {
     op_equals: "يساوي",
     op_older_than_days: "أقدم من (أيام)",
     op_newer_than_days: "أحدث من (أيام)",
-    regex_backreference: "المراجع الخلفية مثل \\1 غير مدعومة. أعد كتابة النمط بدونها.",
-    regex_lookaround: "الاستباق والاستذكار غير مدعومين. أعد كتابة النمط بدونهما.",
+    regex_backreference:
+      "المراجع الخلفية مثل \\1 غير مدعومة. أعد كتابة النمط بدونها.",
+    regex_lookaround:
+      "الاستباق والاستذكار غير مدعومين. أعد كتابة النمط بدونهما.",
     regex_invalid:
       "هذا النمط يحتوي على خطأ. مراجعة الصياغة غالبًا ما تحل الأمر.",
     regex_empty: "نمط تعبير نمطي مطلوب قبل الحفظ.",
@@ -7449,7 +7494,8 @@ export const ar = {
   },
   survey: {
     banner_title: "ساعدنا في تحسين Aster Mail",
-    banner_message: "ساعد في تطوير Aster: استبيان لمرة واحدة يستغرق حوالي دقيقة. تبقى إجاباتك خاصة ولا تُشارك أبدًا.",
+    banner_message:
+      "ساعد في تطوير Aster: استبيان لمرة واحدة يستغرق حوالي دقيقة. تبقى إجاباتك خاصة ولا تُشارك أبدًا.",
     banner_take: "ابدأ الاستبيان",
     banner_dismiss: "تجاهل",
     remind_tomorrow: "ذكّرني غدًا",
@@ -7461,7 +7507,8 @@ export const ar = {
     source_youtube: "يوتيوب أو صانع محتوى",
     source_friend: "صديق أو التوصية الشفهية",
     source_twitter: "X / تويتر",
-    source_privacy_directory: "دليل خصوصية (Privacy Guides، PRISM Break، awesome-privacy)",
+    source_privacy_directory:
+      "دليل خصوصية (Privacy Guides، PRISM Break، awesome-privacy)",
     source_search_engine: "محرك بحث",
     q_signup_reason: "ما الذي كنت تبحث عنه أساسًا عند التسجيل؟",
     signup_e2ee: "التشفير من طرف إلى طرف",
@@ -7498,6 +7545,7 @@ export const ar = {
     required_error: "يرجى الإجابة على هذا السؤال",
     submit: "إرسال",
     submit_failed: "تعذر إرسال الاستبيان. حاول مرة أخرى.",
-    submitted_thanks: "شكرًا لك! ملاحظاتك تجعل Aster Mail أفضل للجميع. نقرأ كل إجابة.",
+    submitted_thanks:
+      "شكرًا لك! ملاحظاتك تجعل Aster Mail أفضل للجميع. نقرأ كل إجابة.",
   },
 };

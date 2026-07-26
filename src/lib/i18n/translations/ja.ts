@@ -2319,9 +2319,12 @@ export const ja = {
     alias_delivery_log_reason_unknown: "ブロック済み",
     alias_delivery_title: "配信",
     alias_never_inbox: "受信トレイをスキップ",
-    alias_never_inbox_desc: "このエイリアス宛のメールは受信時にアーカイブされます。検索も可能で、すべてのメールに残ります。",
-    alias_never_inbox_info: "残しておきたいが受信トレイには表示したくない登録確認やレシートに便利です。",
-    alias_never_inbox_error: "この設定は保存されませんでした。もう一度お試しください。",
+    alias_never_inbox_desc:
+      "このエイリアス宛のメールは受信時にアーカイブされます。検索も可能で、すべてのメールに残ります。",
+    alias_never_inbox_info:
+      "残しておきたいが受信トレイには表示したくない登録確認やレシートに便利です。",
+    alias_never_inbox_error:
+      "この設定は保存されませんでした。もう一度お試しください。",
     alias_relay_title: "配信",
     alias_relay_description: "このエイリアス宛のメールの配信方法を選択します。",
     alias_relay_mode_native: "ネイティブ",
@@ -3250,7 +3253,8 @@ export const ja = {
     never_manual: "なし（手動のみ）",
     auto_advance: "アーカイブまたは削除後",
     reactions_enabled: "リアクション",
-    reactions_enabled_description: "絵文字でメッセージにリアクションし、他の人のリアクションを表示します",
+    reactions_enabled_description:
+      "絵文字でメッセージにリアクションし、他の人のリアクションを表示します",
     auto_advance_description:
       "読んでいるメールをアーカイブまたは削除した後に開くメール",
     auto_advance_next: "次のメールへ移動",
@@ -3270,15 +3274,19 @@ export const ja = {
       "メールの元のスタイルを上書きして、常にダークモードでメール内容を表示します",
     translation: "翻訳",
     translate_incoming: "受信メールを翻訳",
-    translate_incoming_description: "他の言語で書かれたメッセージをお使いの端末で翻訳します。",
-    translate_incoming_info: "翻訳はセルフホストのモデルを使い、すべてお使いの端末で実行されます。読んだ内容が翻訳サービスに送信されることはありません。",
+    translate_incoming_description:
+      "他の言語で書かれたメッセージをお使いの端末で翻訳します。",
+    translate_incoming_info:
+      "翻訳はセルフホストのモデルを使い、すべてお使いの端末で実行されます。読んだ内容が翻訳サービスに送信されることはありません。",
     translate_off: "オフ",
     translate_ask: "毎回確認",
     translate_always: "常に翻訳",
     translate_my_languages: "読める言語",
-    translate_my_languages_description: "すでに読める言語です。「毎回確認」モードでは、Aster はこれらの翻訳を提案しません。「常に翻訳」モードでも翻訳しないままにするには、「翻訳しない言語」に追加してください。",
+    translate_my_languages_description:
+      "すでに読める言語です。「毎回確認」モードでは、Aster はこれらの翻訳を提案しません。「常に翻訳」モードでも翻訳しないままにするには、「翻訳しない言語」に追加してください。",
     translate_never_languages: "翻訳しない言語",
-    translate_never_languages_description: "これらの言語のメールは、どのモードでも翻訳しません。",
+    translate_never_languages_description:
+      "これらの言語のメールは、どのモードでも翻訳しません。",
     translate_add_language: "言語を追加",
     translate_auto_detected: "お使いのデバイスから自動検出",
 
@@ -4711,6 +4719,35 @@ export const ja = {
     cancel_reason_text_placeholder: "他に伝えたいことがあれば（任意）",
     cancel_reason_skip: "スキップ",
     cancel_reason_continue: "次へ",
+    cancel_impact_title: "解約するとどうなるか",
+    cancel_impact_description: "プランは {date} まで有効です。その後:",
+    cancel_impact_description_nodate: "現在の請求期間が終了すると:",
+    cancel_impact_loading: "アカウントへの影響を確認しています...",
+    cancel_impact_unavailable:
+      "現在、詳細を読み込めませんでした。このまま続行できます。",
+    cancel_impact_storage: "ストレージが {current} から {after} に減ります。",
+    cancel_impact_storage_over:
+      "現在 {used} を使用しており、上限を超えています。超過している間は受信メールが拒否され、7日後は完全に拒否されます。",
+    cancel_impact_aliases:
+      "{count} 件のエイリアスが {days} 日後にメールの受信を停止します。",
+    cancel_impact_domains: "{count} 件のカスタムドメインが停止されます。",
+    cancel_impact_catch_all: "キャッチオールアドレスが無効になります。",
+    cancel_impact_templates: "{count} 件のメールテンプレートが無効になります。",
+    cancel_impact_signatures: "{count} 件の署名が無効になります。",
+    cancel_impact_family:
+      "{count} 人の家族メンバーが {days} 日間の猶予期間に移行します。",
+    cancel_impact_family_addresses:
+      "{count} 件の予約済み家族アドレスが解放されます。",
+    cancel_impact_features: "{count} 件の有料機能が無効になります。",
+    cancel_impact_reactivate_hint:
+      "削除されるものはありません。再登録すると、新しいプランの上限の範囲で無効化された項目が復元されます。",
+    cancel_impact_continue: "解約手続きに進む",
+    cancel_final_title: "解約の確認",
+    cancel_final_description:
+      "{plan} プランは解約され、{date} に終了します。それまでは引き続きすべて利用できます。",
+    cancel_final_description_nodate:
+      "{plan} プランは現在の請求期間の終了時に解約されます。それまでは引き続きすべて利用できます。",
+    cancel_final_confirm: "プランを解約する",
     cancel_confirm_title: "サブスクリプションをキャンセル",
     cancel_enter_password:
       "キャンセルを確認するためにパスワードを入力してください：",
@@ -4837,7 +4874,8 @@ export const ja = {
     affiliate_email_link_button: "メールリンク",
     affiliate_payout_amount_label: "リクエストする金額",
     affiliate_payout_amount_max: "最大",
-    affiliate_payout_amount_invalid: "リクエストする有効な金額を入力してください。",
+    affiliate_payout_amount_invalid:
+      "リクエストする有効な金額を入力してください。",
     affiliate_payout_amount_exceeds: "その金額は未払い残高を超えています。",
     affiliate_payout_amount_below_minimum: "最低支払い金額は5ドルです。",
     affiliate_learn_more_irs_confirm_title: "Aster Mailを離れますか？",
@@ -4924,9 +4962,12 @@ export const ja = {
     domain_purchase_pay_crypto: "暗号資産",
     domain_purchase_buy: "{{price}}で購入",
     domain_purchase_error: "購入に失敗しました。もう一度お試しください。",
-    domain_purchase_error_taken: "このドメインはたった今取得されました。別のドメインを選んでください。",
-    domain_purchase_error_limit: "ご利用中のプランのドメイン数の上限に達しました。追加するにはアップグレードしてください。",
-    domain_purchase_error_slow_down: "現在、ドメインの注文が多すぎます。進行中の注文を完了するか、しばらくお待ちください。",
+    domain_purchase_error_taken:
+      "このドメインはたった今取得されました。別のドメインを選んでください。",
+    domain_purchase_error_limit:
+      "ご利用中のプランのドメイン数の上限に達しました。追加するにはアップグレードしてください。",
+    domain_purchase_error_slow_down:
+      "現在、ドメインの注文が多すぎます。進行中の注文を完了するか、しばらくお待ちください。",
     domain_purchase_progress_title: "{{domain}} を設定中",
     domain_purchase_step_payment: "支払い完了",
     domain_purchase_step_registering: "NameSilo に登録中",
@@ -4940,9 +4981,12 @@ export const ja = {
     domain_purchase_refunded:
       "登録前にこのドメインが取得されてしまいました。お支払いは返金されました。",
     domain_purchase_try_instead: "代わりにこちらはいかがですか",
-    domain_purchase_empty_subtitle: "単語、名前、またはドメイン全体を入力してください。販売しているすべての末尾を調べて、空いているものを表示します。",
-    domain_purchase_empty_included: "すべてのドメインに WHOIS 保護、設定済みの DNS、無制限のアドレスが付いています。",
-    domain_purchase_terms_inline: "ドメインは NameSilo を通じて登録されます。ご購入により、{{aster}}、{{registrar}}、および{{icann}}に同意したものとみなされます。ドメインの作成後、登録は取り消せません。",
+    domain_purchase_empty_subtitle:
+      "単語、名前、またはドメイン全体を入力してください。販売しているすべての末尾を調べて、空いているものを表示します。",
+    domain_purchase_empty_included:
+      "すべてのドメインに WHOIS 保護、設定済みの DNS、無制限のアドレスが付いています。",
+    domain_purchase_terms_inline:
+      "ドメインは NameSilo を通じて登録されます。ご購入により、{{aster}}、{{registrar}}、および{{icann}}に同意したものとみなされます。ドメインの作成後、登録は取り消せません。",
     domain_purchase_empty_title: "何か入力して始めましょう",
     domain_purchase_search_failed:
       "検索できませんでした。もう一度お試しください。",
@@ -4951,9 +4995,12 @@ export const ja = {
     domain_purchase_step_checkout: "支払い",
     domain_purchase_step_activate: "利用開始",
     domain_purchase_intro_title: "あなたのメールドメインを見つけましょう",
-    domain_purchase_intro_sub: "2つの簡単な質問に答えるだけで、利用可能なドメインを表示します。",
-    domain_purchase_intro_name_q: "どんな名前にしますか？ビジネス名、プロジェクト名、あなたの名前でも。",
-    domain_purchase_intro_name_ph: "harborcoffee や alexcarter のように名前を入力してください",
+    domain_purchase_intro_sub:
+      "2つの簡単な質問に答えるだけで、利用可能なドメインを表示します。",
+    domain_purchase_intro_name_q:
+      "どんな名前にしますか？ビジネス名、プロジェクト名、あなたの名前でも。",
+    domain_purchase_intro_name_ph:
+      "harborcoffee や alexcarter のように名前を入力してください",
     domain_purchase_intro_tld_q: "お好みの末尾はありますか？",
     domain_purchase_intro_cta: "利用可能なドメインを表示",
     domain_purchase_intro_skip: "スキップして自分で検索",
@@ -4979,9 +5026,12 @@ export const ja = {
     domain_purchase_total_today: "本日の合計",
     domain_purchase_years_line: "{{count}}年間の登録",
     domain_purchase_secure_checkout: "Stripeによる安全な決済",
-    domain_purchase_crypto_warning_title: "先に暗号資産の残高をチャージしてください",
-    domain_purchase_crypto_warning_body: "暗号資産での注文はAsterの暗号資産残高から支払われます。購入前に入金してください。残高が全額に満たない場合、ドメインは保留のままになります。",
-    domain_purchase_crypto_warning_hint: "請求ページからチャージできます。アカウントクレジットと同じ残高です。",
+    domain_purchase_crypto_warning_title:
+      "先に暗号資産の残高をチャージしてください",
+    domain_purchase_crypto_warning_body:
+      "暗号資産での注文はAsterの暗号資産残高から支払われます。購入前に入金してください。残高が全額に満たない場合、ドメインは保留のままになります。",
+    domain_purchase_crypto_warning_hint:
+      "請求ページからチャージできます。アカウントクレジットと同じ残高です。",
     domain_purchase_included_heading: "ドメインに含まれるすべての機能",
     domain_purchase_renew: "更新",
     domain_purchase_filter_all: "すべて",
@@ -4999,35 +5049,25 @@ export const ja = {
       "レジストラによる初年度セール価格です。以降は年 {{price}} で更新されます。",
     domain_purchase_purchased_info:
       "ここには、Asterを通じて購入したドメインが表示されます。WHOISプライバシー付きで登録し、メール用DNSをすべて自動設定するので、すぐにアドレスを作成できます。更新はお客様の承認がある場合のみ行われ、いつでも他のレジストラへ移管できます。",
-    domain_purchase_dont_have: "ドメインをお持ちでない場合は、こちらをクリックして購入できます。",
+    domain_purchase_dont_have:
+      "ドメインをお持ちでない場合は、こちらをクリックして購入できます。",
     domain_purchase_sort_price: "価格が安い順",
     domain_purchase_leave_title: "Aster Mailを離れますか？",
     domain_purchase_leave_message:
       "このリンクは新しいタブで {{host}} を開きます。",
-    domain_purchase_purchased_label:
-      "購入したドメイン",
-    domain_purchase_purchased_empty:
-      "購入したドメインはまだありません",
-    domain_purchase_purchased_expires:
-      "{{date}} に期限切れ",
-    domain_purchase_purchased_in_progress:
-      "設定中...",
+    domain_purchase_purchased_label: "購入したドメイン",
+    domain_purchase_purchased_empty: "購入したドメインはまだありません",
+    domain_purchase_purchased_expires: "{{date}} に期限切れ",
+    domain_purchase_purchased_in_progress: "設定中...",
     domain_purchase_terms_notice:
       "Asterはレジストラパートナーを通じてお客様に代わりドメインを登録し、更新料金は支払い前に必ず表示されます。万一ドメインを失効させてしまった場合は、取り戻すためにレジストラの復旧手数料がかかることがあります。",
-    domain_purchase_terms_aster:
-      "Aster利用規約",
-    domain_purchase_terms_registrar:
-      "NameSilo利用規約",
-    domain_purchase_terms_icann:
-      "ICANN登録者の権利と責任",
-    domain_purchase_detail_privacy_title:
-      "標準でプライベート",
-    domain_purchase_detail_setup_title:
-      "設定不要",
-    domain_purchase_detail_instant_title:
-      "数秒で利用可能",
-    domain_purchase_detail_ownership_title:
-      "あなたのもの",
+    domain_purchase_terms_aster: "Aster利用規約",
+    domain_purchase_terms_registrar: "NameSilo利用規約",
+    domain_purchase_terms_icann: "ICANN登録者の権利と責任",
+    domain_purchase_detail_privacy_title: "標準でプライベート",
+    domain_purchase_detail_setup_title: "設定不要",
+    domain_purchase_detail_instant_title: "数秒で利用可能",
+    domain_purchase_detail_ownership_title: "あなたのもの",
     domain_promo_cta: "ドメインをリンク",
     vacation_reply_edit: "不在返信を編集",
     vacation_reply_setup: "不在返信を設定",
@@ -5798,7 +5838,8 @@ export const ja = {
     export_security_vault_row_title: "暗号化保管庫のパスフレーズ",
     export_security_vault_row_body:
       "ローカルの保管庫パスフレーズは、メールをエクスポート用に復号する前にこのデバイスを確認します。",
-    export_security_vault_row_help: "これはこの端末のローカルボールトのパスフレーズであり、アカウントのパスワードではありません。この端末上でのみ暗号化キーのロックを解除します。",
+    export_security_vault_row_help:
+      "これはこの端末のローカルボールトのパスフレーズであり、アカウントのパスワードではありません。この端末上でのみ暗号化キーのロックを解除します。",
     export_security_required_badge: "必須",
     export_warning_title: "ご注意ください",
     export_warning_body:
@@ -5808,11 +5849,13 @@ export const ja = {
     export_scope_mail_title: "メール",
     export_scope_mail_body:
       "すべてのメッセージと添付ファイルを標準のmboxまたは.eml形式でエクスポートします。",
-    export_scope_mail_help: "MBOXはすべてのメッセージを1つのファイルにまとめます。.EMLはメッセージごとに別々のファイルとして保存します。どちらの形式もほとんどのデスクトップメールクライアントで使用できます。",
+    export_scope_mail_help:
+      "MBOXはすべてのメッセージを1つのファイルにまとめます。.EMLはメッセージごとに別々のファイルとして保存します。どちらの形式もほとんどのデスクトップメールクライアントで使用できます。",
     export_scope_contacts_title: "連絡先",
     export_scope_contacts_body:
       "アドレス帳をvCard 4.0（Apple、Google、Thunderbirdなどにインポート可能）と完全なJSONでエクスポートします。",
-    export_scope_contacts_help: "vCard 4.0はほとんどのアプリが直接インポートできる汎用の連絡先形式です。追加のJSONファイルにはvCardが保存できない項目が保持されます。",
+    export_scope_contacts_help:
+      "vCard 4.0はほとんどのアプリが直接インポートできる汎用の連絡先形式です。追加のJSONファイルにはvCardが保存できない項目が保持されます。",
     export_scope_settings_title: "設定とルール",
     export_scope_settings_body:
       "エイリアス、署名、テンプレート、メールルール、ブロック済みと許可済みの送信者、フォルダ、その他のアカウントデータをエクスポートします。",
@@ -6006,17 +6049,23 @@ export const ja = {
     report_phishing: "スパムを報告",
     not_spam: "スパムではない",
     spam_reasons_title: "このメッセージはスパムに移動されました",
-    spam_reason_content_analysis: "このメッセージの内容はスパムの可能性があります",
+    spam_reason_content_analysis:
+      "このメッセージの内容はスパムの可能性があります",
     spam_reason_spf_fail: "送信者がSPF検証に失敗しました",
     spam_reason_dkim_fail: "メッセージがDKIM署名の検証に失敗しました",
     spam_reason_dmarc_fail: "送信者のドメインがDMARC認証に失敗しました",
-    spam_reason_missing_headers: "メッセージに標準的なメールヘッダーがありません",
+    spam_reason_missing_headers:
+      "メッセージに標準的なメールヘッダーがありません",
     spam_reason_reply_to_mismatch: "返信先アドレスが送信者と一致しません",
     spam_reason_future_dated: "メッセージの日付が未来になっています",
-    spam_reason_phishing_url: "フィッシングのブロックリストに登録されたリンクが含まれています",
-    spam_reason_phishing_domain: "フィッシングに関連するドメインへのリンクが含まれています",
-    spam_reason_user_spam_learning: "この送信者のドメインからのスパムを以前に報告しています",
-    spam_reason_global_domain_reputation: "送信者のドメインの評価が低くなっています",
+    spam_reason_phishing_url:
+      "フィッシングのブロックリストに登録されたリンクが含まれています",
+    spam_reason_phishing_domain:
+      "フィッシングに関連するドメインへのリンクが含まれています",
+    spam_reason_user_spam_learning:
+      "この送信者のドメインからのスパムを以前に報告しています",
+    spam_reason_global_domain_reputation:
+      "送信者のドメインの評価が低くなっています",
     spam_reason_auth_hard_fail: "送信者を認証できませんでした",
     spam_reason_sender_marked_spam: "この送信者をスパムとしてマークしました",
     block_sender: "送信者をブロック",
@@ -7129,9 +7178,11 @@ export const ja = {
     remove: "Remove",
     confirm_remove: "Remove",
     delete_passkey_title: "パスキーを削除しますか？",
-    delete_passkey_description: "「{{name}}」はアカウントから削除されます。今後このパスキーでサインインできなくなります。",
+    delete_passkey_description:
+      "「{{name}}」はアカウントから削除されます。今後このパスキーでサインインできなくなります。",
     delete_security_key_title: "セキュリティキーを削除しますか？",
-    delete_security_key_description: "「{{name}}」はアカウントから削除されます。今後は第二要素として使用できなくなります。",
+    delete_security_key_description:
+      "「{{name}}」はアカウントから削除されます。今後は第二要素として使用できなくなります。",
     removed: "Passkey removed",
     register_success: "Passkey registered successfully",
     register_failed: "Registration failed. Please try again.",
@@ -7148,7 +7199,8 @@ export const ja = {
     rename_saved: "名前を更新しました",
   },
   errors: {
-    failed_send_reaction: "リアクションを送信できませんでした。もう一度お試しください。",
+    failed_send_reaction:
+      "リアクションを送信できませんでした。もう一度お試しください。",
     reactions_disabled: "設定でリアクションが無効になっています。",
     pending_email_verification:
       "メールを確認し、認証リンクをクリックしてこのアカウントを有効化してください。",
@@ -7310,7 +7362,8 @@ export const ja = {
       "このデバイスで秘密鍵がロックされています。パスワードで解除できます。サーバー上の鍵には影響ありません。",
     session_expired_login:
       "セッションが終了しました。再度サインインすると、続きから再開できます。データと下書きはサーバーに保存されています。",
-    session_identity_mismatch: "このデバイスは別のアカウントでサインインしていたため、アカウントを分離するためにサインアウトしました。もう一度サインインするだけで大丈夫です。データはそのままです。",
+    session_identity_mismatch:
+      "このデバイスは別のアカウントでサインインしていたため、アカウントを分離するためにサインアウトしました。もう一度サインインするだけで大丈夫です。データはそのままです。",
     key_material_unavailable:
       "このデバイスで秘密鍵がロックされています。パスワードで解除できます。サーバー上の鍵には影響ありません。",
     storage_compromised:
@@ -7420,7 +7473,8 @@ export const ja = {
     do_this: "実行するアクション",
     add_condition: "条件を追加",
     apply_to_existing: "既存のメールに今すぐ適用",
-    apply_to_existing_started: "このルールを既存のメールに適用しています。処理はバックグラウンドで実行されます。",
+    apply_to_existing_started:
+      "このルールを既存のメールに適用しています。処理はバックグラウンドで実行されます。",
     apply_to_existing_failed: "このルールの適用を開始できませんでした。",
     empty_title: "ルールはまだありません",
     empty_description:
@@ -7481,8 +7535,10 @@ export const ja = {
     op_equals: "と等しい",
     op_older_than_days: "より古い（日数）",
     op_newer_than_days: "より新しい（日数）",
-    regex_backreference: "\\1 のような後方参照はサポートされていません。使わずにパターンを書き直してください。",
-    regex_lookaround: "先読みと後読みはサポートされていません。使わずにパターンを書き直してください。",
+    regex_backreference:
+      "\\1 のような後方参照はサポートされていません。使わずにパターンを書き直してください。",
+    regex_lookaround:
+      "先読みと後読みはサポートされていません。使わずにパターンを書き直してください。",
     regex_invalid:
       "この正規表現パターンに誤りがあります。構文を確認すると解決することが多いです。",
     regex_empty: "保存する前に正規表現パターンが必要です。",
@@ -7703,7 +7759,8 @@ export const ja = {
   },
   survey: {
     banner_title: "Aster Mail の改善にご協力ください",
-    banner_message: "Aster の改善にご協力ください。一度きり、約1分のアンケートです。回答は非公開で、共有されることはありません。",
+    banner_message:
+      "Aster の改善にご協力ください。一度きり、約1分のアンケートです。回答は非公開で、共有されることはありません。",
     banner_take: "アンケートに回答",
     banner_dismiss: "閉じる",
     remind_tomorrow: "明日リマインド",
@@ -7715,7 +7772,8 @@ export const ja = {
     source_youtube: "YouTube やコンテンツクリエイター",
     source_friend: "友人や口コミ",
     source_twitter: "X / Twitter",
-    source_privacy_directory: "プライバシーディレクトリ (Privacy Guides、PRISM Break、awesome-privacy)",
+    source_privacy_directory:
+      "プライバシーディレクトリ (Privacy Guides、PRISM Break、awesome-privacy)",
     source_search_engine: "検索エンジン",
     q_signup_reason: "登録時に主に何を求めていましたか?",
     signup_e2ee: "エンドツーエンド暗号化",
@@ -7731,8 +7789,10 @@ export const ja = {
     stood_germany: "ドイツでホスティング",
     stood_price: "価格",
     stood_ui: "UI / カスタマイズ性",
-    q_upgrade_blocker: "有料プランへのアップグレードを妨げているものは何ですか?",
-    q_upgrade_trigger: "最終的に有料プランへアップグレードした決め手は何ですか?",
+    q_upgrade_blocker:
+      "有料プランへのアップグレードを妨げているものは何ですか?",
+    q_upgrade_trigger:
+      "最終的に有料プランへアップグレードした決め手は何ですか?",
     trigger_storage: "ストレージが足りなくなった",
     trigger_feature: "特定の機能が欲しかった",
     trigger_support_mission: "ミッション / プロジェクトを支援するため",
@@ -7752,6 +7812,7 @@ export const ja = {
     required_error: "この質問に回答してください",
     submit: "送信",
     submit_failed: "アンケートを送信できませんでした。もう一度お試しください。",
-    submitted_thanks: "ありがとうございます!あなたのフィードバックが Aster Mail をみんなにとってより良いものにします。すべての回答に目を通しています。",
+    submitted_thanks:
+      "ありがとうございます!あなたのフィードバックが Aster Mail をみんなにとってより良いものにします。すべての回答に目を通しています。",
   },
 };
