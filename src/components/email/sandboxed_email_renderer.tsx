@@ -273,6 +273,13 @@ export function SandboxedEmailRenderer({
   const internal_cid_blob_urls_ref = useRef<string[]>([]);
   const stable_cid_html_ref = useRef<string | null>(null);
   const pending_revoke_ref = useRef<string[]>([]);
+  const prev_email_id_ref = useRef(email_id);
+
+  if (prev_email_id_ref.current !== email_id) {
+    prev_email_id_ref.current = email_id;
+    if (internal_cid_html !== null) set_internal_cid_html(null);
+    stable_cid_html_ref.current = null;
+  }
 
   useEffect(() => {
     if (pending_revoke_ref.current.length > 0) {
@@ -966,7 +973,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     wrapper.appendChild(toggle_btn);
     wrapper.appendChild(content_div);
     body.appendChild(wrapper);
-  }, []);
+  }, [t]);
 
   const unblock_remote_content = useCallback((doc: Document) => {
     const m = connection_store.get_method();
@@ -1137,7 +1144,14 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       body.style.setProperty("min-height", "0px", "important");
 
       const rect = body.getBoundingClientRect();
-      const measured = Math.max(rect.bottom, body.scrollHeight);
+      const body_zoom =
+        parseFloat(iframe.contentWindow?.getComputedStyle(body).zoom || "1") ||
+        1;
+      const scroll_height = Math.min(
+        body.scrollHeight,
+        body.scrollHeight * body_zoom,
+      );
+      const measured = Math.max(rect.bottom, scroll_height);
 
       if (saved_html_h) html.style.setProperty("height", saved_html_h, saved_html_h_pri);
       else html.style.removeProperty("height");

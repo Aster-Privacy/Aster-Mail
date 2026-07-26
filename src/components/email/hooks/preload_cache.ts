@@ -448,8 +448,12 @@ function premeasure_height(
 
   const content = shadow.querySelector("div");
   const rect = content ? content.getBoundingClientRect() : null;
+  const content_zoom = parseFloat(_email_zoom) || 1;
+  const scaled_scroll_height = content
+    ? Math.min(content.scrollHeight, content.scrollHeight * content_zoom)
+    : 0;
   const height = content
-    ? Math.min(Math.max(rect?.height ?? 0, content.scrollHeight) + 8, 12000)
+    ? Math.min(Math.max(rect?.height ?? 0, scaled_scroll_height) + 8, 12000)
     : 0;
 
   measure_container.removeChild(wrapper);
