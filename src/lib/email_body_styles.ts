@@ -97,6 +97,13 @@ body {
   background-color: #f3f4f6;
   color: #9ca3af;
   border: 1px dashed #e5e7eb;
+  vertical-align: middle;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
 }
 
 .blocked-remote-image {

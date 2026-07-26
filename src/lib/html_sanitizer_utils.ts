@@ -155,20 +155,52 @@ export function sanitize_srcset(value: string): string {
   return safe.join(", ");
 }
 
+const CONDITIONAL_OPEN_REGEX = /<!--\s*\[\s*if\b[^\]]*\]\s*>/gi;
+const REVEALED_OPEN_TAIL_REGEX = /^\s*(?:<!)?--\s*>/;
+const LEFTOVER_ENDIF_REGEX = /\s*<!--(?:\s|-)*<!\[endif\](?:\s|-)*>|\s*<!\[endif\]\s*--\s*>/gi;
+
 export function strip_mso_conditionals(html: string): string {
-  let result = html.replace(
-    /<!--\[if\s[^\]]*\]>\s*<![\s-]*>\s*/gi,
-    "",
-  );
+  if (html.indexOf("[if") === -1 && html.indexOf("[endif]") === -1) return html;
 
-  result = result.replace(/\s*<!--[\s-]*<!\[endif\][\s-]*>/gi, "");
+  let result = "";
+  let cursor = 0;
 
-  result = result.replace(
-    /<!--\[if\s[^\]]*\]>[\s\S]*?<!\[endif\]\s*--\s*>/gi,
-    "",
-  );
+  CONDITIONAL_OPEN_REGEX.lastIndex = 0;
 
-  return result;
+  for (
+    let match = CONDITIONAL_OPEN_REGEX.exec(html);
+    match !== null;
+    match = CONDITIONAL_OPEN_REGEX.exec(html)
+  ) {
+    const start = match.index;
+
+    if (start < cursor) continue;
+
+    const after_open = start + match[0].length;
+    const revealed = REVEALED_OPEN_TAIL_REGEX.exec(html.slice(after_open));
+
+    result += html.slice(cursor, start);
+
+    if (revealed) {
+      cursor = after_open + revealed[0].length;
+    } else {
+      const comment_end = html.indexOf("-->", after_open);
+
+      if (comment_end === -1) {
+        result += match[0];
+        cursor = after_open;
+        continue;
+      }
+
+      cursor = comment_end + 3;
+    }
+
+    CONDITIONAL_OPEN_REGEX.lastIndex = cursor;
+  }
+
+  result += html.slice(cursor);
+
+  return result.replace(LEFTOVER_ENDIF_REGEX, "");
 }
 
 function strip_attribute_markup(value: string): string {
