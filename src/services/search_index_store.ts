@@ -45,8 +45,12 @@ import {
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
-const MANIFEST_VERSION = 3;
+const MANIFEST_VERSION = 4;
 export const SNAPSHOT_CHUNK_SIZE = 2000;
+export const MAX_INDEX_BODY_CHARS = 2048;
+export const MAX_INDEX_PREVIEW_CHARS = 320;
+const STORAGE_RESERVE_BYTES = 64 * 1024 * 1024;
+const STORAGE_MAX_USAGE_RATIO = 0.9;
 const CHUNK_CACHE_SIZE = 2;
 const GRAM_CACHE_SIZE = 48;
 const SUMMARY_CACHE_SIZE = 16;
@@ -149,8 +153,8 @@ export function slim_envelope_for_index(
   return {
     subject: envelope.subject,
     body_text: envelope.body_text,
-    body_html: envelope.body_html,
-    html_body: envelope.html_body,
+    body_html: "",
+    html_body: "",
     from: envelope.from,
     to: envelope.to,
     cc: [],
@@ -160,10 +164,65 @@ export function slim_envelope_for_index(
   };
 }
 
+export interface BoundedIndexBody {
+  search_text: string;
+  preview_text: string;
+}
+
+export function bound_index_body(stripped_body: string): BoundedIndexBody {
+  const bounded =
+    stripped_body.length > MAX_INDEX_BODY_CHARS
+      ? stripped_body.slice(0, MAX_INDEX_BODY_CHARS)
+      : stripped_body;
+
+  return {
+    search_text: bounded.toLowerCase(),
+    preview_text:
+      bounded.length > MAX_INDEX_PREVIEW_CHARS
+        ? bounded.slice(0, MAX_INDEX_PREVIEW_CHARS)
+        : bounded,
+  };
+}
+
 export function metadata_fingerprint(item: MailItem): string {
   const meta = item.encrypted_metadata ?? "";
 
   return `${item.metadata_nonce ?? ""}:${meta.length}:${meta.slice(0, 24)}`;
+}
+
+export function index_storage_ceiling(usage: number, quota: number): number {
+  if (!Number.isFinite(usage) || !Number.isFinite(quota) || quota <= 0) {
+    return 0;
+  }
+
+  const ceiling = Math.min(
+    quota * STORAGE_MAX_USAGE_RATIO,
+    quota - STORAGE_RESERVE_BYTES,
+  );
+
+  return Math.max(0, ceiling - usage);
+}
+
+export async function index_storage_headroom(): Promise<number | null> {
+  const manager = typeof navigator === "undefined" ? null : navigator.storage;
+
+  if (!manager?.estimate) return null;
+
+  try {
+    const { usage, quota } = await manager.estimate();
+
+    if (typeof usage !== "number" || typeof quota !== "number") return null;
+
+    return index_storage_ceiling(usage, quota);
+  } catch {
+    return null;
+  }
+}
+
+export async function has_index_storage_headroom(): Promise<boolean> {
+  const headroom = await index_storage_headroom();
+
+  return headroom === null || headroom > 0;
 }
 
 async function get_snapshot_encryption_key(): Promise<CryptoKey | null> {
@@ -263,6 +322,7 @@ export interface SnapshotWriter {
     entries: Map<string, PersistableEntry>,
   ): Promise<void>;
   written_count(): number;
+  storage_exhausted(): boolean;
   finish(options: {
     next_cursor?: string;
     complete: boolean;
@@ -431,34 +491,67 @@ export async function open_snapshot_writer(
   let buffer_items: MailItem[] = [];
   let buffer_entries: PersistedSearchEntry[] = [];
   let written = 0;
+  let storage_exhausted = false;
+
+  const drop_buffer = (): void => {
+    buffer_items = [];
+    buffer_entries = [];
+  };
 
   const flush = async (): Promise<void> => {
     if (buffer_items.length === 0) return;
 
+    if (storage_exhausted) {
+      drop_buffer();
+
+      return;
+    }
+
+    if (!(await has_index_storage_headroom())) {
+      storage_exhausted = true;
+      drop_buffer();
+
+      return;
+    }
+
     const chunk_id = next_chunk_id++;
 
-    await encrypted_set(
-      chunk_record_key(key, chunk_id),
-      {
-        items: buffer_items,
-        entries: buffer_entries,
-      } satisfies SearchIndexChunk,
-      encryption_key,
-    );
+    try {
+      await encrypted_set(
+        chunk_record_key(key, chunk_id),
+        {
+          items: buffer_items,
+          entries: buffer_entries,
+        } satisfies SearchIndexChunk,
+        encryption_key,
+      );
 
-    const digest = summarize_chunk(buffer_items, buffer_entries);
+      const digest = summarize_chunk(buffer_items, buffer_entries);
 
-    await encrypted_set(
-      gram_record_key(key, chunk_id),
-      digest.grams,
-      encryption_key,
-    );
-    written_summaries.set(chunk_id, digest.summary);
+      await encrypted_set(
+        gram_record_key(key, chunk_id),
+        digest.grams,
+        encryption_key,
+      );
+      written_summaries.set(chunk_id, digest.summary);
 
-    written_ids.push(chunk_id);
-    written += buffer_items.length;
-    buffer_items = [];
-    buffer_entries = [];
+      written_ids.push(chunk_id);
+      written += buffer_items.length;
+    } catch (error) {
+      if (import.meta.env.DEV) console.error("search_snapshot_flush", error);
+
+      storage_exhausted = true;
+      written_summaries.delete(chunk_id);
+
+      await secure_overwrite_and_delete(chunk_record_key(key, chunk_id)).catch(
+        () => {},
+      );
+      await secure_overwrite_and_delete(gram_record_key(key, chunk_id)).catch(
+        () => {},
+      );
+    } finally {
+      drop_buffer();
+    }
   };
 
   const prune_summary_groups = async (
@@ -528,7 +621,10 @@ export async function open_snapshot_writer(
 
   return {
     written_count: () => written + buffer_items.length,
+    storage_exhausted: () => storage_exhausted,
     add_page: async (items, entries) => {
+      if (storage_exhausted) return;
+
       for (const item of items) {
         const entry = entries.get(item.id);
 

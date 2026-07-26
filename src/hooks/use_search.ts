@@ -71,7 +71,9 @@ import {
   secure_remove,
 } from "@/services/crypto/secure_storage";
 import {
+  bound_index_body,
   clear_search_snapshots,
+  has_index_storage_headroom,
   metadata_fingerprint,
   open_snapshot_reader,
   open_snapshot_writer,
@@ -907,14 +909,20 @@ async function run_index_pipeline(
       );
     }
 
+    const bounded_body = bound_index_body(
+      envelope?.body_text ? strip_html_tags(envelope.body_text) : "",
+    );
+
+    if (envelope) {
+      envelope.body_text = bounded_body.preview_text;
+    }
+
     return {
       id: item.id,
       entry: {
         envelope: envelope ? slim_envelope_for_index(envelope) : null,
         metadata,
-        search_body_text: envelope?.body_text
-          ? strip_html_tags(envelope.body_text).toLowerCase()
-          : "",
+        search_body_text: bounded_body.search_text,
         meta_fp,
         has_body: include_body,
       },
@@ -1022,6 +1030,8 @@ async function run_index_pipeline(
     }
 
     page_entries.clear();
+
+    if (!hot && writer?.storage_exhausted()) break;
   } while (cursor && !reached_boundary && processed < options.max_items);
 
   if (my_gen !== build_generation) cancel();
@@ -1095,9 +1105,10 @@ async function build_index_full(
     index.complete = !result.next_cursor;
 
     if (writer) {
+      const exhausted = writer.storage_exhausted();
       const meta = await writer.finish({
-        next_cursor: result.next_cursor,
-        complete: !result.next_cursor,
+        next_cursor: exhausted ? undefined : result.next_cursor,
+        complete: exhausted ? false : !result.next_cursor,
         include_body,
       });
 
@@ -1181,15 +1192,19 @@ async function build_index_front_refresh(
       if (writer) {
         await writer.add_page(index.items, index.decrypted);
 
-        const meta = await writer.finish({
-          next_cursor: base.next_cursor,
-          complete: base.complete,
-          include_body,
-          keep_chunk_ids: keep_ids,
-          kept_total: Math.max(base.total - stale.items.length, 0),
-        });
+        if (writer.storage_exhausted()) {
+          await writer.discard();
+        } else {
+          const meta = await writer.finish({
+            next_cursor: base.next_cursor,
+            complete: base.complete,
+            include_body,
+            keep_chunk_ids: keep_ids,
+            kept_total: Math.max(base.total - stale.items.length, 0),
+          });
 
-        if (meta) apply_meta(index, meta);
+          if (meta) apply_meta(index, meta);
+        }
       }
     }
 
@@ -1244,6 +1259,7 @@ async function run_deep_index(
       await new Promise<void>((r) => setTimeout(r, DEEP_SEGMENT_PAUSE_MS));
 
       if (my_gen !== build_generation) return;
+      if (!(await has_index_storage_headroom())) return;
 
       const writer = await open_snapshot_writer(user_email, meta);
 
@@ -1260,9 +1276,10 @@ async function run_deep_index(
         report_progress: false,
       });
 
+      const exhausted = writer.storage_exhausted();
       const next = await writer.finish({
-        next_cursor: result.next_cursor,
-        complete: !result.next_cursor,
+        next_cursor: exhausted ? undefined : result.next_cursor,
+        complete: exhausted ? false : !result.next_cursor,
         include_body,
         keep_chunk_ids: meta.chunk_ids,
         kept_total: meta.total,
@@ -1549,6 +1566,7 @@ function matches_operator(
   metadata: MailItemMetadata | null,
   item: MailItem,
   label_name_to_tokens?: Map<string, string[]>,
+  search_body_text?: string,
 ): boolean {
   const val = op.value.toLowerCase();
 
@@ -1583,13 +1601,13 @@ function matches_operator(
       if (val === "attachment" || val === "attachments")
         return metadata?.has_attachments ?? false;
       if (!metadata?.has_attachments) return false;
-      const body_lower = (envelope.body_text || "").toLowerCase();
-      const html_lower = (
-        envelope.body_html ||
-        envelope.html_body ||
-        ""
-      ).toLowerCase();
-      const combined = body_lower + " " + html_lower;
+      const combined =
+        search_body_text ||
+        (
+          (envelope.body_text || "") +
+          " " +
+          (envelope.body_html || envelope.html_body || "")
+        ).toLowerCase();
       const ext_map: Record<string, string[]> = {
         pdf: [".pdf"],
         image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp"],
@@ -1660,11 +1678,13 @@ function matches_operator(
     case "filename":
     case "attachment": {
       if (!metadata?.has_attachments) return false;
-      const content = (
-        (envelope.body_text || "") +
-        " " +
-        (envelope.body_html || envelope.html_body || "")
-      ).toLowerCase();
+      const content =
+        search_body_text ||
+        (
+          (envelope.body_text || "") +
+          " " +
+          (envelope.body_html || envelope.html_body || "")
+        ).toLowerCase();
 
       return content.includes(val);
     }
@@ -1766,6 +1786,7 @@ export function matches_query(
       metadata,
       item,
       label_name_to_tokens,
+      search_body_text,
     );
 
     if (op.negated ? result : !result) return false;
