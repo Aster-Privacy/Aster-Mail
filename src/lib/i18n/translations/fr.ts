@@ -4743,35 +4743,35 @@ export const fr = {
     cancel_reason_continue: "Continuer",
     cancel_impact_title: "Ce qui change si vous annulez",
     cancel_impact_description:
-      "Votre offre reste active jusqu'au {date}. Ensuite :",
+      "Votre offre reste active jusqu'au {{date}}. Ensuite :",
     cancel_impact_description_nodate:
       "À la fin de votre période de facturation actuelle :",
     cancel_impact_loading: "Vérification de ce qui change pour votre compte...",
     cancel_impact_unavailable:
       "Impossible de charger les détails pour le moment. Vous pouvez tout de même continuer.",
-    cancel_impact_storage: "Le stockage passe de {current} à {after}.",
+    cancel_impact_storage: "Le stockage passe de {{current}} à {{after}}.",
     cancel_impact_storage_over:
-      "Vous utilisez {used}, ce qui dépasse cette limite. Tant que vous la dépassez, les e-mails entrants sont refusés, et après 7 jours ils le sont définitivement.",
+      "Vous utilisez {{used}}, ce qui dépasse cette limite. Tant que vous la dépassez, les e-mails entrants sont refusés, et après 7 jours ils le sont définitivement.",
     cancel_impact_aliases:
-      "{count} alias cessent de recevoir des e-mails {days} jours plus tard.",
-    cancel_impact_domains: "{count} domaines personnalisés sont suspendus.",
+      "{{count}} alias cessent de recevoir des e-mails {{days}} jours plus tard.",
+    cancel_impact_domains: "{{count}} domaines personnalisés sont suspendus.",
     cancel_impact_catch_all: "L'adressage catch-all est désactivé.",
-    cancel_impact_templates: "{count} modèles d'e-mail sont désactivés.",
-    cancel_impact_signatures: "{count} signatures sont désactivées.",
+    cancel_impact_templates: "{{count}} modèles d'e-mail sont désactivés.",
+    cancel_impact_signatures: "{{count}} signatures sont désactivées.",
     cancel_impact_family:
-      "{count} membres de la famille passent en période de grâce de {days} jours.",
+      "{{count}} membres de la famille passent en période de grâce de {{days}} jours.",
     cancel_impact_family_addresses:
-      "{count} adresses familiales réservées sont libérées.",
+      "{{count}} adresses familiales réservées sont libérées.",
     cancel_impact_features:
-      "{count} fonctionnalités payantes sont désactivées.",
+      "{{count}} fonctionnalités payantes sont désactivées.",
     cancel_impact_reactivate_hint:
       "Rien n'est supprimé. Un nouvel abonnement rétablit ce qui a été désactivé, dans les limites de votre nouvelle offre.",
     cancel_impact_continue: "Continuer vers l'annulation",
     cancel_final_title: "Confirmer l'annulation",
     cancel_final_description:
-      "Votre offre {plan} sera annulée et prend fin le {date}. Vous gardez un accès complet jusque-là.",
+      "Votre offre {{plan}} sera annulée et prend fin le {{date}}. Vous gardez un accès complet jusque-là.",
     cancel_final_description_nodate:
-      "Votre offre {plan} sera annulée à la fin de la période de facturation en cours. Vous gardez un accès complet jusque-là.",
+      "Votre offre {{plan}} sera annulée à la fin de la période de facturation en cours. Vous gardez un accès complet jusque-là.",
     cancel_final_confirm: "Annuler mon offre",
     cancel_confirm_title: "Annuler l'abonnement",
     cancel_enter_password:
@@ -5213,7 +5213,7 @@ export const fr = {
     domain_purchase_discount_tooltip:
       "Prix promotionnel de première année de notre registrar. Ensuite, renouvellement à {{price}} par an.",
     domain_purchase_purchased_info:
-      "Voici les domaines que vous avez achetés via Aster. Nous les enregistrons pour vous avec la confidentialité WHOIS, configurons automatiquement tout le DNS du courrier, et vous pouvez y créer des adresses immédiatement. Chaque domaine n'est renouvelé qu'avec votre accord et peut être transféré vers un autre registrar quand vous le souhaitez.",
+      "Voici les domaines que vous avez achetés via Aster. Nous les enregistrons pour vous avec la confidentialité WHOIS, configurons automatiquement tout le DNS du courrier, et vous pouvez y créer des adresses immédiatement. Chaque domaine n'est renouvelé qu'avec votre accord. L'ICANN verrouille les nouvelles inscriptions pendant leurs 60 premiers jours, ensuite notre support s'occupe du transfert vers un autre registrar.",
     domain_purchase_dont_have:
       "Pas de domaine ? Cliquez ici pour en acheter un.",
     domain_purchase_sort_price: "Prix le plus bas",
@@ -5224,6 +5224,15 @@ export const fr = {
     domain_purchase_purchased_empty: "Aucun domaine acheté pour l'instant",
     domain_purchase_purchased_expires: "Expire le {{date}}",
     domain_purchase_purchased_in_progress: "Configuration en cours...",
+    domain_purchase_purchased_lapsed: "Expiré - racheter",
+    domain_purchase_error_paused:
+      "Les achats de domaines sont en pause quelques minutes. Réessayez dans un instant.",
+    domain_purchase_error_not_allowed:
+      "Ce domaine n'est pas disponible sur votre compte pour le moment. Essayez un autre nom ou contactez le support.",
+    domain_purchase_order_expired:
+      "Cette commande a expiré avant d'être payée. Lancez un nouvel achat pour obtenir le domaine.",
+    domain_purchase_order_lapsed:
+      "Ce domaine a atteint sa date d'expiration et n'est plus actif. Rachetez-le pour le récupérer.",
     domain_purchase_terms_notice:
       "Aster enregistre le domaine en votre nom via notre registrar partenaire, et le prix de renouvellement est toujours affiché avant le paiement. Si vous laissez un jour un domaine expirer, le registrar peut facturer des frais de récupération pour le restaurer.",
     domain_purchase_terms_aster: "Conditions d'utilisation d'Aster",

@@ -4744,35 +4744,36 @@ export const pl = {
     cancel_reason_skip: "Pomiń",
     cancel_reason_continue: "Dalej",
     cancel_impact_title: "Co się zmieni po anulowaniu",
-    cancel_impact_description: "Twój plan pozostaje aktywny do {date}. Potem:",
+    cancel_impact_description:
+      "Twój plan pozostaje aktywny do {{date}}. Potem:",
     cancel_impact_description_nodate:
       "Gdy zakończy się bieżący okres rozliczeniowy:",
     cancel_impact_loading: "Sprawdzanie, co zmieni się na Twoim koncie...",
     cancel_impact_unavailable:
       "Nie udało się teraz wczytać szczegółów. Możesz mimo to kontynuować.",
-    cancel_impact_storage: "Przestrzeń spada z {current} do {after}.",
+    cancel_impact_storage: "Przestrzeń spada z {{current}} do {{after}}.",
     cancel_impact_storage_over:
-      "Używasz {used}, czyli powyżej tego limitu. Dopóki go przekraczasz, poczta przychodząca jest odrzucana, a po 7 dniach odrzucana na stałe.",
+      "Używasz {{used}}, czyli powyżej tego limitu. Dopóki go przekraczasz, poczta przychodząca jest odrzucana, a po 7 dniach odrzucana na stałe.",
     cancel_impact_aliases:
-      "{count} aliasów przestaje odbierać pocztę {days} dni później.",
-    cancel_impact_domains: "{count} własnych domen zostaje zawieszonych.",
+      "{{count}} aliasów przestaje odbierać pocztę {{days}} dni później.",
+    cancel_impact_domains: "{{count}} własnych domen zostaje zawieszonych.",
     cancel_impact_catch_all: "Adresowanie catch-all zostaje wyłączone.",
     cancel_impact_templates:
-      "{count} szablonów wiadomości zostaje wyłączonych.",
-    cancel_impact_signatures: "{count} podpisów zostaje wyłączonych.",
+      "{{count}} szablonów wiadomości zostaje wyłączonych.",
+    cancel_impact_signatures: "{{count}} podpisów zostaje wyłączonych.",
     cancel_impact_family:
-      "{count} członków rodziny przechodzi w {days}-dniowy okres karencji.",
+      "{{count}} członków rodziny przechodzi w {{days}}-dniowy okres karencji.",
     cancel_impact_family_addresses:
-      "{count} zarezerwowanych adresów rodzinnych zostaje zwolnionych.",
-    cancel_impact_features: "{count} płatnych funkcji zostaje wyłączonych.",
+      "{{count}} zarezerwowanych adresów rodzinnych zostaje zwolnionych.",
+    cancel_impact_features: "{{count}} płatnych funkcji zostaje wyłączonych.",
     cancel_impact_reactivate_hint:
       "Nic nie jest usuwane. Ponowna subskrypcja przywraca wyłączone elementy, w granicach nowego planu.",
     cancel_impact_continue: "Przejdź do anulowania",
     cancel_final_title: "Potwierdź anulowanie",
     cancel_final_description:
-      "Twój plan {plan} zostanie anulowany i kończy się {date}. Do tego czasu zachowujesz pełny dostęp.",
+      "Twój plan {{plan}} zostanie anulowany i kończy się {{date}}. Do tego czasu zachowujesz pełny dostęp.",
     cancel_final_description_nodate:
-      "Twój plan {plan} zostanie anulowany z końcem bieżącego okresu rozliczeniowego. Do tego czasu zachowujesz pełny dostęp.",
+      "Twój plan {{plan}} zostanie anulowany z końcem bieżącego okresu rozliczeniowego. Do tego czasu zachowujesz pełny dostęp.",
     cancel_final_confirm: "Anuluj mój plan",
     cancel_confirm_title: "Anuluj subskrypcję",
     cancel_confirm_description:
@@ -5074,7 +5075,7 @@ export const pl = {
     domain_purchase_discount_tooltip:
       "Promocyjna cena pierwszego roku od naszego rejestratora. Później odnowienie za {{price}} rocznie.",
     domain_purchase_purchased_info:
-      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą i w każdej chwili możesz ją przenieść do innego rejestratora.",
+      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą. ICANN blokuje nowe rejestracje przez pierwsze 60 dni, a później nasz zespół pomocy zajmuje się przeniesieniem do innego rejestratora.",
     domain_purchase_dont_have: "Nie masz domeny? Kliknij tutaj, aby ją kupić.",
     domain_purchase_sort_price: "Najniższa cena",
     domain_purchase_leave_title: "Opuścić Aster Mail?",
@@ -5083,6 +5084,15 @@ export const pl = {
     domain_purchase_purchased_empty: "Brak kupionych domen",
     domain_purchase_purchased_expires: "Wygasa {{date}}",
     domain_purchase_purchased_in_progress: "W trakcie konfiguracji...",
+    domain_purchase_purchased_lapsed: "Wygasła - kup ponownie",
+    domain_purchase_error_paused:
+      "Zakupy domen są wstrzymane na kilka minut. Spróbuj ponownie za chwilę.",
+    domain_purchase_error_not_allowed:
+      "Ta domena nie jest teraz dostępna na Twoim koncie. Wybierz inną nazwę lub napisz do pomocy technicznej.",
+    domain_purchase_order_expired:
+      "To zamówienie wygasło przed opłaceniem. Rozpocznij nowy zakup, aby zdobyć domenę.",
+    domain_purchase_order_lapsed:
+      "Ta domena osiągnęła datę wygaśnięcia i nie jest już aktywna. Kup ją ponownie, aby ją odzyskać.",
     domain_purchase_terms_notice:
       "Aster rejestruje domenę w Twoim imieniu za pośrednictwem naszego partnerskiego rejestratora, a cena odnowienia jest zawsze widoczna przed zapłatą. Jeśli kiedykolwiek pozwolisz domenie wygasnąć, rejestrator może pobrać opłatę za jej odzyskanie.",
     domain_purchase_terms_aster: "Warunki korzystania z Aster",

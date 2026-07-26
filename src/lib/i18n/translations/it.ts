@@ -3693,35 +3693,35 @@ export const it = {
     cancel_reason_continue: "Continua",
     cancel_impact_title: "Cosa cambia se annulli",
     cancel_impact_description:
-      "Il tuo piano resta attivo fino al {date}. Dopodiché:",
+      "Il tuo piano resta attivo fino al {{date}}. Dopodiché:",
     cancel_impact_description_nodate:
       "Alla fine del periodo di fatturazione attuale:",
     cancel_impact_loading: "Verifica di cosa cambia per il tuo account...",
     cancel_impact_unavailable:
       "Non siamo riusciti a caricare i dettagli ora. Puoi comunque continuare.",
-    cancel_impact_storage: "Lo spazio passa da {current} a {after}.",
+    cancel_impact_storage: "Lo spazio passa da {{current}} a {{after}}.",
     cancel_impact_storage_over:
-      "Stai usando {used}, oltre quel limite. Finché lo superi, la posta in arrivo viene rifiutata e dopo 7 giorni viene rifiutata definitivamente.",
+      "Stai usando {{used}}, oltre quel limite. Finché lo superi, la posta in arrivo viene rifiutata e dopo 7 giorni viene rifiutata definitivamente.",
     cancel_impact_aliases:
-      "{count} alias smettono di ricevere posta {days} giorni dopo.",
-    cancel_impact_domains: "{count} domini personalizzati vengono sospesi.",
+      "{{count}} alias smettono di ricevere posta {{days}} giorni dopo.",
+    cancel_impact_domains: "{{count}} domini personalizzati vengono sospesi.",
     cancel_impact_catch_all: "L'indirizzo catch-all viene disattivato.",
-    cancel_impact_templates: "{count} modelli email vengono disattivati.",
-    cancel_impact_signatures: "{count} firme vengono disattivate.",
+    cancel_impact_templates: "{{count}} modelli email vengono disattivati.",
+    cancel_impact_signatures: "{{count}} firme vengono disattivate.",
     cancel_impact_family:
-      "{count} membri della famiglia passano a un periodo di tolleranza di {days} giorni.",
+      "{{count}} membri della famiglia passano a un periodo di tolleranza di {{days}} giorni.",
     cancel_impact_family_addresses:
-      "{count} indirizzi famiglia riservati vengono liberati.",
+      "{{count}} indirizzi famiglia riservati vengono liberati.",
     cancel_impact_features:
-      "{count} funzionalità a pagamento vengono disattivate.",
+      "{{count}} funzionalità a pagamento vengono disattivate.",
     cancel_impact_reactivate_hint:
       "Non viene eliminato nulla. Riattivando l'abbonamento si ripristina ciò che era disattivato, entro i limiti del nuovo piano.",
     cancel_impact_continue: "Continua con l'annullamento",
     cancel_final_title: "Conferma annullamento",
     cancel_final_description:
-      "Il tuo piano {plan} verrà annullato e termina il {date}. Fino ad allora mantieni l'accesso completo.",
+      "Il tuo piano {{plan}} verrà annullato e termina il {{date}}. Fino ad allora mantieni l'accesso completo.",
     cancel_final_description_nodate:
-      "Il tuo piano {plan} verrà annullato alla fine del periodo di fatturazione attuale. Fino ad allora mantieni l'accesso completo.",
+      "Il tuo piano {{plan}} verrà annullato alla fine del periodo di fatturazione attuale. Fino ad allora mantieni l'accesso completo.",
     cancel_final_confirm: "Annulla il mio piano",
     cancel_confirm_title: "Annulla abbonamento",
     cancel_confirm_description:
@@ -4124,7 +4124,7 @@ export const it = {
     domain_purchase_discount_tooltip:
       "Prezzo promozionale del primo anno dal nostro registrar. In seguito si rinnova a {{price}} all'anno.",
     domain_purchase_purchased_info:
-      "Questi sono i domini che hai acquistato tramite Aster. Li registriamo per te con la privacy WHOIS, configuriamo automaticamente tutto il DNS della posta e puoi creare subito indirizzi su di essi. Ogni dominio si rinnova solo con la tua approvazione e puoi trasferirlo a un altro registrar quando vuoi.",
+      "Questi sono i domini che hai acquistato tramite Aster. Li registriamo per te con la privacy WHOIS, configuriamo automaticamente tutto il DNS della posta e puoi creare subito indirizzi su di essi. Ogni dominio si rinnova solo con la tua approvazione. ICANN blocca le nuove registrazioni per i primi 60 giorni e in seguito il nostro supporto gestisce il trasferimento a un altro registrar.",
     domain_purchase_dont_have:
       "Non hai un dominio? Clicca qui per acquistarne uno.",
     domain_purchase_sort_price: "Prezzo più basso",
@@ -4135,6 +4135,15 @@ export const it = {
     domain_purchase_purchased_empty: "Nessun dominio acquistato",
     domain_purchase_purchased_expires: "Scade il {{date}}",
     domain_purchase_purchased_in_progress: "In configurazione...",
+    domain_purchase_purchased_lapsed: "Scaduto - acquista di nuovo",
+    domain_purchase_error_paused:
+      "Gli acquisti di domini sono in pausa per qualche minuto. Riprova tra poco.",
+    domain_purchase_error_not_allowed:
+      "Questo dominio non è disponibile sul tuo account in questo momento. Prova un altro nome o contatta l'assistenza.",
+    domain_purchase_order_expired:
+      "Questo ordine è scaduto prima del pagamento. Avvia un nuovo acquisto per ottenere il dominio.",
+    domain_purchase_order_lapsed:
+      "Questo dominio ha raggiunto la data di scadenza e non è più attivo. Acquistalo di nuovo per riaverlo.",
     domain_purchase_terms_notice:
       "Aster registra il dominio per tuo conto tramite il nostro registrar partner, e il prezzo di rinnovo viene sempre mostrato prima del pagamento. Se un giorno lasci scadere un dominio, il registrar può addebitare un costo di recupero per riaverlo.",
     domain_purchase_terms_aster: "Termini di servizio di Aster",

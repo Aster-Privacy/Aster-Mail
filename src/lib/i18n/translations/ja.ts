@@ -4720,33 +4720,35 @@ export const ja = {
     cancel_reason_skip: "スキップ",
     cancel_reason_continue: "次へ",
     cancel_impact_title: "解約するとどうなるか",
-    cancel_impact_description: "プランは {date} まで有効です。その後:",
+    cancel_impact_description: "プランは {{date}} まで有効です。その後:",
     cancel_impact_description_nodate: "現在の請求期間が終了すると:",
     cancel_impact_loading: "アカウントへの影響を確認しています...",
     cancel_impact_unavailable:
       "現在、詳細を読み込めませんでした。このまま続行できます。",
-    cancel_impact_storage: "ストレージが {current} から {after} に減ります。",
+    cancel_impact_storage:
+      "ストレージが {{current}} から {{after}} に減ります。",
     cancel_impact_storage_over:
-      "現在 {used} を使用しており、上限を超えています。超過している間は受信メールが拒否され、7日後は完全に拒否されます。",
+      "現在 {{used}} を使用しており、上限を超えています。超過している間は受信メールが拒否され、7日後は完全に拒否されます。",
     cancel_impact_aliases:
-      "{count} 件のエイリアスが {days} 日後にメールの受信を停止します。",
-    cancel_impact_domains: "{count} 件のカスタムドメインが停止されます。",
+      "{{count}} 件のエイリアスが {{days}} 日後にメールの受信を停止します。",
+    cancel_impact_domains: "{{count}} 件のカスタムドメインが停止されます。",
     cancel_impact_catch_all: "キャッチオールアドレスが無効になります。",
-    cancel_impact_templates: "{count} 件のメールテンプレートが無効になります。",
-    cancel_impact_signatures: "{count} 件の署名が無効になります。",
+    cancel_impact_templates:
+      "{{count}} 件のメールテンプレートが無効になります。",
+    cancel_impact_signatures: "{{count}} 件の署名が無効になります。",
     cancel_impact_family:
-      "{count} 人の家族メンバーが {days} 日間の猶予期間に移行します。",
+      "{{count}} 人の家族メンバーが {{days}} 日間の猶予期間に移行します。",
     cancel_impact_family_addresses:
-      "{count} 件の予約済み家族アドレスが解放されます。",
-    cancel_impact_features: "{count} 件の有料機能が無効になります。",
+      "{{count}} 件の予約済み家族アドレスが解放されます。",
+    cancel_impact_features: "{{count}} 件の有料機能が無効になります。",
     cancel_impact_reactivate_hint:
       "削除されるものはありません。再登録すると、新しいプランの上限の範囲で無効化された項目が復元されます。",
     cancel_impact_continue: "解約手続きに進む",
     cancel_final_title: "解約の確認",
     cancel_final_description:
-      "{plan} プランは解約され、{date} に終了します。それまでは引き続きすべて利用できます。",
+      "{{plan}} プランは解約され、{{date}} に終了します。それまでは引き続きすべて利用できます。",
     cancel_final_description_nodate:
-      "{plan} プランは現在の請求期間の終了時に解約されます。それまでは引き続きすべて利用できます。",
+      "{{plan}} プランは現在の請求期間の終了時に解約されます。それまでは引き続きすべて利用できます。",
     cancel_final_confirm: "プランを解約する",
     cancel_confirm_title: "サブスクリプションをキャンセル",
     cancel_enter_password:
@@ -5048,7 +5050,7 @@ export const ja = {
     domain_purchase_discount_tooltip:
       "レジストラによる初年度セール価格です。以降は年 {{price}} で更新されます。",
     domain_purchase_purchased_info:
-      "ここには、Asterを通じて購入したドメインが表示されます。WHOISプライバシー付きで登録し、メール用DNSをすべて自動設定するので、すぐにアドレスを作成できます。更新はお客様の承認がある場合のみ行われ、いつでも他のレジストラへ移管できます。",
+      "ここには、Asterを通じて購入したドメインが表示されます。WHOISプライバシー付きで登録し、メール用DNSをすべて自動設定するので、すぐにアドレスを作成できます。更新はお客様の承認がある場合のみ行われます。ICANNの規定により新規登録は最初の60日間は移管できず、その後はサポートチームが他のレジストラへの移管を承ります。",
     domain_purchase_dont_have:
       "ドメインをお持ちでない場合は、こちらをクリックして購入できます。",
     domain_purchase_sort_price: "価格が安い順",
@@ -5059,6 +5061,15 @@ export const ja = {
     domain_purchase_purchased_empty: "購入したドメインはまだありません",
     domain_purchase_purchased_expires: "{{date}} に期限切れ",
     domain_purchase_purchased_in_progress: "設定中...",
+    domain_purchase_purchased_lapsed: "期限切れ - 再購入",
+    domain_purchase_error_paused:
+      "ドメインの購入は数分間停止しています。しばらくしてからもう一度お試しください。",
+    domain_purchase_error_not_allowed:
+      "このドメインは現在このアカウントではご購入いただけません。別の名前をお試しになるか、サポートにご連絡ください。",
+    domain_purchase_order_expired:
+      "この注文は支払い前に期限切れになりました。新しく購入手続きを開始してください。",
+    domain_purchase_order_lapsed:
+      "このドメインは有効期限を迎え、現在は無効です。もう一度購入すると復活できます。",
     domain_purchase_terms_notice:
       "Asterはレジストラパートナーを通じてお客様に代わりドメインを登録し、更新料金は支払い前に必ず表示されます。万一ドメインを失効させてしまった場合は、取り戻すためにレジストラの復旧手数料がかかることがあります。",
     domain_purchase_terms_aster: "Aster利用規約",

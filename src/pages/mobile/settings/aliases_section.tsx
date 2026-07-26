@@ -782,16 +782,25 @@ export function AliasesSection({
                   }`}
                   type="button"
                   onClick={() => {
-                    if (order.status !== "complete") {
-                      set_purchase_order_id(order.id);
-                      set_purchase_open(true);
+                    if (order.status === "complete") {
+                      return;
                     }
+                    set_purchase_order_id(
+                      order.status === "lapsed" ? null : order.id,
+                    );
+                    set_purchase_open(true);
                   }}
                 >
                   <span className="truncate text-[15px] font-medium text-[var(--mobile-text-primary)]">
                     {order.domain}
                   </span>
-                  <span className="flex-shrink-0 text-[12px] text-[var(--mobile-text-muted)]">
+                  <span
+                    className={`flex-shrink-0 text-[12px] ${
+                      order.status === "lapsed"
+                        ? "text-[var(--color-danger)]"
+                        : "text-[var(--mobile-text-muted)]"
+                    }`}
+                  >
                     {order.status === "complete"
                       ? order.expires_at
                         ? t("settings.domain_purchase_purchased_expires", {
@@ -800,7 +809,9 @@ export function AliasesSection({
                             ).toLocaleDateString(),
                           })
                         : ""
-                      : t("settings.domain_purchase_purchased_in_progress")}
+                      : order.status === "lapsed"
+                        ? t("settings.domain_purchase_purchased_lapsed")
+                        : t("settings.domain_purchase_purchased_in_progress")}
                   </span>
                 </button>
               ))}

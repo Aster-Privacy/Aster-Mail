@@ -67,6 +67,11 @@ import {
   CancelImpactStep,
   type CancelStep,
 } from "@/components/settings/billing/cancel_impact_step";
+import {
+  clear_cancel_password_cache,
+  get_cancel_password_hash,
+  verify_cancel_password,
+} from "@/components/settings/billing/cancel_password";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -102,13 +107,6 @@ import {
   type StorageAddonItem,
   type CancelImpactResponse,
 } from "@/services/api/billing";
-import { use_auth } from "@/contexts/auth_context";
-import { get_user_salt } from "@/services/api/auth";
-import {
-  hash_email,
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
 
 interface PlanTier {
   id: string;
@@ -160,7 +158,6 @@ export function BillingSection({
   on_close: () => void;
 }) {
   const { t } = use_i18n();
-  const { user } = use_auth();
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
@@ -177,6 +174,7 @@ export function BillingSection({
   );
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_impact, set_cancel_impact] =
     useState<CancelImpactResponse | null>(null);
   const [is_impact_loading, set_is_impact_loading] = useState(false);
@@ -190,6 +188,8 @@ export function BillingSection({
     set_cancel_reason_text("");
     set_cancel_step("reason");
     set_cancel_impact(null);
+    set_is_verifying_password(false);
+    clear_cancel_password_cache();
   }, [show_cancel_dialog]);
 
   useEffect(() => {
@@ -220,6 +220,26 @@ export function BillingSection({
     : subscription?.current_period_end
       ? format_date(subscription.current_period_end)
       : null;
+
+  const handle_password_continue = async () => {
+    if (!cancel_password.trim() || is_verifying_password) return;
+    set_is_verifying_password(true);
+    set_cancel_password_error("");
+    const outcome = await verify_cancel_password(cancel_password);
+
+    set_is_verifying_password(false);
+
+    if (outcome === "verified") {
+      set_cancel_step("confirm");
+
+      return;
+    }
+    set_cancel_password_error(
+      outcome === "invalid"
+        ? t("settings.incorrect_password_error")
+        : t("settings.cancel_password_error"),
+    );
+  };
 
   const [selected_storage, set_selected_storage] = useState<string | null>(
     null,
@@ -510,28 +530,16 @@ export function BillingSection({
 
       return;
     }
-    if (!user?.email) {
-      set_cancel_password_error(t("settings.cancel_password_error"));
-
-      return;
-    }
     set_cancel_password_error("");
     set_is_action_loading(true);
     try {
-      const user_hash = await hash_email(user.email);
-      const salt_response = await get_user_salt({ user_hash });
+      const password_hash = await get_cancel_password_hash(cancel_password);
 
-      if (salt_response.error || !salt_response.data) {
+      if (!password_hash) {
         set_cancel_password_error(t("settings.cancel_password_error"));
 
         return;
       }
-
-      const salt = base64_to_array(salt_response.data.salt);
-      const { hash: password_hash } = await derive_password_hash(
-        cancel_password,
-        salt,
-      );
 
       const response = await cancel_subscription(
         password_hash,
@@ -552,6 +560,7 @@ export function BillingSection({
     } catch {
       set_cancel_password_error(t("settings.cancel_password_error"));
     } finally {
+      clear_cancel_password_cache();
       set_is_action_loading(false);
       set_show_cancel_dialog(false);
     }
@@ -1374,7 +1383,7 @@ export function BillingSection({
           set_show_cancel_dialog(open);
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {cancel_step === "reason"
@@ -1398,10 +1407,16 @@ export function BillingSection({
                     ? cancel_effective_date
                       ? t("settings.cancel_final_description", {
                           date: cancel_effective_date,
-                          plan: subscription?.plan.name ?? "",
+                          plan:
+                            cancel_impact?.plan_name ??
+                            subscription?.plan.name ??
+                            "",
                         })
                       : t("settings.cancel_final_description_nodate", {
-                          plan: subscription?.plan.name ?? "",
+                          plan:
+                            cancel_impact?.plan_name ??
+                            subscription?.plan.name ??
+                            "",
                         })
                     : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
@@ -1469,8 +1484,9 @@ export function BillingSection({
                       set_cancel_password_error("");
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && cancel_password.trim()) {
-                        set_cancel_step("confirm");
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handle_password_continue();
                       }
                     }}
                   />
@@ -1504,13 +1520,16 @@ export function BillingSection({
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="flex-1"
-                  disabled={!cancel_password.trim()}
+                  disabled={!cancel_password.trim() || is_verifying_password}
                   onClick={(e) => {
                     e.preventDefault();
-                    set_cancel_step("confirm");
+                    handle_password_continue();
                   }}
                 >
-                  {t("settings.cancel_reason_continue")}
+                  <span className="flex items-center justify-center gap-2">
+                    {is_verifying_password && <Spinner size="xs" />}
+                    {t("settings.cancel_reason_continue")}
+                  </span>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>

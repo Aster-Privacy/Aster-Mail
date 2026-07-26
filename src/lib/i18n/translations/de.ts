@@ -4747,35 +4747,35 @@ export const de = {
     cancel_reason_skip: "Überspringen",
     cancel_reason_continue: "Weiter",
     cancel_impact_title: "Was sich bei einer Kündigung ändert",
-    cancel_impact_description: "Dein Plan bleibt bis {date} aktiv. Danach:",
+    cancel_impact_description: "Dein Plan bleibt bis {{date}} aktiv. Danach:",
     cancel_impact_description_nodate:
       "Wenn dein aktueller Abrechnungszeitraum endet:",
     cancel_impact_loading: "Änderungen für dein Konto werden geprüft...",
     cancel_impact_unavailable:
       "Die Details konnten gerade nicht geladen werden. Du kannst trotzdem fortfahren.",
-    cancel_impact_storage: "Der Speicher sinkt von {current} auf {after}.",
+    cancel_impact_storage: "Der Speicher sinkt von {{current}} auf {{after}}.",
     cancel_impact_storage_over:
-      "Du nutzt {used} und liegst damit über diesem Limit. Solange du darüber liegst, werden eingehende E-Mails abgewiesen, nach 7 Tagen endgültig.",
+      "Du nutzt {{used}} und liegst damit über diesem Limit. Solange du darüber liegst, werden eingehende E-Mails abgewiesen, nach 7 Tagen endgültig.",
     cancel_impact_aliases:
-      "{count} Aliase empfangen {days} Tage später keine E-Mails mehr.",
-    cancel_impact_domains: "{count} eigene Domains werden gesperrt.",
+      "{{count}} Aliase empfangen {{days}} Tage später keine E-Mails mehr.",
+    cancel_impact_domains: "{{count}} eigene Domains werden gesperrt.",
     cancel_impact_catch_all: "Catch-all-Adressierung wird deaktiviert.",
-    cancel_impact_templates: "{count} E-Mail-Vorlagen werden deaktiviert.",
-    cancel_impact_signatures: "{count} Signaturen werden deaktiviert.",
+    cancel_impact_templates: "{{count}} E-Mail-Vorlagen werden deaktiviert.",
+    cancel_impact_signatures: "{{count}} Signaturen werden deaktiviert.",
     cancel_impact_family:
-      "{count} Familienmitglieder wechseln in eine Kulanzfrist von {days} Tagen.",
+      "{{count}} Familienmitglieder wechseln in eine Kulanzfrist von {{days}} Tagen.",
     cancel_impact_family_addresses:
-      "{count} reservierte Familienadressen werden freigegeben.",
+      "{{count}} reservierte Familienadressen werden freigegeben.",
     cancel_impact_features:
-      "{count} kostenpflichtige Funktionen werden abgeschaltet.",
+      "{{count}} kostenpflichtige Funktionen werden abgeschaltet.",
     cancel_impact_reactivate_hint:
       "Nichts wird gelöscht. Ein erneutes Abo stellt Deaktiviertes wieder her, im Rahmen der Limits deines neuen Plans.",
     cancel_impact_continue: "Weiter zur Kündigung",
     cancel_final_title: "Kündigung bestätigen",
     cancel_final_description:
-      "Dein {plan}-Plan wird gekündigt und endet am {date}. Bis dahin hast du vollen Zugriff.",
+      "Dein {{plan}}-Plan wird gekündigt und endet am {{date}}. Bis dahin hast du vollen Zugriff.",
     cancel_final_description_nodate:
-      "Dein {plan}-Plan wird zum Ende des aktuellen Abrechnungszeitraums gekündigt. Bis dahin hast du vollen Zugriff.",
+      "Dein {{plan}}-Plan wird zum Ende des aktuellen Abrechnungszeitraums gekündigt. Bis dahin hast du vollen Zugriff.",
     cancel_final_confirm: "Plan kündigen",
     cancel_confirm_title: "Abonnement kündigen",
     cancel_confirm_description:
@@ -5135,7 +5135,7 @@ export const de = {
     domain_purchase_discount_tooltip:
       "Aktionspreis für das erste Jahr von unserem Registrar. Danach Verlängerung für {{price}} pro Jahr.",
     domain_purchase_purchased_info:
-      "Hier finden Sie Domains, die Sie über Aster gekauft haben. Wir registrieren sie für Sie mit WHOIS Datenschutz, richten alle Mail DNS Einträge automatisch ein, und Sie können sofort Adressen darauf erstellen. Jede Domain wird nur mit Ihrer Zustimmung verlängert und kann jederzeit zu einem anderen Registrar umziehen.",
+      "Hier finden Sie Domains, die Sie über Aster gekauft haben. Wir registrieren sie für Sie mit WHOIS Datenschutz, richten alle Mail DNS Einträge automatisch ein, und Sie können sofort Adressen darauf erstellen. Jede Domain wird nur mit Ihrer Zustimmung verlängert. ICANN sperrt neue Registrierungen für die ersten 60 Tage, danach übernimmt unser Support den Umzug zu einem anderen Registrar.",
     domain_purchase_dont_have:
       "Keine eigene Domain? Hier klicken und eine kaufen.",
     domain_purchase_sort_price: "Niedrigster Preis",
@@ -5146,6 +5146,15 @@ export const de = {
     domain_purchase_purchased_empty: "Noch keine gekauften Domains",
     domain_purchase_purchased_expires: "Läuft ab am {{date}}",
     domain_purchase_purchased_in_progress: "Wird eingerichtet...",
+    domain_purchase_purchased_lapsed: "Abgelaufen - erneut kaufen",
+    domain_purchase_error_paused:
+      "Domain-Käufe sind für ein paar Minuten pausiert. Bitte versuchen Sie es gleich noch einmal.",
+    domain_purchase_error_not_allowed:
+      "Diese Domain ist derzeit für Ihr Konto nicht verfügbar. Wählen Sie einen anderen Namen oder wenden Sie sich an den Support.",
+    domain_purchase_order_expired:
+      "Diese Bestellung ist abgelaufen, bevor sie bezahlt wurde. Starten Sie einen neuen Kauf, um die Domain zu erhalten.",
+    domain_purchase_order_lapsed:
+      "Diese Domain hat ihr Ablaufdatum erreicht und ist nicht mehr aktiv. Kaufen Sie sie erneut, um sie zurückzuholen.",
     domain_purchase_terms_notice:
       "Aster registriert die Domain in Ihrem Auftrag über unseren Registrar-Partner, und der Verlängerungspreis wird Ihnen immer vor der Zahlung angezeigt. Sollten Sie eine Domain einmal auslaufen lassen, kann der Registrar für die Wiederherstellung eine Gebühr erheben.",
     domain_purchase_terms_aster: "Aster Nutzungsbedingungen",

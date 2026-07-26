@@ -662,10 +662,13 @@ export function AliasesSection() {
                               : "hover:bg-surf-secondary rounded-lg cursor-pointer"
                           }`}
                           onClick={() => {
-                            if (order.status !== "complete") {
-                              set_purchase_order_id(order.id);
-                              set_purchase_open(true);
+                            if (order.status === "complete") {
+                              return;
                             }
+                            set_purchase_order_id(
+                              order.status === "lapsed" ? null : order.id,
+                            );
+                            set_purchase_open(true);
                           }}
                         >
                           <span className="text-sm font-medium text-txt-primary truncate">
@@ -688,7 +691,13 @@ export function AliasesSection() {
                                 {t("settings.domain_purchase_renew")}
                               </button>
                             )}
-                            <span className="text-[13px] text-txt-muted">
+                            <span
+                              className={`text-[13px] ${
+                                order.status === "lapsed"
+                                  ? "text-[var(--color-danger)]"
+                                  : "text-txt-muted"
+                              }`}
+                            >
                               {order.status === "complete"
                                 ? order.expires_at
                                   ? t(
@@ -700,9 +709,11 @@ export function AliasesSection() {
                                       },
                                     )
                                   : ""
-                                : t(
-                                    "settings.domain_purchase_purchased_in_progress",
-                                  )}
+                                : order.status === "lapsed"
+                                  ? t("settings.domain_purchase_purchased_lapsed")
+                                  : t(
+                                      "settings.domain_purchase_purchased_in_progress",
+                                    )}
                             </span>
                           </span>
                         </div>
