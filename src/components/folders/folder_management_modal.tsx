@@ -534,8 +534,8 @@ export function FolderManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <ArrowRightIcon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+              <div className="flex items-start gap-3">
+                <ArrowRightIcon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <ModalTitle>{t("common.move_folder")}</ModalTitle>
                   <ModalDescription>

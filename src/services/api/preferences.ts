@@ -492,7 +492,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   show_aster_branding: true,
   show_signature_separator: true,
   viewer_toolbar_mode: "simple",
-  search_encrypted_content: false,
+  search_encrypted_content: true,
   migration_haptic_v1_done: false,
   migration_tracker_blocking_v2_done: false,
   migration_toast_position_v1_done: false,
