@@ -68,7 +68,10 @@ import {
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { LOCKDOWN_CHANGED_EVENT, is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
-import { set_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
+import {
+  set_cached_iframe_height,
+  clear_iframe_height_cache,
+} from "@/components/email/sandboxed_email_renderer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
@@ -386,14 +389,22 @@ function presanitize(
 let _email_zoom = "1.000";
 
 export function set_preload_email_font_px(px: number): void {
-  _email_zoom = (px / 14).toFixed(3);
+  const next_zoom = (px / 14).toFixed(3);
+
+  if (next_zoom !== _email_zoom) {
+    _email_zoom = next_zoom;
+    clear_iframe_height_cache();
+  }
 }
 
 let _email_font_stack =
   "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
 export function set_preload_email_font_stack(stack: string): void {
-  _email_font_stack = stack;
+  if (stack !== _email_font_stack) {
+    _email_font_stack = stack;
+    clear_iframe_height_cache();
+  }
 }
 
 let measure_container: HTMLDivElement | null = null;
