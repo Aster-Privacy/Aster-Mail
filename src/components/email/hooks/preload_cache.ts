@@ -70,6 +70,7 @@ import { LOCKDOWN_CHANGED_EVENT, is_any_lockdown_active } from "@/services/lockd
 import { get_current_account } from "@/services/account_manager";
 import {
   set_cached_iframe_height,
+  get_cached_iframe_height,
   clear_iframe_height_cache,
   email_viewer_measure_width,
 } from "@/components/email/sandboxed_email_renderer";
@@ -119,6 +120,33 @@ const MAX_PRELOAD_CACHE_SIZE = 30;
 
 if (typeof window !== "undefined") {
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, () => clear_preload_cache());
+}
+
+export function is_preload_busy(): boolean {
+  return preload_in_flight.size > 0;
+}
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (
+    callback: (deadline: { timeRemaining: () => number }) => void,
+    options?: { timeout: number },
+  ) => number;
+};
+
+function next_idle(timeout_ms = 400): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+
+  const idle = (window as IdleWindow).requestIdleCallback;
+
+  return new Promise((resolve) => {
+    if (idle) {
+      idle(() => resolve(), { timeout: timeout_ms });
+
+      return;
+    }
+
+    window.setTimeout(() => resolve(), 0);
+  });
 }
 
 export function get_preloaded_email(email_id: string): PreloadedEmail | null {
@@ -430,6 +458,8 @@ function premeasure_height(
   is_plain_text: boolean,
   body_background?: string,
 ): void {
+  if (get_cached_iframe_height(email_id) !== undefined) return;
+
   if (!measure_container || !document.body.contains(measure_container)) {
     measure_container = document.createElement("div");
     measure_container.style.cssText =
@@ -695,11 +725,14 @@ export async function preload_email_detail(
       const thread_sanitized = new Map<string, PreloadedSanitizedContent>();
 
       for (const msg of thread_messages) {
+        await next_idle();
         thread_sanitized.set(
           msg.id,
           presanitize(msg.html_content, msg.body, msg.sender_email),
         );
       }
+
+      await next_idle();
 
       const main_sanitized = presanitize(
         safe_html,
@@ -707,11 +740,13 @@ export async function preload_email_detail(
         envelope.from.email,
       );
 
-      premeasure_height(
-        target_id,
-        main_sanitized.html,
-        main_sanitized.is_plain_text,
-        main_sanitized.body_background,
+      void next_idle(1500).then(() =>
+        premeasure_height(
+          target_id,
+          main_sanitized.html,
+          main_sanitized.is_plain_text,
+          main_sanitized.body_background,
+        ),
       );
 
       let cid_resolved: { html: string; blob_urls: string[] } | undefined;

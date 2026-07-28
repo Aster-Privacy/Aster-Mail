@@ -333,6 +333,28 @@ export function use_category_inbox(
     };
   }, [state.is_loading]);
 
+  const page_cache_key = useCallback(
+    (target_page: number, ids: string[]): string => {
+      const unread_bits = ids
+        .map((id) => (is_representative_unread(id) ? "u" : "r"))
+        .join("");
+
+      return `${active_category}:${target_page}:${page_variant}:${unread_bits}:${ids.join(",")}`;
+    },
+    [active_category, page_variant],
+  );
+
+  const is_page_cached = useCallback(
+    (target_page: number, limit: number): boolean => {
+      const ids = get_page_ids(active_category, target_page, limit);
+
+      if (ids.length === 0) return true;
+
+      return page_cache.current.has(page_cache_key(target_page, ids));
+    },
+    [active_category, page_cache_key],
+  );
+
   const fetch_page = useCallback(
     async (target_page: number, limit: number): Promise<void> => {
       if (!enabled) return;
@@ -390,10 +412,7 @@ export function use_category_inbox(
 
       abort_ref.current = controller;
 
-      const unread_bits = ids
-        .map((id) => (is_representative_unread(id) ? "u" : "r"))
-        .join("");
-      const cache_key = `${active_category}:${target_page}:${page_variant}:${unread_bits}:${ids.join(",")}`;
+      const cache_key = page_cache_key(target_page, ids);
       const cached = page_cache.current.get(cache_key);
 
       if (cached) {
@@ -823,6 +842,7 @@ export function use_category_inbox(
   return {
     state,
     fetch_page,
+    is_page_cached,
     load_more,
     update_email,
     remove_email,

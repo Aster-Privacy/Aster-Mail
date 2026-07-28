@@ -97,6 +97,7 @@ export {
   preload_email_detail,
   mark_preload_stale,
   delete_preloaded_email,
+  is_preload_busy,
 } from "@/components/email/hooks/preload_cache";
 
 export function use_email_detail() {
