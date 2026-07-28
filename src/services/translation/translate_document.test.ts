@@ -132,6 +132,50 @@ describe("translate_message_body", () => {
     expect(result.translated).toBe(false);
   });
 
+  it("retranslates without masking when the model mangles a token", async () => {
+    translate_impl = async (segments) =>
+      segments.map((segment) =>
+        /x\d+x/i.test(segment)
+          ? segment.replace(/x(\d+)x/i, "x$1").replace("eingeben", "enter")
+          : segment.replace("eingeben", "enter"),
+      );
+
+    const root = mount("<p>Code 493028 eingeben.</p>");
+
+    const result = await translate_message_body({
+      root,
+      account_id: "acct-1",
+      message_id: "mangled",
+      from: "de",
+      to: "en",
+      signal: fresh_signal(),
+    });
+
+    expect(result.translated).toBe(true);
+    expect(root.textContent).toBe("Code 493028 enter.");
+  });
+
+  it("keeps the original when the unmasked retry loses the entity", async () => {
+    translate_impl = async (segments) =>
+      segments.map((segment) =>
+        segment.replace(/x\d+x/i, "gone").replace(/493028/, "gone"),
+      );
+
+    const root = mount("<p>Code 493028 eingeben.</p>");
+
+    const result = await translate_message_body({
+      root,
+      account_id: "acct-1",
+      message_id: "lost",
+      from: "de",
+      to: "en",
+      signal: fresh_signal(),
+    });
+
+    expect(result.translated).toBe(false);
+    expect(root.textContent).toBe("Code 493028 eingeben.");
+  });
+
   it("never translates quoted reply content", async () => {
     translate_impl = async (segments) =>
       segments.map((segment) => segment.toUpperCase());

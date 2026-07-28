@@ -28,6 +28,7 @@ import {
   restore_entities,
   segment_nodes,
   segment_sentences,
+  token_for,
 } from "./text_prepare";
 
 function round_trip(text: string): string {
@@ -90,14 +91,14 @@ describe("protect_entities", () => {
 
   it("survives whitespace injected into tokens by the model", () => {
     const { masked, entities } = protect_entities("Code 493028 eingeben.");
-    const mangled = masked.replace("ZQXAQZX", "ZQX A QZX");
+    const mangled = masked.replace(token_for(0), "x 1 x");
 
     expect(restore_entities(mangled, entities).text).toContain("493028");
   });
 
-  it("survives the model lowercasing a token", () => {
+  it("survives the model upper-casing a token", () => {
     const { masked, entities } = protect_entities("Code 493028 eingeben.");
-    const mangled = masked.toLowerCase();
+    const mangled = masked.toUpperCase();
 
     expect(restore_entities(mangled, entities).text).toContain("493028");
   });
@@ -116,22 +117,30 @@ describe("protect_entities", () => {
   });
 
   it("leaves unknown token indices untouched", () => {
-    const result = restore_entities("value ZQXGQZX here", []);
+    const result = restore_entities("value x7x here", []);
 
-    expect(result.text).toBe("value ZQXGQZX here");
+    expect(result.text).toBe("value x7x here");
   });
 
   it("flags an out-of-range token index as missing", () => {
-    const result = restore_entities("value ZQXGQZX here", []);
+    const result = restore_entities("value x7x here", []);
 
     expect(result.missing).toBeGreaterThan(0);
   });
 
-  it("flags a token the model duplicated as missing", () => {
+  it("keeps a token the model duplicated instead of discarding the text", () => {
     const { masked, entities } = protect_entities("Code 493028 eingeben.");
     const duplicated = `${masked} ${masked}`;
+    const result = restore_entities(duplicated, entities);
 
-    expect(restore_entities(duplicated, entities).missing).toBeGreaterThan(0);
+    expect(result.missing).toBe(0);
+    expect(result.text.split("493028")).toHaveLength(3);
+  });
+
+  it("masks source text that already looks like a token", () => {
+    const text = "Variante x1x bitte prüfen.";
+
+    expect(round_trip(text)).toBe(text);
   });
 
   it("keeps reordered tokens since clause order changes are legitimate", () => {
@@ -141,12 +150,12 @@ describe("protect_entities", () => {
 
     expect(entities.length).toBeGreaterThanOrEqual(2);
 
-    const [first, second] = masked.match(/ZQX[A-Z]+QZX/g) ?? [];
+    const [first, second] = masked.match(/x\d+x/gi) ?? [];
 
     if (!first || !second) throw new Error("expected two protected tokens");
 
     let seen = 0;
-    const swapped = masked.replace(/ZQX[A-Z]+QZX/g, () =>
+    const swapped = masked.replace(/x\d+x/gi, () =>
       seen++ === 0 ? second : first,
     );
 

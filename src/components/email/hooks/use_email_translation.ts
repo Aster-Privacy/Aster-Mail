@@ -50,6 +50,7 @@ export type TranslationStatus =
   | "offer"
   | "translating"
   | "translated"
+  | "unsupported"
   | "unavailable";
 
 export interface EmailTranslationControl {
@@ -238,7 +239,7 @@ export function use_email_translation({
 
       if (!result.translated) {
         render.remeasure();
-        set_status("unavailable");
+        set_status(result.unsupported ? "unsupported" : "unavailable");
 
         return;
       }

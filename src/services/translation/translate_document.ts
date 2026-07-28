@@ -30,6 +30,7 @@ import {
   register_bergamot_engine,
 } from "./engine_bergamot";
 import { load_engine } from "./engine_registry";
+import { SUPPORTED_LANGUAGES } from "./engine_types";
 import type { LanguageCode, TranslationEngine } from "./engine_types";
 import {
   flatten_segments,
@@ -55,9 +56,16 @@ export interface TranslateBodyOptions {
 export interface TranslateBodyResult {
   translated: boolean;
   swapped: number;
+  unsupported?: boolean;
 }
 
 const EMPTY_RESULT: TranslateBodyResult = { translated: false, swapped: 0 };
+
+const UNSUPPORTED_RESULT: TranslateBodyResult = {
+  translated: false,
+  swapped: 0,
+  unsupported: true,
+};
 
 const MAX_TRANSLATION_CHARS = 24000;
 
@@ -83,6 +91,33 @@ async function get_engine(): Promise<TranslationEngine | null> {
   }
 }
 
+export async function available_source_languages(
+  to: LanguageCode,
+): Promise<LanguageCode[]> {
+  const engine = await get_engine();
+
+  if (!engine) return [];
+
+  const checks = await Promise.all(
+    SUPPORTED_LANGUAGES.filter((code) => code !== to).map(async (code) => ({
+      code,
+      ok: await engine.is_available(code, to),
+    })),
+  );
+
+  return checks.filter((entry) => entry.ok).map((entry) => entry.code);
+}
+
+function unmasked_acceptable(
+  original: string,
+  translated: string | undefined,
+  entities: readonly string[],
+): boolean {
+  if (!translated || !translated.trim() || translated === original) return false;
+
+  return entities.every((entity) => translated.includes(entity));
+}
+
 async function translate_segments(
   engine: TranslationEngine,
   segments: string[],
@@ -101,6 +136,28 @@ async function translate_segments(
   } catch {
     return null;
   }
+}
+
+async function translate_texts(
+  engine: TranslationEngine,
+  texts: string[],
+  from: LanguageCode,
+  to: LanguageCode,
+  signal: AbortSignal,
+): Promise<string[] | null> {
+  const segmented = segment_nodes(texts, from);
+  const flat = flatten_segments(segmented);
+  const translated = await translate_segments(
+    engine,
+    flat.map((segment) => segment.text),
+    from,
+    to,
+    signal,
+  );
+
+  if (!translated) return null;
+
+  return regroup_segments(segmented, translated);
 }
 
 export async function translate_message_body({
@@ -138,35 +195,68 @@ export async function translate_message_body({
 
   if (!engine || signal.aborted) return EMPTY_RESULT;
 
+  const supported = await engine.is_available(from, to);
+
+  if (signal.aborted) return EMPTY_RESULT;
+  if (!supported) return UNSUPPORTED_RESULT;
+
   const originals = read_node_text(nodes);
   const limit = translatable_prefix(originals);
   const head = originals.slice(0, limit);
   const protections = head.map((text) => protect_entities(text));
-  const segmented = segment_nodes(
-    protections.map((entry) => entry.masked),
-    from,
-  );
-  const flat = flatten_segments(segmented);
 
-  const translated_segments = await translate_segments(
+  const per_node_masked = await translate_texts(
     engine,
-    flat.map((segment) => segment.text),
+    protections.map((entry) => entry.masked),
     from,
     to,
     signal,
   );
 
-  if (!translated_segments || signal.aborted) return EMPTY_RESULT;
+  if (!per_node_masked || signal.aborted) return EMPTY_RESULT;
 
-  const per_node_masked = regroup_segments(segmented, translated_segments);
+  const restored = head.map((_, index) =>
+    restore_entities(per_node_masked[index], protections[index].entities),
+  );
+
+  const retry_indexes = restored.reduce<number[]>((list, entry, index) => {
+    if (entry.missing > 0) list.push(index);
+
+    return list;
+  }, []);
+
+  const retried = new Map<number, string>();
+
+  if (retry_indexes.length > 0) {
+    const raw = await translate_texts(
+      engine,
+      retry_indexes.map((index) => head[index]),
+      from,
+      to,
+      signal,
+    );
+
+    if (signal.aborted) return EMPTY_RESULT;
+
+    if (raw) {
+      retry_indexes.forEach((index, position) => {
+        retried.set(index, raw[position]);
+      });
+    }
+  }
+
   const per_node = originals.map((original, index) => {
     if (index >= limit) return original;
 
-    const restored = restore_entities(per_node_masked[index], protections[index].entities);
+    const entry = restored[index];
 
-    if (restored.missing > 0) return original;
+    if (entry.missing === 0) return entry.text;
 
-    return restored.text;
+    const fallback = retried.get(index);
+
+    return unmasked_acceptable(original, fallback, protections[index].entities)
+      ? (fallback as string)
+      : original;
   });
 
   write_translation(cache_parts, per_node);
@@ -197,7 +287,14 @@ export async function translate_plain_text(
 
   const restored = restore_entities(translated[0], entities);
 
-  if (restored.missing > 0) return null;
+  if (restored.missing > 0) {
+    const raw = await translate_segments(engine, [text], from, to, signal);
+    const fallback = raw?.[0];
+
+    return unmasked_acceptable(text, fallback, entities)
+      ? (fallback as string)
+      : null;
+  }
 
   return restored.text === text ? null : restored.text;
 }
