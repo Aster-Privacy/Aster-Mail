@@ -18,18 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useEffect, useState } from "react";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { InfoPopover } from "@/components/ui/info_popover";
 import { language_display_name } from "@/services/translation/accepted_languages";
+import { available_source_languages } from "@/services/translation/translate_document";
 import type { LanguageCode } from "@/services/translation/engine_types";
 import type { TranslationStatus } from "@/components/email/hooks/use_email_translation";
 
 interface TranslationBannerProps {
   status: TranslationStatus;
   source_language: LanguageCode | null;
+  target_language: LanguageCode;
   limited_quality: boolean;
   showing_original: boolean;
   on_translate: () => void;
@@ -39,6 +43,7 @@ interface TranslationBannerProps {
 export function TranslationBanner({
   status,
   source_language,
+  target_language,
   limited_quality,
   showing_original,
   on_translate,
@@ -46,6 +51,30 @@ export function TranslationBanner({
 }: TranslationBannerProps) {
   const { t, language: ui_locale } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
+  const [supported_names, set_supported_names] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status !== "unsupported") return;
+
+    let active = true;
+
+    void available_source_languages(target_language)
+      .then((codes) => {
+        if (!active || codes.length === 0) return;
+
+        set_supported_names(
+          codes
+            .map((code) => language_display_name(code, ui_locale))
+            .sort((a, b) => a.localeCompare(b))
+            .join(", "),
+        );
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [status, target_language, ui_locale]);
 
   if (status === "idle" || !source_language) return null;
 
@@ -73,9 +102,38 @@ export function TranslationBanner({
         : translated;
     }
 
+    if (status === "unsupported") {
+      return t("mail.translation_unsupported", { language: language_name });
+    }
+
     if (status === "unavailable") return t("mail.translation_unavailable");
 
     return "";
+  })();
+
+  const info = (() => {
+    if (status === "unsupported") {
+      return {
+        title: t("mail.translation_unsupported_info_title"),
+        description: supported_names
+          ? t("mail.translation_unsupported_info_body_list", {
+              language: language_name,
+              languages: supported_names,
+            })
+          : t("mail.translation_unsupported_info_body", {
+              language: language_name,
+            }),
+      };
+    }
+
+    if (status === "unavailable") {
+      return {
+        title: t("mail.translation_unavailable_info_title"),
+        description: t("mail.translation_unavailable_info_body"),
+      };
+    }
+
+    return null;
   })();
 
   return (
@@ -91,6 +149,11 @@ export function TranslationBanner({
           transition={{ duration: reduce_motion ? 0 : 0.18 }}
         >
           <span className="min-w-0 truncate">{message}</span>
+          {info && (
+            <span className="flex-shrink-0 text-txt-muted">
+              <InfoPopover description={info.description} title={info.title} />
+            </span>
+          )}
           {status === "offer" && (
             <button
               className={action_class}

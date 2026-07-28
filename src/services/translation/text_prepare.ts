@@ -45,9 +45,11 @@ const GROUPED_NUMBER_PATTERN = "\\b\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,2})?\\b";
 const EU_GROUPED_NUMBER_PATTERN = "\\b\\d{1,3}(?:\\.\\d{3})+(?:,\\d{1,2})?\\b";
 const SEPARATED_CODE_PATTERN = "\\b\\d{3,4}[ -]\\d{3,4}\\b";
 const CODE_PATTERN = "\\b\\d{4,10}\\b";
+const TOKEN_SHAPE_PATTERN = "[Xx]\\s?\\d{1,4}\\s?[Xx]";
 
 const PROTECTED_PATTERN = new RegExp(
   [
+    TOKEN_SHAPE_PATTERN,
     URL_PATTERN,
     EMAIL_PATTERN,
     ISO_DATE_PATTERN,
@@ -80,44 +82,22 @@ function has_non_ascii_digit(value: string): boolean {
   return false;
 }
 
-const TOKEN_PREFIX = "ZQX";
-const TOKEN_SUFFIX = "QZX";
+const TOKEN_MARKER = "x";
+const MAX_TOKEN_INDEX = 9999;
 
-function index_to_letters(index: number): string {
-  let value = index + 1;
-  let out = "";
-
-  while (value > 0) {
-    const remainder = (value - 1) % 26;
-
-    out = String.fromCharCode(65 + remainder) + out;
-    value = Math.floor((value - 1) / 26);
-  }
-
-  return out;
+export function token_for(index: number): string {
+  return `${TOKEN_MARKER}${index + 1}${TOKEN_MARKER}`;
 }
 
-function letters_to_index(letters: string): number {
-  let value = 0;
-
-  for (const character of letters.toUpperCase()) {
-    value = value * 26 + (character.charCodeAt(0) - 64);
-  }
-
-  return value - 1;
-}
-
-function token_for(index: number): string {
-  return `${TOKEN_PREFIX}${index_to_letters(index)}${TOKEN_SUFFIX}`;
-}
-
-const TOKEN_PATTERN = /ZQX\s*([A-Za-z]{1,4})\s*QZX/gi;
+const TOKEN_PATTERN = /x\s?(\d{1,4})\s?x/gi;
 
 export function protect_entities(text: string): ProtectedText {
   const entities: string[] = [];
 
   const push_token = (match: string): string => {
     const index = entities.length;
+
+    if (index >= MAX_TOKEN_INDEX) return match;
 
     entities.push(match);
 
@@ -140,8 +120,8 @@ export function restore_entities(
   const counts = new Array<number>(entities.length).fill(0);
   let stray = 0;
 
-  const text = masked.replace(TOKEN_PATTERN, (match, letters: string) => {
-    const index = letters_to_index(letters);
+  const text = masked.replace(TOKEN_PATTERN, (match, digits: string) => {
+    const index = Number.parseInt(digits, 10) - 1;
 
     if (!Number.isInteger(index) || index < 0 || index >= entities.length) {
       stray += 1;
@@ -157,7 +137,7 @@ export function restore_entities(
   let missing = stray;
 
   for (const count of counts) {
-    if (count !== 1) missing += 1;
+    if (count === 0) missing += 1;
   }
 
   return { text, missing };

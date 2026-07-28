@@ -101,6 +101,7 @@ class SelfHostedBacking extends TranslatorBacking {
 
 const TRANSLATE_TIMEOUT_MS = 30000;
 const COLD_TRANSLATE_TIMEOUT_MS = 120000;
+const MAX_LOADED_MODELS = 4;
 
 function with_deadline<T>(
   work: Promise<T>,
@@ -169,6 +170,7 @@ class BergamotEngine implements TranslationEngine {
   private translator: BatchTranslator | null = null;
   private availability: Promise<AvailabilityMap> | null = null;
   private warmed = false;
+  private loaded_pairs = new Set<string>();
 
   private get_backing(): SelfHostedBacking {
     if (!this.backing) {
@@ -239,6 +241,20 @@ class BergamotEngine implements TranslationEngine {
     }
   }
 
+  private reserve_models(from: LanguageCode, to: LanguageCode): void {
+    const hops = pivot_route(from, to).map((hop) => pair_key(hop.from, hop.to));
+    const missing = hops.filter((hop) => !this.loaded_pairs.has(hop));
+
+    if (
+      missing.length > 0 &&
+      this.loaded_pairs.size + missing.length > MAX_LOADED_MODELS
+    ) {
+      this.reset_translator();
+    }
+
+    for (const hop of hops) this.loaded_pairs.add(hop);
+  }
+
   async translate(
     segments: string[],
     from: LanguageCode,
@@ -249,6 +265,26 @@ class BergamotEngine implements TranslationEngine {
     if (from === to) return segments.slice();
     if (signal.aborted) throw new EngineUnavailableError("aborted");
 
+    this.reserve_models(from, to);
+
+    try {
+      return await this.run_translate(segments, from, to, signal);
+    } catch (error) {
+      if (signal.aborted) throw error;
+
+      this.reset_translator();
+      this.reserve_models(from, to);
+
+      return await this.run_translate(segments, from, to, signal);
+    }
+  }
+
+  private async run_translate(
+    segments: string[],
+    from: LanguageCode,
+    to: LanguageCode,
+    signal: AbortSignal,
+  ): Promise<string[]> {
     const translator = this.get_translator();
     const timeout = this.warmed
       ? TRANSLATE_TIMEOUT_MS
@@ -309,6 +345,7 @@ class BergamotEngine implements TranslationEngine {
 
     this.translator = null;
     this.warmed = false;
+    this.loaded_pairs.clear();
   }
 
   release(): void {

@@ -5425,6 +5425,12 @@ export interface MailTranslations {
   translation_show_translation: string;
   translation_showing_original: string;
   translation_unavailable: string;
+  translation_unsupported: string;
+  translation_unsupported_info_title: string;
+  translation_unsupported_info_body: string;
+  translation_unsupported_info_body_list: string;
+  translation_unavailable_info_title: string;
+  translation_unavailable_info_body: string;
   no_subject: string;
   no_messages: string;
   unread: string;

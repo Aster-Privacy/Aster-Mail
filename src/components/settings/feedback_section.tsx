@@ -25,6 +25,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { is_desktop } from "@/native/invoke_bridge";
 import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -45,7 +46,7 @@ export function FeedbackSection() {
     try {
       const response = await api_client.post<{ success: boolean }>(
         API_ENDPOINTS.core.feedback.base,
-        { message: feedback_text.trim() },
+        { message: feedback_text.trim(), platform: is_desktop() ? "desktop" : "web" },
       );
 
       if (response.data?.success) {

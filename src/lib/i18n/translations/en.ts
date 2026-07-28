@@ -5649,7 +5649,7 @@ export const en: Translations = {
     alias_never_inbox_desc:
       "Mail sent to this alias is archived on arrival. It stays searchable and in All Mail.",
     alias_never_inbox_info:
-      "Useful for signups and receipts you want kept but not shown in the inbox.",
+      "Useful for signups and receipts you want kept but not shown in the inbox. A folder rule that matches the message still wins, so it lands in that folder instead.",
     alias_never_inbox_error:
       "That setting did not save. Another attempt should do it.",
     alias_relay_title: "Delivery",
@@ -6034,6 +6034,15 @@ export const en: Translations = {
     translation_show_translation: "Show translation",
     translation_showing_original: "Showing the original message.",
     translation_unavailable: "This message could not be translated.",
+    translation_unsupported: "{{language}} is not supported yet.",
+    translation_unsupported_info_title: "Why this was not translated",
+    translation_unsupported_info_body:
+      "Translation runs entirely on your device, so it only works for the language packs Aster ships. There is no pack for {{language}} yet, and nothing was sent to a server.",
+    translation_unsupported_info_body_list:
+      "Translation runs entirely on your device, so it only works for the language packs Aster ships. There is no pack for {{language}} yet. Available right now: {{languages}}. Nothing was sent to a server.",
+    translation_unavailable_info_title: "Why this was not translated",
+    translation_unavailable_info_body:
+      "The on-device translator could not finish this message. This usually means the language pack is still downloading, the message mixes several languages, or it is mostly names, numbers and links. Nothing was sent to a server.",
 
     no_subject: "(No Subject)",
     no_messages: "No messages",
