@@ -64,6 +64,11 @@ import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_auth } from "@/contexts/auth_context";
+import {
+  read_dev_mode_cache,
+  write_dev_mode_cache,
+} from "@/lib/dev_mode_cache";
 import { get_dev_mode } from "@/services/api/preferences";
 import {
   get_available_plans,
@@ -261,6 +266,7 @@ function SettingsContentInner({
   const { t } = use_i18n();
   const navigate = useNavigate();
   const { preferences } = use_preferences();
+  const { current_account_id } = use_auth();
   const sidebar_width = Math.min(
     360,
     Math.max(200, preferences.sidebar_width ?? 256),
@@ -272,7 +278,9 @@ function SettingsContentInner({
   const [is_suspended, set_is_suspended] = useState(
     () => sessionStorage.getItem("aster_suspended") === "true",
   );
-  const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
+  const [dev_mode_enabled, set_dev_mode_enabled] = useState(
+    () => read_dev_mode_cache(current_account_id) ?? false,
+  );
   const [has_devices, set_has_devices] = useState(
     () => localStorage.getItem("aster_has_devices") === "1",
   );
@@ -283,10 +291,15 @@ function SettingsContentInner({
   const [scroll_target, set_scroll_target] = useState<string | null>(null);
   const [show_inline_totp_setup, set_show_inline_totp_setup] = useState(false);
   const on_section_change_ref = useRef(on_section_change);
+  const account_id_ref = useRef(current_account_id);
 
   useEffect(() => {
     on_section_change_ref.current = on_section_change;
   }, [on_section_change]);
+
+  useEffect(() => {
+    account_id_ref.current = current_account_id;
+  }, [current_account_id]);
 
   useEffect(() => {
     if (section_prop && section_prop !== section) {
@@ -406,19 +419,27 @@ function SettingsContentInner({
   }, []);
 
   useEffect(() => {
+    const cached = read_dev_mode_cache(current_account_id);
+
+    if (cached !== null) set_dev_mode_enabled(cached);
+
     const load_dev_mode = async () => {
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
       set_dev_mode_enabled(result.data);
+      write_dev_mode_cache(current_account_id, result.data);
     };
 
     load_dev_mode();
-  }, []);
+  }, [current_account_id]);
 
   useEffect(() => {
     const handle_dev_mode_change = (e: Event) => {
-      set_dev_mode_enabled((e as CustomEvent<boolean>).detail);
+      const enabled = (e as CustomEvent<boolean>).detail;
+
+      set_dev_mode_enabled(enabled);
+      write_dev_mode_cache(account_id_ref.current, enabled);
     };
 
     const handle_navigate_section = (e: Event) => {

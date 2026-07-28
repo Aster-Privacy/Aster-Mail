@@ -106,12 +106,16 @@ import { use_auth } from "@/contexts/auth_context";
 import { list_devices } from "@/services/api/devices";
 import { get_dev_mode } from "@/services/api/preferences";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  read_dev_mode_cache,
+  write_dev_mode_cache,
+} from "@/lib/dev_mode_cache";
 import { refresh_family_plan_flag } from "@/services/api/family";
 
 function MobileSettingsPage() {
   const navigate = useNavigate();
   const { t } = use_i18n();
-  const { user, logout } = use_auth();
+  const { user, logout, current_account_id } = use_auth();
   const { stats } = use_mail_stats();
   const { preferences, update_preference, save_now } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
@@ -119,7 +123,9 @@ function MobileSettingsPage() {
   const [is_closing, set_is_closing] = useState(false);
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const [has_devices, set_has_devices] = useState(false);
-  const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
+  const [dev_mode_enabled, set_dev_mode_enabled] = useState(
+    () => read_dev_mode_cache(current_account_id) ?? false,
+  );
   const [is_family_plan, set_is_family_plan] = useState(
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
@@ -130,28 +136,36 @@ function MobileSettingsPage() {
       set_has_devices((res.data?.devices?.length ?? 0) > 0);
     });
 
+    const cached = read_dev_mode_cache(current_account_id);
+
+    if (cached !== null) set_dev_mode_enabled(cached);
+
     const load_dev_mode = async () => {
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
       set_dev_mode_enabled(result.data);
+      write_dev_mode_cache(current_account_id, result.data);
     };
 
     load_dev_mode();
 
     refresh_family_plan_flag(set_is_family_plan);
-  }, []);
+  }, [current_account_id]);
 
   useEffect(() => {
     const handle_dev_mode_change = (e: Event) => {
-      set_dev_mode_enabled((e as CustomEvent<boolean>).detail);
+      const enabled = (e as CustomEvent<boolean>).detail;
+
+      set_dev_mode_enabled(enabled);
+      write_dev_mode_cache(current_account_id, enabled);
     };
 
     window.addEventListener("dev-mode-changed", handle_dev_mode_change);
 
     return () =>
       window.removeEventListener("dev-mode-changed", handle_dev_mode_change);
-  }, []);
+  }, [current_account_id]);
 
   const [search_params, set_search_params] = useSearchParams();
   const { section: path_section } = useParams<{ section?: string }>();

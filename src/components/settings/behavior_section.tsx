@@ -41,6 +41,11 @@ import {
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_auth } from "@/contexts/auth_context";
+import {
+  read_dev_mode_cache,
+  write_dev_mode_cache,
+} from "@/lib/dev_mode_cache";
 import {
   get_dev_mode,
   save_dev_mode,
@@ -278,6 +283,7 @@ export function BehaviorSection() {
     use_preferences();
   const { t, language } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
+  const { current_account_id } = use_auth();
 
   use_register_search_items("behavior", [
     {
@@ -338,7 +344,9 @@ export function BehaviorSection() {
   const [undo_input_value, set_undo_input_value] = useState<string | null>(
     null,
   );
-  const [dev_mode_enabled, set_dev_mode_enabled] = useState(false);
+  const [dev_mode_enabled, set_dev_mode_enabled] = useState(
+    () => read_dev_mode_cache(current_account_id) ?? false,
+  );
   const [is_dragging_sidebar_width, set_is_dragging_sidebar_width] =
     useState(false);
   const [spam_settings, set_spam_settings] = useState<SpamSettings>({
@@ -360,7 +368,10 @@ export function BehaviorSection() {
   useEffect(() => {
     const vault = get_vault_from_memory();
 
-    get_dev_mode(vault).then((result) => set_dev_mode_enabled(result.data));
+    get_dev_mode(vault).then((result) => {
+      set_dev_mode_enabled(result.data);
+      write_dev_mode_cache(current_account_id, result.data);
+    });
     get_spam_settings().then((result) => {
       if (result.data) {
         set_spam_settings(result.data);
@@ -371,7 +382,7 @@ export function BehaviorSection() {
         set_family_policy(result.data);
       }
     }).catch(() => {});
-  }, []);
+  }, [current_account_id]);
 
   const handle_dev_mode_toggle = async () => {
     const vault = get_vault_from_memory();
@@ -381,6 +392,7 @@ export function BehaviorSection() {
     const new_value = !dev_mode_enabled;
 
     set_dev_mode_enabled(new_value);
+    write_dev_mode_cache(current_account_id, new_value);
     await save_dev_mode(new_value, vault);
     window.dispatchEvent(
       new CustomEvent("dev-mode-changed", { detail: new_value }),
