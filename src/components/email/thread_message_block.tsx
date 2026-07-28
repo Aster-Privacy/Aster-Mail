@@ -85,6 +85,7 @@ import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
+import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banner";
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
 import { use_email_translation } from "@/components/email/hooks/use_email_translation";
@@ -210,7 +211,7 @@ export function ThreadMessageBlock({
   on_set_inline_mode,
   on_draft_saved,
   existing_draft,
-  preloaded_sanitized,
+  preloaded_sanitized: preloaded_sanitized_prop,
   size_bytes,
   on_unsubscribe,
   on_manual_unsubscribed,
@@ -227,6 +228,11 @@ export function ThreadMessageBlock({
   const [wrap_source, set_wrap_source] = useState(false);
   const [show_details_modal, set_show_details_modal] = useState(false);
   const [unsub_state, set_unsub_state] = useState<"idle" | "loading" | "manual" | "done">("idle");
+  const preloaded_sanitized = use_latched_by_id(
+    message.id,
+    preloaded_sanitized_prop,
+  );
+
   const clean_body = useMemo(() => {
     if (message.html_content && !is_ratchet_envelope(message.html_content)) {
       return message.html_content;
@@ -1321,6 +1327,7 @@ export function ThreadMessageBlock({
               showing_original={translation.showing_original}
               source_language={translation.source_language}
               status={translation.status}
+              target_language={translation.target_language}
             />
           </div>
         )}

@@ -60,6 +60,7 @@ import {
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { EmailTag } from "@/components/ui/email_tag";
+import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -77,7 +78,7 @@ export function EmailViewerContent({
   email,
   external_content_mode: external_content_mode_override,
   on_external_content_detected,
-  preloaded_sanitized,
+  preloaded_sanitized: preloaded_sanitized_prop,
 }: EmailViewerContentProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -101,6 +102,11 @@ export function EmailViewerContent({
     set_force_load_content(false);
     set_banner_dismissed(false);
   }, [email.id]);
+
+  const preloaded_sanitized = use_latched_by_id(
+    email.id,
+    preloaded_sanitized_prop,
+  );
 
   const unsubscribe_info = useMemo(() => {
     if (email.unsubscribe_info) {
@@ -461,6 +467,7 @@ export function EmailViewerContent({
             showing_original={translation.showing_original}
             source_language={translation.source_language}
             status={translation.status}
+            target_language={translation.target_language}
           />
           {html_blocked ? (
             <SandboxedEmailRenderer
