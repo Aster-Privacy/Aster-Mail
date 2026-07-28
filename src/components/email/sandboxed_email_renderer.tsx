@@ -1851,13 +1851,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         </div>
       )}
       <iframe
-        key={
-          force_dark_mode
-            ? "forced-dark"
-            : is_dark_theme && !is_html_email
-              ? "plain-dark"
-              : "light"
-        }
         ref={(el) => {
           iframe_ref.current = el;
         }}
