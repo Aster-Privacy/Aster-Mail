@@ -337,6 +337,15 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     ],
   );
 
+  const is_page_cached = useCallback(
+    (page: number): boolean => {
+      const cached = page_cache_ref.current.get(page);
+
+      return !!cached && Date.now() - cached.time < PAGE_CACHE_TTL_MS;
+    },
+    [],
+  );
+
   fetch_page_ref.current = fetch_page;
 
   const silent_fetch = useCallback(async (): Promise<void> => {
@@ -868,6 +877,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   return {
     state,
     fetch_page,
+    is_page_cached,
     load_more,
     update_email,
     remove_email,

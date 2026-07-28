@@ -43,7 +43,10 @@ import { EmailContextMenuContent } from "@/components/email/email_context_menu";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context_menu";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { use_i18n } from "@/lib/i18n/context";
-import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
+import {
+  preload_email_detail,
+  is_preload_busy,
+} from "@/components/email/hooks/use_email_detail";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
@@ -52,6 +55,9 @@ import {
   empty_selection_snapshot,
   type SelectionSnapshot,
 } from "@/components/email/inbox/selection_snapshot";
+
+export const HOVER_PRELOAD_DELAY_MS = 220;
+export const HOVER_PRELOAD_MAX_ATTEMPTS = 10;
 
 export interface EmailListProps {
   pinned_emails: InboxEmail[];
@@ -209,16 +215,30 @@ export function EmailList({
         window.clearTimeout(hover_timer_ref.current);
       }
 
-      hover_timer_ref.current = window.setTimeout(() => {
-        hover_timer_ref.current = null;
-        last_preloaded_ref.current = email_id;
-        preload_email_detail(
-          email_id,
-          user?.email,
-          false,
-          preferences.conversation_grouping !== false,
-        ).catch(() => {});
-      }, 50);
+      let attempts = 0;
+
+      const start = () => {
+        attempts += 1;
+        hover_timer_ref.current = window.setTimeout(() => {
+          hover_timer_ref.current = null;
+
+          if (is_preload_busy() && attempts < HOVER_PRELOAD_MAX_ATTEMPTS) {
+            start();
+
+            return;
+          }
+
+          last_preloaded_ref.current = email_id;
+          preload_email_detail(
+            email_id,
+            user?.email,
+            false,
+            preferences.conversation_grouping !== false,
+          ).catch(() => {});
+        }, HOVER_PRELOAD_DELAY_MS);
+      };
+
+      start();
     },
     [
       user?.email,

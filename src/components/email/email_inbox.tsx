@@ -335,6 +335,7 @@ export function EmailInbox({
   const {
     state: raw_mail_state,
     fetch_page,
+    is_page_cached,
     load_more: load_more_active_list,
     update_email,
     remove_email,
@@ -755,7 +756,7 @@ export function EmailInbox({
 
   const prev_initial_load_ref = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const reloaded_from_reset =
       !prev_initial_load_ref.current && email_state.has_initial_load;
 
@@ -778,17 +779,28 @@ export function EmailInbox({
     prev_page_ref.current = current_page;
     if (!initial_page_synced.current || page_changed) {
       initial_page_synced.current = true;
-      if (current_page > 0 || page_changed) {
-        set_is_paginating(true);
-        fetch_page(current_page, page_size, true).finally(() =>
-          set_is_paginating(false),
-        );
+      if (
+        (current_page > 0 || page_changed) &&
+        !is_drafts_view &&
+        !is_scheduled_view &&
+        !is_snoozed_view
+      ) {
+        const instant = is_page_cached(current_page, page_size);
+
+        if (!instant) set_is_paginating(true);
+        fetch_page(current_page, page_size, true).finally(() => {
+          if (!instant) set_is_paginating(false);
+        });
       }
     }
   }, [
     email_state.has_initial_load,
     current_page,
     fetch_page,
+    is_page_cached,
+    is_drafts_view,
+    is_scheduled_view,
+    is_snoozed_view,
     page_size,
     set_current_page,
   ]);
