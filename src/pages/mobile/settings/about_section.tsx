@@ -25,6 +25,10 @@ import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  read_dev_mode_cache,
+  write_dev_mode_cache,
+} from "@/lib/dev_mode_cache";
 import { show_toast } from "@/components/toast/simple_toast";
 
 function DevInfoRow({ label, value }: { label: string; value: string }) {
@@ -48,10 +52,12 @@ export function AboutSection({
   on_close: () => void;
 }) {
   const { t } = use_i18n();
-  const { user } = use_auth();
+  const { user, current_account_id } = use_auth();
   const tap_count_ref = useRef(0);
   const tap_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [dev_mode, set_dev_mode] = useState(false);
+  const [dev_mode, set_dev_mode] = useState(
+    () => read_dev_mode_cache(current_account_id) ?? false,
+  );
   const [dev_loading, set_dev_loading] = useState(true);
 
   useEffect(() => {
@@ -64,11 +70,12 @@ export function AboutSection({
       const result = await get_dev_mode(vault);
 
       set_dev_mode(result.data);
+      write_dev_mode_cache(current_account_id, result.data);
       set_dev_loading(false);
     };
 
     load();
-  }, []);
+  }, [current_account_id]);
 
   const handle_build_tap = useCallback(async () => {
     if (dev_mode) return;
@@ -85,6 +92,7 @@ export function AboutSection({
       if (!vault) return;
       await save_dev_mode(true, vault);
       set_dev_mode(true);
+      write_dev_mode_cache(current_account_id, true);
       window.dispatchEvent(
         new CustomEvent("dev-mode-changed", { detail: true }),
       );
@@ -102,7 +110,7 @@ export function AboutSection({
         tap_count_ref.current = 0;
       }, 2000);
     }
-  }, [dev_mode]);
+  }, [dev_mode, current_account_id]);
 
   const handle_disable_dev_mode = useCallback(async () => {
     const { save_dev_mode } = await import("@/services/api/preferences");
@@ -114,11 +122,12 @@ export function AboutSection({
     if (!vault) return;
     await save_dev_mode(false, vault);
     set_dev_mode(false);
+    write_dev_mode_cache(current_account_id, false);
     window.dispatchEvent(
       new CustomEvent("dev-mode-changed", { detail: false }),
     );
     show_toast(t("common.developer_mode_disabled"), "info");
-  }, []);
+  }, [current_account_id]);
 
   return (
     <div className="flex h-full flex-col">
