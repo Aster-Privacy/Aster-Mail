@@ -42,8 +42,19 @@ cleanup() {
 }
 trap cleanup EXIT
 
+copy_dest="$tmp_dir"
+if command -v cygpath >/dev/null 2>&1; then
+    copy_dest="$(cygpath -w "$tmp_dir")"
+fi
+
 container_id="$(docker create "$image")"
-docker cp "$container_id:/usr/share/nginx/html/assets/." "$tmp_dir/"
+MSYS_NO_PATHCONV=1 docker cp "$container_id:/usr/share/nginx/html/assets/." "$copy_dest"
+
+extracted="$(find "$tmp_dir" -maxdepth 1 -type f | wc -l | tr -d ' ')"
+if [ "$extracted" -eq 0 ]; then
+    echo "ERROR: extracted 0 assets from $image - carry-forward did nothing" >&2
+    exit 1
+fi
 
 carried=0
 skipped=0
