@@ -53,6 +53,8 @@ import {
   apply_highlights,
 } from "@/hooks/use_search";
 import { HighlightedText } from "@/components/search/search_result_item";
+import { SearchChipRow } from "@/components/search/search_chip_row";
+import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -160,6 +162,7 @@ export function SearchResultsPage({
     sort_by: "relevant",
   });
 
+  const [advanced_open, set_advanced_open] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [search_page, set_search_page] = useState(0);
 
@@ -479,7 +482,8 @@ export function SearchResultsPage({
             metadata_version: m.metadata_version,
             is_read: m.is_read === true || (metadata?.is_read ?? false),
             is_starred: metadata?.is_starred ?? false,
-            is_trashed: m.is_trashed === true || (metadata?.is_trashed ?? false),
+            is_trashed:
+              m.is_trashed === true || (metadata?.is_trashed ?? false),
             is_archived:
               m.is_archived === true || (metadata?.is_archived ?? false),
             is_spam: m.is_spam === true || (metadata?.is_spam ?? false),
@@ -726,6 +730,7 @@ export function SearchResultsPage({
 
   const search_nav_index = useMemo(() => {
     if (!split_email_id) return -1;
+
     return filtered_results.findIndex((r) => r.id === split_email_id);
   }, [split_email_id, filtered_results]);
 
@@ -934,49 +939,89 @@ export function SearchResultsPage({
       {!show_full_email_viewer && (
         <div className="flex-shrink-0 min-w-0">
           <InboxHeader
-              leading_left_slot={
-                <button
-                  className="h-9 w-9 rounded-[10px] flex items-center justify-center hover:bg-[var(--bg-hover)] transition-colors flex-shrink-0"
-                  style={{ color: "var(--text-secondary)" }}
-                  onClick={on_close}
-                >
-                  <ArrowLeftIcon className="w-5 h-5" />
-                </button>
-              }
-              leading_toolbar_slot={sort_dropdown}
-              active_filter={active_inbox_filter}
-              all_selected={selection_all_selected}
-              can_go_next={is_split_view ? search_can_go_next : false}
-              can_go_prev={is_split_view ? search_can_go_prev : false}
-              current_email_index={is_split_view ? search_nav_index : undefined}
-              current_page={search_page}
-              filtered_count={filtered_results.length}
-              hide_quick_actions={true}
-              hide_refresh={true}
-              hide_view_switcher={true}
-              on_navigate_next={is_split_view ? handle_search_navigate_next : undefined}
-              on_navigate_prev={is_split_view ? handle_search_navigate_prev : undefined}
-              on_page_change={is_split_view ? undefined : set_search_page}
-              page_size={SEARCH_PAGE_SIZE}
-              total_email_count={filtered_results.length}
-              on_archive={handle_bulk_archive}
-              on_delete={handle_bulk_delete}
-              on_filter_change={handle_inbox_filter_change}
-              on_mark_read={handle_bulk_mark_read}
-              on_mark_unread={handle_bulk_mark_unread}
-              on_search_result_click={on_result_click}
-              on_search_submit={on_search_submit}
-              on_select_by_filter={handle_select_by_filter}
-              on_quick_settings_click={on_quick_settings_click}
-              on_settings_click={on_settings_click || (() => {})}
-              on_spam={handle_bulk_spam}
-              on_toggle_select_all={handle_select_all_visible}
-              on_toggle_star={handle_bulk_toggle_star}
-              search_context={query}
-              selected_count={selected_ids.size}
-              some_selected={selection_some_selected}
-              view_title={t("common.search")}
+            active_filter={active_inbox_filter}
+            all_selected={selection_all_selected}
+            can_go_next={is_split_view ? search_can_go_next : false}
+            can_go_prev={is_split_view ? search_can_go_prev : false}
+            current_email_index={is_split_view ? search_nav_index : undefined}
+            current_page={search_page}
+            filtered_count={filtered_results.length}
+            hide_quick_actions={true}
+            hide_refresh={true}
+            hide_view_switcher={true}
+            leading_left_slot={
+              <button
+                className="h-9 w-9 rounded-[10px] flex items-center justify-center hover:bg-[var(--bg-hover)] transition-colors flex-shrink-0"
+                style={{ color: "var(--text-secondary)" }}
+                onClick={on_close}
+              >
+                <ArrowLeftIcon className="w-5 h-5" />
+              </button>
+            }
+            leading_toolbar_slot={sort_dropdown}
+            on_archive={handle_bulk_archive}
+            on_delete={handle_bulk_delete}
+            on_filter_change={handle_inbox_filter_change}
+            on_mark_read={handle_bulk_mark_read}
+            on_mark_unread={handle_bulk_mark_unread}
+            on_navigate_next={
+              is_split_view ? handle_search_navigate_next : undefined
+            }
+            on_navigate_prev={
+              is_split_view ? handle_search_navigate_prev : undefined
+            }
+            on_page_change={is_split_view ? undefined : set_search_page}
+            on_quick_settings_click={on_quick_settings_click}
+            on_search_result_click={on_result_click}
+            on_search_submit={on_search_submit}
+            on_select_by_filter={handle_select_by_filter}
+            on_settings_click={on_settings_click || (() => {})}
+            on_spam={handle_bulk_spam}
+            on_toggle_select_all={handle_select_all_visible}
+            on_toggle_star={handle_bulk_toggle_star}
+            page_size={SEARCH_PAGE_SIZE}
+            search_context={query}
+            selected_count={selected_ids.size}
+            some_selected={selection_some_selected}
+            total_email_count={filtered_results.length}
+            view_title={t("common.search")}
+          />
+          {on_search_submit && (
+            <SearchChipRow
+              on_advanced_click={() => set_advanced_open(true)}
+              on_query_change={on_search_submit}
+              query={query}
             />
+          )}
+          {state.hidden_spam_trash > 0 && (
+            <div
+              className="flex items-center gap-2 px-4 py-2 text-xs border-b"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                borderColor: "var(--border-secondary)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span className="min-w-0">
+                {t("mail.spam_trash_hidden_notice")}
+              </span>
+              {on_search_submit && (
+                <button
+                  className="flex-shrink-0 font-medium text-blue-500 hover:underline"
+                  type="button"
+                  onClick={() =>
+                    on_search_submit(
+                      query.includes("in:anywhere")
+                        ? query
+                        : `${query.trim()} in:anywhere`.trim(),
+                    )
+                  }
+                >
+                  {t("mail.view_spam_trash_messages")}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1036,7 +1081,9 @@ export function SearchResultsPage({
             <SplitEmailViewer
               can_go_next={search_can_go_next}
               can_go_prev={search_can_go_prev}
-              current_index={search_nav_index >= 0 ? search_nav_index : undefined}
+              current_index={
+                search_nav_index >= 0 ? search_nav_index : undefined
+              }
               email_id={split_email_id}
               on_close={on_split_close || (() => {})}
               on_navigate_next={handle_search_navigate_next}
@@ -1054,6 +1101,13 @@ export function SearchResultsPage({
       ) : (
         <div className="flex-1 overflow-y-auto">{email_list_content}</div>
       )}
+
+      <AdvancedSearchModal
+        is_open={advanced_open}
+        on_close={() => set_advanced_open(false)}
+        on_result_click={on_result_click}
+        on_search_submit={on_search_submit}
+      />
     </div>
   );
 }

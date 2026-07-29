@@ -63,7 +63,8 @@ export type InOperatorValue =
   | "drafts"
   | "spam"
   | "archive"
-  | "all";
+  | "all"
+  | "anywhere";
 
 export type DateShortcut =
   | "today"
@@ -245,6 +246,7 @@ export function validate_operator(operator: ParsedOperator): boolean {
         "spam",
         "archive",
         "all",
+        "anywhere",
       ].includes(operator.value.toLowerCase());
 
     case "before":
@@ -303,6 +305,7 @@ export function get_operator_suggestions(
     { operator: "in:sent", description: tr("mail.op_in_sent", "In sent folder") },
     { operator: "in:trash", description: tr("mail.op_in_trash", "In trash") },
     { operator: "in:drafts", description: tr("mail.op_in_drafts", "In drafts") },
+    { operator: "in:anywhere", description: tr("mail.op_in_anywhere", "Everywhere, including spam and trash") },
     { operator: "before:", description: tr("mail.op_before_date", "Before date (YYYY-MM-DD)") },
     { operator: "after:", description: tr("mail.op_after_date", "After date (YYYY-MM-DD)") },
     { operator: "date:today", description: tr("mail.op_from_today", "From today") },
