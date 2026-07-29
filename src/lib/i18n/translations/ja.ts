@@ -2420,7 +2420,7 @@ export const ja = {
     alias_export_csv: "CSVをエクスポート",
     alias_export_title: "エイリアスをエクスポート",
     alias_export_description:
-      "エイリアスのエクスポート形式を選択してください。",
+      "含める項目を選択してください。ファイルはブラウザ内で作成され、当社のサーバーに送信されることはありません。",
     alias_export_format_csv: "CSV(表計算)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "ダウンロードする内容を確認してください。",
