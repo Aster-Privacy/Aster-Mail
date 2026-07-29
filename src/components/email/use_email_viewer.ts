@@ -985,6 +985,7 @@ export function use_email_viewer({
         is_external: false,
         is_sending: true,
         to_recipients: detail.to_recipients,
+        cc_recipients: detail.cc_recipients ?? [],
       };
 
       set_thread_messages((prev) => [...prev, optimistic_message]);

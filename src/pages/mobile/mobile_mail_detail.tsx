@@ -489,18 +489,31 @@ function MobileMailDetail() {
         const cc: string[] = [];
 
         if (mode === "reply_all") {
-          const my_email = detail.current_user_email;
+          const my_email = detail.current_user_email?.toLowerCase();
+          const seen = new Set(
+            [recipient_email, msg.sender_email]
+              .filter(Boolean)
+              .map((value) => value.toLowerCase()),
+          );
 
-          msg.to_recipients?.forEach((r) => {
-            if (
-              r.email &&
-              r.email !== my_email &&
-              r.email !== msg.sender_email &&
-              r.email !== recipient_email
-            ) {
-              to.push(r.email);
-            }
-          });
+          const collect = (
+            entries: { email: string }[] | undefined,
+            target: string[],
+          ) => {
+            entries?.forEach((r) => {
+              const normalized = r.email?.toLowerCase();
+
+              if (!normalized || normalized === my_email || seen.has(normalized)) {
+                return;
+              }
+
+              seen.add(normalized);
+              target.push(r.email);
+            });
+          };
+
+          collect(msg.to_recipients, to);
+          collect(msg.cc_recipients, cc);
         }
         window.dispatchEvent(
           new CustomEvent("aster:mobile-compose", {

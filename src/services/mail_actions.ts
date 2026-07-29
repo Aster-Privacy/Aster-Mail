@@ -53,6 +53,9 @@ export interface ReplyParams {
   original: OriginalEmail;
   message: string;
   reply_all?: boolean;
+  to_recipients?: string[];
+  cc_recipients?: string[];
+  own_addresses?: string[];
   thread_token?: string;
   original_email_id?: string;
   expires_at?: string;
@@ -100,38 +103,64 @@ function build_reply_subject(original_subject: string): string {
   );
 }
 
-function build_reply_recipients(
+function normalize_address(value: string): string {
+  return value.toLowerCase().trim();
+}
+
+export function build_reply_recipients(
   params: ReplyParams,
   current_user_email: string,
-): string[] {
-  const sender_is_self =
-    params.original.sender_email.toLowerCase().trim() ===
-    current_user_email.toLowerCase().trim();
+): { to: string[]; cc: string[] } {
+  if (params.to_recipients) {
+    return {
+      to: params.to_recipients,
+      cc: params.cc_recipients ?? [],
+    };
+  }
+
+  const own_addresses = new Set(
+    [current_user_email, ...(params.own_addresses ?? [])]
+      .filter(Boolean)
+      .map(normalize_address),
+  );
+
+  const sender_is_self = own_addresses.has(
+    normalize_address(params.original.sender_email),
+  );
 
   const primary_recipient = sender_is_self
     ? (params.original.to?.[0] ?? params.original.sender_email)
     : params.original.sender_email;
 
-  const recipients: string[] = [primary_recipient];
+  const to: string[] = [primary_recipient];
+  const cc: string[] = [];
+  const seen = new Set([normalize_address(primary_recipient)]);
 
   if (params.reply_all) {
-    const original_to = params.original.to || [];
-    const original_cc = params.original.cc || [];
-    const all_addresses = [...original_to, ...original_cc];
+    for (const addr of params.original.to ?? []) {
+      const normalized = normalize_address(addr);
 
-    for (const addr of all_addresses) {
-      const normalized = addr.toLowerCase().trim();
-
-      if (
-        normalized !== current_user_email.toLowerCase() &&
-        !recipients.some((r) => r.toLowerCase() === normalized)
-      ) {
-        recipients.push(addr);
+      if (!normalized || own_addresses.has(normalized) || seen.has(normalized)) {
+        continue;
       }
+
+      seen.add(normalized);
+      to.push(addr);
+    }
+
+    for (const addr of params.original.cc ?? []) {
+      const normalized = normalize_address(addr);
+
+      if (!normalized || own_addresses.has(normalized) || seen.has(normalized)) {
+        continue;
+      }
+
+      seen.add(normalized);
+      cc.push(addr);
     }
   }
 
-  return recipients;
+  return { to, cc };
 }
 
 export async function send_reply(
@@ -151,7 +180,20 @@ export async function send_reply(
   }
 
   const current_user_email = current_account.user.email;
-  const recipients = build_reply_recipients(params, current_user_email);
+  const { to: recipients, cc: cc_recipients } = build_reply_recipients(
+    params,
+    current_user_email,
+  );
+
+  if (recipients.length === 0) {
+    const error = en.errors.no_recipients;
+
+    callbacks.on_error?.(error);
+
+    return { success: false, error };
+  }
+
+  const cc = cc_recipients.length > 0 ? cc_recipients : undefined;
   const subject = build_reply_subject(params.original.subject);
   const base_subject = strip_reply_prefix(
     params.original.subject,
@@ -177,6 +219,7 @@ export async function send_reply(
     const result = await queue_email_to_server(
       {
         to: recipients,
+        cc,
         subject,
         envelope_subject: base_subject,
         body: params.message,
@@ -215,6 +258,7 @@ export async function send_reply(
   const queued_id = queue_email(
     {
       to: recipients,
+      cc,
       subject,
       envelope_subject: base_subject,
       body: params.message,

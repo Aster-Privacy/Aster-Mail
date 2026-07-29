@@ -102,6 +102,7 @@ export interface ThreadReplyOptimisticEventDetail {
   body: string;
   display_body?: string;
   to_recipients: { name: string; email: string }[];
+  cc_recipients?: { name: string; email: string }[];
 }
 
 export interface ThreadReplyCancelledEventDetail {

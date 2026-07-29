@@ -20,13 +20,26 @@
 //
 import type { Badge } from "@/services/api/user";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import type { DecryptedContact } from "@/types/contacts";
+
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+  useReducer,
+} from "react";
 
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
 import { undo_send_manager } from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
-import { send_reply, type OriginalEmail } from "@/services/mail_actions";
+import {
+  send_reply,
+  build_reply_recipients,
+  type OriginalEmail,
+} from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
 import {
   is_reply_from_mismatch,
@@ -67,6 +80,9 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   type Attachment,
   type DraftStatus,
+  type RecipientsState,
+  type InputsState,
+  recipients_reducer,
   generate_attachment_id,
   get_aster_footer,
   MAX_ATTACHMENT_SIZE,
@@ -84,6 +100,7 @@ import {
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
 import { send_via_external_account } from "@/services/api/external_accounts";
+import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { inline_email_css } from "@/lib/forward_css_inliner";
@@ -203,6 +220,18 @@ export function use_reply_modal({
   const [preferred_sender_id, set_preferred_sender_state] = useState<
     string | null
   >(() => get_preferred_sender_id());
+  const [recipients, dispatch_recipients] = useReducer(recipients_reducer, {
+    to: [],
+    cc: [],
+    bcc: [],
+  } as RecipientsState);
+  const [inputs, set_inputs] = useState<InputsState>({
+    to: "",
+    cc: "",
+    bcc: "",
+  });
+  const [show_cc, set_show_cc] = useState(false);
+  const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
   const [reply_message, set_reply_message] = useState("");
   const [is_sending, set_is_sending] = useState(false);
   const [error_message, set_error_message] = useState<string | null>(null);
@@ -337,6 +366,147 @@ export function use_reply_modal({
     set_preferred_sender_id(id);
     set_preferred_sender_state(id);
   }, []);
+
+  const own_addresses = useMemo(
+    () =>
+      [user?.email, ...sender_options.map((s) => s.email)].filter(
+        (value): value is string => !!value,
+      ),
+    [user?.email, sender_options],
+  );
+
+  const seeded_recipients = useMemo(
+    () =>
+      build_reply_recipients(
+        {
+          original: {
+            sender_email: recipient_email,
+            sender_name: recipient_name,
+            subject: original_subject,
+            body: "",
+            timestamp: original_timestamp,
+            cc: original_cc,
+            to: original_to,
+          },
+          message: "",
+          reply_all,
+          own_addresses,
+        },
+        user?.email ?? "",
+      ),
+    [
+      recipient_email,
+      recipient_name,
+      original_subject,
+      original_timestamp,
+      original_cc,
+      original_to,
+      reply_all,
+      own_addresses,
+      user?.email,
+    ],
+  );
+
+  const seed_signature = `${seeded_recipients.to.join(",")}|${seeded_recipients.cc.join(",")}`;
+  const seeded_signature_ref = useRef<string | null>(null);
+  const draft_seeded_ref = useRef<string | null>(null);
+
+  const draft_recipients = useMemo(() => {
+    if (
+      !existing_draft ||
+      (existing_draft.reply_to_id &&
+        existing_draft.reply_to_id !== original_email_id)
+    ) {
+      return null;
+    }
+
+    const to = existing_draft.content.to_recipients ?? [];
+
+    if (to.length === 0) return null;
+
+    return {
+      id: existing_draft.id,
+      to,
+      cc: existing_draft.content.cc_recipients ?? [],
+    };
+  }, [existing_draft, original_email_id]);
+
+  useEffect(() => {
+    if (!is_open) {
+      seeded_signature_ref.current = null;
+      draft_seeded_ref.current = null;
+
+      return;
+    }
+
+    const apply = (to: string[], cc: string[]) => {
+      dispatch_recipients({ type: "SET", field: "to", emails: to });
+      dispatch_recipients({ type: "SET", field: "cc", emails: cc });
+      set_inputs({ to: "", cc: "", bcc: "" });
+      if (cc.length > 0) set_show_cc(true);
+    };
+
+    if (draft_recipients && draft_seeded_ref.current === null) {
+      draft_seeded_ref.current = draft_recipients.id;
+      seeded_signature_ref.current = seed_signature;
+      apply(draft_recipients.to, draft_recipients.cc);
+
+      return;
+    }
+
+    if (seeded_signature_ref.current === seed_signature) return;
+
+    seeded_signature_ref.current = seed_signature;
+    apply(seeded_recipients.to, seeded_recipients.cc);
+  }, [is_open, seed_signature, seeded_recipients, draft_recipients]);
+
+  useEffect(() => {
+    if (!is_open || contacts.length > 0) return;
+
+    let cancelled = false;
+
+    list_contacts({ limit: 100 })
+      .then(async (response) => {
+        if (cancelled || !response.data?.items) return;
+
+        const decrypted = await decrypt_contacts(response.data.items);
+
+        if (!cancelled) set_contacts(decrypted);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [is_open, contacts.length]);
+
+  const commit_pending_recipient_inputs = useCallback(() => {
+    const pending_to = inputs.to.trim();
+    const pending_cc = inputs.cc.trim();
+
+    if (pending_to) {
+      dispatch_recipients({ type: "ADD", field: "to", email: pending_to });
+      set_inputs((prev) => ({ ...prev, to: "" }));
+    }
+    if (pending_cc) {
+      dispatch_recipients({ type: "ADD", field: "cc", email: pending_cc });
+      set_inputs((prev) => ({ ...prev, cc: "" }));
+    }
+
+    const merge = (existing: string[], pending: string) => {
+      if (!pending) return existing;
+      if (existing.some((e) => e.toLowerCase() === pending.toLowerCase())) {
+        return existing;
+      }
+
+      return [...existing, pending];
+    };
+
+    return {
+      to: merge(recipients.to, pending_to),
+      cc: merge(recipients.cc, pending_cc),
+    };
+  }, [inputs.to, inputs.cc, recipients.to, recipients.cc]);
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
@@ -601,8 +771,9 @@ export function use_reply_modal({
       );
 
       const content: DraftContent = {
-        to_recipients: [recipient_email],
-        cc_recipients: [],
+        to_recipients:
+          recipients.to.length > 0 ? recipients.to : [recipient_email],
+        cc_recipients: recipients.cc,
         bcc_recipients: [],
         subject,
         message: text,
@@ -665,6 +836,8 @@ export function use_reply_modal({
       original_email_id,
       original_subject,
       recipient_email,
+      recipients.to,
+      recipients.cc,
       draft_id,
       draft_version,
       on_draft_saved,
@@ -808,6 +981,14 @@ export function use_reply_modal({
       save_draft_timeout.current = null;
     }
 
+    const send_recipients = commit_pending_recipient_inputs();
+
+    if (send_recipients.to.length === 0) {
+      set_error_message(t("errors.no_recipients"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
     last_send_time_ref.current = now;
     set_error_message(null);
@@ -841,8 +1022,8 @@ export function use_reply_modal({
           : undefined;
       const ext_result = await send_via_external_account(
         selected_sender.address_hash,
-        [recipient_email],
-        [],
+        send_recipients.to,
+        send_recipients.cc,
         [],
         subject,
         message_with_signature,
@@ -900,6 +1081,9 @@ export function use_reply_modal({
         original,
         message: message_with_signature,
         reply_all,
+        to_recipients: send_recipients.to,
+        cc_recipients: send_recipients.cc,
+        own_addresses,
         thread_token,
         original_email_id,
         expires_at: expires_at?.toISOString(),
@@ -995,7 +1179,14 @@ export function use_reply_modal({
           ),
           body: message_with_signature,
           display_body: reply_body,
-          to_recipients: [{ name: recipient_name, email: recipient_email }],
+          to_recipients: send_recipients.to.map((email) => ({
+            name: email === recipient_email ? recipient_name : "",
+            email,
+          })),
+          cc_recipients: send_recipients.cc.map((email) => ({
+            name: "",
+            email,
+          })),
         });
       }
 
@@ -1011,7 +1202,7 @@ export function use_reply_modal({
       if (delay_seconds > 0) {
         undo_send_manager.add({
           id: result.queued_id,
-          to: [recipient_email],
+          to: send_recipients.to,
           subject: build_reply_subject(
             original_subject,
             t("mail.reply_subject_prefix"),
@@ -1047,6 +1238,8 @@ export function use_reply_modal({
     original_cc,
     original_to,
     reply_all,
+    own_addresses,
+    commit_pending_recipient_inputs,
     thread_token,
     original_email_id,
     selected_sender,
@@ -1082,6 +1275,14 @@ export function use_reply_modal({
     }
     from_mismatch_ack_ref.current = false;
 
+    const send_recipients = commit_pending_recipient_inputs();
+
+    if (send_recipients.to.length === 0) {
+      set_error_message(t("errors.no_recipients"));
+
+      return;
+    }
+
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
       save_draft_timeout.current = null;
@@ -1099,8 +1300,8 @@ export function use_reply_modal({
     const message_with_signature = sched_reply_body + quoted_content;
 
     const content: ScheduledEmailContent = {
-      to_recipients: [recipient_email],
-      cc_recipients: [],
+      to_recipients: send_recipients.to,
+      cc_recipients: send_recipients.cc,
       bcc_recipients: [],
       subject: build_reply_subject(
         original_subject,
@@ -1149,7 +1350,7 @@ export function use_reply_modal({
     user,
     vault,
     scheduled_time,
-    recipient_email,
+    commit_pending_recipient_inputs,
     original_subject,
 
     build_quoted_content,
@@ -1405,6 +1606,13 @@ export function use_reply_modal({
     selected_sender,
     set_selected_sender,
     ghost_mode,
+    recipients,
+    dispatch_recipients,
+    inputs,
+    set_inputs,
+    show_cc,
+    set_show_cc,
+    contacts,
     reply_message,
     is_sending,
     error_message,

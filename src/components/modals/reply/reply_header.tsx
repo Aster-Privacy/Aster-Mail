@@ -18,10 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type {
+  InputsState,
+  RecipientsAction,
+  RecipientsState,
+} from "@/components/compose/compose_shared";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
+import type { DecryptedContact } from "@/types/contacts";
 
 import { CloseIcon } from "@/components/common/icons";
-import { RecipientBadge } from "@/components/compose/compose_shared";
+import { RecipientField } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
@@ -36,7 +42,13 @@ interface ReplyHeaderProps {
   sender_options: SenderOption[];
   selected_sender: SenderOption | null;
   set_selected_sender: (val: SenderOption | null) => void;
-  recipient_email: string;
+  recipients: RecipientsState;
+  dispatch_recipients: (action: RecipientsAction) => void;
+  inputs: InputsState;
+  set_inputs: React.Dispatch<React.SetStateAction<InputsState>>;
+  show_cc: boolean;
+  set_show_cc: (val: boolean) => void;
+  contacts?: DecryptedContact[];
   original_subject: string;
   on_create_ghost?: () => void;
   is_creating_ghost?: boolean;
@@ -58,7 +70,13 @@ export function ReplyHeader({
   sender_options,
   selected_sender,
   set_selected_sender,
-  recipient_email,
+  recipients,
+  dispatch_recipients,
+  inputs,
+  set_inputs,
+  show_cc,
+  set_show_cc,
+  contacts,
   original_subject,
   on_create_ghost,
   is_creating_ghost,
@@ -170,12 +188,58 @@ export function ReplyHeader({
               selected={selected_sender}
             />
           </div>
-          <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
-            <span className="text-sm flex-shrink-0 text-txt-tertiary">
-              {t("mail.to")}
-            </span>
-            <RecipientBadge email={recipient_email} />
+          <div className="py-2 border-b border-edge-secondary">
+            <RecipientField
+              show_bcc
+              show_cc_bcc_buttons
+              contacts={contacts}
+              input_value={inputs.to}
+              label={t("mail.to")}
+              on_add_recipient={(email) =>
+                dispatch_recipients({ type: "ADD", field: "to", email })
+              }
+              on_input_change={(val) =>
+                set_inputs((prev) => ({ ...prev, to: val }))
+              }
+              on_remove_last={() =>
+                dispatch_recipients({ type: "REMOVE_LAST", field: "to" })
+              }
+              on_remove_recipient={(email) =>
+                dispatch_recipients({ type: "REMOVE", field: "to", email })
+              }
+              on_show_cc={() => set_show_cc(true)}
+              recipients={recipients.to}
+              show_cc={show_cc}
+            />
           </div>
+
+          {show_cc && (
+            <div className="py-2 border-b border-edge-secondary">
+              <RecipientField
+                contacts={contacts}
+                input_value={inputs.cc}
+                label={t("mail.cc")}
+                on_add_recipient={(email) =>
+                  dispatch_recipients({ type: "ADD", field: "cc", email })
+                }
+                on_close={() => {
+                  dispatch_recipients({ type: "SET", field: "cc", emails: [] });
+                  set_inputs((prev) => ({ ...prev, cc: "" }));
+                  set_show_cc(false);
+                }}
+                on_input_change={(val) =>
+                  set_inputs((prev) => ({ ...prev, cc: val }))
+                }
+                on_remove_last={() =>
+                  dispatch_recipients({ type: "REMOVE_LAST", field: "cc" })
+                }
+                on_remove_recipient={(email) =>
+                  dispatch_recipients({ type: "REMOVE", field: "cc", email })
+                }
+                recipients={recipients.cc}
+              />
+            </div>
+          )}
 
           <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
             <span className="text-sm flex-shrink-0 text-txt-tertiary">

@@ -316,6 +316,7 @@ window.addEventListener(MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC, ((
     is_deleted: false,
     is_external: false,
     to_recipients: detail.to_recipients,
+    cc_recipients: detail.cc_recipients ?? [],
   };
 
   for (const [key, cached] of preload_cache.entries()) {
