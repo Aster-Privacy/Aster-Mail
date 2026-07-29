@@ -41,7 +41,6 @@ import {
   decrypt_envelope_with_bytes,
   encrypt_envelope_with_identity_key,
   base64_to_array,
-  normalize_envelope_from,
 } from "@/services/crypto/envelope";
 import {
   get_passphrase_bytes,
@@ -62,7 +61,14 @@ import {
   type ParsedOperator,
 } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
-import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import {
+  decrypt_body_text_with_bundle,
+  is_ratchet_envelope,
+} from "@/utils/email_crypto";
+import {
+  normalize_envelope_from,
+  normalize_envelope_recipients,
+} from "@/services/crypto/envelope_normalize";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -927,7 +933,7 @@ async function run_index_pipeline(
     }
 
     const bounded_body = bound_index_body(
-      envelope?.body_text ? strip_html_tags(envelope.body_text) : "",
+      envelope ? strip_html_tags(searchable_body_source(envelope)) : "",
     );
 
     if (envelope) {
@@ -1577,17 +1583,33 @@ async function build_search_index(
   return index;
 }
 
+export function searchable_body_source(envelope: DecryptedEnvelope): string {
+  const text = envelope.body_text || envelope.text_body || "";
+
+  if (text && !is_ratchet_envelope(text)) return text;
+
+  const html = envelope.body_html || envelope.html_body || "";
+
+  if (html && !is_ratchet_envelope(html)) return html;
+
+  return text;
+}
+
 function collect_recipient_text(envelope: DecryptedEnvelope): string {
   return [
-    ...(envelope.to || []),
-    ...(envelope.cc || []),
-    ...(envelope.bcc || []),
+    ...normalize_envelope_recipients(envelope.to),
+    ...normalize_envelope_recipients(envelope.cc),
+    ...normalize_envelope_recipients(envelope.bcc),
   ]
-    .map(
-      (r: { email?: string; name?: string }) =>
-        `${(r.email || "").toLowerCase()} ${(r.name || "").toLowerCase()}`,
-    )
+    .map((r) => `${r.email.toLowerCase()} ${(r.name || "").toLowerCase()}`)
     .join(" ");
+}
+
+function envelope_sender(envelope: DecryptedEnvelope): {
+  name: string;
+  email: string;
+} {
+  return normalize_envelope_from(envelope.from) ?? { name: "", email: "" };
 }
 
 function matches_operator(
@@ -1606,10 +1628,11 @@ function matches_operator(
         envelope.from,
         envelope.raw_headers,
       );
-      const sender = `${envelope.from?.email || ""} ${
+      const from = envelope_sender(envelope);
+      const sender = `${from.email} ${
         forwarding?.display_sender_email || ""
       }`.toLowerCase();
-      const sender_name = `${envelope.from?.name || ""} ${
+      const sender_name = `${from.name} ${
         forwarding?.display_sender_name || ""
       }`.toLowerCase();
 
@@ -1822,16 +1845,17 @@ export function matches_query(
     envelope.from,
     envelope.raw_headers,
   );
-  const sender_name = `${envelope.from?.name || ""} ${
+  const from = envelope_sender(envelope);
+  const sender_name = `${from.name} ${
     forwarding?.display_sender_name || ""
   }`.toLowerCase();
-  const sender_email = `${envelope.from?.email || ""} ${
+  const sender_email = `${from.email} ${
     forwarding?.display_sender_email || ""
   }`.toLowerCase();
   const recipients = collect_recipient_text(envelope);
   const body = search_body
     ? (search_body_text ??
-      strip_html_tags(envelope.body_text || "").toLowerCase())
+      strip_html_tags(searchable_body_source(envelope)).toLowerCase())
     : "";
 
   return terms.every((term) => {
@@ -1869,18 +1893,29 @@ function to_search_result(
     envelope?.raw_headers,
   );
 
+  const from = envelope
+    ? envelope_sender(envelope)
+    : { name: "", email: "" };
+  const outgoing =
+    item.item_type === "sent" || item.item_type === "draft" ? envelope : null;
+  const first_recipient = outgoing
+    ? normalize_envelope_recipients(outgoing.to)[0]
+    : undefined;
+  const display = first_recipient ?? from;
+
   return {
     id: item.id,
     subject: envelope?.subject || "(Encrypted)",
     preview: envelope
-      ? strip_html_tags(envelope.body_text || "").substring(0, 150)
+      ? strip_html_tags(searchable_body_source(envelope)).substring(0, 150)
       : "",
     sender_name:
-      forwarding_display?.display_sender_name ||
-      envelope?.from?.name ||
-      get_email_username(envelope?.from?.email || ""),
+      (!first_recipient && forwarding_display?.display_sender_name) ||
+      display.name ||
+      get_email_username(display.email),
     sender_email:
-      forwarding_display?.display_sender_email || envelope?.from?.email || "",
+      (!first_recipient && forwarding_display?.display_sender_email) ||
+      display.email,
     timestamp: item.message_ts || item.created_at,
     is_read: metadata?.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,

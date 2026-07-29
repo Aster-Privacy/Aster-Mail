@@ -592,3 +592,34 @@ describe("recipient grams", () => {
     expect(gram_plan("zzzzqqqq").skip_by_grams(filter)).toBe(true);
   });
 });
+
+describe("normalized recipient and sender grams", () => {
+  const gram_plan = (term: string) =>
+    build_chunk_skip_plan({ terms: [term], operators: [], probe_terms: true });
+
+  it("does not skip a chunk whose recipients are plain strings", () => {
+    const summary = summarize_chunk(
+      [make_item()],
+      [
+        {
+          envelope: {
+            subject: "Contract",
+            body_text: "",
+            from: "Cassie Lang <cassie@example.com>",
+            to: ["Dana Reyes <dana@partner.com>"],
+            cc: ["priya@partner.com"],
+            bcc: [],
+            sent_at: "2026-01-01T00:00:00Z",
+          } as unknown as DecryptedEnvelope,
+          metadata: null,
+        },
+      ],
+    );
+    const filter = parse_gram_filter(summary.grams)!;
+
+    expect(gram_plan("dana").skip_by_grams(filter)).toBe(false);
+    expect(gram_plan("priya").skip_by_grams(filter)).toBe(false);
+    expect(gram_plan("cassie").skip_by_grams(filter)).toBe(false);
+    expect(gram_plan("zzzzqqqq").skip_by_grams(filter)).toBe(true);
+  });
+});
