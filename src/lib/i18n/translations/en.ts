@@ -4960,6 +4960,20 @@ export const en: Translations = {
     this_account: "this account",
     storage_limit_reached: "Storage limit reached",
     auto_forward_title: "Auto-Forward",
+    forwarding_pending_verification: "Pending verification",
+    resend_verification_email: "Resend verification email",
+    forwarding_awaiting_verification:
+      "Waiting for {{ addresses }} to confirm. Mail is not forwarded there yet.",
+    forwarding_verification_sent:
+      "Verification email sent to {{ address }}. Forwarding starts once it is confirmed.",
+    forwarding_internal_active:
+      "Forwarding is active. Aster to Aster destinations do not need verification.",
+    forwarding_verification_resent:
+      "Verification email resent to {{ address }}",
+    forwarding_confirmed_success:
+      "Destination verified. Forwarding is now active.",
+    forwarding_confirmed_failed:
+      "That verification link is invalid or has expired. Send a new one from the rule.",
     auto_forward_description:
       "Automatically forward incoming emails to other addresses based on conditions. Forwarding rules evaluate email headers (sender, recipient, subject) without accessing email content.",
     add_rule: "Add Rule",

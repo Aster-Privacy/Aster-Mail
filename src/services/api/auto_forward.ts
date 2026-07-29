@@ -34,6 +34,13 @@ export interface ForwardingCondition {
   value: string;
 }
 
+export interface ForwardingDestinationStatus {
+  address: string;
+  is_internal: boolean;
+  confirmed: boolean;
+  confirmation_sent_at: string | null;
+}
+
 export interface ForwardingRuleResponse {
   id: string;
   name: string;
@@ -46,6 +53,8 @@ export interface ForwardingRuleResponse {
   last_forwarded_at: string | null;
   created_at: string;
   updated_at: string;
+  destinations?: ForwardingDestinationStatus[];
+  pending_confirmation?: boolean;
 }
 
 export interface ForwardingRulesListResponse {
@@ -168,6 +177,27 @@ export async function delete_forwarding_rule(
     return {
       error:
         err instanceof Error ? err.message : "Failed to delete forwarding rule",
+    };
+  }
+}
+
+export async function resend_forwarding_confirmation(
+  id: string,
+  address: string,
+): Promise<ApiResponse<{ success: boolean; address: string }>> {
+  try {
+    const response = await api_client.post<{
+      success: boolean;
+      address: string;
+    }>("/mail/v1/auto_forward/resend_confirmation", { id, address });
+
+    return response;
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to resend verification email",
     };
   }
 }

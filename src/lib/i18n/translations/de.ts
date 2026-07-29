@@ -4207,6 +4207,20 @@ export const de = {
     this_account: "dieses Konto",
     storage_limit_reached: "Speicherlimit erreicht",
     auto_forward_title: "Automatische Weiterleitung",
+    forwarding_pending_verification: "Bestätigung ausstehend",
+    resend_verification_email: "Bestätigungs-E-Mail erneut senden",
+    forwarding_awaiting_verification:
+      "Warten auf die Bestätigung von {{ addresses }}. Dorthin wird noch nicht weitergeleitet.",
+    forwarding_verification_sent:
+      "Bestätigungs-E-Mail an {{ address }} gesendet. Die Weiterleitung startet nach der Bestätigung.",
+    forwarding_internal_active:
+      "Weiterleitung ist aktiv. Ziele von Aster zu Aster benötigen keine Bestätigung.",
+    forwarding_verification_resent:
+      "Bestätigungs-E-Mail erneut an {{ address }} gesendet",
+    forwarding_confirmed_success:
+      "Ziel bestätigt. Die Weiterleitung ist jetzt aktiv.",
+    forwarding_confirmed_failed:
+      "Dieser Bestätigungslink ist ungültig oder abgelaufen. Sende über die Regel einen neuen.",
     auto_forward_description:
       "Leiten Sie eingehende E-Mails automatisch basierend auf Bedingungen an andere Adressen weiter. Weiterleitungsregeln werten E-Mail-Header (Absender, Empfänger, Betreff) aus, ohne auf den E-Mail-Inhalt zuzugreifen.",
     add_rule: "Regel hinzufügen",

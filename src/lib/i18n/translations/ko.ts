@@ -4186,6 +4186,20 @@ export const ko = {
     this_account: "이 계정",
     storage_limit_reached: "저장 공간 제한에 도달했습니다",
     auto_forward_title: "자동 전달",
+    forwarding_pending_verification: "확인 대기 중",
+    resend_verification_email: "확인 이메일 다시 보내기",
+    forwarding_awaiting_verification:
+      "{{ addresses }}의 확인을 기다리는 중입니다. 아직 그곳으로 전달되지 않습니다.",
+    forwarding_verification_sent:
+      "확인 이메일을 {{ address }}(으)로 보냈습니다. 확인 후 전달이 시작됩니다.",
+    forwarding_internal_active:
+      "전달이 활성화되어 있습니다. Aster에서 Aster로 향하는 주소는 확인이 필요 없습니다.",
+    forwarding_verification_resent:
+      "확인 이메일을 {{ address }}(으)로 다시 보냈습니다",
+    forwarding_confirmed_success:
+      "주소를 확인했습니다. 전달이 활성화되었습니다.",
+    forwarding_confirmed_failed:
+      "이 확인 링크는 유효하지 않거나 만료되었습니다. 규칙에서 새로 보내세요.",
     auto_forward_description:
       "조건에 따라 수신 이메일을 다른 주소로 자동으로 전달합니다. 전달 규칙은 이메일 내용에 접근하지 않고 이메일 헤더(발신자, 수신자, 제목)를 평가합니다.",
     add_rule: "규칙 추가",

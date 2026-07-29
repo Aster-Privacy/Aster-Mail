@@ -4295,6 +4295,20 @@ export const fr = {
     this_account: "ce compte",
     storage_limit_reached: "Limite de stockage atteinte",
     auto_forward_title: "Transfert automatique",
+    forwarding_pending_verification: "Vérification en attente",
+    resend_verification_email: "Renvoyer l'e-mail de vérification",
+    forwarding_awaiting_verification:
+      "En attente de confirmation de {{ addresses }}. Aucun message n'y est encore transféré.",
+    forwarding_verification_sent:
+      "E-mail de vérification envoyé à {{ address }}. Le transfert démarrera après confirmation.",
+    forwarding_internal_active:
+      "Le transfert est actif. Les destinations Aster vers Aster ne nécessitent aucune vérification.",
+    forwarding_verification_resent:
+      "E-mail de vérification renvoyé à {{ address }}",
+    forwarding_confirmed_success:
+      "Destination vérifiée. Le transfert est maintenant actif.",
+    forwarding_confirmed_failed:
+      "Ce lien de vérification est invalide ou expiré. Envoyez-en un nouveau depuis la règle.",
     auto_forward_description:
       "Transférer automatiquement les e-mails entrants vers d'autres adresses selon des conditions. Les règles de transfert évaluent les en-têtes des e-mails (expéditeur, destinataire, objet) sans accéder au contenu des e-mails.",
     add_rule: "Ajouter une règle",

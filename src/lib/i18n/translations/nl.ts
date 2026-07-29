@@ -4180,6 +4180,20 @@ export const nl = {
     this_account: "dit account",
     storage_limit_reached: "Opslaglimiet bereikt",
     auto_forward_title: "Automatisch doorsturen",
+    forwarding_pending_verification: "Verificatie in behandeling",
+    resend_verification_email: "Verificatiemail opnieuw verzenden",
+    forwarding_awaiting_verification:
+      "Wachten op bevestiging van {{ addresses }}. Er wordt daar nog niets doorgestuurd.",
+    forwarding_verification_sent:
+      "Verificatiemail verzonden naar {{ address }}. Doorsturen begint na bevestiging.",
+    forwarding_internal_active:
+      "Doorsturen is actief. Bestemmingen van Aster naar Aster hoeven niet geverifieerd te worden.",
+    forwarding_verification_resent:
+      "Verificatiemail opnieuw verzonden naar {{ address }}",
+    forwarding_confirmed_success:
+      "Bestemming geverifieerd. Doorsturen is nu actief.",
+    forwarding_confirmed_failed:
+      "Deze verificatielink is ongeldig of verlopen. Verstuur een nieuwe vanuit de regel.",
     auto_forward_description:
       "Stuur inkomende e-mails automatisch door naar andere adressen op basis van voorwaarden. Doorstuurregels evalueren e-mailheaders (afzender, ontvanger, onderwerp) zonder toegang tot e-mailinhoud.",
     add_rule: "Regel toevoegen",

@@ -3856,6 +3856,17 @@ export const zh_CN = {
     this_account: "此账户",
     storage_limit_reached: "已达存储上限",
     auto_forward_title: "自动转发",
+    forwarding_pending_verification: "等待验证",
+    resend_verification_email: "重新发送验证邮件",
+    forwarding_awaiting_verification:
+      "正在等待 {{ addresses }} 确认，暂不会转发到该地址。",
+    forwarding_verification_sent:
+      "验证邮件已发送至 {{ address }}，确认后即开始转发。",
+    forwarding_internal_active: "转发已启用。Aster 到 Aster 的地址无需验证。",
+    forwarding_verification_resent: "验证邮件已重新发送至 {{ address }}",
+    forwarding_confirmed_success: "地址已验证，转发现已启用。",
+    forwarding_confirmed_failed:
+      "该验证链接无效或已过期，请从规则中重新发送一封。",
     auto_forward_description:
       "根据条件自动将收件转发到其他地址。转发规则评估邮件头（发件人、收件人、主题），不访问邮件内容。",
     add_rule: "添加规则",

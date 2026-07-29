@@ -44,8 +44,10 @@ import {
   delete_forwarding_rule,
   bulk_delete_forwarding_rules,
   toggle_forwarding_rule,
+  resend_forwarding_confirmation,
   type ForwardingRuleResponse,
   type ForwardingCondition,
+  type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -64,6 +66,9 @@ export function AutoForwardSection() {
     useState<ForwardingRuleResponse | null>(null);
   const [is_saving, set_is_saving] = useState(false);
   const [form_visible, set_form_visible] = useState(false);
+  const [resending_address, set_resending_address] = useState<string | null>(
+    null,
+  );
 
   const open_builder = (rule?: ForwardingRuleResponse) => {
     set_editing_rule(rule ?? null);
@@ -98,6 +103,29 @@ export function AutoForwardSection() {
   useEffect(() => {
     fetch_rules();
   }, [fetch_rules]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const confirmed = params.get("forwarding_confirmed");
+
+    if (confirmed === null) return;
+
+    show_toast(
+      confirmed === "true"
+        ? t("settings.forwarding_confirmed_success")
+        : t("settings.forwarding_confirmed_failed"),
+      confirmed === "true" ? "success" : "error",
+    );
+
+    params.delete("forwarding_confirmed");
+    const query = params.toString();
+
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+    );
+  }, [t]);
 
   const filtered_rules = rules.filter((rule) => {
     if (!search_query) return true;
@@ -193,6 +221,63 @@ export function AutoForwardSection() {
     }
   };
 
+  const pending_destinations = (
+    rule: ForwardingRuleResponse,
+  ): ForwardingDestinationStatus[] =>
+    (rule.destinations ?? []).filter((d) => !d.confirmed);
+
+  const handle_resend = async (
+    rule: ForwardingRuleResponse,
+    address: string,
+  ) => {
+    set_resending_address(address);
+    try {
+      const result = await resend_forwarding_confirmation(rule.id, address);
+
+      if (result.data?.success) {
+        show_toast(
+          t("settings.forwarding_verification_resent", { address }),
+          "success",
+        );
+        fetch_rules();
+      } else if (result.error) {
+        show_toast(result.error, "error");
+      }
+    } finally {
+      set_resending_address(null);
+    }
+  };
+
+  const notify_saved = (rule: ForwardingRuleResponse, created: boolean) => {
+    const pending = pending_destinations(rule);
+
+    if (pending.length > 0) {
+      show_toast(
+        t("settings.forwarding_verification_sent", {
+          address: pending.map((d) => d.address).join(", "),
+        }),
+        "success",
+      );
+
+      return;
+    }
+
+    const destinations = rule.destinations ?? [];
+
+    if (destinations.length > 0 && destinations.every((d) => d.is_internal)) {
+      show_toast(t("settings.forwarding_internal_active"), "success");
+
+      return;
+    }
+
+    show_toast(
+      created
+        ? t("common.forwarding_rule_created")
+        : t("common.forwarding_rule_updated"),
+      "success",
+    );
+  };
+
   const handle_save_rule = async (
     name: string,
     forward_to: string[],
@@ -214,7 +299,7 @@ export function AutoForwardSection() {
           set_rules((prev) =>
             prev.map((r) => (r.id === editing_rule.id ? result.data! : r)),
           );
-          show_toast(t("common.forwarding_rule_updated"), "success");
+          notify_saved(result.data, false);
           close_builder();
         } else if (result.error) {
           show_toast(result.error, "error");
@@ -229,7 +314,7 @@ export function AutoForwardSection() {
 
         if (result.data) {
           set_rules((prev) => [result.data!, ...prev]);
-          show_toast(t("common.forwarding_rule_created"), "success");
+          notify_saved(result.data, true);
           close_builder();
         } else if (result.error) {
           show_toast(result.error, "error");
@@ -262,7 +347,8 @@ export function AutoForwardSection() {
 
   const format_count = (count: number): string => {
     if (count === 0) return "";
-    if (count >= 1000) return t("mail.forwarded_count_k", { count: (count / 1000).toFixed(1) });
+    if (count >= 1000)
+      return t("mail.forwarded_count_k", { count: (count / 1000).toFixed(1) });
 
     return t("mail.forwarded_count", { count });
   };
@@ -480,12 +566,51 @@ export function AutoForwardSection() {
                         {t("settings.keeps_copy")}
                       </span>
                     )}
+                    {pending_destinations(rule).length > 0 && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
+                        style={{
+                          backgroundColor: "#d97706",
+                          color: "#fff",
+                        }}
+                      >
+                        {t("settings.forwarding_pending_verification")}
+                      </span>
+                    )}
                   </div>
                   <p className="text-[12px] truncate text-txt-muted">
                     {get_condition_summary(rule.conditions)}
                     {" → "}
                     {rule.forward_to.join(", ")}
                   </p>
+                  {pending_destinations(rule).length > 0 && (
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <p className="text-[11px] text-amber-600 dark:text-amber-500">
+                        {t("settings.forwarding_awaiting_verification", {
+                          addresses: pending_destinations(rule)
+                            .map((d) => d.address)
+                            .join(", "),
+                        })}
+                      </p>
+                      {pending_destinations(rule).map((destination) => (
+                        <Button
+                          key={destination.address}
+                          disabled={resending_address === destination.address}
+                          size="sm"
+                          variant="secondary"
+                          onClick={() =>
+                            handle_resend(rule, destination.address)
+                          }
+                        >
+                          {resending_address === destination.address ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            t("settings.resend_verification_email")
+                          )}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                   {(rule.forwarded_count > 0 || rule.last_forwarded_at) && (
                     <p className="text-[11px] mt-0.5 text-txt-muted">
                       {format_count(rule.forwarded_count)}
