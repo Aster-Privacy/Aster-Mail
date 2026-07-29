@@ -180,7 +180,7 @@ export const ko = {
     move_folder_description: "새 상위 폴더 선택",
     select_parent_folder: "상위 폴더 선택",
     top_level_no_parent: "최상위 (상위 없음)",
-    parent_folder: "ìƒìœ„ í´ë”",
+    parent_folder: "상위 폴더",
     move_up: "ìœ„ë¡œ ì´ë™",
     move_down: "ì•„ëž˜ë¡œ ì´ë™",
     move_to: "이동",
@@ -4757,7 +4757,7 @@ export const ko = {
     credit_transactions: "크레딧 거래",
     referral_program: "추천 프로그램",
     referral_program_description:
-      "친구를 Aster에 초대하고 유료 플랜에 가입하면 크레딧을 적립하세요.",
+      "친구를 Aster에 초대하고 친구가 결제할 때마다 크레딧을 적립하세요.",
     your_referral_link: "내 추천 링크",
     copy_link: "링크 복사",
     link_copied: "링크가 클립보드에 복사됨",
@@ -4772,10 +4772,11 @@ export const ko = {
     no_referrals_yet: "아직 추천이 없습니다. 링크를 공유하여 시작하세요!",
     referral_status_pending: "대기 중",
     referral_status_completed: "완료됨",
-    referral_reward_info: "유료 플랜 가입 시 본인 $2.00, 친구 $1.00.",
+    referral_reward_info:
+      "친구는 첫 결제에 할인을 받고, 회원님은 친구의 모든 결제에서 수익을 얻습니다.",
     referral_commission_info:
-      "추천인이 구독을 유지하는 한 모든 결제의 {{ percent }}%를 추가로 적립합니다.",
-    referral_max_credits: "최대 수익: {{ value }}",
+      "추천인이 구독을 유지하는 한 모든 결제의 {{ percent }}%를 적립합니다.",
+    referral_max_credits: "최대 수익: 연간 {{ value }}",
     referral_gauge_earned_label: "적립액",
     total_earned: "총 적립액",
     affiliate_program: "제휴 프로그램",
@@ -5429,7 +5430,7 @@ export const ko = {
     referral_step_signup:
       "추천 링크를 사용하여 Aster에 가입하고 유료 플랜을 구독하면 됩니다.",
     referral_step_earn:
-      "두 분 모두 다음 갱신 시 적용되는 $10 Aster 크레딧을 받습니다.",
+      "친구가 구독을 유지하는 한 모든 결제의 일부를 적립합니다.",
     referral_rewards: "보상",
     credits_title: "크레딧",
     credits_subtitle: "다양한 작업 완료로 Aster 크레딧을 적립하세요.",
@@ -5439,7 +5440,7 @@ export const ko = {
     credits_shop_plans: "플랜 구경하기",
     credit_task_refer_title: "친구를 Aster에 추천하기",
     credit_task_refer_hint:
-      "친구가 Aster에 가입하면 두 분 모두 $10을 받습니다.",
+      "친구가 구독하면 친구의 모든 결제에서 일정 비율을 적립합니다.",
     credit_task_refer_cta: "초대",
     credit_task_ios_title: "iOS용 Aster 앱 다운로드",
     credit_task_ios_hint_coming: "곧 출시 예정",
@@ -5448,7 +5449,7 @@ export const ko = {
     referral_email_subject:
       "Aster Mail을 사용해 보세요 - 모두를 위한 개인 이메일",
     referral_email_body:
-      "안녕하세요!\n\n저는 Aster Mail을 사용 중인데 정말 마음에 듭니다. 종단간 암호화되어 Aster 서버조차 이메일을 읽을 수 없습니다.\n\n관심이 있으시면 제 추천 링크를 사용해 주세요:\n\n{{ referral_link }}\n\n구독하시면 두 분 모두 크레딧을 받습니다. 부담 없이 살펴보세요.\n\n감사합니다",
+      "안녕하세요!\n\n저는 Aster Mail을 사용 중인데 정말 마음에 듭니다. 종단간 암호화되어 Aster 서버조차 이메일을 읽을 수 없습니다.\n\n관심이 있으시면 제 추천 링크를 사용해 주세요:\n\n{{ referral_link }}\n\n구독하시면 첫 결제에 할인이 적용되고, 저에게는 약간의 크레딧이 적립됩니다. 부담 없이 살펴보세요.\n\n감사합니다",
     referral_no_contacts: "연락처가 없습니다. 먼저 연락처를 추가하세요!",
     referral_loading_contacts: "연락처 불러오는 중...",
     two_factor_auth_disabled: "이중 인증이 비활성화되었습니다",

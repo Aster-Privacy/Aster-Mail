@@ -182,9 +182,9 @@ export const pl = {
     move_folder_description: "Wybierz nowy folder nadrzędny",
     select_parent_folder: "Wybierz folder nadrzędny",
     top_level_no_parent: "Poziom główny (bez nadrzędnego)",
-    parent_folder: "Folder nadrzÄ™dny",
-    move_up: "PrzenieÅ› w gÃ³rÄ™",
-    move_down: "PrzenieÅ› w dÃ³Å‚",
+    parent_folder: "Folder nadrzędny",
+    move_up: "Przenieś w górę",
+    move_down: "Przenieś w dół",
     move_to: "Przenieś do",
     change_folder_color: "Zmień kolor folderu",
     select_a_color: "Wybierz kolor",
@@ -4839,7 +4839,7 @@ export const pl = {
     credit_transactions: "Transakcje kredytowe",
     referral_program: "Program poleceń",
     referral_program_description:
-      "Zaproś znajomych do Aster i zdobywaj kredyty, gdy subskrybują płatny plan.",
+      "Zaproś znajomych do Aster i zdobywaj kredyty z każdej ich płatności.",
     your_referral_link: "Twój link polecający",
     copy_link: "Kopiuj link",
     link_copied: "Link skopiowany do schowka",
@@ -4855,10 +4855,10 @@ export const pl = {
     referral_status_pending: "Oczekujące",
     referral_status_completed: "Zrealizowane",
     referral_reward_info:
-      "2,00$ dla Ciebie, 1,00$ dla znajomego po subskrypcji płatnego planu.",
+      "Twój znajomy otrzyma zniżkę na pierwszą płatność, a Ty zarabiasz na każdej jego płatności.",
     referral_commission_info:
-      "Plus {{ percent }}% z każdej płatności Twoich poleceń, dopóki są subskrybentami.",
-    referral_max_credits: "Maksymalne zarobki: {{ value }}",
+      "Zarabiasz {{ percent }}% z każdej płatności Twoich poleceń, dopóki są subskrybentami.",
+    referral_max_credits: "Maksymalne zarobki: {{ value }} rocznie",
     referral_gauge_earned_label: "Zarobione",
     total_earned: "Łącznie zarobione",
     affiliate_program: "Program Partnerski",
@@ -5601,7 +5601,7 @@ export const pl = {
     referral_step_signup:
       "Rejestrują się w Asterze za pomocą Twojego linku i subskrybują płatny plan.",
     referral_step_earn:
-      "Oboje zarabiacie 10 USD w kredytach Astera, stosowanych przy następnym odnowieniu.",
+      "Zarabiasz część każdej ich płatności, dopóki pozostają subskrybentami.",
     referral_rewards: "Nagrody",
     credits_title: "Kredyty",
     credits_subtitle: "Zdobywaj kredyty Astera, wykonując różne zadania.",
@@ -5611,7 +5611,7 @@ export const pl = {
     credits_shop_plans: "Przeglądaj plany",
     credit_task_refer_title: "Poleć znajomemu Astera",
     credit_task_refer_hint:
-      "Ty i Twój znajomy otrzymacie po 10 USD po zarejestrowaniu się w Asterze.",
+      "Zarabiaj procent z każdej płatności znajomego po jego subskrypcji.",
     credit_task_refer_cta: "Zaproś",
     credit_task_ios_title: "Pobierz aplikację Aster na iOS",
     credit_task_ios_hint_coming: "Wkrótce",
@@ -5619,7 +5619,7 @@ export const pl = {
     send_referral_to_contacts: "Wyślij e-mail do wszystkich kontaktów",
     referral_email_subject: "Wypróbuj Aster Mail - prywatna poczta dla każdego",
     referral_email_body:
-      "Hej!\n\nUżywam Aster Mail i bardzo mi się podoba. Szyfrowanie end-to-end sprawia, że nikt poza Tobą nie może odczytać Twoich e-maili. Nawet sam Aster.\n\nJeśli chcesz spróbować, oto mój link polecający:\n\n{{ referral_link }}\n\nOboje dostaniemy kredyty, jeśli zdecydujesz się na subskrypcję, ale bez presji. Po prostu pomyślałem(-am), że Ci się to spodoba.\n\nPozdrawiam",
+      "Hej!\n\nUżywam Aster Mail i bardzo mi się podoba. Szyfrowanie end-to-end sprawia, że nikt poza Tobą nie może odczytać Twoich e-maili. Nawet sam Aster.\n\nJeśli chcesz spróbować, oto mój link polecający:\n\n{{ referral_link }}\n\nDostaniesz zniżkę na pierwszą płatność, jeśli zdecydujesz się na subskrypcję, a ja niewielki kredyt, ale bez presji. Po prostu pomyślałem(-am), że Ci się to spodoba.\n\nPozdrawiam",
     referral_no_contacts: "Nie znaleziono kontaktów. Najpierw dodaj kontakty!",
     referral_loading_contacts: "Ładowanie kontaktów...",
     two_factor_auth_disabled:

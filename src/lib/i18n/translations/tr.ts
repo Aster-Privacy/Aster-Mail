@@ -183,9 +183,9 @@ export const tr = {
     move_folder_description: "Bu klasör için yeni bir üst seç",
     select_parent_folder: "Üst klasör seçin",
     top_level_no_parent: "Üst düzey (üst yok)",
-    parent_folder: "Ãœst klasÃ¶r",
-    move_up: "YukarÄ± taÅŸÄ±",
-    move_down: "AÅŸaÄŸÄ± taÅŸÄ±",
+    parent_folder: "Üst klasör",
+    move_up: "Yukarı taşı",
+    move_down: "Aşağı taşı",
     move_to: "Şuraya taşı",
     change_folder_color: "Klasör rengini değiştir",
     select_a_color: "Bir renk seçin",
@@ -4774,10 +4774,10 @@ export const tr = {
     referral_status_pending: "Bekleyen",
     referral_status_completed: "Tamamlanan",
     referral_reward_info:
-      "Ücretli bir plana abone olduklarında size 2,00 $, arkadaşınıza 1,00 $.",
+      "Arkadaşınız ilk ödemesinde indirim alır, siz de yaptığı her ödemeden kazanırsınız.",
     referral_commission_info:
-      "Ayrıca tavsiyelerinizin yaptığı her ödemenin {{ percent }}%'i, abone kaldıkları sürece.",
-    referral_max_credits: "Maksimum kazanç: {{ value }}",
+      "Abone kaldıkları sürece tavsiyelerinizin yaptığı her ödemenin %{{ percent }}'ini kazanırsınız.",
+    referral_max_credits: "Maksimum kazanç: yılda {{ value }}",
     referral_gauge_earned_label: "Kazanılan",
     total_earned: "Toplam Kazanılan",
     affiliate_program: "Bağlı Kuruluş Programı",
@@ -5178,7 +5178,7 @@ export const tr = {
       "Makbuz e-postalarından satın alma ayrıntılarını otomatik çıkarın",
     referral_not_eligible_description: "Lütfen daha sonra tekrar deneyin.",
     referral_program_description:
-      "Arkadaşlarınızı Aster'e davet edin ve ücretli bir plana abone olduklarında kredi kazanın.",
+      "Arkadaşlarınızı Aster'e davet edin ve yaptıkları her ödemeden kredi kazanın.",
     show_badges_in_signature_description:
       "Giden e-postalarda imza alanında rozetlerinizi gösterin.",
     show_message_size_description:
@@ -5583,7 +5583,7 @@ export const tr = {
     referral_step_signup:
       "Bağlantınızı kullanarak Aster'e kaydoluyorlar ve ücretli bir plana abone oluyorlar.",
     referral_step_earn:
-      "İkiniz de 10$ Aster kredisi kazanıyorsunuz; bir sonraki yenilemenize uygulanıyor.",
+      "Abone kaldıkları sürece yaptıkları her ödemeden pay kazanırsınız.",
     referral_rewards: "Ödüller",
     credits_title: "Krediler",
     credits_subtitle: "Farklı görevleri tamamlayarak Aster kredisi kazanın.",
@@ -5593,7 +5593,7 @@ export const tr = {
     credits_shop_plans: "Planları incele",
     credit_task_refer_title: "Aster'e bir arkadaş davet edin",
     credit_task_refer_hint:
-      "Siz ve arkadaşınız, Aster'e kaydolduktan sonra her ikiniz de 10$ alacaksınız.",
+      "Arkadaşınız abone olduktan sonra yaptığı her ödemeden yüzde kazanın.",
     credit_task_refer_cta: "Davet Et",
     credit_task_ios_title: "iOS için Aster uygulamasını indirin",
     credit_task_ios_hint_coming: "Yakında",
@@ -5601,7 +5601,7 @@ export const tr = {
     send_referral_to_contacts: "Tüm Kişilere E-posta Gönder",
     referral_email_subject: "Aster Mail'i deneyin - herkes için özel e-posta",
     referral_email_body:
-      "Merhaba!\n\nAster Mail kullanıyorum ve gerçekten beğendim. Uçtan uca şifreli olduğu için e-postalarınızı yalnızca siz okuyabiliyorsunuz; Aster bile göremez.\n\nDenemeye karar verirseniz, davet bağlantım:\n\n{{ referral_link }}\n\nAbone olursanız ikiniz de kredi kazanıyoruz, ama zorunluluk yok. Sadece beğeneceğinizi düşündüm.\n\nİyi günler",
+      "Merhaba!\n\nAster Mail kullanıyorum ve gerçekten beğendim. Uçtan uca şifreli olduğu için e-postalarınızı yalnızca siz okuyabiliyorsunuz; Aster bile göremez.\n\nDenemeye karar verirseniz, davet bağlantım:\n\n{{ referral_link }}\n\nAbone olursanız ilk ödemenizde indirim alırsınız, ben de biraz kredi kazanırım, ama zorunluluk yok. Sadece beğeneceğinizi düşündüm.\n\nİyi günler",
     referral_no_contacts: "Kişi bulunamadı. Önce kişi ekleyin!",
     referral_loading_contacts: "Kişiler yükleniyor...",
     two_factor_auth_disabled: "İki faktörlü doğrulama devre dışı bırakıldı",

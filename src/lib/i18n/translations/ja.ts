@@ -180,9 +180,9 @@ export const ja = {
     move_folder_description: "新しい親フォルダを選択",
     select_parent_folder: "親フォルダを選択",
     top_level_no_parent: "トップレベル（親なし）",
-    parent_folder: "è¦ªãƒ•ã‚©ãƒ«ãƒ€",
-    move_up: "ä¸Šã¸ç§»å‹•",
-    move_down: "ä¸‹ã¸ç§»å‹•",
+    parent_folder: "親フォルダ",
+    move_up: "上へ移動",
+    move_down: "下へ移動",
     move_to: "移動先",
     change_folder_color: "フォルダの色を変更",
     select_a_color: "色を選択",
@@ -4817,7 +4817,7 @@ export const ja = {
     credit_transactions: "クレジット取引",
     referral_program: "紹介プログラム",
     referral_program_description:
-      "友達をAsterに招待して、有料プランに登録するとクレジットを獲得できます。",
+      "友達をAsterに招待して、友達が支払うたびにクレジットを獲得できます。",
     your_referral_link: "あなたの紹介リンク",
     copy_link: "リンクをコピー",
     link_copied: "リンクをクリップボードにコピーしました",
@@ -4833,10 +4833,10 @@ export const ja = {
     referral_status_pending: "保留中",
     referral_status_completed: "完了",
     referral_reward_info:
-      "友達が有料プランに登録すると、あなたに$2.00、友達に$1.00が付与されます。",
+      "友達は初回のお支払いが割引になり、あなたは友達のすべてのお支払いから収益を得られます。",
     referral_commission_info:
-      "さらに、紹介した方がサブスクリプションを継続する限り、すべてのお支払いの{{ percent }}%を獲得できます。",
-    referral_max_credits: "最大獲得額：{{ value }}",
+      "紹介した方がサブスクリプションを継続する限り、すべてのお支払いの{{ percent }}%を獲得できます。",
+    referral_max_credits: "最大獲得額：年間 {{ value }}",
     referral_gauge_earned_label: "獲得額",
     total_earned: "獲得合計",
     affiliate_program: "アフィリエイトプログラム",
@@ -5303,7 +5303,7 @@ export const ja = {
     credit_task_ios_title: "iOS用Asterアプリをダウンロード",
     credit_task_refer_cta: "招待",
     credit_task_refer_hint:
-      "友達がAsterに登録すると、あなたと友達の両方が$10を受け取ります。",
+      "友達が登録した後、そのすべてのお支払いの一定割合を獲得できます。",
     credit_task_refer_title: "友達をAsterに紹介する",
     credit_type_install_android: "Androidインストール",
     credit_type_install_desktop: "デスクトップインストール",
@@ -5693,7 +5693,7 @@ export const ja = {
       "ジャーナリストの方は、記者証を添えてサポートまでご連絡ください。",
     refer_a_friend: "友達を紹介",
     referral_email_body:
-      "こんにちは！\n\nAster Mailを使っていてとても気に入っています。エンドツーエンド暗号化されているので、あなた以外誰もメールを読めません（Aster自身でさえも）。\n\nよかったら使ってみてください。私の紹介リンクはこちらです：\n\n{{ referral_link }}\n\nご登録いただくと両方にクレジットが付きますが、無理に勧めるつもりはありません。ただ気に入ってもらえると思って共有しました。\n\nよろしくお願いします",
+      "こんにちは！\n\nAster Mailを使っていてとても気に入っています。エンドツーエンド暗号化されているので、あなた以外誰もメールを読めません（Aster自身でさえも）。\n\nよかったら使ってみてください。私の紹介リンクはこちらです：\n\n{{ referral_link }}\n\nご登録いただくと初回のお支払いが割引になり、私にも少しクレジットが入りますが、無理に勧めるつもりはありません。ただ気に入ってもらえると思って共有しました。\n\nよろしくお願いします",
     referral_email_subject:
       "Aster Mailをお試しください - みんなのためのプライベートメール",
     referral_how_it_works: "仕組み",
@@ -5702,7 +5702,7 @@ export const ja = {
       "連絡先が見つかりません。まず連絡先を追加してください！",
     referral_rewards: "報酬",
     referral_step_earn:
-      "あなたと友達の両方が$10のAsterクレジットを獲得し、次回の更新に適用されます。",
+      "友達がサブスクリプションを継続する限り、すべてのお支払いの一部を獲得できます。",
     referral_step_share:
       "あなた固有の紹介リンクを友達、家族、同僚に共有してください。",
     referral_step_signup:

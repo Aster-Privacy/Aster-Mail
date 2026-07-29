@@ -191,7 +191,7 @@ export const it = {
     top_level_no_parent: "Livello superiore (senza genitore)",
     parent_folder: "Cartella principale",
     move_up: "Sposta su",
-    move_down: "Sposta giÃ¹",
+    move_down: "Sposta giù",
     move_to: "Sposta in",
     change_folder_color: "Cambia colore cartella",
     select_a_color: "Seleziona un colore",
@@ -3775,7 +3775,7 @@ export const it = {
     credit_transactions: "Transazioni crediti",
     referral_program: "Programma referral",
     referral_program_description:
-      "Invita amici su Aster e guadagna crediti quando si abbonano a un piano a pagamento.",
+      "Invita amici su Aster e guadagna credito su ogni pagamento che effettuano.",
     your_referral_link: "Il tuo link referral",
     copy_link: "Copia link",
     link_copied: "Link copiato negli appunti",
@@ -3792,10 +3792,10 @@ export const it = {
     referral_status_pending: "In attesa",
     referral_status_completed: "Completato",
     referral_reward_info:
-      "$2,00 per te, $1,00 per il tuo amico quando si abbona a un piano a pagamento.",
+      "Il tuo amico ottiene uno sconto sul primo pagamento e tu guadagni su ogni suo pagamento.",
     referral_commission_info:
-      "Più il {{ percent }}% di ogni pagamento dei tuoi referral, finché restano abbonati.",
-    referral_max_credits: "Guadagno massimo: {{ value }}",
+      "Guadagni il {{ percent }}% di ogni pagamento dei tuoi referral, finché restano abbonati.",
+    referral_max_credits: "Guadagno massimo: {{ value }} all'anno",
     referral_gauge_earned_label: "Guadagnato",
     total_earned: "Totale guadagnato",
     affiliate_program: "Programma di Affiliazione",
@@ -5633,7 +5633,7 @@ export const it = {
     referral_step_signup:
       "Si registrano ad Aster usando il tuo link e si abbonano a un piano a pagamento.",
     referral_step_earn:
-      "Entrambi guadagnate $10 in crediti Aster, applicati al vostro prossimo rinnovo.",
+      "Guadagni una parte di ogni pagamento che effettuano, finché restano abbonati.",
     referral_rewards: "Premi",
     credits_title: "Crediti",
     credits_subtitle: "Guadagna crediti Aster completando diverse attività.",
@@ -5643,7 +5643,7 @@ export const it = {
     credits_shop_plans: "Acquista piani",
     credit_task_refer_title: "Invita un amico su Aster",
     credit_task_refer_hint:
-      "Tu e il tuo amico riceverete $10 dopo che si registra ad Aster.",
+      "Guadagna una percentuale di ogni pagamento del tuo amico dopo che si abbona.",
     credit_task_refer_cta: "Invita",
     credit_task_ios_title: "Scarica l'app Aster per iOS",
     credit_task_ios_hint_coming: "Prossimamente",
@@ -5651,7 +5651,7 @@ export const it = {
     send_referral_to_contacts: "Invia email a tutti i contatti",
     referral_email_subject: "Prova Aster Mail - email privata per tutti",
     referral_email_body:
-      "Ciao!\n\nSto usando Aster Mail e mi piace molto. È crittografato end-to-end, quindi nessuno può leggere le tue email tranne te. Nemmeno Aster stessa.\n\nSe vuoi provarlo, ecco il mio link di referral:\n\n{{ referral_link }}\n\nEntrambi otteniamo crediti se ti abboni, ma non c'è pressione. Ho solo pensato che ti sarebbe piaciuto.\n\nA presto",
+      "Ciao!\n\nSto usando Aster Mail e mi piace molto. È crittografato end-to-end, quindi nessuno può leggere le tue email tranne te. Nemmeno Aster stessa.\n\nSe vuoi provarlo, ecco il mio link di referral:\n\n{{ referral_link }}\n\nOttieni uno sconto sul primo pagamento se ti abboni, e io guadagno un piccolo credito, ma nessuna pressione. Ho solo pensato che ti sarebbe piaciuto.\n\nA presto",
     referral_no_contacts:
       "Nessun contatto trovato. Prima aggiungi dei contatti!",
     referral_loading_contacts: "Caricamento contatti...",

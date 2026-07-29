@@ -3014,7 +3014,8 @@ export const en: Translations = {
     fam_org_event_consent_request_created: "Consent requested",
     fam_org_event_consent_declined: "Consent declined",
     fam_org_event_consent_all_accepted: "Consent completed",
-    fam_org_activity_address_reserved: "{{actor}} reserved an address for a kid",
+    fam_org_activity_address_reserved:
+      "{{actor}} reserved an address for a kid",
     fam_org_activity_reservation_released:
       "{{actor}} released a reserved address",
     fam_org_activity_shared_mailbox_created:
@@ -3037,7 +3038,8 @@ export const en: Translations = {
       "{{actor}} removed a member from a group",
     fam_org_activity_consent_request_created: "{{actor}} requested consent",
     fam_org_activity_consent_declined: "{{actor}} declined a consent request",
-    fam_org_activity_consent_all_accepted: "Everyone accepted the consent request",
+    fam_org_activity_consent_all_accepted:
+      "Everyone accepted the consent request",
     fam_org_activity_someone: "Someone",
     fam_org_activity_member_joined: "{{target}} joined the family",
     fam_org_activity_member_joined_generic: "A member joined",
@@ -3866,7 +3868,7 @@ export const en: Translations = {
     refer_a_friend: "Refer a Friend",
     referral_program: "Referral Program",
     referral_program_description:
-      "Invite friends to Aster and earn credits when they subscribe to a paid plan.",
+      "Invite friends to Aster and earn credit on every payment they make.",
     your_referral_link: "Your referral link",
     copy_link: "Copy Link",
     link_copied: "Link copied to clipboard",
@@ -3880,7 +3882,7 @@ export const en: Translations = {
     referral_step_signup:
       "They sign up for Aster using your link and subscribe to a paid plan.",
     referral_step_earn:
-      "You both earn $10 in Aster credit, applied to your next renewal.",
+      "You earn a share of every payment they make, for as long as they stay subscribed.",
     referral_rewards: "Rewards",
     credits_title: "Credits",
     credits_subtitle: "Earn Aster credits by completing different tasks.",
@@ -3890,7 +3892,7 @@ export const en: Translations = {
     credits_shop_plans: "Shop plans",
     credit_task_refer_title: "Refer a friend to Aster",
     credit_task_refer_hint:
-      "Both you and your friend will receive $10 after they sign up for Aster.",
+      "Earn a percentage of every payment your friend makes once they subscribe.",
     credit_task_refer_cta: "Invite",
     credit_task_ios_title: "Download the Aster app for iOS",
     credit_task_ios_hint_coming: "Coming soon",
@@ -3903,16 +3905,16 @@ export const en: Translations = {
     referral_status_pending: "Pending",
     referral_status_completed: "Completed",
     referral_reward_info:
-      "$10 for you, $10 for your friend when they sign up for Aster.",
+      "Your friend gets a discount on their first payment, and you earn on every payment they make.",
     referral_commission_info:
-      "Plus {{ percent }}% of every payment your referrals make, as long as they stay subscribed.",
-    referral_max_credits: "Maximum earnings: {{ value }}",
+      "You earn {{ percent }}% of every payment your referrals make, for as long as they stay subscribed.",
+    referral_max_credits: "Maximum earnings: {{ value }} per year",
     referral_gauge_earned_label: "Earned",
     total_earned: "Total Earned",
     send_referral_to_contacts: "Email All Contacts",
     referral_email_subject: "You should try Aster Mail",
     referral_email_body:
-      "Hey!\n\nI've been using Aster Mail for a while now and really like it. Everything is end to end encrypted, so nobody can read your emails except you. Not even the people who run it.\n\nIf you ever want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nWe both get some credit if you end up subscribing, but no pressure either way. Just figured you might like it.\n\nCheers",
+      "Hey!\n\nI've been using Aster Mail for a while now and really like it. Everything is end to end encrypted, so nobody can read your emails except you. Not even the people who run it.\n\nIf you ever want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nYou get a discount on your first payment if you subscribe, and I earn a little credit, but no pressure either way. Just figured you might like it.\n\nCheers",
     referral_no_contacts: "No contacts found. Add some contacts first!",
     referral_loading_contacts: "Loading contacts...",
     referral_your_discount: "Your Discount",

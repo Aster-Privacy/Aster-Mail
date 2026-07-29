@@ -924,7 +924,7 @@ export function ReferralTab() {
             </p>
             <p className="text-sm text-txt-secondary">
               {t("settings.referral_commission_info", {
-                percent: String(referral_info.commission_percent || 5),
+                percent: String(referral_info.commission_percent || 10),
               })}
             </p>
             {referral_info.max_credits_cents > 0 && (

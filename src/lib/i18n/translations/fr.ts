@@ -4847,10 +4847,10 @@ export const fr = {
     referral_status_pending: "En attente",
     referral_status_completed: "Terminé",
     referral_reward_info:
-      "2,00 $ pour vous, 1,00 $ pour votre ami lorsqu'il souscrit à une offre payante.",
+      "Votre ami bénéficie d'une réduction sur son premier paiement et vous gagnez sur chacun de ses paiements.",
     referral_commission_info:
-      "Plus {{ percent }} % de chaque paiement de vos filleuls, tant qu'ils restent abonnés.",
-    referral_max_credits: "Gains maximums : {{ value }}",
+      "Vous gagnez {{ percent }} % de chaque paiement de vos filleuls, tant qu'ils restent abonnés.",
+    referral_max_credits: "Gains maximums : {{ value }} par an",
     referral_gauge_earned_label: "Gagné",
     total_earned: "Total gagné",
     affiliate_program: "Programme d'Affiliation",
@@ -5111,7 +5111,7 @@ export const fr = {
     use_credits_for_renewals_description:
       "Appliquer automatiquement votre solde de crédits aux renouvellements d'offre et d'extensions. Si votre solde ne couvre pas le montant total, le reste sera débité sur votre moyen de paiement.",
     referral_program_description:
-      "Invitez vos amis sur Aster et gagnez des crédits lorsqu'ils souscrivent à une offre payante.",
+      "Invitez vos amis sur Aster et gagnez du crédit sur chacun de leurs paiements.",
     referral_not_eligible_description: "Veuillez réessayer plus tard.",
     billing_address_description:
       "Ajoutez vos coordonnées de facturation pour qu'elles apparaissent sur vos factures.",
@@ -5399,7 +5399,8 @@ export const fr = {
     credit_task_ios_hint_coming: "Bientôt disponible",
     credit_task_ios_title: "Installer sur iOS",
     credit_task_refer_cta: "Parrainer",
-    credit_task_refer_hint: "Gagnez des crédits pour chaque ami qui s'inscrit.",
+    credit_task_refer_hint:
+      "Gagnez un pourcentage de chaque paiement de votre ami une fois qu'il s'abonne.",
     credit_task_refer_title: "Parrainer un ami",
     credit_type_install_android: "Installation Android",
     credit_type_install_desktop: "Installation sur ordinateur",
@@ -5832,13 +5833,14 @@ export const fr = {
       "Journaliste ? Contactez le support avec votre carte de presse pour recevoir votre code.",
     refer_a_friend: "Parrainer un ami",
     referral_email_body:
-      "Bonjour !\n\nJ'utilise Aster Mail et j'apprécie vraiment. C'est chiffré de bout en bout, donc personne ne peut lire vos e-mails sauf vous. Même pas Aster.\n\nSi vous voulez essayer, voici mon lien de parrainage :\n\n{{ referral_link }}\n\nNous recevons tous les deux des crédits si vous finissez par vous abonner, mais sans pression. Je pensais juste que ça vous plairait.\n\nCordialement",
+      "Bonjour !\n\nJ'utilise Aster Mail et j'apprécie vraiment. C'est chiffré de bout en bout, donc personne ne peut lire vos e-mails sauf vous. Même pas Aster.\n\nSi vous voulez essayer, voici mon lien de parrainage :\n\n{{ referral_link }}\n\nVous bénéficiez d'une réduction sur votre premier paiement si vous vous abonnez, et je gagne un peu de crédit, mais sans pression. Je pensais juste que ça vous plairait.\n\nCordialement",
     referral_email_subject: "Rejoignez Aster Mail",
     referral_how_it_works: "Comment ça marche",
     referral_loading_contacts: "Chargement des contacts...",
     referral_no_contacts: "Aucun contact trouvé",
     referral_rewards: "Vos récompenses",
-    referral_step_earn: "Vous gagnez tous les deux des crédits",
+    referral_step_earn:
+      "Vous gagnez une part de chacun de leurs paiements, tant qu'ils restent abonnés.",
     referral_step_share: "Partagez votre lien de parrainage",
     referral_step_signup: "Votre ami crée un compte",
     registered: "Enregistre",
