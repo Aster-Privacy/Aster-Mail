@@ -228,6 +228,7 @@ export async function execute_external_email_send(
     attachments?: Attachment[];
   },
   pgp_enabled = false,
+  pgp_override: boolean | null = null,
 ) {
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
@@ -240,6 +241,9 @@ export async function execute_external_email_send(
       encrypt_emails: use_pgp,
       require_encryption: false,
     },
+    ...(pgp_override !== null && !email_data.secure_external
+      ? { force_pgp: pgp_override }
+      : {}),
   };
 
   if (delay_seconds > 0 && !email_data.secure_external) {

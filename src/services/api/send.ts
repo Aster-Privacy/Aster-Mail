@@ -124,6 +124,7 @@ interface ExternalSendRequest {
   expiry_password?: string;
   attachments?: ExternalAttachmentPayload[];
   secure_message?: SecureMessagePayload;
+  force_pgp?: boolean;
 }
 
 export async function send_simple_email(

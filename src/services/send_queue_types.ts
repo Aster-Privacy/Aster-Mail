@@ -83,6 +83,7 @@ export interface EmailParams {
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   forward_original_mail_id?: string;
   in_reply_to?: string;
+  force_pgp?: boolean;
 }
 
 export interface QueueCallbacks {

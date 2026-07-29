@@ -57,6 +57,7 @@ export interface QueueEmailRequest {
   forward_original_mail_id?: string;
   in_reply_to?: string;
   expires_at?: string;
+  force_pgp?: boolean;
 }
 
 export interface QueueEmailResponse {

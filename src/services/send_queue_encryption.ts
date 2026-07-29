@@ -74,7 +74,6 @@ import {
 import { format_bytes } from "@/lib/utils";
 import {
   discover_external_recipient_keys,
-  encrypt_for_external_recipients,
   build_subject_bundle,
 } from "@/utils/email_crypto";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
@@ -658,12 +657,6 @@ export async function execute_external_send(
           }
         }
 
-        if (encryption_opts.encrypt_emails && recipient_keys.length > 0) {
-          body_to_send = await encrypt_for_external_recipients(
-            body_to_send,
-            recipient_keys,
-          );
-        }
       } else if (encryption_opts.require_encryption) {
         throw create_error(
           "encryption_failed",
@@ -787,6 +780,7 @@ export async function execute_external_send(
     expiry_password: is_secure_external ? undefined : email.expiry_password,
     attachments: is_secure_external ? undefined : external_attachments,
     secure_message,
+    force_pgp: is_secure_external ? undefined : email.force_pgp,
   };
 
   let effective_thread_id = email.thread_id;
@@ -858,6 +852,7 @@ export async function reencrypt_all_sent_mail(
         item_type: "sent",
         limit: 100,
         cursor,
+        include_reactions: true,
       });
 
       const items = response.data?.items;

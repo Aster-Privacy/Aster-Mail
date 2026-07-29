@@ -423,7 +423,12 @@ export function use_compose_send({
       }
 
       if (has_external || email_data.secure_external) {
-        await execute_external_email_send(ctx, email_data, pgp_enabled);
+        await execute_external_email_send(
+          ctx,
+          email_data,
+          pgp_enabled,
+          pgp_override,
+        );
         await confirm_draft_deleted();
 
         return;
@@ -462,6 +467,7 @@ export function use_compose_send({
     attachments,
     preferences.auto_save_recent_recipients,
     pgp_enabled,
+    pgp_override,
     t,
   ]);
 
