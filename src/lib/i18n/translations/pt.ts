@@ -2336,13 +2336,16 @@ export const pt = {
     alias_delivery_log_reason_alias_disabled: "O alias estava desativado",
     alias_delivery_log_reason_unknown: "Bloqueado",
     alias_delivery_title: "Entrega",
-    alias_never_inbox: "Ignorar a caixa de entrada",
-    alias_never_inbox_desc:
-      "O correio enviado para este alias é arquivado ao chegar. Continua pesquisável e em Todo o correio.",
-    alias_never_inbox_info:
-      "Útil para inscrições e recibos que quer guardar mas não ver na caixa de entrada.",
-    alias_never_inbox_error:
+    alias_delivery_folder:
+      "Entregar em",
+    alias_delivery_folder_desc:
+      "Escolhe onde chega o correio deste alias. A caixa de entrada é o padrão.",
+    alias_delivery_folder_info:
+      "O correio deste alias vai direto para a pasta escolhida, sem regras. Uma regra correspondente continua a ter prioridade.",
+    alias_delivery_folder_error:
       "Essa definição não foi guardada. Outra tentativa deve resolver.",
+    alias_delivery_folder_missing:
+      "Pasta eliminada",
     alias_relay_title: "Entrega",
     alias_relay_description:
       "Escolha como os e-mails para este alias são entregues.",

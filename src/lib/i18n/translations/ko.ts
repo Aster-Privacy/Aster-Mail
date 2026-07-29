@@ -2227,13 +2227,16 @@ export const ko = {
     alias_delivery_log_reason_alias_disabled: "별칭이 사용 중지됨",
     alias_delivery_log_reason_unknown: "차단됨",
     alias_delivery_title: "전달",
-    alias_never_inbox: "받은편지함 건너뛰기",
-    alias_never_inbox_desc:
-      "이 별칭으로 온 메일은 도착 시 보관됩니다. 검색할 수 있고 전체 메일에 남아 있습니다.",
-    alias_never_inbox_info:
-      "보관하고 싶지만 받은편지함에는 보이지 않게 하려는 가입 확인과 영수증에 유용합니다.",
-    alias_never_inbox_error:
-      "이 설정이 저장되지 않았습니다. 다시 시도하면 됩니다.",
+    alias_delivery_folder:
+      "받을 위치",
+    alias_delivery_folder_desc:
+      "이 별칭으로 오는 메일이 도착할 위치를 선택하세요. 기본값은 받은편지함입니다.",
+    alias_delivery_folder_info:
+      "규칙 없이도 선택한 폴더로 바로 들어옵니다. 일치하는 규칙이 있으면 규칙이 우선합니다.",
+    alias_delivery_folder_error:
+      "설정이 저장되지 않았습니다. 다시 시도해 보세요.",
+    alias_delivery_folder_missing:
+      "삭제된 폴더",
     alias_relay_title: "전송",
     alias_relay_description: "이 별칭으로 오는 메일의 전송 방식을 선택하세요.",
     alias_relay_mode_native: "네이티브",

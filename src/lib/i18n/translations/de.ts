@@ -2365,13 +2365,16 @@ export const de = {
     alias_delivery_log_reason_alias_disabled: "Alias war deaktiviert",
     alias_delivery_log_reason_unknown: "Blockiert",
     alias_delivery_title: "Zustellung",
-    alias_never_inbox: "Posteingang überspringen",
-    alias_never_inbox_desc:
-      "An diesen Alias gesendete Mail wird beim Empfang archiviert. Sie bleibt durchsuchbar und in Alle Nachrichten.",
-    alias_never_inbox_info:
-      "Praktisch für Anmeldungen und Belege, die Sie behalten, aber nicht im Posteingang sehen möchten.",
-    alias_never_inbox_error:
-      "Diese Einstellung wurde nicht gespeichert. Ein weiterer Versuch sollte genügen.",
+    alias_delivery_folder:
+      "Zustellen an",
+    alias_delivery_folder_desc:
+      "Wähle, wo Mail an diesen Alias landet. Standard ist der Posteingang.",
+    alias_delivery_folder_info:
+      "Mail an diesen Alias landet ohne Regel direkt im gewählten Ordner. Eine passende Regel hat weiterhin Vorrang und legt die Nachricht in ihren Ordner.",
+    alias_delivery_folder_error:
+      "Diese Einstellung wurde nicht gespeichert. Ein weiterer Versuch sollte klappen.",
+    alias_delivery_folder_missing:
+      "Gelöschter Ordner",
     alias_relay_title: "Zustellung",
     alias_relay_description:
       "Wähle, wie Mails an diesen Alias zugestellt werden.",

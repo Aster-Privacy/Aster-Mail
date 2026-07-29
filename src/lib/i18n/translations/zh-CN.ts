@@ -2121,11 +2121,16 @@ export const zh_CN = {
     alias_delivery_log_reason_alias_disabled: "别名已停用",
     alias_delivery_log_reason_unknown: "已屏蔽",
     alias_delivery_title: "投递",
-    alias_never_inbox: "跳过收件箱",
-    alias_never_inbox_desc:
-      "发送到此别名的邮件在到达时会被归档。仍然可以搜索，并保留在全部邮件中。",
-    alias_never_inbox_info: "适合想保留但不想显示在收件箱中的注册确认和收据。",
-    alias_never_inbox_error: "该设置未能保存。再试一次即可。",
+    alias_delivery_folder:
+      "投递到",
+    alias_delivery_folder_desc:
+      "选择发往此别名的邮件落入哪里。默认为收件箱。",
+    alias_delivery_folder_info:
+      "无需规则，邮件直接进入你选的文件夹。匹配的规则仍然优先。",
+    alias_delivery_folder_error:
+      "该设置未能保存。再试一次即可。",
+    alias_delivery_folder_missing:
+      "已删除的文件夹",
     alias_relay_title: "投递",
     alias_relay_description: "选择发往此别名的邮件如何投递。",
     alias_relay_mode_native: "原生",

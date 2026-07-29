@@ -2320,13 +2320,16 @@ export const ja = {
     alias_delivery_log_reason_alias_disabled: "エイリアスが無効でした",
     alias_delivery_log_reason_unknown: "ブロック済み",
     alias_delivery_title: "配信",
-    alias_never_inbox: "受信トレイをスキップ",
-    alias_never_inbox_desc:
-      "このエイリアス宛のメールは受信時にアーカイブされます。検索も可能で、すべてのメールに残ります。",
-    alias_never_inbox_info:
-      "残しておきたいが受信トレイには表示したくない登録確認やレシートに便利です。",
-    alias_never_inbox_error:
+    alias_delivery_folder:
+      "配送先",
+    alias_delivery_folder_desc:
+      "このエイリアス宛メールの届き先を選びます。既定は受信トレイです。",
+    alias_delivery_folder_info:
+      "ルールなしで選んだフォルダーに直接届きます。一致するルールがある場合はルールが優先されます。",
+    alias_delivery_folder_error:
       "この設定は保存されませんでした。もう一度お試しください。",
+    alias_delivery_folder_missing:
+      "削除されたフォルダー",
     alias_relay_title: "配信",
     alias_relay_description: "このエイリアス宛のメールの配信方法を選択します。",
     alias_relay_mode_native: "ネイティブ",

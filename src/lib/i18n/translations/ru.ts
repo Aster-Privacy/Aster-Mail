@@ -2330,13 +2330,16 @@ export const ru = {
     alias_delivery_log_reason_alias_disabled: "Псевдоним был отключён",
     alias_delivery_log_reason_unknown: "Заблокировано",
     alias_delivery_title: "Доставка",
-    alias_never_inbox: "Не показывать во входящих",
-    alias_never_inbox_desc:
-      "Письма на этот алиас архивируются при получении. Они остаются доступными для поиска и в разделе Вся почта.",
-    alias_never_inbox_info:
-      "Удобно для регистраций и чеков, которые нужно сохранить, но не видеть во входящих.",
-    alias_never_inbox_error:
-      "Эта настройка не сохранилась. Ещё одна попытка должна помочь.",
+    alias_delivery_folder:
+      "Доставлять в",
+    alias_delivery_folder_desc:
+      "Выберите, куда попадает почта этого псевдонима. По умолчанию - Входящие.",
+    alias_delivery_folder_info:
+      "Почта попадает сразу в выбранную папку без правил. Подходящее правило все равно имеет приоритет.",
+    alias_delivery_folder_error:
+      "Настройка не сохранилась. Попробуйте еще раз.",
+    alias_delivery_folder_missing:
+      "Удаленная папка",
     alias_relay_title: "Доставка",
     alias_relay_description:
       "Выберите, как доставляется почта на этот псевдоним.",

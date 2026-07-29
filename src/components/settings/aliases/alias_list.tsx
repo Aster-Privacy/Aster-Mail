@@ -71,7 +71,10 @@ interface AliasListProps {
   on_display_name_saved?: (alias_id: string, name: string) => void;
   on_note_saved?: (alias_id: string, note: string) => void;
   on_websites_saved?: (alias_id: string, websites: string[]) => void;
-  on_never_inbox_saved?: (alias_id: string, value: boolean) => void;
+  on_delivery_saved?: (
+    alias_id: string,
+    value: { never_inbox: boolean; delivery_folder_token: string | null },
+  ) => void;
   on_aliases_changed?: () => void;
   on_domain_address_display_name_saved?: (
     address_id: string,
@@ -132,7 +135,7 @@ export function AliasList({
   on_display_name_saved,
   on_note_saved,
   on_websites_saved,
-  on_never_inbox_saved,
+  on_delivery_saved,
   on_aliases_changed,
   on_domain_address_display_name_saved,
   on_alias_pin_toggle,
@@ -411,7 +414,7 @@ export function AliasList({
               on_delete={on_alias_delete}
               on_display_name_saved={on_display_name_saved}
               on_note_saved={on_note_saved}
-              on_never_inbox_saved={on_never_inbox_saved}
+              on_delivery_saved={on_delivery_saved}
               on_websites_saved={on_websites_saved}
               on_select={handle_select}
               default_advanced_open={auto_expand}

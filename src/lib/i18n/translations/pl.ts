@@ -2341,13 +2341,16 @@ export const pl = {
     alias_delivery_log_reason_alias_disabled: "Alias był wyłączony",
     alias_delivery_log_reason_unknown: "Zablokowane",
     alias_delivery_title: "Dostarczanie",
-    alias_never_inbox: "Pomiń skrzynkę odbiorczą",
-    alias_never_inbox_desc:
-      "Poczta wysłana na ten alias jest archiwizowana po odebraniu. Pozostaje wyszukiwalna i widoczna w Cała poczta.",
-    alias_never_inbox_info:
-      "Przydatne przy rejestracjach i paragonach, które chcesz zachować, ale nie widzieć w skrzynce odbiorczej.",
-    alias_never_inbox_error:
-      "To ustawienie nie zostało zapisane. Kolejna próba powinna wystarczyć.",
+    alias_delivery_folder:
+      "Dostarczaj do",
+    alias_delivery_folder_desc:
+      "Wybierz, gdzie trafia poczta z tego aliasu. Domyślnie to skrzynka odbiorcza.",
+    alias_delivery_folder_info:
+      "Poczta z tego aliasu trafia prosto do wybranego folderu, bez reguły. Pasująca reguła nadal ma pierwszeństwo.",
+    alias_delivery_folder_error:
+      "To ustawienie nie zostało zapisane. Kolejna próba powinna się udać.",
+    alias_delivery_folder_missing:
+      "Usunięty folder",
     alias_relay_title: "Dostarczanie",
     alias_relay_description: "Wybierz sposób dostarczania poczty na ten alias.",
     alias_relay_mode_native: "Natywny",
