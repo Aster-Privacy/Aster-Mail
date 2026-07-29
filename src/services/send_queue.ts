@@ -512,6 +512,7 @@ async function prepare_email_for_server_queue(
     forward_original_mail_id: email.forward_original_mail_id,
     in_reply_to: email.in_reply_to,
     expires_at: email.expires_at,
+    force_pgp: email.force_pgp,
   };
 
   return { request, is_encrypted };
