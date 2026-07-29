@@ -150,8 +150,12 @@ export function TranslationBanner({
         >
           <span className="min-w-0 truncate">{message}</span>
           {info && (
-            <span className="flex-shrink-0 text-txt-muted">
-              <InfoPopover description={info.description} title={info.title} />
+            <span className="flex flex-shrink-0 items-center self-center leading-none text-txt-muted">
+              <InfoPopover
+                description={info.description}
+                icon_class="w-3.5 h-3.5"
+                title={info.title}
+              />
             </span>
           )}
           {status === "offer" && (
