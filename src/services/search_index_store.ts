@@ -45,10 +45,11 @@ import {
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
-const MANIFEST_VERSION = 4;
+const MANIFEST_VERSION = 5;
 export const SNAPSHOT_CHUNK_SIZE = 2000;
 export const MAX_INDEX_BODY_CHARS = 2048;
 export const MAX_INDEX_PREVIEW_CHARS = 320;
+export const MAX_INDEX_RECIPIENTS = 32;
 const STORAGE_RESERVE_BYTES = 64 * 1024 * 1024;
 const STORAGE_MAX_USAGE_RATIO = 0.9;
 const CHUNK_CACHE_SIZE = 2;
@@ -143,6 +144,17 @@ export function trim_item_for_index(item: MailItem): MailItem {
   };
 }
 
+function bound_recipients(
+  list: { name: string; email: string }[] | undefined,
+): { name: string; email: string }[] {
+  if (!list || list.length === 0) return [];
+
+  return list.slice(0, MAX_INDEX_RECIPIENTS).map((r) => ({
+    name: r.name || "",
+    email: r.email || "",
+  }));
+}
+
 export function slim_envelope_for_index(
   envelope: DecryptedEnvelope,
 ): DecryptedEnvelope {
@@ -157,8 +169,8 @@ export function slim_envelope_for_index(
     html_body: "",
     from: envelope.from,
     to: envelope.to,
-    cc: [],
-    bcc: [],
+    cc: bound_recipients(envelope.cc),
+    bcc: bound_recipients(envelope.bcc),
     sent_at: envelope.sent_at,
     ...(headers && headers.length > 0 ? { raw_headers: headers } : {}),
   };

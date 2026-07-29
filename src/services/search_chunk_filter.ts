@@ -338,7 +338,11 @@ export function summarize_chunk(
       collect_grams(forwarding.display_sender_email, grams);
     }
 
-    for (const recipient of (envelope.to || []) as {
+    for (const recipient of [
+      ...(envelope.to || []),
+      ...(envelope.cc || []),
+      ...(envelope.bcc || []),
+    ] as {
       email?: string;
       name?: string;
     }[]) {

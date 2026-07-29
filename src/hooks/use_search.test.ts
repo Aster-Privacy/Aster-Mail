@@ -141,3 +141,56 @@ describe("matches_query - encrypted content search toggle", () => {
     expect(run("revenue", env, false)).toBe(false);
   });
 });
+
+describe("matches_query - sent mail is found by recipient", () => {
+  const sent_envelope = (overrides: Partial<DecryptedEnvelope> = {}) =>
+    make_envelope({
+      subject: "Contract",
+      body_text: "attached",
+      from: { name: "", email: "me@astermail.org" },
+      to: [{ name: "Dana Reyes", email: "dana@partner.com" }],
+      ...overrides,
+    });
+
+  it("finds a sent email by the recipient name with plain terms", () => {
+    expect(run("dana", sent_envelope(), true)).toBe(true);
+    expect(run("reyes", sent_envelope(), true)).toBe(true);
+  });
+
+  it("finds a sent email by the recipient address with plain terms", () => {
+    expect(run("dana@partner.com", sent_envelope(), true)).toBe(true);
+    expect(run("partner.com", sent_envelope(), true)).toBe(true);
+  });
+
+  it("finds a sent email by recipient even with content search disabled", () => {
+    expect(run("dana", sent_envelope(), false)).toBe(true);
+  });
+
+  it("finds a sent email addressed only via cc or bcc", () => {
+    const cc_only = sent_envelope({
+      to: [],
+      cc: [{ name: "Priya Nair", email: "priya@partner.com" }],
+    });
+    const bcc_only = sent_envelope({
+      to: [],
+      bcc: [{ name: "Omar Diaz", email: "omar@partner.com" }],
+    });
+
+    expect(run("priya", cc_only, true)).toBe(true);
+    expect(run("omar", bcc_only, true)).toBe(true);
+  });
+
+  it("matches the to: operator against cc and bcc recipients", () => {
+    const cc_only = sent_envelope({
+      to: [],
+      cc: [{ name: "Priya Nair", email: "priya@partner.com" }],
+    });
+
+    expect(run("to:priya@partner.com", cc_only, true)).toBe(true);
+    expect(run("to:nobody@nowhere.com", cc_only, true)).toBe(false);
+  });
+
+  it("does not match an unrelated recipient", () => {
+    expect(run("zzzznotarecipient", sent_envelope(), true)).toBe(false);
+  });
+});

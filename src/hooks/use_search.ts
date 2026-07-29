@@ -663,6 +663,23 @@ async function decrypt_envelope_for_search(
 
     if (!vault?.identity_key) return null;
 
+    const first_byte = base64_to_array(encrypted)[0];
+
+    if (
+      nonce_bytes.length === 12 &&
+      (first_byte === 2 || first_byte === 3 || first_byte === 4)
+    ) {
+      const { decrypt_mail_envelope } = await import(
+        "@/components/email/shared/decrypt_envelope"
+      );
+      const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(
+        encrypted,
+        nonce,
+      );
+
+      if (ecies_result) return ecies_result;
+    }
+
     const result = await try_decrypt_with_identity_key(
       encrypted,
       nonce_bytes,
@@ -1560,6 +1577,19 @@ async function build_search_index(
   return index;
 }
 
+function collect_recipient_text(envelope: DecryptedEnvelope): string {
+  return [
+    ...(envelope.to || []),
+    ...(envelope.cc || []),
+    ...(envelope.bcc || []),
+  ]
+    .map(
+      (r: { email?: string; name?: string }) =>
+        `${(r.email || "").toLowerCase()} ${(r.name || "").toLowerCase()}`,
+    )
+    .join(" ");
+}
+
 function matches_operator(
   op: ParsedOperator,
   envelope: DecryptedEnvelope,
@@ -1585,16 +1615,8 @@ function matches_operator(
 
       return sender.includes(val) || sender_name.includes(val);
     }
-    case "to": {
-      const recipients = (envelope.to || [])
-        .map(
-          (r: { email?: string; name?: string }) =>
-            `${(r.email || "").toLowerCase()} ${(r.name || "").toLowerCase()}`,
-        )
-        .join(" ");
-
-      return recipients.includes(val);
-    }
+    case "to":
+      return collect_recipient_text(envelope).includes(val);
     case "subject":
       return (envelope.subject || "").toLowerCase().includes(val);
     case "has": {
@@ -1806,12 +1828,7 @@ export function matches_query(
   const sender_email = `${envelope.from?.email || ""} ${
     forwarding?.display_sender_email || ""
   }`.toLowerCase();
-  const recipients = (envelope.to || [])
-    .map(
-      (r: { email?: string; name?: string }) =>
-        `${(r.email || "").toLowerCase()} ${(r.name || "").toLowerCase()}`,
-    )
-    .join(" ");
+  const recipients = collect_recipient_text(envelope);
   const body = search_body
     ? (search_body_text ??
       strip_html_tags(envelope.body_text || "").toLowerCase())
@@ -1823,6 +1840,7 @@ export function matches_query(
         subject.includes(term) ||
         sender_name.includes(term) ||
         sender_email.includes(term) ||
+        recipients.includes(term) ||
         (search_body && body.includes(term))
       );
     }
