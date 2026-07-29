@@ -62,6 +62,7 @@ import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_m
 import { AliasDirectoriesSection } from "@/components/settings/alias_directories_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { AliasImportModal } from "@/components/settings/aliases/alias_import_modal";
+import { AliasExportModal } from "@/components/settings/aliases/alias_export_modal";
 import { AliasPreferencesPanel } from "@/components/settings/aliases/alias_preferences_panel";
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
@@ -69,19 +70,6 @@ export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wi
 type AliasTab = "aliases" | "domains" | "directories" | "ghost" | "preferences";
 
 const SESSION_TAB_KEY = "alias_tab";
-
-type ExportFormat = "csv" | "json";
-
-function download_file(filename: string, content: string, mime_type: string) {
-  const blob = new Blob([content], { type: mime_type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 function read_initial_tab(): AliasTab {
   try {
@@ -145,7 +133,6 @@ export function AliasesSection() {
   const [renew_errors, set_renew_errors] = useState<Record<string, string>>({});
   const [show_import_modal, set_show_import_modal] = useState(false);
   const [show_export_modal, set_show_export_modal] = useState(false);
-  const [export_format, set_export_format] = useState<ExportFormat>("csv");
   const [default_alias_domain, set_default_alias_domain] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -274,55 +261,6 @@ export function AliasesSection() {
     } catch {}
   };
 
-  const handle_export = (format: ExportFormat) => {
-    const date_str = new Date().toISOString().slice(0, 10);
-    const entries = [
-      ...hook.aliases.map((a) => ({
-        alias: a.full_address,
-        note: a.display_name ?? "",
-        enabled: a.is_enabled,
-        created_at: a.created_at ?? "",
-      })),
-      ...hook.domain_addresses.map((a) => ({
-        alias: `${a.local_part}@${a.domain_name}`,
-        note: a.display_name ?? "",
-        enabled: a.is_enabled,
-        created_at: a.created_at ?? "",
-      })),
-    ];
-
-    if (format === "json") {
-      download_file(
-        `aster-aliases-${date_str}.json`,
-        JSON.stringify(entries, null, 2),
-        "application/json;charset=utf-8;",
-      );
-    } else {
-      const rows = [
-        ["alias", "note", "enabled", "created_at"],
-        ...entries.map((e) => [
-          e.alias,
-          e.note,
-          String(e.enabled),
-          e.created_at,
-        ]),
-      ];
-      const csv_content = rows
-        .map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-        )
-        .join("\n");
-
-      download_file(
-        `aster-aliases-${date_str}.csv`,
-        csv_content,
-        "text/csv;charset=utf-8;",
-      );
-    }
-
-    set_show_export_modal(false);
-  };
-
   useEffect(() => {
     const handle_auto_open = () => {
       handle_tab("aliases");
@@ -439,7 +377,7 @@ export function AliasesSection() {
               on_aliases_changed={hook.load_aliases}
               on_avatar_changed={hook.load_aliases}
               on_display_name_saved={hook.handle_display_name_saved}
-              on_never_inbox_saved={hook.handle_never_inbox_saved}
+              on_delivery_saved={hook.handle_delivery_saved}
               on_note_saved={hook.handle_note_saved}
               on_websites_saved={hook.handle_websites_saved}
               on_domain_addr_delete={hook.handle_domain_addr_delete}
@@ -828,47 +766,12 @@ export function AliasesSection() {
         }}
       />
 
-      <Modal is_open={show_export_modal} size="sm" on_close={() => set_show_export_modal(false)}>
-        <ModalHeader>
-          <ModalTitle>{t("settings.alias_export_title")}</ModalTitle>
-          <ModalDescription>
-            {t("settings.alias_export_description")}
-          </ModalDescription>
-        </ModalHeader>
-        <ModalBody>
-          <div className="flex flex-col gap-2">
-            {(["csv", "json"] as ExportFormat[]).map((format) => (
-              <label
-                key={format}
-                className="flex items-center gap-3 rounded-lg border border-edge-secondary px-3 py-2.5 cursor-pointer hover:bg-surf-secondary"
-                htmlFor={`alias-export-format-${format}`}
-              >
-                <input
-                  checked={export_format === format}
-                  className="h-4 w-4"
-                  id={`alias-export-format-${format}`}
-                  name="alias-export-format"
-                  type="radio"
-                  onChange={() => set_export_format(format)}
-                />
-                <span className="text-sm text-txt-primary">
-                  {format === "csv"
-                    ? t("settings.alias_export_format_csv")
-                    : t("settings.alias_export_format_json")}
-                </span>
-              </label>
-            ))}
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="outline" onClick={() => set_show_export_modal(false)}>
-            {t("common.cancel")}
-          </Button>
-          <Button onClick={() => handle_export(export_format)}>
-            {t("settings.alias_export_csv")}
-          </Button>
-        </ModalFooter>
-      </Modal>
+      <AliasExportModal
+        aliases={hook.aliases}
+        domain_addresses={hook.domain_addresses}
+        is_open={show_export_modal}
+        on_close={() => set_show_export_modal(false)}
+      />
 
       <ConfirmationModal
         confirm_text={null}
