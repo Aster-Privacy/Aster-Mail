@@ -2316,13 +2316,16 @@ export const es = {
     alias_delivery_log_reason_alias_disabled: "El alias estaba desactivado",
     alias_delivery_log_reason_unknown: "Bloqueado",
     alias_delivery_title: "Entrega",
-    alias_never_inbox: "Omitir la bandeja de entrada",
-    alias_never_inbox_desc:
-      "El correo enviado a este alias se archiva al llegar. Sigue siendo buscable y aparece en Todo el correo.",
-    alias_never_inbox_info:
-      "Útil para registros y recibos que quieres conservar pero no ver en la bandeja de entrada.",
-    alias_never_inbox_error:
+    alias_delivery_folder:
+      "Entregar en",
+    alias_delivery_folder_desc:
+      "Elige dónde llega el correo de este alias. La bandeja de entrada es la opción predeterminada.",
+    alias_delivery_folder_info:
+      "El correo de este alias va directo a la carpeta que elijas, sin necesidad de reglas. Una regla que coincida sigue teniendo prioridad.",
+    alias_delivery_folder_error:
       "Ese ajuste no se guardó. Otro intento debería bastar.",
+    alias_delivery_folder_missing:
+      "Carpeta eliminada",
     alias_relay_title: "Entrega",
     alias_relay_description: "Elige cómo se entrega el correo a este alias.",
     alias_relay_mode_native: "Nativo",

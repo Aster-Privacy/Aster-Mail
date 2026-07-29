@@ -2316,13 +2316,16 @@ export const tr = {
     alias_delivery_log_reason_alias_disabled: "Rumuz devre dışıydı",
     alias_delivery_log_reason_unknown: "Engellendi",
     alias_delivery_title: "Teslimat",
-    alias_never_inbox: "Gelen kutusunu atla",
-    alias_never_inbox_desc:
-      "Bu takma ada gönderilen posta geldiğinde arşivlenir. Aranabilir kalır ve Tüm Posta'da görünür.",
-    alias_never_inbox_info:
-      "Saklamak isteyip gelen kutusunda görmek istemediğiniz kayıtlar ve makbuzlar için kullanışlıdır.",
-    alias_never_inbox_error:
-      "Bu ayar kaydedilmedi. Bir deneme daha yeterli olacaktır.",
+    alias_delivery_folder:
+      "Teslim edilecek yer",
+    alias_delivery_folder_desc:
+      "Bu takma ada gelen postanın nereye düşeceğini seç. Varsayılan gelen kutusudur.",
+    alias_delivery_folder_info:
+      "Posta, kural gerekmeden seçtiğin klasöre doğrudan düşer. Eşleşen bir kural yine de önceliklidir.",
+    alias_delivery_folder_error:
+      "Bu ayar kaydedilmedi. Yeni bir deneme işe yarayacaktır.",
+    alias_delivery_folder_missing:
+      "Silinmiş klasör",
     alias_relay_title: "Teslimat",
     alias_relay_description:
       "Bu rumuza gelen postanın nasıl teslim edileceğini seçin.",

@@ -2273,13 +2273,16 @@ export const nl = {
     alias_delivery_log_reason_alias_disabled: "Alias was uitgeschakeld",
     alias_delivery_log_reason_unknown: "Geblokkeerd",
     alias_delivery_title: "Bezorging",
-    alias_never_inbox: "Postvak IN overslaan",
-    alias_never_inbox_desc:
-      "Mail naar deze alias wordt bij binnenkomst gearchiveerd. Hij blijft doorzoekbaar en staat in Alle mail.",
-    alias_never_inbox_info:
-      "Handig voor aanmeldingen en bonnen die je wilt bewaren maar niet in je postvak IN wilt zien.",
-    alias_never_inbox_error:
-      "Deze instelling is niet opgeslagen. Nog een poging zou moeten werken.",
+    alias_delivery_folder:
+      "Bezorgen in",
+    alias_delivery_folder_desc:
+      "Kies waar mail aan dit alias terechtkomt. Postvak IN is de standaard.",
+    alias_delivery_folder_info:
+      "Mail aan dit alias gaat zonder regel direct naar de gekozen map. Een passende regel wint nog steeds.",
+    alias_delivery_folder_error:
+      "Die instelling is niet opgeslagen. Nog een poging zou moeten lukken.",
+    alias_delivery_folder_missing:
+      "Verwijderde map",
     alias_relay_title: "Bezorging",
     alias_relay_description: "Kies hoe e-mail naar deze alias wordt bezorgd.",
     alias_relay_mode_native: "Native",

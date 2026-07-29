@@ -729,10 +729,19 @@ export function use_aliases() {
     });
   };
 
-  const handle_never_inbox_saved = (alias_id: string, value: boolean) => {
+  const handle_delivery_saved = (
+    alias_id: string,
+    value: { never_inbox: boolean; delivery_folder_token: string | null },
+  ) => {
     set_aliases((prev) => {
       const updated = prev.map((a) =>
-        a.id === alias_id ? { ...a, never_inbox: value } : a,
+        a.id === alias_id
+          ? {
+              ...a,
+              never_inbox: value.never_inbox,
+              delivery_folder_token: value.delivery_folder_token,
+            }
+          : a,
       );
 
       aliases_cache.aliases = updated;
@@ -856,7 +865,7 @@ export function use_aliases() {
     handle_open_setup,
     handle_wizard_close,
     handle_display_name_saved,
-    handle_never_inbox_saved,
+    handle_delivery_saved,
     handle_note_saved,
     handle_websites_saved,
     handle_domain_address_display_name_saved,

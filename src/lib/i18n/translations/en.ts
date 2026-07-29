@@ -5661,13 +5661,16 @@ export const en: Translations = {
     alias_delivery_log_reason_alias_disabled: "Alias was disabled",
     alias_delivery_log_reason_unknown: "Blocked",
     alias_delivery_title: "Delivery",
-    alias_never_inbox: "Skip the inbox",
-    alias_never_inbox_desc:
-      "Mail sent to this alias is archived on arrival. It stays searchable and in All Mail.",
-    alias_never_inbox_info:
-      "Useful for signups and receipts you want kept but not shown in the inbox. A folder rule that matches the message still wins, so it lands in that folder instead.",
-    alias_never_inbox_error:
+    alias_delivery_folder:
+      "Deliver to",
+    alias_delivery_folder_desc:
+      "Choose where mail to this alias lands. Inbox is the default.",
+    alias_delivery_folder_info:
+      "Mail sent to this alias goes straight to the folder you pick, with no rule needed. A rule that matches the message still wins, so it lands in that folder instead.",
+    alias_delivery_folder_error:
       "That setting did not save. Another attempt should do it.",
+    alias_delivery_folder_missing:
+      "Deleted folder",
     alias_relay_title: "Delivery",
     alias_relay_description: "Choose how mail to this alias is delivered.",
     alias_relay_mode_native: "Native",

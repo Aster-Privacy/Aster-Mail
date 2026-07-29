@@ -2242,12 +2242,16 @@ export const ar = {
     alias_delivery_log_reason_alias_disabled: "كان الاسم المستعار معطّلًا",
     alias_delivery_log_reason_unknown: "محظور",
     alias_delivery_title: "التسليم",
-    alias_never_inbox: "تخطي صندوق الوارد",
-    alias_never_inbox_desc:
-      "يتم أرشفة البريد المرسل إلى هذا الاسم المستعار عند وصوله. يبقى قابلاً للبحث وموجوداً في كل البريد.",
-    alias_never_inbox_info:
-      "مفيد لعمليات التسجيل والإيصالات التي تريد الاحتفاظ بها دون عرضها في صندوق الوارد.",
-    alias_never_inbox_error: "لم يتم حفظ هذا الإعداد. محاولة أخرى ستنجح.",
+    alias_delivery_folder:
+      "تسليم إلى",
+    alias_delivery_folder_desc:
+      "اختر أين يصل البريد المرسل إلى هذا الاسم المستعار. صندوق الوارد هو الافتراضي.",
+    alias_delivery_folder_info:
+      "يصل البريد مباشرة إلى المجلد الذي تختاره دون الحاجة إلى قاعدة. وإذا طابقته قاعدة فإنها تتغلب على هذا الإعداد.",
+    alias_delivery_folder_error:
+      "لم يتم حفظ هذا الإعداد. محاولة أخرى ستنجح.",
+    alias_delivery_folder_missing:
+      "مجلد محذوف",
     alias_relay_title: "التسليم",
     alias_relay_description:
       "اختر كيفية تسليم البريد الموجَّه إلى هذا الاسم المستعار.",

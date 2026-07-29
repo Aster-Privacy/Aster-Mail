@@ -5099,10 +5099,11 @@ export interface SettingsTranslations {
   alias_delivery_log_reason_alias_disabled: string;
   alias_delivery_log_reason_unknown: string;
   alias_delivery_title: string;
-  alias_never_inbox: string;
-  alias_never_inbox_desc: string;
-  alias_never_inbox_info: string;
-  alias_never_inbox_error: string;
+  alias_delivery_folder: string;
+  alias_delivery_folder_desc: string;
+  alias_delivery_folder_info: string;
+  alias_delivery_folder_error: string;
+  alias_delivery_folder_missing: string;
   alias_relay_title: string;
   alias_relay_description: string;
   alias_relay_mode_native: string;

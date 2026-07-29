@@ -2343,13 +2343,16 @@ export const it = {
     alias_delivery_log_reason_alias_disabled: "L'alias era disabilitato",
     alias_delivery_log_reason_unknown: "Bloccata",
     alias_delivery_title: "Consegna",
-    alias_never_inbox: "Salta la posta in arrivo",
-    alias_never_inbox_desc:
-      "La posta inviata a questo alias viene archiviata all'arrivo. Resta ricercabile e in Tutta la posta.",
-    alias_never_inbox_info:
-      "Utile per iscrizioni e ricevute che vuoi conservare ma non vedere nella posta in arrivo.",
-    alias_never_inbox_error:
-      "Questa impostazione non è stata salvata. Un altro tentativo dovrebbe bastare.",
+    alias_delivery_folder:
+      "Recapita in",
+    alias_delivery_folder_desc:
+      "Scegli dove arriva la posta di questo alias. La posta in arrivo è il valore predefinito.",
+    alias_delivery_folder_info:
+      "La posta di questo alias finisce direttamente nella cartella scelta, senza regole. Una regola corrispondente ha comunque la precedenza.",
+    alias_delivery_folder_error:
+      "L'impostazione non è stata salvata. Un altro tentativo dovrebbe funzionare.",
+    alias_delivery_folder_missing:
+      "Cartella eliminata",
     alias_relay_title: "Consegna",
     alias_relay_description:
       "Scegli come viene consegnata la posta a questo alias.",

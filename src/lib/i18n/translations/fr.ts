@@ -2330,13 +2330,16 @@ export const fr = {
     alias_delivery_log_reason_alias_disabled: "L'alias était désactivé",
     alias_delivery_log_reason_unknown: "Bloqué",
     alias_delivery_title: "Distribution",
-    alias_never_inbox: "Ignorer la boîte de réception",
-    alias_never_inbox_desc:
-      "Le courrier envoyé à cet alias est archivé à l'arrivée. Il reste consultable et présent dans Tous les messages.",
-    alias_never_inbox_info:
-      "Pratique pour les inscriptions et les reçus que vous souhaitez garder sans les voir dans la boîte de réception.",
-    alias_never_inbox_error:
+    alias_delivery_folder:
+      "Remettre dans",
+    alias_delivery_folder_desc:
+      "Choisis où arrive le courrier de cet alias. La boîte de réception est la valeur par défaut.",
+    alias_delivery_folder_info:
+      "Le courrier de cet alias va directement dans le dossier choisi, sans règle. Une règle correspondante reste prioritaire.",
+    alias_delivery_folder_error:
       "Ce réglage n'a pas été enregistré. Un nouvel essai devrait suffire.",
+    alias_delivery_folder_missing:
+      "Dossier supprimé",
     alias_relay_title: "Distribution",
     alias_relay_description:
       "Choisissez comment les e-mails adressés à cet alias sont distribués.",

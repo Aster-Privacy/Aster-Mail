@@ -55,6 +55,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_folders } from "@/hooks/use_folders";
 import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
 import { get_alias_preferences } from "@/services/api/aliases";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
@@ -934,32 +935,84 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
 }
 
 
+export interface AliasDeliveryUpdate {
+  never_inbox?: boolean;
+  delivery_folder_token?: string | null;
+}
+
+export interface AliasDeliveryState {
+  never_inbox: boolean;
+  delivery_folder_token: string | null;
+}
+
+const DELIVERY_INBOX_VALUE = "__inbox__";
+const DELIVERY_ARCHIVE_VALUE = "__archive__";
+
 function DeliveryPanel({
   never_inbox,
+  delivery_folder_token,
   on_save,
   on_saved,
 }: {
   never_inbox?: boolean;
-  on_save: (next: boolean) => Promise<{ error?: unknown }>;
-  on_saved: (next: boolean) => void;
+  delivery_folder_token?: string | null;
+  on_save: (next: AliasDeliveryUpdate) => Promise<{ error?: unknown }>;
+  on_saved: (next: AliasDeliveryState) => void;
 }) {
   const { t } = use_i18n();
-  const [enabled, set_enabled] = useState(!!never_inbox);
+  const { state: folders_state, fetch_folders } = use_folders();
+  const [value, set_value] = useState(
+    delivery_folder_token ||
+      (never_inbox ? DELIVERY_ARCHIVE_VALUE : DELIVERY_INBOX_VALUE),
+  );
   const [saving, set_saving] = useState(false);
 
-  const handle_change = async (next: boolean) => {
-    set_enabled(next);
+  useEffect(() => {
+    void fetch_folders();
+  }, [fetch_folders]);
+
+  const custom_folders = folders_state.folders.filter(
+    (folder) =>
+      folder.folder_type === "folder" || folder.folder_type === "custom",
+  );
+
+  const is_missing_folder =
+    !!delivery_folder_token &&
+    value === delivery_folder_token &&
+    !folders_state.is_loading &&
+    !custom_folders.some(
+      (folder) => folder.folder_token === delivery_folder_token,
+    );
+
+  const handle_change = async (next: string) => {
+    const previous = value;
+
+    set_value(next);
     set_saving(true);
-    const response = await on_save(next);
+
+    const update: AliasDeliveryUpdate =
+      next === DELIVERY_ARCHIVE_VALUE
+        ? { never_inbox: true }
+        : next === DELIVERY_INBOX_VALUE
+          ? { delivery_folder_token: null }
+          : { delivery_folder_token: next };
+
+    const response = await on_save(update);
 
     set_saving(false);
     if (response.error) {
-      set_enabled(!next);
-      show_toast(t("settings.alias_never_inbox_error"), "error");
+      set_value(previous);
+      show_toast(t("settings.alias_delivery_folder_error"), "error");
 
       return;
     }
-    on_saved(next);
+    on_saved({
+      never_inbox: next === DELIVERY_ARCHIVE_VALUE,
+      delivery_folder_token:
+        next === DELIVERY_ARCHIVE_VALUE || next === DELIVERY_INBOX_VALUE
+          ? null
+          : next,
+    });
   };
 
   return (
@@ -971,23 +1024,47 @@ function DeliveryPanel({
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <p className="text-sm text-txt-primary">
-              {t("settings.alias_never_inbox")}
+              {t("settings.alias_delivery_folder")}
             </p>
             <InfoHint
-              tip={t("settings.alias_never_inbox_info")}
-              title={t("settings.alias_never_inbox")}
+              tip={t("settings.alias_delivery_folder_info")}
+              title={t("settings.alias_delivery_folder")}
             />
           </div>
           <p className="text-xs text-txt-muted">
-            {t("settings.alias_never_inbox_desc")}
+            {t("settings.alias_delivery_folder_desc")}
           </p>
         </div>
-        <Switch size="lg"
-          aria-label={t("settings.alias_never_inbox")}
-          checked={enabled}
+        <Select
           disabled={saving}
-          onCheckedChange={handle_change}
-        />
+          value={value}
+          onValueChange={handle_change}
+        >
+          <SelectTrigger
+            aria-label={t("settings.alias_delivery_folder")}
+            className="h-9 w-44 shrink-0 bg-transparent"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={DELIVERY_INBOX_VALUE}>
+              {t("mail.inbox")}
+            </SelectItem>
+            <SelectItem value={DELIVERY_ARCHIVE_VALUE}>
+              {t("mail.archive")}
+            </SelectItem>
+            {custom_folders.map((folder) => (
+              <SelectItem key={folder.folder_token} value={folder.folder_token}>
+                {folder.name}
+              </SelectItem>
+            ))}
+            {is_missing_folder && (
+              <SelectItem value={delivery_folder_token}>
+                {t("settings.alias_delivery_folder_missing")}
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
@@ -1055,8 +1132,11 @@ type AliasAdvancedPanelProps =
   | (AliasDetailsProps & {
       alias_id: string;
       never_inbox?: boolean;
-      on_save_never_inbox?: (next: boolean) => Promise<{ error?: unknown }>;
-      on_saved_never_inbox?: (next: boolean) => void;
+      delivery_folder_token?: string | null;
+      on_save_delivery?: (
+        next: AliasDeliveryUpdate,
+      ) => Promise<{ error?: unknown }>;
+      on_saved_delivery?: (next: AliasDeliveryState) => void;
       domain_address_id?: never;
       alias_local_part?: never;
       alias_domain?: never;
@@ -1064,8 +1144,9 @@ type AliasAdvancedPanelProps =
   | {
       alias_id?: never;
       never_inbox?: never;
-      on_save_never_inbox?: never;
-      on_saved_never_inbox?: never;
+      delivery_folder_token?: never;
+      on_save_delivery?: never;
+      on_saved_delivery?: never;
       domain_address_id: string;
       alias_local_part: string;
       alias_domain: string;
@@ -1106,11 +1187,12 @@ export function AliasAdvancedPanel(props: AliasAdvancedPanelProps) {
           websites={props.websites}
         />
       )}
-      {alias_id && props.on_save_never_inbox && props.on_saved_never_inbox && (
+      {alias_id && props.on_save_delivery && props.on_saved_delivery && (
         <DeliveryPanel
+          delivery_folder_token={props.delivery_folder_token}
           never_inbox={props.never_inbox}
-          on_save={props.on_save_never_inbox}
-          on_saved={props.on_saved_never_inbox}
+          on_save={props.on_save_delivery}
+          on_saved={props.on_saved_delivery}
         />
       )}
       {alias_id && !delivery_log_locked && <StatsPanel alias_id={alias_id} />}
