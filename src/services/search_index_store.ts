@@ -32,6 +32,10 @@ import {
   has_vault_in_memory,
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import {
+  normalize_envelope_from,
+  normalize_envelope_recipients,
+} from "@/services/crypto/envelope_normalize";
 import { get_current_account_id } from "@/services/account_manager";
 import {
   normalize_chunk_summary,
@@ -144,15 +148,10 @@ export function trim_item_for_index(item: MailItem): MailItem {
   };
 }
 
-function bound_recipients(
-  list: { name: string; email: string }[] | undefined,
-): { name: string; email: string }[] {
-  if (!list || list.length === 0) return [];
-
-  return list.slice(0, MAX_INDEX_RECIPIENTS).map((r) => ({
-    name: r.name || "",
-    email: r.email || "",
-  }));
+function bound_recipients(list: unknown): { name: string; email: string }[] {
+  return normalize_envelope_recipients(list)
+    .slice(0, MAX_INDEX_RECIPIENTS)
+    .map((r) => ({ name: r.name || "", email: r.email }));
 }
 
 export function slim_envelope_for_index(
@@ -167,8 +166,8 @@ export function slim_envelope_for_index(
     body_text: envelope.body_text,
     body_html: "",
     html_body: "",
-    from: envelope.from,
-    to: envelope.to,
+    from: normalize_envelope_from(envelope.from) ?? { name: "", email: "" },
+    to: normalize_envelope_recipients(envelope.to),
     cc: bound_recipients(envelope.cc),
     bcc: bound_recipients(envelope.bcc),
     sent_at: envelope.sent_at,

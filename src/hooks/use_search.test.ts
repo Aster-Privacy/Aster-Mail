@@ -25,7 +25,9 @@ import { parse_search_query } from "@/utils/search_operators";
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 
-function make_envelope(overrides: Partial<DecryptedEnvelope> = {}): DecryptedEnvelope {
+function make_envelope(
+  overrides: Partial<DecryptedEnvelope> = {},
+): DecryptedEnvelope {
   return {
     subject: "Project sync notes",
     body_text: "Quarterly revenue increased by twenty percent last month",
@@ -70,7 +72,11 @@ function make_metadata(): MailItemMetadata {
   };
 }
 
-function run(query: string, envelope: DecryptedEnvelope, search_body: boolean): boolean {
+function run(
+  query: string,
+  envelope: DecryptedEnvelope,
+  search_body: boolean,
+): boolean {
   const parsed = parse_search_query(query);
   const terms = parsed.text_query
     .split(/\s+/)
@@ -192,5 +198,71 @@ describe("matches_query - sent mail is found by recipient", () => {
 
   it("does not match an unrelated recipient", () => {
     expect(run("zzzznotarecipient", sent_envelope(), true)).toBe(false);
+  });
+});
+
+describe("matches_query - string form senders and recipients", () => {
+  const as_unknown = (value: unknown) =>
+    value as DecryptedEnvelope["to"] & DecryptedEnvelope["from"];
+
+  it("finds mail whose recipients are plain address strings", () => {
+    const env = make_envelope({
+      from: { name: "", email: "me@astermail.org" },
+      to: as_unknown(["Dana Reyes <dana@partner.com>"]),
+    });
+
+    expect(run("dana", env, true)).toBe(true);
+    expect(run("reyes", env, true)).toBe(true);
+    expect(run("to:dana@partner.com", env, true)).toBe(true);
+  });
+
+  it("finds mail whose cc is a bare address string", () => {
+    const env = make_envelope({
+      to: [],
+      cc: as_unknown(["priya@partner.com"]),
+    });
+
+    expect(run("priya@partner.com", env, true)).toBe(true);
+  });
+
+  it("finds mail whose sender is a display-name string", () => {
+    const env = make_envelope({
+      from: as_unknown("Cassie Lang <cassie@example.com>"),
+    });
+
+    expect(run("cassie", env, true)).toBe(true);
+    expect(run("from:cassie@example.com", env, true)).toBe(true);
+  });
+});
+
+describe("matches_query - html only bodies", () => {
+  it("matches body words carried only in html", () => {
+    const env = make_envelope({
+      subject: "Invoice",
+      body_text: "",
+      body_html: "<p>Payment <b>reference</b> QX-4471 is due</p>",
+    });
+
+    expect(run("reference", env, true)).toBe(true);
+    expect(run("qx-4471", env, true)).toBe(true);
+  });
+
+  it("matches body words carried only in text_body", () => {
+    const env = make_envelope({
+      body_text: "",
+      text_body: "shipment leaves rotterdam on friday",
+    });
+
+    expect(run("rotterdam", env, true)).toBe(true);
+  });
+
+  it("does not match html-only body words when content search is off", () => {
+    const env = make_envelope({
+      subject: "Invoice",
+      body_text: "",
+      body_html: "<p>Payment reference QX-4471 is due</p>",
+    });
+
+    expect(run("reference", env, false)).toBe(false);
   });
 });

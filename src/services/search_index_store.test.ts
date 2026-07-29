@@ -167,9 +167,15 @@ describe("slim_envelope_for_index recipients", () => {
   it("keeps cc and bcc so sent mail stays searchable by recipient", () => {
     const slim = slim_envelope_for_index(full_envelope());
 
-    expect(slim.to).toEqual([{ name: "Dana Reyes", email: "dana@partner.com" }]);
-    expect(slim.cc).toEqual([{ name: "Priya Nair", email: "priya@partner.com" }]);
-    expect(slim.bcc).toEqual([{ name: "Omar Diaz", email: "omar@partner.com" }]);
+    expect(slim.to).toEqual([
+      { name: "Dana Reyes", email: "dana@partner.com" },
+    ]);
+    expect(slim.cc).toEqual([
+      { name: "Priya Nair", email: "priya@partner.com" },
+    ]);
+    expect(slim.bcc).toEqual([
+      { name: "Omar Diaz", email: "omar@partner.com" },
+    ]);
   });
 
   it("bounds how many cc and bcc entries are stored", () => {
@@ -190,5 +196,41 @@ describe("slim_envelope_for_index recipients", () => {
 
     expect(slim.body_html).toBe("");
     expect(slim.html_body).toBe("");
+  });
+});
+
+describe("slim_envelope_for_index normalization", () => {
+  const string_form_envelope = () =>
+    ({
+      subject: "Contract",
+      body_text: "body",
+      from: "Cassie Lang <cassie@example.com>",
+      to: ["Dana Reyes <dana@partner.com>", "omar@partner.com"],
+      cc: ["priya@partner.com"],
+      bcc: [],
+      sent_at: "2026-01-01T00:00:00Z",
+    }) as unknown as DecryptedEnvelope;
+
+  it("normalizes string senders and recipients before they reach the index", () => {
+    const slim = slim_envelope_for_index(string_form_envelope());
+
+    expect(slim.from).toEqual({
+      name: "Cassie Lang",
+      email: "cassie@example.com",
+    });
+    expect(slim.to).toEqual([
+      { name: "Dana Reyes", email: "dana@partner.com" },
+      { name: "", email: "omar@partner.com" },
+    ]);
+    expect(slim.cc).toEqual([{ name: "", email: "priya@partner.com" }]);
+  });
+
+  it("drops recipient entries that carry no address", () => {
+    const slim = slim_envelope_for_index({
+      ...string_form_envelope(),
+      to: ["not an address", ""] as unknown as DecryptedEnvelope["to"],
+    });
+
+    expect(slim.to).toEqual([]);
   });
 });

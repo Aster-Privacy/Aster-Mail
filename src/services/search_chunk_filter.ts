@@ -28,6 +28,10 @@ import {
   type ParsedOperator,
 } from "@/utils/search_operators";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
+import {
+  normalize_envelope_from,
+  normalize_envelope_recipients,
+} from "@/services/crypto/envelope_normalize";
 
 export const GRAM_SIZE = 4;
 export const SUMMARY_GROUP_SIZE = 64;
@@ -324,9 +328,11 @@ export function summarize_chunk(
 
     if (!envelope) continue;
 
+    const from = normalize_envelope_from(envelope.from);
+
     collect_grams(envelope.subject || "", grams);
-    collect_grams(envelope.from?.name || "", grams);
-    collect_grams(envelope.from?.email || "", grams);
+    collect_grams(from?.name || "", grams);
+    collect_grams(from?.email || "", grams);
 
     const forwarding = resolve_forwarding_display(
       envelope.from,
@@ -339,15 +345,12 @@ export function summarize_chunk(
     }
 
     for (const recipient of [
-      ...(envelope.to || []),
-      ...(envelope.cc || []),
-      ...(envelope.bcc || []),
-    ] as {
-      email?: string;
-      name?: string;
-    }[]) {
+      ...normalize_envelope_recipients(envelope.to),
+      ...normalize_envelope_recipients(envelope.cc),
+      ...normalize_envelope_recipients(envelope.bcc),
+    ]) {
       collect_grams(recipient.name || "", grams);
-      collect_grams(recipient.email || "", grams);
+      collect_grams(recipient.email, grams);
     }
   }
 

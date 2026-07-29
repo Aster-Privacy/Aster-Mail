@@ -27,45 +27,14 @@ import {
 import { decrypt_message_verified_with_any_key } from "./key_manager";
 import { resolve_sender_verification_keys } from "./sender_verification";
 
+import {
+  normalize_envelope_from,
+  normalize_envelope_recipients,
+} from "./envelope_normalize";
+
+export { normalize_envelope_from, normalize_envelope_recipients };
+
 const HASH_ALG = ["SHA", "256"].join("-");
-
-export function normalize_envelope_from(
-  from: unknown,
-): { name: string; email: string } | null {
-  if (!from) return null;
-  if (typeof from === "object" && "email" in from) {
-    return from as { name: string; email: string };
-  }
-  if (typeof from === "string") {
-    const match = from.match(/^(.*?)\s*<([^>]+)>$/);
-
-    if (match) {
-      return {
-        name: match[1].replace(/^["']|["']$/g, "").trim(),
-        email: match[2],
-      };
-    }
-    if (from.includes("@")) return { name: "", email: from };
-  }
-
-  return null;
-}
-
-export function normalize_envelope_recipients(
-  recipients: unknown,
-): { name: string; email: string }[] {
-  if (!Array.isArray(recipients)) return [];
-
-  const result: { name: string; email: string }[] = [];
-
-  for (const entry of recipients) {
-    const normalized = normalize_envelope_from(entry);
-
-    if (normalized && normalized.email) result.push(normalized);
-  }
-
-  return result;
-}
 
 export function normalize_parsed_envelope<T>(parsed: T): T {
   if (!parsed || typeof parsed !== "object") return parsed;
@@ -218,7 +187,11 @@ export async function decrypt_envelope_with_bytes<T>(
       salt,
     );
 
-    const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
+    const decrypted = await decrypt_aes_gcm_with_fallback(
+      crypto_key,
+      ciphertext,
+      nonce,
+    );
 
     const decoder = new TextDecoder();
     const json = decoder.decode(decrypted);
@@ -335,11 +308,7 @@ export async function decrypt_mail_envelope<T>(
     ];
 
     for (const key of binary_keys) {
-      const result = await try_decrypt_with_key<T>(
-        encrypted,
-        nonce_bytes,
-        key,
-      );
+      const result = await try_decrypt_with_key<T>(encrypted, nonce_bytes, key);
 
       if (result) return result;
     }
@@ -372,7 +341,11 @@ async function try_decrypt_with_key<T>(
         false,
         ["decrypt"],
       );
-      const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, encrypted_bytes, nonce_bytes);
+      const decrypted = await decrypt_aes_gcm_with_fallback(
+        crypto_key,
+        encrypted_bytes,
+        nonce_bytes,
+      );
 
       return normalize_parsed_envelope(
         JSON.parse(new TextDecoder().decode(decrypted)) as T,
@@ -566,7 +539,11 @@ export async function decrypt_metadata<T>(
     const nonce = base64_to_array(blob.nonce);
     const ciphertext = base64_to_array(blob.encrypted_data);
 
-    const plaintext = await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
+    const plaintext = await decrypt_aes_gcm_with_fallback(
+      crypto_key,
+      ciphertext,
+      nonce,
+    );
 
     const decoder = new TextDecoder();
 

@@ -77,6 +77,8 @@ vi.mock("@/utils/email_crypto", () => ({
     subject: null,
     body,
   }),
+  is_ratchet_envelope: (body: string | null | undefined) =>
+    typeof body === "string" && body.includes('"type":"double_ratchet'),
 }));
 vi.mock("@/services/crypto/secure_storage", () => ({
   secure_store: vi.fn(),
