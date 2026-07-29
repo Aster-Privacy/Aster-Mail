@@ -21,6 +21,7 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
+import { start_iframe_autoscroll } from "@/components/email/iframe_autoscroll";
 import { build_email_body_css, build_forced_dark_mode_css } from "@/lib/email_body_styles";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
@@ -1168,6 +1169,26 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
     let last_height = 0;
 
+    const capture_ancestor_scroll = (): { node: Element; top: number }[] => {
+      const captured: { node: Element; top: number }[] = [];
+      let node: Element | null = iframe.parentElement;
+
+      while (node) {
+        if (node.scrollTop > 0) captured.push({ node, top: node.scrollTop });
+        node = node.parentElement;
+      }
+
+      return captured;
+    };
+
+    const restore_ancestor_scroll = (
+      captured: { node: Element; top: number }[],
+    ) => {
+      captured.forEach(({ node, top }) => {
+        if (node.scrollTop !== top) node.scrollTop = top;
+      });
+    };
+
     const measure_decoupled_height = (): number => {
       const doc = iframe.contentDocument;
       const body = doc?.body;
@@ -1177,6 +1198,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
       const scroller = doc.scrollingElement;
       const saved_scroll_top = scroller ? scroller.scrollTop : 0;
+      const saved_ancestor_scroll = capture_ancestor_scroll();
+      const saved_window_scroll = window.scrollY;
       const saved_iframe_height = iframe.style.height;
       const saved_html_h = html.style.getPropertyValue("height");
       const saved_html_h_pri = html.style.getPropertyPriority("height");
@@ -1218,6 +1241,10 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         scroller.scrollTop !== saved_scroll_top
       ) {
         scroller.scrollTop = saved_scroll_top;
+      }
+      restore_ancestor_scroll(saved_ancestor_scroll);
+      if (saved_window_scroll > 0 && window.scrollY !== saved_window_scroll) {
+        window.scrollTo(window.scrollX, saved_window_scroll);
       }
 
       return measured;
@@ -1487,9 +1514,13 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     };
 
     iframe.contentDocument.addEventListener("mousedown", (e) => {
-      if ((e as MouseEvent).button !== 1) return;
+      const event = e as MouseEvent;
 
-      e.preventDefault();
+      if (event.button !== 1) return;
+
+      event.preventDefault();
+
+      if (start_iframe_autoscroll(iframe, event.clientX, event.clientY)) return;
 
       const outer = find_outer_scroller();
 
