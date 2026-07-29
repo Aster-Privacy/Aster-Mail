@@ -1391,16 +1391,10 @@ export function ThreadMessageBlock({
           );
 
           const original_cc_emails =
-            message.to_recipients
-              ?.filter(
-                (r) =>
-                  r.email?.toLowerCase() !==
-                  inline_recipient_email?.toLowerCase(),
-              )
-              .map((r) => r.email) ?? [];
+            message.cc_recipients?.map((r) => r.email).filter(Boolean) ?? [];
 
           const all_to_emails =
-            message.to_recipients?.map((r) => r.email) ?? [];
+            message.to_recipients?.map((r) => r.email).filter(Boolean) ?? [];
 
           const inline_reply_from = is_own_msg
             ? message.sender_email

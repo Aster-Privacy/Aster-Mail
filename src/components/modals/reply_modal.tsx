@@ -198,12 +198,18 @@ export function ReplyModal({
               }
               on_set_preferred={modal.handle_set_preferred}
               original_subject={modal.original_subject}
+              contacts={modal.contacts}
+              dispatch_recipients={modal.dispatch_recipients}
+              inputs={modal.inputs}
               preferred_id={modal.preferred_sender_id}
-              recipient_email={modal.recipient_email}
+              recipients={modal.recipients}
               selected_sender={modal.selected_sender}
               sender_options={modal.sender_options}
+              set_inputs={modal.set_inputs}
               set_is_expanded={modal.set_is_expanded}
               set_is_minimized={modal.set_is_minimized}
+              set_show_cc={modal.set_show_cc}
+              show_cc={modal.show_cc}
               set_selected_sender={
                 modal.ghost_mode.is_thread_locked
                   ? () => {}
