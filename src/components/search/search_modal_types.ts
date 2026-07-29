@@ -42,6 +42,7 @@ export type SearchFieldType =
 
 export type SearchScope =
   | "all"
+  | "anywhere"
   | "inbox"
   | "starred"
   | "sent"

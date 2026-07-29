@@ -24,10 +24,12 @@ import type {
 } from "@/components/search/search_modal_types";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { MagnifyingGlassIcon, PaperClipIcon } from "@heroicons/react/24/outline";
-
-import { Input } from "@/components/ui/input";
+import {
+  MagnifyingGlassIcon,
+  PaperClipIcon,
+} from "@heroicons/react/24/outline";
 import { Checkbox } from "@aster/ui";
+
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 
@@ -40,6 +42,12 @@ interface SearchModalFilterPanelProps {
 }
 
 const MAX_FIELD_LEN = 200;
+
+const FIELD_CLASS =
+  "h-9 bg-transparent text-[13px] text-txt-primary placeholder:text-txt-muted outline-none";
+
+const SELECT_CLASS =
+  "h-9 bg-transparent text-[13px] text-txt-primary outline-none cursor-pointer";
 
 function sanitize(value: string): string {
   return value.replace(/[\r\n\t]/g, " ").slice(0, MAX_FIELD_LEN);
@@ -60,6 +68,7 @@ export function SearchModalFilterPanel({
 
   const scope_options: { value: SearchScope; label: string }[] = [
     { value: "all", label: t("mail.search_scope_all") },
+    { value: "anywhere", label: t("mail.search_scope_anywhere") },
     { value: "inbox", label: t("mail.inbox") },
     { value: "starred", label: t("mail.starred") },
     { value: "sent", label: t("mail.sent") },
@@ -91,192 +100,183 @@ export function SearchModalFilterPanel({
           transition={{ duration: reduce_motion ? 0 : 0.18 }}
         >
           <form
-            className="p-4 space-y-3"
+            className="flex flex-col max-h-[min(58vh,540px)]"
             onSubmit={(e) => {
               e.preventDefault();
               on_submit();
             }}
           >
-            <FieldRow label={t("mail.search_scope_label")}>
-              <select
-                aria-label={t("mail.search_scope_label")}
-                className="w-full h-8 rounded-md border border-edge-secondary bg-surf-primary px-2 text-xs text-txt-secondary focus:outline-none focus:ring-2 focus:ring-[var(--accent-color,#3b82f6)]"
-                value={filters.scope}
-                onChange={(e) => update("scope", e.target.value as SearchScope)}
-              >
-                {scope_options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </FieldRow>
-
-            <FieldRow label={t("common.from_label")}>
-              <Input
-                maxLength={MAX_FIELD_LEN}
-                placeholder={t("mail.search_from_placeholder")}
-                size="sm"
-                type="text"
-                value={filters.from}
-                onChange={(e) => update("from", sanitize(e.target.value))}
-              />
-            </FieldRow>
-
-            <FieldRow label={t("common.to_label")}>
-              <Input
-                maxLength={MAX_FIELD_LEN}
-                placeholder={t("mail.search_to_placeholder")}
-                size="sm"
-                type="text"
-                value={filters.to}
-                onChange={(e) => update("to", sanitize(e.target.value))}
-              />
-            </FieldRow>
-
-            <FieldRow label={t("common.subject_label")}>
-              <Input
-                maxLength={MAX_FIELD_LEN}
-                size="sm"
-                type="text"
-                value={filters.subject}
-                onChange={(e) => update("subject", sanitize(e.target.value))}
-              />
-            </FieldRow>
-
-            <FieldRow label={t("mail.search_has_words")}>
-              <Input
-                maxLength={MAX_FIELD_LEN}
-                size="sm"
-                type="text"
-                value={filters.has_words}
-                onChange={(e) => update("has_words", sanitize(e.target.value))}
-              />
-            </FieldRow>
-
-            <FieldRow label={t("mail.search_does_not_have")}>
-              <Input
-                maxLength={MAX_FIELD_LEN}
-                size="sm"
-                type="text"
-                value={filters.does_not_have}
-                onChange={(e) =>
-                  update("does_not_have", sanitize(e.target.value))
-                }
-              />
-            </FieldRow>
-
-            <FieldRow label={t("mail.search_size_label")}>
-              <div className="flex gap-1.5">
-                <select
-                  aria-label={t("mail.search_size_op")}
-                  className="h-8 rounded-md border border-edge-secondary bg-surf-primary px-2 text-xs text-txt-secondary focus:outline-none focus:ring-2 focus:ring-[var(--accent-color,#3b82f6)]"
-                  value={filters.size_op}
-                  onChange={(e) =>
-                    update(
-                      "size_op",
-                      e.target.value as FilterState["size_op"],
-                    )
-                  }
-                >
-                  <option value="greater">
-                    {t("mail.search_size_greater")}
-                  </option>
-                  <option value="less">{t("mail.search_size_less")}</option>
-                </select>
-                <Input
-                  className="flex-1"
-                  inputMode="numeric"
-                  maxLength={12}
-                  pattern="[0-9]*"
-                  size="sm"
-                  type="text"
-                  value={filters.size_value}
-                  onChange={(e) =>
-                    update(
-                      "size_value",
-                      e.target.value.replace(/[^0-9]/g, "").slice(0, 12),
-                    )
-                  }
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-5">
+              <Section title={t("mail.contacts")}>
+                <InputRow
+                  label={t("common.from_label")}
+                  on_change={(value) => update("from", value)}
+                  placeholder={t("mail.search_from_placeholder")}
+                  value={filters.from}
                 />
-                <select
-                  aria-label={t("mail.search_size_unit")}
-                  className="h-8 rounded-md border border-edge-secondary bg-surf-primary px-2 text-xs text-txt-secondary focus:outline-none focus:ring-2 focus:ring-[var(--accent-color,#3b82f6)]"
-                  value={filters.size_unit}
-                  onChange={(e) =>
-                    update(
-                      "size_unit",
-                      e.target.value as FilterState["size_unit"],
-                    )
-                  }
-                >
-                  <option value="mb">MB</option>
-                  <option value="kb">KB</option>
-                  <option value="bytes">B</option>
-                </select>
-              </div>
-            </FieldRow>
+                <RowDivider />
+                <InputRow
+                  label={t("common.to_label")}
+                  on_change={(value) => update("to", value)}
+                  placeholder={t("mail.search_to_placeholder")}
+                  value={filters.to}
+                />
+              </Section>
 
-            <FieldRow label={t("mail.search_date_within")}>
-              <div className="flex gap-1.5">
-                <select
-                  aria-label={t("mail.search_date_within")}
-                  className="flex-1 h-8 rounded-md border border-edge-secondary bg-surf-primary px-2 text-xs text-txt-secondary focus:outline-none focus:ring-2 focus:ring-[var(--accent-color,#3b82f6)]"
-                  value={filters.within_days}
-                  onChange={(e) => update("within_days", e.target.value)}
-                >
-                  {within_options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <Input
-                  className="flex-1"
-                  placeholder={t("mail.from_date")}
-                  size="sm"
-                  type="date"
-                  value={filters.date_from}
-                  onChange={(e) => update("date_from", e.target.value)}
+              <Section title={t("mail.search_section_message")}>
+                <InputRow
+                  label={t("common.subject_label")}
+                  on_change={(value) => update("subject", value)}
+                  value={filters.subject}
                 />
-                <Input
-                  className="flex-1"
-                  placeholder={t("mail.to_date")}
-                  size="sm"
-                  type="date"
-                  value={filters.date_to}
-                  onChange={(e) => update("date_to", e.target.value)}
+                <RowDivider />
+                <InputRow
+                  label={t("mail.search_has_words")}
+                  on_change={(value) => update("has_words", value)}
+                  value={filters.has_words}
                 />
-              </div>
-            </FieldRow>
+                <RowDivider />
+                <InputRow
+                  label={t("mail.search_does_not_have")}
+                  on_change={(value) => update("does_not_have", value)}
+                  value={filters.does_not_have}
+                />
+                <RowDivider />
+                <FieldRow label={t("mail.search_size_label")}>
+                  <div className="flex items-center gap-1.5">
+                    <select
+                      aria-label={t("mail.search_size_op")}
+                      className={SELECT_CLASS}
+                      value={filters.size_op}
+                      onChange={(e) =>
+                        update(
+                          "size_op",
+                          e.target.value as FilterState["size_op"],
+                        )
+                      }
+                    >
+                      <option value="greater">
+                        {t("mail.search_size_greater")}
+                      </option>
+                      <option value="less">{t("mail.search_size_less")}</option>
+                    </select>
+                    <input
+                      className={`${FIELD_CLASS} flex-1 min-w-0`}
+                      inputMode="numeric"
+                      maxLength={12}
+                      pattern="[0-9]*"
+                      type="text"
+                      value={filters.size_value}
+                      onChange={(e) =>
+                        update(
+                          "size_value",
+                          e.target.value.replace(/[^0-9]/g, "").slice(0, 12),
+                        )
+                      }
+                    />
+                    <select
+                      aria-label={t("mail.search_size_unit")}
+                      className={SELECT_CLASS}
+                      value={filters.size_unit}
+                      onChange={(e) =>
+                        update(
+                          "size_unit",
+                          e.target.value as FilterState["size_unit"],
+                        )
+                      }
+                    >
+                      <option value="mb">MB</option>
+                      <option value="kb">KB</option>
+                      <option value="bytes">B</option>
+                    </select>
+                  </div>
+                </FieldRow>
+              </Section>
 
-            <div className="flex flex-wrap items-center gap-4 pt-1">
-              <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-txt-secondary">
-                <Checkbox
-                  checked={filters.has_attachments === true}
-                  onChange={() =>
-                    update(
-                      "has_attachments",
-                      filters.has_attachments ? undefined : true,
-                    )
-                  }
-                />
-                <PaperClipIcon className="w-3.5 h-3.5" />
-                {t("mail.has_attachments")}
-              </label>
+              <Section title={t("mail.date")}>
+                <FieldRow label={t("mail.search_date_within")}>
+                  <select
+                    aria-label={t("mail.search_date_within")}
+                    className={`${SELECT_CLASS} w-full`}
+                    value={filters.within_days}
+                    onChange={(e) => update("within_days", e.target.value)}
+                  >
+                    {within_options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </FieldRow>
+                <RowDivider />
+                <FieldRow label={t("mail.from_date")}>
+                  <input
+                    className={`${FIELD_CLASS} w-full`}
+                    type="date"
+                    value={filters.date_from}
+                    onChange={(e) => update("date_from", e.target.value)}
+                  />
+                </FieldRow>
+                <RowDivider />
+                <FieldRow label={t("mail.to_date")}>
+                  <input
+                    className={`${FIELD_CLASS} w-full`}
+                    type="date"
+                    value={filters.date_to}
+                    onChange={(e) => update("date_to", e.target.value)}
+                  />
+                </FieldRow>
+              </Section>
 
-              <label className="flex items-center gap-2 text-xs cursor-pointer select-none text-txt-secondary">
-                <Checkbox
-                  checked={filters.search_content}
-                  onChange={() =>
-                    update("search_content", !filters.search_content)
-                  }
-                />
-                {t("mail.search_message_content")}
-              </label>
+              <Section title={t("mail.search_section_filters")}>
+                <FieldRow label={t("mail.search_scope_label")}>
+                  <select
+                    aria-label={t("mail.search_scope_label")}
+                    className={`${SELECT_CLASS} w-full`}
+                    value={filters.scope}
+                    onChange={(e) =>
+                      update("scope", e.target.value as SearchScope)
+                    }
+                  >
+                    {scope_options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </FieldRow>
+                <RowDivider />
+                <label className="flex items-center justify-between gap-3 min-h-[44px] px-3 cursor-pointer select-none">
+                  <span className="flex items-center gap-1.5 text-[13px] text-txt-secondary">
+                    <PaperClipIcon className="w-4 h-4" />
+                    {t("mail.has_attachments")}
+                  </span>
+                  <Checkbox
+                    checked={filters.has_attachments === true}
+                    onChange={() =>
+                      update(
+                        "has_attachments",
+                        filters.has_attachments ? undefined : true,
+                      )
+                    }
+                  />
+                </label>
+                <RowDivider />
+                <label className="flex items-center justify-between gap-3 min-h-[44px] px-3 cursor-pointer select-none">
+                  <span className="text-[13px] text-txt-secondary">
+                    {t("mail.search_message_content")}
+                  </span>
+                  <Checkbox
+                    checked={filters.search_content}
+                    onChange={() =>
+                      update("search_content", !filters.search_content)
+                    }
+                  />
+                </label>
+              </Section>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-edge-secondary">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-edge-secondary">
               {on_create_filter ? (
                 <button
                   className="text-xs font-medium text-[var(--accent-color,#3b82f6)] hover:underline"
@@ -289,10 +289,10 @@ export function SearchModalFilterPanel({
                 <span />
               )}
               <button
-                className="inline-flex items-center gap-1.5 h-8 px-4 rounded-[12px] bg-[var(--accent-color,#3b82f6)] text-white text-xs font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color,#3b82f6)]"
+                className="inline-flex items-center gap-1.5 h-9 px-5 rounded-[12px] bg-[var(--accent-color,#3b82f6)] text-white text-[13px] font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color,#3b82f6)]"
                 type="submit"
               >
-                <MagnifyingGlassIcon className="w-3.5 h-3.5" />
+                <MagnifyingGlassIcon className="w-4 h-4" />
                 {t("common.search")}
               </button>
             </div>
@@ -303,6 +303,27 @@ export function SearchModalFilterPanel({
   );
 }
 
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <p className="px-1 text-[11px] font-semibold text-txt-muted">{title}</p>
+      <div className="rounded-[14px] border border-edge-secondary bg-surf-primary">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function RowDivider() {
+  return <div className="h-px ml-3 bg-edge-secondary" />;
+}
+
 function FieldRow({
   label,
   children,
@@ -311,11 +332,36 @@ function FieldRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[84px_1fr] items-center gap-3">
-      <label className="text-xs font-medium text-txt-muted text-right">
+    <div className="flex items-center gap-3 min-h-[44px] px-3">
+      <label className="w-[104px] flex-shrink-0 text-[13px] text-txt-secondary">
         {label}
       </label>
-      <div className="min-w-0">{children}</div>
+      <div className="flex-1 min-w-0">{children}</div>
     </div>
+  );
+}
+
+function InputRow({
+  label,
+  value,
+  placeholder,
+  on_change,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  on_change: (value: string) => void;
+}) {
+  return (
+    <FieldRow label={label}>
+      <input
+        className={`${FIELD_CLASS} w-full`}
+        maxLength={MAX_FIELD_LEN}
+        placeholder={placeholder}
+        type="text"
+        value={value}
+        onChange={(e) => on_change(sanitize(e.target.value))}
+      />
+    </FieldRow>
   );
 }

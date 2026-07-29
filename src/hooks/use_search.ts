@@ -404,6 +404,7 @@ interface SearchState {
   search_time_ms: number;
   error: string | null;
   index_building: boolean;
+  hidden_spam_trash: number;
 }
 
 interface AutocompleteState {
@@ -1418,6 +1419,64 @@ export function clear_search_index(): void {
   void clear_search_snapshots();
 }
 
+export interface IndexPerson {
+  name: string;
+  email: string;
+  count: number;
+}
+
+export function list_index_people(
+  direction: "from" | "to",
+  limit = 200,
+): IndexPerson[] {
+  if (!cached_index) return [];
+
+  const by_email = new Map<string, IndexPerson>();
+
+  const track = (name: string, email: string) => {
+    const clean_email = (email || "").trim().toLowerCase();
+
+    if (!clean_email || !clean_email.includes("@")) return;
+
+    const existing = by_email.get(clean_email);
+
+    if (existing) {
+      existing.count++;
+      if (!existing.name && name) existing.name = name.trim();
+
+      return;
+    }
+
+    by_email.set(clean_email, {
+      name: (name || "").trim(),
+      email: clean_email,
+      count: 1,
+    });
+  };
+
+  for (const item of cached_index.items) {
+    const envelope = cached_index.decrypted.get(item.id)?.envelope;
+
+    if (!envelope) continue;
+
+    if (direction === "from") {
+      track(envelope.from?.name || "", envelope.from?.email || "");
+      continue;
+    }
+
+    for (const recipient of envelope.to || []) {
+      track(recipient.name, recipient.email);
+    }
+    for (const recipient of envelope.cc || []) {
+      track(recipient.name, recipient.email);
+    }
+  }
+
+  return Array.from(by_email.values())
+    .sort((a, b) => b.count - a.count || a.email.localeCompare(b.email))
+    .slice(0, limit);
+}
+
 export function mark_search_index_stale(): void {
   if (cached_index) {
     cached_index.built_at = 0;
@@ -1681,7 +1740,8 @@ function matches_operator(
         ...(item.folders || []).map((f) => f.name.toLowerCase()),
       ];
 
-      if (val === "all") return true;
+      if (val === "anywhere") return true;
+      if (val === "all") return !item.is_trashed && !item.is_spam;
       if (
         val === "inbox" &&
         item.item_type === "received" &&
@@ -1940,6 +2000,50 @@ export interface ScanCandidate {
   item: MailItem;
   entry: DecryptedIndexEntry;
   result: SearchResultItem;
+  excluded_by_scope?: boolean;
+}
+
+export interface SearchMailboxScope {
+  include_spam: boolean;
+  include_trash: boolean;
+}
+
+export function resolve_mailbox_scope(
+  operators: ParsedOperator[],
+): SearchMailboxScope {
+  const scope: SearchMailboxScope = {
+    include_spam: false,
+    include_trash: false,
+  };
+
+  for (const op of operators) {
+    if (op.negated) continue;
+    if (op.type !== "in" && op.type !== "label" && op.type !== "folder")
+      continue;
+
+    const val = op.value.toLowerCase();
+
+    if (val === "anywhere") {
+      scope.include_spam = true;
+      scope.include_trash = true;
+    } else if (val === "spam") {
+      scope.include_spam = true;
+    } else if (val === "trash") {
+      scope.include_trash = true;
+    }
+  }
+
+  return scope;
+}
+
+export function excluded_by_mailbox_scope(
+  item: MailItem,
+  scope: SearchMailboxScope,
+): boolean {
+  if (item.is_trashed && !scope.include_trash) return true;
+  if (item.is_spam && !scope.include_spam) return true;
+
+  return false;
 }
 
 export function passes_search_filters(
@@ -2061,6 +2165,7 @@ export function use_search() {
     search_time_ms: 0,
     error: null,
     index_building: false,
+    hidden_spam_trash: 0,
   });
 
   const abort_ref = useRef<AbortController | null>(null);
@@ -2131,6 +2236,7 @@ export function use_search() {
           is_searching: false,
           total_results: 0,
           search_time_ms: 0,
+          hidden_spam_trash: 0,
         }));
 
         return;
@@ -2161,6 +2267,7 @@ export function use_search() {
             is_searching: false,
             total_results: 0,
             search_time_ms: Date.now() - start,
+            hidden_spam_trash: 0,
           }));
 
           return;
@@ -2182,9 +2289,14 @@ export function use_search() {
         if (controller.signal.aborted) return;
 
         const candidates: ScanCandidate[] = [];
+        const mailbox_scope = resolve_mailbox_scope(operators);
+        const counts = { visible: 0, hidden: 0 };
+
+        const visible_candidates = (): ScanCandidate[] =>
+          candidates.filter((candidate) => !candidate.excluded_by_scope);
 
         const sorted_results = (): SearchResultItem[] =>
-          candidates
+          visible_candidates()
             .map((candidate) => candidate.result)
             .sort(
               (a, b) =>
@@ -2215,13 +2327,24 @@ export function use_search() {
             return true;
           }
 
+          const excluded = excluded_by_mailbox_scope(item, mailbox_scope);
+
           candidates.push({
             item,
             entry: data,
             result: to_search_result(item, envelope, metadata),
+            excluded_by_scope: excluded,
           });
 
-          return candidates.length < MAX_SEARCH_RESULTS;
+          if (excluded) {
+            counts.hidden++;
+
+            return true;
+          }
+
+          counts.visible++;
+
+          return counts.visible < MAX_SEARCH_RESULTS;
         };
 
         let last_flush = 0;
@@ -2242,6 +2365,7 @@ export function use_search() {
             results: partial,
             total_results: partial.length,
             search_time_ms: now - start,
+            hidden_spam_trash: counts.hidden,
           }));
         };
 
@@ -2307,6 +2431,7 @@ export function use_search() {
           total_results,
           search_time_ms: Date.now() - start,
           has_more: stopped && total_results >= MAX_SEARCH_RESULTS,
+          hidden_spam_trash: counts.hidden,
         }));
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -2360,6 +2485,7 @@ export function use_search() {
       search_time_ms: 0,
       error: null,
       index_building: false,
+      hidden_spam_trash: 0,
     });
   }, []);
 
