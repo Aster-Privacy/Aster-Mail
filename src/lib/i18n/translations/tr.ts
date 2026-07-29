@@ -4231,6 +4231,19 @@ export const tr = {
     this_account: "bu hesap",
     storage_limit_reached: "Depolama sınırına ulaşıldı",
     auto_forward_title: "Otomatik Yönlendirme",
+    forwarding_pending_verification: "Doğrulama bekleniyor",
+    resend_verification_email: "Doğrulama e-postasını yeniden gönder",
+    forwarding_awaiting_verification:
+      "{{ addresses }} adresinin onayı bekleniyor. Oraya henüz iletim yapılmıyor.",
+    forwarding_verification_sent:
+      "Doğrulama e-postası {{ address }} adresine gönderildi. İletim onaydan sonra başlar.",
+    forwarding_internal_active:
+      "İletim etkin. Aster'dan Aster'a hedefler doğrulama gerektirmez.",
+    forwarding_verification_resent:
+      "Doğrulama e-postası {{ address }} adresine yeniden gönderildi",
+    forwarding_confirmed_success: "Hedef doğrulandı. İletim artık etkin.",
+    forwarding_confirmed_failed:
+      "Bu doğrulama bağlantısı geçersiz veya süresi dolmuş. Kuraldan yenisini gönderin.",
     auto_forward_description:
       "Gelen e-postaları koşullara göre otomatik olarak diğer adreslere yönlendirin. Yönlendirme kuralları e-posta içeriğine erişmeden e-posta başlıklarını (gönderen, alıcı, konu) değerlendirir.",
     add_rule: "Kural Ekle",

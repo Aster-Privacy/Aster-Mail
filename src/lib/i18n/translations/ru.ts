@@ -4251,6 +4251,20 @@ export const ru = {
     this_account: "этого аккаунта",
     storage_limit_reached: "Достигнут лимит хранилища",
     auto_forward_title: "Автопереадресация",
+    forwarding_pending_verification: "Ожидает подтверждения",
+    resend_verification_email: "Отправить письмо подтверждения ещё раз",
+    forwarding_awaiting_verification:
+      "Ожидается подтверждение от {{ addresses }}. Пересылка туда пока не выполняется.",
+    forwarding_verification_sent:
+      "Письмо для подтверждения отправлено на {{ address }}. Пересылка начнётся после подтверждения.",
+    forwarding_internal_active:
+      "Пересылка активна. Адреса Aster на Aster не требуют подтверждения.",
+    forwarding_verification_resent:
+      "Письмо для подтверждения повторно отправлено на {{ address }}",
+    forwarding_confirmed_success:
+      "Адрес подтверждён. Пересылка теперь активна.",
+    forwarding_confirmed_failed:
+      "Эта ссылка подтверждения недействительна или устарела. Отправьте новую из правила.",
     auto_forward_description:
       "Автоматически пересылать входящие письма на другие адреса на основе условий. Правила переадресации оценивают заголовки писем (отправитель, получатель, тема) без доступа к содержимому писем.",
     add_rule: "Добавить правило",

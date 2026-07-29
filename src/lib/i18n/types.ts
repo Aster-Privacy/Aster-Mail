@@ -4226,6 +4226,14 @@ export interface SettingsTranslations {
   storage_limit_reached: string;
   auto_forward_title: string;
   auto_forward_description: string;
+  forwarding_pending_verification: string;
+  resend_verification_email: string;
+  forwarding_awaiting_verification: string;
+  forwarding_verification_sent: string;
+  forwarding_internal_active: string;
+  forwarding_verification_resent: string;
+  forwarding_confirmed_success: string;
+  forwarding_confirmed_failed: string;
   add_rule: string;
   edit_forwarding_rule: string;
   create_forwarding_rule: string;

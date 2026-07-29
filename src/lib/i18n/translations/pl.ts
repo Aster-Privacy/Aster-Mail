@@ -4257,6 +4257,20 @@ export const pl = {
     this_account: "tego konta",
     storage_limit_reached: "Osiągnięto limit miejsca",
     auto_forward_title: "Automatyczne przekierowanie",
+    forwarding_pending_verification: "Oczekuje na weryfikację",
+    resend_verification_email: "Wyślij ponownie e-mail weryfikacyjny",
+    forwarding_awaiting_verification:
+      "Oczekiwanie na potwierdzenie od {{ addresses }}. Poczta nie jest jeszcze tam przekazywana.",
+    forwarding_verification_sent:
+      "E-mail weryfikacyjny wysłany na {{ address }}. Przekazywanie ruszy po potwierdzeniu.",
+    forwarding_internal_active:
+      "Przekazywanie jest aktywne. Adresy Aster do Aster nie wymagają weryfikacji.",
+    forwarding_verification_resent:
+      "E-mail weryfikacyjny wysłany ponownie na {{ address }}",
+    forwarding_confirmed_success:
+      "Adres zweryfikowany. Przekazywanie jest już aktywne.",
+    forwarding_confirmed_failed:
+      "Ten link weryfikacyjny jest nieprawidłowy lub wygasł. Wyślij nowy z poziomu reguły.",
     auto_forward_description:
       "Automatycznie przekierowuj przychodzące e-maile na inne adresy na podstawie warunków. Reguły przekierowania analizują nagłówki e-maili (nadawca, odbiorca, temat) bez dostępu do treści e-maila.",
     add_rule: "Dodaj regułę",

@@ -4232,6 +4232,20 @@ export const ja = {
     this_account: "このアカウント",
     storage_limit_reached: "ストレージの上限に達しました",
     auto_forward_title: "自動転送",
+    forwarding_pending_verification: "確認待ち",
+    resend_verification_email: "確認メールを再送信",
+    forwarding_awaiting_verification:
+      "{{ addresses }} の確認を待っています。まだそこへは転送されません。",
+    forwarding_verification_sent:
+      "確認メールを {{ address }} に送信しました。確認後に転送が始まります。",
+    forwarding_internal_active:
+      "転送は有効です。Aster から Aster への宛先は確認が不要です。",
+    forwarding_verification_resent:
+      "確認メールを {{ address }} に再送信しました",
+    forwarding_confirmed_success:
+      "宛先を確認しました。転送が有効になりました。",
+    forwarding_confirmed_failed:
+      "この確認リンクは無効か期限切れです。ルールから新しいリンクを送信してください。",
     auto_forward_description:
       "条件に基づいて受信メールを他のアドレスに自動転送します。転送ルールはメールのヘッダー（送信者、受信者、件名）を評価し、メール本文にはアクセスしません。",
     add_rule: "ルールを追加",

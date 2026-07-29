@@ -4255,6 +4255,20 @@ export const es = {
     this_account: "esta cuenta",
     storage_limit_reached: "Límite de almacenamiento alcanzado",
     auto_forward_title: "Reenvío automático",
+    forwarding_pending_verification: "Verificación pendiente",
+    resend_verification_email: "Reenviar correo de verificación",
+    forwarding_awaiting_verification:
+      "Esperando la confirmación de {{ addresses }}. Todavía no se reenvía allí.",
+    forwarding_verification_sent:
+      "Correo de verificación enviado a {{ address }}. El reenvío empezará cuando se confirme.",
+    forwarding_internal_active:
+      "El reenvío está activo. Los destinos de Aster a Aster no necesitan verificación.",
+    forwarding_verification_resent:
+      "Correo de verificación reenviado a {{ address }}",
+    forwarding_confirmed_success:
+      "Destino verificado. El reenvío ya está activo.",
+    forwarding_confirmed_failed:
+      "Ese enlace de verificación no es válido o ha caducado. Envía uno nuevo desde la regla.",
     auto_forward_description:
       "Reenvía automáticamente correos entrantes a otras direcciones según condiciones. Las reglas de reenvío evalúan los encabezados del correo (remitente, destinatario, asunto) sin acceder al contenido del correo.",
     add_rule: "Añadir regla",

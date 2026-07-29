@@ -4141,6 +4141,20 @@ export const ar = {
     this_account: "هذا الحساب",
     storage_limit_reached: "تم الوصول إلى حد التخزين",
     auto_forward_title: "التحويل التلقائي",
+    forwarding_pending_verification: "في انتظار التحقق",
+    resend_verification_email: "إعادة إرسال بريد التحقق",
+    forwarding_awaiting_verification:
+      "في انتظار تأكيد {{ addresses }}. لا تتم إعادة التوجيه إلى هناك بعد.",
+    forwarding_verification_sent:
+      "تم إرسال بريد التحقق إلى {{ address }}. تبدأ إعادة التوجيه بعد التأكيد.",
+    forwarding_internal_active:
+      "إعادة التوجيه نشطة. الوجهات من Aster إلى Aster لا تحتاج إلى تحقق.",
+    forwarding_verification_resent:
+      "تمت إعادة إرسال بريد التحقق إلى {{ address }}",
+    forwarding_confirmed_success:
+      "تم التحقق من الوجهة. إعادة التوجيه نشطة الآن.",
+    forwarding_confirmed_failed:
+      "رابط التحقق هذا غير صالح أو منتهي الصلاحية. أرسل رابطًا جديدًا من القاعدة.",
     auto_forward_description:
       "تحويل الرسائل الواردة تلقائيًا إلى عناوين أخرى بناءً على شروط. تقيّم قواعد التحويل ترويسات البريد (المرسل، المستلم، الموضوع) بدون الوصول إلى محتوى البريد.",
     add_rule: "إضافة قاعدة",

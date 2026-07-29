@@ -4264,6 +4264,20 @@ export const pt = {
     this_account: "esta conta",
     storage_limit_reached: "Limite de armazenamento atingido",
     auto_forward_title: "Encaminhamento Automático",
+    forwarding_pending_verification: "Verificação pendente",
+    resend_verification_email: "Reenviar e-mail de verificação",
+    forwarding_awaiting_verification:
+      "A aguardar a confirmação de {{ addresses }}. Ainda não é encaminhado para lá.",
+    forwarding_verification_sent:
+      "E-mail de verificação enviado para {{ address }}. O encaminhamento começa após a confirmação.",
+    forwarding_internal_active:
+      "O encaminhamento está ativo. Destinos de Aster para Aster não precisam de verificação.",
+    forwarding_verification_resent:
+      "E-mail de verificação reenviado para {{ address }}",
+    forwarding_confirmed_success:
+      "Destino verificado. O encaminhamento já está ativo.",
+    forwarding_confirmed_failed:
+      "Esse link de verificação é inválido ou expirou. Envie um novo a partir da regra.",
     auto_forward_description:
       "Encaminhe automaticamente e-mails recebidos para outros endereços com base em condições. As regras de encaminhamento avaliam cabeçalhos de e-mail (remetente, destinatário, assunto) sem acessar o conteúdo do e-mail.",
     add_rule: "Adicionar Regra",

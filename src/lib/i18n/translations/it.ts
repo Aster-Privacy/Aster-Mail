@@ -5000,6 +5000,20 @@ export const it = {
     this_account: "questo account",
     storage_limit_reached: "Limite di archiviazione raggiunto",
     auto_forward_title: "Inoltro automatico",
+    forwarding_pending_verification: "Verifica in sospeso",
+    resend_verification_email: "Invia di nuovo l'email di verifica",
+    forwarding_awaiting_verification:
+      "In attesa della conferma di {{ addresses }}. La posta non viene ancora inoltrata lì.",
+    forwarding_verification_sent:
+      "Email di verifica inviata a {{ address }}. L'inoltro inizierà dopo la conferma.",
+    forwarding_internal_active:
+      "L'inoltro è attivo. Le destinazioni da Aster a Aster non richiedono verifica.",
+    forwarding_verification_resent:
+      "Email di verifica inviata di nuovo a {{ address }}",
+    forwarding_confirmed_success:
+      "Destinazione verificata. L'inoltro è ora attivo.",
+    forwarding_confirmed_failed:
+      "Questo link di verifica non è valido o è scaduto. Inviane uno nuovo dalla regola.",
     auto_forward_description:
       "Inoltra automaticamente le email in arrivo ad altri indirizzi in base a condizioni. Le regole di inoltro valutano le intestazioni delle email (mittente, destinatario, oggetto) senza accedere al contenuto dell'email.",
     add_rule: "Aggiungi regola",
