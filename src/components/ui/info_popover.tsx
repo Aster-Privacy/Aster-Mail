@@ -32,9 +32,10 @@ interface InfoPopoverProps {
   description: string;
   learn_more_url?: string;
   learn_more_label?: string;
+  icon_class?: string;
 }
 
-export function InfoPopover({ title, description, learn_more_url, learn_more_label }: InfoPopoverProps) {
+export function InfoPopover({ title, description, learn_more_url, learn_more_label, icon_class }: InfoPopoverProps) {
   const { t } = use_translation();
 
   return (
@@ -45,7 +46,7 @@ export function InfoPopover({ title, description, learn_more_url, learn_more_lab
           className="inline-flex items-center justify-center flex-shrink-0 text-txt-muted hover:text-txt-secondary transition-colors rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           type="button"
         >
-          <InformationCircleIcon className="w-4 h-4" />
+          <InformationCircleIcon className={icon_class ?? "w-4 h-4"} />
         </button>
       </PopoverTrigger>
       <PopoverContent
