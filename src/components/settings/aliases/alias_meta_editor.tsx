@@ -19,6 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import {
+  IdentificationIcon,
+  PencilSquareIcon,
+  LinkIcon,
+} from "@heroicons/react/24/outline";
+
 import { use_i18n } from "@/lib/i18n/context";
 
 function display_website(url: string): string {
@@ -43,28 +49,65 @@ export function AliasMetaEditor({
   const { t } = use_i18n();
 
   const website_count = websites?.length ?? 0;
-  const has_any = !!display_name || !!note || website_count > 0;
+  const rows: {
+    key: string;
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+  }[] = [];
 
-  if (!has_any) return null;
+  if (display_name) {
+    rows.push({
+      key: "display_name",
+      icon: <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />,
+      label: t("settings.alias_field_display_name_label"),
+      value: display_name,
+    });
+  }
 
-  const summary_parts = [display_name, note].filter(Boolean) as string[];
+  if (note) {
+    rows.push({
+      key: "note",
+      icon: <PencilSquareIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />,
+      label: t("settings.alias_field_note_label"),
+      value: note,
+    });
+  }
 
   if (website_count > 0) {
-    summary_parts.push(
-      website_count === 1
-        ? display_website(websites![0])
-        : t("common.alias_websites_count", { count: String(website_count) }),
-    );
+    rows.push({
+      key: "websites",
+      icon: <LinkIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />,
+      label: t("settings.alias_field_websites_label"),
+      value:
+        website_count === 1
+          ? display_website(websites![0])
+          : t("common.alias_websites_count", { count: String(website_count) }),
+    });
   }
+
+  if (rows.length === 0) return null;
 
   return (
     <button
       aria-label={`${t("common.alias_add_details")} ${alias_address}`}
-      className="mt-0.5 block max-w-full truncate text-left text-xs text-txt-muted hover:text-txt-primary transition-colors"
+      className="group/meta mt-1 flex w-full min-w-0 flex-col gap-0.5 text-left"
       type="button"
       onClick={on_open}
     >
-      {summary_parts.join(" · ")}
+      {rows.map((row) => (
+        <span
+          key={row.key}
+          className="flex min-w-0 items-center gap-1.5 text-xs leading-4 text-txt-muted transition-colors group-hover/meta:text-txt-secondary"
+          title={`${row.label}: ${row.value}`}
+        >
+          {row.icon}
+          <span className="shrink-0 hidden lg:inline lg:min-w-[5.5rem] text-[11px] uppercase tracking-wide opacity-60">
+            {row.label}
+          </span>
+          <span className="truncate">{row.value}</span>
+        </span>
+      ))}
     </button>
   );
 }
