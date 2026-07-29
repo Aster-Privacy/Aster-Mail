@@ -26,6 +26,8 @@ import { describe, it, expect } from "vitest";
 import {
   metadata_fingerprint,
   build_snapshot,
+  slim_envelope_for_index,
+  MAX_INDEX_RECIPIENTS,
 } from "@/services/search_index_store";
 
 function make_item(overrides: Partial<MailItem> = {}): MailItem {
@@ -143,5 +145,50 @@ describe("build_snapshot", () => {
 
     expect(snapshot.entries[0].meta_fp).toBe(fp);
     expect(metadata_fingerprint(make_item())).toBe(fp);
+  });
+});
+
+describe("slim_envelope_for_index recipients", () => {
+  const full_envelope = (
+    overrides: Partial<DecryptedEnvelope> = {},
+  ): DecryptedEnvelope =>
+    ({
+      subject: "Contract",
+      body_text: "body",
+      body_html: "<p>body</p>",
+      from: { name: "", email: "me@astermail.org" },
+      to: [{ name: "Dana Reyes", email: "dana@partner.com" }],
+      cc: [{ name: "Priya Nair", email: "priya@partner.com" }],
+      bcc: [{ name: "Omar Diaz", email: "omar@partner.com" }],
+      sent_at: "2026-01-01T00:00:00Z",
+      ...overrides,
+    }) as DecryptedEnvelope;
+
+  it("keeps cc and bcc so sent mail stays searchable by recipient", () => {
+    const slim = slim_envelope_for_index(full_envelope());
+
+    expect(slim.to).toEqual([{ name: "Dana Reyes", email: "dana@partner.com" }]);
+    expect(slim.cc).toEqual([{ name: "Priya Nair", email: "priya@partner.com" }]);
+    expect(slim.bcc).toEqual([{ name: "Omar Diaz", email: "omar@partner.com" }]);
+  });
+
+  it("bounds how many cc and bcc entries are stored", () => {
+    const many = Array.from({ length: MAX_INDEX_RECIPIENTS + 40 }, (_, i) => ({
+      name: `Person ${i}`,
+      email: `p${i}@partner.com`,
+    }));
+    const slim = slim_envelope_for_index(
+      full_envelope({ cc: many, bcc: many }),
+    );
+
+    expect(slim.cc).toHaveLength(MAX_INDEX_RECIPIENTS);
+    expect(slim.bcc).toHaveLength(MAX_INDEX_RECIPIENTS);
+  });
+
+  it("still drops html bodies", () => {
+    const slim = slim_envelope_for_index(full_envelope());
+
+    expect(slim.body_html).toBe("");
+    expect(slim.html_body).toBe("");
   });
 });

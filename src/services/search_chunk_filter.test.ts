@@ -52,6 +52,8 @@ interface EntryOverrides {
   from_name?: string;
   from_email?: string;
   to?: { name?: string; email?: string }[];
+  cc?: { name?: string; email?: string }[];
+  bcc?: { name?: string; email?: string }[];
   is_read?: boolean;
   is_starred?: boolean;
   has_attachments?: boolean;
@@ -87,8 +89,8 @@ function make_entry(overrides: EntryOverrides = {}): SummarizableEntry {
         email: overrides.from_email ?? "",
       },
       to: overrides.to ?? [],
-      cc: [],
-      bcc: [],
+      cc: overrides.cc ?? [],
+      bcc: overrides.bcc ?? [],
       sent_at: "2026-03-01T12:00:00Z",
     } as DecryptedEnvelope,
     metadata: {
@@ -553,5 +555,40 @@ describe("structural chunk skipping", () => {
 
     expect(plan.uses_summary).toBe(false);
     expect(plan.uses_grams).toBe(false);
+  });
+});
+
+describe("recipient grams", () => {
+  const gram_plan = (term: string) =>
+    build_chunk_skip_plan({ terms: [term], operators: [], probe_terms: true });
+
+  const chunk_filter = (entry: EntryOverrides) =>
+    parse_gram_filter(
+      summarize_chunk([make_item()], [make_entry(entry)]).grams,
+    )!;
+
+  it("does not skip a chunk whose recipient is only on cc", () => {
+    const filter = chunk_filter({
+      cc: [{ name: "Priya Nair", email: "priya@partner.com" }],
+    });
+
+    expect(gram_plan("priya").skip_by_grams(filter)).toBe(false);
+    expect(gram_plan("nair").skip_by_grams(filter)).toBe(false);
+  });
+
+  it("does not skip a chunk whose recipient is only on bcc", () => {
+    const filter = chunk_filter({
+      bcc: [{ name: "Omar Diaz", email: "omar@partner.com" }],
+    });
+
+    expect(gram_plan("omar").skip_by_grams(filter)).toBe(false);
+  });
+
+  it("still skips a chunk that has no such recipient", () => {
+    const filter = chunk_filter({
+      cc: [{ name: "Priya Nair", email: "priya@partner.com" }],
+    });
+
+    expect(gram_plan("zzzzqqqq").skip_by_grams(filter)).toBe(true);
   });
 });
