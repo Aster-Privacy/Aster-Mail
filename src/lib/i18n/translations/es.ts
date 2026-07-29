@@ -4798,10 +4798,10 @@ export const es = {
     referral_status_pending: "Pendientes",
     referral_status_completed: "Completados",
     referral_reward_info:
-      "$2.00 para ti, $1.00 para tu amigo cuando se suscriban a un plan de pago.",
+      "Tu amigo obtiene un descuento en su primer pago y tú ganas con cada pago que haga.",
     referral_commission_info:
-      "Además {{ percent }}% de cada pago que hagan tus referidos, mientras sigan suscritos.",
-    referral_max_credits: "Ganancias máximas: {{ value }}",
+      "Ganas el {{ percent }}% de cada pago que hagan tus referidos, mientras sigan suscritos.",
+    referral_max_credits: "Ganancias máximas: {{ value }} al año",
     referral_gauge_earned_label: "Ganado",
     total_earned: "Total ganado",
     affiliate_program: "Programa de Afiliados",
@@ -5060,7 +5060,7 @@ export const es = {
     use_credits_for_renewals_description:
       "Aplica automáticamente tu saldo de créditos a las renovaciones de planes y complementos. Si tu saldo no cubre el monto total, el resto se cobra a tu método de pago.",
     referral_program_description:
-      "Invita amigos a Aster y gana créditos cuando se suscriban a un plan de pago.",
+      "Invita amigos a Aster y gana crédito por cada pago que hagan.",
     referral_not_eligible_description: "Inténtalo de nuevo más tarde.",
     billing_address_description:
       "Añade tus datos de facturación para que aparezcan en las facturas.",
@@ -5343,7 +5343,8 @@ export const es = {
     credit_task_ios_hint_coming: "Próximamente",
     credit_task_ios_title: "Instalar en iOS",
     credit_task_refer_cta: "Referir",
-    credit_task_refer_hint: "Gana créditos por cada amigo que se registre.",
+    credit_task_refer_hint:
+      "Gana un porcentaje de cada pago que haga tu amigo una vez que se suscriba.",
     credit_task_refer_title: "Referir a un amigo",
     credit_type_install_android: "Instalación Android",
     credit_type_install_desktop: "Instalación en escritorio",
@@ -5773,13 +5774,14 @@ export const es = {
       "¿Periodista? Contacta con soporte con tus credenciales de prensa para recibir tu código.",
     refer_a_friend: "Referir a un amigo",
     referral_email_body:
-      "¡Hola!\n\nEstoy usando Aster Mail y me gusta mucho. Tiene cifrado de extremo a extremo, así que nadie puede leer tus correos excepto tú, ni siquiera el propio Aster.\n\nSi quieres probarlo, aquí tienes mi enlace de referido:\n\n{{ referral_link }}\n\nAmbos obtenemos créditos si acabas suscribiéndote, pero sin presión. Solo pensé que te gustaría.\n\nSaludos",
+      "¡Hola!\n\nEstoy usando Aster Mail y me gusta mucho. Tiene cifrado de extremo a extremo, así que nadie puede leer tus correos excepto tú, ni siquiera el propio Aster.\n\nSi quieres probarlo, aquí tienes mi enlace de referido:\n\n{{ referral_link }}\n\nObtienes un descuento en tu primer pago si te suscribes, y yo gano un poco de crédito, pero sin presión. Solo pensé que te gustaría.\n\nSaludos",
     referral_email_subject: "Únete a Aster Mail",
     referral_how_it_works: "Cómo funciona",
     referral_loading_contacts: "Cargando contactos...",
     referral_no_contacts: "No se encontraron contactos",
     referral_rewards: "Tus recompensas",
-    referral_step_earn: "Ambos ganan créditos",
+    referral_step_earn:
+      "Ganas una parte de cada pago que hagan, mientras sigan suscritos.",
     referral_step_share: "Comparte tu enlace de referido",
     referral_step_signup: "Tu amigo crea una cuenta",
     registered: "Registrado",

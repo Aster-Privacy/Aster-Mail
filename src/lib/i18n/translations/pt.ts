@@ -4807,10 +4807,10 @@ export const pt = {
     referral_status_pending: "Pendente",
     referral_status_completed: "Concluída",
     referral_reward_info:
-      "$2,00 para você, $1,00 para seu amigo quando ele assinar um plano pago.",
+      "Seu amigo ganha um desconto no primeiro pagamento e você ganha em cada pagamento que ele fizer.",
     referral_commission_info:
-      "Mais {{ percent }}% de cada pagamento dos seus indicados, enquanto permanecerem assinantes.",
-    referral_max_credits: "Ganhos máximos: {{ value }}",
+      "Você ganha {{ percent }}% de cada pagamento dos seus indicados, enquanto permanecerem assinantes.",
+    referral_max_credits: "Ganhos máximos: {{ value }} por ano",
     referral_gauge_earned_label: "Ganho",
     total_earned: "Total ganho",
     affiliate_program: "Programa de Afiliados",
@@ -5046,7 +5046,7 @@ export const pt = {
     use_credits_for_renewals_description:
       "Aplique automaticamente seu saldo de créditos nas renovações de planos e complementos. Se o saldo não cobrir o valor total, o restante será cobrado no seu método de pagamento.",
     referral_program_description:
-      "Convide amigos para o Aster e ganhe créditos quando eles assinarem um plano pago.",
+      "Convide amigos para o Aster e ganhe crédito em cada pagamento que eles fizerem.",
     referral_not_eligible_description: "Por favor, tente novamente mais tarde.",
     billing_address_description:
       "Adicione seus dados de cobrança para aparecerem nas faturas.",
@@ -5617,7 +5617,8 @@ export const pt = {
     referral_how_it_works: "Como funciona",
     referral_step_share: "Compartilhe seu link único",
     referral_step_signup: "Seu amigo cria uma conta",
-    referral_step_earn: "Você ganha créditos quando ele assinar",
+    referral_step_earn:
+      "Você ganha uma parte de cada pagamento que eles fizerem, enquanto permanecerem assinantes.",
     referral_rewards: "Suas recompensas",
     credits_title: "Créditos",
     credits_subtitle: "Ganhe créditos e aplique-os nas renovações do plano.",
@@ -5627,7 +5628,7 @@ export const pt = {
     credits_shop_plans: "Ver planos",
     credit_task_refer_title: "Indique um amigo",
     credit_task_refer_hint:
-      "Ganhe créditos quando seu indicado assinar um plano pago.",
+      "Ganhe uma porcentagem de cada pagamento do seu amigo depois que ele assinar.",
     credit_task_refer_cta: "Copiar link de indicação",
     credit_task_ios_title: "Instalar no iOS",
     credit_task_ios_hint_coming: "Em breve",

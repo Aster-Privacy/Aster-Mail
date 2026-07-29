@@ -183,8 +183,8 @@ export const ar = {
     select_parent_folder: "تحديد المجلد الرئيسي",
     top_level_no_parent: "المستوى الأعلى (بدون أصل)",
     parent_folder: "Ø§Ù„Ù…Ø¬Ù„Ø¯ Ø§Ù„Ø£ØµÙ„",
-    move_up: "ØªØ­Ø±ÙŠÙƒ Ù„Ø£Ø¹Ù„Ù‰",
-    move_down: "ØªØ­Ø±ÙŠÙƒ Ù„Ø£Ø³ÙÙ„",
+    move_up: "تحريك لأعلى",
+    move_down: "تحريك لأسفل",
     move_to: "نقل إلى",
     change_folder_color: "تغيير لون المجلد",
     select_a_color: "اختر لونًا",
@@ -4696,7 +4696,7 @@ export const ar = {
     credit_transactions: "معاملات الأرصدة",
     referral_program: "برنامج الإحالة",
     referral_program_description:
-      "ادعُ أصدقاءك إلى Aster واكسب أرصدة عندما يشتركون في خطة مدفوعة.",
+      "ادعُ أصدقاءك إلى Aster واكسب رصيدًا من كل دفعة يقومون بها.",
     your_referral_link: "رابط الإحالة الخاص بك",
     copy_link: "نسخ الرابط",
     link_copied: "تم نسخ الرابط إلى الحافظة",
@@ -4711,10 +4711,11 @@ export const ar = {
     no_referrals_yet: "لا توجد إحالات بعد. شارك رابطك للبدء!",
     referral_status_pending: "معلقة",
     referral_status_completed: "مكتملة",
-    referral_reward_info: "$2.00 لك، $1.00 لصديقك عندما يشترك في خطة مدفوعة.",
+    referral_reward_info:
+      "يحصل صديقك على خصم على أول دفعة، وتكسب أنت من كل دفعة يقوم بها.",
     referral_commission_info:
-      "بالإضافة إلى {{ percent }}% من كل دفعة يقوم بها من أحلتهم، طالما بقوا مشتركين.",
-    referral_max_credits: "الحد الأقصى للأرباح: {{ value }}",
+      "تكسب {{ percent }}% من كل دفعة يقوم بها من أحلتهم، طالما بقوا مشتركين.",
+    referral_max_credits: "الحد الأقصى للأرباح: {{ value }} سنويًا",
     referral_gauge_earned_label: "المكتسب",
     total_earned: "إجمالي المكتسب",
     affiliate_program: "برنامج الشركاء",
@@ -5361,8 +5362,7 @@ export const ar = {
     referral_step_share:
       "شارك رابط الإحالة الفريد الخاص بك مع الأصدقاء والعائلة أو الزملاء.",
     referral_step_signup: "يسجّلون في Aster عبر رابطك ويشتركون في خطة مدفوعة.",
-    referral_step_earn:
-      "تحصلان معًا على 10 دولارات رصيد في Aster، مُطبَّقة على تجديدك القادم.",
+    referral_step_earn: "تكسب نسبة من كل دفعة يقومون بها، طالما بقوا مشتركين.",
     referral_rewards: "المكافآت",
     credits_title: "الرصيد",
     credits_subtitle: "اكسب رصيدًا في Aster بإتمام مهام مختلفة.",
@@ -5371,8 +5371,7 @@ export const ar = {
       "يُطبَّق الرصيد تلقائيًا على المشتريات والتجديدات في الخطط المدفوعة.",
     credits_shop_plans: "تسوّق الخطط",
     credit_task_refer_title: "أحِل صديقًا إلى Aster",
-    credit_task_refer_hint:
-      "ستحصلان أنت وصديقك على 10 دولارات بعد تسجيله في Aster.",
+    credit_task_refer_hint: "اكسب نسبة من كل دفعة يقوم بها صديقك بعد اشتراكه.",
     credit_task_refer_cta: "دعوة",
     credit_task_ios_title: "تنزيل تطبيق Aster لـ iOS",
     credit_task_ios_hint_coming: "قريبًا",
@@ -5380,7 +5379,7 @@ export const ar = {
     send_referral_to_contacts: "إرسال بريد لجميع جهات الاتصال",
     referral_email_subject: "جرّب Aster Mail - بريد خاص للجميع",
     referral_email_body:
-      "مرحبًا!\n\nأنا أستخدم Aster Mail وأحبّه كثيرًا. إنه مشفر من طرف إلى طرف لذا لا يستطيع أحد قراءة رسائلك سواك، ولا حتى Aster أنفسهم.\n\nإن أردت تجربته، إليك رابط الإحالة الخاص بي:\n\n{{ referral_link }}\n\nنحصل كلانا على رصيد إن اشتركت، لكن لا إلزام. ظننت فقط أنك ستقدّره.\n\nمع التحية",
+      "مرحبًا!\n\nأنا أستخدم Aster Mail وأحبّه كثيرًا. إنه مشفر من طرف إلى طرف لذا لا يستطيع أحد قراءة رسائلك سواك، ولا حتى Aster أنفسهم.\n\nإن أردت تجربته، إليك رابط الإحالة الخاص بي:\n\n{{ referral_link }}\n\nتحصل على خصم على أول دفعة إن اشتركت، وأحصل أنا على رصيد بسيط، لكن لا إلزام. ظننت فقط أنك ستقدّره.\n\nمع التحية",
     referral_no_contacts:
       "لم يتم العثور على جهات اتصال. أضف بعض جهات الاتصال أولًا!",
     referral_loading_contacts: "جارٍ تحميل جهات الاتصال...",

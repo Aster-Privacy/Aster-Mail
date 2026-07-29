@@ -1014,7 +1014,7 @@ export const zh_CN = {
     move_folder_description: "为此文件夹选择新的父文件夹",
     select_parent_folder: "选择父文件夹",
     top_level_no_parent: "顶级（无父文件夹）",
-    parent_folder: "ä¸Šçº§æ–‡ä»¶å¤¹",
+    parent_folder: "上级文件夹",
     move_up: "ä¸Šç§»",
     move_down: "ä¸‹ç§»",
     move_to: "移动到",
@@ -4386,7 +4386,7 @@ export const zh_CN = {
     credit_transactions: "积分交易",
     referral_program: "推荐计划",
     referral_program_description:
-      "邀请朋友使用 Aster，当他们订阅付费套餐时您将获得积分。",
+      "邀请朋友使用 Aster，他们每次付款您都能获得积分。",
     your_referral_link: "您的推荐链接",
     copy_link: "复制链接",
     link_copied: "链接已复制到剪贴板",
@@ -4401,10 +4401,11 @@ export const zh_CN = {
     no_referrals_yet: "暂无推荐。分享您的链接开始吧！",
     referral_status_pending: "待处理",
     referral_status_completed: "已完成",
-    referral_reward_info: "您获得$2.00，您的朋友在订阅付费套餐时获得$1.00。",
+    referral_reward_info:
+      "您的朋友首次付款可享折扣，而您可从他们的每笔付款中获得收益。",
     referral_commission_info:
-      "此外，您还可获得推荐用户每笔付款的{{ percent }}%，只要他们保持订阅。",
-    referral_max_credits: "最高收入：{{ value }}",
+      "只要推荐用户保持订阅，您就能获得其每笔付款的 {{ percent }}%。",
+    referral_max_credits: "最高收入：每年 {{ value }}",
     referral_gauge_earned_label: "已获得",
     total_earned: "总收入",
     affiliate_program: "联盟计划",
@@ -4631,8 +4632,7 @@ export const zh_CN = {
     domain_purchase_purchased_expires: "{{date}} 到期",
     domain_purchase_purchased_in_progress: "正在设置...",
     domain_purchase_purchased_lapsed: "已过期 - 重新购买",
-    domain_purchase_error_paused:
-      "域名购买暂停几分钟，请稍后再试。",
+    domain_purchase_error_paused: "域名购买暂停几分钟，请稍后再试。",
     domain_purchase_error_not_allowed:
       "此域名目前无法在您的账户中购买。请换一个名称或联系客服。",
     domain_purchase_order_expired:
@@ -5269,11 +5269,11 @@ export const zh_CN = {
     refer_a_friend: "推荐朋友",
     referral_email_subject: "加入 Aster Mail",
     referral_email_body:
-      "我在使用 Aster Mail，一款端到端加密的私密邮件服务。用我的推荐链接注册可以获得奖励：{{ referral_link }}",
+      "我在使用 Aster Mail，一款端到端加密的私密邮件服务。用我的推荐链接注册，你的首次付款可享折扣：{{ referral_link }}",
     referral_how_it_works: "工作原理",
     referral_step_share: "分享您的专属推荐链接",
     referral_step_signup: "朋友使用您的链接注册",
-    referral_step_earn: "当朋友订阅付费套餐时，您和朋友都能获得积分",
+    referral_step_earn: "只要他们保持订阅，您就能从其每笔付款中获得分成。",
     referral_rewards: "奖励",
     referral_loading_contacts: "正在加载联系人...",
     referral_no_contacts: "没有联系人可以邀请",
@@ -5281,7 +5281,8 @@ export const zh_CN = {
     credit_task_ios_title: "安装 iOS 应用",
     credit_task_ios_hint_coming: "即将推出",
     credit_task_refer_title: "推荐朋友",
-    credit_task_refer_hint: "邀请朋友使用 Aster Mail",
+    credit_task_refer_hint:
+      "朋友订阅后，您可从其每笔付款中获得一定比例的收益。",
     credit_task_refer_cta: "邀请",
     credit_task_earned: "已获得",
     credit_type_install_desktop: "安装桌面应用",

@@ -188,7 +188,7 @@ export const de = {
     move_folder_description: "Neuen übergeordneten Ordner auswählen",
     select_parent_folder: "Übergeordneten Ordner auswählen",
     top_level_no_parent: "Oberste Ebene (kein übergeordneter Ordner)",
-    parent_folder: "Ãœbergeordneter Ordner",
+    parent_folder: "Übergeordneter Ordner",
     move_up: "Nach oben",
     move_down: "Nach unten",
     move_to: "Verschieben nach",
@@ -4844,7 +4844,7 @@ export const de = {
     credit_transactions: "Guthaben-Transaktionen",
     referral_program: "Empfehlungsprogramm",
     referral_program_description:
-      "Laden Sie Freunde zu Aster ein und verdienen Sie Guthaben, wenn sie einen kostenpflichtigen Tarif abonnieren.",
+      "Laden Sie Freunde zu Aster ein und verdienen Sie Guthaben aus jeder Zahlung, die sie leisten.",
     your_referral_link: "Ihr Empfehlungslink",
     copy_link: "Link kopieren",
     link_copied: "Link in die Zwischenablage kopiert",
@@ -4861,10 +4861,10 @@ export const de = {
     referral_status_pending: "Ausstehend",
     referral_status_completed: "Abgeschlossen",
     referral_reward_info:
-      "2,00 $ für Sie, 1,00 $ für Ihren Freund, wenn dieser einen kostenpflichtigen Tarif abonniert.",
+      "Ihr Freund erhält einen Rabatt auf die erste Zahlung, und Sie verdienen an jeder seiner Zahlungen.",
     referral_commission_info:
-      "Plus {{ percent }}% jeder Zahlung Ihrer Empfehlungen, solange diese abonniert bleiben.",
-    referral_max_credits: "Maximale Einnahmen: {{ value }}",
+      "Sie verdienen {{ percent }}% jeder Zahlung Ihrer Empfehlungen, solange diese abonniert bleiben.",
+    referral_max_credits: "Maximale Einnahmen: {{ value }} pro Jahr",
     referral_gauge_earned_label: "Verdient",
     total_earned: "Gesamt verdient",
     affiliate_program: "Partnerprogramm",
@@ -5422,7 +5422,7 @@ export const de = {
     credit_task_ios_title: "Aster-App für iOS herunterladen",
     credit_task_refer_cta: "Einladen",
     credit_task_refer_hint:
-      "Sie und Ihr Freund erhalten je 10 $, nachdem dieser sich für Aster registriert.",
+      "Verdienen Sie einen Prozentsatz jeder Zahlung Ihres Freundes, sobald dieser abonniert.",
     credit_task_refer_title: "Einen Freund zu Aster einladen",
     credit_type_install_android: "Android-Installation",
     credit_type_install_desktop: "Desktop-Installation",
@@ -5910,7 +5910,7 @@ export const de = {
       "Journalist? Kontaktiere den Support mit deinem Presseausweis, um deinen Code zu erhalten.",
     refer_a_friend: "Freund einladen",
     referral_email_body:
-      "Hallo!\n\nIch benutze Aster Mail und mag es wirklich. Es ist Ende-zu-Ende-verschlüsselt, sodass niemand Ihre E-Mails lesen kann außer Ihnen. Nicht einmal Aster selbst.\n\nFalls Sie es ausprobieren möchten, hier ist mein Empfehlungslink:\n\n{{ referral_link }}\n\nWir erhalten beide Guthaben, wenn Sie sich anschließend anmelden, aber kein Druck. Dachte nur, es könnte Sie interessieren.\n\nViele Grüße",
+      "Hallo!\n\nIch benutze Aster Mail und mag es wirklich. Es ist Ende-zu-Ende-verschlüsselt, sodass niemand Ihre E-Mails lesen kann außer Ihnen. Nicht einmal Aster selbst.\n\nFalls Sie es ausprobieren möchten, hier ist mein Empfehlungslink:\n\n{{ referral_link }}\n\nSie erhalten einen Rabatt auf Ihre erste Zahlung, wenn Sie ein Abo abschließen, und ich ein kleines Guthaben, aber kein Druck. Dachte nur, es könnte Sie interessieren.\n\nViele Grüße",
     referral_email_subject:
       "Aster Mail ausprobieren - private E-Mails für alle",
     referral_how_it_works: "So funktioniert es",
@@ -5919,7 +5919,7 @@ export const de = {
       "Keine Kontakte gefunden. Fügen Sie zuerst Kontakte hinzu!",
     referral_rewards: "Belohnungen",
     referral_step_earn:
-      "Sie erhalten beide 10 $ Aster-Guthaben, das auf Ihre nächste Verlängerung angewendet wird.",
+      "Sie verdienen einen Anteil an jeder ihrer Zahlungen, solange sie abonniert bleiben.",
     referral_step_share:
       "Teilen Sie Ihren einzigartigen Empfehlungslink mit Freunden, Familie oder Kollegen.",
     referral_step_signup:

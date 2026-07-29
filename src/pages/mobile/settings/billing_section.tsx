@@ -1262,16 +1262,20 @@ export function BillingSection({
                         )}
                         {t("settings.send_referral_to_contacts")}
                       </button>
-                      <p className="text-xs text-txt-muted mt-2">
-                        {t("settings.referral_reward_info")}
-                      </p>
-                      <p className="text-xs text-txt-muted mt-1">
-                        {t("settings.referral_commission_info", {
-                          percent: String(
-                            referral_info.commission_percent || 5,
-                          ),
-                        })}
-                      </p>
+                      {!referral_info.is_affiliate && (
+                        <>
+                          <p className="text-xs text-txt-muted mt-2">
+                            {t("settings.referral_reward_info")}
+                          </p>
+                          <p className="text-xs text-txt-muted mt-1">
+                            {t("settings.referral_commission_info", {
+                              percent: String(
+                                referral_info.commission_percent || 10,
+                              ),
+                            })}
+                          </p>
+                        </>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-3">

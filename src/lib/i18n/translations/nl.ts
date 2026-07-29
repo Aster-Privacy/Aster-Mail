@@ -4785,7 +4785,7 @@ export const nl = {
     credit_transactions: "Tegoedtransacties",
     referral_program: "Verwijzingsprogramma",
     referral_program_description:
-      "Nodig vrienden uit voor Aster en verdien tegoed wanneer ze een betaald abonnement afsluiten.",
+      "Nodig vrienden uit voor Aster en verdien tegoed op elke betaling die ze doen.",
     your_referral_link: "Jouw verwijzingslink",
     copy_link: "Link kopiëren",
     link_copied: "Link gekopieerd naar klembord",
@@ -4801,10 +4801,10 @@ export const nl = {
     referral_status_pending: "In behandeling",
     referral_status_completed: "Voltooid",
     referral_reward_info:
-      "$2,00 voor jou, $1,00 voor je vriend wanneer ze zich abonneren op een betaald abonnement.",
+      "Je vriend krijgt korting op de eerste betaling en jij verdient aan elke betaling die hij doet.",
     referral_commission_info:
-      "Plus {{ percent }}% van elke betaling die je verwijzingen doen, zolang ze geabonneerd blijven.",
-    referral_max_credits: "Maximale verdiensten: {{ value }}",
+      "Je verdient {{ percent }}% van elke betaling die je verwijzingen doen, zolang ze geabonneerd blijven.",
+    referral_max_credits: "Maximale verdiensten: {{ value }} per jaar",
     referral_gauge_earned_label: "Verdiend",
     total_earned: "Totaal verdiend",
     affiliate_program: "Affiliateprogramma",
@@ -5330,7 +5330,7 @@ export const nl = {
     credit_task_ios_title: "Aster voor iOS",
     credit_task_refer_cta: "Nu doorverwijzen",
     credit_task_refer_hint:
-      "Verdien credits voor elke vriend die u doorverwijst",
+      "Verdien een percentage van elke betaling die je vriend doet zodra hij zich abonneert.",
     credit_task_refer_title: "Vrienden doorverwijzen",
     credit_type_install_android: "Android-app geinstalleerd",
     credit_type_install_desktop: "Desktop-app geinstalleerd",
@@ -5775,7 +5775,8 @@ export const nl = {
     referral_loading_contacts: "Contacten laden...",
     referral_no_contacts: "Geen contacten gevonden",
     referral_rewards: "Beloningen",
-    referral_step_earn: "Credits verdienen",
+    referral_step_earn:
+      "Je verdient een deel van elke betaling die ze doen, zolang ze geabonneerd blijven.",
     referral_step_share: "Uw link delen",
     referral_step_signup: "Vriend meldt zich aan",
     registered: "Geregistreerd",

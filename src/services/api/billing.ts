@@ -714,6 +714,7 @@ export interface ReferralInfo {
   max_credits_cents: number;
   commission_percent: number;
   is_eligible: boolean;
+  is_affiliate?: boolean;
   earned_install_ios_cents?: number;
   earned_install_android_cents?: number;
   earned_install_desktop_cents?: number;
