@@ -182,7 +182,11 @@ async function decrypt_with_key<T>(
     const nonce = base64_to_array(blob.nonce);
     const ciphertext = base64_to_array(blob.encrypted_data);
 
-    const plaintext = await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
+    const plaintext = await decrypt_aes_gcm_with_fallback(
+      crypto_key,
+      ciphertext,
+      nonce,
+    );
 
     return JSON.parse(new TextDecoder().decode(plaintext)) as T;
   } catch {
@@ -292,6 +296,11 @@ export function extract_metadata_from_server(
     message_ts?: string;
     item_type?: string;
     is_read?: boolean;
+    is_starred?: boolean;
+    is_pinned?: boolean;
+    is_trashed?: boolean;
+    is_archived?: boolean;
+    is_spam?: boolean;
   },
 ): MailItemMetadata {
   if (!decrypted) {
@@ -302,11 +311,11 @@ export function extract_metadata_from_server(
 
     return {
       is_read: is_sent_type ? true : (server_data.is_read ?? false),
-      is_starred: false,
-      is_pinned: false,
-      is_trashed: false,
-      is_archived: false,
-      is_spam: false,
+      is_starred: server_data.is_starred ?? false,
+      is_pinned: server_data.is_pinned ?? false,
+      is_trashed: server_data.is_trashed ?? false,
+      is_archived: server_data.is_archived ?? false,
+      is_spam: server_data.is_spam ?? false,
       size_bytes: 0,
       has_attachments: false,
       attachment_count: 0,
@@ -325,14 +334,39 @@ export function extract_metadata_from_server(
 
   return {
     ...decrypted,
-    is_read: is_sent_type
-      ? true
-      : (server_data.is_read ?? decrypted.is_read),
+    is_read: is_sent_type ? true : (server_data.is_read ?? decrypted.is_read),
+    is_starred: decrypted.is_starred || (server_data.is_starred ?? false),
+    is_pinned: decrypted.is_pinned || (server_data.is_pinned ?? false),
+    is_trashed: decrypted.is_trashed || (server_data.is_trashed ?? false),
+    is_archived: decrypted.is_archived || (server_data.is_archived ?? false),
+    is_spam: decrypted.is_spam || (server_data.is_spam ?? false),
     scheduled_at: server_data.scheduled_at ?? decrypted.scheduled_at,
     send_status: server_data.send_status ?? decrypted.send_status,
     snoozed_until: server_data.snoozed_until ?? decrypted.snoozed_until,
     message_ts: server_data.message_ts ?? decrypted.message_ts,
     item_type: server_data.item_type ?? decrypted.item_type,
+  };
+}
+
+export interface PlaintextFlagPatch {
+  is_read: boolean;
+  is_starred: boolean;
+  is_pinned: boolean;
+  is_trashed: boolean;
+  is_archived: boolean;
+  is_spam: boolean;
+}
+
+export function metadata_flag_patch(
+  metadata: MailItemMetadata,
+): PlaintextFlagPatch {
+  return {
+    is_read: metadata.is_read ?? false,
+    is_starred: metadata.is_starred ?? false,
+    is_pinned: metadata.is_pinned ?? false,
+    is_trashed: metadata.is_trashed ?? false,
+    is_archived: metadata.is_archived ?? false,
+    is_spam: metadata.is_spam ?? false,
   };
 }
 

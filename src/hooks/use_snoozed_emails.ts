@@ -118,7 +118,11 @@ async function try_decrypt_with_identity_key(
         false,
         ["decrypt"],
       );
-      const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, encrypted_bytes, nonce_bytes);
+      const decrypted = await decrypt_aes_gcm_with_fallback(
+        crypto_key,
+        encrypted_bytes,
+        nonce_bytes,
+      );
 
       const parsed = JSON.parse(new TextDecoder().decode(decrypted));
       const from = normalize_envelope_from(parsed.from);
@@ -241,6 +245,11 @@ function mail_to_email(
     message_ts: item.message_ts,
     item_type: item.item_type,
     is_read: item.is_read,
+    is_starred: item.is_starred,
+    is_pinned: item.is_pinned,
+    is_trashed: item.is_trashed,
+    is_archived: item.is_archived,
+    is_spam: item.is_spam,
   });
 
   if (!envelope) {
@@ -282,7 +291,8 @@ function mail_to_email(
   return {
     id: item.id,
     item_type: item.item_type,
-    sender_name: from_name || get_email_username(from_email) || unknown_sender_text,
+    sender_name:
+      from_name || get_email_username(from_email) || unknown_sender_text,
     sender_email: from_email,
     subject: envelope.subject || no_subject_text,
     preview: strip_html_tags(envelope.body_text).substring(0, 100),

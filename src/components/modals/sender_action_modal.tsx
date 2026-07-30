@@ -58,6 +58,7 @@ import {
   decrypt_mail_metadata,
   create_default_metadata,
   encrypt_mail_metadata,
+  metadata_flag_patch,
 } from "@/services/crypto/mail_metadata";
 import { use_auth } from "@/contexts/auth_context";
 import { get_email_username, get_email_domain } from "@/lib/utils";
@@ -333,7 +334,13 @@ export function SenderActionModal({
             };
             const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-            return encrypted ? { id: item.id, ...encrypted } : null;
+            return encrypted
+              ? {
+                  id: item.id,
+                  ...encrypted,
+                  ...metadata_flag_patch(updated_metadata),
+                }
+              : null;
           }),
         );
         const valid_updates = metadata_updates.filter(
@@ -368,7 +375,13 @@ export function SenderActionModal({
                 const encrypted =
                   await encrypt_mail_metadata(restored_metadata);
 
-                return encrypted ? { id: item.id, ...encrypted } : null;
+                return encrypted
+                  ? {
+                      id: item.id,
+                      ...encrypted,
+                      ...metadata_flag_patch(restored_metadata),
+                    }
+                  : null;
               }),
             );
             const valid_undo = undo_updates.filter((u) => u !== null) as Array<{
@@ -393,7 +406,13 @@ export function SenderActionModal({
             const updated_metadata = { ...item.metadata!, is_trashed: true };
             const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-            return encrypted ? { id: item.id, ...encrypted } : null;
+            return encrypted
+              ? {
+                  id: item.id,
+                  ...encrypted,
+                  ...metadata_flag_patch(updated_metadata),
+                }
+              : null;
           }),
         );
         const valid_updates = metadata_updates.filter(
@@ -426,7 +445,13 @@ export function SenderActionModal({
                 const encrypted =
                   await encrypt_mail_metadata(restored_metadata);
 
-                return encrypted ? { id: item.id, ...encrypted } : null;
+                return encrypted
+                  ? {
+                      id: item.id,
+                      ...encrypted,
+                      ...metadata_flag_patch(restored_metadata),
+                    }
+                  : null;
               }),
             );
             const valid_undo = undo_updates.filter((u) => u !== null) as Array<{

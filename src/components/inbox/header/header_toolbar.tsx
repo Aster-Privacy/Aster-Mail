@@ -50,6 +50,7 @@ import {
 } from "@/services/api/mail";
 import {
   encrypt_mail_metadata,
+  metadata_flag_patch,
   decrypt_mail_metadata,
   create_default_metadata,
 } from "@/services/crypto/mail_metadata";
@@ -599,7 +600,13 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 };
                 const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-                return encrypted ? { id: item.id, ...encrypted } : null;
+                return encrypted
+                  ? {
+                      id: item.id,
+                      ...encrypted,
+                      ...metadata_flag_patch(updated_metadata),
+                    }
+                  : null;
               }),
             );
 
@@ -672,7 +679,13 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                     const encrypted =
                       await encrypt_mail_metadata(updated_metadata);
 
-                    return encrypted ? { id: item.id, ...encrypted } : null;
+                    return encrypted
+                      ? {
+                          id: item.id,
+                          ...encrypted,
+                          ...metadata_flag_patch(updated_metadata),
+                        }
+                      : null;
                   }),
                 );
 
@@ -740,7 +753,13 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 const updated_metadata = { ...current_metadata, is_read: true };
                 const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-                return encrypted ? { id: item.id, ...encrypted } : null;
+                return encrypted
+                  ? {
+                      id: item.id,
+                      ...encrypted,
+                      ...metadata_flag_patch(updated_metadata),
+                    }
+                  : null;
               }),
             );
 
@@ -823,7 +842,13 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                     const encrypted =
                       await encrypt_mail_metadata(updated_metadata);
 
-                    return encrypted ? { id: item.id, ...encrypted } : null;
+                    return encrypted
+                      ? {
+                          id: item.id,
+                          ...encrypted,
+                          ...metadata_flag_patch(updated_metadata),
+                        }
+                      : null;
                   }),
                 );
 
@@ -897,7 +922,13 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 };
                 const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-                return encrypted ? { id: item.id, ...encrypted } : null;
+                return encrypted
+                  ? {
+                      id: item.id,
+                      ...encrypted,
+                      ...metadata_flag_patch(updated_metadata),
+                    }
+                  : null;
               }),
             );
 
@@ -974,7 +1005,13 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                     const encrypted =
                       await encrypt_mail_metadata(updated_metadata);
 
-                    return encrypted ? { id: item.id, ...encrypted } : null;
+                    return encrypted
+                      ? {
+                          id: item.id,
+                          ...encrypted,
+                          ...metadata_flag_patch(updated_metadata),
+                        }
+                      : null;
                   }),
                 );
 
