@@ -67,6 +67,8 @@ export interface MailItem {
   is_archived?: boolean;
   is_spam?: boolean;
   is_read?: boolean;
+  is_starred?: boolean;
+  is_pinned?: boolean;
   folders?: MailItemFolder[];
   tag_tokens?: string[];
   metadata?: MailItemMetadata;
@@ -431,9 +433,13 @@ export interface BulkScopeResponse {
 export async function bulk_action_by_scope(
   data: BulkScopeRequest,
 ): Promise<ApiResponse<BulkScopeResponse>> {
-  return api_client.post<BulkScopeResponse>("/mail/v1/messages/bulk/scope", data, {
-    timeout: 120000,
-  });
+  return api_client.post<BulkScopeResponse>(
+    "/mail/v1/messages/bulk/scope",
+    data,
+    {
+      timeout: 120000,
+    },
+  );
 }
 
 export interface BulkUndoResponse {
@@ -491,6 +497,7 @@ export interface SyncMailItemsResponse {
   next_cursor?: string;
   has_more: boolean;
   sync_token: string;
+  deleted_ids?: string[];
 }
 
 export interface MigrationStatusResponse {

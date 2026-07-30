@@ -52,6 +52,7 @@ import {
   decrypt_mail_metadata,
   create_default_metadata,
   encrypt_mail_metadata,
+  metadata_flag_patch,
 } from "@/services/crypto/mail_metadata";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import { has_protected_folder_label } from "@/hooks/use_folders";
@@ -367,7 +368,13 @@ export function MassUnsubscribeModal({
           };
           const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-          return encrypted ? { id: item.id, ...encrypted } : null;
+          return encrypted
+            ? {
+                id: item.id,
+                ...encrypted,
+                ...metadata_flag_patch(updated_metadata),
+              }
+            : null;
         }),
       );
 

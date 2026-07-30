@@ -27,9 +27,16 @@ import { refresh_session_activity } from "./session_timeout_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
 import { is_onion_host } from "@/lib/onion_host";
-import { is_any_lockdown_active, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  is_any_lockdown_active,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 
-import { MAIL_EVENTS, emit_reactions_changed } from "@/hooks/mail_events";
+import {
+  MAIL_EVENTS,
+  emit_reactions_changed,
+  emit_mail_items_removed,
+} from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
@@ -47,7 +54,10 @@ type ServerMessageType =
   | "new_mail"
   | "new_reaction"
   | "prekey_low"
-  | "session_revoked";
+  | "session_revoked"
+  | "mail_mutation"
+  | "ping"
+  | "pong";
 
 interface ServerMessage {
   type: ServerMessageType;
@@ -56,7 +66,21 @@ interface ServerMessage {
   success?: boolean;
   message?: string;
   mail_item_id?: string;
+  action?: string;
+  item_ids?: string[];
+  origin_device?: string | null;
 }
+
+const HEARTBEAT_INTERVAL_MS = 30000;
+const LIVENESS_TIMEOUT_MS = 75000;
+const MUTATION_REFRESH_DEBOUNCE_MS = 600;
+const REMOVAL_ACTIONS = new Set([
+  "trash",
+  "delete",
+  "archive",
+  "mark_spam",
+  "spam",
+]);
 
 type MessageHandler = (data: ServerMessage) => void;
 
@@ -78,6 +102,9 @@ class SyncClient {
   private last_auth_error = false;
   private reconnect_attempt = 0;
   private pending_connect_reject: ((err: Error) => void) | null = null;
+  private heartbeat_timer: ReturnType<typeof setInterval> | null = null;
+  private last_message_at = 0;
+  private mutation_refresh_timer: ReturnType<typeof setTimeout> | null = null;
 
   async connect(): Promise<void> {
     const method = connection_store.get_method();
@@ -204,9 +231,12 @@ class SyncClient {
           this.auth_error_count = 0;
           this.last_auth_error = false;
           this.reconnect_attempt = 0;
+          this.start_heartbeat();
           if (is_reconnect) {
             void sync_recent(true);
-            window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+            window.dispatchEvent(
+              new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+            );
           }
           settle_resolve();
         } else if (data.type === "auth_error") {
@@ -221,10 +251,64 @@ class SyncClient {
 
       this.socket.onclose = () => {
         this.authenticated = false;
+        this.stop_heartbeat();
         this.clear_pending_requests();
         this.schedule_reconnect();
       };
     });
+  }
+
+  private start_heartbeat(): void {
+    this.stop_heartbeat();
+    this.last_message_at = Date.now();
+
+    this.heartbeat_timer = setInterval(() => {
+      if (this.socket?.readyState !== WebSocket.OPEN) {
+        return;
+      }
+
+      if (Date.now() - this.last_message_at > LIVENESS_TIMEOUT_MS) {
+        this.socket.close();
+
+        return;
+      }
+
+      this.send_message({ type: "ping" });
+    }, HEARTBEAT_INTERVAL_MS);
+  }
+
+  private stop_heartbeat(): void {
+    if (this.heartbeat_timer) {
+      clearInterval(this.heartbeat_timer);
+      this.heartbeat_timer = null;
+    }
+  }
+
+  reconnect_now(): void {
+    if (!this.should_reconnect) return;
+
+    if (this.reconnect_timeout) {
+      clearTimeout(this.reconnect_timeout);
+      this.reconnect_timeout = null;
+    }
+
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      if (Date.now() - this.last_message_at <= LIVENESS_TIMEOUT_MS) {
+        this.send_message({ type: "ping" });
+
+        return;
+      }
+      this.socket.close();
+
+      return;
+    }
+
+    if (this.socket?.readyState === WebSocket.CONNECTING) {
+      return;
+    }
+
+    this.reconnect_attempt = 0;
+    this.connect().catch(() => {});
   }
 
   private schedule_reconnect(): void {
@@ -281,8 +365,41 @@ class SyncClient {
     }
   }
 
+  private handle_mail_mutation(data: ServerMessage): void {
+    const ids = data.item_ids ?? [];
+    const action = data.action ?? "";
+
+    mark_view_stale();
+
+    if (ids.length > 0 && REMOVAL_ACTIONS.has(action)) {
+      emit_mail_items_removed({ ids });
+    }
+
+    if (this.mutation_refresh_timer) {
+      clearTimeout(this.mutation_refresh_timer);
+    }
+
+    this.mutation_refresh_timer = setTimeout(() => {
+      this.mutation_refresh_timer = null;
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
+    }, MUTATION_REFRESH_DEBOUNCE_MS);
+  }
+
   private handle_message(data: ServerMessage): void {
+    this.last_message_at = Date.now();
+
+    if (data.type === "ping" || data.type === "pong") {
+      return;
+    }
+
     refresh_session_activity();
+
+    if (data.type === "mail_mutation") {
+      this.handle_mail_mutation(data);
+
+      return;
+    }
 
     if (data.type === "new_mail") {
       mark_view_stale();
@@ -443,6 +560,11 @@ class SyncClient {
       clearTimeout(this.reconnect_timeout);
       this.reconnect_timeout = null;
     }
+    this.stop_heartbeat();
+    if (this.mutation_refresh_timer) {
+      clearTimeout(this.mutation_refresh_timer);
+      this.mutation_refresh_timer = null;
+    }
     this.clear_pending_requests();
     this.authenticated = false;
     this.socket?.close();
@@ -536,6 +658,17 @@ if (typeof window !== "undefined") {
       sync_client.disconnect();
     }
   });
+  window.addEventListener("online", () => {
+    sync_client.reconnect_now();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      sync_client.reconnect_now();
+    }
+  });
+  window.addEventListener("focus", () => {
+    sync_client.reconnect_now();
+  });
 }
 
 async function derive_key(
@@ -600,7 +733,11 @@ async function decrypt_data<T>(
   );
   const nonce_bytes = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_bytes, nonce_bytes);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_bytes,
+    nonce_bytes,
+  );
 
   return JSON.parse(new TextDecoder().decode(decrypted));
 }

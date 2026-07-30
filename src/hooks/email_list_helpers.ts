@@ -330,11 +330,17 @@ export async function decrypt_envelope(
     if (!vault?.identity_key) return null;
 
     const first_byte = base64_to_array(encrypted)[0];
-    if (nonce_bytes.length === 12 && (first_byte === 2 || first_byte === 3 || first_byte === 4)) {
+    if (
+      nonce_bytes.length === 12 &&
+      (first_byte === 2 || first_byte === 3 || first_byte === 4)
+    ) {
       const { decrypt_mail_envelope } = await import(
         "@/components/email/shared/decrypt_envelope"
       );
-      const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(encrypted, nonce);
+      const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(
+        encrypted,
+        nonce,
+      );
       if (ecies_result) return ecies_result;
     }
 
@@ -393,6 +399,11 @@ export function mail_to_email(
     message_ts: item.message_ts,
     item_type: item.item_type,
     is_read: item.is_read,
+    is_starred: item.is_starred,
+    is_pinned: item.is_pinned,
+    is_trashed: item.is_trashed,
+    is_archived: item.is_archived,
+    is_spam: item.is_spam,
   });
 
   if (!envelope) {
@@ -587,7 +598,12 @@ export async function fetch_mail_by_ids_reconciled(
         }
       }
 
-      const email = mail_to_email_safe(item, envelope, metadata, format_options);
+      const email = mail_to_email_safe(
+        item,
+        envelope,
+        metadata,
+        format_options,
+      );
 
       if (!email) throw new Error("unconvertible mail item");
 
