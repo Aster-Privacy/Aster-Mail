@@ -3695,7 +3695,7 @@ export const ja = {
       "PGP鍵をメールアドレスで検索できる公開ディレクトリです。注意：ほとんどの鍵サーバーでは公開後に鍵を完全に削除できません。",
     keyserver_urls_title: "鍵サーバーURL",
     keyserver_urls_description:
-      "デフォルト (keys.openpgp.org、keyserver.ubuntu.com) に加えて検索・公開する追加の鍵サーバー",
+      "デフォルト (keys.openpgp.org) に加えて検索・公開する追加の鍵サーバー",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "追加",
     keyserver_remove: "削除",

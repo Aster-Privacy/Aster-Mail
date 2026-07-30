@@ -3373,7 +3373,7 @@ export const zh_CN = {
       "可按邮箱搜索PGP密钥的公共目录。注意：大多数密钥服务器发布后无法完全删除密钥。",
     keyserver_urls_title: "密钥服务器URL",
     keyserver_urls_description:
-      "除默认服务器（keys.openpgp.org、keyserver.ubuntu.com）外，额外用于搜索和发布的密钥服务器",
+      "除默认服务器（keys.openpgp.org）外，额外用于搜索和发布的密钥服务器",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "添加",
     keyserver_remove: "移除",

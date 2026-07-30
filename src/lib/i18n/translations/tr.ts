@@ -3684,7 +3684,7 @@ export const tr = {
       "PGP anahtarlarının e-posta ile aranabildiği genel dizinler. Dikkat: çoğu anahtar sunucusunda yayınlanan anahtarlar tamamen silinemez.",
     keyserver_urls_title: "Anahtar sunucu URL'leri",
     keyserver_urls_description:
-      "Varsayılan sunucuların (keys.openpgp.org, keyserver.ubuntu.com) ötesinde aranacak ve yayımlanacak ek anahtar sunucuları",
+      "Varsayılan sunucuların (keys.openpgp.org) ötesinde aranacak ve yayımlanacak ek anahtar sunucuları",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Ekle",
     keyserver_remove: "Kaldır",

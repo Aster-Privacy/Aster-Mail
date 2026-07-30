@@ -3708,7 +3708,7 @@ export const ru = {
       "Публичные каталоги, где ключи PGP можно найти по email. Внимание: на большинстве серверов ключи нельзя полностью удалить после публикации.",
     keyserver_urls_title: "URL серверов ключей",
     keyserver_urls_description:
-      "Дополнительные серверы ключей для поиска и публикации, помимо серверов по умолчанию (keys.openpgp.org, keyserver.ubuntu.com)",
+      "Дополнительные серверы ключей для поиска и публикации, помимо серверов по умолчанию (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Добавить",
     keyserver_remove: "Удалить",

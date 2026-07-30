@@ -3716,7 +3716,7 @@ export const pt = {
       "Diretórios públicos onde as chaves PGP são pesquisáveis por e-mail. Atenção: na maioria dos servidores as chaves não podem ser completamente removidas após a publicação.",
     keyserver_urls_title: "URLs do servidor de chaves",
     keyserver_urls_description:
-      "Servidores de chaves adicionais para pesquisar e publicar, além dos padrões (keys.openpgp.org, keyserver.ubuntu.com)",
+      "Servidores de chaves adicionais para pesquisar e publicar, além dos padrões (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Adicionar",
     keyserver_remove: "Remover",

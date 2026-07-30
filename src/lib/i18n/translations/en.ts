@@ -4230,7 +4230,7 @@ export const en: Translations = {
       "Public directories where PGP keys are searchable by email. Publishing here lets anyone find your key. Heads up: most keyservers don't let you fully remove a key once it's published.",
     keyserver_urls_title: "Keyserver URLs",
     keyserver_urls_description:
-      "Additional keyservers to search and publish to, beyond the defaults (keys.openpgp.org, keyserver.ubuntu.com)",
+      "Additional keyservers to search and publish to, beyond the defaults (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Add",
     keyserver_remove: "Remove",

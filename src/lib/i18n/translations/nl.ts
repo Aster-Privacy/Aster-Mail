@@ -3657,7 +3657,7 @@ export const nl = {
       "Openbare directories waar PGP-sleutels doorzoekbaar zijn op e-mailadres. Let op: bij de meeste sleutelservers kunnen sleutels na publicatie niet volledig worden verwijderd.",
     keyserver_urls_title: "Sleutelserver-URLs",
     keyserver_urls_description:
-      "Extra sleutelservers om in te zoeken en naar te publiceren, naast de standaardservers (keys.openpgp.org, keyserver.ubuntu.com)",
+      "Extra sleutelservers om in te zoeken en naar te publiceren, naast de standaardservers (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Toevoegen",
     keyserver_remove: "Verwijderen",
