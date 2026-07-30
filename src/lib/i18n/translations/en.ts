@@ -116,7 +116,7 @@ export const en: Translations = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted along with all your data. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window - sent to both your Aster inbox and your recovery email. Paid subscribers are exempt from this policy.",
+      "If your account has no activity for the duration you set, it will be permanently deleted along with all your data. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity - sent to both your Aster inbox and your recovery email. Paid subscribers are exempt from this policy.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -999,6 +999,12 @@ export const en: Translations = {
     recipient_key_outdated: "Recipient's key is outdated",
     recipient_key_outdated_desc:
       "This recipient's published key is expired or invalid, so the message cannot be end-to-end encrypted. It will be sent protected in transit only.",
+    encryption_available: "Encryption available",
+    encryption_available_desc:
+      "This recipient publishes a usable encryption key. Click the padlock to encrypt this message end-to-end.",
+    click_to_encrypt: "Click to encrypt this message end-to-end",
+    click_to_disable_encryption:
+      "Encrypted - click to turn off for this message",
     end_to_end_encrypted_label: "End-to-End Encrypted",
     encrypted_in_transit_stored: "Encrypted in transit and stored encrypted.",
     only_you_and_sender: "Only you and the sender can read this.",
@@ -2280,6 +2286,14 @@ export const en: Translations = {
     toast_position_bottom_right: "Bottom right",
     toast_position_top_left: "Top left",
     toast_position_bottom_left: "Bottom left",
+    toast_duration: "Notification Duration",
+    toast_duration_description: "How long notification popups stay on screen",
+    toast_duration_default: "Default (2s)",
+    toast_duration_long: "Long (5s)",
+    toast_duration_longer: "Longer (10s)",
+    toast_duration_longest: "Longest (20s)",
+    send_test_notification: "Send test notification",
+    test_notification_blocked: "Enable desktop notifications to test them.",
     choose_notification_events: "Choose which events trigger notifications",
     quiet_hours: "Quiet Hours",
     enable_quiet_hours: "Enable quiet hours",
@@ -2357,6 +2371,8 @@ export const en: Translations = {
     no_custom_categories: "No custom categories yet.",
     category_name_required: "Enter a name for this category.",
     category_rule_required: "Add at least one domain or keyword to match.",
+    template_name_required: "Enter a name for this template.",
+    template_content_required: "Add some content for this template.",
     category_domains_invalid:
       "Not valid domains: {{list}}. Use a real domain like example.com.",
     category_keywords_invalid:
@@ -4225,6 +4241,12 @@ export const en: Translations = {
     keyserver_publication_status: "Publication Status",
     keyserver_status_published: "Published",
     keyserver_status_not_published: "Not Published",
+    keyserver_status_awaiting: "Awaiting Confirmation",
+    keyserver_status_failed: "Failed",
+    keyserver_awaiting_hint:
+      "Your key was uploaded. Check your inbox for a confirmation email from keys.openpgp.org and click the link to finish publishing it.",
+    keyserver_failed_hint:
+      "The keyserver rejected your key. Try publishing again.",
     keyserver_publish_btn: "Publish Key",
     keyserver_republish_btn: "Re-publish Key",
     keyserver_permanent_warning:
@@ -5109,6 +5131,15 @@ export const en: Translations = {
     signature_name_placeholder: "e.g., Work, Personal, Formal",
     signature_content: "Signature Content",
     signature_content_placeholder: "Best regards,\nYour Name\nyour@email.com",
+    signature_name_required: "Enter a name for this signature.",
+    signature_content_required: "Add some content for this signature.",
+    signature_image_too_large: "Images must be under 2 MB.",
+    signature_image_invalid:
+      "Only PNG, JPEG, GIF, and WebP images can be added.",
+    signature_image_failed:
+      "That image could not be added. Another file should work.",
+    signature_divider_limit:
+      "A signature can include up to {{count}} dividers.",
     plain_text_hint: "Plain text only. Use line breaks for formatting.",
     update_signature: "Update Signature",
     create_signature: "Create Signature",
@@ -5661,16 +5692,14 @@ export const en: Translations = {
     alias_delivery_log_reason_alias_disabled: "Alias was disabled",
     alias_delivery_log_reason_unknown: "Blocked",
     alias_delivery_title: "Delivery",
-    alias_delivery_folder:
-      "Deliver to",
+    alias_delivery_folder: "Deliver to",
     alias_delivery_folder_desc:
       "Choose where mail to this alias lands. Inbox is the default.",
     alias_delivery_folder_info:
       "Mail sent to this alias goes straight to the folder you pick, with no rule needed. A rule that matches the message still wins, so it lands in that folder instead.",
     alias_delivery_folder_error:
       "That setting did not save. Another attempt should do it.",
-    alias_delivery_folder_missing:
-      "Deleted folder",
+    alias_delivery_folder_missing: "Deleted folder",
     alias_relay_title: "Delivery",
     alias_relay_description: "Choose how mail to this alias is delivered.",
     alias_relay_mode_native: "Native",
@@ -5898,7 +5927,8 @@ export const en: Translations = {
     alias_directory_separator: "Separator",
     alias_export_csv: "Export CSV",
     alias_export_title: "Export aliases",
-    alias_export_description: "Choose what to include. The file is built in your browser and never sent to our servers.",
+    alias_export_description:
+      "Choose what to include. The file is built in your browser and never sent to our servers.",
     alias_export_format_csv: "CSV (spreadsheet)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "Check what you are about to download.",
@@ -5922,12 +5952,16 @@ export const en: Translations = {
     alias_export_column_color: "Color",
     alias_export_column_expires_at: "Expires",
     alias_export_warning_title: "This file is not encrypted",
-    alias_export_warning_body: "Anyone who opens it can read every alias, note and website it contains. Keep it in your password manager or on an encrypted drive.",
+    alias_export_warning_body:
+      "Anyone who opens it can read every alias, note and website it contains. Keep it in your password manager or on an encrypted drive.",
     alias_export_summary: "{{rows}} entries across {{files}} file(s).",
     alias_export_download: "Download",
-    alias_export_incomplete: "Only {{loaded}} of {{total}} aliases finished loading. Reload your aliases and try again so your backup is complete.",
-    alias_export_undecryptable: "{{count}} aliases could not be decrypted and are not included.",
-    alias_export_undecryptable_ghost: "{{count}} ghost aliases could not be decrypted and are not included.",
+    alias_export_incomplete:
+      "Only {{loaded}} of {{total}} aliases finished loading. Reload your aliases and try again so your backup is complete.",
+    alias_export_undecryptable:
+      "{{count}} aliases could not be decrypted and are not included.",
+    alias_export_undecryptable_ghost:
+      "{{count}} ghost aliases could not be decrypted and are not included.",
     alias_export_load_failed: "Could not load directories or ghost aliases.",
     alias_export_failed: "Export failed. Nothing was downloaded.",
     alias_import_csv: "Import Aliases",
@@ -6050,6 +6084,7 @@ export const en: Translations = {
     forward: "Forward",
     react: "React",
     already_reacted: "You already reacted with this",
+    remove_your_reaction: "Remove your {emoji} reaction",
     you_reacted_with: "You reacted with {{emoji}}",
     reacted_with: "{{name}} reacted with {{emoji}}",
     reply_subject_prefix: "Re:",
@@ -7375,6 +7410,8 @@ export const en: Translations = {
   },
   errors: {
     generic: "That did not work. Another attempt should do it.",
+    failed_remove_reaction: "Could not remove reaction. Please try again.",
+    cannot_react_own_message: "You cannot react to your own message.",
     failed_send_reaction:
       "The reaction could not be sent. Another attempt should do it.",
     reactions_disabled: "Reactions are turned off in your settings.",
@@ -7695,6 +7732,16 @@ export const en: Translations = {
     apply_to_existing_started:
       "Applying this rule to your existing mail. This runs in the background.",
     apply_to_existing_failed: "Could not start applying this rule.",
+    apply_to_existing_cancel: "Stop applying",
+    apply_to_existing_cancel_failed: "Could not stop this run.",
+    apply_to_existing_queued: "Queued...",
+    apply_to_existing_progress:
+      "Applying: {{scanned}} scanned, {{applied}} updated",
+    apply_to_existing_progress_total:
+      "Applying: {{scanned}} of {{total}} scanned, {{applied}} updated",
+    apply_to_existing_done: "Done: {{scanned}} scanned, {{applied}} updated",
+    apply_to_existing_canceled: "Stopped: {{applied}} updated",
+    apply_to_existing_error: "Applying to existing mail failed. Try again.",
     empty_title: "No rules yet",
     empty_description:
       "Create your first rule to automatically organize incoming mail.",

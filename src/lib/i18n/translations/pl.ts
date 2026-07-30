@@ -106,7 +106,7 @@ export const pl = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -908,6 +908,12 @@ export const pl = {
     hide_permanently: "Ukryj tę listę na stałe",
     step: "Krok",
     protected_in_transit: "Chronione w tranzycie",
+    encryption_available: "Szyfrowanie dostępne",
+    encryption_available_desc:
+      "Ten odbiorca publikuje działający klucz szyfrowania. Kliknij kłódkę, aby zaszyfrować tę wiadomość end-to-end.",
+    click_to_encrypt: "Kliknij, aby zaszyfrować tę wiadomość end-to-end",
+    click_to_disable_encryption:
+      "Zaszyfrowane - kliknij, aby wyłączyć dla tej wiadomości",
     end_to_end_encrypted_label: "Szyfrowanie end-to-end",
     encrypted_in_transit_stored:
       "Szyfrowane podczas przesyłania i przechowywane w formie zaszyfrowanej.",
@@ -1919,6 +1925,8 @@ export const pl = {
     category_name_required: "Podaj nazwę tej kategorii.",
     category_rule_required:
       "Dodaj co najmniej jedną domenę lub słowo kluczowe do dopasowania.",
+    template_name_required: "Podaj nazwę tego szablonu.",
+    template_content_required: "Dodaj treść do tego szablonu.",
     category_domains_invalid:
       "Nieprawidłowe domeny: {{list}}. Użyj prawdziwej domeny, np. example.com.",
     category_keywords_invalid:
@@ -2341,16 +2349,14 @@ export const pl = {
     alias_delivery_log_reason_alias_disabled: "Alias był wyłączony",
     alias_delivery_log_reason_unknown: "Zablokowane",
     alias_delivery_title: "Dostarczanie",
-    alias_delivery_folder:
-      "Dostarczaj do",
+    alias_delivery_folder: "Dostarczaj do",
     alias_delivery_folder_desc:
       "Wybierz, gdzie trafia poczta z tego aliasu. Domyślnie to skrzynka odbiorcza.",
     alias_delivery_folder_info:
       "Poczta z tego aliasu trafia prosto do wybranego folderu, bez reguły. Pasująca reguła nadal ma pierwszeństwo.",
     alias_delivery_folder_error:
       "To ustawienie nie zostało zapisane. Kolejna próba powinna się udać.",
-    alias_delivery_folder_missing:
-      "Usunięty folder",
+    alias_delivery_folder_missing: "Usunięty folder",
     alias_relay_title: "Dostarczanie",
     alias_relay_description: "Wybierz sposób dostarczania poczty na ten alias.",
     alias_relay_mode_native: "Natywny",
@@ -2439,7 +2445,8 @@ export const pl = {
     alias_directory_separator: "Separator",
     alias_export_csv: "Eksportuj CSV",
     alias_export_title: "Eksportuj aliasy",
-    alias_export_description: "Wybierz, co ma zostać uwzględnione. Plik powstaje w Twojej przeglądarce i nigdy nie jest wysyłany na nasze serwery.",
+    alias_export_description:
+      "Wybierz, co ma zostać uwzględnione. Plik powstaje w Twojej przeglądarce i nigdy nie jest wysyłany na nasze serwery.",
     alias_export_format_csv: "CSV (arkusz kalkulacyjny)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "Sprawdź, co zamierzasz pobrać.",
@@ -2463,13 +2470,18 @@ export const pl = {
     alias_export_column_color: "Kolor",
     alias_export_column_expires_at: "Wygasa",
     alias_export_warning_title: "Ten plik nie jest zaszyfrowany",
-    alias_export_warning_body: "Każdy, kto go otworzy, zobaczy wszystkie aliasy, notatki i strony. Przechowuj go w menedżerze haseł lub na zaszyfrowanym dysku.",
+    alias_export_warning_body:
+      "Każdy, kto go otworzy, zobaczy wszystkie aliasy, notatki i strony. Przechowuj go w menedżerze haseł lub na zaszyfrowanym dysku.",
     alias_export_summary: "{{rows}} wpisów w {{files}} pliku/plikach.",
     alias_export_download: "Pobierz",
-    alias_export_incomplete: "Załadowano tylko {{loaded}} z {{total}} aliasów. Odśwież listę aliasów i spróbuj ponownie, aby kopia była kompletna.",
-    alias_export_undecryptable: "{{count}} aliasów nie udało się odszyfrować i nie zostały uwzględnione.",
-    alias_export_undecryptable_ghost: "{{count}} aliasów ghost nie udało się odszyfrować i nie zostały uwzględnione.",
-    alias_export_load_failed: "Nie udało się załadować katalogów ani aliasów ghost.",
+    alias_export_incomplete:
+      "Załadowano tylko {{loaded}} z {{total}} aliasów. Odśwież listę aliasów i spróbuj ponownie, aby kopia była kompletna.",
+    alias_export_undecryptable:
+      "{{count}} aliasów nie udało się odszyfrować i nie zostały uwzględnione.",
+    alias_export_undecryptable_ghost:
+      "{{count}} aliasów ghost nie udało się odszyfrować i nie zostały uwzględnione.",
+    alias_export_load_failed:
+      "Nie udało się załadować katalogów ani aliasów ghost.",
     alias_export_failed: "Eksport nie powiódł się. Nic nie zostało pobrane.",
     alias_import_csv: "Importuj aliasy",
     alias_import_progress: "Importowanie {{current}} z {{total}}...",
@@ -3294,6 +3306,15 @@ export const pl = {
     toast_position_bottom_right: "Prawy dolny róg",
     toast_position_top_left: "Lewy górny róg",
     toast_position_bottom_left: "Lewy dolny róg",
+    toast_duration: "Czas wyświetlania powiadomień",
+    toast_duration_description: "Jak długo powiadomienia pozostają na ekranie",
+    toast_duration_default: "Domyślny (2 s)",
+    toast_duration_long: "Długi (5 s)",
+    toast_duration_longer: "Dłuższy (10 s)",
+    toast_duration_longest: "Najdłuższy (20 s)",
+    send_test_notification: "Wyślij powiadomienie testowe",
+    test_notification_blocked:
+      "Włącz powiadomienia na pulpicie, aby je przetestować.",
     quiet_hours: "Godziny ciszy",
     enable_quiet_hours: "Włącz godziny ciszy",
     mute_notifications_description:
@@ -3707,6 +3728,12 @@ export const pl = {
     keyserver_publication_status: "Status publikacji",
     keyserver_status_published: "Opublikowano",
     keyserver_status_not_published: "Nie opublikowano",
+    keyserver_status_awaiting: "Oczekuje na potwierdzenie",
+    keyserver_status_failed: "Nie udało się",
+    keyserver_awaiting_hint:
+      "Twój klucz został przesłany. Sprawdź skrzynkę odbiorczą w poszukiwaniu wiadomości potwierdzającej od keys.openpgp.org i kliknij link, aby zakończyć publikowanie.",
+    keyserver_failed_hint:
+      "Serwer kluczy odrzucił Twój klucz. Spróbuj opublikować ponownie.",
     keyserver_publish_btn: "Opublikuj klucz",
     keyserver_republish_btn: "Ponownie opublikuj klucz",
     keyserver_permanent_warning:
@@ -4411,6 +4438,15 @@ export const pl = {
     signature_name_placeholder: "np. Służbowy, Osobisty, Formalny",
     signature_content: "Treść podpisu",
     signature_content_placeholder: "Z poważaniem,\nTwoje Imię\ntwoj@email.com",
+    signature_name_required: "Podaj nazwę tego podpisu.",
+    signature_content_required: "Dodaj treść do tego podpisu.",
+    signature_image_too_large: "Obrazy muszą być mniejsze niż 2 MB.",
+    signature_image_invalid:
+      "Można dodawać tylko obrazy PNG, JPEG, GIF i WebP.",
+    signature_image_failed:
+      "Nie udało się dodać tego obrazu. Spróbuj innego pliku.",
+    signature_divider_limit:
+      "Podpis może zawierać maksymalnie {{count}} separatorów.",
     plain_text_hint: "Tylko zwykły tekst. Użyj nowych linii do formatowania.",
     update_signature: "Zaktualizuj podpis",
     create_signature: "Utwórz podpis",
@@ -6073,6 +6109,7 @@ export const pl = {
     reply_all: "Odpowiedz wszystkim",
     react: "Zareaguj",
     already_reacted: "Już zareagowałeś w ten sposób",
+    remove_your_reaction: "Usuń swoją reakcję {emoji}",
     you_reacted_with: "Zareagowałeś {{emoji}}",
     reacted_with: "{{name}} zareagował(a) {{emoji}}",
     forward: "Przekaż dalej",
@@ -7323,6 +7360,9 @@ export const pl = {
     rename_saved: "Nazwa zaktualizowana",
   },
   errors: {
+    failed_remove_reaction: "Nie udało się usunąć reakcji. Spróbuj ponownie.",
+    cannot_react_own_message:
+      "Nie możesz zareagować na własną wiadomość.",
     failed_send_reaction: "Nie udało się wysłać reakcji. Spróbuj ponownie.",
     reactions_disabled: "Reakcje są wyłączone w Twoich ustawieniach.",
     pending_email_verification:
@@ -7599,6 +7639,18 @@ export const pl = {
     apply_to_existing_started:
       "Ta reguła jest stosowana do istniejącej poczty. Działa w tle.",
     apply_to_existing_failed: "Nie można rozpocząć stosowania tej reguły.",
+    apply_to_existing_cancel: "Zatrzymaj stosowanie",
+    apply_to_existing_cancel_failed: "Nie można zatrzymać tego przebiegu.",
+    apply_to_existing_queued: "W kolejce...",
+    apply_to_existing_progress:
+      "Stosowanie: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
+    apply_to_existing_progress_total:
+      "Stosowanie: przeskanowano {{scanned}} z {{total}}, zaktualizowano {{applied}}",
+    apply_to_existing_done:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
+    apply_to_existing_canceled: "Zatrzymano: zaktualizowano {{applied}}",
+    apply_to_existing_error:
+      "Zastosowanie do istniejacej poczty nie udalo sie. Spróbuj ponownie.",
     empty_title: "Brak reguł",
     empty_description:
       "Utwórz pierwszą regułę, aby automatycznie organizować przychodzącą pocztę.",

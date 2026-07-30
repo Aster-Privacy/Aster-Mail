@@ -105,7 +105,7 @@ export const nl = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -887,6 +887,12 @@ export const nl = {
     hide_permanently: "Verberg deze checklist",
     step: "Stap",
     protected_in_transit: "Beschermd tijdens verzending",
+    encryption_available: "Versleuteling beschikbaar",
+    encryption_available_desc:
+      "Deze ontvanger publiceert een bruikbare versleutelingssleutel. Klik op het slotje om dit bericht end-to-end te versleutelen.",
+    click_to_encrypt: "Klik om dit bericht end-to-end te versleutelen",
+    click_to_disable_encryption:
+      "Versleuteld - klik om dit uit te zetten voor dit bericht",
     end_to_end_encrypted_label: "End-to-end versleuteld",
     only_you_and_sender: "Alleen jij en de afzender kunnen dit lezen.",
     only_you_can_read_contacts:
@@ -1855,6 +1861,8 @@ export const nl = {
     category_name_required: "Voer een naam in voor deze categorie.",
     category_rule_required:
       "Voeg minstens één domein of trefwoord toe om op te matchen.",
+    template_name_required: "Voer een naam in voor dit sjabloon.",
+    template_content_required: "Voeg inhoud toe aan dit sjabloon.",
     category_domains_invalid:
       "Ongeldige domeinen: {{list}}. Gebruik een echt domein zoals example.com.",
     category_keywords_invalid:
@@ -2273,16 +2281,14 @@ export const nl = {
     alias_delivery_log_reason_alias_disabled: "Alias was uitgeschakeld",
     alias_delivery_log_reason_unknown: "Geblokkeerd",
     alias_delivery_title: "Bezorging",
-    alias_delivery_folder:
-      "Bezorgen in",
+    alias_delivery_folder: "Bezorgen in",
     alias_delivery_folder_desc:
       "Kies waar mail aan dit alias terechtkomt. Postvak IN is de standaard.",
     alias_delivery_folder_info:
       "Mail aan dit alias gaat zonder regel direct naar de gekozen map. Een passende regel wint nog steeds.",
     alias_delivery_folder_error:
       "Die instelling is niet opgeslagen. Nog een poging zou moeten lukken.",
-    alias_delivery_folder_missing:
-      "Verwijderde map",
+    alias_delivery_folder_missing: "Verwijderde map",
     alias_relay_title: "Bezorging",
     alias_relay_description: "Kies hoe e-mail naar deze alias wordt bezorgd.",
     alias_relay_mode_native: "Native",
@@ -2371,7 +2377,8 @@ export const nl = {
     alias_directory_separator: "Scheidingsteken",
     alias_export_csv: "CSV exporteren",
     alias_export_title: "Aliassen exporteren",
-    alias_export_description: "Kies wat u wilt opnemen. Het bestand wordt in uw browser gemaakt en nooit naar onze servers verzonden.",
+    alias_export_description:
+      "Kies wat u wilt opnemen. Het bestand wordt in uw browser gemaakt en nooit naar onze servers verzonden.",
     alias_export_format_csv: "CSV (spreadsheet)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "Controleer wat u gaat downloaden.",
@@ -2395,12 +2402,16 @@ export const nl = {
     alias_export_column_color: "Kleur",
     alias_export_column_expires_at: "Verloopt",
     alias_export_warning_title: "Dit bestand is niet versleuteld",
-    alias_export_warning_body: "Iedereen die het opent kan elke alias, notitie en website erin lezen. Bewaar het in uw wachtwoordmanager of op een versleutelde schijf.",
+    alias_export_warning_body:
+      "Iedereen die het opent kan elke alias, notitie en website erin lezen. Bewaar het in uw wachtwoordmanager of op een versleutelde schijf.",
     alias_export_summary: "{{rows}} items verdeeld over {{files}} bestand(en).",
     alias_export_download: "Downloaden",
-    alias_export_incomplete: "Slechts {{loaded}} van {{total}} aliassen zijn geladen. Laad uw aliassen opnieuw en probeer het nogmaals zodat de back-up compleet is.",
-    alias_export_undecryptable: "{{count}} aliassen konden niet worden ontsleuteld en zijn niet opgenomen.",
-    alias_export_undecryptable_ghost: "{{count}} ghost-aliassen konden niet worden ontsleuteld en zijn niet opgenomen.",
+    alias_export_incomplete:
+      "Slechts {{loaded}} van {{total}} aliassen zijn geladen. Laad uw aliassen opnieuw en probeer het nogmaals zodat de back-up compleet is.",
+    alias_export_undecryptable:
+      "{{count}} aliassen konden niet worden ontsleuteld en zijn niet opgenomen.",
+    alias_export_undecryptable_ghost:
+      "{{count}} ghost-aliassen konden niet worden ontsleuteld en zijn niet opgenomen.",
     alias_export_load_failed: "Kan mappen of ghost-aliassen niet laden.",
     alias_export_failed: "Export mislukt. Er is niets gedownload.",
     alias_import_csv: "Aliassen importeren",
@@ -3263,6 +3274,14 @@ export const nl = {
     toast_position_bottom_right: "Rechtsonder",
     toast_position_top_left: "Linksboven",
     toast_position_bottom_left: "Linksonder",
+    toast_duration: "Meldingsduur",
+    toast_duration_description: "Hoe lang meldingen op het scherm blijven",
+    toast_duration_default: "Standaard (2 s)",
+    toast_duration_long: "Lang (5 s)",
+    toast_duration_longer: "Langer (10 s)",
+    toast_duration_longest: "Langst (20 s)",
+    send_test_notification: "Testmelding versturen",
+    test_notification_blocked: "Zet bureaubladmeldingen aan om ze te testen.",
     quiet_hours: "Stille uren",
     enable_quiet_hours: "Stille uren inschakelen",
     from: "Van",
@@ -3649,6 +3668,12 @@ export const nl = {
     keyserver_publication_status: "Publicatiestatus",
     keyserver_status_published: "Gepubliceerd",
     keyserver_status_not_published: "Niet gepubliceerd",
+    keyserver_status_awaiting: "Wacht op bevestiging",
+    keyserver_status_failed: "Mislukt",
+    keyserver_awaiting_hint:
+      "Je sleutel is geüpload. Controleer je inbox op een bevestigingsmail van keys.openpgp.org en klik op de link om het publiceren af te ronden.",
+    keyserver_failed_hint:
+      "De keyserver heeft je sleutel geweigerd. Probeer opnieuw te publiceren.",
     keyserver_publish_btn: "Sleutel publiceren",
     keyserver_republish_btn: "Sleutel opnieuw publiceren",
     keyserver_permanent_warning:
@@ -5137,6 +5162,15 @@ export const nl = {
       "Handtekeningen worden niet aan je e-mails toegevoegd.",
     signature_content_placeholder:
       "Met vriendelijke groet,\nJe Naam\nje@email.com",
+    signature_name_required: "Voer een naam in voor deze ondertekening.",
+    signature_content_required: "Voeg inhoud toe aan deze ondertekening.",
+    signature_image_too_large: "Afbeeldingen moeten kleiner zijn dan 2 MB.",
+    signature_image_invalid:
+      "Alleen PNG-, JPEG-, GIF- en WebP-afbeeldingen kunnen worden toegevoegd.",
+    signature_image_failed:
+      "Deze afbeelding kon niet worden toegevoegd. Een ander bestand werkt vast wel.",
+    signature_divider_limit:
+      "Een ondertekening kan maximaal {{count}} scheidingslijnen bevatten.",
     plain_text_hint:
       "Alleen platte tekst. Gebruik regelonderbrekingen voor opmaak.",
     below_quoted_description:
@@ -6007,6 +6041,7 @@ export const nl = {
     reply_all: "Allen antwoorden",
     react: "Reageren",
     already_reacted: "Je hebt hier al mee gereageerd",
+    remove_your_reaction: "Je {emoji}-reactie verwijderen",
     you_reacted_with: "Je hebt gereageerd met {{emoji}}",
     reacted_with: "{{name}} heeft gereageerd met {{emoji}}",
     forward: "Doorsturen",
@@ -7270,6 +7305,10 @@ export const nl = {
     rename_saved: "Naam bijgewerkt",
   },
   errors: {
+    failed_remove_reaction:
+      "Kan reactie niet verwijderen. Probeer het opnieuw.",
+    cannot_react_own_message:
+      "Je kunt niet op je eigen bericht reageren.",
     failed_send_reaction:
       "De reactie kon niet worden verzonden. Probeer het opnieuw.",
     reactions_disabled: "Reacties zijn uitgeschakeld in je instellingen.",
@@ -7545,6 +7584,18 @@ export const nl = {
     apply_to_existing_started:
       "Deze regel wordt toegepast op je bestaande e-mail. Dit gebeurt op de achtergrond.",
     apply_to_existing_failed: "Kan het toepassen van deze regel niet starten.",
+    apply_to_existing_cancel: "Toepassen stoppen",
+    apply_to_existing_cancel_failed: "Deze uitvoering kon niet worden gestopt.",
+    apply_to_existing_queued: "In wachtrij...",
+    apply_to_existing_progress:
+      "Toepassen: {{scanned}} gescand, {{applied}} bijgewerkt",
+    apply_to_existing_progress_total:
+      "Toepassen: {{scanned}} van {{total}} gescand, {{applied}} bijgewerkt",
+    apply_to_existing_done:
+      "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt",
+    apply_to_existing_canceled: "Gestopt: {{applied}} bijgewerkt",
+    apply_to_existing_error:
+      "Toepassen op bestaande mail is mislukt. Probeer het opnieuw.",
     empty_title: "Nog geen regels",
     empty_description:
       "Maak je eerste regel aan om inkomende e-mail automatisch te organiseren.",

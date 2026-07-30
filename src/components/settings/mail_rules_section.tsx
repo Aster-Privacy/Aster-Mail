@@ -42,6 +42,8 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   use_mail_rules_store,
   load_rules,
+  load_runs,
+  stop_all_run_polls,
   reorder,
 } from "@/stores/mail_rules_store";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
@@ -62,11 +64,11 @@ import {
   RetentionEditorModal,
   RetentionUpgradeModal,
 } from "@/components/settings/folder_retention_section";
-import type { LeafCondition, Rule } from "@/services/api/mail_rules";
+import type { LeafCondition, Rule, RuleRun } from "@/services/api/mail_rules";
 
 export function MailRulesSection() {
   const { t } = use_i18n();
-  const { rules, loading } = use_mail_rules_store();
+  const { rules, loading, runs } = use_mail_rules_store();
   const { state: folders_state, fetch_folders } = use_folders();
   const { state: tags_state, fetch_tags } = use_tags();
   const { limits } = use_plan_limits();
@@ -106,6 +108,11 @@ export function MailRulesSection() {
 
   React.useEffect(() => {
     load_rules();
+    void load_runs();
+
+    return () => {
+      stop_all_run_polls();
+    };
   }, []);
 
   React.useEffect(() => {
@@ -242,6 +249,7 @@ export function MailRulesSection() {
             <RuleCard
               key={rule.id}
               rule={rule}
+              run={runs[rule.id] ?? null}
               is_drag_over={drag_over_index === idx && drag_index !== idx}
               on_drag_start={() => set_drag_index(idx)}
               on_drag_over={(e) => {
@@ -291,9 +299,7 @@ export function MailRulesSection() {
       >
         <ModalHeader>
           <ModalTitle>{t("mail_rules.rule_limit_reached")}</ModalTitle>
-          <ModalDescription>
-            {t("mail_rules.rule_limit_body")}
-          </ModalDescription>
+          <ModalDescription>{t("mail_rules.rule_limit_body")}</ModalDescription>
         </ModalHeader>
         <ModalFooter>
           <Button
@@ -336,6 +342,7 @@ export function MailRulesSection() {
 
 interface RuleCardProps {
   rule: Rule;
+  run: RuleRun | null;
   is_drag_over: boolean;
   on_drag_start: () => void;
   on_drag_over: (e: React.DragEvent) => void;
@@ -346,6 +353,7 @@ interface RuleCardProps {
 
 function RuleCard({
   rule,
+  run,
   is_drag_over,
   on_drag_start,
   on_drag_over,
@@ -355,6 +363,23 @@ function RuleCard({
 }: RuleCardProps) {
   const { t } = use_i18n();
   const [draggable_on, set_draggable_on] = React.useState(false);
+  const run_label =
+    run === null
+      ? null
+      : run.status === "pending"
+        ? t("mail_rules.apply_to_existing_queued")
+        : run.status === "running"
+          ? run.total_estimate
+            ? t("mail_rules.apply_to_existing_progress_total", {
+                scanned: run.scanned,
+                total: run.total_estimate,
+                applied: run.applied,
+              })
+            : t("mail_rules.apply_to_existing_progress", {
+                scanned: run.scanned,
+                applied: run.applied,
+              })
+          : null;
 
   return (
     <div
@@ -390,6 +415,11 @@ function RuleCard({
             {rule.applied_count > 0 && (
               <span className="text-[11px] text-txt-tertiary flex-shrink-0">
                 · {t("mail_rules.applied_count", { count: rule.applied_count })}
+              </span>
+            )}
+            {run_label !== null && (
+              <span className="text-[11px] text-txt-secondary flex-shrink-0 truncate">
+                · {run_label}
               </span>
             )}
           </div>

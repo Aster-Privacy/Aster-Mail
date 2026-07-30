@@ -40,6 +40,9 @@ import {
   update_rule,
   delete_rule,
   run_on_existing,
+  refresh_run,
+  cancel_run,
+  use_mail_rules_store,
 } from "@/stores/mail_rules_store";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import type { ChipSegmentKind } from "@/components/mail_rules/condition_chip";
@@ -125,7 +128,9 @@ const UNAVAILABLE_ACTION_TYPES = new Set<AddableActionType>([
 ]);
 
 const strip_unavailable_actions = (list: Action[]): Action[] =>
-  list.filter((a) => !UNAVAILABLE_ACTION_TYPES.has(a.type as AddableActionType));
+  list.filter(
+    (a) => !UNAVAILABLE_ACTION_TYPES.has(a.type as AddableActionType),
+  );
 
 const ACTION_LABEL_KEYS: Record<
   AddableActionType,
@@ -263,6 +268,10 @@ export function RuleEditorModal({
   const [saving, set_saving] = React.useState(false);
   const [confirm_delete_open, set_confirm_delete_open] = React.useState(false);
   const [running_existing, set_running_existing] = React.useState(false);
+  const { runs } = use_mail_rules_store();
+  const active_run = rule ? runs[rule.id] : undefined;
+  const run_in_flight =
+    active_run?.status === "pending" || active_run?.status === "running";
   const [tab, set_tab] = React.useState<EditorTab>("visual");
   const [expression_text, set_expression_text] = React.useState("");
   const [expression_error, set_expression_error] = React.useState<{
@@ -431,7 +440,9 @@ export function RuleEditorModal({
   };
 
   const handle_condition_change = (i: number, next_condition: Condition) => {
-    set_conditions((prev) => prev.map((x, idx) => (idx === i ? next_condition : x)));
+    set_conditions((prev) =>
+      prev.map((x, idx) => (idx === i ? next_condition : x)),
+    );
     if (new_indices.has(i) && condition_has_value(next_condition)) {
       set_new_indices((prev) => {
         const n = new Set(prev);
@@ -532,6 +543,11 @@ export function RuleEditorModal({
     }
   };
 
+  React.useEffect(() => {
+    if (!open || !rule) return;
+    void refresh_run(rule.id);
+  }, [open, rule?.id]);
+
   const handle_run_on_existing = async () => {
     if (!rule) return;
     set_running_existing(true);
@@ -545,6 +561,47 @@ export function RuleEditorModal({
     );
   };
 
+  const run_status_label = (): string | null => {
+    if (!active_run) return null;
+    if (active_run.status === "pending") {
+      return t("mail_rules.apply_to_existing_queued");
+    }
+    if (active_run.status === "running") {
+      return active_run.total_estimate
+        ? t("mail_rules.apply_to_existing_progress_total", {
+            scanned: active_run.scanned,
+            total: active_run.total_estimate,
+            applied: active_run.applied,
+          })
+        : t("mail_rules.apply_to_existing_progress", {
+            scanned: active_run.scanned,
+            applied: active_run.applied,
+          });
+    }
+    if (active_run.status === "completed") {
+      return t("mail_rules.apply_to_existing_done", {
+        scanned: active_run.scanned,
+        applied: active_run.applied,
+      });
+    }
+    if (active_run.status === "canceled") {
+      return t("mail_rules.apply_to_existing_canceled", {
+        applied: active_run.applied,
+      });
+    }
+    return t("mail_rules.apply_to_existing_error");
+  };
+
+  const handle_cancel_run = async () => {
+    if (!rule) return;
+    set_running_existing(true);
+    const ok = await cancel_run(rule.id);
+    set_running_existing(false);
+    if (!ok) {
+      show_toast(t("mail_rules.apply_to_existing_cancel_failed"), "error");
+    }
+  };
+
   const handle_delete = async () => {
     if (!rule) return;
     set_saving(true);
@@ -555,12 +612,14 @@ export function RuleEditorModal({
 
   const regex_hint = (error: string | null): string | null =>
     error
-      ? t(`mail_rules.${error}` as
-          | "mail_rules.regex_invalid"
-          | "mail_rules.regex_empty"
-          | "mail_rules.regex_too_long"
-          | "mail_rules.regex_backreference"
-          | "mail_rules.regex_lookaround")
+      ? t(
+          `mail_rules.${error}` as
+            | "mail_rules.regex_invalid"
+            | "mail_rules.regex_empty"
+            | "mail_rules.regex_too_long"
+            | "mail_rules.regex_backreference"
+            | "mail_rules.regex_lookaround",
+        )
       : null;
 
   const disabled_hint: string | null = (() => {
@@ -590,7 +649,8 @@ export function RuleEditorModal({
       }
       return null;
     }
-    if (conditions.length === 0) return t("mail_rules.hint_conditions_required");
+    if (conditions.length === 0)
+      return t("mail_rules.hint_conditions_required");
     const any_incomplete = conditions
       .filter((c) => c.type !== "and" && c.type !== "or" && c.type !== "not")
       .some((c) => !condition_has_value(c));
@@ -615,7 +675,12 @@ export function RuleEditorModal({
   })();
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="2xl" close_on_overlay={false}>
+    <Modal
+      is_open={is_open}
+      on_close={on_close}
+      size="2xl"
+      close_on_overlay={false}
+    >
       <ModalHeader>
         <ModalTitle>
           {is_edit ? t("mail_rules.edit_rule") : t("mail_rules.create_rule")}
@@ -646,9 +711,7 @@ export function RuleEditorModal({
                   backgroundColor: c,
                   borderColor: color === c ? c : "transparent",
                   boxShadow:
-                    color === c
-                      ? `0 0 0 2px white, 0 0 0 3px ${c}`
-                      : undefined,
+                    color === c ? `0 0 0 2px white, 0 0 0 3px ${c}` : undefined,
                 }}
               />
             ))}
@@ -808,25 +871,42 @@ export function RuleEditorModal({
       </ModalBody>
 
       <ModalFooter className="justify-between">
-        <div className="flex items-center gap-1">
-          {is_edit && (
-            <>
-              <Button
-                variant="ghost"
-                onClick={() => set_confirm_delete_open(true)}
-                disabled={saving || running_existing}
-                className="text-rose-500 hover:text-rose-600"
-              >
-                {t("mail_rules.delete")}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={handle_run_on_existing}
-                disabled={saving || running_existing}
-              >
-                {t("mail_rules.apply_to_existing")}
-              </Button>
-            </>
+        <div className="flex flex-col items-start gap-0.5">
+          <div className="flex items-center gap-1">
+            {is_edit && (
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => set_confirm_delete_open(true)}
+                  disabled={saving || running_existing}
+                  className="text-rose-500 hover:text-rose-600"
+                >
+                  {t("mail_rules.delete")}
+                </Button>
+                {run_in_flight ? (
+                  <Button
+                    variant="ghost"
+                    onClick={handle_cancel_run}
+                    disabled={saving || running_existing}
+                  >
+                    {t("mail_rules.apply_to_existing_cancel")}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={handle_run_on_existing}
+                    disabled={saving || running_existing}
+                  >
+                    {t("mail_rules.apply_to_existing")}
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+          {is_edit && active_run && (
+            <span className="text-[11.5px] text-neutral-500">
+              {run_status_label()}
+            </span>
           )}
         </div>
         <div className="flex flex-col items-end gap-1">

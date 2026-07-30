@@ -104,7 +104,7 @@ export const ko = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -882,6 +882,11 @@ export const ko = {
     hide_permanently: "이 체크리스트 영구 숨기기",
     step: "단계",
     protected_in_transit: "전송 중 보호됨",
+    encryption_available: "암호화 사용 가능",
+    encryption_available_desc:
+      "이 수신자는 사용 가능한 암호화 키를 공개하고 있습니다. 자반쇠를 클릭하면 이 메시지를 종단간 암호화합니다.",
+    click_to_encrypt: "클릭하면 이 메시지를 종단간 암호화합니다",
+    click_to_disable_encryption: "암호화됨 - 클릭하면 이 메시지에서 해제됩니다",
     end_to_end_encrypted_label: "종단간 암호화됨",
     encrypted_in_transit_stored: "전송 및 저장 시 암호화됩니다.",
     only_you_and_sender: "나와 발신자만 이 내용을 읽을 수 있습니다.",
@@ -1821,6 +1826,8 @@ export const ko = {
     category_name_required: "이 카테고리의 이름을 입력하세요.",
     category_rule_required:
       "일치시킬 도메인이나 키워드를 하나 이상 추가하세요.",
+    template_name_required: "이 템플릿의 이름을 입력하세요.",
+    template_content_required: "이 템플릿의 내용을 입력하세요.",
     category_domains_invalid:
       "유효하지 않은 도메인: {{list}}. example.com과 같은 실제 도메인을 사용하세요.",
     category_keywords_invalid:
@@ -2227,16 +2234,14 @@ export const ko = {
     alias_delivery_log_reason_alias_disabled: "별칭이 사용 중지됨",
     alias_delivery_log_reason_unknown: "차단됨",
     alias_delivery_title: "전달",
-    alias_delivery_folder:
-      "받을 위치",
+    alias_delivery_folder: "받을 위치",
     alias_delivery_folder_desc:
       "이 별칭으로 오는 메일이 도착할 위치를 선택하세요. 기본값은 받은편지함입니다.",
     alias_delivery_folder_info:
       "규칙 없이도 선택한 폴더로 바로 들어옵니다. 일치하는 규칙이 있으면 규칙이 우선합니다.",
     alias_delivery_folder_error:
       "설정이 저장되지 않았습니다. 다시 시도해 보세요.",
-    alias_delivery_folder_missing:
-      "삭제된 폴더",
+    alias_delivery_folder_missing: "삭제된 폴더",
     alias_relay_title: "전송",
     alias_relay_description: "이 별칭으로 오는 메일의 전송 방식을 선택하세요.",
     alias_relay_mode_native: "네이티브",
@@ -2326,7 +2331,8 @@ export const ko = {
     alias_directory_separator: "구분자",
     alias_export_csv: "CSV 내보내기",
     alias_export_title: "별칭 내보내기",
-    alias_export_description: "포함할 항목을 선택하세요. 파일은 브라우저에서 생성되며 서버로 전송되지 않습니다.",
+    alias_export_description:
+      "포함할 항목을 선택하세요. 파일은 브라우저에서 생성되며 서버로 전송되지 않습니다.",
     alias_export_format_csv: "CSV(스프레드시트)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "다운로드할 내용을 확인하세요.",
@@ -2350,14 +2356,20 @@ export const ko = {
     alias_export_column_color: "색상",
     alias_export_column_expires_at: "만료일",
     alias_export_warning_title: "이 파일은 암호화되지 않았습니다",
-    alias_export_warning_body: "파일을 여는 사람은 모든 별칭, 메모, 웹사이트를 읽을 수 있습니다. 비밀번호 관리자나 암호화된 드라이브에 보관하세요.",
+    alias_export_warning_body:
+      "파일을 여는 사람은 모든 별칭, 메모, 웹사이트를 읽을 수 있습니다. 비밀번호 관리자나 암호화된 드라이브에 보관하세요.",
     alias_export_summary: "파일 {{files}}개에 항목 {{rows}}개.",
     alias_export_download: "다운로드",
-    alias_export_incomplete: "별칭 {{total}}개 중 {{loaded}}개만 불러왔습니다. 별칭을 다시 불러온 뒤 시도하세요.",
-    alias_export_undecryptable: "별칭 {{count}}개를 복호화하지 못해 포함되지 않았습니다.",
-    alias_export_undecryptable_ghost: "고스트 별칭 {{count}}개를 복호화하지 못해 포함되지 않았습니다.",
-    alias_export_load_failed: "디렉터리 또는 고스트 별칭을 불러오지 못했습니다.",
-    alias_export_failed: "내보내기에 실패했습니다. 아무것도 다운로드되지 않았습니다.",
+    alias_export_incomplete:
+      "별칭 {{total}}개 중 {{loaded}}개만 불러왔습니다. 별칭을 다시 불러온 뒤 시도하세요.",
+    alias_export_undecryptable:
+      "별칭 {{count}}개를 복호화하지 못해 포함되지 않았습니다.",
+    alias_export_undecryptable_ghost:
+      "고스트 별칭 {{count}}개를 복호화하지 못해 포함되지 않았습니다.",
+    alias_export_load_failed:
+      "디렉터리 또는 고스트 별칭을 불러오지 못했습니다.",
+    alias_export_failed:
+      "내보내기에 실패했습니다. 아무것도 다운로드되지 않았습니다.",
     alias_import_csv: "별칭 가져오기",
     alias_import_progress: "{{total}}개 중 {{current}}개 가져오는 중...",
     alias_import_done: "별칭 {{created}}개를 가져왔습니다.",
@@ -3258,6 +3270,14 @@ export const ko = {
     toast_position_bottom_right: "오른쪽 아래",
     toast_position_top_left: "왼쪽 위",
     toast_position_bottom_left: "왼쪽 아래",
+    toast_duration: "알림 표시 시간",
+    toast_duration_description: "알림이 화면에 표시되는 시간",
+    toast_duration_default: "기본 (2초)",
+    toast_duration_long: "길게 (5초)",
+    toast_duration_longer: "더 길게 (10초)",
+    toast_duration_longest: "가장 길게 (20초)",
+    send_test_notification: "테스트 알림 보내기",
+    test_notification_blocked: "테스트하려면 데스크톱 알림을 켜세요.",
     quiet_hours: "방해 금지 시간",
     enable_quiet_hours: "방해 금지 시간 활성화",
     mute_notifications_description: "설정된 시간 동안 알림을 음소거합니다",
@@ -3657,6 +3677,11 @@ export const ko = {
     keyserver_publication_status: "게시 상태",
     keyserver_status_published: "게시됨",
     keyserver_status_not_published: "게시 안 됨",
+    keyserver_status_awaiting: "확인 대기 중",
+    keyserver_status_failed: "실패",
+    keyserver_awaiting_hint:
+      "키가 업로드되었습니다. 받은 편지함에서 keys.openpgp.org의 확인 메일을 찾아 링크를 클릭하여 게시를 완료하세요.",
+    keyserver_failed_hint: "키 서버가 키를 거부했습니다. 다시 게시해 보세요.",
     keyserver_publish_btn: "키 게시",
     keyserver_republish_btn: "키 재게시",
     keyserver_permanent_warning:
@@ -4339,6 +4364,15 @@ export const ko = {
     signature_name_placeholder: "예: 직장, 개인, 공식",
     signature_content: "서명 내용",
     signature_content_placeholder: "감사합니다,\n이름\nyour@email.com",
+    signature_name_required: "이 서명의 이름을 입력하세요.",
+    signature_content_required: "이 서명의 내용을 입력하세요.",
+    signature_image_too_large: "이미지는 2 MB 미만이어야 합니다.",
+    signature_image_invalid:
+      "PNG, JPEG, GIF, WebP 이미지만 추가할 수 있습니다.",
+    signature_image_failed:
+      "이 이미지를 추가할 수 없습니다. 다른 파일을 사용해 보세요.",
+    signature_divider_limit:
+      "서명에는 최대 {{count}}개의 구분선을 넣을 수 있습니다.",
     plain_text_hint:
       "일반 텍스트만 가능합니다. 서식을 위해 줄 바꿈을 사용하세요.",
     update_signature: "서명 업데이트",
@@ -5852,6 +5886,7 @@ export const ko = {
     reply_all: "전체 답장",
     react: "반응하기",
     already_reacted: "이미 이 반응을 남겼습니다",
+    remove_your_reaction: "{emoji} 반응 삭제",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
@@ -7071,6 +7106,8 @@ export const ko = {
     rename_saved: "이름이 업데이트되었습니다",
   },
   errors: {
+    failed_remove_reaction: "반응을 삭제하지 못했습니다. 다시 시도해 주세요.",
+    cannot_react_own_message: "자신의 메시지에는 반응할 수 없습니다.",
     failed_send_reaction: "반응을 보내지 못했습니다. 다시 시도해 주세요.",
     reactions_disabled: "설정에서 반응이 꺼져 있습니다.",
     pending_email_verification:
@@ -7326,6 +7363,17 @@ export const ko = {
     apply_to_existing_started:
       "이 규칙을 기존 메일에 적용하는 중입니다. 백그라운드에서 실행됩니다.",
     apply_to_existing_failed: "이 규칙 적용을 시작할 수 없습니다.",
+    apply_to_existing_cancel: "적용 중지",
+    apply_to_existing_cancel_failed: "이 실행을 중지할 수 없습니다.",
+    apply_to_existing_queued: "대기 중...",
+    apply_to_existing_progress:
+      "적용 중: {{scanned}}개 확인, {{applied}}개 업데이트",
+    apply_to_existing_progress_total:
+      "적용 중: {{total}}개 중 {{scanned}}개 확인, {{applied}}개 업데이트",
+    apply_to_existing_done: "완료: {{scanned}}개 확인, {{applied}}개 업데이트",
+    apply_to_existing_canceled: "중지됨: {{applied}}개 업데이트",
+    apply_to_existing_error:
+      "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
     empty_title: "아직 규칙이 없습니다",
     empty_description: "첫 번째 규칙을 만들어 수신 메일을 자동으로 정리하세요.",
     empty_cta: "규칙 만들기",

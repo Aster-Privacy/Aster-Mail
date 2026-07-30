@@ -106,7 +106,7 @@ export const es = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -911,6 +911,12 @@ export const es = {
     hide_permanently: "Ocultar esta lista de verificación",
     step: "Paso",
     protected_in_transit: "Protegido en tránsito",
+    encryption_available: "Cifrado disponible",
+    encryption_available_desc:
+      "Este destinatario publica una clave de cifrado utilizable. Haz clic en el candado para cifrar este mensaje de extremo a extremo.",
+    click_to_encrypt: "Haz clic para cifrar este mensaje de extremo a extremo",
+    click_to_disable_encryption:
+      "Cifrado - haz clic para desactivarlo en este mensaje",
     end_to_end_encrypted_label: "Cifrado de extremo a extremo",
     encrypted_in_transit_stored: "Cifrado en tránsito y almacenado cifrado.",
     only_you_and_sender: "Solo tú y el remitente pueden leer esto.",
@@ -1895,6 +1901,8 @@ export const es = {
     category_name_required: "Introduce un nombre para esta categoría.",
     category_rule_required:
       "Añade al menos un dominio o palabra clave para la coincidencia.",
+    template_name_required: "Escribe un nombre para esta plantilla.",
+    template_content_required: "Añade contenido para esta plantilla.",
     category_domains_invalid:
       "Dominios no válidos: {{list}}. Usa un dominio real como example.com.",
     category_keywords_invalid:
@@ -2316,16 +2324,14 @@ export const es = {
     alias_delivery_log_reason_alias_disabled: "El alias estaba desactivado",
     alias_delivery_log_reason_unknown: "Bloqueado",
     alias_delivery_title: "Entrega",
-    alias_delivery_folder:
-      "Entregar en",
+    alias_delivery_folder: "Entregar en",
     alias_delivery_folder_desc:
       "Elige dónde llega el correo de este alias. La bandeja de entrada es la opción predeterminada.",
     alias_delivery_folder_info:
       "El correo de este alias va directo a la carpeta que elijas, sin necesidad de reglas. Una regla que coincida sigue teniendo prioridad.",
     alias_delivery_folder_error:
       "Ese ajuste no se guardó. Otro intento debería bastar.",
-    alias_delivery_folder_missing:
-      "Carpeta eliminada",
+    alias_delivery_folder_missing: "Carpeta eliminada",
     alias_relay_title: "Entrega",
     alias_relay_description: "Elige cómo se entrega el correo a este alias.",
     alias_relay_mode_native: "Nativo",
@@ -2437,13 +2443,18 @@ export const es = {
     alias_export_column_color: "Color",
     alias_export_column_expires_at: "Caduca",
     alias_export_warning_title: "Este archivo no está cifrado",
-    alias_export_warning_body: "Cualquiera que lo abra podrá leer todos los alias, notas y sitios web que contiene. Guárdelo en su gestor de contraseñas o en una unidad cifrada.",
+    alias_export_warning_body:
+      "Cualquiera que lo abra podrá leer todos los alias, notas y sitios web que contiene. Guárdelo en su gestor de contraseñas o en una unidad cifrada.",
     alias_export_summary: "{{rows}} entradas en {{files}} archivo(s).",
     alias_export_download: "Descargar",
-    alias_export_incomplete: "Solo se cargaron {{loaded}} de {{total}} alias. Vuelva a cargar sus alias e inténtelo de nuevo para que la copia esté completa.",
-    alias_export_undecryptable: "{{count}} alias no se pudieron descifrar y no se incluyen.",
-    alias_export_undecryptable_ghost: "{{count}} alias fantasma no se pudieron descifrar y no se incluyen.",
-    alias_export_load_failed: "No se pudieron cargar los directorios o los alias fantasma.",
+    alias_export_incomplete:
+      "Solo se cargaron {{loaded}} de {{total}} alias. Vuelva a cargar sus alias e inténtelo de nuevo para que la copia esté completa.",
+    alias_export_undecryptable:
+      "{{count}} alias no se pudieron descifrar y no se incluyen.",
+    alias_export_undecryptable_ghost:
+      "{{count}} alias fantasma no se pudieron descifrar y no se incluyen.",
+    alias_export_load_failed:
+      "No se pudieron cargar los directorios o los alias fantasma.",
     alias_export_failed: "La exportación falló. No se descargó nada.",
     alias_import_csv: "Importar alias",
     alias_import_progress: "Importando {{current}} de {{total}}...",
@@ -3276,6 +3287,16 @@ export const es = {
     toast_position_bottom_right: "Abajo a la derecha",
     toast_position_top_left: "Arriba a la izquierda",
     toast_position_bottom_left: "Abajo a la izquierda",
+    toast_duration: "Duración de la notificación",
+    toast_duration_description:
+      "Cuánto tiempo permanecen las notificaciones en pantalla",
+    toast_duration_default: "Predeterminada (2 s)",
+    toast_duration_long: "Larga (5 s)",
+    toast_duration_longer: "Más larga (10 s)",
+    toast_duration_longest: "Máxima (20 s)",
+    send_test_notification: "Enviar notificación de prueba",
+    test_notification_blocked:
+      "Activa las notificaciones de escritorio para probarlas.",
     quiet_hours: "Horas de silencio",
     enable_quiet_hours: "Habilitar horas de silencio",
     mute_notifications_description:
@@ -3699,6 +3720,12 @@ export const es = {
     keyserver_publication_status: "Estado de publicación",
     keyserver_status_published: "Publicado",
     keyserver_status_not_published: "No publicado",
+    keyserver_status_awaiting: "Pendiente de confirmación",
+    keyserver_status_failed: "Error",
+    keyserver_awaiting_hint:
+      "Tu clave se ha subido. Busca en tu bandeja de entrada el correo de confirmación de keys.openpgp.org y haz clic en el enlace para completar la publicación.",
+    keyserver_failed_hint:
+      "El servidor de claves rechazó tu clave. Vuelve a intentar publicarla.",
     keyserver_publish_btn: "Publicar clave",
     keyserver_republish_btn: "Volver a publicar clave",
     keyserver_permanent_warning:
@@ -4410,6 +4437,15 @@ export const es = {
     signature_content: "Contenido de la firma",
     signature_content_placeholder:
       "Saludos cordiales,\nTu nombre\ntu@correo.com",
+    signature_name_required: "Escribe un nombre para esta firma.",
+    signature_content_required: "Añade contenido para esta firma.",
+    signature_image_too_large: "Las imágenes deben pesar menos de 2 MB.",
+    signature_image_invalid:
+      "Solo se pueden añadir imágenes PNG, JPEG, GIF y WebP.",
+    signature_image_failed:
+      "No se pudo añadir esa imagen. Prueba con otro archivo.",
+    signature_divider_limit:
+      "Una firma puede incluir hasta {{count}} separadores.",
     plain_text_hint: "Solo texto plano. Usa saltos de línea para dar formato.",
     update_signature: "Actualizar firma",
     create_signature: "Crear firma",
@@ -6010,6 +6046,7 @@ export const es = {
     reply_all: "Responder a todos",
     react: "Reaccionar",
     already_reacted: "Ya has reaccionado con esto",
+    remove_your_reaction: "Quitar tu reacción {emoji}",
     you_reacted_with: "Has reaccionado con {{emoji}}",
     reacted_with: "{{name}} ha reaccionado con {{emoji}}",
     forward: "Reenviar",
@@ -7257,6 +7294,9 @@ export const es = {
     rename_saved: "Nombre actualizado",
   },
   errors: {
+    failed_remove_reaction:
+      "No se pudo quitar la reacción. Inténtalo de nuevo.",
+    cannot_react_own_message: "No puedes reaccionar a tu propio mensaje.",
     failed_send_reaction: "No se pudo enviar la reacción. Inténtalo de nuevo.",
     reactions_disabled: "Las reacciones están desactivadas en tus ajustes.",
     pending_email_verification:
@@ -7477,6 +7517,18 @@ export const es = {
     apply_to_existing_started:
       "Aplicando esta regla a tu correo existente. El proceso se ejecuta en segundo plano.",
     apply_to_existing_failed: "No se pudo iniciar la aplicación de esta regla.",
+    apply_to_existing_cancel: "Detener aplicación",
+    apply_to_existing_cancel_failed: "No se pudo detener esta ejecución.",
+    apply_to_existing_queued: "En cola...",
+    apply_to_existing_progress:
+      "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
+    apply_to_existing_progress_total:
+      "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
+    apply_to_existing_done:
+      "Listo: {{scanned}} revisados, {{applied}} actualizados",
+    apply_to_existing_canceled: "Detenido: {{applied}} actualizados",
+    apply_to_existing_error:
+      "No se pudo aplicar al correo existente. Intentalo de nuevo.",
     at_limit_upgrade:
       "Has alcanzado el límite de reglas de tu plan. Actualiza para agregar más.",
     auth_fail: "falló",

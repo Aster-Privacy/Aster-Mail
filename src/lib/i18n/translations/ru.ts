@@ -106,7 +106,7 @@ export const ru = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -908,6 +908,13 @@ export const ru = {
     hide_permanently: "Скрыть этот список навсегда",
     step: "Шаг",
     protected_in_transit: "Защищено при передаче",
+    encryption_available: "Шифрование доступно",
+    encryption_available_desc:
+      "Этот получатель публикует пригодный ключ шифрования. Нажмите на замок, чтобы зашифровать это сообщение сквозным шифрованием.",
+    click_to_encrypt:
+      "Нажмите, чтобы зашифровать это сообщение сквозным шифрованием",
+    click_to_disable_encryption:
+      "Зашифровано - нажмите, чтобы отключить для этого сообщения",
     end_to_end_encrypted_label: "Сквозное шифрование",
     encrypted_in_transit_stored: "Зашифровано при передаче и хранении.",
     only_you_and_sender: "Только вы и отправитель можете прочитать это.",
@@ -1914,6 +1921,8 @@ export const ru = {
     category_name_required: "Введите название для этой категории.",
     category_rule_required:
       "Добавьте хотя бы один домен или ключевое слово для сопоставления.",
+    template_name_required: "Введите название шаблона.",
+    template_content_required: "Добавьте содержимое шаблона.",
     category_domains_invalid:
       "Недопустимые домены: {{list}}. Используйте настоящий домен, например example.com.",
     category_keywords_invalid:
@@ -2330,16 +2339,14 @@ export const ru = {
     alias_delivery_log_reason_alias_disabled: "Псевдоним был отключён",
     alias_delivery_log_reason_unknown: "Заблокировано",
     alias_delivery_title: "Доставка",
-    alias_delivery_folder:
-      "Доставлять в",
+    alias_delivery_folder: "Доставлять в",
     alias_delivery_folder_desc:
       "Выберите, куда попадает почта этого псевдонима. По умолчанию - Входящие.",
     alias_delivery_folder_info:
       "Почта попадает сразу в выбранную папку без правил. Подходящее правило все равно имеет приоритет.",
     alias_delivery_folder_error:
       "Настройка не сохранилась. Попробуйте еще раз.",
-    alias_delivery_folder_missing:
-      "Удаленная папка",
+    alias_delivery_folder_missing: "Удаленная папка",
     alias_relay_title: "Доставка",
     alias_relay_description:
       "Выберите, как доставляется почта на этот псевдоним.",
@@ -2430,7 +2437,8 @@ export const ru = {
     alias_directory_separator: "Разделитель",
     alias_export_csv: "Экспорт в CSV",
     alias_export_title: "Экспорт алиасов",
-    alias_export_description: "Выберите, что включить. Файл создаётся в вашем браузере и никогда не отправляется на наши серверы.",
+    alias_export_description:
+      "Выберите, что включить. Файл создаётся в вашем браузере и никогда не отправляется на наши серверы.",
     alias_export_format_csv: "CSV (таблица)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "Проверьте, что вы собираетесь скачать.",
@@ -2454,13 +2462,18 @@ export const ru = {
     alias_export_column_color: "Цвет",
     alias_export_column_expires_at: "Истекает",
     alias_export_warning_title: "Этот файл не зашифрован",
-    alias_export_warning_body: "Любой, кто его откроет, увидит все псевдонимы, заметки и сайты. Храните его в менеджере паролей или на зашифрованном диске.",
+    alias_export_warning_body:
+      "Любой, кто его откроет, увидит все псевдонимы, заметки и сайты. Храните его в менеджере паролей или на зашифрованном диске.",
     alias_export_summary: "Записей: {{rows}}, файлов: {{files}}.",
     alias_export_download: "Скачать",
-    alias_export_incomplete: "Загружено только {{loaded}} из {{total}} псевдонимов. Обновите список псевдонимов и повторите попытку, чтобы резервная копия была полной.",
-    alias_export_undecryptable: "Не удалось расшифровать псевдонимов: {{count}}. Они не включены.",
-    alias_export_undecryptable_ghost: "Не удалось расшифровать ghost-псевдонимов: {{count}}. Они не включены.",
-    alias_export_load_failed: "Не удалось загрузить каталоги или ghost-псевдонимы.",
+    alias_export_incomplete:
+      "Загружено только {{loaded}} из {{total}} псевдонимов. Обновите список псевдонимов и повторите попытку, чтобы резервная копия была полной.",
+    alias_export_undecryptable:
+      "Не удалось расшифровать псевдонимов: {{count}}. Они не включены.",
+    alias_export_undecryptable_ghost:
+      "Не удалось расшифровать ghost-псевдонимов: {{count}}. Они не включены.",
+    alias_export_load_failed:
+      "Не удалось загрузить каталоги или ghost-псевдонимы.",
     alias_export_failed: "Экспорт не выполнен. Ничего не скачано.",
     alias_import_csv: "Импорт псевдонимов",
     alias_import_progress: "Импорт {{current}} из {{total}}...",
@@ -3283,6 +3296,15 @@ export const ru = {
     toast_position_bottom_right: "Снизу справа",
     toast_position_top_left: "Сверху слева",
     toast_position_bottom_left: "Снизу слева",
+    toast_duration: "Длительность уведомлений",
+    toast_duration_description: "Как долго уведомления остаются на экране",
+    toast_duration_default: "По умолчанию (2 с)",
+    toast_duration_long: "Долго (5 с)",
+    toast_duration_longer: "Дольше (10 с)",
+    toast_duration_longest: "Максимально (20 с)",
+    send_test_notification: "Отправить тестовое уведомление",
+    test_notification_blocked:
+      "Включите уведомления на компьютере, чтобы проверить их.",
     quiet_hours: "Тихие часы",
     enable_quiet_hours: "Включить тихие часы",
     mute_notifications_description:
@@ -3697,6 +3719,12 @@ export const ru = {
     keyserver_publication_status: "Статус публикации",
     keyserver_status_published: "Опубликован",
     keyserver_status_not_published: "Не опубликован",
+    keyserver_status_awaiting: "Ожидает подтверждения",
+    keyserver_status_failed: "Не удалось",
+    keyserver_awaiting_hint:
+      "Ваш ключ загружен. Проверьте почту: письмо с подтверждением от keys.openpgp.org, перейдите по ссылке, чтобы завершить публикацию.",
+    keyserver_failed_hint:
+      "Сервер ключей отклонил ваш ключ. Попробуйте опубликовать снова.",
     keyserver_publish_btn: "Опубликовать ключ",
     keyserver_republish_btn: "Переопубликовать ключ",
     keyserver_permanent_warning:
@@ -4406,6 +4434,15 @@ export const ru = {
     signature_name_placeholder: "например, Рабочая, Личная, Официальная",
     signature_content: "Содержимое подписи",
     signature_content_placeholder: "С уважением,\nВаше имя\nyour@email.com",
+    signature_name_required: "Введите название подписи.",
+    signature_content_required: "Добавьте содержимое подписи.",
+    signature_image_too_large: "Размер изображения не должен превышать 2 МБ.",
+    signature_image_invalid:
+      "Можно добавлять только изображения PNG, JPEG, GIF и WebP.",
+    signature_image_failed:
+      "Не удалось добавить это изображение. Попробуйте другой файл.",
+    signature_divider_limit:
+      "Подпись может содержать не более {{count}} разделителей.",
     plain_text_hint:
       "Только обычный текст. Используйте переносы строк для форматирования.",
     update_signature: "Обновить подпись",
@@ -6068,6 +6105,7 @@ export const ru = {
     reply_all: "Ответить всем",
     react: "Отреагировать",
     already_reacted: "Вы уже отреагировали так",
+    remove_your_reaction: "Удалить вашу реакцию {emoji}",
     you_reacted_with: "Вы отреагировали {{emoji}}",
     reacted_with: "{{name}} отреагировал(а) {{emoji}}",
     forward: "Переслать",
@@ -7330,6 +7368,9 @@ export const ru = {
     rename_saved: "Имя обновлено",
   },
   errors: {
+    failed_remove_reaction: "Не удалось удалить реакцию. Попробуйте ещё раз.",
+    cannot_react_own_message:
+      "Нельзя поставить реакцию на своё сообщение.",
     failed_send_reaction: "Не удалось отправить реакцию. Попробуйте ещё раз.",
     reactions_disabled: "Реакции отключены в ваших настройках.",
     pending_email_verification:
@@ -7600,6 +7641,18 @@ export const ru = {
     apply_to_existing_started:
       "Правило применяется к вашей существующей почте. Обработка идёт в фоновом режиме.",
     apply_to_existing_failed: "Не удалось запустить применение правила.",
+    apply_to_existing_cancel: "Остановить применение",
+    apply_to_existing_cancel_failed: "Не удалось остановить этот запуск.",
+    apply_to_existing_queued: "В очереди...",
+    apply_to_existing_progress:
+      "Применение: проверено {{scanned}}, обновлено {{applied}}",
+    apply_to_existing_progress_total:
+      "Применение: проверено {{scanned}} из {{total}}, обновлено {{applied}}",
+    apply_to_existing_done:
+      "Готово: проверено {{scanned}}, обновлено {{applied}}",
+    apply_to_existing_canceled: "Остановлено: обновлено {{applied}}",
+    apply_to_existing_error:
+      "Не удалось применить к существующей почте. Попробуйте снова.",
     at_limit_upgrade:
       "Вы достигли лимита правил. Обновите тарифный план, чтобы добавить больше.",
     auth_fail: "не прошла",
