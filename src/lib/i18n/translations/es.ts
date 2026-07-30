@@ -486,6 +486,16 @@ export const es = {
     adding: "Añadiendo...",
     checking: "Comprobando...",
     host_name: "Nombre de host",
+    dns_required:
+      "Obligatorio",
+    dns_recommended:
+      "Recomendado",
+    dns_caveat_mx_replaces_existing:
+      "Esto sustituye a los registros MX existentes. Elimina los registros MX de tu proveedor de correo anterior o el correo nuevo no llegara a Aster.",
+    dns_caveat_spf_single_record_other_senders:
+      "Publica un unico registro SPF. Si otros servicios envian correo con este dominio, combina sus terminos include: en este mismo registro.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "Anade esto al final, cuando SPF y DKIM ya esten verificados. Publicarlo antes puede enviar tu propio correo a spam.",
     value_points_to: "Valor / Apunta a",
     dns_records_to_add: "Registros DNS a añadir",
     dns_propagation_note:
@@ -3609,6 +3619,18 @@ export const es = {
     dkim_record: "Registro DKIM (TXT)",
     email_authentication_policy: "Política de autenticación de correo",
     dmarc_record: "Registro DMARC (TXT)",
+    tls_reporting:
+      "Informes TLS",
+    tlsrpt_record:
+      "Registro TLS-RPT",
+    tlsrpt_description:
+      "Opcional pero recomendado. Los servidores receptores te envian un resumen diario cuando falla la entrega cifrada a tu dominio, para que detectes problemas antes que tus usuarios.",
+    dns_instruction_set_tlsrpt_host:
+      "Establece el host en _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "Pega el valor TLS-RPT exactamente como aparece",
+    optional_step:
+      "Opcional",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX de Google Takeout",
     outlook_import: "Outlook",

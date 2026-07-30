@@ -473,6 +473,16 @@ export const de = {
     adding: "Hinzufügen...",
     checking: "Prüfen...",
     host_name: "Hostname",
+    dns_required:
+      "Erforderlich",
+    dns_recommended:
+      "Empfohlen",
+    dns_caveat_mx_replaces_existing:
+      "Dies ersetzt vorhandene MX-Eintrage. Entfernen Sie die MX-Eintrage Ihres bisherigen Mailanbieters, sonst erreicht neue Post Aster nicht.",
+    dns_caveat_spf_single_record_other_senders:
+      "Veroffentlichen Sie nur einen SPF-Eintrag. Wenn andere Dienste Mail fur diese Domain senden, fuhren Sie deren include:-Werte in diesem einen Eintrag zusammen.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "Fugen Sie dies zuletzt hinzu, wenn SPF und DKIM verifiziert sind. Zu fruh veroffentlicht landet Ihre eigene Post im Spam.",
     value_points_to: "Wert / Verweist auf",
     dns_records_to_add: "Hinzuzufügende DNS-Einträge",
     close_verify_later: "Schließen & Später überprüfen",
@@ -3611,6 +3621,18 @@ export const de = {
     dkim_record: "DKIM-Eintrag (TXT)",
     email_authentication_policy: "E-Mail-Authentifizierungsrichtlinie",
     dmarc_record: "DMARC-Eintrag (TXT)",
+    tls_reporting:
+      "TLS-Berichte",
+    tlsrpt_record:
+      "TLS-RPT-Eintrag",
+    tlsrpt_description:
+      "Optional, aber empfohlen. Empfangende Server senden Ihnen eine tagliche Zusammenfassung, wenn die verschlusselte Zustellung an Ihre Domain fehlschlagt, damit Sie Probleme vor Ihren Nutzern bemerken.",
+    dns_instruction_set_tlsrpt_host:
+      "Setzen Sie den Host auf _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "Fugen Sie den TLS-RPT-Wert exakt wie angezeigt ein",
+    optional_step:
+      "Optional",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX von Google Takeout",
     outlook_import: "Outlook",

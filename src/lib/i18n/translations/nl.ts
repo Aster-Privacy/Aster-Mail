@@ -473,6 +473,16 @@ export const nl = {
     adding: "Toevoegen...",
     checking: "Controleren...",
     host_name: "Hostnaam",
+    dns_required:
+      "Vereist",
+    dns_recommended:
+      "Aanbevolen",
+    dns_caveat_mx_replaces_existing:
+      "Dit vervangt bestaande MX-records. Verwijder de MX-records van je vorige mailprovider, anders bereikt nieuwe post Aster niet.",
+    dns_caveat_spf_single_record_other_senders:
+      "Publiceer slechts een SPF-record. Als andere diensten mail versturen namens dit domein, voeg hun include:-termen samen in dit ene record.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "Voeg dit als laatste toe, zodra SPF en DKIM geverifieerd zijn. Te vroeg publiceren kan je eigen mail naar spam sturen.",
     value_points_to: "Waarde / Verwijst naar",
     dns_records_to_add: "Toe te voegen DNS-records",
     close_verify_later: "Sluiten & later verifiëren",
@@ -3562,6 +3572,18 @@ export const nl = {
     dkim_record: "DKIM-record (TXT)",
     email_authentication_policy: "E-mailauthenticatiebeleid",
     dmarc_record: "DMARC-record (TXT)",
+    tls_reporting:
+      "TLS-rapportage",
+    tlsrpt_record:
+      "TLS-RPT-record",
+    tlsrpt_description:
+      "Optioneel maar aanbevolen. Ontvangende servers sturen je een dagelijkse samenvatting wanneer versleutelde bezorging aan je domein mislukt, zodat je problemen eerder ziet dan je gebruikers.",
+    dns_instruction_set_tlsrpt_host:
+      "Stel de host in op _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "Plak de TLS-RPT-waarde exact zoals weergegeven",
+    optional_step:
+      "Optioneel",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX van Google Takeout",
     outlook_import: "Outlook",

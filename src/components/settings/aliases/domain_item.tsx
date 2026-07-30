@@ -70,6 +70,10 @@ function DnsRecordItem({ record }: { record: DnsRecord }) {
         </div>
         {record.is_verified ? (
           <CheckCircleIcon className="w-4 h-4 text-green-500" />
+        ) : record.required === false ? (
+          <span className="text-xs text-txt-muted">
+            {t("settings.optional_step")}
+          </span>
         ) : (
           <XMarkIcon className="w-4 h-4 text-yellow-500" />
         )}

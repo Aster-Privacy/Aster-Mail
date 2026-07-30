@@ -23,8 +23,16 @@ import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { show_toast } from "@/components/toast/simple_toast";
 import type { DnsRecord } from "@/services/api/domains";
+
+const CAVEAT_KEYS: Record<string, TranslationKey> = {
+  mx_replaces_existing: "common.dns_caveat_mx_replaces_existing",
+  spf_single_record_other_senders:
+    "common.dns_caveat_spf_single_record_other_senders",
+  dmarc_add_after_spf_dkim: "common.dns_caveat_dmarc_add_after_spf_dkim",
+};
 
 interface DnsRecordCardProps {
   record: DnsRecord;
@@ -32,6 +40,7 @@ interface DnsRecordCardProps {
 
 export function DnsRecordCard({ record }: DnsRecordCardProps) {
   const { t } = use_i18n();
+  const caveat = record.caveat_key ? CAVEAT_KEYS[record.caveat_key] : undefined;
 
   const copy_to_clipboard = useCallback(
     async (text: string) => {
@@ -56,7 +65,20 @@ export function DnsRecordCard({ record }: DnsRecordCardProps) {
             {t("common.priority")}: {record.priority}
           </span>
         )}
+        <span
+          className={`text-xs px-2 py-0.5 rounded ${
+            record.required === false
+              ? "bg-surf-tertiary text-txt-muted"
+              : "bg-accent-primary/10 text-accent-primary"
+          }`}
+        >
+          {record.required === false
+            ? t("common.dns_recommended")
+            : t("common.dns_required")}
+        </span>
       </div>
+
+      {caveat && <p className="text-xs mb-2 text-txt-muted">{t(caveat)}</p>}
 
       <div className="mb-2">
         <label className="text-xs block mb-1 text-txt-muted">

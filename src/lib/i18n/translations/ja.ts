@@ -478,6 +478,16 @@ export const ja = {
     adding: "追加中...",
     checking: "確認中...",
     host_name: "ホスト名",
+    dns_required:
+      "必須",
+    dns_recommended:
+      "推奨",
+    dns_caveat_mx_replaces_existing:
+      "これは既存の MX レコードを置き換えます。以前のメールプロバイダーの MX レコードを削除しないと、新しいメールは Aster に届きません。",
+    dns_caveat_spf_single_record_other_senders:
+      "SPF レコードは 1 つだけ公開してください。他のサービスもこのドメインでメールを送る場合は、その include: をこの 1 つのレコードにまとめてください。",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "これは最後に追加し、SPF と DKIM の検証が済んでから公開してください。早すぎると自分のメールが迷惑メールに入る場合があります。",
     value_points_to: "値 / 参照先",
     dns_records_to_add: "追加するDNSレコード",
     dns_propagation_note:
@@ -3598,6 +3608,18 @@ export const ja = {
     dkim_record: "DKIMレコード（TXT）",
     email_authentication_policy: "メール認証ポリシー",
     dmarc_record: "DMARCレコード（TXT）",
+    tls_reporting:
+      "TLS レポート",
+    tlsrpt_record:
+      "TLS-RPT レコード",
+    tlsrpt_description:
+      "任意ですが推奨します。ドメインへの暗号化配送が失敗すると受信側サーバーが日次の要約を送ってくれるため、利用者より先に問題に気づけます。",
+    dns_instruction_set_tlsrpt_host:
+      "ホストを _smtp._tls に設定します",
+    dns_instruction_set_tlsrpt_value:
+      "TLS-RPT の値を表示どおりに貼り付けます",
+    optional_step:
+      "任意",
     gmail_import: "Gmail",
     gmail_import_description: "Google TakeoutからのMBOX",
     outlook_import: "Outlook",

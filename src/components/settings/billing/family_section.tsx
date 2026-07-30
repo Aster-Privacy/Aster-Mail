@@ -81,6 +81,7 @@ import {
   type FamilyGroupResponse,
   type FamilyMemberInfo,
 } from "@/services/api/family";
+import { family_seat_usage } from "./family_seats";
 import { KidsContent } from "./family_kids_addresses";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { StatRing } from "@/components/settings/stat_ring";
@@ -1930,8 +1931,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             get_member_compliance().then(r => { if (r.data) set_preloaded_compliance(r.data); }).catch(() => {}),
           ]);
         }
-        const active = res.data.members.filter(m => m.status === "active").length;
-        const remaining_seats = Math.max(1, res.data.max_members - active);
+        const remaining_seats = Math.max(1, family_seat_usage(res.data).seats_remaining);
         const used_alloc =
           res.data.members.filter(m => m.status === "active").reduce((s, m) => s + m.allocated_storage_bytes, 0) +
           res.data.pending_invites.reduce((s, i) => s + (i.allocated_storage_bytes || 0), 0);
@@ -2148,8 +2148,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const active_members = group.members.filter(m => m.status === "active");
   const pool_used = group.members.reduce((s, m) => s + m.storage_used_bytes, 0);
   const pool_pct = storage_pct(pool_used, group.storage_pool_bytes);
-  const seats_remaining = group.max_members - active_members.length;
-  const seats_full = active_members.length >= group.max_members;
+  const { seats_remaining, seats_full } = family_seat_usage(group);
   const allocated_alloc = active_members.reduce((s, m) => s + m.allocated_storage_bytes, 0)
     + group.pending_invites.reduce((s, i) => s + (i.allocated_storage_bytes || 0), 0);
   const unassigned_bytes = Math.max(0, group.storage_pool_bytes - allocated_alloc);
@@ -2467,7 +2466,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             </div>
           </div>
 
-          {active_members.length < group.max_members && (show_invite_form || active_members.filter(m => m.role !== "owner").length > 0) && (
+          {!seats_full && (show_invite_form || active_members.filter(m => m.role !== "owner").length > 0) && (
             <div>
               <div className="mt-1 h-px bg-edge-secondary mb-3" />
               {!show_invite_form ? (

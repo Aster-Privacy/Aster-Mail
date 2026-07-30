@@ -674,6 +674,10 @@ export function AliasesSection({
                                       </span>
                                       {record.is_verified ? (
                                         <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 ml-auto" />
+                                      ) : record.required === false ? (
+                                        <span className="text-[10px] ml-auto text-[var(--text-muted)]">
+                                          {t("settings.optional_step")}
+                                        </span>
                                       ) : (
                                         <XCircleIcon className="w-3.5 h-3.5 text-yellow-500 ml-auto" />
                                       )}

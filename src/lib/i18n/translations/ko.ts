@@ -477,6 +477,16 @@ export const ko = {
     adding: "추가 중...",
     checking: "확인 중...",
     host_name: "호스트 이름",
+    dns_required:
+      "필수",
+    dns_recommended:
+      "권장",
+    dns_caveat_mx_replaces_existing:
+      "기존 MX 레코드를 대체합니다. 이전 메일 제공업체의 MX 레코드를 제거하지 않으면 새 메일이 Aster에 도달하지 않습니다.",
+    dns_caveat_spf_single_record_other_senders:
+      "SPF 레코드는 하나만 게시하세요. 다른 서비스도 이 도메인으로 메일을 보낸다면 해당 include: 값을 이 하나의 레코드에 합치세요.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "이 항목은 마지막에, SPF와 DKIM이 모두 확인된 뒤에 추가하세요. 너무 일찍 게시하면 본인 메일이 스팸으로 갈 수 있습니다.",
     value_points_to: "값 / 가리키는 대상",
     dns_records_to_add: "추가할 DNS 레코드",
     dns_propagation_note:
@@ -3571,6 +3581,18 @@ export const ko = {
     dkim_record: "DKIM 레코드 (TXT)",
     email_authentication_policy: "이메일 인증 정책",
     dmarc_record: "DMARC 레코드 (TXT)",
+    tls_reporting:
+      "TLS 보고",
+    tlsrpt_record:
+      "TLS-RPT 레코드",
+    tlsrpt_description:
+      "선택 사항이지만 권장합니다. 도메인으로의 암호화 전송이 실패하면 수신 서버가 일일 요약을 보내주므로 사용자보다 먼저 문제를 발견할 수 있습니다.",
+    dns_instruction_set_tlsrpt_host:
+      "호스트를 _smtp._tls 로 설정하세요",
+    dns_instruction_set_tlsrpt_value:
+      "TLS-RPT 값을 표시된 그대로 붙여넣으세요",
+    optional_step:
+      "선택",
     gmail_import: "Gmail",
     gmail_import_description: "Google Takeout의 MBOX",
     outlook_import: "Outlook",

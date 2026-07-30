@@ -483,6 +483,16 @@ export const pl = {
     adding: "Dodawanie...",
     checking: "Sprawdzanie...",
     host_name: "Nazwa hosta",
+    dns_required:
+      "Wymagane",
+    dns_recommended:
+      "Zalecane",
+    dns_caveat_mx_replaces_existing:
+      "To zastapi istniejace rekordy MX. Usun rekordy MX poprzedniego dostawcy poczty, inaczej nowa poczta nie dotrze do Aster.",
+    dns_caveat_spf_single_record_other_senders:
+      "Opublikuj tylko jeden rekord SPF. Jesli inne uslugi wysylaja poczte z tej domeny, polacz ich wpisy include: w tym jednym rekordzie.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "Dodaj to na koncu, gdy SPF i DKIM sa juz zweryfikowane. Zbyt wczesna publikacja moze wyslac twoja wlasna poczte do spamu.",
     value_points_to: "Wartość / Wskazuje na",
     dns_records_to_add: "Rekordy DNS do dodania",
     dns_propagation_note: "Propagacja zmian DNS może potrwać do 48 godzin",
@@ -3620,6 +3630,18 @@ export const pl = {
     dkim_record: "Rekord DKIM (TXT)",
     email_authentication_policy: "Polityka uwierzytelniania e-maili",
     dmarc_record: "Rekord DMARC (TXT)",
+    tls_reporting:
+      "Raporty TLS",
+    tlsrpt_record:
+      "Rekord TLS-RPT",
+    tlsrpt_description:
+      "Opcjonalne, ale zalecane. Serwery odbiorcze wysylaja codzienne podsumowanie, gdy szyfrowane dostarczenie do twojej domeny zawiedzie, dzieki czemu zauwazysz problem przed uzytkownikami.",
+    dns_instruction_set_tlsrpt_host:
+      "Ustaw host na _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "Wklej wartosc TLS-RPT dokladnie tak, jak pokazano",
+    optional_step:
+      "Opcjonalne",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX z Google Takeout",
     outlook_import: "Outlook",
