@@ -395,6 +395,16 @@ export const zh_CN = {
     adding: "添加中...",
     checking: "检查中...",
     host_name: "主机名",
+    dns_required:
+      "必填",
+    dns_recommended:
+      "建议",
+    dns_caveat_mx_replaces_existing:
+      "此记录会替换现有的 MX 记录。请删除原邮件服务商的 MX 记录，否则新邮件无法送达 Aster。",
+    dns_caveat_spf_single_record_other_senders:
+      "只发布一条 SPF 记录。如果还有其他服务以此域名发信，请将它们的 include: 合并到这一条记录中。",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "请最后再添加此记录，等 SPF 和 DKIM 都验证通过之后。过早发布可能会让你自己的邮件进入垃圾箱。",
     value_points_to: "值/指向",
     dns_records_to_add: "需要添加的 DNS 记录",
     dns_propagation_note: "DNS 更改可能需要最多48小时才能生效",
@@ -3291,6 +3301,18 @@ export const zh_CN = {
     dkim_record: "DKIM 记录 (TXT)",
     email_authentication_policy: "邮件身份验证策略",
     dmarc_record: "DMARC 记录 (TXT)",
+    tls_reporting:
+      "TLS 报告",
+    tlsrpt_record:
+      "TLS-RPT 记录",
+    tlsrpt_description:
+      "可选但建议添加。当发往你域名的加密投递失败时，接收服务器会每天发送一份摘要，让你比用户更早发现问题。",
+    dns_instruction_set_tlsrpt_host:
+      "将主机设为 _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "按显示内容原样粘贴 TLS-RPT 值",
+    optional_step:
+      "可选",
     gmail_import: "Gmail",
     gmail_import_description: "来自 Google Takeout 的 MBOX",
     outlook_import: "Outlook",

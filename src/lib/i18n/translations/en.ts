@@ -549,6 +549,16 @@ export const en: Translations = {
     adding: "Adding...",
     checking: "Checking...",
     host_name: "Host Name",
+    dns_required:
+      "Required",
+    dns_recommended:
+      "Recommended",
+    dns_caveat_mx_replaces_existing:
+      "This replaces any existing MX records. Remove your old mail provider's MX records or new mail will not reach Aster.",
+    dns_caveat_spf_single_record_other_senders:
+      "Publish only one SPF record. If other services send mail as this domain, merge their include: terms into this single record.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "Add this last, after SPF and DKIM both verify. Publishing it early can send your own mail to spam.",
     value_points_to: "Value / Points to",
     dns_records_to_add: "DNS Records to Add",
     dns_propagation_note: "DNS changes may take up to 48 hours to propagate",
@@ -4119,6 +4129,18 @@ export const en: Translations = {
     dkim_record: "DKIM Record (TXT)",
     email_authentication_policy: "Email Authentication Policy",
     dmarc_record: "DMARC Record (TXT)",
+    tls_reporting:
+      "TLS Reporting",
+    tlsrpt_record:
+      "TLS-RPT record",
+    tlsrpt_description:
+      "Optional but recommended. Receiving servers send you a daily summary when encrypted delivery to your domain fails, so you spot problems before your users do.",
+    dns_instruction_set_tlsrpt_host:
+      "Set the host to _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "Paste the TLS-RPT value exactly as shown",
+    optional_step:
+      "Optional",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX from Google Takeout",
     outlook_import: "Outlook",

@@ -62,6 +62,7 @@ function get_wizard_steps(
   return [
     {
       id: "verification",
+      optional: false,
       title: t("settings.domain_ownership_verification"),
       subtitle: t("settings.txt_record"),
       record_type: "TXT",
@@ -75,6 +76,7 @@ function get_wizard_steps(
     },
     {
       id: "mx",
+      optional: false,
       title: t("settings.mail_routing"),
       subtitle: t("settings.mx_record"),
       record_type: "MX",
@@ -88,6 +90,7 @@ function get_wizard_steps(
     },
     {
       id: "spf",
+      optional: false,
       title: t("settings.sender_policy_framework"),
       subtitle: t("settings.spf_record"),
       record_type: "SPF",
@@ -101,6 +104,7 @@ function get_wizard_steps(
     },
     {
       id: "dkim",
+      optional: false,
       title: t("settings.email_signing"),
       subtitle: t("settings.dkim_record"),
       record_type: "DKIM",
@@ -114,6 +118,7 @@ function get_wizard_steps(
     },
     {
       id: "dmarc",
+      optional: false,
       title: t("settings.email_authentication_policy"),
       subtitle: t("settings.dmarc_record"),
       record_type: "DMARC",
@@ -122,6 +127,20 @@ function get_wizard_steps(
         t("settings.dns_instruction_add_txt_settings"),
         t("settings.dns_instruction_set_dmarc_host"),
         t("settings.dns_instruction_set_dmarc_value"),
+        t("settings.dns_instruction_save"),
+      ],
+    },
+    {
+      id: "tlsrpt",
+      title: t("settings.tls_reporting"),
+      subtitle: t("settings.tlsrpt_record"),
+      record_type: "TLS-RPT",
+      description: t("settings.tlsrpt_description"),
+      optional: true,
+      instructions: [
+        t("settings.dns_instruction_add_txt_settings"),
+        t("settings.dns_instruction_set_tlsrpt_host"),
+        t("settings.dns_instruction_set_tlsrpt_value"),
         t("settings.dns_instruction_save"),
       ],
     },
@@ -251,13 +270,19 @@ export function DomainSetupWizard({
       if (response.data) {
         const result = response.data;
 
-        set_step_statuses([
+        const required_statuses: StepStatus[] = [
           result.txt_verified ? "verified" : "failed",
           result.mx_verified ? "verified" : "failed",
           result.spf_verified ? "verified" : "failed",
           result.dkim_verified ? "verified" : "failed",
           result.dmarc_configured ? "verified" : "failed",
-        ]);
+        ];
+
+        set_step_statuses(
+          wizard_steps.map((step, index) =>
+            step.optional ? "pending" : (required_statuses[index] ?? "pending"),
+          ),
+        );
         set_verification_message(result.message);
         on_domains_changed();
       } else {
@@ -276,7 +301,9 @@ export function DomainSetupWizard({
   };
 
   const at_limit = max_domains !== -1 && current_count >= max_domains;
-  const all_verified = step_statuses.every((s) => s === "verified");
+  const all_verified = step_statuses.every(
+    (s, index) => wizard_steps[index]?.optional || s === "verified",
+  );
   const any_checked = step_statuses.some(
     (s) => s === "verified" || s === "failed",
   );

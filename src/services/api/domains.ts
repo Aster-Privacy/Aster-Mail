@@ -40,6 +40,8 @@ export interface DnsRecord {
   purpose: string;
   is_verified: boolean;
   priority?: number;
+  required?: boolean;
+  caveat_key?: string;
 }
 
 export interface RecordStatus {

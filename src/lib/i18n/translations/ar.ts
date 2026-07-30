@@ -479,6 +479,16 @@ export const ar = {
     adding: "جارٍ الإضافة...",
     checking: "جارٍ التحقق...",
     host_name: "اسم المضيف",
+    dns_required:
+      "مطلوب",
+    dns_recommended:
+      "موصى به",
+    dns_caveat_mx_replaces_existing:
+      "يحل هذا محل سجلات MX الحالية. احذف سجلات MX الخاصة بمزود البريد السابق وإلا لن يصل البريد الجديد إلى Aster.",
+    dns_caveat_spf_single_record_other_senders:
+      "انشر سجل SPF واحدًا فقط. إذا كانت خدمات أخرى ترسل بريدًا باسم هذا النطاق، فادمج قيم include: الخاصة بها في هذا السجل الواحد.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "أضف هذا في النهاية، بعد التحقق من SPF وDKIM. نشره مبكرًا قد يرسل بريدك أنت إلى المزعج.",
     value_points_to: "القيمة / يشير إلى",
     dns_records_to_add: "سجلات DNS المطلوب إضافتها",
     dns_propagation_note: "قد تستغرق تغييرات DNS ما يصل إلى 48 ساعة للانتشار",
@@ -3533,6 +3543,18 @@ export const ar = {
     dkim_record: "سجل DKIM (TXT)",
     email_authentication_policy: "سياسة مصادقة البريد الإلكتروني",
     dmarc_record: "سجل DMARC (TXT)",
+    tls_reporting:
+      "تقارير TLS",
+    tlsrpt_record:
+      "سجل TLS-RPT",
+    tlsrpt_description:
+      "اختياري لكنه موصى به. ترسل لك الخوادم المستقبِلة ملخصًا يوميًا عند فشل التسليم المشفّر إلى نطاقك، فتكتشف المشكلات قبل مستخدميك.",
+    dns_instruction_set_tlsrpt_host:
+      "اضبط المضيف على _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "الصق قيمة TLS-RPT كما هي تمامًا",
+    optional_step:
+      "اختياري",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX من Google Takeout",
     outlook_import: "Outlook",

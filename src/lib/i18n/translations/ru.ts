@@ -482,6 +482,16 @@ export const ru = {
     adding: "Добавление...",
     checking: "Проверка...",
     host_name: "Имя хоста",
+    dns_required:
+      "Обязательно",
+    dns_recommended:
+      "Рекомендуется",
+    dns_caveat_mx_replaces_existing:
+      "Это заменит существующие записи MX. Удалите записи MX прежнего почтового провайдера, иначе новая почта не дойдёт до Aster.",
+    dns_caveat_spf_single_record_other_senders:
+      "Публикуйте только одну запись SPF. Если другие сервисы отправляют почту от этого домена, объедините их include: в этой единственной записи.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "Добавьте это последним, после того как SPF и DKIM подтверждены. Слишком ранняя публикация может отправить вашу же почту в спам.",
     value_points_to: "Значение / Указывает на",
     dns_records_to_add: "DNS-записи для добавления",
     dns_propagation_note:
@@ -3610,6 +3620,18 @@ export const ru = {
     dkim_record: "Запись DKIM (TXT)",
     email_authentication_policy: "Политика аутентификации почты",
     dmarc_record: "Запись DMARC (TXT)",
+    tls_reporting:
+      "Отчёты TLS",
+    tlsrpt_record:
+      "Запись TLS-RPT",
+    tlsrpt_description:
+      "Необязательно, но рекомендуется. Принимающие серверы будут присылать ежедневную сводку, если зашифрованная доставка в ваш домен не удалась, и вы заметите проблему раньше пользователей.",
+    dns_instruction_set_tlsrpt_host:
+      "Укажите хост _smtp._tls",
+    dns_instruction_set_tlsrpt_value:
+      "Вставьте значение TLS-RPT точно так, как показано",
+    optional_step:
+      "Необязательно",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX из Google Takeout",
     outlook_import: "Outlook",

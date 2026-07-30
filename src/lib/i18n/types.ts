@@ -948,6 +948,11 @@ export interface CommonTranslations {
   adding: string;
   checking: string;
   host_name: string;
+  dns_required: string;
+  dns_recommended: string;
+  dns_caveat_mx_replaces_existing: string;
+  dns_caveat_spf_single_record_other_senders: string;
+  dns_caveat_dmarc_add_after_spf_dkim: string;
   value_points_to: string;
   dns_records_to_add: string;
   dns_propagation_note: string;
@@ -3583,6 +3588,12 @@ export interface SettingsTranslations {
   dkim_record: string;
   email_authentication_policy: string;
   dmarc_record: string;
+  tls_reporting: string;
+  tlsrpt_record: string;
+  tlsrpt_description: string;
+  dns_instruction_set_tlsrpt_host: string;
+  dns_instruction_set_tlsrpt_value: string;
+  optional_step: string;
   gmail_import: string;
   gmail_import_description: string;
   outlook_import: string;

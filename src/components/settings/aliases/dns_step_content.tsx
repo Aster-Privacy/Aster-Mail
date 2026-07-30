@@ -33,6 +33,7 @@ interface WizardStep {
   subtitle: string;
   description: string;
   instructions: string[];
+  optional?: boolean;
 }
 
 interface DnsStepContentProps {
@@ -198,6 +199,11 @@ export function DnsStepContent({
           <span className="text-xs font-medium px-2 py-0.5 rounded bg-surf-tertiary text-txt-muted">
             {step.subtitle}
           </span>
+          {step.optional && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded bg-surf-tertiary text-txt-muted">
+              {t("settings.optional_step")}
+            </span>
+          )}
           {status === "verified" && (
             <EmailTag
               icon="check"

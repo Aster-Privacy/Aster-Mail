@@ -51,6 +51,7 @@ export interface FamilyGroupResponse {
   members: FamilyMemberInfo[];
   pending_invites: PendingInviteInfo[];
   max_members: number;
+  seats_used?: number;
   viewer_role: "owner" | "member";
 }
 

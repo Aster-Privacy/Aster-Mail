@@ -481,6 +481,16 @@ export const tr = {
     adding: "Ekleniyor...",
     checking: "Kontrol ediliyor...",
     host_name: "Sunucu Adı",
+    dns_required:
+      "Zorunlu",
+    dns_recommended:
+      "Onerilen",
+    dns_caveat_mx_replaces_existing:
+      "Bu, mevcut MX kayitlarinin yerini alir. Eski posta saglayicinizin MX kayitlarini kaldirin, aksi halde yeni postalar Aster'a ulasmaz.",
+    dns_caveat_spf_single_record_other_senders:
+      "Yalnizca tek bir SPF kaydi yayinlayin. Bu alan adiyla baska servisler de posta gonderiyorsa include: degerlerini bu tek kayitta birlestirin.",
+    dns_caveat_dmarc_add_after_spf_dkim:
+      "Bunu en son ekleyin, SPF ve DKIM dogrulandiktan sonra. Erken yayinlamak kendi postanizi spam'e dusurebilir.",
     value_points_to: "Değer / İşaret Ediyor",
     dns_records_to_add: "Eklenecek DNS Kayıtları",
     dns_propagation_note: "DNS değişikliklerinin yayılması 48 saati bulabilir",
@@ -3585,6 +3595,18 @@ export const tr = {
     dkim_record: "DKIM Kaydı (TXT)",
     email_authentication_policy: "E-posta Kimlik Doğrulama Politikası",
     dmarc_record: "DMARC Kaydı (TXT)",
+    tls_reporting:
+      "TLS Raporlama",
+    tlsrpt_record:
+      "TLS-RPT kaydi",
+    tlsrpt_description:
+      "Istege bagli ama onerilir. Alici sunucular, alan adiniza sifreli teslimat basarisiz oldugunda size gunluk bir ozet gonderir; boylece sorunlari kullanicilarinizdan once fark edersiniz.",
+    dns_instruction_set_tlsrpt_host:
+      "Host degerini _smtp._tls yapin",
+    dns_instruction_set_tlsrpt_value:
+      "TLS-RPT degerini gosterildigi gibi birebir yapistirin",
+    optional_step:
+      "Istege bagli",
     gmail_import: "Gmail",
     gmail_import_description: "Google Takeout'tan MBOX",
     outlook_import: "Outlook",
