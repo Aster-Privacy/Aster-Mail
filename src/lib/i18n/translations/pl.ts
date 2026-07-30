@@ -3717,7 +3717,7 @@ export const pl = {
       "Publiczne katalogi, w których klucze PGP można wyszukiwać po adresie e-mail. Uwaga: na większości serwerów kluczy nie można ich całkowicie usunąć po publikacji.",
     keyserver_urls_title: "Adresy URL serwerów kluczy",
     keyserver_urls_description:
-      "Dodatkowe serwery kluczy do przeszukiwania i publikowania, poza domyślnymi (keys.openpgp.org, keyserver.ubuntu.com)",
+      "Dodatkowe serwery kluczy do przeszukiwania i publikowania, poza domyślnymi (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Dodaj",
     keyserver_remove: "Usuń",

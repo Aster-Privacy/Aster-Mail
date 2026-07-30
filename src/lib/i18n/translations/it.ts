@@ -4452,7 +4452,7 @@ export const it = {
       "Directory pubbliche dove le chiavi PGP sono ricercabili per e-mail. Attenzione: sulla maggior parte dei server le chiavi non possono essere rimosse completamente dopo la pubblicazione.",
     keyserver_urls_title: "URL dei server di chiavi",
     keyserver_urls_description:
-      "Server di chiavi aggiuntivi da cercare e su cui pubblicare, oltre ai predefiniti (keys.openpgp.org, keyserver.ubuntu.com)",
+      "Server di chiavi aggiuntivi da cercare e su cui pubblicare, oltre ai predefiniti (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Aggiungi",
     keyserver_remove: "Rimuovi",

@@ -3627,7 +3627,7 @@ export const ar = {
       "أدلة عامة حيث يمكن البحث عن مفاتيح PGP بالبريد الإلكتروني. تحذير: في معظم الخوادم لا يمكن حذف المفاتيح بالكامل بعد النشر.",
     keyserver_urls_title: "روابط خوادم المفاتيح",
     keyserver_urls_description:
-      "خوادم مفاتيح إضافية للبحث فيها والنشر عليها، إلى جانب الخوادم الافتراضية (keys.openpgp.org، keyserver.ubuntu.com)",
+      "خوادم مفاتيح إضافية للبحث فيها والنشر عليها، إلى جانب الخوادم الافتراضية (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "إضافة",
     keyserver_remove: "إزالة",

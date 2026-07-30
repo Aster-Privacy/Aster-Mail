@@ -3705,7 +3705,7 @@ export const de = {
       "Öffentliche Verzeichnisse, in denen PGP-Schlüssel per E-Mail-Adresse durchsucht werden können. Achtung: Bei den meisten Schlüsselservern können Schlüssel nach der Veröffentlichung nicht vollständig entfernt werden.",
     keyserver_urls_title: "Schlüsselserver-URLs",
     keyserver_urls_description:
-      "Weitere Schlüsselserver zum Durchsuchen und Veröffentlichen, zusätzlich zu den Standardservern (keys.openpgp.org, keyserver.ubuntu.com)",
+      "Weitere Schlüsselserver zum Durchsuchen und Veröffentlichen, zusätzlich zu den Standardservern (keys.openpgp.org)",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "Hinzufügen",
     keyserver_remove: "Entfernen",

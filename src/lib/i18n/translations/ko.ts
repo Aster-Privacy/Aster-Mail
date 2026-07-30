@@ -3666,7 +3666,7 @@ export const ko = {
       "이메일 주소로 PGP 키를 검색할 수 있는 공개 디렉터리입니다. 주의: 대부분의 키 서버에서는 게시 후 키를 완전히 삭제할 수 없습니다.",
     keyserver_urls_title: "키 서버 URL",
     keyserver_urls_description:
-      "기본 서버(keys.openpgp.org, keyserver.ubuntu.com) 외에 검색하고 게시할 추가 키 서버",
+      "기본 서버(keys.openpgp.org) 외에 검색하고 게시할 추가 키 서버",
     keyserver_url_placeholder: "https://keys.example.com",
     keyserver_add: "추가",
     keyserver_remove: "제거",
