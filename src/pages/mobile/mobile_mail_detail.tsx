@@ -41,6 +41,7 @@ import {
   MobileMessageDetailsSheet,
 } from "./mobile_detail_sheets";
 
+import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -80,6 +81,7 @@ function MobileMailDetail() {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
+  const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const [is_starred, set_is_starred] = useState<boolean | null>(null);
   const [is_pinned, set_is_pinned] = useState<boolean | null>(null);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(new Set());
@@ -120,7 +122,9 @@ function MobileMailDetail() {
   const [snooze_target_id, set_snooze_target_id] = useState<string | null>(
     null,
   );
-  const [dark_mode_ids, set_dark_mode_ids] = useState<Set<string>>(new Set());
+  const [dark_mode_overrides, set_dark_mode_overrides] = useState<
+    Map<string, boolean>
+  >(new Map());
   const [details_message, set_details_message] =
     useState<DecryptedThreadMessage | null>(null);
 
@@ -537,35 +541,42 @@ function MobileMailDetail() {
     [t, detail.current_user_email, detail.mail_item?.thread_token],
   );
 
+  const is_dark_mode_message = useCallback(
+    (msg_id: string) =>
+      dark_mode_overrides.get(msg_id) ?? preferences.force_dark_mode_emails,
+    [dark_mode_overrides, preferences.force_dark_mode_emails],
+  );
+
+  const is_dark_mode_opted_out = useCallback(
+    (msg_id: string) => dark_mode_overrides.get(msg_id) === false,
+    [dark_mode_overrides],
+  );
+
   const handle_toggle_dark_mode = useCallback(() => {
     if (menu_message) {
-      set_dark_mode_ids((prev) => {
-        const next = new Set(prev);
+      const next_value = !is_dark_mode_message(menu_message.id);
 
-        if (next.has(menu_message.id)) {
-          next.delete(menu_message.id);
-        } else {
-          next.add(menu_message.id);
-        }
+      set_dark_mode_overrides((prev) => {
+        const next = new Map(prev);
+
+        next.set(menu_message.id, next_value);
 
         return next;
       });
     }
     set_menu_message(null);
-  }, [menu_message]);
+  }, [menu_message, is_dark_mode_message]);
 
   const handle_toggle_all_dark_mode = useCallback(() => {
     const all_active =
       display_messages.length > 0 &&
-      display_messages.every((m) => dark_mode_ids.has(m.id));
+      display_messages.every((m) => is_dark_mode_message(m.id));
 
-    if (all_active) {
-      set_dark_mode_ids(new Set());
-    } else {
-      set_dark_mode_ids(new Set(display_messages.map((m) => m.id)));
-    }
+    set_dark_mode_overrides(
+      new Map(display_messages.map((m) => [m.id, !all_active])),
+    );
     set_menu_message(null);
-  }, [display_messages, dark_mode_ids]);
+  }, [display_messages, is_dark_mode_message]);
 
   const handle_view_source = useCallback(() => {
     if (menu_message) {
@@ -576,10 +587,12 @@ function MobileMailDetail() {
 
   const handle_report_phishing = useCallback(() => {
     if (menu_message) {
-      detail.handle_per_message_report_phishing(menu_message);
+      const target = menu_message;
+
+      request_spam(() => detail.handle_per_message_report_phishing(target));
     }
     set_menu_message(null);
-  }, [detail, menu_message]);
+  }, [detail, menu_message, request_spam]);
 
   const handle_menu_archive = useCallback(() => {
     haptic_impact("light");
@@ -926,10 +939,8 @@ function MobileMailDetail() {
               ref={msg.id === first_unread_id ? first_unread_ref : undefined}
             >
               <MobileThreadMessage
-                force_dark_mode={
-                  preferences.force_dark_mode_emails ||
-                  dark_mode_ids.has(msg.id)
-                }
+                force_dark_mode={is_dark_mode_message(msg.id)}
+                disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
                 format_detail={format_email_detail}
                 is_expanded={expanded_ids.has(msg.id)}
                 is_own_message={
@@ -975,16 +986,18 @@ function MobileMailDetail() {
 
           if (msg) detail.handle_per_message_print(msg);
         }}
-        on_spam={handle_spam}
+        on_spam={() => request_spam(handle_spam)}
         on_star={handle_toggle_star}
       />
 
       <MobileActionMenuSheet
-        dark_mode_ids={dark_mode_ids}
         format_detail={format_email_detail}
         is_all_dark={
           display_messages.length > 0 &&
-          display_messages.every((m) => dark_mode_ids.has(m.id))
+          display_messages.every((m) => is_dark_mode_message(m.id))
+        }
+        is_message_dark={
+          !!menu_message && is_dark_mode_message(menu_message.id)
         }
         is_archived={is_archived}
         is_spam={!!detail.mail_item?.is_spam}
@@ -1030,7 +1043,7 @@ function MobileMailDetail() {
           set_show_snooze_sheet(true);
         }}
         on_spam={() => {
-          handle_spam();
+          request_spam(handle_spam);
           set_menu_message(null);
         }}
         on_toggle_all_dark_mode={handle_toggle_all_dark_mode}
@@ -1045,7 +1058,6 @@ function MobileMailDetail() {
         on_toggle_star={handle_toggle_star}
         on_trash={handle_menu_trash}
         on_view_source={handle_view_source}
-        preferences_force_dark={preferences.force_dark_mode_emails}
         t={detail.t}
       />
 
@@ -1094,6 +1106,7 @@ function MobileMailDetail() {
         title={detail.t("mail.block_sender")}
         variant="danger"
       />
+      {spam_confirm_dialog}
     </motion.div>
   );
 }

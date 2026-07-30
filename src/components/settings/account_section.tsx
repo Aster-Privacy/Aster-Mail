@@ -49,6 +49,10 @@ import {
 import { PROFILE_COLORS } from "@/constants/profile";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import { get_contrast_text } from "@/lib/avatar_color";
+import {
+  get_inactivity_warning_months,
+  format_month_amount,
+} from "@/lib/inactivity_policy";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
@@ -305,6 +309,21 @@ export function AccountSection() {
   const [badges, set_badges] = useState<Badge[]>([]);
   const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
   const [is_initial_load, set_is_initial_load] = useState(true);
+
+  const inactivity_window_info_description = (() => {
+    const [first, second, final] =
+      get_inactivity_warning_months(inactivity_window);
+    const format_offset = (months: number) =>
+      t("common.inactivity_window_months").replace(
+        "{{n}}",
+        format_month_amount(months),
+      );
+
+    return t("common.inactivity_window_info_description")
+      .replace("{{first}}", format_offset(first))
+      .replace("{{second}}", format_offset(second))
+      .replace("{{final}}", format_offset(final));
+  })();
 
   useEffect(() => {
     const run = async () => {
@@ -940,7 +959,7 @@ export function AccountSection() {
           <div>
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("common.inactivity_window")}
-              <InfoPopover title={t("common.inactivity_window_info_title")} description={t("common.inactivity_window_info_description")} learn_more_url="https://astermail.org/terms#section-9" />
+              <InfoPopover title={t("common.inactivity_window_info_title")} description={inactivity_window_info_description} learn_more_url="https://astermail.org/terms#section-9" />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("common.inactivity_window_description")}

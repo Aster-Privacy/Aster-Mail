@@ -918,7 +918,9 @@ export function EmailInbox({
         ? filtered_emails.length
         : Math.max(
             0,
-            email_state.has_initial_load && email_state.total_messages > 0
+            email_state.has_initial_load &&
+            !email_state.is_loading &&
+            !email_state.has_load_error
               ? email_state.total_messages
               : stats_total_for_view || 0,
           );
@@ -1493,13 +1495,11 @@ export function EmailInbox({
                   ? mail_stats.scheduled
                   : current_view === "snoozed"
                     ? mail_stats.snoozed
-                    : current_view === "spam"
-                      ? mail_stats.spam
-                      : current_view === "trash"
-                        ? mail_stats.trash
-                        : current_view.startsWith("alias-")
-                          ? filtered_emails.filter((e) => !e.is_read).length
-                          : undefined
+                    : current_view === "spam" || current_view === "trash"
+                      ? effective_total_for_pages
+                      : current_view.startsWith("alias-")
+                        ? filtered_emails.filter((e) => !e.is_read).length
+                        : undefined
           }
           filtered_count={effective_total_for_pages}
           folders={folders_state.folders

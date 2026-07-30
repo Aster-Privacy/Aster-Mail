@@ -34,16 +34,34 @@ export interface ReactRequest {
   sender_email?: string;
   sender_alias_hash?: string;
   sender_display_name?: string;
+  reply_subject?: string;
+  in_reply_to?: string;
 }
 
 export interface ReactResponse {
   success: boolean;
   message: string;
   mail_item_ids: string[];
+  own_reaction_mail_item_id?: string;
+}
+
+export interface UnreactRequest {
+  reaction_mail_item_id: string;
+}
+
+export interface UnreactResponse {
+  success: boolean;
+  message: string;
 }
 
 export function react_to_message(
   request: ReactRequest,
 ): Promise<ApiResponse<ReactResponse>> {
   return api_client.post<ReactResponse>("/mail/v1/react", request);
+}
+
+export function unreact_to_message(
+  request: UnreactRequest,
+): Promise<ApiResponse<UnreactResponse>> {
+  return api_client.post<UnreactResponse>("/mail/v1/react/remove", request);
 }

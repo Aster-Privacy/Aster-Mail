@@ -516,8 +516,9 @@ export function SenderActionModal({
               <div className="relative mb-3">
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
                 <Input
-                  className="w-full pl-10 pr-4"
+                  className="w-full"
                   placeholder={t("common.search_senders")}
+                  style={{ paddingLeft: "40px", paddingRight: "16px" }}
                   type="text"
                   value={search_query}
                   onChange={(e) => set_search_query(e.target.value)}

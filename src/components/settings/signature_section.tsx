@@ -60,6 +60,8 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_editor } from "@/hooks/use_editor";
+import { MAX_HORIZONTAL_RULES } from "@/hooks/use_editor_format";
+import { show_toast } from "@/components/toast/simple_toast";
 import { LinkDialog } from "@/components/compose/link_dialog";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import {
@@ -110,6 +112,16 @@ function validate_image_magic_bytes(
 
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
+function has_editor_content(html: string): boolean {
+  const temp = document.createElement("div");
+
+  temp.innerHTML = html;
+
+  if (temp.querySelector("img, hr, table")) return true;
+
+  return (temp.textContent || "").replace(/​/g, "").trim().length > 0;
+}
+
 interface FmtButtonProps {
   active?: boolean;
   onClick: () => void;
@@ -146,6 +158,7 @@ interface EditorState {
   is_saving: boolean;
   alias_id: string | null;
   placement: SignaturePlacement | null;
+  show_validation: boolean;
 }
 
 const initial_editor_state: EditorState = {
@@ -156,6 +169,7 @@ const initial_editor_state: EditorState = {
   is_saving: false,
   alias_id: null,
   placement: null,
+  show_validation: false,
 };
 
 export function SignatureSection() {
@@ -197,22 +211,49 @@ export function SignatureSection() {
     enable_keyboard_shortcuts: true,
   });
 
+  const name_invalid = editor.show_validation && !editor.name.trim();
+  const content_invalid =
+    editor.show_validation && !has_editor_content(editor.content);
+
   const handle_image_upload = useCallback(
     (file: File) => {
-      if (!file.type.startsWith("image/") || file.type === "image/svg+xml")
+      if (!IMAGE_MAGIC_BYTES[file.type]) {
+        show_toast(t("settings.signature_image_invalid"), "error");
+
         return;
-      if (file.size > MAX_IMAGE_SIZE) return;
+      }
+
+      if (file.size > MAX_IMAGE_SIZE) {
+        show_toast(t("settings.signature_image_too_large"), "error");
+
+        return;
+      }
 
       const reader = new FileReader();
 
+      reader.onerror = () => {
+        show_toast(t("settings.signature_image_failed"), "error");
+      };
+
       reader.onload = () => {
         const data_url = reader.result as string;
-        const arr_buf = Uint8Array.from(
-          atob(data_url.split(",")[1] || ""),
-          (c) => c.charCodeAt(0),
-        ).buffer;
+        let arr_buf: ArrayBuffer;
 
-        if (!validate_image_magic_bytes(arr_buf, file.type)) return;
+        try {
+          arr_buf = Uint8Array.from(atob(data_url.split(",")[1] || ""), (c) =>
+            c.charCodeAt(0),
+          ).buffer;
+        } catch {
+          show_toast(t("settings.signature_image_failed"), "error");
+
+          return;
+        }
+
+        if (!validate_image_magic_bytes(arr_buf, file.type)) {
+          show_toast(t("settings.signature_image_invalid"), "error");
+
+          return;
+        }
 
         rich_editor.insert_html(
           `<img src="${data_url}" style="max-width: min(100%, 480px); height: auto; border-radius: 6px; display: block; margin: 8px 0;" />`,
@@ -220,8 +261,20 @@ export function SignatureSection() {
       };
       reader.readAsDataURL(file);
     },
-    [rich_editor],
+    [rich_editor, t],
   );
+
+  const handle_insert_horizontal_rule = useCallback(() => {
+    if (!rich_editor.insert_horizontal_rule()) {
+      show_toast(
+        t("settings.signature_divider_limit").replace(
+          "{{count}}",
+          String(MAX_HORIZONTAL_RULES),
+        ),
+        "warning",
+      );
+    }
+  }, [rich_editor, t]);
 
   const handle_open_link_dialog = () => {
     rich_editor.save_selection();
@@ -282,6 +335,7 @@ export function SignatureSection() {
       is_saving: false,
       alias_id: null,
       placement: null,
+      show_validation: false,
     });
   };
 
@@ -294,6 +348,7 @@ export function SignatureSection() {
       is_saving: false,
       alias_id: signature.alias_id,
       placement: signature.placement,
+      show_validation: false,
     });
     requestAnimationFrame(() => {
       if (editor_div_ref.current) {
@@ -313,7 +368,11 @@ export function SignatureSection() {
   const handle_save = async () => {
     const html_content = rich_editor.get_html();
 
-    if (!editor.name.trim() || !html_content.trim()) return;
+    if (!editor.name.trim() || !has_editor_content(html_content)) {
+      set_editor((prev) => ({ ...prev, show_validation: true }));
+
+      return;
+    }
 
     set_editor((prev) => ({ ...prev, is_saving: true }));
 
@@ -574,14 +633,27 @@ export function SignatureSection() {
                 </label>
                 <Input
                   autoFocus
+                  aria-describedby={
+                    name_invalid ? "signature-name-error" : undefined
+                  }
+                  aria-invalid={name_invalid}
                   id="signature-name"
                   placeholder={t("settings.signature_name_placeholder")}
+                  status={name_invalid ? "error" : "default"}
                   type="text"
                   value={editor.name}
                   onChange={(e) =>
                     set_editor((prev) => ({ ...prev, name: e.target.value }))
                   }
                 />
+                {name_invalid && (
+                  <p
+                    className="text-xs mt-1.5 text-red-500"
+                    id="signature-name-error"
+                  >
+                    {t("settings.signature_name_required")}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -667,7 +739,11 @@ export function SignatureSection() {
                 >
                   {t("settings.signature_content")}
                 </label>
-                <div className="rounded-md border border-input-border bg-input-bg overflow-hidden">
+                <div
+                  className={`rounded-md border bg-input-bg overflow-hidden ${
+                    content_invalid ? "border-red-500" : "border-input-border"
+                  }`}
+                >
                   <div
                     aria-label={t("mail.text_formatting")}
                     className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 border-b border-input-border"
@@ -813,7 +889,7 @@ export function SignatureSection() {
 
                     <FmtButton
                       title={t("mail.horizontal_rule")}
-                      onClick={rich_editor.insert_horizontal_rule}
+                      onClick={handle_insert_horizontal_rule}
                     >
                       <svg
                         className="w-4 h-4"
@@ -855,6 +931,11 @@ export function SignatureSection() {
                     onPaste={rich_editor.handle_paste}
                   />
                 </div>
+                {content_invalid && (
+                  <p className="text-xs mt-1.5 text-red-500">
+                    {t("settings.signature_content_required")}
+                  </p>
+                )}
               </div>
             </ModalBody>
             <ModalFooter>
@@ -866,11 +947,7 @@ export function SignatureSection() {
                 {t("common.cancel")}
               </Button>
               <Button
-                disabled={
-                  !editor.name.trim() ||
-                  !rich_editor.get_html().trim() ||
-                  editor.is_saving
-                }
+                disabled={editor.is_saving}
                 variant="depth"
                 onClick={handle_save}
               >

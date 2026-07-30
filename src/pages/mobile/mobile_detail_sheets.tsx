@@ -100,8 +100,7 @@ export function MobileActionMenuSheet({
   is_starred,
   is_pinned,
   is_all_dark,
-  dark_mode_ids,
-  preferences_force_dark: preferences_force_dark_mode,
+  is_message_dark,
   format_detail,
   t,
 }: {
@@ -133,8 +132,7 @@ export function MobileActionMenuSheet({
   is_starred: boolean;
   is_pinned: boolean;
   is_all_dark: boolean;
-  dark_mode_ids: Set<string>;
-  preferences_force_dark: boolean;
+  is_message_dark: boolean;
   format_detail: (date: Date) => string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
@@ -308,17 +306,13 @@ export function MobileActionMenuSheet({
               type="button"
               onClick={on_toggle_dark_mode}
             >
-              {menu_message &&
-              (preferences_force_dark_mode ||
-                dark_mode_ids.has(menu_message.id)) ? (
+              {is_message_dark ? (
                 <SunIcon className="h-5 w-5 text-[var(--text-muted)]" />
               ) : (
                 <MoonIcon className="h-5 w-5 text-[var(--text-muted)]" />
               )}
               <span className="text-[14px] text-[var(--text-primary)]">
-                {menu_message &&
-                (preferences_force_dark_mode ||
-                  dark_mode_ids.has(menu_message.id))
+                {is_message_dark
                   ? t("mail.exit_dark_mode")
                   : t("mail.view_dark_mode")}
               </span>

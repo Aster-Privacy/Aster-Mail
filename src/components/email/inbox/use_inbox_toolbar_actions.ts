@@ -530,7 +530,9 @@ export function use_inbox_toolbar_actions({
 
   const handle_toolbar_mark_unread = useCallback(async (): Promise<void> => {
     if (is_drafts_view || is_scheduled_view) return;
-    const selected = email_state.emails.filter((e) => e.is_selected);
+    const selected = email_state.emails.filter(
+      (e) => e.is_selected && e.item_type !== "sent",
+    );
 
     if (selected.length === 0) return;
     const unread_count_delta = selected.reduce((acc, email) => {

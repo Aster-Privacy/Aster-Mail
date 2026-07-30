@@ -29,6 +29,7 @@ import {
 } from "@/components/email/hooks/use_popup_viewer";
 import { PopupEmailActions } from "@/components/email/popup/popup_email_actions";
 import { PopupEmailBody } from "@/components/email/popup/popup_email_body";
+import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 
 export function EmailPopupViewer({
   email_id,
@@ -42,6 +43,7 @@ export function EmailPopupViewer({
   label_hints,
 }: EmailPopupViewerProps) {
   const reduce_motion = use_should_reduce_motion();
+  const { request_spam, spam_confirm_dialog } = use_spam_confirm();
 
   const viewer = use_popup_viewer({
     email_id,
@@ -129,7 +131,7 @@ export function EmailPopupViewer({
         on_pin_toggle={viewer.handle_pin_toggle}
         on_print={viewer.handle_print}
         on_read_toggle={viewer.handle_read_toggle}
-        on_spam={viewer.handle_spam}
+        on_spam={() => request_spam(viewer.handle_spam)}
         on_toggle_size={viewer.toggle_size}
         on_trash={viewer.handle_trash}
         on_unsubscribe={viewer.handle_unsubscribe}
@@ -167,8 +169,8 @@ export function EmailPopupViewer({
         on_per_message_print={viewer.handle_per_message_print}
         on_per_message_reply={viewer.handle_per_message_reply}
         on_per_message_reply_all={viewer.handle_per_message_reply_all}
-        on_per_message_report_phishing={
-          viewer.handle_per_message_report_phishing
+        on_per_message_report_phishing={(msg) =>
+          request_spam(() => viewer.handle_per_message_report_phishing(msg))
         }
         on_per_message_trash={viewer.handle_per_message_trash}
         on_toggle_message_read={viewer.handle_toggle_message_read}
@@ -179,6 +181,7 @@ export function EmailPopupViewer({
         timestamp_date={viewer.timestamp_date}
         label_hints={label_hints}
       />
+      {spam_confirm_dialog}
     </motion.div>
   );
 

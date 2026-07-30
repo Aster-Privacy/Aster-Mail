@@ -202,7 +202,11 @@ function EmailContextMenuContentInner({
         <ContextMenuSeparator />
       )}
 
-      {on_toggle_read && !is_drafts && !is_scheduled && (
+      {on_toggle_read &&
+        !is_drafts &&
+        !is_scheduled &&
+        !is_sent &&
+        email.item_type !== "sent" && (
         <ContextMenuItem
           disabled={loading_action === "read"}
           onClick={() => handle_action("read", on_toggle_read)}

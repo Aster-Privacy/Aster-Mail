@@ -37,9 +37,11 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { EmailDetailHeader } from "@/components/email/email_detail/email_detail_header";
 import { EmailDetailBody } from "@/components/email/email_detail/email_detail_body";
+import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
+  const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const detail = use_email_detail();
   const navigate = useNavigate();
 
@@ -111,8 +113,10 @@ export default function EmailDetailPage() {
               handle_per_message_print={detail.handle_per_message_print}
               handle_per_message_reply={detail.handle_per_message_reply}
               handle_per_message_reply_all={detail.handle_per_message_reply_all}
-              handle_per_message_report_phishing={
-                detail.handle_per_message_report_phishing
+              handle_per_message_report_phishing={(msg) =>
+                request_spam(() =>
+                  detail.handle_per_message_report_phishing(msg),
+                )
               }
               handle_per_message_trash={detail.handle_per_message_trash}
               handle_per_message_view_source={
@@ -141,6 +145,8 @@ export default function EmailDetailPage() {
           </div>
         </div>
       </div>
+
+      {spam_confirm_dialog}
 
       <AnimatePresence>
         {detail.is_block_sender_modal_open && detail.email && (

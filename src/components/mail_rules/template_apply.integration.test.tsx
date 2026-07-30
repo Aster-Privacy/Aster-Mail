@@ -38,6 +38,14 @@ vi.mock("@/stores/mail_rules_store", () => ({
   create_rule: (req?: unknown) => create_rule(req),
   update_rule: (id?: unknown, req?: unknown) => update_rule(id, req),
   delete_rule: (id?: unknown) => delete_rule(id),
+  run_on_existing: vi.fn(async () => null),
+  refresh_run: vi.fn(async () => null),
+  cancel_run: vi.fn(async () => null),
+  use_mail_rules_store: () => ({
+    rules: [],
+    loading: false,
+    runs: {},
+  }),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({

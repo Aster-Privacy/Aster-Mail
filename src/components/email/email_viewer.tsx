@@ -39,6 +39,7 @@ import {
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
+import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { emit_mail_changed, emit_mail_soft_refresh } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
@@ -53,6 +54,7 @@ export function EmailViewer({
 }) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
+  const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const [is_archive_loading, set_is_archive_loading] = useState(false);
   const [is_spam_loading, set_is_spam_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
@@ -230,12 +232,13 @@ export function EmailViewer({
           is_trash_loading={is_trash_loading}
           on_archive={handle_archive}
           on_close={on_close}
-          on_spam={handle_spam}
+          on_spam={() => request_spam(handle_spam)}
           on_trash={handle_trash}
           on_unsubscribe={handle_unsubscribe}
           unsubscribe_info={unsubscribe_info}
         />
         <EmailViewerContent email={email} />
+        {spam_confirm_dialog}
       </motion.div>
     </ErrorBoundary>
   );

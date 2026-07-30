@@ -38,6 +38,7 @@ interface ThreadMessageBodyProps {
   load_remote_content: boolean;
   sanitized_html: string;
   force_dark_mode?: boolean;
+  disable_auto_dark_mode?: boolean;
   body_background?: string;
   email_id?: string;
   preserve_formatting?: boolean;
@@ -56,6 +57,7 @@ export function ThreadMessageBody({
   load_remote_content,
   sanitized_html,
   force_dark_mode,
+  disable_auto_dark_mode,
   body_background,
   email_id,
   preserve_formatting,
@@ -156,6 +158,7 @@ export function ThreadMessageBody({
           body_background={body_background}
           email_id={email_id}
           force_dark_mode={force_dark_mode}
+          disable_auto_dark_mode={disable_auto_dark_mode}
           is_plain_text={is_plain_text}
           load_remote_content={load_remote_content}
           on_document_ready={on_document_ready}

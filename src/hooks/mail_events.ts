@@ -43,6 +43,7 @@ export const MAIL_EVENTS = {
   REFRESH_REQUESTED: "astermail:refresh-requested",
   MAIL_SOFT_REFRESH: "astermail:mail-soft-refresh",
   MAIL_STATS_STALE: "astermail:mail-stats-stale",
+  REACTIONS_CHANGED: "astermail:reactions-changed",
 } as const;
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];
@@ -124,6 +125,10 @@ export interface MailItemUpdatedEventDetail {
   metadata_nonce?: string;
 }
 
+export interface ReactionsChangedEventDetail {
+  mail_item_id: string;
+}
+
 export interface MailItemsRemovedEventDetail {
   ids: string[];
 }
@@ -153,6 +158,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.REFRESH_REQUESTED]: undefined;
   [MAIL_EVENTS.MAIL_SOFT_REFRESH]: undefined;
   [MAIL_EVENTS.MAIL_STATS_STALE]: undefined;
+  [MAIL_EVENTS.REACTIONS_CHANGED]: ReactionsChangedEventDetail;
 };
 
 type EventSubscription = () => void;
@@ -328,6 +334,12 @@ export function emit_mail_soft_refresh(): void {
 
 export function emit_mail_stats_stale(): void {
   mail_event_bus.emit(MAIL_EVENTS.MAIL_STATS_STALE);
+}
+
+export function emit_reactions_changed(
+  detail: ReactionsChangedEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.REACTIONS_CHANGED, detail);
 }
 
 export function emit_thread_reply_optimistic(

@@ -50,6 +50,7 @@ import { get_csrf_token_from_cookie } from "@/services/api/csrf";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { sync_haptic_state } from "@/native/haptic_feedback";
+import { set_toast_min_duration } from "@/components/toast/simple_toast";
 import { set_display_time_zone } from "@/utils/date_format";
 import {
   load_notification_preferences,
@@ -76,6 +77,12 @@ import {
   type CustomThemeOverrides,
 } from "@/lib/material_theme";
 import { get_font_stack, get_email_font_stack } from "@/lib/font_options";
+import {
+  get_primary_font_family,
+  is_font_family_loaded,
+} from "@/lib/loaded_fonts";
+import { get_contrast_text_for_css_color } from "@/lib/avatar_color";
+import { get_brand_asset_filter } from "@/lib/accent_filter";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -152,7 +159,23 @@ function apply_color_theme_class(
     }
   }
 
+  sync_accent_derived_appearance();
   sync_meta_theme_color();
+}
+
+function sync_accent_derived_appearance() {
+  const root = document.documentElement;
+  const accent = getComputedStyle(root).getPropertyValue("--accent-color").trim();
+
+  if (!accent) {
+    root.style.removeProperty("--accent-fg");
+    root.style.removeProperty("--accent-brand-filter");
+
+    return;
+  }
+
+  root.style.setProperty("--accent-fg", get_contrast_text_for_css_color(accent));
+  root.style.setProperty("--accent-brand-filter", get_brand_asset_filter(accent));
 }
 
 function sync_meta_theme_color() {
@@ -965,24 +988,63 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   }, [preferences.haptic_enabled]);
 
   useEffect(() => {
+    set_toast_min_duration(preferences.toast_duration_ms);
+  }, [preferences.toast_duration_ms]);
+
+  useEffect(() => {
     const style_id = "aster-low-network-fonts";
-    const existing = document.getElementById(style_id);
+
+    const sync_low_network_style = () => {
+      const existing = document.getElementById(style_id);
+
+      if (!preferences.low_network_mode) {
+        existing?.remove();
+
+        return;
+      }
+
+      const rules = [
+        "@media all { .animate-pulse, [class*='animate-'] { animation: none !important; transition: none !important; } }",
+      ];
+      const family = get_primary_font_family(
+        get_font_stack(preferences.font_choice),
+      );
+
+      if (family && !is_font_family_loaded(family)) {
+        rules.unshift(
+          "*, *::before, *::after { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }",
+        );
+      }
+
+      const style = existing ?? document.createElement("style");
+
+      style.id = style_id;
+      style.textContent = rules.join("\n");
+
+      if (!existing) document.head.appendChild(style);
+    };
+
     if (preferences.low_network_mode) {
       stop_version_check();
-      if (!existing) {
-        const style = document.createElement("style");
-        style.id = style_id;
-        style.textContent = [
-          "*, *::before, *::after { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }",
-          "@media all { .animate-pulse, [class*='animate-'] { animation: none !important; transition: none !important; } }",
-        ].join("\n");
-        document.head.appendChild(style);
-      }
-    } else {
-      if (existing) existing.remove();
     }
+
+    sync_low_network_style();
     set_low_network_mode(preferences.low_network_mode);
-  }, [preferences.low_network_mode]);
+
+    if (!preferences.low_network_mode || typeof document === "undefined") {
+      return;
+    }
+
+    const fonts = document.fonts;
+
+    if (!fonts?.addEventListener) return;
+
+    fonts.addEventListener("loadingdone", sync_low_network_style);
+
+    return () => {
+      fonts.removeEventListener("loadingdone", sync_low_network_style);
+    };
+  }, [preferences.low_network_mode, preferences.font_choice]);
 
   useEffect(() => {
     const nav_conn = (navigator as unknown as {

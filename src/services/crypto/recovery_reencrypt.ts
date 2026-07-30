@@ -1663,6 +1663,7 @@ async function re_encrypt_mail_metadata(
         item_type,
         limit: 100,
         cursor,
+        include_reactions: true,
       });
 
       if (resp.error || !resp.data) {

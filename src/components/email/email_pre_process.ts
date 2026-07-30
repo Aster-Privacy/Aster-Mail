@@ -26,6 +26,42 @@ export interface PreProcessOptions {
   proxy_base: string;
 }
 
+function is_blank_spacer(node: Node): boolean {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return !(node.nodeValue || "").trim().length;
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+
+  const el = node as Element;
+  const tag = el.tagName.toUpperCase();
+
+  if (tag === "BR") return true;
+  if (!["DIV", "P", "SPAN"].includes(tag)) return false;
+  if ((el.textContent || "").trim().length) return false;
+
+  return !el.querySelector("img, hr, table, video, audio, iframe, object");
+}
+
+function trim_surrounding_spacers(node: Node): void {
+  let prev = node.previousSibling;
+
+  while (prev && is_blank_spacer(prev)) {
+    const stale = prev;
+
+    prev = prev.previousSibling;
+    stale.parentNode?.removeChild(stale);
+  }
+
+  let next = node.nextSibling;
+
+  while (next && is_blank_spacer(next)) {
+    const stale = next;
+
+    next = next.nextSibling;
+    stale.parentNode?.removeChild(stale);
+  }
+}
+
 function collapse_forwarded_content(
   doc: Document,
   label: string,
@@ -76,6 +112,7 @@ function collapse_forwarded_content(
     }
     details.appendChild(content_div);
     body.appendChild(details);
+    trim_surrounding_spacers(details);
 
     return;
   }
@@ -127,6 +164,7 @@ function collapse_forwarded_content(
 
     wrapper.appendChild(toggle_btn);
     wrapper.appendChild(content_div);
+    trim_surrounding_spacers(wrapper);
 
     return;
   }
@@ -213,6 +251,7 @@ function collapse_forwarded_content(
   }
   details.appendChild(content_div);
   body.appendChild(details);
+  trim_surrounding_spacers(details);
 }
 
 function collapse_quoted_replies(
@@ -389,6 +428,7 @@ function collapse_quoted_replies(
   wrapper.appendChild(toggle_btn);
   wrapper.appendChild(content_div);
   body.appendChild(wrapper);
+  trim_surrounding_spacers(wrapper);
 }
 
 function collapse_empty_block_runs(doc: Document): void {

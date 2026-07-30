@@ -68,6 +68,7 @@ import {
 } from "@/services/api/multi_drafts";
 import {
   await_preloaded_email,
+  delete_preloaded_email,
   type PreloadedSanitizedContent,
 } from "@/components/email/hooks/preload_cache";
 import { adjust_unread_count } from "@/hooks/use_mail_counts";
@@ -731,6 +732,25 @@ export function use_email_viewer({
       cancelled = true;
     };
   }, [email_id, preferences.mark_as_read_delay, refresh_key]);
+
+  useEffect(() => {
+    const handle_reactions_changed = () => {
+      if (email_id) delete_preloaded_email(email_id);
+      set_refresh_key((k) => k + 1);
+    };
+
+    window.addEventListener(
+      MAIL_EVENTS.REACTIONS_CHANGED,
+      handle_reactions_changed,
+    );
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.REACTIONS_CHANGED,
+        handle_reactions_changed,
+      );
+    };
+  }, [email_id]);
 
   useEffect(() => {
     if (!use_refresh_listener) return;

@@ -594,7 +594,14 @@ export function SearchResultsPage({
   );
 
   const handle_bulk_mark_unread = useCallback(
-    () => run_bulk((emails) => email_actions.bulk_mark_read(emails, false)),
+    () =>
+      run_bulk((emails) => {
+        const markable = emails.filter((e) => e.item_type !== "sent");
+
+        if (markable.length === 0) return Promise.resolve();
+
+        return email_actions.bulk_mark_read(markable, false);
+      }),
     [run_bulk, email_actions],
   );
 

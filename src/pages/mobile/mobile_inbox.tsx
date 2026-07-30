@@ -60,6 +60,7 @@ import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailList } from "@/components/mobile/mobile_email_list";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { EmptyTrashModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { empty_trash } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -150,6 +151,7 @@ function MobileInbox({
 
   const actions = use_email_actions();
   const snooze_actions = use_snooze();
+  const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const { get_tag_by_token, state: tags_state } = use_tags();
   const { get_folder_by_token, state: folders_state } = use_folders();
   const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
@@ -488,12 +490,14 @@ function MobileInbox({
   }, []);
 
   const handle_mark_spam = useCallback(
-    async (email: InboxEmail) => {
-      const success = await actions.mark_as_spam(email);
+    (email: InboxEmail) => {
+      request_spam(async () => {
+        const success = await actions.mark_as_spam(email);
 
-      if (success) remove_email(email.id);
+        if (success) remove_email(email.id);
+      });
     },
-    [actions, remove_email],
+    [actions, remove_email, request_spam],
   );
 
   const handle_snooze_select = useCallback(
@@ -874,6 +878,8 @@ function MobileInbox({
           </div>
         </div>
       </MobileBottomSheet>
+
+      {spam_confirm_dialog}
     </div>
   );
 }

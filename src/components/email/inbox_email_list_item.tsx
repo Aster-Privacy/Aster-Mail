@@ -217,6 +217,9 @@ export const InboxEmailListItem = memo(
       const is_trash_view = current_view === "trash";
       const is_spam_view = current_view === "spam";
       const is_archive_view = current_view === "archive";
+      const in_scoped_collection_view =
+        (current_view ?? "").startsWith("folder-") ||
+        (current_view ?? "").startsWith("tag-");
       const outgoing_names = outgoing_recipient_names(
         current_view,
         email.recipient_names,
@@ -622,7 +625,10 @@ export const InboxEmailListItem = memo(
                 />
               )}
 
-              {email.is_archived && (
+              {email.is_archived &&
+                !is_archive_view &&
+                !in_scoped_collection_view &&
+                named_folders.length === 0 && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
                   label={t("mail.archived_label")}

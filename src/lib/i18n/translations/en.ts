@@ -7412,6 +7412,18 @@ export const en: Translations = {
     generic: "That did not work. Another attempt should do it.",
     failed_remove_reaction: "Could not remove reaction. Please try again.",
     cannot_react_own_message: "You cannot react to your own message.",
+    cannot_react_draft: "You cannot react to a draft or scheduled message.",
+    cannot_react_spam_or_trash:
+      "You cannot react to messages in Spam or Trash.",
+    cannot_react_reply_to:
+      "You cannot react to a message with a reply-to address.",
+    cannot_react_too_many_recipients:
+      "You cannot react to a message with more than 20 recipients.",
+    cannot_react_bcc: "You cannot react to a message you were BCC'd on.",
+    cannot_react_too_many_emojis:
+      "This message already has the maximum number of reactions.",
+    cannot_react_no_recipient:
+      "This message has no sender to send the reaction to.",
     failed_send_reaction:
       "The reaction could not be sent. Another attempt should do it.",
     reactions_disabled: "Reactions are turned off in your settings.",

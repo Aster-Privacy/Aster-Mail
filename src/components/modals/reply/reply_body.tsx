@@ -23,9 +23,8 @@ import type { UseEditorReturn } from "@/hooks/use_editor";
 
 import { useEffect } from "react";
 
-import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
-import { get_image_proxy_url } from "@/lib/image_proxy";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
 import { CloseIcon } from "@/components/common/icons";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
@@ -274,21 +273,7 @@ export function ReplyBody({
             </button>
           </div>
           {show_quoted && (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: sanitize_html(build_quoted_content(true), {
-                  external_content_mode: is_any_lockdown_active()
-                    ? "never"
-                    : "always",
-                  lockdown_mode: is_any_lockdown_active(),
-                  image_proxy_url: get_image_proxy_url(),
-                }).html,
-              }}
-              className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
-              style={{
-                wordBreak: "break-word",
-              }}
-            />
+            <QuotedHtmlPreview html={build_quoted_content(true)} />
           )}
         </div>
       )}

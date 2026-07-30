@@ -23,6 +23,7 @@ import { Capacitor } from "@capacitor/core";
 
 import { start_iframe_autoscroll } from "@/components/email/iframe_autoscroll";
 import { build_email_body_css, build_forced_dark_mode_css } from "@/lib/email_body_styles";
+import { hex_to_rgba } from "@/lib/material_theme";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
   build_font_face_css,
@@ -151,6 +152,13 @@ async function resolve_native_images(doc: Document): Promise<void> {
 
 const BODY_PADDING = "8px 16px 16px 16px";
 
+const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+const FALLBACK_ACCENT = "#3b82f6";
+
+function safe_hex(value: string | undefined, fallback = FALLBACK_ACCENT): string {
+  return value && HEX_COLOR_PATTERN.test(value.trim()) ? value.trim() : fallback;
+}
+
 const IFRAME_HEIGHT_CACHE_LIMIT = 300;
 const iframe_height_cache = new Map<string, number>();
 
@@ -249,6 +257,7 @@ interface SandboxedEmailRendererProps {
   load_remote_content?: boolean;
   variant?: "desktop" | "mobile";
   force_dark_mode?: boolean;
+  disable_auto_dark_mode?: boolean;
   body_background?: string;
   email_id?: string;
   preserve_formatting?: boolean;
@@ -266,6 +275,7 @@ export function SandboxedEmailRenderer({
   load_remote_content = false,
   variant: _variant = "desktop",
   force_dark_mode = false,
+  disable_auto_dark_mode = false,
   body_background,
   email_id,
   preserve_formatting = false,
@@ -397,7 +407,8 @@ export function SandboxedEmailRenderer({
         : sanitized_html);
 
   const { theme } = useTheme();
-  const is_dark_theme = theme === "dark";
+  const app_is_dark = theme === "dark";
+  const is_dark_theme = app_is_dark && !disable_auto_dark_mode;
   const is_html_email = !is_plain_text;
   const layout_probe =
     sanitized_html.length > 65536
@@ -429,7 +440,8 @@ export function SandboxedEmailRenderer({
     (layout_probe.match(/<table\b/gi)?.length ?? 0) > 2
   )) || has_designed_bg || has_style_block || has_centered_card;
   const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(layout_probe);
-  const plain_bg = "transparent";
+  const light_override_bg = disable_auto_dark_mode && app_is_dark ? "#ffffff" : "transparent";
+  const plain_bg = light_override_bg;
   const plain_text_color = force_dark_mode
     ? "#e5e5e5"
     : is_dark_theme
@@ -439,7 +451,7 @@ export function SandboxedEmailRenderer({
   const html_text_color = force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
   const html_bg = force_dark_mode || simple_dark_html
     ? "transparent"
-    : body_background || "transparent";
+    : body_background || light_override_bg;
   const dyslexia_font_stack =
     "'OpenDyslexic','Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
   const email_font_id = preferences.email_font_choice ?? EMAIL_FONT_MATCH_APP_ID;
@@ -462,9 +474,27 @@ export function SandboxedEmailRenderer({
     ? "a, a * { text-decoration: underline !important; }"
     : "";
 
+  const accent_hex = safe_hex(preferences.accent_color);
+  const accent_hover_hex = safe_hex(preferences.accent_color_hover, accent_hex);
+  const link_hover_ink = is_dark_theme ? accent_hover_hex : accent_hex;
+  const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
+  const link_hover_css = `a { transition: background-color 0.12s ease, color 0.12s ease; border-radius: 3px; }
+a:hover, a:hover *${LINK_MEDIA_EXCLUDE} {
+  color: ${link_hover_ink} !important;
+  text-decoration: underline !important;
+  text-decoration-color: ${link_hover_ink} !important;
+}
+a:hover:not(:has(img)):not(:has(picture)):not(:has(svg)):not(:has(video)):not(:has(canvas)) {
+  background-color: ${hex_to_rgba(link_hover_ink, is_dark_theme ? 0.22 : 0.14)} !important;
+}
+a:focus-visible {
+  outline: 2px solid ${link_hover_ink} !important;
+  outline-offset: 1px;
+}`;
+
   const quote_toggle_css = `.aster-quote-toggle { display: inline-block !important; padding: 0 3px !important; font-size: 6px !important; line-height: 12px !important; letter-spacing: 1px !important; background: rgba(128, 128, 128, 0.1) !important; border: 1px solid rgba(128, 128, 128, 0.15) !important; border-radius: 99px !important; color: rgba(100, 100, 100, 0.55) !important; cursor: pointer !important; vertical-align: middle !important; }
 .aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
-.aster-quoted-content { border-left-color: ${preferences.accent_color_hover} !important; }`;
+.aster-quoted-content { border-left-color: ${accent_hover_hex} !important; }`;
 
   const QUOTE_SCOPE_EXCLUDE =
     ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
@@ -474,10 +504,10 @@ export function SandboxedEmailRenderer({
 html, body { background-color: transparent !important; color: ${plain_text_color} !important; }
 body *${QUOTE_SCOPE_EXCLUDE} { color: inherit !important; }
 body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
-a, a * { color: ${preferences.accent_color_hover} !important; }`
+a, a * { color: ${accent_hover_hex} !important; }`
       : "";
   const dark_mode_css = force_dark_mode
-    ? build_forced_dark_mode_css(preferences.accent_color, preferences.accent_color_hover)
+    ? build_forced_dark_mode_css(accent_hex, accent_hover_hex)
     : plain_dark_css;
 
   const force_light_scheme = is_html_email && !force_dark_mode && !simple_dark_html;
@@ -488,7 +518,7 @@ a, a * { color: ${preferences.accent_color_hover} !important; }`
     : `background-color:${html_bg};padding:${BODY_PADDING}`;
   const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:${BODY_PADDING};font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
-  const iframe_css = build_email_body_css(preferences.accent_color, base_font);
+  const iframe_css = build_email_body_css(accent_hex, base_font);
 
   const html_el_style =
     is_html_email && !force_dark_mode && !simple_dark_html
@@ -539,12 +569,13 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 ${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
-<style>::selection { background: rgba(96, 165, 250, 0.35); }
+<style>::selection { background: ${hex_to_rgba(link_hover_ink, 0.35)}; }
 .aster-quote-toggle, .aster-forwarded-collapse > summary, .remote-content-banner { -webkit-user-select: none !important; user-select: none !important; }</style>
 ${email_font_face_css ? `<style>${email_font_face_css}</style>` : ""}
 ${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
+<style>${link_hover_css}</style>
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
 <body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html.replace(/src=["']cid:[^"']*["']/gi, 'src="data:,"')}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
@@ -1841,7 +1872,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
               height: "14px",
               width: "85%",
               borderRadius: "4px",
-              backgroundColor: is_dark_theme
+              backgroundColor: app_is_dark
                 ? "rgba(255,255,255,0.06)"
                 : "rgba(0,0,0,0.06)",
             }}
@@ -1852,7 +1883,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
               height: "14px",
               width: "70%",
               borderRadius: "4px",
-              backgroundColor: is_dark_theme
+              backgroundColor: app_is_dark
                 ? "rgba(255,255,255,0.06)"
                 : "rgba(0,0,0,0.06)",
             }}
@@ -1863,7 +1894,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
               height: "14px",
               width: "60%",
               borderRadius: "4px",
-              backgroundColor: is_dark_theme
+              backgroundColor: app_is_dark
                 ? "rgba(255,255,255,0.06)"
                 : "rgba(0,0,0,0.06)",
             }}
@@ -1874,7 +1905,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
               height: "14px",
               width: "40%",
               borderRadius: "4px",
-              backgroundColor: is_dark_theme
+              backgroundColor: app_is_dark
                 ? "rgba(255,255,255,0.06)"
                 : "rgba(0,0,0,0.06)",
             }}

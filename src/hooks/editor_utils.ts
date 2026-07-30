@@ -182,7 +182,7 @@ export interface UseEditorReturn {
   toggle_ordered_list: () => void;
   toggle_unordered_list: () => void;
   insert_blockquote: () => void;
-  insert_horizontal_rule: () => void;
+  insert_horizontal_rule: () => boolean;
   set_heading: (level: HeadingLevel) => void;
   set_alignment: (alignment: TextAlignment) => void;
   remove_formatting: () => void;

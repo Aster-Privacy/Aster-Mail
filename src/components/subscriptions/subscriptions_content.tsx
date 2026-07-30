@@ -294,9 +294,10 @@ export function SubscriptionsContent({
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
             autoComplete="off"
-            className="w-full !pl-9 bg-transparent"
+            className="w-full bg-transparent"
             placeholder={t("common.search")}
             size="md"
+            style={{ paddingLeft: "38px" }}
             type="text"
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}

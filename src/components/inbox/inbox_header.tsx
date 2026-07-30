@@ -660,14 +660,13 @@ export function InboxHeader({
                       {t("mail.mark_as_unread")}
                     </DropdownMenuItem>
                   )}
-                  {!advanced_toolbar && !hide_mail_actions && on_toggle_star && (
+                  {!hide_mail_actions && on_toggle_star && (
                     <DropdownMenuItem onClick={on_toggle_star}>
                       <StarIcon className="w-4 h-4 mr-2" />
                       {t("common.star_selected")}
                     </DropdownMenuItem>
                   )}
-                  {!advanced_toolbar &&
-                    !is_trash_view &&
+                  {!is_trash_view &&
                     !is_spam_view &&
                     !hide_mail_actions &&
                     on_spam && (
@@ -676,7 +675,7 @@ export function InboxHeader({
                         {t("mail.report_spam")}
                       </DropdownMenuItem>
                     )}
-                  {!advanced_toolbar && !hide_mail_actions && on_snooze && (
+                  {!hide_mail_actions && on_snooze && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuLabel>
@@ -719,8 +718,38 @@ export function InboxHeader({
                       </DropdownMenuItem>
                     </>
                   )}
-                  {!advanced_toolbar &&
-                    !is_native &&
+                  {!is_native &&
+                    !hide_mail_actions &&
+                    folders.length > 0 &&
+                    on_folder_toggle && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel>
+                          {t("common.folders")}
+                        </DropdownMenuLabel>
+                        {folders.slice(0, 8).map((folder) => (
+                          <DropdownMenuItem
+                            key={folder.folder_token}
+                            onClick={() => on_folder_toggle(folder.folder_token)}
+                          >
+                            <div
+                              className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                              style={{ backgroundColor: folder.color }}
+                            />
+                            <span className="flex-1 truncate">
+                              {folder.name}
+                            </span>
+                            {(folder.status === "all" ||
+                              folder.status === "some") && (
+                              <CheckIcon
+                                className={`w-4 h-4 ml-2 flex-shrink-0 ${folder.status === "some" ? "opacity-50" : ""}`}
+                              />
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+                  {!is_native &&
                     !hide_mail_actions &&
                     tags.length > 0 &&
                     on_tag_toggle && (

@@ -328,6 +328,51 @@ export function get_cached_alias_for_routing_token(
   return undefined;
 }
 
+export interface CachedSenderIdentity {
+  email: string;
+  address_hash: string;
+  display_name?: string;
+}
+
+export function get_cached_sender_identity_for_address(
+  address: string | undefined,
+): CachedSenderIdentity | undefined {
+  const target = address?.trim().toLowerCase();
+
+  if (!target) return undefined;
+
+  for (const alias of cached_aliases) {
+    if (alias.full_address?.trim().toLowerCase() !== target) continue;
+
+    const address_hash = cached_alias_hashes.get(alias.id);
+
+    if (!address_hash) return undefined;
+
+    return {
+      email: alias.full_address,
+      address_hash,
+      display_name: alias.display_name,
+    };
+  }
+
+  for (const option of [
+    ...cached_domain_options,
+    ...cached_external_options,
+    ...cached_ghost_options,
+  ]) {
+    if (option.email?.trim().toLowerCase() !== target) continue;
+    if (!option.address_hash) return undefined;
+
+    return {
+      email: option.email,
+      address_hash: option.address_hash,
+      display_name: option.display_name,
+    };
+  }
+
+  return undefined;
+}
+
 export function get_cached_ghost_for_routing_token(
   routing_token: string | undefined,
 ): string | undefined {
