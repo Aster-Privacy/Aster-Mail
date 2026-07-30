@@ -6939,7 +6939,7 @@ export const pt = {
       "Um e-mail de recuperação é necessário para criar uma conta adicional. Isso ajuda a proteger todas as suas contas.",
     username_min_length: "Pelo menos 3 caracteres vão funcionar aqui.",
     username_max_length: "Menos de 40 caracteres vão funcionar aqui.",
-    username_alphanumeric: "Letras e números são os caracteres permitidos.",
+    username_alphanumeric: "Use letras, números e pontos. Os pontos não podem ficar no início, no fim nem duplicados.",
     username_not_available:
       "Este nome de usuário está em uso. Outro deve funcionar.",
     password_req_length: "Pelo menos 8 caracteres",

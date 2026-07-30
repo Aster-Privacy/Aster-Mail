@@ -28,7 +28,7 @@ import { Logo } from "@/components/auth/auth_styles";
 import { PROFILE_COLORS } from "@/constants/profile";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import { get_contrast_text } from "@/lib/avatar_color";
-import { sanitize_username } from "@/services/sanitize";
+import { sanitize_username_input } from "@/services/sanitize";
 import {
   page_variants,
   page_transition,
@@ -99,7 +99,7 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
               const at_index = raw.indexOf("@");
 
               if (at_index !== -1) {
-                const local = sanitize_username(raw.substring(0, at_index));
+                const local = sanitize_username_input(raw.substring(0, at_index));
                 const domain_part = raw.substring(at_index + 1).toLowerCase();
 
                 reg.set_username(local + "@" + domain_part);
@@ -114,7 +114,7 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
                 )
                   reg.set_email_domain("aster.cx");
               } else {
-                reg.set_username(sanitize_username(raw));
+                reg.set_username(sanitize_username_input(raw));
               }
             }}
             onKeyDown={(e) => e["key"] === "Enter" && reg.handle_email_next()}

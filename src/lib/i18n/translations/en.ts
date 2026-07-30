@@ -7026,7 +7026,7 @@ export const en: Translations = {
       "Our automated security system has placed limits on your account for now, and a few features may be unavailable. The rest of your account works normally. If this looks wrong, hello@astermail.org can help.",
     username_min_length: "At least 3 characters will work here.",
     username_max_length: "Fewer than 40 characters will work here.",
-    username_alphanumeric: "Letters and numbers are the allowed characters.",
+    username_alphanumeric: "Use letters, numbers and dots. Dots cannot be first, last, or doubled.",
     username_not_available: "This username is taken. Another one should work.",
     password_req_length: "At least 8 characters",
     password_req_uppercase: "One uppercase letter",

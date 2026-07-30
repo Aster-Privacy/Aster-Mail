@@ -6276,7 +6276,7 @@ export const zh_CN = {
       "创建附加账户需要提供恢复邮箱。这有助于保护您的所有账户。",
     username_min_length: "这里至少需要 3 个字符。",
     username_max_length: "这里需要少于 40 个字符。",
-    username_alphanumeric: "可使用的字符包括字母和数字。",
+    username_alphanumeric: "可使用字母、数字和点。点不能位于开头、结尾，也不能连续。",
     username_not_available: "这个用户名已被占用，换一个应该可以。",
     password_req_length: "至少8个字符",
     password_req_uppercase: "一个大写字母",

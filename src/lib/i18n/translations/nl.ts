@@ -7052,7 +7052,7 @@ export const nl = {
       "Maak een sterk wachtwoord om je account te beschermen",
     recovery_email_required_notice:
       "Een back-up-e-mailadres is vereist om spam te voorkomen.",
-    username_alphanumeric: "Letters en cijfers zijn de toegestane tekens.",
+    username_alphanumeric: "Gebruik letters, cijfers en punten. Punten mogen niet aan het begin, aan het eind of dubbel staan.",
     abuse_account_limit:
       "Ons geautomatiseerde beveiligingssysteem heeft deze aanmelding gemarkeerd, en we kunnen het account niet aanmaken. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
     abuse_flagged_message:

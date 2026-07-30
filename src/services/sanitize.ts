@@ -33,6 +33,13 @@ export function sanitize_username(input: string): string {
     .slice(0, 32);
 }
 
+export function sanitize_username_input(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9._]/g, "")
+    .slice(0, 40);
+}
+
 export function sanitize_display_name(input: string): string {
   return input
     .replace(/[<>&"']/g, "")

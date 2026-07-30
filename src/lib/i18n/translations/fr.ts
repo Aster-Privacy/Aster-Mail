@@ -6956,8 +6956,7 @@ export const fr = {
       "Une adresse e-mail de récupération est requise pour créer un compte supplémentaire. Cela aide à protéger tous vos comptes.",
     username_min_length: "Au moins 3 caractères fonctionneront ici.",
     username_max_length: "Moins de 40 caractères fonctionneront ici.",
-    username_alphanumeric:
-      "Les lettres et chiffres sont les caractères autorisés.",
+    username_alphanumeric: "Utilisez des lettres, des chiffres et des points. Les points ne peuvent pas être au début, à la fin, ni doublés.",
     username_not_available:
       "Ce nom d'utilisateur est pris. Un autre devrait fonctionner.",
     password_req_length: "Au moins 8 caractères",

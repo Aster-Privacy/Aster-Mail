@@ -76,6 +76,7 @@ import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { add_alias_pin } from "@/services/api/alias_pins";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -160,8 +161,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const is_own_message =
       deps.mail_item?.item_type === "sent" ||
       (!!deps.current_user_email &&
-        deps.email.sender_email.toLowerCase() ===
-          deps.current_user_email.toLowerCase());
+        same_address_ignoring_dots(
+          deps.email.sender_email,
+          deps.current_user_email,
+        ));
     const is_forwarded =
       !is_own_message && !!deps.email.display_sender_email;
     const { recipient_name, recipient_email } = build_reply_recipient(
@@ -1061,8 +1064,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.mail_item?.item_type === "sent" ||
     (!!deps.current_user_email &&
       !!deps.email?.sender_email &&
-      deps.email.sender_email.toLowerCase() ===
-        deps.current_user_email.toLowerCase());
+      same_address_ignoring_dots(
+        deps.email.sender_email,
+        deps.current_user_email,
+      ));
 
   const handle_block_sender_on_alias = useCallback(async () => {
     const routing_token = deps.mail_item?.routing_token;

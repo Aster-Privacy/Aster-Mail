@@ -6884,7 +6884,7 @@ export const ja = {
       "追加アカウントを作成するには回復用メールアドレスが必要です。これによりすべてのアカウントが保護されます。",
     username_min_length: "ここには 3 文字以上が必要です。",
     username_max_length: "ここには 40 文字未満で入力すると使えます。",
-    username_alphanumeric: "使用できるのは英字と数字です。",
+    username_alphanumeric: "英数字とドットが使えます。ドットは先頭・末尾・連続では使用できません。",
     username_not_available:
       "このユーザー名はすでに使われています。別のものでしたら使えます。",
     password_req_length: "8文字以上",

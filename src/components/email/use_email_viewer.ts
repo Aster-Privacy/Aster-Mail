@@ -76,6 +76,7 @@ import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { use_email_viewer_actions } from "@/components/email/email_viewer_actions";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 
 export type {
   EmailRecipient,
@@ -178,12 +179,12 @@ export function use_email_viewer({
       return;
     }
 
-    const primary = current_user_email.toLowerCase();
+    const primary = normalize_address_ignoring_dots(current_user_email);
 
     for (const m of thread_messages) {
       if (m.item_type !== "sent") continue;
 
-      const sender = m.sender_email.toLowerCase();
+      const sender = normalize_address_ignoring_dots(m.sender_email);
 
       if (sender === primary) continue;
 

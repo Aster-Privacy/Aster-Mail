@@ -20,6 +20,7 @@
 //
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
+import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 
 export interface ReplyRecipientSource {
   sender_name: string;
@@ -42,10 +43,10 @@ export function build_reply_recipient(
   const own_set = new Set(
     (source.own_addresses ?? [])
       .filter(Boolean)
-      .map((addr) => addr.toLowerCase().trim()),
+      .map((addr) => normalize_address_ignoring_dots(addr)),
   );
   const is_own_address = (email: string): boolean =>
-    own_set.has(email.toLowerCase().trim());
+    own_set.has(normalize_address_ignoring_dots(email));
 
   if (is_own_message) {
     if (source.first_to) {

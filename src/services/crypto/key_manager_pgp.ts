@@ -21,6 +21,7 @@
 import * as openpgp from "openpgp";
 
 import { clamp_password } from "@/services/sanitize";
+import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 
 const VAULT_SCHEME_VERSION = 1;
 const VAULT_AAD_PREFIX = "aster-vault-v";
@@ -129,7 +130,7 @@ export async function with_decrypted_key<T>(
 
 export async function hash_email(email: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(email.toLowerCase().trim());
+  const data = encoder.encode(normalize_address_ignoring_dots(email));
   const hash_buffer = await crypto.subtle.digest(HASH_ALG, data);
 
   return array_to_base64(new Uint8Array(hash_buffer));

@@ -6693,7 +6693,7 @@ export const ko = {
       "추가 계정을 만들려면 복구 이메일이 필요합니다. 이를 통해 모든 계정을 보호할 수 있습니다.",
     username_min_length: "여기에는 최소 3자가 필요합니다.",
     username_max_length: "여기에는 40자 미만이면 됩니다.",
-    username_alphanumeric: "사용 가능한 문자는 영문자와 숫자입니다.",
+    username_alphanumeric: "영문자, 숫자, 점을 사용할 수 있습니다. 점은 처음, 끝, 연속으로 쓸 수 없습니다.",
     username_not_available:
       "이 사용자 이름은 사용 중입니다. 다른 이름이면 됩니다.",
     password_req_length: "최소 8자",
