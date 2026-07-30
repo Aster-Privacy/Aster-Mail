@@ -532,6 +532,9 @@ export async function update_item_metadata(
       );
     }
 
+    const is_undecryptable =
+      !current_metadata && !!base.encrypted_metadata && !!base.metadata_nonce;
+
     if (!current_metadata) {
       current_metadata = create_default_metadata();
     }
@@ -548,15 +551,19 @@ export async function update_item_metadata(
       updated_metadata.trashed_at = undefined;
     }
 
-    const encrypted = await encrypt_mail_metadata(updated_metadata);
+    const encrypted = is_undecryptable
+      ? null
+      : await encrypt_mail_metadata(updated_metadata);
 
-    if (!encrypted) {
+    if (!encrypted && !is_undecryptable) {
       return { success: false };
     }
 
     const result = await patch_mail_item_metadata(item_id, {
-      encrypted_metadata: encrypted.encrypted_metadata,
-      metadata_nonce: encrypted.metadata_nonce,
+      ...(encrypted && {
+        encrypted_metadata: encrypted.encrypted_metadata,
+        metadata_nonce: encrypted.metadata_nonce,
+      }),
       ...(updates.is_read !== undefined && {
         is_read: updated_metadata.is_read,
       }),
@@ -579,8 +586,10 @@ export async function update_item_metadata(
 
     return {
       success: !!result.data,
-      encrypted,
-      written_version: (base.metadata_version ?? 0) + 1,
+      encrypted: encrypted ?? undefined,
+      written_version: encrypted
+        ? (base.metadata_version ?? 0) + 1
+        : base.metadata_version,
     };
   };
 
@@ -652,6 +661,15 @@ export async function bulk_update_items_metadata(
     is_archived?: boolean;
     is_spam?: boolean;
   }> = [];
+  const flag_only_items: Array<{
+    id: string;
+    is_read?: boolean;
+    is_starred?: boolean;
+    is_pinned?: boolean;
+    is_trashed?: boolean;
+    is_archived?: boolean;
+    is_spam?: boolean;
+  }> = [];
   const failed_ids: string[] = [];
   const now = new Date().toISOString();
 
@@ -665,6 +683,9 @@ export async function bulk_update_items_metadata(
         item.metadata_version,
       );
     }
+
+    const is_undecryptable =
+      !current_metadata && !!item.encrypted_metadata && !!item.metadata_nonce;
 
     if (!current_metadata) {
       current_metadata = create_default_metadata();
@@ -682,9 +703,33 @@ export async function bulk_update_items_metadata(
       updated_metadata.trashed_at = undefined;
     }
 
-    const encrypted = await encrypt_mail_metadata(updated_metadata);
+    const encrypted = is_undecryptable
+      ? null
+      : await encrypt_mail_metadata(updated_metadata);
 
-    if (encrypted) {
+    if (is_undecryptable) {
+      flag_only_items.push({
+        id: item.id,
+        ...(updates.is_read !== undefined && {
+          is_read: updated_metadata.is_read,
+        }),
+        ...(updates.is_starred !== undefined && {
+          is_starred: updated_metadata.is_starred,
+        }),
+        ...(updates.is_pinned !== undefined && {
+          is_pinned: updated_metadata.is_pinned,
+        }),
+        ...(updates.is_trashed !== undefined && {
+          is_trashed: updated_metadata.is_trashed,
+        }),
+        ...(updates.is_archived !== undefined && {
+          is_archived: updated_metadata.is_archived,
+        }),
+        ...(updates.is_spam !== undefined && {
+          is_spam: updated_metadata.is_spam,
+        }),
+      });
+    } else if (encrypted) {
       bulk_items.push({
         id: item.id,
         encrypted_metadata: encrypted.encrypted_metadata,
@@ -725,13 +770,14 @@ export async function bulk_update_items_metadata(
     });
   }
 
-  if (bulk_items.length === 0) {
+  if (bulk_items.length === 0 && flag_only_items.length === 0) {
     return { success: false, updated_count: 0, failed_ids, encrypted_by_id };
   }
 
-  const result = await batched_bulk_patch_metadata(bulk_items, {
-    on_progress: options?.on_progress,
-  });
+  const result = await batched_bulk_patch_metadata(
+    [...bulk_items, ...flag_only_items],
+    { on_progress: options?.on_progress },
+  );
 
   failed_ids.push(...result.failed_ids);
   for (const failed_id of result.failed_ids) {

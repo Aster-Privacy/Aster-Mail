@@ -506,8 +506,8 @@ export interface MigrationStatusResponse {
 }
 
 export interface PatchMetadataRequest {
-  encrypted_metadata: string;
-  metadata_nonce: string;
+  encrypted_metadata?: string;
+  metadata_nonce?: string;
   is_read?: boolean;
   is_starred?: boolean;
   is_pinned?: boolean;
@@ -518,8 +518,8 @@ export interface PatchMetadataRequest {
 
 export interface BulkPatchMetadataItem {
   id: string;
-  encrypted_metadata: string;
-  metadata_nonce: string;
+  encrypted_metadata?: string;
+  metadata_nonce?: string;
   is_read?: boolean;
   is_starred?: boolean;
   is_pinned?: boolean;
