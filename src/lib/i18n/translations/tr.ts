@@ -6903,7 +6903,7 @@ export const tr = {
       "Ek hesap oluşturmak için bir kurtarma e-postası gereklidir. Bu, tüm hesaplarınızı korumaya yardımcı olur.",
     username_min_length: "Burada en az 3 karakter işe yarar.",
     username_max_length: "Burada 40 karakterden az işe yarar.",
-    username_alphanumeric: "İzin verilen karakterler harfler ve rakamlardır.",
+    username_alphanumeric: "Harf, rakam ve nokta kullanın. Nokta başta, sonda veya art arda olamaz.",
     username_not_available: "Bu kullanıcı adı alındı. Başka biri işe yarar.",
     password_req_length: "En az 8 karakter",
     password_req_uppercase: "Bir büyük harf",

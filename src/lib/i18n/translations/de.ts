@@ -7158,7 +7158,7 @@ export const de = {
       "Erstellen Sie ein sicheres Passwort zum Schutz Ihres Kontos",
     recovery_email_required_notice:
       "Eine Backup-E-Mail ist erforderlich, um Spam zu verhindern.",
-    username_alphanumeric: "Buchstaben und Zahlen sind die erlaubten Zeichen.",
+    username_alphanumeric: "Verwenden Sie Buchstaben, Zahlen und Punkte. Punkte dürfen nicht am Anfang, am Ende oder doppelt stehen.",
     password_max_length_register: "Weniger als 128 Zeichen funktionieren hier.",
     password_invalid_chars:
       "Übliche Tastaturzeichen sind die erlaubte Auswahl.",

@@ -51,6 +51,7 @@ import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 interface ThreadMessagesListProps {
   messages: DecryptedThreadMessage[];
@@ -855,7 +856,7 @@ export const ThreadMessagesList = forwardRef<
           regular_messages.length > 1 && msg.id === regular_messages[regular_messages.length - 1].id
         }
         is_own_message={
-          msg.sender_email.toLowerCase() === current_user_email.toLowerCase()
+          same_address_ignoring_dots(msg.sender_email, current_user_email)
         }
         is_read={read_ids.has(msg.id)}
         is_reply={

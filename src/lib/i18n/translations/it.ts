@@ -6983,7 +6983,7 @@ export const it = {
       "Un'email di recupero è necessaria per creare un account aggiuntivo. Questo aiuta a proteggere tutti i tuoi account.",
     username_min_length: "Almeno 3 caratteri funzioneranno qui.",
     username_max_length: "Meno di 40 caratteri funzioneranno qui.",
-    username_alphanumeric: "Lettere e numeri sono i caratteri consentiti.",
+    username_alphanumeric: "Usa lettere, numeri e punti. I punti non possono essere all'inizio, alla fine o doppi.",
     username_not_available:
       "Questo nome utente è preso. Un altro dovrebbe funzionare.",
     password_req_length: "Almeno 8 caratteri",

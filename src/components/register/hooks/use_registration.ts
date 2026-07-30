@@ -70,7 +70,7 @@ import {
   download_recovery_phrase_text,
 } from "@/services/crypto/recovery_pdf";
 import {
-  sanitize_username,
+  sanitize_username_input,
   validate_password_strength,
   timing_safe_delay,
 } from "@/services/sanitize";
@@ -242,7 +242,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
     val.includes("@") ? val.substring(0, val.indexOf("@")) : val;
 
   const validate_email_step = async (): Promise<boolean> => {
-    const trimmed_username = sanitize_username(parse_local_part(username));
+    const typed_username = sanitize_username_input(parse_local_part(username));
+    const trimmed_username = typed_username.replace(/\./g, "");
 
     if (trimmed_username.length < 3) {
       await timing_safe_delay();
@@ -256,7 +257,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       return false;
     }
-    if (!/^[a-z0-9]+$/.test(trimmed_username)) {
+    if (!/^[a-z0-9]+(\.[a-z0-9]+)*$/.test(typed_username)) {
       await timing_safe_delay();
       set_error(t("auth.username_alphanumeric"));
 
@@ -411,10 +412,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
     );
 
   const start_registration_background = async () => {
-    const clean_username = sanitize_username(parse_local_part(username));
+    const typed_username = sanitize_username_input(parse_local_part(username));
+    const clean_username = typed_username.replace(/\./g, "");
     const email = `${clean_username}@${email_domain}`;
 
-    set_generated_email(email);
+    set_generated_email(`${typed_username}@${email_domain}`);
 
     try {
       set_generation_status(t("auth.generating_encryption_keys"));
@@ -491,7 +493,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       await yield_to_ui();
       const trimmed_display_name = display_name.trim();
       const base_params: Omit<RegisterRequest, "recovery_email"> = {
-        username: clean_username,
+        username: typed_username,
         display_name: trimmed_display_name || undefined,
         profile_color,
         email_domain,

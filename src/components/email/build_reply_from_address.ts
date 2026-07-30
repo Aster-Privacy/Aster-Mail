@@ -58,14 +58,14 @@ export function resolve_own_recipient_address(
   if (!recipient_emails) return undefined;
   const own = new Set(
     own_addresses
-      .map((a) => a?.trim().toLowerCase())
+      .map((a) => (a ? normalize_address_ignoring_dots(a) : a))
       .filter((a): a is string => !!a),
   );
 
   for (const raw of recipient_emails) {
     const email = raw?.trim();
 
-    if (email && own.has(email.toLowerCase())) return email;
+    if (email && own.has(normalize_address_ignoring_dots(email))) return email;
   }
 
   return undefined;
@@ -108,3 +108,5 @@ export function collect_recipient_emails(
 
   return out;
 }
+
+import { normalize_address_ignoring_dots } from "@/utils/address_dots";

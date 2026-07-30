@@ -6930,7 +6930,7 @@ export const pl = {
       "Do utworzenia dodatkowego konta wymagany jest adres e-mail do odzyskiwania. Pomaga to chronić wszystkie Twoje konta.",
     username_min_length: "Co najmniej 3 znaki zadziałają tutaj.",
     username_max_length: "Mniej niż 40 znaków zadziała tutaj.",
-    username_alphanumeric: "Litery i cyfry to dozwolone znaki.",
+    username_alphanumeric: "Używaj liter, cyfr i kropek. Kropka nie może być na początku, na końcu ani podwojona.",
     username_not_available:
       "Ta nazwa użytkownika jest zajęta. Inna powinna zadziałać.",
     password_req_length: "Co najmniej 8 znaków",
