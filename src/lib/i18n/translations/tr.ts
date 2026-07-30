@@ -105,7 +105,7 @@ export const tr = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -907,6 +907,12 @@ export const tr = {
     hide_permanently: "Bu kontrol listesini gizle",
     step: "Adım",
     protected_in_transit: "Aktarımda Korumalı",
+    encryption_available: "Şifreleme kullanılabilir",
+    encryption_available_desc:
+      "Bu alıcı kullanılabilir bir şifreleme anahtarı yayımlıyor. Bu iletiyi uçtan uca şifrelemek için kilide tıklayın.",
+    click_to_encrypt: "Bu iletiyi uçtan uca şifrelemek için tıklayın",
+    click_to_disable_encryption:
+      "Şifrelendi - bu ileti için kapatmak üzere tıklayın",
     end_to_end_encrypted_label: "Uçtan Uca Şifreli",
     encrypted_in_transit_stored:
       "Aktarımda şifreli ve şifreli olarak depolanır.",
@@ -1906,6 +1912,8 @@ export const tr = {
     category_name_required: "Bu kategori için bir ad girin.",
     category_rule_required:
       "Eşleştirmek için en az bir alan adı veya anahtar kelime ekleyin.",
+    template_name_required: "Bu şablon için bir ad girin.",
+    template_content_required: "Bu şablona içerik ekleyin.",
     category_domains_invalid:
       "Geçersiz alan adları: {{list}}. example.com gibi gerçek bir alan adı kullanın.",
     category_keywords_invalid:
@@ -2316,16 +2324,14 @@ export const tr = {
     alias_delivery_log_reason_alias_disabled: "Rumuz devre dışıydı",
     alias_delivery_log_reason_unknown: "Engellendi",
     alias_delivery_title: "Teslimat",
-    alias_delivery_folder:
-      "Teslim edilecek yer",
+    alias_delivery_folder: "Teslim edilecek yer",
     alias_delivery_folder_desc:
       "Bu takma ada gelen postanın nereye düşeceğini seç. Varsayılan gelen kutusudur.",
     alias_delivery_folder_info:
       "Posta, kural gerekmeden seçtiğin klasöre doğrudan düşer. Eşleşen bir kural yine de önceliklidir.",
     alias_delivery_folder_error:
       "Bu ayar kaydedilmedi. Yeni bir deneme işe yarayacaktır.",
-    alias_delivery_folder_missing:
-      "Silinmiş klasör",
+    alias_delivery_folder_missing: "Silinmiş klasör",
     alias_relay_title: "Teslimat",
     alias_relay_description:
       "Bu rumuza gelen postanın nasıl teslim edileceğini seçin.",
@@ -2438,12 +2444,16 @@ export const tr = {
     alias_export_column_color: "Renk",
     alias_export_column_expires_at: "Sona eriyor",
     alias_export_warning_title: "Bu dosya şifreli değil",
-    alias_export_warning_body: "Dosyayı açan herkes içindeki tüm takma adları, notları ve web sitelerini okuyabilir. Parola yöneticinizde veya şifreli bir diskte saklayın.",
+    alias_export_warning_body:
+      "Dosyayı açan herkes içindeki tüm takma adları, notları ve web sitelerini okuyabilir. Parola yöneticinizde veya şifreli bir diskte saklayın.",
     alias_export_summary: "{{files}} dosyada toplam {{rows}} kayıt.",
     alias_export_download: "Indir",
-    alias_export_incomplete: "{{total}} takma addan yalnızca {{loaded}} tanesi yüklendi. Yedeğin eksiksiz olması için takma adları yeniden yükleyip tekrar deneyin.",
-    alias_export_undecryptable: "{{count}} takma ad çözülemedi ve dahil edilmedi.",
-    alias_export_undecryptable_ghost: "{{count}} ghost takma ad çözülemedi ve dahil edilmedi.",
+    alias_export_incomplete:
+      "{{total}} takma addan yalnızca {{loaded}} tanesi yüklendi. Yedeğin eksiksiz olması için takma adları yeniden yükleyip tekrar deneyin.",
+    alias_export_undecryptable:
+      "{{count}} takma ad çözülemedi ve dahil edilmedi.",
+    alias_export_undecryptable_ghost:
+      "{{count}} ghost takma ad çözülemedi ve dahil edilmedi.",
     alias_export_load_failed: "Dizinler veya ghost takma adlar yüklenemedi.",
     alias_export_failed: "Dışa aktarma başarısız. Hiçbir şey indirilmedi.",
     alias_import_csv: "Rumuzları İçe Aktar",
@@ -3262,6 +3272,15 @@ export const tr = {
     toast_position_bottom_right: "Sağ alt",
     toast_position_top_left: "Sol üst",
     toast_position_bottom_left: "Sol alt",
+    toast_duration: "Bildirim süresi",
+    toast_duration_description: "Bildirimlerin ekranda ne kadar kaldığı",
+    toast_duration_default: "Varsayılan (2 sn)",
+    toast_duration_long: "Uzun (5 sn)",
+    toast_duration_longer: "Daha uzun (10 sn)",
+    toast_duration_longest: "En uzun (20 sn)",
+    send_test_notification: "Test bildirimi gönder",
+    test_notification_blocked:
+      "Test etmek için masaüstü bildirimlerini etkinleştir.",
     quiet_hours: "Sessiz Saatler",
     enable_quiet_hours: "Sessiz saatleri etkinleştir",
     mute_notifications_description:
@@ -3676,6 +3695,12 @@ export const tr = {
     keyserver_publication_status: "Yayın durumu",
     keyserver_status_published: "Yayınlandı",
     keyserver_status_not_published: "Yayınlanmadı",
+    keyserver_status_awaiting: "Onay bekleniyor",
+    keyserver_status_failed: "Başarısız",
+    keyserver_awaiting_hint:
+      "Anahtarınız yüklendi. Gelen kutunuzda keys.openpgp.org onay e-postasını bulun ve yayımlamayı tamamlamak için bağlantıya tıklayın.",
+    keyserver_failed_hint:
+      "Anahtar sunucusu anahtarınızı reddetti. Yeniden yayımlamayı deneyin.",
     keyserver_publish_btn: "Anahtar Yayınla",
     keyserver_republish_btn: "Anahtarı Yeniden Yayınla",
     keyserver_permanent_warning:
@@ -4385,6 +4410,13 @@ export const tr = {
     signature_content: "İmza İçeriği",
     signature_content_placeholder:
       "Saygılarımla,\nAdınız\neposta@adresiniz.com",
+    signature_name_required: "Bu imza için bir ad girin.",
+    signature_content_required: "Bu imzaya içerik ekleyin.",
+    signature_image_too_large: "Görseller 2 MB'tan küçük olmalıdır.",
+    signature_image_invalid:
+      "Yalnızca PNG, JPEG, GIF ve WebP görselleri eklenebilir.",
+    signature_image_failed: "Bu görsel eklenemedi. Başka bir dosya deneyin.",
+    signature_divider_limit: "Bir imza en fazla {{count}} ayırıcı içerebilir.",
     plain_text_hint:
       "Yalnızca düz metin. Biçimlendirme için satır sonlarını kullanın.",
     update_signature: "İmzayı Güncelle",
@@ -6049,6 +6081,7 @@ export const tr = {
     reply_all: "Tümünü Yanıtla",
     react: "Tepki Ver",
     already_reacted: "Buna zaten tepki verdiniz",
+    remove_your_reaction: "{emoji} tepkinizi kaldır",
     you_reacted_with: "{{emoji}} ile tepki verdiniz",
     reacted_with: "{{name}} {{emoji}} ile tepki verdi",
     forward: "İlet",
@@ -7302,6 +7335,8 @@ export const tr = {
     rename_saved: "Ad güncellendi",
   },
   errors: {
+    failed_remove_reaction: "Tepki kaldırılamadı. Lütfen tekrar deneyin.",
+    cannot_react_own_message: "Kendi mesajınıza tepki veremezsiniz.",
     failed_send_reaction: "Tepki gönderilemedi. Lütfen tekrar deneyin.",
     reactions_disabled: "Tepkiler ayarlarınızda kapalı.",
     pending_email_verification:
@@ -7579,6 +7614,18 @@ export const tr = {
     apply_to_existing_started:
       "Bu kural mevcut postanıza uygulanıyor. İşlem arka planda çalışır.",
     apply_to_existing_failed: "Bu kural uygulanmaya başlanamadı.",
+    apply_to_existing_cancel: "Uygulamayı durdur",
+    apply_to_existing_cancel_failed: "Bu çalıştırma durdurulamadı.",
+    apply_to_existing_queued: "Kuyrukta...",
+    apply_to_existing_progress:
+      "Uygulanıyor: {{scanned}} tarandı, {{applied}} güncellendi",
+    apply_to_existing_progress_total:
+      "Uygulanıyor: {{total}} içinden {{scanned}} tarandı, {{applied}} güncellendi",
+    apply_to_existing_done:
+      "Tamamlandı: {{scanned}} tarandı, {{applied}} güncellendi",
+    apply_to_existing_canceled: "Durduruldu: {{applied}} güncellendi",
+    apply_to_existing_error:
+      "Mevcut postaya uygulama basarisiz oldu. Tekrar deneyin.",
     empty_title: "Henüz kural yok",
     empty_description:
       "Gelen postaları otomatik olarak düzenlemek için ilk kuralınızı oluşturun.",

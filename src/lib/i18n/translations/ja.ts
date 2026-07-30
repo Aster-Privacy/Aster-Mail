@@ -104,7 +104,7 @@ export const ja = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -903,6 +903,12 @@ export const ja = {
     hide_permanently: "このチェックリストを非表示にする",
     step: "ステップ",
     protected_in_transit: "転送中は保護されています",
+    encryption_available: "暗号化が利用できます",
+    encryption_available_desc:
+      "この受信者は使用可能な暗号鍵を公開しています。鍵アイコンをクリックすると、このメッセージをエンドツーエンドで暗号化します。",
+    click_to_encrypt: "クリックしてこのメッセージをエンドツーエンドで暗号化",
+    click_to_disable_encryption:
+      "暗号化済み - クリックするとこのメッセージでは無効になります",
     end_to_end_encrypted_label: "エンドツーエンド暗号化",
     encrypted_in_transit_stored: "転送中も保管中も暗号化されています。",
     only_you_and_sender: "あなたと送信者だけがこのメールを読めます。",
@@ -1901,6 +1907,8 @@ export const ja = {
     category_name_required: "このカテゴリの名前を入力してください。",
     category_rule_required:
       "一致させるドメインまたはキーワードを少なくとも1つ追加してください。",
+    template_name_required: "このテンプレートの名前を入力してください。",
+    template_content_required: "このテンプレートの内容を入力してください。",
     category_domains_invalid:
       "無効なドメイン: {{list}}。example.com のような実際のドメインを使用してください。",
     category_keywords_invalid:
@@ -2320,16 +2328,14 @@ export const ja = {
     alias_delivery_log_reason_alias_disabled: "エイリアスが無効でした",
     alias_delivery_log_reason_unknown: "ブロック済み",
     alias_delivery_title: "配信",
-    alias_delivery_folder:
-      "配送先",
+    alias_delivery_folder: "配送先",
     alias_delivery_folder_desc:
       "このエイリアス宛メールの届き先を選びます。既定は受信トレイです。",
     alias_delivery_folder_info:
       "ルールなしで選んだフォルダーに直接届きます。一致するルールがある場合はルールが優先されます。",
     alias_delivery_folder_error:
       "この設定は保存されませんでした。もう一度お試しください。",
-    alias_delivery_folder_missing:
-      "削除されたフォルダー",
+    alias_delivery_folder_missing: "削除されたフォルダー",
     alias_relay_title: "配信",
     alias_relay_description: "このエイリアス宛のメールの配信方法を選択します。",
     alias_relay_mode_native: "ネイティブ",
@@ -2423,7 +2429,8 @@ export const ja = {
       "含める項目を選択してください。ファイルはブラウザ内で作成され、当社のサーバーに送信されることはありません。",
     alias_export_format_csv: "CSV(表計算)",
     alias_export_format_json: "JSON",
-    alias_export_confirm_description: "ダウンロードする内容を確認してください。",
+    alias_export_confirm_description:
+      "ダウンロードする内容を確認してください。",
     alias_export_source_aliases: "エイリアス",
     alias_export_source_domain_addresses: "カスタムドメインのアドレス",
     alias_export_source_directories: "ディレクトリ",
@@ -2444,14 +2451,20 @@ export const ja = {
     alias_export_column_color: "色",
     alias_export_column_expires_at: "有効期限",
     alias_export_warning_title: "このファイルは暗号化されていません",
-    alias_export_warning_body: "開いた人は、含まれるすべてのエイリアス、メモ、ウェブサイトを読むことができます。パスワードマネージャーか暗号化されたドライブに保管してください。",
+    alias_export_warning_body:
+      "開いた人は、含まれるすべてのエイリアス、メモ、ウェブサイトを読むことができます。パスワードマネージャーか暗号化されたドライブに保管してください。",
     alias_export_summary: "{{files}} 個のファイルに {{rows}} 件。",
     alias_export_download: "ダウンロード",
-    alias_export_incomplete: "{{total}} 件中 {{loaded}} 件のエイリアスしか読み込まれていません。エイリアスを再読み込みしてからもう一度お試しください。",
-    alias_export_undecryptable: "{{count}} 件のエイリアスを復号できなかったため、含まれていません。",
-    alias_export_undecryptable_ghost: "{{count}} 件のゴーストエイリアスを復号できなかったため、含まれていません。",
-    alias_export_load_failed: "ディレクトリまたはゴーストエイリアスを読み込めませんでした。",
-    alias_export_failed: "エクスポートに失敗しました。何もダウンロードされていません。",
+    alias_export_incomplete:
+      "{{total}} 件中 {{loaded}} 件のエイリアスしか読み込まれていません。エイリアスを再読み込みしてからもう一度お試しください。",
+    alias_export_undecryptable:
+      "{{count}} 件のエイリアスを復号できなかったため、含まれていません。",
+    alias_export_undecryptable_ghost:
+      "{{count}} 件のゴーストエイリアスを復号できなかったため、含まれていません。",
+    alias_export_load_failed:
+      "ディレクトリまたはゴーストエイリアスを読み込めませんでした。",
+    alias_export_failed:
+      "エクスポートに失敗しました。何もダウンロードされていません。",
     alias_import_csv: "エイリアスをインポート",
     alias_import_progress: "{{total}}件中{{current}}件をインポート中...",
     alias_import_done: "{{created}}件のエイリアスをインポートしました。",
@@ -3273,6 +3286,15 @@ export const ja = {
     toast_position_bottom_right: "右下",
     toast_position_top_left: "左上",
     toast_position_bottom_left: "左下",
+    toast_duration: "通知の表示時間",
+    toast_duration_description: "通知が画面に表示される時間",
+    toast_duration_default: "標準 (2秒)",
+    toast_duration_long: "長い (5秒)",
+    toast_duration_longer: "さらに長い (10秒)",
+    toast_duration_longest: "最長 (20秒)",
+    send_test_notification: "テスト通知を送信",
+    test_notification_blocked:
+      "テストするにはデスクトップ通知を有効にしてください。",
     quiet_hours: "おやすみ時間",
     enable_quiet_hours: "おやすみ時間を有効にする",
     mute_notifications_description: "設定した時間帯の通知をミュートします",
@@ -3684,6 +3706,12 @@ export const ja = {
     keyserver_publication_status: "公開状況",
     keyserver_status_published: "公開済み",
     keyserver_status_not_published: "未公開",
+    keyserver_status_awaiting: "確認待ち",
+    keyserver_status_failed: "失敗",
+    keyserver_awaiting_hint:
+      "鍵はアップロードされました。keys.openpgp.org からの確認メールを受信トレイで確認し、リンクをクリックして公開を完了してください。",
+    keyserver_failed_hint:
+      "鍵サーバーが鍵を拒否しました。もう一度公開してみてください。",
     keyserver_publish_btn: "鍵を公開",
     keyserver_republish_btn: "鍵を再公開",
     keyserver_permanent_warning:
@@ -4391,6 +4419,15 @@ export const ja = {
     signature_content: "署名の内容",
     signature_content_placeholder:
       "よろしくお願いいたします\nお名前\nyour@email.com",
+    signature_name_required: "この署名の名前を入力してください。",
+    signature_content_required: "この署名の内容を入力してください。",
+    signature_image_too_large: "画像は 2 MB 未満にしてください。",
+    signature_image_invalid:
+      "追加できるのは PNG、JPEG、GIF、WebP の画像のみです。",
+    signature_image_failed:
+      "この画像は追加できませんでした。別のファイルをお試しください。",
+    signature_divider_limit:
+      "署名に追加できる区切り線は最大 {{count}} 本です。",
     plain_text_hint: "プレーンテキストのみ。改行で書式設定してください。",
     update_signature: "署名を更新",
     create_signature: "署名を作成",
@@ -6027,6 +6064,7 @@ export const ja = {
     reply_all: "全員に返信",
     react: "リアクション",
     already_reacted: "すでにこのリアクションを送信済みです",
+    remove_your_reaction: "{emoji} のリアクションを削除",
     you_reacted_with: "{{emoji}} でリアクションしました",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
@@ -7280,6 +7318,9 @@ export const ja = {
     rename_saved: "名前を更新しました",
   },
   errors: {
+    failed_remove_reaction:
+      "リアクションを削除できませんでした。もう一度お試しください。",
+    cannot_react_own_message: "自分のメッセージにはリアクションできません。",
     failed_send_reaction:
       "リアクションを送信できませんでした。もう一度お試しください。",
     reactions_disabled: "設定でリアクションが無効になっています。",
@@ -7557,6 +7598,17 @@ export const ja = {
     apply_to_existing_started:
       "このルールを既存のメールに適用しています。処理はバックグラウンドで実行されます。",
     apply_to_existing_failed: "このルールの適用を開始できませんでした。",
+    apply_to_existing_cancel: "適用を停止",
+    apply_to_existing_cancel_failed: "この実行を停止できませんでした。",
+    apply_to_existing_queued: "待機中...",
+    apply_to_existing_progress:
+      "適用中: {{scanned}} 件確認、{{applied}} 件更新",
+    apply_to_existing_progress_total:
+      "適用中: {{total}} 件中 {{scanned}} 件確認、{{applied}} 件更新",
+    apply_to_existing_done: "完了: {{scanned}} 件確認、{{applied}} 件更新",
+    apply_to_existing_canceled: "停止しました: {{applied}} 件更新",
+    apply_to_existing_error:
+      "既存のメールへの適用に失敗しました。もう一度お試しください。",
     empty_title: "ルールはまだありません",
     empty_description:
       "最初のルールを作成して受信メールを自動的に整理しましょう。",

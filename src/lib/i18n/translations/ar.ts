@@ -105,7 +105,7 @@ export const ar = {
       "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
     inactivity_window_info_title: "How the inactivity policy works",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails at the halfway point, at 83%, and again at 96% of the window.",
+      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
       "For your security, confirm your password to change your inactivity window.",
     inactivity_window_months: "{{n}} months",
@@ -875,6 +875,11 @@ export const ar = {
     hide_permanently: "إخفاء قائمة التحقق هذه",
     step: "خطوة",
     protected_in_transit: "محمي أثناء النقل",
+    encryption_available: "التشفير متاح",
+    encryption_available_desc:
+      "ينشر هذا المستلم مفتاح تشفير صالحًا للاستخدام. انقر على القفل لتشفير هذه الرسالة من طرف إلى طرف.",
+    click_to_encrypt: "انقر لتشفير هذه الرسالة من طرف إلى طرف",
+    click_to_disable_encryption: "مشفّرة - انقر لإيقاف التشفير لهذه الرسالة",
     end_to_end_encrypted_label: "مشفر من طرف إلى طرف",
     encrypted_in_transit_stored: "مشفر أثناء النقل ومخزن بشكل مشفر.",
     only_you_and_sender: "أنت والمرسل فقط يمكنكما قراءة هذا.",
@@ -1838,6 +1843,8 @@ export const ar = {
     category_name_required: "أدخل اسمًا لهذه الفئة.",
     category_rule_required:
       "أضف نطاقًا أو كلمة مفتاحية واحدة على الأقل للمطابقة.",
+    template_name_required: "أدخل اسمًا لهذا القالب.",
+    template_content_required: "أضف محتوى لهذا القالب.",
     category_domains_invalid:
       "نطاقات غير صالحة: {{list}}. استخدم نطاقًا حقيقيًا مثل example.com.",
     category_keywords_invalid:
@@ -2242,16 +2249,13 @@ export const ar = {
     alias_delivery_log_reason_alias_disabled: "كان الاسم المستعار معطّلًا",
     alias_delivery_log_reason_unknown: "محظور",
     alias_delivery_title: "التسليم",
-    alias_delivery_folder:
-      "تسليم إلى",
+    alias_delivery_folder: "تسليم إلى",
     alias_delivery_folder_desc:
       "اختر أين يصل البريد المرسل إلى هذا الاسم المستعار. صندوق الوارد هو الافتراضي.",
     alias_delivery_folder_info:
       "يصل البريد مباشرة إلى المجلد الذي تختاره دون الحاجة إلى قاعدة. وإذا طابقته قاعدة فإنها تتغلب على هذا الإعداد.",
-    alias_delivery_folder_error:
-      "لم يتم حفظ هذا الإعداد. محاولة أخرى ستنجح.",
-    alias_delivery_folder_missing:
-      "مجلد محذوف",
+    alias_delivery_folder_error: "لم يتم حفظ هذا الإعداد. محاولة أخرى ستنجح.",
+    alias_delivery_folder_missing: "مجلد محذوف",
     alias_relay_title: "التسليم",
     alias_relay_description:
       "اختر كيفية تسليم البريد الموجَّه إلى هذا الاسم المستعار.",
@@ -2339,7 +2343,8 @@ export const ar = {
     alias_directory_separator: "الفاصل",
     alias_export_csv: "تصدير CSV",
     alias_export_title: "تصدير الأسماء المستعارة",
-    alias_export_description: "اختر ما تريد تضمينه. يتم إنشاء الملف في متصفحك ولا يُرسل إلى خوادمنا أبدًا.",
+    alias_export_description:
+      "اختر ما تريد تضمينه. يتم إنشاء الملف في متصفحك ولا يُرسل إلى خوادمنا أبدًا.",
     alias_export_format_csv: "CSV (جدول بيانات)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "تحقق مما ستقوم بتنزيله.",
@@ -2363,13 +2368,18 @@ export const ar = {
     alias_export_column_color: "اللون",
     alias_export_column_expires_at: "تاريخ الانتهاء",
     alias_export_warning_title: "هذا الملف غير مشفّر",
-    alias_export_warning_body: "يمكن لأي شخص يفتحه قراءة كل اسم مستعار وملاحظة وموقع بداخله. احتفظ به في مدير كلمات المرور أو على قرص مشفّر.",
+    alias_export_warning_body:
+      "يمكن لأي شخص يفتحه قراءة كل اسم مستعار وملاحظة وموقع بداخله. احتفظ به في مدير كلمات المرور أو على قرص مشفّر.",
     alias_export_summary: "{{rows}} إدخالات في {{files}} ملف.",
     alias_export_download: "تنزيل",
-    alias_export_incomplete: "تم تحميل {{loaded}} فقط من أصل {{total}} اسم مستعار. أعد تحميل الأسماء المستعارة وحاول مرة أخرى ليكون النسخ الاحتياطي كاملًا.",
-    alias_export_undecryptable: "تعذّر فك تشفير {{count}} من الأسماء المستعارة ولم تُدرج.",
-    alias_export_undecryptable_ghost: "تعذّر فك تشفير {{count}} من الأسماء المستعارة الشبحية ولم تُدرج.",
-    alias_export_load_failed: "تعذّر تحميل الأدلة أو الأسماء المستعارة الشبحية.",
+    alias_export_incomplete:
+      "تم تحميل {{loaded}} فقط من أصل {{total}} اسم مستعار. أعد تحميل الأسماء المستعارة وحاول مرة أخرى ليكون النسخ الاحتياطي كاملًا.",
+    alias_export_undecryptable:
+      "تعذّر فك تشفير {{count}} من الأسماء المستعارة ولم تُدرج.",
+    alias_export_undecryptable_ghost:
+      "تعذّر فك تشفير {{count}} من الأسماء المستعارة الشبحية ولم تُدرج.",
+    alias_export_load_failed:
+      "تعذّر تحميل الأدلة أو الأسماء المستعارة الشبحية.",
     alias_export_failed: "فشل التصدير. لم يتم تنزيل أي شيء.",
     alias_import_csv: "استيراد الأسماء المستعارة",
     alias_import_progress: "جارٍ استيراد {{current}} من {{total}}...",
@@ -3222,6 +3232,14 @@ export const ar = {
     toast_position_bottom_right: "أسفل اليمين",
     toast_position_top_left: "أعلى اليسار",
     toast_position_bottom_left: "أسفل اليسار",
+    toast_duration: "مدة الإشعار",
+    toast_duration_description: "المدة التي تظل فيها الإشعارات على الشاشة",
+    toast_duration_default: "افتراضي (ثانيتان)",
+    toast_duration_long: "طويلة (5 ثوانٍ)",
+    toast_duration_longer: "أطول (10 ثوانٍ)",
+    toast_duration_longest: "الأطول (20 ثانية)",
+    send_test_notification: "إرسال إشعار تجريبي",
+    test_notification_blocked: "فعّل إشعارات سطح المكتب لتجربتها.",
     quiet_hours: "ساعات الهدوء",
     enable_quiet_hours: "تفعيل ساعات الهدوء",
     mute_notifications_description: "كتم الإشعارات خلال أوقات محددة",
@@ -3620,6 +3638,11 @@ export const ar = {
     keyserver_publication_status: "حالة النشر",
     keyserver_status_published: "منشور",
     keyserver_status_not_published: "غير منشور",
+    keyserver_status_awaiting: "في انتظار التأكيد",
+    keyserver_status_failed: "فشل",
+    keyserver_awaiting_hint:
+      "تم رفع مفتاحك. تحقق من بريدك الوارد للعثور على رسالة التأكيد من keys.openpgp.org وانقر على الرابط لإكمال النشر.",
+    keyserver_failed_hint: "رفض خادم المفاتيح مفتاحك. حاول النشر مرة أخرى.",
     keyserver_publish_btn: "نشر المفتاح",
     keyserver_republish_btn: "إعادة نشر المفتاح",
     keyserver_permanent_warning:
@@ -4294,6 +4317,13 @@ export const ar = {
     signature_name_placeholder: "مثال: عمل، شخصي، رسمي",
     signature_content: "محتوى التوقيع",
     signature_content_placeholder: "مع أطيب التحيات،\nاسمك\nyour@email.com",
+    signature_name_required: "أدخل اسمًا لهذا التوقيع.",
+    signature_content_required: "أضف محتوى لهذا التوقيع.",
+    signature_image_too_large: "يجب أن يكون حجم الصورة أقل من 2 ميغابايت.",
+    signature_image_invalid: "يمكن إضافة صور PNG وJPEG وGIF وWebP فقط.",
+    signature_image_failed: "لم تتم إضافة هذه الصورة. جرّب ملفًا آخر.",
+    signature_divider_limit:
+      "يمكن أن يحتوي التوقيع على {{count}} فاصل كحد أقصى.",
     plain_text_hint: "نص عادي فقط. استخدم فواصل الأسطر للتنسيق.",
     update_signature: "تحديث التوقيع",
     create_signature: "إنشاء توقيع",
@@ -5819,6 +5849,7 @@ export const ar = {
     reply_all: "رد على الكل",
     react: "تفاعل",
     already_reacted: "لقد تفاعلت بهذا بالفعل",
+    remove_your_reaction: "إزالة تفاعلك {emoji}",
     you_reacted_with: "لقد تفاعلت بـ {{emoji}}",
     reacted_with: "تفاعل {{name}} بـ {{emoji}}",
     forward: "تحويل",
@@ -7037,6 +7068,8 @@ export const ar = {
     rename_saved: "تم تحديث الاسم",
   },
   errors: {
+    failed_remove_reaction: "تعذر إزالة التفاعل. يرجى المحاولة مرة أخرى.",
+    cannot_react_own_message: "لا يمكنك التفاعل مع رسالتك الخاصة.",
     failed_send_reaction: "تعذر إرسال التفاعل. يرجى المحاولة مرة أخرى.",
     reactions_disabled: "التفاعلات معطلة في إعداداتك.",
     pending_email_verification:
@@ -7304,6 +7337,17 @@ export const ar = {
     apply_to_existing_started:
       "يتم تطبيق هذه القاعدة على بريدك الحالي. تعمل العملية في الخلفية.",
     apply_to_existing_failed: "تعذر بدء تطبيق هذه القاعدة.",
+    apply_to_existing_cancel: "إيقاف التطبيق",
+    apply_to_existing_cancel_failed: "تعذر إيقاف هذا التشغيل.",
+    apply_to_existing_queued: "في قائمة الانتظار...",
+    apply_to_existing_progress:
+      "جارٍ التطبيق: تم فحص {{scanned}}، وتحديث {{applied}}",
+    apply_to_existing_progress_total:
+      "جارٍ التطبيق: تم فحص {{scanned}} من {{total}}، وتحديث {{applied}}",
+    apply_to_existing_done: "تم: تم فحص {{scanned}}، وتحديث {{applied}}",
+    apply_to_existing_canceled: "تم الإيقاف: تم تحديث {{applied}}",
+    apply_to_existing_error:
+      "فشل تطبيق القاعدة على البريد الموجود. حاول مرة أخرى.",
     empty_title: "لا توجد قواعد بعد",
     empty_description: "أنشئ قاعدتك الأولى لتنظيم البريد الوارد تلقائيًا.",
     empty_cta: "إنشاء قاعدة",

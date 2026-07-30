@@ -105,7 +105,7 @@ export const de = {
       "Kostenlose Konten, die so viele Monate inaktiv sind, werden dauerhaft gelöscht. Warnungen werden an Ihren Aster-Posteingang und Ihre Wiederherstellungs-E-Mail gesendet.",
     inactivity_window_info_title: "Wie die Inaktivitätsrichtlinie funktioniert",
     inactivity_window_info_description:
-      "Wenn Ihr Konto für die von Ihnen festgelegte Dauer keine Aktivität aufweist, wird es dauerhaft gelöscht. Aktivität umfasst die Anmeldung von einem beliebigen Client - Web, Desktop, Mobile oder der Bridge. Sie erhalten Warn-E-Mails auf halbem Weg, bei 83 % und erneut bei 96 % des Fensters.",
+      "Wenn Ihr Konto für die von Ihnen festgelegte Dauer keine Aktivität aufweist, wird es dauerhaft gelöscht. Aktivität umfasst die Anmeldung von einem beliebigen Client - Web, Desktop, Mobile oder der Bridge. Sie erhalten Warn-E-Mails nach {{first}}, {{second}} und {{final}} Inaktivität.",
     inactivity_window_step_up_description:
       "Bestätigen Sie zu Ihrer Sicherheit Ihr Passwort, um das Inaktivitätsfenster zu ändern.",
     inactivity_window_months: "{{n}} Monate",
@@ -856,6 +856,13 @@ export const de = {
     hide_permanently: "Diese Checkliste ausblenden",
     step: "Schritt",
     protected_in_transit: "Geschützt bei der Übertragung",
+    encryption_available: "Verschlüsselung verfügbar",
+    encryption_available_desc:
+      "Dieser Empfänger veröffentlicht einen nutzbaren Verschlüsselungsschlüssel. Klicke auf das Schloss, um diese Nachricht Ende-zu-Ende zu verschlüsseln.",
+    click_to_encrypt:
+      "Klicke, um diese Nachricht Ende-zu-Ende zu verschlüsseln",
+    click_to_disable_encryption:
+      "Verschlüsselt - klicke, um es für diese Nachricht zu deaktivieren",
     end_to_end_encrypted_label: "Ende-zu-Ende-verschlüsselt",
     only_you_and_sender: "Nur Sie und der Absender können dies lesen.",
     only_you_can_read_contacts:
@@ -1935,6 +1942,8 @@ export const de = {
     category_name_required: "Gib einen Namen für diese Kategorie ein.",
     category_rule_required:
       "Füge mindestens eine Domain oder ein Stichwort zum Abgleich hinzu.",
+    template_name_required: "Geben Sie einen Namen für diese Vorlage ein.",
+    template_content_required: "Fügen Sie Inhalt für diese Vorlage hinzu.",
     category_domains_invalid:
       "Ungültige Domains: {{list}}. Verwende eine echte Domain wie example.com.",
     category_keywords_invalid:
@@ -2365,16 +2374,14 @@ export const de = {
     alias_delivery_log_reason_alias_disabled: "Alias war deaktiviert",
     alias_delivery_log_reason_unknown: "Blockiert",
     alias_delivery_title: "Zustellung",
-    alias_delivery_folder:
-      "Zustellen an",
+    alias_delivery_folder: "Zustellen an",
     alias_delivery_folder_desc:
       "Wähle, wo Mail an diesen Alias landet. Standard ist der Posteingang.",
     alias_delivery_folder_info:
       "Mail an diesen Alias landet ohne Regel direkt im gewählten Ordner. Eine passende Regel hat weiterhin Vorrang und legt die Nachricht in ihren Ordner.",
     alias_delivery_folder_error:
       "Diese Einstellung wurde nicht gespeichert. Ein weiterer Versuch sollte klappen.",
-    alias_delivery_folder_missing:
-      "Gelöschter Ordner",
+    alias_delivery_folder_missing: "Gelöschter Ordner",
     alias_relay_title: "Zustellung",
     alias_relay_description:
       "Wähle, wie Mails an diesen Alias zugestellt werden.",
@@ -2465,7 +2472,8 @@ export const de = {
     alias_directory_separator: "Trennzeichen",
     alias_export_csv: "CSV exportieren",
     alias_export_title: "Aliase exportieren",
-    alias_export_description: "Wählen Sie aus, was enthalten sein soll. Die Datei wird in Ihrem Browser erstellt und niemals an unsere Server gesendet.",
+    alias_export_description:
+      "Wählen Sie aus, was enthalten sein soll. Die Datei wird in Ihrem Browser erstellt und niemals an unsere Server gesendet.",
     alias_export_format_csv: "CSV (Tabelle)",
     alias_export_format_json: "JSON",
     alias_export_confirm_description: "Prüfen Sie, was Sie herunterladen.",
@@ -2489,14 +2497,20 @@ export const de = {
     alias_export_column_color: "Farbe",
     alias_export_column_expires_at: "Läuft ab",
     alias_export_warning_title: "Diese Datei ist nicht verschlüsselt",
-    alias_export_warning_body: "Wer sie öffnet, kann jeden Alias, jede Notiz und jede Webseite darin lesen. Bewahren Sie sie in Ihrem Passwortmanager oder auf einem verschlüsselten Laufwerk auf.",
+    alias_export_warning_body:
+      "Wer sie öffnet, kann jeden Alias, jede Notiz und jede Webseite darin lesen. Bewahren Sie sie in Ihrem Passwortmanager oder auf einem verschlüsselten Laufwerk auf.",
     alias_export_summary: "{{rows}} Einträge in {{files}} Datei(en).",
     alias_export_download: "Herunterladen",
-    alias_export_incomplete: "Nur {{loaded}} von {{total}} Aliasen wurden geladen. Laden Sie Ihre Aliase neu und versuchen Sie es erneut, damit die Sicherung vollständig ist.",
-    alias_export_undecryptable: "{{count}} Aliase konnten nicht entschlüsselt werden und sind nicht enthalten.",
-    alias_export_undecryptable_ghost: "{{count}} Ghost-Aliase konnten nicht entschlüsselt werden und sind nicht enthalten.",
-    alias_export_load_failed: "Verzeichnisse oder Ghost-Aliase konnten nicht geladen werden.",
-    alias_export_failed: "Export fehlgeschlagen. Es wurde nichts heruntergeladen.",
+    alias_export_incomplete:
+      "Nur {{loaded}} von {{total}} Aliasen wurden geladen. Laden Sie Ihre Aliase neu und versuchen Sie es erneut, damit die Sicherung vollständig ist.",
+    alias_export_undecryptable:
+      "{{count}} Aliase konnten nicht entschlüsselt werden und sind nicht enthalten.",
+    alias_export_undecryptable_ghost:
+      "{{count}} Ghost-Aliase konnten nicht entschlüsselt werden und sind nicht enthalten.",
+    alias_export_load_failed:
+      "Verzeichnisse oder Ghost-Aliase konnten nicht geladen werden.",
+    alias_export_failed:
+      "Export fehlgeschlagen. Es wurde nichts heruntergeladen.",
     alias_import_csv: "Aliase importieren",
     alias_import_progress: "Importiere {{current}} von {{total}}...",
     alias_import_done: "{{created}} Aliase importiert.",
@@ -3315,6 +3329,16 @@ export const de = {
     toast_position_bottom_right: "Unten rechts",
     toast_position_top_left: "Oben links",
     toast_position_bottom_left: "Unten links",
+    toast_duration: "Benachrichtigungsdauer",
+    toast_duration_description:
+      "Wie lange Benachrichtigungen auf dem Bildschirm bleiben",
+    toast_duration_default: "Standard (2 s)",
+    toast_duration_long: "Lang (5 s)",
+    toast_duration_longer: "Länger (10 s)",
+    toast_duration_longest: "Am längsten (20 s)",
+    send_test_notification: "Testbenachrichtigung senden",
+    test_notification_blocked:
+      "Aktiviere Desktop-Benachrichtigungen, um sie zu testen.",
     quiet_hours: "Ruhezeiten",
     enable_quiet_hours: "Ruhezeiten aktivieren",
     from: "Von",
@@ -3692,6 +3716,12 @@ export const de = {
     keyserver_publication_status: "Veröffentlichungsstatus",
     keyserver_status_published: "Veröffentlicht",
     keyserver_status_not_published: "Nicht veröffentlicht",
+    keyserver_status_awaiting: "Bestätigung ausstehend",
+    keyserver_status_failed: "Fehlgeschlagen",
+    keyserver_awaiting_hint:
+      "Ihr Schlüssel wurde hochgeladen. Prüfen Sie Ihr Postfach auf eine Bestätigungs-E-Mail von keys.openpgp.org und klicken Sie den Link, um die Veröffentlichung abzuschließen.",
+    keyserver_failed_hint:
+      "Der Schlüsselserver hat Ihren Schlüssel abgelehnt. Versuchen Sie es erneut.",
     keyserver_publish_btn: "Schlüssel veröffentlichen",
     keyserver_republish_btn: "Schlüssel erneut veröffentlichen",
     keyserver_permanent_warning:
@@ -5233,6 +5263,15 @@ export const de = {
       "Signaturen werden Ihren E-Mails nicht hinzugefügt.",
     signature_content_placeholder:
       "Mit freundlichen Grüßen,\nIhr Name\nihre@email.com",
+    signature_name_required: "Geben Sie einen Namen für diese Signatur ein.",
+    signature_content_required: "Fügen Sie Inhalt für diese Signatur hinzu.",
+    signature_image_too_large: "Bilder müssen kleiner als 2 MB sein.",
+    signature_image_invalid:
+      "Es können nur PNG-, JPEG-, GIF- und WebP-Bilder hinzugefügt werden.",
+    signature_image_failed:
+      "Dieses Bild konnte nicht hinzugefügt werden. Eine andere Datei sollte funktionieren.",
+    signature_divider_limit:
+      "Eine Signatur kann bis zu {{count}} Trennlinien enthalten.",
     plain_text_hint:
       "Nur Klartext. Verwenden Sie Zeilenumbrüche zur Formatierung.",
     spam_filtering_description:
@@ -6160,6 +6199,7 @@ export const de = {
     reply_all: "Allen antworten",
     react: "Reagieren",
     already_reacted: "Du hast bereits damit reagiert",
+    remove_your_reaction: "Deine Reaktion {emoji} entfernen",
     you_reacted_with: "Du hast mit {{emoji}} reagiert",
     reacted_with: "{{name}} hat mit {{emoji}} reagiert",
     forward: "Weiterleiten",
@@ -7452,6 +7492,10 @@ export const de = {
     rename_saved: "Name aktualisiert",
   },
   errors: {
+    failed_remove_reaction:
+      "Reaktion konnte nicht entfernt werden. Bitte versuche es erneut.",
+    cannot_react_own_message:
+      "Du kannst nicht auf deine eigene Nachricht reagieren.",
     failed_send_reaction:
       "Die Reaktion konnte nicht gesendet werden. Bitte erneut versuchen.",
     reactions_disabled: "Reaktionen sind in deinen Einstellungen deaktiviert.",
@@ -7735,6 +7779,19 @@ export const de = {
     apply_to_existing_started:
       "Diese Regel wird auf Ihre vorhandenen E-Mails angewendet. Der Vorgang läuft im Hintergrund.",
     apply_to_existing_failed: "Die Regel konnte nicht angewendet werden.",
+    apply_to_existing_cancel: "Anwendung stoppen",
+    apply_to_existing_cancel_failed:
+      "Dieser Lauf konnte nicht gestoppt werden.",
+    apply_to_existing_queued: "In Warteschlange...",
+    apply_to_existing_progress:
+      "Wird angewendet: {{scanned}} geprüft, {{applied}} aktualisiert",
+    apply_to_existing_progress_total:
+      "Wird angewendet: {{scanned}} von {{total}} geprüft, {{applied}} aktualisiert",
+    apply_to_existing_done:
+      "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert",
+    apply_to_existing_canceled: "Gestoppt: {{applied}} aktualisiert",
+    apply_to_existing_error:
+      "Anwenden auf vorhandene Mail fehlgeschlagen. Bitte erneut versuchen.",
     at_limit_upgrade:
       "Sie haben das Regelimit Ihres Tarifs erreicht. Ein Upgrade ermöglicht mehr.",
     auth_fail: "fehlgeschlagen",

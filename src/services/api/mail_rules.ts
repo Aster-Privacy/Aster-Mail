@@ -187,6 +187,21 @@ export interface RunRuleResponse {
   status: string;
 }
 
+export interface RuleRun {
+  run_id: string;
+  rule_id: string;
+  status: "pending" | "running" | "completed" | "failed" | "canceled";
+  include_trashed: boolean;
+  scanned: number;
+  matched: number;
+  applied: number;
+  skipped: number;
+  total_estimate: number | null;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
 export const REGEX_MAX_LENGTH = 512;
 
 export function detect_unsupported_regex_syntax(
@@ -310,6 +325,54 @@ interface WireStatusResponse {
   status: string;
 }
 
+interface WireRuleRun {
+  run_id: string;
+  rule_id: string;
+  status: string;
+  include_trashed: boolean;
+  scanned: number;
+  matched: number;
+  applied: number;
+  skipped: number;
+  total_estimate?: number;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+}
+
+interface WireRuleRunStatusResponse {
+  run: WireRuleRun | null;
+}
+
+interface WireRuleRunsListResponse {
+  runs: WireRuleRun[];
+}
+
+function rule_run_from_wire(w: WireRuleRun): RuleRun {
+  const status =
+    w.status === "pending" ||
+    w.status === "running" ||
+    w.status === "completed" ||
+    w.status === "failed" ||
+    w.status === "canceled"
+      ? w.status
+      : "pending";
+  return {
+    run_id: w.run_id,
+    rule_id: w.rule_id,
+    status,
+    include_trashed: w.include_trashed,
+    scanned: w.scanned,
+    matched: w.matched,
+    applied: w.applied,
+    skipped: w.skipped,
+    total_estimate: w.total_estimate ?? null,
+    created_at: w.created_at,
+    started_at: w.started_at ?? null,
+    finished_at: w.finished_at ?? null,
+  };
+}
+
 function condition_to_wire(c: Condition): Record<string, unknown> {
   switch (c.type) {
     case "from":
@@ -322,7 +385,9 @@ function condition_to_wire(c: Condition): Record<string, unknown> {
         field: c.type,
         op: c.operator,
         value: c.value,
-        ...(c.case_sensitive !== undefined && { case_sensitive: c.case_sensitive }),
+        ...(c.case_sensitive !== undefined && {
+          case_sensitive: c.case_sensitive,
+        }),
       };
     case "subject":
     case "body":
@@ -331,7 +396,9 @@ function condition_to_wire(c: Condition): Record<string, unknown> {
         field: c.type,
         op: c.operator,
         value: c.value,
-        ...(c.case_sensitive !== undefined && { case_sensitive: c.case_sensitive }),
+        ...(c.case_sensitive !== undefined && {
+          case_sensitive: c.case_sensitive,
+        }),
       };
     case "header":
       return {
@@ -339,14 +406,18 @@ function condition_to_wire(c: Condition): Record<string, unknown> {
         name: c.name,
         op: c.operator,
         value: c.value,
-        ...(c.case_sensitive !== undefined && { case_sensitive: c.case_sensitive }),
+        ...(c.case_sensitive !== undefined && {
+          case_sensitive: c.case_sensitive,
+        }),
       };
     case "attachment_name":
       return {
         field: "attachment_name",
         op: c.operator,
         value: c.value,
-        ...(c.case_sensitive !== undefined && { case_sensitive: c.case_sensitive }),
+        ...(c.case_sensitive !== undefined && {
+          case_sensitive: c.case_sensitive,
+        }),
       };
     case "has_attachment":
     case "is_reply":
@@ -405,7 +476,9 @@ function condition_from_wire(w: unknown): Condition | null {
         type: field,
         operator: o.op as AddressOperator,
         value: String(o.value ?? ""),
-        ...(typeof o.case_sensitive === "boolean" && { case_sensitive: o.case_sensitive }),
+        ...(typeof o.case_sensitive === "boolean" && {
+          case_sensitive: o.case_sensitive,
+        }),
       };
     case "subject":
     case "body":
@@ -414,7 +487,9 @@ function condition_from_wire(w: unknown): Condition | null {
         type: field,
         operator: o.op as TextOperator,
         value: String(o.value ?? ""),
-        ...(typeof o.case_sensitive === "boolean" && { case_sensitive: o.case_sensitive }),
+        ...(typeof o.case_sensitive === "boolean" && {
+          case_sensitive: o.case_sensitive,
+        }),
       };
     case "header":
       return {
@@ -422,14 +497,18 @@ function condition_from_wire(w: unknown): Condition | null {
         name: String(o.name ?? ""),
         operator: o.op as TextOperator,
         value: String(o.value ?? ""),
-        ...(typeof o.case_sensitive === "boolean" && { case_sensitive: o.case_sensitive }),
+        ...(typeof o.case_sensitive === "boolean" && {
+          case_sensitive: o.case_sensitive,
+        }),
       };
     case "attachment_name":
       return {
         type: "attachment_name",
         operator: o.op as AttachmentNameOperator,
         value: String(o.value ?? ""),
-        ...(typeof o.case_sensitive === "boolean" && { case_sensitive: o.case_sensitive }),
+        ...(typeof o.case_sensitive === "boolean" && {
+          case_sensitive: o.case_sensitive,
+        }),
       };
     case "has_attachment":
     case "is_reply":
@@ -563,7 +642,9 @@ function rule_from_wire(w: WireRule): Rule {
   };
 }
 
-function create_request_to_wire(req: CreateRuleRequest): Record<string, unknown> {
+function create_request_to_wire(
+  req: CreateRuleRequest,
+): Record<string, unknown> {
   return {
     name: req.name,
     color: req.color,
@@ -575,7 +656,9 @@ function create_request_to_wire(req: CreateRuleRequest): Record<string, unknown>
   };
 }
 
-function update_request_to_wire(patch: UpdateRuleRequest): Record<string, unknown> {
+function update_request_to_wire(
+  patch: UpdateRuleRequest,
+): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   if (patch.name !== undefined) out.name = patch.name;
   if (patch.color !== undefined) out.color = patch.color;
@@ -658,13 +741,47 @@ export async function reorder_rules(
 
 export async function run_on_existing(
   id: string,
-): Promise<ApiResponse<RunRuleResponse>> {
-  const response = await api_client.post<WireStatusResponse>(
-    `${BASE}/${id}/run-on-existing`,
+  include_trashed = false,
+): Promise<ApiResponse<RuleRun | null>> {
+  const query = include_trashed ? "?include_trashed=true" : "";
+  const response = await api_client.post<WireRuleRunStatusResponse>(
+    `${BASE}/${id}/run-on-existing${query}`,
     {},
   );
   if (response.data) {
-    return { data: { status: response.data.status } };
+    return {
+      data: response.data.run ? rule_run_from_wire(response.data.run) : null,
+    };
+  }
+  return { error: response.error, code: response.code };
+}
+
+export async function get_rule_run(
+  id: string,
+): Promise<ApiResponse<RuleRun | null>> {
+  const response = await api_client.get<WireRuleRunStatusResponse>(
+    `${BASE}/${id}/run`,
+  );
+  if (response.data) {
+    return {
+      data: response.data.run ? rule_run_from_wire(response.data.run) : null,
+    };
+  }
+  return { error: response.error, code: response.code };
+}
+
+export async function cancel_rule_run(
+  id: string,
+): Promise<ApiResponse<RunRuleResponse>> {
+  return api_client.delete<WireStatusResponse>(`${BASE}/${id}/run`);
+}
+
+export async function list_rule_runs(): Promise<ApiResponse<RuleRun[]>> {
+  const response = await api_client.get<WireRuleRunsListResponse>(
+    `${BASE}/runs`,
+  );
+  if (response.data) {
+    return { data: response.data.runs.map(rule_run_from_wire) };
   }
   return { error: response.error, code: response.code };
 }
