@@ -59,6 +59,7 @@ interface EditorState {
   category: string;
   content: string;
   is_saving: boolean;
+  show_validation: boolean;
 }
 
 const initial_editor_state: EditorState = {
@@ -68,6 +69,7 @@ const initial_editor_state: EditorState = {
   category: "",
   content: "",
   is_saving: false,
+  show_validation: false,
 };
 
 export function TemplatesSection() {
@@ -115,6 +117,7 @@ export function TemplatesSection() {
       category: "",
       content: "",
       is_saving: false,
+      show_validation: false,
     });
   };
 
@@ -126,6 +129,7 @@ export function TemplatesSection() {
       category: template.category,
       content: template.content,
       is_saving: false,
+      show_validation: false,
     });
   };
 
@@ -133,8 +137,15 @@ export function TemplatesSection() {
     set_editor(initial_editor_state);
   };
 
+  const name_invalid = editor.show_validation && !editor.name.trim();
+  const content_invalid = editor.show_validation && !editor.content.trim();
+
   const handle_save = async () => {
-    if (!editor.name.trim() || !editor.content.trim()) return;
+    if (!editor.name.trim() || !editor.content.trim()) {
+      set_editor((prev) => ({ ...prev, show_validation: true }));
+
+      return;
+    }
 
     set_editor((prev) => ({ ...prev, is_saving: true }));
 
@@ -288,9 +299,14 @@ export function TemplatesSection() {
                   </label>
                   <Input
                     autoFocus
+                    aria-describedby={
+                      name_invalid ? "template-name-error" : undefined
+                    }
+                    aria-invalid={name_invalid}
                     className="w-full"
                     id="template-name"
                     placeholder={t("settings.template_name_placeholder")}
+                    status={name_invalid ? "error" : "default"}
                     value={editor.name}
                     onChange={(e) =>
                       set_editor((prev) => ({
@@ -299,6 +315,14 @@ export function TemplatesSection() {
                       }))
                     }
                   />
+                  {name_invalid && (
+                    <p
+                      className="text-xs mt-1.5 text-red-500"
+                      id="template-name-error"
+                    >
+                      {t("settings.template_name_required")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -331,7 +355,13 @@ export function TemplatesSection() {
                   {t("settings.template_content")}
                 </label>
                 <textarea
-                  className="aster_input resize-none !py-3 font-mono"
+                  aria-describedby={
+                    content_invalid ? "template-content-error" : undefined
+                  }
+                  aria-invalid={content_invalid}
+                  className={`aster_input resize-none !py-3 font-mono ${
+                    content_invalid ? "aster_input_error" : ""
+                  }`}
                   id="template-content"
                   placeholder={t("settings.template_content_placeholder")}
                   rows={8}
@@ -343,6 +373,14 @@ export function TemplatesSection() {
                     }))
                   }
                 />
+                {content_invalid && (
+                  <p
+                    className="text-xs mt-1.5 text-red-500"
+                    id="template-content-error"
+                  >
+                    {t("settings.template_content_required")}
+                  </p>
+                )}
                 <p className="text-xs mt-1.5 text-txt-muted">
                   {t("settings.placeholders_hint")}
                 </p>
@@ -357,11 +395,7 @@ export function TemplatesSection() {
                 {t("common.cancel")}
               </Button>
               <Button
-                disabled={
-                  !editor.name.trim() ||
-                  !editor.content.trim() ||
-                  editor.is_saving
-                }
+                disabled={editor.is_saving}
                 variant="depth"
                 onClick={handle_save}
               >

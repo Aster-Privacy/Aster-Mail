@@ -79,7 +79,7 @@ export const MobileContextMenu = memo(function MobileContextMenu({
       destructive?: boolean;
     }[] = [];
 
-    if (on_toggle_read) {
+    if (on_toggle_read && email.item_type !== "sent") {
       result.push({
         icon: email.is_read ? EnvelopeIcon : EnvelopeOpenIcon,
         label: email.is_read ? t("mail.mark_unread") : t("mail.mark_read"),

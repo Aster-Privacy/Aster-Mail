@@ -315,30 +315,32 @@ export const SearchResultRow = forwardRef<
               pointerEvents: is_hovered ? "auto" : "none",
             }}
           >
-            <button
-              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
-              title={
-                result.is_read
-                  ? t("mail.mark_unread_title")
-                  : t("mail.mark_read_title")
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                quick_actions.on_toggle_read?.(result);
-              }}
-            >
-              <svg
-                className="w-3.5 h-3.5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+            {result.item_type !== "sent" && (
+              <button
+                className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
+                title={
+                  result.is_read
+                    ? t("mail.mark_unread_title")
+                    : t("mail.mark_read_title")
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  quick_actions.on_toggle_read?.(result);
+                }}
               >
-                {result.is_read ? (
-                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                ) : (
-                  <path d="M22 8.98V18c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h10.1c-.06.32-.1.66-.1 1 0 1.48.65 2.79 1.67 3.71L12 11 4 6v2l8 5 5.3-3.32c.54.2 1.1.32 1.7.32 1.13 0 2.16-.39 3-1.02zM19 3c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                )}
-              </svg>
-            </button>
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {result.is_read ? (
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                  ) : (
+                    <path d="M22 8.98V18c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h10.1c-.06.32-.1.66-.1 1 0 1.48.65 2.79 1.67 3.71L12 11 4 6v2l8 5 5.3-3.32c.54.2 1.1.32 1.7.32 1.13 0 2.16-.39 3-1.02zM19 3c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                  )}
+                </svg>
+              </button>
+            )}
             <button
               className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10"
               style={{

@@ -85,17 +85,19 @@ export function StatRing({
             className="text-edge-secondary"
             strokeWidth={4}
           />
-          <circle
-            cx="20"
-            cy="20"
-            r={radius}
-            fill="none"
-            stroke="currentColor"
-            className={`${color_class} transition-all duration-500`}
-            strokeWidth={4}
-            strokeLinecap="round"
-            strokeDasharray={`${dash} ${circumference}`}
-          />
+          {dash > 0 && (
+            <circle
+              cx="20"
+              cy="20"
+              r={radius}
+              fill="none"
+              stroke="currentColor"
+              className={`${color_class} transition-all duration-500`}
+              strokeWidth={4}
+              strokeLinecap="round"
+              strokeDasharray={`${dash} ${circumference}`}
+            />
+          )}
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <Icon className={`w-4 h-4 ${color_class}`} />
@@ -144,14 +146,16 @@ export function SemicircleGauge({
           strokeWidth={stroke_width}
           strokeLinecap="round"
         />
-        <path
-          d={describe_semicircle_arc(center_x, center_y, radius, 0, progress_angle)}
-          fill="none"
-          stroke="currentColor"
-          className="text-blue-600 transition-all duration-500"
-          strokeWidth={stroke_width}
-          strokeLinecap="round"
-        />
+        {clamped_percent > 0 && (
+          <path
+            d={describe_semicircle_arc(center_x, center_y, radius, 0, progress_angle)}
+            fill="none"
+            stroke="var(--accent-color)"
+            className="transition-all duration-500"
+            strokeWidth={stroke_width}
+            strokeLinecap="round"
+          />
+        )}
       </svg>
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center pb-1">
         <p className="text-xl font-bold text-txt-primary tabular-nums leading-none">

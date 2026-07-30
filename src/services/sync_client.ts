@@ -29,7 +29,7 @@ import { TorUnavailableError } from "./routing/tor_unavailable_error";
 import { is_onion_host } from "@/lib/onion_host";
 import { is_any_lockdown_active, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 
-import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { MAIL_EVENTS, emit_reactions_changed } from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
@@ -45,6 +45,7 @@ type ServerMessageType =
   | "draft_saved"
   | "draft_deleted"
   | "new_mail"
+  | "new_reaction"
   | "prekey_low"
   | "session_revoked";
 
@@ -294,6 +295,12 @@ class SyncClient {
       } else {
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
       }
+    }
+
+    if (data.type === "new_reaction") {
+      emit_reactions_changed({ mail_item_id: data.mail_item_id || "" });
+
+      return;
     }
 
     if (data.type === "session_revoked") {

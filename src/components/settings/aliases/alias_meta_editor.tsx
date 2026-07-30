@@ -102,9 +102,6 @@ export function AliasMetaEditor({
           title={`${row.label}: ${row.value}`}
         >
           {row.icon}
-          <span className="shrink-0 hidden lg:inline lg:min-w-[5.5rem] text-[11px] uppercase tracking-wide opacity-60">
-            {row.label}
-          </span>
           <span className="truncate">{row.value}</span>
         </span>
       ))}

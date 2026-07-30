@@ -282,6 +282,50 @@ function build_print_body(email: PrintEmailData): string {
   return html;
 }
 
+const PRINT_CLEANUP_FALLBACK_MS = 60000;
+const MENU_UNMOUNT_DELAY_MS = 120;
+
+function release_pointer_events_lock(): void {
+  if (document.body.style.pointerEvents !== "none") return;
+
+  const open_layer = document.querySelector(
+    '[data-radix-menu-content][data-state="open"], [role="dialog"][data-state="open"], [data-radix-popper-content-wrapper]',
+  );
+
+  if (open_layer) return;
+
+  document.body.style.removeProperty("pointer-events");
+  document.body.removeAttribute("data-scroll-locked");
+}
+
+function run_web_print(cleanup: () => void): void {
+  let finished = false;
+  let fallback_timer = 0;
+
+  const finish = () => {
+    if (finished) return;
+
+    finished = true;
+    window.removeEventListener("afterprint", finish);
+    if (fallback_timer) window.clearTimeout(fallback_timer);
+    cleanup();
+    window.setTimeout(release_pointer_events_lock, 0);
+  };
+
+  window.addEventListener("afterprint", finish);
+  fallback_timer = window.setTimeout(finish, PRINT_CLEANUP_FALLBACK_MS);
+
+  window.setTimeout(() => {
+    requestAnimationFrame(() => {
+      try {
+        window.print();
+      } catch {
+        finish();
+      }
+    });
+  }, MENU_UNMOUNT_DELAY_MS);
+}
+
 async function trigger_native_print(name: string): Promise<void> {
   const { WebviewPrint } = await import("capacitor-webview-print");
 
@@ -401,10 +445,7 @@ export function print_thread(data: PrintThreadData): void {
     return;
   }
 
-  requestAnimationFrame(() => {
-    window.print();
-    setTimeout(cleanup, 2000);
-  });
+  run_web_print(cleanup);
 }
 
 export function setup_thread_print_intercept(
@@ -430,6 +471,7 @@ export function setup_thread_print_intercept(
 
     container.id = "aster-print-root";
     container.innerHTML = build_print_thread_body(data);
+    expand_collapsed_sections(container);
     document.body.appendChild(container);
 
     if (native) {
@@ -495,8 +537,5 @@ export function print_email(email: PrintEmailData): void {
     return;
   }
 
-  requestAnimationFrame(() => {
-    window.print();
-    setTimeout(cleanup, 2000);
-  });
+  run_web_print(cleanup);
 }

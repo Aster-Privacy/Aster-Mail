@@ -30,6 +30,7 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
+import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { CustomCategoryModal } from "./custom_category_modal";
@@ -212,9 +213,7 @@ export function CategorySettingsSection() {
         </p>
 
         {!can_add_custom ? (
-          <p className="text-sm text-txt-muted italic">
-            {t("settings.custom_categories_locked")}
-          </p>
+          <FeatureLockOverlay message={t("settings.custom_categories_locked")} />
         ) : (
           <>
             {at_limit && (

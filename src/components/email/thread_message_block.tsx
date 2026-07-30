@@ -42,6 +42,7 @@ import {
   CodeBracketIcon,
   ClipboardDocumentIcon,
   FolderIcon,
+  CheckIcon,
   MoonIcon,
   SunIcon,
   InformationCircleIcon,
@@ -67,6 +68,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown_menu";
 import {
   Popover,
@@ -127,9 +131,16 @@ interface ThreadMessageBlockProps {
   on_view_source?: (message: DecryptedThreadMessage) => void;
   on_report_phishing?: (message: DecryptedThreadMessage) => void;
   on_not_spam?: (message: DecryptedThreadMessage) => void;
+  folders?: { id: string; name: string; color: string }[];
+  message_folder_tokens?: string[];
+  on_move_to_folder?: (
+    message: DecryptedThreadMessage,
+    folder_token: string,
+  ) => void;
   external_content_mode?: ImageLoadMode;
   on_external_content_detected?: (report: ExternalContentReport) => void;
   force_dark_mode?: boolean;
+  disable_auto_dark_mode?: boolean;
   on_toggle_dark_mode?: () => void;
   show_inline_reply?: boolean;
   inline_reply_thread_token?: string;
@@ -199,9 +210,13 @@ export function ThreadMessageBlock({
   on_view_source: _on_view_source,
   on_report_phishing,
   on_not_spam,
+  folders = [],
+  message_folder_tokens,
+  on_move_to_folder,
   external_content_mode,
   on_external_content_detected,
   force_dark_mode = false,
+  disable_auto_dark_mode = false,
   on_toggle_dark_mode,
   show_inline_reply,
   inline_reply_thread_token,
@@ -638,19 +653,21 @@ export function ThreadMessageBlock({
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  on_toggle_read?.();
-                }}
-              >
-                {is_read ? (
-                  <EyeSlashIcon className="w-4 h-4 mr-2" />
-                ) : (
-                  <EyeIcon className="w-4 h-4 mr-2" />
-                )}
-                {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
-              </DropdownMenuItem>
+              {message.item_type !== "sent" && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle_read?.();
+                  }}
+                >
+                  {is_read ? (
+                    <EyeSlashIcon className="w-4 h-4 mr-2" />
+                  ) : (
+                    <EyeIcon className="w-4 h-4 mr-2" />
+                  )}
+                  {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1095,19 +1112,21 @@ export function ThreadMessageBlock({
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  on_toggle_read?.();
-                }}
-              >
-                {is_read ? (
-                  <EyeSlashIcon className="w-4 h-4 mr-2" />
-                ) : (
-                  <EyeIcon className="w-4 h-4 mr-2" />
-                )}
-                {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
-              </DropdownMenuItem>
+              {message.item_type !== "sent" && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle_read?.();
+                  }}
+                >
+                  {is_read ? (
+                    <EyeSlashIcon className="w-4 h-4 mr-2" />
+                  ) : (
+                    <EyeIcon className="w-4 h-4 mr-2" />
+                  )}
+                  {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1146,10 +1165,44 @@ export function ThreadMessageBlock({
                     : t("mail.move_to_trash")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem disabled>
-                <FolderIcon className="w-4 h-4 mr-2" />
-                {t("mail.move_to_folder")}
-              </DropdownMenuItem>
+              {folders.length > 0 && on_move_to_folder && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <FolderIcon className="w-4 h-4 mr-2" />
+                    {t("mail.move_to_folder")}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48">
+                    {folders.map((folder) => {
+                      const is_current = (message_folder_tokens ?? []).includes(
+                        folder.id,
+                      );
+
+                      return (
+                        <DropdownMenuItem
+                          key={folder.id}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            on_move_to_folder(message, folder.id);
+                          }}
+                        >
+                          {is_current && (
+                            <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                          )}
+                          <span
+                            className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                            style={
+                              folder.color.startsWith("#")
+                                ? { backgroundColor: folder.color }
+                                : {}
+                            }
+                          />
+                          <span className="truncate">{folder.name}</span>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
               <DropdownMenuSeparator />
               {on_print && (
                 <DropdownMenuItem
@@ -1341,6 +1394,7 @@ export function ThreadMessageBlock({
             clean_body={clean_body}
             email_id={message.id}
             force_dark_mode={force_dark_mode}
+            disable_auto_dark_mode={disable_auto_dark_mode}
             is_plain_text={html_blocked ? true : is_plain_text}
             load_remote_content={html_blocked ? false : load_remote_content}
             on_document_ready={translation.on_document_ready}

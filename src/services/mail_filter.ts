@@ -128,7 +128,7 @@ function matches_folder(
         !metadata.is_trashed
       );
     case "all":
-      return true;
+      return !metadata.is_trashed && !metadata.is_spam;
     default:
       return true;
   }
@@ -160,6 +160,7 @@ export function get_folder_from_route(path: string): MailFolder {
   if (path.includes("/spam")) return "spam";
   if (path.includes("/trash")) return "trash";
   if (path.includes("/snoozed")) return "snoozed";
+  if (path.includes("/all")) return "all";
 
   return "inbox";
 }

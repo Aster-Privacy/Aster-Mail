@@ -32,6 +32,7 @@ import { ExternalLinkWarningModal } from "@/components/modals/external_link_warn
 import { use_preferences } from "@/contexts/preferences_context";
 import { open_external } from "@/utils/open_link";
 import { is_any_lockdown_active, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { is_trusted_link } from "@/lib/trusted_link_domains";
 
 interface ExternalLinkContextType {
   handle_external_link: (url: string) => void;
@@ -91,7 +92,10 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   const handle_external_link = useCallback(
     (url: string) => {
       const currently_locked = lockdown_active || is_any_lockdown_active();
-      if (!currently_locked && preferences.external_link_warning_dismissed) {
+      if (
+        !currently_locked &&
+        (preferences.external_link_warning_dismissed || is_trusted_link(url))
+      ) {
         open_url(url);
 
         return;

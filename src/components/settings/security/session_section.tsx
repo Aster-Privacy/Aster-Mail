@@ -160,12 +160,16 @@ export function SessionSection({
               const browser_label =
                 session.browser?.trim() || t("common.unknown");
               const os_label = session.os?.trim();
-              const device_label = os_label
-                ? t("settings.browser_on_os", {
-                    browser: browser_label,
-                    os: os_label,
-                  })
-                : browser_label;
+              const os_redundant =
+                !!os_label &&
+                browser_label.toLowerCase().includes(os_label.toLowerCase());
+              const device_label =
+                os_label && !os_redundant
+                  ? t("settings.browser_on_os", {
+                      browser: browser_label,
+                      os: os_label,
+                    })
+                  : browser_label;
               const location_label = [session.city, session.country]
                 .filter((part) => part && part.trim().length > 0)
                 .join(", ");

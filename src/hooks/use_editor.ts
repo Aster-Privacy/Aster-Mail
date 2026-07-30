@@ -127,7 +127,7 @@ export function use_editor({
             document.execCommand(
               "insertHTML",
               false,
-              `<img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" />`,
+              `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
             );
             handle_input();
           };
@@ -251,7 +251,7 @@ export function use_editor({
           document.execCommand(
             "insertHTML",
             false,
-            `<img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" />`,
+            `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
           );
           handle_input();
         };

@@ -61,6 +61,7 @@ export interface UserPreferences {
     | "bottom-right"
     | "top-left"
     | "bottom-left";
+  toast_duration_ms: number;
   quiet_hours_enabled: boolean;
   quiet_hours_start: string;
   quiet_hours_end: string;
@@ -399,6 +400,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   notify_replies: true,
   notify_mentions: true,
   toast_position: "bottom",
+  toast_duration_ms: 2000,
   quiet_hours_enabled: false,
   quiet_hours_start: "22:00",
   quiet_hours_end: "07:00",

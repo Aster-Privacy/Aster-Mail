@@ -780,6 +780,7 @@ export function ReferralTab() {
             draggable={false}
             src="/settings/decentralized.webp"
             style={{
+              filter: "var(--accent-brand-filter, none)",
               maskImage:
                 "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
               WebkitMaskImage:
@@ -800,7 +801,7 @@ export function ReferralTab() {
               </span>
             </div>
             <p
-              className="text-sm text-blue-100/70 mb-4 max-w-[420px]"
+              className="text-sm text-white/70 mb-4 max-w-[420px]"
               style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
             >
               {t("settings.referral_program_description")}
@@ -815,8 +816,9 @@ export function ReferralTab() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-white text-blue-900 inline-flex items-center justify-center gap-2 whitespace-nowrap"
+                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap"
                   style={{
+                    color: "var(--accent-mix-b70, #1e3a8a)",
                     boxShadow:
                       "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
                   }}
@@ -833,8 +835,9 @@ export function ReferralTab() {
                 <button
                   type="button"
                   disabled={is_sending_referral}
-                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-white text-blue-900 inline-flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
+                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
                   style={{
+                    color: "var(--accent-mix-b70, #1e3a8a)",
                     boxShadow:
                       "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
                   }}

@@ -70,6 +70,8 @@ interface ImportModalProps {
 
 type ImportStep = "upload" | "progress" | "complete";
 
+const PICKER_REOPEN_DELAY_MS = 700;
+
 const CANONICAL_FOLDER_TOKENS = new Set([
   "inbox",
   "sent",
@@ -342,6 +344,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const file_input_ref = useRef<HTMLInputElement>(null);
   const folder_input_ref = useRef<HTMLInputElement>(null);
   const cancel_ref = useRef(false);
+  const picker_open_ref = useRef(false);
 
   const reset_state = useCallback(() => {
     set_step("upload");
@@ -815,15 +818,26 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     [handle_file_select],
   );
 
+  const open_picker = useCallback(
+    (target: React.RefObject<HTMLInputElement>) => {
+      if (is_processing) return;
+      if (picker_open_ref.current) return;
+      picker_open_ref.current = true;
+      window.setTimeout(() => {
+        picker_open_ref.current = false;
+      }, PICKER_REOPEN_DELAY_MS);
+      target.current?.click();
+    },
+    [is_processing],
+  );
+
   const handle_browse_click = useCallback(() => {
-    if (is_processing) return;
-    file_input_ref.current?.click();
-  }, [is_processing]);
+    open_picker(file_input_ref);
+  }, [open_picker]);
 
   const handle_browse_folder_click = useCallback(() => {
-    if (is_processing) return;
-    folder_input_ref.current?.click();
-  }, [is_processing]);
+    open_picker(folder_input_ref);
+  }, [open_picker]);
 
   const render_step_content = () => {
     switch (step) {

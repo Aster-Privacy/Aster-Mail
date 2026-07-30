@@ -105,13 +105,20 @@ export const DdgFavicon = memo(function DdgFavicon({
   );
 });
 
-type EncryptionStatus = "encrypted" | "transit" | "checking" | "key_invalid";
+type EncryptionStatus =
+  | "encrypted"
+  | "available"
+  | "transit"
+  | "checking"
+  | "key_invalid";
 
 interface RecipientBadgeProps {
   email: string;
   image_url?: string;
   on_remove?: () => void;
   encryption_status?: EncryptionStatus;
+  pgp_active?: boolean;
+  on_toggle_encryption?: () => void;
 }
 
 export function RecipientBadge({
@@ -119,46 +126,82 @@ export function RecipientBadge({
   image_url,
   on_remove,
   encryption_status,
+  pgp_active = false,
+  on_toggle_encryption,
 }: RecipientBadgeProps) {
   const { t } = use_i18n();
   const [info_open, set_info_open] = useState(false);
 
+  const is_toggleable =
+    encryption_status === "available" && !!on_toggle_encryption;
+  const effective_status: EncryptionStatus | undefined =
+    encryption_status === "available"
+      ? pgp_active
+        ? "encrypted"
+        : is_toggleable
+          ? "available"
+          : "transit"
+      : encryption_status;
+
   const lock_color =
-    encryption_status === "encrypted"
+    effective_status === "encrypted"
       ? "rgb(59, 130, 246)"
-      : encryption_status === "key_invalid"
+      : effective_status === "key_invalid"
         ? "rgb(245, 158, 11)"
         : "var(--text-muted)";
 
   const lock_label =
-    encryption_status === "encrypted"
+    effective_status === "encrypted"
       ? t("common.end_to_end_encrypted_label")
-      : encryption_status === "key_invalid"
+      : effective_status === "key_invalid"
         ? t("common.recipient_key_outdated")
-        : t("common.protected_in_transit");
+        : effective_status === "available"
+          ? t("common.encryption_available")
+          : t("common.protected_in_transit");
 
   const lock_desc =
-    encryption_status === "encrypted"
+    effective_status === "encrypted"
       ? t("common.wkd_encrypted_description")
-      : encryption_status === "key_invalid"
+      : effective_status === "key_invalid"
         ? t("common.recipient_key_outdated_desc")
-        : t("common.encrypted_in_transit_stored");
+        : effective_status === "available"
+          ? t("common.encryption_available_desc")
+          : t("common.encrypted_in_transit_stored");
+
+  const lock_title = is_toggleable
+    ? pgp_active
+      ? t("common.click_to_disable_encryption")
+      : t("common.click_to_encrypt")
+    : lock_label;
 
   return (
     <div className="flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border border-edge-secondary">
       {encryption_status && (
         <span className="relative flex-shrink-0 flex items-center">
           <button
-            className="flex items-center transition-opacity hover:opacity-80"
+            aria-label={lock_title}
+            aria-pressed={is_toggleable ? pgp_active : undefined}
+            className={`flex items-center transition-opacity hover:opacity-80${is_toggleable ? " cursor-pointer" : ""}`}
             style={{
               color: lock_color,
-              opacity: encryption_status === "checking" ? 0.4 : 1,
+              opacity:
+                encryption_status === "checking"
+                  ? 0.4
+                  : is_toggleable && !pgp_active
+                    ? 0.7
+                    : 1,
             }}
-            title={encryption_status === "checking" ? undefined : lock_label}
+            title={encryption_status === "checking" ? undefined : lock_title}
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              if (encryption_status !== "checking") set_info_open((o) => !o);
+              if (encryption_status === "checking") return;
+              if (is_toggleable) {
+                on_toggle_encryption?.();
+
+                return;
+              }
+              set_info_open((o) => !o);
             }}
           >
             <LockIcon size={12} />
@@ -232,6 +275,8 @@ interface RecipientFieldProps {
   contacts?: DecryptedContact[];
   recent_recipients?: DecryptedRecentRecipient[];
   auto_focus?: boolean;
+  pgp_enabled?: boolean;
+  on_toggle_pgp?: () => void;
 }
 
 export function RecipientField({
@@ -251,6 +296,8 @@ export function RecipientField({
   contacts = [],
   recent_recipients,
   auto_focus = false,
+  pgp_enabled = false,
+  on_toggle_pgp,
 }: RecipientFieldProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -348,7 +395,9 @@ export function RecipientField({
                 ? "encrypted"
                 : key_present && expired
                   ? "key_invalid"
-                  : "transit";
+                  : key_present
+                    ? "available"
+                    : "transit";
 
               key_map.set(info.email.toLowerCase(), status);
             }
@@ -580,6 +629,8 @@ export function RecipientField({
               }
               image_url={contact_avatar_map.get(email.toLowerCase())}
               on_remove={() => on_remove_recipient(email)}
+              on_toggle_encryption={on_toggle_pgp}
+              pgp_active={pgp_enabled}
             />
           ))}
           {hidden_count > 0 && (
@@ -688,6 +739,8 @@ export function ComposeFormFields({
           on_remove_recipient={(email) => compose.remove_recipient("to", email)}
           on_show_bcc={compose.show_bcc_field}
           on_show_cc={compose.show_cc_field}
+          on_toggle_pgp={compose.toggle_pgp}
+          pgp_enabled={compose.pgp_enabled}
           recent_recipients={compose.recent_recipients}
           recipients={compose.recipients.to}
           show_bcc={compose.visibility.bcc}
@@ -708,6 +761,8 @@ export function ComposeFormFields({
             on_remove_recipient={(email) =>
               compose.remove_recipient("cc", email)
             }
+            on_toggle_pgp={compose.toggle_pgp}
+            pgp_enabled={compose.pgp_enabled}
             recent_recipients={compose.recent_recipients}
             recipients={compose.recipients.cc}
           />
@@ -727,6 +782,8 @@ export function ComposeFormFields({
             on_remove_recipient={(email) =>
               compose.remove_recipient("bcc", email)
             }
+            on_toggle_pgp={compose.toggle_pgp}
+            pgp_enabled={compose.pgp_enabled}
             recent_recipients={compose.recent_recipients}
             recipients={compose.recipients.bcc}
           />

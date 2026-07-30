@@ -34,7 +34,15 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import EmojiPicker from "@/components/compose/emoji_picker";
-import { send_reaction } from "@/services/reaction_actions";
+import {
+  is_own_reaction_address,
+  remove_reaction,
+  send_reaction,
+} from "@/services/reaction_actions";
+import {
+  reaction_restriction,
+  reaction_restriction_keys,
+} from "@/services/reaction_restrictions";
 import { show_toast } from "@/components/toast/simple_toast";
 import { is_system_email } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
@@ -47,11 +55,18 @@ interface ReactionChipGroup {
   count: number;
   reactor_names: string[];
   includes_self: boolean;
+  self_reaction_mail_item_id?: string;
+}
+
+interface PendingReaction {
+  emoji: string;
+  reaction_mail_item_id?: string;
 }
 
 function group_reactions(
   reactions: DecryptedThreadMessage["reactions"],
   self_email?: string,
+  removed_ids?: string[],
 ): ReactionChipGroup[] {
   if (!reactions?.length) return [];
 
@@ -59,6 +74,7 @@ function group_reactions(
 
   for (const reaction of reactions) {
     if (!reaction.emoji) continue;
+    if (removed_ids?.includes(reaction.reaction_mail_item_id)) continue;
 
     const existing = groups.get(reaction.emoji) ?? {
       emoji: reaction.emoji,
@@ -70,11 +86,14 @@ function group_reactions(
     existing.count += 1;
 
     const is_self =
-      !!self_email &&
-      reaction.reactor_email?.toLowerCase().trim() === self_email.toLowerCase().trim();
+      reaction.is_own === true ||
+      (!!self_email &&
+        reaction.reactor_email?.toLowerCase().trim() ===
+          self_email.toLowerCase().trim());
 
     if (is_self) {
       existing.includes_self = true;
+      existing.self_reaction_mail_item_id = reaction.reaction_mail_item_id;
     } else if (reaction.reactor_email) {
       existing.reactor_names.push(reaction.reactor_email);
     }
@@ -87,22 +106,31 @@ function group_reactions(
 
 function merge_pending_reactions(
   groups: ReactionChipGroup[],
-  pending_emojis: string[],
+  pending_reactions: PendingReaction[],
 ): ReactionChipGroup[] {
-  if (!pending_emojis.length) return groups;
+  if (!pending_reactions.length) return groups;
 
   const merged = groups.map((group) => ({ ...group }));
 
-  for (const emoji of pending_emojis) {
-    const existing = merged.find((group) => group.emoji === emoji);
+  for (const pending of pending_reactions) {
+    const existing = merged.find((group) => group.emoji === pending.emoji);
 
     if (existing) {
       if (!existing.includes_self) {
         existing.includes_self = true;
         existing.count += 1;
       }
+
+      existing.self_reaction_mail_item_id =
+        existing.self_reaction_mail_item_id ?? pending.reaction_mail_item_id;
     } else {
-      merged.push({ emoji, count: 1, reactor_names: [], includes_self: true });
+      merged.push({
+        emoji: pending.emoji,
+        count: 1,
+        reactor_names: [],
+        includes_self: true,
+        self_reaction_mail_item_id: pending.reaction_mail_item_id,
+      });
     }
   }
 
@@ -130,18 +158,38 @@ export function ThreadMessageActions({
   const reactions_enabled = preferences.reactions_enabled !== false;
   const [is_picker_open, set_is_picker_open] = useState(false);
   const [is_sending_reaction, set_is_sending_reaction] = useState(false);
-  const [pending_emojis, set_pending_emojis] = useState<string[]>([]);
+  const [pending_reactions, set_pending_reactions] = useState<PendingReaction[]>(
+    [],
+  );
+  const [removed_reaction_ids, set_removed_reaction_ids] = useState<string[]>([]);
 
   const total_recipients =
     (message.to_recipients?.length ?? 0) + (message.cc_recipients?.length ?? 0);
   const show_reply_all = on_reply_all && total_recipients >= 2;
-  const server_reaction_groups = group_reactions(message.reactions, auth?.user?.email);
+  const is_own_message = message.item_type === "sent";
+  const restriction = reaction_restriction(
+    message,
+    auth?.user?.email ?? "",
+    reactions_enabled,
+    is_own_reaction_address,
+  );
+  const can_react = restriction === null;
+  const server_reaction_groups = group_reactions(
+    message.reactions,
+    auth?.user?.email,
+    removed_reaction_ids,
+  );
   const reaction_groups = merge_pending_reactions(
     server_reaction_groups,
-    pending_emojis,
+    pending_reactions,
   );
 
   async function send_reaction_emoji(emoji: string): Promise<void> {
+    if (restriction !== null) {
+      show_toast(t(`errors.${reaction_restriction_keys[restriction]}`), "error");
+      return;
+    }
+
     set_is_sending_reaction(true);
 
     const result = await send_reaction(message, emoji, thread_token);
@@ -153,7 +201,48 @@ export function ThreadMessageActions({
       return;
     }
 
-    set_pending_emojis((prev) => (prev.includes(emoji) ? prev : [...prev, emoji]));
+    set_pending_reactions((prev) =>
+      prev.some((pending) => pending.emoji === emoji)
+        ? prev
+        : [
+            ...prev,
+            {
+              emoji,
+              reaction_mail_item_id: result.own_reaction_mail_item_id,
+            },
+          ],
+    );
+
+    emit_mail_soft_refresh();
+  }
+
+  async function remove_reaction_emoji(group: ReactionChipGroup): Promise<void> {
+    const reaction_mail_item_id = group.self_reaction_mail_item_id;
+
+    if (!reaction_mail_item_id) {
+      show_toast(t("errors.failed_remove_reaction"), "error");
+      return;
+    }
+
+    set_is_sending_reaction(true);
+
+    const result = await remove_reaction(reaction_mail_item_id);
+
+    set_is_sending_reaction(false);
+
+    if (!result.success) {
+      show_toast(result.error ?? t("errors.failed_remove_reaction"), "error");
+      return;
+    }
+
+    set_pending_reactions((prev) =>
+      prev.filter((pending) => pending.emoji !== group.emoji),
+    );
+    set_removed_reaction_ids((prev) =>
+      prev.includes(reaction_mail_item_id)
+        ? prev
+        : [...prev, reaction_mail_item_id],
+    );
 
     emit_mail_soft_refresh();
   }
@@ -161,12 +250,12 @@ export function ThreadMessageActions({
   async function handle_reaction_select(emoji: string): Promise<void> {
     set_is_picker_open(false);
 
-    const already_reacted = reaction_groups.some(
+    const existing = reaction_groups.find(
       (group) => group.emoji === emoji && group.includes_self,
     );
 
-    if (already_reacted) {
-      show_toast(t("mail.already_reacted"), "info");
+    if (existing) {
+      await remove_reaction_emoji(existing);
       return;
     }
 
@@ -175,9 +264,11 @@ export function ThreadMessageActions({
 
   function handle_chip_click(group: ReactionChipGroup): void {
     if (group.includes_self) {
-      show_toast(t("mail.already_reacted"), "info");
+      void remove_reaction_emoji(group);
       return;
     }
+
+    if (is_own_message) return;
 
     void send_reaction_emoji(group.emoji);
   }
@@ -188,7 +279,7 @@ export function ThreadMessageActions({
         <div className="flex flex-wrap items-center gap-1.5 px-4 pt-2 pb-1">
           {reaction_groups.map((group) => {
             const tooltip = group.includes_self
-              ? t("mail.you_reacted_with", { emoji: group.emoji })
+              ? t("mail.remove_your_reaction", { emoji: group.emoji })
               : group.reactor_names[0]
                 ? t("mail.reacted_with", {
                     name: group.reactor_names[0],
@@ -255,7 +346,7 @@ export function ThreadMessageActions({
           {t("mail.forward")}
         </Button>
       )}
-      {reactions_enabled && (
+      {can_react && (
         <Popover open={is_picker_open} onOpenChange={set_is_picker_open}>
           <PopoverTrigger asChild>
             <button

@@ -22,6 +22,8 @@ import {
   DANGEROUS_CSS_PATTERNS,
   MAX_CSS_PX,
   COMPOSE_ALLOWED_CSS_PROPERTIES,
+  COMPOSE_ALLOWED_DISPLAY_VALUES,
+  COMPOSE_ALLOWED_VERTICAL_ALIGN_VALUES,
 } from "./html_sanitizer_constants";
 
 const TRANSPARENT_COLOR_VALUE_RE =
@@ -262,6 +264,20 @@ export function sanitize_compose_style(style_text: string): string {
     const value = decl.slice(colon_index + 1).trim();
 
     if (!COMPOSE_ALLOWED_CSS_PROPERTIES.has(prop)) continue;
+
+    if (
+      prop === "display" &&
+      !COMPOSE_ALLOWED_DISPLAY_VALUES.has(value.toLowerCase())
+    ) {
+      continue;
+    }
+
+    if (
+      prop === "vertical-align" &&
+      !COMPOSE_ALLOWED_VERTICAL_ALIGN_VALUES.has(value.toLowerCase())
+    ) {
+      continue;
+    }
 
     if (/url\s*\(/i.test(value)) continue;
     if (/expression\s*\(/i.test(value)) continue;

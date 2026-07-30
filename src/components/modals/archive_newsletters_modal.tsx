@@ -509,8 +509,9 @@ export function ArchiveNewslettersModal({
                       style={{ color: "var(--text-muted)" }}
                     />
                     <Input
-                      className="w-full pl-8 pr-3"
+                      className="w-full"
                       placeholder={t("common.search") + "..."}
+                      style={{ paddingLeft: "34px", paddingRight: "12px" }}
                       value={search_query}
                       onChange={(e) => set_search_query(e.target.value)}
                     />

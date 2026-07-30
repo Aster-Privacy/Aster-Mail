@@ -128,6 +128,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                   decoding="async"
                   draggable={false}
                   src="/text_logo.png"
+                  style={{ filter: "var(--accent-brand-filter, none)" }}
                   onClick={handle_logo_tap}
                   onLoad={() => {
                     set_text_logo_loaded(true);

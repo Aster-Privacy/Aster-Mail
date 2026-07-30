@@ -136,6 +136,7 @@ export interface SearchResultItem {
   is_starred: boolean;
   has_attachment: boolean;
   avatar_url?: string;
+  item_type?: string;
   folders?: { folder_token: string; name: string }[];
 }
 
@@ -1980,6 +1981,7 @@ function to_search_result(
     is_read: metadata?.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,
     has_attachment: metadata?.has_attachments ?? false,
+    item_type: item.item_type,
     folders: [
       ...(item.labels || []).map((l) => ({
         folder_token: l.token,

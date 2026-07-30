@@ -87,6 +87,7 @@ export function MobileThreadMessage({
   format_detail,
   t,
   force_dark_mode,
+  disable_auto_dark_mode,
 }: {
   message: DecryptedThreadMessage;
   is_expanded: boolean;
@@ -100,6 +101,7 @@ export function MobileThreadMessage({
   format_detail: (date: Date) => string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   force_dark_mode?: boolean;
+  disable_auto_dark_mode?: boolean;
 }) {
   const { preferences } = use_preferences();
   const auth = use_auth_safe();
@@ -395,6 +397,7 @@ export function MobileThreadMessage({
             body_background={sanitize_result.body_background}
             email_id={message.id}
             force_dark_mode={force_dark_mode}
+            disable_auto_dark_mode={disable_auto_dark_mode}
             is_plain_text={!has_rich_html(clean_body)}
             load_remote_content={!lockdown_active && load_remote_content}
             sanitized_html={sanitized_html}

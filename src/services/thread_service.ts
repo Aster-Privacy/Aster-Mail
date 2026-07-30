@@ -61,6 +61,7 @@ import {
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
+import { is_reaction_payload_body } from "@/lib/reaction_payload";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
@@ -511,7 +512,9 @@ export async function fetch_and_decrypt_thread_messages(
 
   const results = await Promise.all(decrypt_promises);
 
-  decrypted_messages.push(...results);
+  decrypted_messages.push(
+    ...results.filter((msg) => !is_reaction_payload_body(msg.body)),
+  );
 
   decrypted_messages.sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
@@ -694,7 +697,10 @@ export async function fetch_and_decrypt_virtual_group(
   });
 
 
-  const results = await Promise.all(decrypt_promises);
+  const decrypted = await Promise.all(decrypt_promises);
+  const results = decrypted.filter(
+    (msg) => !is_reaction_payload_body(msg.body),
+  );
 
   results.sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),

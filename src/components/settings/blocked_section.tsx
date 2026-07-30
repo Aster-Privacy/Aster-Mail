@@ -246,9 +246,9 @@ export function BlockedSection() {
         <div className="relative flex-1 max-w-xs">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
-            className="!pl-9"
             placeholder={t("common.search_blocked_senders")}
             size="md"
+            style={{ paddingLeft: "38px" }}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
           />

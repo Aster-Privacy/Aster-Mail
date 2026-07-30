@@ -41,6 +41,17 @@ interface ToastState {
 
 const MAX_TOASTS = 3;
 
+export const TOAST_DURATION_DEFAULT_MS = 2000;
+
+let toast_min_duration_ms = TOAST_DURATION_DEFAULT_MS;
+
+export function set_toast_min_duration(duration_ms: number) {
+  toast_min_duration_ms = Math.max(
+    TOAST_DURATION_DEFAULT_MS,
+    Math.min(30000, Math.round(duration_ms)),
+  );
+}
+
 let toast_listeners: ((toasts: ToastState[]) => void)[] = [];
 let toast_stack: ToastState[] = [];
 let toast_timeouts: Map<string, NodeJS.Timeout> = new Map();
@@ -59,8 +70,9 @@ export function dismiss_toast(id: string) {
 export function show_toast(
   message: string,
   icon_type?: ToastIconType,
-  duration = 2000,
+  duration = TOAST_DURATION_DEFAULT_MS,
 ): string {
+  const effective_duration = Math.max(duration, toast_min_duration_ms);
   const duplicate = toast_stack.find(
     (t) => t.message === message && t.icon_type === icon_type,
   );
@@ -76,7 +88,7 @@ export function show_toast(
       toast_timeouts.delete(duplicate.id);
       toast_stack = toast_stack.filter((t) => t.id !== duplicate.id);
       toast_listeners.forEach((listener) => listener([...toast_stack]));
-    }, duration);
+    }, effective_duration);
 
     toast_timeouts.set(duplicate.id, timeout);
 
@@ -111,7 +123,7 @@ export function show_toast(
     toast_timeouts.delete(new_toast.id);
     toast_stack = toast_stack.filter((t) => t.id !== new_toast.id);
     toast_listeners.forEach((listener) => listener([...toast_stack]));
-  }, duration);
+  }, effective_duration);
 
   toast_timeouts.set(new_toast.id, timeout);
 

@@ -52,6 +52,7 @@ import {
   get_external_content_mode,
   set_external_content_mode,
 } from "@/components/email/viewer_shared";
+import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { get_label_hints } from "@/stores/label_hints_store";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -107,6 +108,7 @@ export function FullEmailViewer({
   const { t } = use_i18n();
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
   const { get_tag_by_token } = use_tags();
+  const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const viewer = use_email_viewer({
     email_id,
     local_email,
@@ -401,7 +403,7 @@ export function FullEmailViewer({
               on_pin_toggle={viewer.handle_pin_toggle}
               on_print={viewer.handle_print}
               on_read_toggle={viewer.handle_read_toggle}
-              on_spam={viewer.handle_spam}
+              on_spam={() => request_spam(viewer.handle_spam)}
               on_trash={viewer.handle_trash}
               on_unsubscribe={viewer.handle_unsubscribe}
               show_block_sender_on_alias={viewer.show_block_sender_on_alias}
@@ -497,7 +499,11 @@ export function FullEmailViewer({
               on_print={viewer.handle_per_message_print}
               on_reply={viewer.handle_per_message_reply}
               on_reply_all={viewer.handle_per_message_reply_all}
-              on_report_phishing={viewer.handle_per_message_report_phishing}
+              on_report_phishing={(msg) =>
+                request_spam(() =>
+                  viewer.handle_per_message_report_phishing(msg),
+                )
+              }
               on_draft_saved={viewer.handle_draft_saved}
               on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
               on_toggle_message_read={viewer.handle_toggle_message_read}
@@ -522,6 +528,7 @@ export function FullEmailViewer({
           </div>
         )}
       </div>
+      {spam_confirm_dialog}
     </div>
   );
 }

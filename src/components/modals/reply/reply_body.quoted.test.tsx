@@ -39,6 +39,11 @@ vi.mock("@/lib/image_proxy", () => ({
 
 vi.mock("@/services/lockdown_store", () => ({
   is_any_lockdown_active: () => false,
+  LOCKDOWN_CHANGED_EVENT: "lockdown_changed",
+}));
+
+vi.mock("@/contexts/external_link_context", () => ({
+  use_external_link: () => ({ handle_external_link: vi.fn() }),
 }));
 
 vi.mock("@/components/modals/confirmation_modal", () => ({

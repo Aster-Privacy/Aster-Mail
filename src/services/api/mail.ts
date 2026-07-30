@@ -36,6 +36,7 @@ export interface ReactionSummary {
   source: "internal" | "external_inbound" | "external_outbound";
   emoji?: string;
   reactor_email?: string;
+  is_own?: boolean;
   created_at: string;
 }
 
@@ -95,6 +96,8 @@ export interface ListMailItemsParams {
   is_trashed?: boolean;
   is_archived?: boolean;
   is_spam?: boolean;
+  include_spam?: boolean;
+  include_trash?: boolean;
   ids?: string[];
   folder_filter_token?: string;
   label_token?: string;
@@ -110,6 +113,7 @@ export interface ListEncryptedMailItemsParams {
   cursor?: string;
   item_type?: "received" | "sent" | "draft" | "scheduled";
   include_envelope?: boolean;
+  include_reactions?: boolean;
 }
 
 export interface CreateMailItemRequest {
@@ -212,6 +216,10 @@ export async function list_mail_items(
     query_params.set("is_archived", String(params.is_archived));
   if (params.is_spam !== undefined)
     query_params.set("is_spam", String(params.is_spam));
+  if (params.include_spam !== undefined)
+    query_params.set("include_spam", String(params.include_spam));
+  if (params.include_trash !== undefined)
+    query_params.set("include_trash", String(params.include_trash));
   if (params.label_token) query_params.set("label_token", params.label_token);
   if (params.tag_token) query_params.set("tag_token", params.tag_token);
   if (params.routing_token)
@@ -237,6 +245,7 @@ export async function list_encrypted_mail_items(
   if (params.item_type) query_params.set("item_type", params.item_type);
   if (params.include_envelope === false)
     query_params.set("include_envelope", "false");
+  if (params.include_reactions) query_params.set("include_reactions", "true");
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages/encrypted${query_string ? `?${query_string}` : ""}`;

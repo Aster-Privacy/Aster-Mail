@@ -70,7 +70,7 @@ export function use_inbox_keyboard(
       const detail = (e as CustomEvent<{ id: string }>).detail;
       const email = find_email(detail.id);
 
-      if (email && email.is_read)
+      if (email && email.is_read && email.item_type !== "sent")
         context_menu_actions.handle_toggle_read(email);
     };
     const handle_snooze = (e: Event) => {

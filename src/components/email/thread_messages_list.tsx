@@ -40,7 +40,15 @@ import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
-import { emit_mail_item_updated } from "@/hooks/mail_events";
+import {
+  emit_mail_item_updated,
+  emit_mail_soft_refresh,
+  mail_event_bus,
+  MAIL_EVENTS,
+} from "@/hooks/mail_events";
+import { get_cached_folders } from "@/hooks/use_folders";
+import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { adjust_starred_count } from "@/hooks/use_mail_counts";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
 
@@ -163,7 +171,122 @@ export const ThreadMessagesList = forwardRef<
   );
 
 
-  const [dark_mode_ids, set_dark_mode_ids] = useState<Set<string>>(new Set());
+  const [dark_mode_overrides, set_dark_mode_overrides] = useState<
+    Map<string, boolean>
+  >(new Map());
+  const [available_folders, set_available_folders] = useState(() =>
+    get_cached_folders(),
+  );
+  const [applied_folders, set_applied_folders] = useState<
+    Map<string, string[]>
+  >(new Map());
+  const moving_to_folder_ref = useRef(false);
+
+  useEffect(() => {
+    const sync_folders = () => {
+      set_available_folders(get_cached_folders());
+    };
+
+    sync_folders();
+
+    return mail_event_bus.subscribe(MAIL_EVENTS.FOLDERS_CHANGED, sync_folders);
+  }, []);
+
+  const folder_options = useMemo(
+    () =>
+      available_folders
+        .filter((folder) => !folder.is_system && !folder.is_password_protected)
+        .map((folder) => ({
+          id: folder.folder_token,
+          name: folder.name,
+          color: folder.color ?? "",
+        })),
+    [available_folders],
+  );
+
+  const handle_move_to_folder = useCallback(
+    async (msg: DecryptedThreadMessage, folder_token: string) => {
+      const folder = get_cached_folders().find(
+        (candidate) => candidate.folder_token === folder_token,
+      );
+      const folder_name = folder?.name ?? t("common.folder_fallback");
+      const was_applied = (applied_folders.get(msg.id) ?? []).includes(
+        folder_token,
+      );
+
+      if (moving_to_folder_ref.current) return;
+
+      moving_to_folder_ref.current = true;
+
+      let result: Awaited<ReturnType<typeof bulk_add_folder>>;
+
+      try {
+        result = was_applied
+          ? await bulk_remove_folder([msg.id], folder_token)
+          : await bulk_add_folder([msg.id], folder_token);
+      } catch {
+        result = { error: t("common.failed_to_move_email") };
+      } finally {
+        moving_to_folder_ref.current = false;
+      }
+
+      if (result.error) {
+        show_action_toast({
+          message: t("common.failed_to_move_email"),
+          action_type: "folder",
+          email_ids: [msg.id],
+        });
+
+        return;
+      }
+
+      set_applied_folders((prev) => {
+        const next = new Map(prev);
+        const current = next.get(msg.id) ?? [];
+
+        next.set(
+          msg.id,
+          was_applied
+            ? current.filter((token) => token !== folder_token)
+            : [...current, folder_token],
+        );
+
+        return next;
+      });
+
+      show_action_toast({
+        message: was_applied
+          ? t("common.removed_from_folder", { folder: folder_name })
+          : t("common.moved_to_folder", { folder: folder_name }),
+        action_type: "folder",
+        email_ids: [msg.id],
+        on_undo: async () => {
+          if (was_applied) {
+            await bulk_add_folder([msg.id], folder_token);
+          } else {
+            await bulk_remove_folder([msg.id], folder_token);
+          }
+
+          set_applied_folders((prev) => {
+            const next = new Map(prev);
+            const current = next.get(msg.id) ?? [];
+
+            next.set(
+              msg.id,
+              was_applied
+                ? [...current, folder_token]
+                : current.filter((token) => token !== folder_token),
+            );
+
+            return next;
+          });
+          emit_mail_soft_refresh();
+        },
+      });
+      emit_mail_soft_refresh();
+    },
+    [applied_folders, t],
+  );
   const [hidden_group_revealed, set_hidden_group_revealed] = useState(false);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
@@ -333,19 +456,28 @@ export const ThreadMessagesList = forwardRef<
     });
   }, [expanded_ids, message_ids_key]);
 
-  const toggle_dark_mode = useCallback((msg_id: string) => {
-    set_dark_mode_ids((prev) => {
-      const next = new Set(prev);
+  const is_dark_mode_message = useCallback(
+    (msg_id: string) => dark_mode_overrides.get(msg_id) ?? force_all_dark_mode,
+    [dark_mode_overrides, force_all_dark_mode],
+  );
 
-      if (next.has(msg_id)) {
-        next.delete(msg_id);
-      } else {
-        next.add(msg_id);
-      }
+  const is_dark_mode_opted_out = useCallback(
+    (msg_id: string) => dark_mode_overrides.get(msg_id) === false,
+    [dark_mode_overrides],
+  );
 
-      return next;
-    });
-  }, []);
+  const toggle_dark_mode = useCallback(
+    (msg_id: string) => {
+      set_dark_mode_overrides((prev) => {
+        const next = new Map(prev);
+
+        next.set(msg_id, !(prev.get(msg_id) ?? force_all_dark_mode));
+
+        return next;
+      });
+    },
+    [force_all_dark_mode],
+  );
 
   const toggle = useCallback(
     (msg: DecryptedThreadMessage) => {
@@ -624,16 +756,17 @@ export const ThreadMessagesList = forwardRef<
 
   const all_dark_mode = useMemo(() => {
     return (
-      regular_messages.length > 0 && regular_messages.every((m) => dark_mode_ids.has(m.id))
+      regular_messages.length > 0 &&
+      regular_messages.every((m) => is_dark_mode_message(m.id))
     );
-  }, [regular_messages, dark_mode_ids]);
+  }, [regular_messages, is_dark_mode_message]);
 
   const toggle_all_dark_mode = useCallback(() => {
-    if (all_dark_mode) {
-      set_dark_mode_ids(new Set());
-    } else {
-      set_dark_mode_ids(new Set(regular_messages.map((m) => m.id)));
-    }
+    const next_value = !all_dark_mode;
+
+    set_dark_mode_overrides(
+      new Map(regular_messages.map((m) => [m.id, next_value])),
+    );
   }, [all_dark_mode, regular_messages]);
 
 
@@ -711,7 +844,8 @@ export const ThreadMessagesList = forwardRef<
         on_unsubscribe={is_last ? on_unsubscribe : undefined}
         on_manual_unsubscribed={is_last ? on_manual_unsubscribed : undefined}
         unsubscribe_url={is_last ? unsubscribe_url : undefined}
-        force_dark_mode={force_all_dark_mode || dark_mode_ids.has(msg.id)}
+        force_dark_mode={is_dark_mode_message(msg.id)}
+        disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
         inline_mode={inline_mode}
         inline_reply_is_external={inline_reply_is_external}
         inline_reply_thread_token={inline_reply_thread_token}
@@ -731,6 +865,9 @@ export const ThreadMessagesList = forwardRef<
         }
         is_starred={starred_ids.has(msg.id)}
         message={msg}
+        folders={folder_options}
+        message_folder_tokens={applied_folders.get(msg.id)}
+        on_move_to_folder={handle_move_to_folder}
         on_archive={on_archive}
         on_close_inline_reply={on_close_inline_reply}
         on_external_content_detected={on_external_content_detected}

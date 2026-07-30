@@ -296,6 +296,22 @@ export interface MailRulesTranslations {
   apply_to_existing_started: string;
 
   apply_to_existing_failed: string;
+
+  apply_to_existing_cancel: string;
+
+  apply_to_existing_cancel_failed: string;
+
+  apply_to_existing_queued: string;
+
+  apply_to_existing_progress: string;
+
+  apply_to_existing_progress_total: string;
+
+  apply_to_existing_done: string;
+
+  apply_to_existing_canceled: string;
+
+  apply_to_existing_error: string;
   empty_title: string;
   empty_description: string;
   empty_cta: string;
@@ -1268,6 +1284,10 @@ export interface CommonTranslations {
   protected_in_transit: string;
   recipient_key_outdated?: string;
   recipient_key_outdated_desc?: string;
+  encryption_available?: string;
+  encryption_available_desc?: string;
+  click_to_encrypt?: string;
+  click_to_disable_encryption?: string;
   end_to_end_encrypted_label: string;
   encrypted_in_transit_stored: string;
   only_you_and_sender: string;
@@ -2341,6 +2361,14 @@ export interface SettingsTranslations {
   toast_position_bottom_right: string;
   toast_position_top_left: string;
   toast_position_bottom_left: string;
+  toast_duration: string;
+  toast_duration_description: string;
+  toast_duration_default: string;
+  toast_duration_long: string;
+  toast_duration_longer: string;
+  toast_duration_longest: string;
+  send_test_notification: string;
+  test_notification_blocked: string;
   choose_notification_events: string;
   quiet_hours: string;
   enable_quiet_hours: string;
@@ -2404,6 +2432,8 @@ export interface SettingsTranslations {
   no_custom_categories: string;
   category_name_required: string;
   category_rule_required: string;
+  template_name_required: string;
+  template_content_required: string;
   category_domains_invalid: string;
   category_keywords_invalid: string;
   category_expand: string;
@@ -4346,6 +4376,12 @@ export interface SettingsTranslations {
   signature_name_placeholder: string;
   signature_content: string;
   signature_content_placeholder: string;
+  signature_name_required: string;
+  signature_content_required: string;
+  signature_image_too_large: string;
+  signature_image_invalid: string;
+  signature_image_failed: string;
+  signature_divider_limit: string;
   plain_text_hint: string;
   update_signature: string;
   create_signature: string;
@@ -5438,6 +5474,7 @@ export interface MailTranslations {
   react: string;
   already_reacted: string;
   you_reacted_with: string;
+  remove_your_reaction: string;
   reacted_with: string;
   reply_subject_prefix: string;
   reply_from_mismatch_title: string;
@@ -6544,6 +6581,15 @@ export interface AuthTranslations {
 
 export interface ErrorTranslations {
   generic: string;
+  failed_remove_reaction: string;
+  cannot_react_own_message: string;
+  cannot_react_draft: string;
+  cannot_react_spam_or_trash: string;
+  cannot_react_reply_to: string;
+  cannot_react_too_many_recipients: string;
+  cannot_react_bcc: string;
+  cannot_react_too_many_emojis: string;
+  cannot_react_no_recipient: string;
   failed_send_reaction: string;
   reactions_disabled: string;
   network: string;

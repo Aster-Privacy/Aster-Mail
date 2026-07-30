@@ -33,6 +33,46 @@ import {
   escape_html,
 } from "@/hooks/editor_utils";
 
+const ZERO_WIDTH_SPACE = "\u200B";
+
+export const MAX_HORIZONTAL_RULES = 25;
+
+function break_out_of_link(editor: HTMLElement) {
+  const selection = window.getSelection();
+
+  if (!selection || selection.rangeCount === 0) return;
+
+  const range = selection.getRangeAt(0);
+  let node: Node | null = range.endContainer;
+  let anchor: HTMLAnchorElement | null = null;
+
+  while (node && node !== editor) {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+
+      if (element.tagName === "A") {
+        anchor = element as HTMLAnchorElement;
+        break;
+      }
+    }
+
+    node = node.parentNode;
+  }
+
+  if (!anchor || !anchor.parentNode) return;
+
+  const spacer = document.createTextNode(ZERO_WIDTH_SPACE);
+
+  anchor.parentNode.insertBefore(spacer, anchor.nextSibling);
+
+  const after_range = document.createRange();
+
+  after_range.setStart(spacer, 1);
+  after_range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(after_range);
+}
+
 export function use_editor_format(
   editor_ref: React.RefObject<HTMLDivElement | null>,
   is_plain_text_mode: boolean,
@@ -310,7 +350,11 @@ export function use_editor_format(
   const insert_horizontal_rule = useCallback(() => {
     const editor = editor_ref.current;
 
-    if (!editor || is_plain_text_mode) return;
+    if (!editor || is_plain_text_mode) return false;
+
+    if (editor.querySelectorAll("hr").length >= MAX_HORIZONTAL_RULES) {
+      return false;
+    }
 
     restore_selection();
     document.execCommand("insertHorizontalRule", false);
@@ -319,6 +363,8 @@ export function use_editor_format(
       save_selection();
       check_active_formats();
     });
+
+    return true;
   }, [
     editor_ref,
     is_plain_text_mode,
@@ -417,6 +463,7 @@ export function use_editor_format(
         );
       }
 
+      break_out_of_link(editor);
       handle_input();
       requestAnimationFrame(() => {
         save_selection();

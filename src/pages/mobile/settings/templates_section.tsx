@@ -58,13 +58,18 @@ export function TemplatesSection({
   const [form_category, set_form_category] = useState("");
   const [form_content, set_form_content] = useState("");
   const [is_saving, set_is_saving] = useState(false);
+  const [show_validation, set_show_validation] = useState(false);
   const [error, set_error] = useState<string | null>(null);
+
+  const name_invalid = show_validation && !form_name.trim();
+  const content_invalid = show_validation && !form_content.trim();
 
   const open_create_form = useCallback(() => {
     set_editing_id(null);
     set_form_name("");
     set_form_category("");
     set_form_content("");
+    set_show_validation(false);
     set_show_form(true);
   }, []);
 
@@ -73,6 +78,7 @@ export function TemplatesSection({
     set_form_name(tmpl.name);
     set_form_category(tmpl.category);
     set_form_content(tmpl.content);
+    set_show_validation(false);
     set_show_form(true);
   }, []);
 
@@ -96,7 +102,13 @@ export function TemplatesSection({
   }, []);
 
   const handle_save = useCallback(async () => {
-    if (!form_name.trim() || !form_content.trim() || is_saving) return;
+    if (is_saving) return;
+
+    if (!form_name.trim() || !form_content.trim()) {
+      set_show_validation(true);
+
+      return;
+    }
     set_is_saving(true);
     set_error(null);
     const form_data = {
@@ -226,25 +238,47 @@ export function TemplatesSection({
               initial={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <Input
-                className="w-full"
-                placeholder={t("settings.template_name_placeholder")}
-                value={form_name}
-                onChange={(e) => set_form_name(e.target.value)}
-              />
+              <div>
+                <Input
+                  aria-invalid={name_invalid}
+                  className="w-full"
+                  placeholder={t("settings.template_name_placeholder")}
+                  status={name_invalid ? "error" : "default"}
+                  value={form_name}
+                  onChange={(e) => set_form_name(e.target.value)}
+                />
+                {name_invalid && (
+                  <p className="mt-1.5 text-[12px] text-red-500">
+                    {t("settings.template_name_required")}
+                  </p>
+                )}
+              </div>
               <Input
                 className="w-full"
                 placeholder={t("settings.category_placeholder")}
                 value={form_category}
                 onChange={(e) => set_form_category(e.target.value)}
               />
-              <textarea
-                className="w-full resize-none rounded-xl bg-[var(--mobile-bg-card)] p-4 text-[15px] text-[var(--mobile-text-primary)] placeholder:text-[var(--mobile-text-muted)] outline-none"
-                placeholder={t("settings.template_content_placeholder")}
-                rows={6}
-                value={form_content}
-                onChange={(e) => set_form_content(e.target.value)}
-              />
+              <div>
+                <textarea
+                  aria-invalid={content_invalid}
+                  className="w-full resize-none rounded-xl bg-[var(--mobile-bg-card)] p-4 text-[15px] text-[var(--mobile-text-primary)] placeholder:text-[var(--mobile-text-muted)] outline-none"
+                  placeholder={t("settings.template_content_placeholder")}
+                  rows={6}
+                  style={
+                    content_invalid
+                      ? { boxShadow: "inset 0 0 0 1px var(--color-danger)" }
+                      : undefined
+                  }
+                  value={form_content}
+                  onChange={(e) => set_form_content(e.target.value)}
+                />
+                {content_invalid && (
+                  <p className="mt-1.5 text-[12px] text-red-500">
+                    {t("settings.template_content_required")}
+                  </p>
+                )}
+              </div>
               <div className="flex gap-3">
                 <button
                   className="flex-1 rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[15px] font-medium text-[var(--mobile-text-primary)]"
@@ -258,9 +292,7 @@ export function TemplatesSection({
                 </button>
                 <motion.button
                   className="flex-1 flex items-center justify-center rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
-                  disabled={
-                    !form_name.trim() || !form_content.trim() || is_saving
-                  }
+                  disabled={is_saving}
                   style={{
                     background:
                       "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",

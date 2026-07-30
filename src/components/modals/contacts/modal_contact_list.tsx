@@ -171,8 +171,9 @@ export function ModalContactList({
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-[16px] h-[16px] pointer-events-none text-txt-muted" />
           <Input
             ref={search_input_ref}
-            className="w-full !pl-9 pr-4"
+            className="w-full"
             placeholder={t("common.search_contacts")}
+            style={{ paddingLeft: "38px", paddingRight: "36px" }}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
           />

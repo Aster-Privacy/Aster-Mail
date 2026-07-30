@@ -98,7 +98,11 @@ export function create_account_message_source(): ExportSource {
 
   return {
     async prepare(_scope: ExportScope, _signal: AbortSignal): Promise<ExportSourceContext> {
-      const probe = await list_mail_items({ limit: 1, item_type: "all" });
+      const probe = await list_mail_items({
+        limit: 1,
+        item_type: "all",
+        include_spam: true,
+      });
       total = probe.data?.total ?? 0;
       return { total, scope: _scope };
     },
@@ -114,6 +118,7 @@ export function create_account_message_source(): ExportSource {
           limit: PAGE_SIZE,
           cursor,
           item_type: "all",
+          include_spam: true,
         });
         if (!page.data?.items?.length) break;
 

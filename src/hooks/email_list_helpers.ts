@@ -62,6 +62,7 @@ import {
   type FormatOptions,
 } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import {
   resolve_sender_profiles,
@@ -97,7 +98,7 @@ export const VIEW_PARAMS: Record<MailView, Partial<ListMailItemsParams>> = {
   archive: { is_archived: true, is_trashed: false, is_spam: false },
   spam: { is_spam: true },
   snoozed: { is_snoozed: true, is_trashed: false, is_spam: false },
-  all: { item_type: "all", is_trashed: false, is_spam: false },
+  all: { item_type: "all", include_spam: false, include_trash: false },
 };
 
 const VIEWS_EXCLUDING_TRASHED_SPAM = new Set<string>([
@@ -786,8 +787,10 @@ export async function fetch_mail_from_api(
 
   if (signal.aborted || !response.data) return null;
 
-  const items = response.data.items;
-  const total = response.data.total;
+  const returned_items = response.data.items;
+  const items = returned_items.filter((item) => item.is_reaction !== true);
+  const hidden_count = returned_items.length - items.length;
+  let total = Math.max(0, (response.data.total ?? 0) - hidden_count);
   const has_more = response.data.has_more;
   const next_cursor = response.data.next_cursor;
 
@@ -838,7 +841,16 @@ export async function fetch_mail_from_api(
         metadata: MailItemMetadata | null;
       }> => r.status === "fulfilled",
     )
-    .map((r) => r.value);
+    .map((r) => r.value)
+    .filter(({ envelope }) => {
+      const is_reaction_body =
+        is_reaction_payload_body(envelope?.body_text) ||
+        is_reaction_payload_body(envelope?.text_body);
+
+      if (is_reaction_body) total = Math.max(0, total - 1);
+
+      return !is_reaction_body;
+    });
 
   const sender_emails = successful
     .map(({ envelope }) => envelope?.from?.email)

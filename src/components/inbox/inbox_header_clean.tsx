@@ -546,9 +546,10 @@ export function InboxHeader({
             />
             <Input
               readOnly
-              className="pl-9 pr-14 w-80 cursor-pointer"
+              className="w-80 cursor-pointer"
               placeholder={t("common.search_anything")}
               size="md"
+              style={{ paddingLeft: "38px", paddingRight: "56px" }}
               type="text"
               onClick={() => set_is_search_open(true)}
             />

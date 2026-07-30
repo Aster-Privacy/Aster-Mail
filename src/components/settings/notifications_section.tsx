@@ -32,6 +32,8 @@ import {
   subscribe_to_push,
   unsubscribe_from_push,
 } from "@/services/push_subscription";
+import { show_notification } from "@/services/notification_service";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -276,6 +278,31 @@ export function NotificationsSection() {
     unsubscribe_from_push();
   };
 
+  const send_test_notification = async () => {
+    show_toast(t("settings.test_notification_body"), "info");
+
+    if (permission_state !== "granted" || !preferences.desktop_notifications) {
+      show_toast(t("settings.test_notification_blocked"), "warning");
+
+      return;
+    }
+
+    await show_notification(
+      "new_email",
+      {
+        title: t("settings.test_notification"),
+        body: t("settings.test_notification_body"),
+        tag: "aster-test-notification",
+      },
+      {
+        ...preferences,
+        desktop_notifications: true,
+        notify_new_email: true,
+        quiet_hours_enabled: false,
+      },
+    );
+  };
+
   const desktop_description =
     permission_state === "denied"
       ? is_tauri
@@ -380,6 +407,53 @@ export function NotificationsSection() {
               </SelectItem>
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex items-center justify-between py-3">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.toast_duration")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.toast_duration_description")}
+            </p>
+          </div>
+          <Select
+            value={String(preferences.toast_duration_ms)}
+            onValueChange={(v) =>
+              update_preference("toast_duration_ms", Number(v), true)
+            }
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2000">
+                {t("settings.toast_duration_default")}
+              </SelectItem>
+              <SelectItem value="5000">
+                {t("settings.toast_duration_long")}
+              </SelectItem>
+              <SelectItem value="10000">
+                {t("settings.toast_duration_longer")}
+              </SelectItem>
+              <SelectItem value="20000">
+                {t("settings.toast_duration_longest")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between py-3">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.send_test_notification")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.test_notification_body")}
+            </p>
+          </div>
+          <Button size="md" variant="outline" onClick={send_test_notification}>
+            {t("settings.send_test_notification")}
+          </Button>
         </div>
       </div>
 

@@ -337,4 +337,21 @@ export const COMPOSE_ALLOWED_CSS_PROPERTIES = new Set([
   "width",
   "direction",
   "unicode-bidi",
+  "display",
+  "vertical-align",
+]);
+
+export const COMPOSE_ALLOWED_DISPLAY_VALUES = new Set([
+  "block",
+  "inline",
+  "inline-block",
+]);
+
+export const COMPOSE_ALLOWED_VERTICAL_ALIGN_VALUES = new Set([
+  "baseline",
+  "top",
+  "middle",
+  "bottom",
+  "text-top",
+  "text-bottom",
 ]);
