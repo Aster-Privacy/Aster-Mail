@@ -97,7 +97,9 @@ export function EncryptionSection() {
         is_saving_keyservers={encryption.is_saving_keyservers}
         is_publishing_keyserver={encryption.is_publishing_keyserver}
         keyserver_input={encryption.keyserver_input}
+        keyserver_error={encryption.keyserver_error}
         keyserver_published={encryption.keyserver_published}
+        keyserver_state={encryption.keyserver_state}
         keyserver_urls={encryption.keyserver_urls}
         preferences={encryption.preferences}
         set_keyserver_input={encryption.set_keyserver_input}

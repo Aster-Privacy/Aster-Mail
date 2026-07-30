@@ -277,10 +277,26 @@ export async function get_wkd_publication_status(): Promise<
   );
 }
 
+export type KeyserverPublicationState =
+  | "not_published"
+  | "not_submitted"
+  | "awaiting_verification"
+  | "failed"
+  | "published";
+
+export interface KeyserverPublicationStatus {
+  published: boolean;
+  fingerprint?: string;
+  state?: KeyserverPublicationState;
+  error?: string;
+  submitted_at?: string;
+  verified_at?: string;
+}
+
 export async function get_keyserver_publication_status(): Promise<
-  ApiResponse<{ published: boolean; fingerprint?: string }>
+  ApiResponse<KeyserverPublicationStatus>
 > {
-  return api_client.get<{ published: boolean; fingerprint?: string }>(
+  return api_client.get<KeyserverPublicationStatus>(
     "/crypto/v1/keys/publish/keyserver/status",
   );
 }

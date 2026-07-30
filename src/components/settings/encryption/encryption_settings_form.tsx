@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UserPreferences } from "@/services/api/preferences";
+import type { KeyserverPublicationState } from "@/services/api/keys";
 
 import {
   ShieldCheckIcon,
@@ -62,7 +63,7 @@ function ToggleSetting({
   );
 }
 
-const DEFAULT_KEYSERVERS = ["https://keys.openpgp.org", "https://keyserver.ubuntu.com"];
+const DEFAULT_KEYSERVERS = ["https://keys.openpgp.org"];
 
 interface EncryptionSettingsFormProps {
   preferences: {
@@ -87,6 +88,8 @@ interface EncryptionSettingsFormProps {
   handle_add_keyserver: () => void;
   handle_remove_keyserver: (url: string) => void;
   keyserver_published: boolean | null;
+  keyserver_state: KeyserverPublicationState | null;
+  keyserver_error: string | null;
   is_publishing_keyserver: boolean;
   handle_publish_to_keyservers: () => Promise<void>;
 }
@@ -104,10 +107,38 @@ export function EncryptionSettingsForm({
   handle_add_keyserver,
   handle_remove_keyserver,
   keyserver_published,
+  keyserver_state,
+  keyserver_error,
   is_publishing_keyserver,
   handle_publish_to_keyservers,
 }: EncryptionSettingsFormProps) {
   const { t } = use_i18n();
+
+  const keyserver_badge = () => {
+    if (keyserver_published === null) return null;
+    if (keyserver_state === "published" || (keyserver_published && !keyserver_state)) {
+      return <Badge color="green">{t("settings.keyserver_status_published")}</Badge>;
+    }
+    if (keyserver_state === "failed") {
+      return <Badge color="red">{t("settings.keyserver_status_failed")}</Badge>;
+    }
+    if (keyserver_state === "awaiting_verification") {
+      return <Badge color="amber">{t("settings.keyserver_status_awaiting")}</Badge>;
+    }
+    return <Badge color="gray">{t("settings.keyserver_status_not_published")}</Badge>;
+  };
+
+  const keyserver_hint = () => {
+    if (keyserver_state === "awaiting_verification") {
+      return t("settings.keyserver_awaiting_hint");
+    }
+    if (keyserver_state === "failed") {
+      return keyserver_error
+        ? `${t("settings.keyserver_failed_hint")} (${keyserver_error})`
+        : t("settings.keyserver_failed_hint");
+    }
+    return t("settings.keyserver_permanent_warning");
+  };
 
   return (
     <div>
@@ -185,15 +216,9 @@ export function EncryptionSettingsForm({
         <div className="flex-1 pr-4">
           <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
             {t("settings.keyserver_publication_status")}
-            {keyserver_published === null ? null : keyserver_published ? (
-              <Badge color="green">{t("settings.keyserver_status_published")}</Badge>
-            ) : (
-              <Badge color="gray">{t("settings.keyserver_status_not_published")}</Badge>
-            )}
+            {keyserver_badge()}
           </p>
-          <p className="text-sm mt-0.5 text-txt-muted">
-            {t("settings.keyserver_permanent_warning")}
-          </p>
+          <p className="text-sm mt-0.5 text-txt-muted">{keyserver_hint()}</p>
         </div>
         <Button
           disabled={is_publishing_keyserver}
