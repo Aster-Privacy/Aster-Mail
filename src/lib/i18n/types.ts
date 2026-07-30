@@ -3649,6 +3649,10 @@ export interface SettingsTranslations {
   keyserver_publication_status: string;
   keyserver_status_published: string;
   keyserver_status_not_published: string;
+  keyserver_status_awaiting: string;
+  keyserver_status_failed: string;
+  keyserver_awaiting_hint: string;
+  keyserver_failed_hint: string;
   keyserver_publish_btn: string;
   keyserver_republish_btn: string;
   keyserver_permanent_warning: string;

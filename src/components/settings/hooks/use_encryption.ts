@@ -39,6 +39,10 @@ import {
   get_keyserver_publication_status,
   clear_external_key_cache,
 } from "@/services/api/keys";
+import type {
+  KeyserverPublicationState,
+  KeyserverPublicationStatus,
+} from "@/services/api/keys";
 import { generate_recovery_codes } from "@/services/crypto/key_manager_pgp";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
@@ -94,7 +98,28 @@ export function use_encryption() {
   const [keyserver_input, set_keyserver_input] = useState("");
   const [is_saving_keyservers, set_is_saving_keyservers] = useState(false);
   const [keyserver_published, set_keyserver_published] = useState<boolean | null>(null);
+  const [keyserver_state, set_keyserver_state] =
+    useState<KeyserverPublicationState | null>(null);
+  const [keyserver_error, set_keyserver_error] = useState<string | null>(null);
   const [is_publishing_keyserver, set_is_publishing_keyserver] = useState(false);
+
+  const apply_keyserver_status = (status: KeyserverPublicationStatus) => {
+    set_keyserver_published(status.published);
+    set_keyserver_state(
+      status.state ?? (status.published ? "published" : "not_published"),
+    );
+    set_keyserver_error(status.error ?? null);
+  };
+
+  const refresh_keyserver_status = async () => {
+    const result = await get_keyserver_publication_status().catch(() => ({
+      data: null,
+      error: "network_error",
+    }));
+    if (result.data) {
+      apply_keyserver_status(result.data);
+    }
+  };
   const [recovery_info, set_recovery_info] = useState<RecoveryCodesInfo | null>(
     null,
   );
@@ -179,7 +204,7 @@ export function use_encryption() {
       }
 
       if (keyserver_status.data) {
-        set_keyserver_published(keyserver_status.data.published);
+        apply_keyserver_status(keyserver_status.data);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -643,6 +668,8 @@ export function use_encryption() {
       } else {
         show_toast(t("settings.key_published_keyserver"), "success");
       }
+
+      await refresh_keyserver_status();
     } else {
       show_toast(t("settings.keys_cannot_remove_keyservers"), "info");
     }
@@ -656,11 +683,11 @@ export function use_encryption() {
     if (result.error) {
       show_toast(t("settings.failed_publish_keyserver"), "error");
     } else {
-      set_keyserver_published(true);
       update_preference("publish_to_keyservers", true, true);
       show_toast(t("settings.key_published_keyserver"), "success");
     }
 
+    await refresh_keyserver_status();
     set_is_publishing_keyserver(false);
   };
 
@@ -800,6 +827,8 @@ export function use_encryption() {
     handle_add_keyserver,
     handle_remove_keyserver,
     keyserver_published,
+    keyserver_state,
+    keyserver_error,
     is_publishing_keyserver,
     handle_publish_to_keyservers,
   };
