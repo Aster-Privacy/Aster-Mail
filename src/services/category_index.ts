@@ -29,7 +29,11 @@ import {
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
 import { get_current_account_id } from "@/services/account_manager";
-import { list_mail_items, type MailItem } from "@/services/api/mail";
+import {
+  list_mail_items,
+  sync_mail_items,
+  type MailItem,
+} from "@/services/api/mail";
 import {
   decrypt_mail_metadata,
   update_item_metadata,
@@ -55,6 +59,7 @@ const PERSIST_DEBOUNCE_MS = 1500;
 const NOTIFY_THROTTLE_MS = 350;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
+const DELETE_SYNC_TOKEN_PREFIX = "aster_delete_sync_token_";
 const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // A build that makes no forward progress for this long is considered wedged
 // (e.g. an in-flight request whose abort timer was frozen while the tab was
@@ -1406,7 +1411,11 @@ export async function sync_recent(notify_new = false): Promise<void> {
       }
     }
 
-    if (changed) {
+    const deletions_pruned = await prune_server_deletions();
+
+    if (token !== build_token) return;
+
+    if (changed || deletions_pruned) {
       schedule_persist();
       notify();
     }
@@ -1415,6 +1424,48 @@ export async function sync_recent(notify_new = false): Promise<void> {
     resync_failures += 1;
     if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
     return;
+  }
+}
+
+function delete_sync_storage_key(): string | null {
+  const account_id = get_current_account_id();
+
+  return account_id ? `${DELETE_SYNC_TOKEN_PREFIX}${account_id}` : null;
+}
+
+async function prune_server_deletions(): Promise<boolean> {
+  const storage_key = delete_sync_storage_key();
+
+  if (!storage_key) return false;
+
+  try {
+    const since = localStorage.getItem(storage_key);
+
+    if (!since) {
+      localStorage.setItem(storage_key, new Date().toISOString());
+
+      return false;
+    }
+
+    const response = await sync_mail_items({ since, limit: 1 });
+    const data = response?.data;
+
+    if (!data) return false;
+
+    let changed = false;
+
+    for (const id of data.deleted_ids ?? []) {
+      if (entries_map.delete(id)) {
+        mark_dirty(id);
+        changed = true;
+      }
+    }
+
+    if (data.sync_token) localStorage.setItem(storage_key, data.sync_token);
+
+    return changed;
+  } catch {
+    return false;
   }
 }
 
