@@ -55,6 +55,7 @@ import { use_tags } from "@/hooks/use_tags";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
 import { use_category_inbox } from "@/hooks/use_category_inbox";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
+import { MailFilterChips } from "@/components/email/inbox/mail_filter_chips";
 import { CategoryEmptyState } from "@/components/email/inbox/category_empty_state";
 import {
   set_message_category,
@@ -1594,6 +1595,12 @@ export function EmailInbox({
             t,
           )}
         />
+
+        {current_view === "all" &&
+          !show_full_email_viewer &&
+          on_search_submit && (
+            <MailFilterChips on_search_submit={on_search_submit} />
+          )}
 
         {categories.enabled &&
           categories.restored &&
