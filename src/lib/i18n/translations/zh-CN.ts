@@ -3029,6 +3029,8 @@ export const zh_CN = {
     behavior_shortcuts: "行为和快捷键",
     mark_as_read: "标记为已读",
     mark_as_read_description: "何时将邮件标记为已读",
+    emails_per_page: "每页邮件数",
+    emails_per_page_description: "收件箱、归档和其他文件夹中每页显示的邮件数量",
     immediately: "立即",
     after_1_second: "1秒后",
     after_3_seconds: "3秒后",

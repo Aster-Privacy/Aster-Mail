@@ -2391,6 +2391,8 @@ export interface SettingsTranslations {
   newest_first: string;
   mark_as_read: string;
   mark_as_read_description: string;
+  emails_per_page: string;
+  emails_per_page_description: string;
   immediately: string;
   after_1_second: string;
   after_3_seconds: string;

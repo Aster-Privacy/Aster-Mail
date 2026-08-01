@@ -2323,6 +2323,8 @@ export const en: Translations = {
     newest_first: "Newest first",
     mark_as_read: "Mark as Read",
     mark_as_read_description: "When to mark emails as read",
+    emails_per_page: "Emails per page",
+    emails_per_page_description: "Number of emails shown per page in Inbox, Archive, and other folders",
     immediately: "Immediately",
     after_1_second: "After 1 second",
     after_3_seconds: "After 3 seconds",

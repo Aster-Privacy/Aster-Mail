@@ -3346,6 +3346,8 @@ export const fr = {
     behavior_shortcuts: "Comportement et raccourcis",
     mark_as_read: "Marquer comme lu",
     mark_as_read_description: "Quand marquer les e-mails comme lus",
+    emails_per_page: "E-mails par page",
+    emails_per_page_description: "Nombre d'e-mails affichés par page dans la boîte de réception, les archives et les autres dossiers",
     immediately: "Immédiatement",
     after_1_second: "Après 1 seconde",
     after_3_seconds: "Après 3 secondes",

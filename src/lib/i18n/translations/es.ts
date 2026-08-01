@@ -3316,6 +3316,8 @@ export const es = {
     behavior_shortcuts: "Comportamiento y atajos",
     mark_as_read: "Marcar como leído",
     mark_as_read_description: "Cuándo marcar correos como leídos",
+    emails_per_page: "Correos por página",
+    emails_per_page_description: "Número de correos mostrados por página en Recibidos, Archivo y otras carpetas",
     immediately: "Inmediatamente",
     after_1_second: "Después de 1 segundo",
     after_3_seconds: "Después de 3 segundos",

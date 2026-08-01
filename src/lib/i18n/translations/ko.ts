@@ -3296,6 +3296,8 @@ export const ko = {
     behavior_shortcuts: "동작 및 단축키",
     mark_as_read: "읽음으로 표시",
     mark_as_read_description: "이메일을 읽음으로 표시할 시점",
+    emails_per_page: "페이지당 이메일 수",
+    emails_per_page_description: "받은편지함, 보관함 및 기타 폴더에서 페이지당 표시되는 이메일 수",
     immediately: "즉시",
     after_1_second: "1초 후",
     after_3_seconds: "3초 후",

@@ -3258,6 +3258,8 @@ export const ar = {
     behavior_shortcuts: "السلوك والاختصارات",
     mark_as_read: "تعليم كمقروء",
     mark_as_read_description: "متى يتم تعليم الرسائل كمقروءة",
+    emails_per_page: "عدد الرسائل في الصفحة",
+    emails_per_page_description: "عدد الرسائل المعروضة في كل صفحة في البريد الوارد والأرشيف والمجلدات الأخرى",
     immediately: "فورًا",
     after_1_second: "بعد ثانية واحدة",
     after_3_seconds: "بعد 3 ثوانٍ",

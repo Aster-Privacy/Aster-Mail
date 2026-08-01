@@ -3374,6 +3374,8 @@ export const it = {
     behavior_shortcuts: "Comportamento e scorciatoie",
     mark_as_read: "Segna come letto",
     mark_as_read_description: "Quando segnare le email come lette",
+    emails_per_page: "Email per pagina",
+    emails_per_page_description: "Numero di email mostrate per pagina in Posta in arrivo, Archivio e altre cartelle",
     immediately: "Immediatamente",
     after_1_second: "Dopo 1 secondo",
     after_3_seconds: "Dopo 3 secondi",
