@@ -157,7 +157,7 @@
   },
   "overrides": {
     "tar": ">=7.5.18",
-    "js-yaml": ">=4.3.0",
+    "js-yaml": ">=5.2.2",
     "brace-expansion": ">=2.1.2",
     "@babel/core": "^7.29.6",
     "lodash": "^4.17.23",
