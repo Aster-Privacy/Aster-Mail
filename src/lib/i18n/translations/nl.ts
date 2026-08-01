@@ -6047,6 +6047,14 @@ export const nl = {
       "Blokkeer deze afzender zodat hij {{alias}} niet bereikt",
     encrypted_message_unavailable:
       "Dit bericht kon niet worden ontsleuteld. De afzender heeft mogelijk een verouderde sleutel gebruikt.",
+    pgp_password_protected_title: "Bericht met wachtwoordbeveiliging",
+    pgp_password_protected_description:
+      "De afzender heeft dit bericht met een wachtwoord versleuteld. Voer het wachtwoord in dat je hebt gekregen om het te lezen.",
+    pgp_password_placeholder: "Wachtwoord",
+    pgp_password_decrypt: "Ontsleutelen",
+    pgp_password_decrypting: "Bezig met ontsleutelen...",
+    pgp_password_incorrect:
+      "Dat wachtwoord werkte niet. Vraag het na bij de afzender en probeer het opnieuw.",
     inbox: "Postvak in",
     sent: "Verzonden",
     drafts: "Concepten",

@@ -6111,6 +6111,14 @@ export const ru = {
       "Запретить этому отправителю достигать {{alias}}",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
+    pgp_password_protected_title: "Сообщение защищено паролем",
+    pgp_password_protected_description:
+      "Отправитель зашифровал это сообщение паролем. Введите пароль, который он вам сообщил, чтобы прочитать письмо.",
+    pgp_password_placeholder: "Пароль",
+    pgp_password_decrypt: "Расшифровать",
+    pgp_password_decrypting: "Расшифровка...",
+    pgp_password_incorrect:
+      "Этот пароль не подошёл. Уточните его у отправителя и попробуйте снова.",
     inbox: "Входящие",
     sent: "Отправленные",
     drafts: "Черновики",

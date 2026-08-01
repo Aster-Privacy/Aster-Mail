@@ -6205,6 +6205,14 @@ export const de = {
       "Diesen Absender daran hindern, {{alias}} zu erreichen",
     encrypted_message_unavailable:
       "Diese Nachricht konnte nicht entschlüsselt werden. Der Absender hat möglicherweise einen veralteten Schlüssel verwendet.",
+    pgp_password_protected_title: "Passwortgeschützte Nachricht",
+    pgp_password_protected_description:
+      "Der Absender hat diese Nachricht mit einem Passwort verschlüsselt. Gib das Passwort ein, das dir mitgeteilt wurde, um sie zu lesen.",
+    pgp_password_placeholder: "Passwort",
+    pgp_password_decrypt: "Entschlüsseln",
+    pgp_password_decrypting: "Wird entschlüsselt...",
+    pgp_password_incorrect:
+      "Das Passwort hat nicht funktioniert. Bitte beim Absender nachfragen und erneut versuchen.",
     inbox: "Posteingang",
     sent: "Gesendet",
     drafts: "Entwürfe",

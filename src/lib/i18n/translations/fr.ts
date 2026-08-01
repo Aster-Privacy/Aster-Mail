@@ -6122,6 +6122,14 @@ export const fr = {
       "Empêcher cet expéditeur de joindre {{alias}}",
     encrypted_message_unavailable:
       "Ce message n'a pas pu être déchiffré. L'expéditeur a peut-être utilisé une clé obsolète.",
+    pgp_password_protected_title: "Message protégé par mot de passe",
+    pgp_password_protected_description:
+      "L'expéditeur a chiffré ce message avec un mot de passe. Saisissez le mot de passe qu'il vous a communiqué pour le lire.",
+    pgp_password_placeholder: "Mot de passe",
+    pgp_password_decrypt: "Déchiffrer",
+    pgp_password_decrypting: "Déchiffrement...",
+    pgp_password_incorrect:
+      "Ce mot de passe n'a pas fonctionné. Vérifiez-le auprès de l'expéditeur et réessayez.",
     inbox: "Boîte de réception",
     sent: "Envoyés",
     drafts: "Brouillons",

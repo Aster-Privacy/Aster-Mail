@@ -6084,6 +6084,14 @@ export const en: Translations = {
   mail: {
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
+    pgp_password_protected_title: "Password protected message",
+    pgp_password_protected_description:
+      "The sender encrypted this message with a password. Enter the password they shared with you to read it.",
+    pgp_password_placeholder: "Password",
+    pgp_password_decrypt: "Decrypt",
+    pgp_password_decrypting: "Decrypting...",
+    pgp_password_incorrect:
+      "That password did not work. Check it with the sender and try again.",
     all_on_page_selected:
       "All {{ count }} conversations on this page are selected.",
     select_all_in_folder:

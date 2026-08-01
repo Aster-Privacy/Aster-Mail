@@ -5464,6 +5464,12 @@ export interface SettingsTranslations {
 
 export interface MailTranslations {
   encrypted_message_unavailable: string;
+  pgp_password_protected_title: string;
+  pgp_password_protected_description: string;
+  pgp_password_placeholder: string;
+  pgp_password_decrypt: string;
+  pgp_password_decrypting: string;
+  pgp_password_incorrect: string;
   all_on_page_selected: string;
   select_all_in_folder: string;
   all_in_folder_selected: string;

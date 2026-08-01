@@ -6052,6 +6052,14 @@ export const es = {
       "Impide que este remitente contacte con {{alias}}",
     encrypted_message_unavailable:
       "No se pudo descifrar este mensaje. Es posible que el remitente haya usado una clave desactualizada.",
+    pgp_password_protected_title: "Mensaje protegido con contraseña",
+    pgp_password_protected_description:
+      "El remitente cifró este mensaje con una contraseña. Introduce la contraseña que te compartió para leerlo.",
+    pgp_password_placeholder: "Contraseña",
+    pgp_password_decrypt: "Descifrar",
+    pgp_password_decrypting: "Descifrando...",
+    pgp_password_incorrect:
+      "Esa contraseña no funcionó. Confírmala con el remitente e inténtalo de nuevo.",
     inbox: "Bandeja de entrada",
     sent: "Enviados",
     drafts: "Borradores",
