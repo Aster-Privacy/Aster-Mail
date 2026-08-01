@@ -5399,6 +5399,10 @@ export const ja = {
     credit_type_install_android: "Androidインストール",
     credit_type_install_desktop: "デスクトップインストール",
     credit_type_install_ios: "iOSインストール",
+    credit_type_refunded: "返金",
+    credit_type_spent: "使用",
+    credit_type_clawback: "回収",
+    credit_type_admin_removal: "削除",
     credits_balance_label: "利用可能残高",
     credits_balance_note:
       "クレジットは有料プランの購入と更新に自動的に適用されます。",

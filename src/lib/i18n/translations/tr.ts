@@ -5628,6 +5628,10 @@ export const tr = {
     credit_type_install_android: "Android kurulumu",
     credit_type_install_desktop: "Masaüstü kurulumu",
     credit_type_install_ios: "iOS kurulumu",
+    credit_type_refunded: "İade edildi",
+    credit_type_spent: "Harcandı",
+    credit_type_clawback: "Geri alım",
+    credit_type_admin_removal: "Kaldırma",
     academic_discount_title: "Öğrenci ve Gazeteci İndirimi",
     academic_discount_description:
       "Doğrulanmış öğrenciler ve gazeteciler için bireysel planlarda %30 indirim.",

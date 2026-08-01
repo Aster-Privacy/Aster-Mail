@@ -5682,6 +5682,10 @@ export const it = {
     credit_type_install_android: "Installazione Android",
     credit_type_install_desktop: "Installazione desktop",
     credit_type_install_ios: "Installazione iOS",
+    credit_type_refunded: "Rimborsato",
+    credit_type_spent: "Speso",
+    credit_type_clawback: "Recupero",
+    credit_type_admin_removal: "Rimozione",
     academic_discount_title: "Sconto per studenti e giornalisti",
     academic_discount_description:
       "30% di sconto sui piani individuali per studenti e giornalisti verificati.",

@@ -4757,6 +4757,10 @@ export interface SettingsTranslations {
   credit_type_install_android: string;
   credit_type_install_desktop: string;
   credit_type_install_ios: string;
+  credit_type_refunded: string;
+  credit_type_spent: string;
+  credit_type_clawback: string;
+  credit_type_admin_removal: string;
   credits_title: string;
   credits_subtitle: string;
   credits_balance_label: string;

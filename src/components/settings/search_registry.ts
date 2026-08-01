@@ -194,4 +194,96 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Invite family member", section: "family", breadcrumb: "Family > Invite" },
   { label: "Manage family members", section: "family", breadcrumb: "Family > Members" },
   { label: "Children's accounts",  section: "family", breadcrumb: "Family > Children", keywords: ["kids account", "child account"] },
+
+  // ── Appearance (view modes) ──────────────────────────────────────────────
+  { label: "Email view mode",      section: "appearance", breadcrumb: "Appearance > Layout", keywords: ["popup", "split view", "full page", "open email", "reading layout"] },
+  { label: "Compose window mode",  section: "appearance", breadcrumb: "Appearance > Layout", keywords: ["floating popup", "full screen compose", "minimized compose", "compose layout"] },
+
+  // ── Accessibility (full coverage) ────────────────────────────────────────
+  { label: "Reduce Transparency",  section: "accessibility", breadcrumb: "Accessibility > Vision", keywords: ["transparency", "blur", "opaque"] },
+  { label: "Underline Links",      section: "accessibility", breadcrumb: "Accessibility > Vision", keywords: ["links", "underline"] },
+  { label: "Dyslexia-Friendly Font", section: "accessibility", breadcrumb: "Accessibility > Reading", keywords: ["dyslexia", "opendyslexic", "readable font"] },
+  { label: "Text Spacing",         section: "accessibility", breadcrumb: "Accessibility > Reading", keywords: ["letter spacing", "line height", "spacing"] },
+  { label: "Compact Mode",         section: "accessibility", breadcrumb: "Accessibility > Motion & Layout", keywords: ["density", "spacing", "more content"] },
+  { label: "Enable shortcuts",     section: "accessibility", breadcrumb: "Accessibility > Keyboard Shortcuts", keywords: ["keyboard shortcuts", "hotkeys", "keybindings"] },
+  { label: "View all keyboard shortcuts", section: "accessibility", breadcrumb: "Accessibility > Keyboard Shortcuts", keywords: ["shortcut list", "hotkey list"] },
+  { label: "Low Network Mode",     section: "accessibility", breadcrumb: "Accessibility > Performance", keywords: ["network", "performance", "slow connection", "metered", "data saver", "plain text", "bandwidth", "offline"] },
+
+  // ── Account (full coverage) ──────────────────────────────────────────────
+  { label: "Primary address",      section: "account", breadcrumb: "Account > Profile", keywords: ["email address", "main address"] },
+  { label: "Inactivity window",    section: "account", breadcrumb: "Account > Session", keywords: ["auto logout", "session timeout", "inactivity"] },
+  { label: "Reset all settings",   section: "account", breadcrumb: "Account > Advanced", keywords: ["defaults", "restore defaults", "factory reset"] },
+
+  // ── Notifications (full coverage) ────────────────────────────────────────
+  { label: "Quiet Hours",          section: "notifications", breadcrumb: "Notifications > Quiet Hours", keywords: ["do not disturb", "dnd", "silence", "schedule", "mute hours"] },
+  { label: "Notification Duration", section: "notifications", breadcrumb: "Notifications > Duration", keywords: ["toast duration", "popup duration", "how long"] },
+  { label: "New emails",           section: "notifications", breadcrumb: "Notifications > Events", keywords: ["notify new mail", "incoming mail alert"] },
+  { label: "Replies",              section: "notifications", breadcrumb: "Notifications > Events", keywords: ["reply notifications"] },
+  { label: "Mentions",             section: "notifications", breadcrumb: "Notifications > Events", keywords: ["mention notifications"] },
+  { label: "Send test notification", section: "notifications", breadcrumb: "Notifications > Test", keywords: ["test notification", "try notification"] },
+
+  // ── Behavior (full coverage) ─────────────────────────────────────────────
+  { label: "Translate incoming mail", section: "behavior", breadcrumb: "Behavior > Translation", keywords: ["translation", "translate", "language", "bergamot"] },
+  { label: "Languages you read",   section: "behavior", breadcrumb: "Behavior > Translation", keywords: ["known languages", "no translate"] },
+  { label: "Never translate",      section: "behavior", breadcrumb: "Behavior > Translation", keywords: ["skip translation", "exclude language"] },
+  { label: "Conversation Grouping", section: "behavior", breadcrumb: "Behavior > Reading & Conversations", keywords: ["thread", "group emails", "conversation view"] },
+  { label: "Conversation Order",   section: "behavior", breadcrumb: "Behavior > Reading & Conversations", keywords: ["oldest first", "newest first", "thread order"] },
+  { label: "Thread count badge position", section: "behavior", breadcrumb: "Behavior > Reading & Conversations", keywords: ["thread count", "badge position"] },
+  { label: "Reading Pane Position", section: "behavior", breadcrumb: "Behavior > Reading & Conversations", keywords: ["preview pane", "right side", "bottom", "hidden"] },
+  { label: "Show Message Size",    section: "behavior", breadcrumb: "Behavior > Reading & Conversations", keywords: ["email size", "message size", "kb", "mb"] },
+  { label: "Force Dark Mode for Emails", section: "behavior", breadcrumb: "Behavior > Reading & Conversations", keywords: ["dark emails", "invert email", "dark mode email"] },
+  { label: "Sidebar Width",        section: "behavior", breadcrumb: "Behavior > Navigation Panel", keywords: ["sidebar size", "panel width"] },
+  { label: "Minimize Sidebar",     section: "behavior", breadcrumb: "Behavior > Navigation Panel", keywords: ["collapse sidebar", "hide sidebar"] },
+  { label: "Default Reply",        section: "behavior", breadcrumb: "Behavior > Composing & Replies", keywords: ["reply all", "reply to sender"] },
+  { label: "Auto-save recent recipients to contacts", section: "behavior", breadcrumb: "Behavior > Composing & Replies", keywords: ["auto save contacts", "recent recipients", "save contacts automatically", "address book"] },
+  { label: "Reactions",            section: "behavior", breadcrumb: "Behavior > Composing & Replies", keywords: ["emoji reactions", "thumbs up"] },
+  { label: "Protected Folders",    section: "behavior", breadcrumb: "Behavior > Password-protected folders", keywords: ["folder password", "lock folder", "folder lock mode", "unlock"] },
+  { label: "Folder Lock Mode",     section: "behavior", breadcrumb: "Behavior > Password-protected folders", keywords: ["lock on leave", "unlocked for session"] },
+  { label: "Cancellation Period",  section: "behavior", breadcrumb: "Behavior > Undo Send", keywords: ["undo send delay", "undo window", "seconds"] },
+  { label: "Confirm Delete",       section: "behavior", breadcrumb: "Behavior > Confirmations", keywords: ["delete confirmation", "ask before delete"] },
+  { label: "Confirm Archive",      section: "behavior", breadcrumb: "Behavior > Confirmations", keywords: ["archive confirmation", "ask before archive"] },
+  { label: "Confirm Spam",         section: "behavior", breadcrumb: "Behavior > Confirmations", keywords: ["spam confirmation", "ask before spam"] },
+  { label: "Enable Spam Filtering", section: "behavior", breadcrumb: "Behavior > Spam", keywords: ["spam filter", "junk filter", "spam sensitivity", "low medium high"] },
+
+  // ── Security (privacy protections) ───────────────────────────────────────
+  { label: "Enable Tracking Protection", section: "security", breadcrumb: "Security > Tracking Protection", keywords: ["tracker blocking", "privacy protection"] },
+  { label: "Block Spy Pixels",     section: "security", breadcrumb: "Security > Tracking Protection", keywords: ["tracking pixel", "spy pixel", "1x1 pixel", "open tracking"] },
+  { label: "Clean Tracking Links", section: "security", breadcrumb: "Security > Tracking Protection", keywords: ["utm", "link tracking", "strip parameters"] },
+  { label: "Remote Image Loading", section: "security", breadcrumb: "Security > Content Protection", keywords: ["block remote images", "load images", "external images", "ask before loading"] },
+  { label: "Block Remote Fonts",   section: "security", breadcrumb: "Security > Content Protection", keywords: ["external fonts", "web fonts"] },
+  { label: "Block Remote CSS",     section: "security", breadcrumb: "Security > Content Protection", keywords: ["external stylesheets", "remote styles"] },
+  { label: "Strip Image Metadata", section: "security", breadcrumb: "Security > Content Protection", keywords: ["exif", "metadata removal", "image privacy"] },
+  { label: "Block HTML Rendering", section: "security", breadcrumb: "Security > Content Protection", keywords: ["plain text only", "disable html"] },
+  { label: "App Lock",             section: "security", breadcrumb: "Security > App Lock", keywords: ["pin lock", "lock app", "pin code"] },
+  { label: "Duress PIN",           section: "security", breadcrumb: "Security > Duress PIN", keywords: ["panic pin", "fake pin", "coercion"] },
+  { label: "Aster Vanguard",       section: "security", breadcrumb: "Security > Vanguard", keywords: ["vanguard", "advanced protection", "lockdown", "lockdown mode"] },
+  { label: "Login Alerts",         section: "security", breadcrumb: "Security > 2FA", keywords: ["new login notification", "sign-in alerts"] },
+  { label: "External Link Warnings", section: "security", breadcrumb: "Security > Links", keywords: ["link warning", "suspicious links", "confirm links"] },
+
+  // ── Mail Management (full coverage) ──────────────────────────────────────
+  { label: "Vacation Reply",       section: "sender_filters", breadcrumb: "Mail Management > Vacation Reply", keywords: ["auto reply", "out of office", "ooo", "away message", "autoresponder"] },
+  { label: "Auto-Forward",         section: "sender_filters", breadcrumb: "Mail Management > Auto-Forward", keywords: ["forwarding", "forward all mail", "redirect mail"] },
+  { label: "External Accounts",    section: "sender_filters", breadcrumb: "Mail Management > External Accounts", keywords: ["connected accounts", "gmail sync", "fetch mail", "other mailbox"] },
+  { label: "Export emails",        section: "sender_filters", breadcrumb: "Mail Management > Export", keywords: ["download mail", "backup emails", "mbox", "eml", "export contacts", "takeout"] },
+  { label: "Subscription manager", section: "sender_filters", breadcrumb: "Mail Management > Subscriptions", keywords: ["unsubscribe", "newsletters", "mailing lists", "scan inbox"] },
+  { label: "Folder auto-clean",    section: "sender_filters", breadcrumb: "Mail Management > Auto-clean", keywords: ["retention", "auto delete", "clean folder", "delete old emails", "expire emails"] },
+
+  // ── Categories ───────────────────────────────────────────────────────────
+  { label: "Inbox Categories",     section: "categories", breadcrumb: "Categories", keywords: ["tabs", "category tabs", "sort inbox", "primary", "promotions", "social"] },
+  { label: "Custom Categories",    section: "categories", breadcrumb: "Categories > Custom", keywords: ["add category", "new category", "custom tab"] },
+
+  // ── Aliases (ghost + directories) ────────────────────────────────────────
+  { label: "Ghost Aliases",        section: "aliases", breadcrumb: "Aliases & Domains > Ghost Aliases", keywords: ["ghost mode", "expiring alias", "temporary email", "burner"] },
+  { label: "Compose with Ghost Mode", section: "aliases", breadcrumb: "Aliases & Domains > Ghost Aliases", keywords: ["ghost compose", "anonymous send"] },
+  { label: "Directories",          section: "aliases", breadcrumb: "Aliases & Domains > Directories", keywords: ["directory key", "auto-create aliases", "wildcard alias", "catch-all directory"] },
+  { label: "Catch-all email address", section: "aliases", breadcrumb: "Aliases > Domains", keywords: ["catch all", "wildcard", "any address"] },
+
+  // ── Billing (credits) ────────────────────────────────────────────────────
+  { label: "Credits",              section: "billing", breadcrumb: "Billing > Credits", keywords: ["credit balance", "top up", "referral credits", "transactions", "use credits for renewals"] },
+
+  // ── Developer (full coverage) ────────────────────────────────────────────
+  { label: "Build Info",           section: "developer", breadcrumb: "Developer > Build Info", keywords: ["version", "release", "build number", "environment", "platform"] },
+  { label: "Cryptographic Status", section: "developer", breadcrumb: "Developer > Crypto", keywords: ["vault", "fingerprint", "key age", "wkd", "keyserver", "kdf"] },
+  { label: "Email Statistics",     section: "developer", breadcrumb: "Developer > Stats", keywords: ["total emails", "storage used", "unread count"] },
+  { label: "Service Worker",       section: "developer", breadcrumb: "Developer > Performance", keywords: ["sw", "cache", "pwa", "offline"] },
 ];

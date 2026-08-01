@@ -3842,6 +3842,10 @@ export const en: Translations = {
     credit_type_install_android: "Android install",
     credit_type_install_desktop: "Desktop install",
     credit_type_install_ios: "iOS install",
+    credit_type_refunded: "Refunded",
+    credit_type_spent: "Spent",
+    credit_type_clawback: "Clawback",
+    credit_type_admin_removal: "Removal",
     top_up_credits: "Top Up",
     top_up_credits_description:
       "Add credits to your account. Credits apply automatically toward plan renewals.",
