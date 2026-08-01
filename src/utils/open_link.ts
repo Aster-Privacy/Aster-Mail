@@ -22,7 +22,8 @@ export function open_external(url: string, features?: string): Window | null {
   let normalized: string;
 
   try {
-    const parsed = new URL(url, window.location.origin);
+    const candidate = url.startsWith("//") ? `https:${url}` : url;
+    const parsed = new URL(candidate, window.location.origin);
 
     if (!["http:", "https:", "mailto:"].includes(parsed.protocol)) {
       return null;
@@ -36,11 +37,21 @@ export function open_external(url: string, features?: string): Window | null {
     typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
   if (is_desktop) {
-    void import("@tauri-apps/plugin-shell")
-      .then(({ open }) => open(normalized))
-      .catch(() => {
-        window.open(normalized, "_blank", "noopener,noreferrer");
-      });
+    void (async () => {
+      try {
+        const { invoke } = await import("@tauri-apps/api/core");
+
+        await invoke("open_external_url", { url: normalized });
+      } catch {
+        try {
+          const { open } = await import("@tauri-apps/plugin-shell");
+
+          await open(normalized);
+        } catch {
+          window.open(normalized, "_blank", "noopener,noreferrer");
+        }
+      }
+    })();
 
     return null;
   }

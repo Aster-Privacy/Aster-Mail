@@ -20,6 +20,8 @@
 //
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod badge;
+mod badges_data;
 mod boot_guard;
 mod device;
 mod http_client;
@@ -68,11 +70,14 @@ fn open_external_url(url: String) -> std::result::Result<(), String> {
     }
 
     let parsed = reqwest::Url::parse(&url).map_err(|_| "invalid url".to_string())?;
-    if parsed.scheme() != "https" {
-        return Err("only https urls allowed".into());
-    }
-    if parsed.host_str().map(|h| h.is_empty()).unwrap_or(true) {
-        return Err("url must have a host".into());
+    match parsed.scheme() {
+        "https" | "http" => {
+            if parsed.host_str().map(|h| h.is_empty()).unwrap_or(true) {
+                return Err("url must have a host".into());
+            }
+        }
+        "mailto" => {}
+        _ => return Err("scheme not allowed".into()),
     }
 
     std::thread::spawn(move || {
@@ -216,6 +221,7 @@ fn main() {
         .manage(boot_guard::BootState::new())
         .invoke_handler(tauri::generate_handler![
             frontend_ready,
+            badge::set_unread_badge,
             set_tray_visible,
             set_tray_tooltip,
             set_content_protection,

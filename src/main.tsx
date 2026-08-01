@@ -83,7 +83,18 @@ const is_tauri_runtime =
 
 if (is_tauri_runtime) {
   void import("@tauri-apps/api/core")
-    .then(({ invoke }) => invoke("frontend_ready"))
+    .then(({ invoke }) => {
+      void invoke("frontend_ready");
+      const cached = Number(
+        localStorage.getItem("aster_last_unread_badge") || "0",
+      );
+
+      if (Number.isFinite(cached) && cached > 0) {
+        void invoke("set_unread_badge", { count: Math.floor(cached) }).catch(
+          () => {},
+        );
+      }
+    })
     .catch(() => {});
   void apply_desktop_content_protection(is_any_lockdown_active());
 }
