@@ -217,9 +217,12 @@ export async function sync_shared_mailbox_grants(): Promise<
             mailbox,
             payload.login_secret,
             current.user,
-          ).catch(() => {});
+          ).catch((error) => {
+            console.warn("shared mailbox grant re-seal failed", mailbox.id, error);
+          });
         }
-      } catch {
+      } catch (error) {
+        console.warn("shared mailbox grant sync failed", mailbox.id, error);
         continue;
       }
     }
