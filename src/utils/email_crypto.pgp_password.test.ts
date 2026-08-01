@@ -31,6 +31,7 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
 import {
   PGP_UNDECRYPTABLE_SENTINEL,
   decode_password_protected_body,
+  decrypt_body_text,
   decrypt_pgp_with_password,
   is_password_encrypted_pgp,
   is_password_protected_body,
@@ -125,6 +126,16 @@ describe("password protected pgp mail", () => {
     const resolved = await resolve_inbound_pgp_body(armored);
 
     expect(resolved.body).toBe(PGP_UNDECRYPTABLE_SENTINEL);
+  });
+
+  it("gives list and search text the readable part, never the payload", async () => {
+    const armored = await password_encrypted("payload");
+    const body = `Open the secure message here: https://example.com/read/abc\n\n${armored}\n`;
+    const text = await decrypt_body_text(body, "me@astermail.org", "them@x.test");
+
+    expect(is_password_protected_body(text)).toBe(false);
+    expect(text).toContain("https://example.com/read/abc");
+    expect(text).not.toContain("BEGIN PGP MESSAGE");
   });
 
   it("leaves plain bodies untouched", async () => {
