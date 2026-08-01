@@ -37,6 +37,7 @@ import { MODAL_SIZES } from "@/constants/modal";
 import { send_forward, type OriginalEmail } from "@/services/mail_actions";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { use_preferences } from "@/contexts/preferences_context";
+import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -626,6 +627,13 @@ export function use_forward_modal({
     set_error_message(null);
     set_is_sending(true);
 
+    if (preferences.auto_save_recent_recipients) {
+      void auto_save_recipients_to_contacts(
+        [...recipients.to, ...recipients.cc, ...recipients.bcc],
+        { own_addresses: user?.email ? [user.email] : [] },
+      );
+    }
+
     const { content: send_content, embedded_attachment_ids } =
       apply_inline_image_substitutions(
         forward_content_ref.current || build_forward_content(),
@@ -786,6 +794,7 @@ export function use_forward_modal({
     preferences.undo_send_period,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
+    preferences.auto_save_recent_recipients,
     on_close,
     expires_at,
     selected_sender,
