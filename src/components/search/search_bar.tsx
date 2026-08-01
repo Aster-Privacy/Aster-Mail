@@ -242,7 +242,7 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
             borderBottomColor: is_open && rect ? "transparent" : undefined,
           }}
         >
-          <MagnifyingGlassIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
+          <MagnifyingGlassIcon className="w-4 h-4 text-[var(--icon-muted)] flex-shrink-0" />
           <input
             ref={input_ref}
             className="flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
@@ -256,7 +256,7 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
           {(query || is_open) && (
             <button
               aria-label={query ? t("common.clear") : t("common.close")}
-              className="p-1.5 rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+              className="p-1.5 rounded-full text-[var(--icon-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--icon-active)]"
               type="button"
               onClick={() => {
                 if (query) {
