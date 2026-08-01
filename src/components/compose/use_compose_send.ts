@@ -26,7 +26,7 @@ import { useState, useRef, useCallback } from "react";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { create_contact_encrypted } from "@/services/api/contacts";
+import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { log_contact_activity } from "@/services/api/contact_history";
 import { get_or_create_thread_token } from "@/services/thread_service";
 import { is_internal_email } from "@/services/api/keys";
@@ -380,24 +380,16 @@ export function use_compose_send({
       ) {
         const existing_emails = new Set(
           contacts.flatMap((c) =>
-            (c.emails ?? []).map((e) => e?.toLowerCase()).filter(Boolean),
+            (c.emails ?? [])
+              .map((e) => e?.toLowerCase())
+              .filter((e): e is string => Boolean(e)),
           ),
         );
 
-        for (const email of all_recipients) {
-          if (!existing_emails.has(email.toLowerCase())) {
-            const parts = email.split("@")[0].split(".");
-
-            create_contact_encrypted({
-              first_name: parts[0] || "",
-              last_name: parts.slice(1).join(" ") || "",
-              emails: [email],
-              is_favorite: false,
-            }).catch((e) => {
-              if (import.meta.env.DEV) console.error(e);
-            });
-          }
-        }
+        void auto_save_recipients_to_contacts(all_recipients, {
+          known_emails: existing_emails,
+          own_addresses: user?.email ? [user.email] : [],
+        });
       }
 
       const ctx = build_send_context();
@@ -499,6 +491,13 @@ export function use_compose_send({
       scheduled_at: scheduled_time.toISOString(),
     };
 
+    if (preferences.auto_save_recent_recipients) {
+      void auto_save_recipients_to_contacts(
+        [...recipients.to, ...recipients.cc, ...recipients.bcc],
+        { own_addresses: user?.email ? [user.email] : [] },
+      );
+    }
+
     try {
       const response = await create_scheduled_email(vault, content);
 
@@ -551,6 +550,7 @@ export function use_compose_send({
     on_close,
     edit_draft,
     on_draft_cleared,
+    preferences.auto_save_recent_recipients,
     t,
   ]);
 
