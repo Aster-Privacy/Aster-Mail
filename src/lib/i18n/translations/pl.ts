@@ -6115,6 +6115,14 @@ export const pl = {
     block_sender_on_alias_tooltip: "Zablokuj temu nadawcy dostęp do {{alias}}",
     encrypted_message_unavailable:
       "Nie można odszyfrować tej wiadomości. Nadawca mógł użyć nieaktualnego klucza.",
+    pgp_password_protected_title: "Wiadomość chroniona hasłem",
+    pgp_password_protected_description:
+      "Nadawca zaszyfrował tę wiadomość hasłem. Wpisz hasło, które ci przekazał, aby ją odczytać.",
+    pgp_password_placeholder: "Hasło",
+    pgp_password_decrypt: "Odszyfruj",
+    pgp_password_decrypting: "Odszyfrowywanie...",
+    pgp_password_incorrect:
+      "To hasło nie zadziałało. Sprawdź je u nadawcy i spróbuj ponownie.",
     inbox: "Skrzynka odbiorcza",
     sent: "Wysłane",
     drafts: "Szkice",

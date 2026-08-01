@@ -6118,6 +6118,14 @@ export const pt = {
       "Impedir que este remetente alcance {{alias}}",
     encrypted_message_unavailable:
       "Não foi possível descriptografar esta mensagem. O remetente pode ter usado uma chave desatualizada.",
+    pgp_password_protected_title: "Mensagem protegida por palavra-passe",
+    pgp_password_protected_description:
+      "O remetente cifrou esta mensagem com uma palavra-passe. Introduz a palavra-passe que te enviou para a ler.",
+    pgp_password_placeholder: "Palavra-passe",
+    pgp_password_decrypt: "Decifrar",
+    pgp_password_decrypting: "A decifrar...",
+    pgp_password_incorrect:
+      "Essa palavra-passe não funcionou. Confirma-a com o remetente e tenta novamente.",
     inbox: "Caixa de Entrada",
     sent: "Enviados",
     drafts: "Rascunhos",

@@ -5503,6 +5503,14 @@ export const zh_CN = {
     block_sender_on_alias_tooltip: "阻止此发件人联系 {{alias}}",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
+    pgp_password_protected_title: "密码保护的邮件",
+    pgp_password_protected_description:
+      "发件人使用密码加密了这封邮件。请输入对方提供的密码以查看内容。",
+    pgp_password_placeholder: "密码",
+    pgp_password_decrypt: "解密",
+    pgp_password_decrypting: "正在解密...",
+    pgp_password_incorrect:
+      "该密码无法解密。请向发件人确认后重试。",
     inbox: "收件箱",
     sent: "已发送",
     drafts: "草稿",

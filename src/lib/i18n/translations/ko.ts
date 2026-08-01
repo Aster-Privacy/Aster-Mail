@@ -5892,6 +5892,14 @@ export const ko = {
       "이 발신자가 {{alias}}에 도달하지 못하도록 차단",
     encrypted_message_unavailable:
       "이 메시지를 복호화할 수 없었습니다. 발신자가 오래된 키를 사용했을 수 있습니다.",
+    pgp_password_protected_title: "비밀번호로 보호된 메일",
+    pgp_password_protected_description:
+      "보낸 사람이 이 메일을 비밀번호로 암호화했습니다. 전달받은 비밀번호를 입력하면 내용을 볼 수 있습니다.",
+    pgp_password_placeholder: "비밀번호",
+    pgp_password_decrypt: "복호화",
+    pgp_password_decrypting: "복호화 중...",
+    pgp_password_incorrect:
+      "비밀번호가 일치하지 않습니다. 보낸 사람에게 확인한 뒤 다시 시도하세요.",
     inbox: "받은 편지함",
     sent: "보낸 편지함",
     drafts: "임시 보관함",

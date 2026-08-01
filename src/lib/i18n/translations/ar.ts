@@ -5855,6 +5855,14 @@ export const ar = {
     block_sender_on_alias_tooltip: "حظر هذا المُرسِل من الوصول إلى {{alias}}",
     encrypted_message_unavailable:
       "تعذّر فك تشفير هذه الرسالة. قد يكون المرسل استخدم مفتاحًا قديمًا.",
+    pgp_password_protected_title: "رسالة محمية بكلمة مرور",
+    pgp_password_protected_description:
+      "قام المرسل بتشفير هذه الرسالة بكلمة مرور. أدخل كلمة المرور التي شاركها معك لقراءتها.",
+    pgp_password_placeholder: "كلمة المرور",
+    pgp_password_decrypt: "فك التشفير",
+    pgp_password_decrypting: "جارٍ فك التشفير...",
+    pgp_password_incorrect:
+      "كلمة المرور غير صحيحة. تأكد منها مع المرسل ثم حاول مرة أخرى.",
     inbox: "صندوق الوارد",
     sent: "المرسل",
     drafts: "المسودات",

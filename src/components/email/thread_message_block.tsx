@@ -104,7 +104,8 @@ import {
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
-import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope } from "@/utils/email_crypto";
+import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope, is_password_protected_body } from "@/utils/email_crypto";
+import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { resolve_received_on_address } from "@/utils/delivered_to";
 import { use_auth_safe } from "@/contexts/auth_context";
@@ -248,23 +249,41 @@ export function ThreadMessageBlock({
     preloaded_sanitized_prop,
   );
 
+  const [password_unlocked_body, set_password_unlocked_body] = useState<string | null>(
+    null,
+  );
+  const password_protected =
+    is_password_protected_body(message.body) && password_unlocked_body === null;
+
+  useEffect(() => {
+    set_password_unlocked_body(null);
+  }, [message.id]);
+
   const clean_body = useMemo(() => {
+    if (password_unlocked_body !== null) {
+      return password_unlocked_body;
+    }
+
     if (message.html_content && !is_ratchet_envelope(message.html_content)) {
       return message.html_content;
     }
 
     return strip_quotes(message.body);
-  }, [message.body, message.html_content]);
+  }, [message.body, message.html_content, password_unlocked_body]);
   const has_reported_external_content = useRef(false);
 
   const collapsed_preview = useMemo(() => {
+    if (password_protected) {
+      return t("mail.pgp_password_protected_title");
+    }
+
     if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL || clean_body === PGP_UNDECRYPTABLE_SENTINEL) {
       return t("mail.encrypted_message_unavailable");
     }
     const plain = strip_html_tags(clean_body).replace(/\s+/g, " ").trim();
 
     return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
-  }, [clean_body, t]);
+  }, [clean_body, password_protected, t]);
 
   const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
 
@@ -290,6 +309,7 @@ export function ThreadMessageBlock({
     [message],
   );
   const has_plaintext_body =
+    !password_protected &&
     !!message.body &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
     message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
@@ -1384,7 +1404,13 @@ export function ThreadMessageBlock({
             />
           </div>
         )}
-        {is_ratchet_undecryptable ? (
+        {password_protected ? (
+          <PgpPasswordProtectedMessage
+            body={message.body}
+            className="px-4 py-3"
+            on_decrypted={set_password_unlocked_body}
+          />
+        ) : is_ratchet_undecryptable ? (
           <p className="px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
           </p>

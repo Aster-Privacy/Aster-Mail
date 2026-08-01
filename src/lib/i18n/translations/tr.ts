@@ -6087,6 +6087,14 @@ export const tr = {
       "Bu gönderenin {{alias}} adresine ulaşmasını engelle",
     encrypted_message_unavailable:
       "Bu mesajın şifresi çözülemedi. Gönderici güncelliğini yitirmiş bir anahtar kullanmış olabilir.",
+    pgp_password_protected_title: "Parola korumalı ileti",
+    pgp_password_protected_description:
+      "Gönderen bu iletiyi bir parolayla şifreledi. Okumak için size verdiği parolayı girin.",
+    pgp_password_placeholder: "Parola",
+    pgp_password_decrypt: "Şifreyi çöz",
+    pgp_password_decrypting: "Şifre çözülüyor...",
+    pgp_password_incorrect:
+      "Bu parola işe yaramadı. Gönderene doğrulatıp yeniden deneyin.",
     inbox: "Gelen Kutusu",
     sent: "Gönderilmiş",
     drafts: "Taslaklar",

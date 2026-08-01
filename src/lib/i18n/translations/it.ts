@@ -6154,6 +6154,14 @@ export const it = {
       "Impedisci a questo mittente di raggiungere {{alias}}",
     encrypted_message_unavailable:
       "Impossibile decifrare questo messaggio. Il mittente potrebbe aver utilizzato una chiave obsoleta.",
+    pgp_password_protected_title: "Messaggio protetto da password",
+    pgp_password_protected_description:
+      "Il mittente ha cifrato questo messaggio con una password. Inserisci la password che ti ha comunicato per leggerlo.",
+    pgp_password_placeholder: "Password",
+    pgp_password_decrypt: "Decifra",
+    pgp_password_decrypting: "Decifratura...",
+    pgp_password_incorrect:
+      "Questa password non ha funzionato. Verificala con il mittente e riprova.",
     inbox: "Posta in arrivo",
     sent: "Inviata",
     drafts: "Bozze",

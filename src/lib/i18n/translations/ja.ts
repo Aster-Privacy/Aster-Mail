@@ -6070,6 +6070,14 @@ export const ja = {
       "この送信者が{{alias}}に届かないようにブロックします",
     encrypted_message_unavailable:
       "このメッセージを復号できませんでした。送信者が古い鍵を使用した可能性があります。",
+    pgp_password_protected_title: "パスワードで保護されたメール",
+    pgp_password_protected_description:
+      "送信者がこのメールをパスワードで暗号化しています。共有されたパスワードを入力すると閲覧できます。",
+    pgp_password_placeholder: "パスワード",
+    pgp_password_decrypt: "復号",
+    pgp_password_decrypting: "復号しています...",
+    pgp_password_incorrect:
+      "このパスワードでは復号できませんでした。送信者に確認して、もう一度お試しください。",
     inbox: "受信トレイ",
     sent: "送信済み",
     drafts: "下書き",
