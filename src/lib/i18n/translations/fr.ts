@@ -7417,6 +7417,20 @@ export const fr = {
       "Impossible de supprimer la réaction. Veuillez réessayer.",
     cannot_react_own_message:
       "Vous ne pouvez pas réagir à votre propre message.",
+    cannot_react_draft:
+      "Vous ne pouvez pas réagir à un brouillon ou à un message programmé.",
+    cannot_react_spam_or_trash:
+      "Vous ne pouvez pas réagir aux messages dans Spam ou Corbeille.",
+    cannot_react_reply_to:
+      "Vous ne pouvez pas réagir à un message avec une adresse de réponse.",
+    cannot_react_too_many_recipients:
+      "Vous ne pouvez pas réagir à un message avec plus de 20 destinataires.",
+    cannot_react_bcc:
+      "Vous ne pouvez pas réagir à un message reçu en Cci.",
+    cannot_react_too_many_emojis:
+      "Ce message a déjà atteint le nombre maximal de réactions.",
+    cannot_react_no_recipient:
+      "Ce message n'a pas d'expéditeur à qui envoyer la réaction.",
     failed_send_reaction:
       "La réaction n'a pas pu être envoyée. Veuillez réessayer.",
     reactions_disabled: "Les réactions sont désactivées dans vos paramètres.",

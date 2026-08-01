@@ -6692,6 +6692,13 @@ export const zh_CN = {
   errors: {
     failed_remove_reaction: "回应删除失败，请重试。",
     cannot_react_own_message: "无法对自己的邮件添加回应。",
+    cannot_react_draft: "无法对草稿或定时发送的邮件添加回应。",
+    cannot_react_spam_or_trash: "无法对垃圾邮件或回收站中的邮件添加回应。",
+    cannot_react_reply_to: "无法对带有回复地址的邮件添加回应。",
+    cannot_react_too_many_recipients: "无法对收件人超过 20 人的邮件添加回应。",
+    cannot_react_bcc: "无法对以密送方式收到的邮件添加回应。",
+    cannot_react_too_many_emojis: "此邮件的回应数量已达上限。",
+    cannot_react_no_recipient: "此邮件没有可接收回应的发件人。",
     failed_send_reaction: "回应发送失败，请重试。",
     reactions_disabled: "回应功能已在设置中关闭。",
     pending_email_verification: "请查看你的邮件并点击验证链接以激活此账户。",

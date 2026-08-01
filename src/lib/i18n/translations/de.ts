@@ -7522,6 +7522,20 @@ export const de = {
       "Reaktion konnte nicht entfernt werden. Bitte versuche es erneut.",
     cannot_react_own_message:
       "Du kannst nicht auf deine eigene Nachricht reagieren.",
+    cannot_react_draft:
+      "Du kannst nicht auf einen Entwurf oder eine geplante Nachricht reagieren.",
+    cannot_react_spam_or_trash:
+      "Du kannst nicht auf Nachrichten in Spam oder Papierkorb reagieren.",
+    cannot_react_reply_to:
+      "Du kannst nicht auf eine Nachricht mit einer Antwortadresse reagieren.",
+    cannot_react_too_many_recipients:
+      "Du kannst nicht auf eine Nachricht mit mehr als 20 Empfängern reagieren.",
+    cannot_react_bcc:
+      "Du kannst nicht auf eine Nachricht reagieren, bei der du in BCC warst.",
+    cannot_react_too_many_emojis:
+      "Diese Nachricht hat bereits die maximale Anzahl an Reaktionen.",
+    cannot_react_no_recipient:
+      "Diese Nachricht hat keinen Absender, an den die Reaktion gesendet werden kann.",
     failed_send_reaction:
       "Die Reaktion konnte nicht gesendet werden. Bitte erneut versuchen.",
     reactions_disabled: "Reaktionen sind in deinen Einstellungen deaktiviert.",

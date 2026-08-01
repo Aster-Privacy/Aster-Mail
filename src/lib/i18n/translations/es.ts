@@ -7323,6 +7323,20 @@ export const es = {
     failed_remove_reaction:
       "No se pudo quitar la reacción. Inténtalo de nuevo.",
     cannot_react_own_message: "No puedes reaccionar a tu propio mensaje.",
+    cannot_react_draft:
+      "No puedes reaccionar a un borrador o a un mensaje programado.",
+    cannot_react_spam_or_trash:
+      "No puedes reaccionar a mensajes en Spam o Papelera.",
+    cannot_react_reply_to:
+      "No puedes reaccionar a un mensaje con una dirección de respuesta.",
+    cannot_react_too_many_recipients:
+      "No puedes reaccionar a un mensaje con más de 20 destinatarios.",
+    cannot_react_bcc:
+      "No puedes reaccionar a un mensaje en el que estabas en CCO.",
+    cannot_react_too_many_emojis:
+      "Este mensaje ya tiene el número máximo de reacciones.",
+    cannot_react_no_recipient:
+      "Este mensaje no tiene remitente al que enviar la reacción.",
     failed_send_reaction: "No se pudo enviar la reacción. Inténtalo de nuevo.",
     reactions_disabled: "Las reacciones están desactivadas en tus ajustes.",
     pending_email_verification:

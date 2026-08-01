@@ -7347,6 +7347,19 @@ export const ja = {
     failed_remove_reaction:
       "リアクションを削除できませんでした。もう一度お試しください。",
     cannot_react_own_message: "自分のメッセージにはリアクションできません。",
+    cannot_react_draft:
+      "下書きや予約送信のメッセージにはリアクションできません。",
+    cannot_react_spam_or_trash:
+      "迷惑メールまたはゴミ箱のメッセージにはリアクションできません。",
+    cannot_react_reply_to:
+      "返信先アドレスが設定されたメッセージにはリアクションできません。",
+    cannot_react_too_many_recipients:
+      "受信者が20人を超えるメッセージにはリアクションできません。",
+    cannot_react_bcc: "BCCで受け取ったメッセージにはリアクションできません。",
+    cannot_react_too_many_emojis:
+      "このメッセージのリアクションは上限に達しています。",
+    cannot_react_no_recipient:
+      "このメッセージには、リアクションの送信先となる送信者がいません。",
     failed_send_reaction:
       "リアクションを送信できませんでした。もう一度お試しください。",
     reactions_disabled: "設定でリアクションが無効になっています。",

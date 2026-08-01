@@ -7096,6 +7096,19 @@ export const ar = {
   errors: {
     failed_remove_reaction: "تعذر إزالة التفاعل. يرجى المحاولة مرة أخرى.",
     cannot_react_own_message: "لا يمكنك التفاعل مع رسالتك الخاصة.",
+    cannot_react_draft: "لا يمكنك التفاعل مع مسودة أو رسالة مجدولة.",
+    cannot_react_spam_or_trash:
+      "لا يمكنك التفاعل مع الرسائل في البريد غير المرغوب أو سلة المهملات.",
+    cannot_react_reply_to:
+      "لا يمكنك التفاعل مع رسالة تحتوي على عنوان للرد.",
+    cannot_react_too_many_recipients:
+      "لا يمكنك التفاعل مع رسالة تضم أكثر من 20 مستلمًا.",
+    cannot_react_bcc:
+      "لا يمكنك التفاعل مع رسالة وصلتك بنسخة مخفية.",
+    cannot_react_too_many_emojis:
+      "وصلت هذه الرسالة إلى الحد الأقصى من التفاعلات.",
+    cannot_react_no_recipient:
+      "لا يوجد مرسل لهذه الرسالة لإرسال التفاعل إليه.",
     failed_send_reaction: "تعذر إرسال التفاعل. يرجى المحاولة مرة أخرى.",
     reactions_disabled: "التفاعلات معطلة في إعداداتك.",
     pending_email_verification:
