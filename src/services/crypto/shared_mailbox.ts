@@ -194,12 +194,17 @@ export async function seal_grant(
   return btoa(armored);
 }
 
-export async function unseal_grant(
+export interface OpenedGrant {
+  payload: SharedMailboxGrantPayload;
+  verified: boolean;
+}
+
+export async function open_grant(
   wrapped_grant: string,
   identity_private_keys: string | string[],
   passphrase: string,
   granter_public_keys: string | string[],
-): Promise<SharedMailboxGrantPayload> {
+): Promise<OpenedGrant> {
   const armored = atob(wrapped_grant);
   const secret_keys = Array.isArray(identity_private_keys)
     ? identity_private_keys
@@ -214,10 +219,6 @@ export async function unseal_grant(
     verification_keys,
   );
 
-  if (result.verification !== "verified") {
-    throw new Error("shared mailbox grant signature could not be verified");
-  }
-
   const payload = JSON.parse(result.plaintext) as SharedMailboxGrantPayload;
 
   if (
@@ -227,6 +228,26 @@ export async function unseal_grant(
     typeof payload.login_secret !== "string"
   ) {
     throw new Error("invalid shared mailbox grant payload");
+  }
+
+  return { payload, verified: result.verification === "verified" };
+}
+
+export async function unseal_grant(
+  wrapped_grant: string,
+  identity_private_keys: string | string[],
+  passphrase: string,
+  granter_public_keys: string | string[],
+): Promise<SharedMailboxGrantPayload> {
+  const { payload, verified } = await open_grant(
+    wrapped_grant,
+    identity_private_keys,
+    passphrase,
+    granter_public_keys,
+  );
+
+  if (!verified) {
+    throw new Error("shared mailbox grant signature could not be verified");
   }
 
   return payload;

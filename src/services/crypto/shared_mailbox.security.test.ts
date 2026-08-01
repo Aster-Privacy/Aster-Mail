@@ -29,6 +29,7 @@ import {
 import {
   seal_grant,
   unseal_grant,
+  open_grant,
   SHARED_MAILBOX_GRANT_VERSION,
   type SharedMailboxGrantPayload,
 } from "@/services/crypto/shared_mailbox";
@@ -202,5 +203,47 @@ describe("shared mailbox grant signature enforcement", () => {
     await expect(
       unseal_grant(wrapped, member.secret_key, PASS, owner.public_key),
     ).rejects.toThrow();
+  });
+
+  it("open_grant surfaces an UNSIGNED legacy self-grant as unverified without throwing", async () => {
+    const owner = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+
+    const unsigned = btoa(
+      await encrypt_message(JSON.stringify(payload("mbx-1")), owner.public_key),
+    );
+
+    const opened = await open_grant(unsigned, owner.secret_key, PASS, owner.public_key);
+
+    expect(opened.verified).toBe(false);
+    expect(opened.payload.mailbox_user_id).toBe("mbx-1");
+    expect(opened.payload.login_secret).toBe(payload("mbx-1").login_secret);
+
+    await expect(
+      unseal_grant(unsigned, owner.secret_key, PASS, owner.public_key),
+    ).rejects.toThrow();
+  });
+
+  it("open_grant decrypts with a key restored from vault history alongside current keys", async () => {
+    const owner = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+    const lost = await generate_identity_keypair("Owner", "owner@astermail.org", PASS);
+
+    const wrapped = await seal_grant(payload("mbx-1"), lost.public_key, {
+      armored_secret_key: owner.secret_key,
+      passphrase: PASS,
+    });
+
+    await expect(
+      open_grant(wrapped, [owner.secret_key], PASS, owner.public_key),
+    ).rejects.toThrow();
+
+    const opened = await open_grant(
+      wrapped,
+      [owner.secret_key, lost.secret_key],
+      PASS,
+      owner.public_key,
+    );
+
+    expect(opened.verified).toBe(true);
+    expect(opened.payload.mailbox_user_id).toBe("mbx-1");
   });
 });

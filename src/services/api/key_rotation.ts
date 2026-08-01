@@ -99,6 +99,27 @@ export async function update_vault(
   return { success: response.data?.success ?? false };
 }
 
+export interface VaultHistoryEntry {
+  encrypted_vault: string;
+  vault_nonce: string;
+  archived_at: string;
+}
+
+export async function get_vault_history(): Promise<{
+  data?: { entries: VaultHistoryEntry[] };
+  error?: string;
+}> {
+  const response = await api_client.get<{ entries: VaultHistoryEntry[] }>(
+    "/crypto/v1/keys/vault/history",
+  );
+
+  if (response.error) {
+    return { error: response.error };
+  }
+
+  return { data: response.data ?? undefined };
+}
+
 export interface RepublishPgpKeyResponse {
   fingerprint: string;
   success: boolean;
