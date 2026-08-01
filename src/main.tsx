@@ -82,6 +82,9 @@ const is_tauri_runtime =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 if (is_tauri_runtime) {
+  void import("@tauri-apps/api/core")
+    .then(({ invoke }) => invoke("frontend_ready"))
+    .catch(() => {});
   void apply_desktop_content_protection(is_any_lockdown_active());
 }
 
