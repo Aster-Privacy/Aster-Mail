@@ -5423,6 +5423,10 @@ export const nl = {
     credit_type_install_android: "Android-app geinstalleerd",
     credit_type_install_desktop: "Desktop-app geinstalleerd",
     credit_type_install_ios: "iOS-app geinstalleerd",
+    credit_type_refunded: "Terugbetaald",
+    credit_type_spent: "Besteed",
+    credit_type_clawback: "Terugvordering",
+    credit_type_admin_removal: "Verwijdering",
     credits_balance_label: "Huidig saldo",
     credits_balance_note:
       "Credits worden automatisch toegepast bij uw volgende verlenging",

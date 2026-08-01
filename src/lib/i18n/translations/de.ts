@@ -5520,6 +5520,10 @@ export const de = {
     credit_type_install_android: "Android-Installation",
     credit_type_install_desktop: "Desktop-Installation",
     credit_type_install_ios: "iOS-Installation",
+    credit_type_refunded: "Erstattet",
+    credit_type_spent: "Ausgegeben",
+    credit_type_clawback: "Rückforderung",
+    credit_type_admin_removal: "Entfernung",
     credits_balance_label: "Verfügbares Guthaben",
     credits_balance_note:
       "Guthaben wird automatisch auf Käufe und Verlängerungen bei kostenpflichtigen Tarifen angewendet.",

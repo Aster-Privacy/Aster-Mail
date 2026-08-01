@@ -5482,6 +5482,10 @@ export const ko = {
     credit_type_install_android: "Android 설치",
     credit_type_install_desktop: "데스크톱 설치",
     credit_type_install_ios: "iOS 설치",
+    credit_type_refunded: "환불",
+    credit_type_spent: "사용",
+    credit_type_clawback: "회수",
+    credit_type_admin_removal: "삭제",
     academic_discount_title: "학생 및 기자 할인",
     academic_discount_description: "인증된 학생과 기자는 개인 요금제 30% 할인.",
     academic_intro:

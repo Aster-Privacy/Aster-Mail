@@ -5497,6 +5497,10 @@ export const fr = {
     credit_type_install_android: "Installation Android",
     credit_type_install_desktop: "Installation sur ordinateur",
     credit_type_install_ios: "Installation iOS",
+    credit_type_refunded: "Remboursé",
+    credit_type_spent: "Dépensé",
+    credit_type_clawback: "Reprise",
+    credit_type_admin_removal: "Suppression",
     credits_balance_label: "Solde de crédits",
     credits_balance_note:
       "Les crédits sont appliqués lors de votre prochain renouvellement.",

@@ -5411,6 +5411,10 @@ export const ar = {
     credit_type_install_android: "تثبيت Android",
     credit_type_install_desktop: "تثبيت سطح المكتب",
     credit_type_install_ios: "تثبيت iOS",
+    credit_type_refunded: "مُسترد",
+    credit_type_spent: "مُنفق",
+    credit_type_clawback: "استرجاع",
+    credit_type_admin_removal: "إزالة",
     academic_discount_title: "خصم الطلاب والصحفيين",
     academic_discount_description:
       "خصم 30٪ على الخطط الفردية للطلاب والصحفيين الموثّقين.",

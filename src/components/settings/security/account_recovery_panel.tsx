@@ -29,7 +29,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Badge } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
@@ -559,13 +559,13 @@ export function AccountRecoveryPanel() {
             <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
               {t("settings.recovery_phrase_row")}
               {methods?.has_phrase ? (
-                <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                <Badge color="green">
                   {t("settings.recovery_phrase_active")}
-                </span>
+                </Badge>
               ) : (
-                <span className="text-[11px] px-2 py-0.5 rounded-md bg-surf-secondary border border-edge-secondary text-txt-muted">
+                <Badge color="gray">
                   {t("settings.recovery_phrase_not_set")}
-                </span>
+                </Badge>
               )}
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">

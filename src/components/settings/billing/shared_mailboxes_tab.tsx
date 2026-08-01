@@ -499,7 +499,7 @@ export function SharedMailboxesTab({
             value={new_prefix}
             onChange={(e) => {
               set_new_prefix(
-                e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""),
+                e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ""),
               );
               set_address_available(null);
             }}

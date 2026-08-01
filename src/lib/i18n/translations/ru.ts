@@ -5436,6 +5436,10 @@ export const ru = {
     credit_type_install_android: "Установка Android",
     credit_type_install_desktop: "Установка десктопа",
     credit_type_install_ios: "Установка iOS",
+    credit_type_refunded: "Возвращено",
+    credit_type_spent: "Потрачено",
+    credit_type_clawback: "Возврат",
+    credit_type_admin_removal: "Удаление",
     credits_balance_label: "Доступный баланс",
     credits_balance_note:
       "Кредиты автоматически применяются к покупкам и продлениям платных тарифов.",
