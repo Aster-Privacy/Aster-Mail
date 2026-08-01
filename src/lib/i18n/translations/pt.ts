@@ -7408,6 +7408,20 @@ export const pt = {
       "Não foi possível remover a reação. Tente novamente.",
     cannot_react_own_message:
       "Não é possível reagir à sua própria mensagem.",
+    cannot_react_draft:
+      "Não é possível reagir a um rascunho ou a uma mensagem agendada.",
+    cannot_react_spam_or_trash:
+      "Não é possível reagir a mensagens no Spam ou na Lixeira.",
+    cannot_react_reply_to:
+      "Não é possível reagir a uma mensagem com um endereço de resposta.",
+    cannot_react_too_many_recipients:
+      "Não é possível reagir a uma mensagem com mais de 20 destinatários.",
+    cannot_react_bcc:
+      "Não é possível reagir a uma mensagem em que você estava em Cco.",
+    cannot_react_too_many_emojis:
+      "Esta mensagem já tem o número máximo de reações.",
+    cannot_react_no_recipient:
+      "Esta mensagem não tem remetente para enviar a reação.",
     failed_send_reaction: "Não foi possível enviar a reação. Tente novamente.",
     reactions_disabled: "As reações estão desativadas nas suas configurações.",
     pending_email_verification:

@@ -7363,6 +7363,20 @@ export const tr = {
   errors: {
     failed_remove_reaction: "Tepki kaldırılamadı. Lütfen tekrar deneyin.",
     cannot_react_own_message: "Kendi mesajınıza tepki veremezsiniz.",
+    cannot_react_draft:
+      "Taslak veya zamanlanmış mesaja tepki veremezsiniz.",
+    cannot_react_spam_or_trash:
+      "Spam veya Çöp kutusundaki mesajlara tepki veremezsiniz.",
+    cannot_react_reply_to:
+      "Yanıt adresi olan bir mesaja tepki veremezsiniz.",
+    cannot_react_too_many_recipients:
+      "20'den fazla alıcısı olan bir mesaja tepki veremezsiniz.",
+    cannot_react_bcc:
+      "Gizli kopyada olduğunuz bir mesaja tepki veremezsiniz.",
+    cannot_react_too_many_emojis:
+      "Bu mesaj zaten en fazla sayıda tepkiye sahip.",
+    cannot_react_no_recipient:
+      "Bu mesajın tepki gönderilecek bir göndereni yok.",
     failed_send_reaction: "Tepki gönderilemedi. Lütfen tekrar deneyin.",
     reactions_disabled: "Tepkiler ayarlarınızda kapalı.",
     pending_email_verification:

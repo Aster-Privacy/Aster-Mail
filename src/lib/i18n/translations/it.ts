@@ -7454,6 +7454,19 @@ export const it = {
   errors: {
     failed_remove_reaction: "Impossibile rimuovere la reazione. Riprova.",
     cannot_react_own_message: "Non puoi reagire al tuo messaggio.",
+    cannot_react_draft:
+      "Non puoi reagire a una bozza o a un messaggio programmato.",
+    cannot_react_spam_or_trash:
+      "Non puoi reagire ai messaggi in Spam o Cestino.",
+    cannot_react_reply_to:
+      "Non puoi reagire a un messaggio con un indirizzo di risposta.",
+    cannot_react_too_many_recipients:
+      "Non puoi reagire a un messaggio con più di 20 destinatari.",
+    cannot_react_bcc: "Non puoi reagire a un messaggio in cui eri in Ccn.",
+    cannot_react_too_many_emojis:
+      "Questo messaggio ha già il numero massimo di reazioni.",
+    cannot_react_no_recipient:
+      "Questo messaggio non ha un mittente a cui inviare la reazione.",
     failed_send_reaction: "Impossibile inviare la reazione. Riprova.",
     reactions_disabled: "Le reazioni sono disattivate nelle tue impostazioni.",
     pending_email_verification:

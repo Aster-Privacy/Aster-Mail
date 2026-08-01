@@ -7389,6 +7389,20 @@ export const pl = {
     failed_remove_reaction: "Nie udało się usunąć reakcji. Spróbuj ponownie.",
     cannot_react_own_message:
       "Nie możesz zareagować na własną wiadomość.",
+    cannot_react_draft:
+      "Nie możesz zareagować na wersję roboczą ani zaplanowaną wiadomość.",
+    cannot_react_spam_or_trash:
+      "Nie możesz reagować na wiadomości w Spamie lub Koszu.",
+    cannot_react_reply_to:
+      "Nie możesz zareagować na wiadomość z adresem odpowiedzi.",
+    cannot_react_too_many_recipients:
+      "Nie możesz zareagować na wiadomość z ponad 20 odbiorcami.",
+    cannot_react_bcc:
+      "Nie możesz zareagować na wiadomość otrzymaną w UDW.",
+    cannot_react_too_many_emojis:
+      "Ta wiadomość ma już maksymalną liczbę reakcji.",
+    cannot_react_no_recipient:
+      "Ta wiadomość nie ma nadawcy, do którego można wysłać reakcję.",
     failed_send_reaction: "Nie udało się wysłać reakcji. Spróbuj ponownie.",
     reactions_disabled: "Reakcje są wyłączone w Twoich ustawieniach.",
     pending_email_verification:

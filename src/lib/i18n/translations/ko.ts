@@ -7134,6 +7134,19 @@ export const ko = {
   errors: {
     failed_remove_reaction: "반응을 삭제하지 못했습니다. 다시 시도해 주세요.",
     cannot_react_own_message: "자신의 메시지에는 반응할 수 없습니다.",
+    cannot_react_draft:
+      "임시 보관 또는 예약된 메시지에는 반응할 수 없습니다.",
+    cannot_react_spam_or_trash:
+      "스팸 또는 휴지통의 메시지에는 반응할 수 없습니다.",
+    cannot_react_reply_to:
+      "회신 주소가 있는 메시지에는 반응할 수 없습니다.",
+    cannot_react_too_many_recipients:
+      "수신자가 20명을 넘는 메시지에는 반응할 수 없습니다.",
+    cannot_react_bcc: "숨은 참조로 받은 메시지에는 반응할 수 없습니다.",
+    cannot_react_too_many_emojis:
+      "이 메시지에는 이미 최대 개수의 반응이 있습니다.",
+    cannot_react_no_recipient:
+      "이 메시지에는 반응을 보낼 발신자가 없습니다.",
     failed_send_reaction: "반응을 보내지 못했습니다. 다시 시도해 주세요.",
     reactions_disabled: "설정에서 반응이 꺼져 있습니다.",
     pending_email_verification:

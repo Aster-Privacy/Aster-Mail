@@ -7335,6 +7335,20 @@ export const nl = {
       "Kan reactie niet verwijderen. Probeer het opnieuw.",
     cannot_react_own_message:
       "Je kunt niet op je eigen bericht reageren.",
+    cannot_react_draft:
+      "Je kunt niet reageren op een concept of gepland bericht.",
+    cannot_react_spam_or_trash:
+      "Je kunt niet reageren op berichten in Spam of Prullenbak.",
+    cannot_react_reply_to:
+      "Je kunt niet reageren op een bericht met een antwoordadres.",
+    cannot_react_too_many_recipients:
+      "Je kunt niet reageren op een bericht met meer dan 20 ontvangers.",
+    cannot_react_bcc:
+      "Je kunt niet reageren op een bericht waarin je in de Bcc stond.",
+    cannot_react_too_many_emojis:
+      "Dit bericht heeft al het maximale aantal reacties.",
+    cannot_react_no_recipient:
+      "Dit bericht heeft geen afzender om de reactie naar te sturen.",
     failed_send_reaction:
       "De reactie kon niet worden verzonden. Probeer het opnieuw.",
     reactions_disabled: "Reacties zijn uitgeschakeld in je instellingen.",
