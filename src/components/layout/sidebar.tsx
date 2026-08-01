@@ -664,7 +664,7 @@ export const Sidebar = ({
         {is_mobile && on_mobile_toggle && (
           <button
             aria-label={t("common.close_menu")}
-            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-txt-muted"
+            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-icon-muted"
             onClick={on_mobile_toggle}
           >
             <XMarkIcon className="w-5 h-5" />
@@ -673,7 +673,7 @@ export const Sidebar = ({
         {!is_mobile && forced_collapse && !is_collapsed && (
           <button
             aria-label={t("common.close_menu")}
-            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-txt-muted"
+            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-icon-muted"
             type="button"
             onClick={() => set_force_expanded(false)}
           >
@@ -724,7 +724,7 @@ export const Sidebar = ({
                       {t("common.deck", { name: display_name })}
                     </span>
                   </div>
-                  <ChevronDownIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
+                  <ChevronDownIcon className="w-4 h-4 flex-shrink-0 text-icon-muted" />
                 </>
               )}
             </button>

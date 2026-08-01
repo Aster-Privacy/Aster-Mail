@@ -365,7 +365,7 @@ export function InboxHeader({
                       {(display_count ?? filtered_count).toLocaleString()}
                     </span>
                   )}
-                  <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
+                  <ChevronDownIcon className="w-4 h-4 text-[var(--icon-muted)] flex-shrink-0" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
@@ -422,7 +422,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     onClick={on_restore}
                   >
-                    <ArrowUturnLeftIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                    <ArrowUturnLeftIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                   </button>
                 </Tooltip>
               )}
@@ -436,7 +436,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       onClick={on_unarchive}
                     >
-                      <InboxIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                      <InboxIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                     </button>
                   </Tooltip>
                 ) : (
@@ -445,7 +445,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       onClick={on_archive}
                     >
-                      <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                      <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                     </button>
                   </Tooltip>
                 ))}
@@ -471,7 +471,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     onClick={on_mark_read}
                   >
-                    <EnvelopeOpenIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                    <EnvelopeOpenIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                   </button>
                 </Tooltip>
               )}
@@ -482,7 +482,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     onClick={on_toggle_star}
                   >
-                    <StarIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                    <StarIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                   </button>
                 </Tooltip>
               )}
@@ -495,7 +495,7 @@ export function InboxHeader({
                         aria-label={t("common.snooze_until")}
                         className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       >
-                        <ClockIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                        <ClockIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                       </button>
                     </DropdownMenuTrigger>
                   </Tooltip>
@@ -552,7 +552,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       onClick={on_spam}
                     >
-                      <ShieldExclamationIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                      <ShieldExclamationIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                     </button>
                   </Tooltip>
                 )}
@@ -569,7 +569,7 @@ export function InboxHeader({
                           aria-label={t("common.folders")}
                           className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                         >
-                          <FolderIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                          <FolderIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                         </button>
                       </DropdownMenuTrigger>
                     </Tooltip>
@@ -612,7 +612,7 @@ export function InboxHeader({
                           aria-label={t("common.labels")}
                           className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                         >
-                          <TagIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                          <TagIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                         </button>
                       </DropdownMenuTrigger>
                     </Tooltip>
@@ -649,7 +649,7 @@ export function InboxHeader({
                       aria-label={t("common.more")}
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     >
-                      <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+                      <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
                     </button>
                   </DropdownMenuTrigger>
                 </Tooltip>

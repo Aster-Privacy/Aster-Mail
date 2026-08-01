@@ -58,7 +58,7 @@ export function HeaderPagination({
     <div className="hidden lg:flex items-center gap-1 text-xs text-[var(--text-muted)] ml-1">
       <Tooltip tip={t("common.previous")}>
         <Button
-          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          className="h-7 w-7 text-[var(--icon-muted)] hover:text-[var(--icon-active)]"
           disabled={
             on_navigate_prev
               ? !can_go_prev
@@ -102,7 +102,7 @@ export function HeaderPagination({
       </span>
       <Tooltip tip={t("common.next")}>
         <Button
-          className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          className="h-7 w-7 text-[var(--icon-muted)] hover:text-[var(--icon-active)]"
           disabled={
             on_navigate_next
               ? !can_go_next

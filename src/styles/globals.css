@@ -50,6 +50,9 @@
   --text-secondary: #374151;
   --text-tertiary: #4b5563;
   --text-muted: #5f6470;
+  --icon-muted: #5f6470;
+  --icon-secondary: #374151;
+  --icon-active: #111827;
   --accent-color: #3b82f6;
   --accent-mix-w70: #76a8f9;
   --accent-mix-w80: #629bf8;
@@ -135,6 +138,9 @@
   --text-secondary: #d4d4d4;
   --text-tertiary: #a1a1aa;
   --text-muted: #8a8a8a;
+  --icon-muted: #8a8a8a;
+  --icon-secondary: #d4d4d4;
+  --icon-active: #f5f5f5;
   --accent-color: #3b82f6;
   --accent-mix-w70: #76a8f9;
   --accent-mix-w80: #629bf8;
@@ -1282,6 +1288,26 @@
   --thread-content-bg: #0a0a0a;
 }
 
+.theme-purple,
+.theme-green,
+.theme-rose,
+.theme-orange,
+.theme-teal,
+.theme-indigo,
+.theme-amber,
+.theme-cyan,
+.theme-slate,
+.theme-aster-blue,
+.theme-lime,
+.theme-fuchsia,
+.theme-emerald,
+.theme-pink,
+.theme-black {
+  --icon-muted: #8a8a8a;
+  --icon-secondary: #d4d4d4;
+  --icon-active: #f5f5f5;
+}
+
 * {
   font-family: var(--font-sans, 'Google Sans Flex'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -1563,6 +1589,9 @@ button.press_scale:active {
   --color-txt-secondary: var(--text-secondary);
   --color-txt-tertiary: var(--text-tertiary);
   --color-txt-muted: var(--text-muted);
+  --color-icon-muted: var(--icon-muted);
+  --color-icon-secondary: var(--icon-secondary);
+  --color-icon-active: var(--icon-active);
   --color-surf-primary: var(--bg-primary);
   --color-surf-secondary: var(--bg-secondary);
   --color-surf-tertiary: var(--bg-tertiary);
