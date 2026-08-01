@@ -3334,6 +3334,8 @@ export const pl = {
     behavior_shortcuts: "Zachowanie i skróty",
     mark_as_read: "Oznacz jako przeczytane",
     mark_as_read_description: "Kiedy oznaczać e-maile jako przeczytane",
+    emails_per_page: "Wiadomości na stronę",
+    emails_per_page_description: "Liczba wiadomości wyświetlanych na stronie w Odebranych, Archiwum i innych folderach",
     immediately: "Natychmiast",
     after_1_second: "Po 1 sekundzie",
     after_3_seconds: "Po 3 sekundach",

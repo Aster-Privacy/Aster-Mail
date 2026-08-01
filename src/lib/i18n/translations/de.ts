@@ -3356,6 +3356,8 @@ export const de = {
     behavior_shortcuts: "Verhalten & Tastenkürzel",
     mark_as_read: "Als gelesen markieren",
     mark_as_read_description: "Wann E-Mails als gelesen markiert werden",
+    emails_per_page: "E-Mails pro Seite",
+    emails_per_page_description: "Anzahl der pro Seite angezeigten E-Mails im Posteingang, Archiv und anderen Ordnern",
     immediately: "Sofort",
     after_1_second: "Nach 1 Sekunde",
     after_3_seconds: "Nach 3 Sekunden",

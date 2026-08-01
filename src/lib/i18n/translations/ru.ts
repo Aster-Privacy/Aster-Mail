@@ -3324,6 +3324,8 @@ export const ru = {
     behavior_shortcuts: "Поведение и горячие клавиши",
     mark_as_read: "Отметить как прочитанное",
     mark_as_read_description: "Когда отмечать письма как прочитанные",
+    emails_per_page: "Писем на странице",
+    emails_per_page_description: "Количество писем, отображаемых на странице во Входящих, Архиве и других папках",
     immediately: "Сразу",
     after_1_second: "Через 1 секунду",
     after_3_seconds: "Через 3 секунды",

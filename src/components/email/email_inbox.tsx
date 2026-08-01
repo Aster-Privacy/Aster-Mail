@@ -42,6 +42,7 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { clamp_inbox_page_size } from "@/lib/inbox_page_size";
 import { use_email_list } from "@/hooks/use_email_list";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
@@ -196,7 +197,12 @@ export function EmailInbox({
     },
     [set_search_params],
   );
-  const page_size = 30;
+  const preferred_page_size = clamp_inbox_page_size(
+    preferences.inbox_page_size,
+  );
+  const page_size = preferences.low_network_mode
+    ? Math.min(15, preferred_page_size)
+    : preferred_page_size;
   const categories = use_inbox_categories(current_view);
 
   const is_drafts_view = current_view === "drafts";

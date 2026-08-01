@@ -3300,6 +3300,8 @@ export const tr = {
     behavior_shortcuts: "Davranış ve Kısayollar",
     mark_as_read: "Okundu Olarak İşaretle",
     mark_as_read_description: "E-postalar ne zaman okundu olarak işaretlensin",
+    emails_per_page: "Sayfa başına e-posta",
+    emails_per_page_description: "Gelen kutusu, arşiv ve diğer klasörlerde sayfa başına gösterilen e-posta sayısı",
     immediately: "Hemen",
     after_1_second: "1 saniye sonra",
     after_3_seconds: "3 saniye sonra",

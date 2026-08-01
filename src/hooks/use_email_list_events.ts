@@ -47,6 +47,7 @@ interface UseEmailListEventsParams {
   has_keys: boolean;
   auth_loading: boolean;
   is_completing_registration: boolean;
+  page_size?: number;
   set_state: React.Dispatch<React.SetStateAction<EmailListState>>;
   fetch_page_ref: MutableRefObject<
     ((page: number, limit: number, force?: boolean) => Promise<void>) | null
@@ -99,6 +100,7 @@ export function use_email_list_events({
   has_keys,
   auth_loading,
   is_completing_registration,
+  page_size = DEFAULT_PAGE_SIZE,
   set_state,
   fetch_page_ref,
   silent_fetch_ref,
@@ -118,7 +120,7 @@ export function use_email_list_events({
 
     const on_auth_ready = () => {
       if (cleaned_up) return;
-      fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+      fetch_page_ref.current?.(0, page_size);
     };
 
     window.addEventListener(MAIL_EVENTS.AUTH_READY, on_auth_ready);
@@ -133,6 +135,7 @@ export function use_email_list_events({
     is_mail_view,
     is_completing_registration,
     fetch_page_ref,
+    page_size,
   ]);
 
   useEffect(() => {
@@ -161,13 +164,13 @@ export function use_email_list_events({
           clearTimeout(debounce_timer);
         }
         debounce_timer = setTimeout(() => {
-          fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+          fetch_page_ref.current?.(0, page_size);
         }, 150);
       }
     };
 
     const handle_auth_ready = () => {
-      fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+      fetch_page_ref.current?.(0, page_size);
     };
 
     const handle_soft_refresh = () => {
@@ -192,7 +195,7 @@ export function use_email_list_events({
         clearTimeout(debounce_timer);
       }
       debounce_timer = setTimeout(() => {
-        fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE, true);
+        fetch_page_ref.current?.(0, page_size, true);
       }, 150);
     };
 
@@ -279,6 +282,7 @@ export function use_email_list_events({
     silent_fetch_ref,
     last_fetch_ref,
     set_state,
+    page_size,
   ]);
 
   useEffect(() => {

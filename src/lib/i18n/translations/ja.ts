@@ -3313,6 +3313,8 @@ export const ja = {
     behavior_shortcuts: "動作とショートカット",
     mark_as_read: "既読にする",
     mark_as_read_description: "メールを既読にするタイミング",
+    emails_per_page: "1ページあたりのメール数",
+    emails_per_page_description: "受信トレイ、アーカイブ、その他のフォルダーで1ページに表示するメール数",
     immediately: "すぐに",
     after_1_second: "1秒後",
     after_3_seconds: "3秒後",

@@ -3329,6 +3329,8 @@ export const pt = {
     behavior_shortcuts: "Comportamento e Atalhos",
     mark_as_read: "Marcar como Lido",
     mark_as_read_description: "Quando marcar e-mails como lidos",
+    emails_per_page: "E-mails por página",
+    emails_per_page_description: "Número de e-mails mostrados por página na Caixa de entrada, Arquivo e outras pastas",
     immediately: "Imediatamente",
     after_1_second: "Após 1 segundo",
     after_3_seconds: "Após 3 segundos",

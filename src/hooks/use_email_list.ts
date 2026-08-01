@@ -26,6 +26,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { fetch_mail_from_api, DEFAULT_PAGE_SIZE } from "./email_list_helpers";
+import { clamp_inbox_page_size } from "@/lib/inbox_page_size";
 import {
   view_cache,
   set_view_cache,
@@ -77,7 +78,13 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   } = use_auth();
   const { preferences } = use_preferences();
   const { is_online } = use_online_status();
-  const page_size = preferences.low_network_mode ? 15 : DEFAULT_PAGE_SIZE;
+  const preferred_page_size = clamp_inbox_page_size(
+    preferences.inbox_page_size,
+    DEFAULT_PAGE_SIZE,
+  );
+  const page_size = preferences.low_network_mode
+    ? Math.min(15, preferred_page_size)
+    : preferred_page_size;
   const [state, set_state] = useState<EmailListState>(() => {
     const cached = view_cache.get(current_view);
 
@@ -846,6 +853,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     has_keys,
     auth_loading,
     is_completing_registration,
+    page_size,
     set_state,
     fetch_page_ref,
     silent_fetch_ref,
@@ -872,6 +880,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     state,
     set_state,
     fetch_page_ref,
+    page_size,
   });
 
   return {

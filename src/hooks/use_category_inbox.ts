@@ -36,6 +36,7 @@ import {
   group_emails_by_thread,
   DEFAULT_PAGE_SIZE,
 } from "./email_list_helpers";
+import { clamp_inbox_page_size } from "@/lib/inbox_page_size";
 import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { MAIL_EVENTS } from "./mail_events";
@@ -137,7 +138,10 @@ export function use_category_inbox(
     set_thread_grouping(preferences.conversation_grouping !== false);
   }, [preferences.conversation_grouping]);
 
-  const page_size = DEFAULT_PAGE_SIZE;
+  const page_size = clamp_inbox_page_size(
+    preferences.inbox_page_size,
+    DEFAULT_PAGE_SIZE,
+  );
 
   const format_options: FormatOptions = useMemo(
     () => ({
@@ -696,6 +700,7 @@ export function use_category_inbox(
     state,
     set_state,
     fetch_page_ref,
+    page_size,
   });
 
   const finish_thread_action = useCallback(

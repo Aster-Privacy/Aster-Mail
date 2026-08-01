@@ -84,6 +84,10 @@ import {
   derive_accepted_languages,
 } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
+import {
+  INBOX_PAGE_SIZE_OPTIONS,
+  clamp_inbox_page_size,
+} from "@/lib/inbox_page_size";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 
@@ -287,6 +291,11 @@ export function BehaviorSection() {
 
   use_register_search_items("behavior", [
     {
+      label: t("settings.emails_per_page"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
+      keywords: ["page size", "per page", "pagination", "results", "emails per page"],
+    },
+    {
       label: t("settings.translate_incoming"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
       keywords: ["translate", "translation", "language"],
@@ -451,6 +460,27 @@ export function BehaviorSection() {
           ]}
           title={t("settings.mark_as_read")}
           value={preferences.mark_as_read_delay}
+        />
+
+        <SelectSetting
+          description={t("settings.emails_per_page_description")}
+          info={{
+            title: t("settings.emails_per_page"),
+            description: t("settings.emails_per_page_description"),
+          }}
+          on_change={(v) =>
+            update_preference(
+              "inbox_page_size",
+              clamp_inbox_page_size(parseInt(v, 10)),
+              true,
+            )
+          }
+          options={INBOX_PAGE_SIZE_OPTIONS.map((size) => ({
+            value: String(size),
+            label: String(size),
+          }))}
+          title={t("settings.emails_per_page")}
+          value={String(clamp_inbox_page_size(preferences.inbox_page_size))}
         />
 
         <SelectSetting

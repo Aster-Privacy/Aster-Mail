@@ -3299,6 +3299,8 @@ export const nl = {
     behavior_shortcuts: "Gedrag & sneltoetsen",
     mark_as_read: "Als gelezen markeren",
     mark_as_read_description: "Wanneer e-mails als gelezen worden gemarkeerd",
+    emails_per_page: "E-mails per pagina",
+    emails_per_page_description: "Aantal e-mails per pagina in Postvak IN, Archief en andere mappen",
     immediately: "Direct",
     after_1_second: "Na 1 seconde",
     after_3_seconds: "Na 3 seconden",
