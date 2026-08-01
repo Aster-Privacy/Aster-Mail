@@ -20,6 +20,7 @@
 //
 
 import { useEffect, useRef, useState } from "react";
+import { IdentificationIcon } from "@heroicons/react/24/outline";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
@@ -155,11 +156,14 @@ export function AliasDisplayNameEditor({
   if (is_editing) {
     const input_class =
       variant === "mobile"
-        ? "mt-1 w-full bg-transparent text-[13px] text-[var(--mobile-text-muted)] outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0"
-        : "mt-0.5 w-full bg-transparent text-xs text-txt-muted outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0";
+        ? "w-full bg-transparent text-[13px] text-[var(--mobile-text-muted)] outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0"
+        : "w-full bg-transparent text-xs text-txt-muted outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0";
 
     return (
-      <span className="flex items-center gap-1">
+      <span
+        className={`flex items-center gap-1.5 ${variant === "mobile" ? "mt-1 text-[var(--mobile-text-muted)]" : "mt-0.5 text-txt-muted"}`}
+      >
+        <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
         <input
           ref={input_ref}
           aria-label={aria_label}
@@ -185,7 +189,7 @@ export function AliasDisplayNameEditor({
     return (
       <button
         aria-label={aria_label}
-        className={`mt-1 block max-w-full ${cursor_class} truncate text-left text-[13px] ${
+        className={`mt-1 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-left text-[13px] leading-5 ${
           has_name
             ? "text-[var(--mobile-text-muted)]"
             : "text-[var(--mobile-text-muted)] opacity-70"
@@ -193,7 +197,8 @@ export function AliasDisplayNameEditor({
         type="button"
         onClick={enter_edit}
       >
-        {display_label}
+        <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+        <span className="truncate">{display_label}</span>
       </button>
     );
   }
@@ -201,13 +206,14 @@ export function AliasDisplayNameEditor({
   return (
     <button
       aria-label={aria_label}
-      className={`mt-0.5 block max-w-full ${cursor_class} truncate text-left text-xs ${
+      className={`mt-0.5 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-left text-xs leading-4 ${
         has_name ? "text-txt-muted" : "text-txt-muted opacity-70"
       } focus:outline-none focus:ring-0`}
       type="button"
       onClick={enter_edit}
     >
-      {display_label}
+      <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+      <span className="truncate">{display_label}</span>
     </button>
   );
 }
