@@ -584,6 +584,10 @@ export async function decrypt_body_text(
 
   result = await try_decrypt_pgp_body(result);
 
+  if (is_password_protected_body(result)) {
+    return decode_password_protected_body(result).rest.trim();
+  }
+
   if (/^content-type\s*:/im.test(result)) {
     try {
       result = extract_mime_body(result);
