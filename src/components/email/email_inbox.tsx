@@ -47,6 +47,7 @@ import { use_email_list } from "@/hooks/use_email_list";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
+  is_password_protected_body,
 } from "@/utils/email_crypto";
 import { use_drafts_list } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
@@ -590,7 +591,8 @@ export function EmailInbox({
     (mode: "reply" | "forward", email: InboxEmail) => {
       const is_sentinel = (value: string | undefined): boolean =>
         value === RATCHET_UNDECRYPTABLE_SENTINEL ||
-        value === PGP_UNDECRYPTABLE_SENTINEL;
+        value === PGP_UNDECRYPTABLE_SENTINEL ||
+        is_password_protected_body(value ?? "");
       const fallback_body =
         (is_sentinel(email.body_html) ? "" : email.body_html) ||
         (is_sentinel(email.preview) ? "" : email.preview) ||
