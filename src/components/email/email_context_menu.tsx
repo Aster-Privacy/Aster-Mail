@@ -43,6 +43,8 @@ import {
   UsersIcon,
   BellIcon,
   Squares2X2Icon,
+  MagnifyingGlassIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -92,7 +94,10 @@ interface EmailContextMenuContentProps {
   tags?: TagOption[];
   current_view?: string;
   on_reply?: () => void;
+  on_reply_all?: () => void;
   on_forward?: () => void;
+  on_find_from_sender?: () => void;
+  on_open_in_new_window?: () => void;
   on_toggle_read?: () => void;
   on_toggle_pin?: () => void;
   on_snooze?: (snooze_until: Date) => Promise<void>;
@@ -130,7 +135,10 @@ function EmailContextMenuContentInner({
   tags = [],
   current_view = "inbox",
   on_reply,
+  on_reply_all,
   on_forward,
+  on_find_from_sender,
+  on_open_in_new_window,
   on_toggle_read,
   on_toggle_pin,
   on_snooze,
@@ -172,6 +180,16 @@ function EmailContextMenuContentInner({
   const is_drafts = current_view === "drafts";
   const is_scheduled = current_view === "scheduled";
 
+  const show_find_from_sender =
+    !!on_find_from_sender &&
+    !!email.sender_email &&
+    !is_drafts &&
+    !is_scheduled &&
+    !is_sent &&
+    email.item_type !== "sent";
+  const show_open_in_new_window =
+    !!on_open_in_new_window && !is_drafts && !is_scheduled;
+
   const email_folders = email.folders || [];
   const current_folder_id =
     email_folders.length > 0 ? email_folders[0].folder_token : "";
@@ -185,6 +203,33 @@ function EmailContextMenuContentInner({
         >
           <ArrowUturnLeftIcon className="mr-2 h-4 w-4" />
           {t("mail.reply")}
+        </ContextMenuItem>
+      )}
+
+      {on_reply_all && !is_sent && !is_drafts && !is_scheduled && (
+        <ContextMenuItem
+          disabled={loading_action === "reply_all"}
+          onClick={() => handle_action("reply_all", on_reply_all)}
+        >
+          <svg
+            className="mr-2 h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M13 15L7 9m0 0l6-6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {t("mail.reply_all")}
         </ContextMenuItem>
       )}
 
@@ -513,6 +558,34 @@ function EmailContextMenuContentInner({
           {is_trash || is_drafts
             ? t("mail.delete_permanently")
             : t("mail.move_to_trash")}
+        </ContextMenuItem>
+      )}
+
+      {(show_find_from_sender || show_open_in_new_window) && (
+        <ContextMenuSeparator />
+      )}
+
+      {show_find_from_sender && (
+        <ContextMenuItem
+          onClick={() => handle_action("find_from_sender", on_find_from_sender)}
+        >
+          <MagnifyingGlassIcon className="mr-2 h-4 w-4" />
+          <span className="truncate">
+            {t("mail.find_emails_from", {
+              sender: email.sender_name || email.sender_email || "",
+            })}
+          </span>
+        </ContextMenuItem>
+      )}
+
+      {show_open_in_new_window && (
+        <ContextMenuItem
+          onClick={() =>
+            handle_action("open_in_new_window", on_open_in_new_window)
+          }
+        >
+          <ArrowTopRightOnSquareIcon className="mr-2 h-4 w-4" />
+          {t("mail.open_in_new_window")}
         </ContextMenuItem>
       )}
 

@@ -59,6 +59,7 @@ import { strip_html_tags } from "@/lib/html_sanitizer";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_i18n } from "@/lib/i18n/context";
+import { resolve_list_density } from "@/lib/list_density";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 
 const MIN_LIST_WIDTH = 280;
@@ -894,7 +895,7 @@ export function SearchResultsPage({
                 key={email.id}
                 className="border-b border-edge-secondary"
                 current_view="search"
-                density={preferences.density}
+                density={resolve_list_density(preferences.mail_list_density)}
                 email={email as InboxEmail}
                 is_active={email.id === split_email_id}
                 on_email_click={handle_email_click}

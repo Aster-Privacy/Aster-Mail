@@ -131,6 +131,10 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     }
   }, [active_category, search_query]);
 
+  useEffect(() => {
+    input_ref.current?.focus();
+  }, []);
+
   return (
     <div
       className="rounded-2xl shadow-xl border w-[296px] bg-modal-bg border-edge-primary"
@@ -174,11 +178,11 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
       </div>
 
       {!search_query && (
-        <div className="flex px-1.5 pb-1.5 gap-0.5 border-b border-edge-secondary">
+        <div className="flex px-1.5 pb-1.5 gap-0.5 justify-between border-b border-edge-secondary">
           {CATEGORY_KEYS.map((key) => (
             <button
               key={key}
-              className={`press_scale flex-1 flex items-center justify-center h-8 rounded-full cursor-pointer transition-transform duration-150 ${active_category === key ? "bg-black/10 dark:bg-white/15" : "opacity-55 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"}`}
+              className={`press_scale w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full cursor-pointer transition-transform duration-150 ${active_category === key ? "bg-black/10 dark:bg-white/15" : "opacity-55 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"}`}
               title={emoji_categories[key].label}
               type="button"
               onClick={() => {

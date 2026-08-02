@@ -251,6 +251,7 @@ export function PopupEmailBody({
             <PurchaseDetailsBanner
               className="mx-4 mt-4"
               details={extraction_result.purchase}
+              email_id={email?.id}
             />
           )}
 

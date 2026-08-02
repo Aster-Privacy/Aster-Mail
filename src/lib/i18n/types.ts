@@ -3873,6 +3873,7 @@ export interface SettingsTranslations {
   domain_purchase_purchased_expires: string;
   domain_purchase_purchased_in_progress: string;
   domain_purchase_purchased_awaiting: string;
+  domain_purchase_done_warmup: string;
   domain_purchase_create_first_address: string;
   domain_purchase_progress_note: string;
   domain_purchase_complete_cta: string;
@@ -5530,6 +5531,7 @@ export interface MailTranslations {
   unread: string;
   mark_as_read: string;
   mark_as_unread: string;
+  find_emails_from: string;
   move_to: string;
   move_1_conversation: string;
   move_n_conversations: string;
@@ -5954,6 +5956,11 @@ export interface MailTranslations {
   showing_results: string;
   indexing: string;
   indexing_messages: string;
+  message_download_status: string;
+  estimated_time_remaining: string;
+  download_paused: string;
+  pause_download_action: string;
+  resume_download_action: string;
   searching_message_content: string;
   search_taking_too_long: string;
   search_refine_terms: string;
@@ -6080,6 +6087,11 @@ export interface MailTranslations {
   confirmation_label: string;
   transaction_label: string;
   purchase_extraction_privacy: string;
+  ordered_from: string;
+  receipt_is_this_correct: string;
+  receipt_feedback_correct: string;
+  receipt_feedback_incorrect: string;
+  receipt_feedback_thanks: string;
   external_content_blocked: string;
   tracking_protection: string;
   tracking_protection_description: string;

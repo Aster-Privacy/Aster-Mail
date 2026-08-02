@@ -50,7 +50,7 @@ interface ProfileAvatarProps {
   name: string;
   email?: string;
   image_url?: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm_compact" | "sm" | "md" | "lg" | "xl";
   className?: string;
   use_domain_logo?: boolean;
   clickable?: boolean;
@@ -60,6 +60,7 @@ interface ProfileAvatarProps {
 
 const SIZE_MAP: Record<string, number> = {
   xs: 24,
+  sm_compact: 28,
   sm: 32,
   md: 40,
   lg: 48,

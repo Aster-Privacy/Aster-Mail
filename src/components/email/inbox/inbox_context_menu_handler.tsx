@@ -76,7 +76,10 @@ interface UseContextMenuActionsParams {
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
-  handle_open_compose: (mode: "reply" | "forward", email: InboxEmail) => void;
+  handle_open_compose: (
+    mode: "reply" | "reply_all" | "forward",
+    email: InboxEmail,
+  ) => void;
   folders_lookup: Map<string, { name: string; color?: string }>;
   tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
   add_folder_to_email: (
@@ -116,7 +119,10 @@ export interface ContextMenuActions {
   handle_toggle_star: (email: InboxEmail) => Promise<void>;
   handle_toggle_pin: (email: InboxEmail) => Promise<void>;
   handle_reply: (email: InboxEmail) => void;
+  handle_reply_all: (email: InboxEmail) => void;
   handle_forward: (email: InboxEmail) => void;
+  handle_find_from_sender: (email: InboxEmail) => void;
+  handle_open_in_new_window: (email: InboxEmail) => void;
   handle_folder_toggle: (
     email: InboxEmail,
     folder_token: string,
@@ -623,8 +629,25 @@ export function use_context_menu_actions({
       handle_open_compose("reply", email);
     };
 
+    const handle_reply_all = (email: InboxEmail) => {
+      handle_open_compose("reply_all", email);
+    };
+
     const handle_forward = (email: InboxEmail) => {
       handle_open_compose("forward", email);
+    };
+
+    const handle_find_from_sender = (email: InboxEmail) => {
+      if (!email.sender_email) return;
+      window.dispatchEvent(
+        new CustomEvent("astermail:open-search-with-query", {
+          detail: { query: `from:${email.sender_email}` },
+        }),
+      );
+    };
+
+    const handle_open_in_new_window = (email: InboxEmail) => {
+      window.open(`/email/${email.id}`, "_blank", "noopener");
     };
 
     const handle_folder_toggle = async (
@@ -1017,7 +1040,10 @@ export function use_context_menu_actions({
       handle_toggle_star,
       handle_toggle_pin,
       handle_reply,
+      handle_reply_all,
       handle_forward,
+      handle_find_from_sender,
+      handle_open_in_new_window,
       handle_folder_toggle,
       handle_tag_toggle,
       handle_restore,

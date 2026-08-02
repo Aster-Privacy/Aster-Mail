@@ -921,3 +921,9 @@ export async function remove_spam_sender(
 
   return api_client.delete(`/mail/v1/spam_senders?${query}`);
 }
+
+export function submit_receipt_feedback(
+  is_correct: boolean,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post("/mail/v1/receipts/feedback", { is_correct });
+}

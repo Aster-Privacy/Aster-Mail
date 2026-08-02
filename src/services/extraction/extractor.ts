@@ -30,6 +30,48 @@ import type {
 
 import { CARRIER_TRACKING_URLS, CARRIER_NAMES } from "./types";
 import { en } from "@/lib/i18n/translations/en";
+import {
+  html_to_readable_plain_text,
+  is_html_content,
+} from "@/lib/html_sanitizer";
+
+const BASIC_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&apos;": "'",
+  "&nbsp;": " ",
+};
+
+function decode_basic_entities(text: string): string {
+  return text.replace(
+    /&(?:amp|lt|gt|quot|#39|apos|nbsp);/g,
+    (entity) => BASIC_ENTITIES[entity] ?? entity,
+  );
+}
+
+function normalize_email_text(text: string, html?: string): string {
+  const source = text && text.trim() ? text : (html ?? "");
+
+  if (!source) return "";
+  if (is_html_content(source)) return html_to_readable_plain_text(source);
+
+  return decode_basic_entities(source);
+}
+
+function clean_text_field(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const trimmed = value.trim();
+
+  if (!trimmed) return null;
+  if (/[<>]/.test(trimmed)) return null;
+  if (/&#?[a-z0-9]+;/i.test(trimmed)) return null;
+
+  return trimmed;
+}
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   $: "USD",
@@ -395,7 +437,9 @@ function extract_items_from_body(body: string): ExtractedItem[] {
       const [, qty_or_name, name_or_qty, price_str] = match;
       const is_qty_first = /^\d+$/.test((qty_or_name ?? "").trim());
 
-      const item_name = is_qty_first ? name_or_qty : qty_or_name;
+      const item_name = clean_text_field(
+        is_qty_first ? name_or_qty : qty_or_name,
+      );
       const quantity = is_qty_first
         ? parseInt(qty_or_name, 10)
         : parseInt(name_or_qty ?? "", 10) || 1;
@@ -403,7 +447,7 @@ function extract_items_from_body(body: string): ExtractedItem[] {
 
       if (item_name && item_name.length > 2 && item_name.length < 200) {
         items.push({
-          name: item_name.trim(),
+          name: item_name,
           quantity,
           unit_price,
           total_price: unit_price
@@ -453,7 +497,9 @@ export function extract_purchase_details(
   from_name: string,
 ): ExtractedPurchaseDetails {
   const signals: string[] = [];
-  const combined = `${subject}\n${body}`;
+  const clean_subject = decode_basic_entities(subject);
+  const clean_body = normalize_email_text(body);
+  const combined = `${clean_subject}\n${clean_body}`;
 
   let order_id: string | null = null;
 
@@ -461,9 +507,12 @@ export function extract_purchase_details(
     const match = combined.match(pattern);
 
     if (match) {
-      order_id = match[1];
-      signals.push(`order_id:${order_id}`);
-      break;
+      order_id = clean_text_field(match[1]);
+
+      if (order_id) {
+        signals.push(`order_id:${order_id}`);
+        break;
+      }
     }
   }
 
@@ -508,30 +557,32 @@ export function extract_purchase_details(
   const payment_match = combined.match(
     /(?:payment\s+method|paid\s+with|charged\s+to)[:\s]*([^\n]+)/i,
   );
-  const payment_method = payment_match ? payment_match[1].trim() : null;
+  const payment_method = clean_text_field(payment_match?.[1]);
 
   const date_patterns = [
     /(?:order|purchase)\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
     /(?:ordered|purchased)\s+on[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
     /date[:\s]*(\d{1,2}\/\d{1,2}\/\d{2,4})/i,
   ];
-  const order_date = extract_date(combined, date_patterns);
+  const order_date = clean_text_field(extract_date(combined, date_patterns));
 
-  const items = extract_items_from_body(body);
+  const items = extract_items_from_body(clean_body);
 
   if (items.length > 0) signals.push(`items:${items.length}`);
 
-  const merchant_name = extract_merchant_name(from_email, from_name);
+  const merchant_name = clean_text_field(
+    extract_merchant_name(from_email, from_name),
+  );
 
   const confirmation_match = combined.match(
     /confirmation\s*(?:#|number|code)?[:\s]*([A-Z0-9][\w-]{5,20})/i,
   );
-  const confirmation_number = confirmation_match ? confirmation_match[1] : null;
+  const confirmation_number = clean_text_field(confirmation_match?.[1]);
 
   const transaction_match = combined.match(
     /transaction\s*(?:#|id)?[:\s]*([A-Z0-9][\w-]{8,30})/i,
   );
-  const transaction_id = transaction_match ? transaction_match[1] : null;
+  const transaction_id = clean_text_field(transaction_match?.[1]);
 
   return {
     order_id,
@@ -559,14 +610,25 @@ export function extract_shipping_details(
   from_email: string,
 ): ExtractedShippingDetails {
   const signals: string[] = [];
+  const clean_subject = decode_basic_entities(subject);
+  const clean_body = normalize_email_text(body);
+  const raw_html = html ?? (is_html_content(body) ? body : undefined);
 
-  const carrier = detect_carrier_from_email(from_email, subject, body);
+  const carrier = detect_carrier_from_email(
+    from_email,
+    clean_subject,
+    clean_body,
+  );
 
   if (carrier) signals.push(`carrier:${carrier}`);
 
-  let tracking_url = extract_tracking_url(body, html);
+  let tracking_url = extract_tracking_url(clean_body, raw_html);
 
-  const tracking_result = extract_tracking_number(body, carrier, tracking_url);
+  const tracking_result = extract_tracking_number(
+    clean_body,
+    carrier,
+    tracking_url,
+  );
   const tracking_number = tracking_result?.number || null;
   const detected_carrier = tracking_result?.carrier || carrier;
 
@@ -580,7 +642,7 @@ export function extract_shipping_details(
     }
   }
 
-  const status = detect_shipping_status(subject, body);
+  const status = detect_shipping_status(clean_subject, clean_body);
 
   signals.push(`status:${status}`);
 
@@ -589,27 +651,33 @@ export function extract_shipping_details(
     /arriving\s+(?:by\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2})/i,
     /deliver(?:ed|y)\s+(?:by\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2})/i,
   ];
-  const estimated_delivery = extract_date(body, delivery_patterns);
+  const estimated_delivery = clean_text_field(
+    extract_date(clean_body, delivery_patterns),
+  );
 
   const shipped_patterns = [
     /shipped\s+(?:on\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
     /ship\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
   ];
-  const shipped_date = extract_date(body, shipped_patterns);
+  const shipped_date = clean_text_field(
+    extract_date(clean_body, shipped_patterns),
+  );
 
   const delivered_patterns = [
     /delivered\s+(?:on\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
     /delivery\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
   ];
   const delivery_date =
-    status === "delivered" ? extract_date(body, delivered_patterns) : null;
+    status === "delivered"
+      ? clean_text_field(extract_date(clean_body, delivered_patterns))
+      : null;
 
-  const destination_match = body.match(
+  const destination_match = clean_body.match(
     /(?:deliver(?:ed|ing)?\s+to|destination)[:\s]*([^\n]{10,100})/i,
   );
-  const destination = destination_match
-    ? destination_match[1].trim().substring(0, 100)
-    : null;
+  const destination = clean_text_field(
+    destination_match?.[1]?.substring(0, 100),
+  );
 
   const carrier_name = detected_carrier
     ? CARRIER_NAMES[detected_carrier]
@@ -696,17 +764,19 @@ export function extract_email_details(
   from_email: string,
   from_name: string,
 ): EmailExtractionResult {
-  const is_purchase = is_purchase_email(subject, body_text);
-  const is_shipping = is_shipping_email(subject, body_text);
+  const clean_subject = decode_basic_entities(subject);
+  const clean_text = normalize_email_text(body_text, body_html);
+  const is_purchase = is_purchase_email(clean_subject, clean_text);
+  const is_shipping = is_shipping_email(clean_subject, clean_text);
 
   return {
     has_purchase_details: is_purchase,
     has_shipping_details: is_shipping,
     purchase: is_purchase
-      ? extract_purchase_details(subject, body_text, from_email, from_name)
+      ? extract_purchase_details(clean_subject, clean_text, from_email, from_name)
       : null,
     shipping: is_shipping
-      ? extract_shipping_details(subject, body_text, body_html, from_email)
+      ? extract_shipping_details(clean_subject, clean_text, body_html, from_email)
       : null,
     extracted_at: Date.now(),
   };

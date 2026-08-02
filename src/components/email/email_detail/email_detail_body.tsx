@@ -373,6 +373,7 @@ export function EmailDetailBody({
             <PurchaseDetailsBanner
               className="mb-4 sm:mb-6"
               details={extraction.purchase}
+              email_id={email.id}
             />
           )}
           {extraction.has_shipping_details && extraction.shipping && (

@@ -478,14 +478,11 @@ export function SandboxedEmailRenderer({
   const accent_hover_hex = safe_hex(preferences.accent_color_hover, accent_hex);
   const link_hover_ink = is_dark_theme ? accent_hover_hex : accent_hex;
   const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
-  const link_hover_css = `a { transition: background-color 0.12s ease, color 0.12s ease; border-radius: 3px; }
+  const link_hover_css = `a { transition: color 0.12s ease; }
 a:hover, a:hover *${LINK_MEDIA_EXCLUDE} {
   color: ${link_hover_ink} !important;
   text-decoration: underline !important;
   text-decoration-color: ${link_hover_ink} !important;
-}
-a:hover:not(:has(img)):not(:has(picture)):not(:has(svg)):not(:has(video)):not(:has(canvas)) {
-  background-color: ${hex_to_rgba(link_hover_ink, is_dark_theme ? 0.22 : 0.14)} !important;
 }
 a:focus-visible {
   outline: 2px solid ${link_hover_ink} !important;

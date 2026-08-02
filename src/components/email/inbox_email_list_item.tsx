@@ -59,6 +59,7 @@ import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { AttachmentChip } from "@/components/email/attachment_chip";
 import { cn, is_system_email } from "@/lib/utils";
+import { is_compact_density } from "@/lib/list_density";
 import {
   get_alias_hash_by_address,
   subscribe_aliases,
@@ -107,10 +108,7 @@ function format_email_size(bytes: number): string {
 }
 
 function get_density_classes(density: string, compact_mode: boolean): string {
-  if (compact_mode || density === "Compact") return "py-2";
-  if (density === "Spacious") return "py-3.5";
-
-  return "py-2.5";
+  return is_compact_density(density, compact_mode) ? "py-1.5" : "py-2";
 }
 
 function truncate_preview(
@@ -241,6 +239,11 @@ export const InboxEmailListItem = memo(
       const peer_badge = peer_profile?.active_badge ?? null;
       const show_sender_badge =
         (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
+      const compact_rows = is_compact_density(
+        density,
+        preferences.compact_mode ?? false,
+      );
+      const avatar_size_class = compact_rows ? "w-7 h-7" : "w-8 h-8";
       const show_hover_actions =
         on_archive ||
         on_spam ||
@@ -417,7 +420,10 @@ export const InboxEmailListItem = memo(
         >
           <Tooltip delay={600} tip={t("mail.select")}>
             <div
-              className="group/avatar relative flex-shrink-0 w-8 h-8 flex items-center justify-center cursor-pointer"
+              className={cn(
+                "group/avatar relative flex-shrink-0 flex items-center justify-center cursor-pointer",
+                avatar_size_class,
+              )}
               role="button"
               tabIndex={0}
               onClick={(e) => {
@@ -435,7 +441,8 @@ export const InboxEmailListItem = memo(
               {preferences.low_network_mode ? (
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-150",
+                    "rounded-full border-2 flex items-center justify-center transition-colors duration-150",
+                    avatar_size_class,
                     email.is_selected
                       ? "bg-[var(--accent-color,#3b82f6)] border-[var(--accent-color,#3b82f6)]"
                       : "border-edge-primary group-hover/avatar:border-[var(--accent-color,#3b82f6)]",
@@ -454,7 +461,8 @@ export const InboxEmailListItem = memo(
                 <>
                   <div
                     className={cn(
-                      "w-8 h-8 transition-opacity duration-150",
+                      "transition-opacity duration-150",
+                      avatar_size_class,
                       email.is_selected
                         ? "opacity-0"
                         : "group-hover/avatar:opacity-0",
@@ -463,7 +471,10 @@ export const InboxEmailListItem = memo(
                     {is_system_email(email.sender_email) ? (
                       <img
                         alt={t("common.aster_mail")}
-                        className="w-8 h-8 rounded-full object-cover"
+                        className={cn(
+                          "rounded-full object-cover",
+                          avatar_size_class,
+                        )}
                         draggable={false}
                         src="/mail_logo.webp"
                       />
@@ -475,7 +486,7 @@ export const InboxEmailListItem = memo(
                           peer_profile?.profile_picture ?? email.avatar_url
                         }
                         name={peer_profile?.display_name ?? show_sender_name}
-                        size="sm"
+                        size={compact_rows ? "sm_compact" : "sm"}
                       />
                     )}
                   </div>

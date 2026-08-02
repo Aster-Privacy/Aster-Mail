@@ -717,8 +717,11 @@ export function DomainPurchaseFlow({
             <p className="text-lg font-semibold text-txt-primary mb-1.5">
               {order?.domain}
             </p>
-            <p className="text-sm text-txt-secondary max-w-[340px] mb-6">
+            <p className="text-sm text-txt-secondary max-w-[340px] mb-3">
               {t("settings.domain_purchase_done_note")}
+            </p>
+            <p className="text-xs text-txt-muted max-w-[360px] mb-6">
+              {t("settings.domain_purchase_done_warmup")}
             </p>
             <div className="flex flex-col items-center gap-2 w-full max-w-[280px]">
               {on_create_address && (
@@ -759,8 +762,8 @@ export function DomainPurchaseFlow({
                     {done ? (
                       <CheckCircleSolid className="w-6 h-6 text-green-500 flex-shrink-0" />
                     ) : active ? (
-                      <span className="w-6 h-6 rounded-full border-2 border-[var(--accent-color)] flex items-center justify-center flex-shrink-0">
-                        <Spinner className="text-[var(--accent-color)]" size="xs" />
+                      <span className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                        <Spinner className="text-[var(--accent-color)]" size="sm" />
                       </span>
                     ) : (
                       <span className="w-6 h-6 rounded-full border-2 border-edge-secondary flex-shrink-0" />

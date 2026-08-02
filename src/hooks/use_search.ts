@@ -95,6 +95,15 @@ import {
   date_boundary_local,
   type ChunkSkipPlan,
 } from "@/services/search_chunk_filter";
+import {
+  get_index_download_snapshot,
+  is_index_download_paused,
+  record_index_download_checkpoint,
+  reset_index_download_state,
+  set_index_download_paused,
+  subscribe_index_download,
+  type IndexDownloadState,
+} from "@/services/search/index_download_control";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 export interface ActiveFilter {
@@ -754,6 +763,42 @@ export function use_indexing_progress(): IndexingProgress {
   );
 }
 
+export function use_index_download_state(): IndexDownloadState {
+  return useSyncExternalStore(
+    subscribe_index_download,
+    get_index_download_snapshot,
+    get_index_download_snapshot,
+  );
+}
+
+export function pause_index_download(): void {
+  set_index_download_paused(true);
+}
+
+export function resume_index_download(
+  user_email: string,
+  include_body: boolean,
+): void {
+  set_index_download_paused(false);
+
+  if (
+    cached_index &&
+    cached_index.user_email === user_email &&
+    cached_index.meta &&
+    !cached_index.meta.complete
+  ) {
+    schedule_deep_index(
+      user_email,
+      cached_index.include_body || include_body,
+      cached_index.meta,
+    );
+
+    return;
+  }
+
+  void build_search_index(user_email, include_body).catch(() => {});
+}
+
 const index_refresh_listeners = new Set<() => void>();
 
 function emit_index_refreshed(): void {
@@ -779,6 +824,9 @@ interface PipelineOptions {
   hot: CachedIndex | null;
   writer: SnapshotWriter | null;
   report_progress: boolean;
+  pausable?: boolean;
+  checkpoint?: boolean;
+  progress_base?: number;
 }
 
 interface PipelineResult {
@@ -786,6 +834,7 @@ interface PipelineResult {
   next_cursor?: string;
   reached_boundary: boolean;
   fresh_count: number;
+  paused: boolean;
 }
 
 async function run_index_pipeline(
@@ -809,8 +858,20 @@ async function run_index_pipeline(
     throw new Error(`search_fetch_failed:${error}`);
   };
 
-  const progress = (next: Partial<IndexingProgress>): void => {
-    if (options.report_progress) emit_indexing(next);
+  const base = options.progress_base ?? 0;
+  let display_total = base;
+  let pause_hit = false;
+
+  const pause_requested = (): boolean =>
+    !!options.pausable && is_index_download_paused();
+
+  const report = (): void => {
+    if (options.report_progress) {
+      emit_indexing({ current: base + processed, total: display_total });
+    }
+    if (options.checkpoint) {
+      record_index_download_checkpoint(base + processed, display_total);
+    }
   };
 
   const is_reusable = (item: MailItem): boolean => {
@@ -978,7 +1039,12 @@ async function run_index_pipeline(
       if (my_gen !== build_generation) cancel();
 
       processed += batch.length;
-      progress({ current: processed });
+      report();
+
+      if (pause_requested()) {
+        pause_hit = true;
+        break;
+      }
 
       await new Promise<void>((r) => setTimeout(r, 0));
     }
@@ -987,6 +1053,18 @@ async function run_index_pipeline(
   };
 
   do {
+    if (pause_requested()) {
+      return {
+        processed,
+        next_cursor: cursor,
+        reached_boundary,
+        fresh_count,
+        paused: true,
+      };
+    }
+
+    const page_start_cursor = cursor;
+    const page_start_processed = processed;
     const response = await list_encrypted_mail_items({
       cursor,
       limit: page_limit,
@@ -1003,7 +1081,10 @@ async function run_index_pipeline(
     cursor = response.data.next_cursor;
 
     if (response.data.total) {
-      known_total = Math.min(response.data.total, options.max_items);
+      known_total =
+        base > 0
+          ? response.data.total
+          : Math.min(response.data.total, options.max_items);
     }
 
     let page_items = response.data.items;
@@ -1025,9 +1106,15 @@ async function run_index_pipeline(
       page_items = page_items.slice(0, room);
     }
 
-    progress({
-      total: Math.max(known_total, processed + page_items.length),
-    });
+    display_total = Math.max(
+      display_total,
+      known_total,
+      base + processed + page_items.length,
+    );
+
+    if (options.report_progress) {
+      emit_indexing({ total: display_total });
+    }
 
     const envelope_by_id = incremental
       ? await fetch_envelopes(
@@ -1036,6 +1123,16 @@ async function run_index_pipeline(
       : null;
 
     const page_entries = await decrypt_page(page_items, envelope_by_id);
+
+    if (pause_hit) {
+      return {
+        processed: page_start_processed,
+        next_cursor: page_start_cursor,
+        reached_boundary,
+        fresh_count,
+        paused: true,
+      };
+    }
 
     if (hot) {
       for (const item of page_items) {
@@ -1066,6 +1163,7 @@ async function run_index_pipeline(
     next_cursor: reached_boundary ? undefined : cursor,
     reached_boundary,
     fresh_count,
+    paused: false,
   };
 }
 
@@ -1107,6 +1205,15 @@ async function build_index_full(
   prior?: Map<string, DecryptedIndexEntry>,
 ): Promise<CachedIndex> {
   const my_gen = build_generation;
+
+  if (is_index_download_paused()) {
+    if (cached_index && cached_index.user_email === user_email) {
+      return cached_index;
+    }
+
+    return empty_index(user_email, include_body);
+  }
+
   const index = empty_index(user_email, include_body);
 
   emit_indexing({ building: true, current: 0, total: 0 });
@@ -1123,17 +1230,19 @@ async function build_index_full(
       hot: index,
       writer,
       report_progress: true,
+      pausable: true,
+      checkpoint: true,
     });
 
     index.built_at = Date.now();
     index.total_indexed = index.items.length;
-    index.complete = !result.next_cursor;
+    index.complete = !result.paused && !result.next_cursor;
 
     if (writer) {
       const exhausted = writer.storage_exhausted();
       const meta = await writer.finish({
         next_cursor: exhausted ? undefined : result.next_cursor,
-        complete: exhausted ? false : !result.next_cursor,
+        complete: exhausted || result.paused ? false : !result.next_cursor,
         include_body,
       });
 
@@ -1147,7 +1256,7 @@ async function build_index_full(
     cached_index = index;
     emit_indexing({ building: false, current: 0, total: 0 });
 
-    if (index.meta && !index.meta.complete) {
+    if (index.meta && !index.meta.complete && !is_index_download_paused()) {
       schedule_deep_index(user_email, include_body, index.meta);
     }
 
@@ -1192,7 +1301,16 @@ async function build_index_front_refresh(
       hot: index,
       writer: null,
       report_progress: true,
+      pausable: true,
     });
+
+    if (result.paused) {
+      index.items.length = 0;
+      index.decrypted.clear();
+      emit_indexing({ building: false, current: 0, total: 0 });
+
+      return stale;
+    }
 
     if (!result.reached_boundary) {
       index.items.length = 0;
@@ -1259,6 +1377,7 @@ function schedule_deep_index(
   base: SnapshotMeta,
 ): void {
   if (deep_index_active) return;
+  if (is_index_download_paused()) return;
 
   deep_index_active = true;
   void run_deep_index(user_email, include_body, base).finally(() => {
@@ -1273,22 +1392,32 @@ async function run_deep_index(
 ): Promise<void> {
   const my_gen = build_generation;
   let meta = base;
+  let emitted = false;
 
   try {
     while (
       !meta.complete &&
       meta.next_cursor &&
       meta.total < MAX_INDEX_ITEMS &&
-      my_gen === build_generation
+      my_gen === build_generation &&
+      !is_index_download_paused()
     ) {
       await new Promise<void>((r) => setTimeout(r, DEEP_SEGMENT_PAUSE_MS));
 
       if (my_gen !== build_generation) return;
+      if (is_index_download_paused()) return;
       if (!(await has_index_storage_headroom())) return;
 
       const writer = await open_snapshot_writer(user_email, meta);
 
       if (!writer) return;
+
+      emitted = true;
+      emit_indexing({
+        building: true,
+        current: meta.total,
+        total: Math.max(indexing_progress.total, meta.total),
+      });
 
       const result = await run_index_pipeline({
         user_email,
@@ -1298,13 +1427,16 @@ async function run_deep_index(
         max_items: Math.min(DEEP_SEGMENT_ITEMS, MAX_INDEX_ITEMS - meta.total),
         hot: null,
         writer,
-        report_progress: false,
+        report_progress: true,
+        pausable: true,
+        checkpoint: true,
+        progress_base: meta.total,
       });
 
       const exhausted = writer.storage_exhausted();
       const next = await writer.finish({
         next_cursor: exhausted ? undefined : result.next_cursor,
-        complete: exhausted ? false : !result.next_cursor,
+        complete: exhausted || result.paused ? false : !result.next_cursor,
         include_body,
         keep_chunk_ids: meta.chunk_ids,
         kept_total: meta.total,
@@ -1325,10 +1457,19 @@ async function run_deep_index(
 
       emit_index_refreshed();
 
+      if (result.paused) return;
       if (result.processed === 0) return;
+    }
+
+    if (meta.complete) {
+      record_index_download_checkpoint(meta.total, meta.total);
     }
   } catch {
     return;
+  } finally {
+    if (emitted) {
+      emit_indexing({ building: false, current: 0, total: 0 });
+    }
   }
 }
 
@@ -1416,6 +1557,7 @@ export function clear_search_index(): void {
   cached_index = null;
   build_generation++;
   index_build_promise = null;
+  reset_index_download_state();
   emit_indexing({ building: false, current: 0, total: 0 });
   void clear_search_snapshots();
 }
@@ -2187,6 +2329,7 @@ export function use_search() {
     build_generation++;
     index_build_promise = null;
     last_scan_ref.current = null;
+    reset_index_download_state();
     emit_indexing({ building: false, current: 0, total: 0 });
   }, []);
 
@@ -2503,6 +2646,7 @@ export function use_search() {
 
   const start_index_build = useCallback(
     (include_body: boolean) => {
+      set_index_download_paused(false);
       build_search_index(user?.email || "", include_body, ttl).catch(() => {
         // first real search will surface the error
       });

@@ -380,25 +380,38 @@ export const ThreadMessagesList = forwardRef<
 
   useEffect(() => {
     if (prev_message_ids_key.current === message_ids_key) return;
+
+    const prev_ids = new Set(
+      prev_message_ids_key.current.split(",").filter(Boolean),
+    );
+
     prev_message_ids_key.current = message_ids_key;
 
-    const new_expanded = new Set<string>();
+    const current_ids = new Set(regular_messages.map((m) => m.id));
 
-    if (regular_messages.length > 0) {
-      new_expanded.add(regular_messages[regular_messages.length - 1].id);
-    }
+    set_expanded_ids((prev) => {
+      const next = new Set<string>();
 
-    if (regular_messages.length <= 4) {
-      const unread = regular_messages.filter((m) => !m.is_read);
-
-      unread.slice(-5).forEach((msg) => {
-        new_expanded.add(msg.id);
+      prev.forEach((id) => {
+        if (current_ids.has(id)) next.add(id);
       });
-    }
 
-    set_expanded_ids(new_expanded);
-    auto_read_ids.current = new Set();
-    set_hidden_group_revealed(false);
+      const last = regular_messages[regular_messages.length - 1];
+
+      if (last && !prev_ids.has(last.id)) {
+        next.add(last.id);
+      }
+
+      if (next.size === 0 && last) {
+        next.add(last.id);
+      }
+
+      return next;
+    });
+
+    auto_read_ids.current = new Set(
+      [...auto_read_ids.current].filter((id) => current_ids.has(id)),
+    );
   }, [message_ids_key, regular_messages]);
 
   const mark_as_read = useCallback(
