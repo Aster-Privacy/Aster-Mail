@@ -48,6 +48,7 @@ import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/rec
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
 import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purchase_modal";
 import {
+  cancel_domain_order,
   get_dns_records,
   get_status_color,
   get_status_label,
@@ -78,6 +79,25 @@ export function AliasesSection({
   );
   const [purchased_orders, set_purchased_orders] = useState<DomainOrder[]>([]);
   const [purchased_loading, set_purchased_loading] = useState(false);
+  const [cancelling_order_id, set_cancelling_order_id] = useState<
+    string | null
+  >(null);
+
+  const handle_cancel_order = async (order_id: string) => {
+    set_cancelling_order_id(order_id);
+    try {
+      const response = await cancel_domain_order(order_id);
+
+      if (response.data?.success) {
+        set_purchased_orders((prev) =>
+          prev.filter((order) => order.id !== order_id),
+        );
+      }
+    } catch {
+    } finally {
+      set_cancelling_order_id(null);
+    }
+  };
 
   useEffect(() => {
     if (purchase_open) return;
@@ -89,9 +109,7 @@ export function AliasesSection({
             r.data.orders.filter(
               (o) =>
                 o.order_type === "registration" &&
-                !["expired", "refunded", "failed", "pending_payment"].includes(
-                  o.status,
-                ),
+                !["expired", "refunded", "failed"].includes(o.status),
             ),
           );
         }
@@ -113,15 +131,41 @@ export function AliasesSection({
   }, []);
 
   useEffect(() => {
-    try {
-      const stashed = sessionStorage.getItem("aster_pending_domain_order");
+    const params = new URLSearchParams(window.location.search);
+    const url_order_id = params.get("domain_order");
+    let stashed: string | null = null;
 
+    try {
+      stashed = sessionStorage.getItem("aster_pending_domain_order");
       if (stashed) {
         sessionStorage.removeItem("aster_pending_domain_order");
-        set_purchase_order_id(stashed);
-        set_purchase_open(true);
       }
     } catch {}
+
+    if (url_order_id) {
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete("domain_order");
+      url.searchParams.delete("cancelled");
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    if (params.get("cancelled") === "1") {
+      const cancelled_id = url_order_id ?? stashed;
+
+      if (cancelled_id) {
+        cancel_domain_order(cancelled_id).catch(() => {});
+      }
+
+      return;
+    }
+
+    const order_id = url_order_id ?? stashed;
+
+    if (order_id) {
+      set_purchase_order_id(order_id);
+      set_purchase_open(true);
+    }
   }, []);
   const [current_page, set_current_page] = useState(0);
   const [search_query, set_search_query] = useState("");
@@ -782,11 +826,17 @@ export function AliasesSection({
                 <button
                   key={order.id}
                   className={`flex w-full items-center justify-between gap-3 rounded-xl bg-[var(--mobile-bg-card)] p-4 text-left ${
-                    order.status === "complete" ? "cursor-default" : ""
+                    order.status === "complete" ||
+                    order.status === "pending_payment"
+                      ? "cursor-default"
+                      : ""
                   }`}
                   type="button"
                   onClick={() => {
-                    if (order.status === "complete") {
+                    if (
+                      order.status === "complete" ||
+                      order.status === "pending_payment"
+                    ) {
                       return;
                     }
                     set_purchase_order_id(
@@ -798,24 +848,47 @@ export function AliasesSection({
                   <span className="truncate text-[15px] font-medium text-[var(--mobile-text-primary)]">
                     {order.domain}
                   </span>
-                  <span
-                    className={`flex-shrink-0 text-[12px] ${
-                      order.status === "lapsed"
-                        ? "text-[var(--color-danger)]"
-                        : "text-[var(--mobile-text-muted)]"
-                    }`}
-                  >
-                    {order.status === "complete"
-                      ? order.expires_at
-                        ? t("settings.domain_purchase_purchased_expires", {
-                            date: new Date(
-                              order.expires_at,
-                            ).toLocaleDateString(),
-                          })
-                        : ""
-                      : order.status === "lapsed"
-                        ? t("settings.domain_purchase_purchased_lapsed")
-                        : t("settings.domain_purchase_purchased_in_progress")}
+                  <span className="flex flex-shrink-0 items-center gap-2.5">
+                    {order.status === "pending_payment" && (
+                      <span
+                        className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[12px] font-medium text-[var(--mobile-text-secondary)]"
+                        role="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (cancelling_order_id !== order.id) {
+                            handle_cancel_order(order.id);
+                          }
+                        }}
+                      >
+                        {cancelling_order_id === order.id && (
+                          <Spinner size="xs" />
+                        )}
+                        {t("common.cancel")}
+                      </span>
+                    )}
+                    <span
+                      className={`text-[12px] ${
+                        order.status === "lapsed"
+                          ? "text-[var(--color-danger)]"
+                          : "text-[var(--mobile-text-muted)]"
+                      }`}
+                    >
+                      {order.status === "complete"
+                        ? order.expires_at
+                          ? t("settings.domain_purchase_purchased_expires", {
+                              date: new Date(
+                                order.expires_at,
+                              ).toLocaleDateString(),
+                            })
+                          : ""
+                        : order.status === "lapsed"
+                          ? t("settings.domain_purchase_purchased_lapsed")
+                          : order.status === "pending_payment"
+                            ? t("settings.domain_purchase_purchased_awaiting")
+                            : t(
+                                "settings.domain_purchase_purchased_in_progress",
+                              )}
+                    </span>
                   </span>
                 </button>
               ))}
