@@ -448,7 +448,13 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
   return resolved.body;
 }
 
-export const ASTER_SUBJECT_BUNDLE_PREFIX = "ASTER_BUNDLE_V2";
+export const ASTER_SUBJECT_BUNDLE_MARKER = "ASTER_BUNDLE_V2";
+
+
+const BUNDLE_MARKER_DELIMITER = "";
+
+export const ASTER_SUBJECT_BUNDLE_PREFIX =
+  BUNDLE_MARKER_DELIMITER + ASTER_SUBJECT_BUNDLE_MARKER + BUNDLE_MARKER_DELIMITER;
 
 export interface SubjectBundle {
   subject: string | null;
@@ -555,15 +561,21 @@ function scan_bundle_payload(payload: string): SubjectBundle | null {
 const MAX_SUBJECT_BUNDLE_DEPTH = 8;
 
 function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
-  const prefix_index = text.indexOf(ASTER_SUBJECT_BUNDLE_PREFIX);
-  if (
-    prefix_index === -1 ||
-    !BUNDLE_FRAMING_PATTERN.test(text.slice(0, prefix_index))
-  ) {
-    return null;
-  }
+  const marker_index = text.indexOf(ASTER_SUBJECT_BUNDLE_MARKER);
+  if (marker_index === -1) return null;
 
-  const payload = text.slice(prefix_index + ASTER_SUBJECT_BUNDLE_PREFIX.length);
+  const start_index =
+    marker_index > 0 && text[marker_index - 1] === BUNDLE_MARKER_DELIMITER
+      ? marker_index - 1
+      : marker_index;
+
+  if (!BUNDLE_FRAMING_PATTERN.test(text.slice(0, start_index))) return null;
+
+  let payload_index = marker_index + ASTER_SUBJECT_BUNDLE_MARKER.length;
+
+  if (text[payload_index] === BUNDLE_MARKER_DELIMITER) payload_index += 1;
+
+  const payload = text.slice(payload_index);
 
   try {
     const parsed = JSON.parse(payload);
@@ -603,7 +615,7 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
 export function unwrap_bundle_html(
   html: string | undefined,
 ): { html: string | undefined; subject: string | null } {
-  if (!html || !html.includes(ASTER_SUBJECT_BUNDLE_PREFIX)) {
+  if (!html || !html.includes(ASTER_SUBJECT_BUNDLE_MARKER)) {
     return { html, subject: null };
   }
 
