@@ -60,6 +60,40 @@ function is_tauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
+const NOTIFIED_TTL_MS = 6 * 60 * 60 * 1000;
+const NOTIFIED_MAX_ENTRIES = 1000;
+const UNKNOWN_ID_DEBOUNCE_MS = 5000;
+const notified_at_by_email_id = new Map<string, number>();
+
+function claim_notification(email_id: string): boolean {
+  const now = Date.now();
+  const key = email_id || "__unknown__";
+  const window_ms = email_id ? NOTIFIED_TTL_MS : UNKNOWN_ID_DEBOUNCE_MS;
+  const last = notified_at_by_email_id.get(key);
+
+  if (last !== undefined && now - last < window_ms) {
+    return false;
+  }
+
+  if (notified_at_by_email_id.size >= NOTIFIED_MAX_ENTRIES) {
+    for (const [id, ts] of notified_at_by_email_id) {
+      if (now - ts >= NOTIFIED_TTL_MS) {
+        notified_at_by_email_id.delete(id);
+      }
+    }
+    if (notified_at_by_email_id.size >= NOTIFIED_MAX_ENTRIES) {
+      const oldest = notified_at_by_email_id.keys().next().value;
+      if (oldest !== undefined) {
+        notified_at_by_email_id.delete(oldest);
+      }
+    }
+  }
+
+  notified_at_by_email_id.set(key, now);
+
+  return true;
+}
+
 export function EmailNotificationManager() {
   const { is_authenticated, current_account_id } = use_auth();
   const { preferences } = use_preferences();
@@ -97,6 +131,10 @@ export function EmailNotificationManager() {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       const email_id = detail?.email_id || "";
+
+      if (!claim_notification(email_id)) {
+        return;
+      }
 
       void (async () => {
         const muted = await is_email_in_muted_folder(
