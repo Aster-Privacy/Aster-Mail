@@ -28,6 +28,7 @@ import {
 import { register_engine, reset_engine_registry } from "./engine_registry";
 import type { TranslationEngine } from "./engine_types";
 import {
+  available_source_languages,
   translate_message_body,
   translate_plain_text,
 } from "./translate_document";
@@ -37,9 +38,11 @@ let translate_impl: (segments: string[]) => Promise<string[]> = async (
   segments,
 ) => segments;
 
+let availability_impl: () => Promise<boolean> = async () => true;
+
 const fake_engine: TranslationEngine = {
   id: BERGAMOT_ENGINE_ID,
-  is_available: async () => true,
+  is_available: async () => availability_impl(),
   requires_download: async () => 0,
   prepare: async () => {},
   translate: async (segments) => translate_impl(segments),
@@ -66,6 +69,55 @@ beforeEach(() => {
   register_bergamot_engine();
   register_engine(BERGAMOT_ENGINE_ID, async () => fake_engine);
   translate_impl = async (segments) => segments;
+  availability_impl = async () => true;
+});
+
+describe("engine availability failures", () => {
+  it("reports unavailable rather than unsupported when the model registry cannot be fetched", async () => {
+    availability_impl = async () => {
+      throw new Error("registry.json 404");
+    };
+
+    const root = mount("<p>Guten Tag</p>");
+
+    const result = await translate_message_body({
+      root,
+      account_id: "acct-1",
+      message_id: "registry-down",
+      from: "de",
+      to: "en",
+      signal: fresh_signal(),
+    });
+
+    expect(result.translated).toBe(false);
+    expect(result.unsupported).toBeUndefined();
+  });
+
+  it("reports unsupported when the engine answers that the route is missing", async () => {
+    availability_impl = async () => false;
+
+    const root = mount("<p>Guten Tag</p>");
+
+    const result = await translate_message_body({
+      root,
+      account_id: "acct-1",
+      message_id: "no-route",
+      from: "de",
+      to: "en",
+      signal: fresh_signal(),
+    });
+
+    expect(result.translated).toBe(false);
+    expect(result.unsupported).toBe(true);
+  });
+
+  it("offers no source languages when the registry cannot be fetched", async () => {
+    availability_impl = async () => {
+      throw new Error("registry.json 404");
+    };
+
+    expect(await available_source_languages("en")).toEqual([]);
+  });
 });
 
 describe("translate_message_body", () => {

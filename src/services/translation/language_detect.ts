@@ -25,6 +25,7 @@ export const MIN_CJK_DETECTION_LENGTH = 12;
 export const MIN_DETECTION_CONFIDENCE = 0.62;
 
 const MIN_STOPWORD_HIT_RATE = 0.04;
+const MIN_STOPWORD_HITS = 2;
 const SCRIPT_CONFIDENCE = 0.95;
 const NEGATIVE_CACHE_LIMIT = 256;
 
@@ -213,6 +214,8 @@ function detect_by_stopwords(text: string): DetectionResult | null {
   if (!top_language || top_raw_hits / tokens.length < MIN_STOPWORD_HIT_RATE) {
     return null;
   }
+
+  if ((raw_hits.get(top_language) ?? 0) < MIN_STOPWORD_HITS) return null;
 
   const confidence = top_weight / (top_weight + second_weight);
 
