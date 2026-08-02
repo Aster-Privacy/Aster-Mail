@@ -75,6 +75,7 @@ import { format_bytes } from "@/lib/utils";
 import {
   discover_external_recipient_keys,
   build_subject_bundle,
+  derive_own_public_key,
 } from "@/utils/email_crypto";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
 import { en } from "@/lib/i18n/translations/en";
@@ -330,6 +331,10 @@ export async function encrypt_for_recipients(
             (armored_secret_key) => ({ armored_secret_key, passphrase }),
           )
         : undefined;
+    const own_public_key = await derive_own_public_key();
+
+    if (own_public_key) public_keys.push(own_public_key);
+
     const encrypted = await encrypt_message_multi(body, public_keys, signing_key);
 
     return { encrypted_body: encrypted, is_encrypted: true };
