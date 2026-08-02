@@ -244,8 +244,8 @@ export function DeleteAccountModal({
         >
           {is_deleting ? (
             <>
-              <Spinner size="md" />
               {t("settings.deleting_account")}
+              <Spinner className="ml-2" size="md" />
             </>
           ) : (
             t("settings.delete_account_title")

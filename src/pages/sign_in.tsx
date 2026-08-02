@@ -1503,8 +1503,8 @@ export default function SignInPage() {
             >
               {is_loading ? (
                 <>
-                  <Spinner className="mr-2" size="md" />
                   {t("auth.signing_in")}
+                  <Spinner className="ml-2" size="md" />
                 </>
               ) : (
                 t("auth.sign_in")

@@ -222,8 +222,8 @@ export function StepUpModal({
           variant={destructive ? "destructive" : "depth"}
           onClick={handle_confirm}
         >
-          {is_loading ? <Spinner className="mr-2" size="md" /> : null}
           {confirm_label}
+          {is_loading ? <Spinner className="ml-2" size="md" /> : null}
         </Button>
       </ModalFooter>
     </Modal>

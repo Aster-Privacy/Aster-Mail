@@ -545,8 +545,8 @@ function ConnectedAccountCard({
             >
               {sync_active ? (
                 <span className="flex items-center gap-1.5">
-                  <Spinner className="text-current" size="sm" />
                   {t("common.stop")}
+                  <Spinner className="text-current" size="sm" />
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5">
@@ -1345,8 +1345,8 @@ export function ImportSection() {
                     >
                       {is_loading ? (
                         <span className="flex items-center gap-1.5">
-                          <Spinner className="text-current" size="sm" />
                           {t("settings.import_oauth_button")}
+                          <Spinner className="text-current" size="sm" />
                         </span>
                       ) : (
                         t("settings.import_oauth_button")

@@ -910,8 +910,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 >
                   {is_processing ? (
                     <>
-                      <Spinner className="mr-2" size="md" />
                       {t("common.processing")}
+                      <Spinner className="ml-2" size="md" />
                     </>
                   ) : (
                     t("settings.browse_files")
@@ -997,8 +997,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             >
               {is_cancelling ? (
                 <span className="flex items-center gap-1.5">
-                  <Spinner className="text-current" size="sm" />
                   {t("settings.cancelling")}
+                  <Spinner className="text-current" size="sm" />
                 </span>
               ) : (
                 t("settings.cancel_import")
