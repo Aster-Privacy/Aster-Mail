@@ -20,6 +20,38 @@
 //
 import { api_client } from "@/services/api/client";
 
+const DEVICE_ID_STORAGE_KEY = "aster_push_device_id";
+const LAST_ENDPOINT_STORAGE_KEY = "aster_push_last_endpoint";
+
+function get_push_device_id(): string | null {
+  try {
+    const existing = localStorage.getItem(DEVICE_ID_STORAGE_KEY);
+
+    if (existing) return existing;
+
+    const generated =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    localStorage.setItem(DEVICE_ID_STORAGE_KEY, generated);
+
+    return generated;
+  } catch {
+    return null;
+  }
+}
+
+async function delete_server_subscription(endpoint: string): Promise<void> {
+  try {
+    await api_client.delete("/sync/v1/web-push/subscribe", {
+      data: { endpoint },
+    });
+  } catch {
+    return;
+  }
+}
+
 function url_base64_to_uint8_array(base64_string: string): Uint8Array {
   const padding = "=".repeat((4 - (base64_string.length % 4)) % 4);
   const base64 = (base64_string + padding)
@@ -78,6 +110,7 @@ export async function subscribe_to_push(): Promise<boolean> {
     const app_server_key = url_base64_to_uint8_array(vapid_key);
 
     let subscription: PushSubscription | null = null;
+    let replaced_endpoint: string | null = null;
 
     try {
       subscription = await registration.pushManager.subscribe({
@@ -87,6 +120,7 @@ export async function subscribe_to_push(): Promise<boolean> {
     } catch {
       const existing = await registration.pushManager.getSubscription();
       if (existing) {
+        replaced_endpoint = existing.endpoint;
         await existing.unsubscribe();
       }
       subscription = await registration.pushManager.subscribe({
@@ -98,6 +132,27 @@ export async function subscribe_to_push(): Promise<boolean> {
     if (!subscription) return false;
 
     await send_subscription_to_server(subscription);
+
+    if (replaced_endpoint && replaced_endpoint !== subscription.endpoint) {
+      await delete_server_subscription(replaced_endpoint);
+    }
+
+    let previous_endpoint: string | null = null;
+
+    try {
+      previous_endpoint = localStorage.getItem(LAST_ENDPOINT_STORAGE_KEY);
+      localStorage.setItem(LAST_ENDPOINT_STORAGE_KEY, subscription.endpoint);
+    } catch {
+      previous_endpoint = null;
+    }
+
+    if (
+      previous_endpoint &&
+      previous_endpoint !== subscription.endpoint &&
+      previous_endpoint !== replaced_endpoint
+    ) {
+      await delete_server_subscription(previous_endpoint);
+    }
 
     return true;
   } catch {
@@ -118,6 +173,12 @@ export async function unsubscribe_from_push(): Promise<boolean> {
     await api_client.delete("/sync/v1/web-push/subscribe", {
       data: { endpoint },
     });
+
+    try {
+      localStorage.removeItem(LAST_ENDPOINT_STORAGE_KEY);
+    } catch {
+      return true;
+    }
 
     return true;
   } catch {
@@ -164,5 +225,6 @@ async function send_subscription_to_server(
     p256dh,
     auth: auth_key,
     user_agent: navigator.userAgent,
+    device_id: get_push_device_id(),
   });
 }
