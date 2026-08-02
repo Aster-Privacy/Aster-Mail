@@ -27,6 +27,7 @@ import {
   try_decrypt_pgp_body,
   try_extract_mime_body,
   extract_subject_bundle,
+  unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
 } from "@/utils/email_crypto";
@@ -112,6 +113,12 @@ export async function process_envelope_body(
 
   if (is_ratchet_envelope(resolved_text) && !is_ratchet_envelope(body_text) && safe_html === undefined) {
     safe_html = body_text;
+  }
+
+  const html_bundle = unwrap_bundle_html(safe_html);
+  safe_html = html_bundle.html;
+  if (html_bundle.subject !== null && !envelope.subject) {
+    envelope.subject = html_bundle.subject;
   }
 
   const unsubscribe = detect_unsubscribe_info(resolved_html || "", body_text, {

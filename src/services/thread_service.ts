@@ -58,6 +58,7 @@ import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
   extract_subject_bundle,
+  unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
   resolve_inbound_pgp_body,
@@ -473,6 +474,12 @@ export async function fetch_and_decrypt_thread_messages(
       effective_html = undefined;
     }
 
+    const html_bundle = unwrap_bundle_html(effective_html);
+    effective_html = html_bundle.html;
+    if (html_bundle.subject !== null && !envelope.subject) {
+      envelope.subject = html_bundle.subject;
+    }
+
     return {
       id: msg.id,
       item_type: msg.item_type as "received" | "sent" | "draft",
@@ -652,6 +659,12 @@ export async function fetch_and_decrypt_virtual_group(
 
     if (is_ratchet_envelope(effective_html) || password_protected) {
       effective_html = undefined;
+    }
+
+    const html_bundle = unwrap_bundle_html(effective_html);
+    effective_html = html_bundle.html;
+    if (html_bundle.subject !== null && !envelope.subject) {
+      envelope.subject = html_bundle.subject;
     }
 
     return {
