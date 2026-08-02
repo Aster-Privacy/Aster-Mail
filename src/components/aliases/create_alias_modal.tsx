@@ -183,8 +183,8 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                 variant="depth"
                 onClick={handle_create}
               >
-                {is_creating && <Spinner className="mr-2" size="md" />}
                 {t("common.create")}
+                {is_creating && <Spinner className="ml-2" size="md" />}
               </Button>
             </div>
           </motion.div>

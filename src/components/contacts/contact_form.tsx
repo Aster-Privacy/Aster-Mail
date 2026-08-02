@@ -398,10 +398,10 @@ export function ContactForm({
             variant="depth"
             onClick={handle_submit}
           >
-            {is_loading && <Spinner className="mr-2" size="sm" />}
             {is_edit_mode
               ? t("settings.save_changes")
               : t("common.add_contact")}
+            {is_loading && <Spinner className="ml-2" size="sm" />}
           </Button>
         </div>
       </div>

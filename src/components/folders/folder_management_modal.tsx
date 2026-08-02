@@ -381,7 +381,8 @@ export function FolderManagementModal({
                 variant="depth"
                 onClick={handle_rename}
               >
-                {is_loading ? `${t("common.rename")}...` : t("common.rename")}
+                {t("common.rename")}
+                {is_loading && <Spinner className="ml-2" size="sm" />}
               </Button>
             </ModalFooter>
           </>
@@ -453,8 +454,8 @@ export function FolderManagementModal({
               >
                 {is_loading ? (
                   <>
-                    <Spinner className="mr-2" size="md" />
                     {t("common.saving")}
+                    <Spinner className="ml-2" size="md" />
                   </>
                 ) : (
                   `${t("common.save")} ${t("common.color")}`
@@ -605,8 +606,8 @@ export function FolderManagementModal({
               >
                 {is_loading ? (
                   <>
-                    <Spinner className="mr-2" size="md" />
                     {t("common.saving")}
+                    <Spinner className="ml-2" size="md" />
                   </>
                 ) : (
                   t("common.move_folder")

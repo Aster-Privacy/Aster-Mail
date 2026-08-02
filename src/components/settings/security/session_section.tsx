@@ -282,8 +282,8 @@ export function SessionSection({
               >
                 {revoking_all || logout_others_loading ? (
                   <>
-                    <Spinner className="mr-1.5" size="sm" />
                     {t("settings.signing_out")}
+                    <Spinner className="ml-1.5" size="sm" />
                   </>
                 ) : (
                   <>

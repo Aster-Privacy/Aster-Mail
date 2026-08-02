@@ -206,8 +206,8 @@ function RecoveryModal({
         <Button disabled={saving} onClick={handle_save}>
           {saving ? (
             <>
-              <Spinner className="mr-2" size="md" />
               {t("common.saving")}
+              <Spinner className="ml-2" size="md" />
             </>
           ) : (
             t("common.save")
