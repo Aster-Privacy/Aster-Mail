@@ -5261,6 +5261,7 @@ export const pt = {
     domain_purchase_purchased_empty: "Nenhum domínio comprado ainda",
     domain_purchase_purchased_expires: "Expira em {{date}}",
     domain_purchase_purchased_in_progress: "Em configuração...",
+    domain_purchase_purchased_awaiting: "Aguardando pagamento",
     domain_purchase_purchased_lapsed: "Expirado - comprar de novo",
     domain_purchase_error_paused:
       "As compras de domínio estão pausadas por alguns minutos. Tente novamente em instantes.",

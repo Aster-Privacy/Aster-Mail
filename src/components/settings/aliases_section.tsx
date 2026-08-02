@@ -24,7 +24,6 @@ import {
   AtSymbolIcon,
   GlobeAltIcon,
   ArrowLeftIcon,
-  ArrowPathIcon,
   ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -34,10 +33,12 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { get_alias_preferences } from "@/services/api/aliases";
 import {
+  cancel_domain_order,
   list_domain_orders,
   renew_domain_order,
   type DomainOrder,
 } from "@/services/api/domains";
+import { Spinner } from "@/components/ui/spinner";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import {
   Modal,
@@ -130,6 +131,9 @@ export function AliasesSection() {
   const [renewing_order_id, set_renewing_order_id] = useState<string | null>(
     null,
   );
+  const [cancelling_order_id, set_cancelling_order_id] = useState<
+    string | null
+  >(null);
   const [renew_errors, set_renew_errors] = useState<Record<string, string>>({});
   const [show_import_modal, set_show_import_modal] = useState(false);
   const [show_export_modal, set_show_export_modal] = useState(false);
@@ -153,9 +157,7 @@ export function AliasesSection() {
             r.data.orders.filter(
               (o) =>
                 o.order_type === "registration" &&
-                !["expired", "refunded", "failed", "pending_payment"].includes(
-                  o.status,
-                ),
+                !["expired", "refunded", "failed"].includes(o.status),
             ),
           );
         }
@@ -184,8 +186,18 @@ export function AliasesSection() {
       window.history.replaceState({}, "", url.toString());
     }
 
-    const order_id =
-      params.get("cancelled") === "1" ? stashed_order_id : url_order_id ?? stashed_order_id;
+    if (params.get("cancelled") === "1") {
+      const cancelled_id = url_order_id ?? stashed_order_id;
+
+      if (cancelled_id) {
+        cancel_domain_order(cancelled_id).catch(() => {});
+        set_active_tab("domains");
+      }
+
+      return;
+    }
+
+    const order_id = url_order_id ?? stashed_order_id;
 
     if (!order_id) return;
     set_active_tab("domains");
@@ -218,6 +230,22 @@ export function AliasesSection() {
     return () =>
       window.removeEventListener("aster:open-domain-purchase", open_purchase);
   }, []);
+
+  const handle_cancel_order = async (order_id: string) => {
+    set_cancelling_order_id(order_id);
+    try {
+      const response = await cancel_domain_order(order_id);
+
+      if (response.data?.success) {
+        set_purchased_orders((prev) =>
+          prev.filter((order) => order.id !== order_id),
+        );
+      }
+    } catch {
+    } finally {
+      set_cancelling_order_id(null);
+    }
+  };
 
   const handle_renew = async (order_id: string) => {
     set_renewing_order_id(order_id);
@@ -580,7 +608,7 @@ export function AliasesSection() {
                 </Button>
                 {purchased_loading && purchased_orders.length === 0 ? (
                   <div className="flex justify-center py-6">
-                    <ArrowPathIcon className="w-4 h-4 animate-spin text-txt-muted" />
+                    <Spinner className="text-txt-muted" size="sm" />
                   </div>
                 ) : purchased_orders.length === 0 ? (
                   <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary mt-3">
@@ -600,7 +628,10 @@ export function AliasesSection() {
                               : "hover:bg-surf-secondary rounded-lg cursor-pointer"
                           }`}
                           onClick={() => {
-                            if (order.status === "complete") {
+                            if (
+                              order.status === "complete" ||
+                              order.status === "pending_payment"
+                            ) {
                               return;
                             }
                             set_purchase_order_id(
@@ -613,6 +644,22 @@ export function AliasesSection() {
                             {order.domain}
                           </span>
                           <span className="flex items-center gap-3 flex-shrink-0">
+                            {order.status === "pending_payment" && (
+                              <button
+                                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
+                                disabled={cancelling_order_id === order.id}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handle_cancel_order(order.id);
+                                }}
+                              >
+                                {cancelling_order_id === order.id && (
+                                  <Spinner size="xs" />
+                                )}
+                                {t("common.cancel")}
+                              </button>
+                            )}
                             {order.status === "complete" && (
                               <button
                                 className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
@@ -624,7 +671,7 @@ export function AliasesSection() {
                                 }}
                               >
                                 {renewing_order_id === order.id && (
-                                  <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                                  <Spinner size="xs" />
                                 )}
                                 {t("settings.domain_purchase_renew")}
                               </button>
@@ -649,9 +696,13 @@ export function AliasesSection() {
                                   : ""
                                 : order.status === "lapsed"
                                   ? t("settings.domain_purchase_purchased_lapsed")
-                                  : t(
-                                      "settings.domain_purchase_purchased_in_progress",
-                                    )}
+                                  : order.status === "pending_payment"
+                                    ? t(
+                                        "settings.domain_purchase_purchased_awaiting",
+                                      )
+                                    : t(
+                                        "settings.domain_purchase_purchased_in_progress",
+                                      )}
                             </span>
                           </span>
                         </div>

@@ -627,6 +627,15 @@ export async function list_domain_orders(): Promise<
   );
 }
 
+export async function cancel_domain_order(
+  order_id: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post<{ success: boolean }>(
+    `/addresses/v1/domains/purchase/orders/${order_id}/cancel`,
+    {},
+  );
+}
+
 export async function renew_domain_order(
   order_id: string,
   years: number,

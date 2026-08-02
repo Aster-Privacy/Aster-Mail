@@ -5102,6 +5102,7 @@ export const ko = {
     domain_purchase_purchased_empty: "구매한 도메인이 아직 없습니다",
     domain_purchase_purchased_expires: "{{date}} 만료",
     domain_purchase_purchased_in_progress: "설정 중...",
+    domain_purchase_purchased_awaiting: "결제 대기 중",
     domain_purchase_purchased_lapsed: "만료됨 - 다시 구매",
     domain_purchase_error_paused:
       "도메인 구매가 몇 분 동안 일시 중지되었습니다. 잠시 후 다시 시도해 주세요.",

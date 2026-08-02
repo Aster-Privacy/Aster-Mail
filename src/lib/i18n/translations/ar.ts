@@ -5034,6 +5034,7 @@ export const ar = {
     domain_purchase_purchased_empty: "لا توجد نطاقات مشتراة بعد",
     domain_purchase_purchased_expires: "تنتهي في {{date}}",
     domain_purchase_purchased_in_progress: "قيد الإعداد...",
+    domain_purchase_purchased_awaiting: "في انتظار الدفع",
     domain_purchase_purchased_lapsed: "منتهٍ - اشترِ مجددًا",
     domain_purchase_error_paused:
       "تم إيقاف شراء النطاقات مؤقتًا لبضع دقائق. يرجى المحاولة مرة أخرى بعد قليل.",

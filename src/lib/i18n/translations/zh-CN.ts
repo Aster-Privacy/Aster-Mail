@@ -4713,6 +4713,7 @@ export const zh_CN = {
     domain_purchase_purchased_empty: "暂无已购域名",
     domain_purchase_purchased_expires: "{{date}} 到期",
     domain_purchase_purchased_in_progress: "正在设置...",
+    domain_purchase_purchased_awaiting: "等待付款",
     domain_purchase_purchased_lapsed: "已过期 - 重新购买",
     domain_purchase_error_paused: "域名购买暂停几分钟，请稍后再试。",
     domain_purchase_error_not_allowed:
