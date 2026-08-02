@@ -138,7 +138,7 @@ function TermsSentence({ on_external }: { on_external: (url: string) => void }) 
   const parts = sentence.split(/(\{\{aster\}\}|\{\{registrar\}\}|\{\{icann\}\})/g);
 
   return (
-    <p className="text-[11px] leading-[1.7] text-txt-muted/80 max-w-[58ch]">
+    <p className="text-xs leading-relaxed text-txt-muted">
       {parts.map((part, index) => {
         const link = TERMS_LINKS.find(({ key }) => part === `{{${key}}}`);
         if (!link) {
@@ -815,23 +815,6 @@ export function DomainPurchaseFlow({
               </div>
             </div>
 
-            {payment_method === "crypto" && (
-              <div className="p-4 rounded-lg flex items-start gap-3 mt-4 bg-amber-600">
-                <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-50" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-amber-50">
-                    {t("settings.domain_purchase_crypto_warning_title")}
-                  </p>
-                  <p className="text-xs mt-1 leading-relaxed text-amber-100">
-                    {t("settings.domain_purchase_crypto_warning_body")}
-                  </p>
-                  <p className="text-xs mt-1 leading-relaxed text-amber-100/80">
-                    {t("settings.domain_purchase_crypto_warning_hint")}
-                  </p>
-                </div>
-              </div>
-            )}
-
             {turnstile_required && (
               <div className="flex justify-center mt-4 origin-top scale-[0.92] sm:scale-100">
                 <TurnstileWidget
@@ -856,34 +839,25 @@ export function DomainPurchaseFlow({
               <p className="text-[13px] font-medium text-txt-muted mb-3">
                 {t("settings.domain_purchase_included_heading")}
               </p>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                 {[
                   t("settings.domain_purchase_detail_privacy_title"),
                   t("settings.domain_purchase_detail_setup_title"),
                   t("settings.domain_purchase_detail_instant_title"),
                   t("settings.domain_purchase_detail_ownership_title"),
                 ].map((title) => (
-                  <div
-                    key={title}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-edge-secondary bg-surf-secondary"
-                  >
-                    <span className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                      <CheckIcon
-                        className="w-3.5 h-3.5"
-                        strokeWidth={2.5}
-                        style={{ color: "var(--color-success)" }}
-                      />
-                    </span>
+                  <span key={title} className="flex items-center gap-2.5">
+                    <CheckIcon
+                      className="w-4 h-4 flex-shrink-0"
+                      strokeWidth={2.5}
+                      style={{ color: "var(--color-success)" }}
+                    />
                     <span className="text-[13px] font-medium text-txt-primary">
                       {title}
                     </span>
-                  </div>
+                  </span>
                 ))}
               </div>
-            </div>
-
-            <div className="pt-5 mt-8 border-t border-edge-secondary">
-              <TermsSentence on_external={set_leave_url} />
             </div>
           </div>
 
@@ -979,6 +953,10 @@ export function DomainPurchaseFlow({
                 {t("settings.domain_purchase_secure_checkout")}
               </p>
             </div>
+          </div>
+
+          <div className="order-4 md:order-none md:col-span-2 pt-5 mt-2 border-t border-edge-secondary">
+            <TermsSentence on_external={set_leave_url} />
           </div>
         </div>
 
