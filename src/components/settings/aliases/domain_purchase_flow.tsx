@@ -422,7 +422,7 @@ export function DomainPurchaseFlow({
     async (q: string) => {
       const trimmed = q.trim();
 
-      if (!trimmed) {
+      if (trimmed.length < 3) {
         set_results([]);
         set_suggestions([]);
         set_has_more_suggestions(false);
@@ -501,7 +501,7 @@ export function DomainPurchaseFlow({
     query_ref.current = query;
     if (debounce_ref.current) clearTimeout(debounce_ref.current);
     if (retry_ref.current) clearTimeout(retry_ref.current);
-    debounce_ref.current = setTimeout(() => run_search(query), 550);
+    debounce_ref.current = setTimeout(() => run_search(query), 800);
 
     return () => {
       if (debounce_ref.current) clearTimeout(debounce_ref.current);
