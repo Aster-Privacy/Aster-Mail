@@ -5278,6 +5278,7 @@ export const es = {
     domain_purchase_purchased_empty: "Aún no hay dominios comprados",
     domain_purchase_purchased_expires: "Caduca el {{date}}",
     domain_purchase_purchased_in_progress: "Configurándose...",
+    domain_purchase_purchased_awaiting: "Pago pendiente",
     domain_purchase_purchased_lapsed: "Caducado - comprar de nuevo",
     domain_purchase_error_paused:
       "Las compras de dominios están en pausa unos minutos. Vuelve a intentarlo en un momento.",

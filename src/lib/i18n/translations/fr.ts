@@ -5332,6 +5332,7 @@ export const fr = {
     domain_purchase_purchased_empty: "Aucun domaine acheté pour l'instant",
     domain_purchase_purchased_expires: "Expire le {{date}}",
     domain_purchase_purchased_in_progress: "Configuration en cours...",
+    domain_purchase_purchased_awaiting: "En attente de paiement",
     domain_purchase_purchased_lapsed: "Expiré - racheter",
     domain_purchase_error_paused:
       "Les achats de domaines sont en pause quelques minutes. Réessayez dans un instant.",

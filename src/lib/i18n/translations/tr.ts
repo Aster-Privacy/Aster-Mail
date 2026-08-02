@@ -5213,6 +5213,7 @@ export const tr = {
     domain_purchase_purchased_empty: "Henüz satın alınmış alan adı yok",
     domain_purchase_purchased_expires: "{{date}} tarihinde sona eriyor",
     domain_purchase_purchased_in_progress: "Ayarlanıyor...",
+    domain_purchase_purchased_awaiting: "Ödeme bekleniyor",
     domain_purchase_purchased_lapsed: "Süresi doldu - yeniden al",
     domain_purchase_error_paused:
       "Alan adı satın alma işlemleri birkaç dakikalığına duraklatıldı. Lütfen kısa süre sonra tekrar deneyin.",

@@ -5269,6 +5269,7 @@ export const ru = {
     domain_purchase_purchased_empty: "Купленных доменов пока нет",
     domain_purchase_purchased_expires: "Истекает {{date}}",
     domain_purchase_purchased_in_progress: "Настраивается...",
+    domain_purchase_purchased_awaiting: "Ожидает оплаты",
     domain_purchase_purchased_lapsed: "Истёк - купить снова",
     domain_purchase_error_paused:
       "Покупка доменов приостановлена на несколько минут. Повторите попытку чуть позже.",

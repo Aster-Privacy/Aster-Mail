@@ -37,6 +37,8 @@ import {
 } from "@heroicons/react/24/solid";
 import { Badge, Button, Tooltip } from "@aster/ui";
 
+import { Spinner } from "@/components/ui/spinner";
+
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
@@ -136,7 +138,7 @@ function TermsSentence({ on_external }: { on_external: (url: string) => void }) 
   const parts = sentence.split(/(\{\{aster\}\}|\{\{registrar\}\}|\{\{icann\}\})/g);
 
   return (
-    <p className="text-xs leading-relaxed text-txt-muted max-w-[62ch]">
+    <p className="text-[11px] leading-[1.7] text-txt-muted/80 max-w-[58ch]">
       {parts.map((part, index) => {
         const link = TERMS_LINKS.find(({ key }) => part === `{{${key}}}`);
         if (!link) {
@@ -145,7 +147,7 @@ function TermsSentence({ on_external }: { on_external: (url: string) => void }) 
         return (
           <button
             key={index}
-            className="inline text-left underline underline-offset-2 decoration-edge-primary transition-colors hover:text-[var(--accent-color)] hover:decoration-current"
+            className="inline text-left text-txt-muted underline underline-offset-2 decoration-txt-muted/30 transition-colors hover:text-[var(--accent-color)] hover:decoration-current"
             onClick={() => on_external(link.url)}
           >
             {terms_labels[link.key]}
@@ -727,7 +729,7 @@ export function DomainPurchaseFlow({
                       <CheckCircleSolid className="w-6 h-6 text-green-500 flex-shrink-0" />
                     ) : active ? (
                       <span className="w-6 h-6 rounded-full border-2 border-[var(--accent-color)] flex items-center justify-center flex-shrink-0">
-                        <ArrowPathIcon className="w-3.5 h-3.5 animate-spin text-[var(--accent-color)]" />
+                        <Spinner className="text-[var(--accent-color)]" size="xs" />
                       </span>
                     ) : (
                       <span className="w-6 h-6 rounded-full border-2 border-edge-secondary flex-shrink-0" />
@@ -814,16 +816,16 @@ export function DomainPurchaseFlow({
             </div>
 
             {payment_method === "crypto" && (
-              <div className="flex items-start gap-3 mt-4 p-4 rounded-xl border border-yellow-400/60 bg-yellow-400/10">
-                <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-px text-yellow-500" />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-300">
+              <div className="p-4 rounded-lg flex items-start gap-3 mt-4 bg-amber-600">
+                <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-50" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-amber-50">
                     {t("settings.domain_purchase_crypto_warning_title")}
                   </p>
-                  <p className="text-[13px] leading-relaxed text-txt-secondary mt-1">
+                  <p className="text-xs mt-1 leading-relaxed text-amber-100">
                     {t("settings.domain_purchase_crypto_warning_body")}
                   </p>
-                  <p className="text-[12px] leading-relaxed text-txt-muted mt-1.5">
+                  <p className="text-xs mt-1 leading-relaxed text-amber-100/80">
                     {t("settings.domain_purchase_crypto_warning_hint")}
                   </p>
                 </div>
@@ -854,23 +856,28 @@ export function DomainPurchaseFlow({
               <p className="text-[13px] font-medium text-txt-muted mb-3">
                 {t("settings.domain_purchase_included_heading")}
               </p>
-              <div className="flex flex-wrap gap-x-6 gap-y-2.5">
+              <div className="grid grid-cols-2 gap-2.5">
                 {[
                   t("settings.domain_purchase_detail_privacy_title"),
                   t("settings.domain_purchase_detail_setup_title"),
                   t("settings.domain_purchase_detail_instant_title"),
                   t("settings.domain_purchase_detail_ownership_title"),
                 ].map((title) => (
-                  <span key={title} className="flex items-center gap-2">
-                    <CheckIcon
-                      className="w-3.5 h-3.5 flex-shrink-0"
-                      strokeWidth={2.5}
-                      style={{ color: "var(--color-success)" }}
-                    />
-                    <span className="text-[13px] text-txt-secondary">
+                  <div
+                    key={title}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-edge-secondary bg-surf-secondary"
+                  >
+                    <span className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                      <CheckIcon
+                        className="w-3.5 h-3.5"
+                        strokeWidth={2.5}
+                        style={{ color: "var(--color-success)" }}
+                      />
+                    </span>
+                    <span className="text-[13px] font-medium text-txt-primary">
                       {title}
                     </span>
-                  </span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -883,9 +890,11 @@ export function DomainPurchaseFlow({
           <div className="order-2 md:order-none md:col-start-2 md:row-start-1 md:row-span-2 md:sticky md:top-4">
             <img
               alt="Aster"
-              className="h-6 w-auto mb-3.5 opacity-90"
+              className="h-6 w-auto mx-auto block mb-3.5 opacity-90"
               draggable={false}
+              height={24}
               src="/text_logo.png"
+              width={97}
             />
 
             <div className="rounded-2xl border border-edge-secondary bg-surf-secondary overflow-hidden">
@@ -951,7 +960,7 @@ export function DomainPurchaseFlow({
                   onClick={handle_buy}
                 >
                   {buying ? (
-                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                    <Spinner size="sm" />
                   ) : (
                     t("settings.domain_purchase_buy", {
                       price: format_domain_price(
@@ -964,14 +973,12 @@ export function DomainPurchaseFlow({
               </div>
             </div>
 
-            {payment_method === "stripe" && (
-              <div className="flex items-center justify-center gap-1.5 mt-3">
-                <LockClosedIcon className="w-3 h-3 text-txt-muted flex-shrink-0" />
-                <p className="text-[11px] leading-none text-txt-muted">
-                  {t("settings.domain_purchase_secure_checkout")}
-                </p>
-              </div>
-            )}
+            <div className="flex items-center justify-center gap-1.5 mt-3">
+              <LockClosedIcon className="w-3 h-3 text-txt-muted flex-shrink-0" />
+              <p className="text-[11px] leading-none text-txt-muted">
+                {t("settings.domain_purchase_secure_checkout")}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1134,7 +1141,7 @@ export function DomainPurchaseFlow({
             onChange={(e) => set_query(e.target.value.toLowerCase())}
           />
           {searching && (
-            <ArrowPathIcon className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-txt-muted" />
+            <Spinner className="absolute right-4 top-1/2 -translate-y-1/2 text-txt-muted" size="sm" />
           )}
         </div>
 
@@ -1259,7 +1266,7 @@ export function DomainPurchaseFlow({
                           onClick={load_more_suggestions}
                         >
                           {loading_more_suggestions ? (
-                            <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                            <Spinner size="sm" />
                           ) : (
                             t("settings.domain_purchase_more_suggestions")
                           )}

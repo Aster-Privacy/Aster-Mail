@@ -5190,6 +5190,7 @@ export const pl = {
     domain_purchase_purchased_empty: "Brak kupionych domen",
     domain_purchase_purchased_expires: "Wygasa {{date}}",
     domain_purchase_purchased_in_progress: "W trakcie konfiguracji...",
+    domain_purchase_purchased_awaiting: "Oczekiwanie na płatność",
     domain_purchase_purchased_lapsed: "Wygasła - kup ponownie",
     domain_purchase_error_paused:
       "Zakupy domen są wstrzymane na kilka minut. Spróbuj ponownie za chwilę.",

@@ -5150,6 +5150,7 @@ export const nl = {
     domain_purchase_purchased_empty: "Nog geen gekochte domeinen",
     domain_purchase_purchased_expires: "Verloopt op {{date}}",
     domain_purchase_purchased_in_progress: "Wordt ingesteld...",
+    domain_purchase_purchased_awaiting: "Wacht op betaling",
     domain_purchase_purchased_lapsed: "Verlopen - opnieuw kopen",
     domain_purchase_error_paused:
       "Domeinaankopen zijn een paar minuten gepauzeerd. Probeer het zo meteen opnieuw.",
