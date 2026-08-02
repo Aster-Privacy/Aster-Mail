@@ -1441,13 +1441,15 @@ function SecurityContent({ other_member_count, initial_security, initial_complia
   useEffect(() => {
     if (initial_security && initial_compliance) return;
     if (!initial_security) {
+      const apply_security_fallback = () => {
+        const fallback = { require_2fa: false, require_2fa_grace_days: 7, allow_imap_smtp: true, max_sessions_per_member: null, session_timeout_hours: null, block_external_forwarding: false };
+        show_toast(t("settings.fam_org_sec_load_failed"), "error");
+        set_committed(fallback); set_draft(fallback);
+      };
+
       get_security_policy()
-        .then(r => { if (r.data) { set_committed(r.data); set_draft(r.data); } })
-        .catch(() => {
-          const fallback = { require_2fa: false, require_2fa_grace_days: 7, allow_imap_smtp: true, max_sessions_per_member: null, session_timeout_hours: null, block_external_forwarding: false };
-          show_toast(t("settings.fam_org_sec_load_failed"), "error");
-          set_committed(fallback); set_draft(fallback);
-        });
+        .then(r => { if (r.data) { set_committed(r.data); set_draft(r.data); } else { apply_security_fallback(); } })
+        .catch(apply_security_fallback);
     }
     if (!initial_compliance) {
       get_member_compliance()

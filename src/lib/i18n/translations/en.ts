@@ -22,6 +22,7 @@ import type { Translations } from "../types";
 
 export const en: Translations = {
   common: {
+    qr_code: "QR code",
     app_name: "Aster Mail",
     loading: "Loading...",
     loading_stuck: "This is taking longer than usual",
@@ -2672,6 +2673,104 @@ export const en: Translations = {
     crypto_term_24mo: "2 years",
     crypto_modal_price: "{{amount}}",
     crypto_modal_confirm: "Continue to payment",
+    crypto_price_unavailable:
+      "Crypto pricing is not available for this plan. Please contact support.",
+    crypto_charged_in_usd: "Charged in USD.",
+    crypto_native_continue: "Continue",
+    crypto_native_choose_method: "Choose how to pay",
+    crypto_native_loading_coins: "Loading payment options...",
+    crypto_native_on_chain: "on {{chain}}",
+    crypto_native_recommended: "Recommended",
+    crypto_native_resume_selected: "Selected",
+    crypto_native_status_underpaid: "Partially paid",
+    crypto_native_what_happens: "What happens next",
+    crypto_native_stripe_option: "Pay by stablecoin",
+    crypto_native_stripe_desc: "USDC and other stablecoins through our payment processor",
+    crypto_native_too_many_open: "You have too many unfinished crypto invoices. Finish or cancel one first.",
+    crypto_native_daily_limit: "You have created too many crypto invoices today. Please try again later.",
+    crypto_native_invoice_title: "Pay with {{coin}}",
+    crypto_native_awaiting_body:
+      "Send the exact amount to the address below. This page updates automatically.",
+    crypto_native_received_title: "Payment received",
+    crypto_native_received_body:
+      "The full amount has been received and is being processed. No further payment is needed.",
+    crypto_native_send_exactly: "Send exactly",
+    crypto_native_send_remaining: "Send the remaining",
+    crypto_native_to_address: "To this address",
+    crypto_native_open_wallet: "Open in wallet",
+    crypto_native_copied: "Copied to clipboard",
+    crypto_native_network_warning:
+      "Send only {{coin}} on the {{chain}} network. Sending any other asset or using another network will result in loss of funds.",
+    crypto_native_usd_value_label: "Amount due",
+    crypto_native_usd_total_label: "Invoice total",
+    crypto_native_rate_locked: "Your rate is locked until this invoice expires.",
+    crypto_native_expires_in: "Expires in {{time}}",
+    crypto_native_status_awaiting: "Waiting for payment",
+    crypto_native_status_detected: "Payment detected",
+    crypto_native_status_confirming: "Confirming ({{current}}/{{required}})",
+    crypto_native_status_confirming_short: "Confirming",
+    crypto_native_status_credited: "Payment received",
+    crypto_native_underpaid_body:
+      "We received {{received}} of {{expected}} {{coin}}. Send the remaining {{remaining}} {{coin}} to the same address to finish this invoice.",
+    crypto_native_manual_review: "Under review",
+    crypto_native_manual_review_body:
+      "Your payment needs a quick manual check. We will credit your account shortly.",
+    crypto_native_transaction: "Transaction",
+    crypto_native_refund_notice:
+      "Overpayments and refunds are credited to your Aster account balance.",
+    crypto_native_cancel_invoice: "Cancel this invoice",
+    crypto_native_cancel_failed: "Could not cancel this invoice.",
+    crypto_native_cancel_has_payment:
+      "This invoice has already received a payment, so it can no longer be cancelled.",
+    crypto_native_paid_title: "You're all set",
+    crypto_native_paid_body: "Your plan is now active. Thank you!",
+    crypto_native_go_to_inbox: "Go to inbox",
+    crypto_native_view_billing: "Back to billing",
+    crypto_native_cancelled_title: "Payment cancelled",
+    crypto_native_cancelled_body:
+      "This invoice was cancelled. You can start a new payment anytime.",
+    crypto_native_expired_title: "This invoice has expired",
+    crypto_native_expired_body:
+      "Rates change, so this payment window has closed. Start a new payment to continue.",
+    crypto_native_expired_do_not_send:
+      "Do not send to the address on this invoice. Funds sent now need a manual review before they can be credited.",
+    crypto_native_not_found: "We couldn't find this invoice",
+    crypto_native_unavailable: "Could not load payment",
+    crypto_native_unavailable_body:
+      "We could not reach the server. Check your connection and try again. Your payment has not been affected.",
+    crypto_native_pending_banner: "You have a crypto payment in progress",
+    crypto_native_pending_banner_action: "Resume payment",
+    crypto_native_pending_banner_multi: "You have {{count}} crypto payments in progress",
+    crypto_native_back_hint:
+      "This invoice is still open. You can pick it back up from Billing at any time.",
+    crypto_native_scan_hint: "Scan with your wallet app",
+    crypto_native_network_label: "Network",
+    crypto_native_confirmations_label: "Confirmations",
+    crypto_native_confirmations_value: "{{current}} of {{required}}",
+    crypto_native_received_label: "Received so far",
+    crypto_native_invoice_ref_label: "Invoice",
+    crypto_native_paying_with_label: "Paying with",
+    crypto_native_cancel_confirm_title: "Cancel this invoice?",
+    crypto_native_cancel_confirm_body:
+      "The payment address will stop being monitored. Do not send funds to it after cancelling. You can start a new payment at any time.",
+    crypto_native_hint_awaiting:
+      "Send the exact amount to the address above. We watch the network for it automatically.",
+    crypto_native_hint_detected:
+      "Your transaction is on the network. Waiting for it to be included in a block.",
+    crypto_native_hint_confirming:
+      "Confirming on the network. Your plan activates as soon as this finishes.",
+    crypto_native_hint_credited: "Payment confirmed. Your plan is active.",
+    crypto_native_time_remaining: "Time remaining",
+    crypto_native_hint_underpaid:
+      "Send the remaining amount shown above to the same address to finish this payment.",
+    crypto_native_hint_manual_review:
+      "Our team is reviewing this payment. No further action is needed from you.",
+    crypto_native_connection_lost: "Connection lost. Retrying automatically.",
+    crypto_native_coins_unavailable:
+      "Crypto payment options could not be loaded.",
+    crypto_native_copy_tx_hash: "Copy transaction hash",
+    crypto_native_expiry_progress: "Time remaining before this invoice expires",
+    crypto_native_confirmations_progress: "Network confirmations",
     crypto_paid_until: "Paid until {{date}} (crypto). Does not auto-renew.",
     crypto_no_renew_notice: "Crypto purchases do not auto-renew.",
     crypto_renew_link: "Renew with crypto",
@@ -3848,6 +3947,8 @@ export const en: Translations = {
     credit_type_spent: "Spent",
     credit_type_clawback: "Clawback",
     credit_type_admin_removal: "Removal",
+    credit_type_crypto_overpayment: "Overpayment",
+    credit_type_crypto_overpayment_reversal: "Overpayment Reversal",
     top_up_credits: "Top Up",
     top_up_credits_description:
       "Add credits to your account. Credits apply automatically toward plan renewals.",

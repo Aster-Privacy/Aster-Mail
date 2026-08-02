@@ -720,6 +720,7 @@ export const RegisterStepPlanSelection = ({
 
       {crypto_family_tier && (
         <CryptoTermModal
+          enable_native={false}
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
           on_close={() => set_crypto_family_tier(null)}
@@ -799,6 +800,7 @@ export const RegisterStepPlanSelection = ({
 
       {crypto_tier && (
         <CryptoTermModal
+          enable_native={false}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.tier.monthly_cents}
           on_close={() => set_crypto_tier(null)}

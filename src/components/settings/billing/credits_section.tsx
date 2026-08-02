@@ -287,6 +287,8 @@ export function CreditsSection({
                     spent: t("settings.credit_type_spent"),
                     clawback: t("settings.credit_type_clawback"),
                     admin_removal: t("settings.credit_type_admin_removal"),
+                    crypto_overpayment: t("settings.credit_type_crypto_overpayment"),
+                    crypto_overpayment_reversal: t("settings.credit_type_crypto_overpayment_reversal"),
                   };
                   const type_label =
                     credit_type_labels[tx.transaction_type] ||
@@ -295,7 +297,7 @@ export function CreditsSection({
                   return (
                     <div key={tx.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors">
                       <div>
-                        <p className="text-sm text-txt-primary">{capitalize_words(tx.description || tx.transaction_type)}</p>
+                        <p className="text-sm text-txt-primary">{tx.description || capitalize_words(tx.transaction_type)}</p>
                         <p className="text-xs mt-0.5 text-txt-muted">{format_date(tx.created_at)}</p>
                       </div>
                       <div className="flex items-center gap-2">

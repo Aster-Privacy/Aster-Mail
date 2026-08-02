@@ -52,11 +52,16 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   PLAN_TIERS,
+  FAMILY_PLAN_TIERS,
   CURRENCY_STORAGE_KEY,
   detect_currency_from_locale,
   convert_cents,
+  is_crypto_provider,
+  take_crypto_resume,
+  type CryptoResumeSelection,
 } from "@/components/settings/billing/billing_constants";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
+import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
@@ -126,6 +131,24 @@ export function BillingSection() {
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
+  const [crypto_resume, set_crypto_resume] =
+    useState<CryptoResumeSelection | null>(null);
+
+  useEffect(() => {
+    if (plans.length === 0) return;
+
+    const resume = take_crypto_resume();
+
+    if (!resume) return;
+
+    const matching = plans.find((plan) => plan.code === resume.plan_code);
+
+    if (!matching) return;
+
+    set_crypto_resume(resume);
+    set_crypto_plan(matching);
+    set_show_crypto_modal(true);
+  }, [plans]);
   const [show_method_modal, set_show_method_modal] = useState(false);
   const [method_modal_plan, set_method_modal_plan] =
     useState<AvailablePlan | null>(null);
@@ -354,14 +377,36 @@ export function BillingSection() {
     }
   }, [load_data, t]);
 
+  const crypto_term_prices_for = (plan_code: string) =>
+    PLAN_TIERS.find((p) => p.id === plan_code) ??
+    FAMILY_PLAN_TIERS.find((p) => p.id === plan_code);
+
   const handle_crypto_renew = () => {
     if (!subscription) return;
+    if (!crypto_term_prices_for(subscription.plan.code)) {
+      show_toast(t("settings.crypto_price_unavailable"), "error");
+
+      return;
+    }
     const matching = plans.find((p) => p.code === subscription.plan.code);
 
-    if (matching) {
-      set_crypto_plan(matching);
-      set_show_crypto_modal(true);
-    }
+    set_crypto_plan(
+      matching ?? {
+        id: subscription.plan.id,
+        code: subscription.plan.code,
+        name: subscription.plan.name,
+        description: subscription.plan.description,
+        storage_limit_bytes: subscription.plan.storage_limit_bytes,
+        max_attachment_size_bytes: 0,
+        max_email_aliases: 0,
+        max_custom_domains: 0,
+        price_cents: subscription.plan.price_cents,
+        billing_period: subscription.plan.billing_period,
+        stripe_price_id: null,
+        is_current: true,
+      },
+    );
+    set_show_crypto_modal(true);
   };
 
   const handle_select_plan = (plan: AvailablePlan) => {
@@ -434,7 +479,7 @@ export function BillingSection() {
     const has_card_sub =
       !!subscription &&
       subscription.plan.code !== "free" &&
-      subscription.payment_provider !== "stripe_crypto" &&
+      !is_crypto_provider(subscription.payment_provider) &&
       subscription.has_stripe_subscription !== false;
 
     if (has_card_sub && !is_tauri) {
@@ -509,6 +554,12 @@ export function BillingSection() {
   };
 
   const handle_pay_with_crypto = (plan: AvailablePlan) => {
+    if (!crypto_term_prices_for(plan.code)) {
+      show_toast(t("settings.crypto_price_unavailable"), "error");
+
+      return;
+    }
+    set_crypto_resume(null);
     set_crypto_plan(plan);
     set_show_crypto_modal(true);
   };
@@ -673,6 +724,8 @@ export function BillingSection() {
 
   return (
     <div className="space-y-6">
+      <CryptoResumeBanner />
+
       <CurrentPlanCard
         current_billing_interval={current_billing_interval}
         grace_days_remaining={grace_days_remaining}
@@ -751,26 +804,32 @@ export function BillingSection() {
 
       {crypto_plan &&
         (() => {
-          const tier = PLAN_TIERS.find((p) => p.id === crypto_plan.code);
-          const monthly_cents = tier?.monthly_cents ?? crypto_plan.price_cents;
-          const yearly_cents =
-            tier?.yearly_cents ?? crypto_plan.price_cents * 12;
+          const tier = crypto_term_prices_for(crypto_plan.code);
+
+          if (!tier) return null;
 
           return (
             <CryptoTermModal
+              initial_coin_key={
+                crypto_resume
+                  ? `${crypto_resume.currency}:${crypto_resume.chain}`
+                  : undefined
+              }
+              initial_term_months={crypto_resume?.term_months}
               is_open={show_crypto_modal}
-              monthly_price_cents={monthly_cents}
+              monthly_price_cents={tier.monthly_cents}
               on_checkout_opened={() => {
                 pending_tauri_checkout_ref.current = true;
               }}
               on_close={() => {
                 set_show_crypto_modal(false);
                 set_crypto_plan(null);
+                set_crypto_resume(null);
               }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
-              yearly_price_cents={yearly_cents}
+              yearly_price_cents={tier.yearly_cents}
             />
           );
         })()}
@@ -784,7 +843,7 @@ export function BillingSection() {
             !(
               !!subscription &&
               subscription.plan.code !== "free" &&
-              subscription.payment_provider !== "stripe_crypto" &&
+              !is_crypto_provider(subscription.payment_provider) &&
               subscription.has_stripe_subscription !== false &&
               !(
                 typeof window !== "undefined" && "__TAURI_INTERNALS__" in window

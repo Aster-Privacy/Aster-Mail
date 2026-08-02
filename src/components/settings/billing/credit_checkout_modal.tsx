@@ -77,32 +77,37 @@ function CreditPayForm({
     set_submitting(true);
     set_error_msg("");
 
-    const { error: submit_err } = await elements.submit();
-    if (submit_err) {
-      set_error_msg(submit_err.message ?? t("settings.payment_failed"));
-      set_submitting(false);
-      return;
-    }
+    try {
+      const { error: submit_err } = await elements.submit();
+      if (submit_err) {
+        set_error_msg(submit_err.message ?? t("settings.payment_failed"));
+        set_submitting(false);
+        return;
+      }
 
-    const { error: confirm_err } = await stripe.confirmPayment({
-      elements,
-      clientSecret: client_secret,
-      confirmParams: {
-        return_url: `${window.location.origin}${window.location.pathname}`,
-      },
-      redirect: "if_required",
-    });
+      const { error: confirm_err } = await stripe.confirmPayment({
+        elements,
+        clientSecret: client_secret,
+        confirmParams: {
+          return_url: `${window.location.origin}${window.location.pathname}`,
+        },
+        redirect: "if_required",
+      });
 
-    if (confirm_err) {
-      set_error_msg(confirm_err.message ?? t("settings.payment_failed"));
-      set_submitting(false);
-      return;
-    }
+      if (confirm_err) {
+        set_error_msg(confirm_err.message ?? t("settings.payment_failed"));
+        set_submitting(false);
+        return;
+      }
 
-    const res = await confirm_credit_purchase(payment_intent_id);
-    if (res.data?.credited) {
-      on_success(res.data.balance_cents);
-    } else {
+      const res = await confirm_credit_purchase(payment_intent_id);
+      if (res.data?.credited) {
+        on_success(res.data.balance_cents);
+      } else {
+        set_error_msg(t("settings.payment_failed"));
+        set_submitting(false);
+      }
+    } catch {
       set_error_msg(t("settings.payment_failed"));
       set_submitting(false);
     }

@@ -308,6 +308,134 @@ export async function create_crypto_checkout_session(
   );
 }
 
+export interface CryptoNativeCoin {
+  currency: string;
+  chain: string;
+  display_name: string;
+  decimals: number;
+  recommended: boolean;
+}
+
+export interface CryptoNativeCoinsResponse {
+  enabled: boolean;
+  coins: CryptoNativeCoin[];
+}
+
+export type CryptoInvoiceStatus =
+  | "pending"
+  | "detected"
+  | "confirming"
+  | "paid"
+  | "underpaid"
+  | "expired"
+  | "cancelled"
+  | "manual_review";
+
+export interface CryptoNativeInvoiceResponse {
+  id: string;
+  currency: string;
+  chain: string;
+  display_name: string;
+  address: string;
+  amount_atomic: string;
+  amount_decimal: string;
+  decimals: number;
+  usd_cents: number;
+  rate_locked_usd: string;
+  payment_uri: string;
+  min_confirmations: number;
+  status: CryptoInvoiceStatus;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface CryptoNativeInvoiceStatus {
+  id: string;
+  currency: string;
+  chain: string;
+  display_name: string;
+  address: string;
+  amount_atomic: string;
+  amount_decimal: string;
+  amount_received_atomic: string;
+  amount_received_decimal: string;
+  amount_due_atomic: string;
+  amount_due_decimal: string;
+  decimals: number;
+  usd_cents: number;
+  status: CryptoInvoiceStatus;
+  confirmations: number;
+  min_confirmations: number;
+  txids: string[];
+  payment_uri: string;
+  expires_at: string;
+  watch_until: string;
+  created_at: string;
+  completed_at: string | null;
+  server_time?: string;
+}
+
+export interface CryptoNativePendingInvoice {
+  id: string;
+  currency: string;
+  chain: string;
+  display_name: string;
+  status: CryptoInvoiceStatus;
+  usd_cents: number;
+  amount_decimal: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface CryptoNativePendingResponse {
+  invoices: CryptoNativePendingInvoice[];
+}
+
+export interface CryptoNativeCancelResponse {
+  id: string;
+  status: CryptoInvoiceStatus;
+}
+
+export async function get_crypto_native_coins() {
+  return api_client.get<CryptoNativeCoinsResponse>(
+    "/payments/v1/crypto-native/coins",
+    { cache_ttl: 300_000 },
+  );
+}
+
+export async function create_crypto_native_invoice(
+  plan_code: string,
+  term_months: number,
+  currency: string,
+  chain: string,
+) {
+  return api_client.post<CryptoNativeInvoiceResponse>(
+    "/payments/v1/crypto-native/invoice",
+    { plan_code, term_months, currency, chain },
+  );
+}
+
+export async function get_crypto_native_invoice(invoice_id: string) {
+  return api_client.get<CryptoNativeInvoiceStatus>(
+    `/payments/v1/crypto-native/invoice/${encodeURIComponent(invoice_id)}`,
+    { cache_ttl: 0 },
+  );
+}
+
+export async function cancel_crypto_native_invoice(invoice_id: string) {
+  return api_client.post<CryptoNativeCancelResponse>(
+    `/payments/v1/crypto-native/invoice/${encodeURIComponent(invoice_id)}/cancel`,
+    {},
+  );
+}
+
+export async function list_pending_crypto_invoices() {
+  return api_client.get<CryptoNativePendingResponse>(
+    "/payments/v1/crypto-native/invoices/pending",
+    { cache_ttl: 0 },
+  );
+}
+
 export async function create_portal_session() {
   return api_client.post<PortalSessionResponse>(
     "/payments/v1/portal-session",
