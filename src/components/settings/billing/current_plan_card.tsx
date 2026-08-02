@@ -37,7 +37,10 @@ import {
   type SubscriptionResponse,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
-import { convert_cents } from "@/components/settings/billing/billing_constants";
+import {
+  convert_cents,
+  is_crypto_provider,
+} from "@/components/settings/billing/billing_constants";
 
 interface CurrentPlanCardProps {
   subscription: SubscriptionResponse | null;
@@ -76,8 +79,7 @@ export function CurrentPlanCard({
 }: CurrentPlanCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = subscription && subscription.plan.code !== "free";
-  const is_crypto =
-    subscription?.payment_provider === "stripe_crypto";
+  const is_crypto = is_crypto_provider(subscription?.payment_provider);
 
   return (
     <>
@@ -240,9 +242,15 @@ export function CurrentPlanCard({
                         ),
                       })}
                     </p>
-                    <p className="text-xs mt-0.5 text-txt-muted">
+                    <span
+                      className="mt-1.5 inline-flex w-fit items-center rounded-md px-2 py-1 text-xs font-semibold"
+                      style={{
+                        backgroundColor: "var(--color-warning)",
+                        color: "#1c1400",
+                      }}
+                    >
                       {t("settings.crypto_no_renew_notice")}
-                    </p>
+                    </span>
                     {on_renew_with_crypto && (
                       <button
                         className="text-xs mt-1 font-medium text-blue-500 hover:text-blue-400 underline-offset-4 hover:underline"

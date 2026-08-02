@@ -529,12 +529,14 @@ export default function IndexPage() {
         on_draft_cleared={state.handle_draft_cleared}
         on_toggle_minimize={state.toggle_minimize}
       />
-      <OnboardingChecklist
-        on_compose={state.open_compose}
-        on_open_settings={(section) => {
-          state.open_settings(section);
-        }}
-      />
+      {!state.is_settings_route && (
+        <OnboardingChecklist
+          on_compose={state.open_compose}
+          on_open_settings={(section) => {
+            state.open_settings(section);
+          }}
+        />
+      )}
       <PurchaseSuccessModal
         billing={state.checkout_success?.billing || ""}
         is_open={!!state.checkout_success}

@@ -142,6 +142,9 @@ const SecureViewPage = lazy_with_retry(() => import("@/pages/secure_view"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
+const CryptoInvoicePage = lazy_with_retry(
+  () => import("@/pages/crypto_invoice"),
+);
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
 
@@ -759,6 +762,14 @@ function MobileApp() {
                   <ExternalRedirect url="https://astermail.org/privacy" />
                 }
                 path="/privacy"
+              />
+              <Route
+                element={
+                  <MobileProtectedRoute>
+                    <CryptoInvoicePage />
+                  </MobileProtectedRoute>
+                }
+                path="/crypto-invoice/:id"
               />
               <Route element={<NotFoundPage />} path="*" />
             </Routes>
