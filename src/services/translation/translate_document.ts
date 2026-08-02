@@ -101,7 +101,7 @@ export async function available_source_languages(
   const checks = await Promise.all(
     SUPPORTED_LANGUAGES.filter((code) => code !== to).map(async (code) => ({
       code,
-      ok: await engine.is_available(code, to),
+      ok: await engine.is_available(code, to).catch(() => false),
     })),
   );
 
@@ -195,7 +195,13 @@ export async function translate_message_body({
 
   if (!engine || signal.aborted) return EMPTY_RESULT;
 
-  const supported = await engine.is_available(from, to);
+  let supported: boolean;
+
+  try {
+    supported = await engine.is_available(from, to);
+  } catch {
+    return EMPTY_RESULT;
+  }
 
   if (signal.aborted) return EMPTY_RESULT;
   if (!supported) return UNSUPPORTED_RESULT;

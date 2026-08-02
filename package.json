@@ -20,7 +20,7 @@
   "scripts": {
     "postinstall": "npx --yes patch-package@8.0.1",
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/check_translation_assets.mjs",
     "lint": "eslint --fix",
     "preview": "vite preview",
     "test": "vitest run",
