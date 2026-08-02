@@ -30,15 +30,19 @@ import { DomainPurchaseFlow } from "./domain_purchase_flow";
 interface DomainPurchaseModalProps {
   is_open: boolean;
   initial_order_id?: string | null;
+  initial_query?: string | null;
   on_close: () => void;
   on_purchased: () => void;
+  on_create_address?: () => void;
 }
 
 export function DomainPurchaseModal({
   is_open,
   initial_order_id,
+  initial_query,
   on_close,
   on_purchased,
+  on_create_address,
 }: DomainPurchaseModalProps) {
   const { t } = use_i18n();
 
@@ -52,6 +56,8 @@ export function DomainPurchaseModal({
       <ModalBody>
         <DomainPurchaseFlow
           initial_order_id={initial_order_id}
+          initial_query={initial_query}
+          on_create_address={on_create_address}
           on_done={on_close}
           on_purchased={on_purchased}
         />

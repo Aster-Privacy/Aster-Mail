@@ -5191,6 +5191,9 @@ export const pl = {
     domain_purchase_purchased_expires: "Wygasa {{date}}",
     domain_purchase_purchased_in_progress: "W trakcie konfiguracji...",
     domain_purchase_purchased_awaiting: "Oczekiwanie na płatność",
+    domain_purchase_create_first_address: "Utwórz pierwszy adres",
+    domain_purchase_progress_note: "Poczekaj, aż zarejestrujemy Twoją domenę i skonfigurujemy skrzynki. Zwykle trwa to około minuty.",
+    domain_purchase_complete_cta: "Dokończ zakup",
     domain_purchase_purchased_lapsed: "Wygasła - kup ponownie",
     domain_purchase_error_paused:
       "Zakupy domen są wstrzymane na kilka minut. Spróbuj ponownie za chwilę.",

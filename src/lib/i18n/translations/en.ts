@@ -4874,6 +4874,9 @@ export const en: Translations = {
     domain_purchase_purchased_expires: "Expires {{date}}",
     domain_purchase_purchased_in_progress: "Being set up...",
     domain_purchase_purchased_awaiting: "Awaiting payment",
+    domain_purchase_create_first_address: "Create your first address",
+    domain_purchase_progress_note: "Please wait while we register your domain and set up your mailboxes. This usually takes about a minute.",
+    domain_purchase_complete_cta: "Complete purchase",
     domain_purchase_purchased_lapsed: "Expired - buy again",
     domain_purchase_terms_notice:
       "Aster registers the domain on your behalf through our registrar partner, and the renewal price is always shown before you pay. If you ever let a domain lapse, the registrar may charge a recovery fee to get it back.",

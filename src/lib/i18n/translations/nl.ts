@@ -5151,6 +5151,9 @@ export const nl = {
     domain_purchase_purchased_expires: "Verloopt op {{date}}",
     domain_purchase_purchased_in_progress: "Wordt ingesteld...",
     domain_purchase_purchased_awaiting: "Wacht op betaling",
+    domain_purchase_create_first_address: "Maak je eerste adres",
+    domain_purchase_progress_note: "Even geduld terwijl we je domein registreren en je mailboxen instellen. Dit duurt meestal ongeveer een minuut.",
+    domain_purchase_complete_cta: "Aankoop voltooien",
     domain_purchase_purchased_lapsed: "Verlopen - opnieuw kopen",
     domain_purchase_error_paused:
       "Domeinaankopen zijn een paar minuten gepauzeerd. Probeer het zo meteen opnieuw.",

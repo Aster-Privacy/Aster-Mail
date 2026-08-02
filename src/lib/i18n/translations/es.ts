@@ -5279,6 +5279,9 @@ export const es = {
     domain_purchase_purchased_expires: "Caduca el {{date}}",
     domain_purchase_purchased_in_progress: "Configurándose...",
     domain_purchase_purchased_awaiting: "Pago pendiente",
+    domain_purchase_create_first_address: "Crea tu primera dirección",
+    domain_purchase_progress_note: "Espera mientras registramos tu dominio y configuramos tus buzones. Esto suele tardar alrededor de un minuto.",
+    domain_purchase_complete_cta: "Completar compra",
     domain_purchase_purchased_lapsed: "Caducado - comprar de nuevo",
     domain_purchase_error_paused:
       "Las compras de dominios están en pausa unos minutos. Vuelve a intentarlo en un momento.",

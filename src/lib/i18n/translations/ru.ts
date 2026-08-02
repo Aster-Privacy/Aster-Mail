@@ -5270,6 +5270,9 @@ export const ru = {
     domain_purchase_purchased_expires: "Истекает {{date}}",
     domain_purchase_purchased_in_progress: "Настраивается...",
     domain_purchase_purchased_awaiting: "Ожидает оплаты",
+    domain_purchase_create_first_address: "Создайте свой первый адрес",
+    domain_purchase_progress_note: "Подождите, пока мы регистрируем ваш домен и настраиваем почтовые ящики. Обычно это занимает около минуты.",
+    domain_purchase_complete_cta: "Завершить покупку",
     domain_purchase_purchased_lapsed: "Истёк - купить снова",
     domain_purchase_error_paused:
       "Покупка доменов приостановлена на несколько минут. Повторите попытку чуть позже.",

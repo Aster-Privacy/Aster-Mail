@@ -3873,6 +3873,9 @@ export interface SettingsTranslations {
   domain_purchase_purchased_expires: string;
   domain_purchase_purchased_in_progress: string;
   domain_purchase_purchased_awaiting: string;
+  domain_purchase_create_first_address: string;
+  domain_purchase_progress_note: string;
+  domain_purchase_complete_cta: string;
   domain_purchase_purchased_lapsed: string;
   domain_purchase_error_paused: string;
   domain_purchase_error_not_allowed: string;
