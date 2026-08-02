@@ -456,8 +456,14 @@ export interface SubjectBundle {
 }
 
 export function build_subject_bundle(subject: string, body: string): string {
+  const existing = extract_subject_bundle(body);
+
   return (
-    ASTER_SUBJECT_BUNDLE_PREFIX + JSON.stringify({ s: subject, b: body })
+    ASTER_SUBJECT_BUNDLE_PREFIX +
+    JSON.stringify({
+      s: subject || (existing.subject ?? ""),
+      b: existing.body,
+    })
   );
 }
 
@@ -523,9 +529,18 @@ function scan_bundle_payload(payload: string): SubjectBundle | null {
     if (!key) break;
     const colon = payload.indexOf(":", key.next_index);
     if (colon === -1) break;
-    const value_quote = payload.indexOf('"', colon + 1);
-    if (value_quote === -1) break;
-    const value = read_lenient_json_string(payload, value_quote);
+    let value_start = colon + 1;
+    while (value_start < payload.length && /\s/.test(payload[value_start])) {
+      value_start += 1;
+    }
+    if (value_start >= payload.length) break;
+    if (payload[value_start] !== '"') {
+      const comma = payload.indexOf(",", value_start);
+      if (comma === -1) break;
+      index = comma + 1;
+      continue;
+    }
+    const value = read_lenient_json_string(payload, value_start);
     if (!value) break;
     if (key.value === "s") subject = value.value;
     if (key.value === "b") body = value.value;
@@ -537,20 +552,18 @@ function scan_bundle_payload(payload: string): SubjectBundle | null {
   return { subject, body };
 }
 
-export function extract_subject_bundle(decrypted: string): SubjectBundle {
-  if (!decrypted) return { subject: null, body: decrypted };
+const MAX_SUBJECT_BUNDLE_DEPTH = 8;
 
-  const prefix_index = decrypted.indexOf(ASTER_SUBJECT_BUNDLE_PREFIX);
+function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
+  const prefix_index = text.indexOf(ASTER_SUBJECT_BUNDLE_PREFIX);
   if (
     prefix_index === -1 ||
-    !BUNDLE_FRAMING_PATTERN.test(decrypted.slice(0, prefix_index))
+    !BUNDLE_FRAMING_PATTERN.test(text.slice(0, prefix_index))
   ) {
-    return { subject: null, body: decrypted };
+    return null;
   }
 
-  const payload = decrypted.slice(
-    prefix_index + ASTER_SUBJECT_BUNDLE_PREFIX.length,
-  );
+  const payload = text.slice(prefix_index + ASTER_SUBJECT_BUNDLE_PREFIX.length);
 
   try {
     const parsed = JSON.parse(payload);
@@ -564,7 +577,40 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
     }
   } catch {}
 
-  return scan_bundle_payload(payload) ?? { subject: null, body: decrypted };
+  return scan_bundle_payload(payload);
+}
+
+export function extract_subject_bundle(decrypted: string): SubjectBundle {
+  if (!decrypted) return { subject: null, body: decrypted };
+
+  let subject: string | null = null;
+  let body = decrypted;
+  let unwrapped = false;
+
+  for (let depth = 0; depth < MAX_SUBJECT_BUNDLE_DEPTH; depth += 1) {
+    const layer = unwrap_subject_bundle_layer(body);
+    if (!layer) break;
+    if (!subject) subject = layer.subject;
+    body = layer.body;
+    unwrapped = true;
+  }
+
+  if (!unwrapped) return { subject: null, body: decrypted };
+
+  return { subject: subject ?? "", body };
+}
+
+export function unwrap_bundle_html(
+  html: string | undefined,
+): { html: string | undefined; subject: string | null } {
+  if (!html || !html.includes(ASTER_SUBJECT_BUNDLE_PREFIX)) {
+    return { html, subject: null };
+  }
+
+  const bundle = extract_subject_bundle(html);
+  if (bundle.subject === null) return { html, subject: null };
+
+  return { html: bundle.body || undefined, subject: bundle.subject };
 }
 
 export async function decrypt_body_text(
