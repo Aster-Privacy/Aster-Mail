@@ -31,6 +31,7 @@ import { auto_rekey_if_needed, reset_rekey_flag } from "@/services/crypto/auto_r
 import { adopt_master_key_if_needed } from "@/services/crypto/mk_adoption";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
+import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
 import {
   sync_all_ratchet_states,
   derive_ratchet_encryption_key,
@@ -148,6 +149,8 @@ export async function decrypt_vault_with_lock(
       .catch(() => {});
 
     check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
+
+    ensure_pgp_key_published().catch(() => {});
 
     ensure_ratchet_keys()
       .then(async () => {
