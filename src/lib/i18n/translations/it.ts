@@ -4201,6 +4201,9 @@ export const it = {
     domain_purchase_purchased_expires: "Scade il {{date}}",
     domain_purchase_purchased_in_progress: "In configurazione...",
     domain_purchase_purchased_awaiting: "In attesa di pagamento",
+    domain_purchase_create_first_address: "Crea il tuo primo indirizzo",
+    domain_purchase_progress_note: "Attendi mentre registriamo il tuo dominio e configuriamo le tue caselle. Di solito ci vuole circa un minuto.",
+    domain_purchase_complete_cta: "Completa l'acquisto",
     domain_purchase_purchased_lapsed: "Scaduto - acquista di nuovo",
     domain_purchase_error_paused:
       "Gli acquisti di domini sono in pausa per qualche minuto. Riprova tra poco.",

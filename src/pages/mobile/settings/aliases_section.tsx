@@ -79,6 +79,9 @@ export function AliasesSection({
   );
   const [purchased_orders, set_purchased_orders] = useState<DomainOrder[]>([]);
   const [purchased_loading, set_purchased_loading] = useState(false);
+  const [purchase_initial_query, set_purchase_initial_query] = useState<
+    string | null
+  >(null);
   const [cancelling_order_id, set_cancelling_order_id] = useState<
     string | null
   >(null);
@@ -142,16 +145,16 @@ export function AliasesSection({
       }
     } catch {}
 
-    if (url_order_id) {
-      const url = new URL(window.location.href);
-
-      url.searchParams.delete("domain_order");
-      url.searchParams.delete("cancelled");
-      window.history.replaceState({}, "", url.toString());
-    }
-
     if (params.get("cancelled") === "1") {
       const cancelled_id = url_order_id ?? stashed;
+
+      try {
+        const url = new URL(window.location.href);
+
+        url.searchParams.delete("domain_order");
+        url.searchParams.delete("cancelled");
+        window.history.replaceState({}, "", url.toString());
+      } catch {}
 
       if (cancelled_id) {
         cancel_domain_order(cancelled_id).catch(() => {});
@@ -163,6 +166,14 @@ export function AliasesSection({
     const order_id = url_order_id ?? stashed;
 
     if (order_id) {
+      if (!url_order_id) {
+        try {
+          const url = new URL(window.location.href);
+
+          url.searchParams.set("domain_order", order_id);
+          window.history.replaceState({}, "", url.toString());
+        } catch {}
+      }
       set_purchase_order_id(order_id);
       set_purchase_open(true);
     }
@@ -850,21 +861,35 @@ export function AliasesSection({
                   </span>
                   <span className="flex flex-shrink-0 items-center gap-2.5">
                     {order.status === "pending_payment" && (
-                      <span
-                        className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[12px] font-medium text-[var(--mobile-text-secondary)]"
-                        role="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (cancelling_order_id !== order.id) {
-                            handle_cancel_order(order.id);
-                          }
-                        }}
-                      >
-                        {cancelling_order_id === order.id && (
-                          <Spinner size="xs" />
-                        )}
-                        {t("common.cancel")}
-                      </span>
+                      <>
+                        <span
+                          className="rounded-full bg-[var(--accent-color)] px-3 py-1 text-[12px] font-semibold text-white"
+                          role="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            set_purchase_order_id(null);
+                            set_purchase_initial_query(order.domain);
+                            set_purchase_open(true);
+                          }}
+                        >
+                          {t("settings.domain_purchase_complete_cta")}
+                        </span>
+                        <span
+                          className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[12px] font-medium text-[var(--mobile-text-secondary)]"
+                          role="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (cancelling_order_id !== order.id) {
+                              handle_cancel_order(order.id);
+                            }
+                          }}
+                        >
+                          {cancelling_order_id === order.id && (
+                            <Spinner size="xs" />
+                          )}
+                          {t("common.cancel")}
+                        </span>
+                      </>
                     )}
                     <span
                       className={`text-[12px] ${
@@ -927,10 +952,26 @@ export function AliasesSection({
 
       <DomainPurchaseModal
         initial_order_id={purchase_order_id}
+        initial_query={purchase_initial_query}
         is_open={purchase_open}
         on_close={() => {
           set_purchase_open(false);
           set_purchase_order_id(null);
+          set_purchase_initial_query(null);
+          try {
+            const url = new URL(window.location.href);
+
+            if (url.searchParams.has("domain_order")) {
+              url.searchParams.delete("domain_order");
+              window.history.replaceState({}, "", url.toString());
+            }
+          } catch {}
+        }}
+        on_create_address={() => {
+          set_purchase_open(false);
+          set_purchase_order_id(null);
+          set_purchase_initial_query(null);
+          hook.set_show_create_alias_modal(true);
         }}
         on_purchased={hook.load_domains}
       />

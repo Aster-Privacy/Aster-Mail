@@ -5247,6 +5247,9 @@ export const de = {
     domain_purchase_purchased_expires: "Läuft ab am {{date}}",
     domain_purchase_purchased_in_progress: "Wird eingerichtet...",
     domain_purchase_purchased_awaiting: "Zahlung ausstehend",
+    domain_purchase_create_first_address: "Erste Adresse erstellen",
+    domain_purchase_progress_note: "Bitte warte, während wir deine Domain registrieren und deine Postfächer einrichten. Das dauert in der Regel etwa eine Minute.",
+    domain_purchase_complete_cta: "Kauf abschließen",
     domain_purchase_purchased_lapsed: "Abgelaufen - erneut kaufen",
     domain_purchase_error_paused:
       "Domain-Käufe sind für ein paar Minuten pausiert. Bitte versuchen Sie es gleich noch einmal.",

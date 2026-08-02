@@ -5103,6 +5103,9 @@ export const ko = {
     domain_purchase_purchased_expires: "{{date}} 만료",
     domain_purchase_purchased_in_progress: "설정 중...",
     domain_purchase_purchased_awaiting: "결제 대기 중",
+    domain_purchase_create_first_address: "첫 주소 만들기",
+    domain_purchase_progress_note: "도메인을 등록하고 메일함을 설정하는 동안 잠시 기다려 주세요. 보통 1분 정도 걸립니다.",
+    domain_purchase_complete_cta: "구매 완료하기",
     domain_purchase_purchased_lapsed: "만료됨 - 다시 구매",
     domain_purchase_error_paused:
       "도메인 구매가 몇 분 동안 일시 중지되었습니다. 잠시 후 다시 시도해 주세요.",

@@ -5035,6 +5035,9 @@ export const ar = {
     domain_purchase_purchased_expires: "تنتهي في {{date}}",
     domain_purchase_purchased_in_progress: "قيد الإعداد...",
     domain_purchase_purchased_awaiting: "في انتظار الدفع",
+    domain_purchase_create_first_address: "أنشئ عنوانك الأول",
+    domain_purchase_progress_note: "يرجى الانتظار بينما نسجّل نطاقك ونجهّز صناديق البريد. يستغرق ذلك عادةً نحو دقيقة.",
+    domain_purchase_complete_cta: "إكمال الشراء",
     domain_purchase_purchased_lapsed: "منتهٍ - اشترِ مجددًا",
     domain_purchase_error_paused:
       "تم إيقاف شراء النطاقات مؤقتًا لبضع دقائق. يرجى المحاولة مرة أخرى بعد قليل.",

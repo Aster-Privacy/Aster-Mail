@@ -117,6 +117,25 @@ export function AliasesSection() {
   const [purchase_order_id, set_purchase_order_id] = useState<string | null>(
     null,
   );
+  const [purchase_initial_query, set_purchase_initial_query] = useState<
+    string | null
+  >(null);
+  const clear_purchase_url_param = () => {
+    try {
+      const url = new URL(window.location.href);
+
+      if (url.searchParams.has("domain_order")) {
+        url.searchParams.delete("domain_order");
+        window.history.replaceState({}, "", url.toString());
+      }
+    } catch {}
+  };
+  const close_purchase = () => {
+    set_purchase_open(false);
+    set_purchase_order_id(null);
+    set_purchase_initial_query(null);
+    clear_purchase_url_param();
+  };
   const [promo_dismissed, set_promo_dismissed] = useState(() => {
     try {
       return (
@@ -178,16 +197,16 @@ export function AliasesSection() {
       }
     } catch {}
 
-    if (url_order_id) {
-      const url = new URL(window.location.href);
-
-      url.searchParams.delete("domain_order");
-      url.searchParams.delete("cancelled");
-      window.history.replaceState({}, "", url.toString());
-    }
-
     if (params.get("cancelled") === "1") {
       const cancelled_id = url_order_id ?? stashed_order_id;
+
+      try {
+        const url = new URL(window.location.href);
+
+        url.searchParams.delete("domain_order");
+        url.searchParams.delete("cancelled");
+        window.history.replaceState({}, "", url.toString());
+      } catch {}
 
       if (cancelled_id) {
         cancel_domain_order(cancelled_id).catch(() => {});
@@ -200,6 +219,14 @@ export function AliasesSection() {
     const order_id = url_order_id ?? stashed_order_id;
 
     if (!order_id) return;
+    if (!url_order_id) {
+      try {
+        const url = new URL(window.location.href);
+
+        url.searchParams.set("domain_order", order_id);
+        window.history.replaceState({}, "", url.toString());
+      } catch {}
+    }
     set_active_tab("domains");
     set_purchase_order_id(order_id);
     set_purchase_open(true);
@@ -209,8 +236,7 @@ export function AliasesSection() {
     if (!purchase_open) return;
     window.history.pushState({ aster_domain_purchase: true }, "");
     const handle_pop = () => {
-      set_purchase_open(false);
-      set_purchase_order_id(null);
+      close_purchase();
     };
 
     window.addEventListener("popstate", handle_pop);
@@ -222,6 +248,7 @@ export function AliasesSection() {
     const open_purchase = () => {
       set_active_tab("domains");
       set_purchase_order_id(null);
+      set_purchase_initial_query(null);
       set_purchase_open(true);
     };
 
@@ -446,10 +473,12 @@ export function AliasesSection() {
           </div>
           <DomainPurchaseFlow
             initial_order_id={purchase_order_id}
-            on_done={() => {
-              set_purchase_open(false);
-              set_purchase_order_id(null);
+            initial_query={purchase_initial_query}
+            on_create_address={() => {
+              close_purchase();
+              hook.set_show_create_alias_modal(true);
             }}
+            on_done={close_purchase}
             on_purchased={hook.load_domains}
           />
         </div>
@@ -457,7 +486,8 @@ export function AliasesSection() {
 
       {active_tab === "domains" && !purchase_open && (
         <div className="space-y-4">
-          {!promo_dismissed && (
+          {!promo_dismissed &&
+            !purchased_orders.some((o) => o.status === "complete") && (
           <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
@@ -474,14 +504,15 @@ export function AliasesSection() {
                   type="button"
                   onClick={() => {
                     set_purchase_order_id(null);
+                    set_purchase_initial_query(null);
                     set_purchase_open(true);
                   }}
                 >
                   {t("settings.domain_purchase_banner_cta")}
                 </button>
-                <button
-                  className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => {
                     set_promo_dismissed(true);
                     try {
@@ -493,7 +524,7 @@ export function AliasesSection() {
                   }}
                 >
                   {t("settings.account_security_dont_show_again")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -600,6 +631,7 @@ export function AliasesSection() {
                   variant="depth"
                   onClick={() => {
                     set_purchase_order_id(null);
+                    set_purchase_initial_query(null);
                     set_purchase_open(true);
                   }}
                 >
@@ -645,20 +677,34 @@ export function AliasesSection() {
                           </span>
                           <span className="flex items-center gap-3 flex-shrink-0">
                             {order.status === "pending_payment" && (
-                              <button
-                                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
-                                disabled={cancelling_order_id === order.id}
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handle_cancel_order(order.id);
-                                }}
-                              >
-                                {cancelling_order_id === order.id && (
-                                  <Spinner size="xs" />
-                                )}
-                                {t("common.cancel")}
-                              </button>
+                              <>
+                                <button
+                                  className="px-3 py-1 rounded-full text-xs font-semibold text-white bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    set_purchase_order_id(null);
+                                    set_purchase_initial_query(order.domain);
+                                    set_purchase_open(true);
+                                  }}
+                                >
+                                  {t("settings.domain_purchase_complete_cta")}
+                                </button>
+                                <button
+                                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
+                                  disabled={cancelling_order_id === order.id}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handle_cancel_order(order.id);
+                                  }}
+                                >
+                                  {cancelling_order_id === order.id && (
+                                    <Spinner size="xs" />
+                                  )}
+                                  {t("common.cancel")}
+                                </button>
+                              </>
                             )}
                             {order.status === "complete" && (
                               <button

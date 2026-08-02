@@ -86,8 +86,10 @@ function checkout_error_key(code?: ApiErrorCode, server_code?: string) {
 
 export interface DomainPurchaseFlowProps {
   initial_order_id?: string | null;
+  initial_query?: string | null;
   on_done: () => void;
   on_purchased: () => void;
+  on_create_address?: () => void;
 }
 
 const TERMS_LINKS: { key: "aster" | "registrar" | "icann"; url: string }[] = [
@@ -337,19 +339,22 @@ function SkeletonRows() {
 
 export function DomainPurchaseFlow({
   initial_order_id,
+  initial_query,
   on_done,
   on_purchased,
+  on_create_address,
 }: DomainPurchaseFlowProps) {
   const { t } = use_i18n();
   const [leave_url, set_leave_url] = useState<string | null>(null);
   const restored_checkout = useRef(
-    initial_order_id ? null : read_checkout_draft(),
+    initial_order_id || initial_query ? null : read_checkout_draft(),
   );
   const [view, set_view] = useState<PurchaseView>(() => {
     if (initial_order_id) return "progress";
     return restored_checkout.current ? "confirm" : "search";
   });
   const [query, set_query_state] = useState(() => {
+    if (initial_query) return initial_query;
     try {
       return sessionStorage.getItem("alias_domains_purchase_query") ?? "";
     } catch {
@@ -363,7 +368,7 @@ export function DomainPurchaseFlow({
     } catch {}
   };
   const [show_intro, set_show_intro] = useState(() => {
-    if (initial_order_id) return false;
+    if (initial_order_id || initial_query) return false;
     if (restored_checkout.current) return false;
     if (read_intro_seen()) return false;
     try {
@@ -562,6 +567,14 @@ export function DomainPurchaseFlow({
       );
 
       if (response.data) {
+        write_checkout_draft(null);
+        try {
+          sessionStorage.setItem(
+            "aster_pending_domain_order",
+            response.data.order_id,
+          );
+          sessionStorage.removeItem("alias_domains_purchase_query");
+        } catch {}
         window.location.href = response.data.checkout_url;
       } else {
         set_error(t(checkout_error_key(response.code, response.server_code)));
@@ -707,18 +720,36 @@ export function DomainPurchaseFlow({
             <p className="text-sm text-txt-secondary max-w-[340px] mb-6">
               {t("settings.domain_purchase_done_note")}
             </p>
-            <Button variant="depth" onClick={on_done}>
-              {t("common.done")}
-            </Button>
+            <div className="flex flex-col items-center gap-2 w-full max-w-[280px]">
+              {on_create_address && (
+                <Button
+                  className="w-full"
+                  variant="depth"
+                  onClick={on_create_address}
+                >
+                  {t("settings.domain_purchase_create_first_address")}
+                </Button>
+              )}
+              <Button
+                className="w-full"
+                variant={on_create_address ? "ghost" : "depth"}
+                onClick={on_done}
+              >
+                {t("common.done")}
+              </Button>
+            </div>
           </motion.div>
         ) : (
           <div>
-            <p className="text-base font-semibold text-txt-primary mb-4 text-center">
+            <p className="text-base font-semibold text-txt-primary mb-2 text-center">
               {t("settings.domain_purchase_progress_title", {
                 domain: order?.domain ?? "...",
               })}
             </p>
-            <div className="space-y-0.5">
+            <p className="text-[13px] text-txt-secondary text-center max-w-[46ch] mx-auto mb-6">
+              {t("settings.domain_purchase_progress_note")}
+            </p>
+            <div className="space-y-0.5 w-fit mx-auto">
               {progress_steps.map((step, i) => {
                 const done = i < step_index;
                 const active = i === step_index;
@@ -750,7 +781,7 @@ export function DomainPurchaseFlow({
               })}
             </div>
             {slow && (
-              <p className="text-xs text-txt-muted pt-4">
+              <p className="text-xs text-txt-muted pt-4 text-center max-w-[46ch] mx-auto">
                 {t("settings.domain_purchase_slow_note")}
               </p>
             )}
