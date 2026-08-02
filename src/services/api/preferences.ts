@@ -39,6 +39,7 @@ export interface UserPreferences {
   auto_save_drafts: boolean;
   auto_save_recent_recipients: boolean;
   density: string;
+  mail_list_density: string;
   show_profile_pictures: boolean;
   show_email_preview: boolean;
   default_send_mode: string;
@@ -384,6 +385,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   auto_save_drafts: true,
   auto_save_recent_recipients: true,
   density: "Comfortable",
+  mail_list_density: "compact",
   show_profile_pictures: true,
   show_email_preview: true,
   default_send_mode: "Send",

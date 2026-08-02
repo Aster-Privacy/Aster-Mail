@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { AttachmentIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_last_saved } from "@/components/compose/compose_shared";
@@ -1047,7 +1048,7 @@ export function ComposeToolbar({
             variant="depth"
             onClick={compose.handle_send}
           >
-            {compose.is_sending ? t("common.sending") : t("mail.send")}
+            {compose.is_sending ? <Spinner size="sm" /> : t("mail.send")}
           </Button>
         )}
 

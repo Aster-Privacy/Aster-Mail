@@ -90,6 +90,7 @@ import { SplitEmailViewer } from "@/components/email/split_email_viewer";
 import { SplitScheduledViewer } from "@/components/scheduled/split_scheduled_viewer";
 import { FullEmailViewer } from "@/components/email/full_email_viewer";
 import { use_i18n } from "@/lib/i18n/context";
+import { resolve_list_density } from "@/lib/list_density";
 import {
   get_view_title,
   get_search_context,
@@ -531,8 +532,13 @@ export function EmailInbox({
   const email_state = raw_email_state;
 
   const open_compose = useCallback(
-    (mode: "reply" | "forward", email: InboxEmail, safe_body: string) => {
-      if (mode === "reply" && on_reply) {
+    (
+      mode: "reply" | "reply_all" | "forward",
+      email: InboxEmail,
+      safe_body: string,
+      cc_emails?: string[],
+    ) => {
+      if (mode !== "forward" && on_reply) {
         const is_own_message = email.item_type === "sent";
         const is_forwarded = !is_own_message && !!email.display_sender_email;
         const first_recipient = email.recipient_addresses?.[0];
@@ -562,6 +568,13 @@ export function EmailInbox({
           original_timestamp: email.timestamp,
           thread_token: email.thread_token,
           original_email_id: email.id,
+          ...(mode === "reply_all"
+            ? {
+                reply_all: true,
+                original_to: email.recipient_addresses ?? [],
+                original_cc: cc_emails ?? [],
+              }
+            : {}),
         });
       } else if (mode === "forward" && on_forward) {
         set_forward_mail_id(email.id);
@@ -580,7 +593,7 @@ export function EmailInbox({
   );
 
   const handle_open_compose = useCallback(
-    (mode: "reply" | "forward", email: InboxEmail) => {
+    (mode: "reply" | "reply_all" | "forward", email: InboxEmail) => {
       const is_sentinel = (value: string | undefined): boolean =>
         value === RATCHET_UNDECRYPTABLE_SENTINEL ||
         value === PGP_UNDECRYPTABLE_SENTINEL;
@@ -588,11 +601,13 @@ export function EmailInbox({
         (is_sentinel(email.body_html) ? "" : email.body_html) ||
         (is_sentinel(email.preview) ? "" : email.preview) ||
         "";
-      const cached_body = get_preloaded_email(email.id)?.email.body ?? "";
+      const cached = get_preloaded_email(email.id)?.email;
+      const cached_body = cached?.body ?? "";
 
       if (!cached_body) {
         void (async () => {
           let resolved = fallback_body;
+          let resolved_cc: string[] | undefined;
 
           try {
             await preload_email_detail(email.id, user?.email);
@@ -601,11 +616,14 @@ export function EmailInbox({
             const body = preloaded?.email.body ?? "";
 
             if (body && !is_sentinel(body)) resolved = body;
+            resolved_cc = preloaded?.email.cc?.flatMap((r) =>
+              r.email ? [r.email] : [],
+            );
           } catch {
             resolved = fallback_body;
           }
 
-          open_compose(mode, email, resolved);
+          open_compose(mode, email, resolved, resolved_cc);
         })();
 
         return;
@@ -615,6 +633,7 @@ export function EmailInbox({
         mode,
         email,
         is_sentinel(cached_body) ? fallback_body : cached_body,
+        cached?.cc?.flatMap((r) => (r.email ? [r.email] : [])),
       );
     },
     [open_compose, user?.email],
@@ -1406,7 +1425,7 @@ export function EmailInbox({
               <EmailList
                 categories_enabled={categories.enabled}
                 current_view={current_view}
-                density={preferences.density}
+                density={resolve_list_density(preferences.mail_list_density)}
                 focused_email_id={focused_email_id}
                 on_category_change={handle_category_change}
                 folders={folders_state.folders
@@ -1420,11 +1439,18 @@ export function EmailInbox({
                 on_custom_snooze={(email) => set_custom_snooze_email(email)}
                 on_delete={context_menu_actions.handle_delete}
                 on_email_click={nav.handle_email_click}
+                on_find_from_sender={
+                  context_menu_actions.handle_find_from_sender
+                }
                 on_folder_toggle={context_menu_actions.handle_folder_toggle}
                 on_forward={context_menu_actions.handle_forward}
+                on_open_in_new_window={
+                  context_menu_actions.handle_open_in_new_window
+                }
                 on_mark_not_spam={context_menu_actions.handle_mark_not_spam}
                 on_move_to_inbox={context_menu_actions.handle_move_to_inbox}
                 on_reply={context_menu_actions.handle_reply}
+                on_reply_all={context_menu_actions.handle_reply_all}
                 on_restore={context_menu_actions.handle_restore}
                 on_snooze={(email, snooze_until) =>
                   handle_snooze(email.id, snooze_until)

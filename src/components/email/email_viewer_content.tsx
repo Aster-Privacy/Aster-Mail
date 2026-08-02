@@ -400,6 +400,7 @@ export function EmailViewerContent({
         <PurchaseDetailsBanner
           className="mx-6 mt-4"
           details={extraction.purchase}
+          email_id={email.id}
         />
       )}
       {extraction.has_shipping_details && extraction.shipping && (

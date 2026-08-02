@@ -51,6 +51,11 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
 import {
+  is_compact_density,
+  list_row_intrinsic_height,
+  resolve_list_density,
+} from "@/lib/list_density";
+import {
   build_selection_snapshot,
   empty_selection_snapshot,
   type SelectionSnapshot,
@@ -73,7 +78,10 @@ export interface EmailListProps {
   folders: { id: string; name: string; color: string }[];
   tags: { tag_token: string; name: string; color: string }[];
   on_reply: (email: InboxEmail) => void;
+  on_reply_all?: (email: InboxEmail) => void;
   on_forward: (email: InboxEmail) => void;
+  on_find_from_sender?: (email: InboxEmail) => void;
+  on_open_in_new_window?: (email: InboxEmail) => void;
   on_toggle_read: (email: InboxEmail) => void;
   on_toggle_star: (email: InboxEmail) => void;
   on_toggle_pin: (email: InboxEmail) => void;
@@ -109,7 +117,10 @@ export function EmailList({
   tags,
   focused_email_id,
   on_reply,
+  on_reply_all,
   on_forward,
+  on_find_from_sender,
+  on_open_in_new_window,
   on_toggle_read,
   on_toggle_star,
   on_toggle_pin,
@@ -311,7 +322,7 @@ export function EmailList({
                   className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
-                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : email.has_attachment ? 76 : 48}px`,
+                    containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
                   }}
                   onContextMenu={() => {
                     set_menu_email(email);
@@ -333,7 +344,7 @@ export function EmailList({
                   className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
-                    containIntrinsicSize: `auto ${density === "Compact" ? (email.has_attachment ? 72 : 44) : density === "Spacious" ? (email.has_attachment ? 84 : 56) : email.has_attachment ? 76 : 48}px`,
+                    containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
                   }}
                   onContextMenu={() => {
                     set_menu_email(email);
@@ -364,11 +375,24 @@ export function EmailList({
           }
           on_custom_snooze={() => on_custom_snooze(live_menu_email)}
           on_delete={() => on_delete(live_menu_email)}
+          on_find_from_sender={
+            on_find_from_sender
+              ? () => on_find_from_sender(live_menu_email)
+              : undefined
+          }
           on_folder_toggle={stable_on_folder_toggle}
           on_forward={() => on_forward(live_menu_email)}
+          on_open_in_new_window={
+            on_open_in_new_window
+              ? () => on_open_in_new_window(live_menu_email)
+              : undefined
+          }
           on_mark_not_spam={() => on_mark_not_spam(live_menu_email)}
           on_move_to_inbox={() => on_move_to_inbox(live_menu_email)}
           on_reply={() => on_reply(live_menu_email)}
+          on_reply_all={
+            on_reply_all ? () => on_reply_all(live_menu_email) : undefined
+          }
           on_restore={() => on_restore(live_menu_email)}
           on_snooze={(snooze_until) => on_snooze(live_menu_email, snooze_until)}
           on_spam={() => on_spam(live_menu_email)}
@@ -384,9 +408,14 @@ export function EmailList({
 }
 
 export function LoadingState(): React.ReactElement {
+  const { preferences } = use_preferences();
+  const is_compact = is_compact_density(
+    resolve_list_density(preferences.mail_list_density),
+    preferences.compact_mode ?? false,
+  );
+  const row_height = is_compact ? 41 : 49;
   const container_ref = useRef<HTMLDivElement>(null);
   const [row_count, set_row_count] = useState(() => {
-    const row_height = 44;
     const header_height = 41;
 
     return Math.max(
@@ -402,7 +431,6 @@ export function LoadingState(): React.ReactElement {
         const container_height = parent
           ? parent.clientHeight
           : container_ref.current.clientHeight;
-        const row_height = 44;
         const header_height = 41;
 
         set_row_count(
@@ -418,22 +446,30 @@ export function LoadingState(): React.ReactElement {
     window.addEventListener("resize", calculate_rows);
 
     return () => window.removeEventListener("resize", calculate_rows);
-  }, []);
+  }, [row_height]);
 
   return (
     <div ref={container_ref} className="overflow-hidden">
       {Array.from({ length: row_count }).map((_, i) => (
-        <SkeletonEmailRow key={i} />
+        <SkeletonEmailRow key={i} is_compact={is_compact} />
       ))}
     </div>
   );
 }
 
-function SkeletonEmailRow(): React.ReactElement {
+function SkeletonEmailRow({
+  is_compact,
+}: {
+  is_compact: boolean;
+}): React.ReactElement {
   return (
-    <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 border-b overflow-hidden border-edge-secondary">
+    <div
+      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 ${is_compact ? "py-1.5" : "py-2"} border-b overflow-hidden border-edge-secondary`}
+    >
       <Skeleton className="w-[18px] h-[18px] flex-shrink-0" />
-      <Skeleton className="w-8 h-8 rounded-full flex-shrink-0 hidden sm:block" />
+      <Skeleton
+        className={`${is_compact ? "w-7 h-7" : "w-8 h-8"} rounded-full flex-shrink-0 hidden sm:block`}
+      />
       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0">
           <Skeleton className="h-4 w-full max-w-[100px]" />

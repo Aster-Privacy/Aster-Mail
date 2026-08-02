@@ -1221,6 +1221,7 @@ export function ViewerThreadContent({
         <PurchaseDetailsBanner
           className="mx-3 @md:mx-4 mb-3"
           details={extraction.purchase}
+          email_id={email.id}
         />
       )}
       {extraction.has_shipping_details && extraction.shipping && (

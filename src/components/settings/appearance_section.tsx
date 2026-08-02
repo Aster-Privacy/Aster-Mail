@@ -53,6 +53,8 @@ import { SettingRow } from "@/components/settings/appearance/setting_row";
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
 import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
 import { get_supported_time_zones } from "@/lib/time_zones";
+import { resolve_list_density } from "@/lib/list_density";
+import { cn } from "@/lib/utils";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { go_to_billing } from "@/components/settings/aliases/feature_lock";
 import {
@@ -646,6 +648,43 @@ export function AppearanceSection() {
             theme={theme}
           />
         </div>
+
+        <SettingRow
+          description={t("settings.density_description")}
+          label={t("settings.density")}
+        >
+          <div
+            className="inline-flex rounded-lg border border-edge-secondary p-0.5"
+            role="radiogroup"
+          >
+            {(["compact", "comfortable"] as const).map((value) => {
+              const is_selected =
+                resolve_list_density(preferences.mail_list_density) === value;
+
+              return (
+                <button
+                  key={value}
+                  aria-checked={is_selected}
+                  className={cn(
+                    "px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer",
+                    is_selected
+                      ? "bg-surf-tertiary text-txt-primary font-medium"
+                      : "text-txt-muted hover:text-txt-primary",
+                  )}
+                  role="radio"
+                  type="button"
+                  onClick={() =>
+                    update_preference("mail_list_density", value, true)
+                  }
+                >
+                  {value === "compact"
+                    ? t("settings.density_compact")
+                    : t("settings.density_comfortable")}
+                </button>
+              );
+            })}
+          </div>
+        </SettingRow>
       </div>
 
       <div className="pt-3">

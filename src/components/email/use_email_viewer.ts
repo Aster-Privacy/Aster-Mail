@@ -85,6 +85,33 @@ export type {
   ForwardData,
 } from "@/components/email/email_viewer_types";
 
+function reconcile_thread_messages(
+  prev: DecryptedThreadMessage[],
+  server: DecryptedThreadMessage[],
+): DecryptedThreadMessage[] {
+  const server_ids = new Set(server.map((m) => m.id));
+  const pending = prev.filter(
+    (m) =>
+      !server_ids.has(m.id) &&
+      (m.is_sending === true || m.send_status === "pending_server"),
+  );
+
+  if (pending.length === 0) return server;
+
+  const prev_ids = new Set(prev.map((m) => m.id));
+  const new_sent_count = server.filter(
+    (m) => m.item_type === "sent" && !prev_ids.has(m.id),
+  ).length;
+  const ordered = [...pending].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
+  const survivors = ordered.slice(Math.min(new_sent_count, ordered.length));
+
+  if (survivors.length === 0) return server;
+
+  return [...server, ...survivors];
+}
+
 interface LocalDecryptedEnvelope {
   subject: string;
   body_text: string;
@@ -829,16 +856,9 @@ export function use_email_viewer({
         if (thread_result.messages.length === 0) return;
 
         last_thread_fetch_ref.current = Date.now();
-        set_thread_messages((prev) => {
-          const server_ids = new Set(thread_result.messages.map((m) => m.id));
-          const prev_non_sending = prev.filter((m) => !m.is_sending).length;
-          const grew = thread_result.messages.length > prev_non_sending;
-          const still_sending = grew
-            ? []
-            : prev.filter((m) => m.is_sending && !server_ids.has(m.id));
-
-          return [...thread_result.messages, ...still_sending];
-        });
+        set_thread_messages((prev) =>
+          reconcile_thread_messages(prev, thread_result.messages),
+        );
       } finally {
         thread_fetch_in_flight_ref.current = false;
       }
@@ -924,31 +944,40 @@ export function use_email_viewer({
 
       for (const delay of delays_ms) {
         await new Promise((resolve) => setTimeout(resolve, delay));
-        thread_result = await fetch_and_decrypt_thread_messages(
-          detail.thread_token,
-          current_user_email || undefined,
-          { is_trashed: !!mail_item?.is_trashed, is_spam: !!mail_item?.is_spam },
-        );
+
+        if (thread_fetch_in_flight_ref.current) continue;
+
+        thread_fetch_in_flight_ref.current = true;
+        try {
+          request_cache.invalidate(
+            `messages/threads/${encodeURIComponent(detail.thread_token)}/messages`,
+          );
+          thread_result = await fetch_and_decrypt_thread_messages(
+            detail.thread_token,
+            current_user_email || undefined,
+            { is_trashed: !!mail_item?.is_trashed, is_spam: !!mail_item?.is_spam },
+          );
+        } finally {
+          thread_fetch_in_flight_ref.current = false;
+        }
+
+        last_thread_fetch_ref.current = Date.now();
 
         if (thread_result.messages.length > prev_server_count) break;
       }
 
       if (thread_result.messages.length > 0) {
         set_thread_messages((prev) => {
-          const server_ids = new Set(thread_result.messages.map((m) => m.id));
-          const grew = thread_result.messages.length > prev_server_count;
-          const still_sending = prev.filter(
-            (m) =>
-              m.is_sending &&
-              !server_ids.has(m.id) &&
-              (grew ? m.id !== detail.optimistic_id : true),
+          const merged = reconcile_thread_messages(
+            prev,
+            thread_result.messages,
           );
-          const merged = grew
-            ? still_sending
-            : still_sending.map((m) =>
-                m.id === detail.optimistic_id ? { ...m, is_sending: false } : m,
-              );
-          return [...thread_result.messages, ...merged];
+
+          return merged.map((m) =>
+            m.id === detail.optimistic_id && m.is_sending
+              ? { ...m, is_sending: false, send_status: "pending_server" }
+              : m,
+          );
         });
 
         if (!email?.thread_token && email) {

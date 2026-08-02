@@ -575,10 +575,14 @@ export function ThreadMessageBlock({
         className={`group flex cursor-pointer select-none gap-3 px-4 py-3 hover:bg-surf-hover/20 ${hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}
         role="button"
         tabIndex={0}
-        onClick={on_toggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          on_toggle();
+        }}
         onKeyDown={(e) => {
           if (e["key"] === "Enter" || e["key"] === " ") {
             e.preventDefault();
+            e.stopPropagation();
             on_toggle();
           }
         }}
@@ -718,12 +722,20 @@ export function ThreadMessageBlock({
         className={`group flex items-start gap-3 px-4 pt-3 pb-1 ${can_collapse ? "cursor-pointer select-none" : ""}`}
         role={can_collapse ? "button" : undefined}
         tabIndex={can_collapse ? 0 : undefined}
-        onClick={can_collapse ? on_toggle : undefined}
+        onClick={
+          can_collapse
+            ? (e) => {
+                e.stopPropagation();
+                on_toggle();
+              }
+            : undefined
+        }
         onKeyDown={
           can_collapse
             ? (e) => {
                 if (e["key"] === "Enter" || e["key"] === " ") {
                   e.preventDefault();
+                  e.stopPropagation();
                   on_toggle();
                 }
               }

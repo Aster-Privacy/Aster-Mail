@@ -25,6 +25,7 @@ import { XMarkIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { Button, Radio } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { resolve_list_density } from "@/lib/list_density";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ThemeCard } from "@/components/settings/appearance/theme_card";
@@ -368,19 +369,19 @@ export function QuickSettingsPanel({
             </QuickGroup>
 
             <QuickGroup
-              more_label={t("settings.accessibility")}
-              on_more={() => on_open_full_settings("accessibility")}
+              more_label={t("settings.appearance")}
+              on_more={() => on_open_full_settings("appearance")}
               title={t("settings.density")}
             >
               <QuickRadioGroup
                 on_change={(v) =>
-                  update_preference("compact_mode", v === "compact", true)
+                  update_preference("mail_list_density", v, true)
                 }
                 options={[
                   { value: "comfortable", label: t("settings.density_comfortable"), thumbnail: <ThumbComfortable /> },
                   { value: "compact", label: t("settings.density_compact"), thumbnail: <ThumbCompact /> },
                 ]}
-                value={preferences.compact_mode ? "compact" : "comfortable"}
+                value={resolve_list_density(preferences.mail_list_density)}
               />
             </QuickGroup>
 
