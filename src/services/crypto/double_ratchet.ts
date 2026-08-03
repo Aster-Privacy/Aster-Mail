@@ -671,10 +671,10 @@ export class DoubleRatchet {
   }
 
   private static cleanup_old_skipped_keys_on(state: RatchetState): void {
-    const one_week_ago = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const retention_cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
     state.skipped_message_keys = state.skipped_message_keys.filter(
-      (k) => k.timestamp > one_week_ago,
+      (k) => k.timestamp > retention_cutoff,
     );
 
     while (state.skipped_message_keys.length > MAX_SKIP) {

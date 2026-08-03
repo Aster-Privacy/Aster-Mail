@@ -68,6 +68,7 @@ export {
   encrypt_vault,
   decrypt_vault_to_handles,
   decrypt_vault,
+  normalize_vault_fields,
   encrypt_message,
   encrypt_message_multi,
   decrypt_message,

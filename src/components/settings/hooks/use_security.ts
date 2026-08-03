@@ -556,6 +556,25 @@ export function use_security() {
           : vault.legacy_keks;
       }
 
+      if (
+        memory_vault?.ratchet_identity_key &&
+        memory_vault?.ratchet_identity_public
+      ) {
+        vault.ratchet_identity_key = memory_vault.ratchet_identity_key;
+        vault.ratchet_identity_public = memory_vault.ratchet_identity_public;
+        vault.ratchet_signed_prekey = memory_vault.ratchet_signed_prekey;
+        vault.ratchet_signed_prekey_public =
+          memory_vault.ratchet_signed_prekey_public;
+        vault.ratchet_pq_identity_key = memory_vault.ratchet_pq_identity_key;
+        vault.ratchet_pq_identity_public =
+          memory_vault.ratchet_pq_identity_public;
+        vault.ratchet_previous_keys = memory_vault.ratchet_previous_keys
+          ? [...memory_vault.ratchet_previous_keys]
+          : vault.ratchet_previous_keys;
+        vault.ratchet_regen_v4_done =
+          memory_vault.ratchet_regen_v4_done ?? vault.ratchet_regen_v4_done;
+      }
+
       const master_key_mode = is_master_key_vault(vault);
 
       const old_identity_key = vault.identity_key;
@@ -814,25 +833,32 @@ export function use_security() {
 
         const passphrase = get_passphrase_from_memory();
 
-        if (passphrase) {
-          await store_vault_in_memory(vault, passphrase);
+        if (!passphrase || !user?.id) return;
 
-          const { encrypted_vault, vault_nonce } = await encrypt_vault(
-            vault,
-            passphrase,
-          );
+        await store_vault_in_memory(vault, passphrase, user.id);
 
-          if (user?.id) {
-            localStorage.setItem(
-              `astermail_encrypted_vault_${user.id}`,
-              encrypted_vault,
-            );
-            localStorage.setItem(
-              `astermail_vault_nonce_${user.id}`,
-              vault_nonce,
-            );
-          }
-        }
+        const { encrypted_vault, vault_nonce } = await encrypt_vault(
+          vault,
+          passphrase,
+        );
+
+        const push_response = await api_client.put("/crypto/v1/keys/vault", {
+          encrypted_vault,
+          vault_nonce,
+          expected_user_id: user.id,
+          vault_format: vault.vault_format ?? 1,
+        });
+
+        if (push_response.error) return;
+
+        localStorage.setItem(
+          `astermail_encrypted_vault_${user.id}`,
+          encrypted_vault,
+        );
+        localStorage.setItem(
+          `astermail_vault_nonce_${user.id}`,
+          vault_nonce,
+        );
 
         await upload_prekey_bundle(vault);
       } catch (error) {

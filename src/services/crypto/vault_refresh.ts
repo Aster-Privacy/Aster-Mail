@@ -29,6 +29,7 @@ import {
 import { with_vault_write_lock } from "./vault_write_lock";
 
 const REFRESH_COOLDOWN_MS = 5 * 60 * 1000;
+const FAILURE_RETRY_MS = 30 * 1000;
 
 export interface RefreshedVault {
   vault: EncryptedVault;
@@ -37,13 +38,15 @@ export interface RefreshedVault {
   user_id: string;
 }
 
-let last_attempt_at = 0;
+let last_success_at = 0;
+let last_failure_at = 0;
 let last_result: RefreshedVault | null = null;
 let adopted_encrypted_vault: string | null = null;
 let in_flight: Promise<RefreshedVault | null> | null = null;
 
 export function reset_vault_refresh_state(): void {
-  last_attempt_at = 0;
+  last_success_at = 0;
+  last_failure_at = 0;
   last_result = null;
   adopted_encrypted_vault = null;
   in_flight = null;
@@ -54,9 +57,15 @@ export async function fetch_refreshed_vault(): Promise<RefreshedVault | null> {
 
   const now = Date.now();
 
-  if (now - last_attempt_at < REFRESH_COOLDOWN_MS) return last_result;
+  if (last_result && now - last_success_at < REFRESH_COOLDOWN_MS) {
+    const account = await get_current_account();
 
-  last_attempt_at = now;
+    if (account?.user?.id === last_result.user_id) return last_result;
+
+    reset_vault_refresh_state();
+  }
+
+  if (now - last_failure_at < FAILURE_RETRY_MS) return null;
 
   in_flight = run().finally(() => {
     in_flight = null;
@@ -66,8 +75,6 @@ export async function fetch_refreshed_vault(): Promise<RefreshedVault | null> {
 }
 
 async function run(): Promise<RefreshedVault | null> {
-  last_result = null;
-
   try {
     const passphrase = get_passphrase_from_memory();
 
@@ -77,6 +84,11 @@ async function run(): Promise<RefreshedVault | null> {
     const user_id = account?.user?.id;
 
     if (!user_id) return null;
+
+    if (last_result && last_result.user_id !== user_id) {
+      last_result = null;
+      adopted_encrypted_vault = null;
+    }
 
     const response = await api_client.get<{
       encrypted_vault: string;
@@ -88,7 +100,9 @@ async function run(): Promise<RefreshedVault | null> {
       !response.data?.encrypted_vault ||
       !response.data.vault_nonce
     ) {
-      return null;
+      last_failure_at = Date.now();
+
+      return last_result;
     }
 
     const vault = await decrypt_vault(
@@ -103,10 +117,13 @@ async function run(): Promise<RefreshedVault | null> {
       vault_nonce: response.data.vault_nonce,
       user_id,
     };
+    last_success_at = Date.now();
 
     return last_result;
   } catch {
-    return null;
+    last_failure_at = Date.now();
+
+    return last_result;
   }
 }
 
