@@ -157,18 +157,21 @@ export function format_time(
 export function format_date_short(
   date: Date,
   options: FormatOptions = DEFAULT_OPTIONS,
+  include_year = false,
 ): string {
-  const day = get_zoned_parts(date).day;
+  const parts = get_zoned_parts(date);
+  const day = parts.day;
   const month = new Intl.DateTimeFormat(undefined, zoned({ month: "short" })).format(date);
+  const year = include_year ? ` ${parts.year}` : "";
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
-      return `${day} ${month}`;
+      return `${day} ${month}${year}`;
     case "YYYY-MM-DD":
-      return `${month} ${day}`;
+      return `${month} ${day}${year}`;
     case "MM/DD/YYYY":
     default:
-      return `${month} ${day}`;
+      return `${month} ${day}${year}`;
   }
 }
 
@@ -182,16 +185,18 @@ export function format_full_date(
 ): string {
   const weekday = new Intl.DateTimeFormat(undefined, zoned({ weekday: "long" })).format(date);
   const month = new Intl.DateTimeFormat(undefined, zoned({ month: "long" })).format(date);
-  const day = get_zoned_parts(date).day;
+  const parts = get_zoned_parts(date);
+  const day = parts.day;
+  const year = parts.year;
 
   switch (options.date_format) {
     case "DD/MM/YYYY":
-      return `${weekday}, ${day} ${month}`;
+      return `${weekday}, ${day} ${month} ${year}`;
     case "YYYY-MM-DD":
-      return `${weekday}, ${month} ${day}`;
+      return `${weekday}, ${month} ${day}, ${year}`;
     case "MM/DD/YYYY":
     default:
-      return `${weekday}, ${month} ${day}`;
+      return `${weekday}, ${month} ${day}, ${year}`;
   }
 }
 
@@ -209,6 +214,7 @@ export function format_full_datetime(
 
   return new Intl.DateTimeFormat(undefined, zoned({
     weekday: "long",
+    year: "numeric",
     month: "long",
     day: "numeric",
     hour: "numeric",
@@ -283,12 +289,15 @@ export function format_email_detail_timestamp(
       : `Yesterday at ${time_str}`;
   }
 
+  const is_other_year = get_zoned_parts(date).year !== get_zoned_parts(now).year;
+  const date_str = format_date_short(date, options, is_other_year);
+
   return t
     ? t("common.date_at_time", {
-        date: format_date_short(date, options),
+        date: date_str,
         time: time_str,
       })
-    : `${format_date_short(date, options)} at ${time_str}`;
+    : `${date_str} at ${time_str}`;
 }
 
 export function format_email_popup_timestamp(

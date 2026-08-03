@@ -61,7 +61,7 @@ export function MessageDetailsModal({
   size_bytes,
 }: MessageDetailsModalProps): React.ReactElement | null {
   const { t } = use_i18n();
-  const { format_email_detail } = use_date_format();
+  const { format_full_datetime } = use_date_format();
 
   const headers = useMemo(() => build_headers(message), [message]);
 
@@ -171,7 +171,7 @@ export function MessageDetailsModal({
             {t("common.date_label")}
           </span>
           <span className="text-txt-secondary">
-            {format_email_detail(new Date(message.timestamp))}
+            {format_full_datetime(new Date(message.timestamp))}
           </span>
         </div>
 
