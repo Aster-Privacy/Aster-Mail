@@ -28,7 +28,7 @@ mod http_client;
 
 use std::sync::Mutex;
 use tauri::{
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, State, WindowEvent,
 };
@@ -53,7 +53,12 @@ fn set_tray_tooltip(state: State<TrayState>, tooltip: String) {
 
 #[tauri::command]
 fn frontend_ready(state: State<boot_guard::BootState>) {
-    state.mark_ready();
+    state.mark_script_ran();
+}
+
+#[tauri::command]
+fn frontend_painted(state: State<boot_guard::BootState>) {
+    state.mark_painted();
 }
 
 #[tauri::command]
@@ -221,6 +226,7 @@ fn main() {
         .manage(boot_guard::BootState::new())
         .invoke_handler(tauri::generate_handler![
             frontend_ready,
+            frontend_painted,
             badge::set_unread_badge,
             set_tray_visible,
             set_tray_tooltip,
@@ -256,7 +262,34 @@ fn main() {
             let show =
                 MenuItem::with_id(app, "show", "Show Aster Mail", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show, &quit])?;
+            let compat_on = MenuItem::with_id(
+                app,
+                "compat_on",
+                "Restart in compatibility mode",
+                !boot_guard::compat_mode_active(),
+                None::<&str>,
+            )?;
+            let compat_off = MenuItem::with_id(
+                app,
+                "compat_off",
+                "Restart with hardware acceleration",
+                boot_guard::compat_mode_active(),
+                None::<&str>,
+            )?;
+            let display_reset = MenuItem::with_id(
+                app,
+                "display_reset",
+                "Reset display cache and restart",
+                true,
+                None::<&str>,
+            )?;
+            let troubleshooting = Submenu::with_items(
+                app,
+                "If the window is blank",
+                true,
+                &[&compat_on, &compat_off, &display_reset],
+            )?;
+            let menu = Menu::with_items(app, &[&show, &troubleshooting, &quit])?;
 
             let tray = TrayIconBuilder::new()
                 .icon(tray_icon)
@@ -269,6 +302,18 @@ fn main() {
                             let _ = window.show();
                             let _ = window.set_focus();
                         }
+                    }
+                    "compat_on" => {
+                        boot_guard::enable_compat_mode();
+                        app.restart();
+                    }
+                    "compat_off" => {
+                        boot_guard::disable_compat_mode();
+                        app.restart();
+                    }
+                    "display_reset" => {
+                        boot_guard::request_display_reset();
+                        app.restart();
                     }
                     "quit" => {
                         app.exit(0);
@@ -302,11 +347,21 @@ fn main() {
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
+                let state: State<boot_guard::BootState> = window.state();
+                if !state.is_usable() {
+                    return;
+                }
                 api.prevent_close();
                 let _ = window.hide();
             }
         })
-        .build(tauri::generate_context!())
+        .build({
+            #[allow(unused_mut)]
+            let mut context = tauri::generate_context!();
+            #[cfg(windows)]
+            boot_guard::apply_compat_browser_args(context.config_mut());
+            context
+        })
         .unwrap_or_else(|error| {
             boot_guard::show_fatal_webview_error(&error.to_string());
             std::process::exit(1);
