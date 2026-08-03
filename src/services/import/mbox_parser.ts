@@ -24,6 +24,8 @@ import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE, MAX_SINGLE_EMAIL_SIZE } from "./types";
 import { parse_eml } from "./eml_parser";
 
+const READ_CHUNK_BYTES = 8 * 1024 * 1024;
+
 export async function parse_mbox_file(
   file: File,
   on_progress?: ParseProgressCallback,
@@ -38,34 +40,95 @@ export async function parse_mbox_file(
     };
   }
 
-  const buffer = await file.arrayBuffer();
-  const text = new TextDecoder("iso-8859-1").decode(buffer);
   const emails: ParsedEmail[] = [];
   const errors: string[] = [];
   const warnings: string[] = [];
+  const decoder = new TextDecoder("iso-8859-1");
 
-  const message_starts: number[] = [];
-  const separator_starts: number[] = [];
-  const from_pattern = /^From [^\r\n]+\r?\n/gm;
-  let match;
+  let pending = "";
+  let body_start = 0;
+  let saw_separator = false;
+  let count = 0;
+  let bytes_read = 0;
 
-  while ((match = from_pattern.exec(text)) !== null) {
-    separator_starts.push(match.index);
-    message_starts.push(match.index + match[0].length);
-  }
+  const emit = (raw_segment: string): void => {
+    count++;
 
-  if (message_starts.length === 0) {
-    const alt_pattern = /^From:/im;
+    const raw_email = raw_segment.trim().replace(/^>From /gm, "From ");
 
-    if (alt_pattern.test(text)) {
-      separator_starts.push(0);
-      message_starts.push(0);
+    if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {
+      warnings.push(en.errors.email_skipped_size.replace("{{number}}", String(count)));
+
+      return;
     }
+
+    if (raw_email.length === 0) return;
+
+    try {
+      emails.push(parse_eml(raw_email));
+    } catch (err) {
+      const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+
+      errors.push(
+        en.errors.failed_parse_email.replace("{{number}}", String(count)).replace("{{error}}", error_msg),
+      );
+    }
+  };
+
+  const report = (): void => {
+    if (!on_progress) return;
+
+    const fraction = file.size > 0 ? bytes_read / file.size : 1;
+    const estimated =
+      fraction > 0 ? Math.max(count, Math.round(count / fraction)) : count;
+
+    on_progress({
+      current: count,
+      total: estimated,
+      percentage: Math.min(100, Math.round(fraction * 100)),
+    });
+  };
+
+  for (let offset = 0; offset < file.size; offset += READ_CHUNK_BYTES) {
+    const slice = file.slice(offset, Math.min(offset + READ_CHUNK_BYTES, file.size));
+
+    pending += decoder.decode(new Uint8Array(await slice.arrayBuffer()));
+    bytes_read = Math.min(offset + READ_CHUNK_BYTES, file.size);
+
+    const separator_pattern = /^From [^\r\n]+\r?\n/gm;
+    separator_pattern.lastIndex = body_start;
+
+    let match;
+    let progressed = false;
+
+    while ((match = separator_pattern.exec(pending)) !== null) {
+      if (saw_separator) {
+        emit(pending.slice(body_start, match.index));
+        progressed = true;
+      }
+
+      saw_separator = true;
+      body_start = match.index + match[0].length;
+      separator_pattern.lastIndex = body_start;
+    }
+
+    if (body_start > 0) {
+      pending = pending.slice(body_start);
+      body_start = 0;
+    }
+
+    if (progressed) report();
   }
 
-  const total = message_starts.length;
+  if (saw_separator) {
+    emit(pending);
+  } else if (/^From:/im.test(pending)) {
+    emit(pending);
+  }
 
-  if (total === 0) {
+  pending = "";
+
+  if (count === 0) {
     return {
       emails: [],
       errors: [en.errors.no_emails_in_mbox],
@@ -73,42 +136,8 @@ export async function parse_mbox_file(
     };
   }
 
-  for (let i = 0; i < message_starts.length; i++) {
-    const start = message_starts[i];
-    const end = separator_starts[i + 1] ?? text.length;
-    const raw_segment = text.substring(start, end).trim();
-    const raw_email = raw_segment.replace(/^>From /gm, "From ");
-
-    if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {
-      warnings.push(en.errors.email_skipped_size.replace("{{number}}", String(i + 1)));
-      continue;
-    }
-
-    if (raw_email.length > 0) {
-      try {
-        const parsed = parse_eml(raw_email);
-
-        emails.push(parsed);
-      } catch (err) {
-        const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
-
-        errors.push(
-          en.errors.failed_parse_email.replace("{{number}}", String(i + 1)).replace("{{error}}", error_msg),
-        );
-      }
-    }
-
-    if (on_progress && i % 10 === 0) {
-      on_progress({
-        current: i + 1,
-        total,
-        percentage: Math.round(((i + 1) / total) * 100),
-      });
-    }
-  }
-
   if (on_progress) {
-    on_progress({ current: total, total, percentage: 100 });
+    on_progress({ current: count, total: count, percentage: 100 });
   }
 
   return { emails, errors, warnings };
