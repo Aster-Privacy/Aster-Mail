@@ -27,8 +27,10 @@ mod device;
 mod http_client;
 
 use std::sync::Mutex;
+#[cfg(windows)]
+use tauri::menu::Submenu;
 use tauri::{
-    menu::{Menu, MenuItem, Submenu},
+    menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, State, WindowEvent,
 };
@@ -262,6 +264,7 @@ fn main() {
             let show =
                 MenuItem::with_id(app, "show", "Show Aster Mail", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            #[cfg(windows)]
             let compat_on = MenuItem::with_id(
                 app,
                 "compat_on",
@@ -269,6 +272,7 @@ fn main() {
                 !boot_guard::compat_mode_active(),
                 None::<&str>,
             )?;
+            #[cfg(windows)]
             let compat_off = MenuItem::with_id(
                 app,
                 "compat_off",
@@ -276,6 +280,7 @@ fn main() {
                 boot_guard::compat_mode_active(),
                 None::<&str>,
             )?;
+            #[cfg(windows)]
             let display_reset = MenuItem::with_id(
                 app,
                 "display_reset",
@@ -283,13 +288,17 @@ fn main() {
                 true,
                 None::<&str>,
             )?;
+            #[cfg(windows)]
             let troubleshooting = Submenu::with_items(
                 app,
                 "If the window is blank",
                 true,
                 &[&compat_on, &compat_off, &display_reset],
             )?;
+            #[cfg(windows)]
             let menu = Menu::with_items(app, &[&show, &troubleshooting, &quit])?;
+            #[cfg(not(windows))]
+            let menu = Menu::with_items(app, &[&show, &quit])?;
 
             let tray = TrayIconBuilder::new()
                 .icon(tray_icon)
