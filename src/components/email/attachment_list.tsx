@@ -29,7 +29,12 @@ import { EncryptionInfoDropdown } from "@/components/common/encryption_info_drop
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
-import { list_attachments } from "@/services/api/attachments";
+import {
+  list_attachments,
+  batch_attachment_meta,
+  get_attachment,
+  type AttachmentMetaItem,
+} from "@/services/api/attachments";
 import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
@@ -151,11 +156,32 @@ function FileDocIcon({ color, label }: { color: string; label: string }) {
   );
 }
 
+function PreviewChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path
+        d={direction === "left" ? "M15.75 19.5L8.25 12l7.5-7.5" : "M8.25 4.5l7.5 7.5-7.5 7.5"}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ImagePreviewModal({
   src,
   filename,
   on_close,
   on_download,
+  on_prev,
+  on_next,
+  counter,
   reduce_motion,
   t,
 }: {
@@ -163,6 +189,9 @@ function ImagePreviewModal({
   filename: string;
   on_close: () => void;
   on_download: () => void;
+  on_prev?: () => void;
+  on_next?: () => void;
+  counter?: string;
   reduce_motion: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
@@ -171,6 +200,8 @@ function ImagePreviewModal({
   useEffect(() => {
     const handle_key = (e: KeyboardEvent) => {
       if (e.key === "Escape") on_close();
+      if (e.key === "ArrowLeft" && on_prev) on_prev();
+      if (e.key === "ArrowRight" && on_next) on_next();
     };
 
     document.addEventListener("keydown", handle_key);
@@ -180,7 +211,7 @@ function ImagePreviewModal({
       document.removeEventListener("keydown", handle_key);
       document.body.style.overflow = "";
     };
-  }, [on_close]);
+  }, [on_close, on_prev, on_next]);
 
   return (
     <motion.div
@@ -195,6 +226,26 @@ function ImagePreviewModal({
         if (e.target === overlay_ref.current) on_close();
       }}
     >
+      {on_prev && (
+        <button
+          aria-label={t("common.previous")}
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
+          title={t("common.previous")}
+          onClick={on_prev}
+        >
+          <PreviewChevronIcon direction="left" />
+        </button>
+      )}
+      {on_next && (
+        <button
+          aria-label={t("common.next")}
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
+          title={t("common.next")}
+          onClick={on_next}
+        >
+          <PreviewChevronIcon direction="right" />
+        </button>
+      )}
       <motion.div
         animate={{ scale: 1, opacity: 1 }}
         className="relative flex flex-col items-center gap-4 max-w-[92vw] max-h-[92vh]"
@@ -212,6 +263,9 @@ function ImagePreviewModal({
           <span className="text-white/70 text-sm truncate max-w-[300px]">
             {filename}
           </span>
+          {counter && (
+            <span className="text-white/50 text-xs tabular-nums">{counter}</span>
+          )}
           <button
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10"
             onClick={on_download}
@@ -335,11 +389,190 @@ export function AttachmentList({
     filename: string;
     att: DecryptedAttachmentInfo;
   } | null>(null);
+  const bytes_fetch_ref = useRef<Promise<
+    Map<string, { encrypted_data: string; data_nonce: string }>
+  > | null>(null);
+  const pdf_attempted_ref = useRef<Set<string>>(new Set());
+
+  const ensure_attachment_bytes = useCallback(
+    async (att: DecryptedAttachmentInfo): Promise<DecryptedAttachmentInfo> => {
+      if (att.encrypted_data) return att;
+
+      const pending = bytes_fetch_ref.current;
+
+      if (pending) {
+        const byte_map = await pending;
+        const bytes = byte_map.get(att.id);
+
+        if (bytes) return { ...att, ...bytes };
+      }
+
+      const response = await get_attachment(att.id);
+
+      if (!response.data?.encrypted_data) {
+        throw new Error("attachment_bytes_unavailable");
+      }
+
+      return {
+        ...att,
+        encrypted_data: response.data.encrypted_data,
+        data_nonce: response.data.data_nonce,
+      };
+    },
+    [],
+  );
 
   useEffect(() => {
     if (preferences.low_network_mode && !user_expanded) return;
 
     let cancelled = false;
+
+    bytes_fetch_ref.current = null;
+    pdf_attempted_ref.current = new Set();
+
+    async function build_info(
+      att: Pick<
+        AttachmentMetaItem,
+        "id" | "mail_item_id" | "seq_num" | "size_bytes" | "encrypted_meta" | "meta_nonce"
+      >,
+      encrypted_data: string,
+      data_nonce: string,
+    ): Promise<DecryptedAttachmentInfo | null> {
+      try {
+        const meta = await decrypt_attachment_meta(
+          att.encrypted_meta,
+          att.meta_nonce,
+        );
+
+        const is_cid_match =
+          meta.content_id &&
+          inline_cids &&
+          inline_cids.has(meta.content_id.toLowerCase());
+        const is_filename_match =
+          !meta.content_id &&
+          meta.content_type.startsWith("image/") &&
+          inline_filenames &&
+          inline_filenames.size > 0 &&
+          inline_filenames.has(meta.filename.toLowerCase());
+
+        if (meta.is_inline || is_cid_match || is_filename_match) return null;
+
+        return {
+          id: att.id,
+          mail_item_id: att.mail_item_id,
+          seq_num: att.seq_num,
+          filename: meta.filename,
+          content_type: meta.content_type,
+          size_bytes: att.size_bytes,
+          encrypted_data,
+          data_nonce,
+          encrypted_meta: att.encrypted_meta,
+          meta_nonce: att.meta_nonce,
+        };
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+
+        return {
+          id: att.id,
+          mail_item_id: att.mail_item_id,
+          seq_num: att.seq_num,
+          filename: t("common.encrypted_attachment"),
+          content_type: "application/octet-stream",
+          size_bytes: att.size_bytes,
+          encrypted_data,
+          data_nonce,
+          encrypted_meta: att.encrypted_meta,
+          meta_nonce: att.meta_nonce,
+        };
+      }
+    }
+
+    async function decrypt_image_previews(infos: DecryptedAttachmentInfo[]) {
+      await Promise.all(
+        infos.map(async (info) => {
+          if (!is_previewable_image(info.content_type)) return;
+          if (!info.encrypted_data) return;
+
+          try {
+            const meta = await decrypt_attachment_meta(
+              info.encrypted_meta,
+              info.meta_nonce,
+            );
+            const data = await decrypt_attachment_data(
+              info.encrypted_data,
+              info.data_nonce,
+              meta.session_key,
+              info.mail_item_id,
+              info.seq_num,
+            );
+            const blob = new Blob([data], { type: info.content_type });
+            const url = URL.createObjectURL(blob);
+
+            if (cancelled) {
+              URL.revokeObjectURL(url);
+
+              return;
+            }
+
+            set_attachments((prev) =>
+              prev.map((a) =>
+                a.id === info.id && !a.preview_url
+                  ? { ...a, preview_url: url }
+                  : a,
+              ),
+            );
+          } catch {
+            /* preview generation failed */
+          }
+        }),
+      );
+    }
+
+    async function hydrate_bytes(cards: DecryptedAttachmentInfo[]) {
+      const bytes_promise = (async () => {
+        const byte_map = new Map<
+          string,
+          { encrypted_data: string; data_nonce: string }
+        >();
+
+        try {
+          const response = await list_attachments(mail_item_id);
+
+          for (const att of response.data?.attachments ?? []) {
+            byte_map.set(att.id, {
+              encrypted_data: att.encrypted_data,
+              data_nonce: att.data_nonce,
+            });
+          }
+        } catch {
+          return byte_map;
+        }
+
+        return byte_map;
+      })();
+
+      bytes_fetch_ref.current = bytes_promise;
+
+      const byte_map = await bytes_promise;
+
+      if (cancelled || byte_map.size === 0) return;
+
+      set_attachments((prev) =>
+        prev.map((a) => {
+          const bytes = byte_map.get(a.id);
+
+          return bytes && !a.encrypted_data ? { ...a, ...bytes } : a;
+        }),
+      );
+
+      const hydrated = cards.map((c) => {
+        const bytes = byte_map.get(c.id);
+
+        return bytes ? { ...c, ...bytes } : c;
+      });
+
+      await decrypt_image_previews(hydrated);
+    }
 
     async function fetch_attachments() {
       if (is_local) {
@@ -348,6 +581,41 @@ export function AttachmentList({
       }
 
       set_loading(true);
+
+      let meta_items: AttachmentMetaItem[] | null = null;
+
+      try {
+        const meta_response = await batch_attachment_meta([mail_item_id]);
+
+        meta_items = meta_response.data
+          ? (meta_response.data.items?.[mail_item_id] ?? [])
+          : null;
+      } catch {
+        meta_items = null;
+      }
+
+      if (cancelled) return;
+
+      if (meta_items) {
+        const cards: DecryptedAttachmentInfo[] = [];
+
+        for (const item of meta_items) {
+          const info = await build_info(item, "", "");
+
+          if (info) cards.push(info);
+        }
+
+        if (cancelled) return;
+
+        set_attachments(cards);
+        set_loading(false);
+
+        if (cards.length === 0) return;
+
+        await hydrate_bytes(cards);
+
+        return;
+      }
 
       let response;
 
@@ -370,77 +638,17 @@ export function AttachmentList({
       const decrypted: DecryptedAttachmentInfo[] = [];
 
       for (const att of response.data.attachments) {
-        try {
-          const meta = await decrypt_attachment_meta(
-            att.encrypted_meta,
-            att.meta_nonce,
-          );
+        const info = await build_info(att, att.encrypted_data, att.data_nonce);
 
-          const is_cid_match =
-            meta.content_id &&
-            inline_cids &&
-            inline_cids.has(meta.content_id.toLowerCase());
-          const is_filename_match =
-            !meta.content_id &&
-            meta.content_type.startsWith("image/") &&
-            inline_filenames &&
-            inline_filenames.size > 0 &&
-            inline_filenames.has(meta.filename.toLowerCase());
-
-          if (meta.is_inline || is_cid_match || is_filename_match) continue;
-
-          const info: DecryptedAttachmentInfo = {
-            id: att.id,
-            mail_item_id: att.mail_item_id,
-            seq_num: att.seq_num,
-            filename: meta.filename,
-            content_type: meta.content_type,
-            size_bytes: att.size_bytes,
-            encrypted_data: att.encrypted_data,
-            data_nonce: att.data_nonce,
-            encrypted_meta: att.encrypted_meta,
-            meta_nonce: att.meta_nonce,
-          };
-
-          if (is_previewable_image(meta.content_type)) {
-            try {
-              const data = await decrypt_attachment_data(
-                att.encrypted_data,
-                att.data_nonce,
-                meta.session_key,
-                att.mail_item_id,
-                att.seq_num,
-              );
-              const blob = new Blob([data], { type: meta.content_type });
-
-              info.preview_url = URL.createObjectURL(blob);
-            } catch {
-              /* preview generation failed */
-            }
-          }
-
-          decrypted.push(info);
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-          decrypted.push({
-            id: att.id,
-            mail_item_id: att.mail_item_id,
-            seq_num: att.seq_num,
-            filename: t("common.encrypted_attachment"),
-            content_type: "application/octet-stream",
-            size_bytes: att.size_bytes,
-            encrypted_data: att.encrypted_data,
-            data_nonce: att.data_nonce,
-            encrypted_meta: att.encrypted_meta,
-            meta_nonce: att.meta_nonce,
-          });
-        }
+        if (info) decrypted.push(info);
       }
 
-      if (!cancelled) {
-        set_attachments(decrypted);
-        set_loading(false);
-      }
+      if (cancelled) return;
+
+      set_attachments(decrypted);
+      set_loading(false);
+
+      await decrypt_image_previews(decrypted);
     }
 
     fetch_attachments();
@@ -465,7 +673,11 @@ export function AttachmentList({
 
     async function generate_pdf_thumbnails() {
       const pdf_atts = attachments.filter(
-        (a) => is_previewable_pdf(a.content_type) && !a.preview_url,
+        (a) =>
+          is_previewable_pdf(a.content_type) &&
+          !a.preview_url &&
+          a.encrypted_data &&
+          !pdf_attempted_ref.current.has(a.id),
       );
 
       if (pdf_atts.length === 0) return;
@@ -482,6 +694,8 @@ export function AttachmentList({
 
       for (const att of pdf_atts) {
         if (cancelled) return;
+
+        pdf_attempted_ref.current.add(att.id);
 
         try {
           const meta = await decrypt_attachment_meta(
@@ -514,6 +728,8 @@ export function AttachmentList({
           const url = await Promise.race([thumbnail_promise, timeout_promise]);
 
           if (cancelled) {
+            pdf_attempted_ref.current.delete(att.id);
+
             return;
           }
 
@@ -521,7 +737,7 @@ export function AttachmentList({
             prev.map((a) => (a.id === att.id ? { ...a, preview_url: url } : a)),
           );
         } catch {
-          /* pdf thumbnail failed or timed out */
+          if (cancelled) pdf_attempted_ref.current.delete(att.id);
         }
       }
     }
@@ -531,7 +747,7 @@ export function AttachmentList({
     return () => {
       cancelled = true;
     };
-  }, [loading, attachments.length]);
+  }, [loading, attachments]);
 
   const handle_download = useCallback(
     async (att: DecryptedAttachmentInfo, e?: React.MouseEvent) => {
@@ -542,17 +758,18 @@ export function AttachmentList({
       set_downloading(att.id);
 
       try {
+        const hydrated = await ensure_attachment_bytes(att);
         const meta = await decrypt_attachment_meta(
-          att.encrypted_meta,
-          att.meta_nonce,
+          hydrated.encrypted_meta,
+          hydrated.meta_nonce,
         );
 
         const data = await decrypt_attachment_data(
-          att.encrypted_data,
-          att.data_nonce,
+          hydrated.encrypted_data,
+          hydrated.data_nonce,
           meta.session_key,
-          att.mail_item_id,
-          att.seq_num,
+          hydrated.mail_item_id,
+          hydrated.seq_num,
         );
 
         download_decrypted_attachment(data, meta.filename, meta.content_type);
@@ -563,7 +780,7 @@ export function AttachmentList({
         set_downloading(null);
       }
     },
-    [t],
+    [t, ensure_attachment_bytes],
   );
 
   const handle_click = useCallback(
@@ -575,19 +792,88 @@ export function AttachmentList({
           filename: att.filename,
           att,
         });
+      } else if (is_previewable_image(att.content_type)) {
+        ensure_attachment_bytes(att)
+          .then(async (hydrated) => {
+            const meta = await decrypt_attachment_meta(
+              hydrated.encrypted_meta,
+              hydrated.meta_nonce,
+            );
+            const data = await decrypt_attachment_data(
+              hydrated.encrypted_data,
+              hydrated.data_nonce,
+              meta.session_key,
+              hydrated.mail_item_id,
+              hydrated.seq_num,
+            );
+            const blob = new Blob([data], { type: hydrated.content_type });
+            const url = URL.createObjectURL(blob);
+
+            set_attachments((prev) =>
+              prev.map((a) =>
+                a.id === att.id && !a.preview_url
+                  ? { ...a, preview_url: url }
+                  : a,
+              ),
+            );
+            set_preview_state({
+              type: "image",
+              src: url,
+              filename: hydrated.filename,
+              att: { ...hydrated, preview_url: url },
+            });
+          })
+          .catch(() => {
+            show_toast(t("common.download_failed"), "error");
+          });
       } else if (is_previewable_pdf(att.content_type)) {
-        set_preview_state({
-          type: "pdf",
-          src: "",
-          filename: att.filename,
-          att,
-        });
+        ensure_attachment_bytes(att)
+          .then((hydrated) => {
+            set_preview_state({
+              type: "pdf",
+              src: "",
+              filename: hydrated.filename,
+              att: hydrated,
+            });
+          })
+          .catch(() => {
+            show_toast(t("common.download_failed"), "error");
+          });
       } else {
         handle_download(att);
       }
     },
-    [handle_download],
+    [handle_download, ensure_attachment_bytes, t],
   );
+
+  const previewable_images = attachments.filter(
+    (a) => is_previewable_image(a.content_type) && a.preview_url,
+  );
+  const current_image_index =
+    preview_state?.type === "image"
+      ? previewable_images.findIndex((a) => a.id === preview_state.att.id)
+      : -1;
+  const show_image_nav =
+    current_image_index !== -1 && previewable_images.length > 1;
+
+  const step_preview_image = (delta: number) => {
+    if (current_image_index === -1 || previewable_images.length < 2) return;
+
+    const target =
+      previewable_images[
+        (current_image_index + delta + previewable_images.length) %
+          previewable_images.length
+      ];
+
+    if (target?.preview_url) {
+      set_preview_state({
+        type: "image",
+        src: target.preview_url,
+        filename: target.filename,
+        att: target,
+      });
+    }
+  };
 
   if (preferences.low_network_mode && !user_expanded) {
     if (!hint_attachment_count) return null;
@@ -707,9 +993,16 @@ export function AttachmentList({
       <AnimatePresence>
         {preview_state?.type === "image" && (
           <ImagePreviewModal
+            counter={
+              show_image_nav
+                ? `${current_image_index + 1} / ${previewable_images.length}`
+                : undefined
+            }
             filename={preview_state.filename}
             on_close={() => set_preview_state(null)}
             on_download={() => handle_download(preview_state.att)}
+            on_next={show_image_nav ? () => step_preview_image(1) : undefined}
+            on_prev={show_image_nav ? () => step_preview_image(-1) : undefined}
             reduce_motion={reduce_motion}
             src={preview_state.src}
             t={t}
