@@ -94,7 +94,7 @@ export function ContactAvatar({
     return (
       <div
         className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
-        style={{ ...base_style, backgroundColor: "#ffffff" }}
+        style={base_style}
       >
         <img
           alt=""
@@ -113,7 +113,7 @@ export function ContactAvatar({
     return (
       <div
         className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
-        style={{ ...base_style, backgroundColor: "#ffffff" }}
+        style={base_style}
       >
         <img
           alt=""

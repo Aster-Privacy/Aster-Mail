@@ -943,9 +943,23 @@ export function use_index_page_state() {
   useEffect(() => {
     const handle_open_search_with_query = (e: Event) => {
       const custom_event = e as CustomEvent<{ query?: string }>;
+      const query = (custom_event.detail?.query || "").trim();
 
-      set_initial_search_query(custom_event.detail?.query || "");
-      set_is_search_open(true);
+      if (!query) {
+        set_initial_search_query("");
+        set_is_search_open(true);
+
+        return;
+      }
+
+      set_is_search_open(false);
+      set_initial_search_query(undefined);
+      set_sender_subscription(null);
+      set_popup_email_id(null);
+      set_split_email_id(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+      set_active_search_query(query);
     };
 
     const handle_open_shortcuts_modal = () => {

@@ -60,6 +60,7 @@ import {
 } from "@/components/inbox/header/header_toolbar";
 import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
+import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 
 interface FolderOption {
   folder_token: string;
@@ -156,7 +157,7 @@ export function InboxHeader({
   filtered_count = 0,
   display_count,
   current_page = 0,
-  page_size = 30,
+  page_size = DEFAULT_PAGE_SIZE,
   on_page_change,
   is_trash_view = false,
   on_empty_trash,

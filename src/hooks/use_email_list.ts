@@ -101,6 +101,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   });
   const [render_view, set_render_view] = useState(current_view);
   const page_ref = useRef(-1);
+  const windowed_page_ref = useRef(false);
+  const page_limit_ref = useRef(page_size);
   const page_cache_ref = useRef<Map<number, { state: EmailListState; time: number }>>(
     new Map(),
   );
@@ -139,6 +141,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       });
       page_ref.current = 0;
     }
+    windowed_page_ref.current = false;
   }
 
   const abort_ref = useRef<AbortController | null>(null);
@@ -203,6 +206,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       if (cached_page && now - cached_page.time < PAGE_CACHE_TTL_MS) {
         last_fetch_ref.current = { view: current_view, page, time: now };
         page_ref.current = page;
+        windowed_page_ref.current = true;
+        page_limit_ref.current = limit;
         state_view_ref.current = current_view;
         set_state((prev) => {
           const selected_ids = new Set(
@@ -275,6 +280,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
         last_fetch_ref.current = { view: current_view, page, time: now };
         page_ref.current = page;
+        windowed_page_ref.current = true;
+        page_limit_ref.current = limit;
         state_view_ref.current = current_view;
 
         set_state((prev) => {
@@ -355,7 +362,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     const controller = new AbortController();
     const { signal } = controller;
     const active_page = page_ref.current;
-    const refresh_limit = (active_page + 1) * page_size;
+    const windowed = windowed_page_ref.current;
+    const window_size = windowed ? page_limit_ref.current : page_size;
+    const refresh_limit = windowed ? window_size : (active_page + 1) * page_size;
+    const refresh_offset = windowed ? active_page * window_size : 0;
 
     try {
       const result = await fetch_mail_from_api(
@@ -365,7 +375,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         user?.email || "",
         refresh_limit,
         undefined,
-        0,
+        refresh_offset,
         preferences.conversation_grouping ?? true,
         preferences.inbox_sort_order ?? "newest_first",
       );
@@ -396,7 +406,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           emails,
           is_loading: false,
           is_loading_more: false,
-          total_messages: result.total,
+          total_messages:
+            typeof result.total === "number" && result.total >= 0
+              ? result.total
+              : prev.total_messages,
           has_more: result.has_more,
           has_initial_load: true,
         };
@@ -446,6 +459,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       }
 
       page_ref.current = next_page;
+      windowed_page_ref.current = false;
 
       set_state((prev) => {
         const existing_ids = new Set(prev.emails.map((e) => e.id));
@@ -487,6 +501,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
   const refresh = useCallback(() => {
     last_fetch_ref.current = null;
+    windowed_page_ref.current = false;
     page_cache_ref.current.clear();
     request_cache.invalidate("GET:/mail/v1/messages");
     set_state({
@@ -613,6 +628,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           cached.state.emails.length,
           page_size,
         );
+        windowed_page_ref.current = false;
         if (cached.is_stale || Date.now() - cached.time > 30_000) {
           silent_fetch_ref.current?.();
         }

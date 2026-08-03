@@ -44,6 +44,12 @@ export default function EmailDetailPage() {
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const detail = use_email_detail();
   const navigate = useNavigate();
+  const is_popup =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("popup") === "1";
+  const active_message =
+    detail.thread_messages?.find((m) => m.id === detail.email_id) ??
+    detail.thread_messages?.[detail.thread_messages.length - 1];
 
   useEffect(() => {
     const handle_navigate = (e: Event) => {
@@ -67,16 +73,22 @@ export default function EmailDetailPage() {
   return (
     <>
       <div className="h-screen w-full flex transition-colors duration-200 overflow-hidden bg-[var(--bg-secondary)]" style={{ height: "100dvh" }}>
-        <Sidebar
-          is_mobile_open={detail.is_mobile_sidebar_open}
-          on_compose={detail.open_compose}
-          on_mobile_toggle={detail.toggle_mobile_sidebar}
-          on_settings_click={(section) => {
-            navigate(section ? `/settings/${section}` : "/settings");
-          }}
-        />
-        <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
-          <div className="flex-1 w-full rounded-lg md:rounded-xl border overflow-hidden flex flex-col transition-colors duration-200 bg-[var(--bg-primary)] border-[var(--border-primary)]">
+        {!is_popup && (
+          <Sidebar
+            is_mobile_open={detail.is_mobile_sidebar_open}
+            on_compose={detail.open_compose}
+            on_mobile_toggle={detail.toggle_mobile_sidebar}
+            on_settings_click={(section) => {
+              navigate(section ? `/settings/${section}` : "/settings");
+            }}
+          />
+        )}
+        <div
+          className={`flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden ${is_popup ? "" : "p-1 md:p-2"}`}
+        >
+          <div
+            className={`flex-1 w-full overflow-hidden flex flex-col transition-colors duration-200 bg-[var(--bg-primary)] ${is_popup ? "" : "rounded-lg md:rounded-xl border border-[var(--border-primary)]"}`}
+          >
             <EmailDetailHeader
               can_go_newer={detail.can_go_newer}
               can_go_older={detail.can_go_older}
@@ -95,6 +107,22 @@ export default function EmailDetailPage() {
               set_is_trash_confirm_open={detail.set_is_trash_confirm_open}
               t={detail.t}
               toggle_mobile_sidebar={detail.toggle_mobile_sidebar}
+              is_popup={is_popup}
+              handle_view_source={
+                active_message
+                  ? () => detail.handle_per_message_view_source(active_message)
+                  : undefined
+              }
+              handle_report_spam={
+                active_message && !detail.mail_item?.is_spam
+                  ? () =>
+                      request_spam(() =>
+                        detail.handle_per_message_report_phishing(
+                          active_message,
+                        ),
+                      )
+                  : undefined
+              }
             />
 
             <EmailDetailBody

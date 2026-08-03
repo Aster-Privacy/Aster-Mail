@@ -43,6 +43,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_list } from "@/hooks/use_email_list";
+import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -196,7 +197,7 @@ export function EmailInbox({
     },
     [set_search_params],
   );
-  const page_size = 30;
+  const page_size = DEFAULT_PAGE_SIZE;
   const categories = use_inbox_categories(current_view);
 
   const is_drafts_view = current_view === "drafts";
@@ -939,7 +940,8 @@ export function EmailInbox({
             0,
             email_state.has_initial_load &&
             !email_state.is_loading &&
-            !email_state.has_load_error
+            !email_state.has_load_error &&
+            email_state.total_messages > 0
               ? email_state.total_messages
               : stats_total_for_view || 0,
           );
@@ -954,10 +956,17 @@ export function EmailInbox({
 
   useEffect(() => {
     if (!totals_authoritative) return;
+    if (effective_total_for_pages <= 0) return;
     if (current_page >= total_pages && total_pages > 0) {
       set_current_page(total_pages - 1);
     }
-  }, [current_page, total_pages, set_current_page, totals_authoritative]);
+  }, [
+    current_page,
+    total_pages,
+    set_current_page,
+    totals_authoritative,
+    effective_total_for_pages,
+  ]);
 
   const empty_recovery_ref = useRef<{ view: string; attempts: number }>({
     view: current_view,

@@ -647,7 +647,28 @@ export function use_context_menu_actions({
     };
 
     const handle_open_in_new_window = (email: InboxEmail) => {
-      window.open(`/email/${email.id}`, "_blank", "noopener");
+      const width = Math.min(
+        1180,
+        Math.max(760, Math.round(window.screen.availWidth * 0.62)),
+      );
+      const height = Math.min(
+        960,
+        Math.max(560, Math.round(window.screen.availHeight * 0.86)),
+      );
+      const left = Math.max(
+        0,
+        Math.round(window.screenX + (window.outerWidth - width) / 2),
+      );
+      const top = Math.max(
+        0,
+        Math.round(window.screenY + (window.outerHeight - height) / 2),
+      );
+
+      window.open(
+        `/email/${encodeURIComponent(email.id)}?popup=1`,
+        "_blank",
+        `popup=yes,noopener,noreferrer,width=${width},height=${height},left=${left},top=${top}`,
+      );
     };
 
     const handle_folder_toggle = async (
