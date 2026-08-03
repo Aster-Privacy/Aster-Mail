@@ -67,6 +67,7 @@ const STORAGE_PREFIX = "aster_mail_stats_";
 function persisted_stats(unread: number): string {
   const data: MailStats = {
     total_items: unread,
+    total_items_collapsed: unread,
     inbox: unread,
     sent: 0,
     drafts: 0,

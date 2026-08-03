@@ -38,6 +38,7 @@ import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 
 type DateWindowKey =
   | "any"
+  | "custom"
   | "1_day"
   | "3_days"
   | "1_week"
@@ -61,6 +62,7 @@ const DATE_WINDOWS: { key: DateWindowKey; days: number }[] = [
 
 const DATE_WINDOW_LABEL_KEYS: Record<DateWindowKey, TranslationKey> = {
   any: "mail.search_within_any",
+  custom: "mail.chip_custom_range",
   "1_day": "mail.search_within_1_day",
   "3_days": "mail.search_within_3_days",
   "1_week": "mail.search_within_1_week",
@@ -75,6 +77,8 @@ interface ChipFilters {
   from: string;
   to: string;
   date_window: DateWindowKey;
+  custom_after: string;
+  custom_before: string;
   has_attachment: boolean;
   is_unread: boolean;
 }
@@ -83,6 +87,8 @@ const EMPTY_FILTERS: ChipFilters = {
   from: "",
   to: "",
   date_window: "any",
+  custom_after: "",
+  custom_before: "",
   has_attachment: false,
   is_unread: false,
 };
@@ -100,7 +106,10 @@ export function build_chip_query(filters: ChipFilters): string {
 
   if (filters.from.trim()) parts.push(`from:${filters.from.trim()}`);
   if (filters.to.trim()) parts.push(`to:${filters.to.trim()}`);
-  if (filters.date_window !== "any") {
+  if (filters.date_window === "custom") {
+    if (filters.custom_after) parts.push(`after:${filters.custom_after}`);
+    if (filters.custom_before) parts.push(`before:${filters.custom_before}`);
+  } else if (filters.date_window !== "any") {
     const window = DATE_WINDOWS.find((w) => w.key === filters.date_window);
 
     if (window) parts.push(`after:${date_window_boundary(window.days)}`);
@@ -111,11 +120,20 @@ export function build_chip_query(filters: ChipFilters): string {
   return parts.join(" ");
 }
 
+function has_date_filter(filters: ChipFilters): boolean {
+  if (filters.date_window === "any") return false;
+  if (filters.date_window === "custom") {
+    return !!filters.custom_after || !!filters.custom_before;
+  }
+
+  return true;
+}
+
 function has_any_filter(filters: ChipFilters): boolean {
   return (
     !!filters.from.trim() ||
     !!filters.to.trim() ||
-    filters.date_window !== "any" ||
+    has_date_filter(filters) ||
     filters.has_attachment ||
     filters.is_unread
   );
@@ -214,6 +232,8 @@ export function MailFilterChips({
   const { t } = use_i18n();
   const [filters, set_filters] = useState<ChipFilters>(EMPTY_FILTERS);
   const [is_advanced_open, set_is_advanced_open] = useState(false);
+  const [is_date_open, set_is_date_open] = useState(false);
+  const [show_custom_range, set_show_custom_range] = useState(false);
 
   const apply = useCallback(
     (next: ChipFilters) => {
@@ -225,26 +245,38 @@ export function MailFilterChips({
 
   const clear = useCallback(() => {
     set_filters(EMPTY_FILTERS);
+    set_show_custom_range(false);
     on_search_submit("");
   }, [on_search_submit]);
 
-  const date_label = t(DATE_WINDOW_LABEL_KEYS[filters.date_window]);
+  const date_label =
+    filters.date_window === "custom" && has_date_filter(filters)
+      ? [filters.custom_after, filters.custom_before]
+          .filter(Boolean)
+          .join(" - ")
+      : t(DATE_WINDOW_LABEL_KEYS[filters.date_window]);
 
   return (
     <>
       <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto border-b border-[var(--border-secondary)] bg-[var(--bg-primary)]">
         <AddressChip
           label={t("mail.from")}
+          on_apply={(next) => apply({ ...filters, from: next })}
           placeholder={t("mail.search_from_placeholder")}
           value={filters.from}
-          on_apply={(next) => apply({ ...filters, from: next })}
         />
 
-        <DropdownMenu>
+        <DropdownMenu
+          open={is_date_open}
+          onOpenChange={(open) => {
+            set_is_date_open(open);
+            if (!open) set_show_custom_range(filters.date_window === "custom");
+          }}
+        >
           <DropdownMenuTrigger asChild>
             <button
               className={`inline-flex items-center gap-1 h-7 px-3 rounded-full border text-xs whitespace-nowrap transition-colors ${
-                filters.date_window !== "any"
+                has_date_filter(filters)
                   ? "border-transparent bg-[var(--bg-selected)] text-[var(--text-primary)]"
                   : "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
               }`}
@@ -254,15 +286,73 @@ export function MailFilterChips({
               <ChevronDownIcon className="w-3 h-3 text-[var(--icon-muted)]" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-40">
+          <DropdownMenuContent align="start" className="w-52">
             {DATE_WINDOWS.map((window) => (
               <DropdownMenuItem
                 key={window.key}
-                onClick={() => apply({ ...filters, date_window: window.key })}
+                onClick={() => {
+                  set_show_custom_range(false);
+                  apply({
+                    ...filters,
+                    date_window: window.key,
+                    custom_after: "",
+                    custom_before: "",
+                  });
+                }}
               >
                 {t(DATE_WINDOW_LABEL_KEYS[window.key])}
               </DropdownMenuItem>
             ))}
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                set_show_custom_range(true);
+                set_filters({ ...filters, date_window: "custom" });
+              }}
+            >
+              {`${t("mail.chip_custom_range")}...`}
+            </DropdownMenuItem>
+            {show_custom_range && (
+              <div className="mt-1 pt-2 px-2 pb-1 border-t border-[var(--border-secondary)] flex flex-col gap-2">
+                <input
+                  aria-label={t("settings.export_scope_date_from")}
+                  className="w-full h-8 px-2 rounded-md border bg-[var(--bg-primary)] border-[var(--border-secondary)] text-xs text-[var(--text-primary)] outline-none"
+                  type="date"
+                  value={filters.custom_after}
+                  onChange={(event) =>
+                    set_filters({
+                      ...filters,
+                      custom_after: event.target.value,
+                    })
+                  }
+                  onKeyDown={(event) => event.stopPropagation()}
+                />
+                <input
+                  aria-label={t("settings.export_scope_date_to")}
+                  className="w-full h-8 px-2 rounded-md border bg-[var(--bg-primary)] border-[var(--border-secondary)] text-xs text-[var(--text-primary)] outline-none"
+                  type="date"
+                  value={filters.custom_before}
+                  onChange={(event) =>
+                    set_filters({
+                      ...filters,
+                      custom_before: event.target.value,
+                    })
+                  }
+                  onKeyDown={(event) => event.stopPropagation()}
+                />
+                <button
+                  className="h-8 rounded-md text-xs font-medium bg-[var(--accent-blue)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                  disabled={!filters.custom_after && !filters.custom_before}
+                  type="button"
+                  onClick={() => {
+                    set_is_date_open(false);
+                    apply({ ...filters, date_window: "custom" });
+                  }}
+                >
+                  {t("common.apply")}
+                </button>
+              </div>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -276,9 +366,9 @@ export function MailFilterChips({
 
         <AddressChip
           label={t("mail.to")}
+          on_apply={(next) => apply({ ...filters, to: next })}
           placeholder={t("mail.search_to_placeholder")}
           value={filters.to}
-          on_apply={(next) => apply({ ...filters, to: next })}
         />
 
         <Chip

@@ -301,6 +301,9 @@ export function extract_metadata_from_server(
     is_trashed?: boolean;
     is_archived?: boolean;
     is_spam?: boolean;
+    has_attachments?: boolean;
+    attachment_count?: number;
+    size_bytes?: number;
   },
 ): MailItemMetadata {
   if (!decrypted) {
@@ -316,9 +319,9 @@ export function extract_metadata_from_server(
       is_trashed: server_data.is_trashed ?? false,
       is_archived: server_data.is_archived ?? false,
       is_spam: server_data.is_spam ?? false,
-      size_bytes: 0,
-      has_attachments: false,
-      attachment_count: 0,
+      size_bytes: server_data.size_bytes ?? 0,
+      has_attachments: server_data.has_attachments ?? false,
+      attachment_count: server_data.attachment_count ?? 0,
       scheduled_at: server_data.scheduled_at,
       send_status: server_data.send_status,
       snoozed_until: server_data.snoozed_until,
@@ -340,6 +343,14 @@ export function extract_metadata_from_server(
     is_trashed: decrypted.is_trashed || (server_data.is_trashed ?? false),
     is_archived: decrypted.is_archived || (server_data.is_archived ?? false),
     is_spam: decrypted.is_spam || (server_data.is_spam ?? false),
+    has_attachments:
+      (decrypted.has_attachments ?? false) ||
+      (server_data.has_attachments ?? false),
+    attachment_count: Math.max(
+      decrypted.attachment_count ?? 0,
+      server_data.attachment_count ?? 0,
+    ),
+    size_bytes: Math.max(decrypted.size_bytes ?? 0, server_data.size_bytes ?? 0),
     scheduled_at: server_data.scheduled_at ?? decrypted.scheduled_at,
     send_status: server_data.send_status ?? decrypted.send_status,
     snoozed_until: server_data.snoozed_until ?? decrypted.snoozed_until,

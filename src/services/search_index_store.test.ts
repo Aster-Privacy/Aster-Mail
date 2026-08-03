@@ -74,7 +74,7 @@ describe("metadata_fingerprint", () => {
       metadata_nonce: undefined,
     });
 
-    expect(metadata_fingerprint(item)).toBe(":0:");
+    expect(metadata_fingerprint(item)).toBe(":0::0000000:0:0");
   });
 });
 

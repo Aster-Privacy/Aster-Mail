@@ -52,13 +52,10 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 type HookResult = ReturnType<typeof use_inbox_selection>;
 
 let hook: HookResult;
-let load_more_calls = 0;
 
 function make_email(id: string, is_selected: boolean): InboxEmail {
   return { id, is_selected } as unknown as InboxEmail;
 }
-
-const noop_load_more = async (): Promise<void> => {};
 
 function CategoryHarness() {
   const [emails, set_emails] = useState<InboxEmail[]>([
@@ -86,8 +83,6 @@ function CategoryHarness() {
     emails,
     pinned_emails: [],
     primary_emails: emails,
-    has_more: false,
-    load_more: noop_load_more,
     update_email,
     update_draft: () => {},
     update_scheduled: () => {},
@@ -105,7 +100,6 @@ let root: Root;
 
 describe("use_inbox_selection with a non-accumulating (categorized inbox) view", () => {
   beforeEach(() => {
-    load_more_calls = 0;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -126,7 +120,6 @@ describe("use_inbox_selection with a non-accumulating (categorized inbox) view",
     });
 
     expect(hook.selected_count).toBe(2);
-    expect(load_more_calls).toBe(0);
 
     const button = container.querySelector(
       '[data-testid="next-page"]',

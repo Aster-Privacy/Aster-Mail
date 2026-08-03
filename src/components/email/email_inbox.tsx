@@ -71,7 +71,11 @@ import { category_for_tab } from "@/services/mail_categorizer";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
-import { MAIL_EVENTS, mail_event_bus, on_mail_event } from "@/hooks/mail_events";
+import {
+  MAIL_EVENTS,
+  mail_event_bus,
+  on_mail_event,
+} from "@/hooks/mail_events";
 import { REFRESH_STATE_MS } from "@/constants/timings";
 import {
   patch_all_view_caches,
@@ -132,8 +136,6 @@ export type {
   DraftClickData,
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
-
-const noop_load_more = async (): Promise<void> => {};
 
 export function EmailInbox({
   on_settings_click,
@@ -215,7 +217,8 @@ export function EmailInbox({
   const [spam_retention_days, set_spam_retention_days] = useState<
     number | null
   >(null);
-  const [family_policy, set_family_policy] = useState<MemberRetentionPolicy | null>(null);
+  const [family_policy, set_family_policy] =
+    useState<MemberRetentionPolicy | null>(null);
 
   useEffect(() => {
     get_spam_settings().then((result) => {
@@ -223,11 +226,13 @@ export function EmailInbox({
         set_spam_retention_days(result.data.spam_retention_days);
       }
     });
-    get_member_retention_policy().then((result) => {
-      if (result.data) {
-        set_family_policy(result.data);
-      }
-    }).catch(() => {});
+    get_member_retention_policy()
+      .then((result) => {
+        if (result.data) {
+          set_family_policy(result.data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -248,7 +253,10 @@ export function EmailInbox({
     let idle_id: number | null = null;
 
     const run = () => {
-      void prewarm_search_index(user.email, preferences.search_encrypted_content);
+      void prewarm_search_index(
+        user.email,
+        preferences.search_encrypted_content,
+      );
     };
 
     if (idle) {
@@ -265,9 +273,11 @@ export function EmailInbox({
 
   useEffect(() => {
     if (current_view !== "trash" && current_view !== "spam") return;
-    get_member_retention_policy().then((result) => {
-      if (result.data) set_family_policy(result.data);
-    }).catch(() => {});
+    get_member_retention_policy()
+      .then((result) => {
+        if (result.data) set_family_policy(result.data);
+      })
+      .catch(() => {});
   }, [current_view]);
 
   useEffect(() => {
@@ -322,9 +332,7 @@ export function EmailInbox({
 
   const page_category_ref = useRef(categories.active_category);
   const category_page =
-    page_category_ref.current === categories.active_category
-      ? current_page
-      : 0;
+    page_category_ref.current === categories.active_category ? current_page : 0;
 
   const default_list = use_email_list(current_view);
   const category_list = use_category_inbox(
@@ -345,7 +353,6 @@ export function EmailInbox({
     state: raw_mail_state,
     fetch_page,
     is_page_cached,
-    load_more: load_more_active_list,
     update_email,
     remove_email,
     remove_emails,
@@ -357,7 +364,12 @@ export function EmailInbox({
 
   const mail_state = useMemo(() => {
     if (categories_just_disabled) {
-      return { ...raw_mail_state, emails: [], is_loading: true, has_initial_load: false };
+      return {
+        ...raw_mail_state,
+        emails: [],
+        is_loading: true,
+        has_initial_load: false,
+      };
     }
     return raw_mail_state;
   }, [categories_just_disabled, raw_mail_state]);
@@ -929,27 +941,34 @@ export function EmailInbox({
       case "trash":
         return mail_stats.trash;
       case "all":
-        return mail_stats.total_items;
+        return preferences.conversation_grouping !== false
+          ? mail_stats.total_items_collapsed
+          : mail_stats.total_items;
       default:
         return filtered_emails.length;
     }
-  }, [current_view, mail_stats, filtered_emails.length]);
+  }, [
+    current_view,
+    mail_stats,
+    filtered_emails.length,
+    preferences.conversation_grouping,
+  ]);
 
   const is_alias_view = current_view.startsWith("alias-");
   const effective_total_for_pages = is_client_filtered
     ? all_primary_emails.length
     : categories.enabled
-      ? (is_category_index_built()
-          ? (categories.counts[categories.active_category]?.total ?? 0)
-          : (stats_total_for_view || 0))
+      ? is_category_index_built()
+        ? (categories.counts[categories.active_category]?.total ?? 0)
+        : stats_total_for_view || 0
       : is_alias_view
         ? filtered_emails.length
         : Math.max(
             0,
             email_state.has_initial_load &&
-            !email_state.is_loading &&
-            !email_state.has_load_error &&
-            email_state.total_messages > 0
+              !email_state.is_loading &&
+              !email_state.has_load_error &&
+              email_state.total_messages > 0
               ? email_state.total_messages
               : stats_total_for_view || 0,
           );
@@ -1026,8 +1045,6 @@ export function EmailInbox({
     emails: email_state.emails,
     pinned_emails,
     primary_emails,
-    has_more: categories.enabled ? false : email_state.has_more,
-    load_more: categories.enabled ? noop_load_more : load_more_active_list,
     update_email,
     update_draft: update_draft as (
       id: string,
@@ -1039,24 +1056,53 @@ export function EmailInbox({
     ) => void,
   });
 
-  const scope_for_view = useMemo((): BulkScopeFilter => {
+  const scope_for_view = useMemo((): BulkScopeFilter | null => {
+    if (is_folder_view) {
+      return folder_view_token
+        ? { label_token: folder_view_token, is_trashed: false, is_spam: false }
+        : null;
+    }
+
+    if (is_tag_view) {
+      return tag_view_token
+        ? { tag_token: tag_view_token, is_trashed: false, is_spam: false }
+        : null;
+    }
+
     switch (current_view) {
       case "trash":
         return { is_trashed: true };
       case "spam":
         return { is_spam: true };
       case "archive":
-        return { is_archived: true };
+        return { is_archived: true, is_trashed: false, is_spam: false };
       case "starred":
-        return { is_starred: true, is_trashed: false };
+        return { is_starred: true, is_trashed: false, is_spam: false };
       case "snoozed":
-        return { is_snoozed: true, is_trashed: false };
+        return { is_snoozed: true, is_trashed: false, is_spam: false };
       case "sent":
-        return { item_type: "sent", is_trashed: false };
+        return { item_type: "sent", is_trashed: false, is_spam: false };
+      case "all":
+        return { is_trashed: false, is_spam: false };
+      case "":
+      case "inbox":
+        return {
+          item_type: "received",
+          is_archived: false,
+          is_trashed: false,
+          is_spam: false,
+          is_snoozed: false,
+        };
       default:
-        return { is_archived: false, is_trashed: false, is_spam: false };
+        return null;
     }
-  }, [current_view]);
+  }, [
+    current_view,
+    is_folder_view,
+    folder_view_token,
+    is_tag_view,
+    tag_view_token,
+  ]);
 
   const [pending_select_all_action, set_pending_select_all_action] = useState<
     (() => void) | null
@@ -1116,6 +1162,12 @@ export function EmailInbox({
             return;
           }
         } else {
+          if (!scope_for_view) {
+            show_toast(t("mail.bulk_action_index_not_ready"), "error");
+
+            return;
+          }
+
           const res = await bulk_action_by_scope({
             action,
             scope: scope_for_view,
@@ -1551,16 +1603,16 @@ export function EmailInbox({
               folder_token: f.folder_token,
               name: f.name,
               color: f.color || "#6366f1",
-              status: selection.get_folder_status_for_selection(
-                f.folder_token,
-              ),
+              status: selection.get_folder_status_for_selection(f.folder_token),
             }))}
           is_archive_view={is_archive_view}
           is_drafts_view={is_drafts_view}
           is_scheduled_view={is_scheduled_view}
           is_spam_view={current_view === "spam"}
           is_trash_view={current_view === "trash"}
-          on_activate_select_all_mode={selection.activate_select_all_mode}
+          on_activate_select_all_mode={
+            scope_for_view ? selection.activate_select_all_mode : undefined
+          }
           on_archive={handle_archive_wrapped}
           on_clear_selection={selection.handle_clear_selection}
           on_compose={on_compose}
@@ -1660,16 +1712,20 @@ export function EmailInbox({
           storage_used_bytes={mail_stats.storage_used_bytes}
         />
 
-
         {(current_view === "trash" || current_view === "spam") &&
           !selection.some_selected &&
-          !selection.all_selected && (() => {
+          !selection.all_selected &&
+          (() => {
             const is_trash = current_view === "trash";
             const family_enforced = !!family_policy?.enforce_on_members;
             let effective_days: number | null;
             let banner_family_enforced: boolean;
             if (is_trash) {
-              if (family_enforced && family_policy?.trash_retention_days != null && family_policy.trash_retention_days > 0) {
+              if (
+                family_enforced &&
+                family_policy?.trash_retention_days != null &&
+                family_policy.trash_retention_days > 0
+              ) {
                 effective_days = family_policy.trash_retention_days;
                 banner_family_enforced = true;
               } else {
@@ -1677,7 +1733,11 @@ export function EmailInbox({
                 banner_family_enforced = false;
               }
             } else {
-              if (family_enforced && family_policy?.spam_retention_days != null && family_policy.spam_retention_days > 0) {
+              if (
+                family_enforced &&
+                family_policy?.spam_retention_days != null &&
+                family_policy.spam_retention_days > 0
+              ) {
                 effective_days = family_policy.spam_retention_days;
                 banner_family_enforced = true;
               } else {

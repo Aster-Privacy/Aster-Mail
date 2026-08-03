@@ -37,6 +37,7 @@ import { update_tray_badge } from "@/native/tauri_tray";
 
 export interface MailStats {
   total_items: number;
+  total_items_collapsed: number;
   inbox: number;
   sent: number;
   drafts: number;
@@ -62,6 +63,7 @@ interface UseMailStatsReturn {
 
 const DEFAULT_STATS: MailStats = {
   total_items: 0,
+  total_items_collapsed: 0,
   inbox: 0,
   sent: 0,
   drafts: 0,
@@ -351,6 +353,10 @@ class MailStatsStore {
 
       this.cache.data = {
         total_items: reconcile("total_items", server_stats.total_items),
+        total_items_collapsed: reconcile(
+          "total_items_collapsed",
+          server_stats.total_items_collapsed ?? server_stats.total_items,
+        ),
         inbox: reconcile("inbox", server_stats.inbox),
         sent: reconcile("sent", server_stats.sent),
         drafts: reconcile("drafts", server_stats.drafts),
@@ -603,7 +609,10 @@ export function use_mail_stats(): UseMailStatsReturn {
     };
 
     const handle_visibility = () => {
-      if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
+      if (
+        document.visibilityState === "visible" &&
+        has_passphrase_in_memory()
+      ) {
         stats_store.invalidate();
         stats_store.fetch(false);
       }
@@ -747,6 +756,7 @@ export function adjust_stats_contacts(delta: number): void {
 
 export function adjust_stats_total(delta: number): void {
   stats_store.adjust("total_items", delta);
+  stats_store.adjust("total_items_collapsed", delta);
 }
 
 export function clear_mail_stats(): void {

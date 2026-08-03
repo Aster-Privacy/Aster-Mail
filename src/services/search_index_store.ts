@@ -49,7 +49,7 @@ import {
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
-const MANIFEST_VERSION = 5;
+const MANIFEST_VERSION = 6;
 export const SNAPSHOT_CHUNK_SIZE = 2000;
 export const MAX_INDEX_BODY_CHARS = 2048;
 export const MAX_INDEX_PREVIEW_CHARS = 320;
@@ -197,8 +197,19 @@ export function bound_index_body(stripped_body: string): BoundedIndexBody {
 
 export function metadata_fingerprint(item: MailItem): string {
   const meta = item.encrypted_metadata ?? "";
+  const flags = [
+    item.is_read,
+    item.is_starred,
+    item.is_pinned,
+    item.is_trashed,
+    item.is_archived,
+    item.is_spam,
+    item.has_attachments,
+  ]
+    .map((flag) => (flag ? "1" : "0"))
+    .join("");
 
-  return `${item.metadata_nonce ?? ""}:${meta.length}:${meta.slice(0, 24)}`;
+  return `${item.metadata_nonce ?? ""}:${meta.length}:${meta.slice(0, 24)}:${flags}:${item.attachment_count ?? 0}:${item.size_bytes ?? 0}`;
 }
 
 export function index_storage_ceiling(usage: number, quota: number): number {

@@ -6938,7 +6938,7 @@ export const ru = {
     search_within_3_days: "3 дня",
     search_within_3_months: "3 месяца",
     search_within_6_months: "6 месяцев",
-    search_within_any: "за всё время",
+    search_within_any: "За всё время",
     searching_message_content: "Поиск в содержимом",
     search_taking_too_long: "Поиск занимает слишком много времени",
     search_refine_terms:

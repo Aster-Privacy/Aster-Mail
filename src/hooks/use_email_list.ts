@@ -40,7 +40,10 @@ import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { use_email_list_events } from "./use_email_list_events";
 
-import { has_passphrase_in_memory, on_keys_ready } from "@/services/crypto/memory_key_store";
+import {
+  has_passphrase_in_memory,
+  on_keys_ready,
+} from "@/services/crypto/memory_key_store";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
@@ -110,9 +113,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const page_ref = useRef(-1);
   const windowed_page_ref = useRef(false);
   const page_limit_ref = useRef(page_size);
-  const page_cache_ref = useRef<Map<number, { state: EmailListState; time: number }>>(
-    new Map(),
-  );
+  const page_cache_ref = useRef<
+    Map<number, { state: EmailListState; time: number }>
+  >(new Map());
 
   if (page_ref.current === -1) {
     page_ref.current = derive_page_from_list_length(
@@ -351,14 +354,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     ],
   );
 
-  const is_page_cached = useCallback(
-    (page: number): boolean => {
-      const cached = page_cache_ref.current.get(page);
+  const is_page_cached = useCallback((page: number): boolean => {
+    const cached = page_cache_ref.current.get(page);
 
-      return !!cached && Date.now() - cached.time < PAGE_CACHE_TTL_MS;
-    },
-    [],
-  );
+    return !!cached && Date.now() - cached.time < PAGE_CACHE_TTL_MS;
+  }, []);
 
   fetch_page_ref.current = fetch_page;
 
@@ -371,7 +371,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     const active_page = page_ref.current;
     const windowed = windowed_page_ref.current;
     const window_size = windowed ? page_limit_ref.current : page_size;
-    const refresh_limit = windowed ? window_size : (active_page + 1) * page_size;
+    const refresh_limit = windowed
+      ? window_size
+      : (active_page + 1) * page_size;
     const refresh_offset = windowed ? active_page * window_size : 0;
 
     try {
@@ -387,7 +389,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         preferences.inbox_sort_order ?? "newest_first",
       );
 
-      if (signal.aborted || !result || committed_view_ref.current !== current_view) return;
+      if (
+        signal.aborted ||
+        !result ||
+        committed_view_ref.current !== current_view
+      )
+        return;
       if (page_ref.current !== active_page) return;
 
       last_fetch_ref.current = {
@@ -422,7 +429,15 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         };
       });
     } catch {}
-  }, [current_view, is_mail_view, format_options, user?.email, page_size, preferences.conversation_grouping, preferences.inbox_sort_order]);
+  }, [
+    current_view,
+    is_mail_view,
+    format_options,
+    user?.email,
+    page_size,
+    preferences.conversation_grouping,
+    preferences.inbox_sort_order,
+  ]);
 
   silent_fetch_ref.current = silent_fetch;
 
@@ -460,8 +475,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         return;
 
       if (!result) {
-        set_state((prev) => ({ ...prev, is_loading_more: false }));
-
         return;
       }
 
@@ -470,9 +483,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       set_state((prev) => {
         const existing_ids = new Set(prev.emails.map((e) => e.id));
-        const appended = result.emails.filter(
-          (e) => !existing_ids.has(e.id),
-        );
+        const appended = result.emails.filter((e) => !existing_ids.has(e.id));
 
         return {
           emails: [...prev.emails, ...appended],
@@ -487,11 +498,13 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         };
       });
     } catch {
-      if (
-        !controller.signal.aborted &&
-        committed_view_ref.current === fetch_view
-      ) {
-        set_state((prev) => ({ ...prev, is_loading_more: false }));
+      return;
+    } finally {
+      if (load_more_abort_ref.current === controller) {
+        load_more_abort_ref.current = null;
+        set_state((prev) =>
+          prev.is_loading_more ? { ...prev, is_loading_more: false } : prev,
+        );
       }
     }
   }, [
@@ -641,9 +654,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         }
 
         return () => {
-        abort_ref.current?.abort();
-        load_more_abort_ref.current?.abort();
-      };
+          abort_ref.current?.abort();
+          load_more_abort_ref.current?.abort();
+        };
       }
 
       set_state({
@@ -671,9 +684,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       if (!is_online && Capacitor.isNativePlatform()) {
         if (nothing_changed && already_has_data) {
           return () => {
-        abort_ref.current?.abort();
-        load_more_abort_ref.current?.abort();
-      };
+            abort_ref.current?.abort();
+            load_more_abort_ref.current?.abort();
+          };
         }
         get_cached_email_list(current_view)
           .then((cached) => {
@@ -714,9 +727,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
             silent_fetch_ref.current?.();
           }
           return () => {
-        abort_ref.current?.abort();
-        load_more_abort_ref.current?.abort();
-      };
+            abort_ref.current?.abort();
+            load_more_abort_ref.current?.abort();
+          };
         }
         main_effect_fetched_ref.current = true;
         fetch_page_ref.current?.(0, page_size, true);
@@ -778,9 +791,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     }
 
     return () => {
-        abort_ref.current?.abort();
-        load_more_abort_ref.current?.abort();
-      };
+      abort_ref.current?.abort();
+      load_more_abort_ref.current?.abort();
+    };
   }, [
     auth_loading,
     has_keys,

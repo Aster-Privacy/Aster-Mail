@@ -406,6 +406,9 @@ export function mail_to_email(
     is_trashed: item.is_trashed,
     is_archived: item.is_archived,
     is_spam: item.is_spam,
+    has_attachments: item.has_attachments,
+    attachment_count: item.attachment_count,
+    size_bytes: item.size_bytes,
   });
 
   if (!envelope) {

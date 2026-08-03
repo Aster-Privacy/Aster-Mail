@@ -7041,7 +7041,7 @@ export const de = {
     search_within_3_days: "3 Tage",
     search_within_3_months: "3 Monate",
     search_within_6_months: "6 Monate",
-    search_within_any: "jederzeit",
+    search_within_any: "Jederzeit",
     searching_message_content: "Nachrichteninhalt wird durchsucht",
     search_taking_too_long: "Die Suche dauert zu lange",
     search_refine_terms:

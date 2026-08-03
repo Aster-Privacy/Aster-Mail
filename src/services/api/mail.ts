@@ -69,6 +69,9 @@ export interface MailItem {
   is_read?: boolean;
   is_starred?: boolean;
   is_pinned?: boolean;
+  has_attachments?: boolean;
+  attachment_count?: number;
+  size_bytes?: number;
   folders?: MailItemFolder[];
   tag_tokens?: string[];
   metadata?: MailItemMetadata;
@@ -172,6 +175,7 @@ export interface RestoreMailItemRequest {
 
 export interface MailUserStatsResponse {
   total_items: number;
+  total_items_collapsed?: number;
   inbox: number;
   sent: number;
   drafts: number;
@@ -416,6 +420,8 @@ export interface BulkScopeFilter {
   is_spam?: boolean;
   is_starred?: boolean;
   is_snoozed?: boolean;
+  label_token?: string;
+  tag_token?: string;
 }
 
 export interface BulkScopeRequest {
