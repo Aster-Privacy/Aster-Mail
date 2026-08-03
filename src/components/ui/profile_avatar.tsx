@@ -324,11 +324,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         height: pixel_size,
         minWidth: pixel_size,
         minHeight: pixel_size,
-        backgroundColor: "var(--avatar-bg)",
+        backgroundColor: is_favicon_source ? "transparent" : "var(--avatar-bg)",
         userSelect: "none",
       }}
     >
-      {!img_loaded && (
+      {!img_loaded && !is_favicon_source && (
         <div
           className="absolute inset-0 rounded-full animate-pulse"
           style={{ backgroundColor: "var(--border-primary)" }}
@@ -336,7 +336,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       )}
       <img
         alt={name}
-        className={`w-full h-full object-cover ${is_favicon_source ? "rounded-full" : ""}`}
+        className={`w-full h-full ${is_favicon_source ? "object-contain" : "object-cover"}`}
         crossOrigin={is_favicon_source ? undefined : "anonymous"}
         decoding="async"
         draggable={false}
@@ -345,13 +345,10 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         src={actual_src}
         style={
           img_loaded
-            ? is_favicon_source
-              ? { backgroundColor: "#ffffff" }
-              : undefined
+            ? undefined
             : {
                 position: "absolute",
                 opacity: 0,
-                ...(is_favicon_source && { backgroundColor: "#ffffff" }),
               }
         }
         onError={error_handler}

@@ -25,15 +25,13 @@ import {
   ArrowLeftIcon,
   ArchiveBoxIcon,
   TrashIcon,
-  TagIcon,
   EllipsisVerticalIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationCircleIcon,
   PrinterIcon,
-  ArrowDownTrayIcon,
   DocumentTextIcon,
-  ArrowTopRightOnSquareIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -67,6 +65,9 @@ interface EmailDetailHeaderProps {
   can_go_older: boolean;
   handle_go_newer: () => void;
   handle_go_older: () => void;
+  is_popup?: boolean;
+  handle_view_source?: () => void;
+  handle_report_spam?: () => void;
 }
 
 export function EmailDetailHeader({
@@ -87,29 +88,38 @@ export function EmailDetailHeader({
   can_go_older,
   handle_go_newer,
   handle_go_older,
+  is_popup = false,
+  handle_view_source,
+  handle_report_spam,
 }: EmailDetailHeaderProps) {
   return (
     <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b flex-shrink-0 border-edge-secondary">
-      <div className="md:hidden mr-1">
-        <MobileMenuButton on_click={toggle_mobile_sidebar} />
-      </div>
-      <button
-        className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
-        <span className="text-sm font-medium">{t("common.back")}</span>
-      </button>
+      {!is_popup && (
+        <div className="md:hidden mr-1">
+          <MobileMenuButton on_click={toggle_mobile_sidebar} />
+        </div>
+      )}
+      {is_popup ? (
+        <button
+          className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
+          onClick={() => window.close()}
+        >
+          <XMarkIcon className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">{t("common.close")}</span>
+        </button>
+      ) : (
+        <button
+          className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">{t("common.back")}</span>
+        </button>
+      )}
 
       <div className="hidden sm:block w-px h-5 mx-1 bg-edge-secondary" />
 
       <div className="hidden sm:flex items-center gap-1">
-        <Tooltip tip={t("common.labels")}>
-          <Button className="h-8 w-8" size="icon" variant="ghost">
-            <TagIcon className="w-4 h-4 text-txt-secondary" />
-          </Button>
-        </Tooltip>
-
         <Tooltip tip={t("mail.archive")}>
           <Button
             className="h-8 w-8"
@@ -126,11 +136,18 @@ export function EmailDetailHeader({
           </Button>
         </Tooltip>
 
-        <Tooltip tip={t("mail.report_spam")}>
-          <Button className="h-8 w-8" size="icon" variant="ghost">
-            <ExclamationCircleIcon className="w-4 h-4 text-txt-secondary" />
-          </Button>
-        </Tooltip>
+        {handle_report_spam && (
+          <Tooltip tip={t("mail.report_spam")}>
+            <Button
+              className="h-8 w-8"
+              size="icon"
+              variant="ghost"
+              onClick={handle_report_spam}
+            >
+              <ExclamationCircleIcon className="w-4 h-4 text-txt-secondary" />
+            </Button>
+          </Tooltip>
+        )}
 
         <Tooltip tip={t("mail.move_to_trash")}>
           <Button
@@ -151,11 +168,18 @@ export function EmailDetailHeader({
         <div className="hidden lg:block w-px h-5 mx-1 bg-edge-secondary" />
 
         <div className="hidden lg:flex items-center gap-1">
-          <Tooltip tip={t("common.download")}>
-            <Button className="h-8 w-8" size="icon" variant="ghost">
-              <ArrowDownTrayIcon className="w-4 h-4 text-txt-secondary" />
-            </Button>
-          </Tooltip>
+          {handle_view_source && (
+            <Tooltip tip={t("mail.view_source")}>
+              <Button
+                className="h-8 w-8"
+                size="icon"
+                variant="ghost"
+                onClick={handle_view_source}
+              >
+                <DocumentTextIcon className="w-4 h-4 text-txt-secondary" />
+              </Button>
+            </Tooltip>
+          )}
 
           <Tooltip tip={t("mail.print")}>
             <Button
@@ -203,35 +227,27 @@ export function EmailDetailHeader({
               <TrashIcon className="w-4 h-4 mr-2" />
               {t("common.delete")}
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <TagIcon className="w-4 h-4 mr-2" />
-              {t("mail.move_to_folder")}
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <ExclamationCircleIcon className="w-4 h-4 mr-2" />
-              {t("mail.report_spam")}
-            </DropdownMenuItem>
+            {handle_report_spam && (
+              <DropdownMenuItem onClick={handle_report_spam}>
+                <ExclamationCircleIcon className="w-4 h-4 mr-2" />
+                {t("mail.report_spam")}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
           </div>
           <div className="lg:hidden sm:block hidden">
-            <DropdownMenuItem>
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-              {t("common.download")}
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={handle_print}>
               <PrinterIcon className="w-4 h-4 mr-2" />
               {t("mail.print")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </div>
-          <DropdownMenuItem>
-            <DocumentTextIcon className="w-4 h-4 mr-2" />
-            {t("mail.view_source")}
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-2" />
-            {t("mail.open_in_new_window")}
-          </DropdownMenuItem>
+          {handle_view_source && (
+            <DropdownMenuItem onClick={handle_view_source}>
+              <DocumentTextIcon className="w-4 h-4 mr-2" />
+              {t("mail.view_source")}
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

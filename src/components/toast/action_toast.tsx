@@ -32,6 +32,7 @@ import {
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ActionToastState {
   id: string;
@@ -268,11 +269,12 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
               </span>
               {toast.on_undo && !toast.progress && (
                 <button
-                  className="text-[13px] font-medium ml-1 underline text-brand"
+                  className="text-[13px] font-medium ml-1 underline text-brand inline-flex items-center gap-1.5"
                   disabled={is_undoing}
                   onClick={handle_undo}
                 >
-                  {is_undoing ? "..." : (toast.action_label || t("common.undo"))}
+                  {is_undoing && <Spinner size="xs" />}
+                  {toast.action_label || t("common.undo")}
                 </button>
               )}
               {toast.on_view_message && (

@@ -96,7 +96,7 @@ export function HeaderPagination({
           <>
             {filtered_count > 0
               ? `${current_page + 1} ${t("common.of")} ${Math.ceil(filtered_count / page_size)}`
-              : "0"}
+              : `${current_page + 1}`}
           </>
         )}
       </span>

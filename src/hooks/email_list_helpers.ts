@@ -71,7 +71,9 @@ import {
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
-export const DEFAULT_PAGE_SIZE = 30;
+export const DEFAULT_PAGE_SIZE = 50;
+
+export const UNKNOWN_TOTAL = -1;
 
 export type MailView =
   | "inbox"
@@ -806,7 +808,11 @@ export async function fetch_mail_from_api(
   const returned_items = response.data.items;
   const items = returned_items.filter((item) => item.is_reaction !== true);
   const hidden_count = returned_items.length - items.length;
-  let total = Math.max(0, (response.data.total ?? 0) - hidden_count);
+  const raw_total = response.data.total ?? 0;
+  const total_is_unknown = raw_total < 0;
+  let total = total_is_unknown
+    ? UNKNOWN_TOTAL
+    : Math.max(0, raw_total - hidden_count);
   const has_more = response.data.has_more;
   const next_cursor = response.data.next_cursor;
 
@@ -863,7 +869,9 @@ export async function fetch_mail_from_api(
         is_reaction_payload_body(envelope?.body_text) ||
         is_reaction_payload_body(envelope?.text_body);
 
-      if (is_reaction_body) total = Math.max(0, total - 1);
+      if (is_reaction_body && !total_is_unknown) {
+        total = Math.max(0, total - 1);
+      }
 
       return !is_reaction_body;
     });

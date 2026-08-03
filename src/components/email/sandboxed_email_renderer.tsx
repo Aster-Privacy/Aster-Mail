@@ -159,6 +159,34 @@ function safe_hex(value: string | undefined, fallback = FALLBACK_ACCENT): string
   return value && HEX_COLOR_PATTERN.test(value.trim()) ? value.trim() : fallback;
 }
 
+function expand_hex(value: string): string {
+  const raw = value.replace("#", "");
+
+  return raw.length === 3
+    ? `#${raw[0]}${raw[0]}${raw[1]}${raw[1]}${raw[2]}${raw[2]}`
+    : `#${raw}`;
+}
+
+export function link_ink_for(value: string): string {
+  const hex = expand_hex(safe_hex(value));
+  const n = Number.parseInt(hex.slice(1), 16);
+
+  if (!Number.isFinite(n)) return FALLBACK_ACCENT;
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const saturation = max === 0 ? 0 : (max - min) / max;
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+  if (saturation < 0.18 || luminance > 0.88 || luminance < 0.1) {
+    return FALLBACK_ACCENT;
+  }
+
+  return hex;
+}
+
 const IFRAME_HEIGHT_CACHE_LIMIT = 300;
 const iframe_height_cache = new Map<string, number>();
 
@@ -470,15 +498,20 @@ export function SandboxedEmailRenderer({
       ? `html body, html body *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }`
       : "";
 
-  const link_underline_css = preferences.link_underlines
-    ? "a, a * { text-decoration: underline !important; }"
-    : "";
-
   const accent_hex = safe_hex(preferences.accent_color);
   const accent_hover_hex = safe_hex(preferences.accent_color_hover, accent_hex);
-  const link_hover_ink = is_dark_theme ? accent_hover_hex : accent_hex;
+  const link_hover_ink = link_ink_for(is_dark_theme ? accent_hover_hex : accent_hex);
+
+  const link_underline_css = preferences.link_underlines
+    ? `a, a * { text-decoration: underline !important; text-decoration-color: ${link_hover_ink} !important; text-underline-offset: 2px; }`
+    : "";
+
   const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
-  const link_hover_css = `a { transition: color 0.12s ease; }
+  const link_hover_css = `a { transition: color 0.12s ease, background-color 0.12s ease; text-decoration-color: ${link_hover_ink} !important; }
+a:hover${LINK_MEDIA_EXCLUDE} {
+  background-color: ${hex_to_rgba(link_hover_ink, 0.16)} !important;
+  border-radius: 3px;
+}
 a:hover, a:hover *${LINK_MEDIA_EXCLUDE} {
   color: ${link_hover_ink} !important;
   text-decoration: underline !important;
@@ -501,10 +534,10 @@ a:focus-visible {
 html, body { background-color: transparent !important; color: ${plain_text_color} !important; }
 body *${QUOTE_SCOPE_EXCLUDE} { color: inherit !important; }
 body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
-a, a * { color: ${accent_hover_hex} !important; }`
+a, a * { color: ${link_hover_ink} !important; }`
       : "";
   const dark_mode_css = force_dark_mode
-    ? build_forced_dark_mode_css(accent_hex, accent_hover_hex)
+    ? build_forced_dark_mode_css(accent_hex, link_hover_ink)
     : plain_dark_css;
 
   const force_light_scheme = is_html_email && !force_dark_mode && !simple_dark_html;
