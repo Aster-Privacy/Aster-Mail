@@ -20,6 +20,9 @@
 //
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod badge;
+mod badges_data;
+mod boot_guard;
 mod device;
 mod http_client;
 
@@ -49,6 +52,11 @@ fn set_tray_tooltip(state: State<TrayState>, tooltip: String) {
 }
 
 #[tauri::command]
+fn frontend_ready(state: State<boot_guard::BootState>) {
+    state.mark_ready();
+}
+
+#[tauri::command]
 fn set_content_protection(window: tauri::WebviewWindow, enabled: bool) -> std::result::Result<(), String> {
     window
         .set_content_protected(enabled)
@@ -62,11 +70,14 @@ fn open_external_url(url: String) -> std::result::Result<(), String> {
     }
 
     let parsed = reqwest::Url::parse(&url).map_err(|_| "invalid url".to_string())?;
-    if parsed.scheme() != "https" {
-        return Err("only https urls allowed".into());
-    }
-    if parsed.host_str().map(|h| h.is_empty()).unwrap_or(true) {
-        return Err("url must have a host".into());
+    match parsed.scheme() {
+        "https" | "http" => {
+            if parsed.host_str().map(|h| h.is_empty()).unwrap_or(true) {
+                return Err("url must have a host".into());
+            }
+        }
+        "mailto" => {}
+        _ => return Err("scheme not allowed".into()),
     }
 
     std::thread::spawn(move || {
@@ -173,6 +184,8 @@ fn clear_stale_webkit_keychain() {
 }
 
 fn main() {
+    boot_guard::prepare();
+
     #[cfg(all(unix, not(target_os = "macos")))]
     ensure_system_wayland();
 
@@ -205,7 +218,10 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(TrayState(Mutex::new(None)))
+        .manage(boot_guard::BootState::new())
         .invoke_handler(tauri::generate_handler![
+            frontend_ready,
+            badge::set_unread_badge,
             set_tray_visible,
             set_tray_tooltip,
             set_content_protection,
@@ -280,6 +296,8 @@ fn main() {
                 *guard = Some(tray);
             }
 
+            boot_guard::spawn_watchdog(app.handle().clone());
+
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -289,7 +307,10 @@ fn main() {
             }
         })
         .build(tauri::generate_context!())
-        .expect("failed to build aster mail desktop")
+        .unwrap_or_else(|error| {
+            boot_guard::show_fatal_webview_error(&error.to_string());
+            std::process::exit(1);
+        })
         .run(|app, event| {
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = event {

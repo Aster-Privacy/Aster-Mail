@@ -25,6 +25,10 @@ import {
   DEFAULT_ENABLED_CATEGORIES,
   sanitize_custom_categories,
 } from "@/data/category_catalog";
+import {
+  DEFAULT_INBOX_PAGE_SIZE,
+  clamp_inbox_page_size,
+} from "@/lib/inbox_page_size";
 
 import { api_client } from "./client";
 
@@ -193,6 +197,7 @@ export interface UserPreferences {
   translate_languages: string[];
   translate_never_languages: string[];
   muted_folder_tokens: string[];
+  inbox_page_size: number;
 }
 
 export async function sync_quiet_hours_to_server(
@@ -511,6 +516,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   translate_languages: [],
   translate_never_languages: [],
   muted_folder_tokens: [],
+  inbox_page_size: DEFAULT_INBOX_PAGE_SIZE,
 };
 
 type GetPreferencesViaHttpResult =
@@ -636,6 +642,7 @@ export function build_merged_preferences(
   merged.muted_folder_tokens = Array.isArray(merged.muted_folder_tokens)
     ? merged.muted_folder_tokens.filter((c) => typeof c === "string")
     : [];
+  merged.inbox_page_size = clamp_inbox_page_size(merged.inbox_page_size);
 
   return merged;
 }

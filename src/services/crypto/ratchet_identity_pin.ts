@@ -32,7 +32,7 @@ import {
 
 const PIN_STORAGE_KEY_PREFIX = "ratchet_identity_pin_";
 
-export type IdentityPinStatus = "first" | "ok" | "drift";
+export type IdentityPinStatus = "first" | "ok" | "rotated" | "drift";
 
 interface StoredIdentityPin {
   fingerprint: string;
@@ -134,7 +134,21 @@ export async function check_and_pin_identity(
     }
 
     if (existing.fingerprint !== fingerprint) {
-      return "drift";
+      if (existing.verified && !verified) {
+        return "drift";
+      }
+
+      await encrypted_set(
+        storage_key_for(uid, pin_id),
+        {
+          fingerprint,
+          verified,
+          pinned_at: Date.now(),
+        } satisfies StoredIdentityPin,
+        storage_key,
+      );
+
+      return "rotated";
     }
 
     if (verified && !existing.verified) {

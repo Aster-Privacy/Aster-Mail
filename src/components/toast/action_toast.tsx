@@ -269,12 +269,12 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
               </span>
               {toast.on_undo && !toast.progress && (
                 <button
-                  className="text-[13px] font-medium ml-1 underline text-brand inline-flex items-center gap-1.5"
+                  className="inline-flex items-center text-[13px] font-medium ml-1 underline text-brand"
                   disabled={is_undoing}
                   onClick={handle_undo}
                 >
-                  {is_undoing && <Spinner size="xs" />}
                   {toast.action_label || t("common.undo")}
+                  {is_undoing && <Spinner className="ml-1.5" size="xs" />}
                 </button>
               )}
               {toast.on_view_message && (

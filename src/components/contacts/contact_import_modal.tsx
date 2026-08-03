@@ -31,6 +31,7 @@ import {
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
+import { Spinner } from "@/components/ui/spinner";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -389,8 +390,8 @@ export function ContactImportModal({
                 >
                   {is_importing ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
                       {t("common.importing")}
+                      <Spinner className="ml-1" size="sm" />
                     </>
                   ) : (
                     <>

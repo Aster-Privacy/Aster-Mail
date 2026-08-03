@@ -27,7 +27,9 @@ import {
   try_decrypt_pgp_body,
   try_extract_mime_body,
   extract_subject_bundle,
+  unwrap_bundle_html,
   is_ratchet_envelope,
+  is_password_protected_body,
 } from "@/utils/email_crypto";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -66,6 +68,15 @@ export async function process_envelope_body(
   const pre_pgp_text = body_text;
 
   body_text = await try_decrypt_pgp_body(body_text);
+
+  if (is_password_protected_body(body_text)) {
+    return {
+      body_text,
+      safe_html: undefined,
+      unsubscribe_info: undefined,
+    };
+  }
+
   const pre_mime_text = body_text;
 
   body_text = try_extract_mime_body(body_text);
@@ -104,6 +115,12 @@ export async function process_envelope_body(
     safe_html = body_text;
   }
 
+  const html_bundle = unwrap_bundle_html(safe_html);
+  safe_html = html_bundle.html;
+  if (html_bundle.subject !== null && !envelope.subject) {
+    envelope.subject = html_bundle.subject;
+  }
+
   const unsubscribe = detect_unsubscribe_info(resolved_html || "", body_text, {
     list_unsubscribe: envelope.list_unsubscribe,
     list_unsubscribe_post: envelope.list_unsubscribe_post,
@@ -120,6 +137,8 @@ export function build_preview_text(
   body_text: string,
   safe_html: string | undefined,
 ): string {
+  if (is_password_protected_body(body_text)) return "";
+
   return (
     body_text ||
     (safe_html

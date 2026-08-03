@@ -141,8 +141,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "inbox"
-                ? "var(--text-primary)"
-                : "var(--text-muted)",
+                ? "var(--icon-active)"
+                : "var(--icon-muted)",
           }}
         />
         {!is_collapsed && (
@@ -186,8 +186,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "sent"
-                ? "var(--text-primary)"
-                : "var(--text-muted)",
+                ? "var(--icon-active)"
+                : "var(--icon-muted)",
           }}
         />
         {!is_collapsed && (
@@ -222,8 +222,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "scheduled"
-                ? "var(--text-primary)"
-                : "var(--text-muted)",
+                ? "var(--icon-active)"
+                : "var(--icon-muted)",
           }}
         />
         {!is_collapsed && (
@@ -258,8 +258,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "snoozed"
-                ? "var(--text-primary)"
-                : "var(--text-muted)",
+                ? "var(--icon-active)"
+                : "var(--icon-muted)",
           }}
         />
         {!is_collapsed && (
@@ -294,8 +294,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "drafts"
-                ? "var(--text-primary)"
-                : "var(--text-muted)",
+                ? "var(--icon-active)"
+                : "var(--icon-muted)",
           }}
         />
         {!is_collapsed && (
@@ -352,8 +352,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "starred"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
+                    ? "var(--icon-active)"
+                    : "var(--icon-muted)",
               }}
             />
             {!is_collapsed && (
@@ -388,8 +388,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "all"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
+                    ? "var(--icon-active)"
+                    : "var(--icon-muted)",
               }}
             />
             {!is_collapsed && (
@@ -424,8 +424,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "archive"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
+                    ? "var(--icon-active)"
+                    : "var(--icon-muted)",
               }}
             />
             {!is_collapsed && (
@@ -460,8 +460,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "spam"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
+                    ? "var(--icon-active)"
+                    : "var(--icon-muted)",
               }}
             />
             {!is_collapsed && (
@@ -496,8 +496,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "trash"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
+                    ? "var(--icon-active)"
+                    : "var(--icon-muted)",
               }}
             />
             {!is_collapsed && (
@@ -532,8 +532,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "contacts"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
+                    ? "var(--icon-active)"
+                    : "var(--icon-muted)",
               }}
             />
             {!is_collapsed && (
@@ -568,8 +568,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "subscriptions"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
+                    ? "var(--icon-active)"
+                    : "var(--icon-muted)",
               }}
             />
             {!is_collapsed && (

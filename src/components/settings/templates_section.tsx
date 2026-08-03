@@ -401,8 +401,8 @@ export function TemplatesSection() {
               >
                 {editor.is_saving ? (
                   <>
-                    <Spinner className="mr-2" size="md" />
                     {t("common.saving")}
+                    <Spinner className="ml-2" size="md" />
                   </>
                 ) : editor.editing_id ? (
                   t("settings.update_template")

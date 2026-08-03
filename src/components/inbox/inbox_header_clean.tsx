@@ -593,8 +593,8 @@ export function InboxHeader({
                 onClick={() => handle_batch_action("mark_all_read")}
               >
                 <span className="flex items-center gap-2">
-                  {loading_action === "mark_all_read" && <Spinner size="xs" />}
                   {t("mail.mark_all_read")}
+                  {loading_action === "mark_all_read" && <Spinner size="xs" />}
                 </span>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -602,10 +602,10 @@ export function InboxHeader({
                 onClick={() => handle_batch_action("archive_all_read")}
               >
                 <span className="flex items-center gap-2">
+                  {t("mail.archive_all_read_emails")}
                   {loading_action === "archive_all_read" && (
                     <Spinner size="xs" />
                   )}
-                  {t("mail.archive_all_read_emails")}
                 </span>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -613,8 +613,8 @@ export function InboxHeader({
                 onClick={() => handle_batch_action("delete_old")}
               >
                 <span className="flex items-center gap-2">
-                  {loading_action === "delete_old" && <Spinner size="xs" />}
                   {t("mail.delete_emails_older_than_30_days")}
+                  {loading_action === "delete_old" && <Spinner size="xs" />}
                 </span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -657,10 +657,10 @@ export function InboxHeader({
                 onClick={() => handle_batch_action("archive_newsletters")}
               >
                 <span className="flex items-center gap-2">
+                  {t("mail.archive_all_newsletters")}
                   {loading_action === "archive_newsletters" && (
                     <Spinner size="xs" />
                   )}
-                  {t("mail.archive_all_newsletters")}
                 </span>
               </DropdownMenuItem>
             </DropdownMenuContent>

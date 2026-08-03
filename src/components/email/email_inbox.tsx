@@ -42,11 +42,13 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { clamp_inbox_page_size } from "@/lib/inbox_page_size";
 import { use_email_list } from "@/hooks/use_email_list";
 import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
+  is_password_protected_body,
 } from "@/utils/email_crypto";
 import { use_drafts_list } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
@@ -56,6 +58,7 @@ import { use_tags } from "@/hooks/use_tags";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
 import { use_category_inbox } from "@/hooks/use_category_inbox";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
+import { MailFilterChips } from "@/components/email/inbox/mail_filter_chips";
 import { CategoryEmptyState } from "@/components/email/inbox/category_empty_state";
 import {
   set_message_category,
@@ -197,7 +200,12 @@ export function EmailInbox({
     },
     [set_search_params],
   );
-  const page_size = DEFAULT_PAGE_SIZE;
+  const preferred_page_size = clamp_inbox_page_size(
+    preferences.inbox_page_size,
+  );
+  const page_size = preferences.low_network_mode
+    ? Math.min(15, preferred_page_size)
+    : preferred_page_size;
   const categories = use_inbox_categories(current_view);
 
   const is_drafts_view = current_view === "drafts";
@@ -597,7 +605,8 @@ export function EmailInbox({
     (mode: "reply" | "reply_all" | "forward", email: InboxEmail) => {
       const is_sentinel = (value: string | undefined): boolean =>
         value === RATCHET_UNDECRYPTABLE_SENTINEL ||
-        value === PGP_UNDECRYPTABLE_SENTINEL;
+        value === PGP_UNDECRYPTABLE_SENTINEL ||
+        is_password_protected_body(value ?? "");
       const fallback_body =
         (is_sentinel(email.body_html) ? "" : email.body_html) ||
         (is_sentinel(email.preview) ? "" : email.preview) ||
@@ -1629,6 +1638,12 @@ export function EmailInbox({
             t,
           )}
         />
+
+        {current_view === "all" &&
+          !show_full_email_viewer &&
+          on_search_submit && (
+            <MailFilterChips on_search_submit={on_search_submit} />
+          )}
 
         {categories.enabled &&
           categories.restored &&

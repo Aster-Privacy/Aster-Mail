@@ -257,7 +257,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
                 placeholder={t("settings.fam_kids_username_ph")}
                 maxLength={40}
                 value={username}
-                onChange={(e) => set_username(e.target.value.toLowerCase().trim().replace(/[^a-z0-9]/g, ""))}
+                onChange={(e) => set_username(e.target.value.toLowerCase().trim().replace(/[^a-z0-9.]/g, ""))}
               />
               <Select value={domain} onValueChange={set_domain}>
                 <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">

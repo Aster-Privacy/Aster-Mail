@@ -197,7 +197,7 @@ export default function JoinFamilyPage() {
             disabled={joining}
             className="aster_btn aster_btn_primary aster_btn_lg w-full flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {joining ? <><Spinner size="sm" /> {t("settings.family_join_joining")}</> : t("settings.family_join_accept")}
+            {joining ? <>{t("settings.family_join_joining")} <Spinner size="sm" /></> : t("settings.family_join_accept")}
           </button>
         ) : is_authenticated ? null : (
           <div className="space-y-3">

@@ -38,6 +38,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  wait_for_keys_ready,
 } from "./crypto/memory_key_store";
 import {
   decrypt_envelope_with_bytes,
@@ -56,9 +57,11 @@ import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
-  PGP_UNDECRYPTABLE_SENTINEL,
   extract_subject_bundle,
+  unwrap_bundle_html,
   is_ratchet_envelope,
+  is_password_protected_body,
+  resolve_inbound_pgp_body,
 } from "@/utils/email_crypto";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
@@ -122,7 +125,12 @@ async function decrypt_message_envelope(
     }
   }
 
-  const passphrase_bytes = get_passphrase_bytes();
+  let passphrase_bytes = get_passphrase_bytes();
+
+  if (!passphrase_bytes) {
+    await wait_for_keys_ready();
+    passphrase_bytes = get_passphrase_bytes();
+  }
 
   if (!passphrase_bytes) return null;
 
@@ -215,7 +223,12 @@ async function decrypt_reaction_body(
 
       if (!ratchet_env) return null;
 
-      const vault = get_vault_from_memory();
+      let vault = get_vault_from_memory();
+
+      if (!vault) {
+        await wait_for_keys_ready();
+        vault = get_vault_from_memory();
+      }
 
       if (!vault) return null;
 
@@ -397,7 +410,12 @@ export async function fetch_and_decrypt_thread_messages(
       const ratchet_env = parse_ratchet_envelope(body_content);
 
       if (ratchet_env) {
-        const vault = get_vault_from_memory();
+        let vault = get_vault_from_memory();
+
+        if (!vault) {
+          await wait_for_keys_ready();
+          vault = get_vault_from_memory();
+        }
 
         if (vault) {
           try {
@@ -426,29 +444,18 @@ export async function fetch_and_decrypt_thread_messages(
     }
 
     if (body_content.includes("-----BEGIN PGP MESSAGE-----")) {
-      const vault = get_vault_from_memory();
-      const passphrase = get_passphrase_from_memory();
+      const resolved = await resolve_inbound_pgp_body(body_content);
 
-      if (vault?.identity_key && passphrase) {
-        try {
-          body_content = await decrypt_message_with_any_key(
-            body_content,
-            [vault.identity_key, ...(vault.previous_keys ?? [])],
-            passphrase,
-          );
-          body_decrypted = true;
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-          body_content = PGP_UNDECRYPTABLE_SENTINEL;
-        }
-      } else {
-        body_content = PGP_UNDECRYPTABLE_SENTINEL;
-      }
+      body_content = resolved.body;
+      body_decrypted = resolved.decrypted;
     }
 
+    const password_protected = is_password_protected_body(body_content);
     const pre_mime = body_content;
 
-    body_content = try_extract_mime_body(body_content);
+    body_content = password_protected
+      ? body_content
+      : try_extract_mime_body(body_content);
     const mime_extracted = body_content !== pre_mime;
 
     if (body_decrypted) {
@@ -473,8 +480,14 @@ export async function fetch_and_decrypt_thread_messages(
           ? undefined
           : resolved_html;
 
-    if (is_ratchet_envelope(effective_html)) {
+    if (is_ratchet_envelope(effective_html) || password_protected) {
       effective_html = undefined;
+    }
+
+    const html_bundle = unwrap_bundle_html(effective_html);
+    effective_html = html_bundle.html;
+    if (html_bundle.subject !== null && !envelope.subject) {
+      envelope.subject = html_bundle.subject;
     }
 
     return {
@@ -589,7 +602,12 @@ export async function fetch_and_decrypt_virtual_group(
       const ratchet_env = parse_ratchet_envelope(body_content);
 
       if (ratchet_env) {
-        const vault = get_vault_from_memory();
+        let vault = get_vault_from_memory();
+
+        if (!vault) {
+          await wait_for_keys_ready();
+          vault = get_vault_from_memory();
+        }
 
         if (vault) {
           try {
@@ -618,29 +636,18 @@ export async function fetch_and_decrypt_virtual_group(
     }
 
     if (body_content.includes("-----BEGIN PGP MESSAGE-----")) {
-      const vault = get_vault_from_memory();
-      const passphrase = get_passphrase_from_memory();
+      const resolved = await resolve_inbound_pgp_body(body_content);
 
-      if (vault?.identity_key && passphrase) {
-        try {
-          body_content = await decrypt_message_with_any_key(
-            body_content,
-            [vault.identity_key, ...(vault.previous_keys ?? [])],
-            passphrase,
-          );
-          body_decrypted = true;
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-          body_content = PGP_UNDECRYPTABLE_SENTINEL;
-        }
-      } else {
-        body_content = PGP_UNDECRYPTABLE_SENTINEL;
-      }
+      body_content = resolved.body;
+      body_decrypted = resolved.decrypted;
     }
 
+    const password_protected = is_password_protected_body(body_content);
     const pre_mime = body_content;
 
-    body_content = try_extract_mime_body(body_content);
+    body_content = password_protected
+      ? body_content
+      : try_extract_mime_body(body_content);
     const mime_extracted = body_content !== pre_mime;
 
     if (body_decrypted) {
@@ -665,8 +672,14 @@ export async function fetch_and_decrypt_virtual_group(
           ? undefined
           : resolved_html;
 
-    if (is_ratchet_envelope(effective_html)) {
+    if (is_ratchet_envelope(effective_html) || password_protected) {
       effective_html = undefined;
+    }
+
+    const html_bundle = unwrap_bundle_html(effective_html);
+    effective_html = html_bundle.html;
+    if (html_bundle.subject !== null && !envelope.subject) {
+      envelope.subject = html_bundle.subject;
     }
 
     return {
@@ -735,7 +748,12 @@ export async function get_or_create_thread_token(
     return existing_thread_token;
   }
 
-  const passphrase_bytes = get_passphrase_bytes();
+  let passphrase_bytes = get_passphrase_bytes();
+
+  if (!passphrase_bytes) {
+    await wait_for_keys_ready();
+    passphrase_bytes = get_passphrase_bytes();
+  }
 
   if (!passphrase_bytes) return null;
 
@@ -781,7 +799,12 @@ export async function get_or_create_thread_token(
 async function encrypt_thread_meta(
   meta: Record<string, unknown>,
 ): Promise<{ encrypted: string; nonce: string } | null> {
-  const passphrase_bytes = get_passphrase_bytes();
+  let passphrase_bytes = get_passphrase_bytes();
+
+  if (!passphrase_bytes) {
+    await wait_for_keys_ready();
+    passphrase_bytes = get_passphrase_bytes();
+  }
 
   if (!passphrase_bytes) return null;
 

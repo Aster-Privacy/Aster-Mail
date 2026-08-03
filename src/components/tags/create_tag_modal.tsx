@@ -283,8 +283,8 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
                 variant="depth"
                 onClick={handle_create}
               >
-                {is_creating && <Spinner className="mr-2" size="md" />}
                 {is_creating ? t("common.creating") : t("common.create_label")}
+                {is_creating && <Spinner className="ml-2" size="md" />}
               </Button>
             </div>
           </motion.div>

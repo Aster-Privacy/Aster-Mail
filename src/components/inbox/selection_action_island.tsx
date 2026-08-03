@@ -229,7 +229,7 @@ export function SelectionActionIsland({
                     <motion.button
                       className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     >
-                      <FolderIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
+                      <FolderIcon className="w-[18px] h-[18px] text-[var(--icon-active)]" />
                     </motion.button>
                   </DropdownMenuTrigger>
                 </Tooltip>
@@ -268,7 +268,7 @@ export function SelectionActionIsland({
                     <motion.button
                       className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     >
-                      <TagIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
+                      <TagIcon className="w-[18px] h-[18px] text-[var(--icon-active)]" />
                     </motion.button>
                   </DropdownMenuTrigger>
                 </Tooltip>
@@ -305,7 +305,7 @@ export function SelectionActionIsland({
                   <motion.button
                     className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                   >
-                    <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--text-primary)]" />
+                    <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--icon-active)]" />
                   </motion.button>
                 </DropdownMenuTrigger>
               </Tooltip>
@@ -371,7 +371,7 @@ export function SelectionActionIsland({
                   className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                   onClick={on_clear_selection}
                 >
-                  <XMarkIcon className="w-[18px] h-[18px] text-[var(--text-muted)]" />
+                  <XMarkIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                 </motion.button>
               </Tooltip>
             </>

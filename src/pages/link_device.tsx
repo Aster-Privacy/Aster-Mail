@@ -461,8 +461,8 @@ export default function LinkDevice() {
           >
             {is_verifying ? (
               <>
-                <Spinner className="mr-2" size="sm" />
                 {t("auth.link_device_verifying")}
+                <Spinner className="ml-2" size="sm" />
               </>
             ) : (
               t("auth.link_device_verify_button")

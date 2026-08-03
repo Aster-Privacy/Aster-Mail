@@ -40,8 +40,13 @@ import {
 
 import { SettingsGroup, SettingsHeader } from "./shared";
 import {
+  PLAN_TIERS,
+  FAMILY_PLAN_TIERS,
   detect_currency_from_locale,
   convert_cents,
+  is_crypto_provider,
+  take_crypto_resume,
+  type CryptoResumeSelection,
 } from "@/components/settings/billing/billing_constants";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -76,6 +81,7 @@ import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
+import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -107,48 +113,6 @@ import {
   type StorageAddonItem,
   type CancelImpactResponse,
 } from "@/services/api/billing";
-
-interface PlanTier {
-  id: string;
-  name: string;
-  monthly_cents: number;
-  yearly_cents: number;
-  biennial_cents: number;
-  savings_cents: number;
-  biennial_savings_cents: number;
-  is_recommended?: boolean;
-}
-
-const PLAN_TIERS: PlanTier[] = [
-  {
-    id: "star",
-    name: "Star",
-    monthly_cents: 299,
-    yearly_cents: 2899,
-    biennial_cents: 4999,
-    savings_cents: 689,
-    biennial_savings_cents: 2177,
-  },
-  {
-    id: "nova",
-    name: "Nova",
-    monthly_cents: 899,
-    yearly_cents: 8699,
-    biennial_cents: 14999,
-    savings_cents: 2089,
-    biennial_savings_cents: 6577,
-    is_recommended: true,
-  },
-  {
-    id: "supernova",
-    name: "Supernova",
-    monthly_cents: 1799,
-    yearly_cents: 17399,
-    biennial_cents: 29999,
-    savings_cents: 4189,
-    biennial_savings_cents: 13177,
-  },
-];
 
 export function BillingSection({
   on_back,
@@ -253,6 +217,24 @@ export function BillingSection({
     useState<AvailablePlan | null>(null);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
+  const [crypto_resume, set_crypto_resume] =
+    useState<CryptoResumeSelection | null>(null);
+
+  useEffect(() => {
+    if (plans.length === 0) return;
+
+    const resume = take_crypto_resume();
+
+    if (!resume) return;
+
+    const matching = plans.find((plan) => plan.code === resume.plan_code);
+
+    if (!matching) return;
+
+    set_crypto_resume(resume);
+    set_crypto_plan(matching);
+    set_show_crypto_modal(true);
+  }, [plans]);
   const [show_addon_method_modal, set_show_addon_method_modal] =
     useState(false);
   const [addon_method_target, set_addon_method_target] =
@@ -602,7 +584,7 @@ export function BillingSection({
     const has_card_sub =
       !!subscription &&
       subscription.plan.code !== "free" &&
-      subscription.payment_provider !== "stripe_crypto" &&
+      !is_crypto_provider(subscription.payment_provider) &&
       subscription.has_stripe_subscription !== false;
 
     if (has_card_sub) {
@@ -653,8 +635,46 @@ export function BillingSection({
     show_toast(t("settings.payment_success"), "success");
   };
 
+  const crypto_term_prices_for = (plan_code: string) =>
+    PLAN_TIERS.find((p) => p.id === plan_code) ??
+    FAMILY_PLAN_TIERS.find((p) => p.id === plan_code);
+
   const handle_pay_with_crypto = (plan: AvailablePlan) => {
+    if (!crypto_term_prices_for(plan.code)) {
+      show_toast(t("settings.crypto_price_unavailable"), "error");
+
+      return;
+    }
+    set_crypto_resume(null);
     set_crypto_plan(plan);
+    set_show_crypto_modal(true);
+  };
+
+  const handle_crypto_renew = () => {
+    if (!subscription) return;
+    if (!crypto_term_prices_for(subscription.plan.code)) {
+      show_toast(t("settings.crypto_price_unavailable"), "error");
+
+      return;
+    }
+    const matching = plans.find((p) => p.code === subscription.plan.code);
+
+    set_crypto_plan(
+      matching ?? {
+        id: subscription.plan.id,
+        code: subscription.plan.code,
+        name: subscription.plan.name,
+        description: subscription.plan.description,
+        storage_limit_bytes: subscription.plan.storage_limit_bytes,
+        max_attachment_size_bytes: 0,
+        max_email_aliases: 0,
+        max_custom_domains: 0,
+        price_cents: subscription.plan.price_cents,
+        billing_period: subscription.plan.billing_period,
+        stripe_price_id: null,
+        is_current: true,
+      },
+    );
     set_show_crypto_modal(true);
   };
 
@@ -690,6 +710,7 @@ export function BillingSection({
   };
 
   const is_paid_plan = subscription && subscription.plan.code !== "free";
+  const is_crypto_sub = is_crypto_provider(subscription?.payment_provider);
 
   return (
     <div className="flex h-full flex-col">
@@ -706,6 +727,7 @@ export function BillingSection({
         ) : (
           <>
             <div className="px-4 pt-4">
+              <CryptoResumeBanner class_name="mb-4" />
               <div
                 className="relative overflow-hidden rounded-2xl p-5"
                 style={{
@@ -801,12 +823,34 @@ export function BillingSection({
                               t("settings.per_month_short")}
                           </span>
                         </span>
-                        <p className="text-[11px] mt-0.5 text-[var(--text-muted)]">
-                          {subscription.cancel_at_period_end
-                            ? t("settings.cancels")
-                            : t("settings.renews")}{" "}
-                          {format_date(subscription.current_period_end)}
-                        </p>
+                        {is_crypto_sub ? (
+                          <>
+                            <p className="text-[11px] mt-0.5 text-[var(--text-muted)]">
+                              {t("settings.crypto_paid_until", {
+                                date: format_date(
+                                  subscription.paid_until ||
+                                    subscription.current_period_end,
+                                ),
+                              })}
+                            </p>
+                            <span
+                              className="mt-1.5 inline-flex w-fit items-center rounded-md px-2 py-0.5 text-[11px] font-semibold"
+                              style={{
+                                backgroundColor: "var(--color-warning)",
+                                color: "#1c1400",
+                              }}
+                            >
+                              {t("settings.crypto_no_renew_notice")}
+                            </span>
+                          </>
+                        ) : (
+                          <p className="text-[11px] mt-0.5 text-[var(--text-muted)]">
+                            {subscription.cancel_at_period_end
+                              ? t("settings.cancels")
+                              : t("settings.renews")}{" "}
+                            {format_date(subscription.current_period_end)}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -830,6 +874,17 @@ export function BillingSection({
                       />
                     </div>
                   </div>
+
+                  {is_paid_plan && is_crypto_sub && (
+                    <button
+                      className="mb-2 w-full rounded-[14px] bg-[var(--mobile-bg-card-hover)] py-2.5 text-[14px] font-medium text-[var(--text-primary)] disabled:opacity-50"
+                      disabled={is_action_loading}
+                      type="button"
+                      onClick={handle_crypto_renew}
+                    >
+                      {t("settings.crypto_renew_link")}
+                    </button>
+                  )}
 
                   {is_paid_plan ? (
                     <div className="flex gap-2 pt-2 border-t border-[var(--border-primary)]">
@@ -1569,23 +1624,29 @@ export function BillingSection({
 
       {crypto_plan &&
         (() => {
-          const tier = PLAN_TIERS.find((p) => p.id === crypto_plan.code);
-          const monthly_cents = tier?.monthly_cents ?? crypto_plan.price_cents;
-          const yearly_cents =
-            tier?.yearly_cents ?? crypto_plan.price_cents * 12;
+          const tier = crypto_term_prices_for(crypto_plan.code);
+
+          if (!tier) return null;
 
           return (
             <CryptoTermModal
+              initial_coin_key={
+                crypto_resume
+                  ? `${crypto_resume.currency}:${crypto_resume.chain}`
+                  : undefined
+              }
+              initial_term_months={crypto_resume?.term_months}
               is_open={show_crypto_modal}
-              monthly_price_cents={monthly_cents}
+              monthly_price_cents={tier.monthly_cents}
               on_close={() => {
                 set_show_crypto_modal(false);
                 set_crypto_plan(null);
+                set_crypto_resume(null);
               }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
-              yearly_price_cents={yearly_cents}
+              yearly_price_cents={tier.yearly_cents}
             />
           );
         })()}

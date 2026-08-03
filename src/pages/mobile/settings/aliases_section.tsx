@@ -27,6 +27,7 @@ import {
   PlusIcon,
   ClipboardDocumentIcon,
   AtSymbolIcon,
+  IdentificationIcon,
   LinkIcon,
   TrashIcon,
   CheckCircleIcon,
@@ -425,8 +426,9 @@ export function AliasesSection({
                   </button>
                 </div>
                 {alias.display_name && (
-                  <p className="mt-1 text-[13px] text-[var(--mobile-text-muted)]">
-                    {alias.display_name}
+                  <p className="mt-1 flex min-w-0 items-center gap-1.5 text-[13px] leading-5 text-[var(--mobile-text-muted)]">
+                    <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+                    <span className="truncate">{alias.display_name}</span>
                   </p>
                 )}
                 <AliasNoteEditor

@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { encrypt_vault, decrypt_vault } from "./key_manager";
+import {
+  encrypt_vault,
+  decrypt_vault,
+  type EncryptedVault,
+} from "./key_manager";
 import {
   get_vault_from_memory,
   store_vault_in_memory,
@@ -230,6 +234,86 @@ const FORCED_REGEN_KEY = "astermail_ratchet_regen_v4";
 
 const RATCHET_PREVIOUS_KEY_RETENTION = 32;
 
+function bytes_to_base64(bytes: Uint8Array): string {
+  let binary = "";
+
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+
+  return btoa(binary);
+}
+
+function derive_public_b64_from_jwk(jwk_string: string): string | null {
+  try {
+    const jwk: JsonWebKey = JSON.parse(jwk_string);
+
+    if (!jwk.x || !jwk.y || !jwk.d) return null;
+
+    const x = base64url_to_bytes(jwk.x);
+    const y = base64url_to_bytes(jwk.y);
+
+    if (x.length !== 32 || y.length !== 32) return null;
+
+    const derived = new Uint8Array(65);
+
+    derived[0] = 0x04;
+    derived.set(x, 1);
+    derived.set(y, 33);
+
+    return bytes_to_base64(derived);
+  } catch {
+    return null;
+  }
+}
+
+interface PublishedBundleView {
+  kem_identity_key?: string;
+  signed_prekey?: string;
+  pq_kem_public_key?: string | null;
+}
+
+async function published_bundle_matches_vault(
+  vault: EncryptedVault,
+): Promise<boolean | null> {
+  try {
+    const account = await get_current_account();
+    const email = account?.user?.email;
+
+    if (!email) return null;
+
+    const username = email.split("@")[0];
+    const response = await api_client.get<PublishedBundleView>(
+      `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}?email=${encodeURIComponent(email)}`,
+    );
+
+    if (response.code === "NOT_FOUND") return false;
+
+    if (response.error || !response.data) return null;
+
+    return (
+      response.data.kem_identity_key === vault.ratchet_identity_public &&
+      response.data.signed_prekey === vault.ratchet_signed_prekey_public &&
+      (response.data.pq_kem_public_key ?? null) ===
+        (vault.ratchet_pq_identity_public ?? null)
+    );
+  } catch {
+    return null;
+  }
+}
+
+async function upload_prekey_bundle_with_retry(
+  vault: EncryptedVault,
+): Promise<boolean> {
+  try {
+    if (await upload_prekey_bundle(vault)) return true;
+
+    return await upload_prekey_bundle(vault);
+  } catch {
+    return false;
+  }
+}
+
 function run(): Promise<boolean> {
   return with_vault_write_lock(run_locked);
 }
@@ -268,7 +352,11 @@ async function run_locked(): Promise<boolean> {
       ));
 
     if (has_ecdh && has_pq && ecdh_consistent) {
-      upload_prekey_bundle(vault).catch(() => {});
+      const bundle_matches = await published_bundle_matches_vault(vault);
+
+      if (bundle_matches !== true) {
+        await upload_prekey_bundle_with_retry(vault);
+      }
 
       return true;
     }
@@ -290,11 +378,52 @@ async function run_locked(): Promise<boolean> {
 
     if (!passphrase_ok) return false;
 
+    const next_vault: EncryptedVault = {
+      ...vault,
+      ratchet_previous_keys: vault.ratchet_previous_keys
+        ? [...vault.ratchet_previous_keys]
+        : undefined,
+    };
+
+    let clear_states = false;
+
+    const repaired_identity_public =
+      !need_forced_regen && vault.ratchet_identity_key
+        ? derive_public_b64_from_jwk(vault.ratchet_identity_key)
+        : null;
+    const repaired_spk_public =
+      !need_forced_regen && vault.ratchet_signed_prekey
+        ? derive_public_b64_from_jwk(vault.ratchet_signed_prekey)
+        : null;
+
+    const can_repair =
+      !ecdh_consistent &&
+      !!repaired_identity_public &&
+      !!repaired_spk_public &&
+      (await keypairs_consistent(
+        vault.ratchet_identity_key!,
+        repaired_identity_public,
+      )) &&
+      (await keypairs_consistent(
+        vault.ratchet_signed_prekey!,
+        repaired_spk_public,
+      ));
+
     if (has_ecdh && ecdh_consistent && !has_pq) {
       const pq_keys = await generate_pq_identity_keys();
 
-      vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
-      vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
+      next_vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
+      next_vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
+    } else if (can_repair) {
+      next_vault.ratchet_identity_public = repaired_identity_public!;
+      next_vault.ratchet_signed_prekey_public = repaired_spk_public!;
+
+      if (!next_vault.ratchet_pq_identity_key || !next_vault.ratchet_pq_identity_public) {
+        const pq_keys = await generate_pq_identity_keys();
+
+        next_vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
+        next_vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
+      }
     } else {
       const ratchet_keys = await generate_ratchet_keys();
 
@@ -312,7 +441,7 @@ async function run_locked(): Promise<boolean> {
         const previous = vault.ratchet_previous_keys ?? [];
         const merged = [old_set, ...previous];
         const seen = new Set<string>();
-        vault.ratchet_previous_keys = merged
+        next_vault.ratchet_previous_keys = merged
           .filter((set) => {
             if (seen.has(set.ratchet_identity_public)) return false;
             seen.add(set.ratchet_identity_public);
@@ -321,22 +450,20 @@ async function run_locked(): Promise<boolean> {
           .slice(0, RATCHET_PREVIOUS_KEY_RETENTION);
       }
 
-      vault.ratchet_identity_key = ratchet_keys.identity_jwk;
-      vault.ratchet_identity_public = ratchet_keys.identity_public;
-      vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
-      vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
-      vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
-      vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
+      next_vault.ratchet_identity_key = ratchet_keys.identity_jwk;
+      next_vault.ratchet_identity_public = ratchet_keys.identity_public;
+      next_vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
+      next_vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+      next_vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
+      next_vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
 
-      await clear_all_ratchet_states();
+      clear_states = true;
     }
 
-    vault.ratchet_regen_v4_done = true;
-
-    await store_vault_in_memory(vault, passphrase);
+    next_vault.ratchet_regen_v4_done = true;
 
     const { encrypted_vault, vault_nonce } = await encrypt_vault(
-      vault,
+      next_vault,
       passphrase,
     );
 
@@ -344,7 +471,7 @@ async function run_locked(): Promise<boolean> {
       encrypted_vault,
       vault_nonce,
       passphrase,
-      vault.identity_key,
+      next_vault.identity_key,
     );
 
     if (!roundtrip_ok) return false;
@@ -353,10 +480,12 @@ async function run_locked(): Promise<boolean> {
       encrypted_vault,
       vault_nonce,
       user_id,
-      vault.vault_format,
+      next_vault.vault_format,
     );
 
     if (!pushed) return false;
+
+    await store_vault_in_memory(next_vault, passphrase, user_id);
 
     localStorage.setItem(
       `astermail_encrypted_vault_${user_id}`,
@@ -364,7 +493,11 @@ async function run_locked(): Promise<boolean> {
     );
     localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
 
-    await upload_prekey_bundle(vault);
+    if (clear_states) {
+      await clear_all_ratchet_states();
+    }
+
+    await upload_prekey_bundle_with_retry(next_vault);
 
     try {
       localStorage.setItem(FORCED_REGEN_KEY, "1");

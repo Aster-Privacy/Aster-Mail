@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@aster/ui";
 
 import {
@@ -36,7 +36,6 @@ import {
 import { payment_url_or_throw } from "@/lib/payment_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 
@@ -51,6 +50,7 @@ interface CryptoAddonTermModalProps {
 }
 
 const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
+const CHARGE_CURRENCY = "usd";
 
 export function crypto_addon_term_modal({
   is_open,
@@ -59,11 +59,11 @@ export function crypto_addon_term_modal({
   addon_id,
   addon_name,
   price_cents,
-  preferred_currency,
 }: CryptoAddonTermModalProps) {
   const { t } = use_i18n();
   const [selected_term, set_selected_term] = useState<TermMonths>(12);
   const [is_loading, set_is_loading] = useState(false);
+  const term_button_refs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const compute_price_cents = (term: TermMonths): number => price_cents * term;
 
@@ -74,6 +74,42 @@ export function crypto_addon_term_modal({
     if (term === 12) return t("settings.crypto_term_12mo");
 
     return t("settings.crypto_term_24mo");
+  };
+
+  const move_term_focus = (from_index: number, delta: number) => {
+    const next_index =
+      (from_index + delta + TERM_OPTIONS.length) % TERM_OPTIONS.length;
+
+    set_selected_term(TERM_OPTIONS[next_index]);
+    term_button_refs.current[next_index]?.focus();
+  };
+
+  const handle_term_keydown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+      event.preventDefault();
+      move_term_focus(index, 1);
+
+      return;
+    }
+    if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      move_term_focus(index, -1);
+
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      move_term_focus(0, 0);
+
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      move_term_focus(TERM_OPTIONS.length - 1, 0);
+    }
   };
 
   const handle_confirm = async () => {
@@ -115,40 +151,55 @@ export function crypto_addon_term_modal({
         <ModalDescription>{addon_name}</ModalDescription>
       </ModalHeader>
       <ModalBody>
-        <div className="space-y-2">
-          {TERM_OPTIONS.map((term) => {
+        <div
+          aria-label={t("settings.crypto_modal_title")}
+          className="space-y-2"
+          role="radiogroup"
+        >
+          {TERM_OPTIONS.map((term, index) => {
             const is_selected = selected_term === term;
             const price = compute_price_cents(term);
 
             return (
               <button
                 key={term}
-                className="w-full flex items-center justify-between rounded-[14px] border p-3.5 text-left transition-colors"
-                style={{
-                  backgroundColor: is_selected ? "var(--accent-color)" : "var(--bg-tertiary)",
-                  borderColor: is_selected ? "var(--accent-color)" : "var(--border-secondary)",
+                ref={(element) => {
+                  term_button_refs.current[index] = element;
                 }}
+                aria-checked={is_selected}
+                className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                  is_selected
+                    ? "bg-brand border-brand"
+                    : "bg-surf-tertiary border-edge-secondary hover:bg-surf-hover hover:border-edge-primary"
+                }`}
+                disabled={is_loading}
+                role="radio"
+                tabIndex={is_selected ? 0 : -1}
                 type="button"
                 onClick={() => set_selected_term(term)}
+                onKeyDown={(event) => handle_term_keydown(event, index)}
               >
                 <span
                   className="text-sm font-medium"
-                  style={{ color: is_selected ? "#ffffff" : "var(--text-primary)" }}
+                  style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
                 >
                   {term_label(term)}
                 </span>
                 <span
                   className="text-sm font-semibold"
-                  style={{ color: is_selected ? "#ffffff" : "var(--text-primary)" }}
+                  style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
                 >
                   {t("settings.crypto_modal_price", {
-                    amount: format_price(convert_cents(price, preferred_currency), preferred_currency),
+                    amount: format_price(price, CHARGE_CURRENCY),
                   })}
                 </span>
               </button>
             );
           })}
         </div>
+        <p className="mt-3 text-xs text-txt-muted">
+          {t("settings.crypto_charged_in_usd")}
+        </p>
       </ModalBody>
       <ModalFooter>
         <Button disabled={is_loading} variant="outline" onClick={on_close}>

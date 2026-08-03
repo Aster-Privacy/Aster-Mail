@@ -340,8 +340,8 @@ export const RegisterStepRecoveryEmail = ({
       >
         {reg.is_saving_recovery_email ? (
           <>
-            <Spinner className="mr-2" size="md" />
             {reg.t("common.saving")}
+            <Spinner className="ml-2" size="md" />
           </>
         ) : (
           reg.t("common.continue")
@@ -428,8 +428,8 @@ export const RegisterStepRecoveryEmailGate = ({
       >
         {reg.is_saving_recovery_email ? (
           <>
-            <Spinner className="mr-2" size="md" />
             {reg.t("common.saving")}
+            <Spinner className="ml-2" size="md" />
           </>
         ) : (
           reg.t("common.continue")

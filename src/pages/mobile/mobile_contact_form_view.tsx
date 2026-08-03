@@ -38,6 +38,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 
 export type CreateTab = "basic" | "details" | "address" | "social";
@@ -157,7 +158,10 @@ export function ContactFormView({
           type="button"
           onClick={on_save}
         >
-          {is_saving ? "..." : t("common.save")}
+          <span className="inline-flex items-center">
+            {t("common.save")}
+            {is_saving && <Spinner className="ml-2" size="xs" />}
+          </span>
         </button>
       </div>
 

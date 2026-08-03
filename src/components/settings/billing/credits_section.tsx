@@ -37,6 +37,17 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 
+function capitalize_words(value: string): string {
+  return value
+    .split(/([\s_-]+)/)
+    .map((part) =>
+      /^[\s_-]+$/.test(part)
+        ? part.replace(/_/g, " ")
+        : part.charAt(0).toUpperCase() + part.slice(1),
+    )
+    .join("");
+}
+
 interface CreditsSectionProps {
   credit_balance: CreditBalanceResponse | null;
   set_credit_balance: React.Dispatch<
@@ -272,13 +283,21 @@ export function CreditsSection({
                     install_android_reward: t("settings.credit_type_install_android"),
                     install_desktop_reward: t("settings.credit_type_install_desktop"),
                     install_ios_reward: t("settings.credit_type_install_ios"),
+                    refunded: t("settings.credit_type_refunded"),
+                    spent: t("settings.credit_type_spent"),
+                    clawback: t("settings.credit_type_clawback"),
+                    admin_removal: t("settings.credit_type_admin_removal"),
+                    crypto_overpayment: t("settings.credit_type_crypto_overpayment"),
+                    crypto_overpayment_reversal: t("settings.credit_type_crypto_overpayment_reversal"),
                   };
-                  const type_label = credit_type_labels[tx.transaction_type] || tx.transaction_type;
+                  const type_label =
+                    credit_type_labels[tx.transaction_type] ||
+                    capitalize_words(tx.transaction_type);
                   const is_positive = tx.amount_cents > 0;
                   return (
                     <div key={tx.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors">
                       <div>
-                        <p className="text-sm text-txt-primary">{tx.description || tx.transaction_type}</p>
+                        <p className="text-sm text-txt-primary">{tx.description || capitalize_words(tx.transaction_type)}</p>
                         <p className="text-xs mt-0.5 text-txt-muted">{format_date(tx.created_at)}</p>
                       </div>
                       <div className="flex items-center gap-2">
