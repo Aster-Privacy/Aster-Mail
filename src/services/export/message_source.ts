@@ -34,7 +34,7 @@ import type {
   PipelineMessage,
 } from "./pipeline";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 500;
 
 function date_boundary_local(value: string, end_of_day: boolean): number {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
@@ -59,8 +59,14 @@ function in_date_range(iso: string, scope: ExportScope): boolean {
   return true;
 }
 
-async function build_attachments(mail_id: string): Promise<ExportAttachment[]> {
+async function build_attachments(
+  mail_id: string,
+  has_attachments?: boolean,
+): Promise<ExportAttachment[]> {
   const result: ExportAttachment[] = [];
+
+  if (has_attachments === false) return result;
+
   const list = await list_attachments(mail_id);
   if (!list.data?.attachments?.length) return result;
 
@@ -119,6 +125,7 @@ export function create_account_message_source(): ExportSource {
           cursor,
           item_type: "all",
           include_spam: true,
+          skip_total: true,
         });
         if (!page.data?.items?.length) break;
 
@@ -146,7 +153,10 @@ export function create_account_message_source(): ExportSource {
 
           const is_sent_or_draft =
             item.item_type === "sent" || item.item_type === "draft";
-          const attachments = await build_attachments(item.id);
+          const attachments = await build_attachments(
+            item.id,
+            item.has_attachments,
+          );
 
           yield {
             message_id: item.id,

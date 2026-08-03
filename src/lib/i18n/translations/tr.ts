@@ -6780,7 +6780,7 @@ export const tr = {
     search_size_greater: "büyük",
     search_size_less: "küçük",
     search_date_within: "Tarih aralığı",
-    search_within_any: "herhangi bir zaman",
+    search_within_any: "Herhangi bir zaman",
     search_within_1_day: "1 gün",
     search_within_3_days: "3 gün",
     search_within_1_week: "1 hafta",

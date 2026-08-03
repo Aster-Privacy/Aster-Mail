@@ -6826,7 +6826,7 @@ export const nl = {
     search_size_greater: "groter dan",
     search_size_less: "kleiner dan",
     search_date_within: "Datum binnen",
-    search_within_any: "elke tijd",
+    search_within_any: "Elke tijd",
     search_within_1_day: "1 dag",
     search_within_3_days: "3 dagen",
     search_within_1_week: "1 week",

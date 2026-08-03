@@ -52,7 +52,6 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 type HookResult = ReturnType<typeof use_inbox_selection>;
 
 let hook: HookResult;
-let load_more_calls = 0;
 
 function make_email(id: string, is_selected: boolean): InboxEmail {
   return { id, is_selected } as unknown as InboxEmail;
@@ -63,7 +62,6 @@ function FolderHarness() {
     make_email("a", false),
     make_email("b", false),
   ]);
-  const [has_more, set_has_more] = useState(true);
 
   const update_email = (id: string, updates: Partial<InboxEmail>) => {
     set_emails((prev) =>
@@ -71,14 +69,12 @@ function FolderHarness() {
     );
   };
 
-  const load_more = async () => {
-    load_more_calls += 1;
+  const append_page = () => {
     set_emails((prev) => [
       ...prev,
       make_email("c", false),
       make_email("d", false),
     ]);
-    set_has_more(false);
   };
 
   hook = use_inbox_selection({
@@ -89,14 +85,15 @@ function FolderHarness() {
     emails,
     pinned_emails: [],
     primary_emails: emails,
-    has_more,
-    load_more,
     update_email,
     update_draft: () => {},
     update_scheduled: () => {},
   });
 
-  return null;
+  return createElement("button", {
+    onClick: append_page,
+    "data-testid": "append-page",
+  });
 }
 
 let container: HTMLDivElement;
@@ -104,7 +101,6 @@ let root: Root;
 
 describe("use_inbox_selection select-all across pages", () => {
   beforeEach(() => {
-    load_more_calls = 0;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -115,7 +111,7 @@ describe("use_inbox_selection select-all across pages", () => {
     container.remove();
   });
 
-  it("selects every message in the folder, not just the currently loaded page", async () => {
+  it("selects exactly the loaded page and stays stable across repeated toggles", async () => {
     await act(async () => {
       root.render(createElement(FolderHarness));
     });
@@ -126,12 +122,47 @@ describe("use_inbox_selection select-all across pages", () => {
       hook.handle_toggle_select_all();
     });
 
+    expect(hook.selected_count).toBe(2);
+    expect(hook.all_selected).toBe(true);
+
     await act(async () => {
-      await Promise.resolve();
+      hook.handle_toggle_select_all();
     });
 
-    expect(load_more_calls).toBe(1);
+    expect(hook.selected_count).toBe(0);
+
+    await act(async () => {
+      hook.handle_toggle_select_all();
+    });
+
+    expect(hook.selected_count).toBe(2);
+  });
+
+  it("does not grow the selection when more pages load underneath it", async () => {
+    await act(async () => {
+      root.render(createElement(FolderHarness));
+    });
+
+    await act(async () => {
+      hook.handle_toggle_select_all();
+    });
+
+    expect(hook.selected_count).toBe(2);
+
+    const button = container.querySelector(
+      '[data-testid="append-page"]',
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      button.click();
+    });
+
+    expect(hook.selected_count).toBe(2);
+
+    await act(async () => {
+      hook.handle_toggle_select_all();
+    });
+
     expect(hook.selected_count).toBe(4);
-    expect(hook.all_selected).toBe(true);
   });
 });

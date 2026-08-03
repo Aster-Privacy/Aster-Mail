@@ -36,7 +36,10 @@ import {
   reencrypt_mail_item_envelope,
   type MailItem,
 } from "@/services/api/mail";
-import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
+import {
+  decrypt_mail_metadata,
+  extract_metadata_from_server,
+} from "@/services/crypto/mail_metadata";
 import {
   decrypt_envelope_with_bytes,
   encrypt_envelope_with_identity_key,
@@ -905,6 +908,35 @@ async function run_index_pipeline(
     return by_id;
   };
 
+  const index_metadata = async (item: MailItem): Promise<MailItemMetadata> => {
+    let decrypted: MailItemMetadata | null = null;
+
+    if (item.encrypted_metadata && item.metadata_nonce) {
+      decrypted = await decrypt_mail_metadata(
+        item.encrypted_metadata,
+        item.metadata_nonce,
+        item.metadata_version,
+      );
+    }
+
+    return extract_metadata_from_server(decrypted, {
+      scheduled_at: item.scheduled_at,
+      send_status: item.send_status,
+      snoozed_until: item.snoozed_until,
+      message_ts: item.message_ts,
+      item_type: item.item_type,
+      is_read: item.is_read,
+      is_starred: item.is_starred,
+      is_pinned: item.is_pinned,
+      is_trashed: item.is_trashed,
+      is_archived: item.is_archived,
+      is_spam: item.is_spam,
+      has_attachments: item.has_attachments,
+      attachment_count: item.attachment_count,
+      size_bytes: item.size_bytes,
+    });
+  };
+
   const decrypt_item = async (
     item: MailItem,
     envelope_by_id: Map<string, MailItem> | null,
@@ -919,15 +951,7 @@ async function run_index_pipeline(
         return { id: item.id, entry: prior_entry, fresh: false };
       }
 
-      let refreshed_metadata: MailItemMetadata | null = null;
-
-      if (item.encrypted_metadata && item.metadata_nonce) {
-        refreshed_metadata = await decrypt_mail_metadata(
-          item.encrypted_metadata,
-          item.metadata_nonce,
-          item.metadata_version,
-        );
-      }
+      const refreshed_metadata = await index_metadata(item);
 
       return {
         id: item.id,
@@ -985,15 +1009,7 @@ async function run_index_pipeline(
       envelope.html_body = "";
     }
 
-    let metadata: MailItemMetadata | null = null;
-
-    if (item.encrypted_metadata && item.metadata_nonce) {
-      metadata = await decrypt_mail_metadata(
-        item.encrypted_metadata,
-        item.metadata_nonce,
-        item.metadata_version,
-      );
-    }
+    const metadata = await index_metadata(item);
 
     const bounded_body = bound_index_body(
       envelope ? strip_html_tags(searchable_body_source(envelope)) : "",

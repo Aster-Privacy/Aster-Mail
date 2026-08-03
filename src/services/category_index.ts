@@ -52,9 +52,9 @@ const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
 const BUILD_FETCH_SIZE = 1000;
 const BUILD_DECRYPT_CHUNK = 100;
-const BUILD_CAP = 10000;
-const MAX_ENTRIES = 20000;
-const CAP_TARGET = 12000;
+const BUILD_CAP = 50000;
+const MAX_ENTRIES = 60000;
+const CAP_TARGET = 50000;
 const PERSIST_DEBOUNCE_MS = 1500;
 const NOTIFY_THROTTLE_MS = 350;
 const RESYNC_DEBOUNCE_MS = 4000;
@@ -592,6 +592,8 @@ function enforce_cap(): void {
     .slice(0, CAP_TARGET);
 
   entries_map = new Map(newest.map((e) => [e.id, e]));
+  build_capped = true;
+  fully_built = false;
   mark_all_dirty();
 }
 

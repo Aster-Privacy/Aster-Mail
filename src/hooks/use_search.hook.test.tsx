@@ -58,6 +58,10 @@ vi.mock("@/services/account_manager", () => ({
 vi.mock("@/services/api/mail", () => mail_api);
 vi.mock("@/services/crypto/mail_metadata", () => ({
   decrypt_mail_metadata: async (encrypted: string) => JSON.parse(encrypted),
+  extract_metadata_from_server: (
+    decrypted: Record<string, unknown> | null,
+    server: Record<string, unknown>,
+  ) => ({ ...server, ...(decrypted ?? {}) }),
 }));
 vi.mock("@/services/crypto/envelope", () => ({
   base64_to_array: (value: string) =>

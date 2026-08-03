@@ -6811,7 +6811,7 @@ export const pl = {
     search_size_greater: "większy niż",
     search_size_less: "mniejszy niż",
     search_date_within: "Data w ciągu",
-    search_within_any: "dowolnego czasu",
+    search_within_any: "Dowolnego czasu",
     search_within_1_day: "1 dnia",
     search_within_3_days: "3 dni",
     search_within_1_week: "1 tygodnia",
