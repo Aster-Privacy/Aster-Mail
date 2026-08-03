@@ -27,12 +27,13 @@ const h = vi.hoisted(() => ({
   bundle: null as unknown,
   refreshed_vault: null as unknown,
   vault_fetches: 0,
+  passphrase: "correct horse battery staple" as string | null,
   store: new Map<string, unknown>(),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => h.vault,
-  get_passphrase_from_memory: () => "correct horse battery staple",
+  get_passphrase_from_memory: () => h.passphrase,
   get_passphrase_bytes: () => null,
   get_derived_encryption_key: () => new Uint8Array(32).fill(7),
   has_vault_in_memory: () => h.vault !== null,
@@ -166,9 +167,11 @@ describe("stale-vault self-heal on ratchet bootstrap decrypt failure", () => {
     h.bundle = null;
     h.refreshed_vault = null;
     h.vault_fetches = 0;
+    h.passphrase = "correct horse battery staple";
     h.store.clear();
     reset_vault_refresh_state();
     localStorage.clear();
+    vi.useRealTimers();
   });
 
   it("recovers a bootstrap sent to regenerated keys by refreshing the vault from the server", async () => {
@@ -229,6 +232,48 @@ describe("stale-vault self-heal on ratchet bootstrap decrypt failure", () => {
 
     await expect(receive(envelope, stale_vault)).rejects.toThrow();
     expect(h.vault).not.toBe(unrelated_vault);
+  });
+
+  it("retries the vault fetch after a transient failure instead of caching the miss", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const stale_vault = make_vault((await generate_ratchet_keys())!);
+    const rotated_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(rotated_vault);
+    h.refreshed_vault = null;
+
+    const envelope = await send("heal me later", sender_vault);
+
+    await expect(receive(envelope, stale_vault, "t1")).rejects.toThrow();
+    expect(h.vault_fetches).toBe(1);
+
+    h.refreshed_vault = rotated_vault;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Date.now() + 31 * 1000);
+
+    expect(await receive(envelope, stale_vault, "t1")).toBe("heal me later");
+    expect(h.vault_fetches).toBe(2);
+  });
+
+  it("does not consume the retry cooldown while the passphrase is unavailable", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const stale_vault = make_vault((await generate_ratchet_keys())!);
+    const rotated_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(rotated_vault);
+    h.refreshed_vault = rotated_vault;
+
+    const envelope = await send("heal on unlock", sender_vault);
+
+    h.passphrase = null;
+
+    await expect(receive(envelope, stale_vault, "p1")).rejects.toThrow();
+    expect(h.vault_fetches).toBe(0);
+
+    h.passphrase = "correct horse battery staple";
+
+    expect(await receive(envelope, stale_vault, "p1")).toBe("heal on unlock");
+    expect(h.vault_fetches).toBe(1);
   });
 
   it("does not fetch the vault for ongoing-chain failures without a bootstrap", async () => {

@@ -71,8 +71,6 @@ export async function ensure_pgp_key_published(
   if (existing.data) return "already_published";
   if (existing.code !== "NOT_FOUND") return "skipped";
 
-  attempted_account_ids.add(account_id);
-
   try {
     const private_key = await openpgp.readPrivateKey({
       armoredKey: vault.identity_key,
@@ -92,7 +90,13 @@ export async function ensure_pgp_key_published(
       pgp_key_data as unknown as Record<string, unknown>,
     );
 
-    return result.data?.success ? "healed" : "failed";
+    if (result.data?.success) {
+      attempted_account_ids.add(account_id);
+
+      return "healed";
+    }
+
+    return "failed";
   } catch {
     return "failed";
   }

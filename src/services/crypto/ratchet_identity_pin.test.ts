@@ -65,20 +65,35 @@ describe("ratchet identity pin", () => {
     expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");
   });
 
-  it("reports drift when the identity key changes", async () => {
+  it("accepts a rotation between unverified keys and re-pins", async () => {
     await check_and_pin_identity("alice", KEY_A);
+
+    expect(await check_and_pin_identity("alice", KEY_B)).toBe("rotated");
+    expect(await check_and_pin_identity("alice", KEY_B)).toBe("ok");
+  });
+
+  it("accepts a verified rotation of a verified pin and re-pins", async () => {
+    await check_and_pin_identity("alice", KEY_A, true);
+
+    expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("rotated");
+    expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("ok");
+  });
+
+  it("accepts a verified rotation of an unverified pin", async () => {
+    await check_and_pin_identity("alice", KEY_A);
+
+    expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("rotated");
+    expect(await check_and_pin_identity("alice", KEY_B)).toBe("ok");
+  });
+
+  it("reports drift when a verified pin is replaced by an unverified key", async () => {
+    await check_and_pin_identity("alice", KEY_A, true);
 
     expect(await check_and_pin_identity("alice", KEY_B)).toBe("drift");
   });
 
-  it("reports drift on a changed key even when the new bundle would verify", async () => {
+  it("keeps the verified pin after a downgrade drift (does not adopt the new key)", async () => {
     await check_and_pin_identity("alice", KEY_A, true);
-
-    expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("drift");
-  });
-
-  it("keeps the original pin after a drift (does not adopt the new key)", async () => {
-    await check_and_pin_identity("alice", KEY_A);
     await check_and_pin_identity("alice", KEY_B);
 
     expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");

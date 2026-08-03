@@ -223,7 +223,12 @@ async function decrypt_reaction_body(
 
       if (!ratchet_env) return null;
 
-      const vault = get_vault_from_memory();
+      let vault = get_vault_from_memory();
+
+      if (!vault) {
+        await wait_for_keys_ready();
+        vault = get_vault_from_memory();
+      }
 
       if (!vault) return null;
 
@@ -405,7 +410,12 @@ export async function fetch_and_decrypt_thread_messages(
       const ratchet_env = parse_ratchet_envelope(body_content);
 
       if (ratchet_env) {
-        const vault = get_vault_from_memory();
+        let vault = get_vault_from_memory();
+
+        if (!vault) {
+          await wait_for_keys_ready();
+          vault = get_vault_from_memory();
+        }
 
         if (vault) {
           try {
@@ -592,7 +602,12 @@ export async function fetch_and_decrypt_virtual_group(
       const ratchet_env = parse_ratchet_envelope(body_content);
 
       if (ratchet_env) {
-        const vault = get_vault_from_memory();
+        let vault = get_vault_from_memory();
+
+        if (!vault) {
+          await wait_for_keys_ready();
+          vault = get_vault_from_memory();
+        }
 
         if (vault) {
           try {

@@ -116,6 +116,7 @@ interface RatchetRecipientData {
     dh_public: string;
     previous_chain_length: number;
     message_number: number;
+    v?: number;
   };
   ciphertext: string;
   nonce: string;
@@ -203,9 +204,16 @@ async function fetch_prekey_bundle(
   email?: string,
 ): Promise<PrekeyBundle | null> {
   const params = email ? `?email=${encodeURIComponent(email)}` : "";
-  const response = await api_client.get<PrekeyBundle>(
-    `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}${params}`,
-  );
+  const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}${params}`;
+
+  let response = await api_client.get<PrekeyBundle>(path);
+
+  if (
+    (response.error || !response.data) &&
+    response.code !== "NOT_FOUND"
+  ) {
+    response = await api_client.get<PrekeyBundle>(path);
+  }
 
   if (response.error || !response.data) {
     return null;
@@ -505,7 +513,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
     }
 
     return recipient_data;
-  } catch {
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn("ratchet encrypt failed; routing via PGP fallback", err);
+    }
+
     return null;
   }
 }
@@ -569,22 +581,27 @@ function build_dedupe_key(
   return `${message_id}:${data.header.dh_public}:${data.header.message_number}`;
 }
 
-export async function decrypt_ratchet_message(
+interface RatchetDecryptAttempt {
+  plaintext: string | null;
+  error: unknown;
+}
+
+async function attempt_ratchet_decrypt(
   our_email: string,
   sender_email: string,
   envelope: RatchetEnvelope,
   vault: EncryptedVault,
+  data: RatchetRecipientData | null,
   message_id?: string,
-): Promise<string | null> {
-  const our_data = resolve_recipient_data(our_email, envelope);
+): Promise<RatchetDecryptAttempt> {
   const dedupe_key = message_id
-    ? build_dedupe_key(message_id, our_data)
+    ? build_dedupe_key(message_id, data)
     : undefined;
 
   if (dedupe_key) {
     const cached = await get_cached_ratchet_plaintext(dedupe_key);
 
-    if (cached !== null) return cached;
+    if (cached !== null) return { plaintext: cached, error: null };
   }
 
   const conversation_id = await derive_conversation_id(
@@ -596,19 +613,24 @@ export async function decrypt_ratchet_message(
     if (dedupe_key) {
       const cached = await get_cached_ratchet_plaintext(dedupe_key);
 
-      if (cached !== null) return cached;
+      if (cached !== null) return { plaintext: cached, error: null };
     }
 
     let plaintext: string | null = null;
+    let decrypt_error: unknown = null;
 
-    if (our_data) {
-      plaintext = await decrypt_ratchet_for_recipient(
-        our_email,
-        sender_email,
-        our_data,
-        envelope.sender_identity_key,
-        vault,
-      );
+    if (data) {
+      try {
+        plaintext = await decrypt_ratchet_for_recipient(
+          our_email,
+          sender_email,
+          data,
+          envelope.sender_identity_key,
+          vault,
+        );
+      } catch (err) {
+        decrypt_error = err;
+      }
     }
 
     if (plaintext !== null) {
@@ -622,17 +644,61 @@ export async function decrypt_ratchet_message(
         void upload_to_escrow(dedupe_key, plaintext).catch(() => {});
       }
 
-      return plaintext;
+      return { plaintext, error: null };
     }
 
     if (dedupe_key) {
       const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
 
-      if (escrowed !== null) return escrowed;
+      if (escrowed !== null) return { plaintext: escrowed, error: null };
     }
 
-    return null;
+    return { plaintext: null, error: decrypt_error };
   });
+}
+
+export async function decrypt_ratchet_message(
+  our_email: string,
+  sender_email: string,
+  envelope: RatchetEnvelope,
+  vault: EncryptedVault,
+  message_id?: string,
+): Promise<string | null> {
+  const our_data = resolve_recipient_data(our_email, envelope);
+
+  const primary = await attempt_ratchet_decrypt(
+    our_email,
+    sender_email,
+    envelope,
+    vault,
+    our_data,
+    message_id,
+  );
+
+  if (primary.plaintext !== null) return primary.plaintext;
+
+  if (!our_data && sender_email.toLowerCase() !== our_email.toLowerCase()) {
+    const alias_self_data = resolve_recipient_data(sender_email, envelope);
+
+    if (alias_self_data) {
+      const fallback = await attempt_ratchet_decrypt(
+        sender_email,
+        sender_email,
+        envelope,
+        vault,
+        alias_self_data,
+        message_id,
+      );
+
+      if (fallback.plaintext !== null) return fallback.plaintext;
+    }
+  }
+
+  if (primary.error) {
+    throw primary.error;
+  }
+
+  return null;
 }
 
 function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
@@ -747,10 +813,8 @@ async function decrypt_ratchet_for_recipient(
 
   const conversation_id = await derive_conversation_id(our_email, sender_email);
 
-  const is_fresh_bootstrap =
-    !!data.ephemeral_key &&
-    data.header.message_number === 0 &&
-    data.header.previous_chain_length === 0;
+  const is_first_chain_bootstrap =
+    !!data.ephemeral_key && data.header.previous_chain_length === 0;
 
   const message: EncryptedMessage = {
     header: data.header,
@@ -759,10 +823,6 @@ async function decrypt_ratchet_for_recipient(
   };
 
   let ratchet = await load_ratchet_state(conversation_id);
-
-  if (ratchet && is_fresh_bootstrap) {
-    ratchet = null;
-  }
 
   let plaintext: string | null = null;
 
@@ -829,7 +889,7 @@ async function decrypt_ratchet_for_recipient(
       }
     }
 
-    if ((plaintext === null || !ratchet) && is_fresh_bootstrap) {
+    if ((plaintext === null || !ratchet) && is_first_chain_bootstrap) {
       const refreshed = await fetch_refreshed_vault();
 
       if (refreshed) {

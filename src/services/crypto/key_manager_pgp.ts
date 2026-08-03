@@ -677,7 +677,7 @@ export async function decrypt_vault_to_handles(
 
   const decoder = new TextDecoder();
   const vault_json = decoder.decode(decrypted);
-  const vault: EncryptedVault = JSON.parse(vault_json);
+  const vault: EncryptedVault = normalize_vault_fields(JSON.parse(vault_json));
 
   const encoder = new TextEncoder();
 
@@ -813,7 +813,23 @@ export async function decrypt_vault(
   const decoder = new TextDecoder();
   const vault_json = decoder.decode(decrypted);
 
-  return JSON.parse(vault_json);
+  return normalize_vault_fields(JSON.parse(vault_json));
+}
+
+const MOBILE_PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
+
+export function normalize_vault_fields(vault: EncryptedVault): EncryptedVault {
+  const raw = vault as EncryptedVault & { pgp_private_key?: string };
+
+  if (
+    !raw.identity_key &&
+    typeof raw.pgp_private_key === "string" &&
+    raw.pgp_private_key.startsWith(MOBILE_PGP_PRIVATE_KEY_HEADER)
+  ) {
+    raw.identity_key = raw.pgp_private_key;
+  }
+
+  return raw;
 }
 
 export type sender_verification_status =
