@@ -2407,6 +2407,17 @@ export const en: Translations = {
     category_name: "Name",
     category_name_placeholder: "e.g. Newsletters",
     category_icon: "Icon",
+    category_color: "Color",
+    category_color_accent: "Accent",
+    category_color_blue: "Blue",
+    category_color_green: "Green",
+    category_color_amber: "Amber",
+    category_color_violet: "Violet",
+    category_color_teal: "Teal",
+    category_color_cyan: "Cyan",
+    category_color_rose: "Rose",
+    category_color_pink: "Pink",
+    category_color_slate: "Slate",
     category_match_domains: "Match sender domains",
     category_match_domains_placeholder: "example.com, news.example.org",
     category_match_domains_help:
@@ -5805,6 +5816,7 @@ export const en: Translations = {
     empty_directory_trash_confirm_message:
       "Permanently delete all {{ count }} directories in Recently Deleted? This cannot be undone. The directories stay reserved to your account, so no one else can claim them.",
     alias_stats_title: "Stats",
+    alias_stats_description: "How much mail this alias has handled.",
     alias_stats_received: "{{ count }} received",
     alias_stats_forwarded: "{{ count }} forwarded",
     alias_stats_blocked: "{{ count }} blocked",
@@ -5819,6 +5831,12 @@ export const en: Translations = {
     alias_advanced_hide: "Hide advanced",
     alias_advanced_show: "Advanced settings",
     alias_details_title: "Details",
+    alias_note_label: "Note",
+    alias_details_description: "Name this alias and note where you use it.",
+    alias_usage_used_of: "{{ used }} of {{ max }} aliases used",
+    alias_usage_unlock: "Get unlimited",
+    alias_usage_nudge:
+      "Paid plans include unlimited aliases, custom domains, alias rules and sender pinning.",
     alias_field_display_name_label: "Display name",
     alias_field_note_label: "Note",
     alias_field_websites_label: "Websites",
@@ -5827,6 +5845,7 @@ export const en: Translations = {
       "Decide who can send mail to this alias. Off means everyone gets through. Lock to first sender locks it to whoever emails you first - useful for one-off signups. Allowlist means only people you've added can reach you.",
     alias_sender_pinning_description:
       "Control which senders may reach this alias.",
+    alias_sender_pin_mode_label: "Mode",
     alias_sender_pin_mode_off: "Off",
     alias_sender_pin_mode_off_hint: "Accept mail from anyone.",
     alias_sender_pin_mode_lock_first: "Lock to first sender",
@@ -5971,6 +5990,11 @@ export const en: Translations = {
       "Upgrade your plan to use reverse-alias contacts.",
     alias_feature_locked_sender_pinning:
       "Upgrade your plan to use sender pinning.",
+    alias_feature_locked_stats:
+      "Upgrade your plan to see activity for this alias.",
+    alias_feature_locked_delivery_log:
+      "Upgrade your plan to see what was blocked.",
+    alias_paid_badge: "Paid",
     alias_feature_locked_view_plans: "View plans",
     alias_feature_locked_upgrade_plan: "Upgrade plan",
     alias_feature_locked_upgrade_cta: "Upgrade",

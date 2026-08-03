@@ -32,11 +32,17 @@ import {
   allowed_custom_categories,
 } from "@/data/category_catalog";
 import { category_icon } from "@/data/category_icons";
+import {
+  category_color_key,
+  category_color_style,
+} from "@/data/category_colors";
+import { use_category_previews } from "@/hooks/use_category_previews";
 
 interface TabConfig {
   key: EmailCategory;
   label: string;
   Icon: typeof InboxIcon;
+  color_style: React.CSSProperties;
 }
 
 function format_count(value: number): string {
@@ -57,6 +63,7 @@ export function CategoryTabs({
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const { limits } = use_plan_limits();
+  const previews = use_category_previews(true);
 
   const category_limit = limits
     ? (limits.limits["max_custom_categories"]?.limit ?? -1)
@@ -75,6 +82,7 @@ export function CategoryTabs({
         key: cat.id,
         label: t(cat.label_key),
         Icon: category_icon(cat.icon),
+        color_style: category_color_style(category_color_key(cat.id)),
       });
     }
 
@@ -90,6 +98,7 @@ export function CategoryTabs({
         key: rule.id,
         label: rule.name,
         Icon: category_icon(rule.icon),
+        color_style: category_color_style(category_color_key(rule.id, rule)),
       });
     }
 
@@ -115,40 +124,52 @@ export function CategoryTabs({
       className="aster_scrollbar_thin group/tabs relative flex shrink-0 items-stretch gap-1 overflow-x-auto overflow-y-hidden border-b border-edge-primary bg-surf-primary px-2 sm:px-3"
       onWheel={handle_wheel}
     >
-      {tabs.map(({ key, label, Icon }) => {
+      {tabs.map(({ key, label, Icon, color_style }) => {
         const is_active = key === active_category;
         const bucket = counts[key];
         const new_count = bucket?.new_count ?? 0;
         const unread = bucket?.unread ?? 0;
         const show_new = !is_active && new_count > 0;
+        const preview = show_new ? previews[key] : undefined;
 
         return (
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex shrink-0 items-center gap-2.5 whitespace-nowrap px-4 py-3.5 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
+            className={`group relative flex min-h-[48px] shrink-0 flex-col items-start justify-center gap-1 whitespace-nowrap px-4 py-2.5 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
             }`}
+            style={color_style}
             type="button"
             onClick={() => on_change(key)}
           >
-            <Icon
-              className={`h-5 w-5 shrink-0 ${
-                is_active
-                  ? "text-brand"
-                  : "text-txt-muted group-hover:text-txt-secondary"
-              }`}
-            />
-            <span>{label}</span>
-            {show_new ? (
-              <span className="aster_badge aster_badge_blue">
-                {format_count(new_count)} {t("mail.tab_new_count")}
-              </span>
-            ) : unread > 0 ? (
-              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
-                {format_count(unread)}
+            <span className="flex items-center gap-2.5">
+              <Icon
+                className={`h-5 w-5 shrink-0 ${
+                  is_active
+                    ? "text-brand"
+                    : "text-txt-muted group-hover:text-txt-secondary"
+                }`}
+              />
+              <span>{label}</span>
+              {show_new ? (
+                <span className="aster_cat_badge">
+                  {format_count(new_count)} {t("mail.tab_new_count")}
+                </span>
+              ) : unread > 0 ? (
+                <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
+                  {format_count(unread)}
+                </span>
+              ) : null}
+            </span>
+            {preview ? (
+              <span className="block max-w-[240px] truncate ps-[30px] text-start text-[12px] font-normal text-txt-muted">
+                <span className="font-medium text-txt-secondary">
+                  {preview.sender}
+                </span>
+                {preview.subject ? ` - ${preview.subject}` : ""}
               </span>
             ) : null}
             {is_active && (

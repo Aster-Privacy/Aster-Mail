@@ -39,6 +39,12 @@ import {
   sanitize_custom_category,
 } from "@/data/category_catalog";
 import { category_icon } from "@/data/category_icons";
+import {
+  CATEGORY_COLOR_LABEL_KEYS,
+  CUSTOM_CATEGORY_COLOR_CHOICES,
+  category_color_key,
+  category_color_style,
+} from "@/data/category_colors";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -72,6 +78,7 @@ export function CustomCategoryModal({
 
   const [name, set_name] = useState("");
   const [icon, set_icon] = useState(CUSTOM_CATEGORY_ICON_CHOICES[0]);
+  const [color, set_color] = useState(CUSTOM_CATEGORY_COLOR_CHOICES[0]);
   const [domains_text, set_domains_text] = useState("");
   const [keywords_text, set_keywords_text] = useState("");
   const [expanded, set_expanded] = useState(false);
@@ -82,6 +89,9 @@ export function CustomCategoryModal({
 
     set_name(existing?.name ?? "");
     set_icon(existing?.icon ?? CUSTOM_CATEGORY_ICON_CHOICES[0]);
+    set_color(
+      existing ? category_color_key(existing.id, existing) : CUSTOM_CATEGORY_COLOR_CHOICES[0],
+    );
     set_domains_text(terms_to_text(existing?.match_domains ?? []));
     set_keywords_text(terms_to_text(existing?.match_keywords ?? []));
     set_expanded(false);
@@ -136,6 +146,7 @@ export function CustomCategoryModal({
       id: existing?.id,
       name: trimmed_name,
       icon,
+      color,
       match_domains: domains,
       match_keywords: keywords,
       enabled: existing?.enabled ?? true,
@@ -254,6 +265,37 @@ export function CustomCategoryModal({
                           onClick={() => set_icon(key)}
                         >
                           <ChoiceIcon className="h-4.5 w-4.5 text-txt-secondary" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="block text-[13px] font-medium mb-2 text-txt-secondary">
+                    {t("settings.category_color")}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {CUSTOM_CATEGORY_COLOR_CHOICES.map((key) => {
+                      const is_selected = color === key;
+
+                      return (
+                        <button
+                          key={key}
+                          aria-label={t(CATEGORY_COLOR_LABEL_KEYS[key])}
+                          aria-pressed={is_selected}
+                          className="aster_cat_swatch flex h-9 w-9 items-center justify-center rounded-full transition-transform hover:scale-105"
+                          title={t(CATEGORY_COLOR_LABEL_KEYS[key])}
+                          style={{
+                            ...category_color_style(key),
+                            boxShadow: is_selected
+                              ? "0 0 0 2px var(--modal-bg), 0 0 0 4px var(--cat-fg)"
+                              : "none",
+                          }}
+                          type="button"
+                          onClick={() => set_color(key)}
+                        >
+                          <span className="aster_cat_swatch_dot h-3.5 w-3.5 rounded-full" />
                         </button>
                       );
                     })}

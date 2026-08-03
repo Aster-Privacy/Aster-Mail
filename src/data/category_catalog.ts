@@ -19,6 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { CategoryColorKey } from "@/data/category_colors";
+
+import { is_category_color } from "@/data/category_colors";
 
 export type CategoryIconKey =
   | "inbox"
@@ -184,6 +187,7 @@ export interface CustomCategoryRule {
   id: string;
   name: string;
   icon: CategoryIconKey;
+  color?: CategoryColorKey;
   match_domains: string[];
   match_keywords: string[];
   enabled: boolean;
@@ -245,6 +249,7 @@ export function sanitize_custom_category(
       : make_custom_category_id(),
     name,
     icon,
+    ...(is_category_color(raw.color) ? { color: raw.color } : {}),
     match_domains: clean_terms(raw.match_domains ?? [], is_valid_match_domain),
     match_keywords: clean_terms(
       raw.match_keywords ?? [],

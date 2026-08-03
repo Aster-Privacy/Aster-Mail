@@ -699,6 +699,7 @@ interface DerivedData {
   pages: Map<EmailCategory, string[]>;
   unread_reps: Set<string>;
   thread_reps: Map<string, string>;
+  new_heads: Map<EmailCategory, string>;
 }
 
 let derived: DerivedData | null = null;
@@ -798,6 +799,8 @@ function compute_derived(): DerivedData {
   const grouped = new Map<EmailCategory, { id: string; ts: number }[]>();
   const unread_reps = new Set<string>();
   const thread_reps = new Map<string, string>();
+  const new_heads = new Map<EmailCategory, string>();
+  const new_head_ts = new Map<EmailCategory, number>();
   const wall = derive_wall;
 
   for (const tab of active_tabs) {
@@ -820,6 +823,10 @@ function compute_derived(): DerivedData {
         rep.ts <= wall + FUTURE_NEW_SKEW_MS
       ) {
         bucket.new_count += 1;
+        if (rep.ts > (new_head_ts.get(tab) ?? 0)) {
+          new_head_ts.set(tab, rep.ts);
+          new_heads.set(tab, rep.entry.id);
+        }
       }
     }
     list.push({ id: rep.entry.id, ts: rep.ts });
@@ -842,7 +849,7 @@ function compute_derived(): DerivedData {
     wake_timer = null;
   }
 
-  return { version, counts, pages, unread_reps, thread_reps };
+  return { version, counts, pages, unread_reps, thread_reps, new_heads };
 }
 
 function ensure_derived(): DerivedData {
@@ -855,6 +862,10 @@ function ensure_derived(): DerivedData {
 
 export function get_counts(): CategoryCounts {
   return ensure_derived().counts;
+}
+
+export function get_new_heads(): ReadonlyMap<EmailCategory, string> {
+  return ensure_derived().new_heads;
 }
 
 export function is_index_loaded(): boolean {
