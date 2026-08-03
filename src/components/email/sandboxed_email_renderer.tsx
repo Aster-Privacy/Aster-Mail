@@ -507,11 +507,7 @@ export function SandboxedEmailRenderer({
     : "";
 
   const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
-  const link_hover_css = `a { transition: color 0.12s ease, background-color 0.12s ease; text-decoration-color: ${link_hover_ink} !important; }
-a:hover${LINK_MEDIA_EXCLUDE} {
-  background-color: ${hex_to_rgba(link_hover_ink, 0.16)} !important;
-  border-radius: 3px;
-}
+  const link_hover_css = `a { transition: none; }
 a:hover, a:hover *${LINK_MEDIA_EXCLUDE} {
   color: ${link_hover_ink} !important;
   text-decoration: underline !important;
