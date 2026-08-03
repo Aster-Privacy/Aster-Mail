@@ -228,19 +228,6 @@ fn warn_and_restart(app: &tauri::AppHandle) {
     app.restart();
 }
 
-#[cfg(not(windows))]
-fn warn_and_restart(app: &tauri::AppHandle) {
-    use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
-    app.dialog()
-        .message(
-            "Aster Mail is running but its window is not being drawn.\n\nAster Mail will now restart with hardware acceleration turned off.",
-        )
-        .title("Aster Mail - Display Problem")
-        .kind(MessageDialogKind::Warning)
-        .blocking_show();
-    app.restart();
-}
-
 #[cfg(windows)]
 fn report_persistent_failure(app: &tauri::AppHandle) {
     let runtime = webview2_runtime_version();
@@ -265,10 +252,13 @@ fn report_persistent_failure(app: &tauri::AppHandle) {
 #[cfg(not(windows))]
 fn report_persistent_failure(app: &tauri::AppHandle) {
     use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+    let log_hint = app_local_dir()
+        .map(|d| d.join(BOOT_LOG_FILE).display().to_string())
+        .unwrap_or_else(|| BOOT_LOG_FILE.to_string());
     app.dialog()
-        .message(
-            "Aster Mail still cannot draw its window. Please contact support@astermail.org and mention code WV2-BOOT.",
-        )
+        .message(&format!(
+            "Aster Mail is running but its window is not being drawn.\n\nThis is almost always a graphics driver or system webview problem, not a problem with your account or your mail.\n\nRestarting your computer resolves most cases. If it keeps happening, email support@astermail.org, mention code GFX-BOOT, and attach this file:\n{log_hint}"
+        ))
         .title("Aster Mail - Display Problem")
         .kind(MessageDialogKind::Error)
         .blocking_show();
@@ -312,6 +302,7 @@ pub fn spawn_watchdog(app: tauri::AppHandle) {
             compat_mode_active()
         ));
 
+        #[cfg(windows)]
         if !compat_mode_active() {
             write_marker(COMPAT_MODE_MARKER);
             write_marker(WEBVIEW_RESET_MARKER);
