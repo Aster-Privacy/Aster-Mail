@@ -82,7 +82,6 @@ import {
   is_font_family_loaded,
 } from "@/lib/loaded_fonts";
 import { get_contrast_text_for_css_color } from "@/lib/avatar_color";
-import { get_brand_asset_filter } from "@/lib/accent_filter";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -169,13 +168,11 @@ function sync_accent_derived_appearance() {
 
   if (!accent) {
     root.style.removeProperty("--accent-fg");
-    root.style.removeProperty("--accent-brand-filter");
 
     return;
   }
 
   root.style.setProperty("--accent-fg", get_contrast_text_for_css_color(accent));
-  root.style.setProperty("--accent-brand-filter", get_brand_asset_filter(accent));
 }
 
 function sync_meta_theme_color() {

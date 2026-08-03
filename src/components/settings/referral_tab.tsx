@@ -780,7 +780,6 @@ export function ReferralTab() {
             draggable={false}
             src="/settings/decentralized.webp"
             style={{
-              filter: "var(--accent-brand-filter, none)",
               maskImage:
                 "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
               WebkitMaskImage:
