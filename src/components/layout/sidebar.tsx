@@ -706,7 +706,6 @@ export const Sidebar = ({
                     decoding="async"
                     draggable={false}
                     src="/mail_logo.webp"
-                    style={{ filter: "var(--accent-brand-filter, none)" }}
                     onLoad={() => {
                       mail_logo_cached = true;
                       set_mail_logo_loaded(true);

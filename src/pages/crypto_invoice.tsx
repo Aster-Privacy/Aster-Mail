@@ -450,7 +450,6 @@ function page_shell({ children, on_back, back_label }: PageShellProps) {
             decoding="async"
             draggable={false}
             src="/text_logo.png"
-            style={{ filter: "var(--accent-brand-filter, none)" }}
           />
           <button
             className="inline-flex w-fit items-center gap-2 rounded-full bg-surf-secondary px-3.5 py-2 text-sm font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
