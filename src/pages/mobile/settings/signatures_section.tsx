@@ -576,7 +576,7 @@ export function SignaturesSection({
               <div
                 ref={editor_div_ref}
                 contentEditable
-                className="max-h-[300px] min-h-[150px] overflow-y-auto px-3 py-2 text-[15px] text-[var(--text-primary)] outline-none [&_img]:max-w-full [&_img]:rounded-md"
+                className="max-h-[300px] min-h-[150px] overflow-y-auto px-3 py-2 text-[15px] text-[var(--text-primary)] outline-none [&_img]:max-w-full"
                 onDragOver={rich_editor.handle_drag_over}
                 onDrop={rich_editor.handle_drop}
                 onInput={rich_editor.handle_input}

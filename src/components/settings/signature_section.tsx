@@ -924,7 +924,7 @@ export function SignatureSection() {
                   <div
                     ref={editor_div_ref}
                     contentEditable
-                    className="px-3 py-2 text-sm min-h-[150px] max-h-[300px] overflow-y-auto text-txt-primary outline-none [&_img]:rounded-md [&_img]:max-w-full"
+                    className="px-3 py-2 text-sm min-h-[150px] max-h-[300px] overflow-y-auto text-txt-primary outline-none [&_img]:max-w-full"
                     onDragOver={rich_editor.handle_drag_over}
                     onDrop={rich_editor.handle_drop}
                     onInput={rich_editor.handle_input}
@@ -1068,7 +1068,7 @@ export function SignatureSection() {
                               "<br>",
                             ),
                       }}
-                      className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary border border-edge-primary [&_img]:max-w-full [&_img]:rounded-md [&_img]:h-auto"
+                      className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary border border-edge-primary [&_img]:max-w-full"
                     />
                   </motion.div>
                 ))}

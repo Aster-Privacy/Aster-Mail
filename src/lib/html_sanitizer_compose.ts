@@ -185,10 +185,14 @@ export function sanitize_compose_paste(html: string): string {
       "td",
       "th",
       "caption",
+      "col",
+      "colgroup",
       "img",
       "hr",
       "sub",
       "sup",
+      "font",
+      "center",
     ],
     ALLOWED_ATTR: [
       "href",
@@ -201,15 +205,24 @@ export function sanitize_compose_paste(html: string): string {
       "style",
       "colspan",
       "rowspan",
+      "span",
       "align",
       "valign",
+      "bgcolor",
       "cellpadding",
       "cellspacing",
       "border",
+      "color",
+      "face",
+      "size",
     ],
     ALLOW_DATA_ATTR: false,
   });
 
+  return apply_compose_paste_dom_rules(purified);
+}
+
+export function apply_compose_paste_dom_rules(purified: string): string {
   const doc = new DOMParser().parseFromString(purified, "text/html");
 
   const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
@@ -323,9 +336,12 @@ export function sanitize_compose_paste(html: string): string {
     }
   }
 
-  const o_tags = doc.body.querySelectorAll("o\\:p, o\\:smarttags");
+  const o_tags = [
+    ...Array.from(doc.body.getElementsByTagName("o:p")),
+    ...Array.from(doc.body.getElementsByTagName("o:smarttags")),
+  ];
 
-  for (const tag of Array.from(o_tags)) {
+  for (const tag of o_tags) {
     while (tag.firstChild) tag.parentNode?.insertBefore(tag.firstChild, tag);
 
     tag.parentNode?.removeChild(tag);
