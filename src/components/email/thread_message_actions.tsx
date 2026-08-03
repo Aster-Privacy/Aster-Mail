@@ -174,6 +174,11 @@ export function ThreadMessageActions({
     is_own_reaction_address,
   );
   const can_react = restriction === null;
+  const restriction_message = restriction
+    ? t(`errors.${reaction_restriction_keys[restriction]}`)
+    : "";
+  const show_react_button =
+    can_react || (restriction !== "disabled" && restriction !== "own_message");
   const server_reaction_groups = group_reactions(
     message.reactions,
     auth?.user?.email,
@@ -346,24 +351,37 @@ export function ThreadMessageActions({
           {t("mail.forward")}
         </Button>
       )}
-      {can_react && (
-        <Popover open={is_picker_open} onOpenChange={set_is_picker_open}>
-          <PopoverTrigger asChild>
+      {show_react_button &&
+        (can_react ? (
+          <Popover open={is_picker_open} onOpenChange={set_is_picker_open}>
+            <PopoverTrigger asChild>
+              <button
+                aria-label={t("mail.react")}
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-50 disabled:pointer-events-none"
+                disabled={is_sending_reaction}
+                title={t("mail.react")}
+                type="button"
+              >
+                <FaceSmileIcon className="w-4 h-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-auto border-none bg-transparent p-0 shadow-none">
+              <EmojiPicker on_select={handle_reaction_select} />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <Tooltip tip={restriction_message}>
             <button
-              aria-label={t("mail.react")}
-              className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-50 disabled:pointer-events-none"
-              disabled={is_sending_reaction}
-              title={t("mail.react")}
+              aria-disabled="true"
+              aria-label={restriction_message}
+              className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] opacity-50 cursor-not-allowed"
+              onClick={() => show_toast(restriction_message, "error")}
               type="button"
             >
               <FaceSmileIcon className="w-4 h-4" />
             </button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-auto border-none bg-transparent p-0 shadow-none">
-            <EmojiPicker on_select={handle_reaction_select} />
-          </PopoverContent>
-        </Popover>
-      )}
+          </Tooltip>
+        ))}
       </div>
     </>
   );

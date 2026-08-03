@@ -43,7 +43,9 @@ import {
   try_decrypt_pgp_body,
   try_extract_mime_body,
   extract_subject_bundle,
+  unwrap_bundle_html,
   is_ratchet_envelope,
+  is_password_protected_body,
 } from "@/utils/email_crypto";
 import {
   get_vault_from_memory,
@@ -572,12 +574,18 @@ export async function preload_email_detail(
       const pre_pgp_text = body_text;
 
       body_text = await try_decrypt_pgp_body(body_text);
+
+      const password_protected = is_password_protected_body(body_text);
       const pre_mime_text = body_text;
 
-      body_text = try_extract_mime_body(body_text);
+      body_text = password_protected
+        ? body_text
+        : try_extract_mime_body(body_text);
       const mime_extracted = body_text !== pre_mime_text;
 
-      const subject_bundle = extract_subject_bundle(body_text);
+      const subject_bundle = password_protected
+        ? { subject: null, body: body_text }
+        : extract_subject_bundle(body_text);
       if (subject_bundle.subject !== null) {
         body_text = subject_bundle.body;
         if (!envelope.subject) {
@@ -603,8 +611,14 @@ export async function preload_email_detail(
               : undefined
             : resolved_html;
 
-      if (is_ratchet_envelope(safe_html)) {
+      if (is_ratchet_envelope(safe_html) || password_protected) {
         safe_html = undefined;
+      }
+
+      const html_bundle = unwrap_bundle_html(safe_html);
+      safe_html = html_bundle.html;
+      if (html_bundle.subject !== null && !envelope.subject) {
+        envelope.subject = html_bundle.subject;
       }
 
       const unsubscribe_info = detect_unsubscribe_info(
@@ -632,15 +646,17 @@ export async function preload_email_detail(
           ? { name: preload_reply_to.name, email: preload_reply_to.email }
           : undefined,
         subject: envelope.subject || "",
-        preview: (
-          body_text ||
-          (safe_html
-            ? safe_html
-                .replace(/<[^>]*>/g, " ")
-                .replace(/\s+/g, " ")
-                .trim()
-            : "")
-        ).substring(0, 200),
+        preview: password_protected
+          ? ""
+          : (
+              body_text ||
+              (safe_html
+                ? safe_html
+                    .replace(/<[^>]*>/g, " ")
+                    .replace(/\s+/g, " ")
+                    .trim()
+                : "")
+            ).substring(0, 200),
         timestamp: new Date(
           envelope.sent_at || item.created_at,
         ).toLocaleString(),

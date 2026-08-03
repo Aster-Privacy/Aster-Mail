@@ -311,8 +311,101 @@ export function try_extract_mime_body(text: string): string {
 
 export const PGP_UNDECRYPTABLE_SENTINEL = "\x00ASTER_PGP_UNDECRYPTABLE\x00";
 
-export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
-  if (!body_text.includes(PGP_MESSAGE_BEGIN)) return body_text;
+export const PGP_PASSWORD_PROTECTED_SENTINEL =
+  "\x00ASTER_PGP_PASSWORD_PROTECTED\x00";
+
+const PGP_BLOCK_PATTERN =
+  /-----BEGIN PGP MESSAGE-----[\s\S]*?-----END PGP MESSAGE-----/;
+
+export interface PgpBlockSplit {
+  block: string;
+  rest: string;
+}
+
+export function split_pgp_block(text: string): PgpBlockSplit | null {
+  const match = PGP_BLOCK_PATTERN.exec(text);
+
+  if (!match) return null;
+
+  const before = text.slice(0, match.index);
+  const after = text.slice(match.index + match[0].length);
+  const remainder = `${before}\n${after}`;
+  const visible = remainder
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return { block: match[0], rest: visible.length > 0 ? remainder.trim() : "" };
+}
+
+export async function is_password_encrypted_pgp(armored: string): Promise<boolean> {
+  try {
+    const message = await openpgp.readMessage({ armoredMessage: armored });
+
+    return message.getEncryptionKeyIDs().length === 0;
+  } catch {
+    return false;
+  }
+}
+
+export function encode_password_protected_body(
+  block: string,
+  rest: string,
+): string {
+  return PGP_PASSWORD_PROTECTED_SENTINEL + JSON.stringify({ block, rest });
+}
+
+export function is_password_protected_body(body: string | undefined | null): boolean {
+  return !!body && body.startsWith(PGP_PASSWORD_PROTECTED_SENTINEL);
+}
+
+export function decode_password_protected_body(body: string): PgpBlockSplit {
+  const encoded = body.slice(PGP_PASSWORD_PROTECTED_SENTINEL.length);
+
+  try {
+    const parsed = JSON.parse(encoded) as Partial<PgpBlockSplit>;
+
+    return { block: parsed.block ?? "", rest: parsed.rest ?? "" };
+  } catch {
+    return { block: encoded, rest: "" };
+  }
+}
+
+export async function decrypt_pgp_with_password(
+  armored: string,
+  password: string,
+): Promise<string> {
+  const message = await openpgp.readMessage({ armoredMessage: armored });
+  const result = await openpgp.decrypt({ message, passwords: [password] });
+  const plaintext = result.data.toString();
+
+  return /^content-type\s*:/im.test(plaintext)
+    ? extract_mime_body(plaintext)
+    : plaintext;
+}
+
+export interface ResolvedPgpBody {
+  body: string;
+  decrypted: boolean;
+}
+
+export async function resolve_inbound_pgp_body(
+  body_text: string,
+): Promise<ResolvedPgpBody> {
+  if (!body_text.includes(PGP_MESSAGE_BEGIN)) {
+    return { body: body_text, decrypted: false };
+  }
+
+  const split = split_pgp_block(body_text);
+  const block = split?.block ?? body_text;
+  const rest = split?.rest ?? "";
+
+  if (await is_password_encrypted_pgp(block)) {
+    return { body: encode_password_protected_body(block, rest), decrypted: false };
+  }
+
+  const unavailable = rest || PGP_UNDECRYPTABLE_SENTINEL;
 
   let vault = get_vault_from_memory();
   let passphrase = get_passphrase_from_memory();
@@ -323,33 +416,45 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
     passphrase = get_passphrase_from_memory();
   }
 
-  if (!vault || !passphrase) return PGP_UNDECRYPTABLE_SENTINEL;
+  if (!vault || !passphrase) return { body: unavailable, decrypted: false };
 
   const keys_to_try = [
     vault.identity_key,
     ...(vault.previous_keys ?? []),
   ].filter((k): k is string => !!k);
 
-  if (keys_to_try.length === 0) return PGP_UNDECRYPTABLE_SENTINEL;
+  if (keys_to_try.length === 0) return { body: unavailable, decrypted: false };
 
   for (const secret_key of keys_to_try) {
     try {
-      let decrypted = await decrypt_message(body_text, secret_key, passphrase);
+      let decrypted = await decrypt_message(block, secret_key, passphrase);
 
       if (/^content-type\s*:/im.test(decrypted)) {
         decrypted = extract_mime_body(decrypted);
       }
 
-      return decrypted;
+      return { body: decrypted, decrypted: true };
     } catch (e) {
       if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
     }
   }
 
-  return PGP_UNDECRYPTABLE_SENTINEL;
+  return { body: unavailable, decrypted: false };
 }
 
-export const ASTER_SUBJECT_BUNDLE_PREFIX = "ASTER_BUNDLE_V2";
+export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
+  const resolved = await resolve_inbound_pgp_body(body_text);
+
+  return resolved.body;
+}
+
+export const ASTER_SUBJECT_BUNDLE_MARKER = "ASTER_BUNDLE_V2";
+
+
+const BUNDLE_MARKER_DELIMITER = "";
+
+export const ASTER_SUBJECT_BUNDLE_PREFIX =
+  BUNDLE_MARKER_DELIMITER + ASTER_SUBJECT_BUNDLE_MARKER + BUNDLE_MARKER_DELIMITER;
 
 export interface SubjectBundle {
   subject: string | null;
@@ -357,8 +462,14 @@ export interface SubjectBundle {
 }
 
 export function build_subject_bundle(subject: string, body: string): string {
+  const existing = extract_subject_bundle(body);
+
   return (
-    ASTER_SUBJECT_BUNDLE_PREFIX + JSON.stringify({ s: subject, b: body })
+    ASTER_SUBJECT_BUNDLE_PREFIX +
+    JSON.stringify({
+      s: subject || (existing.subject ?? ""),
+      b: existing.body,
+    })
   );
 }
 
@@ -424,9 +535,18 @@ function scan_bundle_payload(payload: string): SubjectBundle | null {
     if (!key) break;
     const colon = payload.indexOf(":", key.next_index);
     if (colon === -1) break;
-    const value_quote = payload.indexOf('"', colon + 1);
-    if (value_quote === -1) break;
-    const value = read_lenient_json_string(payload, value_quote);
+    let value_start = colon + 1;
+    while (value_start < payload.length && /\s/.test(payload[value_start])) {
+      value_start += 1;
+    }
+    if (value_start >= payload.length) break;
+    if (payload[value_start] !== '"') {
+      const comma = payload.indexOf(",", value_start);
+      if (comma === -1) break;
+      index = comma + 1;
+      continue;
+    }
+    const value = read_lenient_json_string(payload, value_start);
     if (!value) break;
     if (key.value === "s") subject = value.value;
     if (key.value === "b") body = value.value;
@@ -438,20 +558,24 @@ function scan_bundle_payload(payload: string): SubjectBundle | null {
   return { subject, body };
 }
 
-export function extract_subject_bundle(decrypted: string): SubjectBundle {
-  if (!decrypted) return { subject: null, body: decrypted };
+const MAX_SUBJECT_BUNDLE_DEPTH = 8;
 
-  const prefix_index = decrypted.indexOf(ASTER_SUBJECT_BUNDLE_PREFIX);
-  if (
-    prefix_index === -1 ||
-    !BUNDLE_FRAMING_PATTERN.test(decrypted.slice(0, prefix_index))
-  ) {
-    return { subject: null, body: decrypted };
-  }
+function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
+  const marker_index = text.indexOf(ASTER_SUBJECT_BUNDLE_MARKER);
+  if (marker_index === -1) return null;
 
-  const payload = decrypted.slice(
-    prefix_index + ASTER_SUBJECT_BUNDLE_PREFIX.length,
-  );
+  const start_index =
+    marker_index > 0 && text[marker_index - 1] === BUNDLE_MARKER_DELIMITER
+      ? marker_index - 1
+      : marker_index;
+
+  if (!BUNDLE_FRAMING_PATTERN.test(text.slice(0, start_index))) return null;
+
+  let payload_index = marker_index + ASTER_SUBJECT_BUNDLE_MARKER.length;
+
+  if (text[payload_index] === BUNDLE_MARKER_DELIMITER) payload_index += 1;
+
+  const payload = text.slice(payload_index);
 
   try {
     const parsed = JSON.parse(payload);
@@ -465,7 +589,40 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
     }
   } catch {}
 
-  return scan_bundle_payload(payload) ?? { subject: null, body: decrypted };
+  return scan_bundle_payload(payload);
+}
+
+export function extract_subject_bundle(decrypted: string): SubjectBundle {
+  if (!decrypted) return { subject: null, body: decrypted };
+
+  let subject: string | null = null;
+  let body = decrypted;
+  let unwrapped = false;
+
+  for (let depth = 0; depth < MAX_SUBJECT_BUNDLE_DEPTH; depth += 1) {
+    const layer = unwrap_subject_bundle_layer(body);
+    if (!layer) break;
+    if (!subject) subject = layer.subject;
+    body = layer.body;
+    unwrapped = true;
+  }
+
+  if (!unwrapped) return { subject: null, body: decrypted };
+
+  return { subject: subject ?? "", body };
+}
+
+export function unwrap_bundle_html(
+  html: string | undefined,
+): { html: string | undefined; subject: string | null } {
+  if (!html || !html.includes(ASTER_SUBJECT_BUNDLE_MARKER)) {
+    return { html, subject: null };
+  }
+
+  const bundle = extract_subject_bundle(html);
+  if (bundle.subject === null) return { html, subject: null };
+
+  return { html: bundle.body || undefined, subject: bundle.subject };
 }
 
 export async function decrypt_body_text(
@@ -484,6 +641,10 @@ export async function decrypt_body_text(
   );
 
   result = await try_decrypt_pgp_body(result);
+
+  if (is_password_protected_body(result)) {
+    return decode_password_protected_body(result).rest.trim();
+  }
 
   if (/^content-type\s*:/im.test(result)) {
     try {
@@ -596,6 +757,35 @@ export async function discover_external_recipient_keys(
   };
 }
 
+let own_public_key_cache: { private_key: string; public_key: string } | null =
+  null;
+
+export async function derive_own_public_key(): Promise<string | null> {
+  const vault = get_vault_from_memory();
+
+  if (!vault?.identity_key) return null;
+  if (!vault.identity_key.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY")) {
+    return null;
+  }
+
+  if (own_public_key_cache?.private_key === vault.identity_key) {
+    return own_public_key_cache.public_key;
+  }
+
+  try {
+    const private_key = await openpgp.readPrivateKey({
+      armoredKey: vault.identity_key,
+    });
+    const public_key = private_key.toPublic().armor();
+
+    own_public_key_cache = { private_key: vault.identity_key, public_key };
+
+    return public_key;
+  } catch {
+    return null;
+  }
+}
+
 export async function encrypt_for_external_recipients(
   body: string,
   recipient_keys: RecipientKeyResult[],
@@ -607,6 +797,10 @@ export async function encrypt_for_external_recipients(
   if (public_keys.length === 0) {
     return body;
   }
+
+  const own_public_key = await derive_own_public_key();
+
+  if (own_public_key) public_keys.push(own_public_key);
 
   try {
     return await encrypt_message_multi(body, public_keys);

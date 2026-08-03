@@ -145,7 +145,7 @@ export const SidebarAliases = memo(function SidebarAliases({
               </span>
             </button>
             <button
-              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
+              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
               onClick={on_create_alias}
             >
               <PlusIcon className="w-4 h-4" />
@@ -157,7 +157,7 @@ export const SidebarAliases = memo(function SidebarAliases({
       {is_collapsed && (
         <div className="mt-3 flex justify-center">
           <button
-            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-muted"
+            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-icon-muted"
             title={t("common.aliases")}
             onClick={() => on_settings_click("aliases")}
           >

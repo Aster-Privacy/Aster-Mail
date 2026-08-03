@@ -35,6 +35,7 @@ import {
   FAMILY_PLAN_FAMILY_FEATURES,
   SUPPORTED_CURRENCIES,
   convert_cents,
+  is_crypto_provider,
   type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -292,7 +293,7 @@ export function AvailablePlansSection({
     const has_existing_sub =
       !!subscription &&
       subscription.plan.code !== "free" &&
-      subscription.payment_provider !== "stripe_crypto" &&
+      !is_crypto_provider(subscription.payment_provider) &&
       subscription.has_stripe_subscription !== false;
 
     if (has_existing_sub && on_family_plan_change) {

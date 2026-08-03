@@ -18,30 +18,85 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import QRCodeStyling from "qr-code-styling";
-import { useTheme } from "@/contexts/theme_context";
+
+import { use_i18n } from "@/lib/i18n/context";
 
 interface RoundedQrCodeProps {
   value: string;
   size?: number;
   logo_src?: string;
+  aria_label?: string;
 }
 
-const LOGO_CLIP_PATH_ID = "rounded-qr-logo-clip";
+const QR_MODULE_COLOR = "#0f172a";
+const QR_SURFACE_COLOR = "#ffffff";
+const QR_QUIET_ZONE = 12;
+const QR_LOGO_TIMEOUT_MS = 4000;
+const QR_FRAME_GAP_CAP_MS = 200;
 
-function round_logo_corners(container: HTMLDivElement | null) {
-  if (!container) return;
+function build_qr_options(value: string, size: number, logo_src?: string) {
+  return {
+    width: size,
+    height: size,
+    type: "svg" as const,
+    data: value,
+    image: logo_src ?? "",
+    margin: QR_QUIET_ZONE,
+    qrOptions: {
+      errorCorrectionLevel: "H" as const,
+    },
+    imageOptions: {
+      crossOrigin: "anonymous",
+      margin: 1,
+      imageSize: 0.52,
+      hideBackgroundDots: true,
+    },
+    dotsOptions: {
+      type: "dots" as const,
+      color: QR_MODULE_COLOR,
+    },
+    cornersSquareOptions: {
+      type: "extra-rounded" as const,
+      color: QR_MODULE_COLOR,
+    },
+    cornersDotOptions: {
+      type: "dot" as const,
+      color: QR_MODULE_COLOR,
+    },
+    backgroundOptions: {
+      color: QR_SURFACE_COLOR,
+    },
+  };
+}
 
-  const svg = container.querySelector("svg");
+function has_drawn_content(container: HTMLDivElement | null): boolean {
+  const svg = container?.querySelector("svg");
+
+  if (!svg) return false;
+
+  return Array.from(svg.children).some(
+    (child) => child.tagName.toLowerCase() !== "defs",
+  );
+}
+
+function round_logo_corners(
+  container: HTMLDivElement | null,
+  clip_id: string,
+): boolean {
+  const svg = container?.querySelector("svg");
   const image = svg?.querySelector("image");
 
-  if (!svg || !image) return;
+  if (!svg || !image) return false;
 
   const x = image.getAttribute("x") ?? "0";
   const y = image.getAttribute("y") ?? "0";
   const width = parseFloat(image.getAttribute("width") ?? "0");
   const height = parseFloat(image.getAttribute("height") ?? "0");
+
+  if (!(width > 0) || !(height > 0)) return false;
+
   const radius = Math.min(width, height) * 0.28;
 
   let defs = svg.querySelector("defs");
@@ -51,11 +106,14 @@ function round_logo_corners(container: HTMLDivElement | null) {
     svg.insertBefore(defs, svg.firstChild);
   }
 
-  let clip_path = defs.querySelector(`#${LOGO_CLIP_PATH_ID}`);
+  let clip_path = defs.querySelector(`#${clip_id}`);
 
   if (!clip_path) {
-    clip_path = document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
-    clip_path.setAttribute("id", LOGO_CLIP_PATH_ID);
+    clip_path = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "clipPath",
+    );
+    clip_path.setAttribute("id", clip_id);
     defs.appendChild(clip_path);
   }
 
@@ -71,72 +129,119 @@ function round_logo_corners(container: HTMLDivElement | null) {
   rect.setAttribute("ry", String(radius));
   clip_path.appendChild(rect);
 
-  image.setAttribute("clip-path", `url(#${LOGO_CLIP_PATH_ID})`);
+  image.setAttribute("clip-path", `url(#${clip_id})`);
+
+  return true;
 }
 
-export function RoundedQrCode({ value, size = 240, logo_src }: RoundedQrCodeProps) {
-  const { theme } = useTheme();
+export function RoundedQrCode({
+  value,
+  size = 240,
+  logo_src,
+  aria_label,
+}: RoundedQrCodeProps) {
+  const { t } = use_i18n();
   const container_ref = useRef<HTMLDivElement>(null);
   const qr_ref = useRef<QRCodeStyling | null>(null);
   const [is_ready, set_is_ready] = useState(false);
-  const dot_color = theme === "dark" ? "#ffffff" : "#0f172a";
+  const instance_id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const clip_id = `rounded_qr_logo_clip_${instance_id}`;
 
   useEffect(() => {
-    if (!qr_ref.current) {
-      qr_ref.current = new QRCodeStyling({
-        width: size,
-        height: size,
-        type: "svg",
-        data: value,
-        image: logo_src,
-        margin: 0,
-        qrOptions: {
-          errorCorrectionLevel: "H",
-        },
-        imageOptions: {
-          crossOrigin: "anonymous",
-          margin: 1,
-          imageSize: 0.52,
-          hideBackgroundDots: true,
-        },
-        dotsOptions: {
-          type: "dots",
-          color: dot_color,
-        },
-        cornersSquareOptions: {
-          type: "extra-rounded",
-          color: dot_color,
-        },
-        cornersDotOptions: {
-          type: "dot",
-          color: dot_color,
-        },
-        backgroundOptions: {
-          color: "transparent",
-        },
-      });
+    const container = container_ref.current;
 
-      if (container_ref.current) {
-        qr_ref.current.append(container_ref.current);
-      }
-      round_logo_corners(container_ref.current);
-      set_is_ready(true);
+    if (!container) return;
+
+    set_is_ready(false);
+
+    if (!qr_ref.current) {
+      qr_ref.current = new QRCodeStyling(
+        build_qr_options(value, size, logo_src),
+      );
+      qr_ref.current.append(container);
     } else {
-      qr_ref.current.update({
-        data: value,
-        image: logo_src,
-        dotsOptions: { type: "dots", color: dot_color },
-        cornersSquareOptions: { type: "extra-rounded", color: dot_color },
-        cornersDotOptions: { type: "dot", color: dot_color },
-      });
-      round_logo_corners(container_ref.current);
+      qr_ref.current.update(build_qr_options(value, size, logo_src));
     }
-  }, [value, logo_src, size, dot_color]);
+
+    let observer: MutationObserver | null = null;
+    let frame = 0;
+    let visible_ms = 0;
+    let last_timestamp = 0;
+    let is_stopped = false;
+    let is_logo_dropped = false;
+
+    const stop_watching = () => {
+      is_stopped = true;
+
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
+    const settle = (): boolean => {
+      if (!has_drawn_content(container)) return false;
+
+      set_is_ready(true);
+
+      if (!logo_src || is_logo_dropped) return true;
+
+      return round_logo_corners(container, clip_id);
+    };
+
+    if (settle()) return;
+
+    observer = new MutationObserver(() => {
+      if (is_stopped) return;
+      if (settle()) stop_watching();
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+
+    const poll = (timestamp: number) => {
+      frame = 0;
+
+      if (is_stopped) return;
+
+      if (last_timestamp > 0) {
+        visible_ms += Math.min(timestamp - last_timestamp, QR_FRAME_GAP_CAP_MS);
+      }
+
+      last_timestamp = timestamp;
+
+      if (settle()) {
+        stop_watching();
+
+        return;
+      }
+
+      if (visible_ms >= QR_LOGO_TIMEOUT_MS) {
+        if (!logo_src || is_logo_dropped) return;
+
+        is_logo_dropped = true;
+        visible_ms = 0;
+        qr_ref.current?.update(build_qr_options(value, size));
+      }
+
+      frame = requestAnimationFrame(poll);
+    };
+
+    frame = requestAnimationFrame(poll);
+
+    return stop_watching;
+  }, [value, logo_src, size, clip_id]);
 
   return (
     <div
+      aria-label={aria_label ?? t("common.qr_code")}
       className="relative rounded-3xl overflow-hidden"
-      style={{ width: size, height: size }}
+      role="img"
+      style={{ width: size, height: size, backgroundColor: QR_SURFACE_COLOR }}
     >
       {!is_ready && (
         <div className="absolute inset-0 rounded-3xl bg-surf-tertiary animate-pulse" />

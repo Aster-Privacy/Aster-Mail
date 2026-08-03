@@ -222,11 +222,7 @@ class BergamotEngine implements TranslationEngine {
   async is_available(from: LanguageCode, to: LanguageCode): Promise<boolean> {
     if (from === to) return true;
 
-    try {
-      return this.route_supported(await this.load_availability(), from, to);
-    } catch {
-      return false;
-    }
+    return this.route_supported(await this.load_availability(), from, to);
   }
 
   async requires_download(): Promise<number> {

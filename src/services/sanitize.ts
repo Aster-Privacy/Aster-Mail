@@ -29,15 +29,12 @@ export function clamp_password(password: string): string {
 export function sanitize_username(input: string): string {
   return input
     .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "")
-    .slice(0, 32);
+    .replace(/[^a-z0-9._]/g, "")
+    .slice(0, 40);
 }
 
 export function sanitize_username_input(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9._]/g, "")
-    .slice(0, 40);
+  return sanitize_username(input);
 }
 
 export function sanitize_display_name(input: string): string {

@@ -31,6 +31,14 @@ export async function update_tray_badge(unread_count: number): Promise<void> {
       unread_count > 0 ? `Aster Mail - ${unread_count} unread` : "Aster Mail";
 
     await invoke("set_tray_tooltip", { tooltip });
+    const count = Math.max(0, Math.floor(unread_count));
+
+    try {
+      localStorage.setItem("aster_last_unread_badge", String(count));
+    } catch {
+      void 0;
+    }
+    await invoke("set_unread_badge", { count });
   } catch {
     return;
   }

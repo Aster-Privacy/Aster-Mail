@@ -58,7 +58,9 @@ import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
+  is_password_protected_body,
 } from "@/utils/email_crypto";
+import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import {
@@ -98,9 +100,17 @@ export function EmailViewerContent({
     };
   }, [auth?.current_account_id]);
 
+  const [password_unlocked_body, set_password_unlocked_body] = useState<
+    string | null
+  >(null);
+  const password_protected =
+    is_password_protected_body(email.body ?? "") &&
+    password_unlocked_body === null;
+
   useEffect(() => {
     set_force_load_content(false);
     set_banner_dismissed(false);
+    set_password_unlocked_body(null);
   }, [email.id]);
 
   const preloaded_sanitized = use_latched_by_id(
@@ -119,7 +129,10 @@ export function EmailViewerContent({
     );
   }, [email.unsubscribe_info, email.html_content, email.body, email.preview]);
 
-  const raw_content = email.html_content || email.body || email.preview;
+  const raw_content = password_protected
+    ? ""
+    : (password_unlocked_body ??
+      (email.html_content || email.body || email.preview));
 
   const extraction = useMemo(
     () =>
@@ -357,7 +370,8 @@ export function EmailViewerContent({
     email.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
     email.body === PGP_UNDECRYPTABLE_SENTINEL ||
     is_ratchet_envelope(email.body) ||
-    is_ratchet_envelope(email.html_content);
+    is_ratchet_envelope(email.html_content) ||
+    password_protected;
 
   const translation = use_email_translation({
     account_id,
@@ -470,7 +484,12 @@ export function EmailViewerContent({
             status={translation.status}
             target_language={translation.target_language}
           />
-          {html_blocked ? (
+          {password_protected ? (
+            <PgpPasswordProtectedMessage
+              body={email.body ?? ""}
+              on_decrypted={set_password_unlocked_body}
+            />
+          ) : html_blocked ? (
             <SandboxedEmailRenderer
               email_id={email.id}
               is_literal_plain_text

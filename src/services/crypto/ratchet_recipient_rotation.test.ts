@@ -164,7 +164,7 @@ describe("recipient identity pinning (server cannot silently swap ratchet keys)"
     expect(await receive(second.envelope, recipient)).toBe("second message");
   });
 
-  it("refuses to ratchet-bootstrap onto a recipient identity that differs from the pinned one", async () => {
+  it("re-bootstraps onto a rotated recipient identity and re-pins it", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const recipient_gen1 = make_vault((await generate_ratchet_keys())!);
     const recipient_gen2 = make_vault((await generate_ratchet_keys())!);
@@ -187,32 +187,44 @@ describe("recipient identity pinning (server cannot silently swap ratchet keys)"
       signed_prekey_public: recipient_gen2.ratchet_signed_prekey_public!,
     } as Keys);
 
-    const second = await try_send("second message", sender_vault);
+    const second = await send("second message", sender_vault);
 
-    expect(second).toBeNull();
+    expect(second.data.header.message_number).toBe(0);
+    expect(await receive(second.envelope, recipient_gen2)).toBe(
+      "second message",
+    );
   });
 
-  it("pins on first contact so a swapped identity on the very next send is refused", async () => {
+  it("keeps mail flowing across an unverified identity change instead of blocking the pair forever", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
-    const honest = make_vault((await generate_ratchet_keys())!);
-    const attacker = make_vault((await generate_ratchet_keys())!);
+    const gen1 = make_vault((await generate_ratchet_keys())!);
+    const gen2 = make_vault((await generate_ratchet_keys())!);
 
     h.bundle = bundle_for({
-      identity_jwk: honest.ratchet_identity_key!,
-      identity_public: honest.ratchet_identity_public!,
-      signed_prekey_jwk: honest.ratchet_signed_prekey!,
-      signed_prekey_public: honest.ratchet_signed_prekey_public!,
+      identity_jwk: gen1.ratchet_identity_key!,
+      identity_public: gen1.ratchet_identity_public!,
+      signed_prekey_jwk: gen1.ratchet_signed_prekey!,
+      signed_prekey_public: gen1.ratchet_signed_prekey_public!,
     } as Keys);
 
-    expect(await try_send("legit", sender_vault)).not.toBeNull();
+    expect(await try_send("before rotation", sender_vault)).not.toBeNull();
 
     h.bundle = bundle_for({
-      identity_jwk: attacker.ratchet_identity_key!,
-      identity_public: attacker.ratchet_identity_public!,
-      signed_prekey_jwk: attacker.ratchet_signed_prekey!,
-      signed_prekey_public: attacker.ratchet_signed_prekey_public!,
+      identity_jwk: gen2.ratchet_identity_key!,
+      identity_public: gen2.ratchet_identity_public!,
+      signed_prekey_jwk: gen2.ratchet_signed_prekey!,
+      signed_prekey_public: gen2.ratchet_signed_prekey_public!,
     } as Keys);
 
-    expect(await try_send("intercept", sender_vault)).toBeNull();
+    const after_rotation = await try_send("after rotation", sender_vault);
+
+    expect(after_rotation).not.toBeNull();
+
+    const rotated_envelope = build_ratchet_envelope(
+      sender_vault.ratchet_identity_public!,
+      { [RECIPIENT]: after_rotation! },
+    );
+
+    expect(await receive(rotated_envelope, gen2)).toBe("after rotation");
   });
 });

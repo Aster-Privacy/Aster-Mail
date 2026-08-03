@@ -46,7 +46,9 @@ import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
+  is_password_protected_body,
 } from "@/utils/email_crypto";
+import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { resolve_received_on_address } from "@/utils/delivered_to";
@@ -118,15 +120,30 @@ export function MobileThreadMessage({
     };
   }, [auth?.current_account_id]);
 
+  const [password_unlocked_body, set_password_unlocked_body] = useState<string | null>(
+    null,
+  );
+  const password_protected =
+    is_password_protected_body(message.body) && password_unlocked_body === null;
+
+  useEffect(() => {
+    set_password_unlocked_body(null);
+  }, [message.id]);
+
   const clean_body = useMemo(() => {
+    if (password_unlocked_body !== null) {
+      return password_unlocked_body;
+    }
+
     if (message.html_content && !is_ratchet_envelope(message.html_content)) {
       return message.html_content;
     }
 
     return strip_quotes(message.body);
-  }, [message.body, message.html_content]);
+  }, [message.body, message.html_content, password_unlocked_body]);
 
   const has_plaintext_body =
+    !password_protected &&
     !!message.body &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
     message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
@@ -139,13 +156,17 @@ export function MobileThreadMessage({
       is_ratchet_envelope(message.html_content));
 
   const collapsed_preview = useMemo(() => {
+    if (password_protected) {
+      return t("mail.pgp_password_protected_title");
+    }
+
     if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL || clean_body === PGP_UNDECRYPTABLE_SENTINEL) {
       return t("mail.encrypted_message_unavailable");
     }
     const plain = strip_html_tags(clean_body);
 
     return plain.length > 60 ? plain.substring(0, 60) + "..." : plain;
-  }, [clean_body, t]);
+  }, [clean_body, password_protected, t]);
 
   const is_system = is_system_email(message.sender_email);
   const show_sender_name = message.display_sender_name ?? message.sender_name;
@@ -388,7 +409,13 @@ export function MobileThreadMessage({
       </div>
 
       <div className={`overflow-hidden ${is_system ? "pt-2 pb-1" : ""}`}>
-        {is_ratchet_undecryptable ? (
+        {password_protected ? (
+          <PgpPasswordProtectedMessage
+            body={message.body}
+            className="px-4 py-3"
+            on_decrypted={set_password_unlocked_body}
+          />
+        ) : is_ratchet_undecryptable ? (
           <p className="px-4 py-3 text-[14px] italic text-[var(--text-muted)]">
             {t("mail.encrypted_message_unavailable")}
           </p>

@@ -29,6 +29,7 @@ import {
   UserIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
+import { Spinner } from "@/components/ui/spinner";
 
 import { use_should_reduce_motion } from "@/provider";
 import { get_initials as compute_initials, get_active_locale } from "@/lib/initials";
@@ -346,8 +347,8 @@ export function ContactMergeModal({
           >
             {is_merging ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 {t("common.merging")}
+                <Spinner size="sm" />
               </>
             ) : (
               <>

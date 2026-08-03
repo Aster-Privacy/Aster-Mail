@@ -197,7 +197,7 @@ export const SidebarFolders = memo(function SidebarFolders({
             </button>
             <button
               aria-label={t("common.create_folder")}
-              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
+              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
               title={t("common.create_folder")}
               onClick={() => set_is_create_folder_open(true)}
             >
@@ -210,7 +210,7 @@ export const SidebarFolders = memo(function SidebarFolders({
       {is_collapsed && !is_pinned && (
         <div className="mt-3 flex justify-center">
           <button
-            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-muted"
+            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-icon-muted"
             title={t("common.create_folder")}
             onClick={() => set_is_create_folder_open(true)}
           >
@@ -520,7 +520,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                         (folder.is_password_protected &&
                           (!folder.password_set ||
                             !is_folder_unlocked(folder.id)))) && (
-                        <LockClosedIcon className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-txt-primary bg-surf-secondary" />
+                        <LockClosedIcon className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-icon-active bg-surf-secondary" />
                       )}
                     </div>
                     {!is_collapsed && (
@@ -529,7 +529,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                           {folder.name}
                         </span>
                         {is_locked_closed && (
-                          <LockClosedIcon className="w-3 h-3 ml-1 text-txt-muted" />
+                          <LockClosedIcon className="w-3 h-3 ml-1 text-icon-muted" />
                         )}
                         {!is_locked_closed && (
                           <CountBadge

@@ -200,8 +200,8 @@ export function ConfirmationModal({
           >
             {is_saving ? (
               <>
-                <Spinner className="mr-2" size="md" />
                 {t("common.saving")}
+                <Spinner className="ml-2" size="md" />
               </>
             ) : (
               resolved_confirm_text

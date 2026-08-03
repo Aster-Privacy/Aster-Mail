@@ -111,6 +111,8 @@ updates/UPLOAD.md
 /_test_*
 /_screenshot_*.png
 /*_tmp.mjs
+/*_tmp.png
+/probe_*.png
 /debug*.png
 /login_debug.png
 /mail_home_debug.png

@@ -75,8 +75,12 @@ import { format_bytes } from "@/lib/utils";
 import {
   discover_external_recipient_keys,
   build_subject_bundle,
+  derive_own_public_key,
 } from "@/utils/email_crypto";
-import { is_ghost_email } from "@/stores/ghost_alias_store";
+import {
+  is_ghost_email,
+  looks_like_unregistered_ghost_email,
+} from "@/stores/ghost_alias_store";
 import { en } from "@/lib/i18n/translations/en";
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -88,6 +92,20 @@ export async function resolve_username_for_key_lookup(
   email: string,
 ): Promise<string | null> {
   if (is_ghost_email(email)) {
+    const account = await get_current_account();
+
+    if (account?.user?.username) {
+      return account.user.username;
+    }
+  }
+
+  return extract_username_from_email(email);
+}
+
+export async function resolve_own_username_for_key_lookup(
+  email: string,
+): Promise<string | null> {
+  if (is_ghost_email(email) || looks_like_unregistered_ghost_email(email)) {
     const account = await get_current_account();
 
     if (account?.user?.username) {
@@ -260,7 +278,7 @@ export async function encrypt_for_recipients(
 
       if (!internal_recipients.some((r) => r.toLowerCase() === sender_lower)) {
         const sender_username =
-          await resolve_username_for_key_lookup(sender_email);
+          await resolve_own_username_for_key_lookup(sender_email);
 
         if (sender_username) {
           const self_result = await encrypt_for_ratchet_recipient(
@@ -306,6 +324,13 @@ export async function encrypt_for_recipients(
     const key_response = await get_recipient_public_key(username, recipient);
 
     if (key_response.error || !key_response.data) {
+      if (key_response.code && key_response.code !== "NOT_FOUND") {
+        throw create_error(
+          "encryption_failed",
+          en.errors.failed_encrypt_envelope,
+        );
+      }
+
       throw create_error(
         "encryption_failed",
         en.errors.cannot_send_no_recipient_keys,
@@ -330,6 +355,10 @@ export async function encrypt_for_recipients(
             (armored_secret_key) => ({ armored_secret_key, passphrase }),
           )
         : undefined;
+    const own_public_key = await derive_own_public_key();
+
+    if (own_public_key) public_keys.push(own_public_key);
+
     const encrypted = await encrypt_message_multi(body, public_keys, signing_key);
 
     return { encrypted_body: encrypted, is_encrypted: true };
@@ -541,10 +570,17 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     const recipient_public_keys =
       await fetch_internal_public_keys(all_recipients);
 
+    if (is_encrypted && recipient_public_keys.length === 0) {
+      throw create_error(
+        "encryption_failed",
+        en.errors.cannot_send_no_recipient_keys,
+      );
+    }
+
     encrypted_attachments = await encrypt_attachments_for_send(
       all_attachments,
       recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
-      recipient_public_keys.length > 0,
+      is_encrypted,
     );
   }
 

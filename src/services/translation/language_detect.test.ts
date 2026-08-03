@@ -360,3 +360,59 @@ describe("should_keep_translation", () => {
     expect(should_keep_translation({ ...keep_base, source: null })).toBe(false);
   });
 });
+
+describe("single stopword false positives", () => {
+  beforeEach(() => {
+    clear_detection_cache();
+  });
+
+  it("does not call an English message Spanish because of a surname", () => {
+    const text =
+      "Hello,\nYES! It works without errors now, thanks a lot!\n\nBest regards,\nBruno Del Frate";
+
+    expect(detect_language(text)).toBeNull();
+  });
+
+  it("does not call an English message Dutch because of a surname", () => {
+    const text =
+      "Hi there, quick update: the report is ready and I will send it over shortly.\n\nRegards,\nJan Van Dijk";
+
+    expect(detect_language(text)?.language).not.toBe("nl");
+  });
+
+  it("does not call an English message Italian because of the word per", () => {
+    const text =
+      "Unfortunately, still same result.\nFile version 1.4.59 as per windows properties of downloaded file.\n\nSecured by Aster Mail";
+
+    expect(detect_language(text)).toBeNull();
+  });
+
+  it("still detects a genuine Italian message", () => {
+    const text =
+      "Ciao, grazie per la risposta. Non sono riuscito a completare la procedura che mi hai indicato, quindi vorrei chiedere anche un altro chiarimento sulla configurazione del dominio.";
+
+    expect(detect_language(text)?.language).toBe("it");
+  });
+
+  it("still detects a genuine Spanish message", () => {
+    const text =
+      "Hola, hemos recibido su pedido y le agradecemos su confianza. Puede consultar la factura adjunta para mas detalles.";
+
+    expect(detect_language(text)?.language).toBe("es");
+  });
+
+  it("offers nothing for an English message signed with a foreign surname", () => {
+    const decision = decide_translation({
+      mode: "ask",
+      translatable: true,
+      message_id: "surname-only",
+      body_text:
+        "Hello,\nYES! It works without errors now, thanks a lot!\n\nBest regards,\nBruno Del Frate",
+      target: "en",
+      configured_accepted: [],
+      never_languages: new Set<LanguageCode>(),
+    });
+
+    expect(decision.kind).toBe("idle");
+  });
+});

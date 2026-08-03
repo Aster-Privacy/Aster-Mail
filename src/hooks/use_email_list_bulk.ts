@@ -51,12 +51,14 @@ interface UseEmailListBulkParams {
   fetch_page_ref: MutableRefObject<
     ((page: number, limit: number, force?: boolean) => Promise<void>) | null
   >;
+  page_size?: number;
 }
 
 export function use_email_list_bulk({
   state,
   set_state,
   fetch_page_ref,
+  page_size = DEFAULT_PAGE_SIZE,
 }: UseEmailListBulkParams) {
   const bulk_delete = useCallback(
     async (ids: string[]): Promise<void> => {
@@ -170,7 +172,7 @@ export function use_email_list_bulk({
 
         set_state((prev) => {
           if (prev.emails.length === 0 && prev.has_more) {
-            fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+            fetch_page_ref.current?.(0, page_size);
           }
 
           return prev;
@@ -209,7 +211,7 @@ export function use_email_list_bulk({
         });
       }
     },
-    [state.emails, set_state, fetch_page_ref],
+    [state.emails, set_state, fetch_page_ref, page_size],
   );
 
   const bulk_archive = useCallback(
@@ -283,7 +285,7 @@ export function use_email_list_bulk({
 
         set_state((prev) => {
           if (prev.emails.length === 0 && prev.has_more) {
-            fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+            fetch_page_ref.current?.(0, page_size);
           }
 
           return prev;
@@ -315,7 +317,7 @@ export function use_email_list_bulk({
         });
       }
     },
-    [state.emails, set_state, fetch_page_ref],
+    [state.emails, set_state, fetch_page_ref, page_size],
   );
 
   const bulk_unarchive = useCallback(
@@ -380,7 +382,7 @@ export function use_email_list_bulk({
         const remaining = state.emails.filter((e) => !id_set.has(e.id));
 
         if (remaining.length === 0 && state.has_more) {
-          fetch_page_ref.current?.(0, DEFAULT_PAGE_SIZE);
+          fetch_page_ref.current?.(0, page_size);
         }
 
         setTimeout(() => {
@@ -406,7 +408,7 @@ export function use_email_list_bulk({
         }));
       }
     },
-    [state.emails, state.has_more, set_state, fetch_page_ref],
+    [state.emails, state.has_more, set_state, fetch_page_ref, page_size],
   );
 
   return {

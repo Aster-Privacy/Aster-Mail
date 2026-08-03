@@ -283,8 +283,8 @@ export function DeleteAccountModal({
         >
           {is_deleting ? (
             <span className="flex items-center gap-2">
-              <Spinner size="md" />
               {t("settings.deleting_label")}
+              <Spinner size="md" />
             </span>
           ) : (
             t("settings.delete_account_button")

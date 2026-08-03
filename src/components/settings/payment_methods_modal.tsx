@@ -265,8 +265,8 @@ function AddPaymentForm({
         >
           {is_submitting ? (
             <span className="flex items-center gap-2">
-              <Spinner size="xs" />
               {t("settings.adding_card")}
+              <Spinner size="xs" />
             </span>
           ) : (
             t("settings.save_card")

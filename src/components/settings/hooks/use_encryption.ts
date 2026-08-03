@@ -24,6 +24,8 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
+import type { ApiResponse } from "@/services/api/client";
+import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
 import { get_user_info } from "@/services/api/auth";
 import {
   derive_password_hash,
@@ -156,7 +158,13 @@ export function use_encryption() {
         await Promise.all([
           api_client
             .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
-            .catch(() => ({ data: null, error: "network_error" })),
+            .catch(
+              () =>
+                ({
+                  data: undefined,
+                  error: "network_error",
+                }) as ApiResponse<PgpKeyInfo>,
+            ),
           api_client
             .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
             .catch(() => ({ data: null, error: null })),
@@ -175,6 +183,16 @@ export function use_encryption() {
 
       if (key_response.data) {
         set_pgp_key(key_response.data);
+      } else if (key_response.code === "NOT_FOUND") {
+        const heal_result = await ensure_pgp_key_published({ force: true });
+
+        if (heal_result === "healed") {
+          const refetched = await api_client
+            .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
+            .catch(() => ({ data: undefined }) as ApiResponse<PgpKeyInfo>);
+
+          if (refetched.data) set_pgp_key(refetched.data);
+        }
       } else if (key_response.error) {
         set_pgp_key_load_failed(true);
       }

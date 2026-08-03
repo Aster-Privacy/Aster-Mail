@@ -187,7 +187,7 @@ export function HeaderToolbar({
       {!hide_refresh && (
         <Tooltip tip={t("common.refresh")}>
           <Button
-            className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+            className="hidden md:flex h-8 w-8 text-[var(--icon-muted)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
             size="icon"
             variant="ghost"
             onClick={handle_refresh}
@@ -206,7 +206,7 @@ export function HeaderToolbar({
           <Tooltip tip={t("mail.quick_actions")}>
             <DropdownMenuTrigger asChild>
               <Button
-                className="hidden md:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                className="hidden md:flex h-8 w-8 text-[var(--icon-muted)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
                 size="icon"
                 variant="ghost"
               >
@@ -269,7 +269,7 @@ export function HeaderToolbar({
 
       <Tooltip tip={t("settings.title")}>
         <Button
-          className="hidden lg:flex h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+          className="hidden lg:flex h-8 w-8 text-[var(--icon-muted)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
           data-onboarding="settings-button"
           size="icon"
           variant="ghost"
@@ -305,7 +305,7 @@ export function MobileOverflowMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button className="md:hidden h-8 w-8" size="icon" variant="ghost">
-          <EllipsisVerticalIcon className="w-4 h-4 text-[var(--text-secondary)]" />
+          <EllipsisVerticalIcon className="w-4 h-4 text-[var(--icon-secondary)]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

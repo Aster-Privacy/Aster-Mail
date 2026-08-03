@@ -469,6 +469,16 @@ class MailStatsStore {
 
 const stats_store = new MailStatsStore();
 
+const BACKGROUND_RECONCILE_MS = NORMAL_TTL_MS;
+
+if (typeof window !== "undefined") {
+  setInterval(() => {
+    if (has_passphrase_in_memory() && stats_store.is_stale()) {
+      void stats_store.fetch(false);
+    }
+  }, BACKGROUND_RECONCILE_MS);
+}
+
 export function should_reconcile_on_item_update(
   detail: MailItemUpdatedEventDetail | null | undefined,
 ): boolean {

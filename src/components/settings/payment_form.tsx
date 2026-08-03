@@ -917,8 +917,8 @@ export function PaymentForm({
       >
         {phase === "processing" ? (
           <span className="flex items-center gap-2">
-            <Spinner size="sm" />
             {t("settings.processing_payment")}
+            <Spinner size="sm" />
           </span>
         ) : selected_method === "crypto" ? (
           t("settings.crypto_pay_now")

@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { EncryptedVault, base64_to_array } from "./key_manager";
+import {
+  EncryptedVault,
+  base64_to_array,
+  normalize_vault_fields,
+} from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
 
 const HASH_ALG = ["SHA", "256"].join("-");
@@ -147,7 +151,7 @@ export async function decrypt_vault_backup(
 
   const vault_json = new TextDecoder().decode(decrypted);
 
-  return JSON.parse(vault_json);
+  return normalize_vault_fields(JSON.parse(vault_json));
 }
 
 export async function encrypt_recovery_key_with_code(

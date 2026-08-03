@@ -23,6 +23,117 @@ export const ADDON_BADGES: Record<string, "popular" | "best_value"> = {
   "10 TB": "best_value",
 };
 
+export const CRYPTO_PAYMENT_PROVIDERS = ["stripe_crypto", "crypto_native"];
+
+export const CRYPTO_INVOICE_CHANGED_EVENT = "aster:crypto-invoice-changed";
+
+export function notify_crypto_invoice_changed(): void {
+  window.dispatchEvent(new CustomEvent(CRYPTO_INVOICE_CHANGED_EVENT));
+}
+
+const CRYPTO_RESUME_KEY = "aster_crypto_resume_selection";
+
+export interface CryptoResumeSelection {
+  invoice_id: string;
+  plan_code: string;
+  term_months: number;
+  currency: string;
+  chain: string;
+}
+
+interface StoredCryptoResume extends CryptoResumeSelection {
+  resume: boolean;
+}
+
+function read_crypto_resume(): StoredCryptoResume | null {
+  try {
+    const raw = sessionStorage.getItem(CRYPTO_RESUME_KEY);
+
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Partial<StoredCryptoResume>;
+
+    if (
+      typeof parsed?.invoice_id !== "string" ||
+      typeof parsed?.plan_code !== "string" ||
+      typeof parsed?.currency !== "string" ||
+      typeof parsed?.chain !== "string" ||
+      typeof parsed?.term_months !== "number"
+    ) {
+      return null;
+    }
+
+    return {
+      invoice_id: parsed.invoice_id,
+      plan_code: parsed.plan_code,
+      term_months: parsed.term_months,
+      currency: parsed.currency,
+      chain: parsed.chain,
+      resume: parsed.resume === true,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function remember_crypto_selection(
+  selection: CryptoResumeSelection,
+): void {
+  try {
+    sessionStorage.setItem(
+      CRYPTO_RESUME_KEY,
+      JSON.stringify({ ...selection, resume: false }),
+    );
+  } catch {
+    return;
+  }
+}
+
+export function request_crypto_resume(invoice_id: string): void {
+  const stored = read_crypto_resume();
+
+  if (!stored || stored.invoice_id !== invoice_id) return;
+
+  try {
+    sessionStorage.setItem(
+      CRYPTO_RESUME_KEY,
+      JSON.stringify({ ...stored, resume: true }),
+    );
+  } catch {
+    return;
+  }
+}
+
+export function forget_crypto_selection(): void {
+  try {
+    sessionStorage.removeItem(CRYPTO_RESUME_KEY);
+  } catch {
+    return;
+  }
+}
+
+export function take_crypto_resume(): CryptoResumeSelection | null {
+  const stored = read_crypto_resume();
+
+  if (!stored?.resume) return null;
+
+  forget_crypto_selection();
+
+  return {
+    invoice_id: stored.invoice_id,
+    plan_code: stored.plan_code,
+    term_months: stored.term_months,
+    currency: stored.currency,
+    chain: stored.chain,
+  };
+}
+
+export function is_crypto_provider(
+  provider: string | null | undefined,
+): boolean {
+  return !!provider && CRYPTO_PAYMENT_PROVIDERS.includes(provider);
+}
+
 export interface PlanTier {
   id: string;
   name: string;

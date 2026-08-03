@@ -433,8 +433,8 @@ export function DomainForm({
             >
               {saving ? (
                 <>
-                  <Spinner size="xs" />
                   {t("common.adding")}
+                  <Spinner size="xs" />
                 </>
               ) : (
                 <>

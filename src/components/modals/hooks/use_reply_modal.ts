@@ -48,6 +48,7 @@ import {
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -994,6 +995,13 @@ export function use_reply_modal({
     set_error_message(null);
     set_is_sending(true);
 
+    if (preferences.auto_save_recent_recipients) {
+      void auto_save_recipients_to_contacts(
+        [...send_recipients.to, ...send_recipients.cc],
+        { own_addresses },
+      );
+    }
+
     const original: OriginalEmail = {
       sender_email: recipient_email,
       sender_name: recipient_name,
@@ -1246,6 +1254,7 @@ export function use_reply_modal({
     preferences.undo_send_period,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
+    preferences.auto_save_recent_recipients,
 
     on_close,
     draft_id,

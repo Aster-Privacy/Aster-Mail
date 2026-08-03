@@ -22,6 +22,7 @@
 import { useRef, useState } from "react";
 import {
   GlobeAltIcon,
+  LinkIcon,
   PlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -162,8 +163,8 @@ export function AliasWebsitesEditor({
     : "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-txt-muted opacity-60 hover:opacity-100";
 
   const empty_add_class = is_mobile
-    ? "mt-1 block max-w-full cursor-pointer truncate text-left text-[13px] text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
-    : "mt-0.5 block max-w-full cursor-pointer truncate text-left text-xs text-txt-muted opacity-70 hover:opacity-100 focus:outline-none focus:ring-0";
+    ? "mt-1 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-[13px] leading-5 text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
+    : "mt-0.5 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-xs leading-4 text-txt-muted opacity-70 hover:opacity-100 focus:outline-none focus:ring-0";
 
   if (current.length === 0 && !is_adding) {
     return (
@@ -174,7 +175,10 @@ export function AliasWebsitesEditor({
         type="button"
         onClick={() => set_is_adding(true)}
       >
-        {t("common.add_alias_website_placeholder")}
+        <LinkIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+        <span className="truncate">
+          {t("common.add_alias_website_placeholder")}
+        </span>
       </button>
     );
   }

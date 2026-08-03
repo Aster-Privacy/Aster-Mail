@@ -483,8 +483,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           variant="depth"
           onClick={handle_verify_submit}
         >
-          {verify_loading ? <Spinner className="mr-2" size="md" /> : null}
           {t("settings.export_verify_submit")}
+          {verify_loading ? <Spinner className="ml-2" size="md" /> : null}
         </Button>
       </>
     );

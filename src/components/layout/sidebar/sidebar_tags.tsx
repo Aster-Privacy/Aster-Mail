@@ -123,7 +123,7 @@ export const SidebarTags = memo(function SidebarTags({
               </span>
             </button>
             <button
-              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted"
+              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
               onClick={() => set_is_create_tag_open(true)}
             >
               <PlusIcon className="w-4 h-4" />
@@ -135,7 +135,7 @@ export const SidebarTags = memo(function SidebarTags({
       {is_collapsed && (
         <div className="mt-3 flex justify-center">
           <button
-            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-muted"
+            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-icon-muted"
             title={t("common.create_label")}
             onClick={() => set_is_create_tag_open(true)}
           >

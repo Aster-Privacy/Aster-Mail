@@ -21,9 +21,11 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  ASTER_SUBJECT_BUNDLE_MARKER,
   ASTER_SUBJECT_BUNDLE_PREFIX,
   build_subject_bundle,
   extract_subject_bundle,
+  unwrap_bundle_html,
 } from "./email_crypto";
 
 function encode_bundle(subject: string, body: string): string {
@@ -67,6 +69,22 @@ describe("build_subject_bundle round trip", () => {
     const result = extract_subject_bundle(encoded);
     expect(result.subject).toBe("subject only");
     expect(result.body).toBe("");
+  });
+
+  it("does not nest when the body is already a bundle", () => {
+    const already = build_subject_bundle("first", "<p>body</p>");
+    const rewrapped = build_subject_bundle("first", already);
+    expect(rewrapped).toBe(already);
+    const result = extract_subject_bundle(rewrapped);
+    expect(result.subject).toBe("first");
+    expect(result.body).toBe("<p>body</p>");
+  });
+
+  it("keeps the inner subject when rewrapping without one", () => {
+    const already = build_subject_bundle("kept subject", "<p>body</p>");
+    const result = extract_subject_bundle(build_subject_bundle("", already));
+    expect(result.subject).toBe("kept subject");
+    expect(result.body).toBe("<p>body</p>");
   });
 
   it("produces output recognized by the extractor prefix check", () => {
@@ -125,12 +143,12 @@ describe("extract_subject_bundle", () => {
     expect(result.body).toBe(wrong_shape);
   });
 
-  it("falls back when fields are wrong types", () => {
+  it("recovers the body when the subject field is the wrong type", () => {
     const wrong_types =
       ASTER_SUBJECT_BUNDLE_PREFIX + JSON.stringify({ s: 1, b: "ok" });
     const result = extract_subject_bundle(wrong_types);
-    expect(result.subject).toBeNull();
-    expect(result.body).toBe(wrong_types);
+    expect(result.subject).toBe("");
+    expect(result.body).toBe("ok");
   });
 
   it("does not match when prefix appears mid-string", () => {
@@ -187,11 +205,115 @@ describe("extract_subject_bundle", () => {
     expect(result.body).toBe("body text");
   });
 
+  it("unwraps a double wrapped bundle and keeps the inner subject", () => {
+    const inner = encode_bundle("AsterMail not allowed", "<div>Hi there</div>");
+    const outer = encode_bundle("", inner);
+    const result = extract_subject_bundle(outer);
+    expect(result.subject).toBe("AsterMail not allowed");
+    expect(result.body).toBe("<div>Hi there</div>");
+    expect(result.body).not.toContain(ASTER_SUBJECT_BUNDLE_PREFIX);
+  });
+
+  it("unwraps deeply nested bundles", () => {
+    let encoded = encode_bundle("deep subject", "final body");
+    for (let depth = 0; depth < 4; depth += 1) {
+      encoded = encode_bundle("", encoded);
+    }
+    const result = extract_subject_bundle(encoded);
+    expect(result.subject).toBe("deep subject");
+    expect(result.body).toBe("final body");
+  });
+
+  it("adopts the body when the payload carries no subject key", () => {
+    const body_only = ASTER_SUBJECT_BUNDLE_PREFIX + '{"b":"only body"}';
+    const result = extract_subject_bundle(body_only);
+    expect(result.subject).toBe("");
+    expect(result.body).toBe("only body");
+  });
+
+  it("recovers the body when the subject value is not a string", () => {
+    const non_string = ASTER_SUBJECT_BUNDLE_PREFIX + '{"s":null,"b":"real body"}';
+    const result = extract_subject_bundle(non_string);
+    expect(result.body).toBe("real body");
+    expect(result.body).not.toContain(ASTER_SUBJECT_BUNDLE_PREFIX);
+  });
+
   it("never leaks the raw bundle marker for a recoverable payload", () => {
     const messy =
       "" + ASTER_SUBJECT_BUNDLE_PREFIX + '{"s":"Re: ","b":"hello"}';
     const result = extract_subject_bundle(messy);
     expect(result.body).not.toContain(ASTER_SUBJECT_BUNDLE_PREFIX);
     expect(result.body).toBe("hello");
+  });
+});
+
+describe("mobile client bundle compatibility", () => {
+  function encode_mobile_bundle(subject: string, body: string): string {
+    return ASTER_SUBJECT_BUNDLE_MARKER + JSON.stringify({ s: subject, b: body });
+  }
+
+  it("decodes an undelimited bundle sent by a mobile client", () => {
+    const result = extract_subject_bundle(
+      encode_mobile_bundle("Quarterly report", "<div>please review</div>"),
+    );
+    expect(result.subject).toBe("Quarterly report");
+    expect(result.body).toBe("<div>please review</div>");
+    expect(result.body).not.toContain(ASTER_SUBJECT_BUNDLE_MARKER);
+  });
+
+  it("decodes an undelimited bundle nested inside a delimited one", () => {
+    const inner = encode_mobile_bundle("inner subject", "inner body");
+    const outer = ASTER_SUBJECT_BUNDLE_PREFIX + JSON.stringify({ s: "", b: inner });
+    const result = extract_subject_bundle(outer);
+    expect(result.subject).toBe("inner subject");
+    expect(result.body).toBe("inner body");
+  });
+
+  it("decodes a delimited bundle nested inside an undelimited one", () => {
+    const inner = ASTER_SUBJECT_BUNDLE_PREFIX + JSON.stringify({ s: "inner subject", b: "inner body" });
+    const outer = encode_mobile_bundle("", inner);
+    const result = extract_subject_bundle(outer);
+    expect(result.subject).toBe("inner subject");
+    expect(result.body).toBe("inner body");
+  });
+
+  it("decodes an undelimited bundle framed by control characters", () => {
+    const result = extract_subject_bundle(
+      "\u0000\ufeff" + encode_mobile_bundle("Hi", "there"),
+    );
+    expect(result.subject).toBe("Hi");
+    expect(result.body).toBe("there");
+  });
+
+  it("recovers a truncated undelimited payload", () => {
+    const truncated = ASTER_SUBJECT_BUNDLE_MARKER + '{"s":"Re: ","b":"<p>Thanks!</p>';
+    const result = extract_subject_bundle(truncated);
+    expect(result.subject).toBe("Re: ");
+    expect(result.body).toBe("<p>Thanks!</p>");
+  });
+
+  it("rewraps an undelimited bundle into the delimited form without nesting", () => {
+    const rewrapped = build_subject_bundle(
+      "",
+      encode_mobile_bundle("original subject", "original body"),
+    );
+    expect(rewrapped.startsWith(ASTER_SUBJECT_BUNDLE_PREFIX)).toBe(true);
+    const result = extract_subject_bundle(rewrapped);
+    expect(result.subject).toBe("original subject");
+    expect(result.body).toBe("original body");
+  });
+
+  it("unwraps an undelimited bundle carried in html", () => {
+    const result = unwrap_bundle_html(
+      encode_mobile_bundle("html subject", "<p>html body</p>"),
+    );
+    expect(result.subject).toBe("html subject");
+    expect(result.html).toBe("<p>html body</p>");
+  });
+
+  it("leaves plain text without a marker untouched", () => {
+    const result = extract_subject_bundle("just a normal message");
+    expect(result.subject).toBeNull();
+    expect(result.body).toBe("just a normal message");
   });
 });

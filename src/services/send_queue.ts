@@ -485,10 +485,17 @@ async function prepare_email_for_server_queue(
     const recipient_public_keys =
       await fetch_internal_public_keys(all_recipients);
 
+    if (is_encrypted && recipient_public_keys.length === 0) {
+      throw create_error(
+        "encryption_failed",
+        en.errors.cannot_send_no_recipient_keys,
+      );
+    }
+
     encrypted_attachments = await encrypt_attachments_for_send(
       all_attachments,
       recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
-      recipient_public_keys.length > 0,
+      is_encrypted,
     );
   }
 
