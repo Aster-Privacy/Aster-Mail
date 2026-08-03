@@ -5365,6 +5365,8 @@ export interface SettingsTranslations {
   invoice_status_draft: string;
   invoice_status_void: string;
   invoice_status_uncollectible: string;
+  invoice_status_refunded: string;
+  invoice_status_reversed: string;
   pdf: string;
   import_status_completed: string;
   import_status_failed: string;

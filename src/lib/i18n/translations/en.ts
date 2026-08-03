@@ -5970,6 +5970,8 @@ export const en: Translations = {
     invoice_status_draft: "Draft",
     invoice_status_void: "Void",
     invoice_status_uncollectible: "Uncollectible",
+    invoice_status_refunded: "Refunded",
+    invoice_status_reversed: "Reversed",
     pdf: "PDF",
     import_status_completed: "Completed",
     import_status_failed: "Failed",
