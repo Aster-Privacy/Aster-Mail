@@ -44,7 +44,6 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { clamp_inbox_page_size } from "@/lib/inbox_page_size";
 import { use_email_list } from "@/hooks/use_email_list";
-import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
