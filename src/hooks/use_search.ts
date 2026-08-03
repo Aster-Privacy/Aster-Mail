@@ -1096,7 +1096,7 @@ async function run_index_pipeline(
 
     cursor = response.data.next_cursor;
 
-    if (response.data.total) {
+    if (typeof response.data.total === "number" && response.data.total > 0) {
       known_total =
         base > 0
           ? response.data.total

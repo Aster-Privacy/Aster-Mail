@@ -1227,6 +1227,7 @@ export async function build_index(options?: {
           is_archived: false,
           is_snoozed: false,
           limit: BUILD_FETCH_SIZE,
+          skip_total: true,
           ...(cursor ? { cursor } : {}),
         }),
         BUILD_FETCH_DEADLINE_MS,
@@ -1330,6 +1331,7 @@ export async function sync_recent(notify_new = false): Promise<void> {
         is_archived: false,
         is_snoozed: false,
         limit: BUILD_DECRYPT_CHUNK,
+        skip_total: true,
       }),
       BUILD_FETCH_DEADLINE_MS,
     );
