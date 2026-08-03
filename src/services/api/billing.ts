@@ -363,6 +363,7 @@ export interface CryptoNativeInvoiceStatus {
   amount_due_decimal: string;
   decimals: number;
   usd_cents: number;
+  rate_locked_usd: string;
   status: CryptoInvoiceStatus;
   confirmations: number;
   min_confirmations: number;

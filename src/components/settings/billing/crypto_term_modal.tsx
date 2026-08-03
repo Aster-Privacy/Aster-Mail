@@ -45,6 +45,7 @@ import { CoinIcon } from "@/components/ui/coin_icon";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
+  FAMILY_PLAN_TIERS,
   PLAN_TIERS,
   notify_crypto_invoice_changed,
   remember_crypto_selection,
@@ -66,6 +67,7 @@ interface CryptoTermModalProps {
   enable_native?: boolean;
   initial_term_months?: number;
   initial_coin_key?: string;
+  initial_invoice_id?: string;
 }
 
 const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
@@ -85,6 +87,14 @@ function pretty_chain(chain: string): string {
   return known[chain] ?? chain.charAt(0).toUpperCase() + chain.slice(1);
 }
 
+function coin_title(display_name: string, chain: string): string {
+  const suffix = ` (${pretty_chain(chain)})`;
+
+  return display_name.toLowerCase().endsWith(suffix.toLowerCase())
+    ? display_name.slice(0, display_name.length - suffix.length).trim()
+    : display_name;
+}
+
 export function crypto_term_modal({
   is_open,
   on_close,
@@ -96,6 +106,7 @@ export function crypto_term_modal({
   enable_native = true,
   initial_term_months,
   initial_coin_key,
+  initial_invoice_id,
 }: CryptoTermModalProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -118,14 +129,21 @@ export function crypto_term_modal({
       (term) => term === initial_term_months,
     );
 
-    set_step(initial_coin_key ? "method" : "term");
+    set_step(initial_coin_key && native_supported ? "method" : "term");
     set_creating_key(null);
 
     if (restored_term) set_selected_term(restored_term);
-  }, [is_open, initial_coin_key, initial_term_months]);
+  }, [is_open, initial_coin_key, initial_term_months, native_supported]);
 
   useEffect(() => {
-    if (!is_open || !native_supported) return;
+    if (!is_open) return;
+
+    if (!native_supported) {
+      set_coins([]);
+      set_coins_status("disabled");
+
+      return;
+    }
 
     let cancelled = false;
 
@@ -172,7 +190,9 @@ export function crypto_term_modal({
   }, [coins]);
 
   const biennial_price_cents = useMemo(() => {
-    const tier = PLAN_TIERS.find((plan) => plan.id === plan_code);
+    const tier =
+      PLAN_TIERS.find((plan) => plan.id === plan_code) ??
+      FAMILY_PLAN_TIERS.find((plan) => plan.id === plan_code);
 
     return tier?.biennial_cents ?? yearly_price_cents * 2;
   }, [plan_code, yearly_price_cents]);
@@ -248,8 +268,9 @@ export function crypto_term_modal({
 
       if (response.data?.url) {
         if (is_tauri) {
+          const safe_url = payment_url_or_throw(response.data.url);
           const core = await import("@tauri-apps/api/core");
-          await core.invoke("open_external_url", { url: response.data.url });
+          await core.invoke("open_external_url", { url: safe_url });
           on_checkout_opened?.();
           on_close();
         } else {
@@ -268,6 +289,13 @@ export function crypto_term_modal({
 
   const handle_native = async (coin: CryptoNativeCoin) => {
     const key = `${coin.currency}:${coin.chain}`;
+
+    if (initial_invoice_id && initial_coin_key === key) {
+      on_close();
+      navigate(`/crypto-invoice/${initial_invoice_id}`);
+
+      return;
+    }
 
     set_creating_key(key);
     try {
@@ -376,6 +404,9 @@ export function crypto_term_modal({
             <p className="mt-3 text-xs text-txt-muted">
               {t("settings.crypto_charged_in_usd")}
             </p>
+            <p className="mt-2 text-xs leading-relaxed text-txt-muted">
+              {t("settings.crypto_rate_notice")}
+            </p>
           </ModalBody>
           <ModalFooter>
             <Button disabled={is_loading} variant="outline" onClick={on_close}>
@@ -425,6 +456,10 @@ export function crypto_term_modal({
                   </div>
                 )}
 
+                <p className="pb-1 text-xs leading-relaxed text-txt-muted">
+                  {t("settings.crypto_native_commit_notice")}
+                </p>
+
                 {sorted_coins.map((coin) => {
                   const key = `${coin.currency}:${coin.chain}`;
                   const is_creating = creating_key === key;
@@ -450,7 +485,8 @@ export function crypto_term_modal({
                         />
                         <span className="flex flex-col min-w-0">
                           <span className="text-sm font-medium text-txt-primary truncate">
-                            {coin.display_name} ({coin.currency})
+                            {coin_title(coin.display_name, coin.chain)} (
+                            {coin.currency})
                           </span>
                           <span className="text-xs text-txt-muted truncate">
                             {t("settings.crypto_native_on_chain", {
@@ -485,6 +521,19 @@ export function crypto_term_modal({
                     </button>
                   );
                 })}
+
+                <details className="rounded-[14px] border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
+                  <summary className="cursor-pointer text-xs font-medium text-txt-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]">
+                    {t("settings.crypto_energy_toggle")}
+                  </summary>
+                  <div className="mt-2 space-y-1.5 text-xs leading-relaxed text-txt-muted">
+                    <p>{t("settings.crypto_energy_btc")}</p>
+                    <p>{t("settings.crypto_energy_eth")}</p>
+                    <p>{t("settings.crypto_energy_l2")}</p>
+                    <p>{t("settings.crypto_energy_xmr")}</p>
+                    <p>{t("settings.crypto_energy_caveat")}</p>
+                  </div>
+                </details>
 
                 <button
                   className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-left transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60"

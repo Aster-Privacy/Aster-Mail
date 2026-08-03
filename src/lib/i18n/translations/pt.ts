@@ -3551,6 +3551,8 @@ export const pt = {
       "Não foi possível carregar seus dados de login. Outra tentativa deve funcionar.",
     downgrade: "Rebaixar",
     upgrade_to: "Atualizar para {{name}}",
+    get_plan: "Escolher {{name}}",
+    save_percent: "ECONOMIZE {{percent}}%",
     downgrade_to: "Rebaixar para {{name}}",
     payment: "Pagamento",
     cancels: "Cancela",
@@ -5621,6 +5623,12 @@ export const pt = {
     crypto_native_send_remaining: "Envie o valor restante",
     crypto_native_to_address: "Para este endereço",
     crypto_native_open_wallet: "Abrir na carteira",
+    crypto_native_status_processing: "Processando",
+    crypto_native_hint_processing:
+      "Este pagamento está sendo processado. Esta página se atualiza sozinha, você não precisa fazer nada.",
+    crypto_native_copy_invoice_ref: "Copiar referência da fatura",
+    crypto_native_no_wallet_handler:
+      "Nenhum aplicativo de carteira foi aberto. Copie o endereço acima e cole na sua carteira.",
     crypto_native_copied: "Copiado para a área de transferência",
     crypto_native_network_warning: "Envie apenas {{coin}} na rede {{chain}}. Enviar qualquer outro ativo ou usar outra rede resultará na perda dos fundos.",
     crypto_native_usd_value_label: "Valor devido",
@@ -5645,10 +5653,15 @@ export const pt = {
     crypto_native_paid_body: "Seu plano já está ativo. Obrigado!",
     crypto_native_go_to_inbox: "Ir para a caixa de entrada",
     crypto_native_view_billing: "Voltar para faturamento",
-    crypto_native_cancelled_title: "Pagamento cancelado",
-    crypto_native_cancelled_body: "Esta fatura foi cancelada. Você pode iniciar um novo pagamento quando quiser.",
+    crypto_native_invoice_cancelled: "Fatura cancelada",
     crypto_native_expired_title: "Esta fatura expirou",
     crypto_native_expired_body: "As cotações mudam, então esta janela de pagamento foi encerrada. Inicie um novo pagamento para continuar.",
+    crypto_native_cancelled_body:
+      "Este pagamento foi cancelado. Não foi cobrado nada. Pode iniciar um novo pagamento quando quiser.",
+    crypto_native_start_new_payment:
+      "Iniciar um novo pagamento",
+    crypto_native_check_now:
+      "Verificar agora",
     crypto_native_expired_do_not_send: "Não envie nada para o endereço desta fatura. Os fundos enviados agora precisam de uma verificação manual antes de serem creditados.",
     crypto_native_not_found: "Não encontramos esta fatura",
     crypto_native_unavailable: "Não foi possível carregar o pagamento",
@@ -5658,6 +5671,8 @@ export const pt = {
     crypto_native_pending_banner_multi: "Você tem {{count}} pagamentos em cripto em andamento",
     crypto_native_back_hint: "Esta fatura ainda está aberta. Você pode retomá-la em Faturamento a qualquer momento.",
     crypto_native_scan_hint: "Escaneie com o app da sua carteira",
+    crypto_native_scan_hint_address_only:
+      "Digitalize com a sua aplicação de carteira e depois introduza {{amount}} manualmente",
     crypto_native_network_label: "Rede",
     crypto_native_confirmations_label: "Confirmações",
     crypto_native_confirmations_value: "{{current}} de {{required}}",
@@ -5671,6 +5686,8 @@ export const pt = {
     crypto_native_hint_confirming: "Confirmando na rede. Seu plano é ativado assim que isso terminar.",
     crypto_native_hint_credited: "Pagamento confirmado. Seu plano está ativo.",
     crypto_native_time_remaining: "Tempo restante",
+    crypto_native_expiring_soon:
+      "Restam menos de 5 minutos. Se esta janela fechar antes de o pagamento chegar, você pode iniciar um novo com a cotação atual.",
     crypto_native_hint_underpaid: "Envie o valor restante mostrado acima para o mesmo endereço para concluir este pagamento.",
     crypto_native_hint_manual_review: "Nossa equipe está analisando este pagamento. Nenhuma ação adicional é necessária da sua parte.",
     crypto_native_connection_lost: "Conexão perdida. Tentando novamente automaticamente.",
@@ -5678,7 +5695,7 @@ export const pt = {
     crypto_native_copy_tx_hash: "Copiar hash da transação",
     crypto_native_expiry_progress: "Tempo restante antes que esta fatura expire",
     crypto_native_confirmations_progress: "Confirmações da rede",
-    crypto_paid_until: "Pago até {{date}}",
+    crypto_paid_until: "Pago até {{date}} (cripto)",
     crypto_no_renew_notice: "Pagamentos cripto não renovam automaticamente.",
     crypto_renew_link: "Renovar agora",
     crypto_success_toast:

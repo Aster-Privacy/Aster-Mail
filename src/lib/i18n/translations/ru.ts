@@ -3546,6 +3546,8 @@ export const ru = {
       "Загрузить данные входа не удалось. Повторная попытка обычно помогает.",
     downgrade: "Понизить",
     upgrade_to: "Улучшить до {{name}}",
+    get_plan: "Выбрать {{name}}",
+    save_percent: "ЭКОНОМИЯ {{percent}}%",
     downgrade_to: "Понизить до {{name}}",
     payment: "Оплата",
     cancels: "Отменяется",
@@ -5482,6 +5484,12 @@ export const ru = {
     crypto_native_send_remaining: "Отправьте оставшуюся сумму",
     crypto_native_to_address: "На этот адрес",
     crypto_native_open_wallet: "Открыть в кошельке",
+    crypto_native_status_processing: "Обрабатывается",
+    crypto_native_hint_processing:
+      "Этот платёж обрабатывается. Страница обновляется сама, от вас ничего не требуется.",
+    crypto_native_copy_invoice_ref: "Скопировать номер счёта",
+    crypto_native_no_wallet_handler:
+      "Приложение кошелька не открылось. Скопируйте адрес выше и вставьте его в свой кошелёк.",
     crypto_native_copied: "Скопировано в буфер обмена",
     crypto_native_network_warning: "Отправляйте только {{coin}} в сети {{chain}}. Отправка любого другого актива или использование другой сети приведёт к потере средств.",
     crypto_native_usd_value_label: "Сумма к оплате",
@@ -5506,10 +5514,15 @@ export const ru = {
     crypto_native_paid_body: "Ваш тариф активен. Спасибо!",
     crypto_native_go_to_inbox: "Перейти во входящие",
     crypto_native_view_billing: "Назад к оплате",
-    crypto_native_cancelled_title: "Платёж отменён",
-    crypto_native_cancelled_body: "Этот счёт был отменён. Вы можете начать новый платёж в любое время.",
+    crypto_native_invoice_cancelled: "Счет отменен",
     crypto_native_expired_title: "Срок действия этого счёта истёк",
     crypto_native_expired_body: "Курсы меняются, поэтому окно оплаты закрыто. Начните новый платёж, чтобы продолжить.",
+    crypto_native_cancelled_body:
+      "Этот платёж отменён. Списаний не было. Вы можете начать новый платёж в любой момент.",
+    crypto_native_start_new_payment:
+      "Начать новый платёж",
+    crypto_native_check_now:
+      "Проверить сейчас",
     crypto_native_expired_do_not_send: "Не отправляйте средства на адрес из этого счёта. Средства, отправленные сейчас, потребуют ручной проверки перед зачислением.",
     crypto_native_not_found: "Не удалось найти этот счёт",
     crypto_native_unavailable: "Не удалось загрузить платёж",
@@ -5519,6 +5532,8 @@ export const ru = {
     crypto_native_pending_banner_multi: "У вас {{count}} незавершённых криптоплатежей",
     crypto_native_back_hint: "Этот счёт ещё активен. Вы можете вернуться к нему в разделе оплаты в любое время.",
     crypto_native_scan_hint: "Отсканируйте в приложении кошелька",
+    crypto_native_scan_hint_address_only:
+      "Отсканируйте в приложении кошелька, затем введите {{amount}} вручную",
     crypto_native_network_label: "Сеть",
     crypto_native_confirmations_label: "Подтверждения",
     crypto_native_confirmations_value: "{{current}} из {{required}}",
@@ -5532,6 +5547,8 @@ export const ru = {
     crypto_native_hint_confirming: "Идёт подтверждение в сети. Тариф активируется сразу после завершения.",
     crypto_native_hint_credited: "Платёж подтверждён. Ваш тариф активен.",
     crypto_native_time_remaining: "Оставшееся время",
+    crypto_native_expiring_soon:
+      "Осталось менее 5 минут. Если это окно закроется до поступления платежа, вы можете начать новый по текущему курсу.",
     crypto_native_hint_underpaid: "Отправьте оставшуюся сумму, указанную выше, на тот же адрес, чтобы завершить этот платёж.",
     crypto_native_hint_manual_review: "Наша команда проверяет этот платёж. От вас больше ничего не требуется.",
     crypto_native_connection_lost: "Соединение потеряно. Выполняется автоматическое переподключение.",
@@ -5542,8 +5559,7 @@ export const ru = {
     crypto_modal_price: "{{amount}}",
     crypto_modal_title: "Оплата криптовалютой",
     crypto_no_renew_notice: "Крипто-покупки не продлеваются автоматически.",
-    crypto_paid_until:
-      "Оплачено до {{date}} (крипто). Не продлевается автоматически.",
+    crypto_paid_until: "Оплачено до {{date}} (крипто)",
     crypto_pay_button: "Оплатить криптовалютой",
     crypto_pay_now: "Оплатить криптовалютой",
     crypto_renew_link: "Продлить криптовалютой",

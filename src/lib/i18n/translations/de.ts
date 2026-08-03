@@ -3553,6 +3553,8 @@ export const de = {
     days: "{{count}} Tage",
     downgrade: "Herabstufen",
     upgrade_to: "Upgrade auf {{name}}",
+    get_plan: "{{name}} holen",
+    save_percent: "SPARE {{percent}}%",
     downgrade_to: "Downgrade auf {{name}}",
     payment: "Zahlung",
     cancels: "Endet",
@@ -5566,6 +5568,12 @@ export const de = {
     crypto_native_send_remaining: "Senden Sie den Restbetrag",
     crypto_native_to_address: "An diese Adresse",
     crypto_native_open_wallet: "In Wallet öffnen",
+    crypto_native_status_processing: "Wird verarbeitet",
+    crypto_native_hint_processing:
+      "Diese Zahlung wird verarbeitet. Die Seite aktualisiert sich von selbst, du musst nichts tun.",
+    crypto_native_copy_invoice_ref: "Rechnungsreferenz kopieren",
+    crypto_native_no_wallet_handler:
+      "Es wurde keine Wallet-App geöffnet. Kopiere stattdessen die Adresse oben und füge sie in deine Wallet ein.",
     crypto_native_copied: "In die Zwischenablage kopiert",
     crypto_native_network_warning: "Senden Sie ausschließlich {{coin}} über das {{chain}}-Netzwerk. Das Senden eines anderen Assets oder die Nutzung eines anderen Netzwerks führt zum Verlust der Gelder.",
     crypto_native_usd_value_label: "Fälliger Betrag",
@@ -5590,10 +5598,15 @@ export const de = {
     crypto_native_paid_body: "Ihr Tarif ist jetzt aktiv. Vielen Dank!",
     crypto_native_go_to_inbox: "Zum Posteingang",
     crypto_native_view_billing: "Zurück zur Abrechnung",
-    crypto_native_cancelled_title: "Zahlung storniert",
-    crypto_native_cancelled_body: "Diese Rechnung wurde storniert. Sie können jederzeit eine neue Zahlung starten.",
+    crypto_native_invoice_cancelled: "Rechnung storniert",
     crypto_native_expired_title: "Diese Rechnung ist abgelaufen",
     crypto_native_expired_body: "Kurse ändern sich, daher ist dieses Zahlungsfenster geschlossen. Starten Sie eine neue Zahlung, um fortzufahren.",
+    crypto_native_cancelled_body:
+      "Diese Zahlung wurde abgebrochen. Es wurde nichts berechnet. Du kannst jederzeit eine neue Zahlung starten.",
+    crypto_native_start_new_payment:
+      "Neue Zahlung starten",
+    crypto_native_check_now:
+      "Jetzt prüfen",
     crypto_native_expired_do_not_send: "Senden Sie nichts an die Adresse dieser Rechnung. Jetzt gesendete Gelder müssen manuell geprüft werden, bevor sie gutgeschrieben werden können.",
     crypto_native_not_found: "Wir konnten diese Rechnung nicht finden",
     crypto_native_unavailable: "Zahlung konnte nicht geladen werden",
@@ -5603,6 +5616,8 @@ export const de = {
     crypto_native_pending_banner_multi: "Sie haben {{count}} laufende Krypto-Zahlungen",
     crypto_native_back_hint: "Diese Rechnung ist noch offen. Sie können sie jederzeit unter Abrechnung fortsetzen.",
     crypto_native_scan_hint: "Mit Ihrer Wallet-App scannen",
+    crypto_native_scan_hint_address_only:
+      "Mit deiner Wallet-App scannen, dann {{amount}} manuell eingeben",
     crypto_native_network_label: "Netzwerk",
     crypto_native_confirmations_label: "Bestätigungen",
     crypto_native_confirmations_value: "{{current}} von {{required}}",
@@ -5616,6 +5631,8 @@ export const de = {
     crypto_native_hint_confirming: "Wird im Netzwerk bestätigt. Ihr Tarif wird aktiviert, sobald das abgeschlossen ist.",
     crypto_native_hint_credited: "Zahlung bestätigt. Ihr Tarif ist aktiv.",
     crypto_native_time_remaining: "Verbleibende Zeit",
+    crypto_native_expiring_soon:
+      "Weniger als 5 Minuten übrig. Läuft dieses Fenster ab, bevor Ihre Zahlung eintrifft, können Sie eine neue Zahlung zum aktuellen Kurs starten.",
     crypto_native_hint_underpaid: "Senden Sie den oben angezeigten Restbetrag an dieselbe Adresse, um diese Zahlung abzuschließen.",
     crypto_native_hint_manual_review: "Unser Team prüft diese Zahlung. Sie müssen nichts weiter tun.",
     crypto_native_connection_lost: "Verbindung verloren. Es wird automatisch erneut versucht.",
@@ -5626,8 +5643,7 @@ export const de = {
     crypto_modal_price: "{{amount}}",
     crypto_modal_title: "Mit Krypto bezahlen",
     crypto_no_renew_notice: "Krypto-Käufe verlängern sich nicht automatisch.",
-    crypto_paid_until:
-      "Bezahlt bis {{date}} (Krypto). Verlängert sich nicht automatisch.",
+    crypto_paid_until: "Bezahlt bis {{date}} (Krypto)",
     crypto_pay_button: "Mit Krypto bezahlen",
     crypto_pay_now: "Mit Krypto bezahlen",
     crypto_renew_link: "Mit Krypto verlängern",

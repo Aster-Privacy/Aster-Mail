@@ -815,6 +815,7 @@ export function BillingSection() {
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
                   : undefined
               }
+              initial_invoice_id={crypto_resume?.invoice_id}
               initial_term_months={crypto_resume?.term_months}
               is_open={show_crypto_modal}
               monthly_price_cents={tier.monthly_cents}

@@ -3232,6 +3232,8 @@ export const zh_CN = {
     failed_get_auth_data: "我们无法加载您的登录信息，再试一次应该可以。",
     downgrade: "降级",
     upgrade_to: "升级至{{name}}",
+    get_plan: "选择 {{name}}",
+    save_percent: "省 {{percent}}%",
     downgrade_to: "降级至{{name}}",
     payment: "支付",
     cancels: "取消时间",
@@ -5322,6 +5324,12 @@ export const zh_CN = {
     crypto_native_send_remaining: "请发送剩余金额",
     crypto_native_to_address: "收款地址",
     crypto_native_open_wallet: "在钱包中打开",
+    crypto_native_status_processing: "处理中",
+    crypto_native_hint_processing:
+      "此付款正在处理中。本页面会自动更新，你无需做任何操作。",
+    crypto_native_copy_invoice_ref: "复制账单参考号",
+    crypto_native_no_wallet_handler:
+      "未打开任何钱包应用。请复制上面的地址并粘贴到你的钱包中。",
     crypto_native_copied: "已复制到剪贴板",
     crypto_native_network_warning: "仅可通过 {{chain}} 网络发送 {{coin}}。发送其他资产或使用其他网络将导致资金损失。",
     crypto_native_usd_value_label: "应付金额",
@@ -5345,10 +5353,15 @@ export const zh_CN = {
     crypto_native_paid_body: "您的套餐已生效。谢谢！",
     crypto_native_go_to_inbox: "前往收件箱",
     crypto_native_view_billing: "返回账单",
-    crypto_native_cancelled_title: "付款已取消",
-    crypto_native_cancelled_body: "此账单已取消。您可以随时发起新的付款。",
+    crypto_native_invoice_cancelled: "发票已取消",
     crypto_native_expired_title: "此账单已过期",
     crypto_native_expired_body: "汇率会变动，因此本次付款窗口已关闭。请发起新的付款以继续。",
+    crypto_native_cancelled_body:
+      "此付款已取消，未产生任何扣款。您可以随时发起新的付款。",
+    crypto_native_start_new_payment:
+      "发起新的付款",
+    crypto_native_check_now:
+      "立即检查",
     crypto_native_expired_do_not_send: "请勿向此账单中的地址转账。现在发送的资金需要人工审核后才能入账。",
     crypto_native_not_found: "未找到此账单",
     crypto_native_unavailable: "无法加载付款",
@@ -5358,6 +5371,8 @@ export const zh_CN = {
     crypto_native_pending_banner_multi: "您有 {{count}} 笔进行中的加密货币付款",
     crypto_native_back_hint: "此账单仍然有效。您可以随时从账单页面继续付款。",
     crypto_native_scan_hint: "使用钱包应用扫码",
+    crypto_native_scan_hint_address_only:
+      "使用钱包应用扫描，然后手动输入 {{amount}}",
     crypto_native_network_label: "网络",
     crypto_native_confirmations_label: "确认数",
     crypto_native_confirmations_value: "{{required}} 次中的 {{current}} 次",
@@ -5371,6 +5386,8 @@ export const zh_CN = {
     crypto_native_hint_confirming: "正在网络上确认。确认完成后您的套餐将立即生效。",
     crypto_native_hint_credited: "付款已确认，您的套餐已生效。",
     crypto_native_time_remaining: "剩余时间",
+    crypto_native_expiring_soon:
+      "剩余不到 5 分钟。如果在款项到达前此时段结束，你可以按当前汇率重新发起一笔付款。",
     crypto_native_hint_underpaid: "请将上方显示的剩余金额发送到同一地址，以完成此付款。",
     crypto_native_hint_manual_review: "我们的团队正在审核此付款，您无需再进行任何操作。",
     crypto_native_connection_lost: "连接已断开，正在自动重试。",
@@ -5386,7 +5403,7 @@ export const zh_CN = {
     crypto_term_24mo: "24个月",
     crypto_pay_now: "立即支付",
     crypto_renew_link: "用加密货币续费",
-    crypto_paid_until: "已付费至 {{date}}",
+    crypto_paid_until: "已付费至 {{date}}（加密货币）",
     crypto_no_renew_notice:
       "加密货币订阅不会自动续费。您可以在到期前手动续费。",
     crypto_success_toast: "加密货币支付已确认！",

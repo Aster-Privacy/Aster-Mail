@@ -3517,6 +3517,8 @@ export const tr = {
       "Oturum açma bilgilerinizi yükleyemedik. Bir kez daha denemek genellikle yeterli olur.",
     downgrade: "Düşür",
     upgrade_to: "{{name}} planına yükselt",
+    get_plan: "{{name}} al",
+    save_percent: "%{{percent}} TASARRUF",
     downgrade_to: "{{name}} planına düşür",
     payment: "Ödeme",
     cancels: "İptal tarihi",
@@ -5580,6 +5582,12 @@ export const tr = {
     crypto_native_send_remaining: "Kalan tutarı gönderin",
     crypto_native_to_address: "Bu adrese",
     crypto_native_open_wallet: "Cüzdanda aç",
+    crypto_native_status_processing: "İşleniyor",
+    crypto_native_hint_processing:
+      "Bu ödeme işleniyor. Bu sayfa kendi kendine güncellenir, yapmanız gereken bir şey yok.",
+    crypto_native_copy_invoice_ref: "Fatura referansını kopyala",
+    crypto_native_no_wallet_handler:
+      "Hiçbir cüzdan uygulaması açılmadı. Yukarıdaki adresi kopyalayıp cüzdanınıza yapıştırın.",
     crypto_native_copied: "Panoya kopyalandı",
     crypto_native_network_warning: "Yalnızca {{chain}} ağı üzerinden {{coin}} gönderin. Başka bir varlık göndermek veya başka bir ağ kullanmak fonların kaybına yol açar.",
     crypto_native_usd_value_label: "Ödenecek tutar",
@@ -5604,10 +5612,15 @@ export const tr = {
     crypto_native_paid_body: "Planınız artık etkin. Teşekkürler!",
     crypto_native_go_to_inbox: "Gelen kutusuna git",
     crypto_native_view_billing: "Faturalandırmaya dön",
-    crypto_native_cancelled_title: "Ödeme iptal edildi",
-    crypto_native_cancelled_body: "Bu fatura iptal edildi. İstediğiniz zaman yeni bir ödeme başlatabilirsiniz.",
+    crypto_native_invoice_cancelled: "Fatura iptal edildi",
     crypto_native_expired_title: "Bu faturanın süresi doldu",
     crypto_native_expired_body: "Kurlar değişir, bu nedenle bu ödeme penceresi kapandı. Devam etmek için yeni bir ödeme başlatın.",
+    crypto_native_cancelled_body:
+      "Bu ödeme iptal edildi. Herhangi bir tahsilat yapılmadı. İstediğiniz zaman yeni bir ödeme başlatabilirsiniz.",
+    crypto_native_start_new_payment:
+      "Yeni ödeme başlat",
+    crypto_native_check_now:
+      "Şimdi kontrol et",
     crypto_native_expired_do_not_send: "Bu faturadaki adrese gönderim yapmayın. Şimdi gönderilen fonların hesabınıza geçmesi için manuel inceleme gerekir.",
     crypto_native_not_found: "Bu faturayı bulamadık",
     crypto_native_unavailable: "Ödeme yüklenemedi",
@@ -5617,6 +5630,8 @@ export const tr = {
     crypto_native_pending_banner_multi: "Devam eden {{count}} kripto ödemeniz var",
     crypto_native_back_hint: "Bu fatura hâlâ açık. Faturalandırma bölümünden istediğiniz zaman devam edebilirsiniz.",
     crypto_native_scan_hint: "Cüzdan uygulamanızla tarayın",
+    crypto_native_scan_hint_address_only:
+      "Cüzdan uygulamanızla tarayın, ardından {{amount}} tutarını elle girin",
     crypto_native_network_label: "Ağ",
     crypto_native_confirmations_label: "Onaylar",
     crypto_native_confirmations_value: "{{required}} onaydan {{current}} tanesi",
@@ -5630,6 +5645,8 @@ export const tr = {
     crypto_native_hint_confirming: "Ağda onaylanıyor. Bu tamamlanır tamamlanmaz planınız etkinleşir.",
     crypto_native_hint_credited: "Ödeme onaylandı. Planınız etkin.",
     crypto_native_time_remaining: "Kalan süre",
+    crypto_native_expiring_soon:
+      "5 dakikadan az kaldı. Ödemeniz ulaşmadan bu süre dolarsa güncel kurla yeni bir ödeme başlatabilirsiniz.",
     crypto_native_hint_underpaid: "Bu ödemeyi tamamlamak için yukarıda gösterilen kalan tutarı aynı adrese gönderin.",
     crypto_native_hint_manual_review: "Ekibimiz bu ödemeyi inceliyor. Sizin başka bir şey yapmanıza gerek yok.",
     crypto_native_connection_lost: "Bağlantı kesildi. Otomatik olarak yeniden deneniyor.",
@@ -5637,8 +5654,7 @@ export const tr = {
     crypto_native_copy_tx_hash: "İşlem hash'ini kopyala",
     crypto_native_expiry_progress: "Bu faturanın süresi dolmadan önce kalan süre",
     crypto_native_confirmations_progress: "Ağ onayları",
-    crypto_paid_until:
-      "{{date}} tarihine kadar ödendi (kripto). Otomatik yenilenmez.",
+    crypto_paid_until: "{{date}} tarihine kadar ödendi (kripto)",
     crypto_no_renew_notice: "Kripto ödemeleri otomatik olarak yenilenmez.",
     crypto_renew_link: "Kripto ile yenile",
     crypto_success_toast: "Kripto ödeme alındı. Planınız aktif.",

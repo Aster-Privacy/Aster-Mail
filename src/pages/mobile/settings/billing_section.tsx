@@ -833,15 +833,17 @@ export function BillingSection({
                                 ),
                               })}
                             </p>
-                            <span
-                              className="mt-1.5 inline-flex w-fit items-center rounded-md px-2 py-0.5 text-[11px] font-semibold"
-                              style={{
-                                backgroundColor: "var(--color-warning)",
-                                color: "#1c1400",
-                              }}
-                            >
-                              {t("settings.crypto_no_renew_notice")}
-                            </span>
+                            <div className="mt-1.5 flex justify-end">
+                              <span
+                                className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold text-center"
+                                style={{
+                                  backgroundColor: "var(--color-warning)",
+                                  color: "#1c1400",
+                                }}
+                              >
+                                {t("settings.crypto_no_renew_notice")}
+                              </span>
+                            </div>
                           </>
                         ) : (
                           <p className="text-[11px] mt-0.5 text-[var(--text-muted)]">
@@ -1635,6 +1637,7 @@ export function BillingSection({
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
                   : undefined
               }
+              initial_invoice_id={crypto_resume?.invoice_id}
               initial_term_months={crypto_resume?.term_months}
               is_open={show_crypto_modal}
               monthly_price_cents={tier.monthly_cents}

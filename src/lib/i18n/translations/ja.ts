@@ -3532,6 +3532,8 @@ export const ja = {
       "サインイン情報が読み込まれませんでした。もう一度試すと通ることが多いです。",
     downgrade: "ダウングレード",
     upgrade_to: "{{name}}にアップグレード",
+    get_plan: "{{name}} を選ぶ",
+    save_percent: "{{percent}}% お得",
     downgrade_to: "{{name}}にダウングレード",
     payment: "支払い",
     cancels: "キャンセル日",
@@ -5445,6 +5447,12 @@ export const ja = {
     crypto_native_send_remaining: "残りの送金額",
     crypto_native_to_address: "送金先アドレス",
     crypto_native_open_wallet: "ウォレットで開く",
+    crypto_native_status_processing: "処理中",
+    crypto_native_hint_processing:
+      "この支払いは処理中です。このページは自動で更新されるため、操作は不要です。",
+    crypto_native_copy_invoice_ref: "請求書の参照番号をコピー",
+    crypto_native_no_wallet_handler:
+      "ウォレットアプリが開きませんでした。上のアドレスをコピーしてウォレットに貼り付けてください。",
     crypto_native_copied: "クリップボードにコピーしました",
     crypto_native_network_warning: "{{chain}} ネットワークの {{coin}} のみを送金してください。他の資産を送金したり、別のネットワークを使用したりすると資金を失います。",
     crypto_native_usd_value_label: "お支払い金額",
@@ -5469,10 +5477,15 @@ export const ja = {
     crypto_native_paid_body: "プランが有効になりました。ありがとうございます！",
     crypto_native_go_to_inbox: "受信トレイへ",
     crypto_native_view_billing: "請求に戻る",
-    crypto_native_cancelled_title: "支払いをキャンセルしました",
-    crypto_native_cancelled_body: "この請求はキャンセルされました。いつでも新しい支払いを開始できます。",
+    crypto_native_invoice_cancelled: "請求をキャンセルしました",
     crypto_native_expired_title: "この請求は期限切れです",
     crypto_native_expired_body: "レートは変動するため、この支払い受付は終了しました。続けるには新しい支払いを開始してください。",
+    crypto_native_cancelled_body:
+      "この支払いはキャンセルされました。請求は発生していません。いつでも新しい支払いを開始できます。",
+    crypto_native_start_new_payment:
+      "新しい支払いを開始",
+    crypto_native_check_now:
+      "今すぐ確認",
     crypto_native_expired_do_not_send: "この請求のアドレスには送金しないでください。今送金された資金は、反映される前に手動確認が必要になります。",
     crypto_native_not_found: "この請求が見つかりませんでした",
     crypto_native_unavailable: "支払いを読み込めませんでした",
@@ -5482,6 +5495,8 @@ export const ja = {
     crypto_native_pending_banner_multi: "進行中の暗号資産の支払いが{{count}}件あります",
     crypto_native_back_hint: "この請求はまだ有効です。請求からいつでも再開できます。",
     crypto_native_scan_hint: "ウォレットアプリで読み取ってください",
+    crypto_native_scan_hint_address_only:
+      "ウォレットアプリでスキャンし、{{amount}} を手動で入力してください",
     crypto_native_network_label: "ネットワーク",
     crypto_native_confirmations_label: "承認数",
     crypto_native_confirmations_value: "{{required}} 件中 {{current}} 件",
@@ -5495,6 +5510,8 @@ export const ja = {
     crypto_native_hint_confirming: "ネットワークで承認中です。完了次第、プランが有効になります。",
     crypto_native_hint_credited: "支払いが確認されました。プランが有効です。",
     crypto_native_time_remaining: "残り時間",
+    crypto_native_expiring_soon:
+      "残り5分未満です。お支払いが届く前にこの受付時間が終了した場合は、現在のレートで新しいお支払いを開始できます。",
     crypto_native_hint_underpaid: "上記の残額を同じアドレスに送金して、この支払いを完了してください。",
     crypto_native_hint_manual_review: "この支払いは当社チームが確認中です。お客様の操作は不要です。",
     crypto_native_connection_lost: "接続が切断されました。自動的に再試行しています。",
@@ -5505,7 +5522,7 @@ export const ja = {
     crypto_modal_price: "{{amount}}",
     crypto_modal_title: "仮想通貨で支払う",
     crypto_no_renew_notice: "仮想通貨での購入は自動更新されません。",
-    crypto_paid_until: "{{date}}まで有効（仮想通貨）。自動更新なし。",
+    crypto_paid_until: "{{date}}まで有効（仮想通貨）",
     crypto_pay_button: "仮想通貨で支払う",
     crypto_pay_now: "仮想通貨で支払う",
     crypto_renew_link: "仮想通貨で更新",

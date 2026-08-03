@@ -3500,6 +3500,8 @@ export const nl = {
     upgrade: "Upgraden",
     export: "Exporteren",
     upgrade_to: "Upgraden naar {{name}}",
+    get_plan: "Kies {{name}}",
+    save_percent: "BESPAAR {{percent}}%",
     downgrade_to: "Downgraden naar {{name}}",
     payment: "Betaling",
     cancels: "Annuleert",
@@ -5469,6 +5471,12 @@ export const nl = {
     crypto_native_send_remaining: "Stuur het resterende bedrag",
     crypto_native_to_address: "Naar dit adres",
     crypto_native_open_wallet: "Openen in wallet",
+    crypto_native_status_processing: "Wordt verwerkt",
+    crypto_native_hint_processing:
+      "Deze betaling wordt verwerkt. Deze pagina werkt zichzelf bij, je hoeft niets te doen.",
+    crypto_native_copy_invoice_ref: "Factuurreferentie kopiëren",
+    crypto_native_no_wallet_handler:
+      "Er is geen wallet-app geopend. Kopieer het adres hierboven en plak het in je wallet.",
     crypto_native_copied: "Gekopieerd naar klembord",
     crypto_native_network_warning: "Stuur alleen {{coin}} via het {{chain}}-netwerk. Een ander asset sturen of een ander netwerk gebruiken leidt tot verlies van je tegoed.",
     crypto_native_usd_value_label: "Te betalen bedrag",
@@ -5493,10 +5501,15 @@ export const nl = {
     crypto_native_paid_body: "Je abonnement is nu actief. Bedankt!",
     crypto_native_go_to_inbox: "Naar postvak IN",
     crypto_native_view_billing: "Terug naar facturering",
-    crypto_native_cancelled_title: "Betaling geannuleerd",
-    crypto_native_cancelled_body: "Deze factuur is geannuleerd. Je kunt altijd een nieuwe betaling starten.",
+    crypto_native_invoice_cancelled: "Factuur geannuleerd",
     crypto_native_expired_title: "Deze factuur is verlopen",
     crypto_native_expired_body: "Koersen veranderen, dus dit betaalvenster is gesloten. Start een nieuwe betaling om door te gaan.",
+    crypto_native_cancelled_body:
+      "Deze betaling is geannuleerd. Er is niets in rekening gebracht. Je kunt op elk moment een nieuwe betaling starten.",
+    crypto_native_start_new_payment:
+      "Nieuwe betaling starten",
+    crypto_native_check_now:
+      "Nu controleren",
     crypto_native_expired_do_not_send: "Stuur niets naar het adres op deze factuur. Bedragen die je nu stuurt, moeten handmatig worden gecontroleerd voordat ze kunnen worden bijgeschreven.",
     crypto_native_not_found: "We konden deze factuur niet vinden",
     crypto_native_unavailable: "Kon betaling niet laden",
@@ -5506,6 +5519,8 @@ export const nl = {
     crypto_native_pending_banner_multi: "Je hebt {{count}} cryptobetalingen die nog lopen",
     crypto_native_back_hint: "Deze factuur staat nog open. Je kunt hem op elk moment hervatten via Facturering.",
     crypto_native_scan_hint: "Scan met je wallet-app",
+    crypto_native_scan_hint_address_only:
+      "Scan met je wallet-app en voer daarna {{amount}} handmatig in",
     crypto_native_network_label: "Netwerk",
     crypto_native_confirmations_label: "Bevestigingen",
     crypto_native_confirmations_value: "{{current}} van {{required}}",
@@ -5519,6 +5534,8 @@ export const nl = {
     crypto_native_hint_confirming: "Bevestigen op het netwerk. Je abonnement wordt actief zodra dit klaar is.",
     crypto_native_hint_credited: "Betaling bevestigd. Je abonnement is actief.",
     crypto_native_time_remaining: "Resterende tijd",
+    crypto_native_expiring_soon:
+      "Minder dan 5 minuten over. Sluit dit venster voordat je betaling binnen is, dan kun je een nieuwe starten tegen de huidige koers.",
     crypto_native_hint_underpaid: "Stuur het resterende bedrag hierboven naar hetzelfde adres om deze betaling af te ronden.",
     crypto_native_hint_manual_review: "Ons team beoordeelt deze betaling. Je hoeft verder niets te doen.",
     crypto_native_connection_lost: "Verbinding verbroken. We proberen het automatisch opnieuw.",
@@ -5529,7 +5546,7 @@ export const nl = {
     crypto_modal_price: "Prijs: {{amount}}",
     crypto_modal_title: "Betalen met cryptovaluta",
     crypto_no_renew_notice: "Dit abonnement wordt niet automatisch verlengd",
-    crypto_paid_until: "Betaald tot {{date}}",
+    crypto_paid_until: "Betaald tot {{date}} (crypto)",
     crypto_pay_button: "Betalen met crypto",
     crypto_pay_now: "Nu betalen",
     crypto_renew_link: "Handmatig verlengen",
