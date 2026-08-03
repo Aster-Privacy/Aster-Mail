@@ -59,7 +59,7 @@ export function AliasMetaEditor({
   if (display_name) {
     rows.push({
       key: "display_name",
-      icon: <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />,
+      icon: <IdentificationIcon className="w-3.5 h-3.5 shrink-0" />,
       label: t("settings.alias_field_display_name_label"),
       value: display_name,
     });
@@ -68,7 +68,7 @@ export function AliasMetaEditor({
   if (note) {
     rows.push({
       key: "note",
-      icon: <PencilSquareIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />,
+      icon: <PencilSquareIcon className="w-3.5 h-3.5 shrink-0" />,
       label: t("settings.alias_field_note_label"),
       value: note,
     });
@@ -77,7 +77,7 @@ export function AliasMetaEditor({
   if (website_count > 0) {
     rows.push({
       key: "websites",
-      icon: <LinkIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />,
+      icon: <LinkIcon className="w-3.5 h-3.5 shrink-0" />,
       label: t("settings.alias_field_websites_label"),
       value:
         website_count === 1
@@ -98,7 +98,7 @@ export function AliasMetaEditor({
       {rows.map((row) => (
         <span
           key={row.key}
-          className="flex min-w-0 items-center gap-1.5 text-xs leading-4 text-txt-muted transition-colors group-hover/meta:text-txt-secondary"
+          className="flex min-w-0 items-center gap-1.5 text-xs leading-4 text-txt-tertiary transition-colors group-hover/meta:text-txt-secondary"
           title={`${row.label}: ${row.value}`}
         >
           {row.icon}

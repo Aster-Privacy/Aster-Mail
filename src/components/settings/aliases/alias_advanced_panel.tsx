@@ -22,14 +22,11 @@ import { useCallback, useEffect, useState } from "react";
 import {
   TrashIcon,
   PlusIcon,
-  ShieldCheckIcon,
   AdjustmentsHorizontalIcon,
-  UserGroupIcon,
   NoSymbolIcon,
   PencilSquareIcon,
   EyeSlashIcon,
-  ChartBarIcon,
-  InboxArrowDownIcon,
+  ChevronRightIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
@@ -39,10 +36,7 @@ import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
-import {
-  format_created_at,
-  format_relative_time,
-} from "./alias_stats_format";
+import { format_created_at, format_relative_time } from "./alias_stats_format";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -56,7 +50,10 @@ import {
 } from "@/components/ui/select";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_folders } from "@/hooks/use_folders";
-import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
+import {
+  FeatureLockOverlay,
+  PaidPill,
+} from "@/components/settings/aliases/feature_lock";
 import { get_alias_preferences } from "@/services/api/aliases";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
@@ -111,28 +108,116 @@ import {
 const INPUT_CLASS =
   "flex-1 min-w-0 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
 
-
-function SectionTitle({
-  icon,
-  info,
-  info_title,
+function DetailField({
+  label,
   children,
 }: {
-  icon: React.ReactNode;
-  info?: string;
-  info_title?: string;
+  label: string;
   children: React.ReactNode;
 }) {
   return (
-    <h4 className="flex items-center gap-2 text-sm font-semibold text-txt-primary">
-      {icon}
-      {children}
-      {info && <InfoHint tip={info} title={info_title} />}
-    </h4>
+    <div className="flex min-h-[38px] items-center gap-4 px-3 py-1 transition-colors duration-150 hover:bg-surf-tertiary/30">
+      <span className="w-32 shrink-0 text-[13px] text-txt-secondary">
+        {label}
+      </span>
+      <span className="min-w-0 flex-1 [&>button]:!mt-0 [&>div]:!mt-0 [&>span]:!mt-0">
+        {children}
+      </span>
+    </div>
   );
 }
 
-function SenderPinningPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
+function PanelRow({
+  title,
+  description,
+  value,
+  locked,
+  locked_message,
+  children,
+}: {
+  title: string;
+  description: string;
+  value?: string;
+  locked?: boolean;
+  locked_message?: string;
+  children?: React.ReactNode;
+}) {
+  const [is_open, set_is_open] = useState(false);
+  const [has_opened, set_has_opened] = useState(false);
+
+  const toggle = () => {
+    set_has_opened(true);
+    set_is_open((v) => !v);
+  };
+
+  return (
+    <div className="group/row relative">
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute bottom-1 left-0 top-1 w-[2px] origin-center rounded-full transition-all duration-200 ease-out ${
+          is_open
+            ? "scale-y-100 opacity-100"
+            : "scale-y-0 opacity-0 group-hover/row:scale-y-100 group-hover/row:opacity-40"
+        }`}
+        style={{ backgroundColor: "var(--accent-color)" }}
+      />
+      <button
+        aria-expanded={is_open}
+        className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors duration-150 hover:bg-surf-tertiary/40 focus-visible:bg-surf-tertiary/40"
+        type="button"
+        onClick={toggle}
+      >
+        <span
+          className={`min-w-0 flex-1 truncate text-[13px] text-txt-primary transition-transform duration-200 ease-out group-hover/row:translate-x-0.5 ${
+            is_open ? "translate-x-0.5" : ""
+          }`}
+        >
+          {title}
+        </span>
+        {locked ? (
+          <PaidPill />
+        ) : value ? (
+          <span className="max-w-[45%] truncate text-[13px] text-txt-muted transition-colors duration-150 group-hover/row:text-txt-secondary">
+            {value}
+          </span>
+        ) : null}
+        <ChevronRightIcon
+          className={`h-3.5 w-3.5 shrink-0 transition-all duration-200 ease-out ${
+            is_open ? "rotate-90 text-txt-secondary" : "text-txt-muted"
+          } group-hover/row:text-txt-secondary`}
+        />
+      </button>
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-out ${
+          is_open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          {has_opened && (
+            <div className="px-3 pb-3.5 pt-0.5">
+              <p className="mb-2.5 text-xs leading-4 text-txt-muted">
+                {description}
+              </p>
+              {locked ? (
+                <FeatureLockOverlay message={locked_message ?? ""} />
+              ) : (
+                children
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SenderPinningPanel({
+  alias_id,
+  domain_address_id,
+}: {
+  alias_id?: string;
+  domain_address_id?: string;
+}) {
   const { t } = use_i18n();
   const [mode, set_mode] = useState<SenderPinMode>(SENDER_PIN_MODE_OFF);
   const [pins, set_pins] = useState<DecryptedAliasPin[]>([]);
@@ -250,17 +335,14 @@ function SenderPinningPanel({ alias_id, domain_address_id }: { alias_id?: string
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <SectionTitle
-            icon={<ShieldCheckIcon className="w-4 h-4" />}
-            info={t("settings.alias_sender_pinning_info")}
-            info_title={t("settings.alias_sender_pinning_title")}
-          >
-            {t("settings.alias_sender_pinning_title")}
-          </SectionTitle>
-          <p className="text-xs text-txt-muted mt-0.5">
-            {t("settings.alias_sender_pinning_description")}
+        <div className="flex min-w-0 items-center gap-1.5">
+          <p className="text-sm text-txt-primary">
+            {t("settings.alias_sender_pin_mode_label")}
           </p>
+          <InfoHint
+            tip={t("settings.alias_sender_pinning_info")}
+            title={t("settings.alias_sender_pinning_title")}
+          />
         </div>
         <Select
           value={String(mode)}
@@ -335,8 +417,10 @@ function SenderPinningPanel({ alias_id, domain_address_id }: { alias_id?: string
   );
 }
 
-
-function field_label(t: ReturnType<typeof use_i18n>["t"], field: AliasRuleField) {
+function field_label(
+  t: ReturnType<typeof use_i18n>["t"],
+  field: AliasRuleField,
+) {
   switch (field) {
     case "all":
       return t("settings.alias_rule_field_all");
@@ -369,8 +453,13 @@ function operator_label(
   }
 }
 
-
-function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
+function RulesPanel({
+  alias_id,
+  domain_address_id,
+}: {
+  alias_id?: string;
+  domain_address_id?: string;
+}) {
   const { t } = use_i18n();
   const [rules, set_rules] = useState<AliasRule[]>([]);
   const [loading, set_loading] = useState(true);
@@ -401,7 +490,9 @@ function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain
       prev.map((r) => (r.id === rule.id ? { ...r, is_enabled: next } : r)),
     );
     const response = domain_address_id
-      ? await update_domain_address_rule(domain_address_id, rule.id, { is_enabled: next })
+      ? await update_domain_address_rule(domain_address_id, rule.id, {
+          is_enabled: next,
+        })
       : await update_alias_rule(alias_id!, rule.id, { is_enabled: next });
     if (response.error) {
       set_rules((prev) =>
@@ -438,24 +529,22 @@ function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain
     const parts: string[] = [];
     if (a.block) parts.push(t("settings.alias_rule_action_block"));
     if (a.to_trash) parts.push(t("settings.alias_rule_action_to_trash"));
-    if (a.label) parts.push(`${t("settings.alias_rule_action_label")}: ${a.label}`);
+    if (a.label)
+      parts.push(`${t("settings.alias_rule_action_label")}: ${a.label}`);
     return parts.join(", ");
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <SectionTitle
-            icon={<AdjustmentsHorizontalIcon className="w-4 h-4" />}
-            info={t("settings.alias_rules_info")}
-            info_title={t("settings.alias_rules_title")}
-          >
+        <div className="flex min-w-0 items-center gap-1.5">
+          <p className="text-sm text-txt-primary">
             {t("settings.alias_rules_title")}
-          </SectionTitle>
-          <p className="text-xs text-txt-muted mt-0.5">
-            {t("settings.alias_rules_description")}
           </p>
+          <InfoHint
+            tip={t("settings.alias_rules_info")}
+            title={t("settings.alias_rules_title")}
+          />
         </div>
         <Button
           className="shrink-0"
@@ -474,7 +563,9 @@ function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain
       {loading ? (
         <Spinner size="md" />
       ) : rules.length === 0 ? (
-        <p className="text-xs text-txt-muted">{t("settings.alias_rules_empty")}</p>
+        <p className="text-xs text-txt-muted">
+          {t("settings.alias_rules_empty")}
+        </p>
       ) : (
         <div className="space-y-1.5">
           {rules.map((rule) => (
@@ -490,7 +581,8 @@ function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain
                   {describe_actions(rule.actions)}
                 </p>
               </div>
-              <Switch size="lg"
+              <Switch
+                size="lg"
                 checked={rule.is_enabled}
                 onCheckedChange={() => handle_toggle(rule)}
               />
@@ -530,7 +622,17 @@ function RulesPanel({ alias_id, domain_address_id }: { alias_id?: string; domain
   );
 }
 
-function ContactsPanel({ alias_id, domain_address_id, alias_local_part, alias_domain }: { alias_id?: string; domain_address_id?: string; alias_local_part?: string; alias_domain?: string }) {
+function ContactsPanel({
+  alias_id,
+  domain_address_id,
+  alias_local_part,
+  alias_domain,
+}: {
+  alias_id?: string;
+  domain_address_id?: string;
+  alias_local_part?: string;
+  alias_domain?: string;
+}) {
   const { t } = use_i18n();
   const [contacts, set_contacts] = useState<DecryptedAliasContact[]>([]);
   const [loading, set_loading] = useState(true);
@@ -539,9 +641,11 @@ function ContactsPanel({ alias_id, domain_address_id, alias_local_part, alias_do
   const [readable_reverse, set_readable_reverse] = useState(false);
 
   useEffect(() => {
-    get_alias_preferences().then((r) => {
-      if (r.data?.readable_reverse_aliases) set_readable_reverse(true);
-    }).catch(() => {});
+    get_alias_preferences()
+      .then((r) => {
+        if (r.data?.readable_reverse_aliases) set_readable_reverse(true);
+      })
+      .catch(() => {});
   }, []);
 
   const load = useCallback(async () => {
@@ -584,7 +688,12 @@ function ContactsPanel({ alias_id, domain_address_id, alias_local_part, alias_do
     set_busy(true);
     try {
       const response = domain_address_id
-        ? await add_domain_address_contact(domain_address_id, value, alias_local_part ?? "", alias_domain ?? "")
+        ? await add_domain_address_contact(
+            domain_address_id,
+            value,
+            alias_local_part ?? "",
+            alias_domain ?? "",
+          )
         : await add_alias_contact(alias_id!, value, readable_reverse);
 
       if (response.error) {
@@ -606,7 +715,11 @@ function ContactsPanel({ alias_id, domain_address_id, alias_local_part, alias_do
       prev.map((c) => (c.id === contact.id ? { ...c, is_blocked: next } : c)),
     );
     const response = domain_address_id
-      ? await set_domain_address_contact_blocked(domain_address_id, contact.id, next)
+      ? await set_domain_address_contact_blocked(
+          domain_address_id,
+          contact.id,
+          next,
+        )
       : await set_alias_contact_blocked(alias_id!, contact.id, next);
 
     if (response.error) {
@@ -634,17 +747,6 @@ function ContactsPanel({ alias_id, domain_address_id, alias_local_part, alias_do
 
   return (
     <div className="space-y-3">
-      <SectionTitle
-        icon={<UserGroupIcon className="w-4 h-4" />}
-        info={t("settings.alias_contacts_info")}
-        info_title={t("settings.alias_contacts_title")}
-      >
-        {t("settings.alias_contacts_title")}
-      </SectionTitle>
-      <p className="text-xs text-txt-muted">
-        {t("settings.alias_contacts_description")}
-      </p>
-
       <div className="flex items-center gap-2">
         <input
           className={INPUT_CLASS}
@@ -714,7 +816,10 @@ function ContactsPanel({ alias_id, domain_address_id, alias_local_part, alias_do
   );
 }
 
-function delivery_reason_label(t: ReturnType<typeof use_i18n>["t"], reason: string): string {
+function delivery_reason_label(
+  t: ReturnType<typeof use_i18n>["t"],
+  reason: string,
+): string {
   switch (reason) {
     case "sender_pin":
       return t("settings.alias_delivery_log_reason_sender_pin");
@@ -732,7 +837,9 @@ function delivery_reason_icon(reason: string): React.ReactNode {
     case "sender_pin":
       return <NoSymbolIcon className="w-4 h-4 text-red-500 shrink-0" />;
     case "alias_rule":
-      return <AdjustmentsHorizontalIcon className="w-4 h-4 text-orange-500 shrink-0" />;
+      return (
+        <AdjustmentsHorizontalIcon className="w-4 h-4 text-orange-500 shrink-0" />
+      );
     case "alias_disabled":
       return <EyeSlashIcon className="w-4 h-4 text-txt-muted shrink-0" />;
     default:
@@ -740,7 +847,13 @@ function delivery_reason_icon(reason: string): React.ReactNode {
   }
 }
 
-function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; domain_address_id?: string }) {
+function DeliveryLogPanel({
+  alias_id,
+  domain_address_id,
+}: {
+  alias_id?: string;
+  domain_address_id?: string;
+}) {
   const { t } = use_i18n();
   const [events, set_events] = useState<DeliveryEvent[]>([]);
   const [loading, set_loading] = useState(true);
@@ -769,14 +882,6 @@ function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; 
 
   return (
     <div className="space-y-3">
-      <SectionTitle
-        icon={<NoSymbolIcon className="w-4 h-4" />}
-        info={t("settings.alias_delivery_log_info")}
-        info_title={t("settings.alias_delivery_log_title")}
-      >
-        {t("settings.alias_delivery_log_title")}
-      </SectionTitle>
-
       {loading ? (
         <Spinner size="md" />
       ) : events.length === 0 ? (
@@ -817,23 +922,6 @@ function DeliveryLogPanel({ alias_id, domain_address_id }: { alias_id?: string; 
   );
 }
 
-function LockedSection({
-  icon,
-  title,
-  message,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  message: string;
-}) {
-  return (
-    <div className="space-y-3">
-      <SectionTitle icon={icon}>{title}</SectionTitle>
-      <FeatureLockOverlay message={message} />
-    </div>
-  );
-}
-
 function StatsPanel({ alias_id }: { alias_id: string }) {
   const { t, language } = use_i18n();
   const [stats, set_stats] = useState<AliasStats | null>(null);
@@ -849,7 +937,8 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
         if (!active || !stats_response.data) return;
         set_stats(stats_response.data);
 
-        const { last_sender_encrypted, last_sender_nonce } = stats_response.data;
+        const { last_sender_encrypted, last_sender_nonce } =
+          stats_response.data;
 
         if (!last_sender_encrypted) return;
 
@@ -857,7 +946,8 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
           from: { name: string; email: string };
         }>(last_sender_encrypted, last_sender_nonce ?? "");
 
-        if (active && envelope?.from?.email) set_last_sender(envelope.from.email);
+        if (active && envelope?.from?.email)
+          set_last_sender(envelope.from.email);
       })
       .catch(() => {})
       .finally(() => {
@@ -869,14 +959,7 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
   }, [alias_id]);
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        <SectionTitle icon={<ChartBarIcon className="w-4 h-4" />}>
-          {t("settings.alias_stats_title")}
-        </SectionTitle>
-        <Spinner size="sm" />
-      </div>
-    );
+    return <Spinner size="sm" />;
   }
 
   if (!stats) return null;
@@ -885,10 +968,6 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
 
   return (
     <div className="space-y-3">
-      <SectionTitle icon={<ChartBarIcon className="w-4 h-4" />}>
-        {t("settings.alias_stats_title")}
-      </SectionTitle>
-
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-txt-muted">
         <span>
           {t("settings.alias_stats_received" as TranslationKey, {
@@ -933,7 +1012,6 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
     </div>
   );
 }
-
 
 export interface AliasDeliveryUpdate {
   never_inbox?: boolean;
@@ -1017,9 +1095,6 @@ function DeliveryPanel({
 
   return (
     <div className="space-y-2">
-      <SectionTitle icon={<InboxArrowDownIcon className="w-4 h-4" />}>
-        {t("settings.alias_delivery_title")}
-      </SectionTitle>
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
@@ -1035,11 +1110,7 @@ function DeliveryPanel({
             {t("settings.alias_delivery_folder_desc")}
           </p>
         </div>
-        <Select
-          disabled={saving}
-          value={value}
-          onValueChange={handle_change}
-        >
+        <Select disabled={saving} value={value} onValueChange={handle_change}>
           <SelectTrigger
             aria-label={t("settings.alias_delivery_folder")}
             className="h-9 w-44 shrink-0 bg-transparent"
@@ -1101,30 +1172,36 @@ function AliasDetailsPanel({
   const { t } = use_i18n();
 
   return (
-    <div className="space-y-2">
-      <SectionTitle icon={<PencilSquareIcon className="w-4 h-4" />}>
-        {t("settings.alias_details_title" as TranslationKey)}
-      </SectionTitle>
-      <AliasDisplayNameEditor
-        alias_address={alias_address}
-        display_name={display_name}
-        is_locked={is_locked}
-        on_save={on_save_display_name}
-        on_saved={on_saved_display_name}
-      />
-      <AliasNoteEditor
-        alias_address={alias_address}
-        note={note}
-        on_save={on_save_note}
-        on_saved={on_saved_note}
-      />
-      <AliasWebsitesEditor
-        alias_address={alias_address}
-        websites={websites}
-        on_save={on_save_websites}
-        on_saved={on_saved_websites}
-      />
-    </div>
+    <>
+      <DetailField label={t("settings.display_name")}>
+        <AliasDisplayNameEditor
+          hide_icon
+          alias_address={alias_address}
+          display_name={display_name}
+          is_locked={is_locked}
+          on_save={on_save_display_name}
+          on_saved={on_saved_display_name}
+        />
+      </DetailField>
+      <DetailField label={t("settings.alias_note_label")}>
+        <AliasNoteEditor
+          hide_icon
+          alias_address={alias_address}
+          note={note}
+          on_save={on_save_note}
+          on_saved={on_saved_note}
+        />
+      </DetailField>
+      <DetailField label={t("common.websites")}>
+        <AliasWebsitesEditor
+          hide_icon
+          alias_address={alias_address}
+          websites={websites}
+          on_save={on_save_websites}
+          on_saved={on_saved_websites}
+        />
+      </DetailField>
+    </>
   );
 }
 
@@ -1171,7 +1248,7 @@ export function AliasAdvancedPanel(props: AliasAdvancedPanelProps) {
   const contacts_locked = is_feature_locked("max_reverse_contacts_per_alias");
 
   return (
-    <div className="mt-3 pt-3 border-t border-edge-secondary space-y-5">
+    <div className="mt-3 divide-y divide-edge-secondary border-t border-edge-secondary">
       {alias_id && (
         <AliasDetailsPanel
           alias_address={props.alias_address}
@@ -1188,50 +1265,78 @@ export function AliasAdvancedPanel(props: AliasAdvancedPanelProps) {
         />
       )}
       {alias_id && props.on_save_delivery && props.on_saved_delivery && (
-        <DeliveryPanel
-          delivery_folder_token={props.delivery_folder_token}
-          never_inbox={props.never_inbox}
-          on_save={props.on_save_delivery}
-          on_saved={props.on_saved_delivery}
-        />
+        <PanelRow
+          description={t("settings.alias_delivery_folder_desc")}
+          title={t("settings.alias_delivery_title")}
+          value={
+            props.delivery_folder_token
+              ? undefined
+              : props.never_inbox
+                ? t("mail.archive")
+                : t("mail.inbox")
+          }
+        >
+          <DeliveryPanel
+            delivery_folder_token={props.delivery_folder_token}
+            never_inbox={props.never_inbox}
+            on_save={props.on_save_delivery}
+            on_saved={props.on_saved_delivery}
+          />
+        </PanelRow>
       )}
-      {alias_id && !delivery_log_locked && <StatsPanel alias_id={alias_id} />}
-      {sender_locked ? (
-        <LockedSection
-          icon={<ShieldCheckIcon className="w-4 h-4" />}
-          message={t("settings.alias_feature_locked_sender_pinning")}
-          title={t("settings.alias_sender_pinning_title")}
-        />
-      ) : (
-        <SenderPinningPanel alias_id={alias_id} domain_address_id={domain_address_id} />
+      {alias_id && (
+        <PanelRow
+          description={t("settings.alias_stats_description")}
+          locked={delivery_log_locked}
+          locked_message={t("settings.alias_feature_locked_stats")}
+          title={t("settings.alias_stats_title")}
+        >
+          <StatsPanel alias_id={alias_id} />
+        </PanelRow>
       )}
-      {rules_locked ? (
-        <LockedSection
-          icon={<AdjustmentsHorizontalIcon className="w-4 h-4" />}
-          message={t("settings.alias_feature_locked_rules")}
-          title={t("settings.alias_rules_title")}
+      <PanelRow
+        description={t("settings.alias_sender_pinning_description")}
+        locked={sender_locked}
+        locked_message={t("settings.alias_feature_locked_sender_pinning")}
+        title={t("settings.alias_sender_pinning_title")}
+      >
+        <SenderPinningPanel
+          alias_id={alias_id}
+          domain_address_id={domain_address_id}
         />
-      ) : (
+      </PanelRow>
+      <PanelRow
+        description={t("settings.alias_rules_description")}
+        locked={rules_locked}
+        locked_message={t("settings.alias_feature_locked_rules")}
+        title={t("settings.alias_rules_title")}
+      >
         <RulesPanel alias_id={alias_id} domain_address_id={domain_address_id} />
-      )}
-      {delivery_log_locked ? (
-        <LockedSection
-          icon={<NoSymbolIcon className="w-4 h-4" />}
-          message={t("settings.alias_feature_locked_upgrade_plan")}
-          title={t("settings.alias_delivery_log_title")}
+      </PanelRow>
+      <PanelRow
+        description={t("settings.alias_delivery_log_info")}
+        locked={delivery_log_locked}
+        locked_message={t("settings.alias_feature_locked_delivery_log")}
+        title={t("settings.alias_delivery_log_title")}
+      >
+        <DeliveryLogPanel
+          alias_id={alias_id}
+          domain_address_id={domain_address_id}
         />
-      ) : (
-        <DeliveryLogPanel alias_id={alias_id} domain_address_id={domain_address_id} />
-      )}
-      {contacts_locked ? (
-        <LockedSection
-          icon={<UserGroupIcon className="w-4 h-4" />}
-          message={t("settings.alias_feature_locked_contacts")}
-          title={t("settings.alias_contacts_title")}
+      </PanelRow>
+      <PanelRow
+        description={t("settings.alias_contacts_description")}
+        locked={contacts_locked}
+        locked_message={t("settings.alias_feature_locked_contacts")}
+        title={t("settings.alias_contacts_title")}
+      >
+        <ContactsPanel
+          alias_domain={alias_domain}
+          alias_local_part={alias_local_part}
+          alias_id={alias_id}
+          domain_address_id={domain_address_id}
         />
-      ) : (
-        <ContactsPanel alias_id={alias_id} domain_address_id={domain_address_id} alias_local_part={alias_local_part} alias_domain={alias_domain} />
-      )}
+      </PanelRow>
     </div>
   );
 }

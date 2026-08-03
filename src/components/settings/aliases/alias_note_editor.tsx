@@ -38,6 +38,7 @@ interface AliasNoteEditorProps {
   on_save: (next_note: string) => Promise<{ error?: unknown }>;
   on_saved: (next_note: string) => void;
   variant?: "desktop" | "mobile";
+  hide_icon?: boolean;
 }
 
 export function AliasNoteEditor({
@@ -46,6 +47,7 @@ export function AliasNoteEditor({
   on_save,
   on_saved,
   variant = "desktop",
+  hide_icon = false,
 }: AliasNoteEditorProps) {
   const { t } = use_i18n();
   const [is_editing, set_is_editing] = useState(false);
@@ -164,7 +166,7 @@ export function AliasNoteEditor({
       <span
         className={`flex items-center gap-1.5 ${variant === "mobile" ? "mt-1 text-[var(--mobile-text-muted)]" : "mt-0.5 text-txt-muted"}`}
       >
-        <PencilSquareIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+        {!hide_icon && <PencilSquareIcon className="w-3.5 h-3.5 shrink-0" />}
         <input
           ref={input_ref}
           aria-label={aria_label}
@@ -197,7 +199,7 @@ export function AliasNoteEditor({
         type="button"
         onClick={enter_edit}
       >
-        <PencilSquareIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+        {!hide_icon && <PencilSquareIcon className="w-3.5 h-3.5 shrink-0" />}
         <span className="truncate">{display_label}</span>
       </button>
     );
@@ -206,13 +208,13 @@ export function AliasNoteEditor({
   return (
     <button
       aria-label={aria_label}
-      className={`mt-0.5 flex w-full min-w-0 cursor-text items-center gap-1.5 text-left text-xs leading-4 ${
-        has_note ? "text-txt-muted" : "text-txt-muted opacity-60"
+      className={`mt-0.5 flex w-full min-w-0 cursor-text items-center gap-1.5 text-left text-xs leading-4 transition-colors hover:text-txt-secondary ${
+        has_note ? "text-txt-tertiary" : "text-txt-muted"
       } focus:outline-none focus:ring-0`}
       type="button"
       onClick={enter_edit}
     >
-      <PencilSquareIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+      {!hide_icon && <PencilSquareIcon className="w-3.5 h-3.5 shrink-0" />}
       <span className="truncate">{display_label}</span>
     </button>
   );

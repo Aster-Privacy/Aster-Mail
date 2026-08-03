@@ -40,6 +40,7 @@ interface AliasDisplayNameEditorProps {
   on_save: (next_display_name: string) => Promise<{ error?: unknown }>;
   on_saved: (next_display_name: string) => void;
   variant?: "desktop" | "mobile";
+  hide_icon?: boolean;
 }
 
 export function AliasDisplayNameEditor({
@@ -49,6 +50,7 @@ export function AliasDisplayNameEditor({
   on_save,
   on_saved,
   variant = "desktop",
+  hide_icon = false,
 }: AliasDisplayNameEditorProps) {
   const { t } = use_i18n();
   const [is_editing, set_is_editing] = useState(false);
@@ -163,7 +165,7 @@ export function AliasDisplayNameEditor({
       <span
         className={`flex items-center gap-1.5 ${variant === "mobile" ? "mt-1 text-[var(--mobile-text-muted)]" : "mt-0.5 text-txt-muted"}`}
       >
-        <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+        {!hide_icon && <IdentificationIcon className="w-3.5 h-3.5 shrink-0" />}
         <input
           ref={input_ref}
           aria-label={aria_label}
@@ -197,7 +199,7 @@ export function AliasDisplayNameEditor({
         type="button"
         onClick={enter_edit}
       >
-        <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+        {!hide_icon && <IdentificationIcon className="w-3.5 h-3.5 shrink-0" />}
         <span className="truncate">{display_label}</span>
       </button>
     );
@@ -206,13 +208,13 @@ export function AliasDisplayNameEditor({
   return (
     <button
       aria-label={aria_label}
-      className={`mt-0.5 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-left text-xs leading-4 ${
-        has_name ? "text-txt-muted" : "text-txt-muted opacity-70"
+      className={`mt-0.5 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-left text-xs leading-4 transition-colors hover:text-txt-secondary ${
+        has_name ? "text-txt-tertiary" : "text-txt-muted"
       } focus:outline-none focus:ring-0`}
       type="button"
       onClick={enter_edit}
     >
-      <IdentificationIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+      {!hide_icon && <IdentificationIcon className="w-3.5 h-3.5 shrink-0" />}
       <span className="truncate">{display_label}</span>
     </button>
   );

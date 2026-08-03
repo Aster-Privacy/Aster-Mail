@@ -46,6 +46,7 @@ interface AliasWebsitesEditorProps {
   on_save: (next_websites: string[]) => Promise<{ error?: unknown }>;
   on_saved: (next_websites: string[]) => void;
   variant?: "desktop" | "mobile";
+  hide_icon?: boolean;
 }
 
 export function AliasWebsitesEditor({
@@ -54,6 +55,7 @@ export function AliasWebsitesEditor({
   on_save,
   on_saved,
   variant = "desktop",
+  hide_icon = false,
 }: AliasWebsitesEditorProps) {
   const { t } = use_i18n();
   const [is_adding, set_is_adding] = useState(false);
@@ -164,7 +166,7 @@ export function AliasWebsitesEditor({
 
   const empty_add_class = is_mobile
     ? "mt-1 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-[13px] leading-5 text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
-    : "mt-0.5 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-xs leading-4 text-txt-muted opacity-70 hover:opacity-100 focus:outline-none focus:ring-0";
+    : "mt-0.5 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-xs leading-4 text-txt-muted transition-colors hover:text-txt-secondary focus:outline-none focus:ring-0";
 
   if (current.length === 0 && !is_adding) {
     return (
@@ -175,7 +177,7 @@ export function AliasWebsitesEditor({
         type="button"
         onClick={() => set_is_adding(true)}
       >
-        <LinkIcon className="w-3.5 h-3.5 shrink-0 opacity-70" />
+        {!hide_icon && <LinkIcon className="w-3.5 h-3.5 shrink-0" />}
         <span className="truncate">
           {t("common.add_alias_website_placeholder")}
         </span>

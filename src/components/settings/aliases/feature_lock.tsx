@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Badge, UpgradeBtn } from "@aster/ui";
+import { SparklesIcon } from "@heroicons/react/24/outline";
+import { UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { show_toast } from "@/components/toast/simple_toast";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 
 export function go_to_billing() {
   window.dispatchEvent(
@@ -29,18 +30,35 @@ export function go_to_billing() {
   );
 }
 
-export function prompt_upgrade(msg: string) {
-  show_toast(msg, "info", 5000);
-  go_to_billing();
+export function prompt_upgrade(msg: string, resource?: string) {
+  show_plan_limit_upgrade({ message: msg, resource: resource ?? null });
+}
+
+export function PaidPill({ className = "" }: { className?: string }) {
+  const { t } = use_i18n();
+
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide ${className}`}
+      style={{
+        borderColor: "color-mix(in srgb, var(--accent-color) 35%, transparent)",
+        backgroundColor:
+          "color-mix(in srgb, var(--accent-color) 12%, transparent)",
+        color: "var(--accent-color)",
+      }}
+    >
+      <SparklesIcon className="h-2.5 w-2.5" />
+      {t("settings.alias_paid_badge")}
+    </span>
+  );
 }
 
 export function FeatureLockOverlay({ message }: { message: string }) {
   const { t } = use_i18n();
 
   return (
-    <div className="flex flex-col items-center gap-3 px-4 py-6 rounded-lg bg-surf-tertiary border border-dashed border-edge-secondary text-center">
-      <Badge color="blue">{t("settings.alias_feature_locked_upgrade_plan")}</Badge>
-      <p className="text-sm text-txt-secondary max-w-[280px]">{message}</p>
+    <div className="flex flex-col items-start gap-2.5 rounded-lg border border-edge-secondary bg-surf-tertiary px-3.5 py-3">
+      <p className="text-[13px] leading-5 text-txt-secondary">{message}</p>
       <UpgradeBtn size="sm" onClick={go_to_billing}>
         {t("settings.alias_feature_locked_upgrade_cta")}
       </UpgradeBtn>

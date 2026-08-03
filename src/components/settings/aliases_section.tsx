@@ -31,6 +31,7 @@ import { Button } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import { get_alias_preferences } from "@/services/api/aliases";
 import {
   cancel_domain_order,
@@ -40,14 +41,6 @@ import {
 } from "@/services/api/domains";
 import { Spinner } from "@/components/ui/spinner";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
-import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalBody,
-  ModalFooter,
-} from "@/components/ui/modal";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
@@ -88,6 +81,55 @@ function read_initial_tab(): AliasTab {
   } catch {}
 
   return "aliases";
+}
+
+function AliasUsageMeter({ used, max }: { used: number; max: number }) {
+  const { t } = use_i18n();
+
+  if (!max || max < 0) return null;
+
+  const percent = Math.min(100, Math.round((used / max) * 100));
+  const is_full = used >= max;
+  const is_near = percent >= 60;
+
+  return (
+    <div className="mb-2 rounded-xl border border-edge-secondary bg-surf-secondary/40 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-medium text-txt-secondary">
+          {t("settings.alias_usage_used_of", {
+            used: String(used),
+            max: String(max),
+          })}
+        </span>
+        {is_near && (
+          <button
+            className="text-xs font-semibold hover:underline"
+            style={{ color: "var(--accent-color)" }}
+            type="button"
+            onClick={() => show_plan_limit_upgrade({ resource: "aliases" })}
+          >
+            {t("settings.alias_usage_unlock")}
+          </button>
+        )}
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surf-tertiary">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{
+            width: `${percent}%`,
+            backgroundColor: is_full
+              ? "var(--destructive)"
+              : "var(--accent-color)",
+          }}
+        />
+      </div>
+      {is_near && (
+        <p className="mt-1.5 text-[11px] leading-4 text-txt-muted">
+          {t("settings.alias_usage_nudge")}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export function AliasesSection() {
@@ -359,16 +401,6 @@ export function AliasesSection() {
                   {t("settings.email_aliases")}
                 </h3>
                 <div className="flex items-center gap-3">
-                  {hook.alias_counts && (
-                    <span className="text-xs text-txt-muted">
-                      {(hook.alias_counts.count ?? 0) +
-                        hook.domain_addresses.length}
-                      /
-                      {hook.alias_counts.max === -1
-                        ? "∞"
-                        : (hook.alias_counts.max ?? 0)}
-                    </span>
-                  )}
                   <Button size="sm" variant="ghost" onClick={alias_csv_locked ? () => prompt_upgrade(t("settings.feature_requires_upgrade")) : () => set_show_export_modal(true)}>
                     {t("settings.alias_export_csv")}
                   </Button>
@@ -392,6 +424,14 @@ export function AliasesSection() {
               )}
             </p>
 
+            <AliasUsageMeter
+              max={hook.alias_counts?.max ?? hook.max_aliases}
+              used={
+                (hook.alias_counts?.count ?? hook.aliases.length) +
+                hook.domain_addresses.length
+              }
+            />
+
             <div className="flex gap-2 mb-2">
               <Button
                 className="flex-1"
@@ -409,7 +449,7 @@ export function AliasesSection() {
                   if (
                     compute_alias_at_limit(max, total_count, has_custom_domains)
                   ) {
-                    hook.set_show_upgrade_modal(true);
+                    show_plan_limit_upgrade({ resource: "aliases" });
                   } else {
                     hook.set_show_create_alias_modal(true);
                   }
@@ -805,48 +845,6 @@ export function AliasesSection() {
         on_domain_added={hook.handle_domain_added}
         on_domains_changed={hook.load_domains}
       />
-
-      <Modal
-        is_open={hook.show_upgrade_modal}
-        on_close={() => hook.set_show_upgrade_modal(false)}
-        size="md"
-      >
-        <ModalHeader>
-          <ModalTitle>{t("common.alias_limit_reached")}</ModalTitle>
-          <ModalDescription>
-            {t("settings.alias_limit_all_used", {
-              used:
-                (hook.alias_counts?.count ?? hook.aliases.length) +
-                hook.domain_addresses.length,
-              count: hook.alias_counts?.max ?? hook.max_aliases,
-            })}
-          </ModalDescription>
-        </ModalHeader>
-        <ModalBody>
-          <p className="text-sm text-txt-secondary">
-            {t("settings.upgrade_plan_more_aliases")}
-          </p>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            variant="outline"
-            onClick={() => hook.set_show_upgrade_modal(false)}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button
-            variant="depth"
-            onClick={() => {
-              hook.set_show_upgrade_modal(false);
-              window.dispatchEvent(
-                new CustomEvent("navigate-settings", { detail: "billing" }),
-              );
-            }}
-          >
-            {t("common.upgrade_plan")}
-          </Button>
-        </ModalFooter>
-      </Modal>
 
       <AliasImportModal
         available_domains={hook.available_domains_for_aliases}
