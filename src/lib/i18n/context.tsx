@@ -72,9 +72,11 @@ function interpolate(
   if (!params) return text;
 
   return Object.entries(params).reduce((result, [key, value]) => {
-    const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "g");
+    const escaped_key = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`\\{\\{\\s*${escaped_key}\\s*\\}\\}`, "g");
+    const replacement = String(value);
 
-    return result.replace(regex, String(value));
+    return result.replace(regex, () => replacement);
   }, text);
 }
 

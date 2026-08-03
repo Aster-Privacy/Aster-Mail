@@ -104,7 +104,13 @@ export function request_crypto_resume(invoice_id: string): void {
   }
 }
 
-export function forget_crypto_selection(): void {
+export function forget_crypto_selection(invoice_id?: string): void {
+  if (invoice_id) {
+    const stored = read_crypto_resume();
+
+    if (!stored || stored.invoice_id !== invoice_id) return;
+  }
+
   try {
     sessionStorage.removeItem(CRYPTO_RESUME_KEY);
   } catch {
@@ -154,6 +160,7 @@ export interface FamilyPlanTier {
   storage_label: string;
   monthly_cents: number;
   yearly_cents: number;
+  biennial_cents: number;
   savings_label: string;
   is_recommended?: boolean;
 }
@@ -167,6 +174,7 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
     storage_label: "1 TB shared",
     monthly_cents: 1299,
     yearly_cents: 11999,
+    biennial_cents: 20699,
     savings_label: "Save $35.89/yr",
   },
   {
@@ -177,6 +185,7 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
     storage_label: "3 TB shared",
     monthly_cents: 2699,
     yearly_cents: 26399,
+    biennial_cents: 45499,
     savings_label: "Save $59.89/yr",
     is_recommended: true,
   },

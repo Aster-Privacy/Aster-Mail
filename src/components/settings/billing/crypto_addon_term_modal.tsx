@@ -126,8 +126,9 @@ export function crypto_addon_term_modal({
 
       if (response.data?.url) {
         if (is_tauri) {
+          const safe_url = payment_url_or_throw(response.data.url);
           const core = await import("@tauri-apps/api/core");
-          await core.invoke("open_external_url", { url: response.data.url });
+          await core.invoke("open_external_url", { url: safe_url });
           on_checkout_opened?.();
           on_close();
         } else {

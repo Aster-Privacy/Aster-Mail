@@ -3469,6 +3469,8 @@ export const ar = {
       "تعذّر تحميل معلومات تسجيل دخولك. محاولة أخرى ينبغي أن تنجح.",
     downgrade: "تخفيض",
     upgrade_to: "الترقية إلى {{name}}",
+    get_plan: "احصل على {{name}}",
+    save_percent: "وفّر {{percent}}%",
     downgrade_to: "التخفيض إلى {{name}}",
     payment: "الدفع",
     cancels: "ينتهي",
@@ -5367,6 +5369,12 @@ export const ar = {
     crypto_native_send_remaining: "أرسل المبلغ المتبقي",
     crypto_native_to_address: "إلى هذا العنوان",
     crypto_native_open_wallet: "فتح في المحفظة",
+    crypto_native_status_processing: "قيد المعالجة",
+    crypto_native_hint_processing:
+      "تتم معالجة هذه الدفعة. تُحدَّث هذه الصفحة تلقائيًا، فلا حاجة لأي إجراء منك.",
+    crypto_native_copy_invoice_ref: "نسخ مرجع الفاتورة",
+    crypto_native_no_wallet_handler:
+      "لم يُفتح أي تطبيق محفظة. انسخ العنوان أعلاه والصقه في محفظتك بدلاً من ذلك.",
     crypto_native_copied: "تم النسخ إلى الحافظة",
     crypto_native_network_warning: "أرسل {{coin}} فقط عبر شبكة {{chain}}. إرسال أي أصل آخر أو استخدام شبكة أخرى سيؤدي إلى فقدان الأموال.",
     crypto_native_usd_value_label: "المبلغ المستحق",
@@ -5391,10 +5399,15 @@ export const ar = {
     crypto_native_paid_body: "خطتك نشطة الآن. شكرًا لك!",
     crypto_native_go_to_inbox: "الانتقال إلى البريد الوارد",
     crypto_native_view_billing: "العودة إلى الفوترة",
-    crypto_native_cancelled_title: "تم إلغاء الدفع",
-    crypto_native_cancelled_body: "تم إلغاء هذه الفاتورة. يمكنك بدء دفعة جديدة في أي وقت.",
+    crypto_native_invoice_cancelled: "تم إلغاء الفاتورة",
     crypto_native_expired_title: "انتهت صلاحية هذه الفاتورة",
     crypto_native_expired_body: "تتغير الأسعار، لذلك أُغلقت نافذة الدفع هذه. ابدأ دفعة جديدة للمتابعة.",
+    crypto_native_cancelled_body:
+      "تم إلغاء هذه العملية. لم يتم خصم أي مبلغ. يمكنك بدء عملية دفع جديدة في أي وقت.",
+    crypto_native_start_new_payment:
+      "بدء عملية دفع جديدة",
+    crypto_native_check_now:
+      "تحقق الآن",
     crypto_native_expired_do_not_send: "لا ترسل أي أموال إلى العنوان الموجود في هذه الفاتورة. الأموال المُرسَلة الآن تحتاج إلى مراجعة يدوية قبل إضافتها إلى رصيدك.",
     crypto_native_not_found: "تعذر العثور على هذه الفاتورة",
     crypto_native_unavailable: "تعذر تحميل الدفع",
@@ -5404,6 +5417,8 @@ export const ar = {
     crypto_native_pending_banner_multi: "لديك {{count}} من عمليات الدفع بالعملات الرقمية قيد التنفيذ",
     crypto_native_back_hint: "لا تزال هذه الفاتورة مفتوحة. يمكنك متابعتها من الفوترة في أي وقت.",
     crypto_native_scan_hint: "امسح الرمز بتطبيق محفظتك",
+    crypto_native_scan_hint_address_only:
+      "امسح الرمز بتطبيق محفظتك، ثم أدخل {{amount}} يدويًا",
     crypto_native_network_label: "الشبكة",
     crypto_native_confirmations_label: "التأكيدات",
     crypto_native_confirmations_value: "{{current}} من {{required}}",
@@ -5417,6 +5432,8 @@ export const ar = {
     crypto_native_hint_confirming: "جارٍ التأكيد على الشبكة. تُفعَّل خطتك بمجرد الانتهاء.",
     crypto_native_hint_credited: "تم تأكيد الدفع. خطتك نشطة الآن.",
     crypto_native_time_remaining: "الوقت المتبقي",
+    crypto_native_expiring_soon:
+      "بقي أقل من 5 دقائق. إذا انتهت هذه المهلة قبل وصول دفعتك، يمكنك بدء دفعة جديدة بالسعر الحالي.",
     crypto_native_hint_underpaid: "أرسل المبلغ المتبقي الموضح أعلاه إلى العنوان نفسه لإكمال هذه الدفعة.",
     crypto_native_hint_manual_review: "يقوم فريقنا بمراجعة هذه الدفعة. لا يلزم أي إجراء إضافي منك.",
     crypto_native_connection_lost: "انقطع الاتصال. تجري إعادة المحاولة تلقائيًا.",
@@ -5424,7 +5441,7 @@ export const ar = {
     crypto_native_copy_tx_hash: "نسخ معرّف المعاملة",
     crypto_native_expiry_progress: "الوقت المتبقي قبل انتهاء صلاحية هذه الفاتورة",
     crypto_native_confirmations_progress: "تأكيدات الشبكة",
-    crypto_paid_until: "مدفوع حتى {{date}} (عملة مشفرة). لا يُجدَّد تلقائيًا.",
+    crypto_paid_until: "مدفوع حتى {{date}} (عملة مشفرة)",
     crypto_no_renew_notice: "مشتريات العملة المشفرة لا تُجدَّد تلقائيًا.",
     crypto_renew_link: "التجديد بالعملة المشفرة",
     crypto_success_toast: "تم استلام دفع العملة المشفرة. خطتك نشطة.",

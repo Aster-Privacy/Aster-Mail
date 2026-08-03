@@ -54,6 +54,11 @@ interface ModalFooterProps {
 
 const open_modal_stack: symbol[] = [];
 
+const modal_labels_context = React.createContext<{
+  title_id: string;
+  description_id: string;
+} | null>(null);
+
 const SIZE_CLASSES = {
   sm: "max-w-[360px]",
   md: "max-w-[440px]",
@@ -83,6 +88,7 @@ export function Modal({
   }, [is_open]);
 
   const reduce_motion = use_should_reduce_motion();
+  const instance_id = React.useId().replace(/:/g, "");
 
   const modal_id_ref = React.useRef<symbol | null>(null);
 
@@ -170,6 +176,14 @@ export function Modal({
     };
   }, [is_open]);
 
+  const label_ids = React.useMemo(
+    () => ({
+      title_id: `${instance_id}_title`,
+      description_id: `${instance_id}_description`,
+    }),
+    [instance_id],
+  );
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -189,6 +203,8 @@ export function Modal({
 
           <motion.div
             ref={content_ref}
+            aria-describedby={label_ids.description_id}
+            aria-labelledby={label_ids.title_id}
             aria-modal="true"
             role="dialog"
             tabIndex={-1}
@@ -224,7 +240,9 @@ export function Modal({
                 />
               </button>
             )}
-            {children}
+            <modal_labels_context.Provider value={label_ids}>
+              {children}
+            </modal_labels_context.Provider>
           </motion.div>
         </div>
       )}
@@ -247,8 +265,11 @@ export function ModalTitle({
   children: React.ReactNode;
   className?: string;
 }) {
+  const labels = React.useContext(modal_labels_context);
+
   return (
     <h3
+      id={labels?.title_id}
       className={cn(
         "aster_modal_title w-full text-base font-semibold leading-tight",
         className,
@@ -267,8 +288,11 @@ export function ModalDescription({
   children: React.ReactNode;
   className?: string;
 }) {
+  const labels = React.useContext(modal_labels_context);
+
   return (
     <p
+      id={labels?.description_id}
       className={cn("text-[13px] w-full mt-2.5 leading-relaxed", className)}
       style={{ color: "var(--text-tertiary)" }}
     >

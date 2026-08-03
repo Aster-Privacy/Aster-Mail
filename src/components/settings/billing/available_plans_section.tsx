@@ -405,7 +405,7 @@ export function AvailablePlansSection({
                   ? format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)
                   : null}
                 save_label={billing_period === "yearly"
-                  ? `SAVE ${Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100)}%`
+                  ? t("settings.save_percent", { percent: Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100) })
                   : null}
                 billed_note={billing_period === "yearly" ? t("settings.billed_annually") : null}
                 badge={!!tier.is_recommended && !is_current ? t("settings.plan_recommended") : null}
@@ -415,7 +415,7 @@ export function AvailablePlansSection({
                   ? t("settings.current_plan")
                   : is_interval_switch
                     ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
-                    : `Get ${tier.name}`}
+                    : t("settings.get_plan", { name: tier.name })}
                 cta_disabled={is_action_loading || family_loading || is_current}
                 on_cta={() => { if (!is_current) handle_family_select(tier); }}
                 features={features}
@@ -479,7 +479,7 @@ export function AvailablePlansSection({
                   ? format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)
                   : null}
                 save_label={billing_period === "yearly"
-                  ? `SAVE ${Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100)}%`
+                  ? t("settings.save_percent", { percent: Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100) })
                   : null}
                 billed_note={billing_period === "yearly" ? t("settings.billed_annually") : null}
                 badge={!!tier.is_recommended && !is_current ? t("settings.plan_recommended") : null}
@@ -489,7 +489,7 @@ export function AvailablePlansSection({
                   ? t("settings.current_plan")
                   : is_interval_switch
                     ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
-                    : is_downgrade ? t("settings.downgrade") : `Get ${tier.name}`}
+                    : is_downgrade ? t("settings.downgrade") : t("settings.get_plan", { name: tier.name })}
                 cta_disabled={is_action_loading || is_current}
                 on_cta={() => {
                   if (is_current) return;

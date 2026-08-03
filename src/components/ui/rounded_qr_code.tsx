@@ -32,7 +32,7 @@ interface RoundedQrCodeProps {
 
 const QR_MODULE_COLOR = "#0f172a";
 const QR_SURFACE_COLOR = "#ffffff";
-const QR_QUIET_ZONE = 12;
+const QR_QUIET_ZONE = 6;
 const QR_LOGO_TIMEOUT_MS = 4000;
 const QR_FRAME_GAP_CAP_MS = 200;
 
@@ -239,12 +239,12 @@ export function RoundedQrCode({
   return (
     <div
       aria-label={aria_label ?? t("common.qr_code")}
-      className="relative rounded-3xl overflow-hidden"
+      className="relative rounded-2xl overflow-hidden"
       role="img"
       style={{ width: size, height: size, backgroundColor: QR_SURFACE_COLOR }}
     >
       {!is_ready && (
-        <div className="absolute inset-0 rounded-3xl bg-surf-tertiary animate-pulse" />
+        <div className="absolute inset-0 rounded-2xl bg-surf-tertiary animate-pulse" />
       )}
       <div
         ref={container_ref}

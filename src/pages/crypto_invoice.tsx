@@ -45,6 +45,7 @@ import {
   cancel_crypto_native_invoice,
   format_price,
   get_crypto_native_invoice,
+  type CryptoInvoiceStatus,
   type CryptoNativeInvoiceStatus,
 } from "@/services/api/billing";
 import {
@@ -65,11 +66,51 @@ const TERMINAL_STATUSES = new Set([
   "manual_review",
 ]);
 const DEFINITIVE_ERROR_CODES = new Set(["NOT_FOUND", "FORBIDDEN"]);
-const ALLOWED_WALLET_SCHEMES = new Set(["bitcoin:", "ethereum:", "monero:"]);
+const KNOWN_STATUSES = new Set([
+  "pending",
+  "detected",
+  "confirming",
+  "underpaid",
+  "paid",
+  "expired",
+  "cancelled",
+  "manual_review",
+]);
+const WALLET_SCHEME_BY_CHAIN: Record<string, string> = {
+  bitcoin: "bitcoin:",
+  litecoin: "litecoin:",
+  dogecoin: "dogecoin:",
+  bitcoincash: "bitcoincash:",
+  monero: "monero:",
+  solana: "solana:",
+  ethereum: "ethereum:",
+  base: "ethereum:",
+  polygon: "ethereum:",
+  arbitrum: "ethereum:",
+  optimism: "ethereum:",
+};
+const UNSAFE_WALLET_SCHEMES = new Set([
+  "javascript:",
+  "data:",
+  "vbscript:",
+  "file:",
+  "blob:",
+  "intent:",
+  "android-app:",
+  "http:",
+  "https:",
+  "about:",
+  "chrome:",
+  "ws:",
+  "wss:",
+]);
+const WALLET_SCHEME_SHAPE = /^[a-z][a-z0-9+.-]{1,20}:$/;
 const CANCEL_HAS_PAYMENT_MARKER = "payment has already been received";
 const BILLING_ROUTE = "/settings/billing";
 const WARNING_BG = "var(--color-warning)";
 const WARNING_FG = "#1c1400";
+const WARNING_TEXT = "var(--color-warning)";
+const EXPIRING_SOON_MS = 5 * 60 * 1000;
 
 function pretty_chain(chain: string): string {
   const known: Record<string, string> = {
@@ -83,6 +124,14 @@ function pretty_chain(chain: string): string {
   };
 
   return known[chain] ?? chain.charAt(0).toUpperCase() + chain.slice(1);
+}
+
+function coin_title(display_name: string, chain: string): string {
+  const suffix = ` (${pretty_chain(chain)})`;
+
+  return display_name.toLowerCase().endsWith(suffix.toLowerCase())
+    ? display_name.slice(0, display_name.length - suffix.length).trim()
+    : display_name;
 }
 
 function format_countdown(ms: number): string {
@@ -113,6 +162,40 @@ function outstanding_atomic(
   }
 }
 
+async function write_to_clipboard(value: string): Promise<boolean> {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+
+      return true;
+    } catch {
+      void 0;
+    }
+  }
+
+  if (typeof document === "undefined") return false;
+
+  const holder = document.createElement("textarea");
+
+  holder.value = value;
+  holder.setAttribute("readonly", "true");
+  holder.style.position = "fixed";
+  holder.style.top = "-1000px";
+  holder.style.opacity = "0";
+  document.body.appendChild(holder);
+
+  try {
+    holder.select();
+    holder.setSelectionRange(0, value.length);
+
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(holder);
+  }
+}
+
 function measure_clock_skew(server_time?: string): number {
   if (!server_time) return 0;
 
@@ -123,13 +206,177 @@ function measure_clock_skew(server_time?: string): number {
   return Date.now() - server_ms;
 }
 
-function safe_wallet_uri(candidate: string | null | undefined): string | null {
+function scheme_allowed_for_chain(scheme: string, chain: string): boolean {
+  if (UNSAFE_WALLET_SCHEMES.has(scheme)) return false;
+  if (!WALLET_SCHEME_SHAPE.test(scheme)) return false;
+
+  const expected = WALLET_SCHEME_BY_CHAIN[chain.trim().toLowerCase()];
+
+  return expected ? scheme === expected : true;
+}
+
+function uri_recipient(parsed: URL): string {
+  const transfer_target = parsed.searchParams.get("address");
+
+  if (transfer_target) return transfer_target;
+
+  const head = parsed.pathname.split("/")[0] ?? "";
+
+  return head.split("@")[0] ?? "";
+}
+
+function decimal_matches(candidate: string, expected: string): boolean {
+  const left = Number(candidate);
+  const right = Number(expected);
+
+  if (!Number.isFinite(left) || !Number.isFinite(right)) return false;
+
+  return Math.abs(left - right) <= Math.max(Math.abs(right) * 1e-9, 0);
+}
+
+function string_of(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function number_of(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function string_list_of(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter((entry): entry is string => typeof entry === "string");
+}
+
+function normalize_invoice(raw: unknown): CryptoNativeInvoiceStatus | null {
+  if (!raw || typeof raw !== "object") return null;
+
+  const source = raw as Record<string, unknown>;
+  const id = string_of(source.id);
+  const status = string_of(source.status);
+
+  if (!id || !status) return null;
+
+  const currency = string_of(source.currency);
+  const amount_atomic = string_of(source.amount_atomic, "0");
+  const amount_decimal = string_of(source.amount_decimal, "0");
+
+  return {
+    id,
+    currency,
+    chain: string_of(source.chain),
+    display_name: string_of(source.display_name, currency),
+    address: string_of(source.address),
+    amount_atomic,
+    amount_decimal,
+    amount_received_atomic: string_of(source.amount_received_atomic, "0"),
+    amount_received_decimal: string_of(source.amount_received_decimal, "0"),
+    amount_due_atomic: string_of(source.amount_due_atomic, amount_atomic),
+    amount_due_decimal: string_of(source.amount_due_decimal, amount_decimal),
+    decimals: number_of(source.decimals),
+    usd_cents: number_of(source.usd_cents),
+    rate_locked_usd: string_of(source.rate_locked_usd),
+    status: status as CryptoInvoiceStatus,
+    confirmations: number_of(source.confirmations),
+    min_confirmations: number_of(source.min_confirmations, 1),
+    txids: string_list_of(source.txids),
+    payment_uri: string_of(source.payment_uri),
+    expires_at: string_of(source.expires_at),
+    watch_until: string_of(source.watch_until),
+    created_at: string_of(source.created_at),
+    completed_at:
+      typeof source.completed_at === "string" ? source.completed_at : null,
+    server_time:
+      typeof source.server_time === "string" ? source.server_time : undefined,
+  };
+}
+
+function normalize_atomic(candidate: string): string | null {
+  const trimmed = candidate.trim();
+  const scientific = /^(\d+)(?:\.(\d+))?[eE]\+?(\d+)$/.exec(trimmed);
+
+  if (!scientific) return /^\d+$/.test(trimmed) ? trimmed : null;
+
+  const [, whole, fraction = "", exponent] = scientific;
+  const shift = Number(exponent);
+
+  if (!Number.isSafeInteger(shift) || shift > 96 || fraction.length > shift) {
+    return null;
+  }
+
+  return `${whole}${fraction}${"0".repeat(shift - fraction.length)}`.replace(
+    /^0+(?=\d)/,
+    "",
+  );
+}
+
+function atomic_matches(candidate: string, expected: string): boolean {
+  const normalized = normalize_atomic(candidate);
+
+  if (normalized === null) return false;
+
+  try {
+    return BigInt(normalized) === BigInt(expected);
+  } catch {
+    return false;
+  }
+}
+
+function uri_amount_agrees(
+  parsed: URL,
+  expected_decimal: string,
+  expected_atomic: string,
+): boolean {
+  const decimal_param =
+    parsed.searchParams.get("amount") ?? parsed.searchParams.get("tx_amount");
+
+  if (decimal_param !== null) {
+    return decimal_matches(decimal_param, expected_decimal);
+  }
+
+  const atomic_param =
+    parsed.searchParams.get("uint256") ?? parsed.searchParams.get("value");
+
+  if (atomic_param !== null) {
+    return atomic_matches(atomic_param, expected_atomic);
+  }
+
+  return true;
+}
+
+function safe_wallet_uri(invoice: CryptoNativeInvoiceStatus): string | null {
+  const candidate = invoice.payment_uri;
+  const expected_address = invoice.address;
+
   if (typeof candidate !== "string" || candidate.length === 0) return null;
+  if (typeof expected_address !== "string" || expected_address.length === 0) {
+    return null;
+  }
 
   try {
     const parsed = new URL(candidate);
 
-    if (!ALLOWED_WALLET_SCHEMES.has(parsed.protocol.toLowerCase())) return null;
+    if (!scheme_allowed_for_chain(parsed.protocol.toLowerCase(), invoice.chain)) {
+      return null;
+    }
+
+    if (uri_recipient(parsed).toLowerCase() !== expected_address.toLowerCase()) {
+      return null;
+    }
+
+    const received = received_atomic_of(invoice.amount_received_atomic);
+    const partially_funded = received !== null && received > 0n;
+
+    const agrees =
+      uri_amount_agrees(
+        parsed,
+        invoice.amount_due_decimal,
+        invoice.amount_due_atomic,
+      ) ||
+      (!partially_funded &&
+        uri_amount_agrees(parsed, invoice.amount_decimal, invoice.amount_atomic));
+
+    if (!agrees) return null;
 
     return parsed.href;
   } catch {
@@ -149,6 +396,21 @@ function truncate_middle(value: string, head = 10, tail = 8): string {
   if (value.length <= head + tail + 1) return value;
 
   return `${value.slice(0, head)}…${value.slice(-tail)}`;
+}
+
+function format_locked_rate(rate_usd: string): string | null {
+  const parsed = Number(rate_usd);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+
+  const fraction_digits = parsed >= 1 ? 2 : 6;
+
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: fraction_digits,
+    maximumFractionDigits: fraction_digits,
+  }).format(parsed);
 }
 
 function elapsed_fraction(created_at: string, expires_at: string, now: number): number {
@@ -217,6 +479,12 @@ interface ResultCardProps {
 }
 
 function result_card({ body, children, icon, title, tone }: ResultCardProps) {
+  const heading_ref = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    heading_ref.current?.focus();
+  }, []);
+
   const tone_style =
     tone === "accent"
       ? {
@@ -226,7 +494,11 @@ function result_card({ body, children, icon, title, tone }: ResultCardProps) {
       : undefined;
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-3xl border border-edge-secondary bg-surf-secondary p-8 text-center">
+    <div
+      aria-live="polite"
+      className="mx-auto w-full max-w-md rounded-3xl border border-edge-secondary bg-surf-secondary p-8 text-center"
+      role="status"
+    >
       <div
         className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
           tone_style ? "" : "bg-surf-tertiary text-txt-muted"
@@ -235,7 +507,13 @@ function result_card({ body, children, icon, title, tone }: ResultCardProps) {
       >
         {icon}
       </div>
-      <h1 className="mt-5 text-xl font-semibold text-txt-primary">{title}</h1>
+      <h1
+        ref={heading_ref}
+        className="mt-5 text-xl font-semibold text-txt-primary outline-none"
+        tabIndex={-1}
+      >
+        {title}
+      </h1>
       <p className="mt-2 text-sm leading-relaxed text-txt-secondary">{body}</p>
       {children}
     </div>
@@ -249,6 +527,7 @@ interface CopyFieldProps {
   value: string;
   copy_value?: string;
   value_class?: string;
+  is_copied?: boolean;
   on_copy: (value: string) => void;
 }
 
@@ -257,6 +536,7 @@ function copy_field({
   value,
   copy_value,
   value_class = "text-sm",
+  is_copied = false,
   on_copy,
 }: CopyFieldProps) {
   return (
@@ -269,8 +549,11 @@ function copy_field({
         <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
           {label}
         </span>
-        <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
-
+        {is_copied ? (
+          <CheckIcon className="w-4 h-4 shrink-0 text-aster-success" />
+        ) : (
+          <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
+        )}
       </span>
       <span
         className={`mt-1.5 block break-all font-mono font-semibold leading-snug text-txt-primary ${value_class}`}
@@ -291,8 +574,10 @@ interface DetailRowProps {
 function detail_row({ children, label }: DetailRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 py-2.5">
-      <span className="text-xs font-medium text-txt-muted">{label}</span>
-      <span className="text-right text-sm font-medium text-txt-primary">{children}</span>
+      <span className="shrink-0 text-xs font-medium text-txt-muted">{label}</span>
+      <span className="min-w-0 break-all text-right text-sm font-medium text-txt-primary">
+        {children}
+      </span>
     </div>
   );
 }
@@ -332,30 +617,63 @@ function step_list({ active_index, steps, title }: StepListProps) {
       <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
         {title}
       </span>
-      <ol className="mt-3 flex flex-col gap-3">
+      <ol className="mt-3 flex flex-col">
         {steps.map((step, index) => {
           const done = index < active_index;
           const current = index === active_index;
           const reached = done || current;
+          const is_last = index === steps.length - 1;
 
           return (
-            <li key={step.key} className="flex items-start gap-3">
-              <span
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
-                  reached ? "" : "bg-surf-secondary text-txt-muted"
-                }`}
-                style={
-                  reached
-                    ? {
-                        backgroundColor: "var(--accent-color)",
-                        color: "var(--accent-fg, #ffffff)",
-                      }
-                    : undefined
-                }
-              >
-                {done ? <CheckIcon className="w-3 h-3" /> : index + 1}
+            <li
+              key={step.key}
+              className={`relative flex items-start gap-3 ${is_last ? "" : "pb-5"}`}
+            >
+              {!is_last && (
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 flex w-[18px] justify-center"
+                  style={{ top: 9, bottom: -9 }}
+                >
+                  <span
+                    className="h-full w-[2px]"
+                    style={{
+                      backgroundColor: done
+                        ? "var(--accent-color)"
+                        : "var(--border-secondary)",
+                    }}
+                  />
+                </span>
+              )}
+              <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+                {reached ? (
+                  <span
+                    className="flex h-[18px] w-[18px] items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor: "var(--accent-color)",
+                      color: "var(--accent-fg, #ffffff)",
+                      boxShadow: current
+                        ? "0 0 0 4px color-mix(in srgb, var(--accent-color) 20%, transparent)"
+                        : undefined,
+                    }}
+                  >
+                    {done ? (
+                      <CheckIcon className="h-3 w-3" strokeWidth={3} />
+                    ) : (
+                      <span
+                        className="h-[6px] w-[6px] rounded-full"
+                        style={{ backgroundColor: "var(--accent-fg, #ffffff)" }}
+                      />
+                    )}
+                  </span>
+                ) : (
+                  <span
+                    className="h-[10px] w-[10px] rounded-full border-2 bg-surf-tertiary"
+                    style={{ borderColor: "var(--border-secondary)" }}
+                  />
+                )}
               </span>
-              <span className="flex min-w-0 flex-col">
+              <span className="flex min-w-0 flex-col pb-0.5">
                 <span
                   className="text-xs leading-tight"
                   style={{
@@ -413,6 +731,11 @@ const Meter = meter;
 
 export default function CryptoInvoicePage() {
   const { id } = useParams<{ id: string }>();
+
+  return <CryptoInvoiceView key={id ?? "missing"} id={id} />;
+}
+
+function CryptoInvoiceView({ id }: { id?: string }) {
   const { t } = use_i18n();
   const navigate = useNavigate();
 
@@ -421,18 +744,28 @@ export default function CryptoInvoicePage() {
   const [connection_lost, set_connection_lost] = useState(false);
   const [now, set_now] = useState(() => Date.now());
   const [clock_skew_ms, set_clock_skew_ms] = useState(0);
+  const [has_server_clock, set_has_server_clock] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);
+  const [is_checking_now, set_is_checking_now] = useState(false);
   const [confirm_cancel_open, set_confirm_cancel_open] = useState(false);
   const [copied_value, set_copied_value] = useState<string | null>(null);
+  const [wallet_unhandled, set_wallet_unhandled] = useState(false);
   const credited_notified = useRef(false);
   const cancel_notified = useRef(false);
+  const cancel_requested = useRef(false);
   const consecutive_failures = useRef(0);
   const poll_interval_ref = useRef(POLL_INTERVAL_MS);
   const has_loaded_ref = useRef(false);
   const load_state_ref = useRef<LoadState>("loading");
   const copied_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wallet_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go_to_billing = useCallback(() => {
+    navigate(BILLING_ROUTE);
+  }, [navigate]);
+
+  const start_new_payment = useCallback(() => {
+    forget_crypto_selection();
     navigate(BILLING_ROUTE);
   }, [navigate]);
 
@@ -456,13 +789,18 @@ export default function CryptoInvoicePage() {
 
     const response = await get_crypto_native_invoice(id).catch(() => null);
 
-    if (response?.data) {
+    const normalized = normalize_invoice(response?.data);
+
+    if (normalized) {
       consecutive_failures.current = 0;
       poll_interval_ref.current = POLL_INTERVAL_MS;
       has_loaded_ref.current = true;
       set_connection_lost(false);
-      set_clock_skew_ms(measure_clock_skew(response.data.server_time));
-      set_invoice(response.data);
+      set_clock_skew_ms(measure_clock_skew(normalized.server_time));
+      set_has_server_clock(
+        Number.isFinite(Date.parse(normalized.server_time ?? "")),
+      );
+      set_invoice(normalized);
       apply_load_state("ready");
 
       return;
@@ -497,6 +835,20 @@ export default function CryptoInvoicePage() {
     void fetch_invoice();
   }, [fetch_invoice]);
 
+  const handle_check_now = useCallback(async () => {
+    if (is_checking_now) return;
+
+    set_is_checking_now(true);
+    consecutive_failures.current = 0;
+    poll_interval_ref.current = POLL_INTERVAL_MS;
+
+    try {
+      await fetch_invoice();
+    } finally {
+      set_is_checking_now(false);
+    }
+  }, [fetch_invoice, is_checking_now]);
+
   useEffect(() => {
     void fetch_invoice();
   }, [fetch_invoice]);
@@ -510,35 +862,64 @@ export default function CryptoInvoicePage() {
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     const should_stop = () => cancelled || load_state_ref.current === "not_found";
+    const is_hidden = () =>
+      typeof document !== "undefined" && document.visibilityState === "hidden";
+
+    const schedule = (delay: number) => {
+      if (timer) clearTimeout(timer);
+
+      timer = setTimeout(() => void tick(), delay);
+    };
 
     const tick = async () => {
       if (should_stop()) return;
+
+      if (is_hidden()) {
+        schedule(poll_interval_ref.current);
+
+        return;
+      }
 
       await fetch_invoice();
 
       if (should_stop()) return;
 
-      timer = setTimeout(() => void tick(), poll_interval_ref.current);
+      schedule(poll_interval_ref.current);
     };
 
-    timer = setTimeout(() => void tick(), poll_interval_ref.current);
+    const handle_visibility = () => {
+      if (should_stop() || is_hidden()) return;
+
+      consecutive_failures.current = 0;
+      poll_interval_ref.current = POLL_INTERVAL_MS;
+      schedule(0);
+    };
+
+    schedule(poll_interval_ref.current);
+    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", handle_visibility);
 
       if (timer) clearTimeout(timer);
     };
   }, [invoice?.status, fetch_invoice]);
 
   useEffect(() => {
+    const status = invoice?.status;
+
+    if (!status || TERMINAL_STATUSES.has(status)) return;
+
     const timer = setInterval(() => set_now(Date.now()), 1_000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [invoice?.status]);
 
   useEffect(() => {
     return () => {
       if (copied_timer.current) clearTimeout(copied_timer.current);
+      if (wallet_timer.current) clearTimeout(wallet_timer.current);
     };
   }, []);
 
@@ -546,10 +927,13 @@ export default function CryptoInvoicePage() {
     if (invoice?.status !== "cancelled" || cancel_notified.current) return;
 
     cancel_notified.current = true;
-    forget_crypto_selection();
-    show_toast(t("settings.crypto_native_cancelled_title"), "success");
+    forget_crypto_selection(id);
+
+    if (!cancel_requested.current) return;
+
+    show_toast(t("settings.crypto_native_invoice_cancelled"), "success");
     navigate(BILLING_ROUTE, { replace: true });
-  }, [invoice?.status, navigate, t]);
+  }, [id, invoice?.status, navigate, t]);
 
   useEffect(() => {
     if (invoice?.status === "paid" && !credited_notified.current) {
@@ -565,26 +949,40 @@ export default function CryptoInvoicePage() {
 
   const handle_copy = useCallback(
     async (value: string) => {
-      try {
-        await navigator.clipboard.writeText(value);
-        set_copied_value(value);
-
-        if (copied_timer.current) clearTimeout(copied_timer.current);
-
-        copied_timer.current = setTimeout(() => set_copied_value(null), 2_000);
-        show_toast(t("settings.crypto_native_copied"), "success");
-      } catch {
+      if (!(await write_to_clipboard(value))) {
         show_toast(t("common.failed_to_copy"), "error");
+
+        return;
       }
+
+      set_copied_value(value);
+
+      if (copied_timer.current) clearTimeout(copied_timer.current);
+
+      copied_timer.current = setTimeout(() => set_copied_value(null), 2_000);
+      show_toast(t("settings.crypto_native_copied"), "success");
     },
     [t],
   );
+
+  const handle_open_wallet = useCallback(() => {
+    set_wallet_unhandled(false);
+
+    if (wallet_timer.current) clearTimeout(wallet_timer.current);
+
+    wallet_timer.current = setTimeout(() => {
+      if (document.visibilityState === "visible" && document.hasFocus()) {
+        set_wallet_unhandled(true);
+      }
+    }, 1_800);
+  }, []);
 
   const handle_cancel = useCallback(async () => {
     if (!id) return;
 
     set_confirm_cancel_open(false);
     set_is_cancelling(true);
+    cancel_requested.current = true;
 
     try {
       const response = await cancel_crypto_native_invoice(id);
@@ -673,7 +1071,7 @@ export default function CryptoInvoicePage() {
     );
   }
 
-  const coin_label = invoice.display_name;
+  const coin_label = coin_title(invoice.display_name, invoice.chain);
   const chain_label = pretty_chain(invoice.chain);
   const expires_raw = new Date(invoice.expires_at).getTime() - (now - clock_skew_ms);
   const expires_ms = Number.isFinite(expires_raw)
@@ -686,6 +1084,7 @@ export default function CryptoInvoicePage() {
   const is_detected = invoice.status === "detected";
   const is_underpaid = invoice.status === "underpaid";
   const is_manual_review = invoice.status === "manual_review";
+  const is_unknown_status = !KNOWN_STATUSES.has(invoice.status);
   const is_awaiting_funds = is_pending || is_detected || is_underpaid;
 
   const due_atomic = outstanding_atomic(
@@ -695,12 +1094,23 @@ export default function CryptoInvoicePage() {
   const received_atomic = received_atomic_of(invoice.amount_received_atomic);
   const has_received_funds = received_atomic !== null && received_atomic > 0n;
   const amount_due_decimal = invoice.amount_due_decimal;
-  const wallet_uri = safe_wallet_uri(invoice.payment_uri);
-  const quote_lapsed = is_awaiting_funds && expires_ms <= 0;
+  const locked_rate_label = format_locked_rate(invoice.rate_locked_usd);
+  const wallet_uri = safe_wallet_uri(invoice);
+  const qr_value = wallet_uri ?? (invoice.address || null);
+  const qr_is_address_only = wallet_uri === null && qr_value !== null;
+  const quote_lapsed = is_awaiting_funds && has_server_clock && expires_ms <= 0;
   const quote_lapsed_unfunded = quote_lapsed && !has_received_funds;
   const has_outstanding_balance =
-    is_awaiting_funds && !quote_lapsed && (due_atomic === null || due_atomic > 0n);
+    is_awaiting_funds &&
+    !quote_lapsed &&
+    invoice.address.length > 0 &&
+    (due_atomic === null || due_atomic > 0n);
   const is_active_payment = is_awaiting_funds && !quote_lapsed;
+  const is_expiring_soon =
+    is_active_payment &&
+    Number.isFinite(expires_ms) &&
+    expires_ms > 0 &&
+    expires_ms <= EXPIRING_SOON_MS;
 
   const back_label = t("settings.crypto_native_view_billing");
 
@@ -735,12 +1145,44 @@ export default function CryptoInvoicePage() {
   }
 
   if (is_cancelled) {
+    if (cancel_requested.current) {
+      return (
+        <PageShell back_label={back_label} on_back={go_to_billing}>
+          <div className="flex flex-col items-center gap-4">
+            <Spinner className="h-10 w-10 text-[var(--accent-color)]" size="lg" />
+            <p className="text-sm text-txt-secondary">{t("common.loading")}</p>
+          </div>
+        </PageShell>
+      );
+    }
+
     return (
       <PageShell back_label={back_label} on_back={go_to_billing}>
-        <div className="flex flex-col items-center gap-4">
-          <Spinner className="h-10 w-10 text-[var(--accent-color)]" size="lg" />
-          <p className="text-sm text-txt-secondary">{t("common.loading")}</p>
-        </div>
+        <ResultCard
+          body={t("settings.crypto_native_cancelled_body")}
+          icon={<ClockIcon className="w-7 h-7" />}
+          title={t("settings.crypto_native_invoice_cancelled")}
+          tone="muted"
+        >
+          <div
+            className="mt-5 flex items-start gap-3 rounded-2xl p-4 text-left"
+            role="alert"
+            style={{ backgroundColor: WARNING_BG, color: WARNING_FG }}
+          >
+            <ExclamationTriangleIcon className="mt-0.5 w-5 h-5 shrink-0" />
+            <p className="text-xs font-medium leading-relaxed">
+              {t("settings.crypto_native_expired_do_not_send")}
+            </p>
+          </div>
+          <div className="mt-5 flex flex-col gap-2">
+            <Button className="w-full" variant="primary" onClick={start_new_payment}>
+              {t("settings.crypto_native_start_new_payment")}
+            </Button>
+            <Button className="w-full" variant="outline" onClick={go_to_billing}>
+              {back_label}
+            </Button>
+          </div>
+        </ResultCard>
       </PageShell>
     );
   }
@@ -764,8 +1206,11 @@ export default function CryptoInvoicePage() {
               {t("settings.crypto_native_expired_do_not_send")}
             </p>
           </div>
-          <div className="mt-5">
-            <Button className="w-full" variant="primary" onClick={go_to_billing}>
+          <div className="mt-5 flex flex-col gap-2">
+            <Button className="w-full" variant="primary" onClick={start_new_payment}>
+              {t("settings.crypto_native_start_new_payment")}
+            </Button>
+            <Button className="w-full" variant="outline" onClick={go_to_billing}>
               {back_label}
             </Button>
           </div>
@@ -813,6 +1258,8 @@ export default function CryptoInvoicePage() {
   })();
 
   const status_hint = (() => {
+    if (is_unknown_status) return t("settings.crypto_native_hint_processing");
+
     switch (invoice.status) {
       case "underpaid":
         return t("settings.crypto_native_hint_underpaid");
@@ -823,6 +1270,8 @@ export default function CryptoInvoicePage() {
     }
   })();
   const status_label = (() => {
+    if (is_unknown_status) return t("settings.crypto_native_status_processing");
+
     switch (invoice.status) {
       case "underpaid":
         return t("settings.crypto_native_status_underpaid");
@@ -878,14 +1327,18 @@ export default function CryptoInvoicePage() {
             </p>
 
             <div className="mt-5 flex flex-col items-center gap-4">
-              {has_outstanding_balance && wallet_uri && (
+              {has_outstanding_balance && qr_value && (
                 <div className="flex flex-col items-center gap-2">
-                  <div className="rounded-3xl border border-edge-secondary bg-surf-tertiary p-4">
-                    <RoundedQrCode size={192} value={wallet_uri} />
+                  <div className="rounded-[20px] border border-edge-secondary bg-surf-tertiary p-2.5">
+                    <RoundedQrCode size={208} value={qr_value} />
                   </div>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] text-txt-muted">
-                    <QrCodeIcon className="w-3.5 h-3.5" />
-                    {t("settings.crypto_native_scan_hint")}
+                  <span className="inline-flex items-center gap-1.5 text-center text-[11px] text-txt-muted">
+                    <QrCodeIcon className="w-3.5 h-3.5 shrink-0" />
+                    {qr_is_address_only
+                      ? t("settings.crypto_native_scan_hint_address_only", {
+                          amount: `${amount_due_decimal} ${invoice.currency}`,
+                        })
+                      : t("settings.crypto_native_scan_hint")}
                   </span>
                 </div>
               )}
@@ -894,6 +1347,7 @@ export default function CryptoInvoicePage() {
                 {has_outstanding_balance && (
                   <CopyField
                     copy_value={amount_due_decimal}
+                    is_copied={copied_value === amount_due_decimal}
                     label={
                       is_underpaid
                         ? t("settings.crypto_native_send_remaining")
@@ -907,6 +1361,7 @@ export default function CryptoInvoicePage() {
 
                 {has_outstanding_balance && (
                   <CopyField
+                    is_copied={copied_value === invoice.address}
                     label={t("settings.crypto_native_to_address")}
                     on_copy={handle_copy}
                     value={invoice.address}
@@ -915,13 +1370,25 @@ export default function CryptoInvoicePage() {
                 )}
 
                 {has_outstanding_balance && wallet_uri && (
-                  <a
-                    className="aster_btn aster_btn_secondary aster_btn_md flex w-full items-center justify-center gap-2"
-                    href={wallet_uri}
-                  >
-                    <WalletIcon className="w-4 h-4" />
-                    {t("settings.crypto_native_open_wallet")}
-                  </a>
+                  <>
+                    <a
+                      className="aster_btn aster_btn_secondary aster_btn_md flex w-full items-center justify-center gap-2"
+                      href={wallet_uri}
+                      onClick={handle_open_wallet}
+                    >
+                      <WalletIcon className="w-4 h-4" />
+                      {t("settings.crypto_native_open_wallet")}
+                    </a>
+
+                    {wallet_unhandled && (
+                      <p
+                        className="text-xs leading-relaxed text-aster-text-secondary"
+                        role="status"
+                      >
+                        {t("settings.crypto_native_no_wallet_handler")}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -960,6 +1427,14 @@ export default function CryptoInvoicePage() {
               <p className="mt-2 text-xs leading-relaxed text-txt-muted">
                 {t("settings.crypto_native_rate_locked")}
               </p>
+              {locked_rate_label && (
+                <p className="mt-1 text-xs leading-relaxed text-txt-muted">
+                  {t("settings.crypto_native_rate_value", {
+                    coin: invoice.currency,
+                    rate: locked_rate_label,
+                  })}
+                </p>
+              )}
             </div>
 
             <div
@@ -980,6 +1455,23 @@ export default function CryptoInvoicePage() {
                 is_live={is_active_payment}
                 label={status_label}
               />
+
+              {(is_active_payment || is_manual_review) && (
+                <div className="mt-4">
+                  <Button
+                    className="w-full"
+                    disabled={is_checking_now}
+                    variant="outline"
+                    onClick={handle_check_now}
+                  >
+                    {is_checking_now ? (
+                      <Spinner className="h-4 w-4" size="sm" />
+                    ) : (
+                      t("settings.crypto_native_check_now")
+                    )}
+                  </Button>
+                </div>
+              )}
 
               <div className="mt-5">
                 <StepList
@@ -1030,6 +1522,20 @@ export default function CryptoInvoicePage() {
                 </div>
               )}
 
+              {is_unknown_status && (
+                <div
+                  className="mt-4 rounded-2xl border border-edge-secondary bg-surf-tertiary p-4"
+                  role="status"
+                >
+                  <p className="text-sm font-medium text-txt-primary">
+                    {t("settings.crypto_native_status_processing")}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-txt-secondary">
+                    {t("settings.crypto_native_hint_processing")}
+                  </p>
+                </div>
+              )}
+
               {is_manual_review && (
                 <div className="mt-4 rounded-2xl border border-edge-secondary bg-surf-tertiary p-4">
                   <p className="text-sm font-medium text-txt-primary">
@@ -1065,7 +1571,21 @@ export default function CryptoInvoicePage() {
                   </DetailRow>
                 )}
                 <DetailRow label={t("settings.crypto_native_invoice_ref_label")}>
-                  <span className="font-mono text-xs">{truncate_middle(invoice.id, 8, 6)}</span>
+                  <button
+                    aria-label={t("settings.crypto_native_copy_invoice_ref")}
+                    className="group inline-flex items-center gap-2 rounded-lg px-1.5 py-0.5 transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                    type="button"
+                    onClick={() => handle_copy(invoice.id)}
+                  >
+                    <span className="font-mono text-xs">
+                      {truncate_middle(invoice.id, 8, 6)}
+                    </span>
+                    {copied_value === invoice.id ? (
+                      <CheckIcon className="w-3.5 h-3.5 shrink-0 text-aster-success" />
+                    ) : (
+                      <ClipboardDocumentIcon className="w-3.5 h-3.5 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
+                    )}
+                  </button>
                 </DetailRow>
               </div>
 
@@ -1101,7 +1621,12 @@ export default function CryptoInvoicePage() {
                       <ClockIcon className="w-3.5 h-3.5" />
                       {t("settings.crypto_native_time_remaining")}
                     </span>
-                    <span className="font-mono text-sm font-semibold tabular-nums text-txt-primary">
+                    <span
+                      className="font-mono text-sm font-semibold tabular-nums text-txt-primary"
+                      style={{
+                        color: is_expiring_soon ? WARNING_TEXT : undefined,
+                      }}
+                    >
                       {format_countdown(expires_ms)}
                     </span>
                   </div>
@@ -1111,6 +1636,14 @@ export default function CryptoInvoicePage() {
                     value_max={100}
                     value_now={Math.round((1 - expiry_fraction) * 100)}
                   />
+                  {is_expiring_soon && (
+                    <p
+                      className="mt-2 text-xs leading-relaxed text-txt-secondary"
+                      role="status"
+                    >
+                      {t("settings.crypto_native_expiring_soon")}
+                    </p>
+                  )}
                 </div>
               )}
 

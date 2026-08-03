@@ -3509,6 +3509,8 @@ export const ko = {
     downgrade: "다운그레이드",
     upgrade: "업그레이드",
     upgrade_to: "{{name}}으로 업그레이드",
+    get_plan: "{{name}} 선택",
+    save_percent: "{{percent}}% 절약",
     downgrade_to: "{{name}}으로 다운그레이드",
     payment: "결제",
     cancels: "취소",
@@ -5437,6 +5439,12 @@ export const ko = {
     crypto_native_send_remaining: "남은 금액 보내기",
     crypto_native_to_address: "받는 주소",
     crypto_native_open_wallet: "지갑에서 열기",
+    crypto_native_status_processing: "처리 중",
+    crypto_native_hint_processing:
+      "이 결제는 처리 중입니다. 이 페이지는 자동으로 업데이트되므로 따로 하실 일은 없습니다.",
+    crypto_native_copy_invoice_ref: "청구서 참조 번호 복사",
+    crypto_native_no_wallet_handler:
+      "지갑 앱이 열리지 않았습니다. 위 주소를 복사해 지갑에 붙여넣으세요.",
     crypto_native_copied: "클립보드에 복사됨",
     crypto_native_network_warning: "{{chain}} 네트워크의 {{coin}}만 보내세요. 다른 자산을 보내거나 다른 네트워크를 사용하면 자금을 잃게 됩니다.",
     crypto_native_usd_value_label: "결제 금액",
@@ -5461,10 +5469,15 @@ export const ko = {
     crypto_native_paid_body: "요금제가 활성화되었습니다. 감사합니다!",
     crypto_native_go_to_inbox: "받은편지함으로 이동",
     crypto_native_view_billing: "결제 정보로 돌아가기",
-    crypto_native_cancelled_title: "결제 취소됨",
-    crypto_native_cancelled_body: "이 청구서는 취소되었습니다. 언제든지 새 결제를 시작할 수 있습니다.",
+    crypto_native_invoice_cancelled: "청구서가 취소되었습니다",
     crypto_native_expired_title: "이 청구서는 만료되었습니다",
     crypto_native_expired_body: "환율이 변동하므로 이 결제 창은 마감되었습니다. 계속하려면 새 결제를 시작하세요.",
+    crypto_native_cancelled_body:
+      "이 결제는 취소되었습니다. 청구된 금액은 없습니다. 언제든지 새 결제를 시작할 수 있습니다.",
+    crypto_native_start_new_payment:
+      "새 결제 시작",
+    crypto_native_check_now:
+      "지금 확인",
     crypto_native_expired_do_not_send: "이 청구서의 주소로 보내지 마세요. 지금 보낸 자금은 반영되기 전에 수동 검토가 필요합니다.",
     crypto_native_not_found: "이 청구서를 찾을 수 없습니다",
     crypto_native_unavailable: "결제를 불러오지 못했습니다",
@@ -5474,6 +5487,8 @@ export const ko = {
     crypto_native_pending_banner_multi: "진행 중인 암호화폐 결제가 {{count}}건 있습니다",
     crypto_native_back_hint: "이 청구서는 아직 유효합니다. 결제 정보에서 언제든지 다시 진행할 수 있습니다.",
     crypto_native_scan_hint: "지갑 앱으로 스캔하세요",
+    crypto_native_scan_hint_address_only:
+      "지갑 앱으로 스캔한 다음 {{amount}}을(를) 직접 입력하세요",
     crypto_native_network_label: "네트워크",
     crypto_native_confirmations_label: "승인 수",
     crypto_native_confirmations_value: "{{required}}회 중 {{current}}회",
@@ -5487,6 +5502,8 @@ export const ko = {
     crypto_native_hint_confirming: "네트워크에서 승인 중입니다. 완료되는 즉시 요금제가 활성화됩니다.",
     crypto_native_hint_credited: "결제가 확인되었습니다. 요금제가 활성화되었습니다.",
     crypto_native_time_remaining: "남은 시간",
+    crypto_native_expiring_soon:
+      "5분 미만 남았습니다. 결제가 도착하기 전에 이 시간이 끝나면 현재 환율로 새 결제를 시작할 수 있습니다.",
     crypto_native_hint_underpaid: "위에 표시된 잔액을 동일한 주소로 보내 이 결제를 완료하세요.",
     crypto_native_hint_manual_review: "저희 팀이 이 결제를 검토하고 있습니다. 추가로 하실 일은 없습니다.",
     crypto_native_connection_lost: "연결이 끊겼습니다. 자동으로 다시 시도하고 있습니다.",
@@ -5494,7 +5511,7 @@ export const ko = {
     crypto_native_copy_tx_hash: "트랜잭션 해시 복사",
     crypto_native_expiry_progress: "이 청구서가 만료되기까지 남은 시간",
     crypto_native_confirmations_progress: "네트워크 승인 수",
-    crypto_paid_until: "{{date}}까지 결제됨 (암호화폐). 자동 갱신 없음.",
+    crypto_paid_until: "{{date}}까지 결제됨 (암호화폐)",
     crypto_no_renew_notice: "암호화폐 구매는 자동 갱신되지 않습니다.",
     crypto_renew_link: "암호화폐로 갱신",
     crypto_success_toast: "암호화폐 결제 완료. 플랜이 활성화되었습니다.",

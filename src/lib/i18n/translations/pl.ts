@@ -3552,6 +3552,8 @@ export const pl = {
       "Nie udało się załadować informacji logowania. Kolejna próba powinna to załatwić.",
     downgrade: "Obniż plan",
     upgrade_to: "Ulepsz do {{name}}",
+    get_plan: "Wybierz {{name}}",
+    save_percent: "OSZCZĘDŹ {{percent}}%",
     downgrade_to: "Obniż do {{name}}",
     payment: "Płatność",
     cancels: "Anuluje się",
@@ -5600,6 +5602,12 @@ export const pl = {
     crypto_native_send_remaining: "Wyślij pozostałą kwotę",
     crypto_native_to_address: "Na ten adres",
     crypto_native_open_wallet: "Otwórz w portfelu",
+    crypto_native_status_processing: "Przetwarzanie",
+    crypto_native_hint_processing:
+      "Ta płatność jest przetwarzana. Strona odświeża się sama, nie musisz nic robić.",
+    crypto_native_copy_invoice_ref: "Kopiuj numer referencyjny faktury",
+    crypto_native_no_wallet_handler:
+      "Nie otwarto żadnej aplikacji portfela. Skopiuj powyższy adres i wklej go w swoim portfelu.",
     crypto_native_copied: "Skopiowano do schowka",
     crypto_native_network_warning: "Wysyłaj wyłącznie {{coin}} w sieci {{chain}}. Wysłanie innego aktywa lub użycie innej sieci spowoduje utratę środków.",
     crypto_native_usd_value_label: "Kwota do zapłaty",
@@ -5624,10 +5632,15 @@ export const pl = {
     crypto_native_paid_body: "Twój plan jest już aktywny. Dziękujemy!",
     crypto_native_go_to_inbox: "Przejdź do skrzynki odbiorczej",
     crypto_native_view_billing: "Wróć do rozliczeń",
-    crypto_native_cancelled_title: "Płatność anulowana",
-    crypto_native_cancelled_body: "Ta faktura została anulowana. W każdej chwili możesz rozpocząć nową płatność.",
+    crypto_native_invoice_cancelled: "Faktura anulowana",
     crypto_native_expired_title: "Ta faktura wygasła",
     crypto_native_expired_body: "Kursy się zmieniają, więc to okno płatności zostało zamknięte. Rozpocznij nową płatność, aby kontynuować.",
+    crypto_native_cancelled_body:
+      "Ta płatność została anulowana. Nic nie zostało pobrane. Możesz rozpocząć nową płatność w dowolnej chwili.",
+    crypto_native_start_new_payment:
+      "Rozpocznij nową płatność",
+    crypto_native_check_now:
+      "Sprawdź teraz",
     crypto_native_expired_do_not_send: "Nie wysyłaj środków na adres z tej faktury. Środki wysłane teraz wymagają ręcznej weryfikacji, zanim będą mogły zostać zaksięgowane.",
     crypto_native_not_found: "Nie znaleźliśmy tej faktury",
     crypto_native_unavailable: "Nie udało się wczytać płatności",
@@ -5637,6 +5650,8 @@ export const pl = {
     crypto_native_pending_banner_multi: "Masz {{count}} płatności kryptowalutowych w toku",
     crypto_native_back_hint: "Ta faktura jest nadal otwarta. Możesz do niej wrócić w Rozliczeniach w dowolnej chwili.",
     crypto_native_scan_hint: "Zeskanuj aplikacją portfela",
+    crypto_native_scan_hint_address_only:
+      "Zeskanuj aplikacją portfela, a następnie wpisz {{amount}} ręcznie",
     crypto_native_network_label: "Sieć",
     crypto_native_confirmations_label: "Potwierdzenia",
     crypto_native_confirmations_value: "{{current}} z {{required}}",
@@ -5650,6 +5665,8 @@ export const pl = {
     crypto_native_hint_confirming: "Trwa potwierdzanie w sieci. Plan aktywuje się zaraz po zakończeniu.",
     crypto_native_hint_credited: "Płatność potwierdzona. Twój plan jest aktywny.",
     crypto_native_time_remaining: "Pozostały czas",
+    crypto_native_expiring_soon:
+      "Zostało mniej niż 5 minut. Jeśli to okno zamknie się przed dotarciem płatności, możesz rozpocząć nową po aktualnym kursie.",
     crypto_native_hint_underpaid: "Wyślij pozostałą kwotę pokazaną powyżej na ten sam adres, aby dokończyć tę płatność.",
     crypto_native_hint_manual_review: "Nasz zespół sprawdza tę płatność. Nie musisz nic więcej robić.",
     crypto_native_connection_lost: "Utracono połączenie. Trwa automatyczne ponawianie.",
@@ -5657,8 +5674,7 @@ export const pl = {
     crypto_native_copy_tx_hash: "Kopiuj hash transakcji",
     crypto_native_expiry_progress: "Czas pozostały do wygaśnięcia tej faktury",
     crypto_native_confirmations_progress: "Potwierdzenia sieci",
-    crypto_paid_until:
-      "Opłacono do {{date}} (kryptowaluta). Nie odnawia się automatycznie.",
+    crypto_paid_until: "Opłacono do {{date}} (kryptowaluta)",
     crypto_no_renew_notice:
       "Zakupy kryptowalutą nie odnawiają się automatycznie.",
     crypto_renew_link: "Odnów kryptowalutą",

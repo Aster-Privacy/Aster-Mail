@@ -87,9 +87,11 @@ const NATIVE_CHAIN_OF: Record<MarkId, ChainId> = {
 
 const VIEW_SIZE = 40;
 const MARK_BOX = "0 0 32 32";
-const BADGE_CENTER = 28.4;
-const BADGE_RADIUS = 8.6;
-const BADGE_CUTOUT_RADIUS = 10.2;
+const COIN_SIZE = 33;
+const COIN_INSET = (VIEW_SIZE - COIN_SIZE) / 2;
+const BADGE_RADIUS = 8.2;
+const BADGE_CENTER = VIEW_SIZE - BADGE_RADIUS - 0.4;
+const BADGE_CUTOUT_RADIUS = BADGE_RADIUS + 1.6;
 const BADGE_ORIGIN = BADGE_CENTER - BADGE_RADIUS;
 const BADGE_SIZE = BADGE_RADIUS * 2;
 
@@ -312,6 +314,32 @@ function resolve_chain(chain: string): ChainId {
   return CHAIN_MARKS[chain.trim().toLowerCase()] ?? "generic";
 }
 
+function chain_letter(chain: string): string | null {
+  const first = chain.trim().charAt(0).toUpperCase();
+
+  return /^[A-Z0-9]$/.test(first) ? first : null;
+}
+
+function letter_chain_mark(letter: string): ReactElement {
+  return (
+    <>
+      <circle cx="16" cy="16" fill="#3d3d47" r="16" />
+      <text
+        dominantBaseline="central"
+        fill="#ffffff"
+        fontFamily="system-ui, -apple-system, sans-serif"
+        fontSize="19"
+        fontWeight="700"
+        textAnchor="middle"
+        x="16"
+        y="17"
+      >
+        {letter}
+      </text>
+    </>
+  );
+}
+
 interface CoinIconProps {
   currency: string;
   chain: string;
@@ -328,8 +356,15 @@ export function CoinIcon({
   const instance_id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const currency_mark = resolve_currency(currency);
   const chain_mark = resolve_chain(chain);
+  const chain_key = chain.trim().toLowerCase();
+  const native_chain = NATIVE_CHAIN_OF[currency_mark];
+  const is_native_chain =
+    native_chain !== "generic" &&
+    (chain_mark === native_chain || chain_key === native_chain);
+  const chain_initial = chain_letter(chain);
   const show_badge =
-    chain_mark !== "generic" && chain_mark !== NATIVE_CHAIN_OF[currency_mark];
+    !is_native_chain && (chain_mark !== "generic" || chain_initial !== null);
+  const show_letter_badge = show_badge && chain_mark === "generic";
   const cutout_id = `coin_icon_cutout_${instance_id}`;
 
   return (
@@ -370,27 +405,31 @@ export function CoinIcon({
         </defs>
       )}
       <svg
-        height={VIEW_SIZE}
+        height={COIN_SIZE}
         mask={show_badge ? `url(#${cutout_id})` : undefined}
+        overflow="visible"
         viewBox={MARK_BOX}
-        width={VIEW_SIZE}
-        x="0"
-        y="0"
+        width={COIN_SIZE}
+        x={show_badge ? 0 : COIN_INSET}
+        y={show_badge ? 0 : COIN_INSET}
       >
         {mark_for(currency_mark, `coin_icon_coin_gradient_${instance_id}`)}
       </svg>
       {show_badge && (
         <svg
           height={BADGE_SIZE}
+          overflow="visible"
           viewBox={MARK_BOX}
           width={BADGE_SIZE}
           x={BADGE_ORIGIN}
           y={BADGE_ORIGIN}
         >
-          {chain_mark_for(
-            chain_mark,
-            `coin_icon_chain_gradient_${instance_id}`,
-          )}
+          {show_letter_badge
+            ? letter_chain_mark(chain_initial ?? "?")
+            : chain_mark_for(
+                chain_mark,
+                `coin_icon_chain_gradient_${instance_id}`,
+              )}
         </svg>
       )}
     </svg>

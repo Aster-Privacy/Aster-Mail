@@ -2676,6 +2676,19 @@ export const en: Translations = {
     crypto_price_unavailable:
       "Crypto pricing is not available for this plan. Please contact support.",
     crypto_charged_in_usd: "Charged in USD.",
+    crypto_rate_notice:
+      "When you pick a coin we lock an exchange rate and show you the exact amount to send. The rate holds for 60 minutes on Bitcoin and Monero and 30 minutes on Ethereum networks. Nothing is taken from you until you send the payment yourself.",
+    crypto_energy_toggle: "Energy use of these networks",
+    crypto_energy_btc:
+      "Bitcoin: an estimated 700 to 1,400 kWh and 300 to 700 kg CO2e per transaction. Source: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+    crypto_energy_eth:
+      "Ethereum: an estimated 0.01 to 0.05 kWh and a few grams of CO2e per transaction, roughly 99.9% below its pre-2022 proof-of-work figure. Source: Ethereum Foundation energy consumption page, citing CCRI, 2026.",
+    crypto_energy_l2:
+      "Networks that batch transactions and settle them together on Ethereum, such as Base, use materially less than an Ethereum mainnet transaction. We have no primary source we would stand behind for a single number, so we do not publish one.",
+    crypto_energy_xmr:
+      "Monero: proof-of-work, mined on general-purpose processors. We have not found a current figure we would stand behind, so we do not publish one.",
+    crypto_energy_caveat:
+      "These are third-party estimates, not measurements taken by us. Dividing a network's total energy by its transaction count is a contested way to attribute energy: Bitcoin's consumption is driven by mining, not by how many transactions people make, so one more transaction does not add a proportional amount. We publish these so you can weigh them yourself. We make no environmental claim about any payment method and we do not offset anything on your behalf.",
     crypto_native_continue: "Continue",
     crypto_native_choose_method: "Choose how to pay",
     crypto_native_loading_coins: "Loading payment options...",
@@ -2698,12 +2711,21 @@ export const en: Translations = {
     crypto_native_send_remaining: "Send the remaining",
     crypto_native_to_address: "To this address",
     crypto_native_open_wallet: "Open in wallet",
+    crypto_native_status_processing: "Processing",
+    crypto_native_hint_processing:
+      "This payment is being processed. This page updates on its own, so there is nothing you need to do.",
+    crypto_native_copy_invoice_ref: "Copy invoice reference",
+    crypto_native_no_wallet_handler:
+      "No wallet app opened. Copy the address above and paste it into your wallet instead.",
     crypto_native_copied: "Copied to clipboard",
     crypto_native_network_warning:
       "Send only {{coin}} on the {{chain}} network. Sending any other asset or using another network will result in loss of funds.",
     crypto_native_usd_value_label: "Amount due",
     crypto_native_usd_total_label: "Invoice total",
     crypto_native_rate_locked: "Your rate is locked until this invoice expires.",
+    crypto_native_rate_value: "Rate used: 1 {{coin}} = {{rate}}",
+    crypto_native_commit_notice:
+      "Choosing a coin creates your order with an obligation to pay, and locks your exchange rate. You pay by sending the funds yourself from your own wallet.",
     crypto_native_expires_in: "Expires in {{time}}",
     crypto_native_status_awaiting: "Waiting for payment",
     crypto_native_status_detected: "Payment detected",
@@ -2726,12 +2748,16 @@ export const en: Translations = {
     crypto_native_paid_body: "Your plan is now active. Thank you!",
     crypto_native_go_to_inbox: "Go to inbox",
     crypto_native_view_billing: "Back to billing",
-    crypto_native_cancelled_title: "Payment cancelled",
-    crypto_native_cancelled_body:
-      "This invoice was cancelled. You can start a new payment anytime.",
+    crypto_native_invoice_cancelled: "Invoice cancelled",
     crypto_native_expired_title: "This invoice has expired",
     crypto_native_expired_body:
       "Rates change, so this payment window has closed. Start a new payment to continue.",
+    crypto_native_cancelled_body:
+      "This payment was cancelled. Nothing was charged. You can start a new payment whenever you are ready.",
+    crypto_native_start_new_payment:
+      "Start a new payment",
+    crypto_native_check_now:
+      "Check now",
     crypto_native_expired_do_not_send:
       "Do not send to the address on this invoice. Funds sent now need a manual review before they can be credited.",
     crypto_native_not_found: "We couldn't find this invoice",
@@ -2744,6 +2770,8 @@ export const en: Translations = {
     crypto_native_back_hint:
       "This invoice is still open. You can pick it back up from Billing at any time.",
     crypto_native_scan_hint: "Scan with your wallet app",
+    crypto_native_scan_hint_address_only:
+      "Scan with your wallet app, then enter {{amount}} manually",
     crypto_native_network_label: "Network",
     crypto_native_confirmations_label: "Confirmations",
     crypto_native_confirmations_value: "{{current}} of {{required}}",
@@ -2761,6 +2789,8 @@ export const en: Translations = {
       "Confirming on the network. Your plan activates as soon as this finishes.",
     crypto_native_hint_credited: "Payment confirmed. Your plan is active.",
     crypto_native_time_remaining: "Time remaining",
+    crypto_native_expiring_soon:
+      "Under 5 minutes left. If this window closes before your payment arrives, you can start a new one at the current rate.",
     crypto_native_hint_underpaid:
       "Send the remaining amount shown above to the same address to finish this payment.",
     crypto_native_hint_manual_review:
@@ -2771,7 +2801,7 @@ export const en: Translations = {
     crypto_native_copy_tx_hash: "Copy transaction hash",
     crypto_native_expiry_progress: "Time remaining before this invoice expires",
     crypto_native_confirmations_progress: "Network confirmations",
-    crypto_paid_until: "Paid until {{date}} (crypto). Does not auto-renew.",
+    crypto_paid_until: "Paid until {{date}} (crypto)",
     crypto_no_renew_notice: "Crypto purchases do not auto-renew.",
     crypto_renew_link: "Renew with crypto",
     crypto_success_toast: "Crypto payment received. Your plan is active.",
@@ -3605,6 +3635,8 @@ export const en: Translations = {
     upgrade: "Upgrade",
     downgrade_scheduled: "Downgrade scheduled for end of current period",
     upgrade_to: "Upgrade to {{name}}",
+    get_plan: "Get {{name}}",
+    save_percent: "SAVE {{percent}}%",
     downgrade_to: "Downgrade to {{name}}",
     billing_banner_title: "Unlock More With Aster",
     billing_banner_subtitle:

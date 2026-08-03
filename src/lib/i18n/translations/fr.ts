@@ -3570,6 +3570,8 @@ export const fr = {
       "Nous n'avons pas pu charger vos informations de connexion. Un autre essai devrait suffire.",
     downgrade: "Rétrograder",
     upgrade_to: "Passer à {{name}}",
+    get_plan: "Choisir {{name}}",
+    save_percent: "ÉCONOMISEZ {{percent}} %",
     downgrade_to: "Rétrograder vers {{name}}",
     payment: "Paiement",
     cancels: "Annulation le",
@@ -5542,6 +5544,12 @@ export const fr = {
     crypto_native_send_remaining: "Envoyez le montant restant",
     crypto_native_to_address: "À cette adresse",
     crypto_native_open_wallet: "Ouvrir dans le portefeuille",
+    crypto_native_status_processing: "Traitement en cours",
+    crypto_native_hint_processing:
+      "Ce paiement est en cours de traitement. Cette page se met à jour toute seule, vous n'avez rien à faire.",
+    crypto_native_copy_invoice_ref: "Copier la référence de la facture",
+    crypto_native_no_wallet_handler:
+      "Aucune application de portefeuille ne s'est ouverte. Copiez l'adresse ci-dessus et collez-la dans votre portefeuille.",
     crypto_native_copied: "Copié dans le presse-papiers",
     crypto_native_network_warning: "N'envoyez que des {{coin}} sur le réseau {{chain}}. Envoyer un autre actif ou utiliser un autre réseau entraînera la perte des fonds.",
     crypto_native_usd_value_label: "Montant dû",
@@ -5566,10 +5574,15 @@ export const fr = {
     crypto_native_paid_body: "Votre offre est maintenant active. Merci !",
     crypto_native_go_to_inbox: "Aller à la boîte de réception",
     crypto_native_view_billing: "Retour à la facturation",
-    crypto_native_cancelled_title: "Paiement annulé",
-    crypto_native_cancelled_body: "Cette facture a été annulée. Vous pouvez lancer un nouveau paiement à tout moment.",
+    crypto_native_invoice_cancelled: "Facture annulée",
     crypto_native_expired_title: "Cette facture a expiré",
     crypto_native_expired_body: "Les taux évoluent, cette fenêtre de paiement est donc close. Lancez un nouveau paiement pour continuer.",
+    crypto_native_cancelled_body:
+      "Ce paiement a été annulé. Rien n'a été débité. Vous pouvez lancer un nouveau paiement quand vous le souhaitez.",
+    crypto_native_start_new_payment:
+      "Lancer un nouveau paiement",
+    crypto_native_check_now:
+      "Vérifier maintenant",
     crypto_native_expired_do_not_send: "N'envoyez rien à l'adresse de cette facture. Les fonds envoyés maintenant devront faire l'objet d'une vérification manuelle avant d'être crédités.",
     crypto_native_not_found: "Nous n'avons pas trouvé cette facture",
     crypto_native_unavailable: "Impossible de charger le paiement",
@@ -5579,6 +5592,8 @@ export const fr = {
     crypto_native_pending_banner_multi: "Vous avez {{count}} paiements en cryptomonnaie en cours",
     crypto_native_back_hint: "Cette facture est toujours ouverte. Vous pouvez la reprendre depuis Facturation à tout moment.",
     crypto_native_scan_hint: "Scannez avec votre application de portefeuille",
+    crypto_native_scan_hint_address_only:
+      "Scannez avec votre application de portefeuille, puis saisissez {{amount}} manuellement",
     crypto_native_network_label: "Réseau",
     crypto_native_confirmations_label: "Confirmations",
     crypto_native_confirmations_value: "{{current}} sur {{required}}",
@@ -5592,6 +5607,8 @@ export const fr = {
     crypto_native_hint_confirming: "Confirmation en cours sur le réseau. Votre offre s'active dès que c'est terminé.",
     crypto_native_hint_credited: "Paiement confirmé. Votre offre est active.",
     crypto_native_time_remaining: "Temps restant",
+    crypto_native_expiring_soon:
+      "Moins de 5 minutes restantes. Si ce délai expire avant l'arrivée de votre paiement, vous pouvez en démarrer un nouveau au taux actuel.",
     crypto_native_hint_underpaid: "Envoyez le montant restant indiqué ci-dessus à la même adresse pour finaliser ce paiement.",
     crypto_native_hint_manual_review: "Notre équipe examine ce paiement. Aucune action de votre part n'est nécessaire.",
     crypto_native_connection_lost: "Connexion perdue. Nouvelle tentative automatique.",
@@ -5602,7 +5619,7 @@ export const fr = {
     crypto_modal_price: "Montant : {{amount}}",
     crypto_modal_title: "Paiement en cryptomonnaie",
     crypto_no_renew_notice: "Ce forfait ne se renouvelle pas automatiquement.",
-    crypto_paid_until: "Payé jusqu'au {{date}}",
+    crypto_paid_until: "Payé jusqu'au {{date}} (crypto)",
     crypto_pay_button: "Payer avec de la crypto",
     crypto_pay_now: "Payer maintenant en crypto",
     crypto_renew_link: "Renouveler",

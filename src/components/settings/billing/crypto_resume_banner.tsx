@@ -83,14 +83,15 @@ function invoice_key(invoice: CryptoNativePendingInvoice): string {
   return `${invoice.id}|${invoice.created_at}`;
 }
 
-function is_resumable(invoice: CryptoNativePendingInvoice, now: number): boolean {
-  if (invoice.status !== "pending") return true;
+const RESUMABLE_STATUSES = new Set([
+  "pending",
+  "detected",
+  "confirming",
+  "underpaid",
+]);
 
-  const expires_ms = Date.parse(invoice.expires_at);
-
-  if (!Number.isFinite(expires_ms)) return true;
-
-  return expires_ms > now;
+function is_resumable(invoice: CryptoNativePendingInvoice): boolean {
+  return RESUMABLE_STATUSES.has(invoice.status);
 }
 
 function format_countdown(ms: number): string {
@@ -121,6 +122,7 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
   const [is_cancelling, set_is_cancelling] = useState(false);
   const [cancel_failed, set_cancel_failed] = useState(false);
   const mounted_ref = useRef(true);
+  const cancelling_ref = useRef(false);
   const request_ref = useRef(0);
 
   const refresh = useCallback(async () => {
@@ -172,10 +174,9 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
     () =>
       invoices.filter(
         (entry) =>
-          !dismissed_ids.includes(invoice_key(entry)) &&
-          is_resumable(entry, now),
+          !dismissed_ids.includes(invoice_key(entry)) && is_resumable(entry),
       ),
-    [dismissed_ids, invoices, now],
+    [dismissed_ids, invoices],
   );
 
   const invoice = visible[0] ?? null;
@@ -214,14 +215,15 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
   }, []);
 
   const handle_cancel_dismiss = useCallback(() => {
-    if (is_cancelling) return;
+    if (cancelling_ref.current) return;
 
     set_confirm_open(false);
-  }, [is_cancelling]);
+  }, []);
 
   const handle_cancel_confirm = useCallback(() => {
-    if (!invoice || is_cancelling) return;
+    if (!invoice || cancelling_ref.current) return;
 
+    cancelling_ref.current = true;
     set_is_cancelling(true);
     set_cancel_failed(false);
 
@@ -229,6 +231,8 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
       const response = await cancel_crypto_native_invoice(invoice.id).catch(
         () => null,
       );
+
+      cancelling_ref.current = false;
 
       if (!mounted_ref.current) return;
 
@@ -243,7 +247,7 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
       set_confirm_open(false);
       notify_crypto_invoice_changed();
     })();
-  }, [invoice, is_cancelling]);
+  }, [invoice]);
 
   if (!invoice) return null;
 
@@ -270,10 +274,14 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
               : t("settings.crypto_native_pending_banner")}
           </p>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-txt-muted">
-            <span className="font-mono tabular-nums">
-              {invoice.amount_decimal} {invoice.currency}
-            </span>
-            <span aria-hidden="true">·</span>
+            {invoice.amount_decimal && (
+              <>
+                <span className="font-mono tabular-nums">
+                  {invoice.amount_decimal} {invoice.currency}
+                </span>
+                <span aria-hidden="true">·</span>
+              </>
+            )}
             <span>{format_price(invoice.usd_cents, "usd")}</span>
             {show_countdown && (
               <>
@@ -287,31 +295,32 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
-            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-brand hover:bg-brand-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-brand hover:bg-brand-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-50"
+            disabled={is_cancelling}
             style={{ color: "var(--accent-fg, #ffffff)" }}
             type="button"
             onClick={() => navigate(`/crypto-invoice/${invoice.id}`)}
           >
             {t("settings.crypto_native_pending_banner_action")}
           </button>
-          {is_pending ? (
+          {is_pending && (
             <button
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-secondary hover:text-txt-primary hover:bg-surf-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-secondary hover:text-txt-primary hover:bg-surf-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-50"
+              disabled={is_cancelling}
               type="button"
               onClick={handle_cancel_request}
             >
               {t("common.cancel")}
             </button>
-          ) : (
-            <button
-              aria-label={t("common.dismiss")}
-              className="p-1.5 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
-              type="button"
-              onClick={handle_dismiss}
-            >
-              <XMarkIcon className="h-4 w-4" />
-            </button>
           )}
+          <button
+            aria-label={t("common.dismiss")}
+            className="p-1.5 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+            type="button"
+            onClick={handle_dismiss}
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
         </div>
       </div>
       {cancel_failed && (
