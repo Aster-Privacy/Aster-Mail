@@ -560,6 +560,9 @@ export const en: Translations = {
       "Publish only one SPF record. If other services send mail as this domain, merge their include: terms into this single record.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Add this last, after SPF and DKIM both verify. Publishing it early can send your own mail to spam.",
+    dns_host_leave_blank: "Leave blank",
+    dns_host_provider_hint:
+      "{{provider}} uses this format for the host field. Copy it exactly as shown.",
     value_points_to: "Value / Points to",
     dns_records_to_add: "DNS Records to Add",
     dns_propagation_note: "DNS changes may take up to 48 hours to propagate",
@@ -5038,6 +5041,57 @@ export const en: Translations = {
       "DNS changes can take up to 48 hours to propagate. You can close this wizard and verify later.",
     configure_dns_description:
       "Follow each step to set up your domain. Aster verifies records directly via DNS.",
+    domain_step_ownership_title: "Prove you own this domain",
+    domain_step_mx_title: "Receive email at your domain",
+    domain_step_spf_title: "Let Aster send email for you",
+    domain_step_dkim_title: "Sign your outgoing mail",
+    domain_step_dmarc_title: "Stop others impersonating you",
+    domain_step_tlsrpt_title: "Get encryption failure reports",
+    domain_health_ok_title: "{{domain}} is working",
+    domain_health_ok_body:
+      "You can send and receive mail on this domain, and your messages are signed so they land in the inbox.",
+    domain_health_warning_title: "Mail works, but it may land in spam",
+    domain_health_warning_body:
+      "You are receiving mail on this domain. Finish the items below so the messages you send are trusted.",
+    domain_health_critical_title: "You are not receiving email",
+    domain_health_critical_body:
+      "Mail sent to this domain is not reaching Aster. Fix the item below and delivery resumes within minutes.",
+    domain_health_unknown_title: "We could not read your DNS",
+    domain_health_unknown_body:
+      "This usually means the records were just changed and have not spread yet. We will keep checking.",
+    domain_health_recheck: "Check now",
+    domain_health_checking: "Checking",
+    domain_health_last_checked: "Last checked at {{when}}",
+    domain_health_auto_checking: "Checking again automatically every few seconds",
+    domain_check_mx_label: "Receiving mail",
+    domain_check_spf_label: "Permission to send",
+    domain_check_dkim_label: "Message signing",
+    domain_check_dmarc_label: "Spoofing protection",
+    domain_check_mx_pass: "Email sent to this domain arrives in your Aster inbox.",
+    domain_check_spf_pass: "Other providers accept mail that Aster sends for you.",
+    domain_check_dkim_pass: "Your outgoing mail is signed, so it is not treated as forged.",
+    domain_check_dmarc_pass: "Nobody else can send mail pretending to be your domain.",
+    domain_check_unknown: "We could not read this record yet. Still checking.",
+    domain_check_generic_failure:
+      "This record is not set up correctly yet. Add the record below to fix it.",
+    domain_reason_mx_missing:
+      "Nobody can email you yet. Your domain has no mail route, so messages bounce back to the sender.",
+    domain_reason_mx_points_elsewhere:
+      "Mail is going to your old provider, not Aster. Remove the old MX records so messages reach this inbox.",
+    domain_reason_spf_missing:
+      "Mail you send may be rejected or marked as spam, because nothing tells other providers that Aster can send for you.",
+    domain_reason_spf_missing_include:
+      "Your domain already has an SPF record, but it does not list Aster. Add Aster to it or your sent mail may be rejected.",
+    domain_reason_spf_duplicate_records:
+      "You have more than one SPF record. Providers ignore all of them, so merge them into a single record.",
+    domain_reason_dkim_missing_or_stale:
+      "Your outgoing mail is unsigned, which makes it look forged. Add the signing record so your mail is trusted.",
+    domain_reason_dmarc_missing:
+      "Anyone can send email pretending to be your domain. Add this record once the two above are working.",
+    domain_fix_show_record: "Show me the record to add",
+    domain_fix_hide_record: "Hide record",
+    domain_provider_detected: "Your DNS is managed by {{provider}}",
+    domain_provider_open: "Open {{provider}}",
     domain_input_description:
       "Enter your domain name. You will be guided through DNS setup after adding it.",
     domain_limit_all_used:

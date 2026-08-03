@@ -107,6 +107,32 @@ export interface VerificationResult {
   message: string;
 }
 
+export type DomainCheckKey = "mx" | "spf" | "dkim" | "dmarc";
+export type DomainCheckOutcome = "pass" | "fail" | "unknown";
+export type DomainHealthSeverity = "ok" | "warning" | "critical";
+
+export interface DomainCheck {
+  key: DomainCheckKey;
+  outcome: DomainCheckOutcome;
+  reason?: string;
+  detail?: string;
+}
+
+export interface DomainHealth {
+  domain_id: string;
+  domain_name: string;
+  status: string;
+  health_status: string;
+  severity: DomainHealthSeverity;
+  receiving_mail: boolean;
+  sending_trusted: boolean;
+  checks: DomainCheck[];
+  reasons: string[];
+  dmarc_policy?: string;
+  checked_at: string;
+  cached: boolean;
+}
+
 export interface DomainLimitResponse {
   current_count: number;
   max_domains: number;
@@ -416,6 +442,15 @@ export async function get_dns_records(
 ): Promise<ApiResponse<DnsRecordsResponse>> {
   return api_client.get<DnsRecordsResponse>(
     `/addresses/v1/domains/${domain_id}/dns-records`,
+  );
+}
+
+export async function get_domain_health(
+  domain_id: string,
+): Promise<ApiResponse<DomainHealth>> {
+  return api_client.get<DomainHealth>(
+    `/addresses/v1/domains/${domain_id}/health`,
+    { timeout: 45000 },
   );
 }
 

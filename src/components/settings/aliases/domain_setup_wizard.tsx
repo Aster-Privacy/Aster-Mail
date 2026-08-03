@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/modal";
 import {
   add_domain,
+  get_domain_health,
   trigger_verification,
   validate_domain_name,
   type DnsRecord,
@@ -56,6 +57,8 @@ import { detect_dns_provider } from "@/data/dns_providers";
 import { DnsChecklist, type StepStatus, type ChecklistStep } from "./dns_checklist";
 import { DnsStepContent } from "./dns_step_content";
 
+const AUTO_CHECK_INTERVAL_MS = 15000;
+
 function get_wizard_steps(
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ) {
@@ -63,7 +66,7 @@ function get_wizard_steps(
     {
       id: "verification",
       optional: false,
-      title: t("settings.domain_ownership_verification"),
+      title: t("settings.domain_step_ownership_title"),
       subtitle: t("settings.txt_record"),
       record_type: "TXT",
       description: t("settings.verification_description"),
@@ -77,7 +80,7 @@ function get_wizard_steps(
     {
       id: "mx",
       optional: false,
-      title: t("settings.mail_routing"),
+      title: t("settings.domain_step_mx_title"),
       subtitle: t("settings.mx_record"),
       record_type: "MX",
       description: t("settings.mx_description"),
@@ -91,7 +94,7 @@ function get_wizard_steps(
     {
       id: "spf",
       optional: false,
-      title: t("settings.sender_policy_framework"),
+      title: t("settings.domain_step_spf_title"),
       subtitle: t("settings.spf_record"),
       record_type: "SPF",
       description: t("settings.spf_description"),
@@ -105,7 +108,7 @@ function get_wizard_steps(
     {
       id: "dkim",
       optional: false,
-      title: t("settings.email_signing"),
+      title: t("settings.domain_step_dkim_title"),
       subtitle: t("settings.dkim_record"),
       record_type: "DKIM",
       description: t("settings.dkim_description"),
@@ -119,7 +122,7 @@ function get_wizard_steps(
     {
       id: "dmarc",
       optional: false,
-      title: t("settings.email_authentication_policy"),
+      title: t("settings.domain_step_dmarc_title"),
       subtitle: t("settings.dmarc_record"),
       record_type: "DMARC",
       description: t("settings.dmarc_description"),
@@ -132,7 +135,7 @@ function get_wizard_steps(
     },
     {
       id: "tlsrpt",
-      title: t("settings.tls_reporting"),
+      title: t("settings.domain_step_tlsrpt_title"),
       subtitle: t("settings.tlsrpt_record"),
       record_type: "TLS-RPT",
       description: t("settings.tlsrpt_description"),
@@ -256,6 +259,45 @@ export function DomainSetupWizard({
     },
     [dns_records],
   );
+
+  useEffect(() => {
+    if (mode !== "dns" || !is_open || !domain_id || is_verifying) return;
+
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const response = await get_domain_health(domain_id);
+
+        if (cancelled || !response.data) return;
+
+        const outcomes: Record<string, string> = {};
+
+        for (const check of response.data.checks) {
+          outcomes[check.key] = check.outcome;
+        }
+
+        set_step_statuses((prev) =>
+          wizard_steps.map((step, index) => {
+            const outcome = outcomes[step.id];
+
+            if (!outcome || outcome === "unknown") return prev[index];
+
+            return outcome === "pass" ? "verified" : "failed";
+          }),
+        );
+      } catch {}
+    };
+
+    poll();
+
+    const timer = setInterval(poll, AUTO_CHECK_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [mode, is_open, domain_id, is_verifying, wizard_steps]);
 
   const run_verification = async () => {
     if (!domain_id) return;
@@ -469,6 +511,7 @@ export function DomainSetupWizard({
               transition={{ duration: 0.15, ease: "easeOut" }}
             >
               <DnsStepContent
+                domain_name={domain_name}
                 provider={detected_provider}
                 records={step_records}
                 status={step_statuses[current_step]}
@@ -524,6 +567,11 @@ export function DomainSetupWizard({
             ? t("common.checking")
             : t("settings.verify_all_records")}
         </Button>
+        {!all_verified && (
+          <p className="text-xs text-center mt-1.5 text-txt-muted">
+            {t("settings.domain_health_auto_checking")}
+          </p>
+        )}
         <div className="flex items-center justify-between w-full mt-2">
           <Button
             disabled={is_first_step || is_verifying}

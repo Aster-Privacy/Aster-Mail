@@ -37,6 +37,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { DomainHealthPanel } from "@/components/settings/domains/domain_health_panel";
 import {
   get_dns_records,
   get_status_color,
@@ -136,6 +137,7 @@ export function DomainCard({
   const [expanded, set_expanded] = useState(false);
   const [dns_records, set_dns_records] = useState<DnsRecord[]>([]);
   const [loading_records, set_loading_records] = useState(false);
+  const [showing_all_records, set_showing_all_records] = useState(false);
   const load_dns_records = async () => {
     if (dns_records.length > 0) return;
 
@@ -282,59 +284,36 @@ export function DomainCard({
               </div>
             ))}
 
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center gap-1.5">
-              {domain.txt_verified ? (
-                <CheckCircleIcon className="w-4 h-4 text-green-500" />
-              ) : (
-                <XMarkIcon className="w-4 h-4 text-yellow-500" />
-              )}
-              <span className="text-xs text-txt-secondary">TXT</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {domain.mx_verified ? (
-                <CheckCircleIcon className="w-4 h-4 text-green-500" />
-              ) : (
-                <XMarkIcon className="w-4 h-4 text-yellow-500" />
-              )}
-              <span className="text-xs text-txt-secondary">MX</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {domain.spf_verified ? (
-                <CheckCircleIcon className="w-4 h-4 text-green-500" />
-              ) : (
-                <XMarkIcon className="w-4 h-4 text-yellow-500" />
-              )}
-              <span className="text-xs text-txt-secondary">SPF</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {domain.dkim_verified ? (
-                <CheckCircleIcon className="w-4 h-4 text-green-500" />
-              ) : (
-                <XMarkIcon className="w-4 h-4 text-yellow-500" />
-              )}
-              <span className="text-xs text-txt-secondary">DKIM</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {domain.dmarc_configured ? (
-                <CheckCircleIcon className="w-4 h-4 text-green-500" />
-              ) : (
-                <XMarkIcon className="w-4 h-4 text-gray-400" />
-              )}
-              <span className="text-xs text-txt-secondary">DMARC</span>
-            </div>
+          <div className="mb-4">
+            <DomainHealthPanel
+              domain_id={domain.id}
+              domain_name={domain.domain_name}
+            />
           </div>
 
           {loading_records ? (
             <div />
           ) : dns_records.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-sm mb-2 text-txt-tertiary">
+            <div>
+              <button
+                className="flex items-center gap-1 text-xs text-txt-muted hover:text-txt-secondary"
+                type="button"
+                onClick={() => set_showing_all_records((v) => !v)}
+              >
+                {showing_all_records ? (
+                  <ChevronDownIcon className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronRightIcon className="w-3.5 h-3.5" />
+                )}
                 {t("settings.dns_records_for_domain")}
-              </p>
-              {dns_records.map((record, index) => (
-                <DnsRecordItem key={index} record={record} />
-              ))}
+              </button>
+              {showing_all_records && (
+                <div className="space-y-2 mt-2">
+                  {dns_records.map((record, index) => (
+                    <DnsRecordItem key={index} record={record} />
+                  ))}
+                </div>
+              )}
             </div>
           ) : null}
         </div>

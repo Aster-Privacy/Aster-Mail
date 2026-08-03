@@ -43,6 +43,7 @@ interface DnsStepContentProps {
   records: DnsRecord[];
   status: StepStatus;
   provider: DnsProvider | null;
+  domain_name: string;
 }
 
 const PROVIDER_INSTRUCTIONS: Record<
@@ -169,6 +170,7 @@ export function DnsStepContent({
   records,
   status,
   provider,
+  domain_name,
 }: DnsStepContentProps) {
   const { t } = use_i18n();
 
@@ -247,7 +249,12 @@ export function DnsStepContent({
 
       <div className="space-y-2 mb-4">
         {records.map((record, index) => (
-          <DnsRecordCard key={index} record={record} />
+          <DnsRecordCard
+            key={index}
+            domain={domain_name}
+            provider={provider}
+            record={record}
+          />
         ))}
       </div>
 

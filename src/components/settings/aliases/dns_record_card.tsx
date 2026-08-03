@@ -25,6 +25,7 @@ import { Button } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { show_toast } from "@/components/toast/simple_toast";
+import { format_record_host, type DnsProvider } from "@/data/dns_providers";
 import type { DnsRecord } from "@/services/api/domains";
 
 const CAVEAT_KEYS: Record<string, TranslationKey> = {
@@ -36,11 +37,21 @@ const CAVEAT_KEYS: Record<string, TranslationKey> = {
 
 interface DnsRecordCardProps {
   record: DnsRecord;
+  domain?: string;
+  provider?: DnsProvider | null;
 }
 
-export function DnsRecordCard({ record }: DnsRecordCardProps) {
+export function DnsRecordCard({
+  record,
+  domain,
+  provider,
+}: DnsRecordCardProps) {
   const { t } = use_i18n();
   const caveat = record.caveat_key ? CAVEAT_KEYS[record.caveat_key] : undefined;
+  const display_host = domain
+    ? format_record_host(record.host, domain, provider ?? null)
+    : record.host;
+  const host_is_blank = display_host === "";
 
   const copy_to_clipboard = useCallback(
     async (text: string) => {
@@ -86,23 +97,36 @@ export function DnsRecordCard({ record }: DnsRecordCardProps) {
         </label>
         <div
           className="flex items-center gap-2 group cursor-pointer rounded transition-colors hover:bg-surf-tertiary"
-          onClick={() => copy_to_clipboard(record.host)}
+          onClick={() => copy_to_clipboard(display_host)}
         >
           <code className="flex-1 p-2 rounded text-xs font-mono break-all text-txt-primary">
-            {record.host}
+            {host_is_blank ? (
+              <span className="italic text-txt-muted">
+                {t("common.dns_host_leave_blank")}
+              </span>
+            ) : (
+              display_host
+            )}
           </code>
-          <Button
-            className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            size="icon"
-            variant="ghost"
-            onClick={(e) => {
-              e.stopPropagation();
-              copy_to_clipboard(record.host);
-            }}
-          >
-            <ClipboardDocumentIcon className="w-3.5 h-3.5 text-txt-muted" />
-          </Button>
+          {!host_is_blank && (
+            <Button
+              className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              size="icon"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                copy_to_clipboard(display_host);
+              }}
+            >
+              <ClipboardDocumentIcon className="w-3.5 h-3.5 text-txt-muted" />
+            </Button>
+          )}
         </div>
+        {provider && display_host !== record.host && (
+          <p className="text-[11px] mt-1 text-txt-muted">
+            {t("common.dns_host_provider_hint", { provider: provider.name })}
+          </p>
+        )}
       </div>
 
       <div>
