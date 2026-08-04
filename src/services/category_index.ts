@@ -49,6 +49,8 @@ import { decrypt_envelope } from "@/hooks/email_list_helpers";
 import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   build_category_preview,
+  MAX_PREVIEW_SENDER_CHARS,
+  MAX_PREVIEW_SUBJECT_CHARS,
   type CategoryPreview,
 } from "@/lib/category_preview_text";
 
@@ -109,6 +111,7 @@ interface PersistedMeta {
 const PERSIST_CHUNK_COUNT = 32;
 
 const dirty_chunks = new Set<number>();
+let previews_dirty = false;
 let persist_running = false;
 let persist_rerun = false;
 
@@ -124,6 +127,10 @@ function chunk_of(id: string): number {
 
 function chunk_record_key(account_key: string, index: number): string {
   return `${account_key}:c${index}`;
+}
+
+function preview_record_key(account_key: string): string {
+  return `${account_key}:previews`;
 }
 
 function mark_dirty(id: string): void {
@@ -332,6 +339,13 @@ async function persist_now(): Promise<void> {
       seen_ts,
     };
     const encrypted_meta = await secure_encrypt(JSON.stringify(meta));
+    const writing_previews = previews_dirty;
+
+    previews_dirty = false;
+
+    const encrypted_previews = writing_previews
+      ? await secure_encrypt(JSON.stringify(serialize_entry_previews()))
+      : null;
     const encrypted_chunks: [number, string][] = [];
 
     for (let slot = 0; slot < writing.length; slot++) {
@@ -348,6 +362,9 @@ async function persist_now(): Promise<void> {
       const store = tx.objectStore(STORE_NAME);
 
       store.put(encrypted_meta, account_key);
+      if (encrypted_previews) {
+        store.put(encrypted_previews, preview_record_key(account_key));
+      }
       for (const [chunk_index, blob] of encrypted_chunks) {
         store.put(blob, chunk_record_key(account_key, chunk_index));
       }
@@ -360,6 +377,7 @@ async function persist_now(): Promise<void> {
     for (const chunk_index of writing) {
       dirty_chunks.add(chunk_index);
     }
+    previews_dirty = true;
 
     const is_quota =
       e instanceof DOMException && e.name === "QuotaExceededError";
@@ -476,6 +494,19 @@ async function load_from_disk(account_id: string): Promise<void> {
 
       collect_valid_entries(payload.entries, valid_entries);
       mark_all_dirty();
+    }
+
+    const encrypted_previews = await read_store_record(
+      db,
+      preview_record_key(account_id),
+    );
+
+    if (encrypted_previews) {
+      const decrypted_previews = await secure_decrypt(encrypted_previews);
+
+      if (active_account_id !== account_id) return;
+
+      hydrate_entry_previews(JSON.parse(decrypted_previews));
     }
 
     entries_map = new Map(valid_entries);
@@ -615,6 +646,48 @@ const MAX_ENTRY_PREVIEWS = 300;
 const entry_previews = new Map<string, CategoryPreview>();
 let preview_version = 0;
 
+function serialize_entry_previews(): [string, string, string][] {
+  const rows: [string, string, string][] = [];
+
+  for (const [id, preview] of entry_previews) {
+    rows.push([id, preview.sender, preview.subject]);
+  }
+
+  return rows;
+}
+
+function hydrate_entry_previews(payload: unknown): void {
+  if (!Array.isArray(payload)) return;
+
+  for (const row of payload) {
+    if (!Array.isArray(row) || row.length !== 3) continue;
+
+    const [id, sender, subject] = row;
+
+    if (
+      typeof id !== "string" ||
+      typeof sender !== "string" ||
+      typeof subject !== "string"
+    ) {
+      continue;
+    }
+
+    entry_previews.set(id, {
+      sender: sender.slice(0, MAX_PREVIEW_SENDER_CHARS),
+      subject: subject.slice(0, MAX_PREVIEW_SUBJECT_CHARS),
+    });
+  }
+
+  while (entry_previews.size > MAX_ENTRY_PREVIEWS) {
+    const oldest = entry_previews.keys().next().value;
+
+    if (!oldest) break;
+    entry_previews.delete(oldest);
+  }
+
+  preview_version += 1;
+}
+
 function remember_entry_preview(id: string, preview: CategoryPreview): void {
   const existing = entry_previews.get(id);
 
@@ -636,6 +709,8 @@ function remember_entry_preview(id: string, preview: CategoryPreview): void {
   }
 
   preview_version += 1;
+  previews_dirty = true;
+  schedule_persist();
   notify();
 }
 
@@ -649,6 +724,7 @@ export function get_preview_version(): number {
 
 export function clear_entry_previews(): void {
   entry_previews.clear();
+  previews_dirty = false;
   preview_version += 1;
 }
 
@@ -2055,6 +2131,7 @@ export async function delete_category_index_for_account(
       const store = tx.objectStore(STORE_NAME);
 
       store.delete(account_id);
+      store.delete(preview_record_key(account_id));
       for (let i = 0; i < PERSIST_CHUNK_COUNT; i++) {
         store.delete(chunk_record_key(account_id, i));
       }

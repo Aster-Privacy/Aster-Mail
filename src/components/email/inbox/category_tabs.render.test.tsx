@@ -205,10 +205,8 @@ describe("CategoryTabs", () => {
       expect(classes_of(tab)).toContain("items-center");
     }
 
-    for (const tab of [with_preview, without_preview]) {
-      expect(tab.querySelector("span.h-\\[13px\\]")).toBeTruthy();
-    }
-
+    expect(with_preview.querySelector("span.h-\\[13px\\]")).toBeTruthy();
+    expect(without_preview.querySelector("span.h-\\[13px\\]")).toBeNull();
     expect(with_preview.querySelector("span.w-\\[168px\\]")).toBeTruthy();
     expect(without_preview.querySelector("span.w-\\[168px\\]")).toBeNull();
   });

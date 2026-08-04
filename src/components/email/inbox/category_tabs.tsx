@@ -166,15 +166,13 @@ export function CategoryTabs({
                     </span>
                   ) : null}
                 </span>
-                <span className="block h-[13px] w-full">
-                  {preview ? (
-                    <span className="block w-[168px] max-w-[168px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
-                      {preview.subject
-                        ? `${preview.sender} - ${preview.subject}`
-                        : preview.sender}
-                    </span>
-                  ) : null}
-                </span>
+                {preview ? (
+                  <span className="block h-[13px] w-[168px] max-w-[168px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                    {preview.subject
+                      ? `${preview.sender} - ${preview.subject}`
+                      : preview.sender}
+                  </span>
+                ) : null}
               </span>
             </span>
 
