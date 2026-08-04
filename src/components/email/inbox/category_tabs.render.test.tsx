@@ -202,11 +202,8 @@ describe("CategoryTabs", () => {
 
     for (const tab of [with_preview, without_preview]) {
       expect(classes_of(tab)).toContain("h-12");
-      expect(classes_of(tab)).toContain("flex-1");
-      expect(classes_of(tab)).toContain("basis-0");
-      expect(classes_of(tab).some((token) => token.startsWith("flex-col"))).toBe(
-        false,
-      );
+      expect(classes_of(tab)).toContain("items-center");
+      expect(classes_of(tab)).not.toContain("flex-col");
     }
   });
 });
