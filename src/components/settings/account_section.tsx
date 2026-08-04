@@ -20,7 +20,7 @@
 //
 import type { Badge, BadgePreferences } from "@/services/api/user";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   CameraIcon,
@@ -60,7 +60,6 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 import {
   update_display_name,
-  update_profile_picture,
   update_profile_color,
   fetch_my_badges,
   fetch_badge_preferences,
@@ -88,43 +87,11 @@ import {
 } from "@/components/ui/select";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  PROFILE_PICTURE_ACCEPT,
+  use_profile_picture_upload,
+} from "@/hooks/use_profile_picture_upload";
 import { is_onion_host } from "@/lib/onion_host";
-
-const MAX_SIZE = 256;
-
-function compress_image(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const canvas = document.createElement("canvas");
-      let { width, height } = img;
-
-      if (width > height && width > MAX_SIZE) {
-        height = Math.round((height * MAX_SIZE) / width);
-        width = MAX_SIZE;
-      } else if (height > MAX_SIZE) {
-        width = Math.round((width * MAX_SIZE) / height);
-        height = MAX_SIZE;
-      }
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/webp", 0.8));
-      } else reject(new Error("No canvas context"));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Load failed"));
-    };
-    img.src = url;
-  });
-}
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -264,7 +231,16 @@ export function AccountSection() {
   const primary_identity = use_primary_identity(account_email);
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
-  const file_ref = useRef<HTMLInputElement>(null);
+  const {
+    file_ref,
+    uploading,
+    removing: removing_photo,
+    preview,
+    error: photo_error,
+    open_picker,
+    handle_file,
+    remove_picture,
+  } = use_profile_picture_upload();
 
   const copy_primary_address = useCallback(
     async (address: string) => {
@@ -283,10 +259,7 @@ export function AccountSection() {
   );
   const [name, set_name] = useState(user?.display_name || user?.username || "");
   const [saving_name, set_saving_name] = useState(false);
-  const [uploading, set_uploading] = useState(false);
-  const [removing_photo, set_removing_photo] = useState(false);
   const [avatar_hovered, set_avatar_hovered] = useState(false);
-  const [preview, set_preview] = useState<string | null>(null);
   const [recovery, set_recovery] = useState<{
     email: string | null;
     verified: boolean;
@@ -303,7 +276,6 @@ export function AccountSection() {
   const [pending_inactivity_months, set_pending_inactivity_months] = useState<
     number | null
   >(null);
-  const [photo_error, set_photo_error] = useState<string | null>(null);
   const [inactivity_window, set_inactivity_window] = useState(24);
   const [saving_inactivity, set_saving_inactivity] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
@@ -416,86 +388,6 @@ export function AccountSection() {
     set_saving_name(false);
   };
 
-  const handle_photo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      set_photo_error(t("common.valid_image_error"));
-
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      set_photo_error(t("common.image_size_error"));
-
-      return;
-    }
-
-    set_uploading(true);
-    set_photo_error(null);
-
-    try {
-      const compressed = await compress_image(file);
-
-      set_preview(compressed);
-
-      const response = await update_profile_picture(compressed);
-
-      if (response.error) {
-        set_photo_error(response.error);
-        set_preview(null);
-      } else if (response.data?.success && user) {
-        await update_user({
-          ...user,
-          profile_picture: compressed,
-        });
-        set_preview(null);
-        set_photo_error(null);
-        show_toast(t("common.profile_picture_updated"), "success");
-      } else {
-        set_photo_error(t("common.failed_save_profile_picture"));
-        set_preview(null);
-      }
-    } catch {
-      set_preview(null);
-      set_photo_error(t("common.failed_upload_image"));
-    } finally {
-      set_uploading(false);
-      if (file_ref.current) {
-        file_ref.current.value = "";
-      }
-    }
-  };
-
-  const handle_remove_photo = async () => {
-    if (removing_photo || uploading || !user?.profile_picture) return;
-
-    set_removing_photo(true);
-    set_photo_error(null);
-
-    try {
-      const response = await update_profile_picture(null);
-
-      if (response.error) {
-        set_photo_error(response.error);
-      } else if (response.data?.success && user) {
-        await update_user({
-          ...user,
-          profile_picture: undefined,
-        });
-        set_preview(null);
-        show_toast(t("common.profile_picture_removed"), "success");
-      } else {
-        set_photo_error(t("common.failed_remove_profile_picture"));
-      }
-    } catch {
-      set_photo_error(t("common.failed_remove_profile_picture"));
-    } finally {
-      set_removing_photo(false);
-    }
-  };
 
   const save_recovery = async (email: string) => {
     if (!vault) return;
@@ -666,8 +558,10 @@ export function AccountSection() {
             </div>
             <button
               className="absolute -bottom-1 -right-1 p-1.5 rounded-full transition-colors disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary"
-              disabled={uploading}
-              onClick={() => file_ref.current?.click()}
+              aria-label={t("auth.change_photo")}
+              disabled={uploading || removing_photo}
+              title={t("auth.change_photo")}
+              onClick={open_picker}
               onMouseEnter={(e) => {
                 if (!uploading) {
                   e.currentTarget.style.backgroundColor = "var(--bg-hover)";
@@ -685,23 +579,25 @@ export function AccountSection() {
             </button>
             <input
               ref={file_ref}
-              accept="image/jpeg,image/png,image/webp"
+              accept={PROFILE_PICTURE_ACCEPT}
               className="hidden"
               type="file"
-              onChange={handle_photo}
+              onChange={handle_file}
             />
             {user?.profile_picture && (
               <button
                 aria-label={t("common.remove_photo")}
                 className={cn(
                   "absolute -top-1 -right-1 p-1.5 rounded-full transition disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary hover:text-[var(--color-danger)] focus-visible:opacity-100",
-                  avatar_hovered || removing_photo ? "opacity-100" : "opacity-0",
+                  avatar_hovered || removing_photo
+                    ? "opacity-100"
+                    : "opacity-0 [@media(hover:none)]:opacity-100",
                 )}
                 disabled={uploading || removing_photo}
                 onFocus={() => set_avatar_hovered(true)}
                 onBlur={() => set_avatar_hovered(false)}
                 title={t("common.remove_photo")}
-                onClick={handle_remove_photo}
+                onClick={remove_picture}
               >
                 {removing_photo ? (
                   <Spinner size="xs" />

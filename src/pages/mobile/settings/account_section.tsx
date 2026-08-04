@@ -20,7 +20,7 @@
 //
 import type { Badge, BadgePreferences } from "@/services/api/user";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   CheckIcon,
   PencilIcon,
@@ -35,6 +35,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Spinner } from "@/components/ui/spinner";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  PROFILE_PICTURE_ACCEPT,
+  use_profile_picture_upload,
+} from "@/hooks/use_profile_picture_upload";
 import { PROFILE_COLORS } from "@/constants/profile";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -164,10 +169,18 @@ export function AccountSection({
   const { user, update_user, vault } = use_auth();
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
-  const file_ref = useRef<HTMLInputElement>(null);
-  const [uploading, set_uploading] = useState(false);
-  const [photo_error, set_photo_error] = useState<string | null>(null);
-  const [preview, set_preview] = useState<string | null>(null);
+  const { limits } = use_plan_limits();
+  const is_paid_plan = !!limits && limits.plan_code !== "free";
+  const {
+    file_ref,
+    uploading,
+    removing,
+    preview,
+    error: photo_error,
+    open_picker,
+    handle_file,
+    remove_picture,
+  } = use_profile_picture_upload();
   const [display_name, set_display_name] = useState(
     user?.display_name || user?.username || "",
   );
@@ -323,81 +336,6 @@ export function AccountSection({
   };
 
 
-  const handle_photo = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-
-      if (!file) return;
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        set_photo_error(t("common.valid_image_error"));
-
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        set_photo_error(t("common.image_size_error"));
-
-        return;
-      }
-      set_uploading(true);
-      set_photo_error(null);
-      try {
-        const { update_profile_picture } = await import("@/services/api/user");
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        const compressed = await new Promise<string>((resolve, reject) => {
-          img.onload = () => {
-            URL.revokeObjectURL(url);
-            const canvas = document.createElement("canvas");
-            let { width, height } = img;
-            const max = 256;
-
-            if (width > height && width > max) {
-              height = Math.round((height * max) / width);
-              width = max;
-            } else if (height > max) {
-              width = Math.round((width * max) / height);
-              height = max;
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, width, height);
-              resolve(canvas.toDataURL("image/webp", 0.8));
-            } else reject(new Error("No canvas context"));
-          };
-          img.onerror = () => {
-            URL.revokeObjectURL(url);
-            reject(new Error("Load failed"));
-          };
-          img.src = url;
-        });
-
-        set_preview(compressed);
-        const response = await update_profile_picture(compressed);
-
-        if (response.error) {
-          set_photo_error(response.error);
-          set_preview(null);
-        } else if (response.data?.success && user) {
-          await update_user({ ...user, profile_picture: compressed });
-          set_photo_error(null);
-        } else {
-          set_photo_error(t("common.failed_save_profile_picture"));
-          set_preview(null);
-        }
-      } catch {
-        set_photo_error(t("common.failed_upload_image"));
-        set_preview(null);
-      } finally {
-        set_uploading(false);
-        if (file_ref.current) file_ref.current.value = "";
-      }
-    },
-    [user, update_user, t],
-  );
-
   const handle_save_name = useCallback(async () => {
     const trimmed = display_name.trim();
 
@@ -427,13 +365,15 @@ export function AccountSection({
       <div className="flex-1 overflow-y-auto pb-8">
         <div className="flex flex-col items-center gap-3 px-4 py-6">
           <button
-            className="relative"
-            disabled={uploading}
+            aria-label={t("auth.change_photo")}
+            className="relative touch-manipulation"
+            disabled={uploading || removing}
             type="button"
-            onClick={() => file_ref.current?.click()}
+            onClick={open_picker}
           >
             <ProfileAvatar
               use_domain_logo
+              className={is_paid_plan ? "plan_ring" : ""}
               email={user?.email ?? ""}
               image_url={preview || user?.profile_picture}
               name={user?.display_name ?? user?.username ?? ""}
@@ -449,12 +389,23 @@ export function AccountSection({
             </span>
             <input
               ref={file_ref}
-              accept="image/jpeg,image/png,image/webp"
+              accept={PROFILE_PICTURE_ACCEPT}
               className="hidden"
               type="file"
-              onChange={handle_photo}
+              onChange={handle_file}
             />
           </button>
+          {user?.profile_picture && (
+            <button
+              className="flex min-h-[32px] items-center gap-1.5 px-2 text-[13px] text-[var(--text-muted)] underline-offset-2 hover:underline disabled:opacity-60"
+              disabled={uploading || removing}
+              type="button"
+              onClick={remove_picture}
+            >
+              {removing && <Spinner size="xs" />}
+              {t("common.remove_photo")}
+            </button>
+          )}
           {photo_error && (
             <p className="text-[12px] text-red-500">{photo_error}</p>
           )}

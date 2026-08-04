@@ -102,6 +102,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_auth } from "@/contexts/auth_context";
 import { list_devices } from "@/services/api/devices";
 import { get_dev_mode } from "@/services/api/preferences";
@@ -118,6 +119,8 @@ function MobileSettingsPage() {
   const { user, logout, current_account_id } = use_auth();
   const { stats } = use_mail_stats();
   const { preferences, update_preference, save_now } = use_preferences();
+  const { limits } = use_plan_limits();
+  const is_paid_plan = !!limits && limits.plan_code !== "free";
   const reduce_motion = use_should_reduce_motion();
   const [section, set_section] = useState<SettingsSection | null>(null);
   const [is_closing, set_is_closing] = useState(false);
@@ -372,6 +375,7 @@ function MobileSettingsPage() {
                   onClick={() => open_section("account")}
                 >
                   <ProfileAvatar
+                    className={is_paid_plan ? "plan_ring" : ""}
                     email={user?.email ?? ""}
                     image_url={user?.profile_picture}
                     name={user?.display_name ?? ""}

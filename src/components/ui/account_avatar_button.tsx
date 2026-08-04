@@ -94,9 +94,7 @@ export function AccountAvatarButton({
           className="absolute inset-0 rounded-full items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 motion-reduce:transition-none hidden [@media(hover:hover)]:flex"
           style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
         >
-          <CameraIcon
-            className={`${OVERLAY_ICON_SIZE[size]} text-white`}
-          />
+          <CameraIcon className={`${OVERLAY_ICON_SIZE[size]} text-white`} />
         </span>
         <span
           aria-hidden="true"

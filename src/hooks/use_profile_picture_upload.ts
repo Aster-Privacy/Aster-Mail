@@ -176,7 +176,15 @@ export function use_profile_picture_upload(
     } finally {
       set_removing(false);
     }
-  }, [removing, uploading, user, report_error, t, toast_on_success, update_user]);
+  }, [
+    removing,
+    uploading,
+    user,
+    report_error,
+    t,
+    toast_on_success,
+    update_user,
+  ]);
 
   return {
     file_ref,
