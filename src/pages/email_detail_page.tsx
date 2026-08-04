@@ -72,7 +72,10 @@ export default function EmailDetailPage() {
 
   return (
     <>
-      <div className="h-screen w-full flex transition-colors duration-200 overflow-hidden bg-[var(--bg-secondary)]" style={{ height: "100dvh" }}>
+      <div
+        className="h-screen w-full flex transition-colors duration-200 overflow-hidden bg-[var(--bg-secondary)]"
+        style={{ height: "100dvh" }}
+      >
         {!is_popup && (
           <Sidebar
             is_mobile_open={detail.is_mobile_sidebar_open}
@@ -129,7 +132,6 @@ export default function EmailDetailPage() {
               current_user_email={detail.current_user_email}
               email={detail.email}
               error={detail.error}
-              handle_copy_text={detail.handle_copy_text}
               handle_edit_thread_draft={detail.handle_edit_thread_draft}
               handle_per_message_archive={detail.handle_per_message_archive}
               handle_per_message_forward={detail.handle_per_message_forward}
@@ -153,7 +155,6 @@ export default function EmailDetailPage() {
               handle_thread_draft_deleted={detail.handle_thread_draft_deleted}
               handle_toggle_message_read={detail.handle_toggle_message_read}
               is_loading={detail.is_loading}
-              is_sender_dropdown_open={detail.is_sender_dropdown_open}
               mail_item={detail.mail_item}
               navigate={detail.navigate}
               on_external_content_detected={
@@ -162,7 +163,6 @@ export default function EmailDetailPage() {
               set_is_block_sender_modal_open={
                 detail.set_is_block_sender_modal_open
               }
-              set_is_sender_dropdown_open={detail.set_is_sender_dropdown_open}
               t={detail.t}
               thread_draft={detail.thread_draft}
               thread_messages={detail.thread_messages}
@@ -391,7 +391,9 @@ export default function EmailDetailPage() {
         original_body={detail.reply_modal_data?.original_body ?? ""}
         original_cc={detail.reply_modal_data?.original_cc}
         original_email_id={detail.reply_modal_data?.original_email_id}
-        original_rfc_message_id={detail.reply_modal_data?.original_rfc_message_id}
+        original_rfc_message_id={
+          detail.reply_modal_data?.original_rfc_message_id
+        }
         original_subject={detail.reply_modal_data?.original_subject ?? ""}
         original_timestamp={detail.reply_modal_data?.original_timestamp ?? ""}
         original_to={detail.reply_modal_data?.original_to}

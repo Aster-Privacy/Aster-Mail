@@ -553,6 +553,7 @@ export function mail_to_email_safe(
 export interface FetchByIdsResult {
   emails: InboxEmail[];
   missing_ids: string[];
+  unrenderable_ids: string[];
   request_ok: boolean;
 }
 
@@ -562,13 +563,23 @@ export async function fetch_mail_by_ids_reconciled(
   user_email = "",
 ): Promise<FetchByIdsResult> {
   if (ids.length === 0) {
-    return { emails: [], missing_ids: [], request_ok: true };
+    return {
+      emails: [],
+      missing_ids: [],
+      unrenderable_ids: [],
+      request_ok: true,
+    };
   }
 
   const response = await list_mail_items({ ids });
 
   if (!response.data) {
-    return { emails: [], missing_ids: [], request_ok: false };
+    return {
+      emails: [],
+      missing_ids: [],
+      unrenderable_ids: [],
+      request_ok: false,
+    };
   }
 
   const server_ids = new Set(response.data.items.map((item) => item.id));
@@ -578,28 +589,40 @@ export async function fetch_mail_by_ids_reconciled(
     response.data.items.map(async (item) => {
       const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
-      const [envelope, metadata] = await Promise.all([
-        decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
-        has_metadata
-          ? decrypt_mail_metadata(
-              item.encrypted_metadata!,
-              item.metadata_nonce!,
-              item.metadata_version,
-            )
-          : Promise.resolve(null),
-      ]);
+      let envelope: DecryptedEnvelope | null = null;
+      let metadata: MailItemMetadata | null = null;
+
+      try {
+        [envelope, metadata] = await Promise.all([
+          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
+          has_metadata
+            ? decrypt_mail_metadata(
+                item.encrypted_metadata!,
+                item.metadata_nonce!,
+                item.metadata_version,
+              )
+            : Promise.resolve(null),
+        ]);
+      } catch {
+        envelope = null;
+        metadata = null;
+      }
 
       if (envelope?.body_text) {
-        const bundle = await decrypt_body_text_with_bundle(
-          envelope.body_text,
-          user_email,
-          envelope.from?.email || "",
-          item.id,
-        );
+        try {
+          const bundle = await decrypt_body_text_with_bundle(
+            envelope.body_text,
+            user_email,
+            envelope.from?.email || "",
+            item.id,
+          );
 
-        envelope.body_text = bundle.body;
-        if (bundle.subject !== null && !envelope.subject) {
-          envelope.subject = bundle.subject;
+          envelope.body_text = bundle.body;
+          if (bundle.subject !== null && !envelope.subject) {
+            envelope.subject = bundle.subject;
+          }
+        } catch {
+          envelope.body_text = "";
         }
       }
 
@@ -628,7 +651,11 @@ export async function fetch_mail_by_ids_reconciled(
     .map((id) => by_id.get(id))
     .filter((email): email is InboxEmail => email !== undefined);
 
-  return { emails, missing_ids, request_ok: true };
+  const unrenderable_ids = ids.filter(
+    (id) => server_ids.has(id) && !by_id.has(id),
+  );
+
+  return { emails, missing_ids, unrenderable_ids, request_ok: true };
 }
 
 export function sort_emails_by_timestamp(

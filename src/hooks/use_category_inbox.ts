@@ -58,6 +58,7 @@ import {
   subscribe as subscribe_index,
   get_version as get_index_version,
   remove_ids,
+  suppress_ids,
   remove_thread_entries,
   reindex_ids,
   request_full_rebuild,
@@ -431,12 +432,16 @@ export function use_category_inbox(
       set_state((prev) => ({ ...prev, is_loading: true }));
 
       try {
-        const { emails: fetched, missing_ids, request_ok } =
-          await fetch_mail_by_ids_reconciled(
-            ids,
-            format_options,
-            user?.email || "",
-          );
+        const {
+          emails: fetched,
+          missing_ids,
+          unrenderable_ids,
+          request_ok,
+        } = await fetch_mail_by_ids_reconciled(
+          ids,
+          format_options,
+          user?.email || "",
+        );
 
         if (controller.signal.aborted) return;
 
@@ -457,7 +462,10 @@ export function use_category_inbox(
           return;
         }
 
-        fetch_retry_ref.current = { sig: `${active_category}|${target_page}`, attempts: 0 };
+        fetch_retry_ref.current = {
+          sig: `${active_category}|${target_page}`,
+          attempts: 0,
+        };
         if (fetch_retry_timer_ref.current) {
           clearTimeout(fetch_retry_timer_ref.current);
           fetch_retry_timer_ref.current = null;
@@ -465,6 +473,10 @@ export function use_category_inbox(
 
         if (missing_ids.length > 0) {
           remove_ids(missing_ids);
+        }
+
+        if (unrenderable_ids.length > 0) {
+          suppress_ids(unrenderable_ids);
         }
 
         reconcile_server_read(fetched);
@@ -513,12 +525,13 @@ export function use_category_inbox(
         }
 
         const pruned =
-          missing_ids.length > 0 || stale_fetched.length > 0;
+          missing_ids.length > 0 ||
+          stale_fetched.length > 0 ||
+          unrenderable_ids.length > 0;
         const effective_total = pruned
           ? get_category_total(active_category)
           : total;
-        const effective_has_more =
-          (target_page + 1) * limit < effective_total;
+        const effective_has_more = (target_page + 1) * limit < effective_total;
 
         set_state((prev) =>
           build_list_state(prev, grouped, effective_total, effective_has_more),

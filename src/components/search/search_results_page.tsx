@@ -908,12 +908,11 @@ export function SearchResultsPage({
                     />
                   ) : undefined
                 }
-                show_email_preview={
-                  !is_split_view && preferences.show_email_preview
-                }
+                show_email_preview={preferences.show_email_preview}
                 show_message_size={preferences.show_message_size}
                 show_profile_pictures={preferences.show_profile_pictures}
                 show_thread_count={preferences.conversation_grouping !== false}
+                stacked_preview={is_split_view}
               />
             );
           })}

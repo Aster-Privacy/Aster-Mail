@@ -68,6 +68,7 @@ interface ThreadMessagesListProps {
   on_print?: (message: DecryptedThreadMessage) => void;
   on_view_source?: (message: DecryptedThreadMessage) => void;
   on_report_phishing?: (message: DecryptedThreadMessage) => void;
+  on_block_sender?: (message: DecryptedThreadMessage) => void;
   on_not_spam?: (message: DecryptedThreadMessage) => void;
   hide_counter?: boolean;
   hide_expand_collapse?: boolean;
@@ -131,6 +132,7 @@ export const ThreadMessagesList = forwardRef<
     on_print,
     on_view_source,
     on_report_phishing,
+    on_block_sender,
     on_not_spam,
     hide_counter = false,
     hide_expand_collapse: _hide_expand_collapse = false,
@@ -891,6 +893,7 @@ export const ThreadMessagesList = forwardRef<
         on_reply={on_reply}
         on_reply_all={on_reply_all}
         on_report_phishing={on_report_phishing}
+        on_block_sender={on_block_sender}
         on_set_inline_mode={on_set_inline_mode}
         on_star_toggle={() => toggle_star(msg)}
         on_toggle={() => toggle(msg)}

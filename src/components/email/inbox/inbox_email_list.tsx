@@ -70,6 +70,7 @@ export interface EmailListProps {
   density: string;
   show_profile_pictures: boolean;
   show_email_preview: boolean;
+  stacked_preview?: boolean;
   show_message_size?: boolean;
   show_thread_count?: boolean;
   on_toggle_select: (id: string) => void;
@@ -108,6 +109,7 @@ export function EmailList({
   density,
   show_profile_pictures,
   show_email_preview,
+  stacked_preview,
   show_message_size,
   show_thread_count,
   on_toggle_select,
@@ -307,6 +309,7 @@ export function EmailList({
       show_message_size={show_message_size}
       show_profile_pictures={show_profile_pictures}
       show_thread_count={show_thread_count}
+      stacked_preview={stacked_preview}
     />
   );
 

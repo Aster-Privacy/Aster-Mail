@@ -80,6 +80,7 @@ interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   density: string;
   show_profile_pictures: boolean;
   show_email_preview: boolean;
+  stacked_preview?: boolean;
   show_message_size?: boolean;
   show_thread_count?: boolean;
   search_preview_node?: React.ReactNode;
@@ -187,6 +188,7 @@ export const InboxEmailListItem = memo(
         density,
         show_profile_pictures,
         show_email_preview,
+        stacked_preview = false,
         show_message_size,
         show_thread_count = true,
         search_preview_node,
@@ -640,13 +642,13 @@ export const InboxEmailListItem = memo(
                 !is_archive_view &&
                 !in_scoped_collection_view &&
                 named_folders.length === 0 && (
-                <EmailTag
-                  className="flex-shrink-0 hidden sm:inline-flex"
-                  label={t("mail.archived_label")}
-                  muted={email.is_read}
-                  variant="archived"
-                />
-              )}
+                  <EmailTag
+                    className="flex-shrink-0 hidden sm:inline-flex"
+                    label={t("mail.archived_label")}
+                    muted={email.is_read}
+                    variant="archived"
+                  />
+                )}
 
               {email.is_trashed && (
                 <EmailTag
@@ -771,9 +773,17 @@ export const InboxEmailListItem = memo(
                 </div>
               )}
 
-              <div className="whitespace-nowrap text-sm min-w-0 truncate flex-1">
+              <div
+                className={cn(
+                  "text-sm min-w-0 flex-1",
+                  stacked_preview
+                    ? "flex flex-col gap-0.5"
+                    : "whitespace-nowrap truncate",
+                )}
+              >
                 <span
                   className={cn(
+                    "truncate",
                     email.is_read
                       ? "font-normal text-txt-tertiary"
                       : "font-medium text-txt-primary",
@@ -783,15 +793,22 @@ export const InboxEmailListItem = memo(
                 </span>
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (
-                    <span className="text-txt-muted">
-                      {" \u2014 "}
+                    <span
+                      className={cn(
+                        "text-txt-muted",
+                        stacked_preview && "truncate",
+                      )}
+                    >
+                      {!stacked_preview && " \u2014 "}
                       {search_preview_node ||
                         (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
                         email.preview === PGP_UNDECRYPTABLE_SENTINEL
                           ? t("mail.encrypted_message_unavailable")
                           : truncate_preview(
                               email.preview,
-                              (email.subject || "").length,
+                              stacked_preview
+                                ? 0
+                                : (email.subject || "").length,
                               preferences.low_network_mode ? 80 : undefined,
                             ))}
                     </span>

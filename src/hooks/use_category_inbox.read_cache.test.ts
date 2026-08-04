@@ -34,6 +34,7 @@ const mocks = vi.hoisted(() => ({
       thread_token: `t-${id}`,
     })) as unknown[],
     missing_ids: [] as string[],
+    unrenderable_ids: [] as string[],
     request_ok: true,
   })),
 }));
@@ -105,6 +106,7 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: vi.fn(),
+  suppress_ids: vi.fn(),
   is_representative_unread: () => false,
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),

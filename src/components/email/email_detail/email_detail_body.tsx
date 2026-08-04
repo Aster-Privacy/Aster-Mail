@@ -27,20 +27,13 @@ import type { MailItem } from "@/services/api/mail";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
 import { useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ExclamationCircleIcon,
   LockClosedIcon,
-  EnvelopeIcon,
-  UserIcon,
-  ChatBubbleLeftIcon,
-  NoSymbolIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
@@ -50,7 +43,6 @@ import { ShippingDetailsBanner } from "@/components/email/banners/shipping_detai
 import { extract_email_details } from "@/services/extraction/extractor";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
-import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
 
@@ -67,10 +59,7 @@ interface EmailDetailBodyProps {
   load_all_thread_messages?: () => void;
   thread_draft: DraftWithContent | null;
   current_user_email: string;
-  is_sender_dropdown_open: boolean;
-  set_is_sender_dropdown_open: (open: boolean) => void;
   set_is_block_sender_modal_open: (open: boolean) => void;
-  handle_copy_text: (text: string, label: string) => void;
   handle_per_message_reply: (msg: DecryptedThreadMessage) => void;
   handle_per_message_reply_all: (msg: DecryptedThreadMessage) => void;
   handle_per_message_forward: (msg: DecryptedThreadMessage) => void;
@@ -142,10 +131,7 @@ export function EmailDetailBody({
   load_all_thread_messages,
   thread_draft,
   current_user_email,
-  is_sender_dropdown_open,
-  set_is_sender_dropdown_open,
   set_is_block_sender_modal_open,
-  handle_copy_text,
   handle_per_message_reply,
   handle_per_message_reply_all,
   handle_per_message_forward,
@@ -160,7 +146,6 @@ export function EmailDetailBody({
   handle_thread_draft_deleted,
   on_external_content_detected,
 }: EmailDetailBodyProps) {
-  const reduce_motion = use_should_reduce_motion();
   const { preferences } = use_preferences();
   const show_sender_name = email?.display_sender_name ?? email?.sender ?? "";
   const show_sender_email =
@@ -231,124 +216,6 @@ export function EmailDetailBody({
                   </span>
                 )}
               </div>
-            </div>
-          </div>
-
-          <div className="mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3">
-            <button
-              className="flex-shrink-0"
-              onClick={() =>
-                set_is_sender_dropdown_open(!is_sender_dropdown_open)
-              }
-            >
-              <ProfileAvatar
-                use_domain_logo
-                className="cursor-pointer hover:opacity-80"
-                email={show_sender_email}
-                name={show_sender_name}
-                size="md"
-              />
-            </button>
-            <div className="flex-1 min-w-0 relative">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2 flex-wrap">
-                <button
-                  className="font-medium text-xs sm:text-sm text-txt-primary hover:text-blue-500 transition-colors text-left"
-                  onClick={() =>
-                    set_is_sender_dropdown_open(!is_sender_dropdown_open)
-                  }
-                >
-                  {show_sender_name}
-                </button>
-                <span className="text-xs sm:text-sm text-txt-muted truncate">
-                  &lt;{show_sender_email}&gt;
-                </span>
-              </div>
-              <div className="text-xs sm:text-sm text-txt-muted mt-0.5 truncate">
-                {email.to.length > 0
-                  ? `${t("common.to_label")} ${email.to
-                      .map((r) => r.email)
-                      .join(", ")}`
-                  : t("common.to_me")}
-              </div>
-
-              <AnimatePresence>
-                {is_sender_dropdown_open && (
-                  <>
-                    <motion.div
-                      animate={{ opacity: 1 }}
-                      className="fixed inset-0 z-40"
-                      exit={{ opacity: 0 }}
-                      initial={reduce_motion ? false : { opacity: 0 }}
-                      transition={{ duration: reduce_motion ? 0 : 0.1 }}
-                      onClick={() => set_is_sender_dropdown_open(false)}
-                    />
-                    <motion.div
-                      animate={{ opacity: 1, y: 0 }}
-                      className="absolute top-full left-0 z-50 w-64 sm:w-72 border rounded-lg shadow-lg mt-2 overflow-hidden bg-surf-primary border-edge-secondary"
-                      exit={{ opacity: 0, y: -4 }}
-                      initial={reduce_motion ? false : { opacity: 0, y: -4 }}
-                      transition={{ duration: reduce_motion ? 0 : 0.15 }}
-                    >
-                      <div className="p-2 sm:p-3">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <ProfileAvatar
-                            use_domain_logo
-                            email={show_sender_email}
-                            name={show_sender_name}
-                            size="md"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <button
-                              className="font-medium text-xs sm:text-sm text-txt-primary hover:text-blue-500 transition-colors text-left w-full truncate"
-                              onClick={() =>
-                                handle_copy_text(show_sender_name, "name")
-                              }
-                            >
-                              {show_sender_name}
-                            </button>
-                            <button
-                              className="text-xs text-txt-muted hover:text-blue-500 transition-colors text-left w-full truncate"
-                              onClick={() =>
-                                handle_copy_text(show_sender_email, "email")
-                              }
-                            >
-                              {show_sender_email}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="p-1">
-                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-[14px]">
-                          <EnvelopeIcon className="w-4 h-4" />
-                          {t("common.new_message")}
-                        </button>
-                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-[14px]">
-                          <UserIcon className="w-4 h-4" />
-                          {t("common.add_to_contacts")}
-                        </button>
-                        <button className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-txt-secondary hover:bg-surf-hover rounded-[14px]">
-                          <ChatBubbleLeftIcon className="w-4 h-4" />
-                          {t("common.view_all_messages" as TranslationKey)}
-                        </button>
-                        <Separator className="my-1" />
-                        <button
-                          className="w-full flex items-center gap-2 sm:gap-2.5 text-left px-2 sm:px-3 py-2 text-xs sm:text-sm text-red-500 hover:bg-red-500/10 rounded-[14px]"
-                          onClick={() => {
-                            set_is_sender_dropdown_open(false);
-                            set_is_block_sender_modal_open(true);
-                          }}
-                        >
-                          <NoSymbolIcon className="w-4 h-4" />
-                          {t("mail.block_sender" as TranslationKey)}
-                        </button>
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
             </div>
           </div>
 
@@ -450,6 +317,7 @@ export function EmailDetailBody({
               on_print={handle_per_message_print}
               on_reply={handle_per_message_reply}
               on_reply_all={handle_per_message_reply_all}
+              on_block_sender={() => set_is_block_sender_modal_open(true)}
               on_report_phishing={handle_per_message_report_phishing}
               on_toggle_message_read={handle_toggle_message_read}
               on_trash={handle_per_message_trash}

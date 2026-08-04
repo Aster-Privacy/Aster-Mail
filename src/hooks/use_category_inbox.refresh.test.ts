@@ -33,6 +33,7 @@ const mocks = vi.hoisted(() => ({
       } as unknown,
     ],
     missing_ids: [] as string[],
+    unrenderable_ids: [] as string[],
     request_ok: true,
   })),
   sync_recent: vi.fn(async () => {}),
@@ -104,6 +105,7 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: vi.fn(),
+  suppress_ids: vi.fn(),
   is_representative_unread: () => false,
   sync_recent: mocks.sync_recent,
   set_sort_order: vi.fn(),
@@ -172,7 +174,8 @@ describe("use_category_inbox refresh", () => {
 
     await flush();
 
-    const initial_fetches = mocks.fetch_mail_by_ids_reconciled.mock.calls.length;
+    const initial_fetches =
+      mocks.fetch_mail_by_ids_reconciled.mock.calls.length;
 
     expect(initial_fetches).toBeGreaterThanOrEqual(1);
 
@@ -187,16 +190,18 @@ describe("use_category_inbox refresh", () => {
     expect(mocks.sync_recent).toHaveBeenCalledTimes(1);
 
     expect(states.at(-1)!.is_loading).toBe(true);
-    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBe(initial_fetches);
+    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBe(
+      initial_fetches,
+    );
 
     await act(async () => {
       await new Promise((r) => setTimeout(r, 700));
     });
     await flush();
 
-    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBeGreaterThan(
-      initial_fetches,
-    );
+    expect(
+      mocks.fetch_mail_by_ids_reconciled.mock.calls.length,
+    ).toBeGreaterThan(initial_fetches);
     expect(states.at(-1)!.is_loading).toBe(false);
 
     act(() => root.unmount());

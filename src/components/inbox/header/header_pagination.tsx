@@ -54,6 +54,13 @@ export function HeaderPagination({
     return null;
   }
 
+  const is_message_mode = Boolean(on_navigate_prev || on_navigate_next);
+  const total_pages = page_size > 0 ? Math.ceil(filtered_count / page_size) : 0;
+
+  if (!is_message_mode && total_pages <= 1) {
+    return null;
+  }
+
   return (
     <div className="hidden lg:flex items-center gap-1 text-xs text-[var(--text-muted)] ml-1">
       <Tooltip tip={t("common.previous")}>
@@ -79,27 +86,30 @@ export function HeaderPagination({
           <ChevronLeftIcon className="w-4 h-4" />
         </Button>
       </Tooltip>
-      <span className="tabular-nums text-sm min-w-[3ch] text-center">
-        {on_navigate_prev || on_navigate_next ? (
-          <>
-            {current_email_index !== undefined && current_email_index >= 0
-              ? current_email_index + 1
-              : "—"}
-            {total_email_count > 0 && (
-              <>
-                {" "}
-                {t("common.of")} {total_email_count}
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            {filtered_count > 0
-              ? `${current_page + 1} ${t("common.of")} ${Math.ceil(filtered_count / page_size)}`
-              : `${current_page + 1}`}
-          </>
-        )}
-      </span>
+      {is_message_mode ? (
+        <span className="tabular-nums text-sm min-w-[3ch] text-center">
+          {current_email_index !== undefined && current_email_index >= 0
+            ? current_email_index + 1
+            : "—"}
+          {total_email_count > 0 && (
+            <>
+              {" "}
+              {t("common.of")} {total_email_count}
+            </>
+          )}
+        </span>
+      ) : (
+        <Tooltip
+          tip={`${t("common.page")} ${current_page + 1} ${t("common.of")} ${total_pages}`}
+        >
+          <span
+            aria-label={`${t("common.page")} ${current_page + 1} ${t("common.of")} ${total_pages}`}
+            className="tabular-nums text-sm min-w-[3ch] text-center"
+          >
+            {current_page + 1} {t("common.of")} {total_pages}
+          </span>
+        </Tooltip>
+      )}
       <Tooltip tip={t("common.next")}>
         <Button
           className="h-7 w-7 text-[var(--icon-muted)] hover:text-[var(--icon-active)]"

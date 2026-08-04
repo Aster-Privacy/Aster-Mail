@@ -39,6 +39,7 @@ import {
   TrashIcon,
   PrinterIcon,
   ShieldExclamationIcon,
+  NoSymbolIcon,
   CodeBracketIcon,
   ClipboardDocumentIcon,
   FolderIcon,
@@ -131,6 +132,7 @@ interface ThreadMessageBlockProps {
   on_print?: (message: DecryptedThreadMessage) => void;
   on_view_source?: (message: DecryptedThreadMessage) => void;
   on_report_phishing?: (message: DecryptedThreadMessage) => void;
+  on_block_sender?: (message: DecryptedThreadMessage) => void;
   on_not_spam?: (message: DecryptedThreadMessage) => void;
   folders?: { id: string; name: string; color: string }[];
   message_folder_tokens?: string[];
@@ -210,6 +212,7 @@ export function ThreadMessageBlock({
   on_print,
   on_view_source: _on_view_source,
   on_report_phishing,
+  on_block_sender,
   on_not_spam,
   folders = [],
   message_folder_tokens,
@@ -1298,6 +1301,17 @@ export function ThreadMessageBlock({
                   </span>
                 </DropdownMenuItem>
               ) : null}
+              {on_block_sender && !is_own_message && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_block_sender(message);
+                  }}
+                >
+                  <NoSymbolIcon className="w-4 h-4 mr-2 text-red-500" />
+                  <span className="text-red-500">{t("mail.block_sender")}</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={(e) => {

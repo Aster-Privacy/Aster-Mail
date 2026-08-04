@@ -25,6 +25,7 @@ import { createRoot, type Root } from "react-dom/client";
 const mocks = vi.hoisted(() => ({
   fetch_mail_by_ids_reconciled: vi.fn(),
   remove_ids: vi.fn(),
+  suppress_ids: vi.fn(),
 }));
 
 vi.mock("@/hooks/email_list_helpers", () => ({
@@ -93,6 +94,7 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: mocks.remove_ids,
+  suppress_ids: vi.fn(),
   is_representative_unread: () => false,
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),
@@ -148,6 +150,7 @@ describe("use_category_inbox ghost reconcile", () => {
     mocks.fetch_mail_by_ids_reconciled.mockResolvedValue({
       emails: [],
       missing_ids: ["gone1", "gone2"],
+      unrenderable_ids: [],
       request_ok: true,
     });
 
@@ -164,6 +167,7 @@ describe("use_category_inbox ghost reconcile", () => {
     mocks.fetch_mail_by_ids_reconciled.mockResolvedValue({
       emails: [],
       missing_ids: [],
+      unrenderable_ids: [],
       request_ok: false,
     });
 
@@ -185,7 +189,12 @@ describe("use_category_inbox ghost reconcile", () => {
       call += 1;
 
       if (call === 1) {
-        return { emails: [], missing_ids: [], request_ok: false };
+        return {
+          emails: [],
+          missing_ids: [],
+          unrenderable_ids: [],
+          request_ok: false,
+        };
       }
 
       return {
@@ -198,6 +207,7 @@ describe("use_category_inbox ghost reconcile", () => {
           } as unknown,
         ],
         missing_ids: [],
+        unrenderable_ids: [],
         request_ok: true,
       };
     });

@@ -31,6 +31,7 @@ vi.mock("@/hooks/email_list_helpers", () => ({
   fetch_mail_by_ids_reconciled: vi.fn(async () => ({
     emails: [],
     missing_ids: [],
+    unrenderable_ids: [],
     request_ok: true,
   })),
   group_emails_by_thread: (x: unknown) => x,
@@ -97,6 +98,7 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: vi.fn(),
+  suppress_ids: vi.fn(),
   is_representative_unread: () => false,
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),
@@ -140,7 +142,9 @@ function render_hook(): { states: SeenState[]; root: Root } {
 
 describe("use_category_inbox loading backstop", () => {
   beforeEach(() => {
-    (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
     vi.useFakeTimers();
     mocks.is_build_in_progress.mockReturnValue(true);
     mocks.is_build_stalled.mockReturnValue(false);
