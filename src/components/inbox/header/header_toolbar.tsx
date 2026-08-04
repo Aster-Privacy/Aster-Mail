@@ -43,16 +43,10 @@ import { SenderActionModal } from "@/components/modals/sender_action_modal";
 import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal";
 import { SnoozeSimilarModal } from "@/components/modals/snooze_similar_modal";
 import { ArchiveNewslettersModal } from "@/components/modals/archive_newsletters_modal";
-import {
-  list_mail_items,
-  batched_bulk_patch_metadata,
-  type MailItem,
-} from "@/services/api/mail";
+import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   encrypt_mail_metadata,
   metadata_flag_patch,
-  decrypt_mail_metadata,
-  create_default_metadata,
 } from "@/services/crypto/mail_metadata";
 import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
@@ -71,6 +65,11 @@ import { use_folders, has_protected_folder_label } from "@/hooks/use_folders";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import {
+  decrypt_items_metadata_for_action,
+  scan_received_items,
+} from "@/services/bulk_mail_scan";
+import { map_in_chunks } from "@/lib/scheduling";
 
 const QUICK_ACTION_CONFIRM_KEYS: Record<
   string,
@@ -89,37 +88,6 @@ const QUICK_ACTION_CONFIRM_KEYS: Record<
     message: "mail.delete_old_confirm_message",
   },
 };
-
-async function decrypt_items_metadata_for_action(
-  items: MailItem[],
-): Promise<void> {
-  for (const item of items) {
-    if (item.metadata) continue;
-    if (!item.encrypted_metadata || !item.metadata_nonce) {
-      const is_sent =
-        item.item_type === "sent" ||
-        item.item_type === "draft" ||
-        item.item_type === "scheduled";
-      const defaults = create_default_metadata(item.item_type);
-
-      defaults.is_read = is_sent;
-      if (item.message_ts) defaults.message_ts = item.message_ts;
-      item.metadata = defaults;
-      continue;
-    }
-    try {
-      const meta = await decrypt_mail_metadata(
-        item.encrypted_metadata,
-        item.metadata_nonce,
-        item.metadata_version,
-      );
-
-      item.metadata = meta ?? create_default_metadata(item.item_type);
-    } catch {
-      item.metadata = create_default_metadata(item.item_type);
-    }
-  }
-}
 
 interface HeaderToolbarProps {
   on_settings_click: () => void;
@@ -566,19 +534,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
 
         return;
       } else if (action === "archive_all_read") {
-        let all_items: MailItem[] = [];
-        let cursor: string | undefined;
-
-        do {
-          const response = await list_mail_items({
-            item_type: "received",
-            cursor,
-          });
-
-          if (!response.data?.items) break;
-          all_items.push(...response.data.items);
-          cursor = response.data.next_cursor;
-        } while (cursor);
+        const all_items = (await scan_received_items()).items;
 
         {
           await decrypt_items_metadata_for_action(all_items);
@@ -592,8 +548,9 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           );
 
           if (read_items.length > 0) {
-            const metadata_updates = await Promise.all(
-              read_items.map(async (item) => {
+            const metadata_updates = await map_in_chunks(
+              read_items,
+              async (item) => {
                 const updated_metadata = {
                   ...item.metadata!,
                   is_archived: true,
@@ -607,7 +564,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                       ...metadata_flag_patch(updated_metadata),
                     }
                   : null;
-              }),
+              },
             );
 
             const valid_updates = metadata_updates.filter(
@@ -670,8 +627,9 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               action_type: "archive",
               email_ids: archived_ids,
               on_undo: async () => {
-                const undo_updates = await Promise.all(
-                  archived_items.map(async (item) => {
+                const undo_updates = await map_in_chunks(
+                  archived_items,
+                  async (item) => {
                     const updated_metadata = {
                       ...item.metadata!,
                       is_archived: false,
@@ -686,7 +644,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                           ...metadata_flag_patch(updated_metadata),
                         }
                       : null;
-                  }),
+                  },
                 );
 
                 const valid_undo = undo_updates.filter(
@@ -710,19 +668,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           }
         }
       } else if (action === "mark_all_read") {
-        let all_items: MailItem[] = [];
-        let cursor: string | undefined;
-
-        do {
-          const response = await list_mail_items({
-            item_type: "received",
-            cursor,
-          });
-
-          if (!response.data?.items) break;
-          all_items.push(...response.data.items);
-          cursor = response.data.next_cursor;
-        } while (cursor);
+        const all_items = (await scan_received_items()).items;
 
         {
           await decrypt_items_metadata_for_action(all_items);
@@ -735,8 +681,9 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           );
 
           if (unread_items.length > 0) {
-            const metadata_updates = await Promise.all(
-              unread_items.map(async (item) => {
+            const metadata_updates = await map_in_chunks(
+              unread_items,
+              async (item) => {
                 const current_metadata: MailItemMetadata = item.metadata ?? {
                   is_read: false,
                   is_starred: false,
@@ -760,7 +707,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                       ...metadata_flag_patch(updated_metadata),
                     }
                   : null;
-              }),
+              },
             );
 
             const valid_updates = metadata_updates.filter(
@@ -819,8 +766,9 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               on_undo: async () => {
                 adjust_unread_count(succeeded_items.length);
 
-                const undo_updates = await Promise.all(
-                  succeeded_items.map(async (item) => {
+                const undo_updates = await map_in_chunks(
+                  succeeded_items,
+                  async (item) => {
                     const current_metadata: MailItemMetadata =
                       item.metadata ?? {
                         is_read: false,
@@ -849,7 +797,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                           ...metadata_flag_patch(updated_metadata),
                         }
                       : null;
-                  }),
+                  },
                 );
 
                 const valid_undo_updates = undo_updates.filter(
@@ -872,19 +820,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           }
         }
       } else if (action === "delete_old") {
-        let all_items: MailItem[] = [];
-        let cursor: string | undefined;
-
-        do {
-          const response = await list_mail_items({
-            item_type: "received",
-            cursor,
-          });
-
-          if (!response.data?.items) break;
-          all_items.push(...response.data.items);
-          cursor = response.data.next_cursor;
-        } while (cursor);
+        const all_items = (await scan_received_items()).items;
 
         {
           await decrypt_items_metadata_for_action(all_items);
@@ -901,8 +837,9 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
           });
 
           if (old_items.length > 0) {
-            const metadata_updates = await Promise.all(
-              old_items.map(async (item) => {
+            const metadata_updates = await map_in_chunks(
+              old_items,
+              async (item) => {
                 const current_metadata: MailItemMetadata = item.metadata ?? {
                   is_read: false,
                   is_starred: false,
@@ -929,7 +866,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                       ...metadata_flag_patch(updated_metadata),
                     }
                   : null;
-              }),
+              },
             );
 
             const valid_updates = metadata_updates.filter(
@@ -982,8 +919,9 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               action_type: "trash",
               email_ids: succeeded_ids,
               on_undo: async () => {
-                const undo_updates = await Promise.all(
-                  succeeded_items.map(async (item) => {
+                const undo_updates = await map_in_chunks(
+                  succeeded_items,
+                  async (item) => {
                     const current_metadata: MailItemMetadata =
                       item.metadata ?? {
                         is_read: false,
@@ -1012,7 +950,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                           ...metadata_flag_patch(updated_metadata),
                         }
                       : null;
-                  }),
+                  },
                 );
 
                 const valid_undo_updates = undo_updates.filter(

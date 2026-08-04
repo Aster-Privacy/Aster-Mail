@@ -35,7 +35,13 @@ import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { SnoozeIcon } from "@/components/common/icons";
-import { list_mail_items, bulk_patch_metadata } from "@/services/api/mail";
+import { bulk_patch_metadata } from "@/services/api/mail";
+import {
+  scan_received_items,
+  DECRYPT_YIELD_CHUNK,
+  decrypt_items_metadata_for_action,
+} from "@/services/bulk_mail_scan";
+import { yield_to_browser } from "@/lib/scheduling";
 import { batch_archive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
@@ -49,8 +55,6 @@ import {
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
 import {
-  decrypt_mail_metadata,
-  create_default_metadata,
   encrypt_mail_metadata,
   metadata_flag_patch,
 } from "@/services/crypto/mail_metadata";
@@ -66,6 +70,7 @@ import {
   execute_unsubscribe,
 } from "@/utils/unsubscribe_detector";
 import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
+import { map_in_chunks } from "@/lib/scheduling";
 
 interface Subscription {
   id: string;
@@ -123,37 +128,6 @@ async function decrypt_envelope_local(
   }
 }
 
-async function decrypt_items_metadata_for_action(
-  items: MailItem[],
-): Promise<void> {
-  for (const item of items) {
-    if (item.metadata) continue;
-    if (!item.encrypted_metadata || !item.metadata_nonce) {
-      const is_sent =
-        item.item_type === "sent" ||
-        item.item_type === "draft" ||
-        item.item_type === "scheduled";
-      const defaults = create_default_metadata(item.item_type);
-
-      defaults.is_read = is_sent;
-      if (item.message_ts) defaults.message_ts = item.message_ts;
-      item.metadata = defaults;
-      continue;
-    }
-    try {
-      const meta = await decrypt_mail_metadata(
-        item.encrypted_metadata,
-        item.metadata_nonce,
-        item.metadata_version,
-      );
-
-      item.metadata = meta ?? create_default_metadata(item.item_type);
-    } catch {
-      item.metadata = create_default_metadata(item.item_type);
-    }
-  }
-}
-
 export function MassUnsubscribeModal({
   is_open,
   on_close,
@@ -170,25 +144,15 @@ export function MassUnsubscribeModal({
   const [failed_count, set_failed_count] = useState(0);
   const [show_success, set_show_success] = useState(false);
 
-  const fetch_subscriptions = useCallback(async () => {
+  const fetch_subscriptions = useCallback(async (signal?: AbortSignal) => {
     set_is_loading(true);
     try {
-      let all_items: MailItem[] = [];
-      let cursor: string | undefined;
+      const { items: all_items } = await scan_received_items(signal);
 
-      do {
-        const response = await list_mail_items({
-          item_type: "received",
-          cursor,
-        });
-
-        if (!response.data?.items) break;
-        all_items.push(...response.data.items);
-        cursor = response.data.next_cursor;
-      } while (cursor);
+      if (signal?.aborted) return;
 
       if (all_items.length > 0) {
-        await decrypt_items_metadata_for_action(all_items);
+        await decrypt_items_metadata_for_action(all_items, signal);
         const sender_map = new Map<
           string,
           {
@@ -201,7 +165,14 @@ export function MassUnsubscribeModal({
           }
         >();
 
+        let scanned = 0;
+
         for (const item of all_items) {
+          if (signal?.aborted) return;
+
+          scanned += 1;
+          if (scanned % DECRYPT_YIELD_CHUNK === 0) await yield_to_browser();
+
           if (item.metadata?.is_trashed || item.metadata?.is_archived) continue;
           if (has_protected_folder_label(item.labels)) continue;
 
@@ -272,13 +243,17 @@ export function MassUnsubscribeModal({
 
   useEffect(() => {
     if (is_open) {
-      fetch_subscriptions();
+      const controller = new AbortController();
+
+      fetch_subscriptions(controller.signal);
       set_selected_ids(new Set());
       set_search_query("");
       set_show_success(false);
       set_completed_count(0);
       set_link_opened_count(0);
       set_failed_count(0);
+
+      return () => controller.abort();
     }
   }, [is_open, fetch_subscriptions]);
 
@@ -358,25 +333,23 @@ export function MassUnsubscribeModal({
       set_link_opened_count(links_opened);
       set_failed_count(failures);
 
-      const metadata_updates = await Promise.all(
-        all_items.map(async (item) => {
-          const updated_metadata = {
-            ...item.metadata!,
-            is_archived: true,
-            is_trashed: false,
-            is_spam: false,
-          };
-          const encrypted = await encrypt_mail_metadata(updated_metadata);
+      const metadata_updates = await map_in_chunks(all_items, async (item) => {
+        const updated_metadata = {
+          ...item.metadata!,
+          is_archived: true,
+          is_trashed: false,
+          is_spam: false,
+        };
+        const encrypted = await encrypt_mail_metadata(updated_metadata);
 
-          return encrypted
-            ? {
-                id: item.id,
-                ...encrypted,
-                ...metadata_flag_patch(updated_metadata),
-              }
-            : null;
-        }),
-      );
+        return encrypted
+          ? {
+              id: item.id,
+              ...encrypted,
+              ...metadata_flag_patch(updated_metadata),
+            }
+          : null;
+      });
 
       const valid_updates = metadata_updates.filter(
         (u) => u !== null,

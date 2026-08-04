@@ -37,11 +37,7 @@ import { CommandPalette } from "@/components/search/command_palette";
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
 import { SenderActionModal } from "@/components/modals/sender_action_modal";
 import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal";
-import {
-  list_mail_items,
-  bulk_update_mail_items,
-  type MailItem,
-} from "@/services/api/mail";
+import { bulk_update_mail_items } from "@/services/api/mail";
 import {
   show_action_toast,
   update_progress_toast,
@@ -50,6 +46,7 @@ import {
 import { use_folders, has_protected_folder_label } from "@/hooks/use_folders";
 import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { scan_received_items } from "@/services/bulk_mail_scan";
 
 function ChevronDownIcon() {
   return (
@@ -142,19 +139,7 @@ export function InboxHeader({
       set_loading_action(action);
       try {
         if (action === "archive_all_read") {
-          let all_items: MailItem[] = [];
-          let cursor: string | undefined;
-
-          do {
-            const response = await list_mail_items({
-              item_type: "received",
-              cursor,
-            });
-
-            if (!response.data?.items) break;
-            all_items.push(...response.data.items);
-            cursor = response.data.next_cursor;
-          } while (cursor);
+          const all_items = (await scan_received_items()).items;
 
           if (all_items.length > 0) {
             const read_ids = all_items
@@ -194,6 +179,7 @@ export function InboxHeader({
             }
           }
         } else if (action === "mark_all_read") {
+          const scan_controller = new AbortController();
           let cancelled = false;
 
           show_action_toast({
@@ -203,26 +189,19 @@ export function InboxHeader({
             progress: { completed: 0, total: 1 },
             on_cancel: () => {
               cancelled = true;
+              scan_controller.abort();
             },
           });
 
-          let all_items: MailItem[] = [];
-          let cursor: string | undefined;
-          let page_count = 0;
-
-          do {
-            if (cancelled) break;
-            const response = await list_mail_items({
-              item_type: "received",
-              cursor,
-            });
-
-            if (!response.data?.items) break;
-            all_items.push(...response.data.items);
-            cursor = response.data.next_cursor;
-            page_count++;
-            update_progress_toast(page_count, cursor ? page_count + 1 : page_count, t);
-          } while (cursor);
+          const { items: all_items } = await scan_received_items(
+            scan_controller.signal,
+            (page_count, has_more) =>
+              update_progress_toast(
+                page_count,
+                has_more ? page_count + 1 : page_count,
+                t,
+              ),
+          );
 
           if (!cancelled) {
             const unread_ids = all_items
@@ -240,11 +219,16 @@ export function InboxHeader({
 
               for (let i = 0; i < total_batches; i++) {
                 if (cancelled) break;
-                const batch = unread_ids.slice(i * batch_size, (i + 1) * batch_size);
+                const batch = unread_ids.slice(
+                  i * batch_size,
+                  (i + 1) * batch_size,
+                );
 
                 show_action_toast({
                   message: t("common.marking_as_read_count", {
-                    completed: String(Math.min((i + 1) * batch_size, unread_ids.length)),
+                    completed: String(
+                      Math.min((i + 1) * batch_size, unread_ids.length),
+                    ),
                     total: String(unread_ids.length),
                   }),
                   action_type: "progress",
@@ -293,19 +277,7 @@ export function InboxHeader({
             hide_action_toast();
           }
         } else if (action === "delete_old") {
-          let all_items: MailItem[] = [];
-          let cursor: string | undefined;
-
-          do {
-            const response = await list_mail_items({
-              item_type: "received",
-              cursor,
-            });
-
-            if (!response.data?.items) break;
-            all_items.push(...response.data.items);
-            cursor = response.data.next_cursor;
-          } while (cursor);
+          const all_items = (await scan_received_items()).items;
 
           const thirty_days_ago = new Date();
 
@@ -346,19 +318,7 @@ export function InboxHeader({
             });
           }
         } else if (action === "archive_newsletters") {
-          let all_items: MailItem[] = [];
-          let cursor: string | undefined;
-
-          do {
-            const response = await list_mail_items({
-              item_type: "received",
-              cursor,
-            });
-
-            if (!response.data?.items) break;
-            all_items.push(...response.data.items);
-            cursor = response.data.next_cursor;
-          } while (cursor);
+          const all_items = (await scan_received_items()).items;
 
           const newsletter_ids = all_items
             .filter(

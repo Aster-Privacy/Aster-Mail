@@ -35,12 +35,14 @@ import {
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { yield_to_browser } from "@/lib/scheduling";
 import {
-  list_mail_items,
-  bulk_add_folder,
-  bulk_patch_metadata,
-} from "@/services/api/mail";
+  scan_received_items,
+  DECRYPT_YIELD_CHUNK,
+  decrypt_items_metadata_for_action,
+} from "@/services/bulk_mail_scan";
+import { Spinner } from "@/components/ui/spinner";
+import { bulk_add_folder, bulk_patch_metadata } from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
@@ -55,8 +57,6 @@ import {
 import { get_favicon_url } from "@/lib/favicon_url";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
-  decrypt_mail_metadata,
-  create_default_metadata,
   encrypt_mail_metadata,
   metadata_flag_patch,
 } from "@/services/crypto/mail_metadata";
@@ -68,6 +68,7 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { map_in_chunks } from "@/lib/scheduling";
 
 interface DecryptedEnvelope {
   from: { name: string; email: string };
@@ -96,37 +97,6 @@ async function decrypt_envelope_local(
     return { from };
   } finally {
     if (passphrase) zero_uint8_array(passphrase);
-  }
-}
-
-async function decrypt_items_metadata_for_action(
-  items: MailItem[],
-): Promise<void> {
-  for (const item of items) {
-    if (item.metadata) continue;
-    if (!item.encrypted_metadata || !item.metadata_nonce) {
-      const is_sent =
-        item.item_type === "sent" ||
-        item.item_type === "draft" ||
-        item.item_type === "scheduled";
-      const defaults = create_default_metadata(item.item_type);
-
-      defaults.is_read = is_sent;
-      if (item.message_ts) defaults.message_ts = item.message_ts;
-      item.metadata = defaults;
-      continue;
-    }
-    try {
-      const meta = await decrypt_mail_metadata(
-        item.encrypted_metadata,
-        item.metadata_nonce,
-        item.metadata_version,
-      );
-
-      item.metadata = meta ?? create_default_metadata(item.item_type);
-    } catch {
-      item.metadata = create_default_metadata(item.item_type);
-    }
   }
 }
 
@@ -208,79 +178,83 @@ export function SenderActionModal({
   const config = get_action_config(action_type, t);
   const Icon = config.icon;
 
-  const load_senders = useCallback(async () => {
-    if (!vault) return;
-    set_is_loading(true);
-    try {
-      let all_items: MailItem[] = [];
-      let cursor: string | undefined;
+  const load_senders = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!vault) return;
+      set_is_loading(true);
+      try {
+        const { items: all_items } = await scan_received_items(signal);
 
-      do {
-        const response = await list_mail_items({
-          item_type: "received",
-          cursor,
-        });
+        if (signal?.aborted) return;
 
-        if (!response.data?.items) break;
-        all_items.push(...response.data.items);
-        cursor = response.data.next_cursor;
-      } while (cursor);
+        if (all_items.length > 0) {
+          await decrypt_items_metadata_for_action(all_items, signal);
+          const sender_map = new Map<string, SenderInfo>();
 
-      if (all_items.length > 0) {
-        await decrypt_items_metadata_for_action(all_items);
-        const sender_map = new Map<string, SenderInfo>();
+          let scanned = 0;
 
-        for (const item of all_items) {
-          if (item.metadata?.is_trashed) continue;
-          if (has_protected_folder_label(item.labels)) continue;
-          try {
-            const envelope = await decrypt_envelope_local(
-              item.encrypted_envelope,
-              item.envelope_nonce,
-            );
+          for (const item of all_items) {
+            if (signal?.aborted) return;
 
-            if (!envelope) continue;
-            const email = envelope.from?.email || "unknown@unknown.com";
-            const name = envelope.from?.name || get_email_username(email);
+            scanned += 1;
+            if (scanned % DECRYPT_YIELD_CHUNK === 0) await yield_to_browser();
 
-            if (sender_map.has(email)) {
-              const existing = sender_map.get(email)!;
+            if (item.metadata?.is_trashed) continue;
+            if (has_protected_folder_label(item.labels)) continue;
+            try {
+              const envelope = await decrypt_envelope_local(
+                item.encrypted_envelope,
+                item.envelope_nonce,
+              );
 
-              existing.count++;
-              existing.ids.push(item.id);
-              existing.items.push(item);
-            } else {
-              sender_map.set(email, {
-                email,
-                name,
-                count: 1,
-                ids: [item.id],
-                items: [item],
-              });
+              if (!envelope) continue;
+              const email = envelope.from?.email || "unknown@unknown.com";
+              const name = envelope.from?.name || get_email_username(email);
+
+              if (sender_map.has(email)) {
+                const existing = sender_map.get(email)!;
+
+                existing.count++;
+                existing.ids.push(item.id);
+                existing.items.push(item);
+              } else {
+                sender_map.set(email, {
+                  email,
+                  name,
+                  count: 1,
+                  ids: [item.id],
+                  items: [item],
+                });
+              }
+            } catch (error) {
+              if (import.meta.env.DEV) console.error(error);
+              continue;
             }
-          } catch (error) {
-            if (import.meta.env.DEV) console.error(error);
-            continue;
           }
+
+          const sorted = Array.from(sender_map.values()).sort(
+            (a, b) => b.count - a.count,
+          );
+
+          set_senders(sorted);
         }
-
-        const sorted = Array.from(sender_map.values()).sort(
-          (a, b) => b.count - a.count,
-        );
-
-        set_senders(sorted);
+      } finally {
+        set_is_loading(false);
       }
-    } finally {
-      set_is_loading(false);
-    }
-  }, [vault]);
+    },
+    [vault],
+  );
 
   useEffect(() => {
     if (is_open) {
       set_selected_senders(new Set());
       set_selected_folder(null);
       set_search_query("");
-      load_senders();
+      const controller = new AbortController();
+
+      load_senders(controller.signal);
+
+      return () => controller.abort();
     }
   }, [is_open, load_senders]);
 
@@ -324,8 +298,9 @@ export function SenderActionModal({
     set_is_executing(true);
     try {
       if (action_type === "archive") {
-        const metadata_updates = await Promise.all(
-          all_items.map(async (item) => {
+        const metadata_updates = await map_in_chunks(
+          all_items,
+          async (item) => {
             const updated_metadata = {
               ...item.metadata!,
               is_archived: true,
@@ -341,7 +316,7 @@ export function SenderActionModal({
                   ...metadata_flag_patch(updated_metadata),
                 }
               : null;
-          }),
+          },
         );
         const valid_updates = metadata_updates.filter(
           (u) => u !== null,
@@ -366,8 +341,9 @@ export function SenderActionModal({
           action_type: "archive",
           email_ids: all_ids,
           on_undo: async () => {
-            const undo_updates = await Promise.all(
-              all_items.map(async (item) => {
+            const undo_updates = await map_in_chunks(
+              all_items,
+              async (item) => {
                 const restored_metadata = {
                   ...item.metadata!,
                   is_archived: false,
@@ -382,7 +358,7 @@ export function SenderActionModal({
                       ...metadata_flag_patch(restored_metadata),
                     }
                   : null;
-              }),
+              },
             );
             const valid_undo = undo_updates.filter((u) => u !== null) as Array<{
               id: string;
@@ -401,8 +377,9 @@ export function SenderActionModal({
           },
         });
       } else if (action_type === "delete") {
-        const metadata_updates = await Promise.all(
-          all_items.map(async (item) => {
+        const metadata_updates = await map_in_chunks(
+          all_items,
+          async (item) => {
             const updated_metadata = { ...item.metadata!, is_trashed: true };
             const encrypted = await encrypt_mail_metadata(updated_metadata);
 
@@ -413,7 +390,7 @@ export function SenderActionModal({
                   ...metadata_flag_patch(updated_metadata),
                 }
               : null;
-          }),
+          },
         );
         const valid_updates = metadata_updates.filter(
           (u) => u !== null,
@@ -436,8 +413,9 @@ export function SenderActionModal({
           action_type: "trash",
           email_ids: all_ids,
           on_undo: async () => {
-            const undo_updates = await Promise.all(
-              all_items.map(async (item) => {
+            const undo_updates = await map_in_chunks(
+              all_items,
+              async (item) => {
                 const restored_metadata = {
                   ...item.metadata!,
                   is_trashed: false,
@@ -452,7 +430,7 @@ export function SenderActionModal({
                       ...metadata_flag_patch(restored_metadata),
                     }
                   : null;
-              }),
+              },
             );
             const valid_undo = undo_updates.filter((u) => u !== null) as Array<{
               id: string;

@@ -47,12 +47,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import {
-  list_mail_items,
-  list_encrypted_mail_items,
-  empty_trash,
-  type MailItem,
-} from "@/services/api/mail";
+import { empty_trash, type MailItem } from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -66,6 +61,12 @@ import {
   bulk_update_metadata_by_ids,
   create_default_metadata,
 } from "@/services/crypto/mail_metadata";
+import {
+  scan_received_items,
+  scan_encrypted_items,
+  DECRYPT_YIELD_CHUNK,
+} from "@/services/bulk_mail_scan";
+import { yield_to_browser } from "@/lib/scheduling";
 
 interface CommandAction {
   id: string;
@@ -119,7 +120,12 @@ export function CommandPalette({
       let decrypt_failures = 0;
       let decrypt_nulls = 0;
 
+      let processed = 0;
+
       for (const item of items) {
+        processed += 1;
+        if (processed % DECRYPT_YIELD_CHUNK === 0) await yield_to_browser();
+
         if (!item.encrypted_metadata || !item.metadata_nonce) {
           const is_sent_type =
             item.item_type === "sent" ||
@@ -173,19 +179,10 @@ export function CommandPalette({
       items: MailItem[];
       metadata_map: Map<string, MailItemMetadata>;
     } | null> => {
-      let items: MailItem[] = [];
-      let cursor: string | undefined;
-
-      do {
-        const response =
-          source === "all"
-            ? await list_encrypted_mail_items({ cursor })
-            : await list_mail_items({ item_type: "received", cursor });
-
-        if (!response.data?.items) break;
-        items.push(...response.data.items);
-        cursor = response.data.next_cursor;
-      } while (cursor);
+      const { items } =
+        source === "all"
+          ? await scan_encrypted_items()
+          : await scan_received_items();
 
       const safe_items = items.filter(
         (item) => !has_protected_folder_label(item.labels),

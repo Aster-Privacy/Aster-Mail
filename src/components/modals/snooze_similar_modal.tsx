@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
-import type { MailItem } from "@/services/api/mail";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
@@ -37,7 +36,12 @@ import { Checkbox } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { CustomSnoozeModal } from "@/components/modals/custom_snooze_modal";
-import { list_mail_items } from "@/services/api/mail";
+import {
+  scan_received_items,
+  DECRYPT_YIELD_CHUNK,
+  decrypt_items_metadata_for_action,
+} from "@/services/bulk_mail_scan";
+import { yield_to_browser } from "@/lib/scheduling";
 import { bulk_snooze_emails } from "@/services/api/snooze";
 import {
   decrypt_mail_envelope,
@@ -50,10 +54,6 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { show_action_toast } from "@/components/toast/action_toast";
-import {
-  decrypt_mail_metadata,
-  create_default_metadata,
-} from "@/services/crypto/mail_metadata";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import {
@@ -132,37 +132,6 @@ function calculate_snooze_date(option: {
   return now;
 }
 
-async function decrypt_items_metadata_for_action(
-  items: MailItem[],
-): Promise<void> {
-  for (const item of items) {
-    if (item.metadata) continue;
-    if (!item.encrypted_metadata || !item.metadata_nonce) {
-      const is_sent =
-        item.item_type === "sent" ||
-        item.item_type === "draft" ||
-        item.item_type === "scheduled";
-      const defaults = create_default_metadata(item.item_type);
-
-      defaults.is_read = is_sent;
-      if (item.message_ts) defaults.message_ts = item.message_ts;
-      item.metadata = defaults;
-      continue;
-    }
-    try {
-      const meta = await decrypt_mail_metadata(
-        item.encrypted_metadata,
-        item.metadata_nonce,
-        item.metadata_version,
-      );
-
-      item.metadata = meta ?? create_default_metadata(item.item_type);
-    } catch {
-      item.metadata = create_default_metadata(item.item_type);
-    }
-  }
-}
-
 async function decrypt_envelope_local(
   encrypted: string,
   nonce: string,
@@ -209,28 +178,25 @@ export function SnoozeSimilarModal({
   const [show_success, set_show_success] = useState(false);
   const [snoozed_count, set_snoozed_count] = useState(0);
 
-  const load_senders = useCallback(async () => {
+  const load_senders = useCallback(async (signal?: AbortSignal) => {
     set_is_loading(true);
     try {
-      let all_items: MailItem[] = [];
-      let cursor: string | undefined;
+      const { items: all_items } = await scan_received_items(signal);
 
-      do {
-        const response = await list_mail_items({
-          item_type: "received",
-          cursor,
-        });
-
-        if (!response.data?.items) break;
-        all_items.push(...response.data.items);
-        cursor = response.data.next_cursor;
-      } while (cursor);
+      if (signal?.aborted) return;
 
       if (all_items.length > 0) {
-        await decrypt_items_metadata_for_action(all_items);
+        await decrypt_items_metadata_for_action(all_items, signal);
         const sender_map = new Map<string, SenderGroup>();
 
+        let scanned = 0;
+
         for (const item of all_items) {
+          if (signal?.aborted) return;
+
+          scanned += 1;
+          if (scanned % DECRYPT_YIELD_CHUNK === 0) await yield_to_browser();
+
           if (item.metadata?.is_trashed || item.metadata?.is_archived) continue;
           if (has_protected_folder_label(item.labels)) continue;
           try {
@@ -277,7 +243,11 @@ export function SnoozeSimilarModal({
       set_search_query("");
       set_show_success(false);
       set_snoozed_count(0);
-      load_senders();
+      const controller = new AbortController();
+
+      load_senders(controller.signal);
+
+      return () => controller.abort();
     }
   }, [is_open, load_senders]);
 
