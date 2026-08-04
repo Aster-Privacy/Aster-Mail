@@ -36,7 +36,6 @@ import {
 import EmojiPicker from "@/components/compose/emoji_picker";
 import {
   is_own_reaction_address,
-  remove_reaction,
   send_reaction,
 } from "@/services/reaction_actions";
 import {
@@ -66,7 +65,6 @@ interface PendingReaction {
 function group_reactions(
   reactions: DecryptedThreadMessage["reactions"],
   self_email?: string,
-  removed_ids?: string[],
 ): ReactionChipGroup[] {
   if (!reactions?.length) return [];
 
@@ -74,7 +72,6 @@ function group_reactions(
 
   for (const reaction of reactions) {
     if (!reaction.emoji) continue;
-    if (removed_ids?.includes(reaction.reaction_mail_item_id)) continue;
 
     const existing = groups.get(reaction.emoji) ?? {
       emoji: reaction.emoji,
@@ -158,10 +155,9 @@ export function ThreadMessageActions({
   const reactions_enabled = preferences.reactions_enabled !== false;
   const [is_picker_open, set_is_picker_open] = useState(false);
   const [is_sending_reaction, set_is_sending_reaction] = useState(false);
-  const [pending_reactions, set_pending_reactions] = useState<PendingReaction[]>(
-    [],
-  );
-  const [removed_reaction_ids, set_removed_reaction_ids] = useState<string[]>([]);
+  const [pending_reactions, set_pending_reactions] = useState<
+    PendingReaction[]
+  >([]);
 
   const total_recipients =
     (message.to_recipients?.length ?? 0) + (message.cc_recipients?.length ?? 0);
@@ -182,7 +178,6 @@ export function ThreadMessageActions({
   const server_reaction_groups = group_reactions(
     message.reactions,
     auth?.user?.email,
-    removed_reaction_ids,
   );
   const reaction_groups = merge_pending_reactions(
     server_reaction_groups,
@@ -191,7 +186,10 @@ export function ThreadMessageActions({
 
   async function send_reaction_emoji(emoji: string): Promise<void> {
     if (restriction !== null) {
-      show_toast(t(`errors.${reaction_restriction_keys[restriction]}`), "error");
+      show_toast(
+        t(`errors.${reaction_restriction_keys[restriction]}`),
+        "error",
+      );
       return;
     }
 
@@ -221,37 +219,6 @@ export function ThreadMessageActions({
     emit_mail_soft_refresh();
   }
 
-  async function remove_reaction_emoji(group: ReactionChipGroup): Promise<void> {
-    const reaction_mail_item_id = group.self_reaction_mail_item_id;
-
-    if (!reaction_mail_item_id) {
-      show_toast(t("errors.failed_remove_reaction"), "error");
-      return;
-    }
-
-    set_is_sending_reaction(true);
-
-    const result = await remove_reaction(reaction_mail_item_id);
-
-    set_is_sending_reaction(false);
-
-    if (!result.success) {
-      show_toast(result.error ?? t("errors.failed_remove_reaction"), "error");
-      return;
-    }
-
-    set_pending_reactions((prev) =>
-      prev.filter((pending) => pending.emoji !== group.emoji),
-    );
-    set_removed_reaction_ids((prev) =>
-      prev.includes(reaction_mail_item_id)
-        ? prev
-        : [...prev, reaction_mail_item_id],
-    );
-
-    emit_mail_soft_refresh();
-  }
-
   async function handle_reaction_select(emoji: string): Promise<void> {
     set_is_picker_open(false);
 
@@ -259,19 +226,13 @@ export function ThreadMessageActions({
       (group) => group.emoji === emoji && group.includes_self,
     );
 
-    if (existing) {
-      await remove_reaction_emoji(existing);
-      return;
-    }
+    if (existing) return;
 
     await send_reaction_emoji(emoji);
   }
 
   function handle_chip_click(group: ReactionChipGroup): void {
-    if (group.includes_self) {
-      void remove_reaction_emoji(group);
-      return;
-    }
+    if (group.includes_self) return;
 
     if (is_own_message) return;
 
@@ -284,22 +245,26 @@ export function ThreadMessageActions({
         <div className="flex flex-wrap items-center gap-1.5 px-4 pt-2 pb-1">
           {reaction_groups.map((group) => {
             const tooltip = group.includes_self
-              ? t("mail.remove_your_reaction", { emoji: group.emoji })
+              ? t("mail.you_reacted_with", { emoji: group.emoji })
               : group.reactor_names[0]
                 ? t("mail.reacted_with", {
                     name: group.reactor_names[0],
                     emoji: group.emoji,
                   })
                 : "";
+            const is_locked = group.includes_self || is_own_message;
 
             const chip = (
               <button
-                type="button"
+                aria-disabled={is_locked}
+                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full border border-black/[0.15] dark:border-white/[0.15] bg-transparent transition-colors disabled:opacity-50 disabled:pointer-events-none ${
+                  is_locked
+                    ? "cursor-default"
+                    : "hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                } ${group.includes_self ? "" : "text-[var(--text-secondary)]"}`}
                 disabled={is_sending_reaction}
+                type="button"
                 onClick={() => handle_chip_click(group)}
-                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full border border-black/[0.15] dark:border-white/[0.15] bg-transparent transition-colors disabled:opacity-50 disabled:pointer-events-none hover:bg-black/[0.04] dark:hover:bg-white/[0.06] ${
-                  group.includes_self ? "" : "text-[var(--text-secondary)]"
-                }`}
               >
                 <span className="text-sm leading-none">{group.emoji}</span>
                 <span className="text-xs font-medium tabular-nums text-black/85 dark:text-white/90">
@@ -319,69 +284,72 @@ export function ThreadMessageActions({
         </div>
       )}
       <div className="flex items-center gap-2 px-4 pt-2 pb-3 border-t border-[var(--border-thread-divider)]">
-      {on_reply && (
-        <Button
-          className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
-          size="md"
-          onClick={() => on_reply(message)}
-        >
-          <ArrowUturnLeftIcon className="w-4 h-4" />
-          {t("mail.reply")}
-        </Button>
-      )}
-      {show_reply_all && (
-        <Button
-          className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
-          size="md"
-          variant="outline"
-          onClick={() => on_reply_all(message)}
-        >
-          <ArrowUturnLeftIcon className="w-4 h-4" />
-          {t("mail.reply_all")}
-        </Button>
-      )}
-      {on_forward && (
-        <Button
-          className="gap-1.5"
-          size="md"
-          variant="outline"
-          onClick={() => on_forward(message)}
-        >
-          <ArrowUturnRightIcon className="w-4 h-4" />
-          {t("mail.forward")}
-        </Button>
-      )}
-      {show_react_button &&
-        (can_react ? (
-          <Popover open={is_picker_open} onOpenChange={set_is_picker_open}>
-            <PopoverTrigger asChild>
+        {on_reply && (
+          <Button
+            className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
+            size="md"
+            onClick={() => on_reply(message)}
+          >
+            <ArrowUturnLeftIcon className="w-4 h-4" />
+            {t("mail.reply")}
+          </Button>
+        )}
+        {show_reply_all && (
+          <Button
+            className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
+            size="md"
+            variant="outline"
+            onClick={() => on_reply_all(message)}
+          >
+            <ArrowUturnLeftIcon className="w-4 h-4" />
+            {t("mail.reply_all")}
+          </Button>
+        )}
+        {on_forward && (
+          <Button
+            className="gap-1.5"
+            size="md"
+            variant="outline"
+            onClick={() => on_forward(message)}
+          >
+            <ArrowUturnRightIcon className="w-4 h-4" />
+            {t("mail.forward")}
+          </Button>
+        )}
+        {show_react_button &&
+          (can_react ? (
+            <Popover open={is_picker_open} onOpenChange={set_is_picker_open}>
+              <PopoverTrigger asChild>
+                <button
+                  aria-label={t("mail.react")}
+                  className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-50 disabled:pointer-events-none"
+                  disabled={is_sending_reaction}
+                  title={t("mail.react")}
+                  type="button"
+                >
+                  <FaceSmileIcon className="w-4 h-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-auto border-none bg-transparent p-0 shadow-none"
+              >
+                <EmojiPicker on_select={handle_reaction_select} />
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <Tooltip tip={restriction_message}>
               <button
-                aria-label={t("mail.react")}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-50 disabled:pointer-events-none"
-                disabled={is_sending_reaction}
-                title={t("mail.react")}
+                aria-disabled="true"
+                aria-label={restriction_message}
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] opacity-50 cursor-not-allowed"
+                onClick={() => show_toast(restriction_message, "error")}
                 type="button"
               >
                 <FaceSmileIcon className="w-4 h-4" />
               </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-auto border-none bg-transparent p-0 shadow-none">
-              <EmojiPicker on_select={handle_reaction_select} />
-            </PopoverContent>
-          </Popover>
-        ) : (
-          <Tooltip tip={restriction_message}>
-            <button
-              aria-disabled="true"
-              aria-label={restriction_message}
-              className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] opacity-50 cursor-not-allowed"
-              onClick={() => show_toast(restriction_message, "error")}
-              type="button"
-            >
-              <FaceSmileIcon className="w-4 h-4" />
-            </button>
-          </Tooltip>
-        ))}
+            </Tooltip>
+          ))}
       </div>
     </>
   );
