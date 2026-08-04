@@ -201,7 +201,7 @@ describe("CategoryTabs", () => {
     const classes_of = (tab: HTMLButtonElement) => tab.className.split(" ");
 
     for (const tab of [with_preview, without_preview]) {
-      expect(classes_of(tab)).toContain("h-[52px]");
+      expect(classes_of(tab)).toContain("h-[56px]");
       expect(classes_of(tab)).toContain("items-center");
     }
 

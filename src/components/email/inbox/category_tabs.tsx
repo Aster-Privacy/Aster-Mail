@@ -136,7 +136,7 @@ export function CategoryTabs({
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex h-[52px] shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-4 ${
+            className={`group relative flex h-[56px] shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-4 ${
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
@@ -166,7 +166,7 @@ export function CategoryTabs({
                 ) : null}
               </span>
               {preview ? (
-                <span className="pointer-events-none absolute inset-x-0 top-full block truncate text-center text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                <span className="pointer-events-none absolute inset-x-0 top-full -mt-px block truncate text-center text-[11px] font-normal leading-[12px] text-txt-muted">
                   {preview}
                 </span>
               ) : null}
