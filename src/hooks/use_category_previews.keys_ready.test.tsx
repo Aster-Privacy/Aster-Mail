@@ -112,7 +112,7 @@ describe("use_category_previews", () => {
     });
 
     expect(list_mail_items).toHaveBeenCalledTimes(1);
-    expect(container.textContent).toBe("Offers");
+    expect(container.textContent).toBe("Paybis Deals");
   });
 
   it("fetches immediately when the keys are already in memory", async () => {
@@ -123,6 +123,6 @@ describe("use_category_previews", () => {
     await act(async () => {});
 
     expect(list_mail_items).toHaveBeenCalledTimes(1);
-    expect(container.textContent).toBe("Offers");
+    expect(container.textContent).toBe("Paybis Deals");
   });
 });

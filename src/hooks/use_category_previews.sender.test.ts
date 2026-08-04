@@ -20,7 +20,11 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { titlecase_localpart } from "@/hooks/use_category_previews";
+import {
+  titlecase_localpart,
+  preview_sender_label,
+  domain_brand_label,
+} from "@/hooks/use_category_previews";
 
 describe("titlecase_localpart", () => {
   it("capitalizes a bare localpart", () => {
@@ -44,5 +48,56 @@ describe("titlecase_localpart", () => {
     expect(titlecase_localpart("")).toBe("");
     expect(titlecase_localpart("---")).toBe("---");
     expect(titlecase_localpart("123")).toBe("123");
+  });
+});
+
+describe("domain_brand_label", () => {
+  it("uses the registrable label", () => {
+    expect(domain_brand_label("theverge.com")).toBe("Theverge");
+    expect(domain_brand_label("acme-id.com")).toBe("Acme Id");
+  });
+
+  it("drops sending subdomains", () => {
+    expect(domain_brand_label("email.nike.com")).toBe("Nike");
+    expect(domain_brand_label("notifications.github.com")).toBe("Github");
+  });
+
+  it("looks past a second level suffix", () => {
+    expect(domain_brand_label("shop.co.uk")).toBe("Shop");
+    expect(domain_brand_label("news.bbc.co.uk")).toBe("Bbc");
+  });
+
+  it("returns nothing for an empty domain", () => {
+    expect(domain_brand_label("")).toBe("");
+  });
+});
+
+describe("preview_sender_label", () => {
+  it("prefers the display name", () => {
+    expect(preview_sender_label("The Verge", "news@theverge.com")).toBe(
+      "The Verge",
+    );
+  });
+
+  it("falls back to the brand when the localpart is generic", () => {
+    expect(preview_sender_label(undefined, "no-reply@reddit.com")).toBe(
+      "Reddit",
+    );
+    expect(preview_sender_label(undefined, "news@theverge.com")).toBe(
+      "Theverge",
+    );
+    expect(preview_sender_label(undefined, "security@acme-id.com")).toBe(
+      "Acme Id",
+    );
+    expect(preview_sender_label(undefined, "orders@northwind-store.com")).toBe(
+      "Northwind Store",
+    );
+  });
+
+  it("keeps a meaningful localpart", () => {
+    expect(preview_sender_label(undefined, "alex@f6s.com")).toBe("Alex");
+    expect(preview_sender_label(undefined, "jane.doe@example.com")).toBe(
+      "Jane Doe",
+    );
   });
 });

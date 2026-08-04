@@ -40,6 +40,95 @@ export function titlecase_localpart(localpart: string): string {
     .join(" ");
 }
 
+const GENERIC_LOCALPARTS = new Set([
+  "account",
+  "accounts",
+  "admin",
+  "alert",
+  "alerts",
+  "billing",
+  "bounce",
+  "contact",
+  "deals",
+  "donotreply",
+  "email",
+  "feedback",
+  "hello",
+  "help",
+  "hi",
+  "info",
+  "mail",
+  "mailer",
+  "marketing",
+  "members",
+  "message",
+  "messages",
+  "news",
+  "newsletter",
+  "notification",
+  "notifications",
+  "notify",
+  "noreply",
+  "offers",
+  "order",
+  "orders",
+  "postmaster",
+  "receipt",
+  "receipts",
+  "reply",
+  "sales",
+  "security",
+  "service",
+  "support",
+  "team",
+  "update",
+  "updates",
+]);
+
+const DOMAIN_PREFIXES = new Set([
+  "e",
+  "email",
+  "mail",
+  "mailer",
+  "news",
+  "notification",
+  "notifications",
+  "reply",
+  "send",
+  "smtp",
+  "t",
+]);
+
+const SECOND_LEVEL_SUFFIXES = new Set([
+  "ac",
+  "co",
+  "com",
+  "edu",
+  "gov",
+  "net",
+  "or",
+  "org",
+]);
+
+export function domain_brand_label(domain: string): string {
+  const labels = domain
+    .toLowerCase()
+    .split(".")
+    .filter(Boolean)
+    .filter((label, index) => index > 0 || !DOMAIN_PREFIXES.has(label));
+
+  if (labels.length === 0) return "";
+  if (labels.length === 1) return titlecase_localpart(labels[0]);
+
+  const suffix_offset =
+    labels.length > 2 && SECOND_LEVEL_SUFFIXES.has(labels[labels.length - 2])
+      ? 3
+      : 2;
+  const base = labels[Math.max(0, labels.length - suffix_offset)];
+
+  return titlecase_localpart(base);
+}
+
 export function preview_sender_label(
   name: string | undefined,
   email: string | undefined,
@@ -51,6 +140,14 @@ export function preview_sender_label(
   const address = email?.trim() ?? "";
   const at = address.indexOf("@");
   const localpart = at > 0 ? address.slice(0, at) : address;
+  const domain = at > 0 ? address.slice(at + 1) : "";
+  const normalized = localpart.toLowerCase().replace(/[._+-]/g, "");
+
+  if (domain && GENERIC_LOCALPARTS.has(normalized)) {
+    const brand = domain_brand_label(domain);
+
+    if (brand) return brand.slice(0, MAX_PREVIEW_SENDER_CHARS);
+  }
 
   return titlecase_localpart(localpart).slice(0, MAX_PREVIEW_SENDER_CHARS);
 }

@@ -44,6 +44,7 @@ export type { CategoryPreview };
 export {
   titlecase_localpart,
   preview_sender_label,
+  domain_brand_label,
 } from "@/lib/category_preview_text";
 
 export type CategoryPreviews = Partial<Record<EmailCategory, CategoryPreview>>;
