@@ -71,6 +71,7 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // instead of deferring forever to a dead `build_in_progress` latch.
 const BUILD_STALE_MS = 90000;
 const BUILD_FETCH_DEADLINE_MS = 75000;
+const MAX_NEW_HEADS = 3;
 
 export interface CategoryIndexEntry {
   id: string;
@@ -771,6 +772,7 @@ interface DerivedData {
   unread_reps: Set<string>;
   thread_reps: Map<string, string>;
   new_heads: Map<EmailCategory, string>;
+  new_head_ids: Map<EmailCategory, string[]>;
 }
 
 let derived: DerivedData | null = null;
@@ -873,6 +875,7 @@ function compute_derived(): DerivedData {
   const thread_reps = new Map<string, string>();
   const new_heads = new Map<EmailCategory, string>();
   const new_head_ts = new Map<EmailCategory, number>();
+  const new_items = new Map<EmailCategory, { id: string; ts: number }[]>();
   const wall = derive_wall;
 
   for (const tab of active_tabs) {
@@ -896,6 +899,13 @@ function compute_derived(): DerivedData {
           new_head_ts.set(tab, rep.ts);
           new_heads.set(tab, rep.entry.id);
         }
+        const collected = new_items.get(tab);
+
+        if (collected) {
+          collected.push({ id: rep.entry.id, ts: rep.ts });
+        } else {
+          new_items.set(tab, [{ id: rep.entry.id, ts: rep.ts }]);
+        }
       }
     }
     list.push({ id: rep.entry.id, ts: rep.ts });
@@ -918,7 +928,25 @@ function compute_derived(): DerivedData {
     wake_timer = null;
   }
 
-  return { version, counts, pages, unread_reps, thread_reps, new_heads };
+  const new_head_ids = new Map<EmailCategory, string[]>();
+
+  for (const [tab, list] of new_items) {
+    list.sort((a, b) => b.ts - a.ts);
+    new_head_ids.set(
+      tab,
+      list.slice(0, MAX_NEW_HEADS).map((item) => item.id),
+    );
+  }
+
+  return {
+    version,
+    counts,
+    pages,
+    unread_reps,
+    thread_reps,
+    new_heads,
+    new_head_ids,
+  };
 }
 
 function ensure_derived(): DerivedData {
@@ -935,6 +963,10 @@ export function get_counts(): CategoryCounts {
 
 export function get_new_heads(): ReadonlyMap<EmailCategory, string> {
   return ensure_derived().new_heads;
+}
+
+export function get_new_head_ids(): ReadonlyMap<EmailCategory, string[]> {
+  return ensure_derived().new_head_ids;
 }
 
 export function is_index_loaded(): boolean {

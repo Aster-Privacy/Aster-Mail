@@ -166,18 +166,12 @@ export function CategoryTabs({
                 ) : null}
               </span>
               <span className="block h-[14px] w-full">
-                <span className="absolute inset-x-0 bottom-0 block truncate text-start text-[12px] font-normal leading-[14px] text-txt-muted">
-                  {preview ? (
-                    <>
-                      <span className="font-medium text-txt-secondary">
-                        {preview.sender}
-                      </span>
-                      {preview.subject ? ` - ${preview.subject}` : ""}
-                    </>
-                  ) : null}
+                <span className="pointer-events-none absolute inset-x-0 bottom-0 block truncate text-start text-[12px] font-normal leading-[14px] text-txt-muted">
+                  {preview ?? ""}
                 </span>
               </span>
             </span>
+
             {is_active && (
               <span className="pointer-events-none absolute inset-x-2 -bottom-px h-[3px] rounded-t-full bg-brand sm:inset-x-3" />
             )}

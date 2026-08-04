@@ -22,13 +22,13 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-const heads = new Map([["promotions", "head_1"]]);
+const heads = new Map([["promotions", ["head_1"]]]);
 let keys_ready = false;
 let generation = 1;
 const listeners = new Set<() => void>();
 
 vi.mock("@/services/category_index", () => ({
-  get_new_heads: () => heads,
+  get_new_head_ids: () => heads,
   get_index_generation: () => generation,
   get_entry_preview: () => undefined,
   get_preview_version: () => 1,
@@ -78,7 +78,7 @@ function render_probe(): HTMLDivElement {
   function Probe() {
     const previews = use_category_previews(true);
 
-    return <span>{previews.promotions?.sender ?? "none"}</span>;
+    return <span>{previews.promotions ?? "none"}</span>;
   }
 
   act(() => {

@@ -43,7 +43,7 @@ vi.mock("@/hooks/use_plan_limits", () => ({
 
 vi.mock("@/hooks/use_category_previews", () => ({
   use_category_previews: () => ({
-    promotions: { sender: "Paybis Team", subject: "Get 20% off this week" },
+    promotions: "Paybis Team",
   }),
 }));
 

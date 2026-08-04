@@ -25,7 +25,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import {
   get_entry_preview,
-  get_new_heads,
+  get_new_head_ids,
   get_index_generation,
   get_preview_version,
   get_version,
@@ -46,7 +46,7 @@ export {
   preview_sender_label,
 } from "@/lib/category_preview_text";
 
-export type CategoryPreviews = Partial<Record<EmailCategory, CategoryPreview>>;
+export type CategoryPreviews = Partial<Record<EmailCategory, string>>;
 
 const MAX_PREVIEW_FETCH = 12;
 const MAX_CACHE_ENTRIES = 120;
@@ -58,7 +58,7 @@ const in_flight = new Set<string>();
 
 let cache_generation = -1;
 
-const EMPTY_HEADS: ReadonlyMap<EmailCategory, string> = new Map();
+const EMPTY_HEADS: ReadonlyMap<EmailCategory, string[]> = new Map();
 
 function reset_if_stale(): void {
   const generation = get_index_generation();
@@ -108,7 +108,7 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
   }, [enabled, keys_ready]);
 
   const heads = useMemo(
-    () => (enabled ? get_new_heads() : EMPTY_HEADS),
+    () => (enabled ? get_new_head_ids() : EMPTY_HEADS),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [enabled, version],
   );
@@ -122,12 +122,16 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
 
     const missing: string[] = [];
 
-    for (const id of heads.values()) {
-      if (resolve_preview(id) || is_exhausted(id) || in_flight.has(id))
-        continue;
-      if (!missing.includes(id)) missing.push(id);
+    for (const ids of heads.values()) {
+      for (const id of ids) {
+        if (resolve_preview(id) || is_exhausted(id) || in_flight.has(id))
+          continue;
+        if (!missing.includes(id)) missing.push(id);
+      }
       if (missing.length >= MAX_PREVIEW_FETCH) break;
     }
+
+    missing.splice(MAX_PREVIEW_FETCH);
 
     if (missing.length === 0) return;
 
@@ -190,10 +194,14 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
   return useMemo(() => {
     const result: CategoryPreviews = {};
 
-    for (const [category, id] of heads) {
-      const preview = resolve_preview(id);
+    for (const [category, ids] of heads) {
+      for (const id of ids) {
+        const sender = resolve_preview(id)?.sender?.trim();
 
-      if (preview) result[category] = preview;
+        if (!sender) continue;
+        result[category] = sender;
+        break;
+      }
     }
 
     return result;
