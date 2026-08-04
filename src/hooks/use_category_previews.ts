@@ -47,6 +47,7 @@ const MAX_SENDER_CHARS = 80;
 
 const preview_cache = new Map<string, CategoryPreview>();
 const attempts = new Map<string, number>();
+const in_flight = new Set<string>();
 
 let cache_generation = -1;
 
@@ -59,6 +60,7 @@ function reset_if_stale(): void {
   cache_generation = generation;
   preview_cache.clear();
   attempts.clear();
+  in_flight.clear();
 }
 
 function trim_cache(): void {
@@ -131,7 +133,8 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
     const missing: string[] = [];
 
     for (const id of heads.values()) {
-      if (preview_cache.has(id) || is_exhausted(id)) continue;
+      if (preview_cache.has(id) || is_exhausted(id) || in_flight.has(id))
+        continue;
       if (!missing.includes(id)) missing.push(id);
       if (missing.length >= MAX_PREVIEW_FETCH) break;
     }
@@ -144,7 +147,7 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
       const generation = get_index_generation();
 
       for (const id of missing) {
-        note_attempt(id);
+        in_flight.add(id);
       }
 
       try {
@@ -170,10 +173,18 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
           attempts.delete(item.id);
         }
 
+        for (const id of missing) {
+          if (!preview_cache.has(id)) note_attempt(id);
+        }
+
         trim_cache();
         if (!cancelled) set_tick((value) => value + 1);
       } catch {
         return;
+      } finally {
+        for (const id of missing) {
+          in_flight.delete(id);
+        }
       }
     })();
 

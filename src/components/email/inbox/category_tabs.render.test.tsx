@@ -187,4 +187,22 @@ describe("CategoryTabs", () => {
     expect(primary.querySelector(".aster_cat_badge")).toBeNull();
     expect(primary.textContent).toContain("1");
   });
+
+  it("keeps every tab the same height whether or not it has a preview", () => {
+    const el = render(
+      <CategoryTabs
+        active_category="primary"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+    const with_preview = tab_of(el, "category_promotions");
+    const without_preview = tab_of(el, "category_social");
+    const height_of = (tab: HTMLButtonElement) =>
+      tab.className.split(" ").find((token) => token.startsWith("h-["));
+
+    expect(height_of(with_preview)).toBe("h-[58px]");
+    expect(height_of(without_preview)).toBe(height_of(with_preview));
+    expect(without_preview.querySelector("span.h-\\[15px\\]")).toBeTruthy();
+  });
 });

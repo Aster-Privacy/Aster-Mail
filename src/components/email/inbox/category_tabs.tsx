@@ -136,7 +136,7 @@ export function CategoryTabs({
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex min-h-[48px] shrink-0 flex-col items-start justify-center gap-1 whitespace-nowrap px-4 py-2.5 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
+            className={`group relative flex h-[58px] shrink-0 flex-col items-start justify-center gap-[3px] whitespace-nowrap px-4 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
@@ -164,14 +164,19 @@ export function CategoryTabs({
                 </span>
               ) : null}
             </span>
-            {preview ? (
-              <span className="block max-w-[240px] truncate ps-[30px] text-start text-[12px] font-normal text-txt-muted">
-                <span className="font-medium text-txt-secondary">
-                  {preview.sender}
-                </span>
-                {preview.subject ? ` - ${preview.subject}` : ""}
-              </span>
-            ) : null}
+            <span
+              aria-hidden={preview ? undefined : true}
+              className="block h-[15px] max-w-[240px] truncate ps-[30px] text-start text-[12px] font-normal leading-[15px] text-txt-muted"
+            >
+              {preview ? (
+                <>
+                  <span className="font-medium text-txt-secondary">
+                    {preview.sender}
+                  </span>
+                  {preview.subject ? ` - ${preview.subject}` : ""}
+                </>
+              ) : null}
+            </span>
             {is_active && (
               <span className="pointer-events-none absolute inset-x-2 -bottom-px h-[3px] rounded-t-full bg-brand sm:inset-x-3" />
             )}
