@@ -56,8 +56,8 @@ import {
 
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
-const BUILD_FETCH_SIZE = 1000;
-const BUILD_DECRYPT_CHUNK = 100;
+const BUILD_FETCH_SIZE = 150;
+const BUILD_DECRYPT_CHUNK = 25;
 const BUILD_CAP = 50000;
 const MAX_ENTRIES = 60000;
 const CAP_TARGET = 50000;
@@ -74,6 +74,15 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 const BUILD_STALE_MS = 90000;
 const BUILD_FETCH_DEADLINE_MS = 75000;
 const MAX_NEW_HEADS = 3;
+
+const yield_to_browser = (): Promise<void> => {
+  const scheduler = (globalThis as { scheduler?: { yield?: () => Promise<void> } })
+    .scheduler;
+  if (typeof scheduler?.yield === "function") {
+    return scheduler.yield();
+  }
+  return new Promise<void>((resolve) => setTimeout(resolve, 0));
+};
 
 export interface CategoryIndexEntry {
   id: string;
@@ -1463,7 +1472,7 @@ export async function build_index(options?: {
         build_progress_ms = now_ms();
 
         if (start + BUILD_DECRYPT_CHUNK < items.length) {
-          await new Promise<void>((resolve) => setTimeout(resolve, 0));
+          await yield_to_browser();
         }
       }
 
@@ -1477,7 +1486,7 @@ export async function build_index(options?: {
 
       if (processed >= BUILD_CAP) break;
 
-      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      await yield_to_browser();
     }
 
     if (token !== build_token) return;
