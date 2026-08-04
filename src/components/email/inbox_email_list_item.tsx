@@ -401,7 +401,9 @@ export const InboxEmailListItem = memo(
               ? "bg-surf-hover"
               : email.is_selected === true
                 ? "bg-surf-tertiary"
-                : "hover:bg-surf-hover",
+                : email.is_read
+                  ? "hover:bg-surf-hover"
+                  : "mail_row_unread",
             is_dragging && "opacity-50",
             className,
           )}

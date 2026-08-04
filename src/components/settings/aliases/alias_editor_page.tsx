@@ -322,7 +322,7 @@ export function AliasEditorPage({
   return (
     <div className="space-y-4">
       <button
-        className="-ml-1.5 flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-[13px] text-txt-secondary transition-colors hover:text-txt-primary"
+        className="-ml-2 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
         type="button"
         onClick={on_back}
       >
@@ -330,34 +330,30 @@ export function AliasEditorPage({
         {t("common.back")}
       </button>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+      <div className="rounded-[16px] border border-edge-secondary bg-surf-secondary px-4 py-3.5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surf-hover">
+            <AtSymbolIcon className="h-[18px] w-[18px] text-txt-secondary" />
+          </span>
+          <div className="min-w-0 flex-1">
             <button
-              className="min-w-0 truncate rounded-none text-left transition-colors hover:text-txt-secondary"
+              className="block w-full min-w-0 truncate text-left text-[15px] font-semibold text-txt-primary transition-colors hover:text-txt-secondary"
               title={t("common.copy_address")}
               type="button"
               onClick={copy_address}
             >
               {heading}
             </button>
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
-        {alias && on_toggle_enabled && (
-          <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pr-4">
-              <p className="text-sm font-medium text-txt-primary">
+            {alias && (
+              <p className="mt-0.5 truncate text-[12px] text-txt-muted">
                 {alias.is_enabled ? t("common.active") : t("common.inactive")}
+                {created_label
+                  ? ` · ${t("settings.alias_stats_created", { date: created_label })}`
+                  : ""}
               </p>
-              {created_label && (
-                <p className="text-sm mt-0.5 text-txt-muted">
-                  {t("settings.alias_stats_created", { date: created_label })}
-                </p>
-              )}
-            </div>
+            )}
+          </div>
+          {alias && on_toggle_enabled && (
             <Switch
               aria-label={heading}
               checked={alias.is_enabled}
@@ -365,8 +361,8 @@ export function AliasEditorPage({
               size="lg"
               onCheckedChange={(next) => on_toggle_enabled(alias.id, next)}
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {open_sections.map((section) => (
@@ -378,9 +374,11 @@ export function AliasEditorPage({
 
       {locked_sections.length > 0 && (
         <div className="space-y-4">
-          <div className="flex flex-col gap-3 border-t border-edge-secondary pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-2.5">
-              <LockClosedIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-txt-muted" />
+          <div className="flex flex-col gap-3 rounded-[16px] border border-edge-secondary bg-surf-secondary px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surf-hover">
+                <LockClosedIcon className="h-[18px] w-[18px] text-txt-secondary" />
+              </span>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-txt-primary">
                   {t("settings.upgrade_to_unlock")}

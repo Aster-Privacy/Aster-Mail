@@ -81,7 +81,7 @@ export function HeaderPagination({
         <span className="inline-flex">
           <Button
             aria-disabled={prev_disabled}
-            className={`h-7 w-7 text-[var(--icon-muted)] ${prev_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            className={`h-7 w-7 text-[var(--icon-secondary)] ${prev_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
             size="icon"
             tabIndex={prev_disabled ? -1 : undefined}
             variant="ghost"
@@ -128,7 +128,7 @@ export function HeaderPagination({
         <span className="inline-flex">
           <Button
             aria-disabled={next_disabled}
-            className={`h-7 w-7 text-[var(--icon-muted)] ${next_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            className={`h-7 w-7 text-[var(--icon-secondary)] ${next_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
             size="icon"
             tabIndex={next_disabled ? -1 : undefined}
             variant="ghost"

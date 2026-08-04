@@ -209,9 +209,10 @@ export function ViewerToolbarActions({
   const muted_style = btn_style
     ? { ...btn_style, color: "var(--text-muted)" }
     : { color: "var(--text-muted)" };
-  const btn_base = `${hide_class} ${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`;
-  const btn_trash = `${hide_class} ${button_size} hover:!text-red-500 hover:bg-red-500/10`;
-  const btn_spam = `${hide_class} ${button_size} hover:!text-amber-500 hover:bg-amber-500/10`;
+  const btn_common = `flex-shrink-0 ${hide_class} ${button_size}`;
+  const btn_base = `${btn_common} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`;
+  const btn_trash = `${btn_common} hover:!text-red-500 hover:bg-red-500/10`;
+  const btn_spam = `${btn_common} hover:!text-amber-500 hover:bg-amber-500/10`;
 
   const collapse_expand_button = thread_messages.length > 1 ? (
     <Tooltip
@@ -245,45 +246,41 @@ export function ViewerToolbarActions({
 
   const nav_buttons = spread_layout && (on_navigate_prev || on_navigate_next) ? (
     <div className="flex select-none items-center gap-0.5">
+      <Tooltip tip={t("mail.shortcut_previous_email")}>
+        <Button
+          aria-disabled={!can_go_prev}
+          className={`flex-shrink-0 ${button_size} ${can_go_prev ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
+          size="icon"
+          style={muted_style}
+          tabIndex={can_go_prev ? undefined : -1}
+          variant="ghost"
+          onClick={() => {
+            if (can_go_prev) on_navigate_prev?.();
+          }}
+        >
+          <ChevronLeftIcon className={icon_size} />
+        </Button>
+      </Tooltip>
       {current_index != null && total_count != null && total_count > 0 && (
         <span className="tabular-nums whitespace-nowrap px-1 text-[13px] text-[var(--text-muted)]">
           {(current_index + 1).toLocaleString()} {t("common.of")}{" "}
           {total_count.toLocaleString()}
         </span>
       )}
-      <Tooltip tip={t("mail.shortcut_previous_email")}>
-        <span className="inline-flex">
-          <Button
-            aria-disabled={!can_go_prev}
-            className={`${button_size} ${can_go_prev ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 pointer-events-none"}`}
-            size="icon"
-            style={muted_style}
-            tabIndex={can_go_prev ? undefined : -1}
-            variant="ghost"
-            onClick={() => {
-              if (can_go_prev) on_navigate_prev?.();
-            }}
-          >
-            <ChevronLeftIcon className={icon_size} />
-          </Button>
-        </span>
-      </Tooltip>
       <Tooltip tip={t("mail.shortcut_next_email")}>
-        <span className="inline-flex">
-          <Button
-            aria-disabled={!can_go_next}
-            className={`${button_size} ${can_go_next ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 pointer-events-none"}`}
-            size="icon"
-            style={muted_style}
-            tabIndex={can_go_next ? undefined : -1}
-            variant="ghost"
-            onClick={() => {
-              if (can_go_next) on_navigate_next?.();
-            }}
-          >
-            <ChevronRightIcon className={icon_size} />
-          </Button>
-        </span>
+        <Button
+          aria-disabled={!can_go_next}
+          className={`flex-shrink-0 ${button_size} ${can_go_next ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
+          size="icon"
+          style={muted_style}
+          tabIndex={can_go_next ? undefined : -1}
+          variant="ghost"
+          onClick={() => {
+            if (can_go_next) on_navigate_next?.();
+          }}
+        >
+          <ChevronRightIcon className={icon_size} />
+        </Button>
       </Tooltip>
     </div>
   ) : null;
@@ -292,7 +289,7 @@ export function ViewerToolbarActions({
     <>
       <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
         <Button
-          className={`${hide_class} ${button_size} ${is_pinned ? "!text-blue-500 bg-blue-500/10" : "hover:!text-blue-500 hover:bg-blue-500/10"}`}
+          className={`${btn_common} ${is_pinned ? "!text-[var(--accent-color)] bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]" : "hover:!text-[var(--accent-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]"}`}
           disabled={is_pin_loading}
           size="icon"
           style={is_pinned ? btn_style : muted_style}
@@ -337,6 +334,7 @@ export function ViewerToolbarActions({
 
       <Tooltip tip={t("mail.move_to_trash")}>
         <Button
+          aria-label={t("mail.move_to_trash")}
           className={btn_trash}
           disabled={is_trash_loading}
           size="icon"

@@ -21,8 +21,8 @@
 import type { SettingsSection } from "@/components/settings/settings_content";
 
 import { useEffect } from "react";
-import { XMarkIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
-import { Button, Radio } from "@aster/ui";
+import { XMarkIcon, Cog6ToothIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { resolve_list_density } from "@/lib/list_density";
@@ -46,15 +46,12 @@ function MiniThumb({
 }) {
   return (
     <span
-      className="w-[58px] h-[38px] rounded-[6px] overflow-hidden flex-shrink-0 block transition-all duration-150"
+      className="w-[52px] h-[36px] rounded-[8px] overflow-hidden flex-shrink-0 block transition-all duration-150"
       style={{
-        backgroundColor: "var(--bg-secondary)",
+        backgroundColor: "var(--bg-primary)",
         border: is_selected
           ? "1.5px solid var(--accent-color, #3b82f6)"
           : "1px solid var(--border-primary)",
-        boxShadow: is_selected
-          ? "0 0 0 2px color-mix(in srgb, var(--accent-color, #3b82f6) 18%, transparent)"
-          : undefined,
       }}
     >
       {children}
@@ -211,18 +208,17 @@ function ThemeQuickCard({
       className="flex-1 rounded-[12px] p-1.5 outline-none transition-all duration-150 focus:outline-none"
       role="radio"
       style={{
-        backgroundColor: "var(--bg-secondary)",
+        backgroundColor: is_selected
+          ? "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, transparent)"
+          : "var(--bg-primary)",
         border: is_selected
           ? "1.5px solid var(--accent-color, #3b82f6)"
           : "1px solid var(--border-primary)",
-        boxShadow: is_selected
-          ? "0 0 0 2px color-mix(in srgb, var(--accent-color, #3b82f6) 18%, transparent)"
-          : undefined,
       }}
       type="button"
       onClick={on_select}
     >
-      <span className="block h-[50px] w-full overflow-hidden rounded-[8px]">
+      <span className="block h-[48px] w-full overflow-hidden rounded-[9px]">
         <ThemeMini mode={mode} />
       </span>
       <span
@@ -251,7 +247,7 @@ interface QuickRadioGroupProps {
 
 function QuickRadioGroup({ options, value, on_change }: QuickRadioGroupProps) {
   return (
-    <div className="flex flex-col" role="radiogroup">
+    <div className="flex flex-col gap-1" role="radiogroup">
       {options.map((option) => {
         const is_selected = option.value === value;
 
@@ -259,26 +255,34 @@ function QuickRadioGroup({ options, value, on_change }: QuickRadioGroupProps) {
           <button
             key={option.value}
             aria-checked={is_selected}
-            className="w-full flex items-center gap-3 px-2 py-2 rounded-[10px] text-[13px] transition-colors duration-150 outline-none focus:outline-none hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+            className="w-full flex items-center gap-3 p-1.5 pr-2.5 rounded-[12px] text-[13px] text-left transition-colors duration-150 outline-none focus:outline-none hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
             role="radio"
             style={{
               color: is_selected
                 ? "var(--text-primary)"
                 : "var(--text-secondary)",
+              backgroundColor: is_selected
+                ? "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, transparent)"
+                : undefined,
             }}
             type="button"
             onClick={() => on_change(option.value)}
           >
-            <span className="pointer-events-none flex-shrink-0">
-              <Radio readOnly checked={is_selected} />
-            </span>
+            {option.thumbnail && (
+              <MiniThumb is_selected={is_selected}>{option.thumbnail}</MiniThumb>
+            )}
             <span
-              className={`truncate flex-1 text-left ${is_selected ? "font-medium" : ""}`}
+              className={`truncate flex-1 ${is_selected ? "font-medium" : ""}`}
             >
               {option.label}
             </span>
-            {option.thumbnail && (
-              <MiniThumb is_selected={is_selected}>{option.thumbnail}</MiniThumb>
+            {is_selected && (
+              <span
+                className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full"
+                style={{ backgroundColor: "var(--accent-color, #3b82f6)" }}
+              >
+                <CheckIcon className="h-3 w-3 text-white" strokeWidth={3} />
+              </span>
             )}
           </button>
         );
@@ -289,32 +293,25 @@ function QuickRadioGroup({ options, value, on_change }: QuickRadioGroupProps) {
 
 function QuickGroup({
   title,
-  on_more,
-  more_label,
   children,
 }: {
   title: string;
-  on_more?: () => void;
-  more_label?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="px-3 pt-3 mt-3 border-t border-t-edge-secondary">
-      <div className="flex items-center justify-between px-2.5 mb-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-txt-muted">
-          {title}
-        </span>
-        {on_more && more_label && (
-          <button
-            className="text-[11px] text-txt-muted hover:text-txt-primary transition-colors outline-none focus:outline-none"
-            type="button"
-            onClick={on_more}
-          >
-            {more_label}
-          </button>
-        )}
+    <div className="px-3 pt-3">
+      <span className="block px-1 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-txt-muted">
+        {title}
+      </span>
+      <div
+        className="rounded-[16px] p-1.5"
+        style={{
+          backgroundColor: "var(--bg-secondary)",
+          border: "1px solid var(--border-secondary)",
+        }}
+      >
+        {children}
       </div>
-      {children}
     </div>
   );
 }
@@ -327,6 +324,14 @@ export function QuickSettingsPanel({
   const { t } = use_i18n();
   const { theme_preference, set_theme_preference } = useTheme();
   const { preferences, update_preference } = use_preferences();
+
+  const is_default_color = (preferences.color_theme ?? "default") === "default";
+
+  const handle_theme_select = (mode: "light" | "dark") => {
+    set_theme_preference(mode);
+    update_preference("theme", mode, true);
+    update_preference("color_theme", "default", true);
+  };
 
   useEffect(() => {
     if (!is_open) return;
@@ -368,9 +373,9 @@ export function QuickSettingsPanel({
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
-            <div className="px-4 pt-3">
+            <div className="px-3 pt-3">
               <button
-                className="flex w-full items-center justify-center gap-2 rounded-full py-2 text-[13px] font-medium outline-none transition-colors hover:bg-black/[0.04] focus:outline-none dark:hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-center gap-2 rounded-[12px] py-2.5 text-[13px] font-medium outline-none transition-colors hover:bg-black/[0.04] focus:outline-none dark:hover:bg-white/[0.05]"
                 style={{
                   border: "1px solid var(--border-primary)",
                   color: "var(--text-secondary)",
@@ -384,35 +389,25 @@ export function QuickSettingsPanel({
             </div>
 
             <QuickGroup
-              more_label={t("settings.appearance")}
-              on_more={() => on_open_full_settings("appearance")}
               title={t("settings.theme")}
             >
-              <div className="flex gap-2 px-0.5" role="radiogroup">
+              <div className="flex gap-1.5" role="radiogroup">
                 <ThemeQuickCard
-                  is_selected={theme_preference === "light"}
+                  is_selected={is_default_color && theme_preference === "light"}
                   label={t("settings.theme_light")}
                   mode="light"
-                  on_select={() => {
-                    set_theme_preference("light");
-                    update_preference("theme", "light", true);
-                  }}
+                  on_select={() => handle_theme_select("light")}
                 />
                 <ThemeQuickCard
-                  is_selected={theme_preference === "dark"}
+                  is_selected={is_default_color && theme_preference === "dark"}
                   label={t("settings.theme_dark")}
                   mode="dark"
-                  on_select={() => {
-                    set_theme_preference("dark");
-                    update_preference("theme", "dark", true);
-                  }}
+                  on_select={() => handle_theme_select("dark")}
                 />
               </div>
             </QuickGroup>
 
             <QuickGroup
-              more_label={t("settings.appearance")}
-              on_more={() => on_open_full_settings("appearance")}
               title={t("settings.density")}
             >
               <QuickRadioGroup
@@ -428,8 +423,6 @@ export function QuickSettingsPanel({
             </QuickGroup>
 
             <QuickGroup
-              more_label={t("settings.appearance")}
-              on_more={() => on_open_full_settings("appearance")}
               title={t("settings.email_view_mode")}
             >
               <QuickRadioGroup
@@ -450,8 +443,6 @@ export function QuickSettingsPanel({
             </QuickGroup>
 
             <QuickGroup
-              more_label={t("settings.behavior")}
-              on_more={() => on_open_full_settings("behavior")}
               title={t("settings.reading_pane_position")}
             >
               <QuickRadioGroup

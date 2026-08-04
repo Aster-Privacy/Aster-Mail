@@ -83,7 +83,10 @@ export function WorkspaceSwitcher({
   const [pending_remove, set_pending_remove] = useState<StoredAccount | null>(
     null,
   );
-  const max_allowed = max_account_limit;
+  const max_allowed =
+    max_account_limit !== null && max_account_limit > 0
+      ? max_account_limit
+      : null;
 
   const personal_account_count = useMemo(
     () => accounts.filter((a) => a.kind !== "shared").length,

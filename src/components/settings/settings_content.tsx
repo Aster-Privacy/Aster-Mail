@@ -32,6 +32,7 @@ import {
   lazy,
   Suspense,
 } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   XMarkIcon,
@@ -179,7 +180,7 @@ export function is_settings_section(value: string): value is SettingsSection {
 
 interface SettingsContentProps {
   section?: Section;
-  on_section_change: (section: Section) => void;
+  on_section_change: (section: Section, replace?: boolean) => void;
   on_close: () => void;
   variant?: "page" | "popup";
 }
@@ -290,12 +291,18 @@ function SettingsContentInner({
   const [search_query, set_search_query] = useState("");
   const [scroll_target, set_scroll_target] = useState<string | null>(null);
   const [show_inline_totp_setup, set_show_inline_totp_setup] = useState(false);
+  const section_ref = useRef(section);
+
   const on_section_change_ref = useRef(on_section_change);
   const account_id_ref = useRef(current_account_id);
 
   useEffect(() => {
     on_section_change_ref.current = on_section_change;
   }, [on_section_change]);
+
+  useEffect(() => {
+    section_ref.current = section;
+  }, [section]);
 
   useEffect(() => {
     account_id_ref.current = current_account_id;
@@ -308,6 +315,11 @@ function SettingsContentInner({
       set_show_mobile_nav(false);
     }
   }, [section_prop]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (is_popup || section_prop) return;
+    on_section_change_ref.current(section, true);
+  }, [section_prop, is_popup]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (is_family_plan) {
@@ -706,6 +718,11 @@ function SettingsContentInner({
   }, [section, handle_account_deleted, show_inline_totp_setup]);
 
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
+    if (item_id === section_ref.current) {
+      set_search_query("");
+
+      return;
+    }
     set_section(item_id);
     set_persisted_section(item_id);
     set_search_query("");
@@ -755,8 +772,125 @@ function SettingsContentInner({
     return item?.label || t("settings.title");
   };
 
+  const [search_slot, set_search_slot] = useState<HTMLElement | null>(null);
+  const [active_result_index, set_active_result_index] = useState(0);
+
+  useEffect(() => {
+    set_search_slot(document.getElementById("settings_search_slot"));
+  }, [is_popup]);
+
+  useEffect(() => {
+    set_active_result_index(0);
+  }, [search_query]);
+
+  const open_search_result = useCallback(
+    (entry: { section: Section; label: string }) => {
+      handle_desktop_nav_click(entry.section);
+      set_scroll_target(entry.label);
+      set_search_query("");
+    },
+    [handle_desktop_nav_click],
+  );
+
+  const handle_search_keydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!registry_results.length) {
+      if (e["key"] === "Escape") set_search_query("");
+
+      return;
+    }
+    if (e["key"] === "ArrowDown") {
+      e.preventDefault();
+      set_active_result_index((prev) => (prev + 1) % registry_results.length);
+    } else if (e["key"] === "ArrowUp") {
+      e.preventDefault();
+      set_active_result_index(
+        (prev) => (prev - 1 + registry_results.length) % registry_results.length,
+      );
+    } else if (e["key"] === "Enter") {
+      e.preventDefault();
+      const entry = registry_results[Math.min(active_result_index, registry_results.length - 1)];
+
+      if (entry) open_search_result(entry);
+    } else if (e["key"] === "Escape") {
+      e.preventDefault();
+      set_search_query("");
+      (e.currentTarget as HTMLInputElement).blur();
+    }
+  };
+
+  const search_field = is_popup || !search_slot ? null : createPortal(
+        <div className="relative w-full max-w-[620px]">
+            <MagnifyingGlassIcon
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+              style={{ color: "var(--icon-muted)" }}
+            />
+            <input
+              autoComplete="off"
+              className="aster_search_field w-full h-10 pl-11 pr-4 rounded-full border-0 text-sm text-txt-primary placeholder:text-[var(--text-secondary)] outline-none focus:outline-none focus:ring-0"
+              placeholder={t("settings.search_placeholder")}
+              spellCheck={false}
+              type="search"
+              value={search_query}
+              onChange={(e) => set_search_query(e.target.value)}
+              onKeyDown={handle_search_keydown}
+            />
+            {search_query.length > 0 && (
+              <button
+                aria-label={t("common.clear")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary"
+                type="button"
+                onClick={() => set_search_query("")}
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            )}
+            {is_searching && search_query.trim().length >= 2 && (
+              <div
+                className="aster_search_field absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-full max-w-[620px] rounded-2xl z-50 p-1.5 shadow-lg"
+              >
+                <div className="max-h-80 overflow-y-auto">
+                {registry_results.length === 0 ? (
+                  <div className="px-4 py-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+                    {t("common.no_results")}
+                  </div>
+                ) : (
+                  registry_results.map((entry, idx) => {
+                    const nav_item = [...nav_items.general, ...nav_items.mail].find((n) => n.id === entry.section);
+                    const is_active = idx === active_result_index;
+
+                    return (
+                      <button
+                        key={`${entry.section}-${idx}`}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-left rounded-[10px] transition-colors duration-100 cursor-pointer ${is_active ? "bg-surf-hover" : ""}`}
+                        type="button"
+                        onClick={() => open_search_result(entry)}
+                        onMouseMove={() => set_active_result_index(idx)}
+                      >
+                        {nav_item && <nav_item.icon className="w-4 h-4 flex-shrink-0 text-txt-muted" />}
+                        <div className="flex-1 min-w-0">
+                          <span className="block truncate text-[13px] font-medium text-txt-primary">{entry.label}</span>
+                        </div>
+                        <span className="text-[11px] flex-shrink-0 ml-2 text-txt-muted">{entry.breadcrumb}</span>
+                      </button>
+                    );
+                  })
+                )}
+                </div>
+                {registry_results.length > 0 && (
+                  <div className="mt-1 flex items-center justify-end gap-1.5 border-t border-edge-secondary px-3 pt-2 pb-1 text-[11px] text-txt-muted">
+                    <span>{t("common.press_enter")}</span>
+                    <ArrowUturnLeftIcon className="h-3 w-3" />
+                  </div>
+                )}
+              </div>
+            )}
+        </div>,
+    search_slot,
+  );
+
   return (
     <div className="flex w-full h-full overflow-hidden">
+      {search_field}
       <aside
         className={`hidden md:flex flex-col flex-shrink-0 h-full ${is_popup ? "" : "bg-sidebar-bg-custom"}`}
         style={
@@ -776,25 +910,7 @@ function SettingsContentInner({
         }
       >
         {!is_popup && (
-          <div className="flex items-center h-14 px-4 select-none">
-            <img
-              alt={t("common.aster_mail")}
-              className="h-6 w-auto dark:hidden"
-              decoding="async"
-              draggable={false}
-              src="/aster_mail_logo_light.png"
-            />
-            <img
-              alt={t("common.aster_mail")}
-              className="h-6 w-auto hidden dark:block"
-              decoding="async"
-              draggable={false}
-              src="/aster_mail_logo_dark.png"
-            />
-          </div>
-        )}
-        {!is_popup && (
-          <div className="px-2.5 pb-3">
+          <div className="px-2.5 pt-2 pb-3">
             <Button
               className="w-full !rounded-[14px] gap-2"
               variant="depth"
@@ -851,9 +967,8 @@ function SettingsContentInner({
         className={`flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden ${is_popup ? "" : "p-1 md:p-2"}`}
       >
       <div
-        className={`flex-1 w-full overflow-hidden flex flex-col min-h-0 transition-colors duration-200 bg-surf-primary ${is_popup ? "" : "rounded-lg md:rounded-xl border"}`}
+        className={`flex-1 w-full overflow-hidden flex flex-col min-h-0 transition-colors duration-200 bg-surf-primary ${is_popup ? "" : "rounded-lg md:rounded-xl"}`}
         {...(is_popup ? {} : { id: "main-content", role: "main", tabIndex: -1 })}
-        style={is_popup ? undefined : { borderColor: "var(--border-primary)" }}
       >
         <div className="flex items-center gap-4 px-4 md:px-6 py-3.5 flex-shrink-0 border-b border-b-edge-secondary">
           <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
@@ -877,55 +992,7 @@ function SettingsContentInner({
             <SettingsSaveIndicator />
           </div>
 
-          <div className="hidden md:flex flex-1 justify-center">
-          <div className="relative w-full max-w-[620px]">
-            <MagnifyingGlassIcon
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-              style={{ color: "var(--icon-muted)" }}
-            />
-            <input
-              autoComplete="off"
-              className="aster_search_field w-full h-10 pl-11 pr-4 rounded-full border-0 text-sm text-txt-primary placeholder:text-[var(--text-secondary)] outline-none focus:outline-none focus:ring-0"
-              placeholder={t("settings.search_placeholder")}
-              spellCheck={false}
-              type="search"
-              value={search_query}
-              onChange={(e) => set_search_query(e.target.value)}
-            />
-            {is_searching && search_query.trim().length >= 2 && (
-              <div
-                className="aster_search_field absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-full max-w-[620px] max-h-80 overflow-y-auto rounded-2xl z-50 py-1 shadow-lg"
-              >
-                {registry_results.length === 0 ? (
-                  <div className="px-4 py-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>
-                    {t("common.no_results")}
-                  </div>
-                ) : (
-                  registry_results.map((entry, idx) => {
-                    const nav_item = [...nav_items.general, ...nav_items.mail].find((n) => n.id === entry.section);
-                    return (
-                      <button
-                        key={`${entry.section}-${idx}`}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors duration-100 cursor-pointer"
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = "var(--bg-secondary)"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ""; }}
-                        onClick={() => { handle_desktop_nav_click(entry.section); set_scroll_target(entry.label); }}
-                      >
-                        {nav_item && <nav_item.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />}
-                        <div className="flex-1 min-w-0">
-                          <span className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>{entry.label}</span>
-                        </div>
-                        <span className="text-[11px] flex-shrink-0 ml-2" style={{ color: "var(--text-muted)" }}>{entry.breadcrumb}</span>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            )}
-          </div>
-          </div>
-
-          <div className="flex items-center justify-end flex-shrink-0">
+          <div className="flex flex-1 items-center justify-end">
             <Button size="icon" variant="ghost" onClick={on_close}>
               <XMarkIcon className="w-5 h-5" />
             </Button>

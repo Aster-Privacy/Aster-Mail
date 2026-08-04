@@ -158,7 +158,7 @@ export const SidebarAliases = memo(function SidebarAliases({
         <div className="mt-3">
           <button
             className="sidebar-rail-btn"
-            title={t("common.aliases")}
+            data-rail-tip={t("common.aliases")}
             onClick={() => on_settings_click("aliases")}
           >
             <AtSymbolIcon className="w-5 h-5" style={{ color: "#8b5cf6" }} />
@@ -196,7 +196,7 @@ export const SidebarAliases = memo(function SidebarAliases({
                         ? "var(--indicator-bg)"
                         : undefined,
                   }}
-                  title={is_collapsed ? alias.full_address : undefined}
+                  data-rail-tip={is_collapsed ? alias.full_address : undefined}
                   onClick={() =>
                     handle_nav_click(() => {
                       set_selected_item(alias_item_id);

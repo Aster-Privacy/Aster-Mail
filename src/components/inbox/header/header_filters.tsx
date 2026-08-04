@@ -52,7 +52,7 @@ export function FilterDropdown({
       <Tooltip tip={t("mail.filter")}>
         <DropdownMenuTrigger asChild>
           <Button
-            className={`hidden md:flex h-8 w-8 hover:bg-[var(--bg-hover)] ${active_filter !== "all" ? "text-blue-500" : "text-[var(--icon-muted)] hover:text-[var(--icon-active)]"}`}
+            className={`hidden md:flex h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] ${active_filter !== "all" ? "text-[var(--accent-color)]" : "text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"}`}
             size="icon"
             variant="ghost"
           >

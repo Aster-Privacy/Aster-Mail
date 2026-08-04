@@ -127,7 +127,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        title={is_collapsed ? t("mail.inbox") : undefined}
+        data-rail-tip={is_collapsed ? t("mail.inbox") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("inbox");
@@ -141,7 +141,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "inbox"
-                ? "var(--accent-color)"
+                ? "var(--icon-active)"
                 : "var(--icon-muted)",
           }}
         />
@@ -173,7 +173,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        title={is_collapsed ? t("mail.sent") : undefined}
+        data-rail-tip={is_collapsed ? t("mail.sent") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("sent");
@@ -186,7 +186,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "sent"
-                ? "var(--accent-color)"
+                ? "var(--icon-active)"
                 : "var(--icon-muted)",
           }}
         />
@@ -209,7 +209,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        title={is_collapsed ? t("mail.scheduled") : undefined}
+        data-rail-tip={is_collapsed ? t("mail.scheduled") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("scheduled");
@@ -222,7 +222,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "scheduled"
-                ? "var(--accent-color)"
+                ? "var(--icon-active)"
                 : "var(--icon-muted)",
           }}
         />
@@ -245,7 +245,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        title={is_collapsed ? t("mail.snoozed") : undefined}
+        data-rail-tip={is_collapsed ? t("mail.snoozed") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("snoozed");
@@ -258,7 +258,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "snoozed"
-                ? "var(--accent-color)"
+                ? "var(--icon-active)"
                 : "var(--icon-muted)",
           }}
         />
@@ -281,7 +281,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        title={is_collapsed ? t("mail.drafts") : undefined}
+        data-rail-tip={is_collapsed ? t("mail.drafts") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("drafts");
@@ -294,7 +294,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "drafts"
-                ? "var(--accent-color)"
+                ? "var(--icon-active)"
                 : "var(--icon-muted)",
           }}
         />
@@ -339,7 +339,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            title={is_collapsed ? t("mail.starred") : undefined}
+            data-rail-tip={is_collapsed ? t("mail.starred") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("starred");
@@ -352,7 +352,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "starred"
-                    ? "var(--accent-color)"
+                    ? "var(--icon-active)"
                     : "var(--icon-muted)",
               }}
             />
@@ -375,7 +375,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            title={is_collapsed ? t("mail.all_mail") : undefined}
+            data-rail-tip={is_collapsed ? t("mail.all_mail") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("all");
@@ -388,7 +388,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "all"
-                    ? "var(--accent-color)"
+                    ? "var(--icon-active)"
                     : "var(--icon-muted)",
               }}
             />
@@ -411,7 +411,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            title={is_collapsed ? t("mail.archive") : undefined}
+            data-rail-tip={is_collapsed ? t("mail.archive") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("archive");
@@ -424,7 +424,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "archive"
-                    ? "var(--accent-color)"
+                    ? "var(--icon-active)"
                     : "var(--icon-muted)",
               }}
             />
@@ -447,7 +447,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            title={is_collapsed ? t("mail.spam") : undefined}
+            data-rail-tip={is_collapsed ? t("mail.spam") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("spam");
@@ -460,7 +460,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "spam"
-                    ? "var(--accent-color)"
+                    ? "var(--icon-active)"
                     : "var(--icon-muted)",
               }}
             />
@@ -483,7 +483,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            title={is_collapsed ? t("mail.trash") : undefined}
+            data-rail-tip={is_collapsed ? t("mail.trash") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("trash");
@@ -496,7 +496,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "trash"
-                    ? "var(--accent-color)"
+                    ? "var(--icon-active)"
                     : "var(--icon-muted)",
               }}
             />
@@ -519,7 +519,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            title={is_collapsed ? t("common.contacts") : undefined}
+            data-rail-tip={is_collapsed ? t("common.contacts") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("contacts");
@@ -532,7 +532,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "contacts"
-                    ? "var(--accent-color)"
+                    ? "var(--icon-active)"
                     : "var(--icon-muted)",
               }}
             />
@@ -555,7 +555,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            title={is_collapsed ? t("common.subscriptions") : undefined}
+            data-rail-tip={is_collapsed ? t("common.subscriptions") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("subscriptions");
@@ -568,7 +568,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "subscriptions"
-                    ? "var(--accent-color)"
+                    ? "var(--icon-active)"
                     : "var(--icon-muted)",
               }}
             />

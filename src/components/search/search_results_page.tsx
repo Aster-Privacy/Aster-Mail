@@ -28,6 +28,7 @@ import {
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import { Tooltip } from "@aster/ui";
 
 import { list_mail_items } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
@@ -205,8 +206,20 @@ export function SearchResultsPage({
           search_filters.date_from = week_ago.toISOString();
         } else if (filters.date_range === "month") {
           const month_ago = new Date(now);
+          const target_day = month_ago.getDate();
 
+          month_ago.setDate(1);
           month_ago.setMonth(month_ago.getMonth() - 1);
+          month_ago.setDate(
+            Math.min(
+              target_day,
+              new Date(
+                month_ago.getFullYear(),
+                month_ago.getMonth() + 1,
+                0,
+              ).getDate(),
+            ),
+          );
           search_filters.date_from = month_ago.toISOString();
         }
       }
@@ -827,15 +840,10 @@ export function SearchResultsPage({
         </div>
       ) : state.error ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-            style={{ backgroundColor: "var(--bg-tertiary)" }}
-          >
-            <ExclamationTriangleIcon
-              className="w-8 h-8"
-              style={{ color: "var(--text-muted)" }}
-            />
-          </div>
+          <ExclamationTriangleIcon
+            className="w-10 h-10 mb-4"
+            style={{ color: "var(--text-muted)" }}
+          />
           <p
             className="text-sm font-medium mb-1"
             style={{ color: "var(--text-primary)" }}
@@ -855,15 +863,10 @@ export function SearchResultsPage({
         </div>
       ) : filtered_results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-            style={{ backgroundColor: "var(--bg-tertiary)" }}
-          >
-            <MagnifyingGlassIcon
-              className="w-8 h-8"
-              style={{ color: "var(--text-muted)" }}
-            />
-          </div>
+          <MagnifyingGlassIcon
+            className="w-10 h-10 mb-4"
+            style={{ color: "var(--text-muted)" }}
+          />
           <p
             className="text-sm font-medium mb-1"
             style={{ color: "var(--text-primary)" }}
@@ -956,13 +959,16 @@ export function SearchResultsPage({
             hide_refresh={true}
             hide_view_switcher={true}
             leading_left_slot={
-              <button
-                className="h-9 w-9 rounded-[10px] flex items-center justify-center hover:bg-[var(--bg-hover)] transition-colors flex-shrink-0"
-                style={{ color: "var(--text-secondary)" }}
-                onClick={on_close}
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-              </button>
+              <Tooltip tip={t("common.back")}>
+                <button
+                  aria-label={t("common.back")}
+                  className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] flex-shrink-0"
+                  type="button"
+                  onClick={on_close}
+                >
+                  <ArrowLeftIcon className="w-[18px] h-[18px]" />
+                </button>
+              </Tooltip>
             }
             leading_toolbar_slot={sort_dropdown}
             on_archive={handle_bulk_archive}
@@ -991,6 +997,7 @@ export function SearchResultsPage({
             on_toggle_star={handle_bulk_toggle_star}
             page_size={SEARCH_PAGE_SIZE}
             search_context={query}
+            select_all_label={t("common.select_all")}
             selected_count={selected_ids.size}
             some_selected={selection_some_selected}
             total_email_count={filtered_results.length}

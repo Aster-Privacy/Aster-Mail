@@ -198,7 +198,7 @@ export const SidebarFolders = memo(function SidebarFolders({
             <button
               aria-label={t("common.create_folder")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
-              title={t("common.create_folder")}
+              data-rail-tip={t("common.create_folder")}
               onClick={() => set_is_create_folder_open(true)}
             >
               <PlusIcon aria-hidden="true" className="w-4 h-4" />
@@ -211,7 +211,7 @@ export const SidebarFolders = memo(function SidebarFolders({
         <div className="mt-3">
           <button
             className="sidebar-rail-btn"
-            title={t("common.create_folder")}
+            data-rail-tip={t("common.create_folder")}
             onClick={() => set_is_create_folder_open(true)}
           >
             <PlusIcon className="w-5 h-5" />
@@ -412,7 +412,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                             ? "var(--indicator-bg)"
                             : undefined,
                     }}
-                    title={is_collapsed ? folder.name : undefined}
+                    data-rail-tip={is_collapsed ? folder.name : undefined}
                     onClick={() =>
                       handle_nav_click(() => {
                         if (folder.is_password_protected) {

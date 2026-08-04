@@ -136,7 +136,7 @@ export const SidebarTags = memo(function SidebarTags({
         <div className="mt-3">
           <button
             className="sidebar-rail-btn"
-            title={t("common.create_label")}
+            data-rail-tip={t("common.create_label")}
             onClick={() => set_is_create_tag_open(true)}
           >
             <TagIcon className="w-5 h-5" />
@@ -184,7 +184,7 @@ export const SidebarTags = memo(function SidebarTags({
                           ? "var(--indicator-bg)"
                           : undefined,
                   }}
-                  title={is_collapsed ? tag.name : undefined}
+                  data-rail-tip={is_collapsed ? tag.name : undefined}
                   onClick={() =>
                     handle_nav_click(() => {
                       set_selected_item(tag_item_id);

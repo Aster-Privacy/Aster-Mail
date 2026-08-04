@@ -188,24 +188,27 @@ export default function IndexPage() {
       >
         <NotificationBanner />
         <SurveyBanner />
-        {!(state.is_settings_route && !settings_popup_mode) && (
-          <TopBar
-            on_mobile_menu_toggle={state.toggle_mobile_sidebar}
-            on_search_result_click={state.handle_search_result_click}
-            on_search_submit={state.handle_search_submit}
-            on_settings_click={toggle_quick_settings}
-            on_shortcuts_click={() => state.set_is_shortcuts_open(true)}
-            search_context={state.active_search_query || undefined}
-          />
-        )}
+        <TopBar
+          is_settings_view={state.is_settings_route && !settings_popup_mode}
+          on_mobile_menu_toggle={state.toggle_mobile_sidebar}
+          on_search_result_click={state.handle_search_result_click}
+          on_search_submit={state.handle_search_submit}
+          on_settings_click={() => {
+            if (state.is_settings_route && !settings_popup_mode) return;
+            toggle_quick_settings();
+          }}
+          on_shortcuts_click={() => state.set_is_shortcuts_open(true)}
+          search_context={state.active_search_query || undefined}
+        />
         <div className="flex-1 flex transition-colors duration-200 overflow-hidden">
           {state.is_settings_route && !settings_popup_mode ? (
             <Suspense fallback={<FullPageLoader />}>
               <SettingsContent
                 section={settings_section}
                 on_close={state.close_settings}
-                on_section_change={(next_section) => {
+                on_section_change={(next_section, replace) => {
                   navigate(`/settings/${next_section}`, {
+                    replace,
                     state: state.location.state,
                   });
                 }}
@@ -414,8 +417,9 @@ export default function IndexPage() {
                 section={settings_section}
                 variant="popup"
                 on_close={state.close_settings}
-                on_section_change={(next_section) => {
+                on_section_change={(next_section, replace) => {
                   navigate(`/settings/${next_section}`, {
+                    replace,
                     state: state.location.state,
                   });
                 }}

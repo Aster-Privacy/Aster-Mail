@@ -487,6 +487,8 @@ export interface MailRulesTranslations {
 }
 
 export interface CommonTranslations {
+  upgrade_tooltip: string;
+  help: string;
   qr_code: string;
   app_name: string;
   loading: string;

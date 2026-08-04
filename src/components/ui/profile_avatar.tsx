@@ -328,11 +328,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         userSelect: "none",
       }}
     >
-      {!img_loaded && !is_favicon_source && (
-        <div
-          className="absolute inset-0 rounded-full animate-pulse"
-          style={{ backgroundColor: "var(--border-primary)" }}
-        />
+      {!img_loaded && (
+        <Skeleton className="absolute inset-0 rounded-full" />
       )}
       <img
         alt={name}

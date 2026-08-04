@@ -101,11 +101,9 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                   className="text-[10px] tabular-nums font-medium"
                   style={{
                     color:
-                      storage_percentage > 90
+                      storage_percentage >= 90
                         ? "var(--color-danger)"
-                        : storage_percentage > 70
-                          ? "var(--color-warning)"
-                          : "var(--text-tertiary)",
+                        : "var(--text-tertiary)",
                   }}
                 >
                   {storage_percentage > 0 && storage_percentage < 1
@@ -113,17 +111,19 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                     : `${storage_percentage.toFixed(0)}%`}
                 </span>
               </div>
-              <div className="h-1.5 w-full rounded-full overflow-hidden bg-black/[0.05] dark:bg-white/[0.06]">
+              <div
+                className="h-1.5 w-full rounded-full overflow-hidden"
+                style={{ backgroundColor: "var(--bg-tertiary)" }}
+              >
                 <div
-                  className="h-full transition-all duration-300"
+                  className="h-full rounded-full transition-all duration-300"
                   style={{
+                    minWidth: "10px",
                     width: `${storage_percentage}%`,
                     backgroundColor:
-                      storage_percentage > 90
+                      storage_percentage >= 90
                         ? "var(--color-danger)"
-                        : storage_percentage > 70
-                          ? "var(--color-warning)"
-                          : "var(--color-info)",
+                        : "var(--accent-color)",
                   }}
                 />
               </div>

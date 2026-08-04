@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Bars3Icon,
   Cog6ToothIcon,
@@ -41,15 +42,12 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
-import { claim_logo_tap_badge } from "@/services/api/user";
-import { show_toast } from "@/components/toast/simple_toast";
 
-const LOGO_TAPS_REQUIRED = 15;
-const LOGO_TAP_WINDOW_MS = 2000;
 
 const HELP_CENTER_URL = "https://astermail.org/help";
 
 interface TopBarProps {
+  is_settings_view?: boolean;
   on_mobile_menu_toggle: () => void;
   on_search_result_click?: (id: string) => void;
   on_search_submit?: (query: string) => void;
@@ -102,6 +100,7 @@ function IconButton({
 }
 
 export function TopBar({
+  is_settings_view = false,
   on_mobile_menu_toggle,
   on_search_result_click,
   on_search_submit,
@@ -114,57 +113,11 @@ export function TopBar({
   const { preferences, update_preference } = use_preferences();
   const { limits } = use_plan_limits();
   const is_free_plan = limits?.plan_code === "free";
+  const navigate = useNavigate();
   const [is_accounts_open, set_is_accounts_open] = useState(false);
   const [is_mobile, set_is_mobile] = useState(false);
   const [show_account_tip, set_show_account_tip] = useState(false);
   const account_tip_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const logo_tap_count_ref = useRef(0);
-  const logo_last_tap_at_ref = useRef(0);
-  const logo_claim_in_flight_ref = useRef(false);
-
-  const handle_logo_tap = useCallback(async () => {
-    const now = Date.now();
-
-    if (now - logo_last_tap_at_ref.current > LOGO_TAP_WINDOW_MS) {
-      logo_tap_count_ref.current = 0;
-    }
-    logo_last_tap_at_ref.current = now;
-    logo_tap_count_ref.current += 1;
-
-    if (
-      logo_tap_count_ref.current < LOGO_TAPS_REQUIRED ||
-      logo_claim_in_flight_ref.current
-    ) {
-      return;
-    }
-
-    logo_tap_count_ref.current = 0;
-    logo_claim_in_flight_ref.current = true;
-    try {
-      const response = await claim_logo_tap_badge();
-
-      if (!response.data) {
-        show_toast(t("badges.claim_failed"), "error");
-
-        return;
-      }
-      const { awarded, already_claimed, badge } = response.data;
-
-      if (awarded && badge) {
-        show_toast(
-          t("badges.claim_success").replace("{name}", badge.display_name),
-          "success",
-        );
-      } else if (already_claimed) {
-        show_toast(t("badges.claim_already"), "info");
-      }
-    } catch {
-      show_toast(t("badges.claim_failed"), "error");
-    } finally {
-      logo_claim_in_flight_ref.current = false;
-    }
-  }, [t]);
 
   const open_account_tip = useCallback(() => {
     if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
@@ -235,24 +188,28 @@ export function TopBar({
 
   return (
     <header
-      className="flex items-center gap-1 sm:gap-2 h-14 px-2 sm:px-3 flex-shrink-0"
+      className="flex items-center h-14 pr-2 sm:pr-3 flex-shrink-0"
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
       <div
-        className="flex items-center gap-2 flex-shrink-0"
-        style={
-          is_mobile ? undefined : { width: Math.max(0, left_cluster_width - 20) }
-        }
+        className="flex items-center gap-2 flex-shrink-0 px-2 sm:px-3"
+        style={is_mobile ? undefined : { width: left_cluster_width }}
       >
         {is_mobile && (
           <IconButton label={t("common.open_menu")} on_click={handle_menu_click}>
             <Bars3Icon className="w-5 h-5" />
           </IconButton>
         )}
-        <div
-          className="hidden sm:flex items-center select-none cursor-default overflow-hidden"
-          onClick={handle_logo_tap}
-        >
+        <Tooltip delay={1200} tip={t("common.aster_mail")}>
+          <button
+            aria-label={t("common.aster_mail")}
+            className="hidden sm:flex items-center select-none overflow-hidden px-2 py-2 -mx-2 outline-none focus:outline-none"
+            type="button"
+            onClick={() => {
+              navigate("/");
+              window.dispatchEvent(new CustomEvent("astermail:inbox-home"));
+            }}
+          >
           {preferences.sidebar_minimized ? (
             <img
               alt={t("common.aster_mail")}
@@ -279,21 +236,26 @@ export function TopBar({
               />
             </>
           )}
-        </div>
+          </button>
+        </Tooltip>
       </div>
 
-      <div className="flex-1 min-w-0 flex items-center">
-        <SearchBar
-          is_pill
-          on_result_click={on_search_result_click}
-          on_search_submit={on_search_submit}
-          search_context={search_context}
-        />
+      <div className="flex-1 min-w-0 flex items-center pl-1 md:pl-2">
+        {is_settings_view ? (
+          <div className="w-full" id="settings_search_slot" />
+        ) : (
+          <SearchBar
+            is_pill
+            on_result_click={on_search_result_click}
+            on_search_submit={on_search_submit}
+            search_context={search_context}
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ml-auto pl-2">
         <DropdownMenu>
-          <Tooltip tip={t("settings.category_support")}>
+          <Tooltip tip={t("common.help")}>
             <DropdownMenuTrigger asChild>
               <button
                 aria-label={t("settings.category_support")}
@@ -325,14 +287,16 @@ export function TopBar({
         </IconButton>
 
         {is_free_plan && (
-          <Button
-            className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ml-1"
-            size="sm"
-            variant="depth"
-            onClick={open_billing}
-          >
-            {t("common.upgrade")}
-          </Button>
+          <Tooltip tip={t("common.upgrade_tooltip")}>
+            <Button
+              className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ml-1"
+              size="sm"
+              variant="depth"
+              onClick={open_billing}
+            >
+              {t("common.upgrade")}
+            </Button>
+          </Tooltip>
         )}
 
         <div
@@ -348,16 +312,16 @@ export function TopBar({
             trigger={
               <button
                 aria-label={t("auth.your_accounts")}
-                className="flex items-center justify-center w-9 h-9 rounded-full transition-colors hover:bg-[var(--bg-hover)] outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+                className={`flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none transition-colors hover:bg-[var(--bg-hover)] outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 ${
+                  is_free_plan
+                    ? ""
+                    : "ring-[1.5px] ring-inset ring-[var(--accent-color)]"
+                }`}
                 type="button"
                 onClick={close_account_tip}
               >
                 <ProfileAvatar
-                  className={
-                    is_free_plan
-                      ? ""
-                      : "ring-2 ring-[var(--accent-color)] ring-offset-2 ring-offset-[var(--bg-primary)]"
-                  }
+                  className="block"
                   email={account_email}
                   image_url={user?.profile_picture}
                   name={display_name}

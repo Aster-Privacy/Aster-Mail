@@ -355,8 +355,20 @@ function EmailContextMenuContentInner({
               <ContextMenuItem
                 onClick={() => {
                   const date = new Date();
+                  const target_day = date.getDate();
 
+                  date.setDate(1);
                   date.setMonth(date.getMonth() + 1);
+                  date.setDate(
+                    Math.min(
+                      target_day,
+                      new Date(
+                        date.getFullYear(),
+                        date.getMonth() + 1,
+                        0,
+                      ).getDate(),
+                    ),
+                  );
                   date.setHours(9, 0, 0, 0);
                   handle_action("snooze", () => on_snooze(date));
                 }}

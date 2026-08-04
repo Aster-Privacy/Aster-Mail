@@ -77,6 +77,8 @@ export const en: Translations = {
     storage_used: "Storage used",
     buy_more_storage: "Buy More Storage",
     upgrade: "Upgrade",
+    upgrade_tooltip: "Get more storage, aliases, and custom domains",
+    help: "Help",
     of: "of",
     page: "Page",
     aster_mail: "Aster Mail",

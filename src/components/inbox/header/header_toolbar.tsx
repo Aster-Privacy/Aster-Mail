@@ -155,13 +155,13 @@ export function HeaderToolbar({
       {!hide_refresh && (
         <Tooltip tip={t("common.refresh")}>
           <Button
-            className="hidden md:flex h-8 w-8 text-[var(--icon-muted)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
+            className="hidden md:flex h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
             size="icon"
             variant="ghost"
             onClick={handle_refresh}
           >
             <ArrowPathIcon
-              className={`w-4 h-4 ${is_refreshing ? "animate-spin" : ""}`}
+              className={`w-[18px] h-[18px] ${is_refreshing ? "animate-spin" : ""}`}
             />
           </Button>
         </Tooltip>
@@ -174,11 +174,11 @@ export function HeaderToolbar({
           <Tooltip tip={t("mail.quick_actions")}>
             <DropdownMenuTrigger asChild>
               <Button
-                className="hidden md:flex h-8 w-8 text-[var(--icon-muted)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
+                className="hidden md:flex h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
                 size="icon"
                 variant="ghost"
               >
-                <BoltIcon className="w-4 h-4" />
+                <BoltIcon className="w-[18px] h-[18px]" />
               </Button>
             </DropdownMenuTrigger>
           </Tooltip>
@@ -260,8 +260,12 @@ export function MobileOverflowMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="md:hidden h-8 w-8" size="icon" variant="ghost">
-          <EllipsisVerticalIcon className="w-4 h-4 text-[var(--icon-muted)]" />
+        <Button
+          className="md:hidden h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
+          size="icon"
+          variant="ghost"
+        >
+          <EllipsisVerticalIcon className="w-[18px] h-[18px]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

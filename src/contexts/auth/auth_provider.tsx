@@ -83,7 +83,11 @@ import {
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
 import { clear_aliases_cache } from "@/components/settings/hooks/use_aliases";
-import { clear_plan_cache } from "@/services/plan_limits";
+import {
+  clear_plan_cache,
+  get_current_plan_code,
+  max_accounts_for_plan,
+} from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
@@ -1258,7 +1262,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     get_account_limit()
       .then((res) => {
         if (cancelled) return;
-        if (res.data) set_max_account_limit(res.data.max_accounts);
+        if (!res.data) return;
+        if (res.data.max_accounts > 0) {
+          set_max_account_limit(res.data.max_accounts);
+
+          return;
+        }
+        get_current_plan_code()
+          .then((plan_code) => {
+            if (cancelled) return;
+            set_max_account_limit(max_accounts_for_plan(plan_code));
+          })
+          .catch((e) => {
+            safe_log_error(e);
+          });
       })
       .catch((e) => {
         safe_log_error(e);
@@ -1297,7 +1314,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const limit_response = await get_account_limit();
 
       if (limit_response.data) {
-        return personal_count < limit_response.data.max_accounts;
+        const limit =
+          limit_response.data.max_accounts > 0
+            ? limit_response.data.max_accounts
+            : max_accounts_for_plan(await get_current_plan_code());
+
+        return personal_count < limit;
       }
     } catch (e) {
       safe_log_error(e);

@@ -59,6 +59,7 @@ import { SidebarFolders } from "@/components/layout/sidebar/sidebar_folders";
 import { SidebarTags } from "@/components/layout/sidebar/sidebar_tags";
 import { SidebarAliases } from "@/components/layout/sidebar/sidebar_aliases";
 import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_account_switcher";
+import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { cache_sidebar_state } from "@/services/api/preferences";
@@ -667,6 +668,7 @@ export const Sidebar = ({
               : "w-full !rounded-[14px] gap-2"
           }
           data-onboarding="compose-button"
+          data-rail-tip={is_collapsed ? t("mail.compose") : undefined}
           variant="depth"
           onClick={() => {
             on_modal_open?.();
@@ -749,6 +751,8 @@ export const Sidebar = ({
           }}
         />
       )}
+
+      <RailTipLayer />
 
       <div
         className={`flex-1 overflow-y-auto ${is_collapsed ? "px-2" : "px-2.5"} pt-0.5 pb-2`}
