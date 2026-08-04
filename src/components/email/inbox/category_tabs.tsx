@@ -136,7 +136,7 @@ export function CategoryTabs({
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex h-12 shrink-0 items-center gap-2.5 whitespace-nowrap px-4 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
+            className={`group relative flex h-[58px] shrink-0 items-center gap-2.5 whitespace-nowrap px-4 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
@@ -152,24 +152,30 @@ export function CategoryTabs({
                   : "text-txt-muted group-hover:text-txt-secondary"
               }`}
             />
-            <span className="shrink-0">{label}</span>
-            {show_new ? (
-              <span className="aster_cat_badge shrink-0">
-                {format_count(new_count)} {t("mail.tab_new_count")}
+            <span className="flex flex-col items-start gap-[2px]">
+              <span className="flex items-center gap-2.5 leading-[18px]">
+                <span>{label}</span>
+                {show_new ? (
+                  <span className="aster_cat_badge">
+                    {format_count(new_count)} {t("mail.tab_new_count")}
+                  </span>
+                ) : unread > 0 ? (
+                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
+                    {format_count(unread)}
+                  </span>
+                ) : null}
               </span>
-            ) : unread > 0 ? (
-              <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
-                {format_count(unread)}
+              <span className="block h-[14px] max-w-[230px] truncate text-start text-[12px] font-normal leading-[14px] text-txt-muted">
+                {preview ? (
+                  <>
+                    <span className="font-medium text-txt-secondary">
+                      {preview.sender}
+                    </span>
+                    {preview.subject ? ` - ${preview.subject}` : ""}
+                  </>
+                ) : null}
               </span>
-            ) : null}
-            {preview ? (
-              <span className="max-w-[200px] truncate text-start text-[12px] font-normal text-txt-muted">
-                <span className="font-medium text-txt-secondary">
-                  {preview.sender}
-                </span>
-                {preview.subject ? ` - ${preview.subject}` : ""}
-              </span>
-            ) : null}
+            </span>
             {is_active && (
               <span className="pointer-events-none absolute inset-x-2 -bottom-px h-[3px] rounded-t-full bg-brand sm:inset-x-3" />
             )}
