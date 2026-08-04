@@ -82,6 +82,10 @@ import {
   is_font_family_loaded,
 } from "@/lib/loaded_fonts";
 import { get_contrast_text_for_css_color } from "@/lib/avatar_color";
+import {
+  is_dark_only_color_theme,
+  set_palette_forces_dark,
+} from "@/lib/dark_mode";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -124,12 +128,16 @@ function apply_color_theme_class(
     root.classList.remove(cls);
   }
 
+  set_palette_forces_dark(is_dark_only_color_theme(color_theme));
+
   const set_inline_accent = () => {
     root.style.setProperty("--accent-color", accent_color);
     root.style.setProperty("--accent-color-hover", accent_color_hover);
 
     if (is_valid_hex_color(accent_color)) {
-      for (const [key, value] of Object.entries(derive_accent_vars(accent_color))) {
+      for (const [key, value] of Object.entries(
+        derive_accent_vars(accent_color),
+      )) {
         root.style.setProperty(key, value);
       }
     }
@@ -164,7 +172,9 @@ function apply_color_theme_class(
 
 function sync_accent_derived_appearance() {
   const root = document.documentElement;
-  const accent = getComputedStyle(root).getPropertyValue("--accent-color").trim();
+  const accent = getComputedStyle(root)
+    .getPropertyValue("--accent-color")
+    .trim();
 
   if (!accent) {
     root.style.removeProperty("--accent-fg");
@@ -172,7 +182,10 @@ function sync_accent_derived_appearance() {
     return;
   }
 
-  root.style.setProperty("--accent-fg", get_contrast_text_for_css_color(accent));
+  root.style.setProperty(
+    "--accent-fg",
+    get_contrast_text_for_css_color(accent),
+  );
 }
 
 function sync_meta_theme_color() {
@@ -202,7 +215,10 @@ interface PreferencesContextType {
     value: UserPreferences[K],
     immediate?: boolean,
   ) => void;
-  update_preferences: (updates: Partial<UserPreferences>, immediate?: boolean) => void;
+  update_preferences: (
+    updates: Partial<UserPreferences>,
+    immediate?: boolean,
+  ) => void;
   reset_to_defaults: () => void;
   reset_section: (keys: (keyof UserPreferences)[]) => void;
   save_now: () => Promise<void>;
@@ -271,7 +287,9 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
     return {
       ...base,
-      sidebar_more_collapsed: get_cached_sidebar_state("sidebar_more_collapsed"),
+      sidebar_more_collapsed: get_cached_sidebar_state(
+        "sidebar_more_collapsed",
+      ),
       sidebar_folders_collapsed: get_cached_sidebar_state(
         "sidebar_folders_collapsed",
       ),
@@ -362,7 +380,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         return to_save;
       } catch (err) {
         if (import.meta.env.DEV) {
-          console.error("[prefs] do_save: exception during save_preferences:", err);
+          console.error(
+            "[prefs] do_save: exception during save_preferences:",
+            err,
+          );
         }
 
         return null;
@@ -470,9 +491,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     }, save_delay);
   }, []);
 
-  const trigger_save = useCallback((prefs: UserPreferences) => {
-    schedule_save(prefs);
-  }, [schedule_save]);
+  const trigger_save = useCallback(
+    (prefs: UserPreferences) => {
+      schedule_save(prefs);
+    },
+    [schedule_save],
+  );
 
   const save_immediately = useCallback((updated: UserPreferences) => {
     latest_prefs_ref.current = updated;
@@ -631,67 +655,75 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     [do_save],
   );
 
-  const apply_visual_preferences = useCallback((prefs: Partial<UserPreferences>) => {
-    if (prefs.theme) {
-      set_theme_ref.current(prefs.theme);
-    }
+  const apply_visual_preferences = useCallback(
+    (prefs: Partial<UserPreferences>) => {
+      if (prefs.theme) {
+        set_theme_ref.current(prefs.theme);
+      }
 
-    const language_code = prefs.language
-      ? label_to_language_code(prefs.language)
-      : null;
+      const language_code = prefs.language
+        ? label_to_language_code(prefs.language)
+        : null;
 
-    if (language_code) {
-      set_language_ref.current(language_code);
-    }
+      if (language_code) {
+        set_language_ref.current(language_code);
+      }
 
-    configure_session_timeout(
-      prefs.session_timeout_enabled ?? DEFAULT_PREFERENCES.session_timeout_enabled,
-      prefs.session_timeout_minutes ?? DEFAULT_PREFERENCES.session_timeout_minutes,
-    );
-
-    if (prefs.color_theme) {
-      apply_color_theme_class(
-        prefs.color_theme,
-        prefs.accent_color ?? DEFAULT_PREFERENCES.accent_color,
-        prefs.accent_color_hover ?? DEFAULT_PREFERENCES.accent_color_hover,
-        prefs.custom_theme_seed ?? DEFAULT_PREFERENCES.custom_theme_seed,
-        theme_ref.current === "dark",
-        prefs.custom_theme_overrides ?? DEFAULT_PREFERENCES.custom_theme_overrides,
+      configure_session_timeout(
+        prefs.session_timeout_enabled ??
+          DEFAULT_PREFERENCES.session_timeout_enabled,
+        prefs.session_timeout_minutes ??
+          DEFAULT_PREFERENCES.session_timeout_minutes,
       );
-    }
 
-    document.documentElement.style.setProperty(
-      "--font-sans",
-      get_font_stack(prefs.font_choice ?? DEFAULT_PREFERENCES.font_choice),
-    );
+      if (prefs.color_theme) {
+        apply_color_theme_class(
+          prefs.color_theme,
+          prefs.accent_color ?? DEFAULT_PREFERENCES.accent_color,
+          prefs.accent_color_hover ?? DEFAULT_PREFERENCES.accent_color_hover,
+          prefs.custom_theme_seed ?? DEFAULT_PREFERENCES.custom_theme_seed,
+          theme_ref.current === "dark",
+          prefs.custom_theme_overrides ??
+            DEFAULT_PREFERENCES.custom_theme_overrides,
+        );
+      }
 
-    const root = document.documentElement;
+      document.documentElement.style.setProperty(
+        "--font-sans",
+        get_font_stack(prefs.font_choice ?? DEFAULT_PREFERENCES.font_choice),
+      );
 
-    root.classList.toggle("reduce-motion", prefs.reduce_motion ?? false);
-    root.classList.toggle("compact-mode", prefs.compact_mode ?? false);
+      const root = document.documentElement;
 
-    const email_scale = normalize_font_size_scale(prefs.font_size_scale);
-    root.style.setProperty(
-      "--font-scale",
-      String(email_scale / FONT_SIZE_DEFAULT),
-    );
-    set_preload_email_font_px(Math.round(14 * (email_scale / FONT_SIZE_DEFAULT)));
-    set_preload_email_font_stack(
-      get_email_font_stack(
-        prefs.email_font_choice ?? DEFAULT_PREFERENCES.email_font_choice,
-        prefs.font_choice ?? DEFAULT_PREFERENCES.font_choice,
-      ),
-    );
+      root.classList.toggle("reduce-motion", prefs.reduce_motion ?? false);
+      root.classList.toggle("compact-mode", prefs.compact_mode ?? false);
 
-    root.classList.toggle("high-contrast", prefs.high_contrast ?? false);
-    root.classList.toggle(
-      "reduce-transparency",
-      prefs.reduce_transparency ?? false,
-    );
-    root.classList.toggle("link-underlines", prefs.link_underlines ?? false);
-    root.classList.toggle("dyslexia-font", prefs.dyslexia_font ?? false);
-    root.classList.toggle("text-spacing", prefs.text_spacing ?? false);
-  }, []);
+      const email_scale = normalize_font_size_scale(prefs.font_size_scale);
+      root.style.setProperty(
+        "--font-scale",
+        String(email_scale / FONT_SIZE_DEFAULT),
+      );
+      set_preload_email_font_px(
+        Math.round(14 * (email_scale / FONT_SIZE_DEFAULT)),
+      );
+      set_preload_email_font_stack(
+        get_email_font_stack(
+          prefs.email_font_choice ?? DEFAULT_PREFERENCES.email_font_choice,
+          prefs.font_choice ?? DEFAULT_PREFERENCES.font_choice,
+        ),
+      );
+
+      root.classList.toggle("high-contrast", prefs.high_contrast ?? false);
+      root.classList.toggle(
+        "reduce-transparency",
+        prefs.reduce_transparency ?? false,
+      );
+      root.classList.toggle("link-underlines", prefs.link_underlines ?? false);
+      root.classList.toggle("dyslexia-font", prefs.dyslexia_font ?? false);
+      root.classList.toggle("text-spacing", prefs.text_spacing ?? false);
+    },
+    [],
+  );
 
   const reload_preferences = useCallback(async () => {
     const v = vault_ref.current;
@@ -711,25 +743,41 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
     if (response.loaded_from_server && response.data) {
       fallback_base_ref.current = null;
-      let merged = normalize_preferences({ ...DEFAULT_PREFERENCES, ...response.data });
+      let merged = normalize_preferences({
+        ...DEFAULT_PREFERENCES,
+        ...response.data,
+      });
 
-      const nav_conn = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+      const nav_conn = (
+        navigator as unknown as {
+          connection?: { saveData?: boolean; effectiveType?: string };
+        }
+      ).connection;
       const is_save_data = nav_conn?.saveData === true;
-      const is_slow = nav_conn?.effectiveType === "slow-2g" || nav_conn?.effectiveType === "2g";
+      const is_slow =
+        nav_conn?.effectiveType === "slow-2g" ||
+        nav_conn?.effectiveType === "2g";
       if ((is_save_data || is_slow) && !merged.low_network_mode) {
         merged = { ...merged, low_network_mode: true };
         cache_preferences_locally(merged);
         do_save(merged).catch(() => {});
       }
 
-      const url_low_bandwidth = new URLSearchParams(window.location.search).get("low_bandwidth");
+      const url_low_bandwidth = new URLSearchParams(window.location.search).get(
+        "low_bandwidth",
+      );
       const is_same_origin_nav =
         !document.referrer ||
         new URL(document.referrer).origin === window.location.origin;
       if (url_low_bandwidth !== null && is_same_origin_nav) {
-        const want_enabled = url_low_bandwidth === "1" || url_low_bandwidth === "true";
-        const want_disabled = url_low_bandwidth === "0" || url_low_bandwidth === "false";
-        if ((want_enabled && !merged.low_network_mode) || (want_disabled && merged.low_network_mode)) {
+        const want_enabled =
+          url_low_bandwidth === "1" || url_low_bandwidth === "true";
+        const want_disabled =
+          url_low_bandwidth === "0" || url_low_bandwidth === "false";
+        if (
+          (want_enabled && !merged.low_network_mode) ||
+          (want_disabled && merged.low_network_mode)
+        ) {
           merged = { ...merged, low_network_mode: want_enabled };
           cache_preferences_locally(merged);
           do_save(merged).catch(() => {});
@@ -840,7 +888,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           latest_prefs_ref.current = null;
           beacon_payload_ref.current = null;
 
-          const merged = normalize_preferences({ ...DEFAULT_PREFERENCES, ...response.data });
+          const merged = normalize_preferences({
+            ...DEFAULT_PREFERENCES,
+            ...response.data,
+          });
 
           set_preferences(merged);
           cache_sidebar_state(
@@ -863,10 +914,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
           await load_notification_preferences(v);
 
-          if (
-            response.data.desktop_notifications &&
-            "Notification" in window
-          ) {
+          if (response.data.desktop_notifications && "Notification" in window) {
             if (Notification.permission === "default") {
               request_notification_permission();
             }
@@ -1044,9 +1092,16 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   }, [preferences.low_network_mode, preferences.font_choice]);
 
   useEffect(() => {
-    const nav_conn = (navigator as unknown as {
-      connection?: { saveData?: boolean; effectiveType?: string; addEventListener: (e: string, h: () => void) => void; removeEventListener: (e: string, h: () => void) => void };
-    }).connection;
+    const nav_conn = (
+      navigator as unknown as {
+        connection?: {
+          saveData?: boolean;
+          effectiveType?: string;
+          addEventListener: (e: string, h: () => void) => void;
+          removeEventListener: (e: string, h: () => void) => void;
+        };
+      }
+    ).connection;
 
     if (!nav_conn || typeof nav_conn.addEventListener !== "function") return;
 
@@ -1060,7 +1115,8 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     };
 
     nav_conn.addEventListener("change", handle_connection_change);
-    return () => nav_conn.removeEventListener("change", handle_connection_change);
+    return () =>
+      nav_conn.removeEventListener("change", handle_connection_change);
   }, [update_preference]);
 
   useEffect(() => {

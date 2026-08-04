@@ -28,6 +28,7 @@ import {
 } from "react";
 
 import { update_status_bar_theme } from "@/native/capacitor_bridge";
+import { is_dark_appearance_active, set_theme_is_dark } from "@/lib/dark_mode";
 
 export type Theme = "light" | "dark";
 export type ThemePreference = "light" | "dark" | "system";
@@ -85,18 +86,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
 
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    set_theme_is_dark(theme === "dark");
 
-    update_status_bar_theme(theme === "dark");
+    update_status_bar_theme(is_dark_appearance_active());
 
     const meta = document.querySelector('meta[name="theme-color"]');
 
     if (meta) {
-      const bg = getComputedStyle(root).getPropertyValue("--bg-secondary").trim();
+      const bg = getComputedStyle(root)
+        .getPropertyValue("--bg-secondary")
+        .trim();
 
       if (bg) meta.setAttribute("content", bg);
     }
@@ -111,7 +110,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme_preference]);
 
   useEffect(() => {
-    if (theme_preference !== "system" || typeof window === "undefined" || !window.matchMedia) {
+    if (
+      theme_preference !== "system" ||
+      typeof window === "undefined" ||
+      !window.matchMedia
+    ) {
       return;
     }
 
