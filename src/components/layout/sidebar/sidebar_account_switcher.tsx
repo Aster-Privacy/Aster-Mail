@@ -24,8 +24,10 @@ import { memo } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { format_bytes } from "@/lib/utils";
+import {
+  StorageMeter,
+  scroll_to_storage_addons,
+} from "@/components/layout/storage_meter";
 import { use_i18n } from "@/lib/i18n/context";
 
 function PanelToggleIcon({
@@ -90,86 +92,16 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
         className={`${is_collapsed ? "px-2" : "px-3"} pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]`}
       >
         {!is_collapsed && (
-          <>
-            {storage_total_bytes > 0 ? (
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-medium tracking-wide text-txt-muted">
-                  {t("common.storage_used")}
-                </span>
-                <span
-                  className="text-[10px] tabular-nums font-medium"
-                  style={{
-                    color:
-                      storage_percentage >= 90
-                        ? "var(--color-danger)"
-                        : "var(--text-tertiary)",
-                  }}
-                >
-                  {storage_percentage > 0 && storage_percentage < 1
-                    ? "<1%"
-                    : `${storage_percentage.toFixed(0)}%`}
-                </span>
-              </div>
-              <div
-                className="h-1.5 w-full rounded-full overflow-hidden"
-                style={{ backgroundColor: "var(--bg-tertiary)" }}
-              >
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    minWidth: "10px",
-                    width: `${storage_percentage}%`,
-                    backgroundColor:
-                      storage_percentage >= 90
-                        ? "var(--color-danger)"
-                        : "var(--accent-color)",
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between mt-1.5">
-                <p className="text-[9px] text-txt-muted">
-                  {format_bytes(storage_used_bytes)} {t("common.of")}{" "}
-                  {format_bytes(storage_total_bytes)}
-                </p>
-                <button
-                  className="text-[9px] text-txt-muted transition-colors hover:text-brand hover:underline focus:outline-none"
-                  type="button"
-                  onClick={() => {
-                    on_settings_click("billing");
-                    let attempts = 0;
-                    const scroll_to_addons = () => {
-                      const el = document.getElementById(
-                        "additional_storage_section",
-                      );
-
-                      if (el) {
-                        el.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-
-                        return;
-                      }
-                      attempts += 1;
-                      if (attempts < 20) {
-                        setTimeout(scroll_to_addons, 50);
-                      }
-                    };
-
-                    setTimeout(scroll_to_addons, 60);
-                  }}
-                >
-                  {t("common.buy_more_storage")}
-                </button>
-              </div>
-            </div>
-            ) : (
-              <div className="mb-3">
-                <Skeleton className="h-1.5 w-full rounded-full" />
-              </div>
-            )}
-          </>
+          <StorageMeter
+            className="mb-3"
+            storage_percentage={storage_percentage}
+            storage_total_bytes={storage_total_bytes}
+            storage_used_bytes={storage_used_bytes}
+            on_buy_more={() => {
+              on_settings_click("billing");
+              scroll_to_storage_addons();
+            }}
+          />
         )}
 
         {is_collapsed ? (

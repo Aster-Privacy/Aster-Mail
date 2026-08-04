@@ -315,7 +315,7 @@ export function TopBar({
                 className={`flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none transition-colors hover:bg-[var(--bg-hover)] outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 ${
                   is_free_plan
                     ? ""
-                    : "ring-[1.5px] ring-inset ring-[var(--accent-color)]"
+                    : "ring-2 ring-inset ring-[var(--plan-ring)]"
                 }`}
                 type="button"
                 onClick={close_account_tip}

@@ -65,6 +65,11 @@ import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  StorageMeter,
+  scroll_to_storage_addons,
+} from "@/components/layout/storage_meter";
 import { use_auth } from "@/contexts/auth_context";
 import {
   read_dev_mode_cache,
@@ -268,6 +273,15 @@ function SettingsContentInner({
   const navigate = useNavigate();
   const { preferences } = use_preferences();
   const { current_account_id } = use_auth();
+  const { stats: mail_stats } = use_mail_stats();
+  const storage_percentage = useMemo(() => {
+    const total = mail_stats.storage_total_bytes;
+
+    if (!total || total <= 0) return 0;
+    const used = mail_stats.storage_used_bytes || 0;
+
+    return Math.min(100, Math.max(0, (used / total) * 100));
+  }, [mail_stats.storage_used_bytes, mail_stats.storage_total_bytes]);
   const sidebar_width = Math.min(
     360,
     Math.max(200, preferences.sidebar_width ?? 256),
@@ -961,6 +975,21 @@ function SettingsContentInner({
           )}
         </div>
         </nav>
+        <div className="flex-shrink-0 px-3 pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <StorageMeter
+            storage_percentage={storage_percentage}
+            storage_total_bytes={mail_stats.storage_total_bytes}
+            storage_used_bytes={mail_stats.storage_used_bytes}
+            on_buy_more={
+              is_onion_host()
+                ? undefined
+                : () => {
+                    on_section_change("billing");
+                    scroll_to_storage_addons();
+                  }
+            }
+          />
+        </div>
       </aside>
 
       <div

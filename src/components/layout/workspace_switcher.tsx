@@ -35,6 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { AccountAvatarButton } from "@/components/ui/account_avatar_button";
 import { use_auth } from "@/contexts/auth_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -253,26 +254,15 @@ export function WorkspaceSwitcher({
             style={{ backgroundColor: "var(--bg-hover)" }}
           >
             <div className="flex items-center gap-3.5">
-              <button
-                aria-label={t("auth.change_photo")}
-                className="rounded-full flex-shrink-0 focus:outline-none"
-                title={t("auth.change_photo")}
-                type="button"
-                onClick={open_account_settings}
-              >
-                <ProfileAvatar
-                  className={
-                    is_paid_plan
-                      ? "ring-2 ring-[var(--accent-color)] ring-offset-2 ring-offset-[var(--bg-hover)]"
-                      : ""
-                  }
-                  email={account_email}
-                  image_url={user?.profile_picture}
-                  name={current_display_name}
-                  profile_color={preferences.profile_color}
-                  size="lg"
-                />
-              </button>
+              <AccountAvatarButton
+                email={account_email}
+                image_url={user?.profile_picture}
+                is_paid_plan={is_paid_plan}
+                name={current_display_name}
+                profile_color={preferences.profile_color}
+                ring_offset_color="var(--bg-hover)"
+                size="lg"
+              />
               <div className="flex flex-col min-w-0 flex-1 gap-0.5">
                 <span
                   className="text-[15px] font-semibold leading-tight truncate"
