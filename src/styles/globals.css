@@ -1818,16 +1818,16 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .plan_ring::after {
   content: "";
   position: absolute;
-  inset: -2.5px;
+  inset: -2px;
   border-radius: 9999px;
   padding: 2px;
   background: conic-gradient(
     from 140deg,
-    #38bdf8,
-    #6366f1,
-    #a855f7,
-    #f0abfc,
-    #38bdf8
+    var(--accent-color, #3b82f6),
+    color-mix(in srgb, var(--accent-color, #3b82f6) 45%, #ffffff),
+    var(--accent-color, #3b82f6),
+    color-mix(in srgb, var(--accent-color, #3b82f6) 72%, #000000),
+    var(--accent-color, #3b82f6)
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
