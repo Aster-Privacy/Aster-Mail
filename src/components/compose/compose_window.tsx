@@ -21,6 +21,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import {
+  compose_shell_mode,
+  shows_expanded_backdrop,
+} from "@/components/compose/compose_shell_mode";
 import { CloseIcon } from "@/components/common/icons";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
@@ -81,6 +85,8 @@ export function ComposeWindow({
     () => (preferences.compose_window_mode ?? "default") === "fullscreen",
   );
 
+  const shell_mode = compose_shell_mode(is_minimized, is_expanded);
+
   const [resize_state, set_resize_state] = useState<{
     width: number;
     height: number;
@@ -97,7 +103,7 @@ export function ComposeWindow({
     position,
     did_drag,
     reset: reset_drag_position,
-  } = use_draggable_modal(!is_minimized && !is_expanded, {
+  } = use_draggable_modal(shell_mode === "docked", {
     width: is_minimized ? WINDOW_WIDTH_MINIMIZED : effective_width,
     height: effective_height,
   });
@@ -234,7 +240,7 @@ export function ComposeWindow({
       : t("mail.new_message"));
 
   const is_mobile_fullscreen =
-    !is_expanded && !is_minimized && window.innerWidth < 640;
+    shell_mode === "docked" && window.innerWidth < 640;
 
   return (
     <>
@@ -246,7 +252,7 @@ export function ComposeWindow({
         />
       )}
       <AnimatePresence>
-        {is_expanded && (
+        {shows_expanded_backdrop(is_minimized, is_expanded) && (
           <motion.div
             key="compose-backdrop"
             animate={{ opacity: 1 }}
@@ -260,24 +266,24 @@ export function ComposeWindow({
       </AnimatePresence>
       <div
         className={`flex flex-col shadow-2xl border overflow-hidden bg-modal-bg border-edge-primary ${
-          is_expanded
-            ? "fixed inset-4 z-50 rounded-lg"
-            : is_minimized
-              ? "rounded-t-lg"
+          shell_mode === "minimized"
+            ? "rounded-t-lg"
+            : shell_mode === "expanded"
+              ? "fixed inset-4 z-50 rounded-lg"
               : has_been_moved || resize_state
                 ? "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-lg"
                 : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-lg"
-        } ${(has_been_moved || resize_state) && !is_expanded && !is_minimized ? "sm:!fixed sm:!z-50" : ""}`}
+        } ${(has_been_moved || resize_state) && shell_mode === "docked" ? "sm:!fixed sm:!z-50" : ""}`}
         style={{
-          ...(is_expanded
-            ? { width: "auto", height: "auto" }
-            : is_minimized
-              ? {
-                  width: WINDOW_WIDTH_MINIMIZED,
-                  height: "auto",
-                  minWidth: WINDOW_WIDTH_MINIMIZED,
-                  maxWidth: WINDOW_WIDTH_MINIMIZED,
-                }
+          ...(shell_mode === "minimized"
+            ? {
+                width: WINDOW_WIDTH_MINIMIZED,
+                height: "auto",
+                minWidth: WINDOW_WIDTH_MINIMIZED,
+                maxWidth: WINDOW_WIDTH_MINIMIZED,
+              }
+            : shell_mode === "expanded"
+              ? { width: "auto", height: "auto" }
               : window.innerWidth < 640
                 ? {}
                 : {
@@ -286,7 +292,7 @@ export function ComposeWindow({
                     minWidth: RESIZE_MIN_WIDTH,
                     maxWidth: window.innerWidth - 48,
                   }),
-          ...(!is_expanded && !is_minimized && window.innerWidth >= 640
+          ...(shell_mode === "docked" && window.innerWidth >= 640
             ? has_been_moved
               ? resize_state && resize_anchor_right_ref.current !== null
                 ? {
@@ -482,7 +488,7 @@ export function ComposeWindow({
             variant="warning"
           />
         </ErrorBoundary>
-        {!is_minimized && !is_expanded && (
+        {shell_mode === "docked" && (
           <div
             aria-label={t("mail.resize_compose")}
             className="hidden sm:block absolute bottom-0 left-0 w-4 h-4 cursor-nesw-resize z-10 touch-none"

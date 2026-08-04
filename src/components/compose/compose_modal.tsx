@@ -21,6 +21,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import {
+  compose_shell_mode,
+  shows_expanded_backdrop,
+} from "@/components/compose/compose_shell_mode";
 import { CloseIcon } from "@/components/common/icons";
 import { ComposeAttachments } from "@/components/compose/compose_attachments";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -119,7 +123,7 @@ export function ComposeModal({
             onClick={compose.handle_close}
           />
           <AnimatePresence>
-            {is_expanded && (
+            {shows_expanded_backdrop(is_minimized, is_expanded) && (
               <motion.div
                 key="compose-backdrop"
                 animate={{ opacity: 1 }}
@@ -134,9 +138,9 @@ export function ComposeModal({
             key="compose-modal"
             animate={{ opacity: 1, y: 0 }}
             className={`fixed z-50 flex flex-col shadow-2xl sm:border bg-modal-bg border-edge-primary ${
-              is_minimized
+              compose_shell_mode(is_minimized, is_expanded) === "minimized"
                 ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
-                : is_expanded
+                : compose_shell_mode(is_minimized, is_expanded) === "expanded"
                   ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
                   : "inset-0 sm:inset-auto sm:bottom-auto sm:left-auto sm:right-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
             }`}
