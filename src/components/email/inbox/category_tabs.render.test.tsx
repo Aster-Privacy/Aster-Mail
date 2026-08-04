@@ -201,9 +201,11 @@ describe("CategoryTabs", () => {
     const classes_of = (tab: HTMLButtonElement) => tab.className.split(" ");
 
     for (const tab of [with_preview, without_preview]) {
-      expect(classes_of(tab)).toContain("h-[58px]");
+      expect(classes_of(tab)).toContain("h-[52px]");
       expect(classes_of(tab)).toContain("items-center");
-      expect(tab.querySelector("span.h-\\[14px\\]")).toBeTruthy();
     }
+
+    expect(with_preview.querySelector("span.h-\\[13px\\]")).toBeTruthy();
+    expect(without_preview.querySelector("span.h-\\[13px\\]")).toBeNull();
   });
 });

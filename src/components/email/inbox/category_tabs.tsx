@@ -136,7 +136,7 @@ export function CategoryTabs({
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex h-[58px] shrink-0 items-center gap-2.5 whitespace-nowrap px-4 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-5 ${
+            className={`group relative flex h-[52px] shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[13.5px] font-medium outline-none transition-colors duration-150 sm:px-4 ${
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
@@ -152,8 +152,8 @@ export function CategoryTabs({
                   : "text-txt-muted group-hover:text-txt-secondary"
               }`}
             />
-            <span className="relative flex flex-col items-start gap-[2px]">
-              <span className="flex items-center gap-2.5 leading-[18px]">
+            <span className="relative flex flex-col items-center gap-[1px]">
+              <span className="flex items-center gap-2 leading-[18px]">
                 <span>{label}</span>
                 {show_new ? (
                   <span className="aster_cat_badge">
@@ -165,11 +165,13 @@ export function CategoryTabs({
                   </span>
                 ) : null}
               </span>
-              <span className="block h-[14px] w-full">
-                <span className="pointer-events-none absolute inset-x-0 bottom-0 block truncate text-start text-[12px] font-normal leading-[14px] text-txt-muted">
-                  {preview ?? ""}
+              {preview ? (
+                <span className="block h-[13px] w-full">
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 block truncate text-center text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                    {preview}
+                  </span>
                 </span>
-              </span>
+              ) : null}
             </span>
 
             {is_active && (
