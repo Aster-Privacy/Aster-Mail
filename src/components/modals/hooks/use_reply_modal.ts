@@ -46,6 +46,11 @@ import {
   resolve_own_recipient_address,
 } from "@/components/email/build_reply_from_address";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
+import {
+  can_acquire_send_lock,
+  is_repeat_send,
+  SEND_LOCK_STALL_MS,
+} from "@/components/compose/send_lock";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
@@ -270,9 +275,23 @@ export function use_reply_modal({
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
   const is_sending_ref = useRef(false);
+  const send_lock_started_at_ref = useRef(0);
   const last_send_time_ref = useRef<number>(0);
   const content_initialized_ref = useRef(false);
   const initial_content_ref = useRef<string>("");
+
+  useEffect(() => {
+    if (!is_sending) return;
+
+    const timer = window.setTimeout(() => {
+      is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
+      last_send_time_ref.current = 0;
+      set_is_sending(false);
+    }, SEND_LOCK_STALL_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [is_sending]);
 
   const reply_message_ref = useRef("");
   const save_draft_fn_ref = useRef<(text: string) => Promise<void>>(
@@ -643,6 +662,7 @@ export function use_reply_modal({
         : null;
 
     is_sending_ref.current = false;
+    send_lock_started_at_ref.current = 0;
     set_is_sending(false);
     set_error_message(null);
     set_attachments([]);
@@ -962,8 +982,24 @@ export function use_reply_modal({
   }, [received_on_address, selected_sender]);
 
   const handle_send = useCallback(async () => {
-    if (is_sending_ref.current) return;
-    if (!reply_message.trim() || is_sending) return;
+    const now = Date.now();
+
+    if (
+      !can_acquire_send_lock(
+        {
+          held: is_sending_ref.current,
+          started_at: send_lock_started_at_ref.current,
+        },
+        now,
+      )
+    )
+      return;
+
+    if (!reply_message.trim()) {
+      set_error_message(t("common.empty_body_error"));
+
+      return;
+    }
 
     if (reply_from_mismatch()) {
       pending_send_kind_ref.current = "send";
@@ -973,9 +1009,7 @@ export function use_reply_modal({
     }
     from_mismatch_ack_ref.current = false;
 
-    const now = Date.now();
-
-    if (now - last_send_time_ref.current < 2000) return;
+    if (is_repeat_send(last_send_time_ref.current, now)) return;
 
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
@@ -991,6 +1025,7 @@ export function use_reply_modal({
     }
 
     is_sending_ref.current = true;
+    send_lock_started_at_ref.current = now;
     last_send_time_ref.current = now;
     set_error_message(null);
     set_is_sending(true);
@@ -1036,10 +1071,17 @@ export function use_reply_modal({
         subject,
         message_with_signature,
         external_attachments,
-      );
+      ).catch((error: unknown) => ({
+        error:
+          error instanceof Error
+            ? error.message
+            : t("common.failed_to_send_reply"),
+      }));
 
       if (ext_result.error) {
         is_sending_ref.current = false;
+        send_lock_started_at_ref.current = 0;
+        last_send_time_ref.current = 0;
         set_error_message(ext_result.error);
         set_is_sending(false);
 
@@ -1047,6 +1089,7 @@ export function use_reply_modal({
       }
 
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
       show_toast(t("common.email_sent_via_external"), "success");
       window.dispatchEvent(new CustomEvent("astermail:email-sent"));
 
@@ -1104,6 +1147,8 @@ export function use_reply_modal({
       {
         on_complete: () => {
           is_sending_ref.current = false;
+          send_lock_started_at_ref.current = 0;
+          set_is_sending(false);
           window.dispatchEvent(new CustomEvent("astermail:email-sent"));
           show_action_toast({
             message: t("common.email_sent"),
@@ -1129,6 +1174,9 @@ export function use_reply_modal({
         },
         on_cancel: () => {
           is_sending_ref.current = false;
+          send_lock_started_at_ref.current = 0;
+          set_is_sending(false);
+          last_send_time_ref.current = 0;
           if (optimistic_id_ref.current && pending_thread_token_ref.current) {
             emit_thread_reply_cancelled({
               optimistic_id: optimistic_id_ref.current,
@@ -1140,6 +1188,7 @@ export function use_reply_modal({
         },
         on_error: (error) => {
           is_sending_ref.current = false;
+          send_lock_started_at_ref.current = 0;
           if (optimistic_id_ref.current && pending_thread_token_ref.current) {
             emit_thread_reply_cancelled({
               optimistic_id: optimistic_id_ref.current,
@@ -1149,11 +1198,21 @@ export function use_reply_modal({
           optimistic_id_ref.current = null;
           set_error_message(error);
           set_is_sending(false);
+          last_send_time_ref.current = 0;
           pending_thread_token_ref.current = null;
         },
       },
       preferences.undo_send_period,
-    );
+    ).catch((error: unknown) => ({
+      success: false as const,
+      error:
+        error instanceof Error
+          ? error.message
+          : t("common.failed_to_send_reply"),
+      queued_id: undefined,
+      thread_token: undefined,
+      is_server_queued: undefined,
+    }));
 
     if (result.success && result.queued_id) {
       pending_thread_token_ref.current = result.thread_token || null;
@@ -1231,8 +1290,10 @@ export function use_reply_modal({
       on_close();
     } else if (!result.success) {
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
       set_error_message(result.error || t("common.failed_to_send_reply"));
       set_is_sending(false);
+      last_send_time_ref.current = 0;
     }
   }, [
     t,
@@ -1327,6 +1388,7 @@ export function use_reply_modal({
         set_error_message(response.error);
         set_is_scheduling(false);
         is_sending_ref.current = false;
+        send_lock_started_at_ref.current = 0;
 
         return;
       }
@@ -1352,6 +1414,7 @@ export function use_reply_modal({
     } finally {
       set_is_scheduling(false);
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
     }
   }, [
     t,

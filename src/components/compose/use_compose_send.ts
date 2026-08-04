@@ -23,6 +23,10 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 
 import { useState, useRef, useCallback } from "react";
 
+import {
+  can_acquire_send_lock,
+  is_repeat_send,
+} from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -126,11 +130,11 @@ export function use_compose_send({
   const [pgp_override, set_pgp_override] = useState<boolean | null>(null);
   const pgp_enabled = pgp_override ?? preferences.encrypt_emails;
   const toggle_pgp = useCallback(
-    () =>
-      set_pgp_override((prev) => !(prev ?? preferences.encrypt_emails)),
+    () => set_pgp_override((prev) => !(prev ?? preferences.encrypt_emails)),
     [preferences.encrypt_emails],
   );
   const last_send_time_ref = useRef<number>(0);
+  const send_lock_started_at_ref = useRef(0);
 
   const log_activities = useCallback(
     (recipients: string[], subject: string) => {
@@ -192,7 +196,17 @@ export function use_compose_send({
   );
 
   const handle_send = useCallback(async () => {
-    if (is_sending_ref.current) return;
+    if (
+      !can_acquire_send_lock(
+        {
+          held: is_sending_ref.current,
+          started_at: send_lock_started_at_ref.current,
+        },
+        Date.now(),
+      )
+    )
+      return;
+
     if (recipients.to.length === 0 || !user) return;
 
     const stripped_body = (() => {
@@ -221,9 +235,10 @@ export function use_compose_send({
 
     const now = Date.now();
 
-    if (now - last_send_time_ref.current < 2000) return;
+    if (is_repeat_send(last_send_time_ref.current, now)) return;
 
     is_sending_ref.current = true;
+    send_lock_started_at_ref.current = now;
     set_is_sending(true);
     last_send_time_ref.current = now;
 
@@ -302,8 +317,10 @@ export function use_compose_send({
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           show_toast(t("common.failed_to_queue_offline"), "error");
+          last_send_time_ref.current = 0;
         } finally {
           is_sending_ref.current = false;
+          send_lock_started_at_ref.current = 0;
           set_is_sending(false);
         }
 
@@ -434,8 +451,10 @@ export function use_compose_send({
           : t("common.failed_to_send_email"),
         "error",
       );
+      last_send_time_ref.current = 0;
     } finally {
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
       set_is_sending(false);
     }
   }, [
@@ -473,6 +492,7 @@ export function use_compose_send({
     }
 
     is_sending_ref.current = true;
+    send_lock_started_at_ref.current = Date.now();
     set_is_scheduling(true);
 
     if (save_timer_ref.current) {
@@ -505,6 +525,7 @@ export function use_compose_send({
         show_toast(response.error, "error");
         set_is_scheduling(false);
         is_sending_ref.current = false;
+        send_lock_started_at_ref.current = 0;
 
         return;
       }
@@ -536,6 +557,7 @@ export function use_compose_send({
     } finally {
       set_is_scheduling(false);
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
     }
   }, [
     recipients,

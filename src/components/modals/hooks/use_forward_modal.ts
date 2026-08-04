@@ -36,6 +36,10 @@ import { undo_send_manager } from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
 import { send_forward, type OriginalEmail } from "@/services/mail_actions";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
+import {
+  can_acquire_send_lock,
+  SEND_LOCK_STALL_MS,
+} from "@/components/compose/send_lock";
 import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_auth } from "@/contexts/auth_context";
@@ -248,7 +252,8 @@ export function use_forward_modal({
     !!my_badge_prefs?.active_badge_slug;
   const active_badge =
     include_badge_signature && my_badge_prefs?.active_badge_slug
-      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      ? (badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ??
+        null)
       : null;
 
   useEffect(() => {
@@ -303,8 +308,22 @@ export function use_forward_modal({
   const file_input_ref = useRef<HTMLInputElement>(null);
   const attachments_scroll_ref = useRef<HTMLDivElement>(null);
   const is_sending_ref = useRef(false);
+  const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
   const content_initialized_ref = useRef(false);
+
+  useEffect(() => {
+    if (!is_sending) return;
+
+    const timer = window.setTimeout(() => {
+      is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
+      set_is_sending(false);
+    }, SEND_LOCK_STALL_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [is_sending]);
+
   const effective_mail_id = original_mail_id || get_forward_mail_id();
   const original_mail_id_ref = useRef(effective_mail_id);
 
@@ -410,6 +429,7 @@ export function use_forward_modal({
       set_is_forward_visible(false);
       set_is_plain_text_mode(false);
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
       content_initialized_ref.current = false;
       forward_content_ref.current = "";
     } else {
@@ -619,11 +639,27 @@ export function use_forward_modal({
   }, []);
 
   const handle_forward = useCallback(async () => {
-    if (is_sending_ref.current) return;
-    if (recipients.to.length === 0 || is_sending || is_loading_attachments)
+    if (
+      !can_acquire_send_lock(
+        {
+          held: is_sending_ref.current,
+          started_at: send_lock_started_at_ref.current,
+        },
+        Date.now(),
+      )
+    )
       return;
 
+    if (recipients.to.length === 0) {
+      set_error_message(t("errors.no_recipients"));
+
+      return;
+    }
+
+    if (is_loading_attachments) return;
+
     is_sending_ref.current = true;
+    send_lock_started_at_ref.current = Date.now();
     set_error_message(null);
     set_is_sending(true);
 
@@ -658,10 +694,16 @@ export function use_forward_modal({
         subject,
         ext_body,
         external_attachments,
-      );
+      ).catch((error: unknown) => ({
+        error:
+          error instanceof Error
+            ? error.message
+            : t("common.failed_to_send_email"),
+      }));
 
       if (ext_result.error) {
         is_sending_ref.current = false;
+        send_lock_started_at_ref.current = 0;
         set_error_message(ext_result.error);
         set_is_sending(false);
 
@@ -669,6 +711,7 @@ export function use_forward_modal({
       }
 
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
       show_toast(t("common.email_sent"), "success");
       on_close();
 
@@ -707,7 +750,9 @@ export function use_forward_modal({
     const fwd_mail_id =
       original_mail_id_ref.current || original_mail_id || store_mail_id;
     const loaded_attachments =
-      attachments_ref.current.length > 0 ? attachments_ref.current : attachments;
+      attachments_ref.current.length > 0
+        ? attachments_ref.current
+        : attachments;
     const remaining_attachments = loaded_attachments.filter(
       (att) => !embedded_attachment_ids.has(att.id),
     );
@@ -732,6 +777,8 @@ export function use_forward_modal({
       {
         on_complete: () => {
           is_sending_ref.current = false;
+          send_lock_started_at_ref.current = 0;
+          set_is_sending(false);
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent("astermail:email-sent"));
           }, 100);
@@ -741,22 +788,34 @@ export function use_forward_modal({
             email_ids: [],
             duration_ms: 5000,
             on_view_message: () => {
-              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+              window.dispatchEvent(
+                new CustomEvent("astermail:navigate-to-sent"),
+              );
             },
           });
         },
         on_cancel: () => {
           is_sending_ref.current = false;
+          send_lock_started_at_ref.current = 0;
+          set_is_sending(false);
         },
         on_error: (error) => {
           is_sending_ref.current = false;
+          send_lock_started_at_ref.current = 0;
           set_error_message(error);
           set_is_sending(false);
         },
       },
       preferences.undo_send_period,
       preferences.show_aster_branding,
-    );
+    ).catch((error: unknown) => ({
+      success: false as const,
+      error:
+        error instanceof Error
+          ? error.message
+          : t("common.failed_to_send_email"),
+      queued_id: undefined,
+    }));
 
     if (result.success && result.queued_id) {
       if (delay_seconds > 0) {
@@ -769,13 +828,16 @@ export function use_forward_modal({
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
           is_server_queued: result.is_server_queued,
-          server_queue_id: result.is_server_queued ? result.queued_id : undefined,
+          server_queue_id: result.is_server_queued
+            ? result.queued_id
+            : undefined,
         });
       }
 
       on_close();
     } else if (!result.success) {
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
       set_error_message(result.error || t("common.failed_to_forward"));
       set_is_sending(false);
     }
@@ -843,6 +905,7 @@ export function use_forward_modal({
         set_error_message(response.error);
         set_is_scheduling(false);
         is_sending_ref.current = false;
+        send_lock_started_at_ref.current = 0;
 
         return;
       }
@@ -859,6 +922,7 @@ export function use_forward_modal({
     } finally {
       set_is_scheduling(false);
       is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
     }
   }, [
     t,
@@ -917,7 +981,9 @@ export function use_forward_modal({
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
 
@@ -935,7 +1001,9 @@ export function use_forward_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
+          set_attachment_error(
+            t("common.failed_to_read_named_file", { name: file.name }),
+          );
         }
       }
 
@@ -977,7 +1045,9 @@ export function use_forward_modal({
         const exists = attachments.some((a) => a.name === file.name);
 
         if (exists) {
-          set_attachment_error(t("common.file_already_attached", { name: file.name }));
+          set_attachment_error(
+            t("common.file_already_attached", { name: file.name }),
+          );
           continue;
         }
 
@@ -995,7 +1065,9 @@ export function use_forward_modal({
           running_total += file.size;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(t("common.failed_to_read_named_file", { name: file.name }));
+          set_attachment_error(
+            t("common.failed_to_read_named_file", { name: file.name }),
+          );
         }
       }
 
