@@ -30,6 +30,8 @@ const listeners = new Set<() => void>();
 vi.mock("@/services/category_index", () => ({
   get_new_heads: () => heads,
   get_index_generation: () => generation,
+  get_entry_preview: () => undefined,
+  get_preview_version: () => 1,
   get_version: () => 1,
   subscribe: () => () => {},
 }));

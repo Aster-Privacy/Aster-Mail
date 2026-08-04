@@ -47,6 +47,10 @@ import {
 } from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
 import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
+import {
+  build_category_preview,
+  type CategoryPreview,
+} from "@/lib/category_preview_text";
 
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
@@ -308,7 +312,9 @@ async function persist_now(): Promise<void> {
     if (writing.length > 0) {
       const slot_by_chunk = new Map<number, number>();
 
-      writing.forEach((chunk_index, slot) => slot_by_chunk.set(chunk_index, slot));
+      writing.forEach((chunk_index, slot) =>
+        slot_by_chunk.set(chunk_index, slot),
+      );
 
       for (const entry of entries_map.values()) {
         const slot = slot_by_chunk.get(chunk_of(entry.id));
@@ -354,7 +360,8 @@ async function persist_now(): Promise<void> {
       dirty_chunks.add(chunk_index);
     }
 
-    const is_quota = e instanceof DOMException && e.name === "QuotaExceededError";
+    const is_quota =
+      e instanceof DOMException && e.name === "QuotaExceededError";
 
     console.warn(
       `category_index: failed to persist index${is_quota ? " (quota exceeded)" : ""}`,
@@ -506,6 +513,7 @@ async function ensure_loaded(): Promise<boolean> {
     try {
       build_token += 1;
       index_generation += 1;
+      clear_entry_previews();
       active_account_id = account_id;
       entries_map = new Map();
       dirty_chunks.clear();
@@ -601,6 +609,48 @@ export function get_index_generation(): number {
   return index_generation;
 }
 
+const MAX_ENTRY_PREVIEWS = 300;
+
+const entry_previews = new Map<string, CategoryPreview>();
+let preview_version = 0;
+
+function remember_entry_preview(id: string, preview: CategoryPreview): void {
+  const existing = entry_previews.get(id);
+
+  entry_previews.delete(id);
+  entry_previews.set(id, preview);
+
+  while (entry_previews.size > MAX_ENTRY_PREVIEWS) {
+    const oldest = entry_previews.keys().next().value;
+
+    if (!oldest) break;
+    entry_previews.delete(oldest);
+  }
+
+  if (
+    existing?.sender === preview.sender &&
+    existing?.subject === preview.subject
+  ) {
+    return;
+  }
+
+  preview_version += 1;
+  notify();
+}
+
+export function get_entry_preview(id: string): CategoryPreview | undefined {
+  return entry_previews.get(id);
+}
+
+export function get_preview_version(): number {
+  return preview_version;
+}
+
+export function clear_entry_previews(): void {
+  entry_previews.clear();
+  preview_version += 1;
+}
+
 export function upsert_entries(
   incoming: CategoryIndexEntry[],
   generation?: number,
@@ -675,6 +725,27 @@ export function remove_thread_entries(thread_token: string): string[] {
   }
 
   return removed;
+}
+
+const suppressed_ids = new Set<string>();
+
+export function suppress_ids(ids: string[]): void {
+  let changed = false;
+
+  for (const id of ids) {
+    if (!entries_map.has(id)) continue;
+    if (suppressed_ids.has(id)) continue;
+    suppressed_ids.add(id);
+    changed = true;
+  }
+
+  if (changed) notify();
+}
+
+export function clear_suppressed_ids(): void {
+  if (suppressed_ids.size === 0) return;
+  suppressed_ids.clear();
+  notify();
 }
 
 export function remove_ids(ids: string[]): void {
@@ -756,6 +827,7 @@ function compute_derived(): DerivedData {
   let earliest_wake = 0;
 
   for (const entry of entries_map.values()) {
+    if (suppressed_ids.has(entry.id)) continue;
     if (entry.snoozed_until) {
       const wake = safe_ts(entry.snoozed_until);
 
@@ -818,10 +890,7 @@ function compute_derived(): DerivedData {
     if (rep.any_unread) {
       bucket.unread += 1;
       unread_reps.add(rep.entry.id);
-      if (
-        rep.ts > (seen_ts[tab] ?? 0) &&
-        rep.ts <= wall + FUTURE_NEW_SKEW_MS
-      ) {
+      if (rep.ts > (seen_ts[tab] ?? 0) && rep.ts <= wall + FUTURE_NEW_SKEW_MS) {
         bucket.new_count += 1;
         if (rep.ts > (new_head_ts.get(tab) ?? 0)) {
           new_head_ts.set(tab, rep.ts);
@@ -1141,6 +1210,15 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       ? item.snoozed_until
       : undefined;
 
+  remember_entry_preview(
+    item.id,
+    build_category_preview(
+      envelope.from?.name,
+      envelope.from?.email,
+      envelope.subject,
+    ),
+  );
+
   return {
     kind: "upsert",
     entry: {
@@ -1175,7 +1253,10 @@ async function entries_from_items(
   items: MailItem[],
 ): Promise<{ upserts: CategoryIndexEntry[]; removals: string[] }> {
   const results = await Promise.allSettled(
-    items.map(async (item) => ({ id: item.id, result: await item_to_entry(item) })),
+    items.map(async (item) => ({
+      id: item.id,
+      result: await item_to_entry(item),
+    })),
   );
   const upserts: CategoryIndexEntry[] = [];
   const removals: string[] = [];
@@ -1296,10 +1377,7 @@ export async function build_index(options?: {
     if (reached_end) {
       for (const [id, entry] of Array.from(entries_map.entries())) {
         if (!seen.has(id) && prebuild_ids.has(id)) {
-          if (
-            entry.snoozed_until &&
-            safe_ts(entry.snoozed_until) > now_ms()
-          ) {
+          if (entry.snoozed_until && safe_ts(entry.snoozed_until) > now_ms()) {
             continue;
           }
           entries_map.delete(id);
@@ -1370,7 +1448,9 @@ export async function sync_recent(notify_new = false): Promise<void> {
     if (newly_received_ids.length > 0) {
       for (const id of newly_received_ids) {
         window.dispatchEvent(
-          new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, { detail: { email_id: id } }),
+          new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, {
+            detail: { email_id: id },
+          }),
         );
       }
     }
@@ -1595,9 +1675,7 @@ async function reclassify_many(ids: string[]): Promise<void> {
       const gone = chunk.filter(
         (id) => !returned.has(id) && entries_map.has(id),
       );
-      const received_items = items.filter(
-        (it) => it.item_type === "received",
-      );
+      const received_items = items.filter((it) => it.item_type === "received");
       const non_received = items
         .filter((it) => it.item_type !== "received")
         .map((it) => it.id)
@@ -1666,6 +1744,7 @@ export function clear_category_index_memory(): void {
 
   build_token += 1;
   index_generation += 1;
+  clear_entry_previews();
   build_in_progress = false;
   build_capped = false;
   resync_failures = 0;
@@ -1677,6 +1756,7 @@ export function clear_category_index_memory(): void {
   seen_ts = {};
   fully_built = false;
   last_build_ms = 0;
+  suppressed_ids.clear();
   loaded_for_account = null;
   active_account_id = null;
   ensure_loaded_promise = null;
@@ -1894,6 +1974,7 @@ export async function clear_category_index(): Promise<void> {
 
   build_token += 1;
   index_generation += 1;
+  clear_entry_previews();
   entries_map = new Map();
   recently_read.clear();
   sibling_verify_at.clear();
@@ -1903,6 +1984,7 @@ export async function clear_category_index(): Promise<void> {
   resync_failures = 0;
   last_build_ms = 0;
   seen_ts = {};
+  suppressed_ids.clear();
   loaded_for_account = null;
   active_account_id = null;
   ensure_loaded_promise = null;

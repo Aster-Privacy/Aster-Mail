@@ -121,7 +121,7 @@ export function CategoryTabs({
 
   return (
     <div
-      className="aster_scrollbar_thin group/tabs relative flex shrink-0 items-stretch gap-1 overflow-x-auto overflow-y-hidden border-b border-edge-primary bg-surf-primary px-2 sm:px-3"
+      className="aster_scrollbar_thin group/tabs relative flex shrink-0 select-none items-stretch gap-1 overflow-x-auto overflow-y-hidden border-b border-edge-primary bg-surf-primary px-2 sm:px-3"
       onWheel={handle_wheel}
     >
       {tabs.map(({ key, label, Icon, color_style }) => {
@@ -152,7 +152,7 @@ export function CategoryTabs({
                   : "text-txt-muted group-hover:text-txt-secondary"
               }`}
             />
-            <span className="flex flex-col items-start gap-[2px]">
+            <span className="relative flex flex-col items-start gap-[2px] sm:min-w-[164px]">
               <span className="flex items-center gap-2.5 leading-[18px]">
                 <span>{label}</span>
                 {show_new ? (
@@ -165,15 +165,17 @@ export function CategoryTabs({
                   </span>
                 ) : null}
               </span>
-              <span className="block h-[14px] max-w-[230px] truncate text-start text-[12px] font-normal leading-[14px] text-txt-muted">
-                {preview ? (
-                  <>
-                    <span className="font-medium text-txt-secondary">
-                      {preview.sender}
-                    </span>
-                    {preview.subject ? ` - ${preview.subject}` : ""}
-                  </>
-                ) : null}
+              <span className="block h-[14px] w-full">
+                <span className="absolute inset-x-0 bottom-0 block truncate text-start text-[12px] font-normal leading-[14px] text-txt-muted">
+                  {preview ? (
+                    <>
+                      <span className="font-medium text-txt-secondary">
+                        {preview.sender}
+                      </span>
+                      {preview.subject ? ` - ${preview.subject}` : ""}
+                    </>
+                  ) : null}
+                </span>
               </span>
             </span>
             {is_active && (
