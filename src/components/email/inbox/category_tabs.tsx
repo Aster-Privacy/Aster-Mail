@@ -145,31 +145,37 @@ export function CategoryTabs({
             type="button"
             onClick={() => on_change(key)}
           >
-            <Icon
-              className={`h-5 w-5 shrink-0 ${
-                is_active
-                  ? "text-brand"
-                  : "text-txt-muted group-hover:text-txt-secondary"
-              }`}
-            />
-            <span className="relative flex flex-col items-center">
-              <span className="flex items-center gap-2 leading-[18px]">
-                <span>{label}</span>
-                {show_new ? (
-                  <span className="aster_cat_badge">
-                    {format_count(new_count)} {t("mail.tab_new_count")}
-                  </span>
-                ) : unread > 0 ? (
-                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
-                    {format_count(unread)}
-                  </span>
-                ) : null}
-              </span>
-              {preview ? (
-                <span className="pointer-events-none absolute inset-x-0 top-full -mt-px block truncate text-center text-[11px] font-normal leading-[12px] text-txt-muted">
-                  {preview}
+            <span className="flex items-start gap-2.5">
+              <Icon
+                className={`h-5 w-5 shrink-0 ${
+                  is_active
+                    ? "text-brand"
+                    : "text-txt-muted group-hover:text-txt-secondary"
+                }`}
+              />
+              <span className="flex min-w-0 flex-col items-start gap-[3px]">
+                <span className="flex h-5 items-center gap-2">
+                  <span>{label}</span>
+                  {show_new ? (
+                    <span className="aster_cat_badge">
+                      {format_count(new_count)} {t("mail.tab_new_count")}
+                    </span>
+                  ) : unread > 0 ? (
+                    <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
+                      {format_count(unread)}
+                    </span>
+                  ) : null}
                 </span>
-              ) : null}
+                <span className="block h-[13px] w-full">
+                  {preview ? (
+                    <span className="block w-[168px] max-w-[168px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                      {preview.subject
+                        ? `${preview.sender} - ${preview.subject}`
+                        : preview.sender}
+                    </span>
+                  ) : null}
+                </span>
+              </span>
             </span>
 
             {is_active && (

@@ -43,7 +43,7 @@ vi.mock("@/hooks/use_plan_limits", () => ({
 
 vi.mock("@/hooks/use_category_previews", () => ({
   use_category_previews: () => ({
-    promotions: "Paybis Team",
+    promotions: { sender: "Paybis Team", subject: "Get 20% off this week" },
   }),
 }));
 
@@ -205,7 +205,11 @@ describe("CategoryTabs", () => {
       expect(classes_of(tab)).toContain("items-center");
     }
 
-    expect(with_preview.querySelector("span.top-full")).toBeTruthy();
-    expect(without_preview.querySelector("span.top-full")).toBeNull();
+    for (const tab of [with_preview, without_preview]) {
+      expect(tab.querySelector("span.h-\\[13px\\]")).toBeTruthy();
+    }
+
+    expect(with_preview.querySelector("span.w-\\[168px\\]")).toBeTruthy();
+    expect(without_preview.querySelector("span.w-\\[168px\\]")).toBeNull();
   });
 });

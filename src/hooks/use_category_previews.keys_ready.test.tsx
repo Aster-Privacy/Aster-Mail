@@ -78,7 +78,7 @@ function render_probe(): HTMLDivElement {
   function Probe() {
     const previews = use_category_previews(true);
 
-    return <span>{previews.promotions ?? "none"}</span>;
+    return <span>{previews.promotions?.sender ?? "none"}</span>;
   }
 
   act(() => {

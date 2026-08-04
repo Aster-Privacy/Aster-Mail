@@ -46,7 +46,7 @@ export {
   preview_sender_label,
 } from "@/lib/category_preview_text";
 
-export type CategoryPreviews = Partial<Record<EmailCategory, string>>;
+export type CategoryPreviews = Partial<Record<EmailCategory, CategoryPreview>>;
 
 const MAX_PREVIEW_FETCH = 12;
 const MAX_CACHE_ENTRIES = 120;
@@ -196,10 +196,10 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
 
     for (const [category, ids] of heads) {
       for (const id of ids) {
-        const sender = resolve_preview(id)?.sender?.trim();
+        const preview = resolve_preview(id);
 
-        if (!sender) continue;
-        result[category] = sender;
+        if (!preview?.sender) continue;
+        result[category] = preview;
         break;
       }
     }
