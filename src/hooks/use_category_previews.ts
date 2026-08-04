@@ -28,7 +28,7 @@ import {
   get_version,
   subscribe,
 } from "@/services/category_index";
-import { has_vault_in_memory } from "@/services/crypto/memory_key_store";
+import { are_keys_ready, on_keys_ready } from "@/services/crypto/memory_key_store";
 import { list_mail_items } from "@/services/api/mail";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
 
@@ -107,6 +107,13 @@ function is_exhausted(id: string): boolean {
 export function use_category_previews(enabled: boolean): CategoryPreviews {
   const version = useSyncExternalStore(subscribe, get_version, get_version);
   const [tick, set_tick] = useState(0);
+  const [keys_ready, set_keys_ready] = useState(are_keys_ready);
+
+  useEffect(() => {
+    if (!enabled || keys_ready) return;
+
+    return on_keys_ready(() => set_keys_ready(true));
+  }, [enabled, keys_ready]);
 
   const heads = useMemo(
     () => (enabled ? get_new_heads() : EMPTY_HEADS),
@@ -117,7 +124,7 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
   useEffect(() => {
     if (!enabled) return;
     if (heads.size === 0) return;
-    if (!has_vault_in_memory()) return;
+    if (!keys_ready) return;
 
     reset_if_stale();
 
@@ -173,7 +180,7 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
     return () => {
       cancelled = true;
     };
-  }, [enabled, heads]);
+  }, [enabled, heads, keys_ready]);
 
   return useMemo(() => {
     const result: CategoryPreviews = {};
