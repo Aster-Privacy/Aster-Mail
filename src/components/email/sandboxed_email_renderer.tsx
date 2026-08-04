@@ -187,6 +187,22 @@ export function link_ink_for(value: string): string {
   return hex;
 }
 
+export const FIT_SLACK_PX = 4;
+const MIN_FIT_ZOOM = 0.35;
+
+export function fit_zoom_for(
+  natural_width: number,
+  available_width: number,
+  base_zoom: number,
+): number {
+  if (!(natural_width > 0) || !(available_width > 0)) return base_zoom;
+  if (natural_width <= available_width + FIT_SLACK_PX) return base_zoom;
+
+  const needed = available_width / natural_width;
+
+  return Math.round(Math.max(MIN_FIT_ZOOM, Math.min(base_zoom, needed)) * 1000) / 1000;
+}
+
 const IFRAME_HEIGHT_CACHE_LIMIT = 300;
 const iframe_height_cache = new Map<string, number>();
 
@@ -314,7 +330,10 @@ export function SandboxedEmailRenderer({
   const email_zoom = (normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT).toFixed(3);
   const [zoomed_image, set_zoomed_image] = useState<string | null>(null);
   const zoom_fn_ref = useRef<((src: string | null) => void) | null>(null);
+  const base_zoom_ref = useRef(1);
+
   zoom_fn_ref.current = set_zoomed_image;
+  base_zoom_ref.current = parseFloat(email_zoom) || 1;
   const cached_height = email_id
     ? get_cached_iframe_height(email_id)
     : undefined;
@@ -1246,6 +1265,26 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       });
     };
 
+    const sync_fit_zoom = (doc: Document, body: HTMLElement) => {
+      const available = iframe.clientWidth;
+
+      if (available <= 0) return;
+
+      body.style.setProperty("zoom", "1");
+      const natural = Math.max(
+        body.scrollWidth,
+        doc.documentElement.scrollWidth,
+      );
+      const fitted = fit_zoom_for(natural, available, base_zoom_ref.current);
+
+      body.style.setProperty("zoom", String(fitted));
+      if (natural * fitted > available + FIT_SLACK_PX) {
+        body.style.setProperty("overflow-x", "auto");
+      } else {
+        body.style.removeProperty("overflow-x");
+      }
+    };
+
     const measure_decoupled_height = (): number => {
       const doc = iframe.contentDocument;
       const body = doc?.body;
@@ -1272,6 +1311,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       html.style.setProperty("min-height", "0px", "important");
       body.style.setProperty("height", "auto", "important");
       body.style.setProperty("min-height", "0px", "important");
+
+      sync_fit_zoom(doc, body);
 
       const rect = body.getBoundingClientRect();
       const body_zoom =
