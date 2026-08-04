@@ -79,11 +79,7 @@ export function AccountAvatarButton({
         onClick={open_picker}
       >
         <ProfileAvatar
-          className={
-            is_paid_plan
-              ? "ring-2 ring-[var(--plan-ring)] ring-offset-2"
-              : ""
-          }
+          className={is_paid_plan ? "plan_ring" : ""}
           email={email}
           image_url={preview || image_url}
           name={name}

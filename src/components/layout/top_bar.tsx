@@ -312,16 +312,12 @@ export function TopBar({
             trigger={
               <button
                 aria-label={t("auth.your_accounts")}
-                className={`flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none transition-colors hover:bg-[var(--bg-hover)] outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 ${
-                  is_free_plan
-                    ? ""
-                    : "ring-2 ring-inset ring-[var(--plan-ring)]"
-                }`}
+                className="flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none transition-colors hover:bg-[var(--bg-hover)] outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
                 type="button"
                 onClick={close_account_tip}
               >
                 <ProfileAvatar
-                  className="block"
+                  className={is_free_plan ? "block" : "block plan_ring"}
                   email={account_email}
                   image_url={user?.profile_picture}
                   name={display_name}

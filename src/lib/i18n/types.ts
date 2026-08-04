@@ -489,6 +489,7 @@ export interface MailRulesTranslations {
 export interface CommonTranslations {
   upgrade_tooltip: string;
   help: string;
+  removing: string;
   qr_code: string;
   app_name: string;
   loading: string;
@@ -6436,6 +6437,7 @@ export interface AuthTranslations {
   hide_more_accounts: string;
   show_more_accounts: string;
   change_photo: string;
+  remove_photo: string;
   active_account: string;
   add_another_account: string;
   switch_to_account: string;

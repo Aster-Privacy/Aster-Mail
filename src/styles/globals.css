@@ -66,7 +66,6 @@
   --accent-color-hover: #2563eb;
   --accent-blue: #3b82f6;
   --accent-blue-hover: #2563eb;
-  --plan-ring: #3b82f6;
   --avatar-bg: #e5e7eb;
   --avatar-text: #6b7280;
   --indicator-bg: #ffffff;
@@ -1809,6 +1808,36 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .dark .aster_checkbox_box {
   border-color: color-mix(in srgb, var(--icon-muted) 82%, transparent);
   border-width: 1.25px;
+}
+
+.plan_ring {
+  position: relative;
+  isolation: isolate;
+}
+
+.plan_ring::after {
+  content: "";
+  position: absolute;
+  inset: -2.5px;
+  border-radius: 9999px;
+  padding: 2px;
+  background: conic-gradient(
+    from 140deg,
+    #38bdf8,
+    #6366f1,
+    #a855f7,
+    #f0abfc,
+    #38bdf8
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .mail_row_unread {
