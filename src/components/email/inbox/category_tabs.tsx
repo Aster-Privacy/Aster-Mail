@@ -152,7 +152,7 @@ export function CategoryTabs({
                   : "text-txt-muted group-hover:text-txt-secondary"
               }`}
             />
-            <span className="relative flex flex-col items-start gap-[2px] sm:min-w-[164px]">
+            <span className="relative flex flex-col items-start gap-[2px]">
               <span className="flex items-center gap-2.5 leading-[18px]">
                 <span>{label}</span>
                 {show_new ? (
