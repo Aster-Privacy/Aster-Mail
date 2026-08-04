@@ -542,6 +542,7 @@ export interface CommonTranslations {
   of: string;
   page: string;
   aster_mail: string;
+  aster_account: string;
   deck: string;
   workspace_title: string;
   create_folder: string;
@@ -704,6 +705,8 @@ export interface CommonTranslations {
   seconds: string;
   password_protected: string;
   open_menu: string;
+  collapse_sidebar: string;
+  expand_sidebar: string;
   close_menu: string;
   keyboard_shortcuts: string;
   skip_to_content: string;
@@ -6422,6 +6425,15 @@ export interface AuthTranslations {
   reset_consent_email_mismatch: string;
   reset_consent_continue: string;
   your_accounts: string;
+  greeting: string;
+  manage_account: string;
+  sign_out_all: string;
+  session_expired_tag: string;
+  default_account: string;
+  storage_of_used: string;
+  hide_more_accounts: string;
+  show_more_accounts: string;
+  change_photo: string;
   active_account: string;
   add_another_account: string;
   switch_to_account: string;

@@ -45,7 +45,7 @@ import { RecentlyDeletedDirectoriesSection } from "@/components/settings/aliases
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
+import { LockedFeature } from "@/components/settings/aliases/feature_lock";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
   TurnstileWidget,
@@ -256,12 +256,12 @@ export function AliasDirectoriesSection() {
         </p>
       </div>
 
-      {locked ? (
-        <FeatureLockOverlay
-          message={t("settings.alias_feature_locked_directories")}
-        />
-      ) : (
-        <>
+      <LockedFeature
+        feature="max_alias_directories"
+        locked={locked}
+        message={t("settings.alias_feature_locked_directories")}
+      >
+        <div className="space-y-4">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm text-txt-muted">@</span>
@@ -382,8 +382,9 @@ export function AliasDirectoriesSection() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <label className="flex items-center gap-1.5 text-xs text-txt-muted">
                       {t("settings.alias_directory_auto_create")}
-                      <Switch size="lg"
+                      <Switch
                         checked={directory.auto_create_enabled}
+                        size="lg"
                         onCheckedChange={() => handle_toggle(directory)}
                       />
                     </label>
@@ -405,8 +406,8 @@ export function AliasDirectoriesSection() {
             on_restored={load}
             refresh_signal={trash_refresh}
           />
-        </>
-      )}
+        </div>
+      </LockedFeature>
     </div>
   );
 }

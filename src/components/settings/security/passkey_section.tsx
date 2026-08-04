@@ -308,6 +308,10 @@ export function PasskeySection() {
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("passkeys.section_title")}
+          <InfoPopover
+            description={`${t("passkeys.passkey_hint")} ${t("passkeys.security_key_hint")}`}
+            title={t("passkeys.section_title")}
+          />
           {webauthn_supported && !loading && keys.length === 0 && (
             <ActionRecommendedBadge tip={t("settings.no_passkeys_recommendation")} />
           )}
@@ -367,49 +371,37 @@ export function PasskeySection() {
       )}
 
       {webauthn_supported && !is_desktop() && (
-        <div className="flex items-center gap-3 mt-2">
-          <div className="flex items-center gap-1.5">
-            <Button
-              disabled={registering !== null}
-              size="sm"
-              variant="outline"
-              onClick={handle_add_passkey}
-            >
-              {registering === "passkey" ? (
-                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
-              ) : (
-                <FingerPrintIcon className="w-4 h-4 mr-2" />
-              )}
-              {registering === "passkey"
-                ? t("passkeys.registering")
-                : t("passkeys.add_passkey")}
-            </Button>
-            <InfoPopover
-              description={t("passkeys.passkey_hint")}
-              title={t("passkeys.add_passkey")}
-            />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Button
-              disabled={registering !== null}
-              size="sm"
-              variant="outline"
-              onClick={handle_add_security_key}
-            >
-              {registering === "security_key" ? (
-                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
-              ) : (
-                <PlusIcon className="w-4 h-4 mr-2" />
-              )}
-              {registering === "security_key"
-                ? t("passkeys.registering")
-                : t("passkeys.add_security_key")}
-            </Button>
-            <InfoPopover
-              description={t("passkeys.security_key_hint")}
-              title={t("passkeys.add_security_key")}
-            />
-          </div>
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            disabled={registering !== null}
+            size="sm"
+            variant="outline"
+            onClick={handle_add_passkey}
+          >
+            {registering === "passkey" ? (
+              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+            ) : (
+              <FingerPrintIcon className="w-4 h-4 mr-2" />
+            )}
+            {registering === "passkey"
+              ? t("passkeys.registering")
+              : t("passkeys.add_passkey")}
+          </Button>
+          <Button
+            disabled={registering !== null}
+            size="sm"
+            variant="outline"
+            onClick={handle_add_security_key}
+          >
+            {registering === "security_key" ? (
+              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+            ) : (
+              <PlusIcon className="w-4 h-4 mr-2" />
+            )}
+            {registering === "security_key"
+              ? t("passkeys.registering")
+              : t("passkeys.add_security_key")}
+          </Button>
         </div>
       )}
 

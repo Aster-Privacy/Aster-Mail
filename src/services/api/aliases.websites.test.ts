@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import {
   MAX_ALIAS_WEBSITES,
   normalize_website_url,
+  validate_website_input,
   parse_websites_payload,
 } from "./aliases";
 
@@ -113,5 +114,29 @@ describe("parse_websites_payload", () => {
     );
 
     expect(parse_websites_payload(many)).toHaveLength(MAX_ALIAS_WEBSITES);
+  });
+});
+
+describe("validate_website_input", () => {
+  it("accepts real public suffixes", () => {
+    expect(validate_website_input("netflix.com")).toBe("https://netflix.com");
+    expect(validate_website_input("shop.co.uk")).toBe("https://shop.co.uk");
+    expect(validate_website_input("my-site.io")).toBe("https://my-site.io");
+    expect(validate_website_input("https://news.ycombinator.com/x")).toBe(
+      "https://news.ycombinator.com/x",
+    );
+  });
+
+  it("rejects typo and made up suffixes", () => {
+    expect(validate_website_input("test.cpm")).toBeNull();
+    expect(validate_website_input("tadads.dasdasd")).toBeNull();
+    expect(validate_website_input("foo.bar-baz")).toBeNull();
+    expect(validate_website_input("foo.123")).toBeNull();
+  });
+
+  it("rejects malformed hosts", () => {
+    expect(validate_website_input("-bad.com")).toBeNull();
+    expect(validate_website_input("bad-.com")).toBeNull();
+    expect(validate_website_input("localhost")).toBeNull();
   });
 });

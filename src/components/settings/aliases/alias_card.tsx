@@ -192,7 +192,11 @@ function AliasAvatar({
         type="button"
         onClick={() => {
           if (is_locked) {
-            prompt_upgrade(t("settings.feature_requires_upgrade"));
+            prompt_upgrade(
+              t("settings.feature_requires_upgrade"),
+              undefined,
+              "has_alias_avatars",
+            );
 
             return;
           }
@@ -453,7 +457,7 @@ export function AliasItem({
             variant="ghost"
             onClick={on_open_editor}
           >
-            <Cog6ToothIcon className="w-[18px] h-[18px] text-txt-muted" />
+            <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
 
           {on_pin_toggle && (
@@ -461,7 +465,7 @@ export function AliasItem({
               className={
                 alias.is_pinned
                   ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
-                  : "hidden group-hover:inline-flex h-8 w-8 text-txt-muted"
+                  : "hidden group-hover:inline-flex h-8 w-8"
               }
               size="icon"
               title={
@@ -472,7 +476,11 @@ export function AliasItem({
               variant="ghost"
               onClick={() => {
                 if (is_feature_locked("has_advanced_aliases")) {
-                  prompt_upgrade(t("settings.feature_requires_upgrade"));
+                  prompt_upgrade(
+                    t("settings.feature_requires_upgrade"),
+                    undefined,
+                    "has_advanced_aliases",
+                  );
 
                   return;
                 }
@@ -499,7 +507,7 @@ export function AliasItem({
           />
 
           <Button
-            className="h-8 w-8 text-txt-muted hover:text-red-500 hover:bg-red-500/10"
+            className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"
             variant="ghost"
@@ -727,14 +735,14 @@ export function DomainAddressItem({
             variant="ghost"
             onClick={on_open_editor}
           >
-            <Cog6ToothIcon className="w-[18px] h-[18px] text-txt-muted" />
+            <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
 
           <Button
             className={
               is_primary
                 ? "h-8 w-8 text-emerald-500 hover:text-emerald-500 hover:bg-emerald-500/10"
-                : "h-8 w-8 text-txt-muted"
+                : "h-8 w-8"
             }
             size="icon"
             title={
@@ -792,7 +800,7 @@ export function DomainAddressItem({
           />
 
           <Button
-            className="h-8 w-8 text-txt-muted hover:text-red-500 hover:bg-red-500/10"
+            className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"
             variant="ghost"

@@ -33,7 +33,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   list_deleted_aliases,
@@ -301,7 +301,9 @@ export function RecentlyDeletedAliasesSection({
                 ) : (
                   <>
                     <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
-                    {t("settings.recently_deleted_empty_trash" as TranslationKey)}
+                    {t(
+                      "settings.recently_deleted_empty_trash" as TranslationKey,
+                    )}
                   </>
                 )}
               </Button>
@@ -332,7 +334,16 @@ export function RecentlyDeletedAliasesSection({
                 </p>
               </div>
               {restore_locked ? (
-                <UpgradeBtn size="sm" onClick={go_to_billing}>
+                <UpgradeBtn
+                  size="sm"
+                  onClick={() =>
+                    prompt_upgrade(
+                      t("settings.feature_requires_upgrade"),
+                      undefined,
+                      "has_advanced_aliases",
+                    )
+                  }
+                >
                   {t("settings.alias_feature_locked_upgrade_cta")}
                 </UpgradeBtn>
               ) : (
@@ -381,34 +392,39 @@ export function RecentlyDeletedAliasesSection({
       )}
 
       <ConfirmationModal
-        confirm_text={t("settings.delete_alias_permanently_action" as TranslationKey)}
+        confirm_text={t(
+          "settings.delete_alias_permanently_action" as TranslationKey,
+        )}
         is_open={confirm_purge !== null}
         message={t("settings.purge_alias_confirm_message" as TranslationKey, {
           address: confirm_purge?.full_address ?? "",
         })}
-        title={t("settings.purge_alias_confirm_title" as TranslationKey)}
-        variant="danger"
         on_cancel={() => set_confirm_purge(null)}
         on_confirm={() => {
           const target = confirm_purge;
+
           set_confirm_purge(null);
           if (target) do_purge(target.id);
         }}
+        title={t("settings.purge_alias_confirm_title" as TranslationKey)}
+        variant="danger"
       />
 
       <ConfirmationModal
-        confirm_text={t("settings.recently_deleted_empty_trash" as TranslationKey)}
+        confirm_text={t(
+          "settings.recently_deleted_empty_trash" as TranslationKey,
+        )}
         is_open={confirm_empty}
         message={t("settings.empty_trash_confirm_message" as TranslationKey, {
           count: aliases.length,
         })}
-        title={t("settings.empty_trash_confirm_title" as TranslationKey)}
-        variant="danger"
         on_cancel={() => set_confirm_empty(false)}
         on_confirm={() => {
           set_confirm_empty(false);
           do_empty();
         }}
+        title={t("settings.empty_trash_confirm_title" as TranslationKey)}
+        variant="danger"
       />
     </div>
   );

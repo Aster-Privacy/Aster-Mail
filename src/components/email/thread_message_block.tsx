@@ -775,7 +775,7 @@ export function ThreadMessageBlock({
           />
         ) : (
           <SenderProfileTrigger
-            className="flex-shrink-0 mt-0.5 rounded-full hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-brand/40"
+            className="flex-shrink-0 mt-0.5 rounded-full hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             email={message.sender_email}
             name={message.sender_name}
           >

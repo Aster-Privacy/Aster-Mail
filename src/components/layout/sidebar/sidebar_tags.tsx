@@ -133,13 +133,13 @@ export const SidebarTags = memo(function SidebarTags({
       )}
 
       {is_collapsed && (
-        <div className="mt-3 flex justify-center">
+        <div className="mt-3">
           <button
-            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-icon-muted"
+            className="sidebar-rail-btn"
             title={t("common.create_label")}
             onClick={() => set_is_create_tag_open(true)}
           >
-            <TagIcon className="w-4 h-4" />
+            <TagIcon className="w-5 h-5" />
           </button>
         </div>
       )}

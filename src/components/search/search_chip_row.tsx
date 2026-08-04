@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { ParsedOperator } from "@/utils/search_operators";
 import type { IndexPerson } from "@/hooks/use_search";
 
@@ -110,6 +110,17 @@ function detect_date_preset(operators: ParsedOperator[]): DatePreset {
   return "custom";
 }
 
+const CHIP_CLASS =
+  "flex items-center gap-1.5 flex-shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap border";
+
+function chip_style(is_active: boolean): CSSProperties {
+  return {
+    backgroundColor: is_active ? "var(--accent-blue)" : "var(--bg-secondary)",
+    borderColor: is_active ? "var(--accent-blue)" : "var(--border-primary)",
+    color: is_active ? "#ffffff" : "var(--text-secondary)",
+  };
+}
+
 interface ChipProps {
   label: string;
   is_active: boolean;
@@ -120,14 +131,8 @@ interface ChipProps {
 function Chip({ label, is_active, has_caret, on_click }: ChipProps) {
   return (
     <button
-      className="flex items-center gap-1.5 flex-shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap border"
-      style={{
-        backgroundColor: is_active
-          ? "color-mix(in srgb, var(--accent-blue) 16%, transparent)"
-          : "var(--bg-secondary)",
-        borderColor: is_active ? "var(--accent-blue)" : "var(--border-primary)",
-        color: is_active ? "var(--accent-blue)" : "var(--text-secondary)",
-      }}
+      className={CHIP_CLASS}
+      style={chip_style(is_active)}
       type="button"
       onClick={on_click}
     >
@@ -201,16 +206,8 @@ function PersonChip({
     <Popover open={is_open} onOpenChange={handle_open_change}>
       <PopoverTrigger asChild>
         <button
-          className="flex items-center gap-1.5 flex-shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap border"
-          style={{
-            backgroundColor: is_active
-              ? "color-mix(in srgb, var(--accent-blue) 16%, transparent)"
-              : "var(--bg-secondary)",
-            borderColor: is_active
-              ? "var(--accent-blue)"
-              : "var(--border-primary)",
-            color: is_active ? "var(--accent-blue)" : "var(--text-secondary)",
-          }}
+          className={CHIP_CLASS}
+          style={chip_style(is_active)}
           type="button"
         >
           {is_active && <CheckIcon className="w-4 h-4 flex-shrink-0" />}
@@ -571,21 +568,8 @@ export function SearchChipRow({
     >
       <PopoverTrigger asChild>
         <button
-          className="flex items-center gap-1.5 flex-shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap border"
-          style={{
-            backgroundColor:
-              date_preset !== "any"
-                ? "color-mix(in srgb, var(--accent-blue) 16%, transparent)"
-                : "var(--bg-secondary)",
-            borderColor:
-              date_preset !== "any"
-                ? "var(--accent-blue)"
-                : "var(--border-primary)",
-            color:
-              date_preset !== "any"
-                ? "var(--accent-blue)"
-                : "var(--text-secondary)",
-          }}
+          className={CHIP_CLASS}
+          style={chip_style(date_preset !== "any")}
           type="button"
         >
           {date_preset !== "any" && (
@@ -732,10 +716,10 @@ export function SearchChipRow({
     >
       {ordered}
       <button
-        className="flex items-center gap-1.5 flex-shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium transition-opacity hover:opacity-80 whitespace-nowrap"
+        className={CHIP_CLASS}
         style={{
-          backgroundColor:
-            "color-mix(in srgb, var(--accent-blue) 12%, transparent)",
+          backgroundColor: "var(--bg-secondary)",
+          borderColor: "var(--border-primary)",
           color: "var(--accent-blue)",
         }}
         type="button"

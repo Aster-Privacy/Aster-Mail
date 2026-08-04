@@ -29,6 +29,7 @@ import { use_contacts_state } from "@/components/common/hooks/use_contacts_state
 import { ContactList } from "@/components/common/contacts/contact_list";
 import { ContactDetailPanel } from "@/components/common/contacts/contact_detail_panel";
 import { prewarm_search_index } from "@/hooks/use_search";
+import { use_page_search } from "@/hooks/use_page_search";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 
@@ -42,6 +43,12 @@ export function ContactsContent({
   const state = use_contacts_state();
   const { user } = use_auth();
   const { preferences } = use_preferences();
+  const page_search = use_page_search();
+  const { set_search_query } = state;
+
+  useEffect(() => {
+    set_search_query(page_search);
+  }, [page_search, set_search_query]);
 
   useEffect(() => {
     if (user?.email) {
@@ -86,14 +93,11 @@ export function ContactsContent({
           on_scroll_to_letter={state.scroll_to_letter}
           on_toggle_favorite_selected={state.handle_toggle_favorite_selected}
           on_toggle_select={state.handle_toggle_select}
-          search_input_ref={state.search_input_ref}
-          search_query={state.search_query}
           selected_all_favorited={state.selected_all_favorited}
           selected_contact={state.selected_contact}
           selected_ids={state.selected_ids}
           selection_state={state.selection_state}
           set_filter_by={state.set_filter_by}
-          set_search_query={state.set_search_query}
           set_selected_contact={state.set_selected_contact}
           set_sort_by={state.set_sort_by}
           set_view_mode={state.set_view_mode}

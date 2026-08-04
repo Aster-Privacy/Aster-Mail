@@ -51,18 +51,18 @@ import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   enable_vanguard,
   disable_vanguard,
   get_vanguard_status,
 } from "@/services/api/vanguard";
-import {
-  enable_lockdown,
-  disable_lockdown,
-} from "@/services/api/lockdown";
+import { enable_lockdown, disable_lockdown } from "@/services/api/lockdown";
 import { get_user_salt } from "@/services/api/auth";
-import { hash_email, derive_password_hash } from "@/services/crypto/key_manager_pgp";
+import {
+  hash_email,
+  derive_password_hash,
+} from "@/services/crypto/key_manager_pgp";
 import { base64_to_array } from "@/services/crypto/key_manager";
 import { get_totp_status } from "@/services/api/totp";
 
@@ -111,16 +111,26 @@ function LockdownSection({ account_id }: { account_id: string }) {
     set_creds_error(null);
     try {
       const email = auth?.user?.email;
+
       if (!email) throw new Error("no_email");
       const user_hash = await hash_email(email);
       const salt_res = await get_user_salt({ user_hash });
+
       if (salt_res.error || !salt_res.data) throw new Error("salt");
       const salt = base64_to_array(salt_res.data.salt);
-      const { hash: password_hash } = await derive_password_hash(password, salt);
-      const res = await disable_lockdown({ password_hash, totp_code: totp_required ? totp_code : undefined });
+      const { hash: password_hash } = await derive_password_hash(
+        password,
+        salt,
+      );
+      const res = await disable_lockdown({
+        password_hash,
+        totp_code: totp_required ? totp_code : undefined,
+      });
+
       if (res.error) {
         set_creds_error(t("settings.duress_pin_invalid_credentials"));
         set_disabling(false);
+
         return;
       }
       set_lockdown_enabled(account_id, false);
@@ -156,7 +166,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
               {t("settings.lockdown_description")}
             </p>
           </div>
-          <Switch size="lg" checked={enabled} onCheckedChange={handle_toggle} />
+          <Switch checked={enabled} size="lg" onCheckedChange={handle_toggle} />
         </div>
       </div>
 
@@ -171,42 +181,51 @@ function LockdownSection({ account_id }: { account_id: string }) {
         size="sm"
       >
         <ModalHeader>
-          <ModalTitle>{t("settings.lockdown_confirm_disable_title")}</ModalTitle>
-          <ModalDescription>{t("settings.lockdown_confirm_disable_desc")}</ModalDescription>
+          <ModalTitle>
+            {t("settings.lockdown_confirm_disable_title")}
+          </ModalTitle>
+          <ModalDescription>
+            {t("settings.lockdown_confirm_disable_desc")}
+          </ModalDescription>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-3">
             <Input
-              type="password"
-              placeholder={t("settings.current_password")}
-              value={password}
-              maxLength={128}
-              onChange={(e) => set_password(clamp_password(e.target.value))}
               autoComplete="current-password"
               disabled={disabling}
+              maxLength={128}
+              placeholder={t("settings.current_password")}
+              type="password"
+              value={password}
+              onChange={(e) => set_password(clamp_password(e.target.value))}
             />
             {totp_required && (
               <Input
-                type="text"
-                inputMode="numeric"
-                placeholder={t("common.two_fa_code_placeholder")}
-                value={totp_code}
-                onChange={(e) => set_totp_code(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 autoComplete="one-time-code"
-                maxLength={6}
                 disabled={disabling}
+                inputMode="numeric"
+                maxLength={6}
+                placeholder={t("common.two_fa_code_placeholder")}
+                type="text"
+                value={totp_code}
+                onChange={(e) =>
+                  set_totp_code(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
               />
             )}
             {creds_error && (
               <p className="text-xs text-red-500">{creds_error}</p>
             )}
             {disabling && (
-              <p className="text-xs text-txt-muted">{t("settings.verifying_credentials")}</p>
+              <p className="text-xs text-txt-muted">
+                {t("settings.verifying_credentials")}
+              </p>
             )}
           </div>
         </ModalBody>
         <ModalFooter>
           <Button
+            disabled={disabling}
             variant="outline"
             onClick={() => {
               set_show_disable_modal(false);
@@ -214,16 +233,22 @@ function LockdownSection({ account_id }: { account_id: string }) {
               set_totp_code("");
               set_creds_error(null);
             }}
-            disabled={disabling}
           >
             {t("common.cancel")}
           </Button>
           <Button
+            disabled={
+              disabling ||
+              totp_loading ||
+              !password ||
+              (totp_required && totp_code.length !== 6)
+            }
             variant="destructive"
             onClick={confirm_disable}
-            disabled={disabling || totp_loading || !password || (totp_required && totp_code.length !== 6)}
           >
-            {disabling ? t("settings.verifying_credentials") : t("settings.lockdown_disable")}
+            {disabling
+              ? t("settings.verifying_credentials")
+              : t("settings.lockdown_disable")}
           </Button>
         </ModalFooter>
       </Modal>
@@ -237,7 +262,14 @@ export function VanguardSection() {
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
 
-  const is_nova_plus = ["nova", "supernova", "duo", "family", "family_duo", "family_full"].includes(limits?.plan_code ?? "");
+  const is_nova_plus = [
+    "nova",
+    "supernova",
+    "duo",
+    "family",
+    "family_duo",
+    "family_full",
+  ].includes(limits?.plan_code ?? "");
 
   const [enabled, set_enabled] = useState(false);
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);
@@ -285,6 +317,7 @@ export function VanguardSection() {
     if (is_lockdown_enabled(account_id)) {
       set_show_disable_confirm(false);
       show_toast(t("settings.lockdown_must_disable_first"), "error");
+
       return;
     }
     set_enabled(false);
@@ -335,9 +368,22 @@ export function VanguardSection() {
           </div>
 
           {is_nova_plus ? (
-            <Switch size="lg" checked={enabled} onCheckedChange={handle_toggle} />
+            <Switch
+              checked={enabled}
+              size="lg"
+              onCheckedChange={handle_toggle}
+            />
           ) : (
-            <UpgradeBtn size="sm" onClick={go_to_billing}>
+            <UpgradeBtn
+              size="sm"
+              onClick={() =>
+                prompt_upgrade(
+                  t("settings.feature_requires_upgrade"),
+                  undefined,
+                  "nova",
+                )
+              }
+            >
               {t("settings.vanguard_upgrade_cta")}
             </UpgradeBtn>
           )}

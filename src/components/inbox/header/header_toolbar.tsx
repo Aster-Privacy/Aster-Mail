@@ -108,8 +108,8 @@ interface HeaderToolbarProps {
 }
 
 export function HeaderToolbar({
-  on_settings_click,
-  on_quick_settings_click,
+  on_settings_click: _on_settings_click,
+  on_quick_settings_click: _on_quick_settings_click,
   is_trash_view,
   on_empty_trash,
   trash_count,
@@ -234,18 +234,6 @@ export function HeaderToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-
-      <Tooltip tip={t("settings.title")}>
-        <Button
-          className="hidden lg:flex h-8 w-8 text-[var(--icon-muted)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
-          data-onboarding="settings-button"
-          size="icon"
-          variant="ghost"
-          onClick={on_quick_settings_click ?? on_settings_click}
-        >
-          <Cog6ToothIcon className="w-4 h-4" />
-        </Button>
-      </Tooltip>
     </>
   );
 }
@@ -273,7 +261,7 @@ export function MobileOverflowMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button className="md:hidden h-8 w-8" size="icon" variant="ghost">
-          <EllipsisVerticalIcon className="w-4 h-4 text-[var(--icon-secondary)]" />
+          <EllipsisVerticalIcon className="w-4 h-4 text-[var(--icon-muted)]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

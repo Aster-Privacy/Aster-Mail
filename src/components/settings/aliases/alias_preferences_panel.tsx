@@ -18,13 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { AliasPreferences } from "@/services/api/aliases";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
-import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { Switch, UpgradeBtn } from "@aster/ui";
 
+import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { use_i18n } from "@/lib/i18n/context";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   Select,
   SelectTrigger,
@@ -33,7 +35,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import type { AliasPreferences } from "@/services/api/aliases";
 import {
   get_alias_preferences,
   update_alias_preferences,
@@ -63,12 +64,13 @@ function pref_row({ label, description, info, children }: PrefRowProps) {
 
 const PrefRow = pref_row;
 
-
 interface AliasPreferencesPanelProps {
   available_domains: string[];
 }
 
-export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPanelProps) {
+export function AliasPreferencesPanel({
+  available_domains,
+}: AliasPreferencesPanelProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
 
@@ -118,163 +120,179 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <div>
-        {loading ? <div /> : (
+        {loading ? (
+          <div />
+        ) : (
           <>
-              {available_domains.length > 0 && (
-                <PrefRow
-                  description={t("settings.alias_pref_default_domain_desc")}
-                  label={t("settings.alias_pref_default_domain")}
-                >
-                  <Select
-                    value={
-                      prefs.alias_default_domain &&
-                      available_domains.includes(prefs.alias_default_domain)
-                        ? prefs.alias_default_domain
-                        : available_domains[0] ?? ""
-                    }
-                    onValueChange={(v) => save_pref({ alias_default_domain: v })}
-                  >
-                    <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
-                      <SelectValue
-                        placeholder={t("settings.alias_pref_default_domain")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {available_domains.map((d) => (
-                        <SelectItem key={d} value={d}>
-                          {d}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </PrefRow>
-              )}
-
+            {available_domains.length > 0 && (
               <PrefRow
-                description={t("settings.alias_pref_sender_format_desc")}
-                info={t("settings.alias_pref_sender_format_info")}
-                label={t("settings.alias_pref_sender_format")}
+                description={t("settings.alias_pref_default_domain_desc")}
+                label={t("settings.alias_pref_default_domain")}
               >
                 <Select
-                  value={prefs.alias_sender_format}
-                  onValueChange={(v) =>
-                    save_pref({ alias_sender_format: v as "via" | "at" })
+                  value={
+                    prefs.alias_default_domain &&
+                    available_domains.includes(prefs.alias_default_domain)
+                      ? prefs.alias_default_domain
+                      : (available_domains[0] ?? "")
                   }
+                  onValueChange={(v) => save_pref({ alias_default_domain: v })}
                 >
                   <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
-                    <SelectValue />
+                    <SelectValue
+                      placeholder={t("settings.alias_pref_default_domain")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="via">
-                      {t("settings.alias_pref_sender_via")}
-                    </SelectItem>
-                    <SelectItem value="at">
-                      {t("settings.alias_pref_sender_at")}
-                    </SelectItem>
+                    {available_domains.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </PrefRow>
+            )}
 
-              <PrefRow
-                description={t("settings.alias_pref_readable_reverse_desc")}
-                info={t("settings.alias_pref_readable_reverse_info")}
-                label={t("settings.alias_pref_readable_reverse")}
+            <PrefRow
+              description={t("settings.alias_pref_sender_format_desc")}
+              info={t("settings.alias_pref_sender_format_info")}
+              label={t("settings.alias_pref_sender_format")}
+            >
+              <Select
+                value={prefs.alias_sender_format}
+                onValueChange={(v) =>
+                  save_pref({ alias_sender_format: v as "via" | "at" })
+                }
               >
-                {readable_locked ? (
-                  <UpgradeBtn size="sm" onClick={go_to_billing}>
-                    {t("settings.alias_feature_locked_upgrade_cta")}
-                  </UpgradeBtn>
-                ) : (
-                  <Switch size="lg"
-                    checked={prefs.readable_reverse_aliases}
-                    onCheckedChange={(v) => save_pref({ readable_reverse_aliases: v })}
-                  />
-                )}
-              </PrefRow>
+                <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="via">
+                    {t("settings.alias_pref_sender_via")}
+                  </SelectItem>
+                  <SelectItem value="at">
+                    {t("settings.alias_pref_sender_at")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </PrefRow>
 
-              <PrefRow
-                description={t("settings.alias_pref_unsubscribe_action_desc")}
-                info={t("settings.alias_pref_unsubscribe_action_info")}
-                label={t("settings.alias_pref_unsubscribe_action")}
-              >
-                <Select
-                  value={prefs.alias_unsubscribe_action}
-                  onValueChange={(v) =>
-                    save_pref({
-                      alias_unsubscribe_action: v as
-                        | "preserve"
-                        | "disable_alias"
-                        | "block_contact",
-                    })
+            <PrefRow
+              description={t("settings.alias_pref_readable_reverse_desc")}
+              info={t("settings.alias_pref_readable_reverse_info")}
+              label={t("settings.alias_pref_readable_reverse")}
+            >
+              {readable_locked ? (
+                <UpgradeBtn
+                  size="sm"
+                  onClick={() =>
+                    prompt_upgrade(
+                      t("settings.feature_requires_upgrade"),
+                      undefined,
+                      "has_advanced_aliases",
+                    )
                   }
                 >
-                  <SelectTrigger className="h-9 w-40 shrink-0 bg-transparent">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="preserve">
-                      {t("settings.alias_pref_unsubscribe_preserve")}
-                    </SelectItem>
-                    <SelectItem value="disable_alias">
-                      {t("settings.alias_pref_unsubscribe_disable_alias")}
-                    </SelectItem>
-                    <SelectItem value="block_contact">
-                      {t("settings.alias_pref_unsubscribe_block_contact")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </PrefRow>
-
-              <PrefRow
-                description={t("settings.alias_pref_disabled_response_desc")}
-                info={t("settings.alias_pref_disabled_response_info")}
-                label={t("settings.alias_pref_disabled_response")}
-              >
-                <Select
-                  value={prefs.alias_disabled_response}
-                  onValueChange={(v) =>
-                    save_pref({ alias_disabled_response: v as "ignore" | "reject" })
+                  {t("settings.alias_feature_locked_upgrade_cta")}
+                </UpgradeBtn>
+              ) : (
+                <Switch
+                  checked={prefs.readable_reverse_aliases}
+                  size="lg"
+                  onCheckedChange={(v) =>
+                    save_pref({ readable_reverse_aliases: v })
                   }
-                >
-                  <SelectTrigger className="h-9 w-36 shrink-0 bg-transparent">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ignore">
-                      {t("settings.alias_pref_disabled_ignore")}
-                    </SelectItem>
-                    <SelectItem value="reject">
-                      {t("settings.alias_pref_disabled_reject")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </PrefRow>
+                />
+              )}
+            </PrefRow>
 
-              <PrefRow
-                description={t("settings.alias_pref_delete_action_desc")}
-                info={t("settings.alias_pref_delete_action_info")}
-                label={t("settings.alias_pref_delete_action")}
+            <PrefRow
+              description={t("settings.alias_pref_unsubscribe_action_desc")}
+              info={t("settings.alias_pref_unsubscribe_action_info")}
+              label={t("settings.alias_pref_unsubscribe_action")}
+            >
+              <Select
+                value={prefs.alias_unsubscribe_action}
+                onValueChange={(v) =>
+                  save_pref({
+                    alias_unsubscribe_action: v as
+                      | "preserve"
+                      | "disable_alias"
+                      | "block_contact",
+                  })
+                }
               >
-                <Select
-                  value={prefs.alias_delete_action}
-                  onValueChange={(v) =>
-                    save_pref({ alias_delete_action: v as "trash" | "immediate" })
-                  }
-                >
-                  <SelectTrigger className="h-9 w-40 shrink-0 bg-transparent">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="trash">
-                      {t("settings.alias_pref_delete_trash")}
-                    </SelectItem>
-                    <SelectItem value="immediate">
-                      {t("settings.alias_pref_delete_immediate")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </PrefRow>
-            </>
+                <SelectTrigger className="h-9 w-40 shrink-0 bg-transparent">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="preserve">
+                    {t("settings.alias_pref_unsubscribe_preserve")}
+                  </SelectItem>
+                  <SelectItem value="disable_alias">
+                    {t("settings.alias_pref_unsubscribe_disable_alias")}
+                  </SelectItem>
+                  <SelectItem value="block_contact">
+                    {t("settings.alias_pref_unsubscribe_block_contact")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </PrefRow>
+
+            <PrefRow
+              description={t("settings.alias_pref_disabled_response_desc")}
+              info={t("settings.alias_pref_disabled_response_info")}
+              label={t("settings.alias_pref_disabled_response")}
+            >
+              <Select
+                value={prefs.alias_disabled_response}
+                onValueChange={(v) =>
+                  save_pref({
+                    alias_disabled_response: v as "ignore" | "reject",
+                  })
+                }
+              >
+                <SelectTrigger className="h-9 w-36 shrink-0 bg-transparent">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ignore">
+                    {t("settings.alias_pref_disabled_ignore")}
+                  </SelectItem>
+                  <SelectItem value="reject">
+                    {t("settings.alias_pref_disabled_reject")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </PrefRow>
+
+            <PrefRow
+              description={t("settings.alias_pref_delete_action_desc")}
+              info={t("settings.alias_pref_delete_action_info")}
+              label={t("settings.alias_pref_delete_action")}
+            >
+              <Select
+                value={prefs.alias_delete_action}
+                onValueChange={(v) =>
+                  save_pref({ alias_delete_action: v as "trash" | "immediate" })
+                }
+              >
+                <SelectTrigger className="h-9 w-40 shrink-0 bg-transparent">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trash">
+                    {t("settings.alias_pref_delete_trash")}
+                  </SelectItem>
+                  <SelectItem value="immediate">
+                    {t("settings.alias_pref_delete_immediate")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </PrefRow>
+          </>
         )}
       </div>
     </div>

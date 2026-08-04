@@ -912,7 +912,6 @@ export function SearchResultsPage({
                 show_message_size={preferences.show_message_size}
                 show_profile_pictures={preferences.show_profile_pictures}
                 show_thread_count={preferences.conversation_grouping !== false}
-                stacked_preview={is_split_view}
               />
             );
           })}
@@ -981,10 +980,14 @@ export function SearchResultsPage({
             on_quick_settings_click={on_quick_settings_click}
             on_search_result_click={on_result_click}
             on_search_submit={on_search_submit}
-            on_select_by_filter={handle_select_by_filter}
+            on_select_by_filter={
+              paged_results.length > 0 ? handle_select_by_filter : undefined
+            }
             on_settings_click={on_settings_click || (() => {})}
             on_spam={handle_bulk_spam}
-            on_toggle_select_all={handle_select_all_visible}
+            on_toggle_select_all={
+              paged_results.length > 0 ? handle_select_all_visible : undefined
+            }
             on_toggle_star={handle_bulk_toggle_star}
             page_size={SEARCH_PAGE_SIZE}
             search_context={query}

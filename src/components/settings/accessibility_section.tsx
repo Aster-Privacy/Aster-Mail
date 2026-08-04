@@ -275,25 +275,23 @@ export function AccessibilitySection() {
           {t("settings.keyboard_shortcuts_description")}
         </p>
         <div className="flex items-center justify-between py-3">
-          <div className="flex items-center gap-3 flex-1 pr-4">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-txt-primary">
-                {t("common.enable_shortcuts")}
-              </p>
-              <p className="text-sm mt-0.5 text-txt-muted">
-                {t("settings.enable_shortcuts_description")}
-              </p>
-            </div>
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("common.enable_shortcuts")}
+            </p>
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.enable_shortcuts_description")}
+            </p>
+          </div>
+          <div className="flex flex-shrink-0 items-center gap-3">
             <button
               aria-label={t("mail.view_keyboard_shortcuts")}
-              className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded font-mono font-medium text-[11px] cursor-pointer transition-colors hover:bg-surf-tertiary/80 bg-surf-tertiary text-txt-muted border border-edge-secondary shadow-[0_1px_0_var(--border-secondary)]"
+              className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded border border-edge-secondary bg-surf-tertiary px-1.5 font-mono text-[11px] font-medium text-txt-muted shadow-[0_1px_0_var(--border-secondary)] transition-colors hover:bg-surf-tertiary/80"
               type="button"
               onClick={() => set_shortcuts_modal_open(true)}
             >
               ?
             </button>
-          </div>
-          <div className="flex-shrink-0">
             <Switch size="lg"
               checked={preferences.keyboard_shortcuts_enabled}
               onCheckedChange={(v) =>

@@ -66,7 +66,11 @@ export function AliasContextMenu({
 
   const toggle_pin = async () => {
     if (is_feature_locked("has_advanced_aliases")) {
-      prompt_upgrade(t("settings.feature_requires_upgrade"));
+      prompt_upgrade(
+        t("settings.feature_requires_upgrade"),
+        undefined,
+        "has_advanced_aliases",
+      );
 
       return;
     }
@@ -99,7 +103,10 @@ export function AliasContextMenu({
       });
 
       if (response.error) {
-        show_toast(response.error || t("settings.alias_toggle_failed"), "error");
+        show_toast(
+          response.error || t("settings.alias_toggle_failed"),
+          "error",
+        );
       } else {
         show_toast(
           next_enabled
@@ -127,7 +134,11 @@ export function AliasContextMenu({
           <ContextMenuItem onClick={toggle_pin}>
             <MapPinIcon
               className="mr-2 h-4 w-4"
-              style={{ color: alias.is_pinned ? "var(--color-blue-500, #3b82f6)" : undefined }}
+              style={{
+                color: alias.is_pinned
+                  ? "var(--color-blue-500, #3b82f6)"
+                  : undefined,
+              }}
             />
             {alias.is_pinned
               ? t("settings.alias_unpin")

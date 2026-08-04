@@ -38,8 +38,9 @@ import {
   CheckIcon,
   StarIcon,
   AdjustmentsHorizontalIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { Checkbox, Tooltip } from "@aster/ui";
+import { Button, Checkbox, Tooltip } from "@aster/ui";
 import { Capacitor } from "@capacitor/core";
 
 import {
@@ -50,7 +51,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown_menu";
-import { SearchBar } from "@/components/search/search_bar";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   HeaderToolbar,
@@ -148,9 +148,9 @@ export function InboxHeader({
   active_filter = "all",
   on_filter_change,
   on_search_click: _on_search_click,
-  on_search_result_click,
-  on_search_submit,
-  search_context,
+  on_search_result_click: _on_search_result_click,
+  on_search_submit: _on_search_submit,
+  search_context: _search_context,
   all_selected = false,
   some_selected = false,
   on_toggle_select_all,
@@ -277,11 +277,14 @@ export function InboxHeader({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 px-2 sm:px-4 py-2 sm:py-2.5 min-h-[56px] border-b border-[var(--border-secondary)] overflow-hidden" data-inbox-toolbar>
+      <div
+        className="flex select-none items-center justify-between gap-2 px-1 sm:px-2 py-1 min-h-[44px] overflow-hidden"
+        data-inbox-toolbar
+      >
         <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0">
           {leading_left_slot}
           {on_toggle_select_all && (
-            <div className="group flex items-center flex-shrink-0 rounded-lg hover:bg-[var(--bg-hover)] transition-colors">
+            <div className="group flex items-center flex-shrink-0 rounded-[12px] hover:bg-[var(--bg-hover)] transition-colors">
               <Tooltip tip={t("common.select_all")}>
                 <div
                   className="w-9 h-9 flex items-center justify-center cursor-pointer"
@@ -297,7 +300,7 @@ export function InboxHeader({
                 >
                   <Checkbox
                     checked={all_selected}
-                    className="pointer-events-none scale-110"
+                    className="pointer-events-none"
                     indeterminate={!all_selected && some_selected}
                   />
                 </div>
@@ -309,7 +312,7 @@ export function InboxHeader({
                       aria-label={t("common.select_label")}
                       className="-ml-2 h-9 w-5 flex items-center justify-center focus:outline-none"
                     >
-                      <ChevronDownIcon className="w-4 h-4 stroke-[1.75] text-[#d1d5db] dark:text-white/25" />
+                      <ChevronDownIcon className="w-4 h-4 stroke-[1.75] text-[var(--icon-muted)] transition-colors" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -352,6 +355,22 @@ export function InboxHeader({
                 </DropdownMenu>
               )}
             </div>
+          )}
+
+          {!hide_refresh && (
+            <Tooltip tip={t("common.refresh")}>
+              <Button
+                aria-label={t("common.refresh")}
+                className="hidden md:flex h-8 w-8 hover:bg-[var(--bg-hover)] text-[var(--icon-muted)] hover:text-[var(--icon-active)]"
+                size="icon"
+                variant="ghost"
+                onClick={handle_refresh}
+              >
+                <ArrowPathIcon
+                  className={`w-[18px] h-[18px] ${is_refreshing ? "animate-spin" : ""}`}
+                />
+              </Button>
+            </Tooltip>
           )}
 
           {!has_selection && !hide_view_switcher && (
@@ -402,6 +421,7 @@ export function InboxHeader({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
         </div>
 
         {has_selection && (
@@ -423,7 +443,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     onClick={on_restore}
                   >
-                    <ArrowUturnLeftIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                    <ArrowUturnLeftIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                   </button>
                 </Tooltip>
               )}
@@ -437,7 +457,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       onClick={on_unarchive}
                     >
-                      <InboxIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                      <InboxIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                     </button>
                   </Tooltip>
                 ) : (
@@ -446,7 +466,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       onClick={on_archive}
                     >
-                      <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                      <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                     </button>
                   </Tooltip>
                 ))}
@@ -472,7 +492,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     onClick={on_mark_read}
                   >
-                    <EnvelopeOpenIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                    <EnvelopeOpenIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                   </button>
                 </Tooltip>
               )}
@@ -483,7 +503,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     onClick={on_toggle_star}
                   >
-                    <StarIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                    <StarIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                   </button>
                 </Tooltip>
               )}
@@ -496,7 +516,7 @@ export function InboxHeader({
                         aria-label={t("common.snooze_until")}
                         className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       >
-                        <ClockIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                        <ClockIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                       </button>
                     </DropdownMenuTrigger>
                   </Tooltip>
@@ -553,7 +573,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                       onClick={on_spam}
                     >
-                      <ShieldExclamationIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                      <ShieldExclamationIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                     </button>
                   </Tooltip>
                 )}
@@ -570,7 +590,7 @@ export function InboxHeader({
                           aria-label={t("common.folders")}
                           className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                         >
-                          <FolderIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                          <FolderIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                         </button>
                       </DropdownMenuTrigger>
                     </Tooltip>
@@ -613,7 +633,7 @@ export function InboxHeader({
                           aria-label={t("common.labels")}
                           className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                         >
-                          <TagIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                          <TagIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                         </button>
                       </DropdownMenuTrigger>
                     </Tooltip>
@@ -650,7 +670,7 @@ export function InboxHeader({
                       aria-label={t("common.more")}
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     >
-                      <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--icon-secondary)]" />
+                      <EllipsisHorizontalIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                     </button>
                   </DropdownMenuTrigger>
                 </Tooltip>
@@ -797,16 +817,7 @@ export function InboxHeader({
           </div>
         )}
 
-        {!has_selection && (
-          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
-            <SearchBar
-              on_result_click={on_search_result_click}
-              on_search_submit={on_search_submit}
-              search_context={search_context}
-            />
-          </div>
-        )}
-        {has_selection && <div className="flex-1 min-w-0" />}
+        <div className="flex-1 min-w-0" />
 
         <div className="flex items-center gap-0.5 flex-shrink-0">
           <HeaderToolbar
@@ -820,7 +831,7 @@ export function InboxHeader({
             handle_batch_action={handle_batch_action}
             handle_refresh={handle_refresh}
             hide_quick_actions={hide_quick_actions}
-            hide_refresh={hide_refresh}
+            hide_refresh={true}
             is_refreshing={is_refreshing}
             is_spam_view={is_spam_view}
             is_trash_view={is_trash_view}

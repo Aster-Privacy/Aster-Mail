@@ -18,10 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo, useState } from "react";
-
 import type { LanguageCode, SettingsTranslations } from "@/lib/i18n/types";
 
+import { useEffect, useMemo, useState } from "react";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -56,7 +55,7 @@ import { get_supported_time_zones } from "@/lib/time_zones";
 import { resolve_list_density } from "@/lib/list_density";
 import { cn } from "@/lib/utils";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   FONT_OPTIONS,
   DEFAULT_FONT_ID,
@@ -69,18 +68,16 @@ import {
   type MaterialThemeVars,
 } from "@/lib/material_theme";
 
-const CUSTOM_THEME_ROLE_LABEL_KEYS: Record<
-  string,
-  keyof SettingsTranslations
-> = {
-  "--accent-color": "custom_theme_role_accent",
-  "--accent-color-hover": "custom_theme_role_accent_hover",
-  "--bg-primary": "custom_theme_role_background",
-  "--bg-secondary": "custom_theme_role_background_secondary",
-  "--text-primary": "custom_theme_role_text",
-  "--text-secondary": "custom_theme_role_text_secondary",
-  "--border-primary": "custom_theme_role_border",
-};
+const CUSTOM_THEME_ROLE_LABEL_KEYS: Record<string, keyof SettingsTranslations> =
+  {
+    "--accent-color": "custom_theme_role_accent",
+    "--accent-color-hover": "custom_theme_role_accent_hover",
+    "--bg-primary": "custom_theme_role_background",
+    "--bg-secondary": "custom_theme_role_background_secondary",
+    "--text-primary": "custom_theme_role_text",
+    "--text-secondary": "custom_theme_role_text_secondary",
+    "--border-primary": "custom_theme_role_border",
+  };
 
 const LANGUAGES = get_supported_languages();
 
@@ -210,7 +207,8 @@ export function AppearanceSection() {
   );
 
   const time_zone_value =
-    preferences.time_zone && available_time_zones.includes(preferences.time_zone)
+    preferences.time_zone &&
+    available_time_zones.includes(preferences.time_zone)
       ? preferences.time_zone
       : "auto";
 
@@ -239,31 +237,31 @@ export function AppearanceSection() {
           }
         >
           <ThemeCard
+            full_width={!show_more_themes}
             is_selected={theme_preference === "system" && is_default_color}
             label={t("settings.theme_system")}
             mode="system"
-            full_width={!show_more_themes}
             on_select={() => handle_theme_select("system")}
           />
           <ThemeCard
+            full_width={!show_more_themes}
             is_selected={theme_preference === "light" && is_default_color}
             label={t("settings.theme_light")}
             mode="light"
-            full_width={!show_more_themes}
             on_select={() => handle_theme_select("light")}
           />
           <ThemeCard
+            full_width={!show_more_themes}
             is_selected={theme_preference === "dark" && is_default_color}
             label={t("settings.theme_dark")}
             mode="dark"
-            full_width={!show_more_themes}
             on_select={() => handle_theme_select("dark")}
           />
           <ThemeCard
+            full_width={!show_more_themes}
             is_selected={preferences.color_theme === "aster-blue"}
             label={t("settings.color_theme_aster_blue")}
             mode="aster-blue"
-            full_width={!show_more_themes}
             on_select={() => handle_color_theme_select("aster-blue")}
           />
           {show_more_themes && (
@@ -356,8 +354,8 @@ export function AppearanceSection() {
           )}
         </div>
         <button
-          type="button"
           className="mt-3 flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
+          type="button"
           onClick={() => set_show_more_themes((prev) => !prev)}
         >
           {show_more_themes ? (
@@ -488,7 +486,7 @@ export function AppearanceSection() {
                   );
 
                   return (
-                    <div className="flex items-center gap-2" key={key}>
+                    <div key={key} className="flex items-center gap-2">
                       <ColorSwatchPicker
                         label={role_label}
                         size="sm"
@@ -520,9 +518,50 @@ export function AppearanceSection() {
               </div>
             </>
           ) : (
-            <UpgradeBtn size="sm" onClick={go_to_billing}>
-              {t("settings.upgrade_to_unlock")}
-            </UpgradeBtn>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 space-y-1">
+                  <p className="text-[15px] font-semibold text-txt-primary">
+                    {t("settings.custom_theme_colors_title")}
+                  </p>
+                  <p className="text-sm text-txt-secondary">
+                    {t("settings.custom_theme_description")}
+                  </p>
+                </div>
+
+                <UpgradeBtn
+                  className="w-full flex-shrink-0 sm:w-auto"
+                  onClick={() =>
+                    prompt_upgrade(
+                      t("settings.feature_requires_upgrade"),
+                      undefined,
+                      "star",
+                    )
+                  }
+                >
+                  {t("settings.upgrade_to_unlock")}
+                </UpgradeBtn>
+              </div>
+
+              <div
+                aria-hidden="true"
+                className="pointer-events-none select-none opacity-50"
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {CUSTOM_THEME_ROLE_KEYS.map((key) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <span
+                        className="h-7 w-7 flex-shrink-0 rounded-full border border-edge-secondary"
+                        style={{ background: custom_theme_base[key] }}
+                      />
+                      <span className="text-xs text-txt-secondary flex-1 truncate">
+                        {t(`settings.${CUSTOM_THEME_ROLE_LABEL_KEYS[key]}`)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -601,10 +640,76 @@ export function AppearanceSection() {
           label={t("settings.time_zone")}
         >
           <TimeZonePicker
-            value={time_zone_value}
             on_change={handle_time_zone_change}
             use_24h={preferences.time_format === "24h"}
+            value={time_zone_value}
           />
+        </SettingRow>
+      </div>
+
+      <div className="pt-3">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.email_view_mode")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <p className="text-sm mb-2 text-txt-muted">
+          {t("settings.email_view_description")}
+        </p>
+        <div className="flex gap-4">
+          <ViewModeCard
+            is_selected={preferences.email_view_mode === "popup"}
+            label={t("settings.popup")}
+            mode="popup"
+            on_select={() =>
+              update_preference("email_view_mode", "popup", true)
+            }
+            theme={theme}
+          />
+          <ViewModeCard
+            is_selected={preferences.email_view_mode === "split"}
+            label={t("settings.split_view")}
+            mode="split"
+            on_select={() =>
+              update_preference("email_view_mode", "split", true)
+            }
+            theme={theme}
+          />
+          <ViewModeCard
+            is_selected={preferences.email_view_mode === "fullpage"}
+            label={t("settings.full_page")}
+            mode="fullpage"
+            on_select={() =>
+              update_preference("email_view_mode", "fullpage", true)
+            }
+            theme={theme}
+          />
+        </div>
+
+        <SettingRow
+          description={t("settings.density_description")}
+          label={t("settings.density")}
+        >
+          <Select
+            value={resolve_list_density(preferences.mail_list_density)}
+            onValueChange={(value) =>
+              update_preference("mail_list_density", value, true)
+            }
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="comfortable">
+                {t("settings.density_comfortable")}
+              </SelectItem>
+              <SelectItem value="compact">
+                {t("settings.density_compact")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </SettingRow>
       </div>
 
@@ -700,7 +805,9 @@ export function AppearanceSection() {
         </p>
         <div className="flex gap-4">
           <ComposeModeCard
-            is_selected={(preferences.compose_window_mode ?? "default") === "default"}
+            is_selected={
+              (preferences.compose_window_mode ?? "default") === "default"
+            }
             label={t("settings.compose_mode_default")}
             mode="default"
             on_select={() =>
@@ -709,7 +816,9 @@ export function AppearanceSection() {
             theme={theme}
           />
           <ComposeModeCard
-            is_selected={(preferences.compose_window_mode ?? "default") === "fullscreen"}
+            is_selected={
+              (preferences.compose_window_mode ?? "default") === "fullscreen"
+            }
             label={t("settings.compose_mode_fullscreen")}
             mode="fullscreen"
             on_select={() =>
@@ -718,7 +827,9 @@ export function AppearanceSection() {
             theme={theme}
           />
           <ComposeModeCard
-            is_selected={(preferences.compose_window_mode ?? "default") === "minimized"}
+            is_selected={
+              (preferences.compose_window_mode ?? "default") === "minimized"
+            }
             label={t("settings.compose_mode_minimized")}
             mode="minimized"
             on_select={() =>

@@ -92,6 +92,117 @@ function resolve_preview(id: string): CategoryPreview | undefined {
   return get_entry_preview(id) ?? preview_cache.get(id);
 }
 
+const MAX_HOVER_PREVIEWS = 5;
+
+async function fetch_previews(ids: string[]): Promise<boolean> {
+  const generation = get_index_generation();
+
+  for (const id of ids) {
+    in_flight.add(id);
+  }
+
+  try {
+    const response = await list_mail_items({ ids });
+
+    if (generation !== get_index_generation()) return false;
+
+    const items = response.data?.items ?? [];
+
+    for (const item of items) {
+      const envelope = await decrypt_envelope(
+        item.encrypted_envelope,
+        item.envelope_nonce,
+      );
+
+      if (generation !== get_index_generation()) return false;
+      if (!envelope) continue;
+
+      preview_cache.set(
+        item.id,
+        build_category_preview(
+          envelope.from?.name,
+          envelope.from?.email,
+          envelope.subject,
+        ),
+      );
+      attempts.delete(item.id);
+    }
+
+    for (const id of ids) {
+      if (!preview_cache.has(id)) note_attempt(id);
+    }
+
+    trim_cache();
+
+    return true;
+  } catch {
+    return false;
+  } finally {
+    for (const id of ids) {
+      in_flight.delete(id);
+    }
+  }
+}
+
+export function use_category_preview_list(
+  category: EmailCategory | null,
+): CategoryPreview[] {
+  const version = useSyncExternalStore(subscribe, get_version, get_version);
+  const preview_version = useSyncExternalStore(
+    subscribe,
+    get_preview_version,
+    get_preview_version,
+  );
+  const [tick, set_tick] = useState(0);
+
+  const ids = useMemo(() => {
+    if (!category) return [] as string[];
+
+    return (get_new_head_ids().get(category) ?? []).slice(0, MAX_HOVER_PREVIEWS);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, version]);
+
+  const ids_key = ids.join(",");
+
+  useEffect(() => {
+    if (ids.length === 0) return;
+    if (!are_keys_ready()) return;
+
+    reset_if_stale();
+
+    const missing = ids.filter(
+      (id) => !resolve_preview(id) && !is_exhausted(id) && !in_flight.has(id),
+    );
+
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+
+    void fetch_previews(missing).then((changed) => {
+      if (changed && !cancelled) set_tick((value) => value + 1);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ids_key]);
+
+  return useMemo(() => {
+    const list: CategoryPreview[] = [];
+
+    for (const id of ids) {
+      const preview = resolve_preview(id);
+
+      if (!preview?.sender) continue;
+      list.push(preview);
+    }
+
+    return list;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ids_key, tick, preview_version]);
+}
+
 export function use_category_previews(enabled: boolean): CategoryPreviews {
   const version = useSyncExternalStore(subscribe, get_version, get_version);
   const preview_version = useSyncExternalStore(

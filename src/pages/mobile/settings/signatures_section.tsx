@@ -64,7 +64,7 @@ import {
 } from "@/hooks/use_sender_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { use_editor } from "@/hooks/use_editor";
 import { LinkDialog } from "@/components/compose/link_dialog";
 import { validate_image_magic_bytes } from "@/hooks/editor_utils";
@@ -345,6 +345,7 @@ export function SignaturesSection({
         prev.map((s) => ({ ...s, is_default: s.id === id })),
       );
       const response = await set_default_signature(id);
+
       if (!response.error) {
         reload_context_signatures();
       }
@@ -853,7 +854,16 @@ export function SignaturesSection({
                   }
                 />
               ) : (
-                <UpgradeBtn size="sm" onClick={go_to_billing}>
+                <UpgradeBtn
+                  size="sm"
+                  onClick={() =>
+                    prompt_upgrade(
+                      t("settings.feature_requires_upgrade"),
+                      undefined,
+                      "has_remove_branding",
+                    )
+                  }
+                >
                   {t("settings.upgrade_to_unlock")}
                 </UpgradeBtn>
               )

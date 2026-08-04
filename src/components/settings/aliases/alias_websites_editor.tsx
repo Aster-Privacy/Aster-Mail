@@ -41,6 +41,12 @@ function display_website(url: string): string {
   return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 }
 
+function open_website(url: string) {
+  window.dispatchEvent(
+    new CustomEvent("aster-external-link", { detail: { url } }),
+  );
+}
+
 interface AliasWebsitesEditorProps {
   alias_address: string;
   websites?: string[];
@@ -96,7 +102,9 @@ export function AliasWebsitesEditor({
     if (commit_lock.current || saving) return;
     commit_lock.current = true;
 
-    const trimmed = draft.trim();
+    const trimmed = (input_ref.current?.value ?? draft).trim();
+
+    if (trimmed !== draft) set_draft(trimmed);
 
     if (!trimmed) {
       commit_lock.current = false;
@@ -163,7 +171,7 @@ export function AliasWebsitesEditor({
 
   const add_button_class = is_mobile
     ? "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100"
-    : "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-txt-muted opacity-60 hover:opacity-100";
+    : "inline-flex items-center gap-1 rounded-full border border-dashed border-edge-primary px-2 py-0.5 text-xs text-txt-muted transition-colors hover:border-edge-secondary hover:text-txt-secondary";
 
   const empty_add_class = is_mobile
     ? "mt-1 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-[13px] leading-5 text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
@@ -191,7 +199,9 @@ export function AliasWebsitesEditor({
   }
 
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+    <div
+      className={`mt-1 flex flex-wrap items-center gap-1.5 ${is_mobile ? "" : "justify-end"}`}
+    >
       {current.map((url) => (
         <span key={url} className={chip_class}>
           <GlobeAltIcon className="h-3 w-3 flex-shrink-0" />
@@ -201,6 +211,10 @@ export function AliasWebsitesEditor({
             rel="noopener noreferrer"
             target="_blank"
             title={url}
+            onClick={(event) => {
+              event.preventDefault();
+              open_website(url);
+            }}
           >
             {display_website(url)}
           </a>
@@ -223,10 +237,15 @@ export function AliasWebsitesEditor({
               ref={input_ref}
               autoFocus
               aria-label={`${t("common.add_alias_website")} ${alias_address}`}
+              autoCapitalize="none"
+              autoComplete="off"
+              autoCorrect="off"
               className="w-44 bg-transparent text-[12px] text-[var(--mobile-text-muted)] outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0"
               disabled={saving}
+              inputMode="url"
               maxLength={MAX_WEBSITE_URL_LENGTH}
               placeholder={t("common.add_alias_website_placeholder")}
+              spellCheck={false}
               value={draft}
               onBlur={commit_add}
               onChange={(event) => set_draft(event.target.value)}
@@ -254,11 +273,16 @@ export function AliasWebsitesEditor({
               ref={input_ref}
               autoFocus
               aria-label={`${t("common.add_alias_website")} ${alias_address}`}
+              autoCapitalize="none"
+              autoComplete="off"
+              autoCorrect="off"
               className="w-full pr-8"
               disabled={saving}
+              inputMode="url"
               maxLength={MAX_WEBSITE_URL_LENGTH}
               placeholder={t("common.add_alias_website_placeholder")}
               size="md"
+              spellCheck={false}
               value={draft}
               onBlur={commit_add}
               onChange={(event) => set_draft(event.target.value)}

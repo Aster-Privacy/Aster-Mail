@@ -165,8 +165,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           deps.email.sender_email,
           deps.current_user_email,
         ));
-    const is_forwarded =
-      !is_own_message && !!deps.email.display_sender_email;
+    const is_forwarded = !is_own_message && !!deps.email.display_sender_email;
     const { recipient_name, recipient_email } = build_reply_recipient(
       {
         sender_name: deps.email.sender,
@@ -428,6 +427,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           is_read: deps.is_read,
         })
       : null;
+
     if (deltas) apply_stat_deltas(deltas);
 
     const result = await batch_archive({ ids: [deps.email_id], tier: "hot" });
@@ -462,7 +462,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     } else if (deltas) {
       revert_stat_deltas(deltas);
     }
-  }, [deps.email_id, deps.is_archive_loading, deps.on_dismiss, deps.t, deps.mail_item, deps.is_read]);
+  }, [
+    deps.email_id,
+    deps.is_archive_loading,
+    deps.on_dismiss,
+    deps.t,
+    deps.mail_item,
+    deps.is_read,
+  ]);
 
   const handle_unarchive = useCallback(async () => {
     if (!deps.email_id || deps.is_archive_loading) return;
@@ -474,6 +481,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           is_read: deps.is_read,
         })
       : null;
+
     if (deltas) apply_stat_deltas(deltas);
 
     const result = await batch_unarchive({ ids: [deps.email_id] });
@@ -514,7 +522,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     } else if (deltas) {
       revert_stat_deltas(deltas);
     }
-  }, [deps.email_id, deps.is_archive_loading, deps.on_dismiss, deps.t, deps.mail_item, deps.is_read]);
+  }, [
+    deps.email_id,
+    deps.is_archive_loading,
+    deps.on_dismiss,
+    deps.t,
+    deps.mail_item,
+    deps.is_read,
+  ]);
 
   const handle_spam = useCallback(async () => {
     if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
@@ -629,6 +644,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       item_type: deps.mail_item.item_type,
       is_read: deps.is_read,
     });
+
     apply_stat_deltas(deltas);
 
     const result = await update_item_metadata(
@@ -695,19 +711,26 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
     try {
       const result = await execute_unsubscribe(info);
+
       if (result === "api") {
         show_action_toast({
           message: deps.t("mail.successfully_unsubscribed"),
           action_type: "not_spam",
           email_ids: [],
         });
-        persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
-          unsubscribe_link: info.unsubscribe_link,
-          list_unsubscribe_header: info.list_unsubscribe_header,
-        }, "auto");
+        persist_unsubscribe(
+          deps.email.sender_email,
+          deps.email.sender || "",
+          {
+            unsubscribe_link: info.unsubscribe_link,
+            list_unsubscribe_header: info.list_unsubscribe_header,
+          },
+          "auto",
+        );
       } else {
         const url = info.unsubscribe_link || info.unsubscribe_mailto;
         const lockdown = is_any_lockdown_active();
+
         show_action_toast({
           message: deps.t("mail.unsubscribe_manual_required"),
           action_type: "not_spam",
@@ -720,10 +743,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             },
           }),
         });
-        persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
-          unsubscribe_link: info.unsubscribe_link,
-          list_unsubscribe_header: info.list_unsubscribe_header,
-        }, "manual");
+        persist_unsubscribe(
+          deps.email.sender_email,
+          deps.email.sender || "",
+          {
+            unsubscribe_link: info.unsubscribe_link,
+            list_unsubscribe_header: info.list_unsubscribe_header,
+          },
+          "manual",
+        );
       }
     } catch {
       show_action_toast({
@@ -1076,7 +1104,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (!routing_token || !sender || is_own_message) return;
 
     if (deps.is_sender_pinning_locked) {
-      prompt_upgrade(deps.t("settings.feature_requires_upgrade"));
+      prompt_upgrade(
+        deps.t("settings.feature_requires_upgrade"),
+        undefined,
+        "has_sender_pinning",
+      );
+
       return;
     }
 

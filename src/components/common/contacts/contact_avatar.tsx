@@ -54,7 +54,7 @@ export function ContactAvatar({
   avatar_url,
   profile_color,
   size_px,
-  rounded = "rounded-xl",
+  rounded = "rounded-full",
   className = "",
 }: ContactAvatarProps) {
   const domain = useMemo(() => {

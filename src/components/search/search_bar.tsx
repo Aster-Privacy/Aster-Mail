@@ -20,6 +20,7 @@
 //
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useLocation } from "react-router-dom";
 import {
   MagnifyingGlassIcon,
   XMarkIcon,
@@ -29,16 +30,37 @@ import {
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { use_search } from "@/hooks/use_search";
+import {
+  is_page_search_route,
+  set_page_search,
+} from "@/hooks/use_page_search";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 
 const DEBOUNCE_MS = 180;
 const MIN_QUERY_LENGTH = 2;
 
+const VIEW_SCOPES: Record<string, { label_key: TranslationKey; token: string }> =
+  {
+    "/": { label_key: "mail.inbox", token: "inbox" },
+    "/all": { label_key: "mail.all_mail", token: "all" },
+    "/starred": { label_key: "mail.starred", token: "starred" },
+    "/sent": { label_key: "mail.sent", token: "sent" },
+    "/drafts": { label_key: "mail.drafts", token: "drafts" },
+    "/scheduled": { label_key: "mail.scheduled", token: "scheduled" },
+    "/snoozed": { label_key: "mail.snoozed", token: "snoozed" },
+    "/archive": { label_key: "mail.archive", token: "archive" },
+    "/spam": { label_key: "mail.spam", token: "spam" },
+    "/trash": { label_key: "mail.trash", token: "trash" },
+  };
+
 interface SearchBarProps {
+  is_pill?: boolean;
   on_result_click?: (id: string) => void;
   on_search_submit?: (query: string) => void;
   search_context?: string;
@@ -51,8 +73,20 @@ interface AnchorRect {
   bottom: number;
 }
 
-export function SearchBar({ on_search_submit, search_context }: SearchBarProps) {
+export function SearchBar({
+  is_pill,
+  on_search_submit,
+  search_context,
+}: SearchBarProps) {
   const { t } = use_i18n();
+  const location = useLocation();
+  const scope = VIEW_SCOPES[location.pathname];
+  const is_page_filter = is_page_search_route(location.pathname);
+  const page_filter_placeholder = `${t("mail.search_in")} ${
+    location.pathname === "/contacts"
+      ? t("common.contacts")
+      : t("common.subscriptions")
+  }`;
   const input_ref = useRef<HTMLInputElement>(null);
   const wrapper_ref = useRef<HTMLDivElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
@@ -110,12 +144,23 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
     const value = e.target.value;
 
     set_query(value);
+    if (is_page_filter) {
+      set_page_search(value);
+
+      return;
+    }
     if (debounce_ref.current) clearTimeout(debounce_ref.current);
     debounce_ref.current = setTimeout(() => submit_query(value), DEBOUNCE_MS);
   };
 
   const handle_clear = () => {
     set_query("");
+    if (is_page_filter) {
+      set_page_search("");
+      input_ref.current?.focus();
+
+      return;
+    }
     submit_query("");
     input_ref.current?.focus();
   };
@@ -139,6 +184,11 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
     }
     if (e.key === "Enter") {
       e.preventDefault();
+      if (is_page_filter) {
+        input_ref.current?.blur();
+
+        return;
+      }
       submit_full(query);
     }
   };
@@ -217,6 +267,18 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
     };
   }, []);
 
+  const last_path_ref = useRef(location.pathname);
+
+  useEffect(() => {
+    if (last_path_ref.current === location.pathname) return;
+    last_path_ref.current = location.pathname;
+    if (debounce_ref.current) clearTimeout(debounce_ref.current);
+    set_query("");
+    set_is_open(false);
+    set_page_search("");
+    if (on_search_submit) on_search_submit("");
+  }, [location.pathname, on_search_submit]);
+
   const dropdown_style: React.CSSProperties | undefined = rect
     ? {
         position: "fixed",
@@ -231,32 +293,63 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
     <>
       <div
         ref={wrapper_ref}
-        className="flex-1 min-w-[200px] max-w-[640px] relative"
+        className={`flex-1 relative ${is_pill ? "min-w-0 max-w-[620px]" : "min-w-[200px] max-w-[640px]"}`}
         data-onboarding="search-bar"
       >
         <div
-          className="flex items-center gap-2 h-9 px-3 rounded-lg border bg-[var(--bg-primary)] border-[var(--border-secondary)] transition-none"
-          style={{
-            borderBottomLeftRadius: is_open && rect ? 0 : undefined,
-            borderBottomRightRadius: is_open && rect ? 0 : undefined,
-            borderBottomColor: is_open && rect ? "transparent" : undefined,
-          }}
+          className={`flex items-center transition-colors ${
+            is_pill
+              ? `gap-3 h-10 pl-4 pr-2 aster_search_field ${
+                  is_open && !is_page_filter && rect
+                    ? "aster_search_open shadow-lg rounded-t-[22px]"
+                    : "rounded-full"
+                }`
+              : "gap-2 h-9 px-3 rounded-lg border bg-[var(--bg-primary)] border-[var(--border-secondary)]"
+          }`}
+          style={
+            is_pill
+              ? undefined
+              : {
+                  borderBottomLeftRadius:
+                    is_open && !is_page_filter && rect ? 0 : undefined,
+                  borderBottomRightRadius:
+                    is_open && !is_page_filter && rect ? 0 : undefined,
+                  borderBottomColor:
+                    is_open && !is_page_filter && rect
+                      ? "transparent"
+                      : undefined,
+                }
+          }
         >
-          <MagnifyingGlassIcon className="w-4 h-4 text-[var(--icon-muted)] flex-shrink-0" />
+          <MagnifyingGlassIcon
+            className={`text-[var(--text-secondary)] flex-shrink-0 ${is_pill ? "w-5 h-5" : "w-4 h-4"}`}
+          />
           <input
             ref={input_ref}
-            className="flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
-            placeholder={`${t("common.search")}...`}
+            className="flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
+            placeholder={
+              is_page_filter
+                ? page_filter_placeholder
+                : scope
+                  ? `${t("mail.search_in")} ${t(scope.label_key)}`
+                  : t("common.search")
+            }
             type="text"
             value={query}
             onChange={handle_change}
-            onFocus={() => set_is_open(true)}
+            onFocus={() => {
+              if (is_page_filter) return;
+              set_is_open(true);
+              if (!query && scope && scope.token !== "inbox") {
+                set_query(`in:${scope.token} `);
+              }
+            }}
             onKeyDown={handle_key_down}
           />
           {(query || is_open) && (
             <button
               aria-label={query ? t("common.clear") : t("common.close")}
-              className="p-1.5 rounded-full text-[var(--icon-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--icon-active)]"
+              className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
               type="button"
               onClick={() => {
                 if (query) {
@@ -270,15 +363,34 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
               <XMarkIcon className="w-5 h-5" />
             </button>
           )}
+          {is_pill && !is_page_filter && (
+            <button
+              aria-label={t("mail.advanced_search")}
+              className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] focus:outline-none"
+              type="button"
+              onClick={() => {
+                close();
+                input_ref.current?.blur();
+                set_is_advanced_open(true);
+              }}
+            >
+              <AdjustmentsHorizontalIcon className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
 
       {is_open &&
+        !is_page_filter &&
         rect &&
         createPortal(
           <div
             ref={dropdown_ref}
-            className="rounded-b-lg border border-t-0 bg-[var(--bg-primary)] border-[var(--border-secondary)] shadow-md overflow-hidden"
+            className={`overflow-hidden ${
+              is_pill
+                ? "aster_search_open aster_search_open_panel rounded-b-[22px]"
+                : "rounded-b-lg border border-t-0 border-[var(--border-secondary)] shadow-md"
+            }`}
             style={dropdown_style}
           >
             <SearchContentBanner
@@ -308,7 +420,7 @@ export function SearchBar({ on_search_submit, search_context }: SearchBarProps) 
                 on_click={() => handle_chip("from:")}
               />
               <button
-                className="ml-auto inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                className="ml-auto inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 type="button"
                 onClick={() => {
                   close();

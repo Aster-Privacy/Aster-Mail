@@ -95,12 +95,14 @@ function ErrorBoundaryFallback({
         src="/text_logo.png"
       />
       <div
-        className="text-sm font-medium mb-2"
+        className="text-[15px] font-semibold mb-1.5"
         style={{ color: "var(--text-primary)" }}
       >
         {t("common.something_went_wrong")}
       </div>
-      <div className="text-xs mb-4">{t("common.unexpected_error_refresh")}</div>
+      <div className="text-[13px] leading-relaxed max-w-[420px] mb-5">
+        {t("common.unexpected_error_refresh")}
+      </div>
       <div className="flex gap-2">
         <Button size="md" variant="depth" onClick={on_retry}>
           {t("common.try_again")}

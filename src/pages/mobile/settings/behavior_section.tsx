@@ -37,7 +37,7 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { Input } from "@/components/ui/input";
 import {
   get_spam_settings,
@@ -66,7 +66,8 @@ export function BehaviorSection({
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
   });
-  const [family_policy, set_family_policy] = useState<MemberRetentionPolicy | null>(null);
+  const [family_policy, set_family_policy] =
+    useState<MemberRetentionPolicy | null>(null);
   const is_web = !Capacitor.isNativePlatform();
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
@@ -98,9 +99,11 @@ export function BehaviorSection({
     get_spam_settings().then((result) => {
       if (result.data) set_spam_settings(result.data);
     });
-    get_member_retention_policy().then((result) => {
-      if (result.data) set_family_policy(result.data);
-    }).catch(() => {});
+    get_member_retention_policy()
+      .then((result) => {
+        if (result.data) set_family_policy(result.data);
+      })
+      .catch(() => {});
   }, []);
 
   const update_spam_settings = (patch: Partial<SpamSettings>) => {
@@ -159,7 +162,10 @@ export function BehaviorSection({
       value: "Go to previous message",
       label: t("settings.auto_advance_previous"),
     },
-    { value: "Go back to message list", label: t("settings.auto_advance_back") },
+    {
+      value: "Go back to message list",
+      label: t("settings.auto_advance_back"),
+    },
   ];
 
   const undo_presets = [3, 5, 10, 15, 30];
@@ -211,7 +217,9 @@ export function BehaviorSection({
 
         <SettingsGroup title={t("settings.default_reply")}>
           <OptionList
-            on_change={(v) => update_preference("default_reply_behavior", v, true)}
+            on_change={(v) =>
+              update_preference("default_reply_behavior", v, true)
+            }
             options={reply_options}
             value={preferences.default_reply_behavior}
           />
@@ -278,7 +286,9 @@ export function BehaviorSection({
                 onCheckedChange={() =>
                   update_preference(
                     "html_rendering_mode",
-                    preferences.html_rendering_mode === "plain_text" ? "html" : "plain_text",
+                    preferences.html_rendering_mode === "plain_text"
+                      ? "html"
+                      : "plain_text",
                     true,
                   )
                 }
@@ -388,7 +398,10 @@ export function BehaviorSection({
               <SettingsRow
                 label={t("settings.block_tracking_links")}
                 trailing={
-                  <Switch checked={preferences.block_external_content} disabled />
+                  <Switch
+                    disabled
+                    checked={preferences.block_external_content}
+                  />
                 }
               />
             </>
@@ -526,10 +539,21 @@ export function BehaviorSection({
               is_paid_plan ? (
                 <Switch
                   checked={preferences.show_aster_branding}
-                  onCheckedChange={(v) => update_preference("show_aster_branding", v, true)}
+                  onCheckedChange={(v) =>
+                    update_preference("show_aster_branding", v, true)
+                  }
                 />
               ) : (
-                <UpgradeBtn size="sm" onClick={go_to_billing}>
+                <UpgradeBtn
+                  size="sm"
+                  onClick={() =>
+                    prompt_upgrade(
+                      t("settings.feature_requires_upgrade"),
+                      undefined,
+                      "has_remove_branding",
+                    )
+                  }
+                >
                   {t("settings.upgrade_to_unlock")}
                 </UpgradeBtn>
               )
@@ -622,10 +646,17 @@ export function BehaviorSection({
                   {t("settings.auto_delete_spam_after")}
                 </p>
                 {(() => {
-                  const spam_enforced = !!family_policy?.enforce_on_members && family_policy.spam_retention_days != null;
+                  const spam_enforced =
+                    !!family_policy?.enforce_on_members &&
+                    family_policy.spam_retention_days != null;
                   const effective_value = spam_enforced
-                    ? (family_policy!.spam_retention_days === 0 ? "never" : String(family_policy!.spam_retention_days))
-                    : (spam_settings.spam_retention_days === 0 ? "never" : String(spam_settings.spam_retention_days));
+                    ? family_policy!.spam_retention_days === 0
+                      ? "never"
+                      : String(family_policy!.spam_retention_days)
+                    : spam_settings.spam_retention_days === 0
+                      ? "never"
+                      : String(spam_settings.spam_retention_days);
+
                   return (
                     <>
                       {spam_enforced && (
@@ -643,15 +674,20 @@ export function BehaviorSection({
                                 ? "text-white"
                                 : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
                             } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
+                            disabled={spam_enforced}
                             style={
-                              effective_value === opt.value ? chip_selected_style : undefined
+                              effective_value === opt.value
+                                ? chip_selected_style
+                                : undefined
                             }
                             type="button"
-                            disabled={spam_enforced}
                             onClick={() => {
                               if (spam_enforced) return;
                               update_spam_settings({
-                                spam_retention_days: opt.value === "never" ? 0 : parseInt(opt.value, 10),
+                                spam_retention_days:
+                                  opt.value === "never"
+                                    ? 0
+                                    : parseInt(opt.value, 10),
                               });
                             }}
                           >
@@ -673,7 +709,9 @@ export function BehaviorSection({
             trailing={
               <Switch
                 checked={preferences.haptic_enabled}
-                onCheckedChange={(v) => update_preference("haptic_enabled", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("haptic_enabled", v, true)
+                }
               />
             }
           />
@@ -706,7 +744,9 @@ export function BehaviorSection({
                     key={id}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
                     type="button"
-                    onClick={() => update_preference("swipe_left_action", id, true)}
+                    onClick={() =>
+                      update_preference("swipe_left_action", id, true)
+                    }
                   >
                     {def && (
                       <span
@@ -738,7 +778,9 @@ export function BehaviorSection({
                     key={id}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
                     type="button"
-                    onClick={() => update_preference("swipe_right_action", id, true)}
+                    onClick={() =>
+                      update_preference("swipe_right_action", id, true)
+                    }
                   >
                     {def && (
                       <span

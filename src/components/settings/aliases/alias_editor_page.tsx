@@ -43,7 +43,11 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { update_alias } from "@/services/api/aliases";
 import { show_toast } from "@/components/toast/simple_toast";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import {
+  FEATURE_MIN_PLAN,
+  PLAN_TIERS,
+} from "@/components/settings/billing/billing_constants";
 import {
   AliasDetailsPanel,
   ContactsPanel,
@@ -60,6 +64,7 @@ interface EditorSection {
   label: string;
   icon: typeof IdentificationIcon;
   locked: boolean;
+  feature: string;
   render: () => React.ReactNode;
 }
 
@@ -136,6 +141,7 @@ export function AliasEditorPage({
         icon: IdentificationIcon,
         label: t("settings.alias_details_title"),
         locked: false,
+        feature: "has_alias_avatars",
         render: () => (
           <AliasDetailsPanel
             alias_address={alias.full_address}
@@ -172,6 +178,7 @@ export function AliasEditorPage({
         icon: InboxArrowDownIcon,
         label: t("settings.alias_delivery_title"),
         locked: false,
+        feature: "has_advanced_aliases",
         render: () => (
           <DeliveryPanel
             delivery_folder_token={alias.delivery_folder_token}
@@ -187,6 +194,7 @@ export function AliasEditorPage({
         icon: ChartBarIcon,
         label: t("settings.alias_stats_title"),
         locked: advanced_locked,
+        feature: "has_advanced_aliases",
         render: () => (
           <StatsPanel
             hide_created
@@ -202,6 +210,7 @@ export function AliasEditorPage({
       icon: ShieldCheckIcon,
       label: t("settings.alias_sender_pinning_title"),
       locked: sender_locked,
+      feature: "has_sender_pinning",
       render: () => (
         <SenderPinningPanel
           alias_id={alias_id}
@@ -216,6 +225,7 @@ export function AliasEditorPage({
       icon: SparklesIcon,
       label: t("settings.alias_rules_title"),
       locked: rules_locked,
+      feature: "has_alias_rules",
       render: () => (
         <RulesPanel
           alias_id={alias_id}
@@ -230,6 +240,7 @@ export function AliasEditorPage({
       icon: NoSymbolIcon,
       label: t("settings.alias_delivery_log_title"),
       locked: advanced_locked,
+      feature: "has_advanced_aliases",
       render: () => (
         <DeliveryLogPanel
           alias_id={alias_id}
@@ -244,6 +255,7 @@ export function AliasEditorPage({
       icon: UserGroupIcon,
       label: t("settings.alias_contacts_title"),
       locked: contacts_locked,
+      feature: "max_reverse_contacts_per_alias",
       render: () => (
         <ContactsPanel
           alias_domain={domain_address?.domain_name}
@@ -275,6 +287,20 @@ export function AliasEditorPage({
 
   const open_sections = sections.filter((section) => !section.locked);
   const locked_sections = sections.filter((section) => section.locked);
+  const locked_feature =
+    locked_sections.length > 0
+      ? locked_sections
+          .map((section) => section.feature)
+          .sort(
+            (a, b) =>
+              PLAN_TIERS.findIndex(
+                (tier) => tier.id === (FEATURE_MIN_PLAN[a] ?? a),
+              ) -
+              PLAN_TIERS.findIndex(
+                (tier) => tier.id === (FEATURE_MIN_PLAN[b] ?? b),
+              ),
+          )[0]
+      : undefined;
 
   const copy_address = async () => {
     try {
@@ -309,7 +335,7 @@ export function AliasEditorPage({
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             <button
-              className="min-w-0 truncate rounded-md text-left transition-colors hover:text-txt-secondary"
+              className="min-w-0 truncate rounded-none text-left transition-colors hover:text-txt-secondary"
               title={t("common.copy_address")}
               type="button"
               onClick={copy_address}
@@ -351,34 +377,47 @@ export function AliasEditorPage({
       ))}
 
       {locked_sections.length > 0 && (
-        <div>
-          <SectionHeading
-            action={
-              <UpgradeBtn size="sm" onClick={go_to_billing}>
-                {t("settings.alias_feature_locked_upgrade_cta")}
-              </UpgradeBtn>
-            }
-            icon={LockClosedIcon}
-            title={t("settings.alias_feature_locked_upgrade_plan")}
-          />
-          <p className="text-sm text-txt-muted">
-            {t("settings.feature_requires_upgrade")}
-          </p>
-          <fieldset
-            disabled
-            aria-hidden="true"
-            className="pointer-events-none mt-2 select-none space-y-4 opacity-45"
-          >
-            {locked_sections.map((section) => (
-              <div key={section.key}>
-                <p className="flex items-center gap-2 py-2 text-sm font-medium text-txt-primary">
-                  <section.icon className="h-4 w-4 shrink-0" />
-                  {section.label}
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 border-t border-edge-secondary pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-2.5">
+              <LockClosedIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-txt-muted" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-txt-primary">
+                  {t("settings.upgrade_to_unlock")}
                 </p>
-                {section.render()}
+                <p className="mt-0.5 text-sm text-txt-muted">
+                  {locked_sections.map((section) => section.label).join(" · ")}
+                </p>
               </div>
-            ))}
-          </fieldset>
+            </div>
+
+            <UpgradeBtn
+              className="w-full flex-shrink-0 sm:w-auto"
+              size="sm"
+              onClick={() =>
+                prompt_upgrade(
+                  t("settings.feature_requires_upgrade"),
+                  undefined,
+                  locked_feature,
+                )
+              }
+            >
+              {t("settings.alias_feature_locked_upgrade_cta")}
+            </UpgradeBtn>
+          </div>
+
+          {locked_sections.map((section) => (
+            <div
+              key={section.key}
+              aria-hidden="true"
+              className="pointer-events-none select-none opacity-50"
+            >
+              <SectionHeading icon={section.icon} title={section.label} />
+              <fieldset disabled className="min-w-0 border-0 p-0 m-0">
+                {section.render()}
+              </fieldset>
+            </div>
+          ))}
         </div>
       )}
     </div>

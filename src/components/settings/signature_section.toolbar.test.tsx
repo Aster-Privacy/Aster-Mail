@@ -219,7 +219,7 @@ vi.mock("@/hooks/use_sender_aliases", () => ({
     ["alias", "domain", "ghost"].includes(t),
 }));
 vi.mock("@/components/settings/aliases/feature_lock", () => ({
-  go_to_billing: vi.fn(),
+  prompt_upgrade: vi.fn(),
 }));
 
 import { SignatureSection } from "./signature_section";

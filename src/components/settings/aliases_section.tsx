@@ -401,6 +401,8 @@ export function AliasesSection() {
                         ? () =>
                             prompt_upgrade(
                               t("settings.feature_requires_upgrade"),
+                              undefined,
+                              "has_advanced_aliases",
                             )
                         : () => set_show_export_modal(true)
                     }

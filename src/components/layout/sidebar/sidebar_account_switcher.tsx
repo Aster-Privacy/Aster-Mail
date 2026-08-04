@@ -18,24 +18,51 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { RefObject } from "react";
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { memo, useCallback, useRef } from "react";
-import {
-  UserGroupIcon,
-  Cog6ToothIcon,
-} from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { memo } from "react";
+import { UserGroupIcon } from "@heroicons/react/24/outline";
+import { Tooltip } from "@aster/ui";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { format_bytes } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
-import { claim_logo_tap_badge } from "@/services/api/user";
-import { show_toast } from "@/components/toast/simple_toast";
 
-const LOGO_TAPS_REQUIRED = 15;
-const LOGO_TAP_WINDOW_MS = 2000;
+function PanelToggleIcon({
+  direction,
+  className,
+}: {
+  direction: "collapse" | "expand";
+  className?: string;
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        height="16"
+        rx="3.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        width="18"
+        x="3"
+        y="4"
+      />
+      <path d="M9.5 4.8V19.2" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d={direction === "collapse" ? "M17 9.5 14 12l3 2.5" : "M14 9.5l3 2.5-3 2.5"}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
 
 interface SidebarAccountSwitcherProps {
   is_collapsed: boolean;
@@ -44,9 +71,7 @@ interface SidebarAccountSwitcherProps {
   storage_total_bytes: number;
   on_settings_click: (section?: SettingsSection) => void;
   on_modal_open?: () => void;
-  text_logo_loaded: boolean;
-  set_text_logo_loaded: (loaded: boolean) => void;
-  text_logo_ref: RefObject<HTMLImageElement>;
+  on_toggle_collapse?: () => void;
 }
 
 export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
@@ -56,86 +81,16 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
   storage_total_bytes,
   on_settings_click,
   on_modal_open,
-  text_logo_loaded,
-  set_text_logo_loaded,
-  text_logo_ref,
+  on_toggle_collapse,
 }: SidebarAccountSwitcherProps) {
   const { t } = use_i18n();
-  const is_free_plan = storage_total_bytes <= 10 * 1024 ** 3;
-  const tap_count_ref = useRef(0);
-  const last_tap_at_ref = useRef(0);
-  const claim_in_flight_ref = useRef(false);
-
-  const handle_logo_tap = useCallback(async () => {
-    const now = Date.now();
-    if (now - last_tap_at_ref.current > LOGO_TAP_WINDOW_MS) {
-      tap_count_ref.current = 0;
-    }
-    last_tap_at_ref.current = now;
-    tap_count_ref.current += 1;
-
-    if (
-      tap_count_ref.current < LOGO_TAPS_REQUIRED ||
-      claim_in_flight_ref.current
-    ) {
-      return;
-    }
-
-    tap_count_ref.current = 0;
-    claim_in_flight_ref.current = true;
-    try {
-      const response = await claim_logo_tap_badge();
-      if (!response.data) {
-        show_toast(t("badges.claim_failed"), "error");
-        return;
-      }
-      const { awarded, already_claimed, badge } = response.data;
-      if (awarded && badge) {
-        show_toast(
-          t("badges.claim_success").replace("{name}", badge.display_name),
-          "success",
-        );
-      } else if (already_claimed) {
-        show_toast(t("badges.claim_already"), "info");
-      }
-    } catch {
-      show_toast(t("badges.claim_failed"), "error");
-    } finally {
-      claim_in_flight_ref.current = false;
-    }
-  }, [t]);
-
   return (
     <div className="mt-auto flex-shrink-0">
-      <div
-        className={`${is_collapsed ? "mx-2" : "mx-3"} mb-3 h-px bg-edge-primary`}
-      />
-
       <div
         className={`${is_collapsed ? "px-2" : "px-3"} pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]`}
       >
         {!is_collapsed && (
           <>
-            <div className="mb-2">
-              <div className="relative">
-                {!text_logo_loaded && (
-                  <Skeleton className="h-[18px] w-[72px] rounded" />
-                )}
-                <img
-                  ref={text_logo_ref}
-                  alt="Aster"
-                  className={`h-[18px] select-none transition-opacity duration-150 ${text_logo_loaded ? "opacity-100" : "opacity-0"}`}
-                  decoding="async"
-                  draggable={false}
-                  src="/text_logo.png"
-                  onClick={handle_logo_tap}
-                  onLoad={() => {
-                    set_text_logo_loaded(true);
-                  }}
-                />
-              </div>
-            </div>
-
             {storage_total_bytes > 0 ? (
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
@@ -177,16 +132,12 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                   {format_bytes(storage_used_bytes)} {t("common.of")}{" "}
                   {format_bytes(storage_total_bytes)}
                 </p>
-                <Button
-                  className="text-[10px] font-medium px-2 py-1 hover:-translate-y-[1px]"
-                  size="sm"
-                  variant="depth"
+                <button
+                  className="text-[9px] text-txt-muted transition-colors hover:text-brand hover:underline focus:outline-none"
+                  type="button"
                   onClick={() => {
-                    if (is_free_plan) {
-                      on_settings_click("billing");
-
-                      return;
-                    }
+                    on_settings_click("billing");
+                    let attempts = 0;
                     const scroll_to_addons = () => {
                       const el = document.getElementById(
                         "additional_storage_section",
@@ -197,24 +148,20 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                           behavior: "smooth",
                           block: "start",
                         });
+
+                        return;
+                      }
+                      attempts += 1;
+                      if (attempts < 20) {
+                        setTimeout(scroll_to_addons, 50);
                       }
                     };
-                    const existing = document.getElementById(
-                      "additional_storage_section",
-                    );
 
-                    if (existing) {
-                      scroll_to_addons();
-                    } else {
-                      on_settings_click("billing");
-                      setTimeout(scroll_to_addons, 50);
-                    }
+                    setTimeout(scroll_to_addons, 60);
                   }}
                 >
-                  {is_free_plan
-                    ? t("common.upgrade")
-                    : t("common.buy_more_storage")}
-                </Button>
+                  {t("common.buy_more_storage")}
+                </button>
               </div>
             </div>
             ) : (
@@ -226,24 +173,32 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
         )}
 
         {is_collapsed ? (
-          <div className="flex flex-col items-center gap-1">
-            <button
-              className="p-2 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
-              title={t("settings.refer_a_friend")}
-              onClick={() => {
-                on_modal_open?.();
-                on_settings_click("referral");
-              }}
-            >
-              <UserGroupIcon className="w-4 h-4" />
-            </button>
-            <button
-              className="p-2 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
-              title={t("settings.title")}
-              onClick={() => on_settings_click()}
-            >
-              <Cog6ToothIcon className="w-4 h-4" />
-            </button>
+          <div className="flex flex-col items-center gap-0.5">
+            <Tooltip tip={t("settings.refer_a_friend")}>
+              <button
+                aria-label={t("settings.refer_a_friend")}
+                className="sidebar-rail-btn"
+                type="button"
+                onClick={() => {
+                  on_modal_open?.();
+                  on_settings_click("referral");
+                }}
+              >
+                <UserGroupIcon className="w-5 h-5" />
+              </button>
+            </Tooltip>
+            {on_toggle_collapse && (
+              <Tooltip tip={t("common.expand_sidebar")}>
+                <button
+                  aria-label={t("common.expand_sidebar")}
+                  className="sidebar-rail-btn"
+                  type="button"
+                  onClick={on_toggle_collapse}
+                >
+                  <PanelToggleIcon className="w-5 h-5" direction="expand" />
+                </button>
+              </Tooltip>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-1">
@@ -257,13 +212,18 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
               <UserGroupIcon className="w-3.5 h-3.5" />
               <span>{t("settings.refer_a_friend")}</span>
             </button>
-            <button
-              className="p-1.5 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
-              title={t("settings.title")}
-              onClick={() => on_settings_click()}
-            >
-              <Cog6ToothIcon className="w-4 h-4" />
-            </button>
+            {on_toggle_collapse && (
+              <Tooltip tip={t("common.collapse_sidebar")}>
+                <button
+                  aria-label={t("common.collapse_sidebar")}
+                  className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-[10px] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] text-txt-muted transition-colors"
+                  type="button"
+                  onClick={on_toggle_collapse}
+                >
+                  <PanelToggleIcon className="w-[18px] h-[18px]" direction="collapse" />
+                </button>
+              </Tooltip>
+            )}
           </div>
         )}
       </div>

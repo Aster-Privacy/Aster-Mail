@@ -155,13 +155,13 @@ export const SidebarAliases = memo(function SidebarAliases({
       )}
 
       {is_collapsed && (
-        <div className="mt-3 flex justify-center">
+        <div className="mt-3">
           <button
-            className="p-1.5 rounded  hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-icon-muted"
+            className="sidebar-rail-btn"
             title={t("common.aliases")}
             onClick={() => on_settings_click("aliases")}
           >
-            <AtSymbolIcon className="w-4 h-4" style={{ color: "#8b5cf6" }} />
+            <AtSymbolIcon className="w-5 h-5" style={{ color: "#8b5cf6" }} />
           </button>
         </div>
       )}

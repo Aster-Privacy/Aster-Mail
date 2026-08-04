@@ -80,7 +80,6 @@ interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   density: string;
   show_profile_pictures: boolean;
   show_email_preview: boolean;
-  stacked_preview?: boolean;
   show_message_size?: boolean;
   show_thread_count?: boolean;
   search_preview_node?: React.ReactNode;
@@ -188,7 +187,6 @@ export const InboxEmailListItem = memo(
         density,
         show_profile_pictures,
         show_email_preview,
-        stacked_preview = false,
         show_message_size,
         show_thread_count = true,
         search_preview_node,
@@ -550,7 +548,7 @@ export const InboxEmailListItem = memo(
               </span>
 
               <OfficialBadge
-                className="hidden sm:inline"
+                className="hidden sm:inline-flex"
                 email={
                   outgoing_names ? profile_target_email : email.sender_email
                 }
@@ -774,12 +772,7 @@ export const InboxEmailListItem = memo(
               )}
 
               <div
-                className={cn(
-                  "text-sm min-w-0 flex-1",
-                  stacked_preview
-                    ? "flex flex-col gap-0.5"
-                    : "whitespace-nowrap truncate",
-                )}
+                className="text-sm min-w-0 flex-1 whitespace-nowrap truncate"
               >
                 <span
                   className={cn(
@@ -794,21 +787,16 @@ export const InboxEmailListItem = memo(
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (
                     <span
-                      className={cn(
-                        "text-txt-muted",
-                        stacked_preview && "truncate",
-                      )}
+                      className="text-txt-muted"
                     >
-                      {!stacked_preview && " \u2014 "}
+                      {" \u2014 "}
                       {search_preview_node ||
                         (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
                         email.preview === PGP_UNDECRYPTABLE_SENTINEL
                           ? t("mail.encrypted_message_unavailable")
                           : truncate_preview(
                               email.preview,
-                              stacked_preview
-                                ? 0
-                                : (email.subject || "").length,
+                              (email.subject || "").length,
                               preferences.low_network_mode ? 80 : undefined,
                             ))}
                     </span>

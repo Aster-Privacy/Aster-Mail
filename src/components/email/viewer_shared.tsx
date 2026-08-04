@@ -244,35 +244,46 @@ export function ViewerToolbarActions({
   ) : null;
 
   const nav_buttons = spread_layout && (on_navigate_prev || on_navigate_next) ? (
-    <div className="flex items-center gap-0.5">
-      {current_index != null && total_count != null && (
-        <span className="text-xs text-txt-muted px-1">
-          {current_index + 1}/{total_count}
+    <div className="flex select-none items-center gap-0.5">
+      {current_index != null && total_count != null && total_count > 0 && (
+        <span className="tabular-nums whitespace-nowrap px-1 text-[13px] text-[var(--text-muted)]">
+          {(current_index + 1).toLocaleString()} {t("common.of")}{" "}
+          {total_count.toLocaleString()}
         </span>
       )}
       <Tooltip tip={t("mail.shortcut_previous_email")}>
-        <Button
-          className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
-          disabled={!can_go_prev}
-          size="icon"
-          style={muted_style}
-          variant="ghost"
-          onClick={on_navigate_prev}
-        >
-          <ChevronLeftIcon className={icon_size} />
-        </Button>
+        <span className="inline-flex">
+          <Button
+            aria-disabled={!can_go_prev}
+            className={`${button_size} ${can_go_prev ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 pointer-events-none"}`}
+            size="icon"
+            style={muted_style}
+            tabIndex={can_go_prev ? undefined : -1}
+            variant="ghost"
+            onClick={() => {
+              if (can_go_prev) on_navigate_prev?.();
+            }}
+          >
+            <ChevronLeftIcon className={icon_size} />
+          </Button>
+        </span>
       </Tooltip>
       <Tooltip tip={t("mail.shortcut_next_email")}>
-        <Button
-          className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
-          disabled={!can_go_next}
-          size="icon"
-          style={muted_style}
-          variant="ghost"
-          onClick={on_navigate_next}
-        >
-          <ChevronRightIcon className={icon_size} />
-        </Button>
+        <span className="inline-flex">
+          <Button
+            aria-disabled={!can_go_next}
+            className={`${button_size} ${can_go_next ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 pointer-events-none"}`}
+            size="icon"
+            style={muted_style}
+            tabIndex={can_go_next ? undefined : -1}
+            variant="ghost"
+            onClick={() => {
+              if (can_go_next) on_navigate_next?.();
+            }}
+          >
+            <ChevronRightIcon className={icon_size} />
+          </Button>
+        </span>
       </Tooltip>
     </div>
   ) : null;
@@ -601,20 +612,6 @@ export function ViewerToolbarActions({
 
       {spread_layout && collapse_expand_button}
 
-      {spread_layout && (
-        <Tooltip tip={t("mail.print")}>
-          <Button
-            className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
-            size="icon"
-            style={muted_style}
-            variant="ghost"
-            onClick={on_print}
-          >
-            <PrinterIcon className={icon_size} />
-          </Button>
-        </Tooltip>
-      )}
-
       {nav_buttons}
     </>
   );
@@ -654,7 +651,7 @@ export function ViewerEmailHeader({
   snoozed_until,
   encryption_size = 20,
   hide_subject = false,
-  subject_class = "text-xl sm:text-2xl font-semibold break-words flex-1 min-w-0",
+  subject_class = "text-xl sm:text-2xl font-semibold truncate flex-1 min-w-0",
   avatar_class = "w-8 h-8 sm:w-10 sm:h-10",
   avatar_size = "lg",
   gap_class = "gap-3 sm:gap-4",

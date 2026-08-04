@@ -21,8 +21,8 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
-import { en } from "@/lib/i18n/translations/en";
 
+import { en } from "@/lib/i18n/translations/en";
 import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
@@ -1218,6 +1218,7 @@ export async function reencrypt_all_aliases(): Promise<void> {
 
     try {
       const decrypted = await decrypt_alias(alias);
+
       await reencrypt_alias_local_part(alias.id, decrypted.local_part);
 
       if (alias.encrypted_display_name && alias.display_name_nonce) {
@@ -1377,9 +1378,7 @@ export async function empty_deleted_aliases(): Promise<
 export async function get_alias_stats(
   alias_id: string,
 ): Promise<ApiResponse<AliasStats>> {
-  return api_client.get<AliasStats>(
-    `/addresses/v1/aliases/${alias_id}/stats`,
-  );
+  return api_client.get<AliasStats>(`/addresses/v1/aliases/${alias_id}/stats`);
 }
 
 export interface AliasActivityDay {
@@ -1440,7 +1439,9 @@ export interface AliasPreferences {
   alias_delete_action: "trash" | "immediate";
 }
 
-export async function get_alias_preferences(): Promise<ApiResponse<AliasPreferences>> {
+export async function get_alias_preferences(): Promise<
+  ApiResponse<AliasPreferences>
+> {
   return api_client.get<AliasPreferences>("/addresses/v1/aliases/preferences");
 }
 
@@ -1464,10 +1465,18 @@ export interface AliasDeliveryLogResponse {
   total: number;
 }
 
-export async function get_alias_delivery_log(alias_id: string): Promise<ApiResponse<AliasDeliveryLogResponse>> {
-  return api_client.get<AliasDeliveryLogResponse>(`/addresses/v1/aliases/${alias_id}/delivery-log`);
+export async function get_alias_delivery_log(
+  alias_id: string,
+): Promise<ApiResponse<AliasDeliveryLogResponse>> {
+  return api_client.get<AliasDeliveryLogResponse>(
+    `/addresses/v1/aliases/${alias_id}/delivery-log`,
+  );
 }
 
-export async function get_domain_address_delivery_log(domain_address_id: string): Promise<ApiResponse<AliasDeliveryLogResponse>> {
-  return api_client.get<AliasDeliveryLogResponse>(`/addresses/v1/aliases/domain-addresses/${domain_address_id}/delivery-log`);
+export async function get_domain_address_delivery_log(
+  domain_address_id: string,
+): Promise<ApiResponse<AliasDeliveryLogResponse>> {
+  return api_client.get<AliasDeliveryLogResponse>(
+    `/addresses/v1/aliases/domain-addresses/${domain_address_id}/delivery-log`,
+  );
 }

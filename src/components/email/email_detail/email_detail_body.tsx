@@ -35,6 +35,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
@@ -194,6 +195,17 @@ export function EmailDetailBody({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 sm:mb-2">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-txt-primary break-words flex-1 min-w-0">
+                  <span
+                    className="inline-flex items-center mr-2"
+                    style={{ verticalAlign: "-0.15em" }}
+                  >
+                    <EncryptionInfoDropdown
+                      has_pq_protection={!!mail_item?.ephemeral_pq_key}
+                      has_recipient_key={!!mail_item?.has_recipient_key}
+                      is_external={!!mail_item?.is_external}
+                      size={20}
+                    />
+                  </span>
                   {email.subject || t("mail.no_subject")}
                 </h1>
                 {mail_item?.expires_at && (
@@ -231,8 +243,8 @@ export function EmailDetailBody({
             )}
 
           <CalendarInviteBanner
-            className="mb-4 sm:mb-6"
             body={email.body}
+            className="mb-4 sm:mb-6"
             html_content={email.html_content}
           />
 
@@ -309,6 +321,7 @@ export function EmailDetailBody({
                     ]
               }
               on_archive={handle_per_message_archive}
+              on_block_sender={() => set_is_block_sender_modal_open(true)}
               on_external_content_detected={on_external_content_detected}
               on_forward={handle_per_message_forward}
               on_not_spam={
@@ -317,7 +330,6 @@ export function EmailDetailBody({
               on_print={handle_per_message_print}
               on_reply={handle_per_message_reply}
               on_reply_all={handle_per_message_reply_all}
-              on_block_sender={() => set_is_block_sender_modal_open(true)}
               on_report_phishing={handle_per_message_report_phishing}
               on_toggle_message_read={handle_toggle_message_read}
               on_trash={handle_per_message_trash}

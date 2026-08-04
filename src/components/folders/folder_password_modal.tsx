@@ -317,22 +317,13 @@ export function FolderPasswordModal({
 
   const render_setup_content = () => (
     <div className="space-y-4">
-      <div
-        className="flex items-start gap-3 p-3 rounded-lg"
-        style={{
-          backgroundColor: "rgba(251, 191, 36, 0.1)",
-          border: "1px solid rgba(251, 191, 36, 0.2)",
-        }}
-      >
-        <ExclamationTriangleIcon
-          className="w-5 h-5 flex-shrink-0 mt-0.5"
-          style={{ color: "var(--color-warning)" }}
-        />
+      <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-600">
+        <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-50" />
         <div>
-          <p className="text-[13px] font-medium mb-0.5 text-txt-primary">
+          <p className="text-[13px] font-medium mb-0.5 text-amber-50">
             {t("settings.no_password_recovery_title")}
           </p>
-          <p className="text-[12px] text-txt-secondary">
+          <p className="text-[12px] text-amber-100">
             {t("settings.no_password_recovery_desc")}
           </p>
         </div>

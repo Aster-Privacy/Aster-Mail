@@ -27,7 +27,8 @@ import { AnimatePresence } from "framer-motion";
 import { use_index_page_state } from "./use_index_page_state";
 
 import { show_toast } from "@/components/toast/simple_toast";
-import { Sidebar, MobileMenuButton } from "@/components/layout/sidebar";
+import { Sidebar } from "@/components/layout/sidebar";
+import { TopBar } from "@/components/layout/top_bar";
 import { ComposeManager } from "@/components/compose/compose_manager";
 import { EmailInbox } from "@/components/email/email_inbox";
 import { ContactsContent } from "@/components/common/contacts_content";
@@ -187,6 +188,16 @@ export default function IndexPage() {
       >
         <NotificationBanner />
         <SurveyBanner />
+        {!(state.is_settings_route && !settings_popup_mode) && (
+          <TopBar
+            on_mobile_menu_toggle={state.toggle_mobile_sidebar}
+            on_search_result_click={state.handle_search_result_click}
+            on_search_submit={state.handle_search_submit}
+            on_settings_click={toggle_quick_settings}
+            on_shortcuts_click={() => state.set_is_shortcuts_open(true)}
+            search_context={state.active_search_query || undefined}
+          />
+        )}
         <div className="flex-1 flex transition-colors duration-200 overflow-hidden">
           {state.is_settings_route && !settings_popup_mode ? (
             <Suspense fallback={<FullPageLoader />}>
@@ -228,7 +239,7 @@ export default function IndexPage() {
               state.open_settings(section);
             }}
           />
-          <div className="flex-1 p-1 md:p-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
+          <div className="flex-1 px-1 pb-1 md:px-2 md:pb-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
             {state.preferences.low_network_mode && (
               <div className="flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-xs font-medium flex-shrink-0" style={{ backgroundColor: "var(--bg-tertiary)", color: "var(--txt-muted)" }}>
                 <WifiIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
@@ -244,23 +255,9 @@ export default function IndexPage() {
                 </button>
               </div>
             )}
-            <div className="md:hidden flex items-center h-12 px-2 flex-shrink-0">
-              <MobileMenuButton on_click={state.toggle_mobile_sidebar} />
-              <div className="flex-1 flex justify-center">
-                {!state.preferences.low_network_mode && (
-                  <img
-                    alt="Aster Mail"
-                    className="h-7 select-none"
-                    draggable={false}
-                    src="/text_logo.png"
-                  />
-                )}
-              </div>
-              <div className="w-10" />
-            </div>
             <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative">
             <div
-              className={`flex-1 min-w-0 rounded-lg md:rounded-xl border overflow-hidden transition-[margin-right] duration-200 ${
+              className={`flex-1 min-w-0 rounded-lg md:rounded-xl overflow-hidden transition-[margin-right] duration-200 ${
                 is_quick_settings_open &&
                 !state.is_settings_route &&
                 !state.use_popup_mode &&
@@ -272,7 +269,6 @@ export default function IndexPage() {
               role="main"
               style={{
                 backgroundColor: "var(--bg-primary)",
-                borderColor: "var(--border-primary)",
               }}
               tabIndex={-1}
             >

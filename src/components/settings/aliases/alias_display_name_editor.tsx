@@ -75,7 +75,12 @@ export function AliasDisplayNameEditor({
   const enter_edit = () => {
     if (saving) return;
     if (is_locked) {
-      prompt_upgrade(t("settings.feature_requires_upgrade"));
+      prompt_upgrade(
+        t("settings.feature_requires_upgrade"),
+        undefined,
+        "has_alias_avatars",
+      );
+
       return;
     }
     commit_lock.current = false;

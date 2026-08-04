@@ -139,6 +139,19 @@ function has_any_filter(filters: ChipFilters): boolean {
   );
 }
 
+const CHIP_BASE_CLASS =
+  "inline-flex items-center gap-1 h-7 px-3 rounded-full border text-xs whitespace-nowrap transition-colors";
+
+const CHIP_ACTIVE_CLASS =
+  "border-transparent bg-[var(--accent-blue)] text-white";
+
+const CHIP_IDLE_CLASS =
+  "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]";
+
+function chip_class(is_active: boolean): string {
+  return `${CHIP_BASE_CLASS} ${is_active ? CHIP_ACTIVE_CLASS : CHIP_IDLE_CLASS}`;
+}
+
 function Chip({
   is_active,
   label,
@@ -151,15 +164,7 @@ function Chip({
   on_click?: () => void;
 }) {
   return (
-    <button
-      className={`inline-flex items-center gap-1 h-7 px-3 rounded-full border text-xs whitespace-nowrap transition-colors ${
-        is_active
-          ? "border-transparent bg-[var(--bg-selected)] text-[var(--text-primary)]"
-          : "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-      }`}
-      type="button"
-      onClick={on_click}
-    >
+    <button className={chip_class(is_active)} type="button" onClick={on_click}>
       <span>{label}</span>
       {trailing}
     </button>
@@ -189,16 +194,11 @@ function AddressChip({
       }}
     >
       <DropdownMenuTrigger asChild>
-        <button
-          className={`inline-flex items-center gap-1 h-7 px-3 rounded-full border text-xs whitespace-nowrap transition-colors ${
-            value
-              ? "border-transparent bg-[var(--bg-selected)] text-[var(--text-primary)]"
-              : "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-          }`}
-          type="button"
-        >
+        <button className={chip_class(!!value)} type="button">
           <span>{value || label}</span>
-          <ChevronDownIcon className="w-3 h-3 text-[var(--icon-muted)]" />
+          <ChevronDownIcon
+            className={`w-3 h-3 ${value ? "opacity-80" : "text-[var(--icon-muted)]"}`}
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64 p-2">
@@ -275,15 +275,13 @@ export function MailFilterChips({
         >
           <DropdownMenuTrigger asChild>
             <button
-              className={`inline-flex items-center gap-1 h-7 px-3 rounded-full border text-xs whitespace-nowrap transition-colors ${
-                has_date_filter(filters)
-                  ? "border-transparent bg-[var(--bg-selected)] text-[var(--text-primary)]"
-                  : "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-              }`}
+              className={chip_class(has_date_filter(filters))}
               type="button"
             >
               <span>{date_label}</span>
-              <ChevronDownIcon className="w-3 h-3 text-[var(--icon-muted)]" />
+              <ChevronDownIcon
+                className={`w-3 h-3 ${has_date_filter(filters) ? "opacity-80" : "text-[var(--icon-muted)]"}`}
+              />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-52">

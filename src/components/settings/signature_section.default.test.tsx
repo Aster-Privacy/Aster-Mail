@@ -217,7 +217,7 @@ vi.mock("@/hooks/use_sender_aliases", () => ({
   is_signature_bindable_sender_type: () => false,
 }));
 vi.mock("@/components/settings/aliases/feature_lock", () => ({
-  go_to_billing: vi.fn(),
+  prompt_upgrade: vi.fn(),
 }));
 
 import { SignatureSection } from "./signature_section";

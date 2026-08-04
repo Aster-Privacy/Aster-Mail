@@ -30,10 +30,11 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
+import { CustomCategoryModal } from "./custom_category_modal";
+
 import { FeatureLockOverlay } from "@/components/settings/aliases/feature_lock";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
-import { CustomCategoryModal } from "./custom_category_modal";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
@@ -103,7 +104,11 @@ export function CategorySettingsSection() {
 
   const handle_add_category = () => {
     if (!can_add_custom || at_limit) {
-      show_plan_limit_upgrade({ resource: "custom categories" });
+      show_plan_limit_upgrade({
+        resource: "custom categories",
+        feature: "max_custom_categories",
+      });
+
       return;
     }
 
@@ -146,8 +151,8 @@ export function CategorySettingsSection() {
           </p>
         </div>
         <Switch
-          size="lg"
           checked={preferences.inbox_categories_enabled !== false}
+          size="lg"
           onCheckedChange={() =>
             update_preference(
               "inbox_categories_enabled",
@@ -213,7 +218,10 @@ export function CategorySettingsSection() {
         </p>
 
         {!can_add_custom ? (
-          <FeatureLockOverlay message={t("settings.custom_categories_locked")} />
+          <FeatureLockOverlay
+            feature="max_custom_categories"
+            message={t("settings.custom_categories_locked")}
+          />
         ) : (
           <>
             {at_limit && (
@@ -284,6 +292,7 @@ export function CategorySettingsSection() {
                             onClick={() =>
                               show_plan_limit_upgrade({
                                 resource: "custom categories",
+                                feature: "max_custom_categories",
                               })
                             }
                           >
@@ -313,18 +322,18 @@ export function CategorySettingsSection() {
       />
 
       <ConfirmModal
+        hide_dont_ask
         confirm_text={t("common.delete")}
         confirm_variant="destructive"
         description={t("settings.delete_category_description", {
           name: deleting_rule?.name ?? "",
         })}
         dont_ask={false}
-        hide_dont_ask
-        show={!!deleting_rule}
-        title={t("settings.delete_category_title")}
         on_cancel={() => set_deleting_rule(null)}
         on_confirm={confirm_delete_custom}
         on_dont_ask_change={() => {}}
+        show={!!deleting_rule}
+        title={t("settings.delete_category_title")}
       />
     </div>
   );

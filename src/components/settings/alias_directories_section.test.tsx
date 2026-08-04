@@ -43,6 +43,9 @@ vi.mock("@/components/settings/settings_skeleton", () => ({
 
 vi.mock("@/components/settings/aliases/feature_lock", () => ({
   FeatureLockOverlay: () => null,
+  LockedFeature: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 vi.mock("@/components/settings/aliases/info_hint", () => ({

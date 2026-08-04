@@ -80,7 +80,7 @@ import {
   use_sender_aliases,
   is_signature_bindable_sender,
 } from "@/hooks/use_sender_aliases";
-import { go_to_billing } from "@/components/settings/aliases/feature_lock";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 
 function escape_html(str: string): string {
   return str
@@ -491,6 +491,7 @@ export function SignatureSection() {
     if (response.error) {
       set_error(response.error);
       load_signatures();
+
       return;
     }
 
@@ -563,8 +564,8 @@ export function SignatureSection() {
               </p>
             </div>
             <Switch
-              size="lg"
               checked={preferences.show_badges_in_signature}
+              size="lg"
               onCheckedChange={(checked) =>
                 update_preference("show_badges_in_signature", checked, true)
               }
@@ -1214,7 +1215,16 @@ export function SignatureSection() {
               />
             </button>
           ) : (
-            <UpgradeBtn size="sm" onClick={go_to_billing}>
+            <UpgradeBtn
+              size="sm"
+              onClick={() =>
+                prompt_upgrade(
+                  t("settings.feature_requires_upgrade"),
+                  undefined,
+                  "has_remove_branding",
+                )
+              }
+            >
               {t("settings.upgrade_to_unlock")}
             </UpgradeBtn>
           )}

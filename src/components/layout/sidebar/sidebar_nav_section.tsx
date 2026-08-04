@@ -141,7 +141,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "inbox"
-                ? "var(--icon-active)"
+                ? "var(--accent-color)"
                 : "var(--icon-muted)",
           }}
         />
@@ -186,7 +186,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "sent"
-                ? "var(--icon-active)"
+                ? "var(--accent-color)"
                 : "var(--icon-muted)",
           }}
         />
@@ -222,7 +222,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "scheduled"
-                ? "var(--icon-active)"
+                ? "var(--accent-color)"
                 : "var(--icon-muted)",
           }}
         />
@@ -258,7 +258,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "snoozed"
-                ? "var(--icon-active)"
+                ? "var(--accent-color)"
                 : "var(--icon-muted)",
           }}
         />
@@ -294,7 +294,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           style={{
             color:
               effective_selected === "drafts"
-                ? "var(--icon-active)"
+                ? "var(--accent-color)"
                 : "var(--icon-muted)",
           }}
         />
@@ -352,7 +352,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "starred"
-                    ? "var(--icon-active)"
+                    ? "var(--accent-color)"
                     : "var(--icon-muted)",
               }}
             />
@@ -388,7 +388,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "all"
-                    ? "var(--icon-active)"
+                    ? "var(--accent-color)"
                     : "var(--icon-muted)",
               }}
             />
@@ -424,7 +424,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "archive"
-                    ? "var(--icon-active)"
+                    ? "var(--accent-color)"
                     : "var(--icon-muted)",
               }}
             />
@@ -460,7 +460,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "spam"
-                    ? "var(--icon-active)"
+                    ? "var(--accent-color)"
                     : "var(--icon-muted)",
               }}
             />
@@ -496,7 +496,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "trash"
-                    ? "var(--icon-active)"
+                    ? "var(--accent-color)"
                     : "var(--icon-muted)",
               }}
             />
@@ -532,7 +532,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "contacts"
-                    ? "var(--icon-active)"
+                    ? "var(--accent-color)"
                     : "var(--icon-muted)",
               }}
             />
@@ -568,7 +568,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               style={{
                 color:
                   effective_selected === "subscriptions"
-                    ? "var(--icon-active)"
+                    ? "var(--accent-color)"
                     : "var(--icon-muted)",
               }}
             />

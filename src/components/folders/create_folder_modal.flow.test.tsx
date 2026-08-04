@@ -94,6 +94,38 @@ function click(el: Element) {
   });
 }
 
+function open_menu(el: Element) {
+  act(() => {
+    el.dispatchEvent(
+      new MouseEvent("pointerdown", { bubbles: true, button: 0 }),
+    );
+    el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 }));
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+}
+
+function find_menu_item(text: string): HTMLElement {
+  const match = Array.from(
+    document.querySelectorAll<HTMLElement>('[role="menuitem"]'),
+  ).find((item) => item.textContent?.includes(text));
+
+  if (!match) throw new Error(`menu item not found: ${text}`);
+
+  return match;
+}
+
+function select_menu_item(text: string) {
+  const item = find_menu_item(text);
+
+  act(() => {
+    item.dispatchEvent(
+      new MouseEvent("pointerdown", { bubbles: true, button: 0 }),
+    );
+    item.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
+    item.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+}
+
 function find_button(text: string): HTMLButtonElement {
   const match = Array.from(document.querySelectorAll("button")).find((b) =>
     b.textContent?.includes(text),
@@ -141,14 +173,12 @@ describe("CreateFolderModal parent dropdown", () => {
   it("lists the folder tree in the dropdown and creates under the picked parent", async () => {
     const trigger = find_button("common.top_level_no_parent");
 
-    click(trigger);
+    open_menu(trigger);
 
-    const invoices_option = find_button("Invoices");
+    expect(find_menu_item("Work")).toBeTruthy();
+    expect(find_menu_item("Personal")).toBeTruthy();
 
-    expect(find_button("Work")).toBeTruthy();
-    expect(find_button("Personal")).toBeTruthy();
-
-    click(invoices_option);
+    select_menu_item("Invoices");
 
     expect(document.body.textContent).toContain("common.create_subfolder");
 
@@ -210,8 +240,8 @@ describe("CreateFolderModal parent dropdown", () => {
   });
 
   it("clears the parent again via the none option", () => {
-    click(find_button("common.top_level_no_parent"));
-    click(find_button("Work"));
+    open_menu(find_button("common.top_level_no_parent"));
+    select_menu_item("Work");
 
     expect(document.body.textContent).toContain("common.create_subfolder");
 
@@ -223,8 +253,8 @@ describe("CreateFolderModal parent dropdown", () => {
     );
 
     if (!trigger) throw new Error("parent trigger not found");
-    click(trigger);
-    click(find_button("common.top_level_no_parent"));
+    open_menu(trigger);
+    select_menu_item("common.top_level_no_parent");
 
     expect(document.body.textContent).not.toContain("common.create_subfolder");
   });

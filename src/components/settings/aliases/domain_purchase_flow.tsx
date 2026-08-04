@@ -797,7 +797,7 @@ export function DomainPurchaseFlow({
   if (view === "confirm" && selected) {
     return (
       <div>
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] md:grid-rows-[auto_auto_1fr] gap-x-6 gap-y-5 items-start">
           <div className="md:col-start-1 md:row-start-1">
             <div>
               <p className="text-sm font-medium mb-2 text-txt-primary">
@@ -895,7 +895,7 @@ export function DomainPurchaseFlow({
             </div>
           </div>
 
-          <div className="order-2 md:order-none md:col-start-2 md:row-start-1 md:row-span-2 md:sticky md:top-4">
+          <div className="order-2 md:order-none md:col-start-2 md:row-start-1 md:row-span-3 md:sticky md:top-4">
             <img
               alt="Aster"
               className="h-6 w-auto mx-auto block mb-3.5 opacity-90"
@@ -989,7 +989,7 @@ export function DomainPurchaseFlow({
             </div>
           </div>
 
-          <div className="order-4 md:order-none md:col-span-2 pt-5 mt-2 border-t border-edge-secondary">
+          <div className="order-4 md:order-none md:col-start-1 md:row-start-3 pt-4 border-t border-edge-secondary">
             <TermsSentence on_external={set_leave_url} />
           </div>
         </div>

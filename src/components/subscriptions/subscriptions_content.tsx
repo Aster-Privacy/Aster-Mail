@@ -31,11 +31,11 @@ import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Button, Checkbox } from "@aster/ui";
 
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
-import { Input } from "@/components/ui/input";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_page_search } from "@/hooks/use_page_search";
 import { use_external_link } from "@/contexts/external_link_context";
 import {
   CATEGORY_TAG_VARIANT,
@@ -84,7 +84,7 @@ export function SubscriptionsContent({
   const [active_tab, set_active_tab] = useState<"active" | "unsubscribed">(
     "active",
   );
-  const [search_query, set_search_query] = useState("");
+  const search_query = use_page_search();
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [failed_unsub_ids, set_failed_unsub_ids] = useState<Set<string>>(
     new Set(),
@@ -290,19 +290,6 @@ export function SubscriptionsContent({
           </button>
         </div>
         <div className="flex-1" />
-        <div className="relative flex-1 max-w-xs">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
-          <Input
-            autoComplete="off"
-            className="w-full bg-transparent"
-            placeholder={t("common.search")}
-            size="md"
-            style={{ paddingLeft: "38px" }}
-            type="text"
-            value={search_query}
-            onChange={(e) => set_search_query(e.target.value)}
-          />
-        </div>
       </div>
 
       {is_loading ? (

@@ -27,6 +27,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown_menu";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
@@ -205,64 +211,60 @@ export function CreateFolderModal({
                   <span className="block text-[13px] font-medium mb-2 text-txt-secondary">
                     {t("common.parent_folder")}
                   </span>
-                  <div className="relative">
-                    <button
-                      className="flex w-full items-center gap-2 rounded-lg border border-edge-primary px-3 py-2 text-[14px] text-left text-txt-primary transition-colors hover:bg-surface-secondary"
-                      type="button"
-                      onClick={() => set_parent_menu_open((open) => !open)}
-                    >
-                      {selected_parent ? (
-                        <FolderIcon
-                          className="w-4 h-4 flex-shrink-0"
-                          style={{
-                            color: selected_parent.color || "#3b82f6",
-                          }}
-                        />
-                      ) : null}
-                      <span className="flex-1 truncate">
-                        {selected_parent
-                          ? selected_parent.name
-                          : t("common.top_level_no_parent")}
-                      </span>
-                      <ChevronDownIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
-                    </button>
-                    {parent_menu_open && (
-                      <div className="absolute left-0 right-0 z-10 mt-1 max-h-56 overflow-y-auto rounded-lg border border-edge-primary bg-modal-bg py-1 shadow-lg">
-                        <button
-                          className={`flex w-full items-center gap-2 px-3 py-2 text-[13px] text-left transition-colors ${!selected_parent_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
-                          type="button"
-                          onClick={() => {
-                            set_selected_parent_token(undefined);
-                            set_parent_menu_open(false);
-                          }}
-                        >
-                          {t("common.top_level_no_parent")}
-                        </button>
-                        {parent_options.map((node) => (
-                          <button
-                            key={node.folder.id}
-                            className={`flex w-full items-center gap-2 px-3 py-2 text-[13px] text-left transition-colors ${selected_parent_token === node.folder.folder_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
-                            style={{ paddingLeft: 12 + node.depth * 16 }}
-                            type="button"
-                            onClick={() => {
-                              set_selected_parent_token(
-                                node.folder.folder_token,
-                              );
-                              set_parent_menu_open(false);
+                  <DropdownMenu
+                    open={parent_menu_open}
+                    onOpenChange={set_parent_menu_open}
+                  >
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="flex w-full items-center gap-2 rounded-lg border border-edge-primary px-3 py-2 text-[14px] text-left text-txt-primary transition-colors hover:bg-surface-secondary focus:outline-none"
+                        type="button"
+                      >
+                        {selected_parent ? (
+                          <FolderIcon
+                            className="w-4 h-4 flex-shrink-0"
+                            style={{
+                              color: selected_parent.color || "#3b82f6",
                             }}
-                          >
-                            <FolderIcon
-                              className="w-4 h-4 flex-shrink-0"
-                              style={{
-                                color: node.folder.color || "#3b82f6",
-                              }}
-                            />
-                            <span className="truncate">{node.folder.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                          />
+                        ) : null}
+                        <span className="flex-1 truncate">
+                          {selected_parent
+                            ? selected_parent.name
+                            : t("common.top_level_no_parent")}
+                        </span>
+                        <ChevronDownIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="max-h-56 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+                      sideOffset={4}
+                    >
+                      <DropdownMenuItem
+                        onClick={() => set_selected_parent_token(undefined)}
+                      >
+                        <span className="truncate">
+                          {t("common.top_level_no_parent")}
+                        </span>
+                      </DropdownMenuItem>
+                      {parent_options.map((node) => (
+                        <DropdownMenuItem
+                          key={node.folder.id}
+                          style={{ paddingLeft: 8 + node.depth * 14 }}
+                          onClick={() =>
+                            set_selected_parent_token(node.folder.folder_token)
+                          }
+                        >
+                          <FolderIcon
+                            className="w-4 h-4 mr-2 flex-shrink-0"
+                            style={{ color: node.folder.color || "#3b82f6" }}
+                          />
+                          <span className="truncate">{node.folder.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div>

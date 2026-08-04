@@ -30,7 +30,6 @@ import type {
 import {
   MagnifyingGlassIcon,
   PlusIcon,
-  XMarkIcon,
   ArrowUpTrayIcon,
   UserPlusIcon,
   CheckIcon,
@@ -54,8 +53,6 @@ interface ContactListProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   contacts: DecryptedContact[];
   filtered_contacts: DecryptedContact[];
-  search_query: string;
-  set_search_query: (query: string) => void;
   selected_contact: DecryptedContact | null;
   set_selected_contact: (contact: DecryptedContact | null) => void;
   selected_ids: Set<string>;
@@ -82,7 +79,6 @@ interface ContactListProps {
   selected_all_favorited: boolean;
   alphabetical_index: Map<string, number>;
   upcoming_birthdays_count: number;
-  search_input_ref: RefObject<HTMLInputElement>;
   list_container_ref: RefObject<HTMLDivElement>;
   contact_refs: RefObject<Map<string, HTMLDivElement>>;
   on_mobile_menu_toggle: () => void;
@@ -103,8 +99,6 @@ export function ContactList({
   t,
   contacts,
   filtered_contacts,
-  search_query,
-  set_search_query,
   selected_contact,
   set_selected_contact,
   selected_ids,
@@ -115,7 +109,6 @@ export function ContactList({
   is_importing,
   import_progress,
   error,
-  search_input_ref,
   list_container_ref,
   contact_refs,
   on_mobile_menu_toggle,
@@ -170,30 +163,6 @@ export function ContactList({
         >
           <PlusIcon className="w-4 h-4 text-txt-secondary" />
         </Button>
-      </div>
-
-      <div className="px-4 py-2">
-        <div className="flex items-center gap-2 h-9 px-3 rounded-lg border bg-[var(--bg-primary)] border-[var(--border-secondary)]">
-          <MagnifyingGlassIcon className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
-          <input
-            ref={search_input_ref}
-            className="flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
-            placeholder={`${t("common.search_contacts")}`}
-            type="text"
-            value={search_query}
-            onChange={(e) => set_search_query(e.target.value)}
-          />
-          {search_query && (
-            <button
-              aria-label={t("common.clear")}
-              className="p-1.5 rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-              type="button"
-              onClick={() => set_search_query("")}
-            >
-              <XMarkIcon className="w-4 h-4" />
-            </button>
-          )}
-        </div>
       </div>
 
       {has_selection ? (
@@ -297,7 +266,7 @@ export function ContactList({
                 key={i}
                 className="flex items-center gap-3 px-3 py-2.5"
               >
-                <Skeleton className="w-10 h-10 rounded-xl" />
+                <Skeleton className="w-10 h-10 rounded-full" />
                 <div className="flex-1 min-w-0">
                   <Skeleton className="h-4 w-32 mb-1.5" />
                   <Skeleton className="h-3 w-44" />
@@ -389,7 +358,7 @@ export function ContactList({
                   />
                   <div
                     className={cn(
-                      "absolute inset-0 rounded-xl flex items-center justify-center transition-opacity duration-150",
+                      "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
                       is_selected
                         ? "opacity-100 bg-[var(--accent-blue,#3b82f6)]"
                         : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",

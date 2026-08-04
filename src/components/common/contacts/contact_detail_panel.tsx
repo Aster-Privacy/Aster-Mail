@@ -478,12 +478,11 @@ export function ContactDetailPanel({
                 email={draft.email_entries?.[0]?.value}
                 name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
                 profile_color={banner}
-                rounded="rounded-2xl"
                 size_px={92}
               />
               <button
                 aria-label={t("common.upload")}
-                className="absolute inset-0 rounded-[14px] opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
+                className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
                 onClick={() => file_input_ref.current?.click()}
               >
                 <CameraIcon className="w-7 h-7 text-white" />

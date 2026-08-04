@@ -1538,7 +1538,6 @@ export function EmailInbox({
                 show_message_size={preferences.show_message_size}
                 show_profile_pictures={preferences.show_profile_pictures}
                 show_thread_count={preferences.conversation_grouping !== false}
-                stacked_preview={is_split_view}
                 tags={tags_state.tags.map((t) => ({
                   tag_token: t.tag_token,
                   name: t.name,
@@ -1571,6 +1570,7 @@ export function EmailInbox({
   return (
     <ErrorBoundary>
       <div className="flex flex-col h-full bg-surf-primary">
+        {!show_full_email_viewer && (
         <EmailListHeader
           active_filter={active_filter}
           all_selected={selection.all_selected}
@@ -1688,6 +1688,7 @@ export function EmailInbox({
             t,
           )}
         />
+        )}
 
         {current_view === "all" &&
           !show_full_email_viewer &&
@@ -1756,6 +1757,11 @@ export function EmailInbox({
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">
             <FullEmailViewer
+              can_go_next={nav.local_can_go_next}
+              can_go_prev={nav.local_can_go_prev}
+              current_index={
+                nav.local_email_index >= 0 ? nav.local_email_index : undefined
+              }
               email_id={split_email_id}
               folders={viewer_folders}
               grouped_email_ids={split_email_grouped_ids}
@@ -1765,8 +1771,19 @@ export function EmailInbox({
               on_edit_draft={handle_edit_thread_draft}
               on_folder_toggle={handle_viewer_folder_toggle}
               on_forward={on_forward}
+              on_navigate_next={
+                nav.effective_email_id
+                  ? nav.handle_local_navigate_next
+                  : undefined
+              }
+              on_navigate_prev={
+                nav.effective_email_id
+                  ? nav.handle_local_navigate_prev
+                  : undefined
+              }
               on_reply={on_reply}
               snoozed_until={split_email_snoozed_until}
+              total_count={nav.visible_ids.length}
             />
           </div>
         ) : is_split_view && !is_full_view_mode ? (

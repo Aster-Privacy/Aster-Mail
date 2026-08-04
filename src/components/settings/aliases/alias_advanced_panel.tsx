@@ -245,7 +245,11 @@ function TextFieldRow({
             className="absolute inset-0 cursor-pointer rounded-[12px]"
             type="button"
             onClick={() =>
-              prompt_upgrade(t("settings.feature_requires_upgrade"))
+              prompt_upgrade(
+                t("settings.feature_requires_upgrade"),
+                undefined,
+                "has_alias_avatars",
+              )
             }
           />
         )}
@@ -1054,36 +1058,38 @@ export function StatsPanel({
     return <Spinner size="sm" />;
   }
 
-  if (!stats) return null;
+  if (!stats && !locked) return null;
 
-  const created_label = format_created_at(stats.created_at, language);
+  const created_label = stats
+    ? format_created_at(stats.created_at, language)
+    : "";
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-txt-muted">
         <span>
           {t("settings.alias_stats_received" as TranslationKey, {
-            count: stats.received,
+            count: stats?.received ?? 0,
           })}
         </span>
         <span>
           {t("settings.alias_stats_forwarded" as TranslationKey, {
-            count: stats.forwarded,
+            count: stats?.forwarded ?? 0,
           })}
         </span>
         <span>
           {t("settings.alias_stats_blocked" as TranslationKey, {
-            count: stats.blocked,
+            count: stats?.blocked ?? 0,
           })}
         </span>
         <span>
           {t("settings.alias_stats_replied" as TranslationKey, {
-            count: stats.replied ?? 0,
+            count: stats?.replied ?? 0,
           })}
         </span>
       </div>
 
-      {last_sender && stats.last_sender_at && (
+      {last_sender && stats?.last_sender_at && (
         <div className="flex items-center gap-1.5 text-sm text-txt-muted">
           <PaperAirplaneIcon className="w-4 h-4 shrink-0" />
           <span className="break-all">{last_sender}</span>
@@ -1118,6 +1124,8 @@ export interface AliasDeliveryState {
 const DELIVERY_INBOX_VALUE = "__inbox__";
 const DELIVERY_ARCHIVE_VALUE = "__archive__";
 
+const DELIVERABLE_FOLDER_TYPES = new Set(["folder", "custom", "spam", "trash"]);
+
 export function DeliveryPanel({
   never_inbox,
   delivery_folder_token,
@@ -1141,9 +1149,15 @@ export function DeliveryPanel({
     void fetch_folders();
   }, [fetch_folders]);
 
-  const custom_folders = folders_state.folders.filter(
-    (folder) =>
-      folder.folder_type === "folder" || folder.folder_type === "custom",
+  const custom_folders = folders_state.folders.filter((folder) =>
+    DELIVERABLE_FOLDER_TYPES.has(folder.folder_type ?? "custom"),
+  );
+
+  const system_delivery_folders = custom_folders.filter(
+    (folder) => folder.folder_type === "spam" || folder.folder_type === "trash",
+  );
+  const user_delivery_folders = custom_folders.filter(
+    (folder) => folder.folder_type !== "spam" && folder.folder_type !== "trash",
   );
 
   const is_missing_folder =
@@ -1206,7 +1220,12 @@ export function DeliveryPanel({
             <SelectItem value={DELIVERY_ARCHIVE_VALUE}>
               {t("mail.archive")}
             </SelectItem>
-            {custom_folders.map((folder) => (
+            {system_delivery_folders.map((folder) => (
+              <SelectItem key={folder.folder_token} value={folder.folder_token}>
+                {folder.name}
+              </SelectItem>
+            ))}
+            {user_delivery_folders.map((folder) => (
               <SelectItem key={folder.folder_token} value={folder.folder_token}>
                 {folder.name}
               </SelectItem>
@@ -1285,7 +1304,7 @@ export function AliasDetailsPanel({
         description={t("settings.alias_websites_desc")}
         label={t("common.websites")}
       >
-        <div className="w-64 [&>button]:!mt-0 [&>div]:!mt-0">
+        <div className="w-72 [&>button]:!mt-0 [&>div]:!mt-0">
           <AliasWebsitesEditor
             hide_icon
             alias_address={alias_address}

@@ -57,34 +57,47 @@ export function HeaderPagination({
   const is_message_mode = Boolean(on_navigate_prev || on_navigate_next);
   const total_pages = page_size > 0 ? Math.ceil(filtered_count / page_size) : 0;
 
-  if (!is_message_mode && total_pages <= 1) {
+  if (!is_message_mode && filtered_count <= 0) {
     return null;
   }
 
+  const range_start = filtered_count > 0 ? current_page * page_size + 1 : 0;
+  const range_end = Math.min((current_page + 1) * page_size, filtered_count);
+
+  const prev_disabled = on_navigate_prev
+    ? !can_go_prev
+    : on_page_change
+      ? current_page <= 0
+      : true;
+  const next_disabled = on_navigate_next
+    ? !can_go_next
+    : on_page_change
+      ? current_page >= total_pages - 1
+      : true;
+
   return (
-    <div className="hidden lg:flex items-center gap-1 text-xs text-[var(--text-muted)] ml-1">
+    <div className="hidden select-none lg:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ml-1">
       <Tooltip tip={t("common.previous")}>
-        <Button
-          className="h-7 w-7 text-[var(--icon-muted)] hover:text-[var(--icon-active)]"
-          disabled={
-            on_navigate_prev
-              ? !can_go_prev
-              : on_page_change
-                ? current_page === 0
-                : true
-          }
-          size="icon"
-          variant="ghost"
-          onClick={() => {
-            if (on_navigate_prev && can_go_prev) {
-              on_navigate_prev();
-            } else if (on_page_change) {
-              on_page_change(current_page - 1);
-            }
-          }}
-        >
-          <ChevronLeftIcon className="w-4 h-4" />
-        </Button>
+        <span className="inline-flex">
+          <Button
+            aria-disabled={prev_disabled}
+            className={`h-7 w-7 text-[var(--icon-muted)] ${prev_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            size="icon"
+            tabIndex={prev_disabled ? -1 : undefined}
+            variant="ghost"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              if (prev_disabled) return;
+              if (on_navigate_prev) {
+                on_navigate_prev();
+              } else if (on_page_change) {
+                on_page_change(current_page - 1);
+              }
+            }}
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+          </Button>
+        </span>
       </Tooltip>
       {is_message_mode ? (
         <span className="tabular-nums text-sm min-w-[3ch] text-center">
@@ -100,38 +113,38 @@ export function HeaderPagination({
         </span>
       ) : (
         <Tooltip
-          tip={`${t("common.page")} ${current_page + 1} ${t("common.of")} ${total_pages}`}
+          tip={`${t("common.page")} ${current_page + 1} ${t("common.of")} ${Math.max(total_pages, 1)}`}
         >
           <span
-            aria-label={`${t("common.page")} ${current_page + 1} ${t("common.of")} ${total_pages}`}
-            className="tabular-nums text-sm min-w-[3ch] text-center"
+            aria-label={`${range_start}-${range_end} ${t("common.of")} ${filtered_count}`}
+            className="tabular-nums text-[13px] whitespace-nowrap px-1 text-center"
           >
-            {current_page + 1} {t("common.of")} {total_pages}
+            {range_start.toLocaleString()}-{range_end.toLocaleString()}{" "}
+            {t("common.of")} {filtered_count.toLocaleString()}
           </span>
         </Tooltip>
       )}
       <Tooltip tip={t("common.next")}>
-        <Button
-          className="h-7 w-7 text-[var(--icon-muted)] hover:text-[var(--icon-active)]"
-          disabled={
-            on_navigate_next
-              ? !can_go_next
-              : on_page_change
-                ? current_page >= Math.ceil(filtered_count / page_size) - 1
-                : true
-          }
-          size="icon"
-          variant="ghost"
-          onClick={() => {
-            if (on_navigate_next && can_go_next) {
-              on_navigate_next();
-            } else if (on_page_change) {
-              on_page_change(current_page + 1);
-            }
-          }}
-        >
-          <ChevronRightIcon className="w-4 h-4" />
-        </Button>
+        <span className="inline-flex">
+          <Button
+            aria-disabled={next_disabled}
+            className={`h-7 w-7 text-[var(--icon-muted)] ${next_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            size="icon"
+            tabIndex={next_disabled ? -1 : undefined}
+            variant="ghost"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              if (next_disabled) return;
+              if (on_navigate_next) {
+                on_navigate_next();
+              } else if (on_page_change) {
+                on_page_change(current_page + 1);
+              }
+            }}
+          >
+            <ChevronRightIcon className="w-4 h-4" />
+          </Button>
+        </span>
       </Tooltip>
     </div>
   );

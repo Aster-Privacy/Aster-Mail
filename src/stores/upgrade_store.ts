@@ -20,9 +20,7 @@
 //
 import { useSyncExternalStore } from "react";
 
-export type UpgradeReason =
-  | "plan_limit"
-  | "storage_full";
+export type UpgradeReason = "plan_limit" | "storage_full";
 
 export type UpgradeLimitKey =
   | "max_email_aliases"
@@ -38,6 +36,7 @@ export interface UpgradeState {
   is_open: boolean;
   reason: UpgradeReason;
   limit_key: UpgradeLimitKey;
+  feature_key: string | null;
   resource_label: string | null;
   server_message: string | null;
 }
@@ -46,6 +45,7 @@ const initial_state: UpgradeState = {
   is_open: false,
   reason: "plan_limit",
   limit_key: "generic",
+  feature_key: null,
   resource_label: null,
   server_message: null,
 };
@@ -96,11 +96,13 @@ function resolve_limit_key(resource: string | null): UpgradeLimitKey {
 export function show_plan_limit_upgrade(opts: {
   resource?: string | null;
   message?: string | null;
+  feature?: string | null;
 }) {
   current = {
     is_open: true,
     reason: "plan_limit",
     limit_key: resolve_limit_key(opts.resource ?? null),
+    feature_key: opts.feature ?? null,
     resource_label: opts.resource ?? null,
     server_message: opts.message ?? null,
   };
@@ -112,6 +114,7 @@ export function show_storage_full_upgrade(opts?: { message?: string | null }) {
     is_open: true,
     reason: "storage_full",
     limit_key: "generic",
+    feature_key: null,
     resource_label: null,
     server_message: opts?.message ?? null,
   };
@@ -129,9 +132,9 @@ export function use_upgrade_state(): UpgradeState {
 }
 
 if (import.meta.env.DEV && typeof window !== "undefined") {
-  (window as unknown as Record<string, unknown>).__trigger_upgrade =
-    (resource?: string) =>
-      show_plan_limit_upgrade({ resource: resource ?? "aliases" });
-  (window as unknown as Record<string, unknown>).__trigger_storage_full =
-    () => show_storage_full_upgrade({});
+  (window as unknown as Record<string, unknown>).__trigger_upgrade = (
+    resource?: string,
+  ) => show_plan_limit_upgrade({ resource: resource ?? "aliases" });
+  (window as unknown as Record<string, unknown>).__trigger_storage_full = () =>
+    show_storage_full_upgrade({});
 }

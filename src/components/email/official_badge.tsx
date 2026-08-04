@@ -58,7 +58,7 @@ export function OfficialBadge({
         >
           <img
             alt={label}
-            className={`inline-block ${dimension}`}
+            className={`block ${dimension}`}
             draggable={false}
             src="/official_badge.webp"
           />

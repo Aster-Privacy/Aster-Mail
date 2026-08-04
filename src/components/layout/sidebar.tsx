@@ -37,11 +37,9 @@ import {
   PencilSquareIcon,
   Bars3Icon,
   XMarkIcon,
-  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Kbd } from "@aster/ui";
 
-import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
 
 import { ShareModal } from "@/components/modals/share_modal";
 import { CreateFolderModal } from "@/components/folders/create_folder_modal";
@@ -55,7 +53,6 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_folders, partition_folders_by_parent } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
-import { Skeleton } from "@/components/ui/skeleton";
 import { use_should_reduce_motion } from "@/provider";
 import { SidebarNavSection } from "@/components/layout/sidebar/sidebar_nav_section";
 import { SidebarFolders } from "@/components/layout/sidebar/sidebar_folders";
@@ -105,8 +102,6 @@ function LockdownBanner({
   );
 }
 
-let mail_logo_cached = false;
-let text_logo_cached = false;
 
 interface SidebarProps {
   on_settings_click: (section?: SettingsSection) => void;
@@ -160,7 +155,6 @@ export const Sidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = use_auth();
-  const [is_workspace_open, set_is_workspace_open] = useState(false);
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { stats, has_initialized } = use_mail_stats();
@@ -217,11 +211,6 @@ export const Sidebar = ({
     is_tablet || ((preferences.sidebar_minimized ?? false) && !is_mobile);
   const is_collapsed = forced_collapse && !force_expanded;
 
-  const user_email = user?.email || "";
-  const raw_display_name = user?.display_name || user?.username || user_email;
-  const display_name = user?.display_name || user?.username
-    ? raw_display_name.charAt(0).toUpperCase() + raw_display_name.slice(1)
-    : raw_display_name;
 
   const get_initial_selected_item = () => {
     const path = location.pathname;
@@ -297,11 +286,6 @@ export const Sidebar = ({
     folder_token: string;
     mode: "setup" | "unlock" | "settings";
   } | null>(null);
-  const [mail_logo_loaded, set_mail_logo_loaded] = useState(mail_logo_cached);
-  const [text_logo_loaded, set_text_logo_loaded] = useState(text_logo_cached);
-  const mail_logo_ref = useRef<HTMLImageElement>(null);
-  const text_logo_ref = useRef<HTMLImageElement>(null);
-  const workspace_switcher_ref = useRef<HTMLDivElement>(null);
 
   const storage_percentage = useMemo(() => {
     const total = stats.storage_total_bytes;
@@ -330,15 +314,6 @@ export const Sidebar = ({
   const folder_refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const tag_refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const alias_refs = useRef<Record<string, HTMLButtonElement | null>>({});
-
-  useEffect(() => {
-    if (mail_logo_cached) {
-      set_mail_logo_loaded(true);
-    } else if (mail_logo_ref.current?.complete) {
-      mail_logo_cached = true;
-      set_mail_logo_loaded(true);
-    }
-  }, []);
 
   const handle_folder_lock = useCallback(
     (folder: FolderModalData, password_set: boolean) => {
@@ -629,9 +604,10 @@ export const Sidebar = ({
   const sidebar_content = (
     <aside
       aria-label={t("common.main_navigation")}
-      className={`flex h-full flex-col flex-shrink-0 transition-all duration-150 bg-sidebar-bg-custom ${
+      className={`flex h-full flex-col flex-shrink-0 transition-all duration-200 ease-out bg-sidebar-bg-custom ${
         is_collapsed ? "w-16 min-w-16 max-w-16" : ""
       }`}
+      data-collapsed={is_collapsed ? "true" : "false"}
       role="navigation"
       style={
         is_collapsed
@@ -645,11 +621,11 @@ export const Sidebar = ({
             }
       }
     >
-      {is_collapsed && (
+      {is_collapsed && is_tablet && (
         <div className="px-2 pt-3 flex justify-center">
           <button
             aria-label={t("common.open_menu")}
-            className="flex items-center justify-center w-10 h-10 rounded-[10px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
+            className="sidebar-rail-btn"
             type="button"
             onClick={() => set_force_expanded(true)}
           >
@@ -658,8 +634,7 @@ export const Sidebar = ({
         </div>
       )}
       <div
-        ref={workspace_switcher_ref}
-        className={`${is_collapsed ? "px-2" : "px-3"} ${is_mobile || (forced_collapse && !is_collapsed) ? "pr-12" : ""} pt-4 pb-3 relative`}
+        className={`${is_collapsed ? "px-2" : "px-3"} ${is_mobile || (forced_collapse && !is_collapsed) ? "pr-12 pt-4 pb-3" : "pt-2"} relative`}
       >
         {is_mobile && on_mobile_toggle && (
           <button
@@ -680,60 +655,17 @@ export const Sidebar = ({
             <XMarkIcon className="w-5 h-5" />
           </button>
         )}
-        <WorkspaceSwitcher
-          is_open={is_workspace_open}
-          on_open_change={set_is_workspace_open}
-          trigger={
-            <button
-              className={`w-full flex items-center ${is_collapsed ? "justify-center" : "gap-3"} rounded-[12px] px-1 py-1 -mx-1 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-info)]`}
-              type="button"
-            >
-              <div
-                className={`${is_collapsed ? "w-10 h-10" : "w-11 h-11"} flex-shrink-0 relative`}
-              >
-                {!preferences.low_network_mode && !mail_logo_loaded && (
-                  <Skeleton className="absolute inset-0 rounded-lg" />
-                )}
-                {preferences.low_network_mode ? (
-                  <div className="w-full h-full rounded-lg bg-surf-secondary flex items-center justify-center text-txt-muted font-bold text-lg select-none">
-                    A
-                  </div>
-                ) : (
-                  <img
-                    ref={mail_logo_ref}
-                    alt={t("common.mail")}
-                    className={`w-full h-full select-none rounded-lg transition-opacity duration-150 ${mail_logo_loaded ? "opacity-100" : "opacity-0"}`}
-                    decoding="async"
-                    draggable={false}
-                    src="/mail_logo.webp"
-                    onLoad={() => {
-                      mail_logo_cached = true;
-                      set_mail_logo_loaded(true);
-                    }}
-                  />
-                )}
-              </div>
-              {!is_collapsed && (
-                <>
-                  <div className="flex flex-col items-start min-w-0 flex-1">
-                    <span className="text-[15px] font-semibold text-txt-primary truncate w-full text-left">
-                      {t("common.aster_mail")}
-                    </span>
-                    <span className="text-[11px] truncate w-full text-left text-txt-muted">
-                      {t("common.deck", { name: display_name })}
-                    </span>
-                  </div>
-                  <ChevronDownIcon className="w-4 h-4 flex-shrink-0 text-icon-muted" />
-                </>
-              )}
-            </button>
-          }
-        />
       </div>
 
-      <div className={`${is_collapsed ? "px-2" : "px-2.5"} pb-3`}>
+      <div
+        className={`${is_collapsed ? "px-2 flex justify-center" : "px-2.5"} pb-3`}
+      >
         <Button
-          className={`w-full !rounded-[14px] ${is_collapsed ? "" : "gap-2"}`}
+          className={
+            is_collapsed
+              ? "!rounded-full w-10 h-10 min-w-10 !p-0 flex items-center justify-center"
+              : "w-full !rounded-[14px] gap-2"
+          }
           data-onboarding="compose-button"
           variant="depth"
           onClick={() => {
@@ -741,7 +673,9 @@ export const Sidebar = ({
             on_compose();
           }}
         >
-          <PencilSquareIcon className="w-[15px] h-[15px]" />
+          <PencilSquareIcon
+            className={is_collapsed ? "w-5 h-5" : "w-[15px] h-[15px]"}
+          />
           {!is_collapsed && (
             <>
               <span>{t("mail.compose")}</span>
@@ -965,15 +899,20 @@ export const Sidebar = ({
         is_collapsed={is_collapsed}
         on_modal_open={on_modal_open}
         on_settings_click={on_settings_click}
-        set_text_logo_loaded={(loaded) => {
-          text_logo_cached = true;
-          set_text_logo_loaded(loaded);
-        }}
+        on_toggle_collapse={
+          is_mobile || is_tablet
+            ? undefined
+            : () => {
+                update_preference(
+                  "sidebar_minimized",
+                  !(preferences.sidebar_minimized ?? false),
+                  true,
+                );
+              }
+        }
         storage_percentage={storage_percentage}
         storage_total_bytes={stats.storage_total_bytes}
         storage_used_bytes={stats.storage_used_bytes}
-        text_logo_loaded={text_logo_loaded}
-        text_logo_ref={text_logo_ref}
       />
     </aside>
   );

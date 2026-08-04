@@ -776,24 +776,21 @@ function SettingsContentInner({
         }
       >
         {!is_popup && (
-          <div className="px-3 pt-4 pb-3">
-            <div className="flex items-center gap-3 px-1 py-1">
-              <img
-                alt={t("common.mail")}
-                className="w-11 h-11 flex-shrink-0 select-none rounded-lg"
-                decoding="async"
-                draggable={false}
-                src="/mail_logo.webp"
-              />
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <span className="text-[15px] font-semibold text-txt-primary truncate w-full text-left">
-                  {t("common.aster_mail")}
-                </span>
-                <span className="text-[11px] truncate w-full text-left text-txt-muted">
-                  {t("settings.title")}
-                </span>
-              </div>
-            </div>
+          <div className="flex items-center h-14 px-4 select-none">
+            <img
+              alt={t("common.aster_mail")}
+              className="h-6 w-auto dark:hidden"
+              decoding="async"
+              draggable={false}
+              src="/aster_mail_logo_light.png"
+            />
+            <img
+              alt={t("common.aster_mail")}
+              className="h-6 w-auto hidden dark:block"
+              decoding="async"
+              draggable={false}
+              src="/aster_mail_logo_dark.png"
+            />
           </div>
         )}
         {!is_popup && (
@@ -881,33 +878,23 @@ function SettingsContentInner({
           </div>
 
           <div className="hidden md:flex flex-1 justify-center">
-          <div className="relative w-full max-w-[1100px]">
+          <div className="relative w-full max-w-[620px]">
             <MagnifyingGlassIcon
               className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--icon-muted)" }}
             />
             <input
               autoComplete="off"
-              className="w-full h-12 pl-11 pr-4 rounded-lg text-[15px] outline-none transition-colors duration-150 focus:border-brand"
+              className="aster_search_field w-full h-10 pl-11 pr-4 rounded-full border-0 text-sm text-txt-primary placeholder:text-[var(--text-secondary)] outline-none focus:outline-none focus:ring-0"
               placeholder={t("settings.search_placeholder")}
               spellCheck={false}
-              style={{
-                backgroundColor: "var(--input-bg, var(--bg-secondary))",
-                border: "1px solid var(--border-primary)",
-                color: "var(--text-primary)",
-              }}
               type="search"
               value={search_query}
               onChange={(e) => set_search_query(e.target.value)}
             />
             {is_searching && search_query.trim().length >= 2 && (
               <div
-                className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-full max-w-[1100px] max-h-80 overflow-y-auto rounded-lg z-50 py-1"
-                style={{
-                  backgroundColor: "var(--bg-primary)",
-                  border: "1px solid var(--border-secondary)",
-                  boxShadow: "0 12px 36px rgba(0,0,0,0.28)",
-                }}
+                className="aster_search_field absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-full max-w-[620px] max-h-80 overflow-y-auto rounded-2xl z-50 py-1 shadow-lg"
               >
                 {registry_results.length === 0 ? (
                   <div className="px-4 py-3 text-[13px]" style={{ color: "var(--text-secondary)" }}>

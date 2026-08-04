@@ -216,7 +216,8 @@ export const PLAN_TIERS: PlanTier[] = [
   {
     id: "supernova",
     name: "Supernova",
-    description: "Maximum storage, unlimited everything, and dedicated support.",
+    description:
+      "Maximum storage, unlimited everything, and dedicated support.",
     monthly_cents: 1799,
     yearly_cents: 17399,
     biennial_cents: 29999,
@@ -363,3 +364,34 @@ export const FAMILY_PLAN_FAMILY_FEATURES: FamilyPlanFeature[] = [
   { label: "Per-member storage controls", on: true },
   { label: "Admin role transfer", on: true },
 ];
+
+export const FEATURE_MIN_PLAN: Record<string, string> = {
+  has_advanced_aliases: "star",
+  has_alias_avatars: "star",
+  has_alias_rules: "star",
+  has_alias_external_relay: "star",
+  has_auto_delete_spam_trash: "star",
+  has_auto_forwarding: "star",
+  has_catch_all: "star",
+  has_priority_support: "star",
+  has_quiet_hours: "star",
+  has_remove_branding: "star",
+  has_vacation_reply: "star",
+  max_alias_directories: "star",
+  max_custom_categories: "star",
+  has_carddav_import: "nova",
+  has_contact_merge_wizard: "nova",
+  has_custom_key_rotation: "nova",
+  has_encrypted_export: "nova",
+  has_password_protected_folders: "nova",
+  has_dedicated_support: "supernova",
+  has_early_access: "supernova",
+  has_receipt_tracking: "supernova",
+};
+
+export function min_plan_for_feature(feature: string | null): PlanTier | null {
+  if (!feature) return null;
+  const code = FEATURE_MIN_PLAN[feature] ?? feature;
+
+  return PLAN_TIERS.find((tier) => tier.id === code) ?? null;
+}

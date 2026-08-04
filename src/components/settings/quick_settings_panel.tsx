@@ -20,7 +20,7 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { XMarkIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { Button, Radio } from "@aster/ui";
 
@@ -28,7 +28,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { resolve_list_density } from "@/lib/list_density";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { ThemeCard } from "@/components/settings/appearance/theme_card";
 
 interface QuickSettingsPanelProps {
   is_open: boolean;
@@ -163,6 +162,81 @@ function ThumbCompact() {
   return <ThumbLines count={5} gap="gap-[3px]" />;
 }
 
+function ThemeMini({ mode }: { mode: "light" | "dark" }) {
+  const is_light = mode === "light";
+
+  return (
+    <span className="flex h-full w-full">
+      <span
+        className="h-full w-[26%]"
+        style={{ backgroundColor: is_light ? "#e8eaed" : "#2a2c30" }}
+      />
+      <span
+        className="flex h-full flex-1 flex-col gap-[3px] p-1.5"
+        style={{ backgroundColor: is_light ? "#ffffff" : "#17181b" }}
+      >
+        {Array.from({ length: 3 }, (_, i) => (
+          <span
+            key={i}
+            className="h-[3px] w-full rounded-full"
+            style={{
+              backgroundColor:
+                i === 0
+                  ? "var(--accent-color, #3b82f6)"
+                  : is_light
+                    ? "#c9cdd3"
+                    : "#43474d",
+            }}
+          />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function ThemeQuickCard({
+  label,
+  mode,
+  is_selected,
+  on_select,
+}: {
+  label: string;
+  mode: "light" | "dark";
+  is_selected: boolean;
+  on_select: () => void;
+}) {
+  return (
+    <button
+      aria-checked={is_selected}
+      className="flex-1 rounded-[12px] p-1.5 outline-none transition-all duration-150 focus:outline-none"
+      role="radio"
+      style={{
+        backgroundColor: "var(--bg-secondary)",
+        border: is_selected
+          ? "1.5px solid var(--accent-color, #3b82f6)"
+          : "1px solid var(--border-primary)",
+        boxShadow: is_selected
+          ? "0 0 0 2px color-mix(in srgb, var(--accent-color, #3b82f6) 18%, transparent)"
+          : undefined,
+      }}
+      type="button"
+      onClick={on_select}
+    >
+      <span className="block h-[50px] w-full overflow-hidden rounded-[8px]">
+        <ThemeMini mode={mode} />
+      </span>
+      <span
+        className={`mt-1.5 block text-[12px] ${is_selected ? "font-medium" : ""}`}
+        style={{
+          color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
 interface QuickRadioOption {
   value: string;
   label: string;
@@ -253,8 +327,6 @@ export function QuickSettingsPanel({
   const { t } = use_i18n();
   const { theme_preference, set_theme_preference } = useTheme();
   const { preferences, update_preference } = use_preferences();
-  const aside_ref = useRef<HTMLElement | null>(null);
-  const [strip_height, set_strip_height] = useState(55);
 
   useEffect(() => {
     if (!is_open) return;
@@ -267,72 +339,48 @@ export function QuickSettingsPanel({
     return () => document.removeEventListener("keydown", handle_key);
   }, [is_open, on_close]);
 
-  useEffect(() => {
-    if (!is_open) return;
-
-    const measure = () => {
-      const toolbar = document.querySelector("[data-inbox-toolbar]");
-      const container = aside_ref.current?.parentElement;
-
-      if (!toolbar || !container) return;
-
-      const offset =
-        toolbar.getBoundingClientRect().bottom -
-        container.getBoundingClientRect().top -
-        1;
-
-      if (offset > 0) {
-        set_strip_height(offset);
-      }
-    };
-
-    measure();
-    window.addEventListener("resize", measure);
-    const toolbar = document.querySelector("[data-inbox-toolbar]");
-    const observer = toolbar ? new ResizeObserver(measure) : null;
-
-    if (toolbar && observer) observer.observe(toolbar);
-
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer?.disconnect();
-    };
-  }, [is_open]);
-
   if (!is_open) return null;
 
   return (
     <aside
-      ref={aside_ref}
-      className="hidden lg:flex flex-col absolute top-0 right-0 bottom-0 w-[296px] z-40 overflow-hidden rounded-br-lg md:rounded-br-xl pointer-events-none"
+      className="hidden lg:flex flex-col absolute top-0 right-0 bottom-0 w-[300px] z-40 overflow-hidden rounded-r-lg md:rounded-r-xl"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        borderLeft: "1px solid var(--border-secondary)",
+        boxShadow: "-8px 0 24px -12px rgba(0, 0, 0, 0.22)",
+      }}
     >
-      <div className="flex-shrink-0" style={{ height: strip_height }} />
       <div
-        className="flex-1 min-h-0 flex flex-col pointer-events-auto transition-colors duration-200"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderLeft: "1px solid var(--border-secondary)",
-          borderTop: "1px solid var(--border-secondary)",
-        }}
+        className="flex items-center gap-3 px-4 flex-shrink-0 min-h-[44px] py-1"
+        style={{ borderBottom: "1px solid var(--border-secondary)" }}
       >
-      <div className="flex items-center gap-3 px-4 py-3 flex-shrink-0" style={{ backgroundColor: "var(--bg-primary)" }}>
         <h2 className="text-[15px] font-semibold text-txt-primary flex-1 truncate">
           {t("settings.quick_settings")}
         </h2>
-        <Button size="icon" variant="ghost" onClick={on_close}>
-          <XMarkIcon className="w-5 h-5" />
+        <Button
+          aria-label={t("common.close")}
+          className="h-7 w-7 text-[var(--icon-muted)]"
+          size="icon"
+          variant="ghost"
+          onClick={on_close}
+        >
+          <XMarkIcon className="w-4 h-4" />
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
-            <div className="px-4 pt-4">
-              <Button
-                className="w-full !rounded-[14px] gap-2"
-                variant="depth"
+            <div className="px-4 pt-3">
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-full py-2 text-[13px] font-medium outline-none transition-colors hover:bg-black/[0.04] focus:outline-none dark:hover:bg-white/[0.05]"
+                style={{
+                  border: "1px solid var(--border-primary)",
+                  color: "var(--text-secondary)",
+                }}
+                type="button"
                 onClick={() => on_open_full_settings()}
               >
-                <Cog6ToothIcon className="w-[15px] h-[15px]" />
+                <Cog6ToothIcon className="h-[15px] w-[15px]" />
                 <span>{t("settings.see_all_settings")}</span>
-              </Button>
+              </button>
             </div>
 
             <QuickGroup
@@ -340,31 +388,25 @@ export function QuickSettingsPanel({
               on_more={() => on_open_full_settings("appearance")}
               title={t("settings.theme")}
             >
-              <div className="flex flex-col gap-2">
-                <div className="flex">
-                  <ThemeCard
-                    full_width
-                    is_selected={theme_preference === "light"}
-                    label={t("settings.theme_light")}
-                    mode="light"
-                    on_select={() => {
-                      set_theme_preference("light");
-                      update_preference("theme", "light", true);
-                    }}
-                  />
-                </div>
-                <div className="flex">
-                  <ThemeCard
-                    full_width
-                    is_selected={theme_preference === "dark"}
-                    label={t("settings.theme_dark")}
-                    mode="dark"
-                    on_select={() => {
-                      set_theme_preference("dark");
-                      update_preference("theme", "dark", true);
-                    }}
-                  />
-                </div>
+              <div className="flex gap-2 px-0.5" role="radiogroup">
+                <ThemeQuickCard
+                  is_selected={theme_preference === "light"}
+                  label={t("settings.theme_light")}
+                  mode="light"
+                  on_select={() => {
+                    set_theme_preference("light");
+                    update_preference("theme", "light", true);
+                  }}
+                />
+                <ThemeQuickCard
+                  is_selected={theme_preference === "dark"}
+                  label={t("settings.theme_dark")}
+                  mode="dark"
+                  on_select={() => {
+                    set_theme_preference("dark");
+                    update_preference("theme", "dark", true);
+                  }}
+                />
               </div>
             </QuickGroup>
 
@@ -430,7 +472,6 @@ export function QuickSettingsPanel({
             </QuickGroup>
 
             <div className="pb-4" />
-      </div>
       </div>
     </aside>
   );

@@ -24,14 +24,16 @@ import { UpgradeBtn } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 
-export function go_to_billing() {
-  window.dispatchEvent(
-    new CustomEvent("navigate-settings", { detail: "billing" }),
-  );
-}
-
-export function prompt_upgrade(msg: string, resource?: string) {
-  show_plan_limit_upgrade({ message: msg, resource: resource ?? null });
+export function prompt_upgrade(
+  msg: string,
+  resource?: string,
+  feature?: string,
+) {
+  show_plan_limit_upgrade({
+    message: msg,
+    resource: resource ?? null,
+    feature: feature ?? null,
+  });
 }
 
 export function PaidPill({ className = "" }: { className?: string }) {
@@ -53,13 +55,22 @@ export function PaidPill({ className = "" }: { className?: string }) {
   );
 }
 
-export function FeatureLockOverlay({ message }: { message: string }) {
+export function FeatureLockOverlay({
+  message,
+  feature,
+}: {
+  message: string;
+  feature?: string;
+}) {
   const { t } = use_i18n();
 
   return (
     <div className="flex flex-col items-start gap-2.5 rounded-lg border border-edge-secondary bg-surf-tertiary px-3.5 py-3">
       <p className="text-[13px] leading-5 text-txt-secondary">{message}</p>
-      <UpgradeBtn size="sm" onClick={go_to_billing}>
+      <UpgradeBtn
+        size="sm"
+        onClick={() => prompt_upgrade(message, undefined, feature)}
+      >
         {t("settings.alias_feature_locked_upgrade_cta")}
       </UpgradeBtn>
     </div>
@@ -69,10 +80,12 @@ export function FeatureLockOverlay({ message }: { message: string }) {
 export function LockedFeature({
   locked,
   message,
+  feature,
   children,
 }: {
   locked: boolean;
   message: string;
+  feature?: string;
   children: React.ReactNode;
 }) {
   if (!locked) {
@@ -87,9 +100,31 @@ export function LockedFeature({
       >
         {children}
       </div>
-      <div className="mt-3">
-        <FeatureLockOverlay message={message} />
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
+        <LockedFeatureCard feature={feature} message={message} />
       </div>
+    </div>
+  );
+}
+
+function LockedFeatureCard({
+  message,
+  feature,
+}: {
+  message: string;
+  feature?: string;
+}) {
+  const { t } = use_i18n();
+
+  return (
+    <div className="pointer-events-auto flex max-w-sm flex-col items-center gap-3 rounded-xl border border-edge-secondary bg-surf-primary px-5 py-4 text-center shadow-lg">
+      <p className="text-[13px] leading-5 text-txt-secondary">{message}</p>
+      <UpgradeBtn
+        size="sm"
+        onClick={() => prompt_upgrade(message, undefined, feature)}
+      >
+        {t("settings.alias_feature_locked_upgrade_cta")}
+      </UpgradeBtn>
     </div>
   );
 }
