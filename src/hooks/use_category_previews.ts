@@ -70,6 +70,20 @@ function trim_cache(): void {
   }
 }
 
+export function titlecase_localpart(localpart: string): string {
+  const words = localpart.split(/[._+-]+/).filter(Boolean);
+
+  if (!words.length) return localpart;
+
+  return words
+    .map((word) =>
+      /[a-z]/.test(word) && !/[A-Z]/.test(word)
+        ? word[0].toUpperCase() + word.slice(1)
+        : word,
+    )
+    .join(" ");
+}
+
 function sender_label(envelope: DecryptedEnvelope): string {
   const name = envelope.from?.name?.trim();
 
@@ -77,8 +91,9 @@ function sender_label(envelope: DecryptedEnvelope): string {
 
   const email = envelope.from?.email?.trim() ?? "";
   const at = email.indexOf("@");
+  const localpart = at > 0 ? email.slice(0, at) : email;
 
-  return (at > 0 ? email.slice(0, at) : email).slice(0, MAX_SENDER_CHARS);
+  return titlecase_localpart(localpart).slice(0, MAX_SENDER_CHARS);
 }
 
 function note_attempt(id: string): void {
