@@ -316,14 +316,18 @@ export function TopBar({
                 type="button"
                 onClick={close_account_tip}
               >
-                <ProfileAvatar
-                  className={is_free_plan ? "block" : "block plan_ring"}
-                  email={account_email}
-                  image_url={user?.profile_picture}
-                  name={display_name}
-                  profile_color={preferences.profile_color}
-                  size="sm"
-                />
+                <span
+                  className={`inline-flex rounded-full ${is_free_plan ? "" : "plan_ring"}`}
+                >
+                  <ProfileAvatar
+                    className="block"
+                    email={account_email}
+                    image_url={user?.profile_picture}
+                    name={display_name}
+                    profile_color={preferences.profile_color}
+                    size="sm"
+                  />
+                </span>
               </button>
             }
           />

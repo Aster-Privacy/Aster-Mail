@@ -78,22 +78,31 @@ export function AccountAvatarButton({
         type="button"
         onClick={open_picker}
       >
-        <ProfileAvatar
-          className={is_paid_plan ? "plan_ring" : ""}
-          email={email}
-          image_url={preview || image_url}
-          name={name}
-          profile_color={profile_color}
-          size={size}
-        />
+        <span
+          className={`inline-flex rounded-full ${is_paid_plan ? "plan_ring" : ""}`}
+        >
+          <ProfileAvatar
+            email={email}
+            image_url={preview || image_url}
+            name={name}
+            profile_color={profile_color}
+            size={size}
+          />
+        </span>
         <span
           aria-hidden="true"
-          className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+          className="absolute inset-0 rounded-full items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 motion-reduce:transition-none hidden [@media(hover:hover)]:flex"
           style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
         >
           <CameraIcon
             className={`${OVERLAY_ICON_SIZE[size]} text-white`}
           />
+        </span>
+        <span
+          aria-hidden="true"
+          className="absolute -bottom-0.5 -right-0.5 hidden items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] p-1 text-white [@media(hover:none)]:flex"
+        >
+          <CameraIcon className="h-3 w-3" />
         </span>
         {uploading && (
           <span
