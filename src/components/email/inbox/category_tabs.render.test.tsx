@@ -175,7 +175,7 @@ describe("CategoryTabs", () => {
     expect(promotions.textContent).not.toContain("Paybis Team");
   });
 
-  it("falls back to the plain unread pill when nothing is new", () => {
+  it("shows no badge on a tab whose unread mail has already been seen", () => {
     const el = render(
       <CategoryTabs
         active_category="promotions"
@@ -186,7 +186,7 @@ describe("CategoryTabs", () => {
     const primary = tab_of(el, "category_primary");
 
     expect(primary.querySelector(".aster_cat_badge")).toBeNull();
-    expect(primary.textContent).toContain("1");
+    expect(primary.textContent).not.toContain("1");
   });
 
   it("keeps every tab the same height whether or not it has a preview", () => {

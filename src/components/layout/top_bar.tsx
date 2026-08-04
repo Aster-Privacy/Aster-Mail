@@ -250,23 +250,35 @@ export function TopBar({
           </IconButton>
         )}
         <div
-          className="hidden sm:flex items-center select-none cursor-default"
+          className="hidden sm:flex items-center select-none cursor-default overflow-hidden"
           onClick={handle_logo_tap}
         >
-          <img
-            alt={t("common.aster_mail")}
-            className="h-6 w-auto dark:hidden"
-            decoding="async"
-            draggable={false}
-            src="/aster_mail_logo_light.png"
-          />
-          <img
-            alt={t("common.aster_mail")}
-            className="h-6 w-auto hidden dark:block"
-            decoding="async"
-            draggable={false}
-            src="/aster_mail_logo_dark.png"
-          />
+          {preferences.sidebar_minimized ? (
+            <img
+              alt={t("common.aster_mail")}
+              className="h-7 w-7 flex-shrink-0 object-contain"
+              decoding="async"
+              draggable={false}
+              src="/mail_logo.webp"
+            />
+          ) : (
+            <>
+              <img
+                alt={t("common.aster_mail")}
+                className="h-6 w-auto max-w-full object-contain object-left dark:hidden"
+                decoding="async"
+                draggable={false}
+                src="/aster_mail_logo_light.png"
+              />
+              <img
+                alt={t("common.aster_mail")}
+                className="h-6 w-auto max-w-full object-contain object-left hidden dark:block"
+                decoding="async"
+                draggable={false}
+                src="/aster_mail_logo_dark.png"
+              />
+            </>
+          )}
         </div>
       </div>
 

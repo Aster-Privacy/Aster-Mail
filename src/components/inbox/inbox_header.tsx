@@ -377,11 +377,11 @@ export function InboxHeader({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-1.5 px-1.5 py-1 rounded-[12px] hover:bg-[var(--bg-hover)] transition-colors min-w-0 select-none focus:outline-none focus-visible:outline-none">
-                  <span className="text-base leading-tight font-semibold text-[var(--text-primary)] truncate max-w-[80px] sm:max-w-[140px]">
+                  <span className="text-base leading-tight font-semibold text-[var(--text-primary)] truncate max-w-[140px] sm:max-w-[280px] lg:max-w-[420px]">
                     {view_title}
                   </span>
                   {(display_count ?? filtered_count) > 0 && (
-                    <span className="text-base leading-tight font-extrabold text-blue-500 tabular-nums flex-shrink-0">
+                    <span className="text-base leading-tight font-extrabold text-[var(--accent-color)] tabular-nums flex-shrink-0">
                       {(display_count ?? filtered_count).toLocaleString()}
                     </span>
                   )}
@@ -426,7 +426,7 @@ export function InboxHeader({
 
         {has_selection && (
           <div className="flex items-center gap-0.5 min-w-0 flex-shrink">
-            <span className="text-base leading-tight font-extrabold text-blue-500 tabular-nums px-1.5 flex-shrink-0">
+            <span className="text-base leading-tight font-semibold text-[var(--text-primary)] tabular-nums px-1.5 flex-shrink-0">
               {display_selected.toLocaleString()}
             </span>
             <span
@@ -482,7 +482,7 @@ export function InboxHeader({
                   className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                   onClick={on_delete}
                 >
-                  <TrashIcon className="w-[18px] h-[18px] text-red-500" />
+                  <TrashIcon className="w-[18px] h-[18px] text-[var(--icon-muted)]" />
                 </button>
               </Tooltip>
 

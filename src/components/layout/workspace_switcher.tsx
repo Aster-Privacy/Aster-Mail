@@ -334,9 +334,12 @@ export function WorkspaceSwitcher({
             )}
           </div>
 
-          {other_accounts.length > 0 && (
-            <div className="mt-2">
-              <div className="aster_scrollbar_thin max-h-[288px] overflow-y-auto flex flex-col gap-1.5">
+          <div
+            className="mt-2 rounded-[18px] overflow-hidden"
+            style={{ backgroundColor: "var(--bg-hover)" }}
+          >
+            {other_accounts.length > 0 && (
+              <div className="aster_scrollbar_thin max-h-[288px] overflow-y-auto flex flex-col">
                 {other_accounts.map((acc) => {
                   const acc_name =
                     acc.user.display_name ||
@@ -347,9 +350,9 @@ export function WorkspaceSwitcher({
                   return (
                     <div
                       key={acc.id}
-                      className="group w-full h-[58px] px-3.5 flex items-center gap-3.5 cursor-pointer rounded-[14px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                      className="group w-full h-[60px] px-3.5 flex items-center gap-3.5 cursor-pointer transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
                       role="button"
-                      style={{ backgroundColor: "var(--bg-hover)" }}
+                      style={{ borderBottom: "1px solid var(--border-secondary)" }}
                       tabIndex={0}
                       title={t("auth.switch_to_account")}
                       onClick={() => handle_switch(acc.id)}
@@ -419,13 +422,11 @@ export function WorkspaceSwitcher({
                   );
                 })}
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="mt-1.5 flex flex-col gap-1.5">
             <button
-              className={`w-full h-[52px] px-3.5 flex items-center gap-3.5 text-left rounded-[14px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06] ${at_limit ? "opacity-60" : ""}`}
-              style={{ backgroundColor: "var(--bg-hover)" }}
+              className={`w-full h-[54px] px-3.5 flex items-center gap-3.5 text-left transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06] ${at_limit ? "opacity-60" : ""}`}
+              style={{ borderBottom: "1px solid var(--border-secondary)" }}
               title={
                 at_limit
                   ? t("auth.account_limit_for_plan", {
@@ -457,8 +458,7 @@ export function WorkspaceSwitcher({
             </button>
 
             <button
-              className="w-full h-[52px] px-3.5 flex items-center gap-3.5 text-left rounded-[14px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-              style={{ backgroundColor: "var(--bg-hover)" }}
+              className="w-full h-[54px] px-3.5 flex items-center gap-3.5 text-left transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
               type="button"
               onClick={
                 other_accounts.length > 0 ? handle_logout_all : handle_logout

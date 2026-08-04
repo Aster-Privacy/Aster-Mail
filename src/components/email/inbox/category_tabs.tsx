@@ -171,9 +171,8 @@ export function CategoryTabs({
       {tabs.map(({ key, label, Icon, color_style }) => {
         const is_active = key === active_category;
         const bucket = counts[key];
-        const new_count = bucket?.new_count ?? 0;
-        const unread = is_active ? 0 : (bucket?.unread ?? 0);
-        const show_new = !is_active && new_count > 0;
+        const new_count = is_active ? 0 : (bucket?.new_count ?? 0);
+        const show_new = new_count > 0;
         const preview = show_new ? previews[key] : undefined;
 
         return (
@@ -219,10 +218,6 @@ export function CategoryTabs({
                   {show_new ? (
                     <span className="aster_cat_badge">
                       {format_count(new_count)} {t("mail.tab_new_count")}
-                    </span>
-                  ) : unread > 0 ? (
-                    <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1 text-[11px] font-semibold leading-none tabular-nums bg-black/[0.07] text-txt-secondary dark:bg-white/[0.12] dark:text-txt-primary">
-                      {format_count(unread)}
                     </span>
                   ) : null}
                 </span>

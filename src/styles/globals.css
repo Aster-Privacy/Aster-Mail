@@ -1815,6 +1815,21 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
   border-color: color-mix(in srgb, var(--icon-muted) 82%, transparent);
 }
 
+[data-inbox-toolbar] .aster_checkbox_input:checked + .aster_checkbox_box,
+[data-inbox-toolbar] .aster_checkbox_input:indeterminate + .aster_checkbox_box,
+.dark [data-inbox-toolbar] .aster_checkbox_input:checked + .aster_checkbox_box,
+.dark
+  [data-inbox-toolbar]
+  .aster_checkbox_input:indeterminate
+  + .aster_checkbox_box {
+  background: var(--icon-active);
+  border-color: var(--icon-active);
+}
+
+[data-inbox-toolbar] .aster_checkbox_check {
+  color: var(--bg-primary);
+}
+
 aside[data-collapsed="true"] .sidebar-rail-btn {
   display: flex;
   align-items: center;

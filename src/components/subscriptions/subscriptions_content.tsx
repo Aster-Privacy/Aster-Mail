@@ -22,16 +22,13 @@ import type { CachedSubscription } from "@/services/subscription_cache";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useMemo, useCallback, useRef } from "react";
-import {
-  MagnifyingGlassIcon,
-  Bars3Icon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Button, Checkbox } from "@aster/ui";
 
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_i18n } from "@/lib/i18n/context";
@@ -293,9 +290,7 @@ export function SubscriptionsContent({
       </div>
 
       {is_loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <ArrowPathIcon className="w-6 h-6 animate-spin text-txt-muted" />
-        </div>
+        <SubscriptionsListSkeleton />
       ) : current_list.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-txt-muted">
           <MagnifyingGlassIcon className="w-6 h-6" />
@@ -358,6 +353,27 @@ export function SubscriptionsContent({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function SubscriptionsListSkeleton() {
+  return (
+    <div className="flex-1 overflow-hidden">
+      {Array.from({ length: 10 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-3 px-4 py-3 border-b border-edge-primary"
+        >
+          <Skeleton className="h-4 w-4 rounded-[4px] flex-shrink-0" />
+          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-full max-w-[180px]" />
+            <Skeleton className="h-3 w-full max-w-[240px]" />
+          </div>
+          <Skeleton className="h-6 w-20 rounded-[10px] flex-shrink-0 hidden sm:block" />
+        </div>
+      ))}
     </div>
   );
 }
