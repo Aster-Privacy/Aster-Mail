@@ -198,11 +198,15 @@ describe("CategoryTabs", () => {
     );
     const with_preview = tab_of(el, "category_promotions");
     const without_preview = tab_of(el, "category_social");
-    const height_of = (tab: HTMLButtonElement) =>
-      tab.className.split(" ").find((token) => token.startsWith("h-["));
+    const classes_of = (tab: HTMLButtonElement) => tab.className.split(" ");
 
-    expect(height_of(with_preview)).toBe("h-[58px]");
-    expect(height_of(without_preview)).toBe(height_of(with_preview));
-    expect(without_preview.querySelector("span.h-\\[15px\\]")).toBeTruthy();
+    for (const tab of [with_preview, without_preview]) {
+      expect(classes_of(tab)).toContain("h-12");
+      expect(classes_of(tab)).toContain("flex-1");
+      expect(classes_of(tab)).toContain("basis-0");
+      expect(classes_of(tab).some((token) => token.startsWith("flex-col"))).toBe(
+        false,
+      );
+    }
   });
 });
