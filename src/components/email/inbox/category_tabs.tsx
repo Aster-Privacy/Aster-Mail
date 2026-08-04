@@ -152,7 +152,7 @@ export function CategoryTabs({
                   : "text-txt-muted group-hover:text-txt-secondary"
               }`}
             />
-            <span className="relative flex flex-col items-center gap-[1px]">
+            <span className="relative flex flex-col items-center">
               <span className="flex items-center gap-2 leading-[18px]">
                 <span>{label}</span>
                 {show_new ? (
@@ -166,10 +166,8 @@ export function CategoryTabs({
                 ) : null}
               </span>
               {preview ? (
-                <span className="block h-[13px] w-full">
-                  <span className="pointer-events-none absolute inset-x-0 bottom-0 block truncate text-center text-[11.5px] font-normal leading-[13px] text-txt-muted">
-                    {preview}
-                  </span>
+                <span className="pointer-events-none absolute inset-x-0 top-full block truncate text-center text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                  {preview}
                 </span>
               ) : null}
             </span>

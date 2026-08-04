@@ -205,7 +205,7 @@ describe("CategoryTabs", () => {
       expect(classes_of(tab)).toContain("items-center");
     }
 
-    expect(with_preview.querySelector("span.h-\\[13px\\]")).toBeTruthy();
-    expect(without_preview.querySelector("span.h-\\[13px\\]")).toBeNull();
+    expect(with_preview.querySelector("span.top-full")).toBeTruthy();
+    expect(without_preview.querySelector("span.top-full")).toBeNull();
   });
 });
