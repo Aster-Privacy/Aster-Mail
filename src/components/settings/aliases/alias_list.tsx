@@ -31,6 +31,7 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
+
 import {
   Select,
   SelectContent,
@@ -38,7 +39,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -49,7 +49,7 @@ import {
 } from "@/components/settings/aliases/alias_card";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
-import { update_alias, delete_alias, get_alias_preferences } from "@/services/api/aliases";
+import { update_alias, delete_alias } from "@/services/api/aliases";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
@@ -68,19 +68,14 @@ interface AliasListProps {
   on_alias_delete: (id: string) => void;
   on_domain_addr_delete: (id: string, domain_id: string) => void;
   on_avatar_changed?: () => void;
-  on_display_name_saved?: (alias_id: string, name: string) => void;
-  on_note_saved?: (alias_id: string, note: string) => void;
-  on_websites_saved?: (alias_id: string, websites: string[]) => void;
-  on_delivery_saved?: (
-    alias_id: string,
-    value: { never_inbox: boolean; delivery_folder_token: string | null },
-  ) => void;
   on_aliases_changed?: () => void;
   on_domain_address_display_name_saved?: (
     address_id: string,
     name: string,
   ) => void;
   on_alias_pin_toggle: (id: string) => void;
+  on_open_editor: (alias_id: string) => void;
+  on_open_domain_editor: (address_id: string) => void;
 }
 
 function UndecryptableAliasCard({
@@ -132,30 +127,21 @@ export function AliasList({
   on_alias_delete,
   on_domain_addr_delete,
   on_avatar_changed,
-  on_display_name_saved,
-  on_note_saved,
-  on_websites_saved,
-  on_delivery_saved,
   on_aliases_changed,
   on_domain_address_display_name_saved,
   on_alias_pin_toggle,
+  on_open_editor,
+  on_open_domain_editor,
 }: AliasListProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const is_avatar_locked = is_feature_locked("has_alias_avatars");
-  const [auto_expand, set_auto_expand] = useState(false);
-
-  useEffect(() => {
-    get_alias_preferences().then((r) => {
-      if (r.data?.alias_always_expand) set_auto_expand(true);
-    }).catch(() => {});
-  }, []);
-
   const [search_query, set_search_query] = useState("");
   const [filter_mode, set_filter_mode] = useState<FilterMode>("all");
   const [bulk_mode, set_bulk_mode] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
-  const [show_bulk_delete_confirm, set_show_bulk_delete_confirm] = useState(false);
+  const [show_bulk_delete_confirm, set_show_bulk_delete_confirm] =
+    useState(false);
 
   const [deleted_refresh_signal, set_deleted_refresh_signal] = useState(0);
   const prev_aliases_length_ref = useRef(aliases.length);
@@ -170,15 +156,14 @@ export function AliasList({
   const filtered_aliases = useMemo(() => {
     let result = aliases;
     const query = search_query.trim().toLowerCase();
+
     if (query) {
       result = result.filter(
         (a) =>
           a.full_address.toLowerCase().includes(query) ||
           (a.display_name ?? "").toLowerCase().includes(query) ||
           (a.note ?? "").toLowerCase().includes(query) ||
-          (a.websites ?? []).some((url) =>
-            url.toLowerCase().includes(query),
-          ),
+          (a.websites ?? []).some((url) => url.toLowerCase().includes(query)),
       );
     }
     if (filter_mode === "enabled") {
@@ -186,6 +171,7 @@ export function AliasList({
     } else if (filter_mode === "disabled") {
       result = result.filter((a) => !a.is_enabled);
     }
+
     return result;
   }, [aliases, search_query, filter_mode]);
 
@@ -218,17 +204,22 @@ export function AliasList({
 
   const handle_page_change = (page: number) => {
     set_current_page(page);
-    list_top_ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    list_top_ref.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   const handle_select = (alias_id: string, selected: boolean) => {
     set_selected_ids((prev) => {
       const next = new Set(prev);
+
       if (selected) {
         next.add(alias_id);
       } else {
         next.delete(alias_id);
       }
+
       return next;
     });
   };
@@ -243,6 +234,7 @@ export function AliasList({
 
   const handle_bulk_enable = async () => {
     const ids = Array.from(selected_ids);
+
     await Promise.all(ids.map((id) => update_alias(id, { is_enabled: true })));
     on_aliases_changed?.();
     show_toast(t("settings.alias_bulk_enable"), "success");
@@ -250,6 +242,7 @@ export function AliasList({
 
   const handle_bulk_disable = async () => {
     const ids = Array.from(selected_ids);
+
     await Promise.all(ids.map((id) => update_alias(id, { is_enabled: false })));
     on_aliases_changed?.();
     show_toast(t("settings.alias_bulk_disable"), "success");
@@ -258,6 +251,7 @@ export function AliasList({
   const handle_bulk_delete_confirm = async () => {
     try {
       const ids = Array.from(selected_ids);
+
       await Promise.all(ids.map((id) => delete_alias(id)));
       set_selected_ids(new Set());
       set_show_bulk_delete_confirm(false);
@@ -332,21 +326,30 @@ export function AliasList({
             onChange={(e) => set_search_query(e.target.value)}
           />
         </div>
-        <Select value={filter_mode} onValueChange={(v) => set_filter_mode(v as FilterMode)}>
+        <Select
+          value={filter_mode}
+          onValueChange={(v) => set_filter_mode(v as FilterMode)}
+        >
           <SelectTrigger className="h-9 w-28 bg-transparent">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("settings.alias_filter_all")}</SelectItem>
-            <SelectItem value="enabled">{t("settings.alias_filter_enabled")}</SelectItem>
-            <SelectItem value="disabled">{t("settings.alias_filter_disabled")}</SelectItem>
+            <SelectItem value="all">
+              {t("settings.alias_filter_all")}
+            </SelectItem>
+            <SelectItem value="enabled">
+              {t("settings.alias_filter_enabled")}
+            </SelectItem>
+            <SelectItem value="disabled">
+              {t("settings.alias_filter_disabled")}
+            </SelectItem>
           </SelectContent>
         </Select>
         <Button
           className="h-9 shrink-0"
           size="md"
           variant={bulk_mode ? "outline" : "depth"}
-          onClick={() => bulk_mode ? exit_bulk_mode() : set_bulk_mode(true)}
+          onClick={() => (bulk_mode ? exit_bulk_mode() : set_bulk_mode(true))}
         >
           {t("settings.alias_bulk_edit")}
         </Button>
@@ -365,7 +368,9 @@ export function AliasList({
             />
             <span className="text-sm text-txt-muted">
               {selected_ids.size > 0
-                ? t("settings.alias_bulk_selected", { count: String(selected_ids.size) })
+                ? t("settings.alias_bulk_selected", {
+                    count: String(selected_ids.size),
+                  })
                 : t("settings.alias_bulk_select_all")}
             </span>
           </button>
@@ -412,13 +417,9 @@ export function AliasList({
               is_selected={selected_ids.has(alias.id)}
               on_avatar_changed={on_avatar_changed}
               on_delete={on_alias_delete}
-              on_display_name_saved={on_display_name_saved}
-              on_note_saved={on_note_saved}
-              on_delivery_saved={on_delivery_saved}
-              on_websites_saved={on_websites_saved}
-              on_select={handle_select}
-              default_advanced_open={auto_expand}
+              on_open_editor={() => on_open_editor(alias.id)}
               on_pin_toggle={on_alias_pin_toggle}
+              on_select={handle_select}
               on_toggle={on_alias_toggle}
               toggling={toggling_id === alias.id}
             />
@@ -439,6 +440,7 @@ export function AliasList({
           on_avatar_changed={on_avatar_changed}
           on_delete={on_domain_addr_delete}
           on_display_name_saved={on_domain_address_display_name_saved}
+          on_open_editor={() => on_open_domain_editor(addr.id)}
         />
       ))}
       <RecentlyDeletedAliasesSection

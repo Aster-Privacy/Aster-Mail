@@ -5232,8 +5232,12 @@ export interface SettingsTranslations {
   alias_advanced_hide: string;
   alias_advanced_show: string;
   alias_details_title: string;
+    alias_display_name_label: string;
     alias_note_label: string;
   alias_details_description: string;
+  alias_display_name_desc: string;
+  alias_note_desc: string;
+  alias_websites_desc: string;
   alias_stats_description: string;
   alias_usage_used_of: string;
   alias_usage_unlock: string;

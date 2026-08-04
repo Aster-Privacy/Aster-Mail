@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   TrashIcon,
@@ -26,21 +28,20 @@ import {
   NoSymbolIcon,
   PencilSquareIcon,
   EyeSlashIcon,
-  ChevronRightIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
-import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
-import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
-import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
-import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 
-import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { format_created_at, format_relative_time } from "./alias_stats_format";
+
+import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
+import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
+import { Input } from "@/components/ui/input";
+import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   Select,
   SelectTrigger,
@@ -48,12 +49,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_folders } from "@/hooks/use_folders";
-import {
-  FeatureLockOverlay,
-  PaidPill,
-} from "@/components/settings/aliases/feature_lock";
 import { get_alias_preferences } from "@/services/api/aliases";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
@@ -108,115 +104,164 @@ import {
 const INPUT_CLASS =
   "flex-1 min-w-0 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
 
-function DetailField({
+const MAX_DISPLAY_NAME_LENGTH = 128;
+const MAX_NOTE_LENGTH = 500;
+
+function sanitize_text(value: string): string {
+  return value.replace(/[\x00-\x08\x0b-\x1f\x7f]/g, "").trim();
+}
+
+export function PanelRow({
   label,
+  description,
+  info,
+  align_top,
   children,
 }: {
   label: string;
+  description?: string;
+  info?: string;
+  align_top?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-[38px] items-center gap-4 px-3 py-1 transition-colors duration-150 hover:bg-surf-tertiary/30">
-      <span className="w-32 shrink-0 text-[13px] text-txt-secondary">
-        {label}
-      </span>
-      <span className="min-w-0 flex-1 [&>button]:!mt-0 [&>div]:!mt-0 [&>span]:!mt-0">
-        {children}
-      </span>
+    <div
+      className={`flex justify-between gap-6 py-4 ${align_top ? "items-start" : "items-center"}`}
+    >
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+          {label}
+          {info && <InfoHint tip={info} title={label} />}
+        </p>
+        {description && (
+          <p className="mt-0.5 text-sm text-txt-muted">{description}</p>
+        )}
+      </div>
+      <div className="flex shrink-0 items-center justify-end">{children}</div>
     </div>
   );
 }
 
-function PanelRow({
-  title,
+function TextFieldRow({
+  label,
   description,
+  placeholder,
   value,
-  locked,
-  locked_message,
-  children,
+  max_length,
+  too_long_message,
+  success_message,
+  error_message,
+  is_locked,
+  on_save,
+  on_saved,
 }: {
-  title: string;
+  label: string;
   description: string;
+  placeholder: string;
   value?: string;
-  locked?: boolean;
-  locked_message?: string;
-  children?: React.ReactNode;
+  max_length: number;
+  too_long_message: string;
+  success_message: string;
+  error_message: string;
+  is_locked?: boolean;
+  on_save: (next: string) => Promise<{ error?: unknown }>;
+  on_saved: (next: string) => void;
 }) {
-  const [is_open, set_is_open] = useState(false);
-  const [has_opened, set_has_opened] = useState(false);
+  const { t } = use_i18n();
+  const [draft, set_draft] = useState(value ?? "");
+  const [saving, set_saving] = useState(false);
 
-  const toggle = () => {
-    set_has_opened(true);
-    set_is_open((v) => !v);
+  useEffect(() => {
+    set_draft(value ?? "");
+  }, [value]);
+
+  const commit = async () => {
+    const cleaned = sanitize_text(draft);
+
+    if (cleaned === (value ?? "")) {
+      set_draft(cleaned);
+
+      return;
+    }
+
+    if (cleaned.length > max_length) {
+      show_toast(too_long_message, "error");
+
+      return;
+    }
+
+    set_saving(true);
+    try {
+      const response = await on_save(cleaned);
+
+      if (response.error) {
+        show_toast(error_message, "error");
+        set_draft(value ?? "");
+
+        return;
+      }
+      on_saved(cleaned);
+      show_toast(success_message, "success");
+    } catch {
+      show_toast(error_message, "error");
+      set_draft(value ?? "");
+    } finally {
+      set_saving(false);
+    }
   };
 
   return (
-    <div className="group/row relative">
-      <span
-        aria-hidden="true"
-        className={`pointer-events-none absolute bottom-1 left-0 top-1 w-[2px] origin-center rounded-full transition-all duration-200 ease-out ${
-          is_open
-            ? "scale-y-100 opacity-100"
-            : "scale-y-0 opacity-0 group-hover/row:scale-y-100 group-hover/row:opacity-40"
-        }`}
-        style={{ backgroundColor: "var(--accent-color)" }}
-      />
-      <button
-        aria-expanded={is_open}
-        className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors duration-150 hover:bg-surf-tertiary/40 focus-visible:bg-surf-tertiary/40"
-        type="button"
-        onClick={toggle}
-      >
-        <span
-          className={`min-w-0 flex-1 truncate text-[13px] text-txt-primary transition-transform duration-200 ease-out group-hover/row:translate-x-0.5 ${
-            is_open ? "translate-x-0.5" : ""
-          }`}
-        >
-          {title}
-        </span>
-        {locked ? (
-          <PaidPill />
-        ) : value ? (
-          <span className="max-w-[45%] truncate text-[13px] text-txt-muted transition-colors duration-150 group-hover/row:text-txt-secondary">
-            {value}
-          </span>
-        ) : null}
-        <ChevronRightIcon
-          className={`h-3.5 w-3.5 shrink-0 transition-all duration-200 ease-out ${
-            is_open ? "rotate-90 text-txt-secondary" : "text-txt-muted"
-          } group-hover/row:text-txt-secondary`}
+    <PanelRow description={description} label={label}>
+      <div className="relative w-64">
+        <Input
+          className={`w-full pr-8${is_locked ? " pointer-events-none" : ""}`}
+          disabled={saving}
+          maxLength={max_length}
+          placeholder={placeholder}
+          readOnly={is_locked}
+          size="md"
+          tabIndex={is_locked ? -1 : undefined}
+          value={draft}
+          onBlur={commit}
+          onChange={(event) => set_draft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              event.currentTarget.blur();
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              set_draft(value ?? "");
+            }
+          }}
         />
-      </button>
-      <div
-        className={`grid transition-[grid-template-rows] duration-200 ease-out ${
-          is_open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        }`}
-      >
-        <div className="overflow-hidden">
-          {has_opened && (
-            <div className="px-3 pb-3.5 pt-0.5">
-              <p className="mb-2.5 text-xs leading-4 text-txt-muted">
-                {description}
-              </p>
-              {locked ? (
-                <FeatureLockOverlay message={locked_message ?? ""} />
-              ) : (
-                children
-              )}
-            </div>
-          )}
-        </div>
+        {saving && (
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
+            <Spinner className="text-txt-muted" size="xs" />
+          </span>
+        )}
+        {is_locked && (
+          <button
+            aria-label={t("settings.feature_requires_upgrade")}
+            className="absolute inset-0 cursor-pointer rounded-[12px]"
+            type="button"
+            onClick={() =>
+              prompt_upgrade(t("settings.feature_requires_upgrade"))
+            }
+          />
+        )}
       </div>
-    </div>
+    </PanelRow>
   );
 }
 
-function SenderPinningPanel({
+export function SenderPinningPanel({
   alias_id,
   domain_address_id,
+  locked,
 }: {
   alias_id?: string;
   domain_address_id?: string;
+  locked?: boolean;
 }) {
   const { t } = use_i18n();
   const [mode, set_mode] = useState<SenderPinMode>(SENDER_PIN_MODE_OFF);
@@ -226,6 +271,11 @@ function SenderPinningPanel({
   const [busy, set_busy] = useState(false);
 
   const load = useCallback(async () => {
+    if (locked) {
+      set_loading(false);
+
+      return;
+    }
     set_loading(true);
     try {
       const response = domain_address_id
@@ -247,7 +297,7 @@ function SenderPinningPanel({
     } finally {
       set_loading(false);
     }
-  }, [alias_id, domain_address_id, t]);
+  }, [alias_id, domain_address_id, locked, t]);
 
   useEffect(() => {
     load();
@@ -276,6 +326,7 @@ function SenderPinningPanel({
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       show_toast(t("settings.alias_sender_invalid"), "error");
+
       return;
     }
 
@@ -332,23 +383,20 @@ function SenderPinningPanel({
     },
   ];
 
+  const active_mode_hint = modes.find((m) => m.value === mode)?.hint ?? "";
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <p className="text-sm text-txt-primary">
-            {t("settings.alias_sender_pin_mode_label")}
-          </p>
-          <InfoHint
-            tip={t("settings.alias_sender_pinning_info")}
-            title={t("settings.alias_sender_pinning_title")}
-          />
-        </div>
+    <div className="divide-y divide-edge-secondary">
+      <PanelRow
+        description={active_mode_hint}
+        info={t("settings.alias_sender_pinning_info")}
+        label={t("settings.alias_sender_pin_mode_label")}
+      >
         <Select
           value={String(mode)}
           onValueChange={(v) => change_mode(Number(v) as SenderPinMode)}
         >
-          <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
+          <SelectTrigger className="h-9 w-64 shrink-0 bg-transparent">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -359,10 +407,10 @@ function SenderPinningPanel({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </PanelRow>
 
       {mode === SENDER_PIN_MODE_ALLOWLIST && (
-        <div className="space-y-2">
+        <div className="space-y-2 pt-4">
           <div className="flex items-center gap-2">
             <input
               className={INPUT_CLASS}
@@ -453,12 +501,14 @@ function operator_label(
   }
 }
 
-function RulesPanel({
+export function RulesPanel({
   alias_id,
   domain_address_id,
+  locked,
 }: {
   alias_id?: string;
   domain_address_id?: string;
+  locked?: boolean;
 }) {
   const { t } = use_i18n();
   const [rules, set_rules] = useState<AliasRule[]>([]);
@@ -467,18 +517,24 @@ function RulesPanel({
   const [editing_rule, set_editing_rule] = useState<AliasRule | null>(null);
 
   const load = useCallback(async () => {
+    if (locked) {
+      set_loading(false);
+
+      return;
+    }
     set_loading(true);
     try {
       const response = domain_address_id
         ? await list_domain_address_rules(domain_address_id)
         : await list_alias_rules(alias_id!);
+
       if (response.data) set_rules(response.data.rules ?? []);
     } catch {
       set_rules([]);
     } finally {
       set_loading(false);
     }
-  }, [alias_id, domain_address_id]);
+  }, [alias_id, domain_address_id, locked]);
 
   useEffect(() => {
     load();
@@ -486,6 +542,7 @@ function RulesPanel({
 
   const handle_toggle = async (rule: AliasRule) => {
     const next = !rule.is_enabled;
+
     set_rules((prev) =>
       prev.map((r) => (r.id === rule.id ? { ...r, is_enabled: next } : r)),
     );
@@ -494,6 +551,7 @@ function RulesPanel({
           is_enabled: next,
         })
       : await update_alias_rule(alias_id!, rule.id, { is_enabled: next });
+
     if (response.error) {
       set_rules((prev) =>
         prev.map((r) =>
@@ -508,6 +566,7 @@ function RulesPanel({
     const response = domain_address_id
       ? await delete_domain_address_rule(domain_address_id, rule_id)
       : await delete_alias_rule(alias_id!, rule_id);
+
     if (response.error) {
       show_toast(response.error, "error");
     } else {
@@ -527,10 +586,12 @@ function RulesPanel({
 
   const describe_actions = (a: AliasRuleActions): string => {
     const parts: string[] = [];
+
     if (a.block) parts.push(t("settings.alias_rule_action_block"));
     if (a.to_trash) parts.push(t("settings.alias_rule_action_to_trash"));
     if (a.label)
       parts.push(`${t("settings.alias_rule_action_label")}: ${a.label}`);
+
     return parts.join(", ");
   };
 
@@ -582,8 +643,8 @@ function RulesPanel({
                 </p>
               </div>
               <Switch
-                size="lg"
                 checked={rule.is_enabled}
+                size="lg"
                 onCheckedChange={() => handle_toggle(rule)}
               />
               <Button
@@ -614,24 +675,26 @@ function RulesPanel({
         alias_id={alias_id}
         domain_address_id={domain_address_id}
         is_open={modal_open}
-        rule={editing_rule}
         on_close={() => set_modal_open(false)}
         on_saved={load}
+        rule={editing_rule}
       />
     </div>
   );
 }
 
-function ContactsPanel({
+export function ContactsPanel({
   alias_id,
   domain_address_id,
   alias_local_part,
   alias_domain,
+  locked,
 }: {
   alias_id?: string;
   domain_address_id?: string;
   alias_local_part?: string;
   alias_domain?: string;
+  locked?: boolean;
 }) {
   const { t } = use_i18n();
   const [contacts, set_contacts] = useState<DecryptedAliasContact[]>([]);
@@ -641,14 +704,20 @@ function ContactsPanel({
   const [readable_reverse, set_readable_reverse] = useState(false);
 
   useEffect(() => {
+    if (locked) return;
     get_alias_preferences()
       .then((r) => {
         if (r.data?.readable_reverse_aliases) set_readable_reverse(true);
       })
       .catch(() => {});
-  }, []);
+  }, [locked]);
 
   const load = useCallback(async () => {
+    if (locked) {
+      set_loading(false);
+
+      return;
+    }
     set_loading(true);
     try {
       const response = domain_address_id
@@ -669,7 +738,7 @@ function ContactsPanel({
     } finally {
       set_loading(false);
     }
-  }, [alias_id, domain_address_id, t]);
+  }, [alias_id, domain_address_id, locked, t]);
 
   useEffect(() => {
     load();
@@ -682,6 +751,7 @@ function ContactsPanel({
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       show_toast(t("settings.alias_sender_invalid"), "error");
+
       return;
     }
 
@@ -847,12 +917,14 @@ function delivery_reason_icon(reason: string): React.ReactNode {
   }
 }
 
-function DeliveryLogPanel({
+export function DeliveryLogPanel({
   alias_id,
   domain_address_id,
+  locked,
 }: {
   alias_id?: string;
   domain_address_id?: string;
+  locked?: boolean;
 }) {
   const { t } = use_i18n();
   const [events, set_events] = useState<DeliveryEvent[]>([]);
@@ -860,6 +932,11 @@ function DeliveryLogPanel({
   const [expanded, set_expanded] = useState(false);
 
   const load = useCallback(async () => {
+    if (locked) {
+      set_loading(false);
+
+      return;
+    }
     set_loading(true);
     try {
       const response = domain_address_id
@@ -874,7 +951,7 @@ function DeliveryLogPanel({
     } finally {
       set_loading(false);
     }
-  }, [alias_id, domain_address_id]);
+  }, [alias_id, domain_address_id, locked]);
 
   useEffect(() => {
     load();
@@ -922,14 +999,28 @@ function DeliveryLogPanel({
   );
 }
 
-function StatsPanel({ alias_id }: { alias_id: string }) {
+export function StatsPanel({
+  alias_id,
+  hide_created,
+  locked,
+}: {
+  alias_id: string;
+  hide_created?: boolean;
+  locked?: boolean;
+}) {
   const { t, language } = use_i18n();
   const [stats, set_stats] = useState<AliasStats | null>(null);
   const [last_sender, set_last_sender] = useState<string | null>(null);
   const [loading, set_loading] = useState(true);
 
   useEffect(() => {
+    if (locked) {
+      set_loading(false);
+
+      return;
+    }
     let active = true;
+
     set_loading(true);
     set_last_sender(null);
     get_alias_stats(alias_id)
@@ -953,10 +1044,11 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
       .finally(() => {
         if (active) set_loading(false);
       });
+
     return () => {
       active = false;
     };
-  }, [alias_id]);
+  }, [alias_id, locked]);
 
   if (loading) {
     return <Spinner size="sm" />;
@@ -1002,7 +1094,7 @@ function StatsPanel({ alias_id }: { alias_id: string }) {
         </div>
       )}
 
-      {created_label && (
+      {created_label && !hide_created && (
         <div className="text-sm text-txt-muted">
           {t("settings.alias_stats_created" as TranslationKey, {
             date: created_label,
@@ -1026,7 +1118,7 @@ export interface AliasDeliveryState {
 const DELIVERY_INBOX_VALUE = "__inbox__";
 const DELIVERY_ARCHIVE_VALUE = "__archive__";
 
-function DeliveryPanel({
+export function DeliveryPanel({
   never_inbox,
   delivery_folder_token,
   on_save,
@@ -1094,26 +1186,16 @@ function DeliveryPanel({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm text-txt-primary">
-              {t("settings.alias_delivery_folder")}
-            </p>
-            <InfoHint
-              tip={t("settings.alias_delivery_folder_info")}
-              title={t("settings.alias_delivery_folder")}
-            />
-          </div>
-          <p className="text-xs text-txt-muted">
-            {t("settings.alias_delivery_folder_desc")}
-          </p>
-        </div>
+    <div className="divide-y divide-edge-secondary">
+      <PanelRow
+        description={t("settings.alias_delivery_folder_desc")}
+        info={t("settings.alias_delivery_folder_info")}
+        label={t("settings.alias_delivery_folder")}
+      >
         <Select disabled={saving} value={value} onValueChange={handle_change}>
           <SelectTrigger
             aria-label={t("settings.alias_delivery_folder")}
-            className="h-9 w-44 shrink-0 bg-transparent"
+            className="h-9 w-64 shrink-0 bg-transparent"
           >
             <SelectValue />
           </SelectTrigger>
@@ -1136,12 +1218,12 @@ function DeliveryPanel({
             )}
           </SelectContent>
         </Select>
-      </div>
+      </PanelRow>
     </div>
   );
 }
 
-interface AliasDetailsProps {
+export interface AliasDetailsProps {
   alias_address: string;
   alias_address_hash?: string;
   display_name?: string;
@@ -1156,7 +1238,7 @@ interface AliasDetailsProps {
   on_saved_websites: (next: string[]) => void;
 }
 
-function AliasDetailsPanel({
+export function AliasDetailsPanel({
   alias_address,
   display_name,
   note,
@@ -1172,170 +1254,46 @@ function AliasDetailsPanel({
   const { t } = use_i18n();
 
   return (
-    <>
-      <DetailField label={t("settings.display_name")}>
-        <AliasDisplayNameEditor
-          hide_icon
-          alias_address={alias_address}
-          display_name={display_name}
-          is_locked={is_locked}
-          on_save={on_save_display_name}
-          on_saved={on_saved_display_name}
-        />
-      </DetailField>
-      <DetailField label={t("settings.alias_note_label")}>
-        <AliasNoteEditor
-          hide_icon
-          alias_address={alias_address}
-          note={note}
-          on_save={on_save_note}
-          on_saved={on_saved_note}
-        />
-      </DetailField>
-      <DetailField label={t("common.websites")}>
-        <AliasWebsitesEditor
-          hide_icon
-          alias_address={alias_address}
-          websites={websites}
-          on_save={on_save_websites}
-          on_saved={on_saved_websites}
-        />
-      </DetailField>
-    </>
-  );
-}
-
-type AliasAdvancedPanelProps =
-  | (AliasDetailsProps & {
-      alias_id: string;
-      never_inbox?: boolean;
-      delivery_folder_token?: string | null;
-      on_save_delivery?: (
-        next: AliasDeliveryUpdate,
-      ) => Promise<{ error?: unknown }>;
-      on_saved_delivery?: (next: AliasDeliveryState) => void;
-      domain_address_id?: never;
-      alias_local_part?: never;
-      alias_domain?: never;
-    })
-  | {
-      alias_id?: never;
-      never_inbox?: never;
-      delivery_folder_token?: never;
-      on_save_delivery?: never;
-      on_saved_delivery?: never;
-      domain_address_id: string;
-      alias_local_part: string;
-      alias_domain: string;
-    };
-
-export function AliasAdvancedPanel(props: AliasAdvancedPanelProps) {
-  const { alias_id, domain_address_id, alias_local_part, alias_domain } = props;
-  const { t } = use_i18n();
-  const { is_feature_locked, is_loading } = use_plan_limits();
-
-  if (is_loading) {
-    return (
-      <div className="mt-3 pt-3 border-t border-edge-secondary">
-        <Spinner size="md" />
-      </div>
-    );
-  }
-
-  const sender_locked = is_feature_locked("has_sender_pinning");
-  const rules_locked = is_feature_locked("has_alias_rules");
-  const delivery_log_locked = is_feature_locked("has_advanced_aliases");
-  const contacts_locked = is_feature_locked("max_reverse_contacts_per_alias");
-
-  return (
-    <div className="mt-3 divide-y divide-edge-secondary border-t border-edge-secondary">
-      {alias_id && (
-        <AliasDetailsPanel
-          alias_address={props.alias_address}
-          display_name={props.display_name}
-          is_locked={props.is_locked}
-          note={props.note}
-          on_save_display_name={props.on_save_display_name}
-          on_save_note={props.on_save_note}
-          on_save_websites={props.on_save_websites}
-          on_saved_display_name={props.on_saved_display_name}
-          on_saved_note={props.on_saved_note}
-          on_saved_websites={props.on_saved_websites}
-          websites={props.websites}
-        />
-      )}
-      {alias_id && props.on_save_delivery && props.on_saved_delivery && (
-        <PanelRow
-          description={t("settings.alias_delivery_folder_desc")}
-          title={t("settings.alias_delivery_title")}
-          value={
-            props.delivery_folder_token
-              ? undefined
-              : props.never_inbox
-                ? t("mail.archive")
-                : t("mail.inbox")
-          }
-        >
-          <DeliveryPanel
-            delivery_folder_token={props.delivery_folder_token}
-            never_inbox={props.never_inbox}
-            on_save={props.on_save_delivery}
-            on_saved={props.on_saved_delivery}
+    <div className="divide-y divide-edge-secondary">
+      <TextFieldRow
+        description={t("settings.alias_display_name_desc")}
+        error_message={t("common.failed_update_alias_display_name")}
+        is_locked={is_locked}
+        label={t("settings.alias_display_name_label")}
+        max_length={MAX_DISPLAY_NAME_LENGTH}
+        on_save={on_save_display_name}
+        on_saved={on_saved_display_name}
+        placeholder={t("common.add_display_name_placeholder")}
+        success_message={t("common.alias_display_name_updated")}
+        too_long_message={t("common.display_name_too_long")}
+        value={display_name}
+      />
+      <TextFieldRow
+        description={t("settings.alias_note_desc")}
+        error_message={t("common.failed_update_alias_note")}
+        label={t("settings.alias_note_label")}
+        max_length={MAX_NOTE_LENGTH}
+        on_save={on_save_note}
+        on_saved={on_saved_note}
+        placeholder={t("common.add_alias_note_placeholder")}
+        success_message={t("common.alias_note_updated")}
+        too_long_message={t("common.alias_note_too_long")}
+        value={note}
+      />
+      <PanelRow
+        align_top
+        description={t("settings.alias_websites_desc")}
+        label={t("common.websites")}
+      >
+        <div className="w-64 [&>button]:!mt-0 [&>div]:!mt-0">
+          <AliasWebsitesEditor
+            hide_icon
+            alias_address={alias_address}
+            on_save={on_save_websites}
+            on_saved={on_saved_websites}
+            websites={websites}
           />
-        </PanelRow>
-      )}
-      {alias_id && (
-        <PanelRow
-          description={t("settings.alias_stats_description")}
-          locked={delivery_log_locked}
-          locked_message={t("settings.alias_feature_locked_stats")}
-          title={t("settings.alias_stats_title")}
-        >
-          <StatsPanel alias_id={alias_id} />
-        </PanelRow>
-      )}
-      <PanelRow
-        description={t("settings.alias_sender_pinning_description")}
-        locked={sender_locked}
-        locked_message={t("settings.alias_feature_locked_sender_pinning")}
-        title={t("settings.alias_sender_pinning_title")}
-      >
-        <SenderPinningPanel
-          alias_id={alias_id}
-          domain_address_id={domain_address_id}
-        />
-      </PanelRow>
-      <PanelRow
-        description={t("settings.alias_rules_description")}
-        locked={rules_locked}
-        locked_message={t("settings.alias_feature_locked_rules")}
-        title={t("settings.alias_rules_title")}
-      >
-        <RulesPanel alias_id={alias_id} domain_address_id={domain_address_id} />
-      </PanelRow>
-      <PanelRow
-        description={t("settings.alias_delivery_log_info")}
-        locked={delivery_log_locked}
-        locked_message={t("settings.alias_feature_locked_delivery_log")}
-        title={t("settings.alias_delivery_log_title")}
-      >
-        <DeliveryLogPanel
-          alias_id={alias_id}
-          domain_address_id={domain_address_id}
-        />
-      </PanelRow>
-      <PanelRow
-        description={t("settings.alias_contacts_description")}
-        locked={contacts_locked}
-        locked_message={t("settings.alias_feature_locked_contacts")}
-        title={t("settings.alias_contacts_title")}
-      >
-        <ContactsPanel
-          alias_domain={alias_domain}
-          alias_local_part={alias_local_part}
-          alias_id={alias_id}
-          domain_address_id={domain_address_id}
-        />
+        </div>
       </PanelRow>
     </div>
   );

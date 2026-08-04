@@ -28,12 +28,13 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Spinner } from "@/components/ui/spinner";
+import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   MAX_ALIAS_WEBSITES,
   MAX_WEBSITE_URL_LENGTH,
-  normalize_website_url,
+  validate_website_input,
 } from "@/services/api/aliases";
 
 function display_website(url: string): string {
@@ -104,7 +105,7 @@ export function AliasWebsitesEditor({
       return;
     }
 
-    const normalized = normalize_website_url(trimmed);
+    const normalized = validate_website_input(trimmed);
 
     if (!normalized) {
       show_toast(t("common.alias_website_invalid"), "error");
@@ -166,7 +167,7 @@ export function AliasWebsitesEditor({
 
   const empty_add_class = is_mobile
     ? "mt-1 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-[13px] leading-5 text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
-    : "mt-0.5 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-xs leading-4 text-txt-muted transition-colors hover:text-txt-secondary focus:outline-none focus:ring-0";
+    : "flex h-9 w-full min-w-0 cursor-pointer items-center gap-2 rounded-[12px] border border-dashed border-edge-primary px-3 text-left text-[13px] text-txt-muted transition-colors hover:border-edge-secondary hover:text-txt-secondary focus:outline-none focus:ring-0";
 
   if (current.length === 0 && !is_adding) {
     return (
@@ -177,7 +178,11 @@ export function AliasWebsitesEditor({
         type="button"
         onClick={() => set_is_adding(true)}
       >
-        {!hide_icon && <LinkIcon className="w-3.5 h-3.5 shrink-0" />}
+        {is_mobile ? (
+          !hide_icon && <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+        ) : (
+          <PlusIcon className="h-4 w-4 shrink-0" />
+        )}
         <span className="truncate">
           {t("common.add_alias_website_placeholder")}
         </span>
@@ -212,40 +217,60 @@ export function AliasWebsitesEditor({
       ))}
 
       {is_adding ? (
-        <span className="inline-flex items-center gap-1">
-          <input
-            ref={input_ref}
-            aria-label={`${t("common.add_alias_website")} ${alias_address}`}
-            autoFocus
-            className={
-              is_mobile
-                ? "w-44 bg-transparent text-[12px] text-[var(--mobile-text-muted)] outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0"
-                : "w-44 bg-transparent text-xs text-txt-muted outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0"
-            }
-            disabled={saving}
-            maxLength={MAX_WEBSITE_URL_LENGTH}
-            placeholder={t("common.add_alias_website_placeholder")}
-            value={draft}
-            onBlur={commit_add}
-            onChange={(event) => set_draft(event.target.value)}
-            onKeyDown={handle_key_down}
-          />
-          {saving ? (
-            <Spinner className="text-txt-muted" size="xs" />
-          ) : (
-            <button
-              aria-label={t("common.add_alias_website")}
-              className="opacity-60 hover:opacity-100"
-              type="button"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                commit_add();
-              }}
-            >
-              <PlusIcon className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </span>
+        is_mobile ? (
+          <span className="inline-flex items-center gap-1">
+            <input
+              ref={input_ref}
+              autoFocus
+              aria-label={`${t("common.add_alias_website")} ${alias_address}`}
+              className="w-44 bg-transparent text-[12px] text-[var(--mobile-text-muted)] outline-none ring-0 border-b border-edge-primary placeholder:opacity-50 focus:outline-none focus:ring-0"
+              disabled={saving}
+              maxLength={MAX_WEBSITE_URL_LENGTH}
+              placeholder={t("common.add_alias_website_placeholder")}
+              value={draft}
+              onBlur={commit_add}
+              onChange={(event) => set_draft(event.target.value)}
+              onKeyDown={handle_key_down}
+            />
+            {saving ? (
+              <Spinner className="text-txt-muted" size="xs" />
+            ) : (
+              <button
+                aria-label={t("common.add_alias_website")}
+                className="opacity-60 hover:opacity-100"
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  commit_add();
+                }}
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </span>
+        ) : (
+          <div className="relative w-full min-w-0">
+            <Input
+              ref={input_ref}
+              autoFocus
+              aria-label={`${t("common.add_alias_website")} ${alias_address}`}
+              className="w-full pr-8"
+              disabled={saving}
+              maxLength={MAX_WEBSITE_URL_LENGTH}
+              placeholder={t("common.add_alias_website_placeholder")}
+              size="md"
+              value={draft}
+              onBlur={commit_add}
+              onChange={(event) => set_draft(event.target.value)}
+              onKeyDown={handle_key_down}
+            />
+            {saving && (
+              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
+                <Spinner className="text-txt-muted" size="xs" />
+              </span>
+            )}
+          </div>
+        )
       ) : (
         current.length < MAX_ALIAS_WEBSITES && (
           <button

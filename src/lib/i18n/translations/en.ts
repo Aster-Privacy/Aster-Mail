@@ -5831,8 +5831,12 @@ export const en: Translations = {
     alias_advanced_hide: "Hide advanced",
     alias_advanced_show: "Advanced settings",
     alias_details_title: "Details",
+    alias_display_name_label: "Display name",
     alias_note_label: "Note",
     alias_details_description: "Name this alias and note where you use it.",
+    alias_display_name_desc: "Shown as the sender name when you write from this alias.",
+    alias_note_desc: "A private reminder of what this alias is for.",
+    alias_websites_desc: "Sites you signed up to with this alias.",
     alias_usage_used_of: "{{ used }} of {{ max }} aliases used",
     alias_usage_unlock: "Get unlimited",
     alias_usage_nudge:

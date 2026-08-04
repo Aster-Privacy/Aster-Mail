@@ -26,7 +26,6 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TrashIcon,
-  ClipboardDocumentIcon,
   AtSymbolIcon,
   GlobeAltIcon,
   BoltIcon,
@@ -53,7 +52,6 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
-import { AliasAdvancedPanel } from "@/components/settings/aliases/alias_advanced_panel";
 
 const AVATAR_MAX_SIZE = 256;
 
@@ -71,7 +69,7 @@ function PinIcon({
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={filled ? "0" : "1.8"}
+      strokeWidth={filled ? "0" : "1.5"}
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -178,41 +176,47 @@ function AliasAvatar({
           <Spinner className="text-white" size="xs" />
         </div>
       )}
-      <div className="absolute -bottom-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+      <button
+        aria-label={
+          is_locked
+            ? t("common.alias_avatars_locked" as TranslationKey)
+            : t("common.change_alias_avatar" as TranslationKey)
+        }
+        className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed"
+        disabled={uploading}
+        title={
+          is_locked
+            ? t("common.alias_avatars_locked" as TranslationKey)
+            : t("common.change_alias_avatar" as TranslationKey)
+        }
+        type="button"
+        onClick={() => {
+          if (is_locked) {
+            prompt_upgrade(t("settings.feature_requires_upgrade"));
+
+            return;
+          }
+          file_ref.current?.click();
+        }}
+      >
         {is_locked ? (
-          <button
-            className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-brand/30 transition-colors"
-            title={t("common.alias_avatars_locked" as TranslationKey)}
-            type="button"
-            onClick={() => prompt_upgrade(t("settings.feature_requires_upgrade"))}
-          >
-            <LockClosedIcon className="w-2.5 h-2.5 text-txt-muted" />
-          </button>
+          <LockClosedIcon className="h-4 w-4" />
         ) : (
-          <>
-            <button
-              className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:bg-surf-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={uploading}
-              title={t("common.change_alias_avatar" as TranslationKey)}
-              type="button"
-              onClick={() => file_ref.current?.click()}
-            >
-              <CameraIcon className="w-2.5 h-2.5 text-txt-muted" />
-            </button>
-            {profile_picture && (
-              <button
-                className="p-1 rounded-full bg-surf-card border border-edge-secondary cursor-pointer hover:border-red-500/30 hover:text-red-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={uploading}
-                title={t("common.remove_alias_avatar" as TranslationKey)}
-                type="button"
-                onClick={on_remove}
-              >
-                <XMarkIcon className="w-2.5 h-2.5 text-red-500" />
-              </button>
-            )}
-          </>
+          <CameraIcon className="h-4 w-4" />
         )}
-      </div>
+      </button>
+      {!is_locked && profile_picture && (
+        <button
+          aria-label={t("common.remove_alias_avatar" as TranslationKey)}
+          className="absolute -bottom-1 -right-1 rounded-full border border-edge-secondary bg-surf-card p-1 opacity-0 transition-opacity hover:border-red-500/30 group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={uploading}
+          title={t("common.remove_alias_avatar" as TranslationKey)}
+          type="button"
+          onClick={on_remove}
+        >
+          <XMarkIcon className="h-2.5 w-2.5 text-red-500" />
+        </button>
+      )}
       <input
         ref={file_ref}
         accept="image/jpeg,image/png,image/webp"
@@ -237,15 +241,8 @@ interface AliasItemProps {
   on_toggle: (id: string, enabled: boolean) => void;
   on_delete: (id: string) => void;
   on_pin_toggle?: (alias_id: string) => void;
-  default_advanced_open?: boolean;
+  on_open_editor: () => void;
   on_avatar_changed?: () => void;
-  on_display_name_saved?: (alias_id: string, name: string) => void;
-  on_note_saved?: (alias_id: string, note: string) => void;
-  on_websites_saved?: (alias_id: string, websites: string[]) => void;
-  on_delivery_saved?: (
-    alias_id: string,
-    value: { never_inbox: boolean; delivery_folder_token: string | null },
-  ) => void;
   toggling: boolean;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -259,12 +256,8 @@ export function AliasItem({
   on_toggle,
   on_delete,
   on_pin_toggle,
-  default_advanced_open,
+  on_open_editor,
   on_avatar_changed,
-  on_display_name_saved,
-  on_note_saved,
-  on_websites_saved,
-  on_delivery_saved,
   toggling,
   deleting,
   is_avatar_locked,
@@ -275,7 +268,6 @@ export function AliasItem({
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const [uploading, set_uploading] = useState(false);
-  const [advanced_open, set_advanced_open] = useState(!!default_advanced_open);
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
@@ -385,180 +377,142 @@ export function AliasItem({
 
   return (
     <div className="group rounded-xl transition-all border border-edge-secondary">
-    <div className="flex items-center gap-3 p-4">
-      {bulk_mode && (
-        <Checkbox
-          checked={!!is_selected}
-          className="shrink-0"
-          onCheckedChange={(v) => on_select?.(alias.id, !!v)}
-        />
-      )}
-      <div
-        className="flex flex-1 min-w-0 items-center gap-3"
-        style={{
-          opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
-        }}
-      >
-      <AliasAvatar
-        gradient={gradient}
-        icon={
-          alias.is_random ? (
-            <BoltIcon className="w-5 h-5 text-white" />
-          ) : (
-            <AtSymbolIcon className="w-5 h-5 text-white" />
-          )
-        }
-        is_locked={is_avatar_locked}
-        on_file_select={handle_file_select}
-        on_remove={handle_remove}
-        profile_picture={displayed_picture}
-        uploading={uploading}
-      />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium truncate text-txt-primary">
-            {alias.full_address}
-          </p>
-          {alias.is_random && (
-            <Badge color="gray" className="flex-shrink-0">
-              {t("common.random")}
-            </Badge>
-          )}
-          {in_grace_period && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-              <ClockIcon className="w-3 h-3" />
-              {t("settings.alias_grace_days" as TranslationKey, {
-                days: String(grace_days),
-              })}
-            </span>
-          )}
-        </div>
-        <AliasMetaEditor
-          alias_address={alias.full_address}
-          display_name={alias.display_name}
-          note={alias.note}
-          websites={alias.websites}
-          on_open={() => set_advanced_open(true)}
-        />
-        {in_grace_period && (
-          <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
-            {t("settings.alias_grace_upgrade_hint" as TranslationKey)}
-          </p>
+      <div className="flex items-center gap-3 p-4">
+        {bulk_mode && (
+          <Checkbox
+            checked={!!is_selected}
+            className="shrink-0"
+            onCheckedChange={(v) => on_select?.(alias.id, !!v)}
+          />
         )}
-      </div>
-      </div>
-
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <Button
-          className={
-            advanced_open
-              ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
-              : "h-8 w-8"
-          }
-          size="icon"
-          title={
-            advanced_open
-              ? t("settings.alias_advanced_hide" as TranslationKey)
-              : t("settings.alias_advanced_show" as TranslationKey)
-          }
-          variant="ghost"
-          onClick={() => set_advanced_open((open) => !open)}
+        <div
+          className="flex flex-1 min-w-0 items-center gap-3"
+          style={{
+            opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
+          }}
         >
-          <Cog6ToothIcon className="w-4 h-4 text-txt-muted" />
-        </Button>
-
-        {on_pin_toggle && (
-          <Button
-            className={
-              alias.is_pinned
-                ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
-                : "hidden group-hover:inline-flex h-8 w-8"
+          <AliasAvatar
+            gradient={gradient}
+            icon={
+              alias.is_random ? (
+                <BoltIcon className="w-5 h-5 text-white" />
+              ) : (
+                <AtSymbolIcon className="w-5 h-5 text-white" />
+              )
             }
+            is_locked={is_avatar_locked}
+            on_file_select={handle_file_select}
+            on_remove={handle_remove}
+            profile_picture={displayed_picture}
+            uploading={uploading}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <button
+                className="min-w-0 truncate text-left text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
+                title={t("common.copy_address")}
+                type="button"
+                onClick={copy_address}
+              >
+                {alias.full_address}
+              </button>
+              {alias.is_random && (
+                <Badge className="flex-shrink-0" color="gray">
+                  {t("common.random")}
+                </Badge>
+              )}
+              {in_grace_period && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <ClockIcon className="w-3 h-3" />
+                  {t("settings.alias_grace_days" as TranslationKey, {
+                    days: String(grace_days),
+                  })}
+                </span>
+              )}
+            </div>
+            <AliasMetaEditor
+              alias_address={alias.full_address}
+              display_name={alias.display_name}
+              note={alias.note}
+              on_open={on_open_editor}
+              websites={alias.websites}
+            />
+            {in_grace_period && (
+              <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
+                {t("settings.alias_grace_upgrade_hint" as TranslationKey)}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            className="h-8 w-8"
             size="icon"
-            title={alias.is_pinned ? t("settings.alias_unpin") : t("settings.alias_pin")}
+            title={t("settings.alias_advanced_show" as TranslationKey)}
             variant="ghost"
-            onClick={() => {
-              if (is_feature_locked("has_advanced_aliases")) {
-                prompt_upgrade(t("settings.feature_requires_upgrade"));
-                return;
-              }
-              on_pin_toggle(alias.id);
-            }}
+            onClick={on_open_editor}
           >
-            <PinIcon
+            <Cog6ToothIcon className="w-[18px] h-[18px] text-txt-muted" />
+          </Button>
+
+          {on_pin_toggle && (
+            <Button
               className={
                 alias.is_pinned
-                  ? "w-5 h-5 text-blue-500 rotate-45 transition-transform duration-200"
-                  : "w-5 h-5 text-txt-muted transition-transform duration-200"
+                  ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
+                  : "hidden group-hover:inline-flex h-8 w-8 text-txt-muted"
               }
-              filled={!!alias.is_pinned}
-            />
-          </Button>
-        )}
+              size="icon"
+              title={
+                alias.is_pinned
+                  ? t("settings.alias_unpin")
+                  : t("settings.alias_pin")
+              }
+              variant="ghost"
+              onClick={() => {
+                if (is_feature_locked("has_advanced_aliases")) {
+                  prompt_upgrade(t("settings.feature_requires_upgrade"));
 
-        <Button
-          className="h-8 w-8"
-          size="icon"
-          title={t("common.copy_address")}
-          variant="ghost"
-          onClick={copy_address}
-        >
-          <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
-        </Button>
+                  return;
+                }
+                on_pin_toggle(alias.id);
+              }}
+            >
+              <PinIcon
+                className={
+                  alias.is_pinned
+                    ? "w-[18px] h-[18px] rotate-45 transition-transform duration-200"
+                    : "w-[18px] h-[18px] transition-transform duration-200"
+                }
+                filled={!!alias.is_pinned}
+              />
+            </Button>
+          )}
 
-        <Switch size="lg"
-          aria-label={t("common.toggle_alias")}
-          checked={alias.is_enabled}
-          disabled={toggling || in_grace_period}
-          onCheckedChange={(checked) => on_toggle(alias.id, checked)}
-        />
-
-        <Button
-          className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-          disabled={deleting}
-          size="icon"
-          variant="ghost"
-          onClick={() => on_delete(alias.id)}
-        >
-          {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
-        </Button>
-      </div>
-    </div>
-      {advanced_open && (
-        <div className="px-3 pb-3">
-          <AliasAdvancedPanel
-            alias_address={alias.full_address}
-            alias_address_hash={alias.alias_address_hash}
-            alias_id={alias.id}
-            display_name={alias.display_name}
-            is_locked={is_avatar_locked}
-            delivery_folder_token={alias.delivery_folder_token}
-            never_inbox={alias.never_inbox}
-            note={alias.note}
-            on_save_delivery={(value) => update_alias(alias.id, value)}
-            on_saved_delivery={(value) => on_delivery_saved?.(alias.id, value)}
-            on_save_display_name={(name) =>
-              update_alias(alias.id, { display_name: name })
-            }
-            on_save_note={(note_value) =>
-              update_alias(alias.id, { note: note_value || null })
-            }
-            on_save_websites={(websites_value) =>
-              update_alias(alias.id, {
-                websites: websites_value.length > 0 ? websites_value : null,
-              })
-            }
-            on_saved_display_name={(name) =>
-              on_display_name_saved?.(alias.id, name)
-            }
-            on_saved_note={(note_value) => on_note_saved?.(alias.id, note_value)}
-            on_saved_websites={(websites_value) =>
-              on_websites_saved?.(alias.id, websites_value)
-            }
-            websites={alias.websites}
+          <Switch
+            aria-label={t("common.toggle_alias")}
+            checked={alias.is_enabled}
+            disabled={toggling || in_grace_period}
+            size="lg"
+            onCheckedChange={(checked) => on_toggle(alias.id, checked)}
           />
+
+          <Button
+            className="h-8 w-8 text-txt-muted hover:text-red-500 hover:bg-red-500/10"
+            disabled={deleting}
+            size="icon"
+            variant="ghost"
+            onClick={() => on_delete(alias.id)}
+          >
+            {deleting ? (
+              <Spinner size="xs" />
+            ) : (
+              <TrashIcon className="w-[18px] h-[18px]" />
+            )}
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -569,6 +523,7 @@ interface DomainAddressItemProps {
   on_toggle?: (id: string, domain_id: string, enabled: boolean) => void;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (address_id: string, name: string) => void;
+  on_open_editor: () => void;
   deleting: boolean;
   is_avatar_locked: boolean;
 }
@@ -579,6 +534,7 @@ export function DomainAddressItem({
   on_toggle,
   on_avatar_changed,
   on_display_name_saved,
+  on_open_editor,
   deleting,
   is_avatar_locked,
 }: DomainAddressItemProps) {
@@ -586,7 +542,6 @@ export function DomainAddressItem({
   const [uploading, set_uploading] = useState(false);
   const [toggling, set_toggling] = useState(false);
   const [is_enabled, set_is_enabled] = useState(address.is_enabled);
-  const [advanced_open, set_advanced_open] = useState(false);
 
   useEffect(() => {
     set_is_enabled(address.is_enabled);
@@ -734,9 +689,14 @@ export function DomainAddressItem({
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium truncate text-txt-primary">
+            <button
+              className="min-w-0 truncate text-left text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
+              title={t("common.copy_address")}
+              type="button"
+              onClick={copy_address}
+            >
               {full_address}
-            </p>
+            </button>
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surf-tertiary text-txt-muted">
               {t("common.custom")}
             </span>
@@ -761,28 +721,20 @@ export function DomainAddressItem({
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <Button
-            className={
-              advanced_open
-                ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
-                : "h-8 w-8"
-            }
+            className="h-8 w-8"
             size="icon"
-            title={
-              advanced_open
-                ? t("settings.alias_advanced_hide" as TranslationKey)
-                : t("settings.alias_advanced_show" as TranslationKey)
-            }
+            title={t("settings.alias_advanced_show" as TranslationKey)}
             variant="ghost"
-            onClick={() => set_advanced_open((open) => !open)}
+            onClick={on_open_editor}
           >
-            <Cog6ToothIcon className="w-4 h-4 text-txt-muted" />
+            <Cog6ToothIcon className="w-[18px] h-[18px] text-txt-muted" />
           </Button>
 
           <Button
             className={
               is_primary
                 ? "h-8 w-8 text-emerald-500 hover:text-emerald-500 hover:bg-emerald-500/10"
-                : "h-8 w-8"
+                : "h-8 w-8 text-txt-muted"
             }
             size="icon"
             title={
@@ -793,34 +745,31 @@ export function DomainAddressItem({
             variant="ghost"
             onClick={toggle_primary}
           >
-            <PinIcon
-              className={is_primary ? "w-4 h-4" : "w-4 h-4 text-txt-muted"}
-              filled={is_primary}
-            />
+            <PinIcon className="w-[18px] h-[18px]" filled={is_primary} />
           </Button>
 
-          <Button
-            className="h-8 w-8"
-            size="icon"
-            title={t("common.copy_address")}
-            variant="ghost"
-            onClick={copy_address}
-          >
-            <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
-          </Button>
-
-          <Switch size="lg"
+          <Switch
             aria-label={t("common.toggle_alias")}
             checked={is_enabled}
             disabled={toggling}
+            size="lg"
             onCheckedChange={async (checked) => {
               set_is_enabled(checked);
               set_toggling(true);
               try {
-                const resp = await update_domain_address(address.domain_id, address.id, { is_enabled: checked });
+                const resp = await update_domain_address(
+                  address.domain_id,
+                  address.id,
+                  { is_enabled: checked },
+                );
+
                 if (resp.error) {
                   set_is_enabled(!checked);
-                  show_toast(resp.error || t("settings.alias_toggle_failed" as TranslationKey), "error");
+                  show_toast(
+                    resp.error ||
+                      t("settings.alias_toggle_failed" as TranslationKey),
+                    "error",
+                  );
                 } else {
                   on_toggle?.(address.id, address.domain_id, checked);
                   show_toast(
@@ -832,7 +781,10 @@ export function DomainAddressItem({
                 }
               } catch {
                 set_is_enabled(!checked);
-                show_toast(t("settings.alias_toggle_failed" as TranslationKey), "error");
+                show_toast(
+                  t("settings.alias_toggle_failed" as TranslationKey),
+                  "error",
+                );
               } finally {
                 set_toggling(false);
               }
@@ -840,21 +792,20 @@ export function DomainAddressItem({
           />
 
           <Button
-            className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
+            className="h-8 w-8 text-txt-muted hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"
             variant="ghost"
             onClick={() => on_delete(address.id, address.domain_id)}
           >
-            {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
+            {deleting ? (
+              <Spinner size="xs" />
+            ) : (
+              <TrashIcon className="w-[18px] h-[18px]" />
+            )}
           </Button>
         </div>
       </div>
-      {advanced_open && (
-        <div className="px-3 pb-3">
-          <AliasAdvancedPanel domain_address_id={address.id} alias_local_part={address.local_part} alias_domain={address.domain_name} />
-        </div>
-      )}
     </div>
   );
 }

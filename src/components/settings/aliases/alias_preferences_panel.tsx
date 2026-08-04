@@ -193,17 +193,6 @@ export function AliasPreferencesPanel({ available_domains }: AliasPreferencesPan
               </PrefRow>
 
               <PrefRow
-                description={t("settings.alias_pref_always_expand_desc")}
-                info={t("settings.alias_pref_always_expand_info")}
-                label={t("settings.alias_pref_always_expand")}
-              >
-                <Switch size="lg"
-                  checked={prefs.alias_always_expand}
-                  onCheckedChange={(v) => save_pref({ alias_always_expand: v })}
-                />
-              </PrefRow>
-
-              <PrefRow
                 description={t("settings.alias_pref_unsubscribe_action_desc")}
                 info={t("settings.alias_pref_unsubscribe_action_info")}
                 label={t("settings.alias_pref_unsubscribe_action")}

@@ -48,6 +48,7 @@ import {
   CreateAliasModal,
   compute_alias_at_limit,
 } from "@/components/settings/aliases/alias_form";
+import { AliasEditorPage } from "@/components/settings/aliases/alias_editor_page";
 import { AliasList } from "@/components/settings/aliases/alias_list";
 import { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 import { DomainPurchaseFlow } from "@/components/settings/aliases/domain_purchase_flow";
@@ -81,55 +82,6 @@ function read_initial_tab(): AliasTab {
   } catch {}
 
   return "aliases";
-}
-
-function AliasUsageMeter({ used, max }: { used: number; max: number }) {
-  const { t } = use_i18n();
-
-  if (!max || max < 0) return null;
-
-  const percent = Math.min(100, Math.round((used / max) * 100));
-  const is_full = used >= max;
-  const is_near = percent >= 60;
-
-  return (
-    <div className="mb-2 rounded-xl border border-edge-secondary bg-surf-secondary/40 px-3 py-2.5">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-txt-secondary">
-          {t("settings.alias_usage_used_of", {
-            used: String(used),
-            max: String(max),
-          })}
-        </span>
-        {is_near && (
-          <button
-            className="text-xs font-semibold hover:underline"
-            style={{ color: "var(--accent-color)" }}
-            type="button"
-            onClick={() => show_plan_limit_upgrade({ resource: "aliases" })}
-          >
-            {t("settings.alias_usage_unlock")}
-          </button>
-        )}
-      </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surf-tertiary">
-        <div
-          className="h-full rounded-full transition-all"
-          style={{
-            width: `${percent}%`,
-            backgroundColor: is_full
-              ? "var(--destructive)"
-              : "var(--accent-color)",
-          }}
-        />
-      </div>
-      {is_near && (
-        <p className="mt-1.5 text-[11px] leading-4 text-txt-muted">
-          {t("settings.alias_usage_nudge")}
-        </p>
-      )}
-    </div>
-  );
 }
 
 export function AliasesSection() {
@@ -196,16 +148,26 @@ export function AliasesSection() {
     string | null
   >(null);
   const [renew_errors, set_renew_errors] = useState<Record<string, string>>({});
+  const [editing_alias_id, set_editing_alias_id] = useState<string | null>(
+    null,
+  );
+  const [editing_address_id, set_editing_address_id] = useState<string | null>(
+    null,
+  );
   const [show_import_modal, set_show_import_modal] = useState(false);
   const [show_export_modal, set_show_export_modal] = useState(false);
-  const [default_alias_domain, set_default_alias_domain] = useState<string | undefined>(undefined);
+  const [default_alias_domain, set_default_alias_domain] = useState<
+    string | undefined
+  >(undefined);
 
   useEffect(() => {
-    get_alias_preferences().then((r) => {
-      if (r.data?.alias_default_domain) {
-        set_default_alias_domain(r.data.alias_default_domain);
-      }
-    }).catch(() => {});
+    get_alias_preferences()
+      .then((r) => {
+        if (r.data?.alias_default_domain) {
+          set_default_alias_domain(r.data.alias_default_domain);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -364,7 +326,10 @@ export function AliasesSection() {
       hook.set_show_create_alias_modal(true);
     };
 
-    window.addEventListener("astermail:auto-open-create-alias", handle_auto_open);
+    window.addEventListener(
+      "astermail:auto-open-create-alias",
+      handle_auto_open,
+    );
 
     return () => {
       window.removeEventListener(
@@ -373,6 +338,19 @@ export function AliasesSection() {
       );
     };
   }, [hook.set_show_create_alias_modal]);
+
+  const editing_alias = hook.aliases.find(
+    (item) => item.id === editing_alias_id,
+  );
+  const editing_domain_address = hook.domain_addresses.find(
+    (item) => item.id === editing_address_id,
+  );
+  const is_editing = !!editing_alias || !!editing_domain_address;
+
+  const close_editor = () => {
+    set_editing_alias_id(null);
+    set_editing_address_id(null);
+  };
 
   const tab_labels: { key: AliasTab; label: string }[] = [
     { key: "aliases", label: t("settings.alias_tab_aliases") },
@@ -387,11 +365,25 @@ export function AliasesSection() {
       <SettingsTabBar
         active={active_tab}
         layout_id="alias"
-        tabs={tab_labels}
         on_change={handle_tab}
+        tabs={tab_labels}
       />
 
-      {active_tab === "aliases" && (
+      {active_tab === "aliases" && is_editing && (
+        <AliasEditorPage
+          alias={editing_alias}
+          domain_address={editing_domain_address}
+          on_back={close_editor}
+          on_delivery_saved={hook.handle_delivery_saved}
+          on_display_name_saved={hook.handle_display_name_saved}
+          on_note_saved={hook.handle_note_saved}
+          on_toggle_enabled={hook.handle_alias_toggle}
+          on_websites_saved={hook.handle_websites_saved}
+          toggling={!!editing_alias_id && hook.toggling_id === editing_alias_id}
+        />
+      )}
+
+      {active_tab === "aliases" && !is_editing && (
         <div className="space-y-4">
           <div>
             <div className="mb-2">
@@ -401,7 +393,18 @@ export function AliasesSection() {
                   {t("settings.email_aliases")}
                 </h3>
                 <div className="flex items-center gap-3">
-                  <Button size="sm" variant="ghost" onClick={alias_csv_locked ? () => prompt_upgrade(t("settings.feature_requires_upgrade")) : () => set_show_export_modal(true)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={
+                      alias_csv_locked
+                        ? () =>
+                            prompt_upgrade(
+                              t("settings.feature_requires_upgrade"),
+                            )
+                        : () => set_show_export_modal(true)
+                    }
+                  >
                     {t("settings.alias_export_csv")}
                   </Button>
                   <Button
@@ -411,6 +414,19 @@ export function AliasesSection() {
                   >
                     {t("settings.alias_import_csv")}
                   </Button>
+                  {hook.alias_counts !== null && (
+                    <span className="text-sm text-txt-muted">
+                      {t("settings.used_count", {
+                        current:
+                          hook.alias_counts.count +
+                          hook.domain_addresses.length,
+                        max:
+                          hook.alias_counts.max === -1
+                            ? "∞"
+                            : hook.alias_counts.max,
+                      })}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="mt-2 h-px bg-edge-secondary" />
@@ -423,14 +439,6 @@ export function AliasesSection() {
                 </span>
               )}
             </p>
-
-            <AliasUsageMeter
-              max={hook.alias_counts?.max ?? hook.max_aliases}
-              used={
-                (hook.alias_counts?.count ?? hook.aliases.length) +
-                hook.domain_addresses.length
-              }
-            />
 
             <div className="flex gap-2 mb-2">
               <Button
@@ -471,18 +479,15 @@ export function AliasesSection() {
               on_alias_toggle={hook.handle_alias_toggle}
               on_aliases_changed={hook.load_aliases}
               on_avatar_changed={hook.load_aliases}
-              on_display_name_saved={hook.handle_display_name_saved}
-              on_delivery_saved={hook.handle_delivery_saved}
-              on_note_saved={hook.handle_note_saved}
-              on_websites_saved={hook.handle_websites_saved}
               on_domain_addr_delete={hook.handle_domain_addr_delete}
               on_domain_address_display_name_saved={
                 hook.handle_domain_address_display_name_saved
               }
+              on_open_domain_editor={set_editing_address_id}
+              on_open_editor={set_editing_alias_id}
               toggling_id={hook.toggling_id}
             />
           </div>
-
         </div>
       )}
 
@@ -528,47 +533,47 @@ export function AliasesSection() {
         <div className="space-y-4">
           {!promo_dismissed &&
             !purchased_orders.some((o) => o.status === "complete") && (
-          <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-txt-primary">
-                  {t("settings.domain_purchase_banner_title")}
-                </p>
-                <p className="text-sm text-txt-muted mt-1">
-                  {t("settings.domain_purchase_banner_subtitle")}
-                </p>
+              <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-txt-primary">
+                      {t("settings.domain_purchase_banner_title")}
+                    </p>
+                    <p className="text-sm text-txt-muted mt-1">
+                      {t("settings.domain_purchase_banner_subtitle")}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    <button
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
+                      type="button"
+                      onClick={() => {
+                        set_purchase_order_id(null);
+                        set_purchase_initial_query(null);
+                        set_purchase_open(true);
+                      }}
+                    >
+                      {t("settings.domain_purchase_banner_cta")}
+                    </button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        set_promo_dismissed(true);
+                        try {
+                          localStorage.setItem(
+                            "aster_domain_promo_banner_dismissed",
+                            "1",
+                          );
+                        } catch {}
+                      }}
+                    >
+                      {t("settings.account_security_dont_show_again")}
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                <button
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
-                  type="button"
-                  onClick={() => {
-                    set_purchase_order_id(null);
-                    set_purchase_initial_query(null);
-                    set_purchase_open(true);
-                  }}
-                >
-                  {t("settings.domain_purchase_banner_cta")}
-                </button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    set_promo_dismissed(true);
-                    try {
-                      localStorage.setItem(
-                        "aster_domain_promo_banner_dismissed",
-                        "1",
-                      );
-                    } catch {}
-                  }}
-                >
-                  {t("settings.account_security_dont_show_again")}
-                </Button>
-              </div>
-            </div>
-          </div>
-          )}
+            )}
 
           {!hook.domains_loading && hook.max_domains === 0 ? (
             <div className="p-6 rounded-lg text-center bg-surf-tertiary border border-edge-secondary">
@@ -600,8 +605,7 @@ export function AliasesSection() {
                   <span className="text-sm text-txt-muted">
                     {t("settings.used_count", {
                       current: hook.domains.length,
-                      max:
-                        hook.max_domains === -1 ? "∞" : hook.max_domains,
+                      max: hook.max_domains === -1 ? "∞" : hook.max_domains,
                     })}
                   </span>
                 </div>
@@ -781,7 +785,9 @@ export function AliasesSection() {
                                     )
                                   : ""
                                 : order.status === "lapsed"
-                                  ? t("settings.domain_purchase_purchased_lapsed")
+                                  ? t(
+                                      "settings.domain_purchase_purchased_lapsed",
+                                    )
                                   : order.status === "pending_payment"
                                     ? t(
                                         "settings.domain_purchase_purchased_awaiting",
