@@ -20,11 +20,17 @@
 //
 import { get_subscription } from "@/services/api/billing";
 
+export const UNLIMITED_ACCOUNTS = -1;
+
 const ACCOUNT_LIMITS: Record<string, number> = {
   free: 1,
   star: 2,
-  nova: 4,
-  supernova: 6,
+  nova: 5,
+  supernova: 20,
+  duo: 15,
+  family: 15,
+  family_duo: UNLIMITED_ACCOUNTS,
+  family_full: UNLIMITED_ACCOUNTS,
 };
 
 const DEFAULT_LIMIT = 1;

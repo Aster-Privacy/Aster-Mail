@@ -242,10 +242,10 @@ function get_features(
     },
     {
       name: t("settings.feature_linked_accounts"),
-      free: "0",
+      free: "1",
       star: "2",
       nova: "5",
-      supernova: "5",
+      supernova: "20",
     },
     {
       name: t("settings.folders_limit"),

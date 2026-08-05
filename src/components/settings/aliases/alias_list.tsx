@@ -356,17 +356,18 @@ export function AliasList({
       </div>
 
       {bulk_mode && (
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1 py-2 border-b border-edge-secondary">
+        <div className="flex h-12 items-center justify-between gap-2 mb-3 px-1 border-b border-edge-secondary">
           <button
-            className="flex items-center gap-2 min-w-0 text-left cursor-pointer"
+            className="flex min-w-0 cursor-pointer items-center gap-2 text-left"
             type="button"
             onClick={() => handle_select_all(!all_filtered_selected)}
           >
             <Checkbox
               checked={all_filtered_selected}
-              onCheckedChange={(v) => handle_select_all(!!v)}
+              className="pointer-events-none"
+              tabIndex={-1}
             />
-            <span className="text-sm text-txt-muted">
+            <span className="text-sm text-txt-muted tabular-nums">
               {selected_ids.size > 0
                 ? t("settings.alias_bulk_selected", {
                     count: String(selected_ids.size),
@@ -374,27 +375,43 @@ export function AliasList({
                 : t("settings.alias_bulk_select_all")}
             </span>
           </button>
-          {selected_ids.size > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Button size="sm" variant="outline" onClick={handle_bulk_enable}>
-                <CheckCircleIcon className="w-3.5 h-3.5" />
-                {t("settings.alias_bulk_enable")}
-              </Button>
-              <Button size="sm" variant="outline" onClick={handle_bulk_disable}>
-                <NoSymbolIcon className="w-3.5 h-3.5" />
-                {t("settings.alias_bulk_disable")}
-              </Button>
-              <Button
-                className="text-red-500 hover:text-red-500"
-                size="sm"
-                variant="outline"
-                onClick={() => set_show_bulk_delete_confirm(true)}
-              >
-                <TrashIcon className="w-3.5 h-3.5" />
-                {t("settings.alias_bulk_delete")}
-              </Button>
-            </div>
-          )}
+          <div
+            className={`flex shrink-0 items-center gap-1.5 transition-opacity ${
+              selected_ids.size > 0
+                ? "opacity-100"
+                : "pointer-events-none opacity-0"
+            }`}
+            aria-hidden={selected_ids.size === 0}
+          >
+            <Button
+              disabled={selected_ids.size === 0}
+              size="sm"
+              variant="outline"
+              onClick={handle_bulk_enable}
+            >
+              <CheckCircleIcon className="w-3.5 h-3.5" />
+              {t("settings.alias_bulk_enable")}
+            </Button>
+            <Button
+              disabled={selected_ids.size === 0}
+              size="sm"
+              variant="outline"
+              onClick={handle_bulk_disable}
+            >
+              <NoSymbolIcon className="w-3.5 h-3.5" />
+              {t("settings.alias_bulk_disable")}
+            </Button>
+            <Button
+              className="text-red-500 hover:text-red-500"
+              disabled={selected_ids.size === 0}
+              size="sm"
+              variant="outline"
+              onClick={() => set_show_bulk_delete_confirm(true)}
+            >
+              <TrashIcon className="w-3.5 h-3.5" />
+              {t("settings.alias_bulk_delete")}
+            </Button>
+          </div>
         </div>
       )}
 

@@ -28,13 +28,12 @@ import {
   ChartBarIcon,
   IdentificationIcon,
   InboxArrowDownIcon,
-  LockClosedIcon,
   NoSymbolIcon,
   ShieldCheckIcon,
   SparklesIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { Switch, UpgradeBtn } from "@aster/ui";
+import { Switch } from "@aster/ui";
 
 import { format_created_at } from "./alias_stats_format";
 
@@ -43,7 +42,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { update_alias } from "@/services/api/aliases";
 import { show_toast } from "@/components/toast/simple_toast";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { LockedFeatureCard } from "@/components/settings/aliases/feature_lock";
 import {
   FEATURE_MIN_PLAN,
   PLAN_TIERS,
@@ -377,49 +376,32 @@ export function AliasEditorPage({
       ))}
 
       {locked_sections.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-[16px] border border-edge-secondary bg-surf-secondary px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surf-hover">
-                <LockClosedIcon className="h-[18px] w-[18px] text-txt-secondary" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-txt-primary">
-                  {t("settings.upgrade_to_unlock")}
-                </p>
-                <p className="mt-0.5 text-sm text-txt-muted">
-                  {locked_sections.map((section) => section.label).join(" · ")}
-                </p>
+        <div className="relative min-h-[196px]">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none select-none space-y-4 opacity-40 blur-[1px]"
+          >
+            {locked_sections.map((section) => (
+              <div key={section.key}>
+                <SectionHeading icon={section.icon} title={section.label} />
+                <fieldset disabled className="min-w-0 border-0 p-0 m-0">
+                  {section.render()}
+                </fieldset>
               </div>
-            </div>
-
-            <UpgradeBtn
-              className="w-full flex-shrink-0 sm:w-auto"
-              size="sm"
-              onClick={() =>
-                prompt_upgrade(
-                  t("settings.feature_requires_upgrade"),
-                  undefined,
-                  locked_feature,
-                )
-              }
-            >
-              {t("settings.alias_feature_locked_upgrade_cta")}
-            </UpgradeBtn>
+            ))}
           </div>
 
-          {locked_sections.map((section) => (
-            <div
-              key={section.key}
-              aria-hidden="true"
-              className="pointer-events-none select-none opacity-50"
-            >
-              <SectionHeading icon={section.icon} title={section.label} />
-              <fieldset disabled className="min-w-0 border-0 p-0 m-0">
-                {section.render()}
-              </fieldset>
+          <div className="pointer-events-none absolute inset-0 flex items-start justify-center p-4">
+            <div className="sticky top-6">
+              <LockedFeatureCard
+                detail={locked_sections
+                  .map((section) => section.label)
+                  .join(" · ")}
+                feature={locked_feature}
+                message={t("settings.upgrade_to_unlock")}
+              />
             </div>
-          ))}
+          </div>
         </div>
       )}
     </div>

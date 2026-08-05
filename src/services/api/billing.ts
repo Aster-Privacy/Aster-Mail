@@ -178,17 +178,40 @@ export async function get_available_plans() {
   return api_client.get<AvailablePlansResponse>("/payments/v1/plans");
 }
 
+export function billing_return_origin(): string {
+  if (typeof window === "undefined") return "https://app.astermail.org";
+  if ("__TAURI_INTERNALS__" in window) return "https://app.astermail.org";
+
+  return window.location.origin;
+}
+
+export function billing_return_urls(): {
+  success_url: string;
+  cancel_url: string;
+} {
+  const origin = billing_return_origin();
+
+  return {
+    success_url: `${origin}/?billing=success`,
+    cancel_url: `${origin}/?billing=cancelled`,
+  };
+}
+
 export async function create_checkout_session(
   plan_code: string,
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
 ) {
+  const { success_url, cancel_url } = billing_return_urls();
+
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/checkout-session",
     {
       plan_code,
       billing_interval,
+      success_url,
+      cancel_url,
       ...(currency ? { currency } : {}),
       ...(apply_credits_cents && apply_credits_cents > 0 ? { apply_credits_cents } : {}),
     },
@@ -275,8 +298,8 @@ export async function change_plan(
   }>("/payments/v1/change-plan", {
     plan_code,
     billing_interval,
-    ...(success_url ? { success_url } : {}),
-    ...(cancel_url ? { cancel_url } : {}),
+    success_url: success_url ?? billing_return_urls().success_url,
+    cancel_url: cancel_url ?? billing_return_urls().cancel_url,
   });
 
   if (response.error || !response.data) {

@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { SparklesIcon } from "@heroicons/react/24/outline";
+import { LockClosedIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
+import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
 
 export function prompt_upgrade(
   msg: string,
@@ -55,6 +56,33 @@ export function PaidPill({ className = "" }: { className?: string }) {
   );
 }
 
+export function RequiredPlanPill({
+  feature,
+  className = "",
+}: {
+  feature?: string;
+  className?: string;
+}) {
+  const { t } = use_i18n();
+  const tier = min_plan_for_feature(feature ?? null);
+
+  if (!tier) return null;
+
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}
+      style={{
+        backgroundColor:
+          "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+        color: "var(--accent-color)",
+      }}
+    >
+      <LockClosedIcon className="h-3 w-3" />
+      {t("settings.requires_plan", { plan: tier.name })}
+    </span>
+  );
+}
+
 export function FeatureLockOverlay({
   message,
   feature,
@@ -66,6 +94,7 @@ export function FeatureLockOverlay({
 
   return (
     <div className="flex flex-col items-start gap-2.5 rounded-lg border border-edge-secondary bg-surf-tertiary px-3.5 py-3">
+      <RequiredPlanPill feature={feature} />
       <p className="text-[13px] leading-5 text-txt-secondary">{message}</p>
       <UpgradeBtn
         size="sm"
@@ -93,7 +122,7 @@ export function LockedFeature({
   }
 
   return (
-    <div className="relative">
+    <div className="relative min-h-[196px]">
       <div
         aria-hidden="true"
         className="pointer-events-none select-none opacity-40 blur-[1px]"
@@ -107,19 +136,36 @@ export function LockedFeature({
   );
 }
 
-function LockedFeatureCard({
+export function LockedFeatureCard({
   message,
+  detail,
   feature,
 }: {
   message: string;
+  detail?: string;
   feature?: string;
 }) {
   const { t } = use_i18n();
 
   return (
-    <div className="pointer-events-auto flex max-w-sm flex-col items-center gap-3 rounded-xl border border-edge-secondary bg-surf-primary px-5 py-4 text-center shadow-lg">
-      <p className="text-[13px] leading-5 text-txt-secondary">{message}</p>
+    <div className="pointer-events-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-edge-secondary bg-surf-primary px-6 py-5 text-center shadow-xl">
+      <span
+        className="flex h-10 w-10 items-center justify-center rounded-full"
+        style={{
+          backgroundColor:
+            "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+        }}
+      >
+        <LockClosedIcon
+          className="h-5 w-5"
+          style={{ color: "var(--accent-color)" }}
+        />
+      </span>
+      <p className="text-sm leading-5 text-txt-primary">{message}</p>
+      {detail && <p className="text-[13px] text-txt-muted">{detail}</p>}
+      <RequiredPlanPill feature={feature} />
       <UpgradeBtn
+        className="w-full"
         size="sm"
         onClick={() => prompt_upgrade(message, undefined, feature)}
       >

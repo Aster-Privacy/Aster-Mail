@@ -25,14 +25,20 @@ import {
   type PlanLimitsResponse,
 } from "@/services/api/billing";
 import { api_client } from "@/services/api/client";
-import { persist_plan_flag_for_current_account } from "@/services/account_manager";
+import {
+  get_current_account_id,
+  repair_stale_plan_flags,
+  set_account_plan_flag,
+} from "@/services/account_manager";
 
 let cached_limits: PlanLimitsResponse | null = null;
+let cached_account_id: string | null = null;
 let cache_timestamp = 0;
 const CACHE_TTL = 60_000;
 
 export function clear_plan_limits_cache(): void {
   cached_limits = null;
+  cached_account_id = null;
   cache_timestamp = 0;
 }
 
@@ -42,7 +48,7 @@ export function use_plan_limits() {
   );
   const [is_loading, set_is_loading] = useState(!cached_limits);
 
-  const fetch_limits = useCallback(async () => {
+  const fetch_limits = useCallback(async (force = false) => {
     if (!api_client.is_authenticated()) {
       set_is_loading(false);
 
@@ -51,21 +57,41 @@ export function use_plan_limits() {
 
     const now = Date.now();
 
-    if (cached_limits && now - cache_timestamp < CACHE_TTL) {
+    await repair_stale_plan_flags().catch(() => {});
+
+    const account_id = await get_current_account_id();
+
+    if (
+      !force &&
+      cached_limits &&
+      cached_account_id === account_id &&
+      now - cache_timestamp < CACHE_TTL
+    ) {
       set_limits(cached_limits);
       set_is_loading(false);
 
       return;
     }
 
+    if (cached_account_id !== account_id) {
+      set_limits(null);
+    }
+
     try {
       const response = await get_plan_limits();
 
-      if (response.data) {
-        cached_limits = response.data;
-        cache_timestamp = Date.now();
-        set_limits(response.data);
-        persist_plan_flag_for_current_account(
+      if (!response.data) return;
+
+      if ((await get_current_account_id()) !== account_id) return;
+
+      cached_limits = response.data;
+      cached_account_id = account_id;
+      cache_timestamp = Date.now();
+      set_limits(response.data);
+
+      if (account_id) {
+        set_account_plan_flag(
+          account_id,
           response.data.plan_code !== "free",
         ).catch(() => {});
       }

@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowPathIcon,
   CheckCircleIcon,
+  LockClosedIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -30,6 +31,7 @@ import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { emit_aliases_changed } from "@/hooks/mail_events";
+import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
 import {
   Select,
   SelectContent,
@@ -101,6 +103,7 @@ export function CreateAliasModal({
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const display_name_locked = is_feature_locked("has_alias_avatars");
+  const display_name_min_plan = min_plan_for_feature("has_alias_avatars");
   const [local_part, set_local_part] = useState("");
   const [display_name, set_display_name] = useState("");
   const [note, set_note] = useState("");
@@ -501,11 +504,27 @@ export function CreateAliasModal({
                     {t("settings.create_alias_display_name_placeholder")}
                   </span>
                   <button
-                    className="text-[11px] px-2 py-0.5 rounded-md bg-blue-500 text-white hover:bg-blue-600 shrink-0 transition-colors font-medium"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-opacity hover:opacity-80"
+                    style={{
+                      backgroundColor:
+                        "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+                      color: "var(--accent-color)",
+                    }}
                     type="button"
-                    onClick={() => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }))}
+                    onClick={() =>
+                      window.dispatchEvent(
+                        new CustomEvent("navigate-settings", {
+                          detail: "billing",
+                        }),
+                      )
+                    }
                   >
-                    {t("settings.alias_feature_locked_view_plans")}
+                    <LockClosedIcon className="h-3 w-3" />
+                    {display_name_min_plan
+                      ? t("settings.requires_plan", {
+                          plan: display_name_min_plan.name,
+                        })
+                      : t("settings.alias_feature_locked_view_plans")}
                   </button>
                 </div>
               ) : (
