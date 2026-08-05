@@ -125,6 +125,7 @@ import {
   delete_category_index_for_account,
 } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 const AUTH_VERIFY_TIMEOUT_MS = 12000;
 
@@ -1122,6 +1123,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [clear_local_auth_data, navigate]);
 
   useEffect(() => {
+    const sign_out_keeping_other_accounts = async (
+      message_key: TranslationKey,
+      reason?: string,
+    ) => {
+      const path = window.location.pathname;
+      const current_id = state.current_account_id;
+      const all_accounts = await get_all_accounts();
+      const target = all_accounts.find((a) => a.id === current_id);
+      const keep_accounts =
+        all_accounts.length > 1 || accounts_storage_unreadable();
+
+      if (!keep_accounts) {
+        await clear_local_auth_data();
+
+        if (path === "/sign-in") return;
+
+        show_toast(t(message_key), "info");
+        await api_client.clear_session_cookies().catch(() => {});
+        navigate("/sign-in");
+
+        return;
+      }
+
+      stop_session_timeout();
+      clear_vault_from_memory();
+
+      if (current_id) {
+        clear_session_timeout_data(current_id);
+        clear_session_unlock(current_id);
+        await clear_session_passphrase(current_id).catch(() => {});
+      }
+
+      set_is_adding_account(true);
+      set_state((prev) => ({
+        ...prev,
+        user: null,
+        is_loading: false,
+        is_authenticated: false,
+        has_keys: false,
+        accounts: all_accounts.length > 0 ? all_accounts : prev.accounts,
+      }));
+
+      if (path === "/sign-in") return;
+
+      const params = new URLSearchParams();
+      const local = target?.user.email.split("@")[0] ?? "";
+
+      if (local) params.set("u", local);
+      if (reason) params.set("reason", reason);
+
+      const query = params.toString();
+
+      show_toast(t(message_key), "info");
+      navigate(query ? `/sign-in?${query}` : "/sign-in");
+    };
+
     const handle_session_expired = async () => {
       await new Promise((resolve) => setTimeout(resolve, 600));
       const still_valid = await api_client.check_auth_status();
@@ -1135,56 +1192,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api_client.clear_auth_data();
       api_client.set_authenticated(false);
 
-      const path = window.location.pathname;
-      const current_id = state.current_account_id;
-      const all_accounts = await get_all_accounts();
-      const target = all_accounts.find((a) => a.id === current_id);
-
-      const keep_accounts =
-        all_accounts.length > 1 || accounts_storage_unreadable();
-
-      if (keep_accounts) {
-        set_is_adding_account(true);
-
-        if (path === "/sign-in") {
-          set_state((prev) => ({
-            ...prev,
-            user: null,
-            is_loading: false,
-            is_authenticated: false,
-            has_keys: false,
-          }));
-
-          return;
-        }
-
-        const local = target?.user.email.split("@")[0] ?? "";
-
-        set_state((prev) => ({
-          ...prev,
-          user: null,
-          is_loading: false,
-          is_authenticated: false,
-          has_keys: false,
-          accounts: all_accounts.length > 0 ? all_accounts : prev.accounts,
-        }));
-        show_toast(t("common.session_expired_sign_in"), "info");
-        navigate(
-          local
-            ? `/sign-in?u=${encodeURIComponent(local)}&reason=session_expired`
-            : "/sign-in?reason=session_expired",
-        );
-
-        return;
-      }
-
-      await clear_local_auth_data();
-
-      if (path === "/sign-in") return;
-
-      show_toast(t("common.session_expired_sign_in"), "info");
-      await api_client.clear_session_cookies().catch(() => {});
-      navigate("/sign-in");
+      await sign_out_keeping_other_accounts(
+        "common.session_expired_sign_in",
+        "session_expired",
+      );
     };
 
     const handle_session_timeout = async () => {
@@ -1196,16 +1207,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         api_client.clear_session_cookies();
       }
 
-      await clear_local_auth_data();
-      show_toast(t("common.signed_out_inactivity"), "info");
-      navigate("/sign-in");
+      await sign_out_keeping_other_accounts("common.signed_out_inactivity");
     };
 
     const handle_session_revoked = async () => {
-      await clear_local_auth_data();
-      show_toast(t("common.device_revoked"), "info");
-      await api_client.clear_session_cookies().catch(() => {});
-      navigate("/sign-in");
+      await sign_out_keeping_other_accounts("common.device_revoked");
     };
 
     const handle_identity_mismatch_event = () => {

@@ -54,7 +54,7 @@ export function DeleteAccountModal({
   on_deleted,
 }: DeleteAccountModalProps) {
   const { t } = use_i18n();
-  const { user, logout_all } = use_auth();
+  const { user, logout } = use_auth();
   const [confirmation_text, set_confirmation_text] = useState("");
   const [password, set_password] = useState("");
   const [totp_code, set_totp_code] = useState("");
@@ -134,7 +134,7 @@ export function DeleteAccountModal({
       });
 
       if (response.data?.success || response.data?.message) {
-        await logout_all();
+        await logout();
         on_deleted();
       } else if (response.server_code === "INVALID_CREDENTIALS") {
         set_error(t("settings.incorrect_password_error"));

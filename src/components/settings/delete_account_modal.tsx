@@ -58,7 +58,7 @@ export function DeleteAccountModal({
   on_deleted,
 }: DeleteAccountModalProps) {
   const { t } = use_i18n();
-  const { user, logout_all } = use_auth();
+  const { user, logout } = use_auth();
   const [confirmation_text, set_confirmation_text] = useState("");
   const [password, set_password] = useState("");
   const [show_password, set_show_password] = useState(false);
@@ -103,7 +103,7 @@ export function DeleteAccountModal({
       }>("/core/v1/auth/me", { data: { password_hash } });
 
       if (response.data?.success || response.data?.message) {
-        await logout_all();
+        await logout();
         on_deleted();
       } else {
         set_error(response.error || t("settings.failed_delete_account"));
