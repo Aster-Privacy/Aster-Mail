@@ -6449,6 +6449,7 @@ export interface AuthTranslations {
   greeting_comma: string;
   greeting_night: string;
   manage_account: string;
+  official_account: string;
   sign_out_all: string;
   session_expired_tag: string;
   default_account: string;

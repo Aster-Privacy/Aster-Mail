@@ -448,8 +448,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           sync_client.disconnect();
 
           try {
-            await storage_remove_account(current.id);
-            clear_stored_encrypted_vault(current.id);
             await clear_session_passphrase(current.id);
             clear_session_timeout_data(current.id);
           } catch (e) {
@@ -457,11 +455,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
 
           const remaining = await get_all_accounts();
-          const fallback =
-            remaining.find((a) => a.kind !== "shared") ?? remaining[0];
-          const prefill_local = fallback?.user.email.split("@")[0] ?? "";
-
-          if (fallback) await storage_switch_account(fallback.id);
+          const prefill_local = current.user.email.split("@")[0] ?? "";
 
           set_state({
             user: null,
@@ -469,7 +463,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             is_authenticated: false,
             has_keys: false,
             accounts: remaining,
-            current_account_id: fallback?.id ?? null,
+            current_account_id: current.id,
           });
 
           const uses_hash = "__TAURI_INTERNALS__" in window;
@@ -477,7 +471,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
             ? window.location.hash.slice(1).split("?")[0] || "/"
             : window.location.pathname;
           if (path !== "/sign-in" && path !== "/register") {
-            navigate(`/sign-in?u=${encodeURIComponent(prefill_local)}`);
+            navigate(
+              `/sign-in?u=${encodeURIComponent(prefill_local)}&reason=session_expired`,
+            );
           }
         }
       } catch (e) {

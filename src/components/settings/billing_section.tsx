@@ -702,9 +702,15 @@ export function BillingSection() {
   };
 
   const scroll_to_plans = () => {
-    document
-      .getElementById("available-plans")
-      ?.scrollIntoView({ behavior: "smooth" });
+    const target = document.getElementById("available-plans");
+
+    if (!target) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   };
 
   const has_payment_failed = Boolean(subscription?.payment_failed_at);

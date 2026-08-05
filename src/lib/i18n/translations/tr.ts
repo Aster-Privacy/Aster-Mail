@@ -7010,6 +7010,7 @@ export const tr = {
     greeting_comma: ",",
     greeting_night: "Geç saatler",
     manage_account: "Hesap ayarları",
+    official_account: "Resmi hesap",
     sign_out_all: "Tüm hesaplardan çıkış yap",
     session_expired_tag: "Oturum sona erdi",
     default_account: "Varsayılan",

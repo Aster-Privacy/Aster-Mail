@@ -7146,6 +7146,7 @@ export const en: Translations = {
     greeting_comma: ",",
     greeting_night: "Late night",
     manage_account: "Account settings",
+    official_account: "Official account",
     sign_out_all: "Sign out of all accounts",
     session_expired_tag: "Session expired",
     default_account: "Default",

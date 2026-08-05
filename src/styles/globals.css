@@ -1652,28 +1652,41 @@ button.press_scale:active {
 }
 
 .aster_skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.06);
+  contain: paint;
+}
+
+.aster_skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(0, 0, 0, 0.06) 25%,
-    rgba(0, 0, 0, 0.11) 50%,
-    rgba(0, 0, 0, 0.06) 75%
+    transparent 0%,
+    rgba(0, 0, 0, 0.07) 50%,
+    transparent 100%
   );
-  background-size: 200% 100%;
+  transform: translate3d(-100%, 0, 0);
   animation: aster_skeleton_shimmer 1.4s ease-in-out infinite;
 }
 
 .dark .aster_skeleton {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .aster_skeleton::after {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.08) 25%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.08) 75%
+    transparent 0%,
+    rgba(255, 255, 255, 0.09) 50%,
+    transparent 100%
   );
-  background-size: 200% 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aster_skeleton {
+  .aster_skeleton::after {
     animation: none;
   }
 }
@@ -1693,10 +1706,10 @@ button.press_scale:active {
 
 @keyframes aster_skeleton_shimmer {
   0% {
-    background-position: 200% 0;
+    transform: translate3d(-100%, 0, 0);
   }
   100% {
-    background-position: -200% 0;
+    transform: translate3d(100%, 0, 0);
   }
 }
 
@@ -1960,9 +1973,12 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
   box-shadow: 0 0 0 2px var(--accent-color, #3b82f6);
 }
 
+.list_scrolling > * {
+  pointer-events: none;
+}
+
 .mail_row_unread {
   background-color: var(--bg-primary);
-  border-bottom-color: transparent;
 }
 
 .mail_row_read {

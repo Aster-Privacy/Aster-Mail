@@ -7088,6 +7088,7 @@ export const it = {
     greeting_comma: ",",
     greeting_night: "A tarda notte",
     manage_account: "Impostazioni account",
+    official_account: "Account ufficiale",
     sign_out_all: "Esci da tutti gli account",
     session_expired_tag: "Sessione scaduta",
     default_account: "Predefinito",

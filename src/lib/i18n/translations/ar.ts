@@ -6763,6 +6763,7 @@ export const ar = {
     greeting_comma: "،",
     greeting_night: "ليلة متأخرة",
     manage_account: "إعدادات الحساب",
+    official_account: "حساب رسمي",
     sign_out_all: "تسجيل الخروج من كل الحسابات",
     session_expired_tag: "انتهت الجلسة",
     default_account: "افتراضي",

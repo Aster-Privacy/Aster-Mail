@@ -112,7 +112,7 @@ function get_density_classes(density: string, compact_mode: boolean): string {
   return is_compact_density(density, compact_mode) ? "py-1.5" : "py-2";
 }
 
-const PREVIEW_CHAR_CAP = 400;
+const PREVIEW_CHAR_CAP = 140;
 
 function truncate_preview(preview: string, max_cap?: number): string {
   const char_budget = Math.min(max_cap ?? PREVIEW_CHAR_CAP, PREVIEW_CHAR_CAP);
@@ -389,7 +389,7 @@ export const InboxEmailListItem = memo(
           ref={ref}
           draggable
           className={cn(
-            "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full",
+            "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full border-b border-edge-secondary",
             get_density_classes(density, preferences.compact_mode ?? false),
             is_active
               ? "bg-surf-hover"

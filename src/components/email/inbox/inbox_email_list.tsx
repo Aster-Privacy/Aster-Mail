@@ -226,6 +226,13 @@ export function EmailList({
     [],
   );
 
+  const handle_row_click_capture = useCallback((e: React.MouseEvent) => {
+    if (Date.now() - close_time_ref.current < 300) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
+
   const handle_trigger_context_menu = useCallback((e: React.MouseEvent) => {
     if (
       Date.now() - close_time_ref.current < 300 &&
@@ -364,11 +371,11 @@ export function EmailList({
               {pinned_emails.map((email) => (
                 <div
                   key={email.id}
-                  className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
                     containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
                   }}
+                  onClickCapture={handle_row_click_capture}
                   onContextMenu={() => handle_row_context_menu(email)}
                   onMouseEnter={() => handle_hover_preload(email.id)}
                 >
@@ -383,11 +390,11 @@ export function EmailList({
               {primary_emails.map((email) => (
                 <div
                   key={email.id}
-                  className="border-b border-edge-secondary"
                   style={{
                     contentVisibility: "auto",
                     containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
                   }}
+                  onClickCapture={handle_row_click_capture}
                   onContextMenu={() => handle_row_context_menu(email)}
                   onMouseEnter={() => handle_hover_preload(email.id)}
                 >

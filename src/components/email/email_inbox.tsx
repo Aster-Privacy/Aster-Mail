@@ -1432,12 +1432,33 @@ export function EmailInbox({
   });
 
   const list_scroll_top_ref = useRef(0);
+  const scroll_idle_timer_ref = useRef<number | null>(null);
   const handle_list_scroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>): void => {
-      list_scroll_top_ref.current = e.currentTarget.scrollTop;
+      const container = e.currentTarget;
+
+      list_scroll_top_ref.current = container.scrollTop;
+      container.classList.add("list_scrolling");
+
+      if (scroll_idle_timer_ref.current !== null) {
+        window.clearTimeout(scroll_idle_timer_ref.current);
+      }
+
+      scroll_idle_timer_ref.current = window.setTimeout(() => {
+        scroll_idle_timer_ref.current = null;
+        container.classList.remove("list_scrolling");
+      }, 120);
     },
     [],
   );
+
+  useEffect(() => {
+    return () => {
+      if (scroll_idle_timer_ref.current !== null) {
+        window.clearTimeout(scroll_idle_timer_ref.current);
+      }
+    };
+  }, []);
 
   useLayoutEffect(() => {
     if (show_full_email_viewer) return;

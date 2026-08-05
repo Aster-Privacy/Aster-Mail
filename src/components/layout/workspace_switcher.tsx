@@ -45,7 +45,7 @@ import { get_all_accounts } from "@/services/account_manager";
 import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
-import { format_bytes } from "@/lib/utils";
+import { format_bytes, is_official_sender } from "@/lib/utils";
 
 interface WorkspaceSwitcherProps {
   align?: "start" | "center" | "end";
@@ -318,11 +318,25 @@ export function WorkspaceSwitcher({
                   {time_greeting &&
                     `${time_greeting}${t("auth.greeting_comma")}`}
                 </span>
-                <span
-                  className="text-[15px] font-semibold leading-tight truncate"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {current_display_name}
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className="text-[15px] font-semibold leading-tight truncate"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {current_display_name}
+                  </span>
+                  {is_official_sender(current_user_email) && (
+                    <span
+                      className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                      style={{
+                        backgroundColor:
+                          "color-mix(in srgb, var(--accent-color) 18%, transparent)",
+                        color: "var(--accent-color)",
+                      }}
+                    >
+                      {t("auth.official_account")}
+                    </span>
+                  )}
                 </span>
                 <button
                   className="text-[12px] leading-tight truncate text-left transition-colors hover:text-[var(--text-secondary)]"

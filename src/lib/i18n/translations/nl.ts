@@ -6976,6 +6976,7 @@ export const nl = {
     greeting_comma: ",",
     greeting_night: "Nog wakker",
     manage_account: "Accountinstellingen",
+    official_account: "Officieel account",
     sign_out_all: "Uitloggen bij alle accounts",
     session_expired_tag: "Sessie verlopen",
     default_account: "Standaard",

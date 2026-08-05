@@ -7039,6 +7039,7 @@ export const pl = {
     greeting_comma: ",",
     greeting_night: "Późna pora",
     manage_account: "Ustawienia konta",
+    official_account: "Konto oficjalne",
     sign_out_all: "Wyloguj ze wszystkich kont",
     session_expired_tag: "Sesja wygasła",
     default_account: "Domyślne",

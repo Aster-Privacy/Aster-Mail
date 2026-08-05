@@ -7142,6 +7142,7 @@ export const de = {
     greeting_comma: ",",
     greeting_night: "Noch wach",
     manage_account: "Kontoeinstellungen",
+    official_account: "Offizielles Konto",
     sign_out_all: "Von allen Konten abmelden",
     session_expired_tag: "Sitzung abgelaufen",
     default_account: "Standard",

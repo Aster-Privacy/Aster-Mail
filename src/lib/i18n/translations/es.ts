@@ -6980,6 +6980,7 @@ export const es = {
     greeting_comma: ",",
     greeting_night: "De madrugada",
     manage_account: "Ajustes de la cuenta",
+    official_account: "Cuenta oficial",
     sign_out_all: "Cerrar sesión en todas las cuentas",
     session_expired_tag: "Sesión caducada",
     default_account: "Predeterminada",

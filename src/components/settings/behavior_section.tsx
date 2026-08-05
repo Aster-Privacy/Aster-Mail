@@ -99,6 +99,16 @@ interface ToggleSettingProps {
   info?: { title: string; description: string };
 }
 
+function is_redundant_info(
+  info: { title: string; description: string } | undefined,
+  title: string,
+  description: string,
+): boolean {
+  if (!info) return true;
+
+  return info.title === title && info.description === description;
+}
+
 function ToggleSetting({
   title,
   description,
@@ -111,7 +121,7 @@ function ToggleSetting({
       <div className="flex-1 pr-4">
         <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
           {title}
-          {info && (
+          {!is_redundant_info(info, title, description) && info && (
             <InfoPopover description={info.description} title={info.title} />
           )}
         </p>
@@ -148,7 +158,7 @@ function SelectSetting({
       <div className="flex-1 pr-4">
         <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
           {title}
-          {info && (
+          {!is_redundant_info(info, title, description) && info && (
             <InfoPopover description={info.description} title={info.title} />
           )}
         </p>

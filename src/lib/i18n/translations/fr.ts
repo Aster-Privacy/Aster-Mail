@@ -7060,6 +7060,7 @@ export const fr = {
     greeting_comma: ",",
     greeting_night: "Encore debout",
     manage_account: "Paramètres du compte",
+    official_account: "Compte officiel",
     sign_out_all: "Se déconnecter de tous les comptes",
     session_expired_tag: "Session expirée",
     default_account: "Par défaut",

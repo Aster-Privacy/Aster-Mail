@@ -1088,7 +1088,7 @@ function SettingsContentInner({
         <div
           ref={content_container_ref}
           className={`${is_popup ? "p-4 md:p-6" : "p-4 md:px-10 md:py-8 xl:px-16 2xl:px-24"} flex-1 overflow-y-auto overflow-x-hidden relative ${show_mobile_nav ? "hidden md:flex" : "flex"} flex-col`}
-          style={{ scrollbarGutter: "stable" }}
+          style={{ scrollbarGutter: "stable", overflowAnchor: "none" }}
         >
           {is_suspended && (
             <div

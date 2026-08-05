@@ -327,10 +327,11 @@ export function QuickSettingsPanel({
 
   return (
       <aside
-        className="quick_settings_panel hidden h-full w-[352px] max-w-[40vw] flex-shrink-0 flex-col overflow-hidden lg:flex"
+        className="quick_settings_panel my-2 mr-2 hidden w-[352px] max-w-[40vw] flex-shrink-0 flex-col overflow-hidden rounded-xl lg:flex"
         style={{
           backgroundColor: "var(--bg-primary)",
-          borderLeft: "1px solid var(--border-secondary)",
+          border: "1px solid var(--border-secondary)",
+          height: "calc(100% - 1rem)",
         }}
       >
         <div className="flex min-h-[56px] flex-shrink-0 items-center gap-3 px-4">

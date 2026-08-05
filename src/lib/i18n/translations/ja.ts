@@ -6990,6 +6990,7 @@ export const ja = {
     greeting_comma: "、",
     greeting_night: "夜更けに",
     manage_account: "アカウント設定",
+    official_account: "公式アカウント",
     sign_out_all: "すべてのアカウントからログアウト",
     session_expired_tag: "セッション期限切れ",
     default_account: "既定",

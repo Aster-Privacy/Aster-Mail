@@ -6802,6 +6802,7 @@ export const ko = {
     greeting_comma: ",",
     greeting_night: "늦은 밤이에요",
     manage_account: "계정 설정",
+    official_account: "공식 계정",
     sign_out_all: "모든 계정에서 로그아웃",
     session_expired_tag: "세션 만료됨",
     default_account: "기본",

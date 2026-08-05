@@ -7049,6 +7049,7 @@ export const pt = {
     greeting_comma: ",",
     greeting_night: "Pela madrugada",
     manage_account: "Definições da conta",
+    official_account: "Conta oficial",
     sign_out_all: "Terminar sessão em todas as contas",
     session_expired_tag: "Sessão expirada",
     default_account: "Predefinida",

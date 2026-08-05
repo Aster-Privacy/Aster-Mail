@@ -7037,6 +7037,7 @@ export const ru = {
     greeting_comma: ",",
     greeting_night: "Поздняя ночь",
     manage_account: "Настройки аккаунта",
+    official_account: "Официальный аккаунт",
     sign_out_all: "Выйти из всех аккаунтов",
     session_expired_tag: "Сессия истекла",
     default_account: "По умолчанию",

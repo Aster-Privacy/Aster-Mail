@@ -125,6 +125,7 @@ export function TopBar({
   const [show_account_tip, set_show_account_tip] = useState(false);
   const account_tip_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const account_tip_blocked = useRef(false);
+  const account_tip_anchor = useRef<HTMLDivElement>(null);
 
   const close_account_tip = useCallback(() => {
     if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
@@ -134,10 +135,10 @@ export function TopBar({
   const open_account_tip = useCallback(() => {
     if (account_tip_blocked.current) return;
     if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
-    account_tip_timer.current = setTimeout(
-      () => set_show_account_tip(true),
-      500,
-    );
+    account_tip_timer.current = setTimeout(() => {
+      if (!account_tip_anchor.current?.matches(":hover")) return;
+      set_show_account_tip(true);
+    }, 500);
   }, []);
 
   const open_feedback_settings = useCallback(() => {
@@ -339,6 +340,7 @@ export function TopBar({
         )}
 
         <div
+          ref={account_tip_anchor}
           className="relative"
           onMouseEnter={open_account_tip}
           onMouseLeave={leave_account_tip}

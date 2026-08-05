@@ -6391,6 +6391,7 @@ export const zh_CN = {
     greeting_comma: "，",
     greeting_night: "夜深了",
     manage_account: "账户设置",
+    official_account: "官方账户",
     sign_out_all: "退出所有账户",
     session_expired_tag: "会话已过期",
     default_account: "默认",
