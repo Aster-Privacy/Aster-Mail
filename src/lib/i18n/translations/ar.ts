@@ -186,7 +186,7 @@ export const ar = {
     move_folder_description: "اختر مجلدًا رئيسيًا جديدًا",
     select_parent_folder: "تحديد المجلد الرئيسي",
     top_level_no_parent: "المستوى الأعلى (بدون أصل)",
-    parent_folder: "Ø§Ù„Ù…Ø¬Ù„Ø¯ Ø§Ù„Ø£ØµÙ„",
+    parent_folder: "المجلد الأصل",
     move_up: "تحريك لأعلى",
     move_down: "تحريك لأسفل",
     move_to: "نقل إلى",
