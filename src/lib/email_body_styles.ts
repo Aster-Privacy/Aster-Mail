@@ -298,6 +298,11 @@ img {
 
 export const EMAIL_BODY_CSS = build_email_body_css();
 
+export const LINK_BUTTON_HOVER_SELECTOR =
+  'a[style*="background" i]:hover, [bgcolor] > a:hover';
+
+export const LINK_BUTTON_EXCLUDE = ':not([style*="background" i])';
+
 export function build_forced_dark_mode_css(accent_color = "#3b82f6", accent_color_hover = "#60a5fa") {
   return `
 html, body {
@@ -325,8 +330,10 @@ blockquote {
   color: #d4d4d4 !important;
 }
 
-a, a * { color: ${accent_color_hover} !important; }
-a:visited, a:visited * { color: #a78bfa !important; }
+a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${accent_color_hover} !important; }
+a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: #a78bfa !important; }
+
+a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }
 
 img { opacity: 0.87; }
 

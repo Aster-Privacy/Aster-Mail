@@ -58,6 +58,9 @@ import {
   ToolbarModals,
   use_batch_actions,
 } from "@/components/inbox/header/header_toolbar";
+import { cn } from "@/lib/utils";
+import { is_compact_density } from "@/lib/list_density";
+import { use_preferences } from "@/contexts/preferences_context";
 import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
 import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
@@ -206,8 +209,14 @@ export function InboxHeader({
   total_messages = 0,
 }: InboxHeaderProps) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const navigate = useNavigate();
   const is_native = Capacitor.isNativePlatform();
+  const compact_rows = is_compact_density(
+    preferences.mail_list_density ?? "",
+    preferences.compact_mode ?? false,
+  );
+  const select_all_size_class = compact_rows ? "w-7 h-7" : "w-8 h-8";
   const has_selection = all_selected || some_selected;
   const display_selected = select_all_mode ? total_messages : selected_count;
   const hide_mail_actions = is_drafts_view || is_scheduled_view;
@@ -286,16 +295,19 @@ export function InboxHeader({
   return (
     <>
       <div
-        className="flex select-none items-center justify-between gap-2 px-1 sm:px-2 py-1 min-h-[44px] overflow-hidden"
+        className="flex select-none items-center justify-between gap-2 pl-3 pr-1 sm:pl-4 sm:pr-2 py-1 min-h-[44px] overflow-hidden"
         data-inbox-toolbar
       >
-        <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
           {leading_left_slot}
           {on_toggle_select_all && (
-            <div className="group flex items-center flex-shrink-0 rounded-[12px]">
+            <div className="group flex items-center flex-shrink-0">
               <Tooltip tip={t("common.select_all")}>
                 <div
-                  className="w-9 h-9 flex items-center justify-center cursor-pointer"
+                  className={cn(
+                    "flex items-center justify-center cursor-pointer rounded-full",
+                    select_all_size_class,
+                  )}
                   role="button"
                   tabIndex={0}
                   onClick={() => on_toggle_select_all()}

@@ -22,7 +22,12 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { start_iframe_autoscroll } from "@/components/email/iframe_autoscroll";
-import { build_email_body_css, build_forced_dark_mode_css } from "@/lib/email_body_styles";
+import {
+  build_email_body_css,
+  build_forced_dark_mode_css,
+  LINK_BUTTON_EXCLUDE,
+  LINK_BUTTON_HOVER_SELECTOR,
+} from "@/lib/email_body_styles";
 import { hex_to_rgba } from "@/lib/material_theme";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
@@ -522,15 +527,18 @@ export function SandboxedEmailRenderer({
   const link_hover_ink = link_ink_for(is_dark_theme ? accent_hover_hex : accent_hex);
 
   const link_underline_css = preferences.link_underlines
-    ? `a, a * { text-decoration: underline !important; text-decoration-color: ${link_hover_ink} !important; text-underline-offset: 2px; }`
+    ? `a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { text-decoration: underline !important; text-decoration-color: ${link_hover_ink} !important; text-underline-offset: 2px; }`
     : "";
 
   const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
   const link_hover_css = `a { transition: none; }
-a:hover, a:hover *${LINK_MEDIA_EXCLUDE} {
+a${LINK_BUTTON_EXCLUDE}:hover, a${LINK_BUTTON_EXCLUDE}:hover *${LINK_MEDIA_EXCLUDE} {
   color: ${link_hover_ink} !important;
   text-decoration: underline !important;
   text-decoration-color: ${link_hover_ink} !important;
+}
+${LINK_BUTTON_HOVER_SELECTOR} {
+  filter: brightness(1.08);
 }
 a:focus-visible {
   outline: 2px solid ${link_hover_ink} !important;
@@ -549,7 +557,8 @@ a:focus-visible {
 html, body { background-color: transparent !important; color: ${plain_text_color} !important; }
 body *${QUOTE_SCOPE_EXCLUDE} { color: inherit !important; }
 body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
-a, a * { color: ${link_hover_ink} !important; }`
+a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_hover_ink} !important; }
+a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }`
       : "";
   const dark_mode_css = force_dark_mode
     ? build_forced_dark_mode_css(accent_hex, link_hover_ink)

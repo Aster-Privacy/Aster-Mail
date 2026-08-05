@@ -28,7 +28,10 @@ import {
   type MailItemsRemovedEventDetail,
 } from "./mail_events";
 import { mark_view_stale } from "./email_list_cache";
-import { compute_should_remove_from_view } from "./view_membership";
+import {
+  compute_should_remove_from_view,
+  destination_views_for_update,
+} from "./view_membership";
 import { DEFAULT_PAGE_SIZE } from "./email_list_helpers";
 
 export { compute_should_remove_from_view } from "./view_membership";
@@ -83,6 +86,19 @@ export function apply_item_update_to_rows(
   });
 
   return { emails: next, needs_refetch };
+}
+
+export const ENTERED_VIEW_REFETCH_DELAY_MS = 60;
+
+export function entered_current_view(
+  emails: InboxEmail[],
+  detail: MailItemUpdatedEventDetail,
+  current_view: string,
+): boolean {
+  if (emails.some((e) => e.id === detail.id)) return false;
+  if (row_contains_sibling(emails, detail.id)) return false;
+
+  return destination_views_for_update(detail).includes(current_view);
 }
 
 export function row_contains_sibling(
@@ -304,19 +320,20 @@ export function use_email_list_events({
   }, [has_keys, is_mail_view, silent_fetch_ref, last_fetch_ref]);
 
   useEffect(() => {
+    let refetch_timer: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule_silent_refetch = () => {
+      if (refetch_timer) clearTimeout(refetch_timer);
+      refetch_timer = setTimeout(() => {
+        refetch_timer = null;
+        silent_fetch_ref.current?.();
+      }, ENTERED_VIEW_REFETCH_DELAY_MS);
+    };
+
     const handle_item_update = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
 
       mark_preload_stale(detail.id);
-
-      let refetch_scheduled = false;
-      const schedule_silent_refetch = () => {
-        if (refetch_scheduled) return;
-        refetch_scheduled = true;
-        queueMicrotask(() => {
-          silent_fetch_ref.current?.();
-        });
-      };
 
       if (compute_should_remove_from_view(detail, current_view)) {
         set_state((prev) => {
@@ -346,7 +363,7 @@ export function use_email_list_events({
           detail,
         );
 
-        if (needs_refetch) {
+        if (needs_refetch || entered_current_view(prev.emails, detail, current_view)) {
           schedule_silent_refetch();
         }
 
@@ -382,6 +399,7 @@ export function use_email_list_events({
     );
 
     return () => {
+      if (refetch_timer) clearTimeout(refetch_timer);
       window.removeEventListener(
         MAIL_EVENTS.MAIL_ITEM_UPDATED,
         handle_item_update,
