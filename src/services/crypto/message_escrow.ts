@@ -28,6 +28,48 @@ import {
 const HASH_ALG = ["SHA", "256"].join("-");
 const API_BASE = "/crypto/v1/ratchet";
 const MAX_ESCROW_PLAINTEXT_BYTES = 100 * 1024;
+const ESCROW_MISS_TTL_MS = 10 * 60 * 1000;
+const MAX_TRACKED_ESCROW_MISSES = 5000;
+
+const escrow_misses = new Map<string, number>();
+
+function record_escrow_miss(dedupe_key: string): void {
+  if (escrow_misses.size >= MAX_TRACKED_ESCROW_MISSES) {
+    const now = Date.now();
+
+    for (const [key, missed_at] of escrow_misses) {
+      if (now - missed_at > ESCROW_MISS_TTL_MS) escrow_misses.delete(key);
+    }
+
+    while (escrow_misses.size >= MAX_TRACKED_ESCROW_MISSES) {
+      const oldest = escrow_misses.keys().next();
+
+      if (oldest.done) break;
+
+      escrow_misses.delete(oldest.value);
+    }
+  }
+
+  escrow_misses.set(dedupe_key, Date.now());
+}
+
+function has_recent_escrow_miss(dedupe_key: string): boolean {
+  const missed_at = escrow_misses.get(dedupe_key);
+
+  if (missed_at === undefined) return false;
+
+  if (Date.now() - missed_at > ESCROW_MISS_TTL_MS) {
+    escrow_misses.delete(dedupe_key);
+
+    return false;
+  }
+
+  return true;
+}
+
+export function clear_escrow_miss_cache(): void {
+  escrow_misses.clear();
+}
 
 interface EscrowEntry {
   message_id: string;
@@ -146,12 +188,16 @@ export async function upload_to_escrow(
     encrypted_plaintext: array_to_base64(new Uint8Array(ciphertext)),
     plaintext_nonce: array_to_base64(nonce),
   });
+
+  escrow_misses.delete(dedupe_key);
 }
 
 export async function fetch_from_escrow(
   dedupe_key: string,
 ): Promise<string | null> {
   if (!dedupe_key) return null;
+
+  if (has_recent_escrow_miss(dedupe_key)) return null;
 
   const escrow_key = await get_escrow_key();
 
@@ -162,8 +208,12 @@ export async function fetch_from_escrow(
   );
 
   if (response.code === "NOT_FOUND" || response.error || !response.data) {
+    record_escrow_miss(dedupe_key);
+
     return null;
   }
+
+  escrow_misses.delete(dedupe_key);
 
   try {
     const ciphertext = base64_to_array(response.data.encrypted_plaintext);

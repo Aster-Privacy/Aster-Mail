@@ -48,6 +48,7 @@ import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { clear_plaintext_cache } from "@/services/crypto/ratchet_plaintext_cache";
+import { clear_escrow_miss_cache } from "@/services/crypto/message_escrow";
 import { clear_translation_cache } from "@/services/translation/translation_cache";
 import { clear_detection_cache } from "@/services/translation/language_detect";
 import { release_engines } from "@/services/translation/engine_registry";
@@ -58,6 +59,7 @@ export async function purge_all_local_data(): Promise<void> {
   stop_session_timeout();
   sync_client.disconnect();
   clear_vault_from_memory();
+  clear_escrow_miss_cache();
   api_client.set_expected_user_id(null);
 
   api_client.begin_intentional_logout();
