@@ -379,13 +379,23 @@ export async function fetch_internal_public_keys(
   for (const recipient of internal_recipients) {
     const username = await resolve_username_for_key_lookup(recipient);
 
-    if (!username) continue;
+    if (!username) {
+      throw create_error(
+        "encryption_failed",
+        en.errors.cannot_send_no_recipient_keys,
+      );
+    }
 
     const key_response = await get_recipient_public_key(username, recipient);
 
-    if (key_response.data) {
-      public_keys.push(key_response.data.public_key);
+    if (key_response.error || !key_response.data) {
+      throw create_error(
+        "encryption_failed",
+        en.errors.cannot_send_no_recipient_keys,
+      );
     }
+
+    public_keys.push(key_response.data.public_key);
   }
 
   return public_keys;
