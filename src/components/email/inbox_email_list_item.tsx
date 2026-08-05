@@ -173,6 +173,17 @@ function StarToggleButton({
   );
 }
 
+function sweep_drag_images(): void {
+  document
+    .querySelectorAll('[data-astermail-drag-image="1"]')
+    .forEach((node) => node.remove());
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("dragend", sweep_drag_images);
+  window.addEventListener("drop", sweep_drag_images);
+}
+
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
     function InboxEmailListItem(
@@ -260,25 +271,14 @@ export const InboxEmailListItem = memo(
 
       const [is_dragging, set_is_dragging] = useState(false);
       const drag_image_ref = useRef<HTMLDivElement | null>(null);
-      const [, set_alias_version] = useState(0);
+      const [alias_version, set_alias_version] = useState(0);
 
       useEffect(() => {
         return subscribe_aliases(() => set_alias_version((v) => v + 1));
       }, []);
 
       useEffect(() => {
-        const sweep = () => {
-          document
-            .querySelectorAll('[data-astermail-drag-image="1"]')
-            .forEach((n) => n.remove());
-        };
-
-        window.addEventListener("dragend", sweep);
-        window.addEventListener("drop", sweep);
-
         return () => {
-          window.removeEventListener("dragend", sweep);
-          window.removeEventListener("drop", sweep);
           if (drag_image_ref.current) {
             drag_image_ref.current.remove();
             drag_image_ref.current = null;
@@ -286,10 +286,28 @@ export const InboxEmailListItem = memo(
         };
       }, []);
 
+      const custom_domain_label = useMemo(() => {
+        const match = email.recipient_addresses?.find((address) => {
+          const lower = address.toLowerCase();
+          const domain = lower.split("@")[1];
+
+          if (
+            !domain ||
+            domain === "astermail.org" ||
+            domain === "aster.cx" ||
+            domain === "gs-cloud.space"
+          ) {
+            return false;
+          }
+
+          return get_alias_hash_by_address(lower) !== null;
+        });
+
+        return match ? match.split("@")[1] : null;
+      }, [email.recipient_addresses, alias_version]);
+
       const handle_drag_start = (e: React.DragEvent<HTMLDivElement>) => {
-        document
-          .querySelectorAll('[data-astermail-drag-image="1"]')
-          .forEach((n) => n.remove());
+        sweep_drag_images();
 
         const snapshot = selection?.current ?? empty_selection_snapshot;
         const is_multi = !!email.is_selected && snapshot.ids.length > 1;
@@ -662,34 +680,16 @@ export const InboxEmailListItem = memo(
                 />
               )}
 
-              {(() => {
-                const custom_domain = email.recipient_addresses?.find((a) => {
-                  const lower = a.toLowerCase();
-                  const d = lower.split("@")[1];
-
-                  if (
-                    !d ||
-                    d === "astermail.org" ||
-                    d === "aster.cx" ||
-                    d === "gs-cloud.space"
-                  ) {
-                    return false;
-                  }
-
-                  return get_alias_hash_by_address(lower) !== null;
-                });
-
-                return custom_domain ? (
-                  <EmailTag
-                    show_icon
-                    className="flex-shrink-0 hidden sm:inline-flex"
-                    icon="globe"
-                    label={custom_domain.split("@")[1]}
-                    muted={email.is_read}
-                    variant="blue"
-                  />
-                ) : null;
-              })()}
+              {custom_domain_label && (
+                <EmailTag
+                  show_icon
+                  className="flex-shrink-0 hidden sm:inline-flex"
+                  icon="globe"
+                  label={custom_domain_label}
+                  muted={email.is_read}
+                  variant="blue"
+                />
+              )}
 
               {email.phishing_level === "suspicious" && (
                 <span className="flex-shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#d97706]">

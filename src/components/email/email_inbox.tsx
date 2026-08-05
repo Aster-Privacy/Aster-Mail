@@ -1395,6 +1395,24 @@ export function EmailInbox({
 
     return hints.length > 0 ? hints : undefined;
   }, [split_email_id, filtered_emails, email_state.emails]);
+  const handle_list_snooze = useCallback(
+    (email: InboxEmail, snooze_until: Date) =>
+      handle_snooze(email.id, snooze_until),
+    [handle_snooze],
+  );
+  const handle_list_unsnooze = useCallback(
+    (email: InboxEmail) => handle_unsnooze(email.id),
+    [handle_unsnooze],
+  );
+  const list_tags = useMemo(
+    () =>
+      tags_state.tags.map((tag) => ({
+        tag_token: tag.tag_token,
+        name: tag.name,
+        color: tag.color || "#6366f1",
+      })),
+    [tags_state.tags],
+  );
   const viewer_folders = useMemo(
     () =>
       folders_state.folders
@@ -1436,6 +1454,7 @@ export function EmailInbox({
       const container = e.currentTarget;
 
       list_scroll_top_ref.current = container.scrollTop;
+
       container.classList.add("list_scrolling");
 
       if (scroll_idle_timer_ref.current !== null) {
@@ -1528,15 +1547,9 @@ export function EmailInbox({
                 density={resolve_list_density(preferences.mail_list_density)}
                 focused_email_id={focused_email_id}
                 on_category_change={handle_category_change}
-                folders={folders_state.folders
-                  .filter((f) => !f.is_system)
-                  .map((f) => ({
-                    id: f.folder_token,
-                    name: f.name,
-                    color: f.color || "#6366f1",
-                  }))}
+                folders={viewer_folders}
                 on_archive={context_menu_actions.handle_archive}
-                on_custom_snooze={(email) => set_custom_snooze_email(email)}
+                on_custom_snooze={set_custom_snooze_email}
                 on_delete={context_menu_actions.handle_delete}
                 on_email_click={nav.handle_email_click}
                 on_find_from_sender={
@@ -1552,9 +1565,7 @@ export function EmailInbox({
                 on_reply={context_menu_actions.handle_reply}
                 on_reply_all={context_menu_actions.handle_reply_all}
                 on_restore={context_menu_actions.handle_restore}
-                on_snooze={(email, snooze_until) =>
-                  handle_snooze(email.id, snooze_until)
-                }
+                on_snooze={handle_list_snooze}
                 on_spam={context_menu_actions.handle_spam}
                 on_tag_toggle={context_menu_actions.handle_tag_toggle}
                 on_toggle_pin={context_menu_actions.handle_toggle_pin}
@@ -1562,7 +1573,7 @@ export function EmailInbox({
                 on_select_only={selection.handle_select_only}
                 on_toggle_select={selection.handle_toggle_select}
                 on_toggle_star={context_menu_actions.handle_toggle_star}
-                on_unsnooze={(email) => handle_unsnooze(email.id)}
+                on_unsnooze={handle_list_unsnooze}
                 pinned_emails={pinned_emails}
                 primary_emails={primary_emails}
                 selected_email_id={active_email_id ?? split_scheduled_data?.id}
@@ -1570,11 +1581,7 @@ export function EmailInbox({
                 show_message_size={preferences.show_message_size}
                 show_profile_pictures={preferences.show_profile_pictures}
                 show_thread_count={preferences.conversation_grouping !== false}
-                tags={tags_state.tags.map((t) => ({
-                  tag_token: t.tag_token,
-                  name: t.name,
-                  color: t.color || "#6366f1",
-                }))}
+                tags={list_tags}
               />
             )}
             {!skeleton_visible &&
