@@ -115,7 +115,7 @@ export function ContactResultRow({
 
   return (
     <div
-      className="group flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
+      className="group flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)] focus:outline-none focus-visible:outline-2 focus-visible:outline-[var(--accent-color,#3b82f6)]"
       role="button"
       tabIndex={0}
       onClick={on_click}

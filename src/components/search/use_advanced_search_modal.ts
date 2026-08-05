@@ -38,6 +38,7 @@ interface UseAdvancedSearchModalOptions {
   on_close: () => void;
   on_result_click?: (id: string) => void;
   on_search_submit?: (query: string) => void;
+  on_query_change?: (query: string) => void;
 }
 
 export function use_advanced_search_modal({
@@ -45,6 +46,7 @@ export function use_advanced_search_modal({
   on_close,
   on_result_click,
   on_search_submit,
+  on_query_change,
 }: UseAdvancedSearchModalOptions) {
   const {
     state,
@@ -244,14 +246,23 @@ export function use_advanced_search_modal({
 
   const handle_result_click = useCallback(
     (mail_id: string) => {
+      const applied_query = state.raw_query.trim();
+
       handle_close();
+      if (applied_query.length > 0) on_query_change?.(applied_query);
       if (on_result_click) {
         on_result_click(mail_id);
       } else {
         navigate(`/email/${mail_id}`);
       }
     },
-    [handle_close, on_result_click, navigate],
+    [
+      handle_close,
+      on_result_click,
+      on_query_change,
+      state.raw_query,
+      navigate,
+    ],
   );
 
   const handle_key_down = useCallback(

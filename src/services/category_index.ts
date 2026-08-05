@@ -1092,6 +1092,19 @@ export function is_representative_unread(id: string): boolean {
   return ensure_derived().unread_reps.has(id);
 }
 
+export function is_recently_read(id: string): boolean {
+  const noted = recently_read.get(id);
+
+  if (noted === undefined) return false;
+  if (now_ms() - noted >= RECENT_READ_GUARD_MS) {
+    recently_read.delete(id);
+
+    return false;
+  }
+
+  return entries_map.get(id)?.is_read !== false;
+}
+
 export function get_category_action_ids(category: EmailCategory): {
   rep_ids: string[];
   all_ids: string[];

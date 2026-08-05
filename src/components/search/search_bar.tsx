@@ -171,6 +171,23 @@ export function SearchBar({
     [on_search_submit, close],
   );
 
+  const handle_advanced_submit = useCallback(
+    (q: string) => {
+      set_query(q);
+      on_search_submit?.(q);
+    },
+    [on_search_submit],
+  );
+
+  const handle_advanced_result_click = useCallback(
+    (id: string) => {
+      close();
+      input_ref.current?.blur();
+      on_result_click?.(id);
+    },
+    [close, on_result_click],
+  );
+
   const handle_change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
@@ -617,7 +634,9 @@ export function SearchBar({
       <AdvancedSearchModal
         is_open={is_advanced_open}
         on_close={() => set_is_advanced_open(false)}
-        on_search_submit={on_search_submit}
+        on_query_change={set_query}
+        on_result_click={handle_advanced_result_click}
+        on_search_submit={handle_advanced_submit}
       />
     </>
   );

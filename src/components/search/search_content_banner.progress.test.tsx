@@ -126,23 +126,21 @@ describe("SearchContentBanner progress row", () => {
     expect(el.textContent).toContain("mail.message_download_status");
   });
 
-  it("keeps a fixed-height row while the total is still unknown", () => {
+  it("leaves no empty row while the total is still unknown", () => {
     progress_state.building = true;
 
     const el = render();
-    const row = el.querySelector<HTMLElement>(".h-\\[38px\\]");
 
-    expect(row).not.toBeNull();
+    expect(el.querySelector(".h-\\[38px\\]")).toBeNull();
     expect(progress_bar(el)).toBeNull();
   });
 
-  it("reserves the same height in both download phases", () => {
+  it("adds the progress row only once the total is known", () => {
     progress_state.building = true;
 
     const unknown_total = render();
-    const unknown_row = unknown_total.querySelector(".h-\\[38px\\]");
 
-    expect(unknown_row).not.toBeNull();
+    expect(unknown_total.querySelector(".h-\\[38px\\]")).toBeNull();
 
     act(() => root?.unmount());
     container?.remove();
@@ -163,6 +161,60 @@ describe("SearchContentBanner progress row", () => {
     const el = render();
 
     expect(progress_bar(el)).toBeNull();
+  });
+
+  it("keeps the row mounted when the reported total briefly drops out", () => {
+    progress_state.building = true;
+    progress_state.current = 40;
+    progress_state.total = 200;
+
+    const el = render();
+
+    expect(el.querySelector(".h-\\[38px\\]")).not.toBeNull();
+
+    act(() => {
+      progress_state.current = 0;
+      progress_state.total = 0;
+      root!.render(
+        <SearchContentBanner
+          enabled
+          on_disable={() => {}}
+          on_enable={() => {}}
+        />,
+      );
+    });
+
+    expect(el.querySelector(".h-\\[38px\\]")).not.toBeNull();
+    expect(el.textContent).toContain("mail.message_download_status");
+  });
+
+  it("never walks the progress fill backwards within a session", () => {
+    progress_state.building = true;
+    progress_state.current = 120;
+    progress_state.total = 200;
+
+    const el = render();
+
+    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
+      "style.width",
+      "60%",
+    );
+
+    act(() => {
+      progress_state.current = 20;
+      root!.render(
+        <SearchContentBanner
+          enabled
+          on_disable={() => {}}
+          on_enable={() => {}}
+        />,
+      );
+    });
+
+    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
+      "style.width",
+      "60%",
+    );
   });
 
   it("shows the bar while paused with a known total", () => {

@@ -79,6 +79,7 @@ export interface AdvancedSearchModalProps {
   current_folder?: string;
   on_result_click?: (id: string) => void;
   on_search_submit?: (query: string) => void;
+  on_query_change?: (query: string) => void;
 }
 
 export function search_result_to_inbox_email(

@@ -48,6 +48,7 @@ export function AdvancedSearchModal({
   current_folder: _current_folder,
   on_result_click,
   on_search_submit,
+  on_query_change,
 }: AdvancedSearchModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -81,6 +82,7 @@ export function AdvancedSearchModal({
     on_close,
     on_result_click,
     on_search_submit,
+    on_query_change,
   });
 
   return (

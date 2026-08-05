@@ -41,6 +41,7 @@ interface SearchContentBannerProps {
 
 const ETA_SAMPLE_WINDOW_MS = 60000;
 const ETA_MIN_ELAPSED_S = 2;
+const INDEXING_ROW_LINGER_MS = 900;
 
 function format_remaining_duration(seconds: number, locale: string): string {
   const unit_text = (value: number, unit: string): string => {
@@ -137,13 +138,37 @@ export function SearchContentBanner({
 
   const is_paused = download.paused;
   const is_downloading = progress.building && !is_paused;
-  const has_progress =
-    progress.total > 0 && progress.current < progress.total;
-  const is_active_download = is_downloading && has_progress;
-  const done = is_paused ? download.done : progress.current;
-  const total = is_paused ? download.total : progress.total;
-  const pct =
-    total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+  const indexing_active = is_downloading || is_paused;
+  const reported_done = is_paused ? download.done : progress.current;
+  const reported_total = is_paused ? download.total : progress.total;
+  const [counts, set_counts] = useState({ done: 0, total: 0 });
+
+  useEffect(() => {
+    if (!indexing_active) {
+      const timer = setTimeout(
+        () => set_counts({ done: 0, total: 0 }),
+        INDEXING_ROW_LINGER_MS,
+      );
+
+      return () => clearTimeout(timer);
+    }
+
+    if (reported_total <= 0) return;
+
+    set_counts((prev) => {
+      if (reported_total !== prev.total) {
+        return { done: reported_done, total: reported_total };
+      }
+
+      return reported_done > prev.done ? { ...prev, done: reported_done } : prev;
+    });
+  }, [indexing_active, reported_done, reported_total]);
+
+  const done = counts.done;
+  const total = counts.total;
+  const show_bar = total > 0;
+  const is_active_download = is_downloading && show_bar && done < total;
+  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
   const eta_seconds = use_download_eta(done, total, is_active_download);
 
   const handle_pause = () => {
@@ -165,13 +190,9 @@ export function SearchContentBanner({
   if (enabled) {
     const header_text = is_paused
       ? t("mail.download_paused")
-      : is_downloading
+      : is_downloading || show_bar
         ? t("mail.indexing_messages")
         : t("mail.searching_message_content");
-
-    const show_bar =
-      (is_downloading && has_progress) || (is_paused && download.total > 0);
-    const reserve_row = is_downloading || is_paused;
 
     return (
       <div className="px-4 pt-3 pb-2.5 border-b border-edge-secondary">
@@ -180,6 +201,7 @@ export function SearchContentBanner({
             <span className="truncate text-[13px] font-medium text-txt-primary">
               {header_text}
             </span>
+            {is_downloading && !show_bar && <Spinner size="xs" />}
             {help_button}
           </span>
           <Switch
@@ -189,58 +211,46 @@ export function SearchContentBanner({
             onCheckedChange={on_disable}
           />
         </div>
-        {reserve_row && (
+        {show_bar && (
           <div className="mt-2 h-[38px]">
-            {show_bar ? (
-              <>
-                <div className="flex h-4 items-center gap-3">
-                  <div className="h-1 flex-1 rounded-full bg-surf-secondary overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${pct}%`,
-                        backgroundColor: "var(--accent-color)",
-                        opacity: is_paused ? 0.4 : 1,
-                      }}
-                    />
-                  </div>
-                  {is_active_download && (
-                    <button
-                      className="text-[11px] font-medium text-txt-muted hover:text-txt-primary transition-colors flex-shrink-0"
-                      onClick={handle_pause}
-                      type="button"
-                    >
-                      {t("mail.pause_download_action")}
-                    </button>
-                  )}
-                  {is_paused && (
-                    <button
-                      className="text-[11px] font-medium text-[var(--accent-color)] hover:opacity-80 transition-opacity flex-shrink-0"
-                      onClick={handle_resume}
-                      type="button"
-                    >
-                      {t("mail.resume_download_action")}
-                    </button>
-                  )}
-                </div>
-                <p className="mt-1.5 h-4 text-[11px] leading-4 text-txt-muted tabular-nums">
-                  {t("mail.message_download_status", { done, total })}
-                  {is_active_download && eta_seconds !== null
-                    ? ` · ${t("mail.estimated_time_remaining", {
-                        duration: format_remaining_duration(
-                          eta_seconds,
-                          language,
-                        ),
-                      })}`
-                    : ""}
-                </p>
-              </>
-            ) : (
-              <p className="flex h-4 items-center gap-1.5 text-[11px] leading-4 text-txt-muted">
-                <Spinner size="xs" />
-                {t("mail.indexing_messages")}
-              </p>
-            )}
+            <div className="flex h-4 items-center gap-3">
+              <div className="h-1 flex-1 rounded-full bg-surf-secondary overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: "var(--accent-color)",
+                    opacity: is_paused ? 0.4 : 1,
+                  }}
+                />
+              </div>
+              {is_active_download && (
+                <button
+                  className="text-[11px] font-medium text-txt-muted hover:text-txt-primary transition-colors flex-shrink-0"
+                  onClick={handle_pause}
+                  type="button"
+                >
+                  {t("mail.pause_download_action")}
+                </button>
+              )}
+              {is_paused && (
+                <button
+                  className="text-[11px] font-medium text-[var(--accent-color)] hover:opacity-80 transition-opacity flex-shrink-0"
+                  onClick={handle_resume}
+                  type="button"
+                >
+                  {t("mail.resume_download_action")}
+                </button>
+              )}
+            </div>
+            <p className="mt-1.5 h-4 text-[11px] leading-4 text-txt-muted tabular-nums">
+              {t("mail.message_download_status", { done, total })}
+              {is_active_download && eta_seconds !== null
+                ? ` · ${t("mail.estimated_time_remaining", {
+                    duration: format_remaining_duration(eta_seconds, language),
+                  })}`
+                : ""}
+            </p>
           </div>
         )}
       </div>
