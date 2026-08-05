@@ -1944,6 +1944,8 @@ export const it = {
       "Prenotazioni, itinerari e conferme da compagnie aeree, hotel e servizi di trasporto.",
     category_info_shopping:
       "Conferme d'ordine, aggiornamenti di spedizione e avvisi di consegna.",
+    category_info_custom:
+      "Email che corrispondono alle tue regole personalizzate per questa categoria.",
     custom_categories_title: "Categorie personalizzate",
     custom_categories_tutorial:
       "Crea la tua categoria personalizzata. Abbina le email in base al dominio del mittente o a una parola chiave nell'oggetto.",
@@ -2460,6 +2462,7 @@ export const it = {
       "Aggiorna il tuo piano per usare i contatti con alias inverso.",
     alias_feature_locked_sender_pinning:
       "Aggiorna il tuo piano per usare il blocco del mittente.",
+    requires_plan: "Richiede {{plan}}",
     alias_feature_locked_view_plans: "Visualizza i piani",
     alias_feature_locked_upgrade_plan: "Aggiorna piano",
     alias_feature_locked_upgrade_cta: "Aggiorna",

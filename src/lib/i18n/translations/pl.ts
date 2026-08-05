@@ -1937,6 +1937,8 @@ export const pl = {
       "Rezerwacje, plany podróży i potwierdzenia od linii lotniczych, hoteli i przewozów.",
     category_info_shopping:
       "Potwierdzenia zamówień, aktualizacje wysyłki i powiadomienia o dostawie.",
+    category_info_custom:
+      "Wiadomości pasujące do Twoich własnych reguł dla tej kategorii.",
     custom_categories_title: "Kategorie niestandardowe",
     custom_categories_tutorial:
       "Utwórz własną kategorię. Dopasuj wiadomości według domeny nadawcy lub słowa kluczowego w temacie.",
@@ -2457,6 +2459,7 @@ export const pl = {
       "Przejdź na wyższy plan, aby korzystać z kontaktów odwrotnych aliasów.",
     alias_feature_locked_sender_pinning:
       "Przejdź na wyższy plan, aby korzystać z przypinania nadawców.",
+    requires_plan: "Wymaga {{plan}}",
     alias_feature_locked_view_plans: "Zobacz plany",
     alias_feature_locked_upgrade_plan: "Zmień plan na wyższy",
     alias_feature_locked_upgrade_cta: "Ulepsz",

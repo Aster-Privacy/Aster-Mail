@@ -2359,7 +2359,7 @@ export const en: Translations = {
     auto_advance_next: "Go to next email",
     auto_advance_previous: "Go to previous email",
     auto_advance_back: "Return to email list",
-    reading_pane_position: "Reading Pane Position",
+    reading_pane_position: "Reading pane position",
     reading_pane_description: "Where to show the email preview",
     right_side: "Right side",
     bottom: "Bottom",
@@ -2396,6 +2396,8 @@ export const en: Translations = {
       "Bookings, itineraries, and confirmations from airlines, hotels, and rideshare.",
     category_info_shopping:
       "Order confirmations, shipping updates, and delivery notices.",
+    category_info_custom:
+      "Emails matching your custom rules for this category.",
     custom_categories_title: "Custom Categories",
     custom_categories_tutorial:
       "Make a category of your own. Match mail by sender domain or a subject keyword.",
@@ -6016,6 +6018,7 @@ export const en: Translations = {
     alias_feature_locked_delivery_log:
       "Upgrade your plan to see what was blocked.",
     alias_paid_badge: "Paid",
+    requires_plan: "Requires {{plan}}",
     alias_feature_locked_view_plans: "View plans",
     alias_feature_locked_upgrade_plan: "Upgrade plan",
     alias_feature_locked_upgrade_cta: "Upgrade",

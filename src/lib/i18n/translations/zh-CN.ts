@@ -1759,6 +1759,8 @@ export const zh_CN = {
     category_info_finance: "来自银行和金融服务机构的对账单、发票和提醒。",
     category_info_travel: "来自航空公司、酒店和网约车的预订、行程和确认信息。",
     category_info_shopping: "订单确认、发货更新和送达通知。",
+    category_info_custom:
+      "符合此类别自定义规则的邮件。",
     custom_categories_title: "自定义分类",
     custom_categories_tutorial:
       "创建属于你自己的分类。按发件人域名或主题关键词匹配邮件。",
@@ -2225,6 +2227,7 @@ export const zh_CN = {
     alias_feature_locked_relay: "升级你的套餐以使用外部中继。",
     alias_feature_locked_contacts: "升级你的套餐以使用反向别名联系人。",
     alias_feature_locked_sender_pinning: "升级你的套餐以使用发件人锁定。",
+    requires_plan: "需要 {{plan}}",
     alias_feature_locked_view_plans: "查看套餐",
     alias_feature_locked_upgrade_plan: "升级套餐",
     alias_feature_locked_upgrade_cta: "升级",

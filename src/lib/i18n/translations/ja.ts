@@ -1919,6 +1919,8 @@ export const ja = {
     category_info_travel:
       "航空会社、ホテル、配車サービスからの予約、旅程、確認メール。",
     category_info_shopping: "注文確認、配送状況の更新、配達通知。",
+    category_info_custom:
+      "このカテゴリのカスタムルールに一致するメール。",
     custom_categories_title: "カスタムカテゴリ",
     custom_categories_tutorial:
       "自分だけのカテゴリを作りましょう。送信者のドメインや件名のキーワードでメールを振り分けます。",
@@ -2436,6 +2438,7 @@ export const ja = {
       "リバースエイリアスの連絡先を使用するにはプランをアップグレードしてください。",
     alias_feature_locked_sender_pinning:
       "送信者の固定を使用するにはプランをアップグレードしてください。",
+    requires_plan: "{{plan}} が必要です",
     alias_feature_locked_view_plans: "プランを表示",
     alias_feature_locked_upgrade_plan: "プランをアップグレード",
     alias_feature_locked_upgrade_cta: "アップグレード",

@@ -1954,6 +1954,8 @@ export const de = {
       "Buchungen, Reisepläne und Bestätigungen von Fluggesellschaften, Hotels und Fahrdiensten.",
     category_info_shopping:
       "Bestellbestätigungen, Versandaktualisierungen und Lieferhinweise.",
+    category_info_custom:
+      "E-Mails, die deinen eigenen Regeln für diese Kategorie entsprechen.",
     custom_categories_title: "Eigene Kategorien",
     custom_categories_tutorial:
       "Erstelle deine eigene Kategorie. Ordne E-Mails nach Absenderdomain oder einem Betreff-Stichwort zu.",
@@ -2483,6 +2485,7 @@ export const de = {
       "Wechsle deinen Tarif, um Reverse-Alias-Kontakte zu nutzen.",
     alias_feature_locked_sender_pinning:
       "Wechsle deinen Tarif, um die Absender-Bindung zu nutzen.",
+    requires_plan: "Erfordert {{plan}}",
     alias_feature_locked_view_plans: "Tarife ansehen",
     alias_feature_locked_upgrade_plan: "Tarif upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",

@@ -1873,6 +1873,8 @@ export const nl = {
       "Boekingen, reisschema's en bevestigingen van luchtvaartmaatschappijen, hotels en ritservices.",
     category_info_shopping:
       "Bestelbevestigingen, verzendupdates en bezorgmeldingen.",
+    category_info_custom:
+      "E-mails die overeenkomen met je eigen regels voor deze categorie.",
     custom_categories_title: "Aangepaste categorieën",
     custom_categories_tutorial:
       "Maak je eigen categorie. Match e-mails op afzenderdomein of een trefwoord in het onderwerp.",
@@ -2389,6 +2391,7 @@ export const nl = {
       "Upgrade je abonnement om contacten met omgekeerde alias te gebruiken.",
     alias_feature_locked_sender_pinning:
       "Upgrade je abonnement om afzender vastzetten te gebruiken.",
+    requires_plan: "Vereist {{plan}}",
     alias_feature_locked_view_plans: "Abonnementen bekijken",
     alias_feature_locked_upgrade_plan: "Abonnement upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",

@@ -1924,6 +1924,8 @@ export const tr = {
       "Havayollarından, otellerden ve yolculuk hizmetlerinden gelen rezervasyonlar, seyahat planları ve onaylar.",
     category_info_shopping:
       "Sipariş onayları, kargo güncellemeleri ve teslimat bildirimleri.",
+    category_info_custom:
+      "Bu kategori için özel kurallarınızla eşleşen e-postalar.",
     custom_categories_title: "Özel Kategoriler",
     custom_categories_tutorial:
       "Kendi kategorinizi oluşturun. E-postaları gönderen alan adına veya konu anahtar kelimesine göre eşleştirin.",
@@ -2431,6 +2433,7 @@ export const tr = {
       "Ters rumuz kişilerini kullanmak için planınızı yükseltin.",
     alias_feature_locked_sender_pinning:
       "Gönderen sabitlemeyi kullanmak için planınızı yükseltin.",
+    requires_plan: "{{plan}} gerekir",
     alias_feature_locked_view_plans: "Planları görüntüle",
     alias_feature_locked_upgrade_plan: "Planı yükselt",
     alias_feature_locked_upgrade_cta: "Yükselt",

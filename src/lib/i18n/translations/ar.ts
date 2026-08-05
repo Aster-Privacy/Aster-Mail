@@ -1855,6 +1855,8 @@ export const ar = {
     category_info_travel:
       "حجوزات وخطط رحلات وتأكيدات من شركات الطيران والفنادق وخدمات النقل.",
     category_info_shopping: "تأكيدات الطلبات وتحديثات الشحن وإشعارات التوصيل.",
+    category_info_custom:
+      "رسائل تطابق قواعدك المخصصة لهذه الفئة.",
     custom_categories_title: "الفئات المخصصة",
     custom_categories_tutorial:
       "أنشئ فئتك الخاصة. طابق الرسائل حسب نطاق المرسل أو كلمة مفتاحية في الموضوع.",
@@ -2355,6 +2357,7 @@ export const ar = {
       "قم بترقية خطتك لاستخدام جهات الاتصال ذات الاسم المستعار العكسي.",
     alias_feature_locked_sender_pinning:
       "قم بترقية خطتك لاستخدام تثبيت المُرسِل.",
+    requires_plan: "يتطلب {{plan}}",
     alias_feature_locked_view_plans: "عرض الخطط",
     alias_feature_locked_upgrade_plan: "ترقية الخطة",
     alias_feature_locked_upgrade_cta: "ترقية",

@@ -1913,6 +1913,8 @@ export const es = {
       "Reservas, itinerarios y confirmaciones de aerolíneas, hoteles y servicios de transporte.",
     category_info_shopping:
       "Confirmaciones de pedidos, actualizaciones de envío y avisos de entrega.",
+    category_info_custom:
+      "Correos que coinciden con tus reglas personalizadas para esta categoría.",
     custom_categories_title: "Categorías personalizadas",
     custom_categories_tutorial:
       "Crea tu propia categoría. Haz coincidir los correos por el dominio del remitente o una palabra clave del asunto.",
@@ -2430,6 +2432,7 @@ export const es = {
       "Mejora tu plan para usar contactos de alias inverso.",
     alias_feature_locked_sender_pinning:
       "Mejora tu plan para usar la fijación de remitentes.",
+    requires_plan: "Requiere {{plan}}",
     alias_feature_locked_view_plans: "Ver planes",
     alias_feature_locked_upgrade_plan: "Mejorar plan",
     alias_feature_locked_upgrade_cta: "Mejorar",

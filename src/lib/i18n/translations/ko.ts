@@ -1838,6 +1838,8 @@ export const ko = {
     category_info_travel:
       "항공사, 호텔, 차량 공유 서비스의 예약, 일정, 확인 메일입니다.",
     category_info_shopping: "주문 확인, 배송 업데이트, 배달 알림입니다.",
+    category_info_custom:
+      "이 카테고리의 사용자 지정 규칙과 일치하는 메일입니다.",
     custom_categories_title: "사용자 지정 카테고리",
     custom_categories_tutorial:
       "나만의 카테고리를 만드세요. 발신자 도메인이나 제목 키워드로 메일을 분류합니다.",
@@ -2342,6 +2344,7 @@ export const ko = {
       "역방향 별칭 연락처를 사용하려면 요금제를 업그레이드하세요.",
     alias_feature_locked_sender_pinning:
       "발신자 고정을 사용하려면 요금제를 업그레이드하세요.",
+    requires_plan: "{{plan}} 필요",
     alias_feature_locked_view_plans: "요금제 보기",
     alias_feature_locked_upgrade_plan: "요금제 업그레이드",
     alias_feature_locked_upgrade_cta: "업그레이드",

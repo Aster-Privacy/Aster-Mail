@@ -1935,6 +1935,8 @@ export const pt = {
       "Reservas, itinerários e confirmações de companhias aéreas, hotéis e serviços de transporte.",
     category_info_shopping:
       "Confirmações de pedidos, atualizações de envio e avisos de entrega.",
+    category_info_custom:
+      "E-mails que correspondem às suas regras personalizadas para esta categoria.",
     custom_categories_title: "Categorias personalizadas",
     custom_categories_tutorial:
       "Crie sua própria categoria. Combine e-mails pelo domínio do remetente ou por uma palavra-chave do assunto.",
@@ -2453,6 +2455,7 @@ export const pt = {
       "Faça upgrade do seu plano para usar contatos de alias reverso.",
     alias_feature_locked_sender_pinning:
       "Faça upgrade do seu plano para usar a fixação de remetente.",
+    requires_plan: "Requer {{plan}}",
     alias_feature_locked_view_plans: "Ver planos",
     alias_feature_locked_upgrade_plan: "Fazer upgrade do plano",
     alias_feature_locked_upgrade_cta: "Fazer upgrade",

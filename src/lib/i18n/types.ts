@@ -2453,6 +2453,7 @@ export interface SettingsTranslations {
   category_info_finance: string;
   category_info_travel: string;
   category_info_shopping: string;
+  category_info_custom: string;
   custom_categories_title: string;
   custom_categories_tutorial: string;
   custom_category_locked_badge: string;
@@ -5396,6 +5397,7 @@ export interface SettingsTranslations {
   alias_feature_locked_upgrade_plan: string;
   alias_feature_locked_upgrade_cta: string;
   feature_requires_upgrade: string;
+  requires_plan: string;
   alias_feature_locked_view_plans: string;
   alias_rule_cancel: string;
   alias_rule_close: string;

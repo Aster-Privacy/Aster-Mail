@@ -1924,6 +1924,8 @@ export const fr = {
       "Réservations, itinéraires et confirmations des compagnies aériennes, hôtels et services de transport.",
     category_info_shopping:
       "Confirmations de commande, mises à jour de livraison et avis de livraison.",
+    category_info_custom:
+      "E-mails correspondant à vos règles personnalisées pour cette catégorie.",
     custom_categories_title: "Catégories personnalisées",
     custom_categories_tutorial:
       "Créez votre propre catégorie. Faites correspondre les e-mails par domaine de l'expéditeur ou par un mot-clé de l'objet.",
@@ -2446,6 +2448,7 @@ export const fr = {
       "Améliorez votre forfait pour utiliser les contacts à alias inversé.",
     alias_feature_locked_sender_pinning:
       "Améliorez votre forfait pour utiliser l'épinglage d'expéditeur.",
+    requires_plan: "Nécessite {{plan}}",
     alias_feature_locked_view_plans: "Voir les forfaits",
     alias_feature_locked_upgrade_plan: "Améliorer le forfait",
     alias_feature_locked_upgrade_cta: "Améliorer",
