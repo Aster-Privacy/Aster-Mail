@@ -71,48 +71,42 @@ export function AccountAvatarButton({
       />
       <button
         aria-label={t("auth.change_photo")}
-        className="group relative rounded-full block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-2"
+        className="group relative flex w-fit rounded-full leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-2"
         disabled={uploading}
         style={{ ["--tw-ring-offset-color" as string]: ring_offset_color }}
         title={t("auth.change_photo")}
         type="button"
         onClick={open_picker}
       >
-        <span
-          className={`inline-flex rounded-full ${is_paid_plan ? "plan_ring" : ""}`}
-        >
-          <ProfileAvatar
-            email={email}
-            image_url={preview || image_url}
-            name={name}
-            profile_color={profile_color}
-            size={size}
-          />
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 rounded-full items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 motion-reduce:transition-none hidden [@media(hover:hover)]:flex"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
-        >
-          <CameraIcon className={`${OVERLAY_ICON_SIZE[size]} text-white`} />
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-0.5 -right-0.5 hidden items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] p-1 text-white [@media(hover:none)]:flex"
-        >
-          <CameraIcon className="h-3 w-3" />
-        </span>
-        {uploading && (
-          <span
-            className="absolute inset-0 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
-          >
-            <span
-              className="rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none"
-              style={{ width: "50%", height: "50%" }}
+        <span className={is_paid_plan ? "plan_ring" : "inline-flex leading-none"}>
+          <span className="relative flex rounded-full leading-none">
+            <ProfileAvatar
+              email={email}
+              image_url={preview || image_url}
+              name={name}
+              profile_color={profile_color}
+              size={size}
             />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 motion-reduce:transition-none"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
+            >
+              <CameraIcon className={`${OVERLAY_ICON_SIZE[size]} text-white`} />
+            </span>
+            {uploading && (
+              <span
+                className="absolute inset-0 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
+              >
+                <span
+                  className="rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none"
+                  style={{ width: "50%", height: "50%" }}
+                />
+              </span>
+            )}
           </span>
-        )}
+        </span>
       </button>
     </div>
   );

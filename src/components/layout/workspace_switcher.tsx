@@ -229,6 +229,16 @@ export function WorkspaceSwitcher({
     await do_logout();
   }, [other_accounts, remove_account, do_logout]);
 
+  const copy_account_email = useCallback(async () => {
+    if (!current_user_email) return;
+    try {
+      await navigator.clipboard.writeText(current_user_email);
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
+  }, [current_user_email, t]);
+
   const handle_logout_all = useCallback(() => {
     set_show_logout_all_confirm(true);
     on_open_change(false);
@@ -268,14 +278,17 @@ export function WorkspaceSwitcher({
                   className="text-[15px] font-semibold leading-tight truncate"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  {current_display_name}
+                  {t("auth.greeting", { name: current_display_name })}
                 </span>
-                <span
-                  className="text-[12px] leading-tight truncate"
+                <button
+                  className="text-[12px] leading-tight truncate text-left transition-colors hover:text-[var(--text-secondary)]"
                   style={{ color: "var(--text-muted)" }}
+                  title={t("common.copy")}
+                  type="button"
+                  onClick={copy_account_email}
                 >
                   {current_user_email}
-                </span>
+                </button>
               </div>
               <button
                 aria-label={t("settings.account")}

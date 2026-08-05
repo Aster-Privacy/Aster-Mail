@@ -118,8 +118,15 @@ export function TopBar({
   const [is_mobile, set_is_mobile] = useState(false);
   const [show_account_tip, set_show_account_tip] = useState(false);
   const account_tip_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const account_tip_blocked = useRef(false);
+
+  const close_account_tip = useCallback(() => {
+    if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
+    set_show_account_tip(false);
+  }, []);
 
   const open_account_tip = useCallback(() => {
+    if (account_tip_blocked.current) return;
     if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
     account_tip_timer.current = setTimeout(
       () => set_show_account_tip(true),
@@ -127,10 +134,19 @@ export function TopBar({
     );
   }, []);
 
-  const close_account_tip = useCallback(() => {
-    if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
-    set_show_account_tip(false);
-  }, []);
+  const leave_account_tip = useCallback(() => {
+    account_tip_blocked.current = false;
+    close_account_tip();
+  }, [close_account_tip]);
+
+  const handle_accounts_open_change = useCallback(
+    (next_open: boolean) => {
+      account_tip_blocked.current = true;
+      close_account_tip();
+      set_is_accounts_open(next_open);
+    },
+    [close_account_tip],
+  );
 
   useEffect(() => {
     return () => {
@@ -302,13 +318,13 @@ export function TopBar({
         <div
           className="relative"
           onMouseEnter={open_account_tip}
-          onMouseLeave={close_account_tip}
+          onMouseLeave={leave_account_tip}
           onPointerDownCapture={close_account_tip}
         >
           <WorkspaceSwitcher
             align="end"
             is_open={is_accounts_open}
-            on_open_change={set_is_accounts_open}
+            on_open_change={handle_accounts_open_change}
             trigger={
               <button
                 aria-label={t("auth.your_accounts")}
@@ -317,7 +333,9 @@ export function TopBar({
                 onClick={close_account_tip}
               >
                 <span
-                  className={`inline-flex rounded-full ${is_free_plan ? "" : "plan_ring"}`}
+                  className={
+                    is_free_plan ? "inline-flex leading-none" : "plan_ring"
+                  }
                 >
                   <ProfileAvatar
                     className="block"

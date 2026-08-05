@@ -374,14 +374,19 @@ function MobileSettingsPage() {
                   type="button"
                   onClick={() => open_section("account")}
                 >
-                  <ProfileAvatar
-                    className={is_paid_plan ? "plan_ring" : ""}
-                    email={user?.email ?? ""}
-                    image_url={user?.profile_picture}
-                    name={user?.display_name ?? ""}
-                    profile_color={preferences.profile_color}
-                    size="xl"
-                  />
+                  <span
+                    className={
+                      is_paid_plan ? "plan_ring" : "inline-flex leading-none"
+                    }
+                  >
+                    <ProfileAvatar
+                      email={user?.email ?? ""}
+                      image_url={user?.profile_picture}
+                      name={user?.display_name ?? ""}
+                      profile_color={preferences.profile_color}
+                      size="xl"
+                    />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[16px] font-semibold text-[var(--text-primary)]">
                       {user?.display_name ?? user?.username ?? ""}

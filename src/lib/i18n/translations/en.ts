@@ -7127,7 +7127,7 @@ export const en: Translations = {
     sign_out: "Log out",
     sign_up: "Sign Up",
     your_accounts: "Your accounts",
-    greeting: "Hi, {{name}}",
+    greeting: "Hi, {{name}}!",
     manage_account: "Manage your Aster account",
     sign_out_all: "Sign out of all accounts",
     session_expired_tag: "Session expired",

@@ -371,15 +371,20 @@ export function AccountSection({
             type="button"
             onClick={open_picker}
           >
-            <ProfileAvatar
-              use_domain_logo
-              className={is_paid_plan ? "plan_ring" : ""}
-              email={user?.email ?? ""}
-              image_url={preview || user?.profile_picture}
-              name={user?.display_name ?? user?.username ?? ""}
-              profile_color={preferences.profile_color}
-              size="xl"
-            />
+            <span
+              className={
+                is_paid_plan ? "plan_ring" : "inline-flex leading-none"
+              }
+            >
+              <ProfileAvatar
+                use_domain_logo
+                email={user?.email ?? ""}
+                image_url={preview || user?.profile_picture}
+                name={user?.display_name ?? user?.username ?? ""}
+                profile_color={preferences.profile_color}
+                size="xl"
+              />
+            </span>
             <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-white">
               {uploading ? (
                 <Spinner size="xs" />
