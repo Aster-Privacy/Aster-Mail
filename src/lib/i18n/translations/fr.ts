@@ -142,6 +142,7 @@ export const fr = {
     recovery_conflict:
       "Ce courriel est déjà une adresse de récupération sur un autre compte. Un autre devrait fonctionner.",
     copied_to_clipboard: "Copié dans le presse-papiers",
+    address_copied_to_clipboard: "Adresse copiée dans le presse-papiers",
     offline: "Hors ligne",
     offline_features_limited:
       "Vous êtes hors ligne pour l'instant. Certaines fonctionnalités ne marcheront pas tant que vous ne serez pas reconnecté.",
@@ -3254,6 +3255,10 @@ export const fr = {
     current_key_status: "État actuel de la clé",
     age: "Ancienneté",
     fingerprint: "Empreinte",
+    pgp_key_checking: "Recherche d'une clé PGP...",
+    pgp_key_found: "Clé PGP trouvée",
+    pgp_key_not_found: "Aucune clé PGP enregistrée",
+    pgp_key_discovered_via: "Découverte via {source}",
     key_rotation_interval: "Intervalle de renouvellement des clés",
     key_history_limit: "Limite de l'historique des clés",
     key_history_description:

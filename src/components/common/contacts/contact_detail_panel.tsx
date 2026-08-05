@@ -59,6 +59,8 @@ import {
   XMarkIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  KeyIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -67,6 +69,10 @@ import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { show_toast } from "@/components/toast/simple_toast";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
+import {
+  discover_external_key,
+  type ExternalKeyInfo,
+} from "@/services/api/keys";
 import {
   Select,
   SelectContent,
@@ -280,7 +286,9 @@ export function ContactDetailPanel({
   selected_contact,
   show_history,
   set_show_history,
+  copied_field,
   on_compose_email,
+  on_copy,
   on_delete_request,
   on_inline_save,
   on_inline_create,
@@ -801,6 +809,24 @@ export function ContactDetailPanel({
               </div>
             </Section>
 
+            {!is_creating_new &&
+              selected_contact &&
+              selected_contact.emails.length > 0 && (
+                <Section title={t("settings.encryption")}>
+                  <div className="space-y-2">
+                    {selected_contact.emails.map((email) => (
+                      <ContactPgpKeyRow
+                        key={email}
+                        copied_field={copied_field}
+                        email={email}
+                        on_copy={on_copy}
+                        t={t}
+                      />
+                    ))}
+                  </div>
+                </Section>
+              )}
+
             <Section title={t("common.work")}>
               <div className="grid grid-cols-2 gap-3">
                 <input
@@ -1123,6 +1149,95 @@ function FieldLabel({
       <p className="text-[12px] tracking-wide text-txt-secondary font-medium">
         {children}
       </p>
+    </div>
+  );
+}
+
+function ContactPgpKeyRow({
+  email,
+  t,
+  copied_field,
+  on_copy,
+}: {
+  email: string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  copied_field: string | null;
+  on_copy: (text: string, field: string) => void;
+}) {
+  const [key_info, set_key_info] = useState<ExternalKeyInfo | null>(null);
+  const [is_loading, set_is_loading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    set_is_loading(true);
+    set_key_info(null);
+
+    discover_external_key(email).then((response) => {
+      if (cancelled) return;
+
+      set_key_info(response.data ?? null);
+      set_is_loading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [email]);
+
+  const field_key = `pgp_key_${email}`;
+
+  return (
+    <div className="flex items-start justify-between gap-3 py-2.5 px-3 rounded-lg bg-surf-secondary border border-edge-primary">
+      <div className="min-w-0 flex-1 flex items-start gap-2">
+        <KeyIcon className="w-3.5 h-3.5 text-txt-muted mt-0.5 flex-shrink-0" />
+        <div className="min-w-0">
+          <p className="text-[13px] text-txt-primary font-medium truncate">
+            {email}
+          </p>
+          {is_loading ? (
+            <p className="text-[12px] text-txt-muted mt-0.5">
+              {t("settings.pgp_key_checking")}
+            </p>
+          ) : key_info?.found ? (
+            <div className="mt-0.5 space-y-0.5">
+              <p className="text-[12px] text-emerald-500 font-medium">
+                {t("settings.pgp_key_found")}
+              </p>
+              {key_info.fingerprint && (
+                <p className="text-[11px] text-txt-muted font-mono truncate">
+                  {key_info.fingerprint}
+                </p>
+              )}
+              {key_info.source && (
+                <p className="text-[11px] text-txt-muted">
+                  {t("settings.pgp_key_discovered_via", {
+                    source: key_info.source,
+                  })}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-[12px] text-txt-muted mt-0.5">
+              {t("settings.pgp_key_not_found")}
+            </p>
+          )}
+        </div>
+      </div>
+      {key_info?.found && key_info.public_key && (
+        <Button
+          className="flex-shrink-0"
+          size="sm"
+          variant="ghost"
+          onClick={() => on_copy(key_info.public_key as string, field_key)}
+        >
+          {copied_field === field_key ? (
+            <CheckIcon className="w-4 h-4" />
+          ) : (
+            t("settings.copy_public_key")
+          )}
+        </Button>
+      )}
     </div>
   );
 }

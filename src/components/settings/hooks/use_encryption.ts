@@ -154,32 +154,43 @@ export function use_encryption() {
   const load_encryption_data = async () => {
     set_pgp_key_load_failed(false);
     try {
-      const [key_response, recovery_response, user_response, enc_response, keyserver_status] =
-        await Promise.all([
-          api_client
-            .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
-            .catch(
-              () =>
-                ({
-                  data: undefined,
-                  error: "network_error",
-                }) as ApiResponse<PgpKeyInfo>,
-            ),
-          api_client
-            .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
-            .catch(() => ({ data: null, error: null })),
-          get_user_info().catch(() => ({ data: null, error: null })),
-          api_client
-            .get<{
-              auto_discover_keys: boolean;
-              encrypt_by_default: boolean;
-              ipfs_storage_enabled: boolean;
-              keyserver_urls: string[];
-            }>("/settings/v1/encryption")
-            .catch(() => ({ data: null, error: null })),
-          get_keyserver_publication_status()
-            .catch(() => ({ data: null, error: null })),
-        ]);
+      const [
+        key_response,
+        recovery_response,
+        user_response,
+        enc_response,
+        keyserver_status,
+        wkd_status,
+      ] = await Promise.all([
+        api_client
+          .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
+          .catch(
+            () =>
+              ({
+                data: undefined,
+                error: "network_error",
+              }) as ApiResponse<PgpKeyInfo>,
+          ),
+        api_client
+          .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
+          .catch(() => ({ data: null, error: null })),
+        get_user_info().catch(() => ({ data: null, error: null })),
+        api_client
+          .get<{
+            auto_discover_keys: boolean;
+            encrypt_by_default: boolean;
+            ipfs_storage_enabled: boolean;
+            keyserver_urls: string[];
+          }>("/settings/v1/encryption")
+          .catch(() => ({ data: null, error: null })),
+        get_keyserver_publication_status()
+          .catch(() => ({ data: null, error: null })),
+        api_client
+          .get<{ published: boolean; url: string | null }>(
+            "/crypto/v1/keys/publish/wkd/status",
+          )
+          .catch(() => ({ data: null, error: null })),
+      ]);
 
       if (key_response.data) {
         set_pgp_key(key_response.data);
@@ -223,6 +234,13 @@ export function use_encryption() {
 
       if (keyserver_status.data) {
         apply_keyserver_status(keyserver_status.data);
+      }
+
+      if (
+        wkd_status.data &&
+        wkd_status.data.published !== preferences.publish_to_wkd
+      ) {
+        update_preference("publish_to_wkd", wkd_status.data.published, true);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);

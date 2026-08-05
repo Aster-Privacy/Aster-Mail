@@ -142,6 +142,7 @@ export const es = {
     recovery_conflict:
       "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
     copied_to_clipboard: "Copiado al portapapeles",
+    address_copied_to_clipboard: "Dirección copiada al portapapeles",
     offline: "Sin conexión",
     offline_features_limited:
       "Estás sin conexión ahora mismo. Algunas funciones no estarán disponibles hasta que vuelvas a conectarte.",
@@ -3227,6 +3228,10 @@ export const es = {
     current_key_status: "Estado actual de la clave",
     age: "Antigüedad",
     fingerprint: "Huella digital",
+    pgp_key_checking: "Buscando una clave PGP...",
+    pgp_key_found: "Clave PGP encontrada",
+    pgp_key_not_found: "No hay clave PGP registrada",
+    pgp_key_discovered_via: "Descubierta vía {source}",
     key_rotation_interval: "Intervalo de rotación de claves",
     key_history_limit: "Límite de historial de claves",
     key_history_description:

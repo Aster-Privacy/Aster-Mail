@@ -631,6 +631,7 @@ export interface CommonTranslations {
   alias_avatars_feature: string;
   recovery_conflict: string;
   copied_to_clipboard: string;
+  address_copied_to_clipboard: string;
   offline: string;
   offline_features_limited: string;
   back_online: string;
@@ -2272,6 +2273,10 @@ export interface SettingsTranslations {
   current_key_status: string;
   age: string;
   fingerprint: string;
+  pgp_key_checking: string;
+  pgp_key_found: string;
+  pgp_key_not_found: string;
+  pgp_key_discovered_via: string;
   key_rotation_interval: string;
   key_history_limit: string;
   key_history_description: string;

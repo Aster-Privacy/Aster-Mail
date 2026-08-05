@@ -139,6 +139,7 @@ export const de = {
     recovery_conflict:
       "Diese E-Mail ist bereits eine Wiederherstellungsadresse für ein anderes Konto. Eine andere funktioniert.",
     copied_to_clipboard: "In die Zwischenablage kopiert",
+    address_copied_to_clipboard: "Adresse in die Zwischenablage kopiert",
     offline: "Offline",
     back_online: "Wieder online",
     dont_ask_again: "Nicht erneut fragen",
@@ -3280,6 +3281,10 @@ export const de = {
     current_key_status: "Aktueller Schlüsselstatus",
     age: "Alter",
     fingerprint: "Fingerabdruck",
+    pgp_key_checking: "PGP-Schlüssel wird gesucht...",
+    pgp_key_found: "PGP-Schlüssel gefunden",
+    pgp_key_not_found: "Kein PGP-Schlüssel hinterlegt",
+    pgp_key_discovered_via: "Gefunden über {source}",
     key_rotation_interval: "Schlüsselrotationsintervall",
     key_history_limit: "Schlüsselverlaufslimit",
     key_history_description:

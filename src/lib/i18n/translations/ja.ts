@@ -140,6 +140,7 @@ export const ja = {
     recovery_conflict:
       "このメールはすでに別のアカウントのリカバリーアドレスとして使われています。別のアドレスでしたら使えます。",
     copied_to_clipboard: "クリップボードにコピーしました",
+    address_copied_to_clipboard: "アドレスをクリップボードにコピーしました",
     offline: "オフライン",
     offline_features_limited:
       "現在オフラインです。接続が戻るまで、一部の機能は利用できません。",
@@ -3226,6 +3227,10 @@ export const ja = {
     current_key_status: "現在のキーの状態",
     age: "経過時間",
     fingerprint: "フィンガープリント",
+    pgp_key_checking: "PGP鍵を確認しています...",
+    pgp_key_found: "PGP鍵が見つかりました",
+    pgp_key_not_found: "PGP鍵は登録されていません",
+    pgp_key_discovered_via: "{source} 経由で検出",
     key_rotation_interval: "キーローテーション間隔",
     key_history_limit: "キー履歴の上限",
     key_history_description:

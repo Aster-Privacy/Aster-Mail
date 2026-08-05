@@ -291,7 +291,7 @@ export function WorkspaceSwitcher({
     if (!current_user_email) return;
     try {
       await navigator.clipboard.writeText(current_user_email);
-      show_toast(t("common.copied_to_clipboard"), "success");
+      show_toast(t("common.address_copied_to_clipboard"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
     }

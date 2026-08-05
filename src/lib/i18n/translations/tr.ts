@@ -141,6 +141,7 @@ export const tr = {
     recovery_conflict:
       "Bu e-posta zaten başka bir hesapta kurtarma adresi olarak tanımlı. Farklı bir adres işe yarar.",
     copied_to_clipboard: "Panoya kopyalandı",
+    address_copied_to_clipboard: "Adres panoya kopyalandı",
     offline: "Çevrimdışı",
     offline_features_limited:
       "Şu anda çevrimdışısınız. Yeniden bağlanana kadar bazı özellikler çalışmaz.",
@@ -3212,6 +3213,10 @@ export const tr = {
     current_key_status: "Mevcut Anahtar Durumu",
     age: "Yaş",
     fingerprint: "Parmak İzi",
+    pgp_key_checking: "PGP anahtarı kontrol ediliyor...",
+    pgp_key_found: "PGP anahtarı bulundu",
+    pgp_key_not_found: "Kayıtlı PGP anahtarı yok",
+    pgp_key_discovered_via: "{source} üzerinden bulundu",
     key_rotation_interval: "Anahtar Döndürme Aralığı",
     key_history_limit: "Anahtar Geçmişi Sınırı",
     key_history_description:

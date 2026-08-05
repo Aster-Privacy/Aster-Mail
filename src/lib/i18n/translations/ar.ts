@@ -140,6 +140,7 @@ export const ar = {
     recovery_conflict:
       "هذا البريد عنوان استرداد لحساب آخر بالفعل. عنوان مختلف ينبغي أن يعمل.",
     copied_to_clipboard: "تم النسخ إلى الحافظة",
+    address_copied_to_clipboard: "تم نسخ العنوان إلى الحافظة",
     offline: "غير متصل",
     offline_features_limited:
       "أنت غير متصل حاليًا. بعض الميزات لن تعمل حتى تعود إلى الاتصال.",
@@ -3179,6 +3180,10 @@ export const ar = {
     current_key_status: "حالة المفتاح الحالي",
     age: "العمر",
     fingerprint: "البصمة",
+    pgp_key_checking: "جارٍ البحث عن مفتاح PGP...",
+    pgp_key_found: "تم العثور على مفتاح PGP",
+    pgp_key_not_found: "لا يوجد مفتاح PGP مسجل",
+    pgp_key_discovered_via: "تم اكتشافه عبر {source}",
     key_rotation_interval: "فترة تدوير المفتاح",
     key_history_limit: "حد سجل المفاتيح",
     key_history_description:

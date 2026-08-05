@@ -141,6 +141,7 @@ export const pt = {
     recovery_conflict:
       "Este e-mail já é um endereço de recuperação em outra conta. Outro deve funcionar.",
     copied_to_clipboard: "Copiado para a área de transferência",
+    address_copied_to_clipboard: "Endereço copiado para a área de transferência",
     offline: "Offline",
     offline_features_limited:
       "Você está offline no momento. Algumas funcionalidades não vão funcionar até você se reconectar.",
@@ -3240,6 +3241,10 @@ export const pt = {
     current_key_status: "Status Atual da Chave",
     age: "Idade",
     fingerprint: "Impressão Digital",
+    pgp_key_checking: "Procurando uma chave PGP...",
+    pgp_key_found: "Chave PGP encontrada",
+    pgp_key_not_found: "Nenhuma chave PGP registrada",
+    pgp_key_discovered_via: "Encontrada via {source}",
     key_rotation_interval: "Intervalo de Rotação de Chaves",
     key_history_limit: "Limite de Histórico de Chaves",
     key_history_description:

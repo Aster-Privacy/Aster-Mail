@@ -136,6 +136,7 @@ export const zh_CN = {
       "这张图片超出了 5 MB 的限制，换一张较小的或压缩过的就可以了。",
     recovery_conflict: "这个邮箱已经是另一个账户的恢复地址，换一个应该可以。",
     copied_to_clipboard: "已复制到剪贴板",
+    address_copied_to_clipboard: "地址已复制到剪贴板",
     offline: "离线",
     offline_features_limited:
       "您当前处于离线状态，重新联网之前部分功能将无法使用。",
@@ -2952,6 +2953,10 @@ export const zh_CN = {
     current_key_status: "当前密钥状态",
     age: "使用时长",
     fingerprint: "指纹",
+    pgp_key_checking: "正在查找 PGP 密钥…",
+    pgp_key_found: "已找到 PGP 密钥",
+    pgp_key_not_found: "没有已保存的 PGP 密钥",
+    pgp_key_discovered_via: "通过 {source} 发现",
     key_rotation_interval: "密钥轮换间隔",
     key_history_limit: "密钥历史记录上限",
     key_history_description:

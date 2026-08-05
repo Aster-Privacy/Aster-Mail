@@ -209,6 +209,7 @@ export const en: Translations = {
     recovery_conflict:
       "This email is already a recovery address on another account. A different one should work.",
     copied_to_clipboard: "Copied to clipboard",
+    address_copied_to_clipboard: "Address copied to clipboard",
     offline: "Offline",
     offline_features_limited:
       "You are offline right now. Some features will not work until you reconnect.",
@@ -2182,6 +2183,10 @@ export const en: Translations = {
     current_key_status: "Current Key Status",
     age: "Age",
     fingerprint: "Fingerprint",
+    pgp_key_checking: "Checking for a PGP key...",
+    pgp_key_found: "PGP key found",
+    pgp_key_not_found: "No PGP key on file",
+    pgp_key_discovered_via: "Discovered via {source}",
     key_rotation_interval: "Key Rotation Interval",
     key_history_limit: "Key History Limit",
     key_history_description:

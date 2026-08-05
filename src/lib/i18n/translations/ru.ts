@@ -142,6 +142,7 @@ export const ru = {
     recovery_conflict:
       "Этот адрес уже используется как резервный на другой учётной записи. Другой адрес обычно подходит.",
     copied_to_clipboard: "Скопировано в буфер обмена",
+    address_copied_to_clipboard: "Адрес скопирован в буфер обмена",
     offline: "Не в сети",
     offline_features_limited:
       "Сейчас нет соединения. Часть функций не работает до восстановления связи.",
@@ -3235,6 +3236,10 @@ export const ru = {
     current_key_status: "Текущий статус ключа",
     age: "Возраст",
     fingerprint: "Отпечаток",
+    pgp_key_checking: "Поиск ключа PGP...",
+    pgp_key_found: "Ключ PGP найден",
+    pgp_key_not_found: "Ключ PGP не найден",
+    pgp_key_discovered_via: "Обнаружен через {source}",
     key_rotation_interval: "Интервал ротации ключей",
     key_history_limit: "Лимит истории ключей",
     key_history_description:

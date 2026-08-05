@@ -138,6 +138,7 @@ export const ko = {
     recovery_conflict:
       "이 이메일은 이미 다른 계정의 복구 주소로 사용 중입니다. 다른 이메일이면 됩니다.",
     copied_to_clipboard: "클립보드에 복사됨",
+    address_copied_to_clipboard: "주소가 클립보드에 복사됨",
     offline: "오프라인",
     offline_features_limited:
       "지금은 오프라인 상태입니다. 다시 연결될 때까지 일부 기능은 작동하지 않습니다.",
@@ -3215,6 +3216,10 @@ export const ko = {
     current_key_status: "현재 키 상태",
     age: "경과 시간",
     fingerprint: "지문",
+    pgp_key_checking: "PGP 키를 확인하는 중...",
+    pgp_key_found: "PGP 키를 찾았습니다",
+    pgp_key_not_found: "등록된 PGP 키가 없습니다",
+    pgp_key_discovered_via: "{source}을(를) 통해 발견됨",
     key_rotation_interval: "키 교체 주기",
     key_history_limit: "키 기록 제한",
     key_history_description:

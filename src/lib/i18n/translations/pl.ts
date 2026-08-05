@@ -142,6 +142,7 @@ export const pl = {
     recovery_conflict:
       "Ten adres jest już adresem odzyskiwania na innym koncie. Inny powinien zadziałać.",
     copied_to_clipboard: "Skopiowano do schowka",
+    address_copied_to_clipboard: "Skopiowano adres do schowka",
     offline: "Brak połączenia",
     offline_features_limited:
       "Jesteś teraz offline. Niektóre funkcje nie będą działać do czasu ponownego połączenia.",
@@ -3246,6 +3247,10 @@ export const pl = {
     current_key_status: "Aktualny status klucza",
     age: "Wiek",
     fingerprint: "Odcisk",
+    pgp_key_checking: "Sprawdzanie klucza PGP...",
+    pgp_key_found: "Znaleziono klucz PGP",
+    pgp_key_not_found: "Brak zapisanego klucza PGP",
+    pgp_key_discovered_via: "Znaleziono przez {source}",
     key_rotation_interval: "Interwał rotacji kluczy",
     key_history_limit: "Limit historii kluczy",
     key_history_description:

@@ -141,6 +141,7 @@ export const nl = {
     recovery_conflict:
       "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
     copied_to_clipboard: "Naar klembord gekopieerd",
+    address_copied_to_clipboard: "Adres naar klembord gekopieerd",
     offline: "Offline",
     back_online: "Weer online",
     dont_ask_again: "Niet meer vragen",
@@ -3213,6 +3214,10 @@ export const nl = {
     current_key_status: "Huidige sleutelstatus",
     age: "Leeftijd",
     fingerprint: "Vingerafdruk",
+    pgp_key_checking: "Zoeken naar een PGP-sleutel...",
+    pgp_key_found: "PGP-sleutel gevonden",
+    pgp_key_not_found: "Geen PGP-sleutel bekend",
+    pgp_key_discovered_via: "Gevonden via {source}",
     key_rotation_interval: "Sleutelrotatie-interval",
     key_history_limit: "Sleutelgeschiedenislimiet",
     key_history_description:
