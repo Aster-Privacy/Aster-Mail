@@ -65,9 +65,11 @@ const toast_listeners = new Set<(toast: ActionToastState | null) => void>();
 let current_toast: ActionToastState | null = null;
 let toast_timeout: NodeJS.Timeout | null = null;
 
-export function show_action_toast(
-  toast: Omit<ActionToastState, "id"> & { duration_ms?: number },
-) {
+export type ActionToastConfig = Omit<ActionToastState, "id"> & {
+  duration_ms?: number;
+};
+
+export function show_action_toast(toast: ActionToastConfig) {
   if (toast_timeout) {
     clearTimeout(toast_timeout);
     toast_timeout = null;

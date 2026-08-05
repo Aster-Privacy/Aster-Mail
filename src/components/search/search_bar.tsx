@@ -198,6 +198,7 @@ export function SearchBar({
       return;
     }
     if (debounce_ref.current) clearTimeout(debounce_ref.current);
+    if (value.trim().length > 0) return;
     debounce_ref.current = setTimeout(() => submit_query(value), DEBOUNCE_MS);
   };
 

@@ -52,7 +52,11 @@ import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
 } from "@/services/api/archive";
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  hide_action_toast,
+  show_action_toast,
+} from "@/components/toast/action_toast";
+import type { ActionToastConfig } from "@/components/toast/action_toast";
 import {
   adjust_starred_count,
   adjust_trash_count,
@@ -120,6 +124,7 @@ export function use_single_actions(
       optimistic_update: Partial<InboxEmail>,
       api_call: () => Promise<{ data?: T; error?: string }>,
       should_remove_from_list = false,
+      optimistic_toast?: ActionToastConfig,
     ): Promise<boolean> => {
       const original_state: Partial<InboxEmail> = {};
 
@@ -132,11 +137,13 @@ export function use_single_actions(
       create_pending_action(email.id, action_type, original_state);
       set_action_loading(action_type, true);
       config.on_optimistic_update?.(email.id, optimistic_update);
+      if (optimistic_toast) show_action_toast(optimistic_toast);
 
       try {
         const result = await api_call();
 
         if (result.error) {
+          if (optimistic_toast) hide_action_toast();
           rollback_action(email.id, action_type);
           set_action_error(action_type, result.error);
 
@@ -184,6 +191,7 @@ export function use_single_actions(
 
         return true;
       } catch (err) {
+        if (optimistic_toast) hide_action_toast();
         rollback_action(email.id, action_type);
         const error_message =
           err instanceof Error ? err.message : t("common.unexpected_error");
@@ -201,6 +209,7 @@ export function use_single_actions(
       set_action_error,
       remove_pending_action,
       clear_action_state,
+      t,
     ],
   );
 
@@ -488,10 +497,7 @@ export function use_single_actions(
           return update_with_metadata(email, archive_update);
         },
         true,
-      );
-
-      if (success) {
-        show_action_toast({
+        {
           message: t("common.conversation_archived"),
           action_type: "archive",
           email_ids: grouped_ids,
@@ -516,8 +522,10 @@ export function use_single_actions(
             }
             emit_mail_soft_refresh();
           },
-        });
-      } else {
+        },
+      );
+
+      if (!success) {
         revert_stat_deltas(deltas);
       }
 
@@ -554,11 +562,7 @@ export function use_single_actions(
           return update_with_metadata(email, { is_archived: false });
         },
         true,
-      );
-
-      if (success) {
-        emit_mail_soft_refresh();
-        show_action_toast({
+        {
           message: t("common.moved_to_inbox_toast"),
           action_type: "restore",
           email_ids: [email.id],
@@ -577,7 +581,11 @@ export function use_single_actions(
             await update_with_metadata(email, { is_archived: true });
             emit_mail_soft_refresh();
           },
-        });
+        },
+      );
+
+      if (success) {
+        emit_mail_soft_refresh();
       } else {
         revert_stat_deltas(deltas);
       }
@@ -650,10 +658,7 @@ export function use_single_actions(
           return update_with_metadata(email, { is_trashed: true });
         },
         true,
-      );
-
-      if (success) {
-        show_action_toast({
+        {
           message: t("common.conversation_moved_to_trash_toast"),
           action_type: "trash",
           email_ids: grouped_ids,
@@ -676,8 +681,10 @@ export function use_single_actions(
             }
             emit_mail_soft_refresh();
           },
-        });
-      } else {
+        },
+      );
+
+      if (!success) {
         revert_stat_deltas(deltas);
       }
 
@@ -714,11 +721,7 @@ export function use_single_actions(
         spam_update,
         () => update_with_metadata(email, spam_update),
         true,
-      );
-
-      if (success) {
-        report_spam_sender(email.sender_email).catch(() => {});
-        show_action_toast({
+        {
           message: t("common.conversation_marked_as_spam_toast"),
           action_type: "spam",
           email_ids: [email.id],
@@ -731,7 +734,11 @@ export function use_single_actions(
             remove_spam_sender(email.sender_email).catch(() => {});
             emit_mail_soft_refresh();
           },
-        });
+        },
+      );
+
+      if (success) {
+        report_spam_sender(email.sender_email).catch(() => {});
       } else if (is_received) {
         adjust_stats_spam(-1);
         if (is_unread) adjust_stats_unread(1);
@@ -752,11 +759,7 @@ export function use_single_actions(
         { is_spam: false },
         () => update_with_metadata(email, { is_spam: false }),
         true,
-      );
-
-      if (success) {
-        remove_spam_sender(email.sender_email).catch(() => {});
-        show_action_toast({
+        {
           message: t("common.marked_as_not_spam"),
           action_type: "not_spam",
           email_ids: [email.id],
@@ -766,7 +769,11 @@ export function use_single_actions(
             report_spam_sender(email.sender_email).catch(() => {});
             emit_mail_soft_refresh();
           },
-        });
+        },
+      );
+
+      if (success) {
+        remove_spam_sender(email.sender_email).catch(() => {});
       } else {
         adjust_stats_spam(1);
       }
@@ -939,12 +946,7 @@ export function use_single_actions(
         { is_trashed: false, is_archived: restore_to === "archive" },
         () => restore_mail_item(email.id, { target: restore_to }),
         true,
-      );
-
-      if (success) {
-        emit_mail_changed();
-
-        show_action_toast({
+        {
           message: t("common.restored_from_trash"),
           action_type: "restore",
           email_ids: [email.id],
@@ -954,7 +956,11 @@ export function use_single_actions(
             emit_mail_item_updated({ id: email.id, is_trashed: true });
             emit_mail_soft_refresh();
           },
-        });
+        },
+      );
+
+      if (success) {
+        emit_mail_changed();
       } else {
         revert_stat_deltas(deltas);
       }
