@@ -394,7 +394,7 @@ export const InboxEmailListItem = memo(
             is_active
               ? "bg-surf-hover"
               : email.is_selected === true
-                ? "bg-surf-tertiary"
+                ? "mail_row_selected"
                 : email.is_read
                   ? "mail_row_read"
                   : "mail_row_unread",
@@ -417,7 +417,7 @@ export const InboxEmailListItem = memo(
           <Tooltip delay={600} tip={t("mail.select")}>
             <div
               className={cn(
-                "group/avatar relative flex-shrink-0 flex items-center justify-center cursor-pointer",
+                "group/avatar aster_select_focus relative flex-shrink-0 flex items-center justify-center cursor-pointer",
                 avatar_size_class,
               )}
               role="button"
@@ -852,7 +852,7 @@ export const InboxEmailListItem = memo(
                 is_active
                   ? "bg-gradient-to-r from-transparent via-surf-hover to-surf-hover"
                   : email.is_selected === true
-                    ? "bg-gradient-to-r from-transparent via-surf-tertiary to-surf-tertiary"
+                    ? "mail_row_selected_fade"
                     : "bg-gradient-to-r from-transparent via-surf-primary to-surf-primary group-hover:via-surf-hover group-hover:to-surf-hover",
               )}
               style={{
@@ -909,7 +909,7 @@ export const InboxEmailListItem = memo(
                   is_active
                     ? "bg-gradient-to-r from-transparent to-surf-hover"
                     : email.is_selected === true
-                      ? "bg-gradient-to-r from-transparent to-surf-tertiary"
+                      ? "mail_row_selected_fade_end"
                       : "bg-gradient-to-r from-transparent to-surf-primary group-hover:to-surf-hover",
                 )}
                 role="button"

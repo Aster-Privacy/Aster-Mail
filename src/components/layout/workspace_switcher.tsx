@@ -41,10 +41,8 @@ import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_file_picker_open } from "@/hooks/use_profile_picture_upload";
-import {
-  get_all_accounts,
-  set_account_plan_flag,
-} from "@/services/account_manager";
+import { get_all_accounts } from "@/services/account_manager";
+import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
@@ -82,6 +80,7 @@ export function WorkspaceSwitcher({
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const [show_logout_all_confirm, set_show_logout_all_confirm] =
     useState(false);
+  const is_unlimited_accounts = max_account_limit === UNLIMITED_ACCOUNTS;
   const max_allowed =
     max_account_limit !== null && max_account_limit > 0
       ? max_account_limit
@@ -121,14 +120,6 @@ export function WorkspaceSwitcher({
       a.added_at < oldest.added_at ? a : oldest,
     ).id;
   }, [accounts]);
-
-  useEffect(() => {
-    if (!current_account_id || !limits) return;
-    set_account_plan_flag(
-      current_account_id,
-      limits.plan_code !== "free",
-    ).catch(() => {});
-  }, [current_account_id, limits]);
 
   useEffect(() => {
     if (!is_open) return;
@@ -212,12 +203,7 @@ export function WorkspaceSwitcher({
 
   const open_account_settings = useCallback(() => {
     on_open_change(false);
-    navigate("/settings");
-    setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent("navigate-settings", { detail: "account" }),
-      );
-    }, 50);
+    navigate("/settings/account");
   }, [navigate, on_open_change]);
 
   const handle_add_account = useCallback(() => {
@@ -227,12 +213,7 @@ export function WorkspaceSwitcher({
         "info",
       );
       on_open_change(false);
-      navigate("/settings");
-      setTimeout(() => {
-        window.dispatchEvent(
-          new CustomEvent("navigate-settings", { detail: "billing" }),
-        );
-      }, 50);
+      navigate("/settings/billing");
 
       return;
     }
@@ -443,7 +424,7 @@ export function WorkspaceSwitcher({
                       }}
                     >
                       <span
-                        className={`inline-flex leading-none flex-shrink-0 ${plan_flags[acc.id] || acc.user.is_paid_plan ? "plan_ring" : ""}`}
+                        className={`inline-flex leading-none flex-shrink-0 ${plan_flags[acc.id] === true ? "plan_ring" : ""}`}
                       >
                         <ProfileAvatar
                           email={acc.user.email}
@@ -493,9 +474,11 @@ export function WorkspaceSwitcher({
               <span className="account_menu_tile_label">
                 {t("auth.add_another_account")}
               </span>
-              <span className="account_menu_tile_meta tabular-nums">
-                {accounts.length}/{display_max}
-              </span>
+              {is_unlimited_accounts ? null : (
+                <span className="account_menu_tile_meta tabular-nums">
+                  {accounts.length}/{display_max}
+                </span>
+              )}
             </button>
 
             <button

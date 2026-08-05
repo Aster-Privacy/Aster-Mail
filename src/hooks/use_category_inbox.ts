@@ -62,6 +62,7 @@ import {
   remove_thread_entries,
   reindex_ids,
   request_full_rebuild,
+  is_recently_read,
   is_representative_unread,
   sync_recent,
   set_sort_order,
@@ -539,13 +540,15 @@ export function use_category_inbox(
           remove_ids(stale_fetched);
         }
 
-        const received_only = fetched
-          .filter(belongs_in_inbox)
-          .map((email) =>
-            email.is_read && is_representative_unread(email.id)
-              ? { ...email, is_read: false }
-              : email,
-          );
+        const received_only = fetched.filter(belongs_in_inbox).map((email) => {
+          if (!email.is_read && is_recently_read(email.id)) {
+            return { ...email, is_read: true };
+          }
+
+          return email.is_read && is_representative_unread(email.id)
+            ? { ...email, is_read: false }
+            : email;
+        });
 
         const grouped =
           preferences.conversation_grouping !== false

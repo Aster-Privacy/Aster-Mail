@@ -26,6 +26,7 @@ import { createRoot, type Root } from "react-dom/client";
 
 const mocks = vi.hoisted(() => ({
   read_state: new Map<string, boolean>(),
+  recently_read: new Set<string>(),
   fetch_mail_by_ids_reconciled: vi.fn(async (ids: string[]) => ({
     emails: ids.map((id) => ({
       id,
@@ -107,6 +108,7 @@ vi.mock("@/services/category_index", () => ({
   get_version: () => 0,
   remove_ids: vi.fn(),
   suppress_ids: vi.fn(),
+  is_recently_read: (id: string) => mocks.recently_read.has(id),
   is_representative_unread: () => false,
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),
@@ -177,6 +179,7 @@ describe("use_category_inbox read-state cache invalidation", () => {
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
     mocks.read_state.clear();
+    mocks.recently_read.clear();
     mocks.fetch_mail_by_ids_reconciled.mockClear();
   });
 
@@ -207,6 +210,34 @@ describe("use_category_inbox read-state cache invalidation", () => {
 
     expect(states.at(-1)!.emails).toEqual([{ id: "u1", is_read: false }]);
 
+    set_category("primary");
+    await flush();
+
+    expect(states.at(-1)!.emails).toEqual([{ id: "p1", is_read: true }]);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps a just-read row read when the server still reports it unread", async () => {
+    const { states, root, set_category } = make_harness();
+
+    await flush();
+
+    expect(states.at(-1)!.emails).toEqual([{ id: "p1", is_read: false }]);
+
+    mocks.recently_read.add("p1");
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("MAIL_ITEM_UPDATED", {
+          detail: { id: "p1", is_read: true },
+        }),
+      );
+    });
+
+    expect(states.at(-1)!.emails).toEqual([{ id: "p1", is_read: true }]);
+
+    set_category("updates");
+    await flush();
     set_category("primary");
     await flush();
 

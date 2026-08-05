@@ -1978,6 +1978,49 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
   background-color: var(--bg-hover, var(--bg-secondary, var(--bg-primary)));
 }
 
+.aster_select_focus:focus {
+  outline: none;
+}
+
+.aster_select_focus:focus-visible {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+.mail_row_selected {
+  background-color: color-mix(
+    in srgb,
+    var(--accent-color, #3b82f6) 10%,
+    var(--bg-primary)
+  );
+}
+
+.mail_row_selected:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--accent-color, #3b82f6) 16%,
+    var(--bg-primary)
+  );
+}
+
+.mail_row_selected_fade {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--accent-color, #3b82f6) 16%, var(--bg-primary)) 35%,
+    color-mix(in srgb, var(--accent-color, #3b82f6) 16%, var(--bg-primary))
+  );
+}
+
+.mail_row_selected_fade_end {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--accent-color, #3b82f6) 16%, var(--bg-primary))
+  );
+}
+
 .mail_unread_dot {
   background-color: var(--accent-color, #3b82f6);
 }
@@ -2445,6 +2488,22 @@ input:-webkit-autofill:active {
   .quick_settings_panel {
     animation: none;
   }
+}
+
+.quick_settings_row:hover,
+.quick_settings_all:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 6%,
+    transparent
+  );
+}
+
+.quick_settings_row:focus-visible,
+.quick_settings_all:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--accent-color, #3b82f6),
+    inset 0 0 0 1px var(--border-primary);
 }
 
 .account_menu_surface {

@@ -191,6 +191,30 @@ export function use_inbox_selection({
     [toggle_select, emails, get_update_fn, page_emails, shift_ref],
   );
 
+  const handle_select_only = useCallback(
+    (id: string): void => {
+      const update_fn = get_update_fn();
+
+      set_select_all_mode(false);
+
+      emails.forEach((e) => {
+        if (e.is_selected && e.id !== id) {
+          update_fn(e.id, { is_selected: false });
+        }
+      });
+
+      const target = emails.find((e) => e.id === id);
+
+      if (target && !target.is_selected) {
+        update_fn(id, { is_selected: true });
+      }
+
+      shift_anchor_ref.current = id;
+      last_shift_target_ref.current = null;
+    },
+    [emails, get_update_fn],
+  );
+
   const handle_toggle_select_all = useCallback((): void => {
     const page_id_set = new Set(page_emails.map((e) => e.id));
     const all_page_selected =
@@ -295,6 +319,7 @@ export function use_inbox_selection({
     selected_count,
     page_selected_count,
     handle_toggle_select,
+    handle_select_only,
     handle_toggle_select_all,
     handle_clear_selection,
     handle_select_by_filter,

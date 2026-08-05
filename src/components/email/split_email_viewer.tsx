@@ -82,7 +82,13 @@ interface SplitEmailViewerProps {
   grouped_email_ids?: string[];
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
-  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
+  label_hints?: {
+    token: string;
+    name: string;
+    color?: string;
+    icon?: string;
+    show_icon?: boolean;
+  }[];
 }
 
 export function SplitEmailViewer({
@@ -120,33 +126,80 @@ export function SplitEmailViewer({
 
   const label_chips = useMemo(() => {
     const seen = new Set<string>();
-    const from_item: { token: string; name: string; color?: string; icon?: string; show_icon: boolean }[] = [];
+    const from_item: {
+      token: string;
+      name: string;
+      color?: string;
+      icon?: string;
+      show_icon: boolean;
+    }[] = [];
     for (const f of viewer.mail_item?.labels ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
-        from_item.push({ token: f.token, name: f.name, color: f.color as string | undefined, icon: f.icon, show_icon: true });
+        from_item.push({
+          token: f.token,
+          name: f.name,
+          color: f.color as string | undefined,
+          icon: f.icon,
+          show_icon: true,
+        });
       }
     }
     for (const f of viewer.mail_item?.folders ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
-        from_item.push({ token: f.token, name: f.name, color: (f.color as string | undefined) || "#3b82f6", icon: f.icon || "folder", show_icon: true });
+        from_item.push({
+          token: f.token,
+          name: f.name,
+          color: (f.color as string | undefined) || "#3b82f6",
+          icon: f.icon || "folder",
+          show_icon: true,
+        });
       }
     }
     for (const token of viewer.mail_item?.tag_tokens ?? []) {
       const tag = get_tag_by_token(token);
       if (tag?.name && !seen.has(token)) {
         seen.add(token);
-        from_item.push({ token, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+        from_item.push({
+          token,
+          name: tag.name,
+          color: tag.color,
+          icon: tag.icon,
+          show_icon: true,
+        });
       }
     }
     const store_hints = get_label_hints(email_id);
-    const resolved = from_item.length > 0 ? from_item : (label_hints?.length ? label_hints : store_hints);
+    const resolved =
+      from_item.length > 0
+        ? from_item
+        : label_hints?.length
+          ? label_hints
+          : store_hints;
     if (viewer.email && is_system_email(viewer.email.sender_email)) {
-      return [{ token: "__system__", name: t("common.system"), color: "#3b82f6", icon: "info", show_icon: true }, ...resolved];
+      return [
+        {
+          token: "__system__",
+          name: t("common.system"),
+          color: "#3b82f6",
+          icon: "info",
+          show_icon: true,
+        },
+        ...resolved,
+      ];
     }
     return resolved;
-  }, [viewer.mail_item?.labels, viewer.mail_item?.folders, viewer.mail_item?.tag_tokens, label_hints, get_tag_by_token, viewer.email, email_id, t]);
+  }, [
+    viewer.mail_item?.labels,
+    viewer.mail_item?.folders,
+    viewer.mail_item?.tag_tokens,
+    label_hints,
+    get_tag_by_token,
+    viewer.email,
+    email_id,
+    t,
+  ]);
 
   const [content_ready, set_content_ready] = useState(
     () => !!get_cached_iframe_height(email_id),
@@ -163,7 +216,10 @@ export function SplitEmailViewer({
     };
 
     window.addEventListener("astermail:iframe-ready", handler);
-    const fallback_timer = window.setTimeout(handler, CONTENT_READY_FALLBACK_MS);
+    const fallback_timer = window.setTimeout(
+      handler,
+      CONTENT_READY_FALLBACK_MS,
+    );
 
     return () => {
       window.removeEventListener("astermail:iframe-ready", handler);
@@ -180,7 +236,9 @@ export function SplitEmailViewer({
 
     return { mode: cached || "blocked", report: null };
   });
-  const [loaded_content_types, set_loaded_content_types] = useState<Set<string>>(new Set());
+  const [loaded_content_types, set_loaded_content_types] = useState<
+    Set<string>
+  >(new Set());
 
   if (prev_email_id_ref.current !== email_id) {
     prev_email_id_ref.current = email_id;
@@ -224,21 +282,29 @@ export function SplitEmailViewer({
     [],
   );
 
-  const handle_load_external_content = useCallback((types?: string[]) => {
-    if (!types) {
-      set_external_content_state((prev) => ({ mode: "loaded", report: prev.report }));
-      set_external_content_mode(email_id);
-      set_loaded_content_types(new Set());
-      return;
-    }
-    set_loaded_content_types((prev) => {
-      const next = new Set(prev);
-      for (const t of types) next.add(t);
-      return next;
-    });
-  }, [email_id]);
+  const handle_load_external_content = useCallback(
+    (types?: string[]) => {
+      if (!types) {
+        set_external_content_state((prev) => ({
+          mode: "loaded",
+          report: prev.report,
+        }));
+        set_external_content_mode(email_id);
+        set_loaded_content_types(new Set());
+        return;
+      }
+      set_loaded_content_types((prev) => {
+        const next = new Set(prev);
+        for (const t of types) next.add(t);
+        return next;
+      });
+    },
+    [email_id],
+  );
 
-  const handle_unsubscribe = useCallback(async (): Promise<"success" | "manual"> => {
+  const handle_unsubscribe = useCallback(async (): Promise<
+    "success" | "manual"
+  > => {
     const email = viewer.email;
     if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
     if (is_system_email(email.sender_email)) return "success";
@@ -254,10 +320,15 @@ export function SplitEmailViewer({
           email_ids: [],
         });
         mark_unsubscribed(email.sender_email);
-        persist_unsubscribe(email.sender_email, email.sender || "", {
-          unsubscribe_link: info.unsubscribe_link,
-          list_unsubscribe_header: info.list_unsubscribe_header,
-        }, "auto");
+        persist_unsubscribe(
+          email.sender_email,
+          email.sender || "",
+          {
+            unsubscribe_link: info.unsubscribe_link,
+            list_unsubscribe_header: info.list_unsubscribe_header,
+          },
+          "auto",
+        );
         return "success";
       }
       show_action_toast({
@@ -265,10 +336,15 @@ export function SplitEmailViewer({
         action_type: "not_spam",
         email_ids: [],
       });
-      persist_unsubscribe(email.sender_email, email.sender || "", {
-        unsubscribe_link: info.unsubscribe_link,
-        list_unsubscribe_header: info.list_unsubscribe_header,
-      }, "manual");
+      persist_unsubscribe(
+        email.sender_email,
+        email.sender || "",
+        {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        },
+        "manual",
+      );
       return "manual";
     } catch {
       show_action_toast({
@@ -344,6 +420,7 @@ export function SplitEmailViewer({
             {t("common.error_label")}
           </span>
           <button
+            aria-label={t("common.close")}
             className="p-1.5 rounded-[14px] transition-colors text-txt-muted"
             onClick={on_close}
           >
@@ -397,10 +474,15 @@ export function SplitEmailViewer({
                 ? viewer.handle_block_sender_on_alias
                 : undefined
             }
+            on_forward={on_forward ? viewer.handle_forward : undefined}
             on_not_spam={viewer.handle_not_spam}
             on_pin_toggle={viewer.handle_pin_toggle}
             on_print={viewer.handle_print}
             on_read_toggle={viewer.handle_read_toggle}
+            on_reply={on_reply ? viewer.handle_reply : undefined}
+            show_nav
+            show_pin={false}
+            show_read_toggle
             on_spam={() => request_spam(viewer.handle_spam)}
             on_trash={viewer.handle_trash}
             on_unsubscribe={viewer.handle_unsubscribe}
@@ -421,6 +503,7 @@ export function SplitEmailViewer({
         <div className="flex-1" />
 
         <button
+          aria-label={t("common.close")}
           className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover flex-shrink-0 text-txt-muted"
           onClick={on_close}
         >
@@ -455,7 +538,10 @@ export function SplitEmailViewer({
           <div className="py-2 @md:py-3">
             <div className="px-3 @md:px-4 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
               <h1 className="text-base @md:text-lg @2xl:text-xl font-semibold text-txt-primary break-words">
-                <span className="inline-flex items-center gap-1 mr-1.5" style={{ verticalAlign: "-0.15em" }}>
+                <span
+                  className="inline-flex items-center gap-1 mr-1.5"
+                  style={{ verticalAlign: "-0.15em" }}
+                >
                   <EncryptionInfoDropdown
                     has_pq_protection={viewer.has_pq_protection}
                     has_recipient_key={viewer.has_recipient_key}
@@ -513,7 +599,9 @@ export function SplitEmailViewer({
               on_edit_thread_draft={viewer.handle_edit_thread_draft}
               on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
               on_unsubscribe={
-                email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
+                email.unsubscribe_info?.has_unsubscribe &&
+                !is_system_email(email.sender_email) &&
+                !is_unsubscribed(email.sender_email)
                   ? handle_unsubscribe
                   : undefined
               }

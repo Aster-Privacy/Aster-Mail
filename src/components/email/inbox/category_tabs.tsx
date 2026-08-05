@@ -37,14 +37,12 @@ import {
   category_color_key,
   category_color_style,
 } from "@/data/category_colors";
-import {
-  use_category_previews,
-  use_category_preview_list,
-} from "@/hooks/use_category_previews";
+import { use_category_previews } from "@/hooks/use_category_previews";
 
 interface TabConfig {
   key: EmailCategory;
   label: string;
+  description: string;
   Icon: typeof InboxIcon;
   color_style: React.CSSProperties;
 }
@@ -85,6 +83,7 @@ export function CategoryTabs({
       list.push({
         key: cat.id,
         label: t(cat.label_key),
+        description: t(cat.info_key),
         Icon: category_icon(cat.icon),
         color_style: category_color_style(category_color_key(cat.id)),
       });
@@ -101,6 +100,7 @@ export function CategoryTabs({
       list.push({
         key: rule.id,
         label: rule.name,
+        description: t("settings.category_info_custom"),
         Icon: category_icon(rule.icon),
         color_style: category_color_style(category_color_key(rule.id, rule)),
       });
@@ -117,39 +117,51 @@ export function CategoryTabs({
   const [hovered, set_hovered] = useState<{
     key: EmailCategory;
     label: string;
+    description: string;
     left: number;
     top: number;
   } | null>(null);
+  const [hover_visible, set_hover_visible] = useState(false);
   const hover_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hover_previews = use_category_preview_list(hovered?.key ?? null);
+  const reveal_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cancel_hover = useCallback(() => {
     if (hover_timer_ref.current) {
       clearTimeout(hover_timer_ref.current);
       hover_timer_ref.current = null;
     }
+    if (reveal_timer_ref.current) {
+      clearTimeout(reveal_timer_ref.current);
+      reveal_timer_ref.current = null;
+    }
+    set_hover_visible(false);
     set_hovered(null);
   }, []);
 
   useEffect(() => {
     return () => {
       if (hover_timer_ref.current) clearTimeout(hover_timer_ref.current);
+      if (reveal_timer_ref.current) clearTimeout(reveal_timer_ref.current);
     };
   }, []);
 
   const schedule_hover = useCallback(
-    (key: EmailCategory, label: string, element: HTMLElement) => {
+    (tab: TabConfig, element: HTMLElement) => {
+      if (!tab.description) return;
       if (hover_timer_ref.current) clearTimeout(hover_timer_ref.current);
       hover_timer_ref.current = setTimeout(() => {
         const rect = element.getBoundingClientRect();
 
         set_hovered({
-          key,
-          label,
-          left: Math.min(rect.left, window.innerWidth - 332),
-          top: rect.bottom + 6,
+          key: tab.key,
+          label: tab.label,
+          description: tab.description,
+          left: rect.left,
+          top: rect.bottom + 8,
         });
-      }, 450);
+        set_hover_visible(false);
+        reveal_timer_ref.current = setTimeout(() => set_hover_visible(true), 20);
+      }, 420);
     },
     [],
   );
@@ -168,7 +180,8 @@ export function CategoryTabs({
       className="aster_scrollbar_thin group/tabs relative flex shrink-0 select-none items-stretch gap-0 overflow-x-auto overflow-y-hidden border-b border-edge-primary bg-surf-primary px-2 sm:px-3"
       onWheel={handle_wheel}
     >
-      {tabs.map(({ key, label, Icon, color_style }) => {
+      {tabs.map((tab) => {
+        const { key, label, Icon, color_style } = tab;
         const is_active = key === active_category;
         const bucket = counts[key];
         const new_count = is_active ? 0 : (bucket?.new_count ?? 0);
@@ -191,16 +204,11 @@ export function CategoryTabs({
               cancel_hover();
               on_change(key);
             }}
-            onFocus={(e) => schedule_hover(key, label, e.currentTarget)}
+            onFocus={(e) => schedule_hover(tab, e.currentTarget)}
             onMouseDown={(e) => e.preventDefault()}
-            onMouseEnter={(e) => schedule_hover(key, label, e.currentTarget)}
             onMouseLeave={cancel_hover}
           >
-            <span
-              className={`flex min-w-0 items-center gap-2.5 ${
-                preview ? "-translate-y-2" : ""
-              }`}
-            >
+            <span className="flex min-w-0 items-center gap-2.5">
               <Icon
                 className={`h-4 w-4 shrink-0 ${
                   is_active
@@ -209,11 +217,17 @@ export function CategoryTabs({
                 }`}
               />
               <span
-                className={`relative flex flex-col items-start ${
+                className={`flex flex-col items-start ${
                   preview ? "min-w-[124px]" : "min-w-0"
                 }`}
               >
-                <span className="flex h-5 min-w-0 items-center gap-2">
+                <span
+                  className="flex h-5 min-w-0 items-center gap-2"
+                  onMouseEnter={(e) =>
+                    schedule_hover(tab, e.currentTarget as HTMLElement)
+                  }
+                  onMouseLeave={cancel_hover}
+                >
                   <span className="truncate">{label}</span>
                   {show_new ? (
                     <span className="aster_cat_badge">
@@ -222,7 +236,7 @@ export function CategoryTabs({
                   ) : null}
                 </span>
                 {preview ? (
-                  <span className="absolute left-0 top-full mt-[3px] block h-[13px] w-[124px] max-w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                  <span className="mt-[3px] block h-[13px] w-[124px] max-w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
                     {preview.subject
                       ? `${preview.sender} - ${preview.subject}`
                       : preview.sender}
@@ -239,46 +253,23 @@ export function CategoryTabs({
       })}
 
       {hovered &&
-        hover_previews.length > 0 &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-[70] w-[320px] overflow-hidden rounded-[16px] p-1.5"
+            className="pointer-events-none fixed z-[70] max-w-[260px] rounded-[10px] px-3 py-2 text-[12px] leading-snug transition-all duration-150 ease-out"
+            role="tooltip"
             style={{
               backgroundColor: "var(--dropdown-bg)",
               border: "1px solid var(--border-secondary)",
               boxShadow:
-                "0 12px 24px -10px rgba(0, 0, 0, 0.22), 0 3px 8px -4px rgba(0, 0, 0, 0.12)",
-              left: `${Math.max(8, hovered.left)}px`,
+                "0 10px 20px -12px rgba(0, 0, 0, 0.28), 0 2px 6px -3px rgba(0, 0, 0, 0.14)",
+              color: "var(--text-secondary)",
+              left: `${Math.max(8, Math.min(hovered.left, window.innerWidth - 272))}px`,
               top: `${hovered.top}px`,
+              opacity: hover_visible ? 1 : 0,
+              transform: hover_visible ? "translateY(0)" : "translateY(-4px)",
             }}
           >
-            <div
-              className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide"
-              style={{ color: "var(--text-muted)" }}
-            >
-              {hovered.label}
-            </div>
-            {hover_previews.map((item, index) => (
-              <div
-                key={`${item.sender}-${index}`}
-                className="flex flex-col gap-0.5 rounded-[11px] px-2.5 py-1.5"
-              >
-                <span
-                  className="truncate text-[12.5px] font-medium leading-tight"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {item.sender}
-                </span>
-                {item.subject && (
-                  <span
-                    className="truncate text-[11.5px] leading-tight"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {item.subject}
-                  </span>
-                )}
-              </div>
-            ))}
+            {hovered.description}
           </div>,
           document.body,
         )}

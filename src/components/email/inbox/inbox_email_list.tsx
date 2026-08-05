@@ -73,6 +73,7 @@ export interface EmailListProps {
   show_message_size?: boolean;
   show_thread_count?: boolean;
   on_toggle_select: (id: string) => void;
+  on_select_only?: (id: string) => void;
   on_email_click: (id: string) => void;
   current_view: string;
   folders: { id: string; name: string; color: string }[];
@@ -111,6 +112,7 @@ export function EmailList({
   show_message_size,
   show_thread_count,
   on_toggle_select,
+  on_select_only,
   on_email_click,
   current_view,
   folders,
@@ -309,7 +311,12 @@ export function EmailList({
       auto_selected_id_ref.current = null;
     } else {
       auto_selected_id_ref.current = email.id;
-      on_toggle_select(email.id);
+
+      if (on_select_only) {
+        on_select_only(email.id);
+      } else {
+        on_toggle_select(email.id);
+      }
     }
   };
 

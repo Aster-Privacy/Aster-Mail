@@ -414,6 +414,10 @@ export function use_email_viewer({
             if (is_received) {
               adjust_unread_count(-1);
             }
+            if (!cancelled) {
+              set_is_read(true);
+            }
+            emit_mail_item_updated({ id: item.id, is_read: true });
             const result = await update_item_metadata(
               item.id,
               {
@@ -456,8 +460,14 @@ export function use_email_viewer({
                   acted_id: item.id,
                 });
               }
-            } else if (!result.success && is_received) {
-              adjust_unread_count(1);
+            } else if (!result.success) {
+              if (!cancelled) {
+                set_is_read(false);
+              }
+              emit_mail_item_updated({ id: item.id, is_read: false });
+              if (is_received) {
+                adjust_unread_count(1);
+              }
             }
           };
 
@@ -606,6 +616,87 @@ export function use_email_viewer({
         set_is_pinned(decrypted_metadata?.is_pinned ?? false);
       }
 
+      if (
+        !(decrypted_metadata?.is_read ?? false) &&
+        preferences.mark_as_read_delay !== "never"
+      ) {
+        const is_received_item = item.item_type === "received";
+        const mark_read = async () => {
+          if (is_received_item) {
+            adjust_unread_count(-1);
+          }
+          if (!cancelled) {
+            set_is_read(true);
+          }
+          emit_mail_item_updated({ id: item.id, is_read: true });
+          const result = await update_item_metadata(
+            item.id,
+            {
+              encrypted_metadata: item.encrypted_metadata,
+              metadata_nonce: item.metadata_nonce,
+              metadata_version: item.metadata_version,
+            },
+            { is_read: true },
+          );
+
+          if (result.success) {
+            if (!cancelled) {
+              set_is_read(true);
+              if (result.encrypted) {
+                set_mail_item((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        encrypted_metadata:
+                          result.encrypted!.encrypted_metadata,
+                        metadata_nonce: result.encrypted!.metadata_nonce,
+                        metadata: prev.metadata
+                          ? { ...prev.metadata, is_read: true }
+                          : undefined,
+                      }
+                    : prev,
+                );
+              }
+            }
+            emit_mail_item_updated({
+              id: item.id,
+              is_read: true,
+              encrypted_metadata: result.encrypted?.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce,
+            });
+            if (is_received_item) {
+              mark_conversation_read({
+                thread_token: item.thread_token,
+                thread_message_count: item.thread_message_count,
+                grouped_count: grouped_email_ids_ref.current?.length,
+                conversation_grouping: preferences.conversation_grouping,
+                acted_id: item.id,
+              });
+            }
+          } else if (!result.success) {
+            if (!cancelled) {
+              set_is_read(false);
+            }
+            emit_mail_item_updated({ id: item.id, is_read: false });
+            if (is_received_item) {
+              adjust_unread_count(1);
+            }
+          }
+        };
+
+        if (preferences.mark_as_read_delay === "immediate") {
+          void mark_read();
+        } else {
+          const delay_ms =
+            preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
+
+          mark_as_read_timeout.current = window.setTimeout(
+            () => mark_read(),
+            delay_ms,
+          );
+        }
+      }
+
       const single_message = build_single_thread_message(
         item,
         envelope,
@@ -679,76 +770,6 @@ export function use_email_viewer({
         }
       }
 
-      if (
-        !(decrypted_metadata?.is_read ?? false) &&
-        preferences.mark_as_read_delay !== "never"
-      ) {
-        const is_received_item = item.item_type === "received";
-        const mark_read = async () => {
-          if (is_received_item) {
-            adjust_unread_count(-1);
-          }
-          const result = await update_item_metadata(
-            item.id,
-            {
-              encrypted_metadata: item.encrypted_metadata,
-              metadata_nonce: item.metadata_nonce,
-              metadata_version: item.metadata_version,
-            },
-            { is_read: true },
-          );
-
-          if (result.success) {
-            if (!cancelled) {
-              set_is_read(true);
-              if (result.encrypted) {
-                set_mail_item((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        encrypted_metadata:
-                          result.encrypted!.encrypted_metadata,
-                        metadata_nonce: result.encrypted!.metadata_nonce,
-                        metadata: prev.metadata
-                          ? { ...prev.metadata, is_read: true }
-                          : undefined,
-                      }
-                    : prev,
-                );
-              }
-            }
-            emit_mail_item_updated({
-              id: item.id,
-              is_read: true,
-              encrypted_metadata: result.encrypted?.encrypted_metadata,
-              metadata_nonce: result.encrypted?.metadata_nonce,
-            });
-            if (is_received_item) {
-              mark_conversation_read({
-                thread_token: item.thread_token,
-                thread_message_count: item.thread_message_count,
-                grouped_count: grouped_email_ids_ref.current?.length,
-                conversation_grouping: preferences.conversation_grouping,
-                acted_id: item.id,
-              });
-            }
-          } else if (!result.success && is_received_item) {
-            adjust_unread_count(1);
-          }
-        };
-
-        if (preferences.mark_as_read_delay === "immediate") {
-          void mark_read();
-        } else {
-          const delay_ms =
-            preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
-
-          mark_as_read_timeout.current = window.setTimeout(
-            () => mark_read(),
-            delay_ms,
-          );
-        }
-      }
     }
 
     if (loaded_email_id_ref.current !== email_id || refresh_key > 0) {

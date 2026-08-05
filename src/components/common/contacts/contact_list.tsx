@@ -328,7 +328,7 @@ export function ContactList({
                 <div
                   aria-label={t("mail.select")}
                   aria-pressed={is_selected}
-                  className="group/avatar relative flex-shrink-0 w-10 h-10 cursor-pointer"
+                  className="group/avatar aster_select_focus relative flex-shrink-0 w-10 h-10 cursor-pointer"
                   role="button"
                   tabIndex={0}
                   onClick={(e) => {

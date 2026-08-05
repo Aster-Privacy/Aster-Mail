@@ -26,16 +26,22 @@ import { use_i18n } from "@/lib/i18n/context";
 
 export function scroll_to_storage_addons() {
   let attempts = 0;
+  let settles = 0;
   const scroll = () => {
     const el = document.getElementById("additional_storage_section");
 
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.scrollIntoView({
+        behavior: settles === 0 ? "smooth" : "auto",
+        block: "center",
+      });
+      settles += 1;
+      if (settles < 8) setTimeout(scroll, 220);
 
       return;
     }
     attempts += 1;
-    if (attempts < 20) setTimeout(scroll, 50);
+    if (attempts < 60) setTimeout(scroll, 50);
   };
 
   setTimeout(scroll, 60);

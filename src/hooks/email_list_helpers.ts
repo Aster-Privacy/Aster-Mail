@@ -952,7 +952,11 @@ export async function fetch_mail_from_api(
       });
 
     if (index_entries.length > 0) {
-      category_index_module.upsert_entries(index_entries, index_generation);
+      category_index_module.upsert_entries(
+        index_entries,
+        index_generation,
+        true,
+      );
     }
   }
 

@@ -46,6 +46,8 @@ import {
   ClockIcon,
   AdjustmentsHorizontalIcon,
   CheckIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -151,6 +153,11 @@ interface ViewerToolbarActionsProps {
   dropdown_align?: "start" | "end";
   hide_class?: string;
   spread_layout?: boolean;
+  show_nav?: boolean;
+  show_pin?: boolean;
+  show_read_toggle?: boolean;
+  on_reply?: () => void;
+  on_forward?: () => void;
 }
 
 export function ViewerToolbarActions({
@@ -187,6 +194,11 @@ export function ViewerToolbarActions({
   dropdown_align = "end",
   hide_class = "",
   spread_layout = false,
+  show_nav = false,
+  show_pin = true,
+  show_read_toggle,
+  on_reply,
+  on_forward,
   can_go_prev,
   can_go_next,
   on_navigate_prev,
@@ -211,96 +223,132 @@ export function ViewerToolbarActions({
     : { color: "var(--text-muted)" };
   const btn_common = `flex-shrink-0 ${hide_class} ${button_size}`;
   const btn_base = `${btn_common} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`;
-  const btn_trash = `${btn_common} hover:!text-red-500 hover:bg-red-500/10`;
-  const btn_spam = `${btn_common} hover:!text-amber-500 hover:bg-amber-500/10`;
+  const btn_trash = btn_base;
+  const btn_spam = btn_base;
 
-  const collapse_expand_button = thread_messages.length > 1 ? (
-    <Tooltip
-      tip={
-        thread_expand_state.all_expanded
-          ? t("common.collapse_all")
-          : t("common.expand_all")
-      }
-    >
-      <Button
-        className={btn_base}
-        size="icon"
-        style={muted_style}
-        variant="ghost"
-        onClick={() => {
-          if (thread_expand_state.all_expanded) {
-            thread_list_ref.current?.collapse_all();
-          } else {
-            thread_list_ref.current?.expand_all();
-          }
-        }}
+  const collapse_expand_button =
+    thread_messages.length > 1 ? (
+      <Tooltip
+        tip={
+          thread_expand_state.all_expanded
+            ? t("common.collapse_all")
+            : t("common.expand_all")
+        }
       >
-        {thread_expand_state.all_expanded ? (
-          <ChevronDoubleUpIcon className={icon_size} />
-        ) : (
-          <ChevronDoubleDownIcon className={icon_size} />
-        )}
-      </Button>
-    </Tooltip>
-  ) : null;
+        <Button
+          className={btn_base}
+          size="icon"
+          style={muted_style}
+          variant="ghost"
+          onClick={() => {
+            if (thread_expand_state.all_expanded) {
+              thread_list_ref.current?.collapse_all();
+            } else {
+              thread_list_ref.current?.expand_all();
+            }
+          }}
+        >
+          {thread_expand_state.all_expanded ? (
+            <ChevronDoubleUpIcon className={icon_size} />
+          ) : (
+            <ChevronDoubleDownIcon className={icon_size} />
+          )}
+        </Button>
+      </Tooltip>
+    ) : null;
 
-  const nav_buttons = spread_layout && (on_navigate_prev || on_navigate_next) ? (
-    <div className="flex select-none items-center gap-0.5">
-      <Tooltip tip={t("mail.shortcut_previous_email")}>
-        <Button
-          aria-disabled={!can_go_prev}
-          className={`flex-shrink-0 ${button_size} ${can_go_prev ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
-          size="icon"
-          style={muted_style}
-          tabIndex={can_go_prev ? undefined : -1}
-          variant="ghost"
-          onClick={() => {
-            if (can_go_prev) on_navigate_prev?.();
-          }}
-        >
-          <ChevronLeftIcon className={icon_size} />
-        </Button>
-      </Tooltip>
-      {current_index != null && total_count != null && total_count > 0 && (
-        <span className="tabular-nums whitespace-nowrap px-1 text-[13px] text-[var(--text-muted)]">
-          {(current_index + 1).toLocaleString()} {t("common.of")}{" "}
-          {total_count.toLocaleString()}
-        </span>
-      )}
-      <Tooltip tip={t("mail.shortcut_next_email")}>
-        <Button
-          aria-disabled={!can_go_next}
-          className={`flex-shrink-0 ${button_size} ${can_go_next ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
-          size="icon"
-          style={muted_style}
-          tabIndex={can_go_next ? undefined : -1}
-          variant="ghost"
-          onClick={() => {
-            if (can_go_next) on_navigate_next?.();
-          }}
-        >
-          <ChevronRightIcon className={icon_size} />
-        </Button>
-      </Tooltip>
-    </div>
-  ) : null;
+  const nav_buttons =
+    (spread_layout || show_nav) && (on_navigate_prev || on_navigate_next) ? (
+      <div className="flex select-none items-center gap-0.5">
+        <Tooltip tip={t("mail.shortcut_previous_email")}>
+          <Button
+            aria-disabled={!can_go_prev}
+            className={`flex-shrink-0 ${button_size} ${can_go_prev ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
+            size="icon"
+            style={muted_style}
+            tabIndex={can_go_prev ? undefined : -1}
+            variant="ghost"
+            onClick={() => {
+              if (can_go_prev) on_navigate_prev?.();
+            }}
+          >
+            <ChevronLeftIcon className={icon_size} />
+          </Button>
+        </Tooltip>
+        {current_index != null && total_count != null && total_count > 0 && (
+          <span className="tabular-nums whitespace-nowrap px-1 text-[13px] text-[var(--text-muted)]">
+            {(current_index + 1).toLocaleString()} {t("common.of")}{" "}
+            {total_count.toLocaleString()}
+          </span>
+        )}
+        <Tooltip tip={t("mail.shortcut_next_email")}>
+          <Button
+            aria-disabled={!can_go_next}
+            className={`flex-shrink-0 ${button_size} ${can_go_next ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
+            size="icon"
+            style={muted_style}
+            tabIndex={can_go_next ? undefined : -1}
+            variant="ghost"
+            onClick={() => {
+              if (can_go_next) on_navigate_next?.();
+            }}
+          >
+            <ChevronRightIcon className={icon_size} />
+          </Button>
+        </Tooltip>
+      </div>
+    ) : null;
+
+  const inline_read_toggle = show_read_toggle ?? is_advanced;
 
   return (
     <>
-      <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
-        <Button
-          className={`${btn_common} ${is_pinned ? "!text-[var(--accent-color)] bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]" : "hover:!text-[var(--accent-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]"}`}
-          disabled={is_pin_loading}
-          size="icon"
-          style={is_pinned ? btn_style : muted_style}
-          variant="ghost"
-          onClick={on_pin_toggle}
-        >
-          <MapPinIcon
-            className={`${icon_size} ${is_pinned ? "-rotate-45" : ""}`}
-          />
-        </Button>
-      </Tooltip>
+      {on_reply && (
+        <Tooltip tip={t("mail.reply")}>
+          <Button
+            aria-label={t("mail.reply")}
+            className={btn_base}
+            size="icon"
+            style={muted_style}
+            variant="ghost"
+            onClick={on_reply}
+          >
+            <ArrowUturnLeftIcon className={icon_size} />
+          </Button>
+        </Tooltip>
+      )}
+
+      {on_forward && (
+        <Tooltip tip={t("mail.forward")}>
+          <Button
+            aria-label={t("mail.forward")}
+            className={btn_base}
+            size="icon"
+            style={muted_style}
+            variant="ghost"
+            onClick={on_forward}
+          >
+            <ArrowUturnRightIcon className={icon_size} />
+          </Button>
+        </Tooltip>
+      )}
+
+      {show_pin && (
+        <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
+          <Button
+            className={`${btn_common} ${is_pinned ? "!text-[var(--accent-color)] bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]" : "hover:!text-[var(--accent-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]"}`}
+            disabled={is_pin_loading}
+            size="icon"
+            style={is_pinned ? btn_style : muted_style}
+            variant="ghost"
+            onClick={on_pin_toggle}
+          >
+            <MapPinIcon
+              className={`${icon_size} ${is_pinned ? "-rotate-45" : ""}`}
+            />
+          </Button>
+        </Tooltip>
+      )}
 
       {is_archived && on_unarchive ? (
         <Tooltip tip={t("mail.move_to_inbox")}>
@@ -346,6 +394,29 @@ export function ViewerToolbarActions({
         </Button>
       </Tooltip>
 
+      {inline_read_toggle && (
+        <Tooltip
+          tip={is_read ? t("mail.mark_as_unread") : t("mail.mark_as_read")}
+        >
+          <Button
+            aria-label={
+              is_read ? t("mail.mark_as_unread") : t("mail.mark_as_read")
+            }
+            className={btn_base}
+            size="icon"
+            style={muted_style}
+            variant="ghost"
+            onClick={on_read_toggle}
+          >
+            {is_read ? (
+              <EnvelopeIcon className={icon_size} />
+            ) : (
+              <EnvelopeOpenIcon className={icon_size} />
+            )}
+          </Button>
+        </Tooltip>
+      )}
+
       {is_advanced && (
         <>
           {is_spam && on_not_spam ? (
@@ -375,22 +446,6 @@ export function ViewerToolbarActions({
               </Button>
             </Tooltip>
           )}
-
-          <Tooltip tip={is_read ? t("mail.mark_as_unread") : t("mail.mark_as_read")}>
-            <Button
-              className={btn_base}
-              size="icon"
-              style={muted_style}
-              variant="ghost"
-              onClick={on_read_toggle}
-            >
-              {is_read ? (
-                <EnvelopeIcon className={icon_size} />
-              ) : (
-                <EnvelopeOpenIcon className={icon_size} />
-              )}
-            </Button>
-          </Tooltip>
 
           {on_snooze && (
             <Tooltip tip={t("mail.snooze")}>
@@ -699,9 +754,7 @@ export function ViewerEmailHeader({
                 custom_color={label.color}
                 icon={(label.icon as TagIconName) || "folder"}
                 label={label.name}
-                variant={
-                  label.color ? hex_to_variant(label.color) : "neutral"
-                }
+                variant={label.color ? hex_to_variant(label.color) : "neutral"}
               />
             ))}
           {email.expires_at && (
@@ -732,10 +785,7 @@ export function ViewerEmailHeader({
               >
                 <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
-              <OfficialBadge
-                email={email.sender_email}
-                size="md"
-              />
+              <OfficialBadge email={email.sender_email} size="md" />
               {show_sender_badge && peer_badge && (
                 <BadgeChip
                   badge={peer_badge}
@@ -889,14 +939,19 @@ export function ViewerEmailHeader({
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
                     {t("common.subject_label")}
                   </span>
-                  <span className="min-w-0 text-txt-secondary break-words">{email.subject || t("mail.no_subject")}</span>
+                  <span className="min-w-0 text-txt-secondary break-words">
+                    {email.subject || t("mail.no_subject")}
+                  </span>
                 </div>
               </PopoverContent>
             </Popover>
             {(mail_item?.thread_message_count ?? thread_messages.length) >
               1 && (
               <span className="text-xs text-txt-muted">
-                {t("mail.n_messages", { count: mail_item?.thread_message_count ?? thread_messages.length })}
+                {t("mail.n_messages", {
+                  count:
+                    mail_item?.thread_message_count ?? thread_messages.length,
+                })}
               </span>
             )}
           </div>
@@ -1195,7 +1250,12 @@ export function ViewerThreadContent({
             content: thread_draft.content,
           }
         : null,
-    [thread_draft?.id, thread_draft?.version, thread_draft?.reply_to_id, thread_draft?.content],
+    [
+      thread_draft?.id,
+      thread_draft?.version,
+      thread_draft?.reply_to_id,
+      thread_draft?.content,
+    ],
   );
 
   const extraction = useMemo(
@@ -1207,7 +1267,13 @@ export function ViewerThreadContent({
         email.sender_email ?? "",
         email.sender ?? "",
       ),
-    [email.subject, email.body, email.html_content, email.sender_email, email.sender],
+    [
+      email.subject,
+      email.body,
+      email.html_content,
+      email.sender_email,
+      email.sender,
+    ],
   );
 
   return (
@@ -1270,7 +1336,6 @@ export function ViewerThreadContent({
         size_bytes={size_bytes}
         subject={email.subject}
       />
-
 
       {thread_draft && !inline_reply_msg && (
         <ThreadDraftBadge

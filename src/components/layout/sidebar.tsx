@@ -665,7 +665,7 @@ export const Sidebar = ({
           className={
             is_collapsed
               ? "!rounded-[16px] w-14 h-14 min-w-14 !h-14 !p-0 flex items-center justify-center"
-              : "w-full !rounded-[16px] !h-14 gap-2"
+              : "w-full !rounded-[16px] gap-2"
           }
           data-onboarding="compose-button"
           data-rail-tip={is_collapsed ? t("mail.compose") : undefined}

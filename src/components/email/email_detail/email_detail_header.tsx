@@ -110,7 +110,17 @@ export function EmailDetailHeader({
       ) : (
         <button
           className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            const history_index = (
+              window.history.state as { idx?: number } | null
+            )?.idx;
+
+            if (typeof history_index === "number" && history_index > 0) {
+              navigate(-1);
+            } else {
+              navigate("/");
+            }
+          }}
         >
           <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
           <span className="text-sm font-medium">{t("common.back")}</span>

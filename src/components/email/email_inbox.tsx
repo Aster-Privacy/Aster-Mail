@@ -1449,12 +1449,23 @@ export function EmailInbox({
 
   const handle_page_change = useCallback(
     (page: number): void => {
-      set_current_page(page);
+      if (page !== current_page && !is_page_cached(page, page_size)) {
+        set_is_paginating(true);
+      }
       list_scroll_top_ref.current = 0;
       split_pane.list_panel_ref.current?.scrollTo(0, 0);
       split_pane.list_scroll_ref.current?.scrollTo(0, 0);
+      set_current_page(page);
     },
-    [set_current_page, split_pane.list_panel_ref, split_pane.list_scroll_ref],
+    [
+      current_page,
+      is_page_cached,
+      page_size,
+      set_is_paginating,
+      set_current_page,
+      split_pane.list_panel_ref,
+      split_pane.list_scroll_ref,
+    ],
   );
   const handle_filter_change = useCallback(
     (filter: InboxFilterType): void => {
@@ -1529,6 +1540,7 @@ export function EmailInbox({
                 on_tag_toggle={context_menu_actions.handle_tag_toggle}
                 on_toggle_pin={context_menu_actions.handle_toggle_pin}
                 on_toggle_read={context_menu_actions.handle_toggle_read}
+                on_select_only={selection.handle_select_only}
                 on_toggle_select={selection.handle_toggle_select}
                 on_toggle_star={context_menu_actions.handle_toggle_star}
                 on_unsnooze={(email) => handle_unsnooze(email.id)}
@@ -1680,7 +1692,7 @@ export function EmailInbox({
             status: selection.get_tag_status_for_selection(t.tag_token),
           }))}
           total_email_count={nav.visible_ids.length}
-          total_messages={email_state.total_messages}
+          total_messages={effective_total_for_pages}
           trash_count={mail_stats.trash}
           view_title={get_view_title(
             current_view,
