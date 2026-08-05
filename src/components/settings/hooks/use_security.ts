@@ -89,6 +89,7 @@ import {
   generate_ratchet_keys,
   upload_prekey_bundle,
 } from "@/services/crypto/ratchet_manager";
+import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
@@ -547,13 +548,54 @@ export function use_security() {
 
       const memory_vault = get_vault_from_memory();
 
-      if (!is_master_key_vault(vault) && is_master_key_vault(memory_vault)) {
-        vault.data_kek = memory_vault?.data_kek;
-        vault.vault_format = memory_vault?.vault_format;
-        vault.mk_created_at = memory_vault?.mk_created_at;
-        vault.legacy_keks = memory_vault?.legacy_keks
-          ? [...memory_vault.legacy_keks]
-          : vault.legacy_keks;
+      if (!is_master_key_vault(vault)) {
+        let healed_from_server = false;
+
+        try {
+          const server_vault_response = await api_client.get<{
+            encrypted_vault: string;
+            vault_nonce: string;
+          }>("/core/v1/auth/vault");
+
+          if (
+            !server_vault_response.error &&
+            server_vault_response.data?.encrypted_vault &&
+            server_vault_response.data.vault_nonce
+          ) {
+            const server_vault = await decrypt_vault(
+              server_vault_response.data.encrypted_vault,
+              server_vault_response.data.vault_nonce,
+              current_password,
+            );
+
+            if (is_master_key_vault(server_vault)) {
+              vault = server_vault;
+              healed_from_server = true;
+
+              try {
+                localStorage.setItem(
+                  `astermail_encrypted_vault_${user.id}`,
+                  server_vault_response.data.encrypted_vault,
+                );
+                localStorage.setItem(
+                  `astermail_vault_nonce_${user.id}`,
+                  server_vault_response.data.vault_nonce,
+                );
+              } catch {}
+            }
+          }
+        } catch (error) {
+          if (import.meta.env.DEV) console.error(error);
+        }
+
+        if (!healed_from_server && is_master_key_vault(memory_vault)) {
+          vault.data_kek = memory_vault?.data_kek;
+          vault.vault_format = memory_vault?.vault_format;
+          vault.mk_created_at = memory_vault?.mk_created_at;
+          vault.legacy_keks = memory_vault?.legacy_keks
+            ? [...memory_vault.legacy_keks]
+            : vault.legacy_keks;
+        }
       }
 
       if (
@@ -727,6 +769,7 @@ export function use_security() {
         store_encrypted_vault(user.id, new_encrypted_vault, new_vault_nonce);
       } catch {}
 
+      reset_vault_refresh_state();
       await store_vault_in_memory(vault, new_password);
 
       try {
