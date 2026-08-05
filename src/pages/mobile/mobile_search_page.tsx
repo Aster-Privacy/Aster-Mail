@@ -33,10 +33,10 @@ import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { use_preferences } from "@/contexts/preferences_context";
+import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 
 type SearchFilter = "all" | "unread" | "attachments" | "starred";
-
-const SEARCH_PAGE_SIZE = 30;
 
 const FILTERS: { id: SearchFilter; label: TranslationKey }[] = [
   { id: "all", label: "mail.all" },
@@ -50,10 +50,15 @@ function MobileSearchPage() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const search = use_search();
+  const { preferences } = use_preferences();
+  const page_size = resolve_effective_page_size(
+    preferences.inbox_page_size,
+    preferences.low_network_mode,
+  );
   const input_ref = useRef<HTMLInputElement>(null);
   const [query, set_query] = useState("");
   const [active_filter, set_active_filter] = useState<SearchFilter>("all");
-  const [visible_count, set_visible_count] = useState(SEARCH_PAGE_SIZE);
+  const [visible_count, set_visible_count] = useState(page_size);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -103,8 +108,8 @@ function MobileSearchPage() {
   }, [search.state.results, active_filter]);
 
   useEffect(() => {
-    set_visible_count(SEARCH_PAGE_SIZE);
-  }, [search.state.results, active_filter]);
+    set_visible_count(page_size);
+  }, [search.state.results, active_filter, page_size]);
 
   const paged_results = useMemo(
     () => filtered_results.slice(0, visible_count),
@@ -112,8 +117,10 @@ function MobileSearchPage() {
   );
 
   const handle_load_more = useCallback(() => {
-    set_visible_count((prev) => Math.min(prev + SEARCH_PAGE_SIZE, filtered_results.length));
-  }, [filtered_results.length]);
+    set_visible_count((prev) =>
+      Math.min(prev + page_size, filtered_results.length),
+    );
+  }, [filtered_results.length, page_size]);
 
   const is_loading = search.state.is_searching || search.state.index_building;
   const has_results = filtered_results.length > 0;

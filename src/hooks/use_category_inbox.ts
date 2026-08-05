@@ -36,7 +36,7 @@ import {
   group_emails_by_thread,
   DEFAULT_PAGE_SIZE,
 } from "./email_list_helpers";
-import { clamp_inbox_page_size } from "@/lib/inbox_page_size";
+import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { MAIL_EVENTS } from "./mail_events";
@@ -153,8 +153,9 @@ export function use_category_inbox(
     set_thread_grouping(preferences.conversation_grouping !== false);
   }, [preferences.conversation_grouping]);
 
-  const page_size = clamp_inbox_page_size(
+  const page_size = resolve_effective_page_size(
     preferences.inbox_page_size,
+    preferences.low_network_mode,
     DEFAULT_PAGE_SIZE,
   );
 

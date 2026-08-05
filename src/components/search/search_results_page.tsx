@@ -75,11 +75,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_i18n } from "@/lib/i18n/context";
 import { resolve_list_density } from "@/lib/list_density";
+import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 
 const MIN_LIST_WIDTH = 280;
-const SEARCH_PAGE_SIZE = 30;
 const SNIPPET_WINDOW = 120;
 const SLOW_SEARCH_MS = 6000;
 
@@ -162,6 +162,10 @@ export function SearchResultsPage({
 }: SearchResultsPageProps) {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
+  const search_page_size = resolve_effective_page_size(
+    preferences.inbox_page_size,
+    preferences.low_network_mode,
+  );
   const { format_email_list } = use_date_format();
   const { state, search, load_more, set_query, clear_results, clear_index } =
     use_search();
@@ -366,15 +370,15 @@ export function SearchResultsPage({
   ]);
 
   const paged_results = useMemo(() => {
-    const start = search_page * SEARCH_PAGE_SIZE;
-    const end = start + SEARCH_PAGE_SIZE;
+    const start = search_page * search_page_size;
+    const end = start + search_page_size;
 
     return filtered_results.slice(start, end);
-  }, [filtered_results, search_page]);
+  }, [filtered_results, search_page, search_page_size]);
 
   const total_search_pages = Math.max(
     1,
-    Math.ceil(filtered_results.length / SEARCH_PAGE_SIZE),
+    Math.ceil(filtered_results.length / search_page_size),
   );
 
   useEffect(() => {
@@ -388,7 +392,7 @@ export function SearchResultsPage({
     }
   }, [search_page, total_search_pages, state.has_more, state.is_loading_more]);
   useEffect(() => {
-    const needed = (search_page + 1) * SEARCH_PAGE_SIZE;
+    const needed = (search_page + 1) * search_page_size;
 
     if (
       needed > filtered_results.length &&
@@ -399,6 +403,7 @@ export function SearchResultsPage({
     }
   }, [
     search_page,
+    search_page_size,
     filtered_results.length,
     state.has_more,
     state.is_loading_more,
@@ -1099,7 +1104,7 @@ export function SearchResultsPage({
               paged_results.length > 0 ? handle_select_all_visible : undefined
             }
             on_toggle_star={handle_bulk_toggle_star}
-            page_size={SEARCH_PAGE_SIZE}
+            page_size={search_page_size}
             search_context={query}
             selected_count={selected_ids.size}
             some_selected={selection_some_selected}
