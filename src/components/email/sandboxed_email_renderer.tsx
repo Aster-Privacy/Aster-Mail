@@ -1810,12 +1810,16 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
   useEffect(() => {
     if (!zoomed_image) return;
     const handle_key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") set_zoomed_image(null);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        set_zoomed_image(null);
+      }
     };
 
-    window.addEventListener("keydown", handle_key);
+    window.addEventListener("keydown", handle_key, true);
 
-    return () => window.removeEventListener("keydown", handle_key);
+    return () => window.removeEventListener("keydown", handle_key, true);
   }, [zoomed_image]);
 
   const effective_bg = is_html_email ? html_bg : plain_bg;

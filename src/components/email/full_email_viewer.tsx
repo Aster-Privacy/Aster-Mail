@@ -306,7 +306,7 @@ export function FullEmailViewer({
 
   useEffect(() => {
     const handle_keyboard_back = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape") {
+      if (e["key"] === "Escape" && !e.defaultPrevented) {
         on_back();
       }
     };
