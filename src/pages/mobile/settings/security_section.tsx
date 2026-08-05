@@ -59,6 +59,7 @@ import {
   MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
+import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import {
   derive_kek_from_password,
   serialize_kek_for_vault,
@@ -279,13 +280,52 @@ export function SecuritySection({
       }
       const memory_vault = get_vault_from_memory();
 
-      if (!is_master_key_vault(vault) && is_master_key_vault(memory_vault)) {
-        vault.data_kek = memory_vault?.data_kek;
-        vault.vault_format = memory_vault?.vault_format;
-        vault.mk_created_at = memory_vault?.mk_created_at;
-        vault.legacy_keks = memory_vault?.legacy_keks
-          ? [...memory_vault.legacy_keks]
-          : vault.legacy_keks;
+      if (!is_master_key_vault(vault)) {
+        let healed_from_server = false;
+
+        try {
+          const server_vault_response = await api_client.get<{
+            encrypted_vault: string;
+            vault_nonce: string;
+          }>("/core/v1/auth/vault");
+
+          if (
+            !server_vault_response.error &&
+            server_vault_response.data?.encrypted_vault &&
+            server_vault_response.data.vault_nonce
+          ) {
+            const server_vault = await decrypt_vault(
+              server_vault_response.data.encrypted_vault,
+              server_vault_response.data.vault_nonce,
+              current_password,
+            );
+
+            if (is_master_key_vault(server_vault)) {
+              vault = server_vault;
+              healed_from_server = true;
+
+              try {
+                localStorage.setItem(
+                  `astermail_encrypted_vault_${user.id}`,
+                  server_vault_response.data.encrypted_vault,
+                );
+                localStorage.setItem(
+                  `astermail_vault_nonce_${user.id}`,
+                  server_vault_response.data.vault_nonce,
+                );
+              } catch {}
+            }
+          }
+        } catch {}
+
+        if (!healed_from_server && is_master_key_vault(memory_vault)) {
+          vault.data_kek = memory_vault?.data_kek;
+          vault.vault_format = memory_vault?.vault_format;
+          vault.mk_created_at = memory_vault?.mk_created_at;
+          vault.legacy_keks = memory_vault?.legacy_keks
+            ? [...memory_vault.legacy_keks]
+            : vault.legacy_keks;
+        }
       }
 
       const master_key_mode = is_master_key_vault(vault);
@@ -437,6 +477,7 @@ export function SecuritySection({
         );
       } catch {}
 
+      reset_vault_refresh_state();
       await store_vault_in_memory(vault, new_password);
 
       if (res.data?.csrf_token) {
@@ -723,26 +764,6 @@ export function SecuritySection({
             icon={<KeyIcon className="h-4 w-4" />}
             label={t("settings.encryption_keys")}
             on_press={() => on_navigate_section?.("encryption")}
-          />
-          <SettingsRow
-            label={t("settings.publish_keys_wkd_title")}
-            trailing={
-              <Switch
-                checked={preferences.publish_to_wkd}
-                onCheckedChange={(v) => update_preference("publish_to_wkd", v, true)}
-              />
-            }
-          />
-          <SettingsRow
-            label={t("settings.publish_to_keyservers_title")}
-            trailing={
-              <Switch
-                checked={preferences.publish_to_keyservers}
-                onCheckedChange={(v) =>
-                  update_preference("publish_to_keyservers", v, true)
-                }
-              />
-            }
           />
         </SettingsGroup>
 
