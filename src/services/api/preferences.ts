@@ -188,6 +188,7 @@ export interface UserPreferences {
   migration_toast_position_v1_done: boolean;
   html_rendering_mode: "html" | "plain_text";
   low_network_mode: boolean;
+  low_network_mode_user_set: boolean;
   strip_exif_on_compose: boolean;
   thread_count_position: "left" | "right";
   compose_window_mode: "default" | "fullscreen" | "minimized";
@@ -507,6 +508,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   migration_toast_position_v1_done: false,
   html_rendering_mode: "html",
   low_network_mode: false,
+  low_network_mode_user_set: false,
   strip_exif_on_compose: true,
   thread_count_position: "left",
   compose_window_mode: "default",

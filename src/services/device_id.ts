@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const DEVICE_ID_KEY = "aster_device_id";
+const DEVICE_ID_KEY = "aster_multi_account_device_id";
+const LEGACY_DEVICE_ID_KEY = "aster_device_id";
+const VALID_DEVICE_ID = /^[A-Za-z0-9_-]{16,128}$/;
 
 let cached: string | null = null;
 
@@ -50,8 +52,11 @@ export function get_device_id(): string | null {
   try {
     let id = localStorage.getItem(DEVICE_ID_KEY);
 
-    if (!id || id.length < 16) {
-      id = generate_random_id();
+    if (!id || !VALID_DEVICE_ID.test(id)) {
+      const legacy = localStorage.getItem(LEGACY_DEVICE_ID_KEY);
+
+      id =
+        legacy && VALID_DEVICE_ID.test(legacy) ? legacy : generate_random_id();
       localStorage.setItem(DEVICE_ID_KEY, id);
     }
 

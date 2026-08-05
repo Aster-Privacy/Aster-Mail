@@ -243,6 +243,8 @@ export interface CachedUserInfo {
   lockdown_mode_enabled?: boolean;
 }
 
+export type SessionReestablishResult = "ok" | "expired" | "unavailable";
+
 class ApiClient {
   private refresh_timeout: number | null = null;
   private is_authenticated_flag: boolean = false;
@@ -950,26 +952,30 @@ class ApiClient {
     } catch {}
   }
 
-  async reestablish_session_for_account(account_id: string): Promise<boolean> {
+  async reestablish_session_for_account(
+    account_id: string,
+  ): Promise<SessionReestablishResult> {
     const loaded = await this.load_tokens_for_account(account_id);
 
     if (!loaded) {
-      return false;
+      return "expired";
     }
 
     if (!this.dev_access_token && !this.active_refresh_token) {
-      return false;
+      return "expired";
     }
 
     const prior_suspend = this.suspend_account_persist_flag;
 
     this.suspend_account_persist_flag = true;
 
-    const fail = (): false => {
+    const fail = (
+      reason: Exclude<SessionReestablishResult, "ok">,
+    ): Exclude<SessionReestablishResult, "ok"> => {
       this.is_authenticated_flag = false;
       this.clear_in_memory_token();
 
-      return false;
+      return reason;
     };
 
     const clear_dead_tokens = async (): Promise<void> => {
@@ -1059,9 +1065,11 @@ class ApiClient {
         if (!cookies_reissued) {
           if (reissue_denied) {
             await clear_dead_tokens();
+
+            return fail("expired");
           }
 
-          return fail();
+          return fail("unavailable");
         }
       }
 
@@ -1074,7 +1082,15 @@ class ApiClient {
       );
 
       if (!me_response.data?.user_id) {
-        return fail();
+        const denied =
+          me_response.code === "UNAUTHORIZED" ||
+          me_response.code === "FORBIDDEN";
+
+        if (denied) {
+          await clear_dead_tokens();
+        }
+
+        return fail(denied ? "expired" : "unavailable");
       }
 
       if (me_response.data.user_id !== account_id) {
@@ -1082,7 +1098,7 @@ class ApiClient {
           await this.clear_session_cookies();
         } catch {}
 
-        return fail();
+        return fail("expired");
       }
 
       this.has_ever_authenticated = true;
@@ -1093,7 +1109,7 @@ class ApiClient {
       }
 
       if (!cookies_reissued && !this.token_survives_reload()) {
-        return fail();
+        return fail(reissue_denied ? "expired" : "unavailable");
       }
 
       try {
@@ -1110,7 +1126,7 @@ class ApiClient {
 
       this.schedule_token_refresh();
 
-      return true;
+      return "ok";
     } finally {
       this.suspend_account_persist_flag = prior_suspend;
     }

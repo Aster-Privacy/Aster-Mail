@@ -150,6 +150,8 @@ function mark_family_welcome_seen(account_id: string): void {
   }
 }
 
+const BILLING_RETURN_KEY = "aster_billing_return";
+
 function BillingSuccessHandler() {
   const { t } = use_i18n();
   const { is_authenticated, current_account_id } = use_auth();
@@ -161,20 +163,46 @@ function BillingSuccessHandler() {
   } | null>(null);
 
   useEffect(() => {
-    if (!is_authenticated || handled.current) return;
     const params = new URLSearchParams(window.location.search);
+    const billing = params.get("billing");
 
-    if (params.get("billing") === "cancelled") {
-      handled.current = true;
-      window.history.replaceState({}, "", window.location.pathname);
-      show_toast(t("settings.billing_checkout_cancelled"), "info");
-      return;
-    }
+    if (billing !== "success" && billing !== "cancelled") return;
 
-    if (params.get("billing") !== "success") return;
+    try {
+      sessionStorage.setItem(BILLING_RETURN_KEY, billing);
+    } catch {}
+    params.delete("billing");
+    const query = params.toString();
+
+    window.history.replaceState(
+      {},
+      "",
+      window.location.pathname + (query ? `?${query}` : ""),
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!is_authenticated || handled.current) return;
+
+    let billing: string | null = null;
+
+    try {
+      billing = sessionStorage.getItem(BILLING_RETURN_KEY);
+    } catch {}
+
+    if (!billing) return;
 
     handled.current = true;
-    window.history.replaceState({}, "", window.location.pathname);
+
+    try {
+      sessionStorage.removeItem(BILLING_RETURN_KEY);
+    } catch {}
+
+    if (billing === "cancelled") {
+      show_toast(t("settings.billing_checkout_cancelled"), "info");
+
+      return;
+    }
 
     (async () => {
       request_cache.invalidate("/payments/v1");

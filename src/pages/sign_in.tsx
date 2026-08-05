@@ -236,7 +236,11 @@ export default function SignInPage() {
   >("astermail.org");
   const [remember_me, set_remember_me] = useState(true);
   const [is_loading, set_is_loading] = useState(false);
-  const [error, set_error] = useState("");
+  const [error, set_error] = useState(() =>
+    get_app_query_param("reason") === "session_expired"
+      ? t("common.session_expired_sign_in")
+      : "",
+  );
   const [status, set_status] = useState("");
   const [is_checkout_login, set_is_checkout_login] = useState(() => {
     const params = new URLSearchParams(window.location.search);

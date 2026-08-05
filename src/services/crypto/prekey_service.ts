@@ -31,9 +31,14 @@ import {
 const ONE_TIME_PREKEY_BATCH_SIZE = 50;
 const PQ_PREKEY_BATCH_SIZE = 20;
 const REPLENISHMENT_DEBOUNCE_MS = 5000;
+const PENDING_ROLLBACK_MAX = 200;
+const ROLLBACK_DRAIN_BATCH = 20;
+const ROLLBACK_FAILURE_STREAK = 3;
+const ROLLBACK_BACKOFF_MS = 300000;
 
 let last_replenishment_time = 0;
 let replenishment_in_progress = false;
+let rollback_retry_after = 0;
 
 interface PrekeyData {
   key_id: number;
@@ -114,14 +119,43 @@ async function queue_pending_rollback(ids: number[]): Promise<void> {
   try {
     const existing: number[] = JSON.parse(localStorage.getItem(key) || "[]");
     const merged = Array.from(new Set([...existing, ...ids]));
-    localStorage.setItem(key, JSON.stringify(merged));
+
+    localStorage.setItem(
+      key,
+      JSON.stringify(merged.slice(-PENDING_ROLLBACK_MAX)),
+    );
   } catch {
     return;
   }
 }
 
+async function delete_secrets_until_failing(ids: number[]): Promise<number[]> {
+  const failed: number[] = [];
+  let failure_streak = 0;
+
+  for (let i = 0; i < ids.length; i++) {
+    const ok = await delete_pq_secret(ids[i]);
+
+    if (ok) {
+      failure_streak = 0;
+      continue;
+    }
+
+    failed.push(ids[i]);
+    failure_streak += 1;
+
+    if (failure_streak >= ROLLBACK_FAILURE_STREAK) {
+      rollback_retry_after = Date.now() + ROLLBACK_BACKOFF_MS;
+      failed.push(...ids.slice(i + 1));
+      break;
+    }
+  }
+
+  return failed;
+}
+
 async function drain_pending_rollbacks(): Promise<void> {
-  if (is_pq_upload_rate_limited()) {
+  if (is_pq_upload_rate_limited() || Date.now() < rollback_retry_after) {
     return;
   }
 
@@ -143,37 +177,29 @@ async function drain_pending_rollbacks(): Promise<void> {
     return;
   }
 
-  const failed: number[] = [];
-  for (const id of ids) {
-    const ok = await delete_pq_secret(id);
-    if (!ok) {
-      failed.push(id);
-    }
-  }
+  const failed = await delete_secrets_until_failing(
+    ids.slice(0, ROLLBACK_DRAIN_BATCH),
+  );
+  const remaining = [...failed, ...ids.slice(ROLLBACK_DRAIN_BATCH)];
 
-  if (failed.length > 0) {
-    localStorage.setItem(key, JSON.stringify(failed));
+  if (remaining.length > 0) {
+    localStorage.setItem(
+      key,
+      JSON.stringify(remaining.slice(-PENDING_ROLLBACK_MAX)),
+    );
   } else {
     localStorage.removeItem(key);
   }
 }
 
 async function rollback_persisted_secrets(ids: number[]): Promise<void> {
-  if (is_pq_upload_rate_limited()) {
+  if (is_pq_upload_rate_limited() || Date.now() < rollback_retry_after) {
     await queue_pending_rollback(ids);
 
     return;
   }
 
-  const failed: number[] = [];
-  for (const id of ids) {
-    const ok = await delete_pq_secret(id);
-    if (!ok) {
-      failed.push(id);
-    }
-  }
-
-  await queue_pending_rollback(failed);
+  await queue_pending_rollback(await delete_secrets_until_failing(ids));
 }
 
 function generate_ml_kem_keypairs(count: number): {

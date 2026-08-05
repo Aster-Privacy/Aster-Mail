@@ -721,19 +721,25 @@ export async function device_store(key: string, value: unknown): Promise<void> {
 }
 
 export async function device_retrieve<T>(key: string): Promise<T | null> {
+  try {
+    return await device_retrieve_strict<T>(key);
+  } catch {
+    return null;
+  }
+}
+
+export async function device_retrieve_strict<T>(
+  key: string,
+): Promise<T | null> {
   const encrypted = localStorage.getItem(key);
 
   if (!encrypted) {
     return null;
   }
 
-  try {
-    const decrypted = await device_decrypt(encrypted);
+  const decrypted = await device_decrypt(encrypted);
 
-    return JSON.parse(decrypted) as T;
-  } catch {
-    return null;
-  }
+  return JSON.parse(decrypted) as T;
 }
 
 export function clear_device_encryption_cache(): void {

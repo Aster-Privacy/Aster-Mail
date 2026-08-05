@@ -440,7 +440,7 @@ async function delete_pq_secret_on_server(key_id: number): Promise<boolean> {
       `/crypto/v1/ratchet/pq-secret/${key_id}`,
     );
 
-    return !response.error;
+    return !response.error || response.code === "NOT_FOUND";
   } catch {
     return false;
   }

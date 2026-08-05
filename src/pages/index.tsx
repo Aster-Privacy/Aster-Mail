@@ -260,14 +260,7 @@ export default function IndexPage() {
             )}
             <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative">
             <div
-              className={`flex-1 min-w-0 rounded-lg md:rounded-xl overflow-hidden transition-[margin-right] duration-200 ${
-                is_quick_settings_open &&
-                !state.is_settings_route &&
-                !state.use_popup_mode &&
-                state.split_email_id
-                  ? "lg:mr-[296px]"
-                  : ""
-              }`}
+              className="flex-1 min-w-0 rounded-lg md:rounded-xl overflow-hidden"
               id="main-content"
               role="main"
               style={{

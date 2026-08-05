@@ -45,8 +45,14 @@ export async function link_account_device(): Promise<
   );
 }
 
-export async function unlink_account_device(): Promise<ApiResponse<unknown>> {
-  return api_client.delete<unknown>("/payments/v1/plans/account-limit/link");
+export async function unlink_account_device(
+  user_id?: string,
+): Promise<ApiResponse<unknown>> {
+  const suffix = user_id ? `?user_id=${encodeURIComponent(user_id)}` : "";
+
+  return api_client.delete<unknown>(
+    `/payments/v1/plans/account-limit/link${suffix}`,
+  );
 }
 
 export type { AccountLimitResponse };

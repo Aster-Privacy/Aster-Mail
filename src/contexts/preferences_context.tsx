@@ -253,6 +253,25 @@ export function normalize_font_size_scale(value: unknown): number {
   return FONT_SIZE_DEFAULT;
 }
 
+function read_connection(): { saveData?: boolean } | undefined {
+  return (navigator as unknown as { connection?: { saveData?: boolean } })
+    .connection;
+}
+
+function should_auto_enable_low_network(): boolean {
+  return read_connection()?.saveData === true;
+}
+
+function reconcile_low_network_mode(prefs: UserPreferences): UserPreferences {
+  if (prefs.low_network_mode_user_set) return prefs;
+
+  const should_enable = should_auto_enable_low_network();
+
+  if (should_enable === prefs.low_network_mode) return prefs;
+
+  return { ...prefs, low_network_mode: should_enable };
+}
+
 function normalize_preferences(prefs: UserPreferences): UserPreferences {
   const scale = normalize_font_size_scale(prefs.font_size_scale);
 
@@ -532,7 +551,11 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       immediate?: boolean,
     ) => {
       set_preferences((prev) => {
-        const updated = { ...prev, [key]: value };
+        const updated: UserPreferences = { ...prev, [key]: value };
+
+        if (key === "low_network_mode") {
+          updated.low_network_mode_user_set = true;
+        }
 
         if (
           key === "session_timeout_enabled" ||
@@ -748,17 +771,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
         ...response.data,
       });
 
-      const nav_conn = (
-        navigator as unknown as {
-          connection?: { saveData?: boolean; effectiveType?: string };
-        }
-      ).connection;
-      const is_save_data = nav_conn?.saveData === true;
-      const is_slow =
-        nav_conn?.effectiveType === "slow-2g" ||
-        nav_conn?.effectiveType === "2g";
-      if ((is_save_data || is_slow) && !merged.low_network_mode) {
-        merged = { ...merged, low_network_mode: true };
+      const reconciled = reconcile_low_network_mode(merged);
+
+      if (reconciled !== merged) {
+        merged = reconciled;
         cache_preferences_locally(merged);
         do_save(merged).catch(() => {});
       }
@@ -774,11 +790,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           url_low_bandwidth === "1" || url_low_bandwidth === "true";
         const want_disabled =
           url_low_bandwidth === "0" || url_low_bandwidth === "false";
-        if (
-          (want_enabled && !merged.low_network_mode) ||
-          (want_disabled && merged.low_network_mode)
-        ) {
-          merged = { ...merged, low_network_mode: want_enabled };
+        if (want_enabled || want_disabled) {
+          merged = {
+            ...merged,
+            low_network_mode: want_enabled,
+            low_network_mode_user_set: true,
+          };
           cache_preferences_locally(merged);
           do_save(merged).catch(() => {});
         }
@@ -888,10 +905,19 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           latest_prefs_ref.current = null;
           beacon_payload_ref.current = null;
 
-          const merged = normalize_preferences({
+          let merged = normalize_preferences({
             ...DEFAULT_PREFERENCES,
             ...response.data,
           });
+
+          const reconciled = reconcile_low_network_mode(merged);
+
+          if (reconciled !== merged) {
+            merged = reconciled;
+            server_base_ref.current = merged;
+            cache_preferences_locally(merged);
+            do_save(merged).catch(() => {});
+          }
 
           set_preferences(merged);
           cache_sidebar_state(
@@ -1104,20 +1130,23 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     ).connection;
 
     if (!nav_conn || typeof nav_conn.addEventListener !== "function") return;
+    if (preferences.low_network_mode_user_set) return;
+    if (preferences.low_network_mode) return;
 
     const handle_connection_change = () => {
-      const is_save_data = nav_conn.saveData === true;
-      const is_slow =
-        nav_conn.effectiveType === "slow-2g" || nav_conn.effectiveType === "2g";
-      if (is_save_data || is_slow) {
-        update_preference("low_network_mode", true, true);
-      }
+      if (nav_conn.saveData !== true) return;
+
+      update_preferences({ low_network_mode: true }, true);
     };
 
     nav_conn.addEventListener("change", handle_connection_change);
     return () =>
       nav_conn.removeEventListener("change", handle_connection_change);
-  }, [update_preference]);
+  }, [
+    preferences.low_network_mode,
+    preferences.low_network_mode_user_set,
+    update_preferences,
+  ]);
 
   useEffect(() => {
     const flush_via_beacon = () => {

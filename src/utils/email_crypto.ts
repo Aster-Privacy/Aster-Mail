@@ -192,26 +192,128 @@ function find_header_body_split(
   };
 }
 
+const CHARSET_ALIASES: Record<string, string> = {
+  "us-ascii": "utf-8",
+  ascii: "utf-8",
+  "utf8": "utf-8",
+  "utf-8": "utf-8",
+  "unicode-1-1-utf-8": "utf-8",
+  latin1: "windows-1252",
+  "iso-8859-1": "windows-1252",
+  "iso8859-1": "windows-1252",
+  "cp1252": "windows-1252",
+};
+
+function get_charset(headers: string): string {
+  const match = headers.match(/charset\s*=\s*"?([A-Za-z0-9._:+-]+)"?/i);
+  const raw = match?.[1]?.toLowerCase();
+
+  if (!raw) return "utf-8";
+
+  return CHARSET_ALIASES[raw] ?? raw;
+}
+
+function decode_bytes(bytes: Uint8Array, charset: string): string {
+  if (charset === "utf-8") {
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch {
+      return new TextDecoder("windows-1252").decode(bytes);
+    }
+  }
+
+  try {
+    return new TextDecoder(charset, { fatal: true }).decode(bytes);
+  } catch {
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch {
+      return new TextDecoder("windows-1252").decode(bytes);
+    }
+  }
+}
+
+function base64_to_bytes(input: string): Uint8Array | null {
+  const cleaned = input.replace(/[^A-Za-z0-9+/=]/g, "");
+
+  try {
+    const binary = atob(cleaned);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i) & 0xff;
+    }
+
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function quoted_printable_to_bytes(input: string): Uint8Array {
+  const unfolded = input.replace(/=[ \t]*\r?\n/g, "");
+  const bytes: number[] = [];
+
+  for (let i = 0; i < unfolded.length; i += 1) {
+    const char = unfolded[i] as string;
+
+    if (char === "=" && i + 2 < unfolded.length) {
+      const hex = unfolded.substring(i + 1, i + 3);
+
+      if (/^[0-9A-Fa-f]{2}$/.test(hex)) {
+        bytes.push(parseInt(hex, 16));
+        i += 2;
+        continue;
+      }
+    }
+
+    const code = char.charCodeAt(0);
+
+    if (code < 0x80) {
+      bytes.push(code);
+    } else {
+      for (const byte of new TextEncoder().encode(char)) bytes.push(byte);
+    }
+  }
+
+  return new Uint8Array(bytes);
+}
+
 function decode_transfer_encoding(body: string, headers: string): string {
   const encoding_match = headers.match(
     /content-transfer-encoding\s*:\s*(\S+)/i,
   );
-  const encoding = encoding_match?.[1]?.toLowerCase() ?? "7bit";
+  const encoding = encoding_match?.[1]?.toLowerCase().replace(/;$/, "") ?? "7bit";
+  const charset = get_charset(headers);
 
   if (encoding === "base64") {
-    try {
-      return atob(body.replace(/\s/g, ""));
-    } catch {
-      return body;
-    }
+    const bytes = base64_to_bytes(body);
+
+    if (!bytes) return body;
+
+    return decode_bytes(bytes, charset);
   }
 
   if (encoding === "quoted-printable") {
-    return body
-      .replace(/=\r?\n/g, "")
-      .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) =>
-        String.fromCharCode(parseInt(hex, 16)),
-      );
+    return decode_bytes(quoted_printable_to_bytes(body), charset);
+  }
+
+  if (charset !== "utf-8") {
+    const bytes = new Uint8Array(body.length);
+    let is_byte_string = true;
+
+    for (let i = 0; i < body.length; i += 1) {
+      const code = body.charCodeAt(i);
+
+      if (code > 0xff) {
+        is_byte_string = false;
+        break;
+      }
+
+      bytes[i] = code;
+    }
+
+    if (is_byte_string) return decode_bytes(bytes, charset);
   }
 
   return body;

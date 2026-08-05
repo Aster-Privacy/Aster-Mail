@@ -296,36 +296,48 @@ export function use_index_page_state() {
     set_is_mobile_sidebar_open((prev) => !prev);
   }, []);
 
+  const close_hash_entry = useCallback(() => {
+    const history_index = (window.history.state as { idx?: number } | null)?.idx;
+
+    if (typeof history_index === "number" && history_index > 0) {
+      navigate(-1);
+
+      return;
+    }
+
+    navigate(`${location.pathname}${location.search}`, { replace: true });
+  }, [navigate, location.pathname, location.search]);
+
   const open_compose = useCallback(() => {
     if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
-      navigate(-1);
+      close_hash_entry();
     }
     set_popup_email_id(null);
     set_popup_scheduled(null);
     set_split_scheduled_data(null);
     open_compose_instance();
-  }, [is_mobile, location.hash, navigate, open_compose_instance]);
+  }, [is_mobile, location.hash, close_hash_entry, open_compose_instance]);
 
   const handle_reply = useCallback((data: ReplyData) => {
     if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
-      navigate(-1);
+      close_hash_entry();
     }
     set_popup_email_id(null);
     set_popup_scheduled(null);
     set_split_scheduled_data(null);
     set_reply_data(data);
     set_is_reply_open(true);
-  }, [is_mobile, location.hash, navigate]);
+  }, [is_mobile, location.hash, close_hash_entry]);
 
   const handle_draft_click = useCallback((data: DraftClickData) => {
     if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
-      navigate(-1);
+      close_hash_entry();
     }
     set_popup_email_id(null);
     set_popup_scheduled(null);
     set_split_scheduled_data(null);
     set_edit_draft(data);
-  }, [is_mobile, location.hash, navigate]);
+  }, [is_mobile, location.hash, close_hash_entry]);
 
   const handle_draft_cleared = useCallback(() => {
     set_edit_draft(null);
@@ -549,9 +561,9 @@ export function use_index_page_state() {
     set_split_email_id(null);
     set_preview_local_email(null);
     if (!is_mobile && location.hash.startsWith('#')) {
-      navigate(-1);
+      close_hash_entry();
     }
-  }, [is_mobile, location.hash, navigate]);
+  }, [is_mobile, location.hash, close_hash_entry]);
 
   const handle_split_close = useCallback(() => {
     close_desktop_email_view();
@@ -587,18 +599,18 @@ export function use_index_page_state() {
 
   const handle_popup_reply = useCallback((data: ReplyData) => {
     if (!is_mobile && location.hash.startsWith('#')) {
-      navigate(-1);
+      close_hash_entry();
     }
     set_popup_email_id(null);
     set_popup_scheduled(null);
     set_split_scheduled_data(null);
     set_reply_data(data);
     set_is_reply_open(true);
-  }, [is_mobile, location.hash, navigate]);
+  }, [is_mobile, location.hash, close_hash_entry]);
 
   const handle_popup_forward = useCallback((data: ForwardData) => {
     if (!is_mobile && location.hash.startsWith('#')) {
-      navigate(-1);
+      close_hash_entry();
     }
     set_forward_mail_id(data.original_mail_id);
     set_popup_email_id(null);
@@ -606,12 +618,12 @@ export function use_index_page_state() {
     set_split_scheduled_data(null);
     set_forward_data(data);
     set_is_forward_open(true);
-  }, [is_mobile, location.hash, navigate]);
+  }, [is_mobile, location.hash, close_hash_entry]);
 
   const handle_scheduled_click = useCallback(
     (data: ScheduledClickData) => {
       if (!is_mobile && email_is_open.current && location.hash.startsWith('#')) {
-        navigate(-1);
+        close_hash_entry();
       }
       set_popup_email_id(null);
       set_split_email_id(null);
@@ -623,7 +635,7 @@ export function use_index_page_state() {
         set_popup_scheduled(data);
       }
     },
-    [is_mobile, location.hash, navigate, preferences.email_view_mode],
+    [is_mobile, location.hash, close_hash_entry, preferences.email_view_mode],
   );
 
   const handle_scheduled_popup_close = useCallback(() => {

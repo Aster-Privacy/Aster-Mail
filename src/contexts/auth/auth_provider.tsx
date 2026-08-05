@@ -39,7 +39,10 @@ import { purge_all_local_data } from "./purge_local_data";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { init_desktop_device_auth } from "@/native/desktop_device_auth";
 
-import { api_client } from "@/services/api/client";
+import {
+  api_client,
+  type SessionReestablishResult,
+} from "@/services/api/client";
 import { request_cache } from "@/services/api/request_cache";
 import { verify_auth_status, get_user_info } from "@/services/api/auth";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
@@ -63,6 +66,7 @@ import {
   update_account_user,
   update_account_tokens,
   get_account_kind,
+  accounts_storage_unreadable,
 } from "@/services/account_manager";
 import {
   sync_shared_mailbox_grants,
@@ -87,6 +91,7 @@ import {
   clear_plan_cache,
   get_current_plan_code,
   max_accounts_for_plan,
+  UNLIMITED_ACCOUNTS,
 } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
@@ -756,6 +761,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
         api_client.clear_auth_data();
+      } else {
+        const target = state.accounts.find((a) => a.id === account_id);
+        const target_user_id = target?.user.id ?? account_id;
+
+        try {
+          await unlink_account_device(target_user_id);
+        } catch (e) {
+          safe_log_error(e);
+        }
       }
 
       const result = await storage_remove_account(account_id);
@@ -809,7 +823,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
       }
     },
-    [state.current_account_id, set_is_adding_account, navigate],
+    [
+      state.current_account_id,
+      state.accounts,
+      set_is_adding_account,
+      navigate,
+    ],
   );
 
   const switch_in_flight = useRef(false);
@@ -929,17 +948,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (stored_passphrase && stored_vault) {
           set_is_adding_account(false);
 
-          let session_ok = false;
+          const attempt = async (): Promise<SessionReestablishResult> => {
+            try {
+              return await api_client.reestablish_session_for_account(
+                target.id,
+              );
+            } catch (e) {
+              safe_log_error(e);
 
-          try {
-            session_ok = await api_client.reestablish_session_for_account(
-              target.id,
-            );
-          } catch (e) {
-            safe_log_error(e);
+              return "unavailable";
+            }
+          };
+
+          let session_result = await attempt();
+
+          if (session_result === "unavailable") {
+            await new Promise((resolve) => setTimeout(resolve, 1200));
+            session_result = await attempt();
           }
 
-          if (session_ok) {
+          if (session_result === "ok" || session_result === "unavailable") {
             hard_redirect("/");
 
             return;
@@ -956,7 +984,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           has_keys: false,
           current_account_id: target.id,
         }));
-        navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+        navigate(
+          `/sign-in?u=${encodeURIComponent(local)}&reason=session_expired`,
+        );
       } finally {
         switch_in_flight.current = false;
       }
@@ -1114,7 +1144,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const all_accounts = await get_all_accounts();
       const target = all_accounts.find((a) => a.id === current_id);
 
-      if (target && all_accounts.length > 1) {
+      const keep_accounts =
+        all_accounts.length > 1 || accounts_storage_unreadable();
+
+      if (keep_accounts) {
         set_is_adding_account(true);
 
         if (path === "/sign-in") {
@@ -1129,7 +1162,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return;
         }
 
-        const local = target.user.email.split("@")[0] ?? "";
+        const local = target?.user.email.split("@")[0] ?? "";
 
         set_state((prev) => ({
           ...prev,
@@ -1137,9 +1170,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           is_loading: false,
           is_authenticated: false,
           has_keys: false,
+          accounts: all_accounts.length > 0 ? all_accounts : prev.accounts,
         }));
         show_toast(t("common.session_expired_sign_in"), "info");
-        navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+        navigate(
+          local
+            ? `/sign-in?u=${encodeURIComponent(local)}&reason=session_expired`
+            : "/sign-in?reason=session_expired",
+        );
 
         return;
       }
@@ -1255,31 +1293,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!state.is_authenticated) return;
     let cancelled = false;
 
-    link_account_device().catch((e) => {
-      safe_log_error(e);
-    });
-
-    get_account_limit()
-      .then((res) => {
-        if (cancelled) return;
-        if (!res.data) return;
-        if (res.data.max_accounts > 0) {
-          set_max_account_limit(res.data.max_accounts);
-
-          return;
-        }
-        get_current_plan_code()
-          .then((plan_code) => {
-            if (cancelled) return;
-            set_max_account_limit(max_accounts_for_plan(plan_code));
-          })
-          .catch((e) => {
-            safe_log_error(e);
-          });
-      })
-      .catch((e) => {
+    const resolve_account_limit = async () => {
+      const link_result = await link_account_device().catch((e) => {
         safe_log_error(e);
+
+        return null;
       });
+
+      if (cancelled) return;
+
+      let limit = link_result?.data?.max_accounts;
+
+      if (limit === undefined) {
+        const limit_result = await get_account_limit().catch((e) => {
+          safe_log_error(e);
+
+          return null;
+        });
+
+        if (cancelled) return;
+        limit = limit_result?.data?.max_accounts;
+      }
+
+      if (limit !== undefined && limit !== 0) {
+        set_max_account_limit(limit);
+
+        return;
+      }
+
+      const plan_code = await get_current_plan_code().catch((e) => {
+        safe_log_error(e);
+
+        return null;
+      });
+
+      if (cancelled) return;
+      set_max_account_limit(max_accounts_for_plan(plan_code));
+    };
+
+    resolve_account_limit();
 
     return () => {
       cancelled = true;
@@ -1335,22 +1387,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
       (a) => a.kind !== "shared",
     ).length;
 
+    const plan_fallback_limit = async () => {
+      try {
+        return max_accounts_for_plan(await get_current_plan_code());
+      } catch (e) {
+        safe_log_error(e);
+
+        return max_accounts_for_plan(null);
+      }
+    };
+
+    let limit: number;
+
     try {
       const limit_response = await get_account_limit();
 
-      if (limit_response.data) {
-        const limit =
-          limit_response.data.max_accounts > 0
-            ? limit_response.data.max_accounts
-            : max_accounts_for_plan(await get_current_plan_code());
-
-        return personal_count < limit;
-      }
+      limit =
+        limit_response.data && limit_response.data.max_accounts !== 0
+          ? limit_response.data.max_accounts
+          : await plan_fallback_limit();
     } catch (e) {
       safe_log_error(e);
+      limit = await plan_fallback_limit();
     }
 
-    return personal_count < 3;
+    if (limit === UNLIMITED_ACCOUNTS) return true;
+
+    return personal_count < limit;
   }, []);
 
   const update_user = useCallback(

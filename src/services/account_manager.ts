@@ -20,7 +20,7 @@
 //
 import {
   device_store,
-  device_retrieve,
+  device_retrieve_strict,
 } from "@/services/crypto/secure_storage";
 import { api_client } from "@/services/api/client";
 import { en } from "@/lib/i18n/translations/en";
@@ -52,6 +52,9 @@ const LEGACY_ACCOUNTS_KEY = "astermail_accounts_v5";
 const SWITCH_TOKEN_KEY_PREFIX = "astermail_switch_token_";
 const SWITCH_TOKEN_EXPIRY_KEY_PREFIX = "astermail_switch_token_exp_";
 const DEFAULT_MAX_ACCOUNTS = 6;
+const PLAN_FLAG_REPAIR_KEY = "astermail_plan_flags_repaired_v1";
+
+let last_load_failed = false;
 
 export interface User {
   id: string;
@@ -118,22 +121,33 @@ async function get_accounts_data_async(): Promise<AccountsData> {
   }
 
   try {
-    const data = await device_retrieve<AccountsData>(ACCOUNTS_KEY);
+    const data = await device_retrieve_strict<AccountsData>(ACCOUNTS_KEY);
 
     if (data && Array.isArray(data.accounts)) {
       cached_data = data;
+      last_load_failed = false;
 
       return data;
     }
+
+    last_load_failed = localStorage.getItem(ACCOUNTS_KEY) !== null;
   } catch (e) {
+    last_load_failed = true;
     if (import.meta.env.DEV) console.error(e);
   }
 
   return { accounts: [], current_account_id: null };
 }
 
+export function accounts_storage_unreadable(): boolean {
+  return last_load_failed;
+}
+
 async function save_accounts_data(data: AccountsData): Promise<void> {
+  if (data.accounts.length === 0 && last_load_failed) return;
+
   cached_data = data;
+  last_load_failed = false;
   await device_store(ACCOUNTS_KEY, data);
 }
 
@@ -272,6 +286,30 @@ export async function set_account_plan_flag(
   await save_accounts_data(data);
 
   return true;
+}
+
+export async function repair_stale_plan_flags(): Promise<boolean> {
+  try {
+    if (localStorage.getItem(PLAN_FLAG_REPAIR_KEY) === "1") return false;
+    localStorage.setItem(PLAN_FLAG_REPAIR_KEY, "1");
+  } catch {
+    return false;
+  }
+
+  const data = await get_accounts_data_async();
+  let changed = false;
+
+  for (const account of data.accounts) {
+    if (account.id === data.current_account_id) continue;
+    if (account.user.is_paid_plan !== true) continue;
+
+    account.user = { ...account.user, is_paid_plan: false };
+    changed = true;
+  }
+
+  if (changed) await save_accounts_data(data);
+
+  return changed;
 }
 
 export async function add_account(

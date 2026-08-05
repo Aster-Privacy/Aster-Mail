@@ -140,7 +140,12 @@ export default function MobileSignInPage() {
   >("astermail.org");
   const [remember_me, set_remember_me] = useState(true);
   const [is_loading, set_is_loading] = useState(false);
-  const [error, set_error] = useState("");
+  const [error, set_error] = useState(() =>
+    new URLSearchParams(window.location.search).get("reason") ===
+    "session_expired"
+      ? t("common.session_expired_sign_in")
+      : "",
+  );
   const [status, set_status] = useState("");
 
   const [captcha_token, set_captcha_token] = useState("");
