@@ -1286,6 +1286,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [state.is_authenticated, state.current_account_id]);
 
+  useEffect(() => {
+    if (!state.is_authenticated) return;
+    if (!state.current_account_id) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("account");
+
+    if (!requested) return;
+
+    params.delete("account");
+    const query = params.toString();
+
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+    );
+
+    if (requested === state.current_account_id) return;
+
+    switch_to_account(requested).catch((e) => {
+      safe_log_error(e);
+    });
+  }, [state.is_authenticated, state.current_account_id, switch_to_account]);
+
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
       await store_vault_in_memory(

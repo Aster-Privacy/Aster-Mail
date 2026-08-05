@@ -21,7 +21,14 @@
 import type { ContactFormData } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useCallback, useRef, useMemo } from "react";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  useEffect,
+  useId,
+} from "react";
 import {
   XMarkIcon,
   ArrowUpTrayIcon,
@@ -89,6 +96,8 @@ export function ContactImportModal({
   } | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const input_ref = useRef<HTMLInputElement>(null);
+  const dialog_ref = useRef<HTMLDivElement>(null);
+  const title_id = useId();
 
   const handle_file_select = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,12 +225,33 @@ export function ContactImportModal({
     return parsed_contacts.slice(0, 5);
   }, [parsed_contacts]);
 
+  useEffect(() => {
+    const on_key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      on_close();
+    };
+
+    window.addEventListener("keydown", on_key);
+
+    return () => window.removeEventListener("keydown", on_key);
+  }, [on_close]);
+
+  useEffect(() => {
+    const previously_focused = document.activeElement as HTMLElement | null;
+    const frame = requestAnimationFrame(() => dialog_ref.current?.focus());
+
+    return () => {
+      cancelAnimationFrame(frame);
+      previously_focused?.focus?.();
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center"
       role="presentation"
       onClick={(e) => e.target === e.currentTarget && on_close()}
-      onKeyDown={(e) => e["key"] === "Escape" && on_close()}
     >
       <div
         aria-hidden="true"
@@ -232,16 +262,22 @@ export function ContactImportModal({
 
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
+        aria-labelledby={title_id}
         aria-modal="true"
-        className="relative w-full max-w-md mx-4 rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+        className="relative w-full max-w-md mx-4 rounded-xl border overflow-hidden bg-modal-bg border-edge-primary outline-none"
+        ref={dialog_ref}
         role="dialog"
         style={{
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
         }}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-4">
-          <h2 className="text-[16px] font-semibold text-txt-primary">
+          <h2
+            className="text-[16px] font-semibold text-txt-primary"
+            id={title_id}
+          >
             {t("common.import_contacts")}
           </h2>
           <button

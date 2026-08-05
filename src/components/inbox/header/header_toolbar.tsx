@@ -494,9 +494,11 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
       message: t("common.inbox_refreshed"),
       action_type: "refresh",
       email_ids: [],
+      duration_ms: REFRESH_STATE_MS,
     });
     setTimeout(() => {
       set_is_refreshing(false);
+      hide_action_toast();
     }, REFRESH_STATE_MS);
   }, [is_refreshing, t]);
 

@@ -208,7 +208,7 @@ describe("CategoryTabs", () => {
 
     expect(with_preview.querySelector("span.h-\\[13px\\]")).toBeTruthy();
     expect(without_preview.querySelector("span.h-\\[13px\\]")).toBeNull();
-    expect(with_preview.querySelector("span.w-\\[168px\\]")).toBeTruthy();
-    expect(without_preview.querySelector("span.w-\\[168px\\]")).toBeNull();
+    expect(with_preview.querySelector("span.w-\\[124px\\]")).toBeTruthy();
+    expect(without_preview.querySelector("span.w-\\[124px\\]")).toBeNull();
   });
 });

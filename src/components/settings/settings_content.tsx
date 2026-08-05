@@ -64,6 +64,10 @@ import {
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  read_last_settings_section,
+  write_last_settings_section,
+} from "@/lib/settings_section_store";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -193,15 +197,24 @@ interface SettingsContentProps {
 let persisted_section: Section | null = null;
 
 function get_persisted_section(): Section | null {
+  if (persisted_section) return persisted_section;
+
+  const stored = read_last_settings_section();
+
+  if (stored && is_settings_section(stored)) {
+    persisted_section = stored;
+  }
+
   return persisted_section;
 }
 
 function set_persisted_section(section: Section) {
   persisted_section = section;
+  write_last_settings_section(section);
 }
 
 export function get_default_settings_section(): Section {
-  return persisted_section || "appearance";
+  return get_persisted_section() || "appearance";
 }
 
 interface NavItem {
@@ -273,7 +286,8 @@ function SettingsContentInner({
   const navigate = useNavigate();
   const { preferences } = use_preferences();
   const { current_account_id } = use_auth();
-  const { stats: mail_stats } = use_mail_stats();
+  const { stats: mail_stats, has_initialized: mail_stats_ready } =
+    use_mail_stats();
   const storage_percentage = useMemo(() => {
     const total = mail_stats.storage_total_bytes;
 
@@ -978,7 +992,9 @@ function SettingsContentInner({
         <div className="flex-shrink-0 px-3 pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <StorageMeter
             storage_percentage={storage_percentage}
-            storage_total_bytes={mail_stats.storage_total_bytes}
+            storage_total_bytes={
+              mail_stats_ready ? mail_stats.storage_total_bytes : 0
+            }
             storage_used_bytes={mail_stats.storage_used_bytes}
             on_buy_more={
               is_onion_host()

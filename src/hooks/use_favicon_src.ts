@@ -25,17 +25,25 @@ import { connection_store } from "@/services/routing/connection_store";
 import { get_favicon_url, is_valid_favicon_domain } from "@/lib/favicon_url";
 import {
   get_favicon_object_url,
+  peek_favicon_object_url,
   cache_favicon_blob,
 } from "@/lib/favicon_cache_db";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
+function resolve_initial_src(domain: string): string {
+  return peek_favicon_object_url(domain) || get_favicon_url(domain);
+}
+
 export function use_favicon_src(domain: string): string {
-  const api_url = get_favicon_url(domain);
-  const [src, set_src] = useState(api_url);
+  const [src, set_src] = useState(() => resolve_initial_src(domain));
+  const [prev_domain, set_prev_domain] = useState(domain);
+
+  if (domain !== prev_domain) {
+    set_prev_domain(domain);
+    set_src(resolve_initial_src(domain));
+  }
 
   useEffect(() => {
-    set_src(get_favicon_url(domain));
-
     if (!domain || !is_valid_favicon_domain(domain)) return;
 
     if (is_any_lockdown_active()) return;
@@ -46,8 +54,8 @@ export function use_favicon_src(domain: string): string {
     let cancelled = false;
 
     get_favicon_object_url(domain).then((object_url) => {
-      if (cancelled) return;
-      if (object_url) set_src(object_url);
+      if (cancelled || !object_url) return;
+      set_src((prev) => (prev === object_url ? prev : object_url));
     });
 
     return () => {

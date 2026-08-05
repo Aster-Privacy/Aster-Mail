@@ -60,6 +60,7 @@ import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { AttachmentChip } from "@/components/email/attachment_chip";
 import { cn, is_system_email } from "@/lib/utils";
 import { is_compact_density } from "@/lib/list_density";
+import { truncate_with_ellipsis } from "@/utils/preview_text";
 import {
   get_alias_hash_by_address,
   subscribe_aliases,
@@ -111,19 +112,12 @@ function get_density_classes(density: string, compact_mode: boolean): string {
   return is_compact_density(density, compact_mode) ? "py-1.5" : "py-2";
 }
 
-function truncate_preview(
-  preview: string,
-  subject_length: number,
-  max_cap?: number,
-): string {
-  const char_budget = Math.min(
-    max_cap ?? Infinity,
-    Math.max(30, 100 - subject_length),
-  );
+const PREVIEW_CHAR_CAP = 400;
 
-  if (preview.length <= char_budget) return preview;
+function truncate_preview(preview: string, max_cap?: number): string {
+  const char_budget = Math.min(max_cap ?? PREVIEW_CHAR_CAP, PREVIEW_CHAR_CAP);
 
-  return preview.slice(0, char_budget).trimEnd() + "\u2026";
+  return truncate_with_ellipsis(preview, char_budget);
 }
 
 function format_mobile_timestamp(timestamp: string): string {
@@ -402,7 +396,7 @@ export const InboxEmailListItem = memo(
               : email.is_selected === true
                 ? "bg-surf-tertiary"
                 : email.is_read
-                  ? "hover:bg-surf-hover"
+                  ? "mail_row_read"
                   : "mail_row_unread",
             is_dragging && "opacity-50",
             className,
@@ -512,7 +506,7 @@ export const InboxEmailListItem = memo(
           )}
 
           {!email.is_read && (
-            <span className="w-2 h-2 rounded-full bg-[var(--accent-blue)] flex-shrink-0 hidden sm:block" />
+            <span className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0 hidden sm:block" />
           )}
 
           <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">
@@ -774,7 +768,14 @@ export const InboxEmailListItem = memo(
               )}
 
               <div
-                className="text-sm min-w-0 flex-1 whitespace-nowrap truncate"
+                className={cn(
+                  "text-sm min-w-0 flex-1 whitespace-nowrap truncate",
+                  show_email_preview && (search_preview_node || email.preview)
+                    ? "text-txt-muted"
+                    : email.is_read
+                      ? "text-txt-tertiary"
+                      : "text-txt-primary",
+                )}
               >
                 <span
                   className={cn(
@@ -798,7 +799,6 @@ export const InboxEmailListItem = memo(
                           ? t("mail.encrypted_message_unavailable")
                           : truncate_preview(
                               email.preview,
-                              (email.subject || "").length,
                               preferences.low_network_mode ? 80 : undefined,
                             ))}
                     </span>

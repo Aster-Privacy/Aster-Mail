@@ -89,6 +89,19 @@ const MIN_REFRESH_SKELETON_MS = 550;
 const MAX_FETCH_RETRIES = 4;
 const FETCH_RETRY_DELAY_MS = 1500;
 
+function build_page_cache_key(
+  category: EmailCategory,
+  target_page: number,
+  variant: string,
+  ids: string[],
+): string {
+  const unread_bits = ids
+    .map((id) => (is_representative_unread(id) ? "u" : "r"))
+    .join("");
+
+  return `${category}:${target_page}:${variant}:${unread_bits}:${ids.join(",")}`;
+}
+
 function build_list_state(
   prev: EmailListState,
   emails: InboxEmail[],
@@ -154,11 +167,6 @@ export function use_category_inbox(
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
   const prev_category_ref = useRef(active_category);
-
-  if (prev_category_ref.current !== active_category) {
-    prev_category_ref.current = active_category;
-    set_state({ ...EMPTY_STATE, total_messages: state.total_messages });
-  }
 
   const page_variant = useMemo(
     () =>
@@ -281,6 +289,38 @@ export function use_category_inbox(
     ((page: number, limit: number, force?: boolean) => Promise<void>) | null
   >(null);
 
+  if (prev_category_ref.current !== active_category) {
+    prev_category_ref.current = active_category;
+
+    const switch_ids = get_page_ids(active_category, page, page_size);
+    const switch_cached =
+      switch_ids.length > 0
+        ? page_cache.current.get(
+            build_page_cache_key(
+              active_category,
+              page,
+              page_variant,
+              switch_ids,
+            ),
+          )
+        : undefined;
+
+    if (switch_cached) {
+      const switch_total = get_category_total(active_category);
+
+      set_state((prev) =>
+        build_list_state(
+          prev,
+          switch_cached,
+          switch_total,
+          (page + 1) * page_size < switch_total,
+        ),
+      );
+    } else {
+      set_state({ ...EMPTY_STATE, total_messages: state.total_messages });
+    }
+  }
+
   useEffect(() => {
     return () => {
       if (fetch_retry_timer_ref.current) {
@@ -339,13 +379,8 @@ export function use_category_inbox(
   }, [state.is_loading]);
 
   const page_cache_key = useCallback(
-    (target_page: number, ids: string[]): string => {
-      const unread_bits = ids
-        .map((id) => (is_representative_unread(id) ? "u" : "r"))
-        .join("");
-
-      return `${active_category}:${target_page}:${page_variant}:${unread_bits}:${ids.join(",")}`;
-    },
+    (target_page: number, ids: string[]): string =>
+      build_page_cache_key(active_category, target_page, page_variant, ids),
     [active_category, page_variant],
   );
 

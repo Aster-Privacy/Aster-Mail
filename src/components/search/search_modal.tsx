@@ -20,9 +20,15 @@
 //
 import type { SearchModalProps } from "@/components/search/search_modal_types";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
@@ -189,6 +195,22 @@ export function SearchModal({
     on_result_click,
   });
 
+  const get_result_click_handler = useMemo(() => {
+    const handlers = new Map<string, () => void>();
+
+    return (id: string) => {
+      const existing = handlers.get(id);
+
+      if (existing) return existing;
+
+      const handler = () => handle_result_click(id);
+
+      handlers.set(id, handler);
+
+      return handler;
+    };
+  }, [handle_result_click]);
+
   useEffect(() => {
     if (!is_open) return;
     const on_pointer_down = (e: MouseEvent | TouchEvent) => {
@@ -327,7 +349,7 @@ export function SearchModal({
 
         {state.query && filtered_folders.length > 0 && (
           <div className="p-2 pb-0">
-            <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+            <div className="px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
               {t("mail.folders")}
             </div>
             {filtered_folders.slice(0, 5).map((folder) => (
@@ -348,37 +370,45 @@ export function SearchModal({
         )}
 
         {state.query && filtered_results.length > 0 && (
-          <div className="p-2">
+          <div
+            aria-busy={state.results_query !== state.query}
+            className="p-2 transition-opacity duration-150 motion-reduce:transition-none"
+            style={{
+              opacity: state.results_query !== state.query ? 0.55 : 1,
+            }}
+          >
             {filtered_folders.length > 0 && (
-              <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+              <div className="px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
                 {t("mail.emails")}
               </div>
             )}
-            <div className="px-3 py-2 text-xs flex items-center justify-between text-txt-muted">
+            <div className="px-3.5 py-2 text-xs flex items-center justify-between text-txt-muted">
               <span>
                 {t("mail.showing_results", {
                   shown: filtered_results.length,
                   total: state.total_results,
                 })}
               </span>
-              {state.index_building && (
-                <span className="flex items-center gap-1 text-amber-500">
-                  <Spinner size="xs" />
-                  {t("mail.indexing")}
-                </span>
-              )}
+              <span
+                aria-hidden={!state.index_building}
+                className="flex items-center gap-1 text-amber-500"
+                style={{
+                  visibility: state.index_building ? "visible" : "hidden",
+                }}
+              >
+                <Spinner size="xs" />
+                {t("mail.indexing")}
+              </span>
             </div>
-            <AnimatePresence mode="popLayout">
-              {filtered_results.map((result) => (
-                <SearchResultRow
-                  key={result.id}
-                  on_click={() => handle_result_click(result.id)}
-                  query_terms={query_terms}
-                  quick_actions={quick_action_handlers}
-                  result={result}
-                />
-              ))}
-            </AnimatePresence>
+            {filtered_results.map((result) => (
+              <SearchResultRow
+                key={result.id}
+                on_click={get_result_click_handler(result.id)}
+                query_terms={query_terms}
+                quick_actions={quick_action_handlers}
+                result={result}
+              />
+            ))}
             {(state.is_searching || state.is_loading_more) && (
               <div className="py-2">
                 <div className="flex items-center justify-center gap-2 py-3">
@@ -399,7 +429,7 @@ export function SearchModal({
               !state.is_searching &&
               !state.is_loading_more && (
                 <button
-                  className="w-full py-3 text-xs text-center transition-all duration-150 rounded-[16px] mt-2 text-txt-muted bg-surf-tertiary hover:bg-surf-hover"
+                  className="w-full py-3 text-xs font-medium text-center transition-colors duration-150 rounded-[14px] mt-2 text-txt-secondary bg-surf-tertiary hover:bg-surf-hover"
                   onClick={load_more}
                 >
                   {t("mail.load_more_results", {
@@ -483,13 +513,13 @@ export function SearchModal({
     <motion.div
       ref={dropdown_ref}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl overflow-hidden flex flex-col bg-modal-bg border border-edge-secondary"
+      className="rounded-[18px] overflow-hidden flex flex-col bg-modal-bg"
       exit={{ opacity: 0, y: -4 }}
       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
       style={{
         ...(desktop_style ?? fallback_style),
         boxShadow:
-          "0 20px 40px -10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04)",
+          "0 24px 48px -12px rgba(0, 0, 0, 0.32), 0 0 0 1px var(--border-secondary)",
       }}
       transition={{ duration: reduce_motion ? 0 : 0.14, ease: "easeOut" }}
     >

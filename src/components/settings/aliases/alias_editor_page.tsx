@@ -330,30 +330,34 @@ export function AliasEditorPage({
         {t("common.back")}
       </button>
 
-      <div className="rounded-[16px] border border-edge-secondary bg-surf-secondary px-4 py-3.5">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surf-hover">
-            <AtSymbolIcon className="h-[18px] w-[18px] text-txt-secondary" />
-          </span>
-          <div className="min-w-0 flex-1">
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             <button
-              className="block w-full min-w-0 truncate text-left text-[15px] font-semibold text-txt-primary transition-colors hover:text-txt-secondary"
+              className="min-w-0 truncate rounded-none text-left transition-colors hover:text-txt-secondary"
               title={t("common.copy_address")}
               type="button"
               onClick={copy_address}
             >
               {heading}
             </button>
-            {alias && (
-              <p className="mt-0.5 truncate text-[12px] text-txt-muted">
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        {alias && on_toggle_enabled && (
+          <div className="flex items-center justify-between py-4">
+            <div className="flex-1 pr-4">
+              <p className="text-sm font-medium text-txt-primary">
                 {alias.is_enabled ? t("common.active") : t("common.inactive")}
-                {created_label
-                  ? ` · ${t("settings.alias_stats_created", { date: created_label })}`
-                  : ""}
               </p>
-            )}
-          </div>
-          {alias && on_toggle_enabled && (
+              {created_label && (
+                <p className="text-sm mt-0.5 text-txt-muted">
+                  {t("settings.alias_stats_created", { date: created_label })}
+                </p>
+              )}
+            </div>
             <Switch
               aria-label={heading}
               checked={alias.is_enabled}
@@ -361,8 +365,8 @@ export function AliasEditorPage({
               size="lg"
               onCheckedChange={(next) => on_toggle_enabled(alias.id, next)}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {open_sections.map((section) => (

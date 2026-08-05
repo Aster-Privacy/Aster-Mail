@@ -45,6 +45,7 @@ import {
   type DraftWithContent,
   type DraftContent,
 } from "@/services/api/multi_drafts";
+import { build_list_preview } from "@/utils/preview_text";
 import {
   process_envelope_body,
   build_preview_text,
@@ -529,7 +530,7 @@ export function use_email_detail() {
               sender_email: draft_response.data.content.to_recipients[0] || "",
               subject:
                 draft_response.data.content.subject || t("mail.no_subject"),
-              preview: draft_response.data.content.message.substring(0, 200),
+              preview: build_list_preview(draft_response.data.content.message),
               timestamp: format_email_popup(
                 new Date(draft_response.data.updated_at),
               ),

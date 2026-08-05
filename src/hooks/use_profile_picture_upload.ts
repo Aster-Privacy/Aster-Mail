@@ -28,8 +28,28 @@ import { update_profile_picture } from "@/services/api/user";
 const MAX_SIZE = 256;
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const PICKER_CLEANUP_DELAY_MS = 1500;
 
 export const PROFILE_PICTURE_ACCEPT = ACCEPTED_TYPES.join(",");
+
+let file_picker_open = false;
+
+export function is_file_picker_open(): boolean {
+  return file_picker_open;
+}
+
+function set_file_picker_open(open: boolean) {
+  file_picker_open = open;
+
+  if (open) {
+    const clear = () => {
+      file_picker_open = false;
+      window.removeEventListener("focus", clear);
+    };
+
+    window.addEventListener("focus", clear);
+  }
+}
 
 export function compress_image(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -91,27 +111,16 @@ export function use_profile_picture_upload(
     [on_error],
   );
 
-  const open_picker = useCallback(() => {
-    if (uploading || removing) return;
-    file_ref.current?.click();
-  }, [uploading, removing]);
-
-  const handle_file = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-
-      if (!file) return;
-
+  const process_file = useCallback(
+    async (file: File) => {
       if (!ACCEPTED_TYPES.includes(file.type)) {
         report_error(t("common.valid_image_error"));
-        if (file_ref.current) file_ref.current.value = "";
 
         return;
       }
 
       if (file.size > MAX_FILE_BYTES) {
         report_error(t("common.image_size_error"));
-        if (file_ref.current) file_ref.current.value = "";
 
         return;
       }
@@ -145,11 +154,56 @@ export function use_profile_picture_upload(
         report_error(t("common.failed_upload_image"));
       } finally {
         set_uploading(false);
-        if (file_ref.current) file_ref.current.value = "";
       }
     },
     [report_error, t, toast_on_success, update_user, user],
   );
+
+  const handle_file = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+
+      e.target.value = "";
+
+      if (file) await process_file(file);
+    },
+    [process_file],
+  );
+
+  const open_picker = useCallback(() => {
+    if (uploading || removing) return;
+    set_file_picker_open(true);
+
+    const input = document.createElement("input");
+
+    input.type = "file";
+    input.accept = PROFILE_PICTURE_ACCEPT;
+    input.style.display = "none";
+    document.body.appendChild(input);
+
+    const discard = () => {
+      window.removeEventListener("focus", schedule_discard);
+      input.remove();
+    };
+
+    function schedule_discard() {
+      window.setTimeout(() => {
+        if (input.files?.length) return;
+        discard();
+      }, PICKER_CLEANUP_DELAY_MS);
+    }
+
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+
+      window.removeEventListener("focus", schedule_discard);
+      input.remove();
+
+      if (file) void process_file(file);
+    });
+    window.addEventListener("focus", schedule_discard);
+    input.click();
+  }, [uploading, removing, process_file]);
 
   const remove_picture = useCallback(async () => {
     if (removing || uploading || !user?.profile_picture) return;

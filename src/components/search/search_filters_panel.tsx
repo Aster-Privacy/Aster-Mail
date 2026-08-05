@@ -319,12 +319,12 @@ export function SearchHistorySection({
 
   return (
     <div className="p-2">
-      <div className="flex items-center justify-between px-3 py-1.5">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+      <div className="flex items-center justify-between px-3.5 py-1.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
           {t("mail.recent_searches")}
         </span>
         <button
-          className="text-[10px] transition-colors hover:underline text-txt-muted"
+          className="text-[11px] font-medium transition-colors text-txt-muted hover:text-txt-primary"
           onClick={on_clear_all}
         >
           {t("common.clear_all")}
@@ -333,7 +333,7 @@ export function SearchHistorySection({
       {history.slice(0, 5).map((entry) => (
         <div
           key={entry.id}
-          className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
+          className="group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
           role="button"
           tabIndex={0}
           onClick={() => on_select(entry.query)}
@@ -359,7 +359,7 @@ export function SearchHistorySection({
           </span>
           <button
             aria-label={t("common.delete")}
-            className="p-1 rounded-full transition-colors opacity-0 hover:opacity-100 hover:bg-white/10 text-txt-muted"
+            className="p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--bg-hover)] text-txt-muted"
             onClick={(e) => {
               e.stopPropagation();
               on_remove(entry.id);
@@ -395,15 +395,15 @@ export function SavedSearchesSection({
 
   return (
     <div className="p-2 border-t border-edge-secondary">
-      <div className="px-3 py-1.5">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+      <div className="px-3.5 py-1.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
           {t("mail.saved_searches")}
         </span>
       </div>
       {saved_searches.slice(0, 5).map((saved) => (
         <div
           key={saved.id}
-          className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
+          className="group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
           role="button"
           tabIndex={0}
           onClick={() => on_select(saved)}
@@ -430,7 +430,7 @@ export function SavedSearchesSection({
             </span>
           </div>
           <button
-            className="p-1 rounded-full transition-colors opacity-0 hover:opacity-100 hover:bg-white/10 text-txt-muted"
+            className="p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--bg-hover)] text-txt-muted"
             onClick={(e) => {
               e.stopPropagation();
               on_delete(saved.id);

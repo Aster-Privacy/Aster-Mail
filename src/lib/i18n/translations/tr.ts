@@ -66,6 +66,7 @@ export const tr = {
     show_less: "Daha az göster",
     contacts: "Kişiler",
     send_feedback: "Geri bildirim gönder",
+    send_feedback_to_aster: "Aster'a geri bildirim gönder",
     folders: "Klasörler",
     more: "Daha fazla",
     mail: "E-posta",
@@ -417,6 +418,7 @@ export const tr = {
     pending_email_notifications: "Bekleyen e-posta bildirimleri",
     selected: "seçili",
     are_you_sure: "Emin misiniz?",
+    sign_out_all_confirmation: "Bu cihazdaki tüm hesaplardan çıkış yapmak istediğinizden emin misiniz?",
     sign_out_confirmation:
       "Hesabınızdan çıkış yapmak istediğinizden emin misiniz?",
     remove_account_confirmation:
@@ -452,8 +454,7 @@ export const tr = {
     something_went_wrong_try_again:
       "Bu işe yaramadı. Birkaç saniye sonra tekrar denemek çoğunlukla bunu çözer.",
     something_went_wrong: "Bir hata oluştu.",
-    unexpected_error_refresh:
-      "Beklenmeyen bir hata oluştu. Devam etmek için sayfayı yenileyin. Verileriniz etkilenmedi.",
+    unexpected_error_refresh: "Bir sorun oluştu, devam etmek için sayfayı yenileyin.",
     unsupported_browser: "Tarayıcı desteklenmiyor.",
     unsupported_browser_detail: "Lütfen farklı bir tarayıcı deneyin.",
     try_again: "Tekrar dene",
@@ -1688,6 +1689,11 @@ export const tr = {
       "Ayarları tam sayfa veya açılır pencere olarak aç",
     quick_settings: "Hızlı ayarlar",
     see_all_settings: "Tüm ayarları gör",
+    quick_inbox_list: "Gelen kutusu listesi",
+    quick_layout: "Düzen",
+    quick_more_appearance: "Daha fazla tema",
+    quick_preview_text: "Önizleme metni",
+    quick_sender_pictures: "Gönderen resimleri",
     fam_welcome_step1_title: "Aile planınıza hoş geldiniz",
     fam_welcome_step1_desc:
       "Ailenizdeki herkes kendi özel, şifreli gelen kutusuna sahip olur - sizinkinden tamamen ayrı.",
@@ -6186,16 +6192,14 @@ export const tr = {
     category_empty_primary_title: "Birincil'de hiçbir şey yok",
     category_empty_primary_desc:
       "Kişisel mesajlarınız ve sohbetleriniz burada görünecek.",
-    category_empty_promotions_title: "Tanıtım yok",
-    category_empty_promotions_desc:
-      "Fırsatlar, teklifler ve pazarlama e-postaları yolunuzdan çekilmeleri için buraya gelir.",
+    category_empty_promotions_title: "İndirim yok",
+    category_empty_promotions_desc: "İndirimler, kampanyalar ve pazarlama e-postaları diğer postalarınızdan ayrı olarak burada görünür.",
     category_empty_social_title: "Sosyal güncelleme yok",
     category_empty_social_desc:
       "Sosyal ağlardan ve topluluklardan gelen mesajlar burada görünecek.",
-    category_empty_updates_title: "Güncelleme yok",
-    category_empty_updates_desc:
-      "Makbuzlar, onaylar, faturalar ve bildirimler burada görünecek.",
-    category_empty_forums_title: "Forum mesajı yok",
+    category_empty_updates_title: "Bildirim yok",
+    category_empty_updates_desc: "Makbuzlar, onaylar ve faturalar burada görünür.",
+    category_empty_forums_title: "Tartışma yok",
     category_empty_forums_desc:
       "Posta listelerinden ve tartışma gruplarından gelen mesajlar burada görünecek.",
     category_empty_finance_title: "Finans e-postası yok",
@@ -6834,7 +6838,7 @@ export const tr = {
     download_paused: "İndirme duraklatıldı",
     pause_download_action: "Duraklat",
     resume_download_action: "Devam et",
-    searching_message_content: "Mesaj içeriği aranıyor",
+    searching_message_content: "Mesaj içeriğinde ara",
     search_taking_too_long: "Arama çok uzun sürüyor",
     search_refine_terms:
       "Aramanızı daha belirgin terimlerle daraltmayı deneyin.",
@@ -6992,7 +6996,12 @@ export const tr = {
     sign_up: "Kayıt Ol",
     your_accounts: "Hesaplarınız",
     greeting: "Merhaba, {{name}}",
-    manage_account: "Aster hesabını yönet",
+    greeting_morning: "Günaydın",
+    greeting_afternoon: "İyi öğleden sonralar",
+    greeting_evening: "İyi akşamlar",
+    greeting_comma: ",",
+    greeting_night: "Geç saatler",
+    manage_account: "Hesap ayarları",
     sign_out_all: "Tüm hesaplardan çıkış yap",
     session_expired_tag: "Oturum sona erdi",
     default_account: "Varsayılan",
@@ -7934,7 +7943,7 @@ export const tr = {
     auth_missing: "eksik",
     category_primary: "Gelen Kutusu",
     category_important: "Önemli",
-    category_promotions: "Fırsatlar",
+    category_promotions: "İndirimler",
     category_social: "Sosyal",
     category_updates: "Bildirimler",
     category_forums: "Tartışmalar",

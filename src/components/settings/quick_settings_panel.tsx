@@ -21,8 +21,14 @@
 import type { SettingsSection } from "@/components/settings/settings_content";
 
 import { useEffect } from "react";
-import { XMarkIcon, Cog6ToothIcon, CheckIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { createPortal } from "react-dom";
+import {
+  XMarkIcon,
+  Cog6ToothIcon,
+  ChevronRightIcon,
+  CheckIcon,
+} from "@heroicons/react/24/outline";
+import { Button, Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { resolve_list_density } from "@/lib/list_density";
@@ -37,35 +43,15 @@ interface QuickSettingsPanelProps {
 
 const THUMB_LINE = "var(--text-muted)";
 
-function MiniThumb({
-  is_selected,
-  children,
-}: {
-  is_selected: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <span
-      className="w-[52px] h-[36px] rounded-[8px] overflow-hidden flex-shrink-0 block transition-all duration-150"
-      style={{
-        backgroundColor: "var(--bg-primary)",
-        border: is_selected
-          ? "1.5px solid var(--accent-color, #3b82f6)"
-          : "1px solid var(--border-primary)",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
+const SELECTED_TINT = "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, transparent)";
 
 function ThumbLines({ count, gap }: { count: number; gap: string }) {
   return (
-    <span className={`flex flex-col ${gap} p-1.5 w-full h-full`}>
+    <span className={`flex h-full w-full flex-col ${gap} p-2`}>
       {Array.from({ length: count }, (_, i) => (
         <span
           key={i}
-          className="h-[3px] rounded-full w-full"
+          className="h-[3px] w-full rounded-full"
           style={{ backgroundColor: THUMB_LINE, opacity: 0.45 }}
         />
       ))}
@@ -75,21 +61,22 @@ function ThumbLines({ count, gap }: { count: number; gap: string }) {
 
 function ThumbSplit() {
   return (
-    <span className="flex gap-1 p-1.5 w-full h-full">
-      <span className="flex flex-col gap-1 w-[45%]">
+    <span className="flex h-full w-full gap-1.5 p-2">
+      <span className="flex w-[42%] flex-col gap-1">
         {Array.from({ length: 4 }, (_, i) => (
           <span
             key={i}
-            className="h-[3px] rounded-full w-full"
+            className="h-[3px] w-full rounded-full"
             style={{
-              backgroundColor: i === 0 ? "var(--accent-color, #3b82f6)" : THUMB_LINE,
+              backgroundColor:
+                i === 0 ? "var(--accent-color, #3b82f6)" : THUMB_LINE,
               opacity: i === 0 ? 1 : 0.45,
             }}
           />
         ))}
       </span>
       <span
-        className="flex-1 rounded-[3px]"
+        className="flex-1 rounded-[4px]"
         style={{
           border: "1px solid var(--border-primary)",
           backgroundColor: "var(--bg-primary)",
@@ -101,14 +88,14 @@ function ThumbSplit() {
 
 function ThumbPopup() {
   return (
-    <span className="relative block w-full h-full">
+    <span className="relative block h-full w-full">
       <ThumbLines count={4} gap="gap-1" />
       <span
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[62%] rounded-[3px]"
+        className="absolute left-1/2 top-1/2 h-[62%] w-[64%] -translate-x-1/2 -translate-y-1/2 rounded-[4px]"
         style={{
           backgroundColor: "var(--bg-primary)",
           border: "1px solid var(--accent-color, #3b82f6)",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+          boxShadow: "0 1px 5px rgba(0, 0, 0, 0.25)",
         }}
       />
     </span>
@@ -117,15 +104,15 @@ function ThumbPopup() {
 
 function ThumbFullPage() {
   return (
-    <span className="flex flex-col gap-1 p-1.5 w-full h-full">
+    <span className="flex h-full w-full flex-col gap-1.5 p-2">
       <span
-        className="h-[5px] rounded-[2px] w-[70%]"
-        style={{ backgroundColor: "var(--accent-color, #3b82f6)", opacity: 0.9 }}
+        className="h-[6px] w-[70%] rounded-[3px]"
+        style={{ backgroundColor: "var(--accent-color, #3b82f6)" }}
       />
       {Array.from({ length: 3 }, (_, i) => (
         <span
           key={i}
-          className="h-[3px] rounded-full w-full"
+          className="h-[3px] w-full rounded-full"
           style={{ backgroundColor: THUMB_LINE, opacity: 0.45 }}
         />
       ))}
@@ -135,13 +122,19 @@ function ThumbFullPage() {
 
 function ThumbPaneBottom() {
   return (
-    <span className="flex flex-col gap-1 p-1.5 w-full h-full">
-      <span className="flex flex-col gap-1 h-[45%]">
-        <span className="h-[3px] rounded-full w-full" style={{ backgroundColor: "var(--accent-color, #3b82f6)" }} />
-        <span className="h-[3px] rounded-full w-full" style={{ backgroundColor: THUMB_LINE, opacity: 0.45 }} />
+    <span className="flex h-full w-full flex-col gap-1.5 p-2">
+      <span className="flex flex-col gap-1">
+        <span
+          className="h-[3px] w-full rounded-full"
+          style={{ backgroundColor: "var(--accent-color, #3b82f6)" }}
+        />
+        <span
+          className="h-[3px] w-full rounded-full"
+          style={{ backgroundColor: THUMB_LINE, opacity: 0.45 }}
+        />
       </span>
       <span
-        className="flex-1 rounded-[3px]"
+        className="flex-1 rounded-[4px]"
         style={{
           border: "1px solid var(--border-primary)",
           backgroundColor: "var(--bg-primary)",
@@ -149,14 +142,6 @@ function ThumbPaneBottom() {
       />
     </span>
   );
-}
-
-function ThumbComfortable() {
-  return <ThumbLines count={3} gap="gap-[7px]" />;
-}
-
-function ThumbCompact() {
-  return <ThumbLines count={5} gap="gap-[3px]" />;
 }
 
 function ThemeMini({ mode }: { mode: "light" | "dark" }) {
@@ -169,7 +154,7 @@ function ThemeMini({ mode }: { mode: "light" | "dark" }) {
         style={{ backgroundColor: is_light ? "#e8eaed" : "#2a2c30" }}
       />
       <span
-        className="flex h-full flex-1 flex-col gap-[3px] p-1.5"
+        className="flex h-full flex-1 flex-col gap-[4px] p-2"
         style={{ backgroundColor: is_light ? "#ffffff" : "#17181b" }}
       >
         {Array.from({ length: 3 }, (_, i) => (
@@ -191,63 +176,32 @@ function ThemeMini({ mode }: { mode: "light" | "dark" }) {
   );
 }
 
-function ThemeQuickCard({
-  label,
-  mode,
-  is_selected,
-  on_select,
-}: {
-  label: string;
-  mode: "light" | "dark";
-  is_selected: boolean;
-  on_select: () => void;
-}) {
+function SelectedCheck() {
   return (
-    <button
-      aria-checked={is_selected}
-      className="flex-1 rounded-[12px] p-1.5 outline-none transition-all duration-150 focus:outline-none"
-      role="radio"
-      style={{
-        backgroundColor: is_selected
-          ? "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, transparent)"
-          : "var(--bg-primary)",
-        border: is_selected
-          ? "1.5px solid var(--accent-color, #3b82f6)"
-          : "1px solid var(--border-primary)",
-      }}
-      type="button"
-      onClick={on_select}
+    <span
+      className="absolute right-1.5 top-1.5 flex h-[15px] w-[15px] items-center justify-center rounded-full"
+      style={{ backgroundColor: "var(--accent-color, #3b82f6)" }}
     >
-      <span className="block h-[48px] w-full overflow-hidden rounded-[9px]">
-        <ThemeMini mode={mode} />
-      </span>
-      <span
-        className={`mt-1.5 block text-[12px] ${is_selected ? "font-medium" : ""}`}
-        style={{
-          color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
-        }}
-      >
-        {label}
-      </span>
-    </button>
+      <CheckIcon className="h-[10px] w-[10px] text-white" strokeWidth={3} />
+    </span>
   );
 }
 
-interface QuickRadioOption {
+interface QuickTileOption {
   value: string;
   label: string;
-  thumbnail?: React.ReactNode;
+  thumbnail: React.ReactNode;
 }
 
-interface QuickRadioGroupProps {
-  options: QuickRadioOption[];
+interface QuickTilesProps {
+  options: QuickTileOption[];
   value: string;
   on_change: (value: string) => void;
 }
 
-function QuickRadioGroup({ options, value, on_change }: QuickRadioGroupProps) {
+function QuickTiles({ options, value, on_change }: QuickTilesProps) {
   return (
-    <div className="flex flex-col gap-1" role="radiogroup">
+    <div className="flex gap-2" role="radiogroup">
       {options.map((option) => {
         const is_selected = option.value === value;
 
@@ -255,35 +209,36 @@ function QuickRadioGroup({ options, value, on_change }: QuickRadioGroupProps) {
           <button
             key={option.value}
             aria-checked={is_selected}
-            className="w-full flex items-center gap-3 p-1.5 pr-2.5 rounded-[12px] text-[13px] text-left transition-colors duration-150 outline-none focus:outline-none hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
+            className="group flex min-w-0 flex-1 flex-col items-center gap-1.5 outline-none focus:outline-none"
             role="radio"
-            style={{
-              color: is_selected
-                ? "var(--text-primary)"
-                : "var(--text-secondary)",
-              backgroundColor: is_selected
-                ? "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, transparent)"
-                : undefined,
-            }}
             type="button"
             onClick={() => on_change(option.value)}
           >
-            {option.thumbnail && (
-              <MiniThumb is_selected={is_selected}>{option.thumbnail}</MiniThumb>
-            )}
             <span
-              className={`truncate flex-1 ${is_selected ? "font-medium" : ""}`}
+              className="relative block h-[52px] w-full overflow-hidden rounded-[10px] transition-all duration-150"
+              style={{
+                backgroundColor: is_selected
+                  ? SELECTED_TINT
+                  : "var(--bg-secondary, var(--bg-primary))",
+                boxShadow: is_selected
+                  ? "0 0 0 2px var(--accent-color, #3b82f6)"
+                  : "0 0 0 1px var(--border-secondary)",
+              }}
+            >
+              {option.thumbnail}
+              {is_selected && <SelectedCheck />}
+            </span>
+            <span
+              className="block w-full truncate text-center text-[11.5px] leading-tight"
+              style={{
+                color: is_selected
+                  ? "var(--text-primary)"
+                  : "var(--text-secondary)",
+                fontWeight: is_selected ? 600 : 400,
+              }}
             >
               {option.label}
             </span>
-            {is_selected && (
-              <span
-                className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: "var(--accent-color, #3b82f6)" }}
-              >
-                <CheckIcon className="h-3 w-3 text-white" strokeWidth={3} />
-              </span>
-            )}
           </button>
         );
       })}
@@ -291,28 +246,58 @@ function QuickRadioGroup({ options, value, on_change }: QuickRadioGroupProps) {
   );
 }
 
-function QuickGroup({
+function QuickCard({
   title,
   children,
+  action,
 }: {
   title: string;
   children: React.ReactNode;
+  action?: React.ReactNode;
 }) {
   return (
-    <div className="px-3 pt-3">
-      <span className="block px-1 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-txt-muted">
-        {title}
+    <section
+      className="rounded-[14px] px-3.5 pb-3.5 pt-3"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        boxShadow: "0 0 0 1px var(--border-secondary)",
+      }}
+    >
+      <header className="mb-2.5 flex items-center gap-2">
+        <h3 className="flex-1 truncate text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
+          {title}
+        </h3>
+        {action}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function QuickToggle({
+  label,
+  checked,
+  on_change,
+}: {
+  label: string;
+  checked: boolean;
+  on_change: (next: boolean) => void;
+}) {
+  return (
+    <div className="flex min-h-[32px] items-center gap-3">
+      <span className="flex-1 truncate text-[13px] text-txt-primary">
+        {label}
       </span>
-      <div
-        className="rounded-[16px] p-1.5"
-        style={{
-          backgroundColor: "var(--bg-secondary)",
-          border: "1px solid var(--border-secondary)",
-        }}
-      >
-        {children}
-      </div>
+      <Switch checked={checked} size="sm" onCheckedChange={on_change} />
     </div>
+  );
+}
+
+function QuickSubLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="mb-1.5 block text-[12px] text-txt-secondary">
+      {children}
+    </span>
   );
 }
 
@@ -346,106 +331,124 @@ export function QuickSettingsPanel({
 
   if (!is_open) return null;
 
-  return (
-    <aside
-      className="hidden lg:flex flex-col absolute top-0 right-0 bottom-0 w-[300px] z-40 overflow-hidden rounded-r-lg md:rounded-r-xl"
-      style={{
-        backgroundColor: "var(--bg-primary)",
-        borderLeft: "1px solid var(--border-secondary)",
-        boxShadow: "-8px 0 24px -12px rgba(0, 0, 0, 0.22)",
-      }}
-    >
+  const active_theme = is_default_color ? theme_preference : "";
+
+  return createPortal(
+    <>
       <div
-        className="flex items-center gap-3 px-4 flex-shrink-0 min-h-[44px] py-1"
-        style={{ borderBottom: "1px solid var(--border-secondary)" }}
+        aria-hidden="true"
+        className="fixed inset-0 z-[95]"
+        onMouseDown={on_close}
+      />
+      <aside
+        className="quick_settings_panel fixed bottom-0 right-0 top-0 z-[96] hidden w-[352px] max-w-[92vw] flex-col overflow-hidden lg:flex"
+        style={{
+          backgroundColor: "var(--bg-secondary, var(--bg-primary))",
+          borderLeft: "1px solid var(--border-secondary)",
+          boxShadow: "-16px 0 44px -20px rgba(0, 0, 0, 0.55)",
+        }}
       >
-        <h2 className="text-[15px] font-semibold text-txt-primary flex-1 truncate">
-          {t("settings.quick_settings")}
-        </h2>
-        <Button
-          aria-label={t("common.close")}
-          className="h-7 w-7 text-[var(--icon-muted)]"
-          size="icon"
-          variant="ghost"
-          onClick={on_close}
+        <div
+          className="flex min-h-[52px] flex-shrink-0 items-center gap-3 px-4"
+          style={{ borderBottom: "1px solid var(--border-secondary)" }}
         >
-          <XMarkIcon className="w-4 h-4" />
-        </Button>
-      </div>
-      <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
-            <div className="px-3 pt-3">
+          <h2 className="flex-1 truncate text-[15px] font-semibold text-txt-primary">
+            {t("settings.quick_settings")}
+          </h2>
+          <Button
+            aria-label={t("common.close")}
+            className="h-7 w-7 text-[var(--icon-muted)]"
+            size="icon"
+            variant="ghost"
+            onClick={on_close}
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto overflow-x-hidden p-3">
+          <button
+            className="flex w-full items-center gap-2.5 rounded-[14px] px-3.5 py-3 text-left outline-none transition-colors focus:outline-none"
+            style={{
+              backgroundColor: SELECTED_TINT,
+              color: "var(--accent-color, #3b82f6)",
+            }}
+            type="button"
+            onClick={() => on_open_full_settings()}
+          >
+            <Cog6ToothIcon className="h-[18px] w-[18px] flex-shrink-0" />
+            <span className="flex-1 truncate text-[13.5px] font-semibold">
+              {t("settings.see_all_settings")}
+            </span>
+            <ChevronRightIcon className="h-4 w-4 flex-shrink-0" />
+          </button>
+
+          <QuickCard
+            action={
               <button
-                className="flex w-full items-center justify-center gap-2 rounded-[12px] py-2.5 text-[13px] font-medium outline-none transition-colors hover:bg-black/[0.04] focus:outline-none dark:hover:bg-white/[0.05]"
-                style={{
-                  border: "1px solid var(--border-primary)",
-                  color: "var(--text-secondary)",
-                }}
+                className="flex-shrink-0 rounded-[6px] text-[11.5px] font-medium outline-none focus:outline-none"
+                style={{ color: "var(--accent-color, #3b82f6)" }}
                 type="button"
-                onClick={() => on_open_full_settings()}
+                onClick={() => on_open_full_settings("appearance")}
               >
-                <Cog6ToothIcon className="h-[15px] w-[15px]" />
-                <span>{t("settings.see_all_settings")}</span>
+                {t("settings.quick_more_appearance")}
               </button>
-            </div>
+            }
+            title={t("settings.theme")}
+          >
+            <QuickTiles
+              on_change={(v) => handle_theme_select(v as "light" | "dark")}
+              options={[
+                {
+                  value: "light",
+                  label: t("settings.theme_light"),
+                  thumbnail: <ThemeMini mode="light" />,
+                },
+                {
+                  value: "dark",
+                  label: t("settings.theme_dark"),
+                  thumbnail: <ThemeMini mode="dark" />,
+                },
+              ]}
+              value={active_theme}
+            />
+          </QuickCard>
 
-            <QuickGroup
-              title={t("settings.theme")}
-            >
-              <div className="flex gap-1.5" role="radiogroup">
-                <ThemeQuickCard
-                  is_selected={is_default_color && theme_preference === "light"}
-                  label={t("settings.theme_light")}
-                  mode="light"
-                  on_select={() => handle_theme_select("light")}
-                />
-                <ThemeQuickCard
-                  is_selected={is_default_color && theme_preference === "dark"}
-                  label={t("settings.theme_dark")}
-                  mode="dark"
-                  on_select={() => handle_theme_select("dark")}
-                />
-              </div>
-            </QuickGroup>
+          <QuickCard title={t("settings.quick_layout")}>
+            <QuickSubLabel>{t("settings.email_view_mode")}</QuickSubLabel>
+            <QuickTiles
+              on_change={(v) =>
+                update_preference(
+                  "email_view_mode",
+                  v as "popup" | "split" | "fullpage",
+                  true,
+                )
+              }
+              options={[
+                {
+                  value: "split",
+                  label: t("settings.split_view"),
+                  thumbnail: <ThumbSplit />,
+                },
+                {
+                  value: "popup",
+                  label: t("settings.popup"),
+                  thumbnail: <ThumbPopup />,
+                },
+                {
+                  value: "fullpage",
+                  label: t("settings.full_page"),
+                  thumbnail: <ThumbFullPage />,
+                },
+              ]}
+              value={preferences.email_view_mode}
+            />
 
-            <QuickGroup
-              title={t("settings.density")}
-            >
-              <QuickRadioGroup
-                on_change={(v) =>
-                  update_preference("mail_list_density", v, true)
-                }
-                options={[
-                  { value: "comfortable", label: t("settings.density_comfortable"), thumbnail: <ThumbComfortable /> },
-                  { value: "compact", label: t("settings.density_compact"), thumbnail: <ThumbCompact /> },
-                ]}
-                value={resolve_list_density(preferences.mail_list_density)}
-              />
-            </QuickGroup>
-
-            <QuickGroup
-              title={t("settings.email_view_mode")}
-            >
-              <QuickRadioGroup
-                on_change={(v) =>
-                  update_preference(
-                    "email_view_mode",
-                    v as "popup" | "split" | "fullpage",
-                    true,
-                  )
-                }
-                options={[
-                  { value: "split", label: t("settings.split_view"), thumbnail: <ThumbSplit /> },
-                  { value: "popup", label: t("settings.popup"), thumbnail: <ThumbPopup /> },
-                  { value: "fullpage", label: t("settings.full_page"), thumbnail: <ThumbFullPage /> },
-                ]}
-                value={preferences.email_view_mode}
-              />
-            </QuickGroup>
-
-            <QuickGroup
-              title={t("settings.reading_pane_position")}
-            >
-              <QuickRadioGroup
+            <div className="mt-3.5">
+              <QuickSubLabel>
+                {t("settings.reading_pane_position")}
+              </QuickSubLabel>
+              <QuickTiles
                 on_change={(v) =>
                   update_preference(
                     "reading_pane_position",
@@ -454,16 +457,76 @@ export function QuickSettingsPanel({
                   )
                 }
                 options={[
-                  { value: "right", label: t("settings.right_side"), thumbnail: <ThumbSplit /> },
-                  { value: "bottom", label: t("settings.bottom"), thumbnail: <ThumbPaneBottom /> },
-                  { value: "hidden", label: t("settings.hidden_click_to_open"), thumbnail: <ThumbLines count={4} gap="gap-1" /> },
+                  {
+                    value: "right",
+                    label: t("settings.right_side"),
+                    thumbnail: <ThumbSplit />,
+                  },
+                  {
+                    value: "bottom",
+                    label: t("settings.bottom"),
+                    thumbnail: <ThumbPaneBottom />,
+                  },
+                  {
+                    value: "hidden",
+                    label: t("settings.hidden_click_to_open"),
+                    thumbnail: <ThumbLines count={4} gap="gap-1" />,
+                  },
                 ]}
                 value={preferences.reading_pane_position}
               />
-            </QuickGroup>
+            </div>
+          </QuickCard>
 
-            <div className="pb-4" />
-      </div>
-    </aside>
+          <QuickCard title={t("settings.quick_inbox_list")}>
+            <QuickSubLabel>{t("settings.density")}</QuickSubLabel>
+            <QuickTiles
+              on_change={(v) => update_preference("mail_list_density", v, true)}
+              options={[
+                {
+                  value: "comfortable",
+                  label: t("settings.density_comfortable"),
+                  thumbnail: <ThumbLines count={3} gap="gap-[9px]" />,
+                },
+                {
+                  value: "compact",
+                  label: t("settings.density_compact"),
+                  thumbnail: <ThumbLines count={5} gap="gap-[4px]" />,
+                },
+              ]}
+              value={resolve_list_density(preferences.mail_list_density)}
+            />
+
+            <div
+              className="mt-3 flex flex-col pt-1"
+              style={{ borderTop: "1px solid var(--border-secondary)" }}
+            >
+              <QuickToggle
+                checked={preferences.conversation_grouping ?? true}
+                label={t("settings.conversation_grouping")}
+                on_change={(next) =>
+                  update_preference("conversation_grouping", next, true)
+                }
+              />
+              <QuickToggle
+                checked={preferences.show_profile_pictures ?? true}
+                label={t("settings.quick_sender_pictures")}
+                on_change={(next) =>
+                  update_preference("show_profile_pictures", next, true)
+                }
+              />
+              <QuickToggle
+                checked={preferences.show_email_preview ?? true}
+                label={t("settings.quick_preview_text")}
+                on_change={(next) =>
+                  update_preference("show_email_preview", next, true)
+                }
+              />
+            </div>
+          </QuickCard>
+        </div>
+      </aside>
+    </>,
+    document.body,
   );
 }

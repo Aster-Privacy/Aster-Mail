@@ -92,7 +92,10 @@ export const StorageMeter = memo(function StorageMeter({
         aria-valuenow={Math.round(storage_percentage)}
         className="h-1.5 w-full rounded-full overflow-hidden"
         role="progressbar"
-        style={{ backgroundColor: "var(--bg-tertiary)" }}
+        style={{
+          backgroundColor:
+            "color-mix(in srgb, var(--text-muted) 26%, transparent)",
+        }}
       >
         <div
           className="h-full rounded-full transition-all duration-300"

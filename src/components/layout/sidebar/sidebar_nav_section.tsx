@@ -39,6 +39,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { CountBadge } from "@/components/common/count_badge";
+import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface SidebarNavSectionProps {
@@ -145,7 +146,9 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                 : "var(--icon-muted)",
           }}
         />
-        {!is_collapsed && (
+        {is_collapsed ? (
+          <RailUnreadDot count={stats.unread} label={t("mail.inbox")} />
+        ) : (
           <>
             <span className="flex-1 text-left">{t("mail.inbox")}</span>
             <CountBadge

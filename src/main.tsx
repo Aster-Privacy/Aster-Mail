@@ -38,6 +38,7 @@ import {
   version_check_blocking,
 } from "@/lib/version_check";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
+import { start_input_modality_tracking } from "@/lib/input_modality";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
@@ -47,6 +48,8 @@ import "@/styles/globals.css";
 import "@/styles/mobile.css";
 
 const MobileApp = lazy(() => import("@/mobile_app"));
+
+start_input_modality_tracking();
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
@@ -126,7 +129,6 @@ if (is_tauri_runtime && "serviceWorker" in navigator) {
     }
   })();
 }
-
 
 const CHUNK_RELOAD_MARKER = "aster:chunk_reload_at";
 const CHUNK_RELOAD_COOLDOWN_MS = 30_000;
@@ -325,7 +327,9 @@ async function maybe_block_on_version_check(): Promise<void> {
   if (!import.meta.env.PROD) return;
   if (is_tauri_runtime) return;
   try {
-    const last = Number(sessionStorage.getItem(BOOT_VERSION_CHECK_MARKER) || "0");
+    const last = Number(
+      sessionStorage.getItem(BOOT_VERSION_CHECK_MARKER) || "0",
+    );
 
     if (last && Date.now() - last < BOOT_VERSION_CHECK_TTL_MS) return;
   } catch {}

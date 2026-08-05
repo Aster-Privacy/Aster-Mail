@@ -32,6 +32,7 @@ import {
 
 import { filter_protected_folder_emails } from "@/hooks/use_folders";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { build_list_preview } from "@/utils/preview_text";
 import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import { list_mail_items, type MailItem } from "@/services/api/mail";
 import {
@@ -298,7 +299,7 @@ function mail_to_email(
       from_name || get_email_username(from_email) || unknown_sender_text,
     sender_email: from_email,
     subject: envelope.subject || no_subject_text,
-    preview: strip_html_tags(envelope.body_text).substring(0, 100),
+    preview: build_list_preview(strip_html_tags(envelope.body_text)),
     timestamp: format_email_list_timestamp(
       new Date(envelope.sent_at || item.created_at),
       format_options,

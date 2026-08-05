@@ -179,7 +179,7 @@ export function CategoryTabs({
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex h-12 min-w-[132px] max-w-[200px] flex-1 basis-[200px] items-center justify-start gap-2 whitespace-nowrap px-3 text-[13px] font-medium outline-none transition-colors duration-150 sm:px-4 ${
+            className={`group relative flex h-12 min-w-[104px] max-w-[176px] flex-1 basis-[176px] items-center justify-start gap-2 whitespace-nowrap px-2.5 text-[13px] font-medium outline-none transition-colors duration-150 sm:px-3 ${
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
@@ -210,7 +210,7 @@ export function CategoryTabs({
               />
               <span
                 className={`relative flex flex-col items-start ${
-                  preview ? "min-w-[168px]" : "min-w-0"
+                  preview ? "min-w-[124px]" : "min-w-0"
                 }`}
               >
                 <span className="flex h-5 min-w-0 items-center gap-2">
@@ -222,7 +222,7 @@ export function CategoryTabs({
                   ) : null}
                 </span>
                 {preview ? (
-                  <span className="absolute left-0 top-full mt-[3px] block h-[13px] w-[168px] max-w-[168px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                  <span className="absolute left-0 top-full mt-[3px] block h-[13px] w-[124px] max-w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
                     {preview.subject
                       ? `${preview.sender} - ${preview.subject}`
                       : preview.sender}

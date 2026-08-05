@@ -23,8 +23,11 @@ import { useNavigate } from "react-router-dom";
 import {
   Bars3Icon,
   Cog6ToothIcon,
+  ChatBubbleLeftRightIcon,
+  DocumentTextIcon,
   LifebuoyIcon,
   QuestionMarkCircleIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -32,6 +35,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -43,8 +47,9 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 
-
 const HELP_CENTER_URL = "https://astermail.org/help";
+const PRIVACY_URL = "https://astermail.org/privacy";
+const TERMS_URL = "https://astermail.org/terms";
 
 interface TopBarProps {
   is_settings_view?: boolean;
@@ -113,6 +118,7 @@ export function TopBar({
   const { preferences, update_preference } = use_preferences();
   const { limits } = use_plan_limits();
   const is_free_plan = limits?.plan_code === "free";
+  const is_paid_plan = !!limits && limits.plan_code !== "free";
   const navigate = useNavigate();
   const [is_accounts_open, set_is_accounts_open] = useState(false);
   const [is_mobile, set_is_mobile] = useState(false);
@@ -131,6 +137,12 @@ export function TopBar({
     account_tip_timer.current = setTimeout(
       () => set_show_account_tip(true),
       500,
+    );
+  }, []);
+
+  const open_feedback_settings = useCallback(() => {
+    window.dispatchEvent(
+      new CustomEvent("navigate-settings", { detail: "feedback" }),
     );
   }, []);
 
@@ -180,9 +192,7 @@ export function TopBar({
     360,
     Math.max(200, preferences.sidebar_width ?? 256),
   );
-  const left_cluster_width = preferences.sidebar_minimized
-    ? 64
-    : sidebar_expanded_width;
+  const left_cluster_width = sidebar_expanded_width;
 
   const handle_menu_click = useCallback(() => {
     if (is_mobile) {
@@ -208,11 +218,14 @@ export function TopBar({
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
       <div
-        className="flex items-center gap-2 flex-shrink-0 px-2 sm:px-3"
+        className="flex items-center gap-2 flex-shrink-0 px-2 sm:pl-[22px] sm:pr-3"
         style={is_mobile ? undefined : { width: left_cluster_width }}
       >
         {is_mobile && (
-          <IconButton label={t("common.open_menu")} on_click={handle_menu_click}>
+          <IconButton
+            label={t("common.open_menu")}
+            on_click={handle_menu_click}
+          >
             <Bars3Icon className="w-5 h-5" />
           </IconButton>
         )}
@@ -226,32 +239,20 @@ export function TopBar({
               window.dispatchEvent(new CustomEvent("astermail:inbox-home"));
             }}
           >
-          {preferences.sidebar_minimized ? (
             <img
               alt={t("common.aster_mail")}
-              className="h-7 w-7 flex-shrink-0 object-contain"
+              className="h-6 w-auto max-w-full object-contain object-left dark:hidden"
               decoding="async"
               draggable={false}
-              src="/mail_logo.webp"
+              src="/aster_mail_logo_light.png"
             />
-          ) : (
-            <>
-              <img
-                alt={t("common.aster_mail")}
-                className="h-6 w-auto max-w-full object-contain object-left dark:hidden"
-                decoding="async"
-                draggable={false}
-                src="/aster_mail_logo_light.png"
-              />
-              <img
-                alt={t("common.aster_mail")}
-                className="h-6 w-auto max-w-full object-contain object-left hidden dark:block"
-                decoding="async"
-                draggable={false}
-                src="/aster_mail_logo_dark.png"
-              />
-            </>
-          )}
+            <img
+              alt={t("common.aster_mail")}
+              className="h-6 w-auto max-w-full object-contain object-left hidden dark:block"
+              decoding="async"
+              draggable={false}
+              src="/aster_mail_logo_dark.png"
+            />
           </button>
         </Tooltip>
       </div>
@@ -295,6 +296,28 @@ export function TopBar({
               <KeyboardIcon className="w-4 h-4 mr-2" />
               {t("common.keyboard_shortcuts")}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={open_feedback_settings}>
+              <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
+              {t("common.send_feedback_to_aster")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(PRIVACY_URL, "_blank", "noopener,noreferrer")
+              }
+            >
+              <ShieldCheckIcon className="w-4 h-4 mr-2" />
+              {t("auth.privacy_policy")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(TERMS_URL, "_blank", "noopener,noreferrer")
+              }
+            >
+              <DocumentTextIcon className="w-4 h-4 mr-2" />
+              {t("auth.terms_of_service")}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -328,14 +351,12 @@ export function TopBar({
             trigger={
               <button
                 aria-label={t("auth.your_accounts")}
-                className="flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none transition-colors hover:bg-[var(--bg-hover)] outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+                className="account_avatar_button flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
                 type="button"
                 onClick={close_account_tip}
               >
                 <span
-                  className={
-                    is_free_plan ? "inline-flex leading-none" : "plan_ring"
-                  }
+                  className={`account_avatar_ring inline-flex leading-none ${is_paid_plan ? "plan_ring" : ""}`}
                 >
                   <ProfileAvatar
                     className="block"

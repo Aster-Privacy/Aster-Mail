@@ -25,6 +25,7 @@ import {
   type PlanLimitsResponse,
 } from "@/services/api/billing";
 import { api_client } from "@/services/api/client";
+import { persist_plan_flag_for_current_account } from "@/services/account_manager";
 
 let cached_limits: PlanLimitsResponse | null = null;
 let cache_timestamp = 0;
@@ -64,6 +65,9 @@ export function use_plan_limits() {
         cached_limits = response.data;
         cache_timestamp = Date.now();
         set_limits(response.data);
+        persist_plan_flag_for_current_account(
+          response.data.plan_code !== "free",
+        ).catch(() => {});
       }
     } finally {
       set_is_loading(false);

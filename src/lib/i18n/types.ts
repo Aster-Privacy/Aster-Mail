@@ -531,6 +531,7 @@ export interface CommonTranslations {
   show_less: string;
   contacts: string;
   send_feedback: string;
+  send_feedback_to_aster: string;
   folders: string;
   more: string;
   mail: string;
@@ -897,6 +898,7 @@ export interface CommonTranslations {
   pending_email_notifications: string;
   selected: string;
   are_you_sure: string;
+  sign_out_all_confirmation: string;
   sign_out_confirmation: string;
   remove_account_confirmation: string;
   go_back: string;
@@ -1855,6 +1857,11 @@ export interface SettingsTranslations {
   settings_view_mode: string;
   settings_view_mode_description: string;
   see_all_settings: string;
+  quick_sender_pictures: string;
+  quick_preview_text: string;
+  quick_more_appearance: string;
+  quick_layout: string;
+  quick_inbox_list: string;
   fam_welcome_step1_title: string;
   fam_welcome_step1_desc: string;
   fam_welcome_step1_point1: string;
@@ -6429,6 +6436,11 @@ export interface AuthTranslations {
   reset_consent_continue: string;
   your_accounts: string;
   greeting: string;
+  greeting_morning: string;
+  greeting_afternoon: string;
+  greeting_evening: string;
+  greeting_comma: string;
+  greeting_night: string;
   manage_account: string;
   sign_out_all: string;
   session_expired_tag: string;

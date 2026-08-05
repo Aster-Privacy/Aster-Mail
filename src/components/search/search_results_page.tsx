@@ -25,8 +25,13 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
+  CheckCircleIcon,
+  EllipsisVerticalIcon,
+  EnvelopeOpenIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
+  StarIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
@@ -36,6 +41,15 @@ import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { InboxHeader } from "@/components/inbox/inbox_header";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
+import { EmailContextMenuContent } from "@/components/email/email_context_menu";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context_menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
 import { FullEmailViewer } from "@/components/email/full_email_viewer";
 import { Spinner } from "@/components/ui/spinner";
@@ -62,9 +76,9 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { use_i18n } from "@/lib/i18n/context";
 import { resolve_list_density } from "@/lib/list_density";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
+import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 
 const MIN_LIST_WIDTH = 280;
-const DEFAULT_LIST_WIDTH = 400;
 const SEARCH_PAGE_SIZE = 30;
 const SNIPPET_WINDOW = 120;
 const SLOW_SEARCH_MS = 6000;
@@ -168,10 +182,6 @@ export function SearchResultsPage({
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [search_page, set_search_page] = useState(0);
 
-  const [pane_width, set_pane_width] = useState(DEFAULT_LIST_WIDTH);
-  const [is_dragging, set_is_dragging] = useState(false);
-  const drag_start_x = useRef(0);
-  const drag_start_width = useRef(0);
   const has_searched = useRef(false);
 
   useEffect(() => {
@@ -672,55 +682,24 @@ export function SearchResultsPage({
     return count;
   }, [filters]);
 
-  const handle_drag_start = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      set_is_dragging(true);
-      drag_start_x.current = e.clientX;
-      drag_start_width.current = pane_width;
-    },
-    [pane_width],
-  );
-
-  useEffect(() => {
-    if (!is_dragging) return;
-
-    const prev_cursor = document.body.style.cursor;
-    const prev_user_select = document.body.style.userSelect;
-
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-
-    const handle_mouse_move = (e: MouseEvent) => {
-      e.preventDefault();
-      const delta = e.clientX - drag_start_x.current;
-      const max_width = Math.max(MIN_LIST_WIDTH, window.innerWidth - 256 - 360);
-      const new_width = Math.max(
-        MIN_LIST_WIDTH,
-        Math.min(max_width, drag_start_width.current + delta),
-      );
-
-      set_pane_width(new_width);
-    };
-
-    const handle_mouse_up = () => {
-      set_is_dragging(false);
-    };
-
-    window.addEventListener("mousemove", handle_mouse_move, { passive: false });
-    window.addEventListener("mouseup", handle_mouse_up);
-
-    return () => {
-      window.removeEventListener("mousemove", handle_mouse_move);
-      window.removeEventListener("mouseup", handle_mouse_up);
-      document.body.style.cursor = prev_cursor;
-      document.body.style.userSelect = prev_user_select;
-    };
-  }, [is_dragging]);
-
   const is_loading =
     state.is_loading || state.is_searching || !has_searched.current;
   const is_split_view = !!split_email_id;
+
+  const {
+    is_dragging,
+    pane_width,
+    list_panel_ref,
+    detail_panel_ref,
+    handle_drag_start,
+  } = use_split_pane({
+    is_bottom_pane: false,
+    is_split_view,
+    on_split_close,
+    split_pane_height: preferences.split_pane_height ?? 0,
+    split_pane_width: preferences.split_pane_width ?? 0,
+    update_preference,
+  });
   const is_fullpage_mode = preferences.email_view_mode === "fullpage";
 
   const selection_all_selected =
@@ -793,9 +772,93 @@ export function SearchResultsPage({
     </Select>
   );
 
+  const menu_email_ref = useRef<InboxEmail | null>(null);
+  const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
+
+  const handle_row_context_menu = useCallback((email: InboxEmail) => {
+    set_menu_email(email);
+    menu_email_ref.current = email;
+  }, []);
+
+  const run_single = useCallback(
+    async (
+      fn: (emails: InboxEmail[]) => Promise<unknown>,
+      removes: boolean,
+    ) => {
+      const target = menu_email_ref.current;
+
+      if (!target) return;
+
+      const emails = await fetch_as_minimal_emails([target.id]);
+
+      if (emails.length === 0) return;
+
+      await fn(emails);
+
+      if (removes) emit_mail_items_removed({ ids: emails.map((e) => e.id) });
+    },
+    [fetch_as_minimal_emails],
+  );
+
+  const overflow_menu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-label={t("common.more")}
+          className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] flex-shrink-0"
+          type="button"
+        >
+          <EllipsisVerticalIcon className="w-[18px] h-[18px]" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuItem onClick={() => handle_select_by_filter("unread")}>
+          <EnvelopeOpenIcon className="w-4 h-4" />
+          {t("common.select_unread")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handle_select_by_filter("starred")}>
+          <StarIcon className="w-4 h-4" />
+          {t("common.select_starred")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handle_select_all_visible}>
+          <CheckCircleIcon className="w-4 h-4" />
+          {t("common.select_all")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={selected_ids.size === 0}
+          onClick={handle_bulk_mark_read}
+        >
+          <EnvelopeOpenIcon className="w-4 h-4" />
+          {t("mail.mark_as_read")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => set_advanced_open(true)}>
+          <AdjustmentsHorizontalIcon className="w-4 h-4" />
+          {t("mail.chip_advanced_search")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   const handle_refine_query = useCallback(() => {
     window.dispatchEvent(new Event("aster:focus-search"));
   }, []);
+
+  const handle_find_from_sender = useCallback(
+    (email: { sender_email?: string | null }) => {
+      const sender = (email.sender_email || "").trim();
+
+      if (!sender) return;
+      set_selected_ids(new Set());
+      window.dispatchEvent(
+        new CustomEvent("astermail:open-search-with-query", {
+          detail: { query: `from:${sender}` },
+        }),
+      );
+    },
+    [],
+  );
 
   const slow_notice = (
     <div className="flex flex-col items-center justify-center text-center gap-1.5 px-4 py-8 border-b border-edge-secondary">
@@ -829,7 +892,7 @@ export function SearchResultsPage({
     </div>
   );
 
-  const email_list_content = (
+  const email_list_body = (
     <>
       {is_loading && filtered_results.length === 0 ? (
         <div>
@@ -903,6 +966,9 @@ export function SearchResultsPage({
                 is_active={email.id === split_email_id}
                 on_email_click={handle_email_click}
                 on_toggle_select={handle_toggle_select}
+                onContextMenu={() =>
+                  handle_row_context_menu(email as InboxEmail)
+                }
                 search_preview_node={
                   snippet_highlights.length > 0 ? (
                     <HighlightedText
@@ -940,6 +1006,44 @@ export function SearchResultsPage({
     </>
   );
 
+  const email_list_content = (
+    <ContextMenu modal={false}>
+      <ContextMenuTrigger asChild>
+        <div style={{ display: "contents" }}>{email_list_body}</div>
+      </ContextMenuTrigger>
+      {menu_email && (
+        <EmailContextMenuContent
+          key={menu_email.id}
+          current_view="search"
+          email={menu_email}
+          on_archive={() =>
+            void run_single(
+              (emails) => email_actions.bulk_archive(emails),
+              true,
+            )
+          }
+          on_delete={() =>
+            void run_single((emails) => email_actions.bulk_delete(emails), true)
+          }
+          on_find_from_sender={() => handle_find_from_sender(menu_email)}
+          on_spam={() =>
+            void run_single(
+              (emails) => email_actions.bulk_mark_spam(emails),
+              true,
+            )
+          }
+          on_toggle_read={() =>
+            void run_single(
+              (emails) =>
+                email_actions.bulk_mark_read(emails, !menu_email.is_read),
+              false,
+            )
+          }
+        />
+      )}
+    </ContextMenu>
+  );
+
   return (
     <div
       className="flex flex-col h-full"
@@ -956,7 +1060,6 @@ export function SearchResultsPage({
             current_page={search_page}
             filtered_count={filtered_results.length}
             hide_quick_actions={true}
-            hide_refresh={true}
             hide_view_switcher={true}
             leading_left_slot={
               <Tooltip tip={t("common.back")}>
@@ -971,6 +1074,7 @@ export function SearchResultsPage({
               </Tooltip>
             }
             leading_toolbar_slot={sort_dropdown}
+            overflow_menu_slot={overflow_menu}
             on_archive={handle_bulk_archive}
             on_delete={handle_bulk_delete}
             on_filter_change={handle_inbox_filter_change}
@@ -997,7 +1101,6 @@ export function SearchResultsPage({
             on_toggle_star={handle_bulk_toggle_star}
             page_size={SEARCH_PAGE_SIZE}
             search_context={query}
-            select_all_label={t("common.select_all")}
             selected_count={selected_ids.size}
             some_selected={selection_some_selected}
             total_email_count={filtered_results.length}
@@ -1064,6 +1167,7 @@ export function SearchResultsPage({
           }}
         >
           <div
+            ref={list_panel_ref}
             className="overflow-y-auto overflow-x-hidden"
             style={{
               width: pane_width,
@@ -1075,7 +1179,7 @@ export function SearchResultsPage({
             {email_list_content}
           </div>
           <div
-            className="w-px cursor-col-resize relative transition-colors hover:bg-blue-500"
+            className="w-px cursor-col-resize relative hover:bg-blue-500"
             role="presentation"
             style={{
               backgroundColor: is_dragging
@@ -1088,6 +1192,7 @@ export function SearchResultsPage({
             <div className="absolute inset-y-0 -left-1.5 -right-1.5" />
           </div>
           <div
+            ref={detail_panel_ref}
             className="overflow-hidden"
             style={{
               flex: 1,

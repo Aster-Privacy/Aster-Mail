@@ -75,20 +75,26 @@ export function EmptySearchState({ query }: { query: string }) {
           {t("mail.try_search_operators")}
         </p>
       </div>
-      <div className="rounded-lg p-3 bg-surf-tertiary">
-        <p className="text-[10px] font-medium mb-2 text-txt-muted">
+      <div
+        className="rounded-[14px] px-3.5 pb-3.5 pt-3"
+        style={{
+          backgroundColor: "var(--bg-primary)",
+          boxShadow: "0 0 0 1px var(--border-secondary)",
+        }}
+      >
+        <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
           {t("mail.search_operators")}
         </p>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {operators.map((op) => (
             <div
               key={op.operator}
-              className="flex items-center justify-between text-[11px]"
+              className="flex items-center justify-between gap-3 text-[11.5px]"
             >
-              <code className="px-1.5 py-0.5 rounded font-mono bg-surf-card text-txt-secondary">
+              <code className="px-1.5 py-0.5 rounded-[6px] font-mono bg-surf-tertiary text-txt-secondary">
                 {op.example}
               </code>
-              <span className="text-txt-muted">{op.desc}</span>
+              <span className="truncate text-txt-muted">{op.desc}</span>
             </div>
           ))}
         </div>

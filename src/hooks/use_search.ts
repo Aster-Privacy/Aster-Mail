@@ -53,6 +53,7 @@ import {
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { build_list_preview } from "@/utils/preview_text";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
@@ -409,6 +410,7 @@ export async function clear_search_data(
 interface SearchState {
   query: string;
   results: SearchResultItem[];
+  results_query: string;
   is_loading: boolean;
   is_searching: boolean;
   is_loading_more: boolean;
@@ -1270,7 +1272,7 @@ async function build_index_full(
     }
 
     cached_index = index;
-    emit_indexing({ building: false, current: 0, total: 0 });
+    emit_indexing({ building: false });
 
     if (index.meta && !index.meta.complete && !is_index_download_paused()) {
       schedule_deep_index(user_email, include_body, index.meta);
@@ -1280,7 +1282,7 @@ async function build_index_full(
   } catch (error) {
     index.items.length = 0;
     index.decrypted.clear();
-    emit_indexing({ building: false, current: 0, total: 0 });
+    emit_indexing({ building: false });
     throw error;
   }
 }
@@ -1323,7 +1325,7 @@ async function build_index_front_refresh(
     if (result.paused) {
       index.items.length = 0;
       index.decrypted.clear();
-      emit_indexing({ building: false, current: 0, total: 0 });
+      emit_indexing({ building: false });
 
       return stale;
     }
@@ -1331,7 +1333,7 @@ async function build_index_front_refresh(
     if (!result.reached_boundary) {
       index.items.length = 0;
       index.decrypted.clear();
-      emit_indexing({ building: false, current: 0, total: 0 });
+      emit_indexing({ building: false });
 
       return build_index_full(user_email, include_body, prior);
     }
@@ -1372,7 +1374,7 @@ async function build_index_front_refresh(
     }
 
     cached_index = index;
-    emit_indexing({ building: false, current: 0, total: 0 });
+    emit_indexing({ building: false });
 
     if (index.meta && !index.meta.complete) {
       schedule_deep_index(user_email, include_body, index.meta);
@@ -1382,7 +1384,7 @@ async function build_index_front_refresh(
   } catch (error) {
     index.items.length = 0;
     index.decrypted.clear();
-    emit_indexing({ building: false, current: 0, total: 0 });
+    emit_indexing({ building: false });
     throw error;
   }
 }
@@ -1484,7 +1486,7 @@ async function run_deep_index(
     return;
   } finally {
     if (emitted) {
-      emit_indexing({ building: false, current: 0, total: 0 });
+      emit_indexing({ building: false });
     }
   }
 }
@@ -2112,9 +2114,7 @@ function to_search_result(
     envelope?.raw_headers,
   );
 
-  const from = envelope
-    ? envelope_sender(envelope)
-    : { name: "", email: "" };
+  const from = envelope ? envelope_sender(envelope) : { name: "", email: "" };
   const outgoing =
     item.item_type === "sent" || item.item_type === "draft" ? envelope : null;
   const first_recipient = outgoing
@@ -2126,7 +2126,7 @@ function to_search_result(
     id: item.id,
     subject: envelope?.subject || "(Encrypted)",
     preview: envelope
-      ? strip_html_tags(searchable_body_source(envelope)).substring(0, 150)
+      ? build_list_preview(strip_html_tags(searchable_body_source(envelope)))
       : "",
     sender_name:
       (!first_recipient && forwarding_display?.display_sender_name) ||
@@ -2317,6 +2317,7 @@ export function use_search() {
   const [state, set_state] = useState<SearchState>({
     query: "",
     results: [],
+    results_query: "",
     is_loading: false,
     is_searching: false,
     is_loading_more: false,
@@ -2329,6 +2330,7 @@ export function use_search() {
   });
 
   const abort_ref = useRef<AbortController | null>(null);
+  const search_seq_ref = useRef(0);
   const last_scan_ref = useRef<ScanCacheEntry | null>(null);
   const last_search_ref = useRef<{
     query: string;
@@ -2381,6 +2383,8 @@ export function use_search() {
 
   const search = useCallback(
     async (query: string, options?: SearchOptions) => {
+      const my_seq = ++search_seq_ref.current;
+
       set_state((prev) => ({
         ...prev,
         query,
@@ -2391,9 +2395,12 @@ export function use_search() {
       if (!query || query.length < 2) {
         last_search_ref.current = null;
         last_scan_ref.current = null;
+        abort_ref.current?.abort();
+        abort_ref.current = null;
         set_state((prev) => ({
           ...prev,
           results: [],
+          results_query: query,
           is_searching: false,
           total_results: 0,
           search_time_ms: 0,
@@ -2422,9 +2429,11 @@ export function use_search() {
 
         if (terms.length === 0 && operators.length === 0) {
           last_scan_ref.current = null;
+          controller.abort();
           set_state((prev) => ({
             ...prev,
             results: [],
+            results_query: query,
             is_searching: false,
             total_results: 0,
             search_time_ms: Date.now() - start,
@@ -2521,13 +2530,18 @@ export function use_search() {
 
           const partial = sorted_results();
 
-          set_state((prev) => ({
-            ...prev,
-            results: partial,
-            total_results: partial.length,
-            search_time_ms: now - start,
-            hidden_spam_trash: counts.hidden,
-          }));
+          set_state((prev) => {
+            if (my_seq !== search_seq_ref.current) return prev;
+
+            return {
+              ...prev,
+              results: partial,
+              results_query: query,
+              total_results: partial.length,
+              search_time_ms: now - start,
+              hidden_spam_trash: counts.hidden,
+            };
+          });
         };
 
         const options_key = options_signature(options);
@@ -2585,17 +2599,23 @@ export function use_search() {
                 candidates,
               };
 
-        set_state((prev) => ({
-          ...prev,
-          results,
-          is_searching: false,
-          total_results,
-          search_time_ms: Date.now() - start,
-          has_more: stopped && total_results >= MAX_SEARCH_RESULTS,
-          hidden_spam_trash: counts.hidden,
-        }));
+        set_state((prev) => {
+          if (my_seq !== search_seq_ref.current) return prev;
+
+          return {
+            ...prev,
+            results,
+            results_query: query,
+            is_searching: false,
+            total_results,
+            search_time_ms: Date.now() - start,
+            has_more: stopped && total_results >= MAX_SEARCH_RESULTS,
+            hidden_spam_trash: counts.hidden,
+          };
+        });
       } catch (err) {
         if (controller.signal.aborted) return;
+        if (my_seq !== search_seq_ref.current) return;
 
         const message = err instanceof Error ? err.message : "";
 
@@ -2638,6 +2658,7 @@ export function use_search() {
     set_state({
       query: "",
       results: [],
+      results_query: "",
       is_loading: false,
       is_searching: false,
       is_loading_more: false,
@@ -2651,13 +2672,21 @@ export function use_search() {
   }, []);
 
   const set_query = useCallback((query: string) => {
-    set_state((prev) => ({
-      ...prev,
-      query,
-      is_searching:
-        query.length >= 2 && query !== prev.query ? true : prev.is_searching,
-      results: query !== prev.query ? [] : prev.results,
-    }));
+    set_state((prev) => {
+      if (prev.query === query) return prev;
+      abort_ref.current?.abort();
+
+      const cleared = query.length < 2;
+
+      return {
+        ...prev,
+        query,
+        is_searching: cleared ? prev.is_searching : true,
+        results: cleared ? [] : prev.results,
+        results_query: cleared ? "" : prev.results_query,
+        total_results: cleared ? 0 : prev.total_results,
+      };
+    });
   }, []);
 
   const start_index_build = useCallback(

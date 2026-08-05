@@ -71,7 +71,7 @@ export function EmailListItem({
           {email.timestamp}
         </span>
         {is_unread && (
-          <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 shadow-md" />
+          <div className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0" />
         )}
       </div>
     </button>

@@ -97,6 +97,10 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
   });
 }
 
+export function peek_favicon_object_url(domain: string): string | null {
+  return live_urls.get(domain) ?? null;
+}
+
 export function get_favicon_object_url(domain: string): Promise<string | null> {
   const cached = live_urls.get(domain);
 

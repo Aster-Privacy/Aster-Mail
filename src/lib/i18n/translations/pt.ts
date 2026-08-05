@@ -66,6 +66,7 @@ export const pt = {
     show_less: "Mostrar menos",
     contacts: "Contatos",
     send_feedback: "Enviar feedback",
+    send_feedback_to_aster: "Enviar comentários para a Aster",
     folders: "Pastas",
     more: "Mais",
     mail: "E-mail",
@@ -359,6 +360,7 @@ export const pt = {
     pending_email_notifications: "Notificações de e-mail pendentes",
     selected: "selecionado(s)",
     are_you_sure: "Tem certeza?",
+    sign_out_all_confirmation: "Tem certeza de que deseja sair de todas as contas neste dispositivo?",
     sign_out_confirmation: "Tem certeza de que deseja sair da sua conta?",
     remove_account_confirmation:
       "Tem certeza de que deseja remover esta conta? Você pode adicioná-la novamente depois.",
@@ -1191,8 +1193,7 @@ export const pt = {
       "Esta pasta será removida, e você não pode desfazer. Os e-mails de dentro permanecem na sua conta, apenas não estarão mais arquivados nesta pasta.",
     unsubscribe_error_manual:
       "Não foi possível cancelar a inscrição por você. Abrir link levará você ao site do remetente para cancelar manualmente.",
-    unexpected_error_refresh:
-      "Ocorreu um erro inesperado. Atualize a página para continuar. Seus dados não foram afetados.",
+    unexpected_error_refresh: "Algo correu mal, por isso atualize a página para continuar.",
     unsupported_browser: "Navegador não suportado.",
     unsupported_browser_detail: "Por favor, tente outro navegador.",
     email_render_error:
@@ -1692,6 +1693,11 @@ export const pt = {
       "Abrir as configurações em página inteira ou janela popup",
     quick_settings: "Configurações rápidas",
     see_all_settings: "Ver todas as configurações",
+    quick_inbox_list: "Lista da caixa de entrada",
+    quick_layout: "Layout",
+    quick_more_appearance: "Mais temas",
+    quick_preview_text: "Texto de pré-visualização",
+    quick_sender_pictures: "Fotos do remetente",
     fam_welcome_step1_title: "Bem-vindo ao seu plano familiar",
     fam_welcome_step1_desc:
       "Cada pessoa da sua família tem a sua própria caixa privada e cifrada - completamente separada da sua.",
@@ -6218,15 +6224,13 @@ export const pt = {
     category_empty_primary_desc:
       "Suas mensagens pessoais e conversas aparecerão aqui.",
     category_empty_promotions_title: "Nenhuma promoção",
-    category_empty_promotions_desc:
-      "Ofertas, descontos e e-mails de marketing chegam aqui para não atrapalharem.",
+    category_empty_promotions_desc: "Promoções, descontos e e-mails de marketing aparecerão aqui, longe do resto da sua caixa.",
     category_empty_social_title: "Nenhuma atualização social",
     category_empty_social_desc:
       "Mensagens de redes sociais e comunidades aparecerão aqui.",
-    category_empty_updates_title: "Nenhuma atualização",
-    category_empty_updates_desc:
-      "Recibos, confirmações, contas e notificações aparecerão aqui.",
-    category_empty_forums_title: "Nenhuma mensagem de fórum",
+    category_empty_updates_title: "Nenhuma notificação",
+    category_empty_updates_desc: "Recibos, confirmações e faturas aparecerão aqui.",
+    category_empty_forums_title: "Nenhuma discussão",
     category_empty_forums_desc:
       "Mensagens de listas de e-mail e grupos de discussão aparecerão aqui.",
     category_empty_finance_title: "Nenhum e-mail financeiro",
@@ -6847,7 +6851,7 @@ export const pt = {
     download_paused: "Download pausado",
     pause_download_action: "Pausar",
     resume_download_action: "Retomar",
-    searching_message_content: "Pesquisando conteúdo das mensagens",
+    searching_message_content: "Pesquisar conteúdo das mensagens",
     search_taking_too_long: "A pesquisa está demorando muito",
     search_refine_terms:
       "Tente refinar sua pesquisa com termos mais específicos.",
@@ -7031,7 +7035,12 @@ export const pt = {
     sign_up: "Cadastrar",
     your_accounts: "Suas contas",
     greeting: "Olá, {{name}}",
-    manage_account: "Gerir a sua conta Aster",
+    greeting_morning: "Bom dia",
+    greeting_afternoon: "Boa tarde",
+    greeting_evening: "Boa noite",
+    greeting_comma: ",",
+    greeting_night: "Pela madrugada",
+    manage_account: "Definições da conta",
     sign_out_all: "Terminar sessão em todas as contas",
     session_expired_tag: "Sessão expirada",
     default_account: "Predefinida",
@@ -7987,7 +7996,7 @@ export const pt = {
     auth_missing: "ausente",
     category_primary: "Caixa de entrada",
     category_important: "Importante",
-    category_promotions: "Ofertas",
+    category_promotions: "Promoções",
     category_social: "Social",
     category_updates: "Notificações",
     category_forums: "Discussões",

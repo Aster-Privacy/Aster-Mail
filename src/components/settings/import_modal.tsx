@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useId } from "react";
 import {
   CheckCircleIcon,
   DocumentArrowUpIcon,
@@ -319,6 +319,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { vault, user } = use_auth();
   const { create_new_folder, state: folders_state } = use_folders();
   const reduce_motion = use_should_reduce_motion();
+  const dialog_ref = useRef<HTMLDivElement>(null);
+  const title_id = useId();
   // Retain the last selected provider so the content stays stable while the
   // modal plays its exit animation (when `provider` is cleared to null).
   const [active_provider, set_active_provider] = useState<ImportSource>(
@@ -369,6 +371,32 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   useEffect(() => {
     if (provider) set_active_provider(provider);
   }, [provider]);
+
+  useEffect(() => {
+    if (!is_open) return;
+
+    const on_key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      handle_close();
+    };
+
+    window.addEventListener("keydown", on_key);
+
+    return () => window.removeEventListener("keydown", on_key);
+  }, [is_open, handle_close]);
+
+  useEffect(() => {
+    if (!is_open) return;
+
+    const previously_focused = document.activeElement as HTMLElement | null;
+    const frame = requestAnimationFrame(() => dialog_ref.current?.focus());
+
+    return () => {
+      cancelAnimationFrame(frame);
+      previously_focused?.focus?.();
+    };
+  }, [is_open]);
 
   const handle_cancel = useCallback(() => {
     cancel_ref.current = true;
@@ -1079,7 +1107,6 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           className="fixed inset-0 z-[60] flex items-center justify-center"
           role="presentation"
           onClick={(e) => e.target === e.currentTarget && handle_close()}
-          onKeyDown={(e) => e["key"] === "Escape" && handle_close()}
         >
           <motion.div
             animate={{ opacity: 1 }}
@@ -1093,11 +1120,14 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           />
           <motion.div
             animate={{ opacity: 1, scale: 1, y: 0 }}
+            aria-labelledby={title_id}
             aria-modal="true"
-            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary outline-none"
             exit={{ opacity: 0, scale: 0.97, y: 4 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.97, y: 4 }}
+            ref={dialog_ref}
             role="dialog"
+            tabIndex={-1}
             style={{
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
             }}
@@ -1108,12 +1138,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 pt-5 pb-4">
-              <h2 className="text-[16px] font-semibold text-txt-primary">
+              <h2
+                className="text-[16px] font-semibold text-txt-primary"
+                id={title_id}
+              >
                 {t("settings.import_emails_title")}
               </h2>
               {step !== "progress" && (
                 <button
                   className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
+                  type="button"
                   onClick={handle_close}
                 >
                   <XMarkIcon className="w-5 h-5 text-txt-muted" />

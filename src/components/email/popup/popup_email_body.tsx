@@ -244,12 +244,12 @@ export function PopupEmailBody({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <>
+    <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-6">
+      <div className="max-w-4xl mx-auto">
         {extraction_result?.has_purchase_details &&
           extraction_result.purchase && (
             <PurchaseDetailsBanner
-              className="mx-4 mt-4"
+              className="mb-4 sm:mb-6"
               details={extraction_result.purchase}
               email_id={email?.id}
             />
@@ -258,7 +258,7 @@ export function PopupEmailBody({
         {extraction_result?.has_shipping_details &&
           extraction_result.shipping && (
             <ShippingDetailsBanner
-              className="mx-4 mt-4"
+              className="mb-4 sm:mb-6"
               details={extraction_result.shipping}
               sender_email={email.sender_email}
               sender_name={email.sender}
@@ -266,69 +266,67 @@ export function PopupEmailBody({
           )}
 
         <CalendarInviteBanner
-          className="mx-4 mt-4"
+          className="mb-4 sm:mb-6"
           body={email.body}
           html_content={email.html_content}
         />
 
-        <div className="p-4">
-          <PopupEmailHeader
-            email={email}
-            format_email_popup={format_email_popup}
-            is_fullscreen={is_fullscreen}
-            label_hints={label_hints}
-            mail_item={mail_item}
-            on_close={on_close}
-            on_compose={on_compose}
-            snoozed_until={snoozed_until}
-            t={t}
-            thread_messages={thread_messages}
-            timestamp_date={timestamp_date}
-            tracking_report={external_content_state.report}
-          />
+        <PopupEmailHeader
+          email={email}
+          format_email_popup={format_email_popup}
+          is_fullscreen={is_fullscreen}
+          label_hints={label_hints}
+          mail_item={mail_item}
+          on_close={on_close}
+          on_compose={on_compose}
+          snoozed_until={snoozed_until}
+          t={t}
+          thread_messages={thread_messages}
+          timestamp_date={timestamp_date}
+          tracking_report={external_content_state.report}
+        />
 
-          <div className="mt-4">
-            <ThreadMessagesList
-              hide_counter
-              current_user_email={current_user_email}
-              default_expanded_id={get_latest_expanded_id(thread_messages)}
-              existing_draft={existing_draft}
-              external_content_mode={external_content_mode}
-              force_all_dark_mode={preferences.force_dark_mode_emails}
-              loaded_content_types={loaded_content_types}
-              inline_mode={inline_mode}
-              inline_reply_is_external={is_external_thread}
-              inline_reply_msg={inline_reply_msg}
-              inline_reply_thread_token={thread_token}
-              messages={thread_messages}
-              on_archive={on_per_message_archive}
-              on_close_inline_reply={handle_close_inline_reply}
-              on_draft_saved={on_draft_saved}
-              on_external_content_detected={on_external_content_detected}
-              on_forward={handle_inline_forward}
-              on_load_external_content={on_load_external_content}
-              on_not_spam={is_spam ? on_per_message_not_spam : undefined}
-              on_print={on_per_message_print}
-              on_reply={handle_inline_reply}
-              on_reply_all={handle_inline_reply_all}
-              on_report_phishing={on_per_message_report_phishing}
-              on_set_inline_mode={set_inline_mode}
-              on_toggle_message_read={on_toggle_message_read}
-              on_trash={on_per_message_trash}
-              on_unsubscribe={
-                email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
-                  ? handle_unsubscribe
-                  : undefined
-              }
-              on_manual_unsubscribed={() => {
-                if (email) mark_unsubscribed(email.sender_email);
-              }}
-              unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
-              subject={email.subject}
-            />
-          </div>
+        <div className="mt-4">
+          <ThreadMessagesList
+            hide_counter
+            current_user_email={current_user_email}
+            default_expanded_id={get_latest_expanded_id(thread_messages)}
+            existing_draft={existing_draft}
+            external_content_mode={external_content_mode}
+            force_all_dark_mode={preferences.force_dark_mode_emails}
+            loaded_content_types={loaded_content_types}
+            inline_mode={inline_mode}
+            inline_reply_is_external={is_external_thread}
+            inline_reply_msg={inline_reply_msg}
+            inline_reply_thread_token={thread_token}
+            messages={thread_messages}
+            on_archive={on_per_message_archive}
+            on_close_inline_reply={handle_close_inline_reply}
+            on_draft_saved={on_draft_saved}
+            on_external_content_detected={on_external_content_detected}
+            on_forward={handle_inline_forward}
+            on_load_external_content={on_load_external_content}
+            on_not_spam={is_spam ? on_per_message_not_spam : undefined}
+            on_print={on_per_message_print}
+            on_reply={handle_inline_reply}
+            on_reply_all={handle_inline_reply_all}
+            on_report_phishing={on_per_message_report_phishing}
+            on_set_inline_mode={set_inline_mode}
+            on_toggle_message_read={on_toggle_message_read}
+            on_trash={on_per_message_trash}
+            on_unsubscribe={
+              email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
+                ? handle_unsubscribe
+                : undefined
+            }
+            on_manual_unsubscribed={() => {
+              if (email) mark_unsubscribed(email.sender_email);
+            }}
+            unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
+            subject={email.subject}
+          />
         </div>
-      </>
+      </div>
     </div>
   );
 }

@@ -31,6 +31,7 @@ import {
 import { invalidate_mail_stats } from "./use_mail_stats";
 
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { build_list_preview } from "@/utils/preview_text";
 import {
   list_scheduled_emails,
   get_scheduled_email,
@@ -134,7 +135,7 @@ function transform_scheduled(
     sender_name: display_name,
     sender_email: scheduled.content.to_recipients[0] || "",
     subject: scheduled.content.subject || "",
-    preview: strip_html_tags(scheduled.content.body).substring(0, 100),
+    preview: build_list_preview(strip_html_tags(scheduled.content.body)),
     timestamp: format_scheduled_timestamp(
       new Date(scheduled.scheduled_at),
       format_options,

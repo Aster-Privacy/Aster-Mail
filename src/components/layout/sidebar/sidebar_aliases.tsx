@@ -34,6 +34,7 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { CountBadge } from "@/components/common/count_badge";
+import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
 
@@ -211,6 +212,12 @@ export const SidebarAliases = memo(function SidebarAliases({
                     is_random={alias.is_random}
                     size={is_collapsed ? 24 : 20}
                   />
+                  {is_collapsed && (
+                    <RailUnreadDot
+                      count={unread_count}
+                      label={alias.full_address}
+                    />
+                  )}
                   {!is_collapsed && (
                     <>
                       <span className="flex-1 text-left truncate leading-5">

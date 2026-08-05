@@ -18,13 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
-  Cog6ToothIcon,
   PlusIcon,
-  TrashIcon,
+  PowerIcon,
 } from "@heroicons/react/24/outline";
 
 import { show_toast } from "@/components/toast/simple_toast";
@@ -34,19 +33,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { AccountAvatarButton } from "@/components/ui/account_avatar_button";
 import { use_auth } from "@/contexts/auth_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
+import { is_file_picker_open } from "@/hooks/use_profile_picture_upload";
+import {
+  get_all_accounts,
+  set_account_plan_flag,
+} from "@/services/account_manager";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
-import type { StoredAccount } from "@/services/account_manager";
-
-const PRIVACY_URL = "https://astermail.org/privacy";
-const TERMS_URL = "https://astermail.org/terms";
 
 interface WorkspaceSwitcherProps {
   align?: "start" | "center" | "end";
@@ -74,16 +75,13 @@ export function WorkspaceSwitcher({
     max_account_limit,
   } = use_auth();
   const { preferences } = use_preferences();
-  const { stats } = use_mail_stats();
+  const { stats, has_initialized: stats_ready, refresh } = use_mail_stats();
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
 
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const [show_logout_all_confirm, set_show_logout_all_confirm] =
     useState(false);
-  const [pending_remove, set_pending_remove] = useState<StoredAccount | null>(
-    null,
-  );
   const max_allowed =
     max_account_limit !== null && max_account_limit > 0
       ? max_account_limit
@@ -93,7 +91,8 @@ export function WorkspaceSwitcher({
     () => accounts.filter((a) => a.kind !== "shared").length,
     [accounts],
   );
-  const at_limit = max_allowed !== null && personal_account_count >= max_allowed;
+  const at_limit =
+    max_allowed !== null && personal_account_count >= max_allowed;
   const display_max =
     max_allowed === null
       ? personal_account_count
@@ -104,6 +103,9 @@ export function WorkspaceSwitcher({
   const current_user_email = primary_identity.email || account_email;
   const current_display_name =
     user?.display_name || user?.username || current_user_email.split("@")[0];
+
+  const [plan_flags, set_plan_flags] = useState<Record<string, boolean>>({});
+  const popover_ref = useRef<HTMLDivElement>(null);
 
   const other_accounts = useMemo(
     () => accounts.filter((a) => a.id !== current_account_id),
@@ -120,6 +122,71 @@ export function WorkspaceSwitcher({
     ).id;
   }, [accounts]);
 
+  useEffect(() => {
+    if (!current_account_id || !limits) return;
+    set_account_plan_flag(
+      current_account_id,
+      limits.plan_code !== "free",
+    ).catch(() => {});
+  }, [current_account_id, limits]);
+
+  useEffect(() => {
+    if (!is_open) return;
+
+    let cancelled = false;
+
+    get_all_accounts()
+      .then((stored) => {
+        if (cancelled) return;
+        const flags: Record<string, boolean> = {};
+
+        for (const acc of stored)
+          flags[acc.id] = acc.user.is_paid_plan === true;
+        set_plan_flags(flags);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [is_open, current_account_id, limits]);
+
+  const [time_greeting, set_time_greeting] = useState("");
+
+  useEffect(() => {
+    if (!is_open) return;
+    const hour = new Date().getHours();
+
+    if (hour < 5) set_time_greeting(t("auth.greeting_night"));
+    else if (hour < 12) set_time_greeting(t("auth.greeting_morning"));
+    else if (hour < 18) set_time_greeting(t("auth.greeting_afternoon"));
+    else set_time_greeting(t("auth.greeting_evening"));
+  }, [is_open, t]);
+
+  useEffect(() => {
+    if (!is_open) return;
+
+    const close_for_tab_change = () => {
+      if (!document.hidden || is_file_picker_open()) return;
+
+      const node = popover_ref.current;
+
+      if (node) {
+        node.style.display = "none";
+        void node.offsetHeight;
+      }
+      on_open_change(false);
+    };
+
+    window.addEventListener("blur", close_for_tab_change);
+    document.addEventListener("visibilitychange", close_for_tab_change);
+
+    return () => {
+      window.removeEventListener("blur", close_for_tab_change);
+      document.removeEventListener("visibilitychange", close_for_tab_change);
+    };
+  }, [is_open, on_open_change]);
+
   const storage_percent = useMemo(() => {
     if (!stats.storage_total_bytes) return 0;
 
@@ -129,14 +196,19 @@ export function WorkspaceSwitcher({
     );
   }, [stats.storage_total_bytes, stats.storage_used_bytes]);
 
+  useEffect(() => {
+    if (!is_open || stats_ready) return;
+    refresh();
+  }, [is_open, stats_ready, refresh]);
+
   const storage_used_label = useMemo(() => {
-    if (!stats.storage_total_bytes) return null;
+    if (!stats_ready || !stats.storage_total_bytes) return null;
 
     return t("auth.storage_of_used", {
       used: format_bytes(stats.storage_used_bytes),
       total: format_bytes(stats.storage_total_bytes),
     });
-  }, [stats.storage_total_bytes, stats.storage_used_bytes, t]);
+  }, [stats_ready, stats.storage_total_bytes, stats.storage_used_bytes, t]);
 
   const open_account_settings = useCallback(() => {
     on_open_change(false);
@@ -167,7 +239,14 @@ export function WorkspaceSwitcher({
     on_open_change(false);
     set_is_adding_account(true);
     navigate("/sign-in");
-  }, [at_limit, max_allowed, on_open_change, set_is_adding_account, navigate, t]);
+  }, [
+    at_limit,
+    max_allowed,
+    on_open_change,
+    set_is_adding_account,
+    navigate,
+    t,
+  ]);
 
   const handle_switch = useCallback(
     async (account_id: string) => {
@@ -181,27 +260,6 @@ export function WorkspaceSwitcher({
     },
     [on_open_change, switch_to_account, t],
   );
-
-  const handle_request_remove = useCallback(
-    (account: StoredAccount, e: React.MouseEvent) => {
-      e.stopPropagation();
-      set_pending_remove(account);
-      on_open_change(false);
-    },
-    [on_open_change],
-  );
-
-  const handle_confirm_remove = useCallback(async () => {
-    if (!pending_remove) return;
-    const id = pending_remove.id;
-
-    set_pending_remove(null);
-    try {
-      await remove_account(id);
-    } catch (e) {
-      if (import.meta.env.DEV) console.error(e);
-    }
-  }, [pending_remove, remove_account]);
 
   const do_logout = useCallback(async () => {
     on_open_change(false);
@@ -249,20 +307,18 @@ export function WorkspaceSwitcher({
       <Popover open={is_open} onOpenChange={on_open_change}>
         <PopoverTrigger asChild>{trigger}</PopoverTrigger>
         <PopoverContent
+          ref={popover_ref}
           align={align}
-          className="w-[352px] max-w-[calc(100vw-24px)] p-2 rounded-[24px]"
+          className="account_menu_surface w-[352px] max-w-[calc(100vw-24px)] p-2 rounded-[24px] data-[state=closed]:animate-none data-[state=closed]:zoom-out-100 data-[state=closed]:slide-in-from-top-0"
           sideOffset={8}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+          onOpenAutoFocus={(e) => e.preventDefault()}
           style={{
-            backgroundColor: "var(--dropdown-bg)",
-            border: "1px solid var(--border-secondary)",
             boxShadow:
-              "0 8px 20px -6px rgba(0, 0, 0, 0.18), 0 2px 6px -2px rgba(0, 0, 0, 0.1)",
+              "0 18px 40px -12px rgba(0, 0, 0, 0.5), 0 4px 12px -4px rgba(0, 0, 0, 0.3)",
           }}
         >
-          <div
-            className="rounded-[18px] px-4 py-4"
-            style={{ backgroundColor: "var(--bg-hover)" }}
-          >
+          <div className="account_menu_card rounded-[18px] px-4 py-4">
             <div className="flex items-center gap-3.5">
               <AccountAvatarButton
                 email={account_email}
@@ -270,59 +326,68 @@ export function WorkspaceSwitcher({
                 is_paid_plan={is_paid_plan}
                 name={current_display_name}
                 profile_color={preferences.profile_color}
-                ring_offset_color="var(--bg-hover)"
+                ring_offset_color="color-mix(in srgb, var(--text-primary) 9%, var(--dropdown-bg))"
                 size="lg"
               />
               <div className="flex flex-col min-w-0 flex-1 gap-0.5">
                 <span
+                  className="text-[12px] leading-tight"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {time_greeting &&
+                    `${time_greeting}${t("auth.greeting_comma")}`}
+                </span>
+                <span
                   className="text-[15px] font-semibold leading-tight truncate"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  {t("auth.greeting", { name: current_display_name })}
+                  {current_display_name}
                 </span>
                 <button
                   className="text-[12px] leading-tight truncate text-left transition-colors hover:text-[var(--text-secondary)]"
                   style={{ color: "var(--text-muted)" }}
-                  title={t("common.copy")}
                   type="button"
                   onClick={copy_account_email}
                 >
                   {current_user_email}
                 </button>
               </div>
-              <button
-                aria-label={t("settings.account")}
-                className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-black/[0.08] dark:hover:bg-white/[0.08]"
-                title={t("settings.account")}
-                type="button"
-                onClick={open_account_settings}
-              >
-                <Cog6ToothIcon
-                  className="w-5 h-5"
-                  style={{ color: "var(--text-secondary)" }}
-                />
-              </button>
             </div>
 
-            {storage_used_label && (
-              <div className="mt-4">
-                <div className="flex items-baseline justify-between mb-2">
-                  <span
-                    className="text-[12px] font-medium"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    {t("common.storage_used")}
-                  </span>
+            <button
+              className="account_menu_manage mt-3.5 w-full h-9 rounded-full text-[13px] font-medium transition-colors"
+              type="button"
+              onClick={open_account_settings}
+            >
+              {t("auth.manage_account")}
+            </button>
+
+            <div className="mt-4">
+              <div className="flex items-baseline justify-between mb-2">
+                <span
+                  className="text-[12px] font-medium"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {t("common.storage_used")}
+                </span>
+                {storage_used_label ? (
                   <span
                     className="text-[12px] tabular-nums"
                     style={{ color: "var(--text-muted)" }}
                   >
                     {storage_used_label}
                   </span>
-                </div>
+                ) : (
+                  <Skeleton className="h-3 w-[92px] rounded-full" />
+                )}
+              </div>
+              {storage_used_label ? (
                 <div
                   className="h-1.5 w-full rounded-full overflow-hidden"
-                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                  style={{
+                    backgroundColor:
+                      "color-mix(in srgb, var(--text-primary) 18%, transparent)",
+                  }}
                 >
                   <div
                     className="h-full rounded-full"
@@ -336,16 +401,21 @@ export function WorkspaceSwitcher({
                     }}
                   />
                 </div>
-              </div>
-            )}
+              ) : (
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              )}
+            </div>
           </div>
 
-          <div
-            className="mt-2 rounded-[18px] overflow-hidden"
-            style={{ backgroundColor: "var(--bg-hover)" }}
-          >
+          <div className="mt-2 flex flex-col gap-2">
             {other_accounts.length > 0 && (
-              <div className="aster_scrollbar_thin max-h-[288px] overflow-y-auto flex flex-col">
+              <div
+                className={`flex flex-col gap-1.5 ${
+                  other_accounts.length > 4
+                    ? "aster_scrollbar_thin max-h-[min(52vh,420px)] overflow-y-auto pr-0.5"
+                    : ""
+                }`}
+              >
                 {other_accounts.map((acc) => {
                   const acc_name =
                     acc.user.display_name ||
@@ -354,28 +424,35 @@ export function WorkspaceSwitcher({
                   const needs_sign_in = !acc.refresh_token;
 
                   return (
-                    <div
+                    <a
                       key={acc.id}
-                      className="group w-full h-[60px] px-3.5 flex items-center gap-3.5 cursor-pointer transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-                      role="button"
-                      style={{ borderBottom: "1px solid var(--border-secondary)" }}
-                      tabIndex={0}
-                      title={t("auth.switch_to_account")}
-                      onClick={() => handle_switch(acc.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handle_switch(acc.id);
+                      className="account_menu_row group relative w-full h-[60px] flex-shrink-0 px-3.5 flex items-center gap-3.5 cursor-pointer no-underline rounded-[16px]"
+                      draggable
+                      href={`/?account=${encodeURIComponent(acc.id)}`}
+                      onClick={(e) => {
+                        if (
+                          e.metaKey ||
+                          e.ctrlKey ||
+                          e.shiftKey ||
+                          e.button !== 0
+                        ) {
+                          return;
                         }
+                        e.preventDefault();
+                        handle_switch(acc.id);
                       }}
                     >
-                      <ProfileAvatar
-                        email={acc.user.email}
-                        image_url={acc.user.profile_picture}
-                        name={acc_name}
-                        profile_color={acc.user.profile_color}
-                        size="sm"
-                      />
+                      <span
+                        className={`inline-flex leading-none flex-shrink-0 ${plan_flags[acc.id] || acc.user.is_paid_plan ? "plan_ring" : ""}`}
+                      >
+                        <ProfileAvatar
+                          email={acc.user.email}
+                          image_url={acc.user.profile_picture}
+                          name={acc_name}
+                          profile_color={acc.user.profile_color}
+                          size="sm"
+                        />
+                      </span>
                       <div className="flex flex-col min-w-0 flex-1 gap-0.5">
                         <span
                           className="text-[13px] font-medium leading-tight truncate"
@@ -391,124 +468,63 @@ export function WorkspaceSwitcher({
                         </span>
                       </div>
                       {needs_sign_in ? (
-                        <span
-                          className="flex-shrink-0 px-2 py-[3px] rounded-md text-[10px] font-medium"
-                          style={{
-                            backgroundColor: "var(--bg-tertiary)",
-                            color: "var(--text-muted)",
-                          }}
-                        >
+                        <span className="account_menu_badge account_menu_badge_muted">
                           {t("auth.session_expired_tag")}
                         </span>
                       ) : acc.id === default_account_id ? (
-                        <span
-                          className="flex-shrink-0 px-2 py-[3px] rounded-md text-[10px] font-medium"
-                          style={{
-                            backgroundColor: "var(--accent-color)",
-                            color: "#ffffff",
-                          }}
-                        >
+                        <span className="account_menu_badge">
                           {t("auth.default_account")}
                         </span>
                       ) : null}
-                      {acc.kind !== "shared" && (
-                        <button
-                          aria-label={t("auth.remove_account")}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1.5 rounded-full hover:bg-black/[0.08] dark:hover:bg-white/[0.08]"
-                          type="button"
-                          onClick={(e) => handle_request_remove(acc, e)}
-                        >
-                          <TrashIcon
-                            className="w-4 h-4"
-                            style={{ color: "var(--color-danger)" }}
-                          />
-                        </button>
-                      )}
-                    </div>
+                    </a>
                   );
                 })}
               </div>
             )}
 
             <button
-              className={`w-full h-[54px] px-3.5 flex items-center gap-3.5 text-left transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06] ${at_limit ? "opacity-60" : ""}`}
-              style={{ borderBottom: "1px solid var(--border-secondary)" }}
-              title={
-                at_limit
-                  ? t("auth.account_limit_for_plan", {
-                      max: String(max_allowed),
-                    })
-                  : undefined
-              }
+              className={`account_menu_tile ${at_limit ? "opacity-60" : ""}`}
               type="button"
               onClick={handle_add_account}
             >
-              <span className="w-9 flex justify-center flex-shrink-0">
-                <PlusIcon
-                  className="w-5 h-5"
-                  style={{ color: "var(--text-secondary)" }}
-                />
+              <span className="account_menu_tile_icon">
+                <PlusIcon className="w-[18px] h-[18px]" />
               </span>
-              <span
-                className="flex-1 text-[13px]"
-                style={{ color: "var(--text-primary)" }}
-              >
+              <span className="account_menu_tile_label">
                 {t("auth.add_another_account")}
               </span>
-              <span
-                className="text-[11px] tabular-nums"
-                style={{ color: "var(--text-muted)" }}
-              >
+              <span className="account_menu_tile_meta tabular-nums">
                 {accounts.length}/{display_max}
               </span>
             </button>
 
             <button
-              className="w-full h-[54px] px-3.5 flex items-center gap-3.5 text-left transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+              className="account_menu_tile account_menu_tile_danger"
               type="button"
-              onClick={
-                other_accounts.length > 0 ? handle_logout_all : handle_logout
-              }
+              onClick={handle_logout}
             >
-              <span className="w-9 flex justify-center flex-shrink-0">
-                <ArrowRightStartOnRectangleIcon
-                  className="w-5 h-5"
-                  style={{ color: "var(--text-secondary)" }}
-                />
+              <span className="account_menu_tile_icon">
+                <ArrowRightStartOnRectangleIcon className="w-[18px] h-[18px]" />
               </span>
-              <span
-                className="text-[13px]"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {other_accounts.length > 0
-                  ? t("auth.sign_out_all")
-                  : t("auth.sign_out")}
+              <span className="account_menu_tile_label">
+                {t("auth.sign_out")}
               </span>
             </button>
-          </div>
 
-          <div className="flex items-center justify-center gap-2 pt-3 pb-1.5">
-            <a
-              className="text-[11px] hover:underline"
-              href={PRIVACY_URL}
-              rel="noopener noreferrer"
-              style={{ color: "var(--text-muted)" }}
-              target="_blank"
-            >
-              {t("auth.privacy_policy")}
-            </a>
-            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-              &middot;
-            </span>
-            <a
-              className="text-[11px] hover:underline"
-              href={TERMS_URL}
-              rel="noopener noreferrer"
-              style={{ color: "var(--text-muted)" }}
-              target="_blank"
-            >
-              {t("auth.terms_of_service")}
-            </a>
+            {other_accounts.length > 0 && (
+              <button
+                className="account_menu_tile account_menu_tile_danger"
+                type="button"
+                onClick={handle_logout_all}
+              >
+                <span className="account_menu_tile_icon">
+                  <PowerIcon className="w-[18px] h-[18px]" />
+                </span>
+                <span className="account_menu_tile_label">
+                  {t("auth.sign_out_all")}
+                </span>
+              </button>
+            )}
           </div>
         </PopoverContent>
       </Popover>
@@ -531,26 +547,13 @@ export function WorkspaceSwitcher({
         cancel_text={t("common.cancel")}
         confirm_text={t("auth.sign_out_all")}
         is_open={show_logout_all_confirm}
-        message={t("common.sign_out_confirmation")}
+        message={t("common.sign_out_all_confirmation")}
         on_cancel={() => set_show_logout_all_confirm(false)}
         on_confirm={() => {
           set_show_logout_all_confirm(false);
           do_logout_all();
         }}
         title={t("auth.sign_out_all")}
-        variant="danger"
-      />
-
-      <ConfirmationModal
-        cancel_text={t("common.cancel")}
-        confirm_text={t("auth.confirm_remove_account")}
-        is_open={pending_remove !== null}
-        message={t("auth.remove_account_message", {
-          email: pending_remove?.user.email ?? "",
-        })}
-        on_cancel={() => set_pending_remove(null)}
-        on_confirm={handle_confirm_remove}
-        title={t("auth.remove_account_title")}
         variant="danger"
       />
     </>

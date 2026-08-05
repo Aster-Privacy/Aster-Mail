@@ -33,6 +33,7 @@ import {
 } from "@/utils/email_crypto";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
+import { build_list_preview } from "@/utils/preview_text";
 
 export interface ProcessedEnvelope {
   body_text: string;
@@ -139,15 +140,15 @@ export function build_preview_text(
 ): string {
   if (is_password_protected_body(body_text)) return "";
 
-  return (
+  return build_list_preview(
     body_text ||
-    (safe_html
-      ? safe_html
-          .replace(/<[^>]*>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim()
-      : "")
-  ).substring(0, 200);
+      (safe_html
+        ? safe_html
+            .replace(/<[^>]*>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+        : ""),
+  );
 }
 
 export function build_single_thread_message(

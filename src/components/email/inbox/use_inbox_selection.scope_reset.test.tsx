@@ -126,12 +126,22 @@ describe("use_inbox_selection scope reset", () => {
     expect(hook.select_all_mode).toBe(false);
   });
 
-  it("clears the selection when the scope changes", () => {
+  it("keeps the selection when only the category changes", () => {
     const update_email = vi.fn();
     const emails = [make_email("a", true), make_email("b", false)];
 
     render({ view: "inbox", category: "primary", emails, update_email });
     render({ view: "inbox", category: "updates", emails, update_email });
+
+    expect(update_email).not.toHaveBeenCalled();
+  });
+
+  it("clears the selection when the view changes", () => {
+    const update_email = vi.fn();
+    const emails = [make_email("a", true), make_email("b", false)];
+
+    render({ view: "inbox", category: "primary", emails, update_email });
+    render({ view: "archive", category: "primary", emails, update_email });
 
     expect(update_email).toHaveBeenCalledWith("a", { is_selected: false });
     expect(update_email).not.toHaveBeenCalledWith("b", { is_selected: false });

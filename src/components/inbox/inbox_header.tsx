@@ -135,6 +135,7 @@ interface InboxHeaderProps {
   hide_quick_actions?: boolean;
   leading_toolbar_slot?: React.ReactNode;
   leading_left_slot?: React.ReactNode;
+  overflow_menu_slot?: React.ReactNode;
   select_all_mode?: boolean;
   on_activate_select_all_mode?: () => void;
   on_clear_selection?: () => void;
@@ -197,6 +198,7 @@ export function InboxHeader({
   hide_quick_actions = false,
   leading_toolbar_slot,
   leading_left_slot,
+  overflow_menu_slot,
   select_all_mode = false,
   on_activate_select_all_mode,
   on_clear_selection,
@@ -386,6 +388,8 @@ export function InboxHeader({
               </Button>
             </Tooltip>
           )}
+
+          {overflow_menu_slot}
 
           {!has_selection && !hide_view_switcher && (
             <DropdownMenu>

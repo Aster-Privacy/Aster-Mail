@@ -38,7 +38,7 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Kbd } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 
 import { ShareModal } from "@/components/modals/share_modal";
@@ -203,7 +203,7 @@ export const Sidebar = ({
   }, []);
 
   useEffect(() => {
-    if (!is_tablet && !(preferences.sidebar_minimized ?? false)) {
+    if (!is_tablet) {
       set_force_expanded(false);
     }
   }, [is_tablet, preferences.sidebar_minimized]);
@@ -664,8 +664,8 @@ export const Sidebar = ({
         <Button
           className={
             is_collapsed
-              ? "!rounded-full w-10 h-10 min-w-10 !p-0 flex items-center justify-center"
-              : "w-full !rounded-[14px] gap-2"
+              ? "!rounded-[16px] w-14 h-14 min-w-14 !h-14 !p-0 flex items-center justify-center"
+              : "w-full !rounded-[16px] !h-14 gap-2"
           }
           data-onboarding="compose-button"
           data-rail-tip={is_collapsed ? t("mail.compose") : undefined}
@@ -676,14 +676,9 @@ export const Sidebar = ({
           }}
         >
           <PencilSquareIcon
-            className={is_collapsed ? "w-5 h-5" : "w-[15px] h-[15px]"}
+            className={is_collapsed ? "w-[22px] h-[22px]" : "w-[15px] h-[15px]"}
           />
-          {!is_collapsed && (
-            <>
-              <span>{t("mail.compose")}</span>
-              <Kbd keys="c" size="sm" variant="inlay" />
-            </>
-          )}
+          {!is_collapsed && <span>{t("mail.compose")}</span>}
         </Button>
       </div>
 
@@ -915,7 +910,7 @@ export const Sidebar = ({
               }
         }
         storage_percentage={storage_percentage}
-        storage_total_bytes={stats.storage_total_bytes}
+        storage_total_bytes={has_initialized ? stats.storage_total_bytes : 0}
         storage_used_bytes={stats.storage_used_bytes}
       />
     </aside>

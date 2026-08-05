@@ -60,6 +60,7 @@ export interface User {
   display_name?: string;
   profile_color?: string;
   profile_picture?: string;
+  is_paid_plan?: boolean;
 }
 
 export interface StoredAccount {
@@ -242,8 +243,35 @@ function merge_user(base: User, updates: Partial<User>): User {
     key("profile_color", updates.profile_color);
   if (updates.profile_picture !== undefined)
     key("profile_picture", updates.profile_picture);
+  if (updates.is_paid_plan !== undefined)
+    key("is_paid_plan", updates.is_paid_plan);
 
   return result;
+}
+
+export async function persist_plan_flag_for_current_account(
+  is_paid_plan: boolean,
+): Promise<boolean> {
+  const account_id = await get_current_account_id();
+
+  if (!account_id) return false;
+
+  return set_account_plan_flag(account_id, is_paid_plan);
+}
+
+export async function set_account_plan_flag(
+  account_id: string,
+  is_paid_plan: boolean,
+): Promise<boolean> {
+  const data = await get_accounts_data_async();
+  const account = data.accounts.find((a) => a.id === account_id);
+
+  if (!account || account.user.is_paid_plan === is_paid_plan) return false;
+
+  account.user = { ...account.user, is_paid_plan };
+  await save_accounts_data(data);
+
+  return true;
 }
 
 export async function add_account(

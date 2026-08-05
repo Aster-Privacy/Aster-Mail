@@ -913,10 +913,11 @@ export function EmailInbox({
   );
   const primary_emails = all_primary_emails;
 
-  const skeleton_visible =
+  const skeleton_pending =
     is_paginating ||
     (filtered_emails.length === 0 &&
       (folders_loading_for_view || !email_state.has_initial_load));
+  const skeleton_visible = skeleton_pending;
 
   const is_client_filtered = active_filter !== "all";
   const stats_total_for_view = useMemo(() => {
@@ -1661,7 +1662,7 @@ export function EmailInbox({
           on_toggle_star={handle_toggle_star_wrapped}
           on_unarchive={handle_unarchive_wrapped}
           on_view_change={on_view_change}
-          page_selected_count={selection.selected_count}
+          page_selected_count={selection.page_selected_count}
           page_size={page_size}
           search_context={get_search_context(
             current_view,

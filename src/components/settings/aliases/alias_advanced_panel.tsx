@@ -1058,8 +1058,6 @@ export function StatsPanel({
     return <Spinner size="sm" />;
   }
 
-  if (!stats && !locked) return null;
-
   const created_label = stats
     ? format_created_at(stats.created_at, language)
     : "";

@@ -66,6 +66,7 @@ export const nl = {
     show_less: "Minder tonen",
     contacts: "Contacten",
     send_feedback: "Feedback verzenden",
+    send_feedback_to_aster: "Feedback naar Aster sturen",
     folders: "Mappen",
     more: "Meer",
     mail: "E-mail",
@@ -413,6 +414,7 @@ export const nl = {
     pending_email_notifications: "Wachtende e-mailmeldingen",
     selected: "geselecteerd",
     are_you_sure: "Weet je het zeker?",
+    sign_out_all_confirmation: "Weet je zeker dat je wilt uitloggen bij alle accounts op dit apparaat?",
     sign_out_confirmation: "Weet je zeker dat je wilt uitloggen?",
     remove_account_confirmation:
       "Weet je zeker dat je dit account wilt verwijderen? Je kunt het later opnieuw toevoegen.",
@@ -445,8 +447,7 @@ export const nl = {
     failed_to_archive_emails:
       "Het archiveren is niet voltooid. Een nieuwe poging zou werken. De e-mails staan nog in uw inbox.",
     something_went_wrong: "Er is een fout opgetreden.",
-    unexpected_error_refresh:
-      "Er is een onverwachte fout opgetreden. Vernieuw de pagina om verder te gaan. Uw gegevens zijn niet aangetast.",
+    unexpected_error_refresh: "Er ging iets mis, vernieuw de pagina om verder te gaan.",
     unsupported_browser: "Browser niet ondersteund.",
     unsupported_browser_detail: "Probeer een andere browser.",
     try_again: "Een nieuwe poging zou werken.",
@@ -1670,6 +1671,11 @@ export const nl = {
       "Instellingen openen als volledige pagina of pop-upvenster",
     quick_settings: "Snelle instellingen",
     see_all_settings: "Alle instellingen bekijken",
+    quick_inbox_list: "Postvaklijst",
+    quick_layout: "Lay-out",
+    quick_more_appearance: "Meer thema's",
+    quick_preview_text: "Voorbeeldtekst",
+    quick_sender_pictures: "Afzenderafbeeldingen",
     fam_welcome_step1_title: "Welkom bij uw familieabonnement",
     fam_welcome_step1_desc:
       "Iedereen in uw familie krijgt een eigen privé, versleutelde inbox - volledig gescheiden van de uwe.",
@@ -6146,16 +6152,14 @@ export const nl = {
     category_empty_primary_title: "Niets in Primair",
     category_empty_primary_desc:
       "Je persoonlijke berichten en gesprekken verschijnen hier.",
-    category_empty_promotions_title: "Geen promoties",
-    category_empty_promotions_desc:
-      "Aanbiedingen, deals en marketing-e-mails komen hier terecht, zodat ze je niet in de weg zitten.",
+    category_empty_promotions_title: "Geen deals",
+    category_empty_promotions_desc: "Deals, kortingen en marketing-e-mails verschijnen hier, los van je overige post.",
     category_empty_social_title: "Geen sociale updates",
     category_empty_social_desc:
       "Berichten van sociale netwerken en communities verschijnen hier.",
-    category_empty_updates_title: "Geen updates",
-    category_empty_updates_desc:
-      "Bonnen, bevestigingen, rekeningen en meldingen verschijnen hier.",
-    category_empty_forums_title: "Geen forumberichten",
+    category_empty_updates_title: "Geen meldingen",
+    category_empty_updates_desc: "Bonnen, bevestigingen en rekeningen verschijnen hier.",
+    category_empty_forums_title: "Geen discussies",
     category_empty_forums_desc:
       "Berichten van mailinglijsten en discussiegroepen verschijnen hier.",
     category_empty_finance_title: "Geen financiële e-mails",
@@ -6958,7 +6962,12 @@ export const nl = {
     sign_up: "Registreren",
     your_accounts: "Jouw accounts",
     greeting: "Hallo, {{name}}",
-    manage_account: "Je Aster-account beheren",
+    greeting_morning: "Goedemorgen",
+    greeting_afternoon: "Goedemiddag",
+    greeting_evening: "Goedenavond",
+    greeting_comma: ",",
+    greeting_night: "Nog wakker",
+    manage_account: "Accountinstellingen",
     sign_out_all: "Uitloggen bij alle accounts",
     session_expired_tag: "Sessie verlopen",
     default_account: "Standaard",
@@ -7908,7 +7917,7 @@ export const nl = {
     auth_missing: "ontbreekt",
     category_primary: "Postvak IN",
     category_important: "Belangrijk",
-    category_promotions: "Aanbiedingen",
+    category_promotions: "Deals",
     category_social: "Social",
     category_updates: "Meldingen",
     category_forums: "Discussies",

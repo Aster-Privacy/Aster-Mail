@@ -66,6 +66,7 @@ export const ru = {
     show_less: "Показать меньше",
     contacts: "Контакты",
     send_feedback: "Отправить отзыв",
+    send_feedback_to_aster: "Отправить отзыв в Aster",
     folders: "Папки",
     more: "Ещё",
     mail: "Почта",
@@ -418,6 +419,7 @@ export const ru = {
     pending_email_notifications: "Ожидающие уведомления по электронной почте",
     selected: "выбрано",
     are_you_sure: "Вы уверены?",
+    sign_out_all_confirmation: "Вы уверены, что хотите выйти из всех аккаунтов на этом устройстве?",
     sign_out_confirmation: "Вы уверены, что хотите выйти из аккаунта?",
     remove_account_confirmation:
       "Вы уверены, что хотите удалить этот аккаунт? Вы сможете добавить его позже.",
@@ -452,8 +454,7 @@ export const ru = {
     something_went_wrong_try_again:
       "Это не сработало. Повторная попытка через мгновение обычно помогает.",
     something_went_wrong: "Произошла ошибка.",
-    unexpected_error_refresh:
-      "Произошла непредвиденная ошибка. Обновите страницу, чтобы продолжить. Ваши данные не затронуты.",
+    unexpected_error_refresh: "Что-то пошло не так, обновите страницу, чтобы продолжить.",
     unsupported_browser: "Браузер не поддерживается.",
     unsupported_browser_detail: "Попробуйте другой браузер.",
     try_again: "Повторная попытка обычно помогает.",
@@ -1690,6 +1691,11 @@ export const ru = {
       "Открывать настройки на всю страницу или во всплывающем окне",
     quick_settings: "Быстрые настройки",
     see_all_settings: "Все настройки",
+    quick_inbox_list: "Список входящих",
+    quick_layout: "Макет",
+    quick_more_appearance: "Другие темы",
+    quick_preview_text: "Текст предпросмотра",
+    quick_sender_pictures: "Аватары отправителей",
     fam_welcome_step1_title: "Добро пожаловать в семейный план",
     fam_welcome_step1_desc:
       "Каждый член вашей семьи получает собственный приватный зашифрованный ящик - полностью отдельный от вашего.",
@@ -6209,16 +6215,14 @@ export const ru = {
     category_empty_primary_title: "В «Основных» пусто",
     category_empty_primary_desc:
       "Здесь будут отображаться ваши личные сообщения и переписки.",
-    category_empty_promotions_title: "Нет промоакций",
-    category_empty_promotions_desc:
-      "Скидки, предложения и маркетинговые письма попадают сюда, чтобы не мешать вам.",
+    category_empty_promotions_title: "Нет скидок",
+    category_empty_promotions_desc: "Скидки, распродажи и рекламные письма появятся здесь, отдельно от остальной почты.",
     category_empty_social_title: "Нет обновлений из соцсетей",
     category_empty_social_desc:
       "Здесь будут появляться сообщения из социальных сетей и сообществ.",
     category_empty_updates_title: "Нет уведомлений",
-    category_empty_updates_desc:
-      "Здесь будут появляться чеки, подтверждения, счета и уведомления.",
-    category_empty_forums_title: "Нет сообщений с форумов",
+    category_empty_updates_desc: "Чеки, подтверждения и счета появятся здесь.",
+    category_empty_forums_title: "Нет обсуждений",
     category_empty_forums_desc:
       "Здесь будут появляться сообщения из рассылок и групп обсуждений.",
     category_empty_finance_title: "Нет финансовых писем",
@@ -7019,7 +7023,12 @@ export const ru = {
     sign_up: "Зарегистрироваться",
     your_accounts: "Ваши аккаунты",
     greeting: "Привет, {{name}}",
-    manage_account: "Управление аккаунтом Aster",
+    greeting_morning: "Доброе утро",
+    greeting_afternoon: "Добрый день",
+    greeting_evening: "Добрый вечер",
+    greeting_comma: ",",
+    greeting_night: "Поздняя ночь",
+    manage_account: "Настройки аккаунта",
     sign_out_all: "Выйти из всех аккаунтов",
     session_expired_tag: "Сессия истекла",
     default_account: "По умолчанию",
@@ -7868,7 +7877,7 @@ export const ru = {
     category_forums: "Обсуждения",
     category_important: "Важное",
     category_primary: "Входящие",
-    category_promotions: "Предложения",
+    category_promotions: "Скидки",
     category_social: "Соцсети",
     category_updates: "Уведомления",
     coming_soon: "Скоро",

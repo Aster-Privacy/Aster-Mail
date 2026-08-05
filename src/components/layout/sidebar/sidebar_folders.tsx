@@ -38,6 +38,7 @@ import {
   get_sibling_folders,
 } from "@/hooks/use_folders";
 import { CountBadge } from "@/components/common/count_badge";
+import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
@@ -523,6 +524,16 @@ export const SidebarFolders = memo(function SidebarFolders({
                         <LockClosedIcon className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-icon-active bg-surf-secondary" />
                       )}
                     </div>
+                    {is_collapsed && !is_locked_closed && (
+                      <RailUnreadDot
+                        count={
+                          folder_unread_counts?.[folder.folder_token] ??
+                          folder.unread_count ??
+                          0
+                        }
+                        label={folder.name}
+                      />
+                    )}
                     {!is_collapsed && (
                       <>
                         <span className="flex-1 text-left truncate">

@@ -155,6 +155,12 @@ class MailStatsStore {
     return Date.now() - this.cache.timestamp > effective_ttl;
   }
 
+  prime(id: string | null): void {
+    if (!id || this.user_id !== null) return;
+    this.user_id = id;
+    this.load_from_storage(true);
+  }
+
   set_user_id(id: string | null): void {
     if (this.user_id === id) return;
     if (this.user_id !== null && id !== null) {
@@ -212,7 +218,7 @@ class MailStatsStore {
     return STORAGE_KEY_PREFIX + this.user_id;
   }
 
-  private load_from_storage(): void {
+  private load_from_storage(silent = false): void {
     const key = this.get_storage_key();
 
     if (!key) return;
@@ -233,6 +239,9 @@ class MailStatsStore {
       this.cache.data = persisted.data;
       this.cache.timestamp = persisted.timestamp;
       this.cache.has_initialized = true;
+
+      if (silent) return;
+
       this.notify();
       this.sync_external_surfaces();
     } catch {
@@ -510,6 +519,8 @@ export function use_mail_stats(): UseMailStatsReturn {
     error: string | null;
     has_initialized: boolean;
   }>(() => {
+    stats_store.prime(user?.id || null);
+
     const cache = stats_store.get_cache();
 
     return {

@@ -143,8 +143,7 @@ export function use_inbox_categories(
       : pref_enabled;
 
   const enabled =
-    resolved_enabled &&
-    (current_view === "inbox" || current_view === "");
+    resolved_enabled && (current_view === "inbox" || current_view === "");
   const enabled_ref = useRef(enabled);
 
   enabled_ref.current = enabled;
@@ -167,7 +166,9 @@ export function use_inbox_categories(
 
   const counts = useMemo(() => get_counts(), [index_version]);
 
-  const custom_categories_key = JSON.stringify(preferences.custom_categories ?? []);
+  const custom_categories_key = JSON.stringify(
+    preferences.custom_categories ?? [],
+  );
   const enabled_categories_key = JSON.stringify(
     preferences.enabled_categories ?? [],
   );
@@ -247,7 +248,9 @@ export function use_inbox_categories(
   const set_active_category = useCallback((category: EmailCategory) => {
     session_active_category = category;
     set_active_category_state(category);
-    void secure_store(ACTIVE_CATEGORY_KEY, category).catch(() => {});
+    setTimeout(() => {
+      void secure_store(ACTIVE_CATEGORY_KEY, category).catch(() => {});
+    }, 0);
   }, []);
 
   useEffect(() => {

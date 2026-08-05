@@ -66,6 +66,7 @@ export const pl = {
     show_less: "Pokaż mniej",
     contacts: "Kontakty",
     send_feedback: "Wyślij opinię",
+    send_feedback_to_aster: "Wyślij opinię do Aster",
     folders: "Foldery",
     more: "Więcej",
     mail: "Poczta",
@@ -417,6 +418,7 @@ export const pl = {
     pending_email_notifications: "Oczekujące powiadomienia e-mail",
     selected: "zaznaczono",
     are_you_sure: "Czy na pewno?",
+    sign_out_all_confirmation: "Czy na pewno chcesz wylogować się ze wszystkich kont na tym urządzeniu?",
     sign_out_confirmation:
       "Czy na pewno chcesz się wylogować ze swojego konta?",
     remove_account_confirmation:
@@ -452,8 +454,7 @@ export const pl = {
     something_went_wrong_try_again:
       "To nie zadziałało. Kolejna próba za moment zwykle to załatwia.",
     something_went_wrong: "Wystąpił błąd.",
-    unexpected_error_refresh:
-      "Wystąpił nieoczekiwany błąd. Odśwież stronę, aby kontynuować. Twoje dane nie zostały naruszone.",
+    unexpected_error_refresh: "Coś poszło nie tak, odśwież stronę, aby kontynuować.",
     unsupported_browser: "Przeglądarka nie jest obsługiwana.",
     unsupported_browser_detail: "Spróbuj innej przeglądarki.",
     try_again: "Spróbuj ponownie.",
@@ -1694,6 +1695,11 @@ export const pl = {
       "Otwieraj ustawienia jako pełną stronę lub okno podręczne",
     quick_settings: "Szybkie ustawienia",
     see_all_settings: "Zobacz wszystkie ustawienia",
+    quick_inbox_list: "Lista skrzynki odbiorczej",
+    quick_layout: "Układ",
+    quick_more_appearance: "Więcej motywów",
+    quick_preview_text: "Tekst podglądu",
+    quick_sender_pictures: "Zdjęcia nadawców",
     fam_welcome_step1_title: "Witaj w planie rodzinnym",
     fam_welcome_step1_desc:
       "Każda osoba w Twojej rodzinie ma własną prywatną, szyfrowaną skrzynkę - całkowicie oddzieloną od Twojej.",
@@ -6215,15 +6221,13 @@ export const pl = {
     category_empty_primary_desc:
       "Twoje osobiste wiadomości i rozmowy pojawią się tutaj.",
     category_empty_promotions_title: "Brak promocji",
-    category_empty_promotions_desc:
-      "Okazje, oferty i wiadomości marketingowe trafiają tutaj, aby nie przeszkadzały.",
+    category_empty_promotions_desc: "Promocje, wyprzedaże i e-maile marketingowe pojawią się tutaj, z dala od reszty poczty.",
     category_empty_social_title: "Brak aktualności ze społeczności",
     category_empty_social_desc:
       "Wiadomości z sieci społecznościowych i społeczności pojawią się tutaj.",
     category_empty_updates_title: "Brak powiadomień",
-    category_empty_updates_desc:
-      "Potwierdzenia, paragony, rachunki i powiadomienia pojawią się tutaj.",
-    category_empty_forums_title: "Brak wiadomości z forów",
+    category_empty_updates_desc: "Rachunki, potwierdzenia i faktury pojawią się tutaj.",
+    category_empty_forums_title: "Brak dyskusji",
     category_empty_forums_desc:
       "Wiadomości z list mailingowych i grup dyskusyjnych pojawią się tutaj.",
     category_empty_finance_title: "Brak wiadomości finansowych",
@@ -6864,7 +6868,7 @@ export const pl = {
     download_paused: "Pobieranie wstrzymane",
     pause_download_action: "Wstrzymaj",
     resume_download_action: "Wznów",
-    searching_message_content: "Wyszukiwanie w treści wiadomości",
+    searching_message_content: "Szukaj w treści wiadomości",
     search_taking_too_long: "Wyszukiwanie trwa zbyt długo",
     search_refine_terms:
       "Spróbuj zawęzić wyszukiwanie, używając bardziej szczegółowych słów.",
@@ -7021,7 +7025,12 @@ export const pl = {
     sign_up: "Zarejestruj się",
     your_accounts: "Twoje konta",
     greeting: "Cześć, {{name}}",
-    manage_account: "Zarządzaj kontem Aster",
+    greeting_morning: "Dzień dobry",
+    greeting_afternoon: "Dobre popołudnie",
+    greeting_evening: "Dobry wieczór",
+    greeting_comma: ",",
+    greeting_night: "Późna pora",
+    manage_account: "Ustawienia konta",
     sign_out_all: "Wyloguj ze wszystkich kont",
     session_expired_tag: "Sesja wygasła",
     default_account: "Domyślne",
@@ -7962,7 +7971,7 @@ export const pl = {
     auth_missing: "brakujący",
     category_primary: "Odebrane",
     category_important: "Ważne",
-    category_promotions: "Oferty",
+    category_promotions: "Promocje",
     category_social: "Social",
     category_updates: "Powiadomienia",
     category_forums: "Dyskusje",

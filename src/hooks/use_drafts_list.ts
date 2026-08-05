@@ -44,6 +44,7 @@ import {
   type FormatOptions,
 } from "@/utils/date_format";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { build_list_preview } from "@/utils/preview_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_action_toast } from "@/components/toast/action_toast";
 
@@ -145,7 +146,7 @@ function transform_draft(
     sender_name: display_name,
     sender_email: draft.content.to_recipients[0] || "",
     subject: draft.content.subject || no_subject_text,
-    preview: strip_html_tags(draft.content.message).substring(0, 100),
+    preview: build_list_preview(strip_html_tags(draft.content.message)),
     timestamp: format_email_list_timestamp(
       new Date(draft.updated_at),
       format_options,
@@ -561,7 +562,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
             sender_name: display_name,
             sender_email: detail.to_recipients[0] || "",
             subject: detail.subject || t("mail.no_subject"),
-            preview: strip_html_tags(detail.message).substring(0, 100),
+            preview: build_list_preview(strip_html_tags(detail.message)),
             timestamp: format_email_list_timestamp(new Date(), format_options),
             to_recipients: detail.to_recipients,
             cc_recipients: detail.cc_recipients,

@@ -18,7 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import {
@@ -31,10 +39,24 @@ import {
 } from "@heroicons/react/24/outline";
 
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { SearchResultItem } from "@/hooks/use_search";
+import type { FormatOptions } from "@/utils/date_format";
 
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { SearchContentBanner } from "@/components/search/search_content_banner";
-import { use_search } from "@/hooks/use_search";
+import { SearchResultSkeleton } from "@/components/search/search_results_list";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import {
+  format_date_short,
+  format_time,
+  format_date,
+} from "@/utils/date_format";
+import {
+  apply_highlights,
+  compute_highlight_ranges,
+  extract_query_terms,
+  use_search,
+} from "@/hooks/use_search";
 import {
   is_page_search_route,
   set_page_search,
@@ -44,6 +66,8 @@ import { use_preferences } from "@/contexts/preferences_context";
 
 const DEBOUNCE_MS = 180;
 const MIN_QUERY_LENGTH = 2;
+const PREVIEW_LIMIT = 5;
+const PREVIEW_DEBOUNCE_MS = 90;
 
 const VIEW_SCOPES: Record<string, { label_key: TranslationKey; token: string }> =
   {
@@ -75,6 +99,7 @@ interface AnchorRect {
 
 export function SearchBar({
   is_pill,
+  on_result_click,
   on_search_submit,
   search_context,
 }: SearchBarProps) {
@@ -97,7 +122,13 @@ export function SearchBar({
   const [rect, set_rect] = useState<AnchorRect | null>(null);
   const [is_advanced_open, set_is_advanced_open] = useState(false);
 
-  const { clear_index, start_index_build } = use_search();
+  const {
+    state: search_state,
+    search,
+    clear_results,
+    clear_index,
+    start_index_build,
+  } = use_search();
   const { preferences, update_preference } = use_preferences();
   const content_search_enabled = preferences.search_encrypted_content;
 
@@ -227,6 +258,11 @@ export function SearchBar({
       if (!target) return;
       if (wrapper_ref.current?.contains(target)) return;
       if (dropdown_ref.current?.contains(target)) return;
+      if (
+        target instanceof Element &&
+        target.closest("[data-radix-popper-content-wrapper]")
+      )
+        return;
       close();
     };
 
@@ -279,6 +315,82 @@ export function SearchBar({
     if (on_search_submit) on_search_submit("");
   }, [location.pathname, on_search_submit]);
 
+  const preview_query = query.trim();
+  const preview_enabled =
+    preview_query.length >= MIN_QUERY_LENGTH && !preview_query.endsWith(":");
+
+  useEffect(() => {
+    if (is_page_filter || !is_open) return;
+    if (!preview_enabled) {
+      clear_results();
+
+      return;
+    }
+    const timer = setTimeout(() => {
+      void search(preview_query);
+    }, PREVIEW_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [
+    preview_query,
+    preview_enabled,
+    is_open,
+    is_page_filter,
+    search,
+    clear_results,
+  ]);
+
+  const preview_results = search_state.results.slice(0, PREVIEW_LIMIT);
+  const preview_terms = useMemo(
+    () => extract_query_terms(preview_query),
+    [preview_query],
+  );
+  const date_options: FormatOptions = useMemo(
+    () => ({
+      date_format: (preferences.date_format ??
+        "MM/DD/YYYY") as FormatOptions["date_format"],
+      time_format: (preferences.time_format ??
+        "12h") as FormatOptions["time_format"],
+    }),
+    [preferences.date_format, preferences.time_format],
+  );
+  const is_preview_stale =
+    preview_enabled && search_state.results_query !== preview_query;
+  const is_preview_loading =
+    preview_enabled &&
+    (is_preview_stale ||
+      search_state.is_searching ||
+      search_state.index_building);
+
+  const handle_preview_click = useCallback(
+    (id: string) => {
+      close();
+      input_ref.current?.blur();
+      on_result_click?.(id);
+    },
+    [close, on_result_click],
+  );
+
+  const preview_click_handlers = useRef(new Map<string, () => void>());
+  const get_preview_click_handler = useCallback(
+    (id: string) => {
+      const existing = preview_click_handlers.current.get(id);
+
+      if (existing) return existing;
+
+      const handler = () => handle_preview_click(id);
+
+      preview_click_handlers.current.set(id, handler);
+
+      return handler;
+    },
+    [handle_preview_click],
+  );
+
+  useEffect(() => {
+    preview_click_handlers.current.clear();
+  }, [handle_preview_click]);
+
   const dropdown_style: React.CSSProperties | undefined = rect
     ? {
         position: "fixed",
@@ -299,7 +411,7 @@ export function SearchBar({
         <div
           className={`flex items-center transition-colors ${
             is_pill
-              ? `gap-3 h-10 pl-4 pr-2 aster_search_field ${
+              ? `gap-2 h-10 pl-4 pr-1.5 aster_search_field ${
                   is_open && !is_page_filter && rect
                     ? "aster_search_open shadow-lg rounded-t-[22px]"
                     : "rounded-full"
@@ -326,7 +438,11 @@ export function SearchBar({
           />
           <input
             ref={input_ref}
-            className="flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
+            className={`flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm ${
+              is_open
+                ? "text-[var(--text-secondary)] placeholder:text-[var(--text-muted)]"
+                : "text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
+            }`}
             placeholder={
               is_page_filter
                 ? page_filter_placeholder
@@ -346,6 +462,7 @@ export function SearchBar({
             }}
             onKeyDown={handle_key_down}
           />
+          <div className="flex items-center gap-0.5 flex-shrink-0">
           {(query || is_open) && (
             <button
               aria-label={query ? t("common.clear") : t("common.close")}
@@ -377,6 +494,7 @@ export function SearchBar({
               <AdjustmentsHorizontalIcon className="w-5 h-5" />
             </button>
           )}
+          </div>
         </div>
       </div>
 
@@ -433,12 +551,66 @@ export function SearchBar({
               </button>
             </div>
 
-            <div className="px-6 py-8 flex flex-col items-center justify-center text-center">
-              <MagnifyingGlassIcon className="w-8 h-8 text-[var(--text-muted)] mb-2" />
-              <p className="text-sm text-[var(--text-muted)]">
-                {t("mail.search_placeholder_hint")}
-              </p>
-            </div>
+            {!preview_enabled && (
+              <div className="px-6 py-8 flex flex-col items-center justify-center text-center">
+                <MagnifyingGlassIcon className="w-8 h-8 text-[var(--text-muted)] mb-2" />
+                <p className="text-sm text-[var(--text-muted)]">
+                  {t("mail.search_placeholder_hint")}
+                </p>
+              </div>
+            )}
+
+            {preview_enabled && is_preview_loading && preview_results.length === 0 && (
+              <div className="px-1.5 pb-2">
+                <SearchResultSkeleton />
+                <SearchResultSkeleton />
+                <SearchResultSkeleton />
+              </div>
+            )}
+
+            {preview_enabled &&
+              !is_preview_loading &&
+              preview_results.length === 0 && (
+                <div className="px-6 py-8 flex flex-col items-center justify-center text-center">
+                  <MagnifyingGlassIcon className="w-8 h-8 text-[var(--text-muted)] mb-2" />
+                  <p className="text-sm text-[var(--text-muted)]">
+                    {t("mail.no_results_for", { query: preview_query })}
+                  </p>
+                </div>
+              )}
+
+            {preview_enabled && preview_results.length > 0 && (
+              <div
+                aria-busy={is_preview_stale}
+                className="border-t border-[var(--border-secondary)] transition-opacity duration-150 motion-reduce:transition-none"
+                style={{ opacity: is_preview_stale ? 0.55 : 1 }}
+              >
+                <div className="py-1 max-h-[420px] overflow-y-auto">
+                  {preview_results.map((result) => (
+                    <PreviewRow
+                      key={result.id}
+                      date_options={date_options}
+                      terms={preview_terms}
+                      on_click={get_preview_click_handler(result.id)}
+                      result={result}
+                    />
+                  ))}
+                </div>
+                <button
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[13px] border-t border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors"
+                  type="button"
+                  onClick={() => submit_full(query)}
+                >
+                  <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0 text-[var(--icon-secondary)]" />
+                  <span className="flex-1 min-w-0 truncate">
+                    {t("mail.view_all_results", { query: preview_query })}
+                  </span>
+                  <span className="flex-shrink-0 text-[11px] text-[var(--text-muted)]">
+                    {t("common.press_enter_to_view_all")}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>,
           document.body,
         )}
@@ -450,6 +622,106 @@ export function SearchBar({
     </>
   );
 }
+
+function format_preview_date(
+  timestamp: string,
+  options: FormatOptions,
+): string {
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const same_day =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  if (same_day) return format_time(date, options);
+  if (date.getFullYear() === now.getFullYear())
+    return format_date_short(date, options);
+
+  return format_date(date, options);
+}
+
+function PreviewText({
+  text,
+  terms,
+}: {
+  text: string;
+  terms: string[];
+}) {
+  const parts = useMemo(
+    () => apply_highlights(text, compute_highlight_ranges(text, terms)),
+    [text, terms],
+  );
+
+  return (
+    <>
+      {parts.map((part, idx) =>
+        part.is_match ? (
+          <span key={idx} className="font-semibold text-[var(--text-primary)]">
+            {part.text}
+          </span>
+        ) : (
+          <span key={idx}>{part.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+const PreviewRow = memo(function PreviewRow({
+  result,
+  date_options,
+  terms,
+  on_click,
+}: {
+  result: SearchResultItem;
+  date_options: FormatOptions;
+  terms: string[];
+  on_click: () => void;
+}) {
+  const participants = result.sender_name || result.sender_email || "";
+
+  return (
+    <button
+      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-[var(--bg-hover)] transition-colors"
+      type="button"
+      onClick={on_click}
+    >
+      <ProfileAvatar
+        use_domain_logo
+        email={result.sender_email}
+        image_url={result.avatar_url}
+        name={participants}
+        size="sm"
+      />
+      <div className="flex-1 min-w-0">
+        <div
+          className={`text-[13px] truncate ${
+            result.is_read
+              ? "text-[var(--text-primary)]"
+              : "font-semibold text-[var(--text-primary)]"
+          }`}
+        >
+          <PreviewText terms={terms} text={result.subject} />
+        </div>
+        <div className="text-[12px] truncate text-[var(--text-muted)]">
+          <PreviewText terms={terms} text={participants} />
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {result.has_attachment && (
+          <PaperClipIcon className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
+        )}
+        <span className="text-[12px] text-[var(--text-muted)] tabular-nums">
+          {format_preview_date(result.timestamp, date_options)}
+        </span>
+      </div>
+    </button>
+  );
+});
 
 function Chip({
   icon,

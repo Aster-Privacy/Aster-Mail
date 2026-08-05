@@ -66,6 +66,7 @@ export const fr = {
     show_less: "Afficher moins",
     contacts: "Contacts",
     send_feedback: "Envoyer un commentaire",
+    send_feedback_to_aster: "Envoyer un commentaire à Aster",
     folders: "Dossiers",
     more: "Plus",
     mail: "Courrier",
@@ -420,6 +421,7 @@ export const fr = {
     pending_email_notifications: "Notifications d'e-mails en attente",
     selected: "sélectionné(s)",
     are_you_sure: "Êtes-vous sûr ?",
+    sign_out_all_confirmation: "Voulez-vous vraiment vous déconnecter de tous les comptes sur cet appareil ?",
     sign_out_confirmation:
       "Êtes-vous sûr de vouloir vous déconnecter de votre compte ?",
     remove_account_confirmation:
@@ -469,8 +471,7 @@ export const fr = {
     error_details: "Détails de l'erreur",
     view_status: "Voir l'état",
     try_again: "Réessayer",
-    unexpected_error_refresh:
-      "Une erreur inattendue est survenue. Actualisez la page pour continuer. Vos données ne sont pas affectées.",
+    unexpected_error_refresh: "Une erreur s'est produite, veuillez actualiser la page pour continuer.",
     unsupported_browser: "Navigateur non pris en charge.",
     unsupported_browser_detail: "Veuillez essayer un autre navigateur.",
     and: "et",
@@ -1679,6 +1680,11 @@ export const fr = {
       "Ouvrir les paramètres en pleine page ou en fenêtre contextuelle",
     quick_settings: "Paramètres rapides",
     see_all_settings: "Voir tous les paramètres",
+    quick_inbox_list: "Liste de la boîte de réception",
+    quick_layout: "Disposition",
+    quick_more_appearance: "Plus de thèmes",
+    quick_preview_text: "Texte d'aperçu",
+    quick_sender_pictures: "Photos des expéditeurs",
     fam_welcome_step1_title: "Bienvenue dans votre forfait famille",
     fam_welcome_step1_desc:
       "Chaque personne de votre famille dispose de sa propre boîte privée et chiffrée, complètement séparée de la vôtre.",
@@ -6221,16 +6227,14 @@ export const fr = {
     category_empty_primary_title: "Rien dans Principal",
     category_empty_primary_desc:
       "Vos messages personnels et vos conversations apparaîtront ici.",
-    category_empty_promotions_title: "Aucune promotion",
-    category_empty_promotions_desc:
-      "Les offres, bons plans et e-mails marketing arrivent ici pour ne pas vous gêner.",
+    category_empty_promotions_title: "Aucun bon plan",
+    category_empty_promotions_desc: "Les bons plans, promotions et e-mails marketing apparaîtront ici, à l'écart du reste de votre courrier.",
     category_empty_social_title: "Aucune actualité sociale",
     category_empty_social_desc:
       "Les messages des réseaux sociaux et des communautés apparaîtront ici.",
-    category_empty_updates_title: "Aucune mise à jour",
-    category_empty_updates_desc:
-      "Les reçus, confirmations, factures et notifications apparaîtront ici.",
-    category_empty_forums_title: "Aucun message de forum",
+    category_empty_updates_title: "Aucune notification",
+    category_empty_updates_desc: "Les reçus, confirmations et factures apparaîtront ici.",
+    category_empty_forums_title: "Aucune discussion",
     category_empty_forums_desc:
       "Les messages des listes de diffusion et groupes de discussion apparaîtront ici.",
     category_empty_finance_title: "Aucun e-mail financier",
@@ -6988,7 +6992,7 @@ export const fr = {
     search_within_3_months: "3 mois",
     search_within_6_months: "6 mois",
     search_within_any: "N'importe quand",
-    searching_message_content: "Recherche dans le contenu...",
+    searching_message_content: "Rechercher dans le contenu",
     search_taking_too_long: "La recherche prend trop de temps",
     search_refine_terms:
       "Essayez d'affiner votre recherche avec des termes plus précis.",
@@ -7042,7 +7046,12 @@ export const fr = {
     sign_up: "S'inscrire",
     your_accounts: "Vos comptes",
     greeting: "Bonjour, {{name}}",
-    manage_account: "Gérer votre compte Aster",
+    greeting_morning: "Bonjour",
+    greeting_afternoon: "Bon après-midi",
+    greeting_evening: "Bonsoir",
+    greeting_comma: ",",
+    greeting_night: "Encore debout",
+    manage_account: "Paramètres du compte",
     sign_out_all: "Se déconnecter de tous les comptes",
     session_expired_tag: "Session expirée",
     default_account: "Par défaut",
@@ -7849,7 +7858,7 @@ export const fr = {
     category_forums: "Discussions",
     category_important: "Important",
     category_primary: "Boîte de réception",
-    category_promotions: "Offres",
+    category_promotions: "Bons plans",
     category_social: "Social",
     category_updates: "Notifications",
     coming_soon: "Bientôt disponible",

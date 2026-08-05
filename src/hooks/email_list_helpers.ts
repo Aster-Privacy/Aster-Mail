@@ -31,6 +31,7 @@ import {
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { build_list_preview } from "@/utils/preview_text";
 import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -471,7 +472,7 @@ export function mail_to_email(
     (!resolved_text && is_ratchet_envelope(raw_html));
   const preview_text = is_undecryptable_body
     ? RATCHET_UNDECRYPTABLE_SENTINEL
-    : strip_html_tags(resolved_text || resolved_html).substring(0, 100);
+    : build_list_preview(strip_html_tags(resolved_text || resolved_html));
   const raw_ts =
     envelope.sent_at ||
     (envelope as unknown as Record<string, string>).date ||

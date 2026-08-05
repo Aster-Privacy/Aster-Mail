@@ -68,6 +68,7 @@ export const it = {
     show_less: "Mostra di meno",
     contacts: "Contatti",
     send_feedback: "Invia feedback",
+    send_feedback_to_aster: "Invia un feedback ad Aster",
     folders: "Cartelle",
     more: "Altro",
     mail: "Posta",
@@ -427,6 +428,7 @@ export const it = {
     pending_email_notifications: "Notifiche email in sospeso",
     selected: "selezionato/i",
     are_you_sure: "Sei sicuro?",
+    sign_out_all_confirmation: "Vuoi davvero uscire da tutti gli account su questo dispositivo?",
     sign_out_confirmation: "Sei sicuro di voler uscire dal tuo account?",
     remove_account_confirmation:
       "Sei sicuro di voler rimuovere questo account? Potrai aggiungerlo di nuovo in seguito.",
@@ -461,8 +463,7 @@ export const it = {
     something_went_wrong_try_again:
       "Non ha funzionato. Un altro tentativo tra poco di solito risolve la cosa.",
     something_went_wrong: "Si è verificato un errore.",
-    unexpected_error_refresh:
-      "Si è verificato un errore imprevisto. Aggiorna la pagina per continuare. I tuoi dati non sono stati interessati.",
+    unexpected_error_refresh: "Qualcosa non ha funzionato, aggiorna la pagina per continuare.",
     unsupported_browser: "Browser non supportato.",
     unsupported_browser_detail: "Per favore prova un altro browser.",
     try_again: "Riprova",
@@ -1702,6 +1703,11 @@ export const it = {
       "Apri le impostazioni a pagina intera o in una finestra popup",
     quick_settings: "Impostazioni rapide",
     see_all_settings: "Vedi tutte le impostazioni",
+    quick_inbox_list: "Elenco della posta",
+    quick_layout: "Layout",
+    quick_more_appearance: "Altri temi",
+    quick_preview_text: "Testo di anteprima",
+    quick_sender_pictures: "Immagini mittente",
     fam_welcome_step1_title: "Benvenuto nel suo piano famiglia",
     fam_welcome_step1_desc:
       "Ogni persona della famiglia ha la propria casella privata e cifrata - completamente separata dalla sua.",
@@ -6254,15 +6260,13 @@ export const it = {
     category_empty_primary_desc:
       "I tuoi messaggi personali e le conversazioni appariranno qui.",
     category_empty_promotions_title: "Nessuna promozione",
-    category_empty_promotions_desc:
-      "Offerte, sconti ed email di marketing arrivano qui così non ti intralciano.",
+    category_empty_promotions_desc: "Promozioni, saldi ed email di marketing appariranno qui, lontano dal resto della posta.",
     category_empty_social_title: "Nessun aggiornamento social",
     category_empty_social_desc:
       "I messaggi dai social network e dalle community appariranno qui.",
-    category_empty_updates_title: "Nessun aggiornamento",
-    category_empty_updates_desc:
-      "Ricevute, conferme, bollette e notifiche appariranno qui.",
-    category_empty_forums_title: "Nessun messaggio dai forum",
+    category_empty_updates_title: "Nessuna notifica",
+    category_empty_updates_desc: "Ricevute, conferme e bollette appariranno qui.",
+    category_empty_forums_title: "Nessuna discussione",
     category_empty_forums_desc:
       "I messaggi da mailing list e gruppi di discussione appariranno qui.",
     category_empty_finance_title: "Nessuna email finanziaria",
@@ -6909,7 +6913,7 @@ export const it = {
     download_paused: "Download in pausa",
     pause_download_action: "Pausa",
     resume_download_action: "Riprendi",
-    searching_message_content: "Ricerca nel contenuto dei messaggi",
+    searching_message_content: "Cerca nel contenuto dei messaggi",
     search_taking_too_long: "La ricerca sta richiedendo troppo tempo",
     search_refine_terms:
       "Prova a restringere la ricerca con termini più specifici.",
@@ -7070,7 +7074,12 @@ export const it = {
     sign_up: "Registrati",
     your_accounts: "I tuoi account",
     greeting: "Ciao, {{name}}",
-    manage_account: "Gestisci il tuo account Aster",
+    greeting_morning: "Buongiorno",
+    greeting_afternoon: "Buon pomeriggio",
+    greeting_evening: "Buonasera",
+    greeting_comma: ",",
+    greeting_night: "A tarda notte",
+    manage_account: "Impostazioni account",
     sign_out_all: "Esci da tutti gli account",
     session_expired_tag: "Sessione scaduta",
     default_account: "Predefinito",
@@ -8033,7 +8042,7 @@ export const it = {
     auth_missing: "mancante",
     category_primary: "Posta in arrivo",
     category_important: "Importante",
-    category_promotions: "Offerte",
+    category_promotions: "Promozioni",
     category_social: "Social",
     category_updates: "Notifiche",
     category_forums: "Discussioni",

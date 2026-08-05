@@ -70,6 +70,7 @@ import { remove_ids as remove_category_index_ids } from "@/services/category_ind
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { read_last_settings_section } from "@/lib/settings_section_store";
 
 export interface ForwardData {
   sender_name: string;
@@ -170,7 +171,9 @@ export function use_index_page_state() {
         ? undefined
         : location.pathname + (query ? `?${query}` : "");
 
-      navigate(section ? `/settings/${section}` : "/settings", {
+      const target = section ?? read_last_settings_section();
+
+      navigate(target ? `/settings/${target}` : "/settings", {
         state: from ? { from } : (location.state ?? undefined),
       });
     },

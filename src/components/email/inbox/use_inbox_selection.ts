@@ -57,8 +57,15 @@ export function use_inbox_selection({
     () => [...pinned_emails, ...primary_emails],
     [pinned_emails, primary_emails],
   );
-  const { all_selected, some_selected, selected_count } =
-    get_selection_state(page_emails);
+  const {
+    all_selected,
+    some_selected,
+    selected_count: page_selected_count,
+  } = get_selection_state(page_emails);
+  const selected_count = useMemo(
+    () => emails.filter((e) => e.is_selected).length,
+    [emails],
+  );
 
   const get_update_fn = useCallback(() => {
     if (is_drafts_view)
@@ -97,10 +104,11 @@ export function use_inbox_selection({
 
   useEffect(() => {
     const prev = selection_scope_ref.current;
+    const view_changed = prev.view !== current_view;
+    const category_changed = prev.category !== active_category;
 
-    if (prev.view === current_view && prev.category === active_category) {
-      return;
-    }
+    if (!view_changed && !category_changed) return;
+
     selection_scope_ref.current = {
       view: current_view,
       category: active_category,
@@ -108,6 +116,9 @@ export function use_inbox_selection({
     set_select_all_mode(false);
     shift_anchor_ref.current = null;
     last_shift_target_ref.current = null;
+
+    if (!view_changed) return;
+
     const update_fn = get_update_fn();
 
     emails.forEach((e) => {
@@ -282,6 +293,7 @@ export function use_inbox_selection({
     all_selected,
     some_selected,
     selected_count,
+    page_selected_count,
     handle_toggle_select,
     handle_toggle_select_all,
     handle_clear_selection,

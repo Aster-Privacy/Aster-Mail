@@ -82,6 +82,19 @@ const SYSTEM_LOCAL_PARTS = new Set(["mailer-daemon", "postmaster"]);
 
 const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
+const LOADED_SOURCE_LIMIT = 600;
+const loaded_sources = new Set<string>();
+
+function mark_source_loaded(src: string) {
+  if (!src) return;
+  if (loaded_sources.size >= LOADED_SOURCE_LIMIT) {
+    const oldest = loaded_sources.values().next().value;
+
+    if (oldest) loaded_sources.delete(oldest);
+  }
+  loaded_sources.add(src);
+}
+
 function extract_domain(email: string): string {
   const match = email.match(/@([^@]+)$/);
 
@@ -108,11 +121,15 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     !!email &&
     !!user?.email &&
     email.trim().toLowerCase() === user.email.trim().toLowerCase();
-  const peer_profile = use_peer_profile(is_current_user || low_network ? null : email);
+  const peer_profile = use_peer_profile(
+    is_current_user || low_network ? null : email,
+  );
   const resolved_image_url = low_network
     ? undefined
     : image_url ||
-      (is_current_user ? user?.profile_picture : peer_profile?.profile_picture ?? undefined);
+      (is_current_user
+        ? user?.profile_picture
+        : (peer_profile?.profile_picture ?? undefined));
 
   const [image_error, set_image_error] = useState(false);
   const [ddg_logo_error, set_ddg_logo_error] = useState(false);
@@ -153,7 +170,15 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       return null;
 
     return cached_favicon_src || get_favicon_url(domain);
-  }, [low_network, use_domain_logo, domain, is_aster_mail, is_aster_domain, ddg_logo_error, cached_favicon_src]);
+  }, [
+    low_network,
+    use_domain_logo,
+    domain,
+    is_aster_mail,
+    is_aster_domain,
+    ddg_logo_error,
+    cached_favicon_src,
+  ]);
 
   const handle_ddg_logo_error = useCallback(() => {
     if (domain) mark_icon_failed(domain);
@@ -231,10 +256,13 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           store_favicon_if_api_url(domain, img.src);
         }
       }
+      mark_source_loaded(img.src);
       set_img_loaded(true);
     },
     [is_favicon_source, domain, low_network],
   );
+
+  const show_placeholder = !img_loaded && !loaded_sources.has(actual_src ?? "");
 
   if (!actual_src) {
     if (profile_pending) {
@@ -328,7 +356,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         userSelect: "none",
       }}
     >
-      {!img_loaded && (
+      {show_placeholder && (
         <Skeleton className="absolute inset-0 rounded-full" />
       )}
       <img
@@ -341,12 +369,12 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         referrerPolicy="no-referrer"
         src={actual_src}
         style={
-          img_loaded
-            ? undefined
-            : {
+          show_placeholder
+            ? {
                 position: "absolute",
                 opacity: 0,
               }
+            : undefined
         }
         onError={error_handler}
         onLoad={handle_load}

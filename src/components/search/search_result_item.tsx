@@ -21,7 +21,7 @@
 import type { DecryptedContact } from "@/types/contacts";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 
-import { useState, useMemo, forwardRef } from "react";
+import { useState, useMemo, forwardRef, memo } from "react";
 import { FolderIcon, UserIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -57,7 +57,7 @@ export function HighlightedText({
     <>
       {highlights.map((segment, idx) =>
         segment.is_match ? (
-          <mark key={idx} className="rounded px-0.5 bg-brand text-white">
+          <mark key={idx} className="aster_search_mark">
             {segment.text}
           </mark>
         ) : (
@@ -203,7 +203,7 @@ export function FolderResultRow({
   );
 }
 
-export const SearchResultRow = forwardRef<
+const SearchResultRowBase = forwardRef<
   HTMLButtonElement,
   {
     result: SearchResultItem;
@@ -428,3 +428,29 @@ export const SearchResultRow = forwardRef<
     </button>
   );
 });
+
+function same_result(a: SearchResultItem, b: SearchResultItem): boolean {
+  return (
+    a === b ||
+    (a.id === b.id &&
+      a.subject === b.subject &&
+      a.preview === b.preview &&
+      a.sender_name === b.sender_name &&
+      a.sender_email === b.sender_email &&
+      a.timestamp === b.timestamp &&
+      a.is_read === b.is_read &&
+      a.is_starred === b.is_starred &&
+      a.has_attachment === b.has_attachment &&
+      a.avatar_url === b.avatar_url &&
+      a.item_type === b.item_type)
+  );
+}
+
+export const SearchResultRow = memo(
+  SearchResultRowBase,
+  (prev, next) =>
+    same_result(prev.result, next.result) &&
+    prev.on_click === next.on_click &&
+    prev.quick_actions === next.quick_actions &&
+    prev.query_terms?.join(" ") === next.query_terms?.join(" "),
+);

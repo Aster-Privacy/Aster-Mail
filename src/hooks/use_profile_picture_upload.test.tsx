@@ -27,7 +27,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 const hoisted = vi.hoisted(() => ({
-  update_profile_picture: vi.fn(async () => ({
+  update_profile_picture: vi.fn(async (_value: string | null) => ({
     data: { success: true },
     error: null,
   })),
