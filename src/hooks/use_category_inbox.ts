@@ -359,7 +359,7 @@ export function use_category_inbox(
           ? { ...prev, is_loading: false, has_initial_load: true }
           : prev,
       );
-    }, 10_000);
+    }, 6_000);
 
     // Hard backstop: never leave the user on an infinite skeleton, even if a
     // build cannot be recovered. The index recovers on tab focus; this just
@@ -370,7 +370,7 @@ export function use_category_inbox(
           ? { ...prev, is_loading: false, has_initial_load: true }
           : prev,
       );
-    }, 30_000);
+    }, 15_000);
 
     return () => {
       clearTimeout(soft);

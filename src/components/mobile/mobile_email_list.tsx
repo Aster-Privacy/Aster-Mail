@@ -300,7 +300,14 @@ export const MobileEmailList = memo(function MobileEmailList({
     }
 
     if (changed) recompute_window();
-  });
+  }, [
+    windowing_enabled,
+    list_window.start,
+    list_window.end,
+    emails.length,
+    current_view,
+    recompute_window,
+  ]);
 
   const handle_jump_to_top = useCallback(() => {
     haptic_impact("light");

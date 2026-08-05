@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -98,6 +98,11 @@ export function EmailNotificationManager() {
   const { is_authenticated, current_account_id } = use_auth();
   const { preferences } = use_preferences();
   const { t } = use_i18n();
+  const preferences_ref = useRef(preferences);
+
+  useEffect(() => {
+    preferences_ref.current = preferences;
+  }, [preferences]);
 
   useEffect(() => {
     if (!is_authenticated || !preferences.desktop_notifications) {
@@ -139,7 +144,7 @@ export function EmailNotificationManager() {
       void (async () => {
         const muted = await is_email_in_muted_folder(
           email_id,
-          preferences.muted_folder_tokens ?? [],
+          preferences_ref.current.muted_folder_tokens ?? [],
         );
 
         if (muted) {
@@ -154,7 +159,7 @@ export function EmailNotificationManager() {
             tag: `email-${email_id}`,
             data: email_id ? { email_id } : undefined,
           },
-          preferences,
+          preferences_ref.current,
           is_lockdown_enabled(current_account_id ?? ""),
         );
       })();
@@ -165,7 +170,7 @@ export function EmailNotificationManager() {
     return () => {
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handler);
     };
-  }, [is_authenticated, preferences, t, current_account_id]);
+  }, [is_authenticated, t, current_account_id]);
 
   return null;
 }

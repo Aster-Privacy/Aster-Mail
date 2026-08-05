@@ -268,7 +268,7 @@ function remember_measured_height(
 
 export const CONTENT_READY_FALLBACK_MS = 1500;
 
-export const SETTLE_REMEASURE_DELAYS_MS = [250, 700, 1600, 3000];
+export const SETTLE_REMEASURE_DELAYS_MS = [250, 700, 1400];
 
 export function dispatch_iframe_ready(email_id: string): void {
   window.dispatchEvent(
