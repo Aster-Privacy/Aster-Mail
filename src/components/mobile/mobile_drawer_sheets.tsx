@@ -28,7 +28,7 @@ import {
   ArrowRightStartOnRectangleIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Button, Switch, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -42,6 +42,7 @@ import {
   TAG_ICONS,
 } from "@/components/ui/email_tag";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
+import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   TurnstileWidget,
   type TurnstileWidgetRef,
@@ -693,9 +694,20 @@ export function CreateAliasSheet({
           {at_limit ? t("common.alias_limit_reached") : t("settings.create_alias")}
         </p>
         {at_limit ? (
-          <p className="mb-4 text-[14px] text-[var(--text-secondary)]">
-            {t("settings.upgrade_plan_more_aliases")}
-          </p>
+          <>
+            <p className="mb-4 text-[14px] text-[var(--text-secondary)]">
+              {t("settings.upgrade_plan_more_aliases")}
+            </p>
+            <UpgradeBtn
+              className="w-full rounded-[16px] py-3 text-[15px] font-medium"
+              onClick={() => {
+                on_close();
+                prompt_alias_limit_upgrade();
+              }}
+            >
+              {t("settings.alias_feature_locked_upgrade_cta")}
+            </UpgradeBtn>
+          </>
         ) : (
           <>
             <div className="mb-3 flex items-center gap-0">

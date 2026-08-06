@@ -37,6 +37,20 @@ export function prompt_upgrade(
   });
 }
 
+export function is_alias_limit_error(response: {
+  error?: string | null;
+  server_code?: string | null;
+}): boolean {
+  return (
+    response.server_code === "PLAN_LIMIT_EXCEEDED" ||
+    /alias limit/i.test(response.error ?? "")
+  );
+}
+
+export function prompt_alias_limit_upgrade() {
+  show_plan_limit_upgrade({ resource: "aliases" });
+}
+
 export function PaidPill({ className = "" }: { className?: string }) {
   const { t } = use_i18n();
 

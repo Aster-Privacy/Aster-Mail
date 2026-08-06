@@ -52,6 +52,10 @@ import {
 } from "@/services/api/aliases";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
+  is_alias_limit_error,
+  prompt_alias_limit_upgrade,
+} from "@/components/settings/aliases/feature_lock";
+import {
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
@@ -423,6 +427,12 @@ export const MobileDrawer = memo(function MobileDrawer({
             if (r.data) set_can_create_alias(r.data.can_create);
           })
           .catch(() => {});
+      } else if (is_alias_limit_error(result)) {
+        set_alias_error("");
+        set_captcha_token(null);
+        set_show_create_alias(false);
+        set_can_create_alias(false);
+        prompt_alias_limit_upgrade();
       } else {
         set_alias_error(result.error || t("settings.alias_create_failed"));
         set_captcha_token(null);

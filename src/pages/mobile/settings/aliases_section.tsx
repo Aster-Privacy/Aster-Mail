@@ -45,6 +45,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
+import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
+import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
 import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purchase_modal";
@@ -345,6 +347,11 @@ export function AliasesSection({
         </div>
 
         <div className="px-4">
+          <UpgradeInlineCard
+            className="mb-3"
+            limit_key="max_email_aliases"
+            resource_label="aliases"
+          />
           <motion.button
             className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
             style={{
@@ -364,7 +371,7 @@ export function AliasesSection({
                 total_count >= max_count &&
                 !has_custom_domains
               ) {
-                hook.set_show_upgrade_modal(true);
+                prompt_alias_limit_upgrade();
               } else {
                 hook.set_show_create_alias_modal(true);
               }
@@ -1034,20 +1041,6 @@ export function AliasesSection({
         variant="danger"
       />
 
-      <ConfirmationModal
-        cancel_text={t("common.cancel")}
-        confirm_text={t("common.upgrade_plan")}
-        is_open={hook.show_upgrade_modal}
-        message={t("settings.upgrade_plan_more_aliases")}
-        on_cancel={() => hook.set_show_upgrade_modal(false)}
-        on_confirm={() => {
-          hook.set_show_upgrade_modal(false);
-          window.dispatchEvent(
-            new CustomEvent("navigate-settings", { detail: "billing" }),
-          );
-        }}
-        title={t("common.alias_limit_reached")}
-      />
     </div>
   );
 }

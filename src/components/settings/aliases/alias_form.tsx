@@ -30,6 +30,10 @@ import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  is_alias_limit_error,
+  prompt_alias_limit_upgrade,
+} from "@/components/settings/aliases/feature_lock";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
 import {
@@ -256,6 +260,12 @@ export function CreateAliasModal({
         );
 
         if (response.error) {
+          if (is_alias_limit_error(response)) {
+            on_close();
+            prompt_alias_limit_upgrade();
+
+            return;
+          }
           if (response.code === "CONFLICT") {
             set_is_available(false);
           } else {
@@ -590,11 +600,7 @@ export function CreateAliasModal({
             variant="depth"
             onClick={() => {
               on_close();
-              window.dispatchEvent(
-                new CustomEvent("navigate-settings", {
-                  detail: "billing",
-                }),
-              );
+              prompt_alias_limit_upgrade();
             }}
           >
             {t("common.upgrade_plan")}
