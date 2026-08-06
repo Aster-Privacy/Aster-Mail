@@ -39,6 +39,10 @@ import {
   renew_domain_order,
   type DomainOrder,
 } from "@/services/api/domains";
+import {
+  TurnstileWidget,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 import { Spinner } from "@/components/ui/spinner";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -148,6 +152,9 @@ export function AliasesSection() {
     string | null
   >(null);
   const [renew_errors, set_renew_errors] = useState<Record<string, string>>({});
+  const [renew_captcha_order_id, set_renew_captcha_order_id] = useState<
+    string | null
+  >(null);
   const [editing_alias_id, set_editing_alias_id] = useState<string | null>(
     null,
   );
@@ -278,7 +285,7 @@ export function AliasesSection() {
     }
   };
 
-  const handle_renew = async (order_id: string) => {
+  const handle_renew = async (order_id: string, captcha_token?: string) => {
     set_renewing_order_id(order_id);
     set_renew_errors((prev) => {
       const next = { ...prev };
@@ -288,7 +295,12 @@ export function AliasesSection() {
       return next;
     });
     try {
-      const response = await renew_domain_order(order_id, 1, "stripe");
+      const response = await renew_domain_order(
+        order_id,
+        1,
+        "stripe",
+        captcha_token,
+      );
 
       if (response.data?.checkout_url) {
         window.location.href = response.data.checkout_url;
@@ -310,6 +322,7 @@ export function AliasesSection() {
       }));
     } finally {
       set_renewing_order_id(null);
+      set_renew_captcha_order_id(null);
     }
   };
 
@@ -755,14 +768,30 @@ export function AliasesSection() {
                             {order.status === "complete" && (
                               <button
                                 className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
-                                disabled={renewing_order_id === order.id}
+                                disabled={
+                                  renewing_order_id === order.id ||
+                                  renew_captcha_order_id === order.id
+                                }
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  if (TURNSTILE_SITE_KEY) {
+                                    set_renew_errors((prev) => {
+                                      const next = { ...prev };
+
+                                      delete next[order.id];
+
+                                      return next;
+                                    });
+                                    set_renew_captcha_order_id(order.id);
+
+                                    return;
+                                  }
                                   handle_renew(order.id);
                                 }}
                               >
-                                {renewing_order_id === order.id && (
+                                {(renewing_order_id === order.id ||
+                                  renew_captcha_order_id === order.id) && (
                                   <Spinner size="xs" />
                                 )}
                                 {t("settings.domain_purchase_renew")}
@@ -800,6 +829,15 @@ export function AliasesSection() {
                             </span>
                           </span>
                         </div>
+                        {renew_captcha_order_id === order.id &&
+                          renewing_order_id !== order.id && (
+                            <TurnstileWidget
+                              class_name="flex justify-end pb-3 px-1"
+                              on_verify={(token) =>
+                                handle_renew(order.id, token)
+                              }
+                            />
+                          )}
                         {renew_errors[order.id] && (
                           <p className="text-xs text-[var(--color-danger)] px-1 pb-2">
                             {renew_errors[order.id]}
