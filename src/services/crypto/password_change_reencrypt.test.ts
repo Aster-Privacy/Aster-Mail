@@ -38,6 +38,7 @@ function key_material(passphrase: string): Uint8Array {
 vi.mock("./memory_key_store", () => ({
   derive_encryption_key_from_passphrase: async (passphrase: Uint8Array) =>
     key_material(new TextDecoder().decode(passphrase)),
+  get_or_create_derived_encryption_crypto_key: async () => null,
 }));
 
 vi.mock("../api/aliases", () => ({
@@ -75,6 +76,11 @@ vi.mock("../api/domains", () => ({
 }));
 
 import { re_encrypt_user_data } from "./password_change_reencrypt";
+import {
+  load_legacy_keks_into_memory,
+  clear_legacy_keks_from_memory,
+  serialize_kek_for_vault,
+} from "./legacy_keks";
 
 const OLD_PASSPHRASE = "current-passphrase";
 const NEW_PASSPHRASE = "replacement-passphrase";
@@ -145,6 +151,39 @@ async function alias_page(overrides: Record<string, unknown>) {
 describe("re_encrypt_user_data", () => {
   beforeEach(() => {
     mock_list_aliases.mockReset();
+    clear_legacy_keks_from_memory();
+  });
+
+  it("recovers an address sealed under an earlier password from the key vault", async () => {
+    const unreadable = await seal(ABANDONED_PASSPHRASE, "personal");
+
+    await load_legacy_keks_into_memory([
+      serialize_kek_for_vault(key_material(ABANDONED_PASSPHRASE)),
+    ]);
+
+    mock_list_aliases
+      .mockResolvedValueOnce({
+        data: {
+          aliases: [
+            {
+              id: "alias-1",
+              domain: "astermail.org",
+              is_random: false,
+              encrypted_local_part: unreadable.encrypted,
+              local_part_nonce: unreadable.nonce,
+            },
+          ],
+        },
+        error: undefined,
+      })
+      .mockResolvedValue({ data: { aliases: [] }, error: undefined });
+
+    const result = await re_encrypt_user_data(OLD_PASSPHRASE, NEW_PASSPHRASE);
+    const alias = result.re_encrypted_aliases[0];
+
+    expect(
+      await open(NEW_PASSPHRASE, alias.encrypted_local_part, alias.local_part_nonce),
+    ).toBe("personal");
   });
 
   it("does not block a password change on a note left under an abandoned key", async () => {

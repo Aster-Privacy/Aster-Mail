@@ -193,18 +193,28 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  width: 20px;
   height: 16px;
-  padding: 0 4px;
+  padding: 0;
   border-radius: 3px;
   border: 1px solid rgba(128, 128, 128, 0.25);
   background: rgba(128, 128, 128, 0.08);
   color: rgba(100, 100, 100, 0.7);
   cursor: pointer;
-  font-size: 8px;
-  letter-spacing: 1.5px;
+  font-size: 0;
   line-height: 1;
   vertical-align: middle;
   user-select: none;
+}
+
+.aster-quote-toggle::before {
+  content: "";
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: -4px 0 0 currentColor, 4px 0 0 currentColor;
 }
 
 .aster-quote-toggle:hover {

@@ -18,7 +18,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { derive_encryption_key_from_passphrase } from "./memory_key_store";
+import {
+  derive_encryption_key_from_passphrase,
+  get_or_create_derived_encryption_crypto_key,
+} from "./memory_key_store";
 import { list_aliases } from "../api/aliases";
 import { list_contacts } from "../api/contacts";
 import { list_alias_pins } from "../api/alias_pins";
@@ -26,6 +29,7 @@ import { list_alias_contacts } from "../api/alias_contacts";
 import { list_alias_destinations } from "../api/alias_destinations";
 import { list_alias_directories } from "../api/alias_directories";
 import { list_domains, list_domain_addresses } from "../api/domains";
+import { decrypt_aes_gcm_with_fallback } from "./legacy_keks";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -178,6 +182,12 @@ async function derive_domain_address_hmac_key(
   );
 }
 
+async function resolve_old_aes_key(old_passphrase: string): Promise<CryptoKey> {
+  const session_key = await get_or_create_derived_encryption_crypto_key();
+
+  return session_key ?? derive_aes_key(old_passphrase);
+}
+
 async function re_encrypt_field(
   encrypted_b64: string,
   nonce_b64: string,
@@ -186,10 +196,10 @@ async function re_encrypt_field(
 ): Promise<{ encrypted: string; nonce: string }> {
   const ciphertext = base64_to_array(encrypted_b64);
   const nonce = base64_to_array(nonce_b64);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
+  const decrypted = await decrypt_aes_gcm_with_fallback(
     old_key,
     ciphertext,
+    nonce,
   );
   const new_nonce = crypto.getRandomValues(new Uint8Array(12));
   const new_ciphertext = await crypto.subtle.encrypt(
@@ -236,7 +246,7 @@ export async function re_encrypt_user_data(
     new_contacts_hmac,
     new_domain_hmac,
   ] = await Promise.all([
-    derive_aes_key(old_passphrase),
+    resolve_old_aes_key(old_passphrase),
     derive_aes_key(new_passphrase),
     derive_alias_hmac_key(new_passphrase),
     derive_contacts_hmac_key(new_passphrase),
@@ -266,10 +276,10 @@ export async function re_encrypt_user_data(
       try {
         const lp_ciphertext = base64_to_array(alias.encrypted_local_part);
         const lp_nonce = base64_to_array(alias.local_part_nonce);
-        const lp_plaintext = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: lp_nonce },
+        const lp_plaintext = await decrypt_aes_gcm_with_fallback(
           old_aes,
           lp_ciphertext,
+          lp_nonce,
         );
         const local_part = new TextDecoder().decode(lp_plaintext);
         const new_lp_nonce = crypto.getRandomValues(new Uint8Array(12));
@@ -442,10 +452,10 @@ export async function re_encrypt_user_data(
       try {
         const ct_ciphertext = base64_to_array(contact.encrypted_data);
         const ct_nonce = base64_to_array(contact.data_nonce);
-        const ct_plaintext = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: ct_nonce },
+        const ct_plaintext = await decrypt_aes_gcm_with_fallback(
           old_aes,
           ct_ciphertext,
+          ct_nonce,
         );
         const new_ct_nonce = crypto.getRandomValues(new Uint8Array(12));
         const new_ct_ciphertext = await crypto.subtle.encrypt(
@@ -519,10 +529,10 @@ export async function re_encrypt_user_data(
         try {
           const lp_ciphertext = base64_to_array(address.encrypted_local_part);
           const lp_nonce = base64_to_array(address.local_part_nonce);
-          const lp_plaintext = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv: lp_nonce },
+          const lp_plaintext = await decrypt_aes_gcm_with_fallback(
             old_aes,
             lp_ciphertext,
+            lp_nonce,
           );
           const local_part = new TextDecoder().decode(lp_plaintext);
           const new_lp_nonce = crypto.getRandomValues(new Uint8Array(12));
