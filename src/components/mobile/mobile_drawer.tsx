@@ -70,6 +70,7 @@ import {
   LogoutConfirmWrapper,
 } from "@/components/mobile/mobile_drawer_sheets";
 import { DrawerNavContent } from "@/components/mobile/mobile_drawer_nav";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 interface MobileDrawerProps {
   is_open: boolean;
@@ -603,7 +604,7 @@ export const MobileDrawer = memo(function MobileDrawer({
                 alt="Aster"
                 className="h-full w-full select-none rounded-xl"
                 draggable={false}
-                src="/mail_logo.webp"
+                src={mail_logo_url}
               />
             </div>
             <div className="min-w-0 flex-1">

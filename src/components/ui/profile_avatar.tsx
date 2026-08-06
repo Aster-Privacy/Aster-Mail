@@ -37,6 +37,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { is_aster_email } from "@/services/api/profiles";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 import { Skeleton } from "./skeleton";
 
@@ -192,7 +193,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const actual_src = useMemo(() => {
     if (low_network) return null;
     if (resolved_image_url && !image_error) return resolved_image_url;
-    if (is_aster_mail) return "/mail_logo.webp";
+    if (is_aster_mail) return mail_logo_url;
     if (ddg_logo_url && !ddg_logo_error) return ddg_logo_url;
 
     return null;
@@ -226,6 +227,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       actual_src?.includes("/api/images/v1/favicon/") ||
       actual_src?.includes("/proxy?url=")) ??
     false;
+
+  const is_local_logo_source = actual_src === mail_logo_url;
 
   const profile_hex =
     profile_color ||
@@ -362,10 +365,12 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       <img
         alt={name}
         className={`w-full h-full ${is_favicon_source ? "object-contain" : "object-cover"}`}
-        crossOrigin={is_favicon_source ? undefined : "anonymous"}
+        crossOrigin={
+          is_favicon_source || is_local_logo_source ? undefined : "anonymous"
+        }
         decoding="async"
         draggable={false}
-        fetchPriority="low"
+        fetchPriority={is_local_logo_source ? "high" : "low"}
         referrerPolicy="no-referrer"
         src={actual_src}
         style={

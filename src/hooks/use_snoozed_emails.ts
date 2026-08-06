@@ -63,6 +63,7 @@ import {
   format_email_list_timestamp,
   type FormatOptions,
 } from "@/utils/date_format";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -314,7 +315,7 @@ function mail_to_email(
     has_attachment: effective_metadata.has_attachments,
     category: "",
     category_color: "",
-    avatar_url: is_aster_sender ? "/mail_logo.webp" : "",
+    avatar_url: is_aster_sender ? mail_logo_url : "",
     is_encrypted: false,
     folders,
     snoozed_until,

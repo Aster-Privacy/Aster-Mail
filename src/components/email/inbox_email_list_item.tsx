@@ -75,6 +75,7 @@ import {
   empty_selection_snapshot,
   type SelectionSnapshot,
 } from "@/components/email/inbox/selection_snapshot";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   email: InboxEmail;
@@ -489,8 +490,10 @@ export const InboxEmailListItem = memo(
                           "rounded-full object-cover",
                           avatar_size_class,
                         )}
+                        decoding="async"
                         draggable={false}
-                        src="/mail_logo.webp"
+                        fetchPriority="high"
+                        src={mail_logo_url}
                       />
                     ) : (
                       <ProfileAvatar

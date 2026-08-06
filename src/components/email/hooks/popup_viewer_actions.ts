@@ -52,6 +52,7 @@ import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 export interface PopupActionsDeps {
   email_id: string | null;
@@ -374,7 +375,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         deps.email.sender,
         deps.email.sender_email,
       )
-        ? "/mail_logo.webp"
+        ? mail_logo_url
         : "",
       ...(is_forwarded
         ? {
@@ -417,7 +418,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         deps.email.sender,
         deps.email.sender_email,
       )
-        ? "/mail_logo.webp"
+        ? mail_logo_url
         : "",
       email_subject: deps.email.subject,
       email_body: deps.email.body,

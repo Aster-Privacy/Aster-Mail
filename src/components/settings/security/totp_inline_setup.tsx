@@ -36,6 +36,7 @@ import {
   TotpSetupInitiateResponse,
 } from "@/services/api/totp";
 import { use_i18n } from "@/lib/i18n/context";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 interface TotpInlineSetupProps {
   on_success: () => void;
@@ -162,7 +163,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
         ) : setup_data ? (
           <div className="flex flex-col lg:flex-row gap-3 lg:items-start min-w-0">
             <div className="flex-shrink-0 flex justify-center">
-              <RoundedQrCode logo_src="/mail_logo.webp" size={210} value={setup_data.otpauth_uri} />
+              <RoundedQrCode logo_src={mail_logo_url} size={210} value={setup_data.otpauth_uri} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-txt-secondary">

@@ -77,6 +77,7 @@ import { set_forward_mail_id } from "@/services/forward_store";
 import { add_alias_pin } from "@/services/api/alias_pins";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -245,7 +246,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.on_forward({
       sender_name: deps.email.sender,
       sender_email: deps.email.sender_email,
-      sender_avatar: "/mail_logo.webp",
+      sender_avatar: mail_logo_url,
       email_subject: deps.email.subject,
       email_body: deps.email.body,
       email_timestamp: deps.email.timestamp,

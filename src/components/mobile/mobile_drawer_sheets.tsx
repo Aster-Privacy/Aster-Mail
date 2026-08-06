@@ -47,6 +47,7 @@ import {
   TurnstileWidget,
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 interface AccountMenuSheetProps {
   is_open: boolean;
@@ -80,7 +81,7 @@ export function AccountMenuSheet({
               alt="Aster"
               className="h-full w-full select-none rounded-lg"
               draggable={false}
-              src="/mail_logo.webp"
+              src={mail_logo_url}
             />
           </div>
           <div className="min-w-0 flex-1">

@@ -47,6 +47,7 @@ import {
 } from "@/services/api/totp";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 interface TotpSetupModalProps {
   is_open: boolean;
@@ -212,7 +213,7 @@ export function TotpSetupModal({
           <div className="space-y-5">
             <div className="flex justify-center">
               <RoundedQrCode
-                logo_src="/mail_logo.webp"
+                logo_src={mail_logo_url}
                 size={240}
                 value={setup_data.otpauth_uri}
               />
