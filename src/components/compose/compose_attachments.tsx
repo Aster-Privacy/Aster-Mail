@@ -129,7 +129,12 @@ export function ComposeAttachments({
 }: ComposeAttachmentsProps) {
   const { t } = use_i18n();
 
-  if (compose.attachments.length === 0) return null;
+  if (
+    compose.attachments.length === 0 &&
+    !compose.is_loading_forward_attachments
+  ) {
+    return null;
+  }
 
   return (
     <div
@@ -143,6 +148,11 @@ export function ComposeAttachments({
           on_remove={compose.remove_attachment}
         />
       ))}
+      {compose.is_loading_forward_attachments && (
+        <div className="px-2 py-1 text-[11px] text-txt-tertiary">
+          {t("mail.attaching_original_files")}
+        </div>
+      )}
       {show_add_button && (
         <button
           className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary border border-dashed border-edge-primary rounded hover:border-edge-secondary transition-colors mt-0.5"

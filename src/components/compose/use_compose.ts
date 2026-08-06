@@ -65,6 +65,7 @@ import {
   resolve_cid_references,
 } from "@/lib/cid_resolver";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { load_forward_attachments } from "@/services/forward_attachments";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   type Attachment,
@@ -117,6 +118,7 @@ export interface UseComposeReturn {
   restore_error: string | null;
   attachment_error: string | null;
   set_attachment_error: (val: string | null) => void;
+  is_loading_forward_attachments: boolean;
   scheduled_time: Date | null;
   set_scheduled_time: (val: Date | null) => void;
   is_scheduling: boolean;
@@ -230,6 +232,8 @@ export function use_compose({
   const [message, set_message] = useState("");
 
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
+  const [is_loading_forward_attachments, set_is_loading_forward_attachments] =
+    useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
   const [badges_loaded, set_badges_loaded] = useState(false);
   const my_badge_prefs = use_my_badge_prefs();
@@ -536,6 +540,47 @@ export function use_compose({
       draft_hook.set_draft_status("saved");
       draft_hook.set_last_saved_time(new Date(edit_draft.updated_at));
 
+      const forward_source_id =
+        edit_draft.id === "" && edit_draft.draft_type === "forward"
+          ? edit_draft.forward_from_id
+          : undefined;
+
+      if (forward_source_id) {
+        const attachments_token = inject_token_ref.current;
+
+        set_is_loading_forward_attachments(true);
+        load_forward_attachments(forward_source_id, {
+          body_html: edit_draft.message,
+          is_cancelled: () =>
+            inject_token_ref.current !== attachments_token,
+        })
+          .then((carried) => {
+            if (inject_token_ref.current !== attachments_token) return;
+            if (carried.length === 0) return;
+
+            attachment_hook.set_attachments((prev) => {
+              const seen = new Set(
+                prev.map((a) => `${a.name}:${a.size_bytes}`),
+              );
+
+              return [
+                ...prev,
+                ...carried.filter(
+                  (a) => !seen.has(`${a.name}:${a.size_bytes}`),
+                ),
+              ];
+            });
+          })
+          .catch(() => {})
+          .finally(() => {
+            if (inject_token_ref.current === attachments_token) {
+              set_is_loading_forward_attachments(false);
+            }
+          });
+      } else {
+        set_is_loading_forward_attachments(false);
+      }
+
       setTimeout(() => {
         if (message_textarea_ref.current && edit_draft.message) {
           draft_hook.just_loaded_draft_ref.current = true;
@@ -561,6 +606,7 @@ export function use_compose({
     } else {
       draft_context_id_ref.current = draft_manager.create_context("new");
       content_initialized_ref.current = false;
+      set_is_loading_forward_attachments(false);
 
       if (initial_to) {
         const emails = initial_to
@@ -843,6 +889,7 @@ export function use_compose({
     restore_error: send_hook.restore_error,
     attachment_error: attachment_hook.attachment_error,
     set_attachment_error: attachment_hook.set_attachment_error,
+    is_loading_forward_attachments,
     scheduled_time,
     set_scheduled_time,
     is_scheduling,

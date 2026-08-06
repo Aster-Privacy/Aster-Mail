@@ -454,11 +454,17 @@ function MobileComposePage({
           />
         </div>
 
-        {compose.attachments.length > 0 && (
+        {(compose.attachments.length > 0 ||
+          compose.is_loading_forward_attachments) && (
           <div
             ref={compose.attachments_scroll_ref}
             className="flex gap-2 overflow-x-auto border-t border-[var(--border-primary)] px-4 py-2"
           >
+            {compose.is_loading_forward_attachments && (
+              <span className="shrink-0 self-center text-[13px] text-[var(--text-muted)]">
+                {t("mail.attaching_original_files")}
+              </span>
+            )}
             {compose.attachments.map((att) => (
               <div
                 key={att.id}
