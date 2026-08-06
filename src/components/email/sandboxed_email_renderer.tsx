@@ -192,6 +192,22 @@ export function link_ink_for(value: string): string {
   return hex;
 }
 
+export function link_hover_ink_for(value: string, is_dark: boolean): string {
+  const hex = expand_hex(safe_hex(value));
+  const n = Number.parseInt(hex.slice(1), 16);
+
+  if (!Number.isFinite(n)) return FALLBACK_ACCENT;
+
+  const target = is_dark ? 255 : 0;
+  const mix = is_dark ? 0.42 : 0.38;
+  const to_hex = (channel: number) =>
+    Math.round(channel + (target - channel) * mix)
+      .toString(16)
+      .padStart(2, "0");
+
+  return `#${to_hex((n >> 16) & 255)}${to_hex((n >> 8) & 255)}${to_hex(n & 255)}`;
+}
+
 export const FIT_SLACK_PX = 4;
 const MIN_FIT_ZOOM = 0.35;
 
@@ -525,6 +541,7 @@ export function SandboxedEmailRenderer({
   const accent_hex = safe_hex(preferences.accent_color);
   const accent_hover_hex = safe_hex(preferences.accent_color_hover, accent_hex);
   const link_hover_ink = link_ink_for(is_dark_theme ? accent_hover_hex : accent_hex);
+  const link_hover_paint = link_hover_ink_for(link_hover_ink, is_dark_theme);
 
   const link_underline_css = preferences.link_underlines
     ? `a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { text-decoration: underline !important; text-decoration-color: ${link_hover_ink} !important; text-underline-offset: 2px; }`
@@ -533,9 +550,9 @@ export function SandboxedEmailRenderer({
   const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
   const link_hover_css = `a { transition: none; }
 a${LINK_BUTTON_EXCLUDE}:hover, a${LINK_BUTTON_EXCLUDE}:hover *${LINK_MEDIA_EXCLUDE} {
-  color: ${link_hover_ink} !important;
+  color: ${link_hover_paint} !important;
   text-decoration: underline !important;
-  text-decoration-color: ${link_hover_ink} !important;
+  text-decoration-color: ${link_hover_paint} !important;
 }
 ${LINK_BUTTON_HOVER_SELECTOR} {
   filter: brightness(1.08);

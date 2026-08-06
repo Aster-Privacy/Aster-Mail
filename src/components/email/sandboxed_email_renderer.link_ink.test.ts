@@ -35,7 +35,20 @@ vi.mock("@/services/routing/connection_store", () => ({
   connection_store: { get_method: () => "direct", get_api_onion_url: () => null },
 }));
 
-const { link_ink_for } = await import("./sandboxed_email_renderer");
+const { link_ink_for, link_hover_ink_for } = await import(
+  "./sandboxed_email_renderer"
+);
+
+function relative_luminance(hex: string): number {
+  const n = Number.parseInt(hex.slice(1), 16);
+
+  return (
+    (0.2126 * ((n >> 16) & 255) +
+      0.7152 * ((n >> 8) & 255) +
+      0.0722 * (n & 255)) /
+    255
+  );
+}
 
 const BLUE = "#3b82f6";
 
@@ -63,5 +76,32 @@ describe("link_ink_for", () => {
   it("expands shorthand hex", () => {
     expect(link_ink_for("#0f0")).toBe("#00ff00");
     expect(link_ink_for("#fff")).toBe(BLUE);
+  });
+});
+
+describe("link_hover_ink_for", () => {
+  it("differs from the resting link color in both themes", () => {
+    expect(link_hover_ink_for(BLUE, true)).not.toBe(BLUE);
+    expect(link_hover_ink_for(BLUE, false)).not.toBe(BLUE);
+  });
+
+  it("brightens in dark mode and darkens in light mode", () => {
+    expect(relative_luminance(link_hover_ink_for(BLUE, true))).toBeGreaterThan(
+      relative_luminance(BLUE),
+    );
+    expect(relative_luminance(link_hover_ink_for(BLUE, false))).toBeLessThan(
+      relative_luminance(BLUE),
+    );
+  });
+
+  it("tracks the accent instead of a fixed hue", () => {
+    expect(link_hover_ink_for("#e11d48", true)).not.toBe(
+      link_hover_ink_for(BLUE, true),
+    );
+  });
+
+  it("returns a valid six digit hex", () => {
+    expect(link_hover_ink_for("#0f0", true)).toMatch(/^#[0-9a-f]{6}$/);
+    expect(link_hover_ink_for("garbage", false)).toMatch(/^#[0-9a-f]{6}$/);
   });
 });

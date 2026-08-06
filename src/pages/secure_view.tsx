@@ -58,6 +58,7 @@ const SECURE_BODY_CSS =
 html { color-scheme: dark !important; background: transparent !important; }
 body { background: transparent !important; padding: 16px 18px !important; color: #e5e7eb !important; }
 a { color: #93c5fd !important; }
+a:hover { color: #dbeafe !important; }
 .aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
 `;
 
