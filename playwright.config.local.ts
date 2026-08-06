@@ -9,7 +9,7 @@ export default defineConfig({
     "tests/alias_features_local.spec.ts",
     "tests/never_inbox_local.spec.ts",
     "tests/alias_delivery_label_local.spec.ts",
-    "tests/create_test_account.spec.ts",
+    "tests/alias_rule_sync_local.spec.ts",
     "_blog_preview.spec.ts",
     "_blog_2fa_screenshot.spec.ts",
   ],
