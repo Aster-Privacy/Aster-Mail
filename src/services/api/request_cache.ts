@@ -101,10 +101,13 @@ export class RequestCache {
   }
 
   invalidate(pattern?: string | RegExp): number {
+    this.generation++;
+
     if (!pattern) {
       const count = this.response_cache.size;
 
       this.response_cache.clear();
+      this.in_flight.clear();
 
       return count;
     }
@@ -112,16 +115,23 @@ export class RequestCache {
     let count = 0;
 
     for (const key of [...this.response_cache.keys()]) {
-      const matches =
-        typeof pattern === "string" ? key.includes(pattern) : pattern.test(key);
-
-      if (matches) {
+      if (this.key_matches(key, pattern)) {
         this.response_cache.delete(key);
         count++;
       }
     }
 
+    for (const key of [...this.in_flight.keys()]) {
+      if (this.key_matches(key, pattern)) {
+        this.in_flight.delete(key);
+      }
+    }
+
     return count;
+  }
+
+  private key_matches(key: string, pattern: string | RegExp): boolean {
+    return typeof pattern === "string" ? key.includes(pattern) : pattern.test(key);
   }
 
   invalidate_for_mutation(endpoint: string): void {

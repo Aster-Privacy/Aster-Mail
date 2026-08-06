@@ -542,8 +542,8 @@ export function use_category_inbox(
         }
 
         const received_only = fetched.filter(belongs_in_inbox).map((email) => {
-          if (!email.is_read && is_recently_read(email.id)) {
-            return { ...email, is_read: true };
+          if (is_recently_read(email.id)) {
+            return email.is_read ? email : { ...email, is_read: true };
           }
 
           return email.is_read && is_representative_unread(email.id)

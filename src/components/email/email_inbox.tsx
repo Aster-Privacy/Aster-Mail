@@ -130,6 +130,7 @@ import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigat
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { prewarm_search_index } from "@/hooks/use_search";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 export type {
   ReplyData,
@@ -600,7 +601,7 @@ export function EmailInbox({
         on_forward({
           sender_name: email.sender_name,
           sender_email: email.sender_email,
-          sender_avatar: email.avatar_url || "/mail_logo.webp",
+          sender_avatar: email.avatar_url || mail_logo_url,
           email_subject: email.subject,
           email_body: safe_body,
           email_timestamp: email.timestamp,
@@ -965,10 +966,7 @@ export function EmailInbox({
         ? filtered_emails.length
         : Math.max(
             0,
-            email_state.has_initial_load &&
-              !email_state.is_loading &&
-              !email_state.has_load_error &&
-              email_state.total_messages > 0
+            !email_state.has_load_error && email_state.total_messages > 0
               ? email_state.total_messages
               : stats_total_for_view || 0,
           );

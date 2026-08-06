@@ -216,17 +216,23 @@ export function use_inbox_selection({
   );
 
   const handle_toggle_select_all = useCallback((): void => {
-    const page_id_set = new Set(page_emails.map((e) => e.id));
-    const all_page_selected =
-      page_emails.length > 0 && page_emails.every((e) => e.is_selected);
     const update_fn = get_update_fn();
+    const has_selection = emails.some((e) => e.is_selected);
 
     set_select_all_mode(false);
 
-    emails.forEach((e) => {
-      if (page_id_set.has(e.id)) {
-        update_fn(e.id, { is_selected: !all_page_selected });
-      }
+    if (has_selection) {
+      emails.forEach((e) => {
+        if (e.is_selected) {
+          update_fn(e.id, { is_selected: false });
+        }
+      });
+
+      return;
+    }
+
+    page_emails.forEach((e) => {
+      update_fn(e.id, { is_selected: true });
     });
   }, [page_emails, emails, get_update_fn]);
 

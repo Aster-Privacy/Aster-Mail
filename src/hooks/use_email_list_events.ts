@@ -191,6 +191,8 @@ export function use_email_list_events({
 
     const handle_soft_refresh = () => {
       if (has_keys && has_passphrase_in_memory()) {
+        request_cache.invalidate("GET:/mail/v1/messages");
+        mark_view_stale();
         if (debounce_timer) {
           clearTimeout(debounce_timer);
         }
@@ -323,6 +325,8 @@ export function use_email_list_events({
     let refetch_timer: ReturnType<typeof setTimeout> | null = null;
 
     const schedule_silent_refetch = () => {
+      request_cache.invalidate("GET:/mail/v1/messages");
+      mark_view_stale();
       if (refetch_timer) clearTimeout(refetch_timer);
       refetch_timer = setTimeout(() => {
         refetch_timer = null;

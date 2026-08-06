@@ -163,6 +163,32 @@ describe("use_inbox_selection select-all across pages", () => {
       hook.handle_toggle_select_all();
     });
 
+    expect(hook.selected_count).toBe(0);
+
+    await act(async () => {
+      hook.handle_toggle_select_all();
+    });
+
     expect(hook.selected_count).toBe(4);
+  });
+
+  it("clears a partial selection instead of extending it", async () => {
+    await act(async () => {
+      root.render(createElement(FolderHarness));
+    });
+
+    await act(async () => {
+      hook.handle_select_only("a");
+    });
+
+    expect(hook.selected_count).toBe(1);
+    expect(hook.some_selected).toBe(true);
+    expect(hook.all_selected).toBe(false);
+
+    await act(async () => {
+      hook.handle_toggle_select_all();
+    });
+
+    expect(hook.selected_count).toBe(0);
   });
 });

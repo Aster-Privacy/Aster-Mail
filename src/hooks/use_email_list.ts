@@ -213,7 +213,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       const cached_page = page_cache_ref.current.get(page);
 
-      if (cached_page && now - cached_page.time < PAGE_CACHE_TTL_MS) {
+      if (!force && cached_page && now - cached_page.time < PAGE_CACHE_TTL_MS) {
         last_fetch_ref.current = { view: current_view, page, time: now };
         page_ref.current = page;
         windowed_page_ref.current = true;
@@ -528,14 +528,14 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     page_cache_ref.current.clear();
     page_offset_ref.current.clear();
     request_cache.invalidate("GET:/mail/v1/messages");
-    set_state({
+    set_state((prev) => ({
       emails: [],
       is_loading: true,
       is_loading_more: false,
-      total_messages: 0,
+      total_messages: prev.total_messages,
       has_more: false,
       has_initial_load: false,
-    });
+    }));
     fetch_page_ref.current?.(0, page_size);
   }, [page_size]);
 
@@ -852,6 +852,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
   const update_email = useCallback(
     (id: string, updates: Partial<InboxEmail>): void => {
+      page_cache_ref.current.clear();
       set_state((prev) => ({
         ...prev,
         emails: prev.emails.map((e) =>
