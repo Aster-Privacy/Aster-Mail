@@ -108,7 +108,7 @@ export function BillingSection() {
     useState<StorageAddonItem | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("monthly");
+  >("yearly");
   const [, set_plan_limits] = useState<PlanLimitsResponse | null>(null);
   const [show_switch_billing_dialog, set_show_switch_billing_dialog] =
     useState(false);

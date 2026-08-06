@@ -251,7 +251,7 @@ export function BillingSection({
   const [preferred_currency] = useState(detect_currency_from_locale);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("monthly");
+  >("yearly");
   const [referral_info, set_referral_info] = useState<ReferralInfo | null>(
     null,
   );
