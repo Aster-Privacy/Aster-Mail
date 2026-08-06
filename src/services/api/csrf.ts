@@ -42,17 +42,15 @@ function parse_csrf_token_timestamp(token: string): number {
 }
 
 export function get_csrf_token_from_cookie(): string | null {
-  if (cached_csrf_token) {
-    return cached_csrf_token;
-  }
-
   if (typeof document === "undefined") {
     return cached_csrf_token;
   }
 
   const cookies = document.cookie.split(";");
-  let newest_token: string | null = null;
-  let newest_timestamp = -1;
+  let newest_token: string | null = cached_csrf_token;
+  let newest_timestamp = cached_csrf_token
+    ? parse_csrf_token_timestamp(cached_csrf_token)
+    : -1;
 
   for (const cookie of cookies) {
     const trimmed = cookie.trim();

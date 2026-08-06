@@ -38,6 +38,7 @@ interface BatchProfilesResponse {
 const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const BATCH_WINDOW_MS = 40;
+const FAILED_LOOKUP_TTL_MS = 10 * 1000;
 const MAX_BATCH = 50;
 
 interface CacheEntry {
@@ -72,10 +73,14 @@ export function get_cached_peer_profile(email: string): PublicProfile | null | u
   return entry.profile;
 }
 
-function set_cache(email: string, profile: PublicProfile | null) {
+function set_cache(
+  email: string,
+  profile: PublicProfile | null,
+  ttl_ms: number = CACHE_TTL_MS,
+) {
   cache.set(email, {
     profile,
-    expires_at: Date.now() + CACHE_TTL_MS,
+    expires_at: Date.now() + ttl_ms,
   });
 }
 
@@ -101,9 +106,14 @@ async function flush_pending() {
       { emails },
     );
     const profiles = response.data?.profiles ?? {};
+    const lookup_failed = !response.data;
     for (const email of emails) {
       const profile = profiles[email] ?? null;
-      set_cache(email, profile);
+      set_cache(
+        email,
+        profile,
+        lookup_failed ? FAILED_LOOKUP_TTL_MS : CACHE_TTL_MS,
+      );
       const resolvers = resolvers_by_email.get(email);
       if (resolvers) {
         for (const r of resolvers) r.resolve(profile);
@@ -112,7 +122,7 @@ async function flush_pending() {
     notify_subscribers();
   } catch {
     for (const email of emails) {
-      set_cache(email, null);
+      set_cache(email, null, FAILED_LOOKUP_TTL_MS);
       const resolvers = resolvers_by_email.get(email);
       if (resolvers) {
         for (const r of resolvers) r.resolve(null);

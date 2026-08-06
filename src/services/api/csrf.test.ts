@@ -71,6 +71,16 @@ describe("get_csrf_token_from_cookie", () => {
     expect(get_csrf_token_from_cookie()).toBe(fresh);
   });
 
+  it("adopts a rotated cookie over an older cached token", () => {
+    const before_rotation = "session-a:1000000000.old_sig";
+    const after_rotation = "session-a:2000000000.new_sig";
+
+    set_csrf_token(before_rotation);
+    set_document_cookie(`csrf_token=${after_rotation}`);
+
+    expect(get_csrf_token_from_cookie()).toBe(after_rotation);
+  });
+
   it("keeps returning unparseable tokens unchanged", () => {
     set_document_cookie("csrf_token=opaque_value");
     expect(get_csrf_token_from_cookie()).toBe("opaque_value");

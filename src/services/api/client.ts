@@ -1384,6 +1384,18 @@ class ApiClient {
     const method = options.method || "GET";
 
     if (is_state_changing_method(method)) {
+      if (
+        this.refresh_promise &&
+        !skip_session_refresh &&
+        !endpoint.includes("/auth/refresh") &&
+        !endpoint.includes("/auth/login") &&
+        !endpoint.includes("/auth/register") &&
+        !endpoint.includes("/auth/logout") &&
+        !endpoint.includes("/auth/clear-session")
+      ) {
+        await this.refresh_promise.catch(() => undefined);
+      }
+
       let csrf_token = get_csrf_token_from_cookie();
 
       if (!csrf_token) {
