@@ -50,6 +50,7 @@ const API_BASE_URL =
     ? NATIVE_API_URL
     : import.meta.env.VITE_API_URL || "/api";
 
+const ACCOUNTS_ROSTER_KEY = "astermail_accounts_v6";
 const REFRESH_INTERVAL_MINUTES = 10;
 const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
 const WRITE_DEAD_REFRESH_DENIALS = 8;
@@ -452,6 +453,53 @@ class ApiClient {
     } catch {}
   }
 
+  private async recover_session_from_refresh_cookie(): Promise<boolean> {
+    if (Capacitor.isNativePlatform() || is_tauri_env()) {
+      return false;
+    }
+
+    try {
+      if (localStorage.getItem(ACCOUNTS_ROSTER_KEY) === null) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+
+    try {
+      const body: { expected_user_id?: string } = {};
+
+      if (this.expected_user_id) {
+        body.expected_user_id = this.expected_user_id;
+      }
+
+      const response = await this.post<{
+        csrf_token: string;
+        access_token?: string;
+        refresh_token?: string;
+      }>("/core/v1/auth/refresh", body, { skip_session_refresh: true });
+
+      if (!response.data?.csrf_token) {
+        return false;
+      }
+
+      clear_csrf_cache();
+      this.set_csrf(response.data.csrf_token);
+      this.last_refresh_timestamp = Date.now();
+
+      if (response.data.access_token) {
+        this.set_dev_token(
+          response.data.access_token,
+          response.data.refresh_token,
+        );
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async verify_initial_auth(): Promise<boolean> {
     if (this.initial_auth_verified) {
       return this.is_authenticated_flag;
@@ -474,9 +522,13 @@ class ApiClient {
     const has_stored_token = !!this.dev_access_token;
 
     if (!csrf_token && !has_stored_token) {
-      this.initial_auth_verified = true;
+      const recovered = await this.recover_session_from_refresh_cookie();
 
-      return false;
+      if (!recovered) {
+        this.initial_auth_verified = true;
+
+        return false;
+      }
     }
 
     this.is_authenticated_flag = true;
@@ -712,9 +764,16 @@ class ApiClient {
 
     for (let attempt = 0; attempt < max_retries; attempt++) {
       try {
-        const body = stored_refresh_token
-          ? { refresh_token: stored_refresh_token }
-          : {};
+        const scoped_user_id = this.account_add_in_progress
+          ? null
+          : this.expected_user_id;
+        const body: {
+          refresh_token?: string;
+          expected_user_id?: string;
+        } = {};
+
+        if (stored_refresh_token) body.refresh_token = stored_refresh_token;
+        if (scoped_user_id) body.expected_user_id = scoped_user_id;
         const response = await this.post<{
           csrf_token: string;
           access_token?: string;
@@ -1001,8 +1060,11 @@ class ApiClient {
           }>(
             "/core/v1/auth/refresh",
             this.active_refresh_token
-              ? { refresh_token: this.active_refresh_token }
-              : {},
+              ? {
+                  refresh_token: this.active_refresh_token,
+                  expected_user_id: account_id,
+                }
+              : { expected_user_id: account_id },
             { skip_session_refresh: true },
           );
 

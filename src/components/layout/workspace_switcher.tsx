@@ -42,6 +42,8 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_file_picker_open } from "@/hooks/use_profile_picture_upload";
 import { get_all_accounts } from "@/services/account_manager";
+import { api_client } from "@/services/api/client";
+import { has_stored_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
@@ -103,6 +105,7 @@ export function WorkspaceSwitcher({
   const current_display_name =
     user?.display_name || user?.username || current_user_email.split("@")[0];
 
+  const token_backed_sessions = api_client.can_persist_session();
   const [plan_flags, set_plan_flags] = useState<Record<string, boolean>>({});
   const popover_ref = useRef<HTMLDivElement>(null);
 
@@ -319,24 +322,21 @@ export function WorkspaceSwitcher({
                     `${time_greeting}${t("auth.greeting_comma")}`}
                 </span>
                 <span className="flex items-center gap-1.5 min-w-0">
+                  {is_official_sender(current_user_email) && (
+                    <img
+                      alt={t("mail.official_sender")}
+                      className="block h-4 w-4 flex-shrink-0"
+                      draggable={false}
+                      src="/official_badge.webp"
+                      title={t("mail.official_sender")}
+                    />
+                  )}
                   <span
                     className="text-[15px] font-semibold leading-tight truncate"
                     style={{ color: "var(--text-primary)" }}
                   >
                     {current_display_name}
                   </span>
-                  {is_official_sender(current_user_email) && (
-                    <span
-                      className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-                      style={{
-                        backgroundColor:
-                          "color-mix(in srgb, var(--accent-color) 18%, transparent)",
-                        color: "var(--accent-color)",
-                      }}
-                    >
-                      {t("auth.official_account")}
-                    </span>
-                  )}
                 </span>
                 <button
                   className="text-[12px] leading-tight truncate text-left transition-colors hover:text-[var(--text-secondary)]"
@@ -416,7 +416,9 @@ export function WorkspaceSwitcher({
                     acc.user.display_name ||
                     acc.user.username ||
                     acc.user.email.split("@")[0];
-                  const needs_sign_in = !acc.refresh_token;
+                  const needs_sign_in = token_backed_sessions
+                    ? !acc.refresh_token
+                    : !has_stored_session_passphrase(acc.id);
 
                   return (
                     <a

@@ -118,6 +118,32 @@ export async function store_session_passphrase(
   );
 }
 
+export function has_stored_session_passphrase(account_id: string): boolean {
+  try {
+    if (check_session_expired(account_id)) {
+      return false;
+    }
+
+    const has_current =
+      localStorage.getItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !==
+        null &&
+      localStorage.getItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !==
+        null;
+
+    const has_legacy =
+      localStorage.getItem(
+        LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id,
+      ) !== null &&
+      localStorage.getItem(
+        LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
+      ) !== null;
+
+    return has_current || has_legacy;
+  } catch {
+    return true;
+  }
+}
+
 export async function get_session_passphrase(
   account_id: string,
 ): Promise<string | null> {

@@ -196,6 +196,82 @@ export function AuthProvider({ children }: AuthProviderProps) {
     stop_session_timeout();
     clear_vault_from_memory();
 
+    let all_accounts: Awaited<ReturnType<typeof get_all_accounts>> = [];
+    let affected: Awaited<ReturnType<typeof get_current_account>> = null;
+
+    try {
+      all_accounts = await get_all_accounts();
+      affected = await get_current_account();
+    } catch (e) {
+      safe_log_error(e);
+    }
+
+    if (all_accounts.length > 1 && affected) {
+      try {
+        await clear_account_scoped_caches();
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      try {
+        await delete_category_index_for_account(affected.id);
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      clear_stored_encrypted_vault(affected.id);
+      clear_session_timeout_data(affected.id);
+      clear_session_unlock(affected.id);
+      clear_app_lock_config(affected.id);
+
+      try {
+        await clear_session_passphrase(affected.id);
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      try {
+        await update_account_tokens(affected.id, null, null);
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      api_client.clear_dev_token();
+      api_client.clear_in_memory_token();
+
+      try {
+        await api_client.clear_session_cookies();
+      } catch (e) {
+        safe_log_error(e);
+      }
+
+      api_client.set_expected_user_id(null);
+      api_client.set_authenticated(false);
+      set_is_adding_account(true);
+
+      set_state((prev) => ({
+        ...prev,
+        user: null,
+        is_loading: false,
+        is_authenticated: false,
+        has_keys: false,
+        accounts: all_accounts,
+        current_account_id: affected.id,
+      }));
+
+      show_toast(t("errors.session_identity_mismatch"), "error");
+
+      const local = affected.user.email.split("@")[0] ?? "";
+
+      navigate(
+        local
+          ? `/sign-in?u=${encodeURIComponent(local)}&reason=session_expired`
+          : "/sign-in",
+      );
+
+      return;
+    }
+
     try {
       await purge_all_local_data();
     } catch (e) {
@@ -222,7 +298,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     show_toast(t("errors.session_identity_mismatch"), "error");
     hard_redirect("/sign-in");
-  }, [t]);
+  }, [t, navigate, set_is_adding_account]);
 
   useEffect(() => {
     const init = async () => {
