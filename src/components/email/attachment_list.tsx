@@ -40,6 +40,10 @@ import {
   decrypt_attachment_data,
   download_decrypted_attachment,
 } from "@/services/crypto/attachment_crypto";
+import {
+  get_cached_attachment_meta,
+  type CachedAttachmentMeta,
+} from "@/services/attachment_meta_cache";
 import { format_bytes } from "@/lib/utils";
 import {
   get_type_label,
@@ -61,6 +65,73 @@ interface DecryptedAttachmentInfo {
   encrypted_meta: string;
   meta_nonce: string;
   preview_url?: string;
+}
+
+interface InlineAttachmentFilter {
+  inline_cids?: Set<string>;
+  inline_filenames?: Set<string>;
+}
+
+function is_inline_attachment(
+  meta: {
+    filename: string;
+    content_type: string;
+    content_id?: string;
+    is_inline?: boolean;
+  },
+  filter: InlineAttachmentFilter,
+): boolean {
+  const is_cid_match =
+    !!meta.content_id &&
+    !!filter.inline_cids &&
+    filter.inline_cids.has(meta.content_id.toLowerCase());
+  const is_filename_match =
+    !meta.content_id &&
+    meta.content_type.startsWith("image/") &&
+    !!filter.inline_filenames &&
+    filter.inline_filenames.size > 0 &&
+    filter.inline_filenames.has(meta.filename.toLowerCase());
+
+  return !!meta.is_inline || is_cid_match || is_filename_match;
+}
+
+function build_cards_from_cached_meta(
+  cached: CachedAttachmentMeta[],
+  filter: InlineAttachmentFilter,
+  fallback_filename: string,
+): DecryptedAttachmentInfo[] {
+  const cards: DecryptedAttachmentInfo[] = [];
+
+  for (const item of cached) {
+    if (item.filename !== null && item.content_type !== null) {
+      const is_inline = is_inline_attachment(
+        {
+          filename: item.filename,
+          content_type: item.content_type,
+          content_id: item.content_id,
+          is_inline: item.is_inline,
+        },
+        filter,
+      );
+
+      if (is_inline) continue;
+    }
+
+    cards.push({
+      id: item.id,
+      mail_item_id: item.mail_item_id,
+      seq_num: item.seq_num,
+      filename: item.filename ?? fallback_filename,
+      content_type: item.content_type ?? "application/octet-stream",
+      size_bytes: item.size_bytes,
+      encrypted_data: "",
+      data_nonce: "",
+      encrypted_meta: item.encrypted_meta,
+      meta_nonce: item.meta_nonce,
+    });
+  }
+
+  return cards;
 }
 
 interface AttachmentListProps {
@@ -382,9 +453,26 @@ export function AttachmentList({
   const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const [attachments, set_attachments] = useState<DecryptedAttachmentInfo[]>(
-    [],
+    () => {
+      if (is_local || preferences.low_network_mode) return [];
+
+      const cached = get_cached_attachment_meta(mail_item_id);
+
+      return cached
+        ? build_cards_from_cached_meta(
+            cached,
+            { inline_cids, inline_filenames },
+            t("common.encrypted_attachment"),
+          )
+        : [];
+    },
   );
-  const [loading, set_loading] = useState(!preferences.low_network_mode);
+  const [loading, set_loading] = useState(
+    () =>
+      !preferences.low_network_mode &&
+      !is_local &&
+      get_cached_attachment_meta(mail_item_id) === null,
+  );
   const [user_expanded, set_user_expanded] = useState(false);
   const [downloading, set_downloading] = useState<string | null>(null);
   const [preview_state, set_preview_state] = useState<{
@@ -448,18 +536,9 @@ export function AttachmentList({
           att.meta_nonce,
         );
 
-        const is_cid_match =
-          meta.content_id &&
-          inline_cids &&
-          inline_cids.has(meta.content_id.toLowerCase());
-        const is_filename_match =
-          !meta.content_id &&
-          meta.content_type.startsWith("image/") &&
-          inline_filenames &&
-          inline_filenames.size > 0 &&
-          inline_filenames.has(meta.filename.toLowerCase());
-
-        if (meta.is_inline || is_cid_match || is_filename_match) return null;
+        if (is_inline_attachment(meta, { inline_cids, inline_filenames })) {
+          return null;
+        }
 
         return {
           id: att.id,
@@ -581,6 +660,25 @@ export function AttachmentList({
     async function fetch_attachments() {
       if (is_local) {
         set_loading(false);
+        return;
+      }
+
+      const cached_meta = get_cached_attachment_meta(mail_item_id);
+
+      if (cached_meta) {
+        const cards = build_cards_from_cached_meta(
+          cached_meta,
+          { inline_cids, inline_filenames },
+          t("common.encrypted_attachment"),
+        );
+
+        set_attachments(cards);
+        set_loading(false);
+
+        if (cards.length === 0) return;
+
+        await hydrate_bytes(cards);
+
         return;
       }
 

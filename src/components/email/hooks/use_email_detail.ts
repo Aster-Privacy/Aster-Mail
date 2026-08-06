@@ -84,6 +84,7 @@ import {
 } from "@/components/email/hooks/preload_cache";
 import { use_email_detail_actions } from "@/components/email/hooks/email_detail_actions";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 
 export type {
   DecryptedEmail,
@@ -279,6 +280,16 @@ export function use_email_detail() {
     can_go_newer,
     can_go_older,
   ]);
+
+  useEffect(() => {
+    if (thread_messages.length === 0) return;
+
+    void prefetch_attachment_meta(
+      thread_messages
+        .filter((message) => message.is_sending !== true)
+        .map((message) => message.id),
+    );
+  }, [thread_messages]);
 
   useEffect(() => {
     if (thread_messages.length === 0 || !current_user_email) {
@@ -595,6 +606,8 @@ export function use_email_detail() {
 
       set_mail_item(response.data);
 
+      const attachment_meta_ready = prefetch_attachment_meta([email_id]);
+
       let decrypted_metadata = response.data.metadata ?? null;
 
       if (
@@ -803,6 +816,10 @@ export function use_email_detail() {
           }
         }
       }
+
+      await attachment_meta_ready;
+
+      if (is_stale()) return;
 
       has_loaded_once.current = true;
       await ensure_min_duration();

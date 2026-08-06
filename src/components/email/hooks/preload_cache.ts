@@ -83,6 +83,10 @@ import {
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
+import {
+  prefetch_attachment_meta,
+  clear_attachment_meta_cache,
+} from "@/services/attachment_meta_cache";
 
 export interface PreloadedSanitizedContent {
   html: string;
@@ -219,6 +223,7 @@ export function clear_preload_cache(): void {
     for (const r of entry.thread_cid_resolved.values()) revoke_cid_blob_urls(r.blob_urls);
   }
   preload_cache.clear();
+  clear_attachment_meta_cache();
 }
 
 export function mark_preload_stale(email_id?: string): void {
@@ -529,6 +534,7 @@ export async function preload_email_detail(
       if (response.error || !response.data) return;
 
       const item = response.data;
+      const attachment_meta_ready = prefetch_attachment_meta([target_id]);
       let decrypted_metadata = item.metadata ?? null;
 
       if (
@@ -806,6 +812,9 @@ export async function preload_email_detail(
       }
 
       evict_stale_cache_entries();
+
+      await attachment_meta_ready;
+      await prefetch_attachment_meta(thread_messages.map((msg) => msg.id));
 
       if (decrypted_metadata) {
         item.metadata = decrypted_metadata;
