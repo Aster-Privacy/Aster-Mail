@@ -169,7 +169,10 @@ function BillingSuccessHandler() {
     if (billing !== "success" && billing !== "cancelled") return;
 
     try {
-      sessionStorage.setItem(BILLING_RETURN_KEY, billing);
+      sessionStorage.setItem(
+        BILLING_RETURN_KEY,
+        billing === "success" ? "success" : "cancelled",
+      );
     } catch {}
     params.delete("billing");
     const query = params.toString();

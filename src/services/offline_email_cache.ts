@@ -87,7 +87,9 @@ export async function cache_email_list(
     const is_quota = e instanceof DOMException && e.name === "QuotaExceededError";
 
     console.warn(
-      `offline_email_cache: failed to cache view "${view}"${is_quota ? " (quota exceeded)" : ""}`,
+      "offline_email_cache: failed to cache view",
+      view,
+      is_quota ? "(quota exceeded)" : "",
       e,
     );
 

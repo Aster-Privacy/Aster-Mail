@@ -80,7 +80,21 @@ import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_plans } from "@/components/register/register_step_plan_selection";
 
 function random_index(max: number): number {
-  return crypto.getRandomValues(new Uint32Array(1))[0] % max;
+  if (max <= 1) {
+    return 0;
+  }
+
+  const range = 0x100000000;
+  const limit = range - (range % max);
+  const buffer = new Uint32Array(1);
+
+  for (;;) {
+    crypto.getRandomValues(buffer);
+
+    if (buffer[0] < limit) {
+      return buffer[0] % max;
+    }
+  }
 }
 
 function shuffle_words(words: string[]): string[] {

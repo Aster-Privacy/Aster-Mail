@@ -111,7 +111,9 @@ describe("remote css urls in sandboxed rendering", () => {
     expect(result.external_content.has_remote_css).toBe(true);
     expect(
       result.external_content.blocked_items.some(
-        (item) => item.type === "css" && item.url.includes("tracker.example.com"),
+        (item) =>
+          item.type === "css" &&
+          new URL(item.url).hostname === "tracker.example.com",
       ),
     ).toBe(true);
   });

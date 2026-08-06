@@ -46,8 +46,8 @@ const VEVENT_PATTERN = /BEGIN:VEVENT[\s\S]*?END:VEVENT/i;
 
 function strip_html(html: string): string {
   return html
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style[^>]*>/gi, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi, " ")
     .replace(/<[^>]+>/g, " ");
 }
 

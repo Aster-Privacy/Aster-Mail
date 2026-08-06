@@ -454,7 +454,12 @@ function cloneError(error) {
 // first before using it. That happens from outside the worker.)
 const worker = new BergamotTranslatorWorker();
 
-self.addEventListener('message', async function({data: {id, name, args}}) {
+self.addEventListener('message', async function(event) {
+    if (event.origin !== '' && event.origin !== self.location.origin)
+        return;
+
+    const {data: {id, name, args}} = event;
+
     if (!id)
         console.error('Received message without id', arguments[0]);
 

@@ -86,7 +86,7 @@ describe("format_record_host", () => {
     const host = format_record_host("_dmarc", "example.com", provider("route53"));
 
     expect(host).toBe("_dmarc.example.com");
-    expect(host.match(/example\.com/g)).toHaveLength(1);
+    expect(host.split("example.com").length - 1).toBe(1);
   });
 });
 

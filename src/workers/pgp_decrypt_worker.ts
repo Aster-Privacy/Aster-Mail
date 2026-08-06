@@ -36,6 +36,10 @@ export interface pgp_decrypt_worker_response {
 self.onmessage = async (
   event: MessageEvent<pgp_decrypt_worker_request>,
 ) => {
+  if (event.origin !== "" && event.origin !== self.location.origin) {
+    return;
+  }
+
   const { id, ciphertext, secret_keys, passphrase } = event.data;
 
   try {

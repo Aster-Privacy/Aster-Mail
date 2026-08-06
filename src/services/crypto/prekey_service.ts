@@ -128,7 +128,7 @@ async function queue_pending_rollback(ids: number[]): Promise<void> {
   }
 }
 
-async function delete_secrets_until_failing(ids: number[]): Promise<number[]> {
+async function delete_prekey_ids_until_failing(ids: number[]): Promise<number[]> {
   const failed: number[] = [];
   let failure_streak = 0;
 
@@ -176,7 +176,7 @@ async function drain_pending_rollbacks(): Promise<void> {
     return;
   }
 
-  const failed = await delete_secrets_until_failing(
+  const failed = await delete_prekey_ids_until_failing(
     ids.slice(0, ROLLBACK_DRAIN_BATCH),
   );
   const remaining = [...failed, ...ids.slice(ROLLBACK_DRAIN_BATCH)];
@@ -198,7 +198,7 @@ async function rollback_persisted_secrets(ids: number[]): Promise<void> {
     return;
   }
 
-  await queue_pending_rollback(await delete_secrets_until_failing(ids));
+  await queue_pending_rollback(await delete_prekey_ids_until_failing(ids));
 }
 
 function generate_ml_kem_keypairs(count: number): {

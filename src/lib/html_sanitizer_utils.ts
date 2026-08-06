@@ -156,7 +156,7 @@ export function sanitize_srcset(value: string): string {
 }
 
 const CONDITIONAL_OPEN_REGEX = /<!--\s*\[\s*if\b[^\]]*\]\s*>/gi;
-const REVEALED_OPEN_TAIL_REGEX = /^\s*(?:<!)?--\s*>/;
+const REVEALED_OPEN_TAIL_REGEX = /^\s*(?:<!)?--\s*!?\s*>/;
 const LEFTOVER_ENDIF_REGEX = /\s*<!--(?:\s|-)*<!\[endif\](?:\s|-)*>|\s*<!\[endif\]\s*--\s*>/gi;
 
 export function strip_mso_conditionals(html: string): string {
