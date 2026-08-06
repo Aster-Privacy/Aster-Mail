@@ -41,9 +41,9 @@
   --bg-secondary: #f5f5f5;
   --bg-tertiary: #f3f4f6;
   --bg-hover: #ececec;
-  --bg-selected: #c2e7ff;
+  --bg-selected: #eff6ff;
   --bg-card: #ffffff;
-  --quick-link: #1a73e8;
+  --quick-link: var(--accent-color, #3b82f6);
   --border-primary: #e8e8e8;
   --border-secondary: #e5e7eb;
   --border-thread-divider: #e5e5e5;
@@ -135,9 +135,9 @@
   --bg-secondary: #0a0a0a;
   --bg-tertiary: #121212;
   --bg-hover: #1a1a1a;
-  --bg-selected: #004a77;
+  --bg-selected: #142744;
   --bg-card: #121212;
-  --quick-link: #8ab4f8;
+  --quick-link: var(--accent-color, #3b82f6);
   --avatar-bg: #2a2a2a;
   --avatar-text: #9ca3af;
   --border-primary: #333333;
@@ -1984,20 +1984,45 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 }
 
 .mail_row_selected {
-  --mail_row_selected_bg: var(--bg-selected);
+  --mail_row_selected_bg: color-mix(
+    in srgb,
+    var(--accent-color, #3b82f6) 26%,
+    #ffffff
+  );
   background-color: var(--mail_row_selected_bg);
   border-bottom-color: color-mix(
     in srgb,
-    var(--text-primary) 12%,
-    var(--bg-selected)
+    var(--text-primary) 7%,
+    var(--mail_row_selected_bg)
   );
+}
+
+.dark .mail_row_selected {
+  --mail_row_selected_bg: color-mix(
+    in oklch,
+    var(--accent-color, #3b82f6) 58%,
+    #00054f
+  );
+  --text-primary: #ffffff;
+  --text-secondary: #e6ecf8;
+  --text-tertiary: #d6e0f3;
+  --text-muted: #b7c7e8;
+  --icon-muted: #b7c7e8;
 }
 
 .mail_row_selected:hover {
   --mail_row_selected_bg: color-mix(
     in srgb,
-    var(--text-primary) 8%,
-    var(--bg-selected)
+    var(--accent-color, #3b82f6) 34%,
+    #ffffff
+  );
+}
+
+.dark .mail_row_selected:hover {
+  --mail_row_selected_bg: color-mix(
+    in oklch,
+    var(--accent-color, #3b82f6) 68%,
+    #00054f
   );
 }
 
@@ -2491,15 +2516,23 @@ input:-webkit-autofill:active {
   background-color: color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
-.quick_settings_all:hover,
+.quick_settings_link {
+  border-radius: 6px;
+  padding: 2px 6px;
+  transition: background-color 120ms ease;
+}
+
 .quick_settings_link:hover {
-  background-color: color-mix(in srgb, var(--quick-link, #1a73e8) 10%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--quick-link, #3b82f6) 12%,
+    transparent
+  );
 }
 
 .quick_settings_row:focus-visible,
-.quick_settings_all:focus-visible,
 .quick_settings_link:focus-visible {
-  outline: 2px solid var(--quick-link, #1a73e8);
+  outline: 2px solid var(--quick-link, #3b82f6);
   outline-offset: -2px;
 }
 

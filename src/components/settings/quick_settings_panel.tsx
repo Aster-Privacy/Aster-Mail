@@ -61,7 +61,7 @@ function ThumbSplit() {
             className="h-[2.5px] w-full rounded-full"
             style={{
               backgroundColor:
-                i === 0 ? "var(--quick-link, #1a73e8)" : THUMB_LINE,
+                i === 0 ? "var(--quick-link, #3b82f6)" : THUMB_LINE,
               opacity: i === 0 ? 1 : 0.45,
             }}
           />
@@ -70,7 +70,8 @@ function ThumbSplit() {
       <span
         className="flex-1 rounded-[3px]"
         style={{
-          border: "1px solid var(--border-primary)",
+          border:
+            "1px solid color-mix(in srgb, var(--text-primary) 22%, transparent)",
           backgroundColor: "var(--bg-primary)",
         }}
       />
@@ -84,7 +85,7 @@ function ThumbPaneBottom() {
       <span className="flex flex-col gap-1">
         <span
           className="h-[2.5px] w-full rounded-full"
-          style={{ backgroundColor: "var(--quick-link, #1a73e8)" }}
+          style={{ backgroundColor: "var(--quick-link, #3b82f6)" }}
         />
         <span
           className="h-[2.5px] w-full rounded-full"
@@ -94,7 +95,8 @@ function ThumbPaneBottom() {
       <span
         className="flex-1 rounded-[3px]"
         style={{
-          border: "1px solid var(--border-primary)",
+          border:
+            "1px solid color-mix(in srgb, var(--text-primary) 22%, transparent)",
           backgroundColor: "var(--bg-primary)",
         }}
       />
@@ -122,7 +124,7 @@ function ThemeMini({ mode }: { mode: "light" | "dark" }) {
             style={{
               backgroundColor:
                 i === 0
-                  ? "var(--quick-link, #1a73e8)"
+                  ? "var(--quick-link, #3b82f6)"
                   : is_light
                     ? "#c9cdd3"
                     : "#43474d",
@@ -140,14 +142,14 @@ function RadioMark({ checked }: { checked: boolean }) {
       className="relative flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full transition-colors duration-150"
       style={{
         boxShadow: checked
-          ? "inset 0 0 0 2px var(--quick-link, #1a73e8)"
-          : "inset 0 0 0 2px var(--border-primary)",
+          ? "inset 0 0 0 2px var(--quick-link, #3b82f6)"
+          : "inset 0 0 0 2px color-mix(in srgb, var(--text-primary) 34%, transparent)",
       }}
     >
       {checked && (
         <span
           className="h-[9px] w-[9px] rounded-full"
-          style={{ backgroundColor: "var(--quick-link, #1a73e8)" }}
+          style={{ backgroundColor: "var(--quick-link, #3b82f6)" }}
         />
       )}
     </span>
@@ -183,7 +185,7 @@ function QuickSection({
       style={{ borderTop: "1px solid var(--border-secondary)" }}
     >
       <header className="mb-1 flex min-h-[24px] items-center gap-2 px-1">
-        <h3 className="flex-1 truncate text-[14px] text-txt-primary">
+        <h3 className="flex-1 truncate text-[13px] font-medium text-txt-secondary">
           {title}
         </h3>
         {action}
@@ -218,10 +220,11 @@ function QuickSection({
                   <span
                     className="block h-[40px] w-[72px] flex-shrink-0 overflow-hidden rounded-[4px] transition-shadow duration-150"
                     style={{
-                      backgroundColor: "var(--bg-primary)",
+                      backgroundColor:
+                        "color-mix(in srgb, var(--text-primary) 5%, var(--bg-primary))",
                       boxShadow: is_selected
-                        ? "0 0 0 2px var(--quick-link, #1a73e8)"
-                        : "0 0 0 1px var(--border-secondary)",
+                        ? "0 0 0 2px var(--quick-link, #3b82f6)"
+                        : "0 0 0 1px color-mix(in srgb, var(--text-primary) 16%, transparent)",
                     }}
                   >
                     {option.thumbnail}
@@ -305,18 +308,19 @@ export function QuickSettingsPanel({
       </div>
 
       <div className="aster_scrollbar_thin flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        <div className="px-4 pb-3">
-          <button
-            className="quick_settings_all w-full rounded-[8px] py-[7px] text-center text-[13px] font-medium transition-colors"
-            style={{ color: "var(--quick-link, #1a73e8)" }}
-            type="button"
+        <div className="px-4 pb-3.5">
+          <Button
+            className="w-full"
+            size="lg"
+            variant="ghost"
             onClick={() => on_open_full_settings()}
           >
             {t("settings.see_all_settings")}
-          </button>
+          </Button>
         </div>
 
         <QuickSection
+          on_change={(v) => update_preference("mail_list_density", v, true)}
           options={[
             {
               value: "comfortable",
@@ -331,20 +335,20 @@ export function QuickSettingsPanel({
           ]}
           title={t("settings.density")}
           value={resolve_list_density(preferences.mail_list_density)}
-          on_change={(v) => update_preference("mail_list_density", v, true)}
         />
 
         <QuickSection
           action={
             <button
               className="quick_settings_link flex-shrink-0 text-[13px]"
-              style={{ color: "var(--quick-link, #1a73e8)" }}
+              style={{ color: "var(--quick-link, #3b82f6)" }}
               type="button"
               onClick={() => on_open_full_settings("appearance")}
             >
               {t("settings.quick_more_appearance")}
             </button>
           }
+          on_change={(v) => handle_theme_select(v as "light" | "dark")}
           options={[
             {
               value: "light",
@@ -359,10 +363,16 @@ export function QuickSettingsPanel({
           ]}
           title={t("settings.theme")}
           value={theme_preference}
-          on_change={(v) => handle_theme_select(v as "light" | "dark")}
         />
 
         <QuickSection
+          on_change={(v) =>
+            update_preference(
+              "reading_pane_position",
+              v as "right" | "bottom" | "hidden",
+              true,
+            )
+          }
           options={[
             {
               value: "right",
@@ -382,13 +392,6 @@ export function QuickSettingsPanel({
           ]}
           title={t("settings.reading_pane_position")}
           value={preferences.reading_pane_position}
-          on_change={(v) =>
-            update_preference(
-              "reading_pane_position",
-              v as "right" | "bottom" | "hidden",
-              true,
-            )
-          }
         />
 
         <QuickSection title={t("settings.quick_inbox_list")}>
