@@ -6906,6 +6906,7 @@ export interface ErrorTranslations {
   failed_send_email: string;
   cannot_send_no_keys: string;
   cannot_send_no_recipient_keys: string;
+  cannot_send_no_recovery_key: string;
   failed_send_external: string;
   failed_queue_email: string;
   no_active_account: string;

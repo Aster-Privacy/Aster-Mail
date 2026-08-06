@@ -7746,6 +7746,8 @@ export const fr = {
       "Le chiffrement obligatoire est activé et nous n'avons pas de clé pour {{recipients}}. Leur demander de partager une clé, ou désactiver le chiffrement obligatoire dans les Paramètres, permettra l'envoi. Votre brouillon est enregistré.",
     cannot_send_no_recipient_keys:
       "Impossible d'envoyer : clés du destinataire introuvables",
+    cannot_send_no_recovery_key:
+      "Aster ne peut pas encore envoyer ce message car il manque au compte du destinataire les clés pour le lire. Demandez-lui d'ouvrir Aster sur un appareil ou de mettre à jour son application pour renouveler ces clés, puis réessayez. Votre brouillon est enregistré.",
     conflict: "Conflit détecté",
     connection_failed: "Échec de la connexion",
     daily_limit_reached:

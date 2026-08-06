@@ -7854,6 +7854,8 @@ export const de = {
       "Sie haben die erforderliche Verschlüsselung aktiviert und wir haben keinen Schlüssel für {{recipients}}. Bitten Sie sie, einen Schlüssel zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
     cannot_send_no_recipient_keys:
       "Sie haben die erforderliche Verschlüsselung aktiviert und keiner Ihrer Empfänger hat einen hinterlegten Schlüssel. Bitten Sie sie, einen zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
+    cannot_send_no_recovery_key:
+      "Aster kann diese Nachricht noch nicht senden, weil dem Konto des Empfängers die Schlüssel zum Lesen fehlen. Bitten Sie ihn, Aster auf einem beliebigen Gerät zu öffnen oder die App zu aktualisieren, um die Schlüssel zu erneuern, und versuchen Sie es dann erneut. Ihr Entwurf ist gespeichert.",
     conflict:
       "Etwas anderes hat das zuerst geändert. Ein Aktualisieren zeigt die neueste Version.",
     connection_failed:

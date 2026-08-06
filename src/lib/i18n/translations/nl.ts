@@ -7685,6 +7685,8 @@ export const nl = {
       "U hebt vereiste versleuteling ingeschakeld, en we hebben geen sleutel voor {{recipients}}. Hen vragen een sleutel te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
     cannot_send_no_recipient_keys:
       "U hebt vereiste versleuteling ingeschakeld, en geen van uw ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
+    cannot_send_no_recovery_key:
+      "Aster kan dit bericht nog niet verzenden omdat het account van de ontvanger de sleutels mist om het te lezen. Vraag hen Aster op een apparaat te openen of hun app bij te werken om die sleutels te vernieuwen, en probeer het daarna opnieuw. Uw concept is opgeslagen.",
     failed_send_external:
       "Deze e-mail is niet verzonden via uw gekoppelde externe account. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
     failed_queue_email:

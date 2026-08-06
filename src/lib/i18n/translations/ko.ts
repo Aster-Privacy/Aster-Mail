@@ -7473,6 +7473,8 @@ export const ko = {
       "{{recipients}}에게 보낼 수 없습니다 - 암호화 키를 찾을 수 없습니다.",
     cannot_send_no_recipient_keys:
       "일부 수신자의 키를 찾을 수 없습니다. 암호화 없이 보내거나 수신자를 확인하세요.",
+    cannot_send_no_recovery_key:
+      "받는 사람의 계정에 읽는 데 필요한 키가 없어 Aster가 아직 이 메시지를 보낼 수 없습니다. 아무 기기에서 Aster를 열거나 앱을 업데이트해 키를 갱신하도록 요청한 다음 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_send_external:
       "외부 계정으로 발송에 실패했습니다. 다시 시도하면 됩니다.",
     failed_queue_email:

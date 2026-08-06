@@ -7783,6 +7783,8 @@ export const it = {
       "Ha la crittografia obbligatoria attivata e non abbiamo una chiave per {{recipients}}. Chiedere loro di condividere una chiave, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
     cannot_send_no_recipient_keys:
       "Ha la crittografia obbligatoria attivata e nessuno dei suoi destinatari ha una chiave registrata. Chiedere loro di condividerne una, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
+    cannot_send_no_recovery_key:
+      "Aster non può ancora inviare questo messaggio perché all'account del destinatario mancano le chiavi per leggerlo. Chieda di aprire Aster su un qualsiasi dispositivo o di aggiornare l'app per rinnovare quelle chiavi, poi riprovi. La sua bozza è salvata.",
     conflict:
       "Qualcuno o qualcos'altro ha apportato modifiche prima. Un aggiornamento mostrerà la versione più recente.",
     connection_failed:

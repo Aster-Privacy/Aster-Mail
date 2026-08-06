@@ -7016,6 +7016,8 @@ export const zh_CN = {
       "您已开启强制加密，但我们没有 {{recipients}} 的密钥。请对方分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
     cannot_send_no_recipient_keys:
       "您已开启强制加密，但所有收件人均没有密钥记录。请他们分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
+    cannot_send_no_recovery_key:
+      "Aster 暂时无法发送此邮件，因为收件人的账户缺少读取所需的密钥。请其在任意设备上打开 Aster 或更新应用以刷新密钥，然后重试。您的草稿已保存。",
     failed_send_external:
       "此邮件未能通过您关联的外部账户发送。再试一次应该可以。您的草稿已保存。",
     failed_queue_email:

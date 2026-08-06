@@ -7643,6 +7643,8 @@ export const es = {
       "Tienes el cifrado obligatorio activado y no tenemos clave para {{recipients}}. Pedirles que compartan una clave, o desactivar el cifrado obligatorio en Configuración, permitirá el envío. Tu borrador está guardado.",
     cannot_send_no_recipient_keys:
       "No se puede enviar: claves del destinatario no encontradas",
+    cannot_send_no_recovery_key:
+      "Aster todavía no puede enviar este mensaje porque a la cuenta del destinatario le faltan las claves para leerlo. Pídale que abra Aster en cualquier dispositivo o que actualice la aplicación para renovar esas claves y vuelva a intentarlo. Su borrador está guardado.",
     conflict: "Conflicto detectado",
     connection_failed: "Error de conexión",
     daily_limit_reached:

@@ -7738,6 +7738,8 @@ export const pt = {
       "Você tem criptografia obrigatória ativada, e não temos uma chave para {{recipients}}. Pedir que compartilhem uma chave, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
     cannot_send_no_recipient_keys:
       "Você tem criptografia obrigatória ativada, e nenhum dos seus destinatários tem uma chave registrada. Pedir que compartilhem uma, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
+    cannot_send_no_recovery_key:
+      "O Aster ainda não pode enviar esta mensagem porque a conta do destinatário não tem as chaves para lê-la. Peça que abra o Aster em qualquer dispositivo ou atualize o aplicativo para renovar essas chaves e tente de novo. Seu rascunho está salvo.",
     conflict:
       "Algo ou alguém alterou isso primeiro. Uma atualização vai mostrar a versão mais recente.",
     connection_failed:

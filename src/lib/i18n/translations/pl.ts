@@ -7738,6 +7738,8 @@ export const pl = {
       "Masz włączone obowiązkowe szyfrowanie i nie mamy klucza dla {{recipients}}. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     cannot_send_no_recipient_keys:
       "Masz włączone obowiązkowe szyfrowanie i żaden z odbiorców nie ma klucza na pliku. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
+    cannot_send_no_recovery_key:
+      "Aster nie może jeszcze wysłać tej wiadomości, ponieważ konto odbiorcy nie ma kluczy do jej odczytania. Poproś go o otwarcie Aster na dowolnym urządzeniu lub o aktualizację aplikacji, aby odświeżyć klucze, a potem spróbuj ponownie. Wersja robocza jest zapisana.",
     failed_send_external:
       "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
     failed_queue_email:

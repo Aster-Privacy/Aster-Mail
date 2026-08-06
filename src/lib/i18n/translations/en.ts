@@ -7847,6 +7847,8 @@ export const en: Translations = {
       "You have required encryption turned on, and we do not have a key for {{recipients}}. Asking them to share a key, or turning off required encryption in Settings, will let this send. Your draft is saved.",
     cannot_send_no_recipient_keys:
       "You have required encryption turned on, and none of your recipients have a key on file. Asking them to share one, or turning off required encryption in Settings, will let this send. Your draft is saved.",
+    cannot_send_no_recovery_key:
+      "Aster can't send this message yet because the recipient's account is missing the keys needed to read it. Ask them to open Aster on any device or update their app to refresh those keys, then try again. Your draft is saved.",
     failed_send_external:
       "This email did not send through your linked outside account. Another attempt should do it. Your draft is saved.",
     failed_queue_email:
