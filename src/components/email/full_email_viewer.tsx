@@ -83,7 +83,13 @@ interface FullEmailViewerProps {
   grouped_email_ids?: string[];
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
-  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
+  label_hints?: {
+    token: string;
+    name: string;
+    color?: string;
+    icon?: string;
+    show_icon?: boolean;
+  }[];
 }
 
 export function FullEmailViewer({
@@ -122,33 +128,80 @@ export function FullEmailViewer({
 
   const label_chips = useMemo(() => {
     const seen = new Set<string>();
-    const from_item: { token: string; name: string; color?: string; icon?: string; show_icon: boolean }[] = [];
+    const from_item: {
+      token: string;
+      name: string;
+      color?: string;
+      icon?: string;
+      show_icon: boolean;
+    }[] = [];
     for (const f of viewer.mail_item?.labels ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
-        from_item.push({ token: f.token, name: f.name, color: f.color as string | undefined, icon: f.icon, show_icon: true });
+        from_item.push({
+          token: f.token,
+          name: f.name,
+          color: f.color as string | undefined,
+          icon: f.icon,
+          show_icon: true,
+        });
       }
     }
     for (const f of viewer.mail_item?.folders ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
-        from_item.push({ token: f.token, name: f.name, color: (f.color as string | undefined) || "#3b82f6", icon: f.icon || "folder", show_icon: true });
+        from_item.push({
+          token: f.token,
+          name: f.name,
+          color: (f.color as string | undefined) || "#3b82f6",
+          icon: f.icon || "folder",
+          show_icon: true,
+        });
       }
     }
     for (const token of viewer.mail_item?.tag_tokens ?? []) {
       const tag = get_tag_by_token(token);
       if (tag?.name && !seen.has(token)) {
         seen.add(token);
-        from_item.push({ token, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+        from_item.push({
+          token,
+          name: tag.name,
+          color: tag.color,
+          icon: tag.icon,
+          show_icon: true,
+        });
       }
     }
     const store_hints = get_label_hints(email_id);
-    const resolved = from_item.length > 0 ? from_item : (label_hints?.length ? label_hints : store_hints);
+    const resolved =
+      from_item.length > 0
+        ? from_item
+        : label_hints?.length
+          ? label_hints
+          : store_hints;
     if (viewer.email && is_system_email(viewer.email.sender_email)) {
-      return [{ token: "__system__", name: t("common.system"), color: "#3b82f6", icon: "info", show_icon: true }, ...resolved];
+      return [
+        {
+          token: "__system__",
+          name: t("common.system"),
+          color: "#3b82f6",
+          icon: "info",
+          show_icon: true,
+        },
+        ...resolved,
+      ];
     }
     return resolved;
-  }, [viewer.mail_item?.labels, viewer.mail_item?.folders, viewer.mail_item?.tag_tokens, label_hints, get_tag_by_token, viewer.email, email_id, t]);
+  }, [
+    viewer.mail_item?.labels,
+    viewer.mail_item?.folders,
+    viewer.mail_item?.tag_tokens,
+    label_hints,
+    get_tag_by_token,
+    viewer.email,
+    email_id,
+    t,
+  ]);
 
   const [content_ready, set_content_ready] = useState(
     () => !!get_cached_iframe_height(email_id),
@@ -165,7 +218,10 @@ export function FullEmailViewer({
     };
 
     window.addEventListener("astermail:iframe-ready", handler);
-    const fallback_timer = window.setTimeout(handler, CONTENT_READY_FALLBACK_MS);
+    const fallback_timer = window.setTimeout(
+      handler,
+      CONTENT_READY_FALLBACK_MS,
+    );
 
     return () => {
       window.removeEventListener("astermail:iframe-ready", handler);
@@ -182,7 +238,9 @@ export function FullEmailViewer({
 
     return { mode: cached || "blocked", report: null };
   });
-  const [loaded_content_types, set_loaded_content_types] = useState<Set<string>>(new Set());
+  const [loaded_content_types, set_loaded_content_types] = useState<
+    Set<string>
+  >(new Set());
 
   if (prev_email_id_ref.current !== email_id) {
     prev_email_id_ref.current = email_id;
@@ -226,21 +284,29 @@ export function FullEmailViewer({
     [],
   );
 
-  const handle_load_external_content = useCallback((types?: string[]) => {
-    if (!types) {
-      set_external_content_state((prev) => ({ mode: "loaded", report: prev.report }));
-      set_external_content_mode(email_id);
-      set_loaded_content_types(new Set());
-      return;
-    }
-    set_loaded_content_types((prev) => {
-      const next = new Set(prev);
-      for (const t of types) next.add(t);
-      return next;
-    });
-  }, [email_id]);
+  const handle_load_external_content = useCallback(
+    (types?: string[]) => {
+      if (!types) {
+        set_external_content_state((prev) => ({
+          mode: "loaded",
+          report: prev.report,
+        }));
+        set_external_content_mode(email_id);
+        set_loaded_content_types(new Set());
+        return;
+      }
+      set_loaded_content_types((prev) => {
+        const next = new Set(prev);
+        for (const t of types) next.add(t);
+        return next;
+      });
+    },
+    [email_id],
+  );
 
-  const handle_unsubscribe = useCallback(async (): Promise<"success" | "manual"> => {
+  const handle_unsubscribe = useCallback(async (): Promise<
+    "success" | "manual"
+  > => {
     const email = viewer.email;
     if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
     if (is_system_email(email.sender_email)) return "success";
@@ -256,10 +322,15 @@ export function FullEmailViewer({
           email_ids: [],
         });
         mark_unsubscribed(email.sender_email);
-        persist_unsubscribe(email.sender_email, email.sender || "", {
-          unsubscribe_link: info.unsubscribe_link,
-          list_unsubscribe_header: info.list_unsubscribe_header,
-        }, "auto");
+        persist_unsubscribe(
+          email.sender_email,
+          email.sender || "",
+          {
+            unsubscribe_link: info.unsubscribe_link,
+            list_unsubscribe_header: info.list_unsubscribe_header,
+          },
+          "auto",
+        );
         return "success";
       }
       show_action_toast({
@@ -267,10 +338,15 @@ export function FullEmailViewer({
         action_type: "not_spam",
         email_ids: [],
       });
-      persist_unsubscribe(email.sender_email, email.sender || "", {
-        unsubscribe_link: info.unsubscribe_link,
-        list_unsubscribe_header: info.list_unsubscribe_header,
-      }, "manual");
+      persist_unsubscribe(
+        email.sender_email,
+        email.sender || "",
+        {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        },
+        "manual",
+      );
       return "manual";
     } catch {
       show_action_toast({
@@ -422,12 +498,9 @@ export function FullEmailViewer({
         )}
       </div>
 
-      <div
-        className="flex-1 overflow-y-auto relative"
-        style={{ scrollbarGutter: "stable" }}
-      >
+      <div className="relative flex-1 min-h-0">
         {show_content_skeleton && (
-          <div className="absolute inset-0 z-10 bg-surf-primary px-2 py-3 sm:px-3 sm:py-4">
+          <div className="absolute inset-0 z-10 overflow-hidden bg-surf-primary px-2 py-3 sm:px-3 sm:py-4">
             <Skeleton className="h-7 mb-6 w-full max-w-[66%]" />
             <div className="flex items-start gap-3 sm:gap-4 mb-6 min-w-0">
               <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
@@ -446,87 +519,99 @@ export function FullEmailViewer({
             </div>
           </div>
         )}
-        {email && (
-          <div className="py-4 sm:py-5">
-            <div className="px-4 sm:px-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-4">
-              <h1 className="text-xl sm:text-2xl font-semibold text-txt-primary break-words">
-                <span className="inline-flex items-center gap-1 mr-2" style={{ verticalAlign: "-0.15em" }}>
-                  <EncryptionInfoDropdown
-                    has_pq_protection={viewer.has_pq_protection}
-                    has_recipient_key={viewer.has_recipient_key}
-                    is_external={viewer.is_external}
-                    sender_verification={email.sender_verification}
-                    size={22}
-                  />
-                  {external_content_state.report && (
-                    <TrackingProtectionShield
-                      report={external_content_state.report}
+        <div
+          className="h-full overflow-y-auto"
+          style={{ scrollbarGutter: "stable" }}
+        >
+          {email && (
+            <div className="py-4 sm:py-5">
+              <div className="px-4 sm:px-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-4">
+                <h1 className="text-xl sm:text-2xl font-semibold text-txt-primary break-words">
+                  <span
+                    className="inline-flex items-center gap-1 mr-2"
+                    style={{ verticalAlign: "-0.15em" }}
+                  >
+                    <EncryptionInfoDropdown
+                      has_pq_protection={viewer.has_pq_protection}
+                      has_recipient_key={viewer.has_recipient_key}
+                      is_external={viewer.is_external}
+                      sender_verification={email.sender_verification}
                       size={22}
                     />
-                  )}
-                </span>
-                {email.subject || t("mail.no_subject")}
-              </h1>
-              {label_chips.map((chip) => (
-                <EmailTag
-                  key={chip.token}
-                  className="flex-shrink-0"
-                  custom_color={chip.color}
-                  icon={(chip.icon as TagIconName) || "folder"}
-                  label={chip.name}
-                  show_icon={chip.show_icon}
-                  variant={chip.color ? hex_to_variant(chip.color) : "neutral"}
-                />
-              ))}
-            </div>
+                    {external_content_state.report && (
+                      <TrackingProtectionShield
+                        report={external_content_state.report}
+                        size={22}
+                      />
+                    )}
+                  </span>
+                  {email.subject || t("mail.no_subject")}
+                </h1>
+                {label_chips.map((chip) => (
+                  <EmailTag
+                    key={chip.token}
+                    className="flex-shrink-0"
+                    custom_color={chip.color}
+                    icon={(chip.icon as TagIconName) || "folder"}
+                    label={chip.name}
+                    show_icon={chip.show_icon}
+                    variant={
+                      chip.color ? hex_to_variant(chip.color) : "neutral"
+                    }
+                  />
+                ))}
+              </div>
 
-            <ViewerThreadContent
-              current_user_email={viewer.current_user_email}
-              current_user_name={viewer.current_user_name}
-              email={email}
-              external_content_mode={external_content_mode}
-              loaded_content_types={loaded_content_types}
-              on_archive={viewer.handle_per_message_archive}
-              on_edit_thread_draft={viewer.handle_edit_thread_draft}
-              on_external_content_detected={handle_external_content_detected}
-              on_forward={viewer.handle_per_message_forward}
-              on_load_external_content={handle_load_external_content}
-              on_not_spam={
-                viewer.mail_item?.is_spam
-                  ? viewer.handle_per_message_not_spam
-                  : undefined
-              }
-              on_print={viewer.handle_per_message_print}
-              on_reply={viewer.handle_per_message_reply}
-              on_reply_all={viewer.handle_per_message_reply_all}
-              on_report_phishing={(msg) =>
-                request_spam(() =>
-                  viewer.handle_per_message_report_phishing(msg),
-                )
-              }
-              on_draft_saved={viewer.handle_draft_saved}
-              on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
-              on_toggle_message_read={viewer.handle_toggle_message_read}
-              on_trash={viewer.handle_per_message_trash}
-              on_unsubscribe={
-                email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
-                  ? handle_unsubscribe
-                  : undefined
-              }
-              on_manual_unsubscribed={() => {
-                if (email) mark_unsubscribed(email.sender_email);
-              }}
-              unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
-              on_view_source={viewer.handle_per_message_view_source}
-              sending_message={viewer.sending_message}
-              size_bytes={viewer.mail_item?.metadata?.size_bytes}
-              thread_draft={viewer.thread_draft}
-              thread_list_ref={viewer.thread_list_ref}
-              thread_messages={viewer.thread_messages}
-              thread_sanitized={viewer.thread_sanitized}
-            />
-          </div>
-        )}
+              <ViewerThreadContent
+                current_user_email={viewer.current_user_email}
+                current_user_name={viewer.current_user_name}
+                email={email}
+                external_content_mode={external_content_mode}
+                loaded_content_types={loaded_content_types}
+                on_archive={viewer.handle_per_message_archive}
+                on_edit_thread_draft={viewer.handle_edit_thread_draft}
+                on_external_content_detected={handle_external_content_detected}
+                on_forward={viewer.handle_per_message_forward}
+                on_load_external_content={handle_load_external_content}
+                on_not_spam={
+                  viewer.mail_item?.is_spam
+                    ? viewer.handle_per_message_not_spam
+                    : undefined
+                }
+                on_print={viewer.handle_per_message_print}
+                on_reply={viewer.handle_per_message_reply}
+                on_reply_all={viewer.handle_per_message_reply_all}
+                on_report_phishing={(msg) =>
+                  request_spam(() =>
+                    viewer.handle_per_message_report_phishing(msg),
+                  )
+                }
+                on_draft_saved={viewer.handle_draft_saved}
+                on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
+                on_toggle_message_read={viewer.handle_toggle_message_read}
+                on_trash={viewer.handle_per_message_trash}
+                on_unsubscribe={
+                  email.unsubscribe_info?.has_unsubscribe &&
+                  !is_system_email(email.sender_email) &&
+                  !is_unsubscribed(email.sender_email)
+                    ? handle_unsubscribe
+                    : undefined
+                }
+                on_manual_unsubscribed={() => {
+                  if (email) mark_unsubscribed(email.sender_email);
+                }}
+                unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
+                on_view_source={viewer.handle_per_message_view_source}
+                sending_message={viewer.sending_message}
+                size_bytes={viewer.mail_item?.metadata?.size_bytes}
+                thread_draft={viewer.thread_draft}
+                thread_list_ref={viewer.thread_list_ref}
+                thread_messages={viewer.thread_messages}
+                thread_sanitized={viewer.thread_sanitized}
+              />
+            </div>
+          )}
+        </div>
       </div>
       {spam_confirm_dialog}
     </div>

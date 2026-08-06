@@ -453,7 +453,6 @@ export function InboxHeader({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-
         </div>
 
         {has_selection && (
@@ -695,156 +694,162 @@ export function InboxHeader({
                   </DropdownMenu>
                 )}
 
-              {!hide_mail_actions && <DropdownMenu>
-                <Tooltip tip={t("common.more")}>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      aria-label={t("common.more")}
-                      className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+              {!hide_mail_actions && (
+                <DropdownMenu>
+                  <Tooltip tip={t("common.more")}>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        aria-label={t("common.more")}
+                        className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+                      >
+                        <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
+                      </button>
+                    </DropdownMenuTrigger>
+                  </Tooltip>
+                  <DropdownMenuContent align="start" sideOffset={8}>
+                    {on_mark_unread && !hide_mail_actions && (
+                      <DropdownMenuItem onClick={on_mark_unread}>
+                        <EnvelopeIcon className="w-4 h-4 mr-2" />
+                        {t("mail.mark_as_unread")}
+                      </DropdownMenuItem>
+                    )}
+                    {!hide_mail_actions && on_toggle_star && (
+                      <DropdownMenuItem onClick={on_toggle_star}>
+                        <StarIcon className="w-4 h-4 mr-2" />
+                        {t("common.star_selected")}
+                      </DropdownMenuItem>
+                    )}
+                    {!is_trash_view &&
+                      !is_spam_view &&
+                      !hide_mail_actions &&
+                      on_spam && (
+                        <DropdownMenuItem onClick={on_spam}>
+                          <ShieldExclamationIcon className="w-4 h-4 mr-2" />
+                          {t("mail.report_spam")}
+                        </DropdownMenuItem>
+                      )}
+                    {!hide_mail_actions && on_snooze && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel>
+                          {t("common.snooze_until")}
+                        </DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const date = new Date();
+
+                            date.setHours(date.getHours() + 4);
+                            on_snooze(date);
+                          }}
+                        >
+                          <ClockIcon className="w-4 h-4 mr-2" />
+                          {t("mail.later_today_snooze")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const date = new Date();
+
+                            date.setDate(date.getDate() + 1);
+                            date.setHours(9, 0, 0, 0);
+                            on_snooze(date);
+                          }}
+                        >
+                          <ClockIcon className="w-4 h-4 mr-2" />
+                          {t("mail.tomorrow_snooze")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const date = new Date();
+
+                            date.setDate(date.getDate() + 7);
+                            date.setHours(9, 0, 0, 0);
+                            on_snooze(date);
+                          }}
+                        >
+                          <ClockIcon className="w-4 h-4 mr-2" />
+                          {t("mail.next_week_snooze")}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {!is_native &&
+                      !hide_mail_actions &&
+                      folders.length > 0 &&
+                      on_folder_toggle && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel>
+                            {t("common.folders")}
+                          </DropdownMenuLabel>
+                          {folders.slice(0, 8).map((folder) => (
+                            <DropdownMenuItem
+                              key={folder.folder_token}
+                              onClick={() =>
+                                on_folder_toggle(folder.folder_token)
+                              }
+                            >
+                              <div
+                                className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                                style={{ backgroundColor: folder.color }}
+                              />
+                              <span className="flex-1 truncate">
+                                {folder.name}
+                              </span>
+                              {(folder.status === "all" ||
+                                folder.status === "some") && (
+                                <CheckIcon
+                                  className={`w-4 h-4 ml-2 flex-shrink-0 ${folder.status === "some" ? "opacity-50" : ""}`}
+                                />
+                              )}
+                            </DropdownMenuItem>
+                          ))}
+                        </>
+                      )}
+                    {!is_native &&
+                      !hide_mail_actions &&
+                      tags.length > 0 &&
+                      on_tag_toggle && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel>
+                            {t("common.labels")}
+                          </DropdownMenuLabel>
+                          {tags.slice(0, 8).map((tag) => (
+                            <DropdownMenuItem
+                              key={tag.tag_token}
+                              onClick={() => on_tag_toggle(tag.tag_token)}
+                            >
+                              <div
+                                className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                                style={{ backgroundColor: tag.color }}
+                              />
+                              <span className="flex-1 truncate">
+                                {tag.name}
+                              </span>
+                              {(tag.status === "all" ||
+                                tag.status === "some") && (
+                                <CheckIcon
+                                  className={`w-4 h-4 ml-2 flex-shrink-0 ${tag.status === "some" ? "opacity-50" : ""}`}
+                                />
+                              )}
+                            </DropdownMenuItem>
+                          ))}
+                        </>
+                      )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.preventDefault();
+                        set_advanced_toolbar((v) => !v);
+                      }}
                     >
-                      <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
-                    </button>
-                  </DropdownMenuTrigger>
-                </Tooltip>
-                <DropdownMenuContent align="start" sideOffset={8}>
-                  {on_mark_unread && !hide_mail_actions && (
-                    <DropdownMenuItem onClick={on_mark_unread}>
-                      <EnvelopeIcon className="w-4 h-4 mr-2" />
-                      {t("mail.mark_as_unread")}
+                      <AdjustmentsHorizontalIcon className="w-4 h-4 mr-2" />
+                      {advanced_toolbar
+                        ? t("common.simple_toolbar")
+                        : t("common.advanced_toolbar")}
                     </DropdownMenuItem>
-                  )}
-                  {!hide_mail_actions && on_toggle_star && (
-                    <DropdownMenuItem onClick={on_toggle_star}>
-                      <StarIcon className="w-4 h-4 mr-2" />
-                      {t("common.star_selected")}
-                    </DropdownMenuItem>
-                  )}
-                  {!is_trash_view &&
-                    !is_spam_view &&
-                    !hide_mail_actions &&
-                    on_spam && (
-                      <DropdownMenuItem onClick={on_spam}>
-                        <ShieldExclamationIcon className="w-4 h-4 mr-2" />
-                        {t("mail.report_spam")}
-                      </DropdownMenuItem>
-                    )}
-                  {!hide_mail_actions && on_snooze && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel>
-                        {t("common.snooze_until")}
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          const date = new Date();
-
-                          date.setHours(date.getHours() + 4);
-                          on_snooze(date);
-                        }}
-                      >
-                        <ClockIcon className="w-4 h-4 mr-2" />
-                        {t("mail.later_today_snooze")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          const date = new Date();
-
-                          date.setDate(date.getDate() + 1);
-                          date.setHours(9, 0, 0, 0);
-                          on_snooze(date);
-                        }}
-                      >
-                        <ClockIcon className="w-4 h-4 mr-2" />
-                        {t("mail.tomorrow_snooze")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          const date = new Date();
-
-                          date.setDate(date.getDate() + 7);
-                          date.setHours(9, 0, 0, 0);
-                          on_snooze(date);
-                        }}
-                      >
-                        <ClockIcon className="w-4 h-4 mr-2" />
-                        {t("mail.next_week_snooze")}
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {!is_native &&
-                    !hide_mail_actions &&
-                    folders.length > 0 &&
-                    on_folder_toggle && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>
-                          {t("common.folders")}
-                        </DropdownMenuLabel>
-                        {folders.slice(0, 8).map((folder) => (
-                          <DropdownMenuItem
-                            key={folder.folder_token}
-                            onClick={() => on_folder_toggle(folder.folder_token)}
-                          >
-                            <div
-                              className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
-                              style={{ backgroundColor: folder.color }}
-                            />
-                            <span className="flex-1 truncate">
-                              {folder.name}
-                            </span>
-                            {(folder.status === "all" ||
-                              folder.status === "some") && (
-                              <CheckIcon
-                                className={`w-4 h-4 ml-2 flex-shrink-0 ${folder.status === "some" ? "opacity-50" : ""}`}
-                              />
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    )}
-                  {!is_native &&
-                    !hide_mail_actions &&
-                    tags.length > 0 &&
-                    on_tag_toggle && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>
-                          {t("common.labels")}
-                        </DropdownMenuLabel>
-                        {tags.slice(0, 8).map((tag) => (
-                          <DropdownMenuItem
-                            key={tag.tag_token}
-                            onClick={() => on_tag_toggle(tag.tag_token)}
-                          >
-                            <div
-                              className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
-                              style={{ backgroundColor: tag.color }}
-                            />
-                            <span className="flex-1 truncate">{tag.name}</span>
-                            {(tag.status === "all" ||
-                              tag.status === "some") && (
-                              <CheckIcon
-                                className={`w-4 h-4 ml-2 flex-shrink-0 ${tag.status === "some" ? "opacity-50" : ""}`}
-                              />
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.preventDefault();
-                      set_advanced_toolbar((v) => !v);
-                    }}
-                  >
-                    <AdjustmentsHorizontalIcon className="w-4 h-4 mr-2" />
-                    {advanced_toolbar
-                      ? t("common.simple_toolbar")
-                      : t("common.advanced_toolbar")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         )}
