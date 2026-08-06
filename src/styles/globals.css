@@ -1652,41 +1652,17 @@ button.press_scale:active {
 }
 
 .aster_skeleton {
-  position: relative;
-  overflow: hidden;
   background: rgba(0, 0, 0, 0.06);
-  contain: paint;
-}
-
-.aster_skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.07) 50%,
-    transparent 100%
-  );
-  transform: translate3d(-100%, 0, 0);
-  animation: aster_skeleton_shimmer 1.4s ease-in-out infinite;
+  animation: aster_skeleton_pulse 1.6s ease-in-out infinite;
+  will-change: opacity;
 }
 
 .dark .aster_skeleton {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.dark .aster_skeleton::after {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.09) 50%,
-    transparent 100%
-  );
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .aster_skeleton::after {
+  .aster_skeleton {
     animation: none;
   }
 }
@@ -1704,12 +1680,13 @@ button.press_scale:active {
   border: 1px solid var(--thread-card-border);
 }
 
-@keyframes aster_skeleton_shimmer {
-  0% {
-    transform: translate3d(-100%, 0, 0);
-  }
+@keyframes aster_skeleton_pulse {
+  0%,
   100% {
-    transform: translate3d(100%, 0, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }
 
@@ -2005,11 +1982,7 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 }
 
 .mail_row_selected {
-  --mail_row_selected_bg: color-mix(
-    in srgb,
-    var(--text-primary, #111827) 8%,
-    var(--bg-primary)
-  );
+  --mail_row_selected_bg: var(--bg-selected);
   background-color: var(--mail_row_selected_bg);
   border-bottom-color: var(--mail_row_selected_bg);
 }
@@ -2017,8 +1990,8 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .mail_row_selected:hover {
   --mail_row_selected_bg: color-mix(
     in srgb,
-    var(--text-primary, #111827) 13%,
-    var(--bg-primary)
+    var(--accent-color, #3b82f6) 14%,
+    var(--bg-selected)
   );
 }
 
