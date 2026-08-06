@@ -1,6 +1,8 @@
 name: Aster Mail CodeQL config
 
 paths-ignore:
+  - public/bergamot/**
+  - src/vendor/**
   - src-tauri/patches/**
   - src-tauri/gen/**
   - src-tauri/target/**
