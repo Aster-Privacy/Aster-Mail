@@ -312,7 +312,7 @@ export function QuickSettingsPanel({
           <Button
             className="w-full"
             size="lg"
-            variant="ghost"
+            variant="outline"
             onClick={() => on_open_full_settings()}
           >
             {t("settings.see_all_settings")}
