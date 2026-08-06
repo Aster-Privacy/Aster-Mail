@@ -1645,14 +1645,14 @@ export async function sync_recent(notify_new = false): Promise<void> {
   }
 }
 
-function delete_sync_storage_key(): string | null {
-  const account_id = get_current_account_id();
+async function delete_sync_storage_key(): Promise<string | null> {
+  const account_id = await get_current_account_id();
 
   return account_id ? `${DELETE_SYNC_TOKEN_PREFIX}${account_id}` : null;
 }
 
 async function prune_server_deletions(): Promise<boolean> {
-  const storage_key = delete_sync_storage_key();
+  const storage_key = await delete_sync_storage_key();
 
   if (!storage_key) return false;
 

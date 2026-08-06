@@ -126,8 +126,6 @@ export async function parse_mbox_file(
     emit(pending);
   }
 
-  pending = "";
-
   if (count === 0) {
     return {
       emails: [],

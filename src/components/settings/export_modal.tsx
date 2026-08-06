@@ -344,7 +344,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     abort_ref.current?.abort();
   }, []);
 
-  let title = t("settings.export_title");
+  let title: string;
   let description: string | null = null;
   let body: React.ReactNode = null;
   let footer: React.ReactNode = null;

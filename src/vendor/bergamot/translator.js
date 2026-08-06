@@ -853,7 +853,7 @@ export class LatencyOptimisedTranslator {
                 worker.idle = false;
                     
                 try {
-                    const models = await this.backing.getModels(request)
+                    const models = await this.backing.getModels(request);
 
                     await Promise.all(models.map(async ({from, to}) => {
                         if (!await worker.exports.hasTranslationModel({from, to})) {

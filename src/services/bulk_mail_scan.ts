@@ -95,7 +95,7 @@ async function scan_pages(
   let reached_cap = false;
   let page_count = 0;
 
-  do {
+  for (;;) {
     if (signal?.aborted) break;
 
     const response = await fetch_page(cursor);
@@ -117,7 +117,7 @@ async function scan_pages(
     if (!cursor) break;
 
     await yield_to_browser();
-  } while (cursor);
+  }
 
   return { items, reached_cap };
 }
