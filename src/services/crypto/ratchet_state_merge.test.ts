@@ -50,6 +50,7 @@ function make_state(overrides: Record<string, unknown> = {}): SerializedState {
       send_message_number: 0,
       recv_message_number: 0,
       previous_chain_length: 0,
+      epoch: 0,
       skipped_message_keys: [],
       version: 2,
       dirty_since_sync: false,
@@ -147,7 +148,7 @@ describe("ratchet state merge", () => {
   it("carries skipped keys across a diverged dh epoch", () => {
     const local = make_state({
       skipped_message_keys: [skipped("dh-a", 1, 10)],
-      previous_chain_length: 3,
+      epoch: 1,
       updated_at: 5_000,
     });
     const remote = make_state({
@@ -155,7 +156,7 @@ describe("ratchet state merge", () => {
       root_key: "root-key-epoch-2",
       chain_key_send: "send-chain-epoch-2",
       skipped_message_keys: [skipped("dh-b", 1, 20)],
-      previous_chain_length: 6,
+      epoch: 2,
       updated_at: 9_000,
     });
 
@@ -166,22 +167,74 @@ describe("ratchet state merge", () => {
     expect(merged.state.updated_at).toBe(9_000);
   });
 
-  it("keeps the local epoch when it is the more advanced one", () => {
+  it("keeps the higher epoch even when the other side was written later", () => {
     const local = make_state({
       root_key: "root-key-epoch-3",
-      previous_chain_length: 12,
+      epoch: 3,
       updated_at: 2_000,
     });
     const remote = make_state({
       dh_keypair: { public_key: "other-dh-pub", secret_key: "other-dh-sec" },
       root_key: "root-key-epoch-2",
-      previous_chain_length: 6,
+      epoch: 2,
       updated_at: 9_000,
     });
 
     expect(merge_ratchet_states(local, remote).state.root_key).toBe(
       "root-key-epoch-3",
     );
+    expect(merge_ratchet_states(remote, local).state.root_key).toBe(
+      "root-key-epoch-3",
+    );
+  });
+
+  it("falls back to the newer write when both sides report the same epoch", () => {
+    const local = make_state({ epoch: 4, updated_at: 2_000 });
+    const remote = make_state({
+      dh_keypair: { public_key: "other-dh-pub", secret_key: "other-dh-sec" },
+      root_key: "root-key-epoch-other",
+      epoch: 4,
+      updated_at: 9_000,
+    });
+
+    expect(merge_ratchet_states(local, remote).state.root_key).toBe(
+      "root-key-epoch-other",
+    );
+  });
+
+  it("resolves a full tie the same way on both devices", () => {
+    const local = make_state({ epoch: 4, updated_at: 7_000 });
+    const remote = make_state({
+      dh_keypair: { public_key: "other-dh-pub", secret_key: "other-dh-sec" },
+      root_key: "root-key-zzz",
+      epoch: 4,
+      updated_at: 7_000,
+    });
+
+    expect(merge_ratchet_states(local, remote).state.root_key).toBe(
+      merge_ratchet_states(remote, local).state.root_key,
+    );
+  });
+
+  it("treats a state written before epochs existed as epoch zero", () => {
+    const legacy = make_state({ epoch: undefined, updated_at: 9_000 });
+    const current = make_state({
+      dh_keypair: { public_key: "other-dh-pub", secret_key: "other-dh-sec" },
+      root_key: "root-key-epoch-1",
+      epoch: 1,
+      updated_at: 2_000,
+    });
+
+    expect(merge_ratchet_states(legacy, current).state.root_key).toBe(
+      "root-key-epoch-1",
+    );
+  });
+
+  it("keeps the highest epoch when both devices are on the same chain", () => {
+    const local = make_state({ epoch: 2 });
+    const remote = make_state({ epoch: 5 });
+
+    expect(merge_ratchet_states(local, remote).state.epoch).toBe(5);
   });
 
   it("keeps a bootstrap known to only one device", () => {

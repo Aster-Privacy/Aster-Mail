@@ -58,21 +58,22 @@ function same_epoch(a: RatchetState, b: RatchetState): boolean {
   );
 }
 
-function epoch_rank(state: RatchetState): number {
-  return state.previous_chain_length + state.updated_at / 1e13;
-}
-
 function pick_newer_epoch(
   local: RatchetState,
   remote: RatchetState,
 ): RatchetState {
-  const local_rank = epoch_rank(local);
-  const remote_rank = epoch_rank(remote);
+  const local_epoch = local.epoch ?? 0;
+  const remote_epoch = remote.epoch ?? 0;
 
-  if (local_rank > remote_rank) return local;
-  if (remote_rank > local_rank) return remote;
+  if (local_epoch !== remote_epoch) {
+    return local_epoch > remote_epoch ? local : remote;
+  }
 
-  return remote;
+  if (local.updated_at !== remote.updated_at) {
+    return local.updated_at > remote.updated_at ? local : remote;
+  }
+
+  return local.root_key > remote.root_key ? local : remote;
 }
 
 export function merge_ratchet_states(
@@ -128,6 +129,7 @@ export function merge_ratchet_states(
         local.state.previous_chain_length,
         remote.state.previous_chain_length,
       ),
+      epoch: Math.max(local.state.epoch ?? 0, remote.state.epoch ?? 0),
       bootstrap: local.state.bootstrap ?? remote.state.bootstrap,
       skipped_message_keys,
       dirty_since_sync: true,

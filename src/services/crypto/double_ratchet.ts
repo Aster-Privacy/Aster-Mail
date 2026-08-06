@@ -70,6 +70,7 @@ export interface RatchetState {
   send_message_number: number;
   recv_message_number: number;
   previous_chain_length: number;
+  epoch?: number;
   skipped_message_keys: SkippedMessageKey[];
   version: number;
   dirty_since_sync: boolean;
@@ -133,6 +134,7 @@ function clone_state(state: RatchetState): RatchetState {
     send_message_number: state.send_message_number,
     recv_message_number: state.recv_message_number,
     previous_chain_length: state.previous_chain_length,
+    epoch: state.epoch ?? 0,
     skipped_message_keys: state.skipped_message_keys.map((k) => ({ ...k })),
     version: state.version,
     dirty_since_sync: state.dirty_since_sync,
@@ -391,6 +393,7 @@ export class DoubleRatchet {
       send_message_number: 0,
       recv_message_number: 0,
       previous_chain_length: 0,
+      epoch: 0,
       skipped_message_keys: [],
       version: 1,
       dirty_since_sync: false,
@@ -418,6 +421,7 @@ export class DoubleRatchet {
       send_message_number: 0,
       recv_message_number: 0,
       previous_chain_length: 0,
+      epoch: 0,
       skipped_message_keys: [],
       version: 1,
       dirty_since_sync: false,
@@ -657,6 +661,7 @@ export class DoubleRatchet {
     remote_public_key: Uint8Array,
   ): Promise<void> {
     state.previous_chain_length = state.send_message_number;
+    state.epoch = (state.epoch ?? 0) + 1;
     state.send_message_number = 0;
     state.recv_message_number = 0;
     state.dh_remote_public = array_to_base64(remote_public_key);
