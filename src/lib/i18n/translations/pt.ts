@@ -6532,6 +6532,7 @@ export const pt = {
     heading_2: "Título 2",
     heading_3: "Título 3",
     add_file: "Adicionar arquivo",
+    attaching_original_files: "Anexando os arquivos originais",
     display_text_placeholder: "Texto de exibição",
     url_placeholder: "https://exemplo.com",
     schedule_send: "Agendar envio",

@@ -24,7 +24,9 @@ import {
   DoubleRatchet,
   save_ratchet_state,
   load_ratchet_state,
+  type SerializedState,
 } from "./double_ratchet";
+import { merge_ratchet_states } from "./ratchet_state_merge";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 const API_BASE = "/crypto/v1/ratchet";
@@ -133,7 +135,12 @@ async function post_state(
 }
 
 type LookupResult =
-  | { kind: "found"; version: number }
+  | {
+      kind: "found";
+      version: number;
+      encrypted_state: string;
+      state_nonce: string;
+    }
   | { kind: "not_found" }
   | { kind: "error"; message: string };
 
@@ -150,7 +157,37 @@ async function lookup_server_state(
     return { kind: "error", message: response.error || "lookup failed" };
   }
 
-  return { kind: "found", version: response.data.state_version };
+  return {
+    kind: "found",
+    version: response.data.state_version,
+    encrypted_state: response.data.encrypted_state,
+    state_nonce: response.data.state_nonce,
+  };
+}
+
+async function absorb_server_state(
+  ratchet: DoubleRatchet,
+  encryption_key: CryptoKey,
+  lookup: Extract<LookupResult, { kind: "found" }>,
+): Promise<boolean> {
+  try {
+    const remote_json = await decrypt_state_from_server(
+      lookup.encrypted_state,
+      lookup.state_nonce,
+      encryption_key,
+    );
+
+    const remote = JSON.parse(remote_json) as SerializedState;
+    const local = await ratchet.serialize();
+
+    if (remote.conversation_id !== local.conversation_id) return false;
+
+    ratchet.adopt_state(merge_ratchet_states(local, remote));
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function do_sync(
@@ -158,8 +195,6 @@ async function do_sync(
   encryption_key: CryptoKey,
   initial_version_hint?: number,
 ): Promise<number> {
-  const serialized = await ratchet.serialize();
-  const state_json = JSON.stringify(serialized);
   const conversation_id = ratchet.get_conversation_id();
   const conversation_id_b64 = array_to_base64(
     new TextEncoder().encode(conversation_id),
@@ -172,7 +207,7 @@ async function do_sync(
 
   for (let attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
     const { encrypted_state, state_nonce } = await encrypt_state_for_server(
-      state_json,
+      JSON.stringify(await ratchet.serialize()),
       encryption_key,
     );
 
@@ -206,10 +241,14 @@ async function do_sync(
         const recheck = await lookup_server_state(conversation_id_b64);
 
         if (recheck.kind === "found") {
+          if (await absorb_server_state(ratchet, encryption_key, recheck)) {
+            await save_ratchet_state(ratchet).catch(() => undefined);
+          }
+
           known_version = recheck.version;
-        } else {
-          continue;
         }
+
+        continue;
       } else {
         known_version = lookup.version;
       }
@@ -246,6 +285,8 @@ async function do_sync(
 
     if (recheck.version === known_version) {
       await new Promise((r) => setTimeout(r, 50 * (attempt + 1)));
+    } else if (await absorb_server_state(ratchet, encryption_key, recheck)) {
+      await save_ratchet_state(ratchet).catch(() => undefined);
     }
 
     known_version = recheck.version;

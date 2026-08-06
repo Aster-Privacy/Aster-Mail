@@ -6541,6 +6541,7 @@ export const fr = {
     heading_2: "Titre 2",
     heading_3: "Titre 3",
     add_file: "Ajouter un fichier",
+    attaching_original_files: "Pièces jointes d'origine en cours d'ajout",
     display_text_placeholder: "Texte d'affichage",
     url_placeholder: "https://exemple.com",
     schedule_send: "Programmer l'envoi",

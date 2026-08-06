@@ -6470,6 +6470,7 @@ export const nl = {
     heading_2: "Kop 2",
     heading_3: "Kop 3",
     add_file: "Bestand toevoegen",
+    attaching_original_files: "Oorspronkelijke bestanden worden toegevoegd",
     display_text_placeholder: "Weergavetekst",
     url_placeholder: "https://voorbeeld.nl",
     schedule_send: "Gepland verzenden",

@@ -6522,6 +6522,7 @@ export const ru = {
     heading_2: "Заголовок 2",
     heading_3: "Заголовок 3",
     add_file: "Добавить файл",
+    attaching_original_files: "Прикрепление исходных файлов",
     display_text_placeholder: "Отображаемый текст",
     url_placeholder: "https://example.com",
     schedule_send: "Запланировать отправку",

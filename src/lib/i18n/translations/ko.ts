@@ -6299,6 +6299,7 @@ export const ko = {
     heading_2: "제목 2",
     heading_3: "제목 3",
     add_file: "파일 추가",
+    attaching_original_files: "원본 파일을 첨부하는 중",
     display_text_placeholder: "표시 텍스트",
     url_placeholder: "https://example.com",
     schedule_send: "예약 전송",

@@ -6485,6 +6485,7 @@ export const ja = {
     heading_2: "見出し2",
     heading_3: "見出し3",
     add_file: "ファイルを追加",
+    attaching_original_files: "元のファイルを添付しています",
     display_text_placeholder: "表示テキスト",
     url_placeholder: "https://example.com",
     schedule_send: "送信を予約",

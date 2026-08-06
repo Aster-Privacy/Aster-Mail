@@ -42,22 +42,23 @@ interface RatchetKeyPair {
   secret_key: Uint8Array;
 }
 
-interface SkippedMessageKey {
+export interface SkippedMessageKey {
   dh_public: string;
   message_number: number;
   message_key: string;
   timestamp: number;
 }
 
-interface BootstrapData {
+export interface BootstrapData {
   ephemeral_key: string;
   pq_ciphertext?: string;
   pq_key_id?: number;
   sender_identity_key?: string;
   recipient_identity_key?: string;
+  recipient_pq_identity_key?: string;
 }
 
-interface RatchetState {
+export interface RatchetState {
   dh_keypair: {
     public_key: string;
     secret_key: string;
@@ -77,7 +78,7 @@ interface RatchetState {
   bootstrap?: BootstrapData;
 }
 
-interface SerializedState {
+export interface SerializedState {
   state: RatchetState;
   conversation_id: string;
 }
@@ -428,6 +429,16 @@ export class DoubleRatchet {
   }
 
   async encrypt(plaintext: string): Promise<EncryptedMessage> {
+    const sealed = await this.encrypt_returning_message_key(plaintext);
+
+    secure_zero_memory(sealed.message_key);
+
+    return sealed.message;
+  }
+
+  async encrypt_returning_message_key(
+    plaintext: string,
+  ): Promise<{ message: EncryptedMessage; message_key: Uint8Array }> {
     const encoder = new TextEncoder();
     const plaintext_bytes = encoder.encode(plaintext);
 
@@ -459,13 +470,34 @@ export class DoubleRatchet {
     this.state.updated_at = Date.now();
 
     secure_zero_memory(chain_key);
-    secure_zero_memory(message_key);
 
     return {
-      header,
-      ciphertext: array_to_base64(ciphertext),
-      nonce: array_to_base64(nonce),
+      message: {
+        header,
+        ciphertext: array_to_base64(ciphertext),
+        nonce: array_to_base64(nonce),
+      },
+      message_key,
     };
+  }
+
+  static async decrypt_with_message_key(
+    message: EncryptedMessage,
+    message_key: Uint8Array,
+  ): Promise<string> {
+    const ad =
+      (message.header.v ?? 1) >= 2
+        ? serialize_header_for_ad(message.header)
+        : null;
+
+    const plaintext_bytes = await decrypt_with_key(
+      base64_to_array(message.ciphertext),
+      base64_to_array(message.nonce),
+      message_key,
+      ad,
+    );
+
+    return new TextDecoder().decode(plaintext_bytes);
   }
 
   async decrypt(message: EncryptedMessage): Promise<string> {
@@ -717,6 +749,14 @@ export class DoubleRatchet {
     };
   }
 
+  adopt_state(data: SerializedState): void {
+    if (data.conversation_id !== this.conversation_id) {
+      throw new Error("Ratchet state conversation mismatch");
+    }
+
+    this.state = clone_state(data.state);
+  }
+
   static deserialize(data: SerializedState): DoubleRatchet {
     if (data.state.dirty_since_sync === undefined) {
       data.state.dirty_since_sync = true;
@@ -910,4 +950,4 @@ export async function generate_keypair(): Promise<RatchetKeyPair> {
   return generate_dh_keypair();
 }
 
-export type { RatchetKeyPair, EncryptedMessage, RatchetState };
+export type { RatchetKeyPair, EncryptedMessage };

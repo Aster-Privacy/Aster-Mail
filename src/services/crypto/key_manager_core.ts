@@ -52,6 +52,7 @@ export interface RatchetKeySet {
   ratchet_signed_prekey_public: string;
   ratchet_pq_identity_key?: string;
   ratchet_pq_identity_public?: string;
+  ratchet_pq_identity_seed?: string;
 }
 
 export const RATCHET_PREVIOUS_KEYS_LIMIT = 3;
@@ -76,6 +77,7 @@ export function retain_previous_ratchet_keys(
       ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
       ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
       ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
+      ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
     });
   }
 
@@ -94,6 +96,7 @@ export interface EncryptedVault {
   ratchet_signed_prekey_public?: string;
   ratchet_pq_identity_key?: string;
   ratchet_pq_identity_public?: string;
+  ratchet_pq_identity_seed?: string;
   ratchet_previous_keys?: RatchetKeySet[];
   ratchet_regen_v4_done?: boolean;
   legacy_keks?: LegacyDerivedKek[];

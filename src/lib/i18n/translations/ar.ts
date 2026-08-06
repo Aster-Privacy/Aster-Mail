@@ -6263,6 +6263,7 @@ export const ar = {
     heading_2: "عنوان 2",
     heading_3: "عنوان 3",
     add_file: "إضافة ملف",
+    attaching_original_files: "جارٍ إرفاق الملفات الأصلية",
     display_text_placeholder: "نص العرض",
     url_placeholder: "https://example.com",
     schedule_send: "جدولة الإرسال",

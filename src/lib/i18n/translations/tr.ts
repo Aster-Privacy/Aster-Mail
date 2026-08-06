@@ -6497,6 +6497,7 @@ export const tr = {
     heading_2: "Başlık 2",
     heading_3: "Başlık 3",
     add_file: "Dosya ekle",
+    attaching_original_files: "Özgün dosyalar ekleniyor",
     display_text_placeholder: "Görüntüleme metni",
     url_placeholder: "https://ornek.com",
     schedule_send: "Zamanlanmış gönderim",

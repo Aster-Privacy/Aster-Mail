@@ -234,6 +234,37 @@ const FORCED_REGEN_KEY = "astermail_ratchet_regen_v4";
 
 const RATCHET_PREVIOUS_KEY_RETENTION = 32;
 
+function retain_replaced_pq_identity(
+  vault: EncryptedVault,
+): EncryptedVault["ratchet_previous_keys"] {
+  const previous = vault.ratchet_previous_keys
+    ? [...vault.ratchet_previous_keys]
+    : [];
+
+  if (
+    !vault.ratchet_pq_identity_key ||
+    !vault.ratchet_pq_identity_public ||
+    !vault.ratchet_identity_key ||
+    !vault.ratchet_identity_public ||
+    !vault.ratchet_signed_prekey ||
+    !vault.ratchet_signed_prekey_public
+  ) {
+    return vault.ratchet_previous_keys;
+  }
+
+  previous.unshift({
+    ratchet_identity_key: vault.ratchet_identity_key,
+    ratchet_identity_public: vault.ratchet_identity_public,
+    ratchet_signed_prekey: vault.ratchet_signed_prekey,
+    ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
+    ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
+    ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
+    ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
+  });
+
+  return previous.slice(0, RATCHET_PREVIOUS_KEY_RETENTION);
+}
+
 function bytes_to_base64(bytes: Uint8Array): string {
   let binary = "";
 
@@ -331,7 +362,9 @@ async function run_locked(): Promise<boolean> {
       !!vault.ratchet_signed_prekey_public;
 
     const has_pq =
-      !!vault.ratchet_pq_identity_key && !!vault.ratchet_pq_identity_public;
+      !!vault.ratchet_pq_identity_key &&
+      !!vault.ratchet_pq_identity_public &&
+      !!vault.ratchet_pq_identity_seed;
 
     const need_forced_regen =
       !localStorage.getItem(FORCED_REGEN_KEY) && !vault.ratchet_regen_v4_done;
@@ -410,19 +443,25 @@ async function run_locked(): Promise<boolean> {
       ));
 
     if (has_ecdh && ecdh_consistent && !has_pq) {
+      next_vault.ratchet_previous_keys = retain_replaced_pq_identity(vault);
+
       const pq_keys = await generate_pq_identity_keys();
 
       next_vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
       next_vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
+      next_vault.ratchet_pq_identity_seed = pq_keys.pq_identity_seed;
     } else if (can_repair) {
       next_vault.ratchet_identity_public = repaired_identity_public!;
       next_vault.ratchet_signed_prekey_public = repaired_spk_public!;
 
-      if (!next_vault.ratchet_pq_identity_key || !next_vault.ratchet_pq_identity_public) {
+      if (!has_pq) {
+        next_vault.ratchet_previous_keys = retain_replaced_pq_identity(vault);
+
         const pq_keys = await generate_pq_identity_keys();
 
         next_vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
         next_vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
+        next_vault.ratchet_pq_identity_seed = pq_keys.pq_identity_seed;
       }
     } else {
       const ratchet_keys = await generate_ratchet_keys();
@@ -437,6 +476,7 @@ async function run_locked(): Promise<boolean> {
           ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public!,
           ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
           ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
+          ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
         };
         const previous = vault.ratchet_previous_keys ?? [];
         const merged = [old_set, ...previous];
@@ -456,6 +496,7 @@ async function run_locked(): Promise<boolean> {
       next_vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
       next_vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
       next_vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
+      next_vault.ratchet_pq_identity_seed = ratchet_keys.pq_identity_seed;
 
       clear_states = true;
     }

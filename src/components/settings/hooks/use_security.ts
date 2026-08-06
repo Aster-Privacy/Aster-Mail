@@ -610,6 +610,7 @@ export function use_security() {
         vault.ratchet_pq_identity_key = memory_vault.ratchet_pq_identity_key;
         vault.ratchet_pq_identity_public =
           memory_vault.ratchet_pq_identity_public;
+        vault.ratchet_pq_identity_seed = memory_vault.ratchet_pq_identity_seed;
         vault.ratchet_previous_keys = memory_vault.ratchet_previous_keys
           ? [...memory_vault.ratchet_previous_keys]
           : vault.ratchet_previous_keys;

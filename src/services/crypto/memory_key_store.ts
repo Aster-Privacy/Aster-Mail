@@ -214,6 +214,7 @@ export async function store_vault_in_memory(
     ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
     ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
     ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
+    ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
     ratchet_previous_keys: vault.ratchet_previous_keys
       ? vault.ratchet_previous_keys.map((k) => ({ ...k }))
       : undefined,

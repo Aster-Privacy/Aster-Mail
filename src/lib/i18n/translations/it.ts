@@ -6578,6 +6578,7 @@ export const it = {
     heading_2: "Titolo 2",
     heading_3: "Titolo 3",
     add_file: "Aggiungi file",
+    attaching_original_files: "Allegando i file originali",
     display_text_placeholder: "Testo visualizzato",
     url_placeholder: "https://esempio.com",
     schedule_send: "Programma invio",

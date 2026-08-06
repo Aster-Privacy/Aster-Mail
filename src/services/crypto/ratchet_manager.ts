@@ -34,6 +34,7 @@ import {
   load_ratchet_state,
   type EncryptedMessage,
   type RatchetKeyPair,
+  type BootstrapData,
 } from "./double_ratchet";
 import {
   perform_x3dh_sender,
@@ -56,6 +57,13 @@ import {
 } from "./key_manager_pgp";
 import { check_and_pin_identity } from "./ratchet_identity_pin";
 import {
+  seal_recovery_lane,
+  open_recovery_lane,
+  can_seal_recovery_lane,
+  type RecoveryLaneData,
+  type RecoveryLaneRecipientKeys,
+} from "./ratchet_recovery_lane";
+import {
   fetch_refreshed_vault,
   adopt_refreshed_vault,
 } from "./vault_refresh";
@@ -70,6 +78,7 @@ import {
 import {
   base64_to_array as core_base64_to_array,
   compute_hash,
+  secure_zero_memory,
   pin_fingerprint,
   verify_pinned_fingerprint,
   PINNED_FINGERPRINTS,
@@ -122,6 +131,14 @@ interface RatchetRecipientData {
   nonce: string;
   pq_ciphertext?: string;
   pq_key_id?: number;
+  recovery?: RecoveryLaneData;
+}
+
+export class RecoveryLaneUnavailableError extends Error {
+  constructor(recipient_email: string) {
+    super(`recovery lane unavailable for ${recipient_email}`);
+    this.name = "RecoveryLaneUnavailableError";
+  }
 }
 
 interface RatchetEnvelope {
@@ -343,6 +360,22 @@ export async function encrypt_for_ratchet_recipient(
   );
 }
 
+function resolve_recovery_lane_keys(
+  bundle: PrekeyBundle | null,
+  bootstrap: BootstrapData | null,
+): RecoveryLaneRecipientKeys | null {
+  const identity_public =
+    bundle?.kem_identity_key ?? bootstrap?.recipient_identity_key ?? "";
+
+  if (!identity_public) return null;
+
+  const pq_identity_public = bundle?.kem_identity_key
+    ? (bundle.pq_kem_public_key ?? "")
+    : (bootstrap?.recipient_pq_identity_key ?? "");
+
+  return { identity_public, pq_identity_public };
+}
+
 async function encrypt_for_ratchet_recipient_unlocked(
   conversation_id: string,
   recipient_email: string,
@@ -472,6 +505,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
           pq_key_id: pq_key_id_value,
           sender_identity_key: vault.ratchet_identity_public,
           recipient_identity_key: bundle.kem_identity_key,
+          recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
         });
       } finally {
         x3dh_result.shared_secret.fill(0);
@@ -486,7 +520,38 @@ async function encrypt_for_ratchet_recipient_unlocked(
       }
     }
 
-    const encrypted = await ratchet.encrypt(body);
+    const recovery_keys = resolve_recovery_lane_keys(
+      bundle,
+      ratchet.get_bootstrap(),
+    );
+
+    if (!can_seal_recovery_lane(recovery_keys)) {
+      if (import.meta.env.DEV) {
+        console.warn(
+          "no recovery lane keys for recipient; routing via PGP fallback",
+        );
+      }
+
+      return null;
+    }
+
+    const { message: encrypted, message_key } =
+      await ratchet.encrypt_returning_message_key(body);
+
+    let recovery: RecoveryLaneData;
+
+    try {
+      recovery = await seal_recovery_lane(
+        array_to_base64(message_key),
+        conversation_id,
+        vault.ratchet_identity_public,
+        recovery_keys,
+      );
+    } catch {
+      throw new RecoveryLaneUnavailableError(recipient_email);
+    } finally {
+      secure_zero_memory(message_key);
+    }
 
     await save_ratchet_state(ratchet);
 
@@ -505,6 +570,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
       header: encrypted.header,
       ciphertext: encrypted.ciphertext,
       nonce: encrypted.nonce,
+      recovery,
     };
 
     if (pq_ciphertext_base64 && pq_key_id_value !== undefined) {
@@ -514,6 +580,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
     return recipient_data;
   } catch (err) {
+    if (err instanceof RecoveryLaneUnavailableError) {
+      throw err;
+    }
+
     if (import.meta.env.DEV) {
       console.warn("ratchet encrypt failed; routing via PGP fallback", err);
     }
@@ -732,6 +802,110 @@ function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
   return sets;
 }
 
+interface RecoveryLaneCandidate {
+  identity_jwk: string;
+  identity_public: string;
+  pq_identity_secret: string;
+  pq_identity_public: string;
+}
+
+function recovery_lane_key_candidates(
+  vault: EncryptedVault,
+): RecoveryLaneCandidate[] {
+  const candidates: RecoveryLaneCandidate[] = [];
+
+  const push = (source: {
+    ratchet_identity_key?: string;
+    ratchet_identity_public?: string;
+    ratchet_pq_identity_key?: string;
+    ratchet_pq_identity_public?: string;
+  }) => {
+    if (source.ratchet_identity_key && source.ratchet_identity_public) {
+      candidates.push({
+        identity_jwk: source.ratchet_identity_key,
+        identity_public: source.ratchet_identity_public,
+        pq_identity_secret: source.ratchet_pq_identity_key ?? "",
+        pq_identity_public: source.ratchet_pq_identity_public ?? "",
+      });
+    }
+  };
+
+  push(vault);
+
+  for (const previous of vault.ratchet_previous_keys ?? []) {
+    push(previous);
+  }
+
+  return candidates;
+}
+
+async function try_recovery_lane(
+  data: RatchetRecipientData,
+  conversation_id: string,
+  sender_identity_key: string,
+  vault: EncryptedVault,
+): Promise<string | null> {
+  const message_key_base64 = await open_recovery_lane_message_key(
+    data,
+    conversation_id,
+    sender_identity_key,
+    vault,
+  );
+
+  if (message_key_base64 === null) return null;
+
+  const message_key = base64_to_array(message_key_base64);
+
+  try {
+    return await DoubleRatchet.decrypt_with_message_key(
+      {
+        header: data.header,
+        ciphertext: data.ciphertext,
+        nonce: data.nonce,
+      },
+      message_key,
+    );
+  } catch {
+    return null;
+  } finally {
+    secure_zero_memory(message_key);
+  }
+}
+
+async function open_recovery_lane_message_key(
+  data: RatchetRecipientData,
+  conversation_id: string,
+  sender_identity_key: string,
+  vault: EncryptedVault,
+): Promise<string | null> {
+  if (!data.recovery) return null;
+
+  const candidates = recovery_lane_key_candidates(vault);
+
+  const ordered = [
+    ...candidates.filter((c) => c.identity_public === data.recovery?.rid),
+    ...candidates.filter((c) => c.identity_public !== data.recovery?.rid),
+  ];
+
+  for (const candidate of ordered) {
+    const opened = await open_recovery_lane(
+      data.recovery,
+      conversation_id,
+      sender_identity_key,
+      {
+        identity_jwk: candidate.identity_jwk,
+        identity_public: candidate.identity_public,
+        pq_identity_secret: candidate.pq_identity_secret,
+      },
+      candidate.pq_identity_public,
+    );
+
+    if (opened !== null) return opened;
+  }
+
+  return null;
+}
+
 async function init_receiver_from_bootstrap(
   data: RatchetRecipientData,
   sender_identity_key: string,
@@ -926,6 +1100,34 @@ async function decrypt_ratchet_for_recipient(
     }
 
     if (plaintext === null || !ratchet) {
+      const recovered = await try_recovery_lane(
+        data,
+        conversation_id,
+        sender_identity_key,
+        vault,
+      );
+
+      if (recovered !== null) return recovered;
+
+      if (data.recovery) {
+        const refreshed = await fetch_refreshed_vault();
+
+        if (refreshed) {
+          const recovered_refreshed = await try_recovery_lane(
+            data,
+            conversation_id,
+            sender_identity_key,
+            refreshed.vault,
+          );
+
+          if (recovered_refreshed !== null) {
+            await adopt_refreshed_vault(refreshed);
+
+            return recovered_refreshed;
+          }
+        }
+      }
+
       if (last_error) {
         throw last_error;
       }
@@ -960,6 +1162,7 @@ export async function generate_ratchet_keys(): Promise<{
   signed_prekey_public: string;
   pq_identity_secret: string;
   pq_identity_public: string;
+  pq_identity_seed: string;
 } | null> {
   const identity = await generate_exportable_ke_keypair();
   const signed_prekey = await generate_exportable_ke_keypair();
@@ -973,12 +1176,14 @@ export async function generate_ratchet_keys(): Promise<{
     signed_prekey_public: array_to_base64(signed_prekey.public_key_raw),
     pq_identity_secret: array_to_base64(pq_keys.secretKey),
     pq_identity_public: array_to_base64(pq_keys.publicKey),
+    pq_identity_seed: array_to_base64(pq_seed),
   };
 }
 
 export async function generate_pq_identity_keys(): Promise<{
   pq_identity_secret: string;
   pq_identity_public: string;
+  pq_identity_seed: string;
 }> {
   const pq_seed = crypto.getRandomValues(new Uint8Array(64));
   const pq_keys = ml_kem768.keygen(pq_seed);
@@ -986,6 +1191,7 @@ export async function generate_pq_identity_keys(): Promise<{
   return {
     pq_identity_secret: array_to_base64(pq_keys.secretKey),
     pq_identity_public: array_to_base64(pq_keys.publicKey),
+    pq_identity_seed: array_to_base64(pq_seed),
   };
 }
 

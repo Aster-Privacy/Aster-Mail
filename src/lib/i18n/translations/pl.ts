@@ -6535,6 +6535,7 @@ export const pl = {
     heading_2: "Nagłówek 2",
     heading_3: "Nagłówek 3",
     add_file: "Dodaj plik",
+    attaching_original_files: "Dołączanie oryginalnych plików",
     display_text_placeholder: "Tekst wyświetlany",
     url_placeholder: "https://example.com",
     schedule_send: "Zaplanuj wysłanie",

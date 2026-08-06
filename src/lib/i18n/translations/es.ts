@@ -6466,6 +6466,7 @@ export const es = {
     heading_2: "Encabezado 2",
     heading_3: "Encabezado 3",
     add_file: "Añadir archivo",
+    attaching_original_files: "Adjuntando los archivos originales",
     display_text_placeholder: "Texto para mostrar",
     url_placeholder: "https://ejemplo.com",
     schedule_send: "Programar envío",

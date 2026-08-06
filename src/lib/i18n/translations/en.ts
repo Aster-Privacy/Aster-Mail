@@ -6658,6 +6658,7 @@ export const en: Translations = {
     heading_2: "Heading 2",
     heading_3: "Heading 3",
     add_file: "Add file",
+    attaching_original_files: "Attaching original files",
     display_text_placeholder: "Display text",
     url_placeholder: "https://example.com",
     insert_link_title: "Insert Link",

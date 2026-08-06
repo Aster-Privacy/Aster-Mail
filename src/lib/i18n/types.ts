@@ -5957,6 +5957,7 @@ export interface MailTranslations {
   heading_2: string;
   heading_3: string;
   add_file: string;
+  attaching_original_files: string;
   display_text_placeholder: string;
   url_placeholder: string;
   insert_link_title: string;

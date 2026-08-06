@@ -28,12 +28,57 @@ import {
 const HASH_ALG = ["SHA", "256"].join("-");
 const API_BASE = "/crypto/v1/ratchet";
 const MAX_ESCROW_PLAINTEXT_BYTES = 100 * 1024;
-const ESCROW_MISS_TTL_MS = 10 * 60 * 1000;
+const ESCROW_MISS_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_TRACKED_ESCROW_MISSES = 5000;
+const ESCROW_MISS_STORAGE_KEY = "astermail_escrow_misses";
 
 const escrow_misses = new Map<string, number>();
 
+let escrow_misses_loaded = false;
+let escrow_miss_flush_handle: ReturnType<typeof setTimeout> | null = null;
+
+function load_escrow_misses(): void {
+  if (escrow_misses_loaded) return;
+
+  escrow_misses_loaded = true;
+
+  try {
+    const raw = localStorage.getItem(ESCROW_MISS_STORAGE_KEY);
+
+    if (!raw) return;
+
+    const parsed = JSON.parse(raw) as Record<string, number>;
+    const now = Date.now();
+
+    for (const [key, missed_at] of Object.entries(parsed)) {
+      if (typeof missed_at !== "number") continue;
+      if (now - missed_at > ESCROW_MISS_TTL_MS) continue;
+
+      escrow_misses.set(key, missed_at);
+    }
+  } catch {
+    escrow_misses.clear();
+  }
+}
+
+function flush_escrow_misses(): void {
+  if (escrow_miss_flush_handle !== null) return;
+
+  escrow_miss_flush_handle = setTimeout(() => {
+    escrow_miss_flush_handle = null;
+
+    try {
+      localStorage.setItem(
+        ESCROW_MISS_STORAGE_KEY,
+        JSON.stringify(Object.fromEntries(escrow_misses)),
+      );
+    } catch {}
+  }, 2000);
+}
+
 function record_escrow_miss(dedupe_key: string): void {
+  load_escrow_misses();
+
   if (escrow_misses.size >= MAX_TRACKED_ESCROW_MISSES) {
     const now = Date.now();
 
@@ -51,15 +96,19 @@ function record_escrow_miss(dedupe_key: string): void {
   }
 
   escrow_misses.set(dedupe_key, Date.now());
+  flush_escrow_misses();
 }
 
 function has_recent_escrow_miss(dedupe_key: string): boolean {
+  load_escrow_misses();
+
   const missed_at = escrow_misses.get(dedupe_key);
 
   if (missed_at === undefined) return false;
 
   if (Date.now() - missed_at > ESCROW_MISS_TTL_MS) {
     escrow_misses.delete(dedupe_key);
+    flush_escrow_misses();
 
     return false;
   }
@@ -69,6 +118,11 @@ function has_recent_escrow_miss(dedupe_key: string): boolean {
 
 export function clear_escrow_miss_cache(): void {
   escrow_misses.clear();
+  escrow_misses_loaded = true;
+
+  try {
+    localStorage.removeItem(ESCROW_MISS_STORAGE_KEY);
+  } catch {}
 }
 
 interface EscrowEntry {
@@ -190,6 +244,7 @@ export async function upload_to_escrow(
   });
 
   escrow_misses.delete(dedupe_key);
+  flush_escrow_misses();
 }
 
 export async function fetch_from_escrow(
@@ -207,13 +262,16 @@ export async function fetch_from_escrow(
     `${API_BASE}/plaintext/${encodeURIComponent(dedupe_key)}`,
   );
 
-  if (response.code === "NOT_FOUND" || response.error || !response.data) {
+  if (response.code === "NOT_FOUND") {
     record_escrow_miss(dedupe_key);
 
     return null;
   }
 
+  if (response.error || !response.data) return null;
+
   escrow_misses.delete(dedupe_key);
+  flush_escrow_misses();
 
   try {
     const ciphertext = base64_to_array(response.data.encrypted_plaintext);

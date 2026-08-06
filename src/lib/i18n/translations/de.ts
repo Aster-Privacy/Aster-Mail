@@ -6627,6 +6627,7 @@ export const de = {
     heading_2: "Überschrift 2",
     heading_3: "Überschrift 3",
     add_file: "Datei hinzufügen",
+    attaching_original_files: "Originaldateien werden angehängt",
     display_text_placeholder: "Anzeigetext",
     url_placeholder: "https://beispiel.de",
     schedule_send: "Senden planen",

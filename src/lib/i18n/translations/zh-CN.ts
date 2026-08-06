@@ -5901,6 +5901,7 @@ export const zh_CN = {
     heading_2: "标题 2",
     heading_3: "标题 3",
     add_file: "添加文件",
+    attaching_original_files: "正在附加原始文件",
     display_text_placeholder: "显示文本",
     url_placeholder: "https://example.com",
     schedule_send: "定时发送",

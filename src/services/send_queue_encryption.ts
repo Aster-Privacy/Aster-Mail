@@ -44,6 +44,7 @@ import {
 import {
   encrypt_for_ratchet_recipient,
   build_ratchet_envelope,
+  RecoveryLaneUnavailableError,
 } from "./crypto/ratchet_manager";
 import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
 import { get_current_account } from "./account_manager";
@@ -257,13 +258,26 @@ export async function encrypt_for_recipients(
         break;
       }
 
-      const result = await encrypt_for_ratchet_recipient(
-        sender_email,
-        recipient,
-        username,
-        body,
-        vault,
-      );
+      let result: Awaited<ReturnType<typeof encrypt_for_ratchet_recipient>>;
+
+      try {
+        result = await encrypt_for_ratchet_recipient(
+          sender_email,
+          recipient,
+          username,
+          body,
+          vault,
+        );
+      } catch (err) {
+        if (err instanceof RecoveryLaneUnavailableError) {
+          throw create_error(
+            "encryption_failed",
+            en.errors.cannot_send_no_recovery_key,
+          );
+        }
+
+        throw err;
+      }
 
       if (result) {
         ratchet_results[recipient.toLowerCase()] = result;
@@ -281,13 +295,28 @@ export async function encrypt_for_recipients(
           await resolve_own_username_for_key_lookup(sender_email);
 
         if (sender_username) {
-          const self_result = await encrypt_for_ratchet_recipient(
-            sender_email,
-            sender_email,
-            sender_username,
-            body,
-            vault,
-          );
+          let self_result: Awaited<
+            ReturnType<typeof encrypt_for_ratchet_recipient>
+          >;
+
+          try {
+            self_result = await encrypt_for_ratchet_recipient(
+              sender_email,
+              sender_email,
+              sender_username,
+              body,
+              vault,
+            );
+          } catch (err) {
+            if (err instanceof RecoveryLaneUnavailableError) {
+              throw create_error(
+                "encryption_failed",
+                en.errors.cannot_send_no_recovery_key,
+              );
+            }
+
+            throw err;
+          }
 
           if (self_result) {
             ratchet_results[sender_lower] = self_result;
