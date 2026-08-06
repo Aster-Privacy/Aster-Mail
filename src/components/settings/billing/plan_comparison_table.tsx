@@ -208,6 +208,13 @@ export function get_plan_comparison_rows(
       supernova: "✓",
     },
     {
+      label: t("settings.feature_instant_alias_delete"),
+      free: "-",
+      star: "-",
+      nova: "-",
+      supernova: "✓",
+    },
+    {
       label: t("settings.feature_reverse_alias"),
       free: "-",
       star: "-",

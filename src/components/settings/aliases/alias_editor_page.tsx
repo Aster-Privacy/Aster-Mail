@@ -180,7 +180,9 @@ export function AliasEditorPage({
         feature: "has_advanced_aliases",
         render: () => (
           <DeliveryPanel
+            alias_address={alias.full_address}
             delivery_folder_token={alias.delivery_folder_token}
+            delivery_label_token={alias.delivery_label_token}
             never_inbox={alias.never_inbox}
             on_save={(value) => update_alias(alias.id, value)}
             on_saved={(value) => on_delivery_saved?.(alias.id, value)}

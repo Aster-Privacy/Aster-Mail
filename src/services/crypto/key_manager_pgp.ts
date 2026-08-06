@@ -1040,18 +1040,69 @@ export async function encrypt_message_multi(
   return typeof encrypted === "string" ? encrypted : encrypted.toString();
 }
 
+const UNLOCKED_KEY_CACHE_MAX_ENTRIES = 8;
+
+const UNLOCKED_KEY_CACHE = new Map<string, Promise<openpgp.PrivateKey>>();
+
+async function unlocked_key_cache_id(
+  secret_key: string,
+  passphrase: string,
+): Promise<string> {
+  const encoder = new TextEncoder();
+
+  return compute_hash(
+    encoder.encode(`${secret_key.length}:${secret_key} ${passphrase}`),
+  );
+}
+
+async function unlock_private_key(
+  secret_key: string,
+  passphrase: string,
+): Promise<openpgp.PrivateKey> {
+  const cache_id = await unlocked_key_cache_id(secret_key, passphrase);
+  const cached = UNLOCKED_KEY_CACHE.get(cache_id);
+
+  if (cached) return cached;
+
+  const pending = openpgp
+    .readPrivateKey({ armoredKey: secret_key })
+    .then((private_key) =>
+      openpgp.decryptKey({
+        ["privateKey" as const]: private_key,
+        passphrase,
+      }),
+    );
+
+  UNLOCKED_KEY_CACHE.set(cache_id, pending);
+
+  if (UNLOCKED_KEY_CACHE.size > UNLOCKED_KEY_CACHE_MAX_ENTRIES) {
+    const oldest = UNLOCKED_KEY_CACHE.keys().next();
+
+    if (!oldest.done && oldest.value !== cache_id) {
+      UNLOCKED_KEY_CACHE.delete(oldest.value);
+    }
+  }
+
+  try {
+    return await pending;
+  } catch (error) {
+    UNLOCKED_KEY_CACHE.delete(cache_id);
+
+    throw error;
+  }
+}
+
+export function clear_unlocked_key_cache(): void {
+  UNLOCKED_KEY_CACHE.clear();
+}
+
 export async function decrypt_message_verified(
   ciphertext: string,
   secret_key: string,
   passphrase: string,
   verification_keys?: string[],
 ): Promise<decrypted_message_result> {
-  const secret_key_obj = await openpgp.decryptKey({
-    ["privateKey" as const]: await openpgp.readPrivateKey({
-      armoredKey: secret_key,
-    }),
-    passphrase,
-  });
+  const secret_key_obj = await unlock_private_key(secret_key, passphrase);
 
   const message = await openpgp.readMessage({ armoredMessage: ciphertext });
   const parsed_verification_keys = await parse_verification_keys(verification_keys);
@@ -1225,6 +1276,7 @@ export function get_usage_statistics(key_id: string): {
 export function clear_key_manager_state(): void {
   KEY_USAGE_LOG.length = 0;
   PINNED_FINGERPRINTS.clear();
+  clear_unlocked_key_cache();
 }
 
 export function clear_key_handle(handle: EncryptedKeyHandle): void {

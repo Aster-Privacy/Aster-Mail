@@ -225,6 +225,13 @@ function get_features(
       supernova: true,
     },
     {
+      name: t("settings.feature_instant_alias_delete"),
+      free: false,
+      star: false,
+      nova: false,
+      supernova: true,
+    },
+    {
       name: t("settings.feature_reverse_alias"),
       free: false,
       star: false,

@@ -50,6 +50,12 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { use_folders } from "@/hooks/use_folders";
+import { use_tags } from "@/hooks/use_tags";
+import { load_rules, use_mail_rules_store } from "@/stores/mail_rules_store";
+import {
+  alias_rule_delivery,
+  alias_rule_label,
+} from "@/lib/alias_rule_delivery";
 import { get_alias_preferences } from "@/services/api/aliases";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
@@ -1112,40 +1118,61 @@ export function StatsPanel({
 export interface AliasDeliveryUpdate {
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
+  delivery_label_token?: string | null;
 }
 
 export interface AliasDeliveryState {
   never_inbox: boolean;
   delivery_folder_token: string | null;
+  delivery_label_token: string | null;
 }
 
 const DELIVERY_INBOX_VALUE = "__inbox__";
 const DELIVERY_ARCHIVE_VALUE = "__archive__";
+const DELIVERY_NO_LABEL_VALUE = "__no_label__";
 
 const DELIVERABLE_FOLDER_TYPES = new Set(["folder", "custom", "spam", "trash"]);
 
 export function DeliveryPanel({
+  alias_address,
   never_inbox,
   delivery_folder_token,
+  delivery_label_token,
   on_save,
   on_saved,
 }: {
+  alias_address?: string;
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
+  delivery_label_token?: string | null;
   on_save: (next: AliasDeliveryUpdate) => Promise<{ error?: unknown }>;
   on_saved: (next: AliasDeliveryState) => void;
 }) {
   const { t } = use_i18n();
   const { state: folders_state, fetch_folders } = use_folders();
+  const { state: tags_state, fetch_tags } = use_tags();
+  const { rules } = use_mail_rules_store();
   const [value, set_value] = useState(
     delivery_folder_token ||
       (never_inbox ? DELIVERY_ARCHIVE_VALUE : DELIVERY_INBOX_VALUE),
   );
+  const [label_value, set_label_value] = useState(
+    delivery_label_token || DELIVERY_NO_LABEL_VALUE,
+  );
   const [saving, set_saving] = useState(false);
+  const [label_saving, set_label_saving] = useState(false);
 
   useEffect(() => {
     void fetch_folders();
   }, [fetch_folders]);
+
+  useEffect(() => {
+    void fetch_tags();
+  }, [fetch_tags]);
+
+  useEffect(() => {
+    void load_rules();
+  }, []);
 
   const custom_folders = folders_state.folders.filter((folder) =>
     DELIVERABLE_FOLDER_TYPES.has(folder.folder_type ?? "custom"),
@@ -1165,6 +1192,38 @@ export function DeliveryPanel({
     !custom_folders.some(
       (folder) => folder.folder_token === delivery_folder_token,
     );
+
+  const is_missing_label =
+    !!delivery_label_token &&
+    label_value === delivery_label_token &&
+    !tags_state.is_loading &&
+    !tags_state.tags.some((tag) => tag.tag_token === delivery_label_token);
+
+  const folder_name = (token: string) =>
+    custom_folders.find((folder) => folder.folder_token === token)?.name ??
+    t("settings.alias_delivery_folder_missing");
+
+  const label_name = (token: string) =>
+    tags_state.tags.find((tag) => tag.tag_token === token)?.name ??
+    t("settings.alias_delivery_label_missing");
+
+  const rule_delivery = alias_rule_delivery(rules, alias_address ?? "");
+  const rule_label = alias_rule_label(rules, alias_address ?? "");
+
+  const selected_folder_label =
+    value === DELIVERY_ARCHIVE_VALUE
+      ? t("mail.archive")
+      : value === DELIVERY_INBOX_VALUE
+        ? t("mail.inbox")
+        : folder_name(value);
+
+  const folder_rule_conflict =
+    !!rule_delivery && rule_delivery.folder_token !== value;
+
+  const label_rule_conflict =
+    !!rule_label &&
+    label_value !== DELIVERY_NO_LABEL_VALUE &&
+    !rule_label.label_tokens.includes(label_value);
 
   const handle_change = async (next: string) => {
     const previous = value;
@@ -1194,6 +1253,35 @@ export function DeliveryPanel({
         next === DELIVERY_ARCHIVE_VALUE || next === DELIVERY_INBOX_VALUE
           ? null
           : next,
+      delivery_label_token:
+        label_value === DELIVERY_NO_LABEL_VALUE ? null : label_value,
+    });
+  };
+
+  const handle_label_change = async (next: string) => {
+    const previous = label_value;
+
+    set_label_value(next);
+    set_label_saving(true);
+
+    const response = await on_save({
+      delivery_label_token: next === DELIVERY_NO_LABEL_VALUE ? null : next,
+    });
+
+    set_label_saving(false);
+    if (response.error) {
+      set_label_value(previous);
+      show_toast(t("settings.alias_delivery_label_error"), "error");
+
+      return;
+    }
+    on_saved({
+      never_inbox: value === DELIVERY_ARCHIVE_VALUE,
+      delivery_folder_token:
+        value === DELIVERY_ARCHIVE_VALUE || value === DELIVERY_INBOX_VALUE
+          ? null
+          : value,
+      delivery_label_token: next === DELIVERY_NO_LABEL_VALUE ? null : next,
     });
   };
 
@@ -1236,6 +1324,81 @@ export function DeliveryPanel({
           </SelectContent>
         </Select>
       </PanelRow>
+
+      {rule_delivery && (
+        <div
+          className={`px-1 py-2 text-xs ${folder_rule_conflict ? "text-amber-500" : "text-txt-muted"}`}
+          data-testid="alias_delivery_rule_note"
+        >
+          {folder_rule_conflict
+            ? t("settings.alias_delivery_rule_conflict", {
+                rule: rule_delivery.rule_name,
+                rule_target: folder_name(rule_delivery.folder_token),
+                target: selected_folder_label,
+              })
+            : t("settings.alias_delivery_rule_note", {
+                rule: rule_delivery.rule_name,
+                target: folder_name(rule_delivery.folder_token),
+              })}
+        </div>
+      )}
+
+      <PanelRow
+        description={t("settings.alias_delivery_label_desc")}
+        info={t("settings.alias_delivery_label_info")}
+        label={t("settings.alias_delivery_label")}
+      >
+        <Select
+          disabled={label_saving}
+          value={label_value}
+          onValueChange={handle_label_change}
+        >
+          <SelectTrigger
+            aria-label={t("settings.alias_delivery_label")}
+            className="h-9 w-64 shrink-0 bg-transparent"
+            data-testid="alias_delivery_label_select"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={DELIVERY_NO_LABEL_VALUE}>
+              {t("settings.alias_delivery_label_none")}
+            </SelectItem>
+            {tags_state.tags.map((tag) => (
+              <SelectItem key={tag.tag_token} value={tag.tag_token}>
+                {tag.name}
+              </SelectItem>
+            ))}
+            {is_missing_label && (
+              <SelectItem value={delivery_label_token}>
+                {t("settings.alias_delivery_label_missing")}
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+      </PanelRow>
+
+      {rule_label && (
+        <div
+          className={`px-1 py-2 text-xs ${label_rule_conflict ? "text-amber-500" : "text-txt-muted"}`}
+          data-testid="alias_delivery_label_rule_note"
+        >
+          {label_rule_conflict
+            ? t("settings.alias_delivery_label_rule_conflict", {
+                rule: rule_label.rule_name,
+                rule_target: rule_label.label_tokens
+                  .map((token) => label_name(token))
+                  .join(", "),
+                target: label_name(label_value),
+              })
+            : t("settings.alias_delivery_label_rule_note", {
+                rule: rule_label.rule_name,
+                target: rule_label.label_tokens
+                  .map((token) => label_name(token))
+                  .join(", "),
+              })}
+        </div>
+      )}
     </div>
   );
 }

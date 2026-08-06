@@ -2208,6 +2208,7 @@ export const ru = {
     feature_alias_stats_restore: "Статистика и восстановление псевдонимов",
     feature_soft_delete_restore: "Мягкое удаление и восстановление",
     feature_alias_directory: "Автосоздание каталогов",
+    feature_instant_alias_delete: "Мгновенное удаление псевдонимов",
     feature_reverse_alias: "Ответ от псевдонима",
     credits_will_be_applied:
       "{{amount}} в виде кредитов будет применено при оформлении",
@@ -2395,6 +2396,16 @@ export const ru = {
     alias_delivery_folder_error:
       "Настройка не сохранилась. Попробуйте еще раз.",
     alias_delivery_folder_missing: "Удаленная папка",
+    alias_delivery_label: "Метка",
+    alias_delivery_label_desc: "Назначать метку каждому письму, приходящему на этот алиас.",
+    alias_delivery_label_info: "Письма на этот алиас помечаются автоматически, правило не нужно. Метка добавляется независимо от папки доставки.",
+    alias_delivery_label_none: "Без метки",
+    alias_delivery_label_missing: "Удалённая метка",
+    alias_delivery_label_error: "Настройка не сохранилась. Попробуйте ещё раз.",
+    alias_delivery_rule_note: "Правило \"{{ rule }}\" уже перемещает почту этого алиаса в {{ target }}.",
+    alias_delivery_rule_conflict: "Правило \"{{ rule }}\" перемещает почту этого алиаса в {{ rule_target }}, поэтому она не попадёт в {{ target }}.",
+    alias_delivery_label_rule_note: "Правило \"{{ rule }}\" уже помечает почту этого алиаса меткой {{ target }}.",
+    alias_delivery_label_rule_conflict: "Правило \"{{ rule }}\" помечает почту этого алиаса меткой {{ rule_target }}, а не {{ target }}.",
     alias_relay_title: "Доставка",
     alias_relay_description:
       "Выберите, как доставляется почта на этот псевдоним.",
@@ -3730,10 +3741,10 @@ export const ru = {
       "Вы уверены, что хотите удалить этот псевдоним? Это действие нельзя отменить.",
     alias_too_new_title: "Этот псевдоним слишком новый для удаления",
     alias_too_new_message:
-      "Новые псевдонимы остаются активными 30 дней до возможности удаления. Этот можно убрать начиная с {{date}}.",
+      "Новые псевдонимы остаются активными 30 дней до возможности удаления. Этот можно убрать начиная с {{date}}. Перейдите на Supernova, чтобы удалять псевдонимы мгновенно.",
     ghost_alias_too_new_title: "Этот ghost-псевдоним слишком новый для отзыва",
     ghost_alias_too_new_message:
-      "Новые ghost-псевдонимы остаются активными 30 дней до возможности отзыва. Этот можно отозвать начиная с {{date}}.",
+      "Новые ghost-псевдонимы остаются активными 30 дней до возможности отзыва. Этот можно отозвать начиная с {{date}}. Перейдите на Supernova, чтобы отзывать ghost-псевдонимы мгновенно.",
     delete_signature_confirmation:
       "Вы уверены, что хотите удалить эту подпись? Это действие нельзя отменить.",
     delete_domain_confirmation:
@@ -7843,6 +7854,8 @@ export const ru = {
     no_labels_create_hint: "Меток пока нет. Создайте новую в боковой панели.",
     action_apply_label: "Применить метку",
     action_apply_labels: "Применить метки",
+    alias_delivery_conflict: "Алиас {{ alias }} доставляет в {{ alias_target }}, поэтому это правило с {{ rule_target }} окажется главнее.",
+    alias_label_conflict: "Алиас {{ alias }} помечает почту меткой {{ alias_target }}, а это правило добавляет ещё {{ rule_target }}.",
     action_auto_reply: "Автоответ",
     action_categorize: "Категоризировать",
     action_delete: "Удалить",

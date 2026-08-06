@@ -22,10 +22,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import {
-  PreferencesProvider,
-  use_preferences,
-} from "./preferences_context";
+import { PreferencesProvider, use_preferences } from "./preferences_context";
 import {
   DEFAULT_PREFERENCES,
   type UserPreferences,
@@ -33,13 +30,8 @@ import {
 
 const server_writes: UserPreferences[] = [];
 
-const cached_prefs: UserPreferences = {
-  ...DEFAULT_PREFERENCES,
-  show_aster_branding: false,
-};
-
 const server_state: { loaded: boolean; data: UserPreferences } = {
-  loaded: false,
+  loaded: true,
   data: DEFAULT_PREFERENCES,
 };
 
@@ -64,7 +56,7 @@ vi.mock("@/services/api/preferences", async (import_original) => {
     })),
     cache_preferences_locally: vi.fn(),
     clear_preferences_cache: vi.fn(),
-    get_cached_preferences: vi.fn(() => cached_prefs),
+    get_cached_preferences: vi.fn(() => null),
     cache_sidebar_state: vi.fn(),
     get_cached_sidebar_state: vi.fn(() => false),
     sync_quiet_hours_to_server: vi.fn(),
@@ -133,27 +125,27 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 type Captured = {
+  preferences: UserPreferences;
   update_preference: ReturnType<typeof use_preferences>["update_preference"];
-  has_loaded_from_server: boolean;
 };
 
 function Capture({ on_render }: { on_render: (c: Captured) => void }) {
-  const { update_preference, has_loaded_from_server } = use_preferences();
+  const { preferences, update_preference } = use_preferences();
 
-  on_render({ update_preference, has_loaded_from_server });
+  on_render({ preferences, update_preference });
 
   return null;
 }
 
-describe("preferences persistence when server load fails", () => {
+describe("preferences pick up changes made on another device", () => {
   let container: HTMLDivElement;
   let root: Root;
   let captured: Captured;
 
   beforeEach(() => {
     server_writes.length = 0;
-    server_state.loaded = false;
-    server_state.data = DEFAULT_PREFERENCES;
+    server_state.loaded = true;
+    server_state.data = { ...DEFAULT_PREFERENCES, muted_folder_tokens: [] };
     vi.useFakeTimers();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -185,72 +177,66 @@ describe("preferences persistence when server load fails", () => {
     });
   };
 
-  it("holds an immediate change while the server is unreachable and persists once it recovers", async () => {
+  it("adopts a folder muted on another device when the tab regains focus", async () => {
     await mount();
 
-    await act(async () => {
-      captured.update_preference("show_aster_branding", true, true);
-    });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000);
-    });
+    expect(captured.preferences.muted_folder_tokens).toEqual([]);
 
-    expect(server_writes.length).toBe(0);
-
-    server_state.loaded = true;
-    server_state.data = { ...DEFAULT_PREFERENCES };
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(10000);
-    });
-
-    const branding_writes = server_writes.filter(
-      (w) => w.show_aster_branding === true,
-    );
-
-    expect(branding_writes.length).toBeGreaterThan(0);
-  });
-
-  it("does not clobber another device's change when saving while online", async () => {
-    server_state.loaded = true;
-    server_state.data = { ...DEFAULT_PREFERENCES };
-    await mount();
-
-    server_state.data = { ...DEFAULT_PREFERENCES, undo_send_seconds: 30 };
-
-    await act(async () => {
-      captured.update_preference("show_aster_branding", true, true);
-    });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(5000);
-    });
-
-    const last = server_writes[server_writes.length - 1];
-
-    expect(last.show_aster_branding).toBe(true);
-    expect(last.undo_send_seconds).toBe(30);
-  });
-
-  it("rebases the local change onto fresh server state instead of clobbering it", async () => {
-    await mount();
-
-    server_state.loaded = true;
     server_state.data = {
       ...DEFAULT_PREFERENCES,
-      show_aster_branding: false,
-      undo_send_seconds: 30,
+      muted_folder_tokens: ["token-from-phone"],
     };
 
     await act(async () => {
-      captured.update_preference("show_aster_branding", true, true);
+      await vi.advanceTimersByTimeAsync(11000);
+      window.dispatchEvent(new Event("focus"));
+      await vi.advanceTimersByTimeAsync(0);
     });
+
+    expect(captured.preferences.muted_folder_tokens).toEqual([
+      "token-from-phone",
+    ]);
+  });
+
+  it("adopts a folder unmuted on another device while the tab stays open", async () => {
+    server_state.data = {
+      ...DEFAULT_PREFERENCES,
+      muted_folder_tokens: ["token-from-phone"],
+    };
+    await mount();
+
+    expect(captured.preferences.muted_folder_tokens).toEqual([
+      "token-from-phone",
+    ]);
+
+    server_state.data = { ...DEFAULT_PREFERENCES, muted_folder_tokens: [] };
+
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(30000);
+      await vi.advanceTimersByTimeAsync(25000);
     });
 
-    const last = server_writes[server_writes.length - 1];
+    expect(captured.preferences.muted_folder_tokens).toEqual([]);
+  });
 
-    expect(last.show_aster_branding).toBe(true);
-    expect(last.undo_send_seconds).toBe(30);
+  it("does not overwrite a local change that has not been saved yet", async () => {
+    await mount();
+
+    server_state.data = {
+      ...DEFAULT_PREFERENCES,
+      muted_folder_tokens: ["token-from-phone"],
+    };
+
+    await act(async () => {
+      captured.update_preference("muted_folder_tokens", ["token-from-web"]);
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(25000);
+    });
+
+    expect(server_writes.length).toBeGreaterThan(0);
+    expect(
+      server_writes[server_writes.length - 1].muted_folder_tokens,
+    ).toContain("token-from-web");
   });
 });

@@ -66,6 +66,7 @@ import {
   is_fully_built as is_category_index_built,
 } from "@/services/category_index";
 import { run_category_scope_action } from "@/components/email/inbox/category_bulk_actions";
+import { builtin_category_def } from "@/data/category_catalog";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { category_for_tab } from "@/services/mail_categorizer";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
@@ -1103,6 +1104,24 @@ export function EmailInbox({
     tag_view_token,
   ]);
 
+  const active_category_title = useMemo((): string | undefined => {
+    if (!categories.enabled) return undefined;
+    const id = categories.active_category;
+
+    if (id === "primary") return undefined;
+
+    const builtin = builtin_category_def(id);
+
+    if (builtin) return t(builtin.label_key);
+
+    return (preferences.custom_categories ?? []).find((c) => c.id === id)?.name;
+  }, [
+    categories.enabled,
+    categories.active_category,
+    preferences.custom_categories,
+    t,
+  ]);
+
   const [pending_select_all_action, set_pending_select_all_action] = useState<
     (() => void) | null
   >(null);
@@ -1708,6 +1727,7 @@ export function EmailInbox({
             tags_state.tags,
           )}
           select_all_mode={selection.select_all_mode}
+          selection_scope_title={active_category_title}
           selected_count={selection.selected_count}
           some_selected={selection.some_selected}
           spam_count={email_state.emails.filter((e) => e.is_spam).length}

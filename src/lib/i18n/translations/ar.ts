@@ -2126,6 +2126,7 @@ export const ar = {
     feature_alias_stats_restore: "إحصاءات الاسم المستعار واستعادته",
     feature_soft_delete_restore: "الحذف المؤقت والاستعادة",
     feature_alias_directory: "الإنشاء التلقائي للدليل",
+    feature_instant_alias_delete: "حذف فوري للأسماء المستعارة",
     feature_reverse_alias: "الرد من اسم مستعار",
     credits_will_be_applied: "سيتم تطبيق رصيد بقيمة {{amount}} عند الدفع",
     minimize_sidebar: "تصغير الشريط الجانبي",
@@ -2304,6 +2305,16 @@ export const ar = {
       "يصل البريد مباشرة إلى المجلد الذي تختاره دون الحاجة إلى قاعدة. وإذا طابقته قاعدة فإنها تتغلب على هذا الإعداد.",
     alias_delivery_folder_error: "لم يتم حفظ هذا الإعداد. محاولة أخرى ستنجح.",
     alias_delivery_folder_missing: "مجلد محذوف",
+    alias_delivery_label: "التسمية",
+    alias_delivery_label_desc: "تطبيق تسمية على كل رسالة تصل إلى هذا الاسم المستعار.",
+    alias_delivery_label_info: "يتم وسم البريد الوارد إلى هذا الاسم المستعار تلقائيًا دون الحاجة إلى قاعدة. تُطبّق التسمية بغض النظر عن المجلد الذي يصل إليه البريد.",
+    alias_delivery_label_none: "بدون تسمية",
+    alias_delivery_label_missing: "تسمية محذوفة",
+    alias_delivery_label_error: "لم يتم حفظ الإعداد. حاول مرة أخرى.",
+    alias_delivery_rule_note: "القاعدة \"{{ rule }}\" تنقل بريد هذا الاسم المستعار بالفعل إلى {{ target }}.",
+    alias_delivery_rule_conflict: "القاعدة \"{{ rule }}\" تنقل بريد هذا الاسم المستعار إلى {{ rule_target }}، لذلك لن يصل إلى {{ target }}.",
+    alias_delivery_label_rule_note: "القاعدة \"{{ rule }}\" تضع بالفعل التسمية {{ target }} على بريد هذا الاسم المستعار.",
+    alias_delivery_label_rule_conflict: "القاعدة \"{{ rule }}\" تضع التسمية {{ rule_target }} على بريد هذا الاسم المستعار، وليس {{ target }}.",
     alias_relay_title: "التسليم",
     alias_relay_description:
       "اختر كيفية تسليم البريد الموجَّه إلى هذا الاسم المستعار.",
@@ -3650,10 +3661,10 @@ export const ar = {
       "هل أنت متأكد أنك تريد حذف هذا الاسم المستعار؟ لا يمكن التراجع عن هذا الإجراء.",
     alias_too_new_title: "هذا الاسم المستعار جديد جدًا ولا يمكن حذفه",
     alias_too_new_message:
-      "الأسماء المستعارة الجديدة تبقى نشطة 30 يومًا قبل أن يمكن حذفها. يمكن إزالة هذا اعتبارًا من {{date}}.",
+      "الأسماء المستعارة الجديدة تبقى نشطة 30 يومًا قبل أن يمكن حذفها. يمكن إزالة هذا اعتبارًا من {{date}}. قم بالترقية إلى Supernova لحذف الأسماء المستعارة فورًا.",
     ghost_alias_too_new_title: "هذا الاسم الشبحي جديد جدًا ولا يمكن إنهاؤه",
     ghost_alias_too_new_message:
-      "الأسماء الشبحية الجديدة تبقى نشطة 30 يومًا قبل أن يمكن إنهاؤها. يمكن إنهاء هذا اعتبارًا من {{date}}.",
+      "الأسماء الشبحية الجديدة تبقى نشطة 30 يومًا قبل أن يمكن إنهاؤها. يمكن إنهاء هذا اعتبارًا من {{date}}. قم بالترقية إلى Supernova لإنهاء الأسماء الشبحية فورًا.",
     delete_signature_confirmation:
       "هل أنت متأكد أنك تريد حذف هذا التوقيع؟ لا يمكن التراجع عن هذا الإجراء.",
     delete_domain_confirmation:
@@ -7586,6 +7597,8 @@ export const ar = {
     action_move_to: "نقل إلى",
     action_apply_label: "تطبيق تصنيف",
     action_apply_labels: "تطبيق تصنيفات",
+    alias_delivery_conflict: "الاسم المستعار {{ alias }} يسلّم إلى {{ alias_target }}، لذا ستغلب هذه القاعدة التي ترسله إلى {{ rule_target }}.",
+    alias_label_conflict: "الاسم المستعار {{ alias }} يضع التسمية {{ alias_target }} على بريده، وهذه القاعدة تضيف {{ rule_target }} أيضًا.",
     action_mark_as: "تعليم كـ",
     action_star: "تمييز بنجمة",
     action_skip_inbox: "تخطي صندوق الوارد",

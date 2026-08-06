@@ -23,6 +23,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   format_date_short,
   format_email_detail_timestamp,
+  format_email_list_timestamp,
   format_full_date,
   format_full_datetime,
   type FormatOptions,
@@ -53,6 +54,27 @@ describe("format_date_short", () => {
     expect(format_date_short(d, US, true)).toMatch(/2022/);
     expect(format_date_short(d, EU, true)).toMatch(/2022/);
     expect(format_date_short(d, ISO, true)).toMatch(/2022/);
+  });
+});
+
+describe("format_email_list_timestamp", () => {
+  it("disambiguates an older-year message with the year", () => {
+    const d = new Date("2022-08-02T09:00:00Z");
+    expect(format_email_list_timestamp(d, US)).toMatch(/2022/);
+    expect(format_email_list_timestamp(d, EU)).toMatch(/2022/);
+    expect(format_email_list_timestamp(d, ISO)).toMatch(/2022/);
+  });
+
+  it("keeps same-year rows compact", () => {
+    expect(format_email_list_timestamp(new Date("2026-08-02T09:00:00Z"), EU)).not.toMatch(
+      /2026/,
+    );
+  });
+
+  it("still shows only the time for today", () => {
+    expect(format_email_list_timestamp(new Date("2026-08-03T09:30:00Z"), ISO)).toMatch(
+      /^\d{2}:\d{2}$/,
+    );
   });
 });
 

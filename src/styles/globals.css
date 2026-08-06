@@ -1984,7 +1984,11 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .mail_row_selected {
   --mail_row_selected_bg: var(--bg-selected);
   background-color: var(--mail_row_selected_bg);
-  border-bottom-color: var(--mail_row_selected_bg);
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--accent-color, #3b82f6) 45%,
+    var(--bg-selected)
+  );
 }
 
 .mail_row_selected:hover {
@@ -2481,20 +2485,32 @@ input:-webkit-autofill:active {
   }
 }
 
-.quick_settings_row:hover,
+.quick_settings_row:hover {
+  background-color: color-mix(in srgb, var(--text-primary) 6%, transparent);
+}
+
+.quick_settings_chip:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--accent-color, #3b82f6) 10%,
+    transparent
+  );
+}
+
 .quick_settings_all:hover {
   background-color: color-mix(
     in srgb,
-    var(--text-primary) 6%,
+    var(--accent-color, #3b82f6) 20%,
     transparent
   );
 }
 
 .quick_settings_row:focus-visible,
-.quick_settings_all:focus-visible {
-  box-shadow:
-    inset 0 0 0 2px var(--accent-color, #3b82f6),
-    inset 0 0 0 1px var(--border-primary);
+.quick_settings_all:focus-visible,
+.quick_settings_chip:focus-visible {
+  outline: 2px solid
+    color-mix(in srgb, var(--accent-color, #3b82f6) 38%, transparent);
+  outline-offset: -2px;
 }
 
 .account_menu_surface {

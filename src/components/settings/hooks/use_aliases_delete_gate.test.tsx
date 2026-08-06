@@ -26,8 +26,21 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (k: string) => k }),
 }));
 
+const plan_limits_mock = vi.hoisted(() => ({ instant_alias_delete: 0 }));
+
 vi.mock("@/hooks/use_plan_limits", () => ({
-  use_plan_limits: () => ({ limits: { plan_code: "free" } }),
+  use_plan_limits: () => ({
+    limits: {
+      plan_code: plan_limits_mock.instant_alias_delete === 0 ? "free" : "supernova",
+      limits: {
+        has_instant_alias_delete: {
+          limit: plan_limits_mock.instant_alias_delete,
+          used: 0,
+          remaining: 0,
+        },
+      },
+    },
+  }),
 }));
 
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
@@ -115,6 +128,7 @@ describe("handle_alias_delete 30-day gate", () => {
   };
 
   beforeEach(async () => {
+    plan_limits_mock.instant_alias_delete = 0;
     clear_aliases_cache();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -141,6 +155,26 @@ describe("handle_alias_delete 30-day gate", () => {
 
     expect(latest.alias_too_new_info.is_open).toBe(true);
     expect(latest.alias_delete_confirm.is_open).toBe(false);
+  });
+
+  it("lets a supernova user delete a brand-new alias immediately", async () => {
+    plan_limits_mock.instant_alias_delete = 1;
+    await act(async () => {
+      root.unmount();
+    });
+    root = createRoot(container);
+    await act(async () => {
+      root.render(<Harness />);
+    });
+    await flush();
+
+    await act(async () => {
+      latest.handle_alias_delete("a-new");
+    });
+
+    expect(latest.alias_delete_confirm.is_open).toBe(true);
+    expect(latest.alias_delete_confirm.id).toBe("a-new");
+    expect(latest.alias_too_new_info.is_open).toBe(false);
   });
 
   it("lets a decrypt-failed alias skip the gate and go to delete confirm", async () => {

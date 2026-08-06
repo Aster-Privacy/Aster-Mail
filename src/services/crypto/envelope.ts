@@ -24,6 +24,7 @@ import {
   get_passphrase_from_memory,
   get_vault_from_memory,
 } from "./memory_key_store";
+import { with_cached_envelope_key } from "./envelope_key_cache";
 import { decrypt_message_verified_with_any_key } from "./key_manager";
 import { resolve_sender_verification_keys } from "./sender_verification";
 
@@ -58,7 +59,34 @@ export const PBKDF2_ITERATIONS = 310000;
 export const SALT_LENGTH = 16;
 export const NONCE_LENGTH = 12;
 
+async function envelope_key_cache_id(
+  passphrase_bytes: Uint8Array,
+  salt: Uint8Array,
+): Promise<string> {
+  const material = new Uint8Array(passphrase_bytes.length + salt.length);
+
+  material.set(passphrase_bytes, 0);
+  material.set(salt, passphrase_bytes.length);
+
+  const digest = await crypto.subtle.digest(HASH_ALG, material);
+
+  zero_uint8_array(material);
+
+  return array_to_base64(new Uint8Array(digest));
+}
+
 export async function derive_envelope_key_from_bytes(
+  passphrase_bytes: Uint8Array,
+  salt: Uint8Array,
+): Promise<CryptoKey> {
+  const cache_id = await envelope_key_cache_id(passphrase_bytes, salt);
+
+  return with_cached_envelope_key(cache_id, () =>
+    derive_envelope_key_uncached(passphrase_bytes, salt),
+  );
+}
+
+async function derive_envelope_key_uncached(
   passphrase_bytes: Uint8Array,
   salt: Uint8Array,
 ): Promise<CryptoKey> {

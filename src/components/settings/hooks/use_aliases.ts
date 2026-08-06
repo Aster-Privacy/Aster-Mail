@@ -191,11 +191,15 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
 
 export { DEFAULT_DOMAINS };
 
+export const INSTANT_ALIAS_DELETE_KEY = "has_instant_alias_delete";
+
 export function use_aliases() {
   const { t } = use_i18n();
   const { limits } = use_plan_limits();
-  const is_free_plan = useMemo(
-    () => !!limits && limits.plan_code.toLowerCase() === "free",
+  const can_delete_aliases_instantly = useMemo(
+    () =>
+      !limits ||
+      (limits.limits[INSTANT_ALIAS_DELETE_KEY]?.limit ?? 0) !== 0,
     [limits],
   );
   const [aliases, set_aliases] = useState<DecryptedEmailAlias[]>(
@@ -534,7 +538,7 @@ export function use_aliases() {
   const handle_alias_delete = (id: string) => {
     const alias = aliases.find((a) => a.id === id);
 
-    if (alias && is_free_plan && !alias.decryption_failed) {
+    if (alias && !can_delete_aliases_instantly && !alias.decryption_failed) {
       const created = new Date(alias.created_at);
       const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -731,7 +735,11 @@ export function use_aliases() {
 
   const handle_delivery_saved = (
     alias_id: string,
-    value: { never_inbox: boolean; delivery_folder_token: string | null },
+    value: {
+      never_inbox: boolean;
+      delivery_folder_token: string | null;
+      delivery_label_token: string | null;
+    },
   ) => {
     set_aliases((prev) => {
       const updated = prev.map((a) =>
@@ -740,6 +748,7 @@ export function use_aliases() {
               ...a,
               never_inbox: value.never_inbox,
               delivery_folder_token: value.delivery_folder_token,
+              delivery_label_token: value.delivery_label_token,
             }
           : a,
       );

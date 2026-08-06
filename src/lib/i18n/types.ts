@@ -330,6 +330,8 @@ export interface MailRulesTranslations {
   action_move_to: string;
   action_apply_label: string;
   action_apply_labels: string;
+  alias_delivery_conflict: string;
+  alias_label_conflict: string;
   action_mark_as: string;
   action_star: string;
   action_skip_inbox: string;
@@ -4789,6 +4791,7 @@ export interface SettingsTranslations {
   feature_alias_stats_restore: string;
   feature_soft_delete_restore: string;
   feature_alias_directory: string;
+  feature_instant_alias_delete: string;
   feature_reverse_alias: string;
   encrypted_storage_suffix: string;
   email_aliases_suffix: string;
@@ -5353,6 +5356,16 @@ export interface SettingsTranslations {
   alias_delivery_folder_info: string;
   alias_delivery_folder_error: string;
   alias_delivery_folder_missing: string;
+  alias_delivery_label: string;
+  alias_delivery_label_desc: string;
+  alias_delivery_label_info: string;
+  alias_delivery_label_none: string;
+  alias_delivery_label_missing: string;
+  alias_delivery_label_error: string;
+  alias_delivery_rule_note: string;
+  alias_delivery_rule_conflict: string;
+  alias_delivery_label_rule_note: string;
+  alias_delivery_label_rule_conflict: string;
   alias_relay_title: string;
   alias_relay_description: string;
   alias_relay_mode_native: string;

@@ -2200,6 +2200,7 @@ export const tr = {
     feature_alias_stats_restore: "Rumuz istatistikleri ve geri yükleme",
     feature_soft_delete_restore: "Geçici silme ve geri yükleme",
     feature_alias_directory: "Dizin otomatik oluşturma",
+    feature_instant_alias_delete: "Anında rumuz silme",
     feature_reverse_alias: "Rumuzdan yanıtla",
     credits_will_be_applied:
       "Ödeme sırasında {{amount}} tutarında kredi uygulanacak",
@@ -2380,6 +2381,16 @@ export const tr = {
     alias_delivery_folder_error:
       "Bu ayar kaydedilmedi. Yeni bir deneme işe yarayacaktır.",
     alias_delivery_folder_missing: "Silinmiş klasör",
+    alias_delivery_label: "Etiket",
+    alias_delivery_label_desc: "Bu takma ada gelen her iletiye bir etiket uygula.",
+    alias_delivery_label_info: "Bu takma ada gelen postalar kural gerekmeden otomatik etiketlenir. Etiket, iletinin düştüğü klasörden bağımsız uygulanır.",
+    alias_delivery_label_none: "Etiket yok",
+    alias_delivery_label_missing: "Silinmiş etiket",
+    alias_delivery_label_error: "Ayar kaydedilmedi. Tekrar deneyin.",
+    alias_delivery_rule_note: "\"{{ rule }}\" kuralı bu takma adın postasını zaten {{ target }} klasörüne taşıyor.",
+    alias_delivery_rule_conflict: "\"{{ rule }}\" kuralı bu takma adın postasını {{ rule_target }} klasörüne taşıyor, bu yüzden {{ target }} içine düşmez.",
+    alias_delivery_label_rule_note: "\"{{ rule }}\" kuralı bu takma adın postasını zaten {{ target }} ile etiketliyor.",
+    alias_delivery_label_rule_conflict: "\"{{ rule }}\" kuralı bu takma adın postasını {{ target }} ile değil {{ rule_target }} ile etiketliyor.",
     alias_relay_title: "Teslimat",
     alias_relay_description:
       "Bu rumuza gelen postanın nasıl teslim edileceğini seçin.",
@@ -3705,11 +3716,11 @@ export const tr = {
       "Bu takma adı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     alias_too_new_title: "Bu takma ad silinemeyecek kadar yeni",
     alias_too_new_message:
-      "Yeni takma adlar silinebilmesinden önce 30 gün boyunca aktif kalır. Bu, {{date}} tarihinden itibaren kaldırılabilir.",
+      "Yeni takma adlar silinebilmesinden önce 30 gün boyunca aktif kalır. Bu, {{date}} tarihinden itibaren kaldırılabilir. Rumuzları anında silmek için Supernova'ya geçin.",
     ghost_alias_too_new_title:
       "Bu ghost takma ad süresini doldurmaya henüz çok yeni",
     ghost_alias_too_new_message:
-      "Yeni ghost takma adlar süresi dolmadan önce 30 gün boyunca aktif kalır. Bu, {{date}} tarihinden itibaren süresi doldurulabilir.",
+      "Yeni ghost takma adlar süresi dolmadan önce 30 gün boyunca aktif kalır. Bu, {{date}} tarihinden itibaren süresi doldurulabilir. Ghost takma adları anında sonlandırmak için Supernova'ya geçin.",
     delete_signature_confirmation:
       "Bu imzayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     delete_domain_confirmation:
@@ -7866,6 +7877,8 @@ export const tr = {
     action_move_to: "Şuraya taşı",
     action_apply_label: "Etiket uygula",
     action_apply_labels: "Etiketler uygula",
+    alias_delivery_conflict: "{{ alias }} takma adı {{ alias_target }} klasörüne teslim ediyor, bu yüzden {{ rule_target }} klasörüne gönderen bu kural üstün gelir.",
+    alias_label_conflict: "{{ alias }} takma adı postasını {{ alias_target }} ile etiketliyor, bu kural ayrıca {{ rule_target }} ekler.",
     action_mark_as: "Şu şekilde işaretle",
     action_star: "Yıldızla",
     action_skip_inbox: "Gelen kutusunu atla",

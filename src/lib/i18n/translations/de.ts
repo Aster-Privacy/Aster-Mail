@@ -2234,6 +2234,7 @@ export const de = {
     feature_alias_stats_restore: "Alias-Statistiken & Wiederherstellung",
     feature_soft_delete_restore: "Soft-Delete & Wiederherstellung",
     feature_alias_directory: "Verzeichnis-Autoerstellung",
+    feature_instant_alias_delete: "Sofortiges Löschen von Aliassen",
     feature_reverse_alias: "Aus Alias antworten",
     credits_will_be_applied:
       "{{amount}} Guthaben wird beim Bezahlvorgang angerechnet",
@@ -2430,6 +2431,16 @@ export const de = {
     alias_delivery_folder_error:
       "Diese Einstellung wurde nicht gespeichert. Ein weiterer Versuch sollte klappen.",
     alias_delivery_folder_missing: "Gelöschter Ordner",
+    alias_delivery_label: "Label",
+    alias_delivery_label_desc: "Jeder Nachricht an diesen Alias ein Label zuweisen.",
+    alias_delivery_label_info: "E-Mails an diesen Alias werden automatisch mit einem Label versehen, ganz ohne Regel. Das Label gilt zusätzlich zum Zielordner.",
+    alias_delivery_label_none: "Kein Label",
+    alias_delivery_label_missing: "Gelöschtes Label",
+    alias_delivery_label_error: "Die Einstellung wurde nicht gespeichert. Bitte erneut versuchen.",
+    alias_delivery_rule_note: "Die Regel \"{{ rule }}\" verschiebt E-Mails dieses Alias bereits nach {{ target }}.",
+    alias_delivery_rule_conflict: "Die Regel \"{{ rule }}\" verschiebt E-Mails dieses Alias nach {{ rule_target }}, sie landen also nicht in {{ target }}.",
+    alias_delivery_label_rule_note: "Die Regel \"{{ rule }}\" versieht E-Mails dieses Alias bereits mit {{ target }}.",
+    alias_delivery_label_rule_conflict: "Die Regel \"{{ rule }}\" versieht E-Mails dieses Alias mit {{ rule_target }}, nicht mit {{ target }}.",
     alias_relay_title: "Zustellung",
     alias_relay_description:
       "Wähle, wie Mails an diesen Alias zugestellt werden.",
@@ -3727,10 +3738,10 @@ export const de = {
       "Sind Sie sicher, dass Sie diesen Alias löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     alias_too_new_title: "Dieses Alias ist zu neu zum Löschen",
     alias_too_new_message:
-      "Neue Aliase bleiben 30 Tage aktiv, bevor sie gelöscht werden können. Dieses lässt sich ab {{date}} entfernen.",
+      "Neue Aliase bleiben 30 Tage aktiv, bevor sie gelöscht werden können. Dieses lässt sich ab {{date}} entfernen. Mit Supernova lassen sich Aliase sofort löschen.",
     ghost_alias_too_new_title: "Dieses Ghost-Alias ist zu neu zum Auslaufen",
     ghost_alias_too_new_message:
-      "Neue Ghost-Aliase bleiben 30 Tage aktiv, bevor sie auslaufen können. Dieses lässt sich ab {{date}} auslaufen.",
+      "Neue Ghost-Aliase bleiben 30 Tage aktiv, bevor sie auslaufen können. Dieses lässt sich ab {{date}} auslaufen. Mit Supernova lassen sich Ghost-Aliase sofort auslaufen lassen.",
     delete_signature_confirmation:
       "Möchten Sie diese Signatur wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     delete_domain_confirmation:
@@ -7981,6 +7992,8 @@ export const de = {
       "Noch keine Labels. Erstelle eines in der Seitenleiste.",
     action_apply_label: "Label anwenden",
     action_apply_labels: "Labels anwenden",
+    alias_delivery_conflict: "Der Alias {{ alias }} liefert nach {{ alias_target }}, daher setzt sich diese Regel mit {{ rule_target }} durch.",
+    alias_label_conflict: "Der Alias {{ alias }} versieht seine Mails mit {{ alias_target }}, diese Regel fügt zusätzlich {{ rule_target }} hinzu.",
     action_auto_reply: "Automatisch antworten",
     action_categorize: "Kategorisieren",
     action_delete: "Löschen",

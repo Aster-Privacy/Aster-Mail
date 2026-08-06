@@ -33,6 +33,7 @@ import { register_ghost_email } from "@/stores/ghost_alias_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
+import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -60,8 +61,10 @@ function is_at_max_extension(alias: DecryptedGhostAlias): boolean {
 export function GhostAliasesSection() {
   const { t } = use_i18n();
   const { limits } = use_plan_limits();
-  const is_free_plan = useMemo(
-    () => !!limits && limits.plan_code.toLowerCase() === "free",
+  const can_expire_instantly = useMemo(
+    () =>
+      !limits ||
+      (limits.limits[INSTANT_ALIAS_DELETE_KEY]?.limit ?? 0) !== 0,
     [limits],
   );
   const [aliases, set_aliases] = useState<DecryptedGhostAlias[]>([]);
@@ -114,7 +117,7 @@ export function GhostAliasesSection() {
     async (alias_id: string) => {
       const alias = aliases.find((a) => a.id === alias_id);
 
-      if (alias && is_free_plan) {
+      if (alias && !can_expire_instantly) {
         const created = new Date(alias.created_at);
         const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -138,7 +141,7 @@ export function GhostAliasesSection() {
         ),
       });
     },
-    [aliases, is_free_plan],
+    [aliases, can_expire_instantly],
   );
 
   const confirm_expire = useCallback(async () => {

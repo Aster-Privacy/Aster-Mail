@@ -35,6 +35,12 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
+import { decrypt_aliases, list_all_aliases } from "@/services/api/aliases";
+import type { AliasDeliverySetting } from "@/lib/alias_rule_delivery";
+import {
+  rule_alias_delivery_conflict,
+  rule_alias_label_conflict,
+} from "@/lib/alias_rule_delivery";
 import {
   create_rule,
   update_rule,
@@ -250,6 +256,9 @@ export function RuleEditorModal({
   const { t } = use_i18n();
   const { state: folders_state, fetch_folders } = use_folders();
   const { state: tags_state, fetch_tags } = use_tags();
+  const [alias_delivery, set_alias_delivery] = React.useState<
+    Map<string, AliasDeliverySetting>
+  >(new Map());
 
   const is_edit = !!rule;
 
@@ -388,6 +397,61 @@ export function RuleEditorModal({
   const remaining_addable = ADDABLE_ACTION_TYPES.filter(
     (type) => !action_present[type] && !UNAVAILABLE_ACTION_TYPES.has(type),
   );
+
+  const needs_alias_delivery =
+    action_present["move_to"] || action_present["apply_labels"];
+
+  React.useEffect(() => {
+    if (!needs_alias_delivery || alias_delivery.size > 0) return;
+    let cancelled = false;
+
+    void list_all_aliases()
+      .then(({ aliases }) => decrypt_aliases(aliases))
+      .then((decrypted) => {
+        if (cancelled) return;
+        set_alias_delivery(
+          new Map(
+            decrypted.map((alias) => [
+              alias.full_address.toLowerCase(),
+              {
+                delivery_folder_token: alias.delivery_folder_token ?? null,
+                delivery_label_token: alias.delivery_label_token ?? null,
+                never_inbox: alias.never_inbox ?? false,
+              },
+            ]),
+          ),
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [needs_alias_delivery, alias_delivery.size]);
+
+  const delivery_conflict = rule_alias_delivery_conflict(
+    conditions,
+    actions,
+    alias_delivery,
+  );
+
+  const label_conflict = rule_alias_label_conflict(
+    conditions,
+    actions,
+    alias_delivery,
+  );
+
+  const conflict_folder_name = (token: string | null) => {
+    if (!token) return t("mail.archive");
+
+    return (
+      folders_state.folders.find((folder) => folder.folder_token === token)
+        ?.name ?? t("settings.alias_delivery_folder_missing")
+    );
+  };
+
+  const conflict_label_name = (token: string) =>
+    tags_state.tags.find((tag) => tag.tag_token === token)?.name ??
+    t("settings.alias_delivery_label_missing");
 
   const replace_action_at = (index: number, next: Action) => {
     set_actions((prev) => prev.map((a, i) => (i === index ? next : a)));
@@ -867,6 +931,38 @@ export function RuleEditorModal({
               />
             )}
           </div>
+          {delivery_conflict && (
+            <div
+              className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-[13px] text-amber-600 dark:text-amber-400"
+              data-testid="rule_alias_delivery_warning"
+            >
+              {t("mail_rules.alias_delivery_conflict", {
+                alias: delivery_conflict.alias_address,
+                alias_target: conflict_folder_name(
+                  delivery_conflict.alias_delivery.delivery_folder_token,
+                ),
+                rule_target: conflict_folder_name(
+                  delivery_conflict.rule_folder_token,
+                ),
+              })}
+            </div>
+          )}
+          {label_conflict && (
+            <div
+              className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-[13px] text-amber-600 dark:text-amber-400"
+              data-testid="rule_alias_label_warning"
+            >
+              {t("mail_rules.alias_label_conflict", {
+                alias: label_conflict.alias_address,
+                alias_target: conflict_label_name(
+                  label_conflict.alias_label_token,
+                ),
+                rule_target: label_conflict.rule_label_tokens
+                  .map(conflict_label_name)
+                  .join(", "),
+              })}
+            </div>
+          )}
         </div>
       </ModalBody>
 

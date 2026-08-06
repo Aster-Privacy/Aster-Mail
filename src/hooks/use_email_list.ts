@@ -114,6 +114,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const page_cache_ref = useRef<
     Map<number, { state: EmailListState; time: number }>
   >(new Map());
+  const page_offset_ref = useRef<Map<number, number>>(new Map());
 
   if (page_ref.current === -1) {
     page_ref.current = derive_page_from_list_length(
@@ -125,6 +126,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   if (render_view !== current_view) {
     set_render_view(current_view);
     page_cache_ref.current.clear();
+    page_offset_ref.current.clear();
     const cached = view_cache.get(current_view);
 
     if (
@@ -242,7 +244,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       set_state((prev) => ({ ...prev, is_loading: true }));
 
       try {
-        const offset = page * limit;
+        const offset = page_offset_ref.current.get(page) ?? page * limit;
         const result = await fetch_mail_from_api(
           current_view,
           signal,
@@ -291,6 +293,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
         state_view_ref.current = current_view;
+        page_offset_ref.current.set(page + 1, offset + result.raw_consumed);
 
         set_state((prev) => {
           const selected_ids = new Set(
@@ -445,7 +448,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     const fetch_view = current_view;
     const next_page = page_ref.current + 1;
-    const offset = next_page * page_size;
+    const offset =
+      page_offset_ref.current.get(next_page) ?? next_page * page_size;
 
     set_state((prev) => ({ ...prev, is_loading_more: true }));
 
@@ -478,6 +482,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       page_ref.current = next_page;
       windowed_page_ref.current = false;
+      page_offset_ref.current.set(next_page + 1, offset + result.raw_consumed);
 
       set_state((prev) => {
         const existing_ids = new Set(prev.emails.map((e) => e.id));
@@ -521,6 +526,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     last_fetch_ref.current = null;
     windowed_page_ref.current = false;
     page_cache_ref.current.clear();
+    page_offset_ref.current.clear();
     request_cache.invalidate("GET:/mail/v1/messages");
     set_state({
       emails: [],

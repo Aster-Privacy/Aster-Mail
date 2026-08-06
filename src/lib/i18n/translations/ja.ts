@@ -2193,6 +2193,7 @@ export const ja = {
     feature_alias_stats_restore: "エイリアスの統計と復元",
     feature_soft_delete_restore: "ソフト削除と復元",
     feature_alias_directory: "ディレクトリの自動作成",
+    feature_instant_alias_delete: "エイリアスの即時削除",
     feature_reverse_alias: "エイリアスから返信",
     credits_will_be_applied: "お支払い時に{{amount}}のクレジットが適用されます",
     minimize_sidebar: "サイドバーを最小化",
@@ -2384,6 +2385,16 @@ export const ja = {
     alias_delivery_folder_error:
       "この設定は保存されませんでした。もう一度お試しください。",
     alias_delivery_folder_missing: "削除されたフォルダー",
+    alias_delivery_label: "ラベル",
+    alias_delivery_label_desc: "このエイリアス宛のすべてのメールにラベルを付けます。",
+    alias_delivery_label_info: "このエイリアス宛のメールにはルールなしで自動的にラベルが付きます。ラベルは配信先フォルダーとは別に適用されます。",
+    alias_delivery_label_none: "ラベルなし",
+    alias_delivery_label_missing: "削除されたラベル",
+    alias_delivery_label_error: "設定を保存できませんでした。もう一度お試しください。",
+    alias_delivery_rule_note: "ルール「{{ rule }}」は、このエイリアスのメールをすでに {{ target }} に移動しています。",
+    alias_delivery_rule_conflict: "ルール「{{ rule }}」がこのエイリアスのメールを {{ rule_target }} に移動するため、{{ target }} には届きません。",
+    alias_delivery_label_rule_note: "ルール「{{ rule }}」は、このエイリアスのメールにすでに {{ target }} を付けています。",
+    alias_delivery_label_rule_conflict: "ルール「{{ rule }}」はこのエイリアスのメールに {{ target }} ではなく {{ rule_target }} を付けます。",
     alias_relay_title: "配信",
     alias_relay_description: "このエイリアス宛のメールの配信方法を選択します。",
     alias_relay_mode_native: "ネイティブ",
@@ -3717,11 +3728,11 @@ export const ja = {
       "このエイリアスを削除してもよろしいですか？この操作は元に戻せません。",
     alias_too_new_title: "このエイリアスは新しすぎて削除できません。",
     alias_too_new_message:
-      "新しいエイリアスは、削除できるようになるまで作成後 30 日間そのまま残ります。このエイリアスは {{date}} から削除できるようになります。",
+      "新しいエイリアスは、削除できるようになるまで作成後 30 日間そのまま残ります。このエイリアスは {{date}} から削除できるようになります。Supernova にアップグレードすると、エイリアスをすぐに削除できます。",
     ghost_alias_too_new_title:
       "このゴーストエイリアスは新しすぎて期限切れにできません。",
     ghost_alias_too_new_message:
-      "新しいゴーストエイリアスは、期限切れにできるようになるまで作成後 30 日間そのまま残ります。このエイリアスは {{date}} から期限切れにできるようになります。",
+      "新しいゴーストエイリアスは、期限切れにできるようになるまで作成後 30 日間そのまま残ります。このエイリアスは {{date}} から期限切れにできるようになります。Supernova にアップグレードすると、ゴーストエイリアスをすぐに期限切れにできます。",
     delete_signature_confirmation:
       "この署名を削除してもよろしいですか？この操作は元に戻せません。",
     delete_domain_confirmation:
@@ -7849,6 +7860,8 @@ export const ja = {
     action_move_to: "移動先",
     action_apply_label: "ラベルを適用",
     action_apply_labels: "ラベルを適用",
+    alias_delivery_conflict: "エイリアス {{ alias }} は {{ alias_target }} に配信しますが、{{ rule_target }} へ送るこのルールが優先されます。",
+    alias_label_conflict: "エイリアス {{ alias }} はメールに {{ alias_target }} を付けます。このルールはさらに {{ rule_target }} を付けます。",
     action_mark_as: "マーク",
     action_star: "スター",
     action_skip_inbox: "受信トレイをスキップ",

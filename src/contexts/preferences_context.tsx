@@ -231,6 +231,9 @@ interface PreferencesContextType {
 
 const PreferencesContext = createContext<PreferencesContextType | null>(null);
 
+const CROSS_DEVICE_REFRESH_POLL_MS = 20_000;
+const CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS = 10_000;
+
 export const FONT_SIZE_MIN = 12;
 export const FONT_SIZE_MAX = 22;
 export const FONT_SIZE_DEFAULT = 15;
@@ -748,13 +751,15 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     [],
   );
 
-  const reload_preferences = useCallback(async () => {
+  const reload_preferences = useCallback(async (background = false) => {
     const v = vault_ref.current;
 
     if (!v) return;
 
     let response = await get_preferences(v);
     let attempt = 0;
+
+    if (background && !response.loaded_from_server) return;
 
     while (!response.loaded_from_server && attempt < 6) {
       attempt += 1;
@@ -1147,6 +1152,52 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     preferences.low_network_mode_user_set,
     update_preferences,
   ]);
+
+  useEffect(() => {
+    if (!vault_identity || is_completing_registration) return;
+
+    let cancelled = false;
+    let in_flight = false;
+    let last_refresh_ms = 0;
+
+    const refresh_from_other_devices = () => {
+      if (cancelled || in_flight) return;
+      if (document.visibilityState !== "visible") return;
+      if (is_saving_ref.current) return;
+      if (latest_prefs_ref.current) return;
+      if (!has_loaded_ref.current) return;
+
+      const now = Date.now();
+
+      if (now - last_refresh_ms < CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS) return;
+      last_refresh_ms = now;
+      in_flight = true;
+
+      reload_preferences(true)
+        .catch(() => {})
+        .finally(() => {
+          in_flight = false;
+        });
+    };
+
+    const poll_id = window.setInterval(
+      refresh_from_other_devices,
+      CROSS_DEVICE_REFRESH_POLL_MS,
+    );
+
+    window.addEventListener("focus", refresh_from_other_devices);
+    document.addEventListener("visibilitychange", refresh_from_other_devices);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(poll_id);
+      window.removeEventListener("focus", refresh_from_other_devices);
+      document.removeEventListener(
+        "visibilitychange",
+        refresh_from_other_devices,
+      );
+    };
+  }, [vault_identity, is_completing_registration, reload_preferences]);
 
   useEffect(() => {
     const flush_via_beacon = () => {

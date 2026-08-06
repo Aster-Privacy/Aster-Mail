@@ -338,8 +338,8 @@ export function extract_metadata_from_server(
   return {
     ...decrypted,
     is_read: is_sent_type ? true : (server_data.is_read ?? decrypted.is_read),
-    is_starred: decrypted.is_starred || (server_data.is_starred ?? false),
-    is_pinned: decrypted.is_pinned || (server_data.is_pinned ?? false),
+    is_starred: server_data.is_starred ?? decrypted.is_starred,
+    is_pinned: server_data.is_pinned ?? decrypted.is_pinned,
     is_trashed: decrypted.is_trashed || (server_data.is_trashed ?? false),
     is_archived: decrypted.is_archived || (server_data.is_archived ?? false),
     is_spam: decrypted.is_spam || (server_data.is_spam ?? false),

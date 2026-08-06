@@ -2194,6 +2194,7 @@ export const es = {
     feature_alias_stats_restore: "Estadísticas y restauración de alias",
     feature_soft_delete_restore: "Eliminación reversible y restauración",
     feature_alias_directory: "Creación automática mediante directorio",
+    feature_instant_alias_delete: "Eliminación instantánea de alias",
     feature_reverse_alias: "Responder desde el alias",
     credits_will_be_applied:
       "Se aplicarán {{amount}} en créditos al finalizar la compra",
@@ -2380,6 +2381,16 @@ export const es = {
     alias_delivery_folder_error:
       "Ese ajuste no se guardó. Otro intento debería bastar.",
     alias_delivery_folder_missing: "Carpeta eliminada",
+    alias_delivery_label: "Etiqueta",
+    alias_delivery_label_desc: "Aplica una etiqueta a cada mensaje que llegue a este alias.",
+    alias_delivery_label_info: "El correo enviado a este alias se etiqueta automáticamente, sin necesidad de reglas. La etiqueta se aplica además de la carpeta de destino.",
+    alias_delivery_label_none: "Sin etiqueta",
+    alias_delivery_label_missing: "Etiqueta eliminada",
+    alias_delivery_label_error: "El ajuste no se guardó. Inténtalo de nuevo.",
+    alias_delivery_rule_note: "La regla \"{{ rule }}\" ya mueve el correo de este alias a {{ target }}.",
+    alias_delivery_rule_conflict: "La regla \"{{ rule }}\" mueve el correo de este alias a {{ rule_target }}, así que no llegará a {{ target }}.",
+    alias_delivery_label_rule_note: "La regla \"{{ rule }}\" ya etiqueta el correo de este alias con {{ target }}.",
+    alias_delivery_label_rule_conflict: "La regla \"{{ rule }}\" etiqueta el correo de este alias con {{ rule_target }}, no con {{ target }}.",
     alias_relay_title: "Entrega",
     alias_relay_description: "Elige cómo se entrega el correo a este alias.",
     alias_relay_mode_native: "Nativo",
@@ -3729,11 +3740,11 @@ export const es = {
       "¿Estás seguro de que quieres eliminar este alias? Esta acción no se puede deshacer.",
     alias_too_new_title: "Este alias es demasiado reciente para eliminarse",
     alias_too_new_message:
-      "Los alias nuevos siguen activos durante 30 días antes de poder eliminarse. Este se podrá quitar a partir del {{date}}.",
+      "Los alias nuevos siguen activos durante 30 días antes de poder eliminarse. Este se podrá quitar a partir del {{date}}. Cambia a Supernova para eliminar alias al instante.",
     ghost_alias_too_new_title:
       "Este alias fantasma es demasiado reciente para caducar",
     ghost_alias_too_new_message:
-      "Los alias fantasma nuevos siguen activos durante 30 días antes de poder caducar. Este se podrá caducar a partir del {{date}}.",
+      "Los alias fantasma nuevos siguen activos durante 30 días antes de poder caducar. Este se podrá caducar a partir del {{date}}. Cambia a Supernova para caducar alias fantasma al instante.",
     delete_signature_confirmation:
       "Are you sure you want to delete this signature? This action cannot be undone.",
     delete_domain_confirmation:
@@ -7720,6 +7731,8 @@ export const es = {
     drag_handle: "Tirador para arrastrar",
     action_apply_label: "Aplicar etiqueta",
     action_apply_labels: "Aplicar etiquetas",
+    alias_delivery_conflict: "El alias {{ alias }} entrega en {{ alias_target }}, así que esta regla que lo envía a {{ rule_target }} prevalecerá.",
+    alias_label_conflict: "El alias {{ alias }} etiqueta su correo con {{ alias_target }}, y esta regla añade además {{ rule_target }}.",
     action_auto_reply: "Respuesta automática",
     action_categorize: "Categorizar",
     action_delete: "Eliminar",

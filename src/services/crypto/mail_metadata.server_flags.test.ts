@@ -63,6 +63,48 @@ describe("extract_metadata_from_server", () => {
     expect(merged.is_trashed).toBe(true);
   });
 
+  it("lets the server win on star state in both directions", () => {
+    expect(
+      extract_metadata_from_server(base({ is_starred: true }), {
+        is_starred: false,
+        item_type: "received",
+      }).is_starred,
+    ).toBe(false);
+
+    expect(
+      extract_metadata_from_server(base({ is_starred: false }), {
+        is_starred: true,
+        item_type: "received",
+      }).is_starred,
+    ).toBe(true);
+  });
+
+  it("lets the server win on pin state in both directions", () => {
+    expect(
+      extract_metadata_from_server(base({ is_pinned: true }), {
+        is_pinned: false,
+        item_type: "received",
+      }).is_pinned,
+    ).toBe(false);
+
+    expect(
+      extract_metadata_from_server(base({ is_pinned: false }), {
+        is_pinned: true,
+        item_type: "received",
+      }).is_pinned,
+    ).toBe(true);
+  });
+
+  it("keeps the decrypted star when the server omits the column", () => {
+    const merged = extract_metadata_from_server(
+      base({ is_starred: true, is_pinned: true }),
+      { item_type: "received" },
+    );
+
+    expect(merged.is_starred).toBe(true);
+    expect(merged.is_pinned).toBe(true);
+  });
+
   it("lets the server win on read state in both directions", () => {
     expect(
       extract_metadata_from_server(base({ is_read: true }), {
@@ -120,16 +162,16 @@ describe("extract_metadata_from_server", () => {
 
 describe("metadata_flag_patch", () => {
   it("emits every plaintext flag the server counts on", () => {
-    expect(metadata_flag_patch(base({ is_read: true, is_archived: true }))).toEqual(
-      {
-        is_read: true,
-        is_starred: false,
-        is_pinned: false,
-        is_trashed: false,
-        is_archived: true,
-        is_spam: false,
-      },
-    );
+    expect(
+      metadata_flag_patch(base({ is_read: true, is_archived: true })),
+    ).toEqual({
+      is_read: true,
+      is_starred: false,
+      is_pinned: false,
+      is_trashed: false,
+      is_archived: true,
+      is_spam: false,
+    });
   });
 
   it("defaults missing flags to false", () => {

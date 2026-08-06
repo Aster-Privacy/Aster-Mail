@@ -2108,6 +2108,7 @@ export const ko = {
     feature_alias_stats_restore: "별칭 통계 및 복원",
     feature_soft_delete_restore: "소프트 삭제 및 복원",
     feature_alias_directory: "디렉터리 자동 생성",
+    feature_instant_alias_delete: "별칭 즉시 삭제",
     feature_reverse_alias: "별칭으로 답장",
     credits_will_be_applied: "결제 시 {{amount}}의 크레딧이 적용됩니다",
     minimize_sidebar: "사이드바 최소화",
@@ -2290,6 +2291,16 @@ export const ko = {
     alias_delivery_folder_error:
       "설정이 저장되지 않았습니다. 다시 시도해 보세요.",
     alias_delivery_folder_missing: "삭제된 폴더",
+    alias_delivery_label: "라벨",
+    alias_delivery_label_desc: "이 별칭으로 도착하는 모든 메일에 라벨을 지정합니다.",
+    alias_delivery_label_info: "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 라벨은 배달 폴더와 별개로 적용됩니다.",
+    alias_delivery_label_none: "라벨 없음",
+    alias_delivery_label_missing: "삭제된 라벨",
+    alias_delivery_label_error: "설정이 저장되지 않았습니다. 다시 시도해 주세요.",
+    alias_delivery_rule_note: "메일 규칙 \"{{ rule }}\"이(가) 이미 이 별칭의 메일을 {{ target }}(으)로 옮깁니다.",
+    alias_delivery_rule_conflict: "메일 규칙 \"{{ rule }}\"이(가) 이 별칭의 메일을 {{ rule_target }}(으)로 옮기므로 {{ target }}에 도착하지 않습니다.",
+    alias_delivery_label_rule_note: "메일 규칙 \"{{ rule }}\"이(가) 이미 이 별칭의 메일에 {{ target }}을(를) 지정합니다.",
+    alias_delivery_label_rule_conflict: "메일 규칙 \"{{ rule }}\"은(는) 이 별칭의 메일에 {{ target }}이(가) 아닌 {{ rule_target }}을(를) 지정합니다.",
     alias_relay_title: "전송",
     alias_relay_description: "이 별칭으로 오는 메일의 전송 방식을 선택하세요.",
     alias_relay_mode_native: "네이티브",
@@ -3687,11 +3698,11 @@ export const ko = {
       "이 별칭을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
     alias_too_new_title: "이 별칭은 삭제하기에 너무 최근에 만들어졌습니다",
     alias_too_new_message:
-      "새로 만든 별칭은 30일이 지나야 삭제할 수 있습니다. 이 별칭은 {{date}}부터 제거할 수 있습니다.",
+      "새로 만든 별칭은 30일이 지나야 삭제할 수 있습니다. 이 별칭은 {{date}}부터 제거할 수 있습니다. Supernova로 업그레이드하면 별칭을 즉시 삭제할 수 있습니다.",
     ghost_alias_too_new_title:
       "이 고스트 별칭은 만료시키기에 너무 최근에 만들어졌습니다",
     ghost_alias_too_new_message:
-      "새로 만든 고스트 별칭은 30일이 지나야 만료시킬 수 있습니다. 이 별칭은 {{date}}부터 만료시킬 수 있습니다.",
+      "새로 만든 고스트 별칭은 30일이 지나야 만료시킬 수 있습니다. 이 별칭은 {{date}}부터 만료시킬 수 있습니다. Supernova로 업그레이드하면 고스트 별칭을 즉시 만료할 수 있습니다.",
     delete_signature_confirmation:
       "이 서명을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
     delete_domain_confirmation:
@@ -7613,6 +7624,8 @@ export const ko = {
     action_move_to: "이동",
     action_apply_label: "라벨 적용",
     action_apply_labels: "라벨 적용",
+    alias_delivery_conflict: "별칭 {{ alias }}은(는) {{ alias_target }}으로 배달하지만, {{ rule_target }}(으)로 보내는 이 규칙이 우선합니다.",
+    alias_label_conflict: "별칭 {{ alias }}은(는) 메일에 {{ alias_target }}을(를) 지정하며, 이 규칙은 {{ rule_target }}도 추가합니다.",
     action_mark_as: "표시",
     action_star: "별표",
     action_skip_inbox: "받은 편지함 건너뜀",

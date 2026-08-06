@@ -2218,6 +2218,7 @@ export const pl = {
     feature_alias_stats_restore: "Statystyki aliasów i przywracanie",
     feature_soft_delete_restore: "Miękkie usuwanie i przywracanie",
     feature_alias_directory: "Automatyczne tworzenie z katalogu",
+    feature_instant_alias_delete: "Natychmiastowe usuwanie aliasów",
     feature_reverse_alias: "Odpowiadanie z aliasu",
     credits_will_be_applied:
       "Środki w wysokości {{amount}} zostaną naliczone przy płatności",
@@ -2405,6 +2406,16 @@ export const pl = {
     alias_delivery_folder_error:
       "To ustawienie nie zostało zapisane. Kolejna próba powinna się udać.",
     alias_delivery_folder_missing: "Usunięty folder",
+    alias_delivery_label: "Etykieta",
+    alias_delivery_label_desc: "Nadaj etykietę każdej wiadomości przychodzącej na ten alias.",
+    alias_delivery_label_info: "Poczta wysłana na ten alias jest etykietowana automatycznie, bez reguły. Etykieta działa niezależnie od folderu docelowego.",
+    alias_delivery_label_none: "Brak etykiety",
+    alias_delivery_label_missing: "Usunięta etykieta",
+    alias_delivery_label_error: "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
+    alias_delivery_rule_note: "Reguła \"{{ rule }}\" już przenosi pocztę tego aliasu do {{ target }}.",
+    alias_delivery_rule_conflict: "Reguła \"{{ rule }}\" przenosi pocztę tego aliasu do {{ rule_target }}, więc nie trafi ona do {{ target }}.",
+    alias_delivery_label_rule_note: "Reguła \"{{ rule }}\" już oznacza pocztę tego aliasu etykietą {{ target }}.",
+    alias_delivery_label_rule_conflict: "Reguła \"{{ rule }}\" oznacza pocztę tego aliasu etykietą {{ rule_target }}, a nie {{ target }}.",
     alias_relay_title: "Dostarczanie",
     alias_relay_description: "Wybierz sposób dostarczania poczty na ten alias.",
     alias_relay_mode_native: "Natywny",
@@ -3739,10 +3750,10 @@ export const pl = {
       "Czy na pewno chcesz usunąć ten alias? Tej operacji nie można cofnąć.",
     alias_too_new_title: "Ten alias jest za nowy, aby go usunąć",
     alias_too_new_message:
-      "Nowe aliasy pozostają aktywne przez 30 dni, zanim będzie można je usunąć. Ten można usunąć od {{date}}.",
+      "Nowe aliasy pozostają aktywne przez 30 dni, zanim będzie można je usunąć. Ten można usunąć od {{date}}. Przejdź na Supernova, aby natychmiast usuwać aliasy.",
     ghost_alias_too_new_title: "Ten ghost alias jest za nowy, aby wygasł",
     ghost_alias_too_new_message:
-      "Nowe ghost aliasy pozostają aktywne przez 30 dni, zanim będzie można je wygasić. Ten można wygasić od {{date}}.",
+      "Nowe ghost aliasy pozostają aktywne przez 30 dni, zanim będzie można je wygasić. Ten można wygasić od {{date}}. Przejdź na Supernova, aby natychmiast wygaszać ghost aliasy.",
     delete_signature_confirmation:
       "Czy na pewno chcesz usunąć ten podpis? Tej operacji nie można cofnąć.",
     delete_domain_confirmation:
@@ -7891,6 +7902,8 @@ export const pl = {
     action_move_to: "Przenieś do",
     action_apply_label: "Zastosuj etykietę",
     action_apply_labels: "Zastosuj etykiety",
+    alias_delivery_conflict: "Alias {{ alias }} dostarcza do {{ alias_target }}, więc ta reguła kierująca do {{ rule_target }} będzie miała pierwszeństwo.",
+    alias_label_conflict: "Alias {{ alias }} oznacza pocztę etykietą {{ alias_target }}, a ta reguła dodaje jeszcze {{ rule_target }}.",
     action_mark_as: "Oznacz jako",
     action_star: "Oznacz gwiazdką",
     action_skip_inbox: "Pomiń skrzynkę odbiorczą",

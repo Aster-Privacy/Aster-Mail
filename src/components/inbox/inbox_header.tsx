@@ -140,6 +140,7 @@ interface InboxHeaderProps {
   leading_left_slot?: React.ReactNode;
   overflow_menu_slot?: React.ReactNode;
   select_all_mode?: boolean;
+  selection_scope_title?: string;
   on_activate_select_all_mode?: () => void;
   on_clear_selection?: () => void;
   page_selected_count?: number;
@@ -203,6 +204,7 @@ export function InboxHeader({
   leading_left_slot,
   overflow_menu_slot,
   select_all_mode = false,
+  selection_scope_title,
   on_activate_select_all_mode,
   on_clear_selection,
   page_selected_count = 0,
@@ -913,7 +915,7 @@ export function InboxHeader({
               >
                 {t("mail.select_all_in_folder", {
                   count: total_messages.toLocaleString(),
-                  folder: view_title,
+                  folder: selection_scope_title ?? view_title,
                 })}
               </button>
             </>

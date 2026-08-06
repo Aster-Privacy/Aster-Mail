@@ -56,8 +56,14 @@ export function HeaderPagination({
 
   const is_message_mode = Boolean(on_navigate_prev || on_navigate_next);
   const total_pages = page_size > 0 ? Math.ceil(filtered_count / page_size) : 0;
+  const message_index_known =
+    current_email_index !== undefined && current_email_index >= 0;
 
   if (!is_message_mode && filtered_count <= 0) {
+    return null;
+  }
+
+  if (is_message_mode && !message_index_known && !can_go_prev && !can_go_next) {
     return null;
   }
 
@@ -100,17 +106,17 @@ export function HeaderPagination({
         </span>
       </Tooltip>
       {is_message_mode ? (
-        <span className="tabular-nums text-sm min-w-[3ch] text-center">
-          {current_email_index !== undefined && current_email_index >= 0
-            ? current_email_index + 1
-            : "—"}
-          {total_email_count > 0 && (
-            <>
-              {" "}
-              {t("common.of")} {total_email_count}
-            </>
-          )}
-        </span>
+        message_index_known && (
+          <span className="tabular-nums text-sm min-w-[3ch] text-center">
+            {((current_email_index ?? 0) + 1).toLocaleString()}
+            {total_email_count > 0 && (
+              <>
+                {" "}
+                {t("common.of")} {total_email_count.toLocaleString()}
+              </>
+            )}
+          </span>
+        )
       ) : (
         <Tooltip
           tip={`${t("common.page")} ${current_page + 1} ${t("common.of")} ${Math.max(total_pages, 1)}`}

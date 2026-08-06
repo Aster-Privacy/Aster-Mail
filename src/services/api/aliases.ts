@@ -46,6 +46,7 @@ export interface EmailAlias {
   is_pinned?: boolean;
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
+  delivery_label_token?: string | null;
   profile_picture?: string;
   encrypted_note?: string;
   note_nonce?: string;
@@ -70,6 +71,7 @@ export interface DecryptedEmailAlias {
   is_pinned?: boolean;
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
+  delivery_label_token?: string | null;
   decryption_failed?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
@@ -110,6 +112,7 @@ export interface UpdateAliasRequest {
   is_enabled?: boolean;
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
+  delivery_label_token?: string | null;
   profile_picture?: string | null;
   encrypted_local_part?: string;
   local_part_nonce?: string;
@@ -684,6 +687,7 @@ export async function decrypt_alias(
       is_pinned: alias.is_pinned,
       never_inbox: alias.never_inbox ?? false,
       delivery_folder_token: alias.delivery_folder_token ?? null,
+      delivery_label_token: alias.delivery_label_token ?? null,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -747,6 +751,7 @@ export async function decrypt_alias(
       is_pinned: alias.is_pinned,
       never_inbox: alias.never_inbox ?? false,
       delivery_folder_token: alias.delivery_folder_token ?? null,
+      delivery_label_token: alias.delivery_label_token ?? null,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -764,6 +769,7 @@ export async function decrypt_alias(
       is_pinned: alias.is_pinned,
       never_inbox: alias.never_inbox ?? false,
       delivery_folder_token: alias.delivery_folder_token ?? null,
+      delivery_label_token: alias.delivery_label_token ?? null,
       decryption_failed: true,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
@@ -950,6 +956,7 @@ export async function update_alias(
     is_enabled?: boolean;
     never_inbox?: boolean;
     delivery_folder_token?: string | null;
+    delivery_label_token?: string | null;
     profile_picture?: string | null;
     note?: string | null;
     websites?: string[] | null;
@@ -976,6 +983,10 @@ export async function update_alias(
 
   if (updates.delivery_folder_token !== undefined) {
     request.delivery_folder_token = updates.delivery_folder_token;
+  }
+
+  if (updates.delivery_label_token !== undefined) {
+    request.delivery_label_token = updates.delivery_label_token;
   }
 
   if (updates.profile_picture !== undefined) {

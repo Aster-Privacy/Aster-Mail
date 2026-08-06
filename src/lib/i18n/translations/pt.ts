@@ -2214,6 +2214,7 @@ export const pt = {
     feature_alias_stats_restore: "Estatísticas e restauração de alias",
     feature_soft_delete_restore: "Exclusão reversível e restauração",
     feature_alias_directory: "Criação automática por diretório",
+    feature_instant_alias_delete: "Exclusão instantânea de aliases",
     feature_reverse_alias: "Responder a partir do alias",
     credits_will_be_applied:
       "{{amount}} em créditos serão aplicados na finalização da compra",
@@ -2400,6 +2401,16 @@ export const pt = {
     alias_delivery_folder_error:
       "Essa definição não foi guardada. Outra tentativa deve resolver.",
     alias_delivery_folder_missing: "Pasta eliminada",
+    alias_delivery_label: "Etiqueta",
+    alias_delivery_label_desc: "Aplicar uma etiqueta a cada mensagem que chega a este alias.",
+    alias_delivery_label_info: "O correio enviado para este alias é etiquetado automaticamente, sem precisar de regra. A etiqueta soma-se à pasta de destino.",
+    alias_delivery_label_none: "Sem etiqueta",
+    alias_delivery_label_missing: "Etiqueta eliminada",
+    alias_delivery_label_error: "A definição não foi guardada. Tente novamente.",
+    alias_delivery_rule_note: "A regra \"{{ rule }}\" já move o correio deste alias para {{ target }}.",
+    alias_delivery_rule_conflict: "A regra \"{{ rule }}\" move o correio deste alias para {{ rule_target }}, por isso não chegará a {{ target }}.",
+    alias_delivery_label_rule_note: "A regra \"{{ rule }}\" já etiqueta o correio deste alias com {{ target }}.",
+    alias_delivery_label_rule_conflict: "A regra \"{{ rule }}\" etiqueta o correio deste alias com {{ rule_target }}, não com {{ target }}.",
     alias_relay_title: "Entrega",
     alias_relay_description:
       "Escolha como os e-mails para este alias são entregues.",
@@ -3736,11 +3747,11 @@ export const pt = {
       "Tem certeza de que deseja excluir este alias? Esta ação não pode ser desfeita.",
     alias_too_new_title: "Este alias é muito recente para ser excluído",
     alias_too_new_message:
-      "Aliases novos ficam ativos por 30 dias antes de poderem ser excluídos. Este pode ser removido a partir de {{date}}.",
+      "Aliases novos ficam ativos por 30 dias antes de poderem ser excluídos. Este pode ser removido a partir de {{date}}. Mude para Supernova para excluir aliases instantaneamente.",
     ghost_alias_too_new_title:
       "Este alias fantasma é muito recente para expirar",
     ghost_alias_too_new_message:
-      "Aliases fantasma novos ficam ativos por 30 dias antes de poderem expirar. Este pode expirar a partir de {{date}}.",
+      "Aliases fantasma novos ficam ativos por 30 dias antes de poderem expirar. Este pode expirar a partir de {{date}}. Mude para Supernova para expirar aliases fantasma instantaneamente.",
     delete_signature_confirmation:
       "Tem certeza de que deseja excluir esta assinatura? Esta ação não pode ser desfeita.",
     delete_domain_confirmation:
@@ -7917,6 +7928,8 @@ export const pt = {
     action_move_to: "Mover para",
     action_apply_label: "Aplicar etiqueta",
     action_apply_labels: "Aplicar etiquetas",
+    alias_delivery_conflict: "O alias {{ alias }} entrega em {{ alias_target }}, por isso esta regra que o envia para {{ rule_target }} prevalece.",
+    alias_label_conflict: "O alias {{ alias }} etiqueta o correio com {{ alias_target }} e esta regra acrescenta ainda {{ rule_target }}.",
     action_mark_as: "Marcar como",
     action_star: "Favoritar",
     action_skip_inbox: "Pular a caixa de entrada",

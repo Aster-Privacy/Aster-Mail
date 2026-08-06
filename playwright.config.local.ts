@@ -8,6 +8,7 @@ export default defineConfig({
     "tests/152_encryption_settings_sync.spec.ts",
     "tests/alias_features_local.spec.ts",
     "tests/never_inbox_local.spec.ts",
+    "tests/alias_delivery_label_local.spec.ts",
     "_blog_preview.spec.ts",
     "_blog_2fa_screenshot.spec.ts",
   ],

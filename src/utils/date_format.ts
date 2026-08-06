@@ -259,7 +259,9 @@ export function format_email_list_timestamp(
     return format_time(date, options);
   }
 
-  return format_date_short(date, options);
+  const is_other_year = get_zoned_parts(date).year !== get_zoned_parts(now).year;
+
+  return format_date_short(date, options, is_other_year);
 }
 
 export function format_email_detail_timestamp(

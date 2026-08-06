@@ -2146,6 +2146,7 @@ export const nl = {
     feature_alias_stats_restore: "Aliasstatistieken en herstel",
     feature_soft_delete_restore: "Zacht verwijderen en herstellen",
     feature_alias_directory: "Automatisch aanmaken via directory",
+    feature_instant_alias_delete: "Aliassen direct verwijderen",
     feature_reverse_alias: "Antwoorden vanaf alias",
     credits_will_be_applied:
       "{{amount}} aan tegoed wordt toegepast bij het afrekenen",
@@ -2337,6 +2338,16 @@ export const nl = {
     alias_delivery_folder_error:
       "Die instelling is niet opgeslagen. Nog een poging zou moeten lukken.",
     alias_delivery_folder_missing: "Verwijderde map",
+    alias_delivery_label: "Label",
+    alias_delivery_label_desc: "Geef elk bericht dat op deze alias binnenkomt een label.",
+    alias_delivery_label_info: "Post naar deze alias krijgt automatisch een label, zonder regel. Het label komt bovenop de doelmap.",
+    alias_delivery_label_none: "Geen label",
+    alias_delivery_label_missing: "Verwijderd label",
+    alias_delivery_label_error: "Deze instelling is niet opgeslagen. Probeer het opnieuw.",
+    alias_delivery_rule_note: "Regel \"{{ rule }}\" verplaatst post voor deze alias al naar {{ target }}.",
+    alias_delivery_rule_conflict: "Regel \"{{ rule }}\" verplaatst post voor deze alias naar {{ rule_target }}, dus die komt niet in {{ target }}.",
+    alias_delivery_label_rule_note: "Regel \"{{ rule }}\" labelt post voor deze alias al met {{ target }}.",
+    alias_delivery_label_rule_conflict: "Regel \"{{ rule }}\" labelt post voor deze alias met {{ rule_target }}, niet met {{ target }}.",
     alias_relay_title: "Bezorging",
     alias_relay_description: "Kies hoe e-mail naar deze alias wordt bezorgd.",
     alias_relay_mode_native: "Native",
@@ -3678,11 +3689,11 @@ export const nl = {
       "Weet je zeker dat je deze alias wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
     alias_too_new_title: "Deze alias is te nieuw om te verwijderen",
     alias_too_new_message:
-      "Nieuwe aliassen blijven 30 dagen actief voordat ze kunnen worden verwijderd. Deze kan vanaf {{date}} worden verwijderd.",
+      "Nieuwe aliassen blijven 30 dagen actief voordat ze kunnen worden verwijderd. Deze kan vanaf {{date}} worden verwijderd. Stap over op Supernova om aliassen direct te verwijderen.",
     ghost_alias_too_new_title:
       "Deze ghost-alias is te nieuw om te laten verlopen",
     ghost_alias_too_new_message:
-      "Nieuwe ghost-aliassen blijven 30 dagen actief voordat ze kunnen verlopen. Deze kan vanaf {{date}} verlopen.",
+      "Nieuwe ghost-aliassen blijven 30 dagen actief voordat ze kunnen verlopen. Deze kan vanaf {{date}} verlopen. Stap over op Supernova om ghost-aliassen direct te laten verlopen.",
     delete_signature_confirmation:
       "Weet je zeker dat je deze handtekening wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
     delete_domain_confirmation:
@@ -7837,6 +7848,8 @@ export const nl = {
     action_move_to: "Verplaatsen naar",
     action_apply_label: "Label toepassen",
     action_apply_labels: "Labels toepassen",
+    alias_delivery_conflict: "Alias {{ alias }} bezorgt in {{ alias_target }}, dus deze regel die naar {{ rule_target }} stuurt wint.",
+    alias_label_conflict: "Alias {{ alias }} labelt post met {{ alias_target }}, deze regel voegt daarnaast {{ rule_target }} toe.",
     action_mark_as: "Markeren als",
     action_star: "Ster",
     action_skip_inbox: "Inbox overslaan",

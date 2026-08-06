@@ -51,6 +51,7 @@ import {
   adjust_stats_unread,
   prefetch_mail_stats,
   clear_mail_stats,
+  get_mail_stats_snapshot,
 } from "./use_mail_stats";
 
 function server_stats(unread: number) {
@@ -129,7 +130,7 @@ describe("use_mail_stats optimistic reconcile", () => {
     expect(mock_get_mail_stats).toHaveBeenCalledTimes(2);
   });
 
-  it("runs a single follow-up reconcile a few seconds after an adjustment", async () => {
+  it("retries a contradicting reconcile a bounded number of times, then converges", async () => {
     mock_get_mail_stats.mockResolvedValue(server_stats(5));
 
     prefetch_mail_stats();
@@ -146,9 +147,38 @@ describe("use_mail_stats optimistic reconcile", () => {
     await flush();
     expect(mock_get_mail_stats).toHaveBeenCalledTimes(3);
 
-    await vi.advanceTimersByTimeAsync(30_000);
+    // The server keeps disagreeing, so the optimistic value is re-verified a
+    // bounded number of times before the authoritative count is accepted.
+    await vi.advanceTimersByTimeAsync(60_000);
     await flush();
-    expect(mock_get_mail_stats).toHaveBeenCalledTimes(3);
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(6);
+    expect(get_mail_stats_snapshot().unread).toBe(5);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenCalledTimes(6);
+  });
+
+  it("keeps a mark-read applied when the server write lands late", async () => {
+    mock_get_mail_stats.mockResolvedValue(server_stats(1));
+
+    prefetch_mail_stats();
+    await flush();
+
+    adjust_stats_unread(-1);
+    expect(get_mail_stats_snapshot().unread).toBe(0);
+
+    // The write has not propagated yet: both the debounced and the late
+    // reconcile still see the pre-edit count. The badge must not pop back.
+    await vi.advanceTimersByTimeAsync(8_000);
+    await flush();
+    expect(get_mail_stats_snapshot().unread).toBe(0);
+
+    mock_get_mail_stats.mockResolvedValue(server_stats(0));
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await flush();
+    expect(get_mail_stats_snapshot().unread).toBe(0);
   });
 
   it("coalesces the follow-up reconcile across a burst of adjustments", async () => {

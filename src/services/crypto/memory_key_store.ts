@@ -39,6 +39,8 @@ import {
   on_session_expire,
   has_key,
 } from "./crypto_key_cache";
+import { clear_unlocked_key_cache } from "./key_manager_pgp";
+import { clear_envelope_key_cache } from "./envelope_key_cache";
 import {
   load_legacy_keks_into_memory,
   load_previous_key_derived_keks_into_memory,
@@ -381,6 +383,8 @@ export function clear_vault_from_memory(): void {
   vault_in_memory = null;
   vault_owner_id = null;
   clear_crypto_key_cache();
+  clear_unlocked_key_cache();
+  clear_envelope_key_cache();
   keys_ready_seen = false;
 
   if (session_expire_unsubscribe) {

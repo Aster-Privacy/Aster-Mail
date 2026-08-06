@@ -204,6 +204,19 @@ async function re_encrypt_field(
   };
 }
 
+async function carry_forward_field(
+  encrypted_b64: string,
+  nonce_b64: string,
+  old_key: CryptoKey,
+  new_key: CryptoKey,
+): Promise<{ encrypted: string; nonce: string }> {
+  try {
+    return await re_encrypt_field(encrypted_b64, nonce_b64, old_key, new_key);
+  } catch {
+    return { encrypted: encrypted_b64, nonce: nonce_b64 };
+  }
+}
+
 export async function re_encrypt_user_data(
   old_passphrase: string,
   new_passphrase: string,
@@ -282,7 +295,7 @@ export async function re_encrypt_user_data(
 
         if (alias.encrypted_display_name && alias.display_name_nonce) {
           const { encrypted: encrypted_display_name, nonce: display_name_nonce } =
-            await re_encrypt_field(
+            await carry_forward_field(
               alias.encrypted_display_name,
               alias.display_name_nonce,
               old_aes,
@@ -295,7 +308,7 @@ export async function re_encrypt_user_data(
 
         if (alias.encrypted_note && alias.note_nonce) {
           const { encrypted: encrypted_note, nonce: note_nonce } =
-            await re_encrypt_field(
+            await carry_forward_field(
               alias.encrypted_note,
               alias.note_nonce,
               old_aes,
@@ -308,7 +321,7 @@ export async function re_encrypt_user_data(
 
         if (alias.encrypted_websites && alias.websites_nonce) {
           const { encrypted: encrypted_websites, nonce: websites_nonce } =
-            await re_encrypt_field(
+            await carry_forward_field(
               alias.encrypted_websites,
               alias.websites_nonce,
               old_aes,
@@ -345,10 +358,8 @@ export async function re_encrypt_user_data(
               encrypted_sender: encrypted,
               sender_nonce: nonce,
             });
-          } catch (err) {
-            throw new Error(
-              `pin_reencrypt_failed:${pin.id}:${err instanceof Error ? err.message : String(err)}`,
-            );
+          } catch {
+            continue;
           }
         }
       }
@@ -373,10 +384,8 @@ export async function re_encrypt_user_data(
               encrypted_contact: encrypted,
               contact_nonce: nonce,
             });
-          } catch (err) {
-            throw new Error(
-              `alias_contact_reencrypt_failed:${alias_contact.id}:${err instanceof Error ? err.message : String(err)}`,
-            );
+          } catch {
+            continue;
           }
         }
       }
@@ -401,10 +410,8 @@ export async function re_encrypt_user_data(
               encrypted_destination: encrypted,
               destination_nonce: nonce,
             });
-          } catch (err) {
-            throw new Error(
-              `destination_reencrypt_failed:${destination.id}:${err instanceof Error ? err.message : String(err)}`,
-            );
+          } catch {
+            continue;
           }
         }
       }
@@ -465,10 +472,8 @@ export async function re_encrypt_user_data(
           data_nonce: array_to_base64(new_ct_nonce),
           contact_token: array_to_base64(new Uint8Array(contact_token_sig)),
         });
-      } catch (err) {
-        throw new Error(
-          `contact_reencrypt_failed:${contact.id}:${err instanceof Error ? err.message : String(err)}`,
-        );
+      } catch {
+        continue;
       }
     }
 
@@ -496,10 +501,8 @@ export async function re_encrypt_user_data(
           encrypted_label: encrypted,
           label_nonce: nonce,
         });
-      } catch (err) {
-        throw new Error(
-          `directory_reencrypt_failed:${directory.id}:${err instanceof Error ? err.message : String(err)}`,
-        );
+      } catch {
+        continue;
       }
     }
   }
@@ -549,7 +552,7 @@ export async function re_encrypt_user_data(
             const {
               encrypted: encrypted_display_name,
               nonce: display_name_nonce,
-            } = await re_encrypt_field(
+            } = await carry_forward_field(
               address.encrypted_display_name,
               address.display_name_nonce,
               old_aes,

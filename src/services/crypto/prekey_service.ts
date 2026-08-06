@@ -28,7 +28,6 @@ import {
   list_pq_secret_ids,
 } from "./pq_prekey_store";
 
-const ONE_TIME_PREKEY_BATCH_SIZE = 50;
 const PQ_PREKEY_BATCH_SIZE = 20;
 const REPLENISHMENT_DEBOUNCE_MS = 5000;
 const PENDING_ROLLBACK_MAX = 200;
@@ -234,16 +233,6 @@ function build_prekey_batch(
   return { prekeys, secret_keys };
 }
 
-export function generate_one_time_prekeys(
-  count: number = ONE_TIME_PREKEY_BATCH_SIZE,
-  taken: Set<number> = new Set(),
-): {
-  prekeys: PrekeyData[];
-  secret_keys: Uint8Array[];
-} {
-  return build_prekey_batch(count, taken);
-}
-
 export function generate_pq_prekeys(
   count: number = PQ_PREKEY_BATCH_SIZE,
   taken: Set<number> = new Set(),
@@ -255,14 +244,13 @@ export function generate_pq_prekeys(
 }
 
 export async function upload_prekeys(
-  one_time_prekeys: PrekeyData[],
-  pq_prekeys?: PrekeyData[],
+  pq_prekeys: PrekeyData[],
 ): Promise<boolean> {
   const request: UploadPrekeysRequest = {
-    one_time_prekeys,
+    one_time_prekeys: [],
   };
 
-  if (pq_prekeys && pq_prekeys.length > 0) {
+  if (pq_prekeys.length > 0) {
     request.pq_prekeys = pq_prekeys;
   }
 
@@ -301,25 +289,13 @@ export async function generate_and_upload_prekeys(
     await drain_pending_rollbacks();
 
     const taken = await load_taken_key_ids();
-    const otp = generate_one_time_prekeys(ONE_TIME_PREKEY_BATCH_SIZE, taken);
     const pq = generate_pq_prekeys(PQ_PREKEY_BATCH_SIZE, taken);
 
-    const persisted_otp_ids: number[] = [];
     const persisted_pq_ids: number[] = [];
 
     let persistence_ok = true;
 
     try {
-      await save_pq_secrets_bulk(
-        otp.prekeys.map((p, i) => ({
-          key_id: p.key_id,
-          secret: otp.secret_keys[i],
-        })),
-      );
-      for (const p of otp.prekeys) {
-        persisted_otp_ids.push(p.key_id);
-      }
-
       await save_pq_secrets_bulk(
         pq.prekeys.map((p, i) => ({
           key_id: p.key_id,
@@ -334,15 +310,15 @@ export async function generate_and_upload_prekeys(
     }
 
     if (!persistence_ok) {
-      await rollback_persisted_secrets([...persisted_otp_ids, ...persisted_pq_ids]);
+      await rollback_persisted_secrets(persisted_pq_ids);
 
       return false;
     }
 
-    const success = await upload_prekeys(otp.prekeys, pq.prekeys);
+    const success = await upload_prekeys(pq.prekeys);
 
     if (!success) {
-      await rollback_persisted_secrets([...persisted_otp_ids, ...persisted_pq_ids]);
+      await rollback_persisted_secrets(persisted_pq_ids);
     }
 
     return success;

@@ -105,6 +105,18 @@ const LATE_RECONCILE_DELAY_MS = 6_000;
 //
 const OPTIMISTIC_HOLD_MS = 4_000;
 
+//
+// The hold above only covers a reconcile issued within 4s of the edit. When the
+// server write is slow to become visible, the 6s late reconcile drops the hold
+// and adopts a stale server value, undoing the edit - and nothing further is
+// scheduled, so the badge stays wrong until a manual refresh. A post-hold
+// reconcile that contradicts a recent edit therefore keeps the optimistic value
+// and re-verifies a bounded number of times; once spent, the server value wins
+// so a genuinely wrong guess still self-corrects.
+//
+const CONFIRM_WINDOW_MS = 45_000;
+const MAX_CONFIRM_RETRIES = 3;
+
 const INITIAL_STATS_DELAY_MS = 1_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
 const STORAGE_SCHEMA_VERSION = 3;
@@ -145,6 +157,7 @@ class MailStatsStore {
   private in_flight_deltas: Partial<Record<keyof MailStats, number>> | null =
     null;
   private last_adjust_at: Partial<Record<keyof MailStats, number>> = {};
+  private confirm_retries: Partial<Record<keyof MailStats, number>> = {};
 
   get_cache(): StatsCache {
     return this.cache;
@@ -203,6 +216,7 @@ class MailStatsStore {
     this.refetch_queued = false;
     this.in_flight_deltas = null;
     this.last_adjust_at = {};
+    this.confirm_retries = {};
     this.cache = {
       data: DEFAULT_STATS,
       timestamp: 0,
@@ -345,19 +359,37 @@ class MailStatsStore {
           : this.cache.data.snoozed;
 
       const deltas = this.in_flight_deltas ?? {};
+      let needs_confirm_retry = false;
       const reconcile = (field: keyof MailStats, value: number): number => {
         const adjusted_at = this.last_adjust_at[field] ?? 0;
         const held =
           adjusted_at > 0 &&
           Math.abs(query_started_at - adjusted_at) < OPTIMISTIC_HOLD_MS;
+        const current = this.cache.data[field];
 
         if (held) {
-          const held_value = this.cache.data[field];
-
-          return typeof held_value === "number" ? held_value : value;
+          return typeof current === "number" ? current : value;
         }
 
-        return Math.max(0, value + (deltas[field] ?? 0));
+        const settled = Math.max(0, value + (deltas[field] ?? 0));
+
+        if (
+          typeof current === "number" &&
+          adjusted_at > 0 &&
+          settled !== current &&
+          query_started_at - adjusted_at < CONFIRM_WINDOW_MS &&
+          (this.confirm_retries[field] ?? 0) < MAX_CONFIRM_RETRIES
+        ) {
+          this.confirm_retries[field] = (this.confirm_retries[field] ?? 0) + 1;
+          needs_confirm_retry = true;
+
+          return current;
+        }
+
+        delete this.confirm_retries[field];
+        delete this.last_adjust_at[field];
+
+        return settled;
       };
 
       this.cache.data = {
@@ -384,6 +416,10 @@ class MailStatsStore {
       this.cache.has_initialized = true;
       this.save_to_storage();
       this.sync_external_surfaces();
+
+      if (needs_confirm_retry) {
+        this.schedule_confirm_retry();
+      }
 
       return this.cache.data;
     } catch {
@@ -434,6 +470,7 @@ class MailStatsStore {
         [field]: Math.max(0, current + delta),
       };
       this.last_adjust_at[field] = Date.now();
+      this.confirm_retries[field] = 0;
 
       if (this.in_flight_deltas) {
         this.in_flight_deltas[field] =
@@ -445,6 +482,16 @@ class MailStatsStore {
       this.sync_external_surfaces();
       this.schedule_reconcile();
     }
+  }
+
+  private schedule_confirm_retry(): void {
+    if (this.late_reconcile_timer) return;
+
+    this.late_reconcile_timer = setTimeout(() => {
+      this.late_reconcile_timer = null;
+      this.cache.timestamp = 0;
+      void this.fetch(true);
+    }, LATE_RECONCILE_DELAY_MS);
   }
 
   private schedule_reconcile(): void {
@@ -719,6 +766,10 @@ export function invalidate_mail_stats(): void {
 
 export function prefetch_mail_stats(): void {
   stats_store.fetch();
+}
+
+export function get_mail_stats_snapshot(): MailStats {
+  return stats_store.get_cache().data;
 }
 
 export function adjust_stats_inbox(delta: number): void {
