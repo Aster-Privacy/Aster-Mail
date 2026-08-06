@@ -25,6 +25,7 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
+import { array_to_base64 } from "@/services/crypto/envelope";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
@@ -43,6 +44,8 @@ export interface CidResolutionResult {
   html: string;
   blob_urls: string[];
 }
+
+export type CidUrlMode = "blob" | "data";
 
 export function extract_cid_references(html: string): string[] {
   const cid_regex = /src=["']cid:([^"']+)["']/gi;
@@ -74,6 +77,7 @@ export function extract_cid_inline_filenames(html: string): Set<string> {
 export async function resolve_cid_references(
   html: string,
   mail_item_id: string,
+  url_mode: CidUrlMode = "blob",
 ): Promise<CidResolutionResult> {
   const cid_refs = extract_cid_references(html);
 
@@ -159,25 +163,32 @@ export async function resolve_cid_references(
         att.mail_item_id,
         att.seq_num,
       );
-      const blob = new Blob([data], { type: meta.content_type });
-      const blob_url = URL.createObjectURL(blob);
+      if (url_mode === "data") {
+        return {
+          original_cid,
+          url: `data:${meta.content_type};base64,${array_to_base64(data)}`,
+          is_blob: false,
+        };
+      }
 
-      return { original_cid, blob_url };
+      const blob = new Blob([data], { type: meta.content_type });
+
+      return { original_cid, url: URL.createObjectURL(blob), is_blob: true };
     }),
   );
 
   for (const result of data_results) {
     if (result.status !== "fulfilled") continue;
 
-    const { original_cid, blob_url } = result.value;
+    const { original_cid, url, is_blob } = result.value;
 
-    blob_urls.push(blob_url);
+    if (is_blob) blob_urls.push(url);
 
     const escaped_cid = original_cid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     resolved_html = resolved_html.replace(
       new RegExp(`src=["']cid:${escaped_cid}["']`, "gi"),
-      `src="${blob_url}"`,
+      `src="${url}"`,
     );
   }
 

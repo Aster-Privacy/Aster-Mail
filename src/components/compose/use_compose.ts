@@ -60,6 +60,10 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { is_internal_email } from "@/services/api/keys";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import {
+  extract_cid_references,
+  resolve_cid_references,
+} from "@/lib/cid_resolver";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -177,6 +181,27 @@ export interface UseComposeReturn {
   template_picker_element: React.ReactNode;
 }
 
+function inject_html_with_inline_images(
+  html: string,
+  source_mail_id: string | undefined,
+  is_active: () => boolean,
+  apply: (resolved_html: string) => void,
+): void {
+  if (!source_mail_id || extract_cid_references(html).length === 0) {
+    apply(html);
+
+    return;
+  }
+
+  resolve_cid_references(html, source_mail_id, "data")
+    .then((result) => {
+      if (is_active()) apply(result.html);
+    })
+    .catch(() => {
+      if (is_active()) apply(html);
+    });
+}
+
 export function use_compose({
   on_close,
   edit_draft,
@@ -230,6 +255,7 @@ export function use_compose({
   const draft_context_id_ref = useRef<string | null>(null);
   const initialized_ref = useRef(false);
   const content_initialized_ref = useRef(false);
+  const inject_token_ref = useRef(0);
   const [scheduled_time, set_scheduled_time] = useState<Date | null>(null);
   const [is_scheduling, set_is_scheduling] = useState(false);
   const [expires_at, set_expires_at] = useState<Date | null>(null);
@@ -457,6 +483,8 @@ export function use_compose({
       initialized_ref.current = true;
     }
 
+    inject_token_ref.current += 1;
+
     is_sending_ref.current = false;
     draft_hook.user_modified_ref.current = false;
     reset_form();
@@ -515,8 +543,19 @@ export function use_compose({
             external_content_mode: is_any_lockdown_active() ? "never" : "always",
             lockdown_mode: is_any_lockdown_active(),
           });
-          message_textarea_ref.current.innerHTML = sanitized_result.html;
-          set_message(message_textarea_ref.current.innerHTML);
+          const token = inject_token_ref.current;
+
+          inject_html_with_inline_images(
+            sanitized_result.html,
+            edit_draft.reply_to_id ?? edit_draft.forward_from_id,
+            () => inject_token_ref.current === token,
+            (resolved_html) => {
+              if (!message_textarea_ref.current) return;
+
+              message_textarea_ref.current.innerHTML = resolved_html;
+              set_message(message_textarea_ref.current.innerHTML);
+            },
+          );
         }
       }, INITIAL_CONTENT_DELAY_MS);
     } else {
@@ -536,6 +575,7 @@ export function use_compose({
     }
 
     return () => {
+      inject_token_ref.current += 1;
       if (save_timer_ref.current) {
         clearTimeout(save_timer_ref.current);
         save_timer_ref.current = null;
@@ -589,8 +629,21 @@ export function use_compose({
         lockdown_mode: is_any_lockdown_active(),
       });
 
-      message_textarea_ref.current.innerHTML = sanitized_result.html;
-      set_message(message_textarea_ref.current.innerHTML);
+      const token = inject_token_ref.current;
+
+      inject_html_with_inline_images(
+        sanitized_result.html,
+        is_fresh_reply_forward
+          ? (edit_draft?.reply_to_id ?? edit_draft?.forward_from_id)
+          : undefined,
+        () => inject_token_ref.current === token,
+        (resolved_html) => {
+          if (!message_textarea_ref.current) return;
+
+          message_textarea_ref.current.innerHTML = resolved_html;
+          set_message(message_textarea_ref.current.innerHTML);
+        },
+      );
     }, INITIAL_CONTENT_DELAY_MS);
   }, [
     init_trigger,
