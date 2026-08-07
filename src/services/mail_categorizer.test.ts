@@ -22,7 +22,7 @@ import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 
 import { describe, it, expect } from "vitest";
 
-import { classify } from "./mail_categorizer";
+import { classify, is_locked_to_primary } from "./mail_categorizer";
 
 function make_envelope(
   overrides: Partial<DecryptedEnvelope> & {
@@ -51,6 +51,43 @@ describe("classify", () => {
     } as unknown as MailItemMetadata;
 
     expect(classify(envelope, metadata)).toBe("primary");
+  });
+
+  it("keeps an official Aster sign-in alert in Primary despite a stale pin", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@astermail.org" },
+      subject: "New Sign-In to Your Aster Mail Account",
+    });
+    const metadata = {
+      category: "social",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("primary");
+    expect(is_locked_to_primary(envelope)).toBe(true);
+  });
+
+  it("honors a pin on personal mail from an Aster address", () => {
+    const envelope = make_envelope({
+      from: { name: "Rowan", email: "rowan@astermail.org" },
+      subject: "Photos from the weekend",
+    });
+    const metadata = {
+      category: "social",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("social");
+    expect(is_locked_to_primary(envelope)).toBe(false);
+  });
+
+  it("does not lock a spoofed official Aster sender to Primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@astermail.org" },
+      sender_verification: "invalid",
+    });
+
+    expect(is_locked_to_primary(envelope)).toBe(false);
   });
 
   it("classifies known social domains as social", () => {

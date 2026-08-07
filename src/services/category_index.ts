@@ -42,6 +42,7 @@ import {
   classify,
   CATEGORY_TABS,
   CLASSIFIER_VERSION,
+  is_locked_to_primary,
   set_active_custom_categories,
 } from "@/services/mail_categorizer";
 import {
@@ -1508,7 +1509,9 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
         rule_category: item.rule_category,
       }),
       category_pinned:
-        metadata?.category_pinned === true && !!metadata?.category,
+        metadata?.category_pinned === true &&
+        !!metadata?.category &&
+        !is_locked_to_primary(envelope),
       ...(snoozed_until ? { snoozed_until } : {}),
     },
   };

@@ -25,6 +25,7 @@ import type {
 } from "@/types/email";
 
 import { get_sender_domain } from "@/utils/unsubscribe_detector";
+import { is_official_sender } from "@/lib/utils";
 import {
   ASTER_DOMAIN_SUFFIXES,
   SOCIAL_DOMAIN_SUFFIXES,
@@ -45,7 +46,7 @@ import {
 import type { CustomCategoryRule } from "@/data/category_catalog";
 import { BUILTIN_CATEGORY_IDS, fold_builtin } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 2;
+export const CLASSIFIER_VERSION = 3;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -219,11 +220,23 @@ function resolve_rule_category(
   return custom ? rule_category : null;
 }
 
+export function is_locked_to_primary(envelope: DecryptedEnvelope): boolean {
+  const email = envelope.from?.email || "";
+
+  return (
+    domain_in_set(get_sender_domain(email), ASTER_SET) &&
+    envelope.sender_verification !== "invalid" &&
+    is_official_sender(email)
+  );
+}
+
 export function classify(
   envelope: DecryptedEnvelope,
   metadata?: MailItemMetadata | null,
   options?: ClassifyOptions,
 ): EmailCategory {
+  if (is_locked_to_primary(envelope)) return "primary";
+
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;
   }

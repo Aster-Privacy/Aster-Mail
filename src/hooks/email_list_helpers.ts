@@ -31,7 +31,10 @@ import {
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { build_body_preview } from "@/utils/preview_text";
-import { classify } from "@/services/mail_categorizer";
+import {
+  classify,
+  is_locked_to_primary,
+} from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -993,7 +996,9 @@ export async function fetch_mail_from_api(
                   rule_category: item.rule_category,
                 }),
                 category_pinned:
-                  metadata?.category_pinned === true && !!metadata?.category,
+                  metadata?.category_pinned === true &&
+                  !!metadata?.category &&
+                  !is_locked_to_primary(envelope!),
               },
             ];
           } catch {
