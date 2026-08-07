@@ -41,19 +41,28 @@ jobs:
             Aster-Mail.apk
           )
 
+          OPTIONAL=(
+            Aster-Mail-aarch64.AppImage
+            Aster-Mail-arm64.deb
+            Aster-Mail-aarch64.rpm
+          )
+
           declare -A SRC=(
             [Aster-Mail-x64-setup.exe]="Aster.Mail_${V}_x64-setup.exe"
             [Aster-Mail-x64.msi]="Aster.Mail_${V}_x64_en-US.msi"
             [Aster-Mail-x64.AppImage]="Aster.Mail_${V}_amd64.AppImage"
             [Aster-Mail-amd64.deb]="Aster.Mail_${V}_amd64.deb"
             [Aster-Mail-x86_64.rpm]="Aster.Mail-${V}-1.x86_64.rpm"
+            [Aster-Mail-aarch64.AppImage]="Aster.Mail_${V}_aarch64.AppImage"
+            [Aster-Mail-arm64.deb]="Aster.Mail_${V}_arm64.deb"
+            [Aster-Mail-aarch64.rpm]="Aster.Mail-${V}-1.aarch64.rpm"
             [Aster-Mail-universal.dmg]="Aster.Mail_${V}_universal.dmg"
           )
 
           assets() { gh release view "$TAG" --repo "$REPO" --json assets -q '.assets[].name'; }
           has() { assets | grep -qxF "$1"; }
 
-          for name in "${REQUIRED[@]}"; do
+          for name in "${REQUIRED[@]}" "${OPTIONAL[@]}"; do
             if has "$name"; then echo "ok: $name"; continue; fi
 
             src="${SRC[$name]:-}"
@@ -80,6 +89,14 @@ jobs:
             fi
           done
 
+          ABSENT_ARM=()
+          for name in "${OPTIONAL[@]}"; do
+            has "$name" || ABSENT_ARM+=("$name")
+          done
+          if [ ${#ABSENT_ARM[@]} -ne 0 ]; then
+            echo "::warning::$TAG has no Linux ARM assets: ${ABSENT_ARM[*]}. /dl/linux-*-arm64 falls back to an older release."
+          fi
+
           MISSING=()
           for name in "${REQUIRED[@]}"; do
             has "$name" || MISSING+=("$name")
@@ -91,4 +108,4 @@ jobs:
             exit 1
           fi
 
-          echo "All 7 website download assets present on $TAG."
+          echo "All 7 required website download assets present on $TAG."

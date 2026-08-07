@@ -121,19 +121,25 @@ fn ensure_system_wayland() {
         return;
     }
 
+    let multiarch_dir = format!("/usr/lib/{}-linux-gnu", std::env::consts::ARCH);
+
     let system_lib = [
-        "/usr/lib64/libwayland-client.so.0",
-        "/usr/lib64/libwayland-client.so",
-        "/usr/lib/x86_64-linux-gnu/libwayland-client.so.0",
-        "/usr/lib/x86_64-linux-gnu/libwayland-client.so",
-        "/usr/lib/libwayland-client.so.0",
-        "/usr/lib/libwayland-client.so",
-    ].iter().find(|p| std::path::Path::new(p).exists()).map(|s| s.to_string());
+        "/usr/lib64/libwayland-client.so.0".to_string(),
+        "/usr/lib64/libwayland-client.so".to_string(),
+        format!("{multiarch_dir}/libwayland-client.so.0"),
+        format!("{multiarch_dir}/libwayland-client.so"),
+        "/usr/lib/libwayland-client.so.0".to_string(),
+        "/usr/lib/libwayland-client.so".to_string(),
+    ].iter().find(|p| std::path::Path::new(p).exists()).cloned();
 
     let system_lib = match system_lib {
         Some(lib) => lib,
         None => {
-            let lib_dirs = ["/usr/lib64", "/usr/lib", "/usr/lib/x86_64-linux-gnu"];
+            let lib_dirs = [
+                "/usr/lib64".to_string(),
+                "/usr/lib".to_string(),
+                multiarch_dir,
+            ];
             let mut found = None;
             for dir in &lib_dirs {
                 if let Ok(entries) = std::fs::read_dir(dir) {

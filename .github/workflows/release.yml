@@ -16,11 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
+          - leg: mac
+            os: macos-latest
             args: --target universal-apple-darwin
-          - os: windows-latest
+          - leg: win
+            os: windows-latest
             args: ''
-          - os: ubuntu-22.04
+          - leg: linux-x64
+            os: ubuntu-22.04
+            args: ''
+          - leg: linux-arm64
+            os: ubuntu-22.04-arm
             args: ''
     runs-on: ${{ matrix.os }}
 
@@ -37,7 +43,7 @@ jobs:
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
         with:
           toolchain: stable
-          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.leg == 'mac' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -45,7 +51,7 @@ jobs:
           workspaces: src-tauri -> target
 
       - name: Install Linux system dependencies
-        if: matrix.os == 'ubuntu-22.04'
+        if: startsWith(matrix.leg, 'linux')
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -58,7 +64,7 @@ jobs:
             file
 
       - name: Import Apple certificate
-        if: matrix.os == 'macos-latest'
+        if: matrix.leg == 'mac'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -88,7 +94,7 @@ jobs:
           echo "APPLE_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> $GITHUB_ENV
 
       - name: Write Apple API key
-        if: matrix.os == 'macos-latest'
+        if: matrix.leg == 'mac'
         env:
           APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
@@ -142,19 +148,26 @@ jobs:
             fi
           }
 
-          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]]; then
+          if [[ "${{ matrix.leg }}" == "linux-x64" ]]; then
             rename_asset "Aster.Mail_${V}_amd64.AppImage"     "Aster-Mail-x64.AppImage"
             rename_asset "Aster.Mail_${V}_amd64.AppImage.sig" "Aster-Mail-x64.AppImage.sig"
             rename_asset "Aster.Mail_${V}_amd64.deb"          "Aster-Mail-amd64.deb"
             rename_asset "Aster.Mail_${V}_amd64.deb.sig"      "Aster-Mail-amd64.deb.sig"
             rename_asset "Aster.Mail-${V}-1.x86_64.rpm"       "Aster-Mail-x86_64.rpm"
             rename_asset "Aster.Mail-${V}-1.x86_64.rpm.sig"   "Aster-Mail-x86_64.rpm.sig"
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          elif [[ "${{ matrix.leg }}" == "linux-arm64" ]]; then
+            rename_asset "Aster.Mail_${V}_aarch64.AppImage"     "Aster-Mail-aarch64.AppImage"
+            rename_asset "Aster.Mail_${V}_aarch64.AppImage.sig" "Aster-Mail-aarch64.AppImage.sig"
+            rename_asset "Aster.Mail_${V}_arm64.deb"            "Aster-Mail-arm64.deb"
+            rename_asset "Aster.Mail_${V}_arm64.deb.sig"        "Aster-Mail-arm64.deb.sig"
+            rename_asset "Aster.Mail-${V}-1.aarch64.rpm"        "Aster-Mail-aarch64.rpm"
+            rename_asset "Aster.Mail-${V}-1.aarch64.rpm.sig"    "Aster-Mail-aarch64.rpm.sig"
+          elif [[ "${{ matrix.leg }}" == "win" ]]; then
             rename_asset "Aster.Mail_${V}_x64-setup.exe"     "Aster-Mail-x64-setup.exe"
             rename_asset "Aster.Mail_${V}_x64-setup.exe.sig" "Aster-Mail-x64-setup.exe.sig"
             rename_asset "Aster.Mail_${V}_x64_en-US.msi"     "Aster-Mail-x64.msi"
             rename_asset "Aster.Mail_${V}_x64_en-US.msi.sig" "Aster-Mail-x64.msi.sig"
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+          elif [[ "${{ matrix.leg }}" == "mac" ]]; then
             rename_asset "Aster.Mail_${V}_universal.dmg"             "Aster-Mail-universal.dmg"
             rename_asset "Aster.Mail_${V}_universal.dmg.sig"         "Aster-Mail-universal.dmg.sig"
             rename_asset "Aster.Mail_${V}_universal.app.tar.gz"      "Aster-Mail-universal.app.tar.gz"
@@ -170,19 +183,65 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           V=$(node -p "require('./package.json').version")
           TAG="v${V}"
           TMP=$(mktemp -d)
+          BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}"
           gh release download "$TAG" --pattern latest.json --dir "$TMP" --clobber
           sed -i \
             -e "s|Aster\.Mail_${V}_amd64\.AppImage|Aster-Mail-x64.AppImage|g" \
             -e "s|Aster\.Mail_${V}_amd64\.deb|Aster-Mail-amd64.deb|g" \
             -e "s|Aster\.Mail-${V}-1\.x86_64\.rpm|Aster-Mail-x86_64.rpm|g" \
+            -e "s|Aster\.Mail_${V}_aarch64\.AppImage|Aster-Mail-aarch64.AppImage|g" \
+            -e "s|Aster\.Mail_${V}_arm64\.deb|Aster-Mail-arm64.deb|g" \
+            -e "s|Aster\.Mail-${V}-1\.aarch64\.rpm|Aster-Mail-aarch64.rpm|g" \
             -e "s|Aster\.Mail_${V}_x64-setup\.exe|Aster-Mail-x64-setup.exe|g" \
             -e "s|Aster\.Mail_${V}_x64_en-US\.msi|Aster-Mail-x64.msi|g" \
             -e "s|Aster\.Mail_${V}_universal\.dmg|Aster-Mail-universal.dmg|g" \
             -e "s|Aster\.Mail_${V}_universal\.app\.tar\.gz|Aster-Mail-universal.app.tar.gz|g" \
             "$TMP/latest.json"
+
+          for f in Aster-Mail-x64.AppImage.sig Aster-Mail-aarch64.AppImage.sig; do
+            gh release download "$TAG" --pattern "$f" --dir "$TMP" --clobber 2>/dev/null || true
+          done
+
+          SIGDIR="$TMP" BASE="$BASE" node -e '
+            const fs = require("fs");
+            const path = process.argv[1];
+            const manifest = JSON.parse(fs.readFileSync(path, "utf8"));
+            manifest.platforms = manifest.platforms || {};
+            const legs = {
+              "linux-x86_64": "Aster-Mail-x64.AppImage",
+              "linux-aarch64": "Aster-Mail-aarch64.AppImage",
+            };
+            for (const [key, file] of Object.entries(legs)) {
+              const sig = `${process.env.SIGDIR}/${file}.sig`;
+              if (!fs.existsSync(sig)) {
+                console.log(`::warning::${file}.sig absent; leaving ${key} untouched`);
+                continue;
+              }
+              manifest.platforms[key] = {
+                signature: fs.readFileSync(sig, "utf8").trim(),
+                url: `${process.env.BASE}/${file}`,
+              };
+            }
+            fs.writeFileSync(path, JSON.stringify(manifest, null, 2));
+          ' "$TMP/latest.json"
+
+          node -e '
+            const manifest = require(process.argv[1]);
+            const platforms = Object.keys(manifest.platforms || {});
+            console.log("latest.json platforms:", platforms.join(", "));
+            if (!platforms.includes("linux-x86_64")) {
+              console.log("::error::latest.json is missing linux-x86_64");
+              process.exit(1);
+            }
+            if (!platforms.includes("linux-aarch64")) {
+              console.log("::warning::latest.json is missing linux-aarch64; ARM installs will not self-update");
+            }
+          ' "$TMP/latest.json"
+
           gh release upload "$TAG" "$TMP/latest.json" --clobber
 
   ensure_canonical_assets:
@@ -201,7 +260,7 @@ jobs:
           # most recent prior release that has it so the download never breaks.
           V=$(node -p "require('./package.json').version")
           TAG="v${V}"
-          ASSETS="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg Aster-Mail.apk"
+          ASSETS="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-aarch64.AppImage Aster-Mail-arm64.deb Aster-Mail-aarch64.rpm Aster-Mail-universal.dmg Aster-Mail.apk"
           assets_of() { gh release view "$1" --json assets --jq '.assets[].name' 2>/dev/null; }
           current=$(assets_of "$TAG")
           prior_tags=$(gh release list --limit 40 --json tagName --jq '.[].tagName' | grep -vx "$TAG")

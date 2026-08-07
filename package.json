@@ -84,7 +84,6 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@rollup/rollup-linux-x64-gnu": "^4.60.2",
     "@scure/bip39": "^2.2.0",
     "@stripe/react-stripe-js": "^5.6.1",
     "@stripe/stripe-js": "^8.11.0",
@@ -154,6 +153,10 @@
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "^4.1.0",
     "workbox-window": "^7.4.0"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.60.2",
+    "@rollup/rollup-linux-arm64-gnu": "^4.60.2"
   },
   "overrides": {
     "tar": ">=7.5.18",

@@ -177,6 +177,9 @@ export function BridgeSection() {
       sub_links: [
         { label_key: "settings.bridge_linux_deb_link", platform: "linux-deb" },
         { label_key: "settings.bridge_linux_rpm_link", platform: "linux-rpm" },
+        { label_key: "settings.bridge_linux_appimage_arm64_link", platform: "linux-appimage-arm64" },
+        { label_key: "settings.bridge_linux_deb_arm64_link", platform: "linux-deb-arm64" },
+        { label_key: "settings.bridge_linux_rpm_arm64_link", platform: "linux-rpm-arm64" },
       ],
       icon: linux_icon,
     },
