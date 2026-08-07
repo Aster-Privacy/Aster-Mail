@@ -18,8 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { api_client, type ApiResponse } from "./client";
-import { en } from "@/lib/i18n/translations/en";
 
 interface PublicKeyResponse {
   username: string;
@@ -206,20 +207,22 @@ export function format_fingerprint(fingerprint: string | null): string {
   return chunks.join(" ");
 }
 
-export function get_key_source_label(source: string | null): string {
+export function get_key_source_label_key(
+  source: string | null,
+): TranslationKey {
   switch (source) {
     case "wkd":
-      return en.settings.key_source_wkd;
+      return "settings.key_source_wkd";
     case "keyserver":
-      return en.settings.key_source_keyserver;
+      return "settings.key_source_keyserver";
     case "autocrypt":
-      return en.settings.key_source_autocrypt;
+      return "settings.key_source_autocrypt";
     case "dane":
-      return en.settings.key_source_dane;
+      return "settings.key_source_dane";
     case "database":
-      return en.settings.key_source_cached;
+      return "settings.key_source_cached";
     default:
-      return en.settings.key_source_unknown;
+      return "settings.key_source_unknown";
   }
 }
 

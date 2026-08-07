@@ -71,6 +71,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 import {
   discover_external_key,
+  get_key_source_label_key,
   type ExternalKeyInfo,
 } from "@/services/api/keys";
 import {
@@ -1212,7 +1213,7 @@ function ContactPgpKeyRow({
               {key_info.source && (
                 <p className="text-[11px] text-txt-muted">
                   {t("settings.pgp_key_discovered_via", {
-                    source: key_info.source,
+                    source: t(get_key_source_label_key(key_info.source)),
                   })}
                 </p>
               )}
