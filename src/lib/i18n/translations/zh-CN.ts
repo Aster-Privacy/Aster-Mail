@@ -79,7 +79,7 @@ export const zh_CN = {
     of: "/",
     page: "页面",
     aster_mail: "Aster Mail",
-    aster_account: "Aster 账户",
+    aster_account: "我的 Aster 账户",
     deck: "{{name}}的面板",
     workspace_title: "{{name}}的工作区 | Aster Mail",
     create_folder: "创建文件夹",
@@ -3015,6 +3015,7 @@ export const zh_CN = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "{{plan}} 订阅者",
+    plan_badge_thanks: "感谢您成为 {{plan}} 订阅者。",
     alias_reencrypt_failed:
       "无法安全地重新加密您的一个别名。您的密码未更改。请联系支持团队，或移除受影响的别名后重试。",
     contact_reencrypt_failed:
@@ -5019,6 +5020,9 @@ export const zh_CN = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",

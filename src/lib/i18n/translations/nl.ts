@@ -80,7 +80,7 @@ export const nl = {
     of: "van",
     page: "Pagina",
     aster_mail: "Aster Mail",
-    aster_account: "Aster-account",
+    aster_account: "Mijn Aster-account",
     deck: "Deck van {{name}}",
     workspace_title: "Werkruimte van {{name}} | Aster Mail",
     create_folder: "Map aanmaken",
@@ -3289,6 +3289,7 @@ export const nl = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "{{plan}}-abonnee",
+    plan_badge_thanks: "Bedankt dat u {{plan}}-abonnee bent.",
     alias_reencrypt_failed:
       "Een van uw aliassen kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder de betreffende alias en probeer het opnieuw.",
     contact_reencrypt_failed:
@@ -5693,6 +5694,9 @@ export const nl = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",

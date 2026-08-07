@@ -84,7 +84,7 @@ export const en: Translations = {
     of: "of",
     page: "Page",
     aster_mail: "Aster Mail",
-    aster_account: "Aster account",
+    aster_account: "My Aster account",
     deck: "{{name}}'s Deck",
     workspace_title: "{{name}}'s Workspace | Aster Mail",
     create_folder: "Create folder",
@@ -1798,6 +1798,9 @@ export const en: Translations = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",
@@ -2229,6 +2232,7 @@ export const en: Translations = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "{{plan}} subscriber",
+    plan_badge_thanks: "Thank you for being a {{plan}} subscriber.",
     alias_reencrypt_failed:
       "Could not safely re-encrypt one of your aliases. Your password was not changed. Please contact support or remove the affected alias and try again.",
     contact_reencrypt_failed:

@@ -80,7 +80,7 @@ export const ko = {
     of: "중",
     page: "페이지",
     aster_mail: "Aster Mail",
-    aster_account: "Aster 계정",
+    aster_account: "내 Aster 계정",
     deck: "{{name}}의 덱",
     workspace_title: "{{name}}의 워크스페이스 | Aster Mail",
     create_folder: "폴더 만들기",
@@ -3054,6 +3054,9 @@ export const ko = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",
@@ -3289,6 +3292,7 @@ export const ko = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "{{plan}} 구독자",
+    plan_badge_thanks: "{{plan}} 구독자가 되어 주셔서 감사합니다.",
     alias_reencrypt_failed:
       "별칭 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 별칭을 제거한 후 다시 시도해 주세요.",
     contact_reencrypt_failed:

@@ -80,7 +80,7 @@ export const ru = {
     of: "из",
     page: "Страница",
     aster_mail: "Aster Mail",
-    aster_account: "Аккаунт Aster",
+    aster_account: "Мой аккаунт Aster",
     deck: "Рабочий стол {{name}}",
     workspace_title: "Рабочая область {{name}} | Aster Mail",
     create_folder: "Создать папку",
@@ -3310,6 +3310,7 @@ export const ru = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "Подписчик {{plan}}",
+    plan_badge_thanks: "Спасибо, что вы подписчик {{plan}}.",
     alias_reencrypt_failed:
       "Не удалось безопасно перешифровать один из ваших псевдонимов. Пароль не был изменён. Пожалуйста, обратитесь в поддержку или удалите затронутый псевдоним и попробуйте снова.",
     contact_reencrypt_failed:
@@ -5707,6 +5708,9 @@ export const ru = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",

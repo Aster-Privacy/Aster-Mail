@@ -1944,6 +1944,9 @@ export interface SettingsTranslations {
   bridge_linux_cta: string;
   bridge_linux_deb_link: string;
   bridge_linux_rpm_link: string;
+  bridge_linux_appimage_arm64_link: string;
+  bridge_linux_deb_arm64_link: string;
+  bridge_linux_rpm_arm64_link: string;
   bridge_macos_name: string;
   bridge_macos_desc: string;
   bridge_macos_cta: string;
@@ -2312,6 +2315,7 @@ export interface SettingsTranslations {
   plan_badge_nova: string;
   plan_badge_supernova: string;
   plan_badge_aria: string;
+  plan_badge_thanks: string;
   alias_reencrypt_failed: string;
   contact_reencrypt_failed: string;
   password_change_fingerprint_mismatch: string;

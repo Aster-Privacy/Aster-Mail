@@ -80,7 +80,7 @@ export const tr = {
     of: "/",
     page: "Sayfa",
     aster_mail: "Aster Mail",
-    aster_account: "Aster hesabı",
+    aster_account: "Aster hesabım",
     deck: "{{name}} Panosu",
     workspace_title: "{{name}} Çalışma Alanı | Aster Mail",
     create_folder: "Klasör oluştur",
@@ -3286,6 +3286,7 @@ export const tr = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "{{plan}} abonesi",
+    plan_badge_thanks: "{{plan}} abonesi olduğunuz için teşekkür ederiz.",
     alias_reencrypt_failed:
       "Takma adlarınızdan biri güvenli bir şekilde yeniden şifrelenemedi. Parolanız değiştirilmedi. Lütfen destek ekibiyle iletişime geçin veya etkilenen takma adı kaldırıp tekrar deneyin.",
     contact_reencrypt_failed:
@@ -5422,6 +5423,9 @@ export const tr = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",

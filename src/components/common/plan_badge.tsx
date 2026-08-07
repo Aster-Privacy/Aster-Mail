@@ -55,7 +55,7 @@ export function PlanBadge({ plan_code, className }: PlanBadgeProps) {
     <span
       aria-label={t("settings.plan_badge_aria", { plan: label })}
       className={cn("plan_badge", `plan_badge_tier_${tier}`, className)}
-      title={t("settings.plan_badge_aria", { plan: label })}
+      title={t("settings.plan_badge_thanks", { plan: label })}
     >
       {label}
     </span>

@@ -80,7 +80,7 @@ export const pt = {
     of: "de",
     page: "Página",
     aster_mail: "Aster Mail",
-    aster_account: "Conta Aster",
+    aster_account: "Minha conta Aster",
     deck: "Painel de {{name}}",
     workspace_title: "Espaço de trabalho de {{name}} | Aster Mail",
     create_folder: "Criar pasta",
@@ -3316,6 +3316,7 @@ export const pt = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "Assinante {{plan}}",
+    plan_badge_thanks: "Obrigado por ser assinante {{plan}}.",
     alias_reencrypt_failed:
       "Não foi possível recriptografar com segurança um dos seus aliases. Sua senha não foi alterada. Por favor, entre em contato com o suporte ou remova o alias afetado e tente novamente.",
     contact_reencrypt_failed:
@@ -5462,6 +5463,9 @@ export const pt = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",

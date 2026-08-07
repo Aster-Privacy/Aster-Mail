@@ -80,7 +80,7 @@ export const ja = {
     of: "/",
     page: "ページ",
     aster_mail: "Aster Mail",
-    aster_account: "Aster アカウント",
+    aster_account: "マイ Aster アカウント",
     deck: "{{name}}のデッキ",
     workspace_title: "{{name}}のワークスペース | Aster Mail",
     create_folder: "フォルダを作成",
@@ -3301,6 +3301,7 @@ export const ja = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "{{plan}} 加入者",
+    plan_badge_thanks: "{{plan}} をご利用いただきありがとうございます。",
     alias_reencrypt_failed:
       "エイリアスの一つを安全に再暗号化できませんでした。パスワードは変更されていません。サポートまでお問い合わせいただくか、該当のエイリアスを削除してから再度お試しください。",
     contact_reencrypt_failed:
@@ -5668,6 +5669,9 @@ export const ja = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",

@@ -80,7 +80,7 @@ export const ar = {
     of: "من",
     page: "صفحة",
     aster_mail: "Aster Mail",
-    aster_account: "حساب Aster",
+    aster_account: "حسابي في Aster",
     deck: "لوحة {{name}}",
     workspace_title: "مساحة عمل {{name}} | Aster Mail",
     create_folder: "إنشاء مجلد",
@@ -3011,6 +3011,9 @@ export const ar = {
     bridge_linux_cta: "Download AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
+    bridge_linux_deb_arm64_link: ".deb (ARM64)",
+    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",
@@ -3250,6 +3253,7 @@ export const ar = {
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "مشترك {{plan}}",
+    plan_badge_thanks: "شكرًا لكونك مشتركًا في {{plan}}.",
     alias_reencrypt_failed:
       "تعذّر إعادة تشفير أحد الأسماء المستعارة بأمان. لم يتم تغيير كلمة المرور. يُرجى التواصل مع الدعم أو إزالة الاسم المستعار المتأثر والمحاولة مرة أخرى.",
     contact_reencrypt_failed:
