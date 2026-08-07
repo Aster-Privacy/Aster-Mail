@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
@@ -142,6 +142,8 @@ function build_cards_from_cached_meta(
 
   return cards;
 }
+
+const PREVIEW_READY_TIMEOUT_MS = 6000;
 
 interface AttachmentListProps {
   mail_item_id: string;
@@ -497,10 +499,157 @@ export function AttachmentList({
     filename: string;
     att: DecryptedAttachmentInfo;
   } | null>(null);
+  const [preparing, set_preparing] = useState(
+    () => !preferences.low_network_mode && !is_local,
+  );
   const bytes_fetch_ref = useRef<Promise<
     Map<string, { encrypted_data: string; data_nonce: string }>
   > | null>(null);
   const pdf_attempted_ref = useRef<Set<string>>(new Set());
+  const inline_cids_ref = useRef(inline_cids);
+  const inline_filenames_ref = useRef(inline_filenames);
+
+  inline_cids_ref.current = inline_cids;
+  inline_filenames_ref.current = inline_filenames;
+
+  const inline_key = useMemo(() => {
+    const cids = inline_cids ? Array.from(inline_cids).sort().join(",") : "";
+    const names = inline_filenames
+      ? Array.from(inline_filenames).sort().join(",")
+      : "";
+
+    return `${cids}|${names}`;
+  }, [inline_cids, inline_filenames]);
+
+  const decrypt_image_previews = useCallback(
+    async (
+      infos: DecryptedAttachmentInfo[],
+      is_cancelled: () => boolean,
+    ): Promise<void> => {
+      await Promise.all(
+        infos.map(async (info) => {
+          if (!is_previewable_image(info.content_type)) return;
+          if (get_cached_preview_url(info.id)) return;
+          if (!info.encrypted_data) return;
+
+          try {
+            const meta = await decrypt_attachment_meta(
+              info.encrypted_meta,
+              info.meta_nonce,
+            );
+            const data = await decrypt_attachment_data(
+              info.encrypted_data,
+              info.data_nonce,
+              meta.session_key,
+              info.mail_item_id,
+              info.seq_num,
+            );
+            const blob = new Blob([data], { type: info.content_type });
+            const url = set_cached_preview_url(
+              info.id,
+              URL.createObjectURL(blob),
+            );
+
+            if (is_cancelled()) return;
+
+            set_attachments((prev) =>
+              prev.map((a) =>
+                a.id === info.id && !a.preview_url
+                  ? { ...a, preview_url: url }
+                  : a,
+              ),
+            );
+          } catch {
+            /* preview generation failed */
+          }
+        }),
+      );
+    },
+    [],
+  );
+
+  const generate_pdf_thumbnails = useCallback(
+    async (
+      infos: DecryptedAttachmentInfo[],
+      is_cancelled: () => boolean,
+    ): Promise<void> => {
+      const pdf_atts = infos.filter(
+        (a) =>
+          is_previewable_pdf(a.content_type) &&
+          !a.preview_url &&
+          !get_cached_preview_url(a.id) &&
+          a.encrypted_data &&
+          !pdf_attempted_ref.current.has(a.id),
+      );
+
+      if (pdf_atts.length === 0) return;
+
+      let render_pdf_thumbnail: (typeof import("@/lib/pdf_utils"))["render_pdf_thumbnail"];
+
+      try {
+        const pdf_mod = await import("@/lib/pdf_utils");
+
+        render_pdf_thumbnail = pdf_mod.render_pdf_thumbnail;
+      } catch {
+        return;
+      }
+
+      for (const att of pdf_atts) {
+        if (is_cancelled()) return;
+
+        pdf_attempted_ref.current.add(att.id);
+
+        try {
+          const meta = await decrypt_attachment_meta(
+            att.encrypted_meta,
+            att.meta_nonce,
+          );
+          const data = await decrypt_attachment_data(
+            att.encrypted_data,
+            att.data_nonce,
+            meta.session_key,
+            att.mail_item_id,
+            att.seq_num,
+          );
+
+          const thumbnail_promise = render_pdf_thumbnail(data, 400, 280);
+          let timed_out = false;
+          const timeout_promise = new Promise<never>((_, reject) =>
+            setTimeout(() => {
+              timed_out = true;
+              reject(new Error("timeout"));
+            }, 8000),
+          );
+
+          thumbnail_promise
+            .then((late_url) => {
+              if (timed_out || is_cancelled()) URL.revokeObjectURL(late_url);
+            })
+            .catch(() => {});
+
+          const raw_url = await Promise.race([
+            thumbnail_promise,
+            timeout_promise,
+          ]);
+
+          if (is_cancelled()) {
+            pdf_attempted_ref.current.delete(att.id);
+
+            return;
+          }
+
+          const url = set_cached_preview_url(att.id, raw_url);
+
+          set_attachments((prev) =>
+            prev.map((a) => (a.id === att.id ? { ...a, preview_url: url } : a)),
+          );
+        } catch {
+          if (is_cancelled()) pdf_attempted_ref.current.delete(att.id);
+        }
+      }
+    },
+    [],
+  );
 
   const ensure_attachment_bytes = useCallback(
     async (att: DecryptedAttachmentInfo): Promise<DecryptedAttachmentInfo> => {
@@ -531,9 +680,19 @@ export function AttachmentList({
   );
 
   useEffect(() => {
+    return () => {
+      set_attachments([]);
+      set_preparing(true);
+    };
+  }, [mail_item_id]);
+
+  useEffect(() => {
     if (preferences.low_network_mode && !user_expanded) return;
 
     let cancelled = false;
+    const is_cancelled = () => cancelled;
+    const inline_cids = inline_cids_ref.current;
+    const inline_filenames = inline_filenames_ref.current;
 
     bytes_fetch_ref.current = null;
     pdf_attempted_ref.current = new Set();
@@ -588,55 +747,30 @@ export function AttachmentList({
       }
     }
 
-    async function decrypt_image_previews(infos: DecryptedAttachmentInfo[]) {
-      await Promise.all(
-        infos.map(async (info) => {
-          if (!is_previewable_image(info.content_type)) return;
-          if (get_cached_preview_url(info.id)) return;
-          if (!info.encrypted_data) return;
-
-          try {
-            const meta = await decrypt_attachment_meta(
-              info.encrypted_meta,
-              info.meta_nonce,
-            );
-            const data = await decrypt_attachment_data(
-              info.encrypted_data,
-              info.data_nonce,
-              meta.session_key,
-              info.mail_item_id,
-              info.seq_num,
-            );
-            const blob = new Blob([data], { type: info.content_type });
-            const url = set_cached_preview_url(
-              info.id,
-              URL.createObjectURL(blob),
-            );
-
-            if (cancelled) return;
-
-            set_attachments((prev) =>
-              prev.map((a) =>
-                a.id === info.id && !a.preview_url
-                  ? { ...a, preview_url: url }
-                  : a,
-              ),
-            );
-          } catch {
-            /* preview generation failed */
-          }
-        }),
+    async function prepare_previews(list: DecryptedAttachmentInfo[]) {
+      const work = Promise.all([
+        decrypt_image_previews(list, is_cancelled),
+        generate_pdf_thumbnails(list, is_cancelled),
+      ]);
+      const cap = new Promise<void>((resolve) =>
+        setTimeout(resolve, PREVIEW_READY_TIMEOUT_MS),
       );
+
+      await Promise.race([work, cap]);
+
+      if (!cancelled) set_preparing(false);
     }
 
-    async function hydrate_bytes(cards: DecryptedAttachmentInfo[]) {
+    async function hydrate_bytes(
+      cards: DecryptedAttachmentInfo[],
+    ): Promise<DecryptedAttachmentInfo[]> {
       const bytes_promise = fetch_attachment_bytes(mail_item_id);
 
       bytes_fetch_ref.current = bytes_promise;
 
       const byte_map = await bytes_promise;
 
-      if (cancelled || byte_map.size === 0) return;
+      if (cancelled || byte_map.size === 0) return cards;
 
       set_attachments((prev) =>
         prev.map((a) => {
@@ -646,18 +780,18 @@ export function AttachmentList({
         }),
       );
 
-      const hydrated = cards.map((c) => {
+      return cards.map((c) => {
         const bytes = byte_map.get(c.id);
 
         return bytes ? { ...c, ...bytes } : c;
       });
-
-      await decrypt_image_previews(hydrated);
     }
 
     async function fetch_attachments() {
       if (is_local) {
         set_loading(false);
+        set_preparing(false);
+
         return;
       }
 
@@ -673,9 +807,13 @@ export function AttachmentList({
         set_attachments(cards);
         set_loading(false);
 
-        if (cards.length === 0) return;
+        if (cards.length === 0) {
+          set_preparing(false);
 
-        await hydrate_bytes(cards);
+          return;
+        }
+
+        await prepare_previews(await hydrate_bytes(cards));
 
         return;
       }
@@ -710,9 +848,13 @@ export function AttachmentList({
         set_attachments(cards);
         set_loading(false);
 
-        if (cards.length === 0) return;
+        if (cards.length === 0) {
+          set_preparing(false);
 
-        await hydrate_bytes(cards);
+          return;
+        }
+
+        await prepare_previews(await hydrate_bytes(cards));
 
         return;
       }
@@ -723,6 +865,7 @@ export function AttachmentList({
         response = await list_attachments(mail_item_id);
       } catch {
         set_loading(false);
+        set_preparing(false);
 
         return;
       }
@@ -731,6 +874,7 @@ export function AttachmentList({
 
       if (!response.data || response.data.attachments.length === 0) {
         set_loading(false);
+        set_preparing(false);
 
         return;
       }
@@ -748,105 +892,43 @@ export function AttachmentList({
       set_attachments(decrypted);
       set_loading(false);
 
-      await decrypt_image_previews(decrypted);
+      await prepare_previews(decrypted);
     }
 
     fetch_attachments();
 
     return () => {
       cancelled = true;
-      set_attachments([]);
     };
-  }, [mail_item_id, inline_cids, inline_filenames, t, preferences.low_network_mode, user_expanded]);
+  }, [
+    mail_item_id,
+    inline_key,
+    t,
+    preferences.low_network_mode,
+    user_expanded,
+    decrypt_image_previews,
+    generate_pdf_thumbnails,
+  ]);
 
   useEffect(() => {
-    if (loading || attachments.length === 0) return;
+    if (loading || preparing || attachments.length === 0) return;
     if (preferences.low_network_mode && !user_expanded) return;
 
     let cancelled = false;
 
-    async function generate_pdf_thumbnails() {
-      const pdf_atts = attachments.filter(
-        (a) =>
-          is_previewable_pdf(a.content_type) &&
-          !a.preview_url &&
-          a.encrypted_data &&
-          !pdf_attempted_ref.current.has(a.id),
-      );
-
-      if (pdf_atts.length === 0) return;
-
-      let render_pdf_thumbnail: (typeof import("@/lib/pdf_utils"))["render_pdf_thumbnail"];
-
-      try {
-        const pdf_mod = await import("@/lib/pdf_utils");
-
-        render_pdf_thumbnail = pdf_mod.render_pdf_thumbnail;
-      } catch {
-        return;
-      }
-
-      for (const att of pdf_atts) {
-        if (cancelled) return;
-
-        pdf_attempted_ref.current.add(att.id);
-
-        try {
-          const meta = await decrypt_attachment_meta(
-            att.encrypted_meta,
-            att.meta_nonce,
-          );
-          const data = await decrypt_attachment_data(
-            att.encrypted_data,
-            att.data_nonce,
-            meta.session_key,
-            att.mail_item_id,
-            att.seq_num,
-          );
-
-          const thumbnail_promise = render_pdf_thumbnail(data, 400, 280);
-          let timed_out = false;
-          const timeout_promise = new Promise<never>((_, reject) =>
-            setTimeout(() => {
-              timed_out = true;
-              reject(new Error("timeout"));
-            }, 8000),
-          );
-
-          thumbnail_promise
-            .then((late_url) => {
-              if (timed_out || cancelled) URL.revokeObjectURL(late_url);
-            })
-            .catch(() => {});
-
-          const raw_url = await Promise.race([
-            thumbnail_promise,
-            timeout_promise,
-          ]);
-
-          if (cancelled) {
-            pdf_attempted_ref.current.delete(att.id);
-
-            return;
-          }
-
-          const url = set_cached_preview_url(att.id, raw_url);
-
-          set_attachments((prev) =>
-            prev.map((a) => (a.id === att.id ? { ...a, preview_url: url } : a)),
-          );
-        } catch {
-          if (cancelled) pdf_attempted_ref.current.delete(att.id);
-        }
-      }
-    }
-
-    generate_pdf_thumbnails();
+    generate_pdf_thumbnails(attachments, () => cancelled);
 
     return () => {
       cancelled = true;
     };
-  }, [loading, attachments]);
+  }, [
+    loading,
+    preparing,
+    attachments,
+    generate_pdf_thumbnails,
+    preferences.low_network_mode,
+    user_expanded,
+  ]);
 
   const handle_download = useCallback(
     async (att: DecryptedAttachmentInfo, e?: React.MouseEvent) => {
@@ -990,7 +1072,11 @@ export function AttachmentList({
       >
         <button
           className="text-xs text-txt-muted hover:text-txt-primary transition-colors flex items-center gap-1.5"
-          onClick={() => { set_loading(true); set_user_expanded(true); }}
+          onClick={() => {
+            set_loading(true);
+            set_preparing(true);
+            set_user_expanded(true);
+          }}
         >
           <svg
             className="w-3.5 h-3.5"
@@ -1011,8 +1097,11 @@ export function AttachmentList({
     );
   }
 
-  if (loading) {
-    if (!hint_attachment_count) return null;
+  if (loading || preparing) {
+    const skeleton_count = attachments.length || hint_attachment_count;
+
+    if (!skeleton_count) return null;
+
     return (
       <div
         className="border-t px-3 @md:px-4 py-3"
@@ -1026,7 +1115,7 @@ export function AttachmentList({
           style={{ backgroundColor: "var(--thread-card-border)" }}
         />
         <div className="flex flex-wrap gap-2.5">
-          {Array.from({ length: hint_attachment_count }, (_, i) => (
+          {Array.from({ length: skeleton_count }, (_, i) => (
             <AttachmentCardSkeleton key={i} />
           ))}
         </div>

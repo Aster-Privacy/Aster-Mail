@@ -1716,7 +1716,7 @@ export const it = {
     settings_view_mode: "Vista impostazioni",
     settings_view_mode_description:
       "Apri le impostazioni a pagina intera o in una finestra popup",
-    quick_settings: "Impostazioni rapide",
+    quick_settings: "Impostazioni",
     see_all_settings: "Vedi tutte le impostazioni",
     quick_inbox_list: "Elenco della posta",
     quick_layout: "Layout",

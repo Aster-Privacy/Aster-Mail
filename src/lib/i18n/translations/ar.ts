@@ -1641,7 +1641,7 @@ export const ar = {
   settings: {
     settings_view_mode: "عرض الإعدادات",
     settings_view_mode_description: "فتح الإعدادات كصفحة كاملة أو نافذة منبثقة",
-    quick_settings: "الإعدادات السريعة",
+    quick_settings: "الإعدادات",
     see_all_settings: "عرض جميع الإعدادات",
     quick_inbox_list: "قائمة البريد الوارد",
     quick_layout: "التخطيط",

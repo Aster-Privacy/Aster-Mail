@@ -299,63 +299,6 @@ export function QuickSettingsPanel({
       </div>
 
       <div className="aster_scrollbar_thin flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        <div className="px-4 pb-3.5">
-          <Button
-            className="w-full"
-            size="lg"
-            variant="outline"
-            onClick={() => on_open_full_settings()}
-          >
-            {t("settings.see_all_settings")}
-          </Button>
-        </div>
-
-        <QuickSection
-          on_change={(v) => update_preference("mail_list_density", v, true)}
-          options={[
-            {
-              value: "comfortable",
-              label: t("settings.density_comfortable"),
-              thumbnail: <ThumbLines count={3} gap="gap-[7px]" />,
-            },
-            {
-              value: "compact",
-              label: t("settings.density_compact"),
-              thumbnail: <ThumbLines count={5} gap="gap-[3px]" />,
-            },
-          ]}
-          title={t("settings.density")}
-          value={resolve_list_density(preferences.mail_list_density)}
-        />
-
-        <QuickSection
-          action={
-            <button
-              className="quick_settings_link flex-shrink-0 text-[13px]"
-              style={{ color: "var(--quick-link, #3b82f6)" }}
-              type="button"
-              onClick={() => on_open_full_settings("appearance")}
-            >
-              {t("settings.quick_more_appearance")}
-            </button>
-          }
-          on_change={(v) => handle_theme_select(v as "light" | "dark")}
-          options={[
-            {
-              value: "light",
-              label: t("settings.theme_light"),
-              thumbnail: <ThemeMini mode="light" />,
-            },
-            {
-              value: "dark",
-              label: t("settings.theme_dark"),
-              thumbnail: <ThemeMini mode="dark" />,
-            },
-          ]}
-          title={t("settings.theme")}
-          value={theme_preference}
-        />
-
         <QuickSection
           on_change={(v) =>
             update_preference(
@@ -408,6 +351,66 @@ export function QuickSettingsPanel({
             }
           />
         </QuickSection>
+
+        <QuickSection
+          on_change={(v) => update_preference("mail_list_density", v, true)}
+          options={[
+            {
+              value: "comfortable",
+              label: t("settings.density_comfortable"),
+              thumbnail: <ThumbLines count={3} gap="gap-[7px]" />,
+            },
+            {
+              value: "compact",
+              label: t("settings.density_compact"),
+              thumbnail: <ThumbLines count={5} gap="gap-[3px]" />,
+            },
+          ]}
+          title={t("settings.density")}
+          value={resolve_list_density(preferences.mail_list_density)}
+        />
+
+        <QuickSection
+          action={
+            <button
+              className="quick_settings_link flex-shrink-0 text-[13px]"
+              style={{ color: "var(--quick-link, #3b82f6)" }}
+              type="button"
+              onClick={() => on_open_full_settings("appearance")}
+            >
+              {t("settings.quick_more_appearance")}
+            </button>
+          }
+          on_change={(v) => handle_theme_select(v as "light" | "dark")}
+          options={[
+            {
+              value: "light",
+              label: t("settings.theme_light"),
+              thumbnail: <ThemeMini mode="light" />,
+            },
+            {
+              value: "dark",
+              label: t("settings.theme_dark"),
+              thumbnail: <ThemeMini mode="dark" />,
+            },
+          ]}
+          title={t("settings.theme")}
+          value={theme_preference}
+        />
+
+        <div
+          className="px-4 pb-1 pt-3"
+          style={{ borderTop: "1px solid var(--border-secondary)" }}
+        >
+          <button
+            className="quick_settings_link text-[13px]"
+            style={{ color: "var(--quick-link, #3b82f6)" }}
+            type="button"
+            onClick={() => on_open_full_settings()}
+          >
+            {t("settings.see_all_settings")}
+          </button>
+        </div>
 
         <div className="h-3 flex-shrink-0" />
       </div>

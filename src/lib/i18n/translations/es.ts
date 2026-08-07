@@ -1683,7 +1683,7 @@ export const es = {
     settings_view_mode: "Vista de configuración",
     settings_view_mode_description:
       "Abrir la configuración como página completa o ventana emergente",
-    quick_settings: "Configuración rápida",
+    quick_settings: "Configuración",
     see_all_settings: "Ver toda la configuración",
     quick_inbox_list: "Lista de la bandeja",
     quick_layout: "Diseño",

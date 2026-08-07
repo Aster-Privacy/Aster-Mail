@@ -1684,7 +1684,7 @@ export const nl = {
     settings_view_mode: "Instellingenweergave",
     settings_view_mode_description:
       "Instellingen openen als volledige pagina of pop-upvenster",
-    quick_settings: "Snelle instellingen",
+    quick_settings: "Instellingen",
     see_all_settings: "Alle instellingen bekijken",
     quick_inbox_list: "Postvaklijst",
     quick_layout: "Lay-out",

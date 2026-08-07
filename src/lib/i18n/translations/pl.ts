@@ -1708,7 +1708,7 @@ export const pl = {
     settings_view_mode: "Widok ustawień",
     settings_view_mode_description:
       "Otwieraj ustawienia jako pełną stronę lub okno podręczne",
-    quick_settings: "Szybkie ustawienia",
+    quick_settings: "Ustawienia",
     see_all_settings: "Zobacz wszystkie ustawienia",
     quick_inbox_list: "Lista skrzynki odbiorczej",
     quick_layout: "Układ",

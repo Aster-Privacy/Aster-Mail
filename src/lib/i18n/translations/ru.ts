@@ -1704,7 +1704,7 @@ export const ru = {
     settings_view_mode: "Вид настроек",
     settings_view_mode_description:
       "Открывать настройки на всю страницу или во всплывающем окне",
-    quick_settings: "Быстрые настройки",
+    quick_settings: "Настройки",
     see_all_settings: "Все настройки",
     quick_inbox_list: "Список входящих",
     quick_layout: "Макет",

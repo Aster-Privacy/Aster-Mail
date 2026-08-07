@@ -1696,7 +1696,7 @@ export const en: Translations = {
     settings_view_mode: "Settings view",
     settings_view_mode_description:
       "Open settings as a full page or a popup window",
-    quick_settings: "Quick settings",
+    quick_settings: "Settings",
     see_all_settings: "See all settings",
     quick_inbox_list: "Inbox list",
     quick_layout: "Layout",

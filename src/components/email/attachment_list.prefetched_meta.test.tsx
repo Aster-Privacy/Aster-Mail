@@ -148,7 +148,7 @@ describe("AttachmentList with prefetched attachment metadata", () => {
     clear_attachment_meta_cache();
   });
 
-  it("renders the chips on the first paint without another metadata request", async () => {
+  it("renders the chips without another metadata request", async () => {
     await prefetch_attachment_meta([MAIL_ITEM_ID]);
 
     expect(batch_attachment_meta_mock).toHaveBeenCalledTimes(1);
@@ -159,6 +159,16 @@ describe("AttachmentList with prefetched attachment metadata", () => {
 
     act(() => {
       root!.render(<AttachmentList mail_item_id={MAIL_ITEM_ID} />);
+    });
+
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
+      0,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
     });
 
     expect(container.textContent).toContain("statement.pdf");

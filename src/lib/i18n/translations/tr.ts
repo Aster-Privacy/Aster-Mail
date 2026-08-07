@@ -1702,7 +1702,7 @@ export const tr = {
     settings_view_mode: "Ayarlar görünümü",
     settings_view_mode_description:
       "Ayarları tam sayfa veya açılır pencere olarak aç",
-    quick_settings: "Hızlı ayarlar",
+    quick_settings: "Ayarlar",
     see_all_settings: "Tüm ayarları gör",
     quick_inbox_list: "Gelen kutusu listesi",
     quick_layout: "Düzen",

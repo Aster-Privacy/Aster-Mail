@@ -1721,7 +1721,7 @@ export const de = {
     settings_view_mode: "Einstellungsansicht",
     settings_view_mode_description:
       "Einstellungen als ganze Seite oder Popup-Fenster öffnen",
-    quick_settings: "Schnelleinstellungen",
+    quick_settings: "Einstellungen",
     see_all_settings: "Alle Einstellungen anzeigen",
     quick_inbox_list: "Posteingangsliste",
     quick_layout: "Layout",

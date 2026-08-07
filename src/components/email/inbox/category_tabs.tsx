@@ -21,12 +21,11 @@
 import type { EmailCategory } from "@/types/email";
 import type { CategoryCounts } from "@/services/category_index";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { InboxIcon } from "@heroicons/react/24/outline";
+import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -71,7 +70,6 @@ export function CategoryTabs({
   on_category_drop,
 }: CategoryTabsProps): React.ReactElement {
   const { t } = use_i18n();
-  const reduce_motion = use_should_reduce_motion();
   const { preferences } = use_preferences();
   const { limits } = use_plan_limits();
   const previews = use_category_previews(true);
@@ -122,71 +120,6 @@ export function CategoryTabs({
     category_limit,
     t,
   ]);
-
-  const [hovered, set_hovered] = useState<{
-    key: EmailCategory;
-    label: string;
-    description: string;
-    left: number;
-    top: number;
-  } | null>(null);
-  const [hover_visible, set_hover_visible] = useState(false);
-  const hover_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reveal_frame_ref = useRef<number | null>(null);
-
-  const cancel_hover = useCallback(() => {
-    if (hover_timer_ref.current) {
-      clearTimeout(hover_timer_ref.current);
-      hover_timer_ref.current = null;
-    }
-    if (reveal_frame_ref.current !== null) {
-      cancelAnimationFrame(reveal_frame_ref.current);
-      reveal_frame_ref.current = null;
-    }
-    set_hover_visible(false);
-    set_hovered(null);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (hover_timer_ref.current) clearTimeout(hover_timer_ref.current);
-      if (reveal_frame_ref.current !== null) {
-        cancelAnimationFrame(reveal_frame_ref.current);
-      }
-    };
-  }, []);
-
-  const schedule_hover = useCallback(
-    (tab: TabConfig, element: HTMLElement) => {
-      if (!tab.description) return;
-      if (hover_timer_ref.current) clearTimeout(hover_timer_ref.current);
-      hover_timer_ref.current = setTimeout(() => {
-        const rect = element.getBoundingClientRect();
-
-        set_hovered({
-          key: tab.key,
-          label: tab.label,
-          description: tab.description,
-          left: rect.left,
-          top: rect.bottom + 8,
-        });
-
-        if (reduce_motion) {
-          set_hover_visible(true);
-
-          return;
-        }
-
-        set_hover_visible(false);
-        reveal_frame_ref.current = requestAnimationFrame(() => {
-          reveal_frame_ref.current = requestAnimationFrame(() =>
-            set_hover_visible(true),
-          );
-        });
-      }, 250);
-    },
-    [reduce_motion],
-  );
 
   const drag_active = use_category_drag_active();
   const drop_enabled = drag_active && !!on_category_drop;
@@ -240,7 +173,7 @@ export function CategoryTabs({
         const preview = show_new ? previews[key] : undefined;
         const is_drop_target = drop_enabled && drop_target === key;
 
-        return (
+        const tab_button = (
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
@@ -255,11 +188,7 @@ export function CategoryTabs({
             }`}
             style={color_style}
             type="button"
-            onBlur={cancel_hover}
-            onClick={() => {
-              cancel_hover();
-              on_change(key);
-            }}
+            onClick={() => on_change(key)}
             onDragEnter={drop_enabled ? () => set_drop_target(key) : undefined}
             onDragLeave={
               drop_enabled
@@ -282,9 +211,7 @@ export function CategoryTabs({
                 : undefined
             }
             onDrop={drop_enabled ? (e) => handle_drop(e, key) : undefined}
-            onFocus={(e) => schedule_hover(tab, e.currentTarget)}
             onMouseDown={(e) => e.preventDefault()}
-            onMouseLeave={cancel_hover}
           >
             <span className="flex min-w-0 items-center gap-2.5">
               <Icon
@@ -299,13 +226,7 @@ export function CategoryTabs({
                   preview ? "min-w-[124px]" : "min-w-0"
                 } ${drop_enabled && !preview ? "-translate-y-2" : ""}`}
               >
-                <span
-                  className="flex h-5 min-w-0 items-center gap-2"
-                  onMouseEnter={(e) =>
-                    schedule_hover(tab, e.currentTarget as HTMLElement)
-                  }
-                  onMouseLeave={cancel_hover}
-                >
+                <span className="flex h-5 min-w-0 items-center gap-2">
                   <span className="truncate">{label}</span>
                   {show_new ? (
                     <span className="aster_cat_badge">
@@ -337,37 +258,15 @@ export function CategoryTabs({
             )}
           </button>
         );
-      })}
 
-      {hovered &&
-        createPortal(
-          <div
-            className={`pointer-events-none fixed z-[70] max-w-[260px] rounded-[10px] px-3 py-2 text-[12px] leading-snug ${
-              reduce_motion
-                ? ""
-                : "transition-[opacity,transform] duration-150 ease-out"
-            }`}
-            role="tooltip"
-            style={{
-              backgroundColor: "var(--dropdown-bg)",
-              border: "1px solid var(--border-secondary)",
-              boxShadow:
-                "0 10px 20px -12px rgba(0, 0, 0, 0.28), 0 2px 6px -3px rgba(0, 0, 0, 0.14)",
-              color: "var(--text-secondary)",
-              left: `${Math.max(8, Math.min(hovered.left, window.innerWidth - 272))}px`,
-              top: `${hovered.top}px`,
-              opacity: hover_visible ? 1 : 0,
-              transform: reduce_motion
-                ? undefined
-                : hover_visible
-                  ? "translateY(0)"
-                  : "translateY(-4px)",
-            }}
-          >
-            {hovered.description}
-          </div>,
-          document.body,
-        )}
+        return tab.description ? (
+          <Tooltip key={key} delay={2000} tip={tab.description}>
+            {tab_button}
+          </Tooltip>
+        ) : (
+          tab_button
+        );
+      })}
     </div>
   );
 }

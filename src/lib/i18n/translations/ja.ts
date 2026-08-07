@@ -1699,7 +1699,7 @@ export const ja = {
   settings: {
     settings_view_mode: "設定の表示",
     settings_view_mode_description: "設定を全画面またはポップアップで開く",
-    quick_settings: "クイック設定",
+    quick_settings: "設定",
     see_all_settings: "すべての設定を表示",
     quick_inbox_list: "受信トレイの一覧",
     quick_layout: "レイアウト",

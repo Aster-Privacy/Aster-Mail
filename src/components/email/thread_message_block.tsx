@@ -31,6 +31,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 
 import { dispatch_iframe_ready } from "@/components/email/sandboxed_email_renderer";
 import {
+  AtSymbolIcon,
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -51,6 +52,7 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { Tooltip } from "@aster/ui";
 
 import { EmailTag } from "@/components/ui/email_tag";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
@@ -1185,17 +1187,20 @@ export function ThreadMessageBlock({
               </PopoverContent>
             </Popover>
             {alias_delivery && (
-              <EmailTag
-                show_icon
-                className="flex-shrink-0 max-w-[12rem]"
-                icon="at"
-                label={alias_delivery.label}
-                size="xs"
-                title={t("mail.received_via_alias", {
+              <Tooltip
+                tip={t("mail.received_via_alias", {
                   address: alias_delivery.address,
                 })}
-                variant="purple"
-              />
+              >
+                <span
+                  aria-label={t("mail.received_via_alias", {
+                    address: alias_delivery.address,
+                  })}
+                  className="flex-shrink-0 inline-flex items-center text-txt-muted"
+                >
+                  <AtSymbolIcon className="h-3.5 w-3.5" />
+                </span>
+              </Tooltip>
             )}
           </div>
           {received_on_address && (

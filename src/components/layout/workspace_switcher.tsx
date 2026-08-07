@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightStartOnRectangleIcon,
+  Cog6ToothIcon,
   PlusIcon,
   PowerIcon,
 } from "@heroicons/react/24/outline";
@@ -146,18 +147,6 @@ export function WorkspaceSwitcher({
       cancelled = true;
     };
   }, [is_open, current_account_id, limits]);
-
-  const [time_greeting, set_time_greeting] = useState("");
-
-  useEffect(() => {
-    if (!is_open) return;
-    const hour = new Date().getHours();
-
-    if (hour < 5) set_time_greeting(t("auth.greeting_night"));
-    else if (hour < 12) set_time_greeting(t("auth.greeting_morning"));
-    else if (hour < 18) set_time_greeting(t("auth.greeting_afternoon"));
-    else set_time_greeting(t("auth.greeting_evening"));
-  }, [is_open, t]);
 
   useEffect(() => {
     if (!is_open) return;
@@ -335,14 +324,7 @@ export function WorkspaceSwitcher({
                 ring_offset_color="color-mix(in srgb, var(--text-primary) 9%, var(--dropdown-bg))"
                 size="lg"
               />
-              <div className="flex flex-col min-w-0 flex-1 gap-0.5">
-                <span
-                  className="text-[12px] leading-tight"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {time_greeting &&
-                    `${time_greeting}${t("auth.greeting_comma")}`}
-                </span>
+              <div className="flex flex-col min-w-0 flex-1 gap-1">
                 <span className="flex items-center gap-1.5 min-w-0">
                   {is_official_sender(current_user_email) && (
                     <img
@@ -372,17 +354,126 @@ export function WorkspaceSwitcher({
                 </button>
               </div>
             </div>
+          </div>
 
+          <div className="mt-2 flex flex-col gap-2">
             <button
-              className="account_menu_manage mt-3.5 w-full h-9 rounded-full text-[13px] font-medium transition-colors"
+              className="account_menu_tile"
               type="button"
               onClick={open_account_settings}
             >
-              {t("auth.manage_account")}
+              <span className="account_menu_tile_icon">
+                <Cog6ToothIcon className="w-[18px] h-[18px]" />
+              </span>
+              <span className="account_menu_tile_label">
+                {t("auth.manage_account")}
+              </span>
             </button>
 
-            <div className="mt-4">
-              <div className="flex items-baseline justify-between mb-2">
+            <button
+              className={`account_menu_tile ${at_limit ? "opacity-60" : ""}`}
+              type="button"
+              onClick={handle_add_account}
+            >
+              <span className="account_menu_tile_icon">
+                <PlusIcon className="w-[18px] h-[18px]" />
+              </span>
+              <span className="account_menu_tile_label">
+                {t("auth.add_another_account")}
+              </span>
+              {is_unlimited_accounts ? null : (
+                <span className="account_menu_tile_meta tabular-nums">
+                  {accounts.length}/{display_max}
+                </span>
+              )}
+            </button>
+
+            {other_accounts.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <span
+                  className="px-1.5 pt-1.5 text-[11px] font-medium uppercase tracking-[0.06em]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {t("auth.your_accounts")}
+                </span>
+                <div
+                  className={`flex flex-col gap-1.5 ${
+                    other_accounts.length > 4
+                      ? "aster_scrollbar_thin max-h-[min(52vh,420px)] overflow-y-auto pr-0.5"
+                      : ""
+                  }`}
+                >
+                  {other_accounts.map((acc) => {
+                    const acc_name =
+                      acc.user.display_name ||
+                      acc.user.username ||
+                      acc.user.email.split("@")[0];
+                    const needs_sign_in = token_backed_sessions
+                      ? !acc.refresh_token
+                      : !has_stored_session_passphrase(acc.id);
+
+                    return (
+                      <a
+                        key={acc.id}
+                        className="account_menu_row group relative w-full h-[60px] flex-shrink-0 px-3.5 flex items-center gap-3.5 cursor-pointer no-underline rounded-[16px]"
+                        draggable
+                        href={`/?account=${encodeURIComponent(acc.id)}`}
+                        onClick={(e) => {
+                          if (
+                            e.metaKey ||
+                            e.ctrlKey ||
+                            e.shiftKey ||
+                            e.button !== 0
+                          ) {
+                            return;
+                          }
+                          e.preventDefault();
+                          handle_switch(acc.id);
+                        }}
+                      >
+                        <span
+                          className={`inline-flex leading-none flex-shrink-0 ${plan_flags[acc.id] === true ? "plan_ring" : ""}`}
+                        >
+                          <ProfileAvatar
+                            email={acc.user.email}
+                            image_url={acc.user.profile_picture}
+                            name={acc_name}
+                            profile_color={acc.user.profile_color}
+                            size="sm"
+                          />
+                        </span>
+                        <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+                          <span
+                            className="text-[13px] font-medium leading-tight truncate"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            {acc_name}
+                          </span>
+                          <span
+                            className="text-[11px] leading-tight truncate"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            {acc.user.email}
+                          </span>
+                        </div>
+                        {needs_sign_in ? (
+                          <span className="account_menu_badge account_menu_badge_muted">
+                            {t("auth.session_expired_tag")}
+                          </span>
+                        ) : acc.id === default_account_id ? (
+                          <span className="account_menu_badge">
+                            {t("auth.default_account")}
+                          </span>
+                        ) : null}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="account_menu_tile flex-col items-stretch gap-2 py-3">
+              <div className="flex items-baseline justify-between gap-2">
                 <span
                   className="text-[12px] font-medium"
                   style={{ color: "var(--text-secondary)" }}
@@ -424,130 +515,35 @@ export function WorkspaceSwitcher({
                 <Skeleton className="h-1.5 w-full rounded-full" />
               )}
             </div>
-          </div>
 
-          <div className="mt-2 flex flex-col gap-2">
-            {other_accounts.length > 0 && (
-              <div
-                className={`flex flex-col gap-1.5 ${
-                  other_accounts.length > 4
-                    ? "aster_scrollbar_thin max-h-[min(52vh,420px)] overflow-y-auto pr-0.5"
-                    : ""
-                }`}
-              >
-                {other_accounts.map((acc) => {
-                  const acc_name =
-                    acc.user.display_name ||
-                    acc.user.username ||
-                    acc.user.email.split("@")[0];
-                  const needs_sign_in = token_backed_sessions
-                    ? !acc.refresh_token
-                    : !has_stored_session_passphrase(acc.id);
-
-                  return (
-                    <a
-                      key={acc.id}
-                      className="account_menu_row group relative w-full h-[60px] flex-shrink-0 px-3.5 flex items-center gap-3.5 cursor-pointer no-underline rounded-[16px]"
-                      draggable
-                      href={`/?account=${encodeURIComponent(acc.id)}`}
-                      onClick={(e) => {
-                        if (
-                          e.metaKey ||
-                          e.ctrlKey ||
-                          e.shiftKey ||
-                          e.button !== 0
-                        ) {
-                          return;
-                        }
-                        e.preventDefault();
-                        handle_switch(acc.id);
-                      }}
-                    >
-                      <span
-                        className={`inline-flex leading-none flex-shrink-0 ${plan_flags[acc.id] === true ? "plan_ring" : ""}`}
-                      >
-                        <ProfileAvatar
-                          email={acc.user.email}
-                          image_url={acc.user.profile_picture}
-                          name={acc_name}
-                          profile_color={acc.user.profile_color}
-                          size="sm"
-                        />
-                      </span>
-                      <div className="flex flex-col min-w-0 flex-1 gap-0.5">
-                        <span
-                          className="text-[13px] font-medium leading-tight truncate"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {acc_name}
-                        </span>
-                        <span
-                          className="text-[11px] leading-tight truncate"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {acc.user.email}
-                        </span>
-                      </div>
-                      {needs_sign_in ? (
-                        <span className="account_menu_badge account_menu_badge_muted">
-                          {t("auth.session_expired_tag")}
-                        </span>
-                      ) : acc.id === default_account_id ? (
-                        <span className="account_menu_badge">
-                          {t("auth.default_account")}
-                        </span>
-                      ) : null}
-                    </a>
-                  );
-                })}
-              </div>
-            )}
-
-            <button
-              className={`account_menu_tile ${at_limit ? "opacity-60" : ""}`}
-              type="button"
-              onClick={handle_add_account}
-            >
-              <span className="account_menu_tile_icon">
-                <PlusIcon className="w-[18px] h-[18px]" />
-              </span>
-              <span className="account_menu_tile_label">
-                {t("auth.add_another_account")}
-              </span>
-              {is_unlimited_accounts ? null : (
-                <span className="account_menu_tile_meta tabular-nums">
-                  {accounts.length}/{display_max}
-                </span>
-              )}
-            </button>
-
-            <button
-              className="account_menu_tile account_menu_tile_danger"
-              type="button"
-              onClick={handle_logout}
-            >
-              <span className="account_menu_tile_icon">
-                <ArrowRightStartOnRectangleIcon className="w-[18px] h-[18px]" />
-              </span>
-              <span className="account_menu_tile_label">
-                {t("auth.sign_out")}
-              </span>
-            </button>
-
-            {other_accounts.length > 0 && (
+            <div className="flex items-center gap-2">
               <button
-                className="account_menu_tile account_menu_tile_danger"
+                className="account_menu_tile account_menu_tile_danger flex-1"
                 type="button"
-                onClick={handle_logout_all}
+                onClick={handle_logout}
               >
                 <span className="account_menu_tile_icon">
-                  <PowerIcon className="w-[18px] h-[18px]" />
+                  <ArrowRightStartOnRectangleIcon className="w-[18px] h-[18px]" />
                 </span>
                 <span className="account_menu_tile_label">
-                  {t("auth.sign_out_all")}
+                  {t("auth.sign_out")}
                 </span>
               </button>
-            )}
+
+              {other_accounts.length > 0 && (
+                <button
+                  aria-label={t("auth.sign_out_all")}
+                  className="account_menu_tile account_menu_tile_danger w-[54px] justify-center px-0"
+                  title={t("auth.sign_out_all")}
+                  type="button"
+                  onClick={handle_logout_all}
+                >
+                  <span className="account_menu_tile_icon">
+                    <PowerIcon className="w-[18px] h-[18px]" />
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
         </PopoverContent>
       </Popover>

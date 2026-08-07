@@ -1693,7 +1693,7 @@ export const fr = {
     settings_view_mode: "Affichage des paramètres",
     settings_view_mode_description:
       "Ouvrir les paramètres en pleine page ou en fenêtre contextuelle",
-    quick_settings: "Paramètres rapides",
+    quick_settings: "Paramètres",
     see_all_settings: "Voir tous les paramètres",
     quick_inbox_list: "Liste de la boîte de réception",
     quick_layout: "Disposition",

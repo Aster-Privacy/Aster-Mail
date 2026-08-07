@@ -23,12 +23,14 @@ import type { InboxEmail } from "@/types/email";
 import { memo, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
+  AtSymbolIcon,
   PaperClipIcon,
   StarIcon as StarOutlineIcon,
   CheckIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
+import { Tooltip } from "@aster/ui";
 
 import {
   SwipeActions,
@@ -38,7 +40,6 @@ import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
-import { EmailTag } from "@/components/ui/email_tag";
 import {
   normalize_alias_candidates,
   use_alias_delivery,
@@ -328,18 +329,20 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           <OfficialBadge className="shrink-0" email={show_sender_email} />
 
           {alias_delivery && (
-            <EmailTag
-              show_icon
-              className="shrink-0 max-w-[7rem]"
-              icon="at"
-              label={alias_delivery.label}
-              muted={email.is_read}
-              size="xs"
-              title={t("mail.received_via_alias", {
+            <Tooltip
+              tip={t("mail.received_via_alias", {
                 address: alias_delivery.address,
               })}
-              variant="purple"
-            />
+            >
+              <span
+                aria-label={t("mail.received_via_alias", {
+                  address: alias_delivery.address,
+                })}
+                className="shrink-0 inline-flex items-center text-[var(--text-muted)]"
+              >
+                <AtSymbolIcon className="h-3.5 w-3.5" />
+              </span>
+            </Tooltip>
           )}
 
           {thread_count > 1 && (

@@ -1661,7 +1661,7 @@ export const ko = {
   settings: {
     settings_view_mode: "설정 보기",
     settings_view_mode_description: "설정을 전체 페이지 또는 팝업 창으로 열기",
-    quick_settings: "빠른 설정",
+    quick_settings: "설정",
     see_all_settings: "모든 설정 보기",
     quick_inbox_list: "받은편지함 목록",
     quick_layout: "레이아웃",

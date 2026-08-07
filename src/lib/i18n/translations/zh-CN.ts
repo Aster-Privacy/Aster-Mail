@@ -1555,7 +1555,7 @@ export const zh_CN = {
   settings: {
     settings_view_mode: "设置视图",
     settings_view_mode_description: "以整页或弹窗方式打开设置",
-    quick_settings: "快速设置",
+    quick_settings: "设置",
     see_all_settings: "查看所有设置",
     quick_inbox_list: "收件箱列表",
     quick_layout: "布局",

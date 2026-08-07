@@ -1707,7 +1707,7 @@ export const pt = {
     settings_view_mode: "Visualização das configurações",
     settings_view_mode_description:
       "Abrir as configurações em página inteira ou janela popup",
-    quick_settings: "Configurações rápidas",
+    quick_settings: "Configurações",
     see_all_settings: "Ver todas as configurações",
     quick_inbox_list: "Lista da caixa de entrada",
     quick_layout: "Layout",

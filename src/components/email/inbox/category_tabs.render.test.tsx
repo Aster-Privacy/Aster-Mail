@@ -28,6 +28,10 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 
+vi.mock("@aster/ui", () => ({
+  Tooltip: ({ children }: { children?: unknown }) => children as never,
+}));
+
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({
     preferences: {

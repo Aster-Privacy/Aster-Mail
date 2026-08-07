@@ -25,6 +25,7 @@ import { forwardRef, memo, useMemo, useState, useRef, useEffect } from "react";
 import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
+  AtSymbolIcon,
   CheckCircleIcon,
   EnvelopeIcon,
   EnvelopeOpenIcon,
@@ -713,17 +714,20 @@ export const InboxEmailListItem = memo(
               )}
 
               {alias_delivery && (
-                <EmailTag
-                  show_icon
-                  className="flex-shrink-0 hidden sm:inline-flex max-w-[10rem]"
-                  icon="at"
-                  label={alias_delivery.label}
-                  muted={email.is_read}
-                  title={t("mail.received_via_alias", {
+                <Tooltip
+                  tip={t("mail.received_via_alias", {
                     address: alias_delivery.address,
                   })}
-                  variant="purple"
-                />
+                >
+                  <span
+                    aria-label={t("mail.received_via_alias", {
+                      address: alias_delivery.address,
+                    })}
+                    className="flex-shrink-0 hidden sm:inline-flex items-center text-txt-muted"
+                  >
+                    <AtSymbolIcon className="h-3.5 w-3.5" />
+                  </span>
+                </Tooltip>
               )}
 
               {custom_domain_label && (
