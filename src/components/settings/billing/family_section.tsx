@@ -2143,14 +2143,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     );
   }
 
-  // Only "active" members occupy a seat and appear in the roster. Members in
-  // "grace" have been removed (30-day wind-down on their own account) and must
-  // not show as current family members or count toward seats - this keeps the
-  // roster and seat math in sync with the backend (which counts status='active').
   const active_members = group.members.filter(m => m.status === "active");
   const pool_used = group.members.reduce((s, m) => s + m.storage_used_bytes, 0);
   const pool_pct = storage_pct(pool_used, group.storage_pool_bytes);
-  const { seats_remaining, seats_full } = family_seat_usage(group);
+  const { seats_used, seats_remaining, seats_full, breakdown: seat_breakdown } = family_seat_usage(group);
   const allocated_alloc = active_members.reduce((s, m) => s + m.allocated_storage_bytes, 0)
     + group.pending_invites.reduce((s, i) => s + (i.allocated_storage_bytes || 0), 0);
   const unassigned_bytes = Math.max(0, group.storage_pool_bytes - allocated_alloc);
@@ -2205,9 +2201,19 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         </h2>
         <p className="text-sm text-txt-secondary mt-0.5">
           {seats_remaining !== 1
-            ? t("settings.fam_org_members_count_plural", { active: active_members.length, max: group.max_members, seats: seats_remaining })
-            : t("settings.fam_org_members_count", { active: active_members.length, max: group.max_members, seats: seats_remaining })}
+            ? t("settings.fam_org_members_count_plural", { used: seats_used, max: group.max_members, seats: seats_remaining })
+            : t("settings.fam_org_members_count", { used: seats_used, max: group.max_members, seats: seats_remaining })}
         </p>
+        {seat_breakdown && (
+          <p className="text-xs text-txt-muted mt-0.5">
+            {t("settings.fam_seats_breakdown", {
+              members: seat_breakdown.active_members,
+              invites: seat_breakdown.pending_invites,
+              reserved: seat_breakdown.reserved_addresses,
+              grace: seat_breakdown.grace_members,
+            })}
+          </p>
+        )}
       </div>
 
       {is_owner && (
@@ -2303,8 +2309,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               icon={UserGroupIcon}
               label={t("settings.fam_org_stat_members")}
               max={group.max_members}
-              value={active_members.length}
-              display_value={`${active_members.length} / ${group.max_members}`}
+              value={seats_used}
+              display_value={`${seats_used} / ${group.max_members}`}
               sublabel={
                 group.pending_invites.length > 0
                   ? t("settings.fam_org_stat_pending", { count: group.pending_invites.length })
@@ -2426,7 +2432,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 <UserGroupIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
                 {t("settings.family_members")}
                 <InfoPopover title={t("settings.fam_org_members_info_title")} description={t("settings.fam_org_members_info_desc")} />
-                <span className="ml-auto text-xs font-normal text-txt-muted">{active_members.length} / {group.max_members}</span>
+                <span className="ml-auto text-xs font-normal text-txt-muted">{seats_used} / {group.max_members}</span>
               </h3>
               <div className="mt-2 h-px bg-edge-secondary" />
             </div>

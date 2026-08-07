@@ -19,11 +19,19 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+export interface SeatBreakdown {
+  active_members: number;
+  pending_invites: number;
+  reserved_addresses: number;
+  grace_members: number;
+}
+
 export interface SeatSource {
   members: { status: string; role?: string }[];
   pending_invites: unknown[];
   max_members: number;
   seats_used?: number;
+  seats?: SeatBreakdown;
 }
 
 export interface SeatUsage {
@@ -31,6 +39,14 @@ export interface SeatUsage {
   seats_used: number;
   seats_remaining: number;
   seats_full: boolean;
+  breakdown: SeatBreakdown | null;
+}
+
+export function seat_breakdown_total(breakdown: SeatBreakdown): number {
+  return breakdown.active_members
+    + breakdown.pending_invites
+    + breakdown.reserved_addresses
+    + breakdown.grace_members;
 }
 
 export function family_seat_usage(group: SeatSource): SeatUsage {
@@ -43,5 +59,6 @@ export function family_seat_usage(group: SeatSource): SeatUsage {
     seats_used,
     seats_remaining: Math.max(0, group.max_members - seats_used),
     seats_full: seats_used >= group.max_members,
+    breakdown: group.seats ?? null,
   };
 }

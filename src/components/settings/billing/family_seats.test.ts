@@ -20,7 +20,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { family_seat_usage } from "./family_seats";
+import { family_seat_usage, seat_breakdown_total, type SeatBreakdown } from "./family_seats";
 
 const members = (active: number, grace = 0) => [
   ...Array.from({ length: active }, () => ({ status: "active" })),
@@ -88,5 +88,58 @@ describe("family_seat_usage", () => {
 
     expect(usage.active_members).toBe(1);
     expect(usage.seats_used).toBe(5);
+  });
+
+  it("keeps the server breakdown so the total can explain itself", () => {
+    const seats: SeatBreakdown = {
+      active_members: 3,
+      pending_invites: 0,
+      reserved_addresses: 0,
+      grace_members: 2,
+    };
+
+    const usage = family_seat_usage({
+      members: members(3, 2),
+      pending_invites: [],
+      max_members: 6,
+      seats_used: 5,
+      seats,
+    });
+
+    expect(usage.breakdown).toEqual(seats);
+    expect(seat_breakdown_total(seats)).toBe(usage.seats_used);
+  });
+
+  it("sums every breakdown part to the enforced total", () => {
+    const shapes: SeatBreakdown[] = [
+      { active_members: 3, pending_invites: 0, reserved_addresses: 0, grace_members: 2 },
+      { active_members: 3, pending_invites: 2, reserved_addresses: 0, grace_members: 0 },
+      { active_members: 1, pending_invites: 1, reserved_addresses: 2, grace_members: 1 },
+      { active_members: 0, pending_invites: 0, reserved_addresses: 0, grace_members: 0 },
+    ];
+
+    for (const seats of shapes) {
+      const usage = family_seat_usage({
+        members: members(seats.active_members, seats.grace_members),
+        pending_invites: [],
+        max_members: 6,
+        seats_used: seat_breakdown_total(seats),
+        seats,
+      });
+
+      expect(usage.seats_used).toBe(seat_breakdown_total(seats));
+      expect(usage.breakdown).toEqual(seats);
+    }
+  });
+
+  it("leaves the breakdown null when the server omits it", () => {
+    const usage = family_seat_usage({
+      members: members(3),
+      pending_invites: [{}],
+      max_members: 6,
+      seats_used: 5,
+    });
+
+    expect(usage.breakdown).toBeNull();
   });
 });

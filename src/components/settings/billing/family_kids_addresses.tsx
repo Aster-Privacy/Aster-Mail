@@ -47,6 +47,7 @@ import {
   regenerate_claim_link,
   type ReservedAddress,
   type FamilyGroupResponse,
+  type SeatBreakdown,
 } from "@/services/api/family";
 
 const DOMAINS = ["astermail.org", "aster.cx"];
@@ -67,6 +68,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
   const [reservations, set_reservations] = useState<ReservedAddress[]>([]);
   const [seats_used, set_seats_used] = useState(0);
   const [max_members, set_max_members] = useState(group.max_members);
+  const [seat_breakdown, set_seat_breakdown] = useState<SeatBreakdown | null>(null);
   const [loading, set_loading] = useState(true);
 
   const [show_form, set_show_form] = useState(false);
@@ -98,6 +100,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       set_reservations(r.data.reservations);
       set_seats_used(r.data.seats_used);
       set_max_members(r.data.max_members);
+      set_seat_breakdown(r.data.seats ?? null);
     } else if (r.error) {
       show_toast(t("settings.fam_kids_load_failed"), "error");
     }
@@ -227,6 +230,16 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
           </h3>
           <p className="text-sm text-txt-secondary mt-0.5">{t("settings.fam_kids_subtitle")}</p>
           <p className="text-xs text-txt-muted mt-1">{t("settings.fam_kids_seats_used", { used: seats_used, max: max_members })}</p>
+          {seat_breakdown && (
+            <p className="text-xs text-txt-muted mt-0.5">
+              {t("settings.fam_seats_breakdown", {
+                members: seat_breakdown.active_members,
+                invites: seat_breakdown.pending_invites,
+                reserved: seat_breakdown.reserved_addresses,
+                grace: seat_breakdown.grace_members,
+              })}
+            </p>
+          )}
         </div>
         {!show_form && (
           <button

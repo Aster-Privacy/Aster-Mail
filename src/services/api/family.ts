@@ -40,6 +40,13 @@ export interface PendingInviteInfo {
   join_url?: string;
 }
 
+export interface SeatBreakdown {
+  active_members: number;
+  pending_invites: number;
+  reserved_addresses: number;
+  grace_members: number;
+}
+
 export interface FamilyGroupResponse {
   id: string;
   plan_code: string;
@@ -52,6 +59,7 @@ export interface FamilyGroupResponse {
   pending_invites: PendingInviteInfo[];
   max_members: number;
   seats_used?: number;
+  seats?: SeatBreakdown;
   viewer_role: "owner" | "member";
 }
 
@@ -207,6 +215,7 @@ export interface ListReservationsResponse {
   reservations: ReservedAddress[];
   max_members: number;
   seats_used: number;
+  seats?: SeatBreakdown;
 }
 
 export interface CreateReservationRequest {
