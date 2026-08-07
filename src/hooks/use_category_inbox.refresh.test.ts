@@ -68,6 +68,7 @@ vi.mock("@/hooks/use_email_list_bulk", () => ({
 vi.mock("@/hooks/mail_events", () => ({
   MAIL_EVENTS: {
     MAIL_ITEM_UPDATED: "MAIL_ITEM_UPDATED",
+    INBOX_UNREAD_INDEXED: "INBOX_UNREAD_INDEXED",
     REFRESH_REQUESTED: "astermail:refresh-requested",
   },
 }));

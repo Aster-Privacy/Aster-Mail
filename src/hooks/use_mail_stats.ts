@@ -20,7 +20,11 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 
-import { MAIL_EVENTS, type MailItemUpdatedEventDetail } from "./mail_events";
+import {
+  MAIL_EVENTS,
+  type InboxUnreadIndexedEventDetail,
+  type MailItemUpdatedEventDetail,
+} from "./mail_events";
 import { is_low_network } from "@/services/low_network_state";
 
 import { get_contacts_count } from "@/services/api/contacts";
@@ -158,12 +162,16 @@ class MailStatsStore {
     null;
   private last_adjust_at: Partial<Record<keyof MailStats, number>> = {};
   private confirm_retries: Partial<Record<keyof MailStats, number>> = {};
+  private authoritative_unread: number | null = null;
+  private needs_revalidate = false;
 
   get_cache(): StatsCache {
     return this.cache;
   }
 
   is_stale(): boolean {
+    if (this.needs_revalidate) return true;
+
     const effective_ttl = is_low_network() ? LOW_NETWORK_TTL_MS : NORMAL_TTL_MS;
     return Date.now() - this.cache.timestamp > effective_ttl;
   }
@@ -217,6 +225,8 @@ class MailStatsStore {
     this.in_flight_deltas = null;
     this.last_adjust_at = {};
     this.confirm_retries = {};
+    this.authoritative_unread = null;
+    this.needs_revalidate = false;
     this.cache = {
       data: DEFAULT_STATS,
       timestamp: 0,
@@ -253,6 +263,7 @@ class MailStatsStore {
       this.cache.data = persisted.data;
       this.cache.timestamp = persisted.timestamp;
       this.cache.has_initialized = true;
+      this.needs_revalidate = true;
 
       if (silent) return;
 
@@ -407,13 +418,15 @@ class MailStatsStore {
         archived: reconcile("archived", server_stats.archived),
         spam: reconcile("spam", server_stats.spam),
         trash: reconcile("trash", server_stats.trash),
-        unread: reconcile("unread", server_stats.unread),
+        unread:
+          this.authoritative_unread ?? reconcile("unread", server_stats.unread),
         contacts: reconcile("contacts", contacts_count),
         storage_used_bytes: server_stats.storage_used_bytes,
         storage_total_bytes: server_stats.storage_total_bytes,
       };
       this.cache.timestamp = Date.now();
       this.cache.has_initialized = true;
+      this.needs_revalidate = false;
       this.save_to_storage();
       this.sync_external_surfaces();
 
@@ -461,7 +474,34 @@ class MailStatsStore {
     this.user_id = null;
   }
 
+  set_authoritative_unread(value: number | null): void {
+    if (value === null) {
+      this.authoritative_unread = null;
+
+      return;
+    }
+
+    const next = Math.max(0, Math.trunc(value));
+    const unchanged =
+      this.authoritative_unread === next && this.cache.data.unread === next;
+
+    this.authoritative_unread = next;
+    delete this.last_adjust_at.unread;
+    delete this.confirm_retries.unread;
+
+    if (this.in_flight_deltas) delete this.in_flight_deltas.unread;
+
+    if (unchanged) return;
+
+    this.cache.data = { ...this.cache.data, unread: next };
+    this.save_to_storage();
+    this.notify();
+    this.sync_external_surfaces();
+  }
+
   adjust(field: keyof MailStats, delta: number): void {
+    if (field === "unread" && this.authoritative_unread !== null) return;
+
     const current = this.cache.data[field];
 
     if (typeof current === "number") {
@@ -533,7 +573,19 @@ const stats_store = new MailStatsStore();
 
 const BACKGROUND_RECONCILE_MS = NORMAL_TTL_MS;
 
+export function set_indexed_inbox_unread(value: number | null): void {
+  stats_store.set_authoritative_unread(value);
+}
+
 if (typeof window !== "undefined") {
+  window.addEventListener(MAIL_EVENTS.INBOX_UNREAD_INDEXED, (event: Event) => {
+    const detail = (event as CustomEvent<InboxUnreadIndexedEventDetail>).detail;
+
+    if (detail === undefined) return;
+
+    stats_store.set_authoritative_unread(detail.total);
+  });
+
   setInterval(() => {
     if (has_passphrase_in_memory() && stats_store.is_stale()) {
       void stats_store.fetch(false);
@@ -566,7 +618,7 @@ export function use_mail_stats(): UseMailStatsReturn {
     error: string | null;
     has_initialized: boolean;
   }>(() => {
-    stats_store.prime(user?.id || null);
+    prime_mail_stats(user?.id || null);
 
     const cache = stats_store.get_cache();
 
@@ -766,6 +818,10 @@ export function invalidate_mail_stats(): void {
 
 export function prefetch_mail_stats(): void {
   stats_store.fetch();
+}
+
+export function prime_mail_stats(user_id: string | null): void {
+  stats_store.prime(user_id);
 }
 
 export function get_mail_stats_snapshot(): MailStats {

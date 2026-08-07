@@ -40,6 +40,7 @@ vi.mock("@/contexts/preferences_context", () => ({
 }));
 
 vi.mock("@/services/mail_categorizer", () => ({
+  CLASSIFIER_VERSION: 2,
   CATEGORY_TABS: ["primary", "promotions", "social", "updates"],
 }));
 

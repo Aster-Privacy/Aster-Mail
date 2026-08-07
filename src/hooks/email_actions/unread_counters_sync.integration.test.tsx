@@ -77,6 +77,7 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 }));
 
 vi.mock("@/services/mail_categorizer", () => ({
+  CLASSIFIER_VERSION: 2,
   classify: () => "primary",
   category_for_tab: (c: string) => c,
   CATEGORY_TABS: ["primary"],

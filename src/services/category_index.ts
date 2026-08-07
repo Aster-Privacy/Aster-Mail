@@ -156,6 +156,7 @@ let active_account_id: string | null = null;
 let index_generation = 0;
 let entries_map: Map<string, CategoryIndexEntry> = new Map();
 let fully_built = false;
+let session_reconciled = false;
 let last_build_ms = 0;
 let seen_ts: Record<string, number> = {};
 let loaded_for_account: string | null = null;
@@ -314,6 +315,7 @@ function notify(): void {
       return;
     }
   });
+  publish_inbox_unread();
 }
 
 function notify_soon(): void {
@@ -1097,6 +1099,35 @@ export function get_counts(): CategoryCounts {
   return ensure_derived().counts;
 }
 
+export function get_inbox_unread_total(): number | null {
+  if (loaded_for_account === null || !session_reconciled) return null;
+  if (!fully_built || build_in_progress || build_capped) return null;
+
+  let total = 0;
+
+  for (const bucket of Object.values(ensure_derived().counts)) {
+    total += bucket?.unread ?? 0;
+  }
+
+  return total;
+}
+
+let published_unread_total: number | null = null;
+
+function publish_inbox_unread(): void {
+  const total = get_inbox_unread_total();
+
+  if (total === published_unread_total) return;
+
+  published_unread_total = total;
+
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(
+    new CustomEvent(MAIL_EVENTS.INBOX_UNREAD_INDEXED, { detail: { total } }),
+  );
+}
+
 export function get_new_heads(): ReadonlyMap<EmailCategory, string> {
   return ensure_derived().new_heads;
 }
@@ -1638,6 +1669,7 @@ export async function build_index(options?: {
     fully_built = reached_end || processed >= BUILD_CAP;
     build_capped = !reached_end && processed >= BUILD_CAP;
     last_build_ms = now_ms();
+    session_reconciled = true;
     build_in_progress = false;
     void persist_now();
     notify();
@@ -1764,6 +1796,8 @@ export async function sync_recent(notify_new = false): Promise<void> {
       notify();
     }
     last_build_ms = now_ms();
+    session_reconciled = true;
+    publish_inbox_unread();
   } catch {
     resync_failures += 1;
     if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
@@ -2006,6 +2040,7 @@ export function clear_category_index_memory(): void {
   derived = null;
   seen_ts = {};
   fully_built = false;
+  session_reconciled = false;
   last_build_ms = 0;
   suppressed_ids.clear();
   loaded_for_account = null;
@@ -2013,6 +2048,7 @@ export function clear_category_index_memory(): void {
   ensure_loaded_promise = null;
   ensure_loaded_account = null;
   notify();
+  publish_inbox_unread();
 }
 
 export function start_event_listeners(): void {
@@ -2240,6 +2276,7 @@ export async function clear_category_index(): Promise<void> {
   sibling_verify_at.clear();
   dirty_chunks.clear();
   fully_built = false;
+  session_reconciled = false;
   build_capped = false;
   resync_failures = 0;
   last_build_ms = 0;

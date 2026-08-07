@@ -645,6 +645,11 @@ export function use_folders(): UseFoldersReturn {
         const new_counts: FolderCounts = {};
         const new_unread_counts: FolderCounts = {};
 
+        for (const folder of cached_folders.data) {
+          new_counts[folder.folder_token] = 0;
+          new_unread_counts[folder.folder_token] = 0;
+        }
+
         for (const item of response.data.counts) {
           new_counts[item.folder_token] = item.count;
           new_unread_counts[item.folder_token] = item.unread_count;
@@ -1121,7 +1126,12 @@ export function use_folders(): UseFoldersReturn {
     const item_update_handler = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
 
-      if (detail?.is_read !== undefined) {
+      if (
+        detail?.is_read !== undefined ||
+        detail?.is_trashed !== undefined ||
+        detail?.is_archived !== undefined ||
+        detail?.is_spam !== undefined
+      ) {
         counts_handler();
       }
     };

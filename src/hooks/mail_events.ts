@@ -44,6 +44,7 @@ export const MAIL_EVENTS = {
   MAIL_SOFT_REFRESH: "astermail:mail-soft-refresh",
   MAIL_STATS_STALE: "astermail:mail-stats-stale",
   REACTIONS_CHANGED: "astermail:reactions-changed",
+  INBOX_UNREAD_INDEXED: "astermail:inbox-unread-indexed",
 } as const;
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];
@@ -133,6 +134,10 @@ export interface MailItemsRemovedEventDetail {
   ids: string[];
 }
 
+export interface InboxUnreadIndexedEventDetail {
+  total: number | null;
+}
+
 type EventDetailMap = {
   [MAIL_EVENTS.MAIL_CHANGED]: undefined;
   [MAIL_EVENTS.MAIL_ITEM_UPDATED]: MailItemUpdatedEventDetail;
@@ -159,6 +164,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.MAIL_SOFT_REFRESH]: undefined;
   [MAIL_EVENTS.MAIL_STATS_STALE]: undefined;
   [MAIL_EVENTS.REACTIONS_CHANGED]: ReactionsChangedEventDetail;
+  [MAIL_EVENTS.INBOX_UNREAD_INDEXED]: InboxUnreadIndexedEventDetail;
 };
 
 type EventSubscription = () => void;
