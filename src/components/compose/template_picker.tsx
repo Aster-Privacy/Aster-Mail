@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useRef } from "react";
+import { useId, useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_templates } from "@/contexts/templates_context";
 
 interface TemplatePickerProps {
@@ -41,6 +42,7 @@ export function TemplatePicker({
   const reduce_motion = use_should_reduce_motion();
   const [is_open, set_is_open] = useState(false);
   const container_ref = useRef<HTMLDivElement>(null);
+  const menu_id = useId();
 
   useEffect(() => {
     const handle_click_outside = (event: MouseEvent) => {
@@ -61,6 +63,10 @@ export function TemplatePicker({
     };
   }, [is_open]);
 
+  const close_picker = useCallback(() => set_is_open(false), []);
+
+  use_escape_layer(is_open, close_picker, "compose_template_picker");
+
   const handle_select = (content: string) => {
     on_select(content);
     set_is_open(false);
@@ -73,6 +79,9 @@ export function TemplatePicker({
   return (
     <div ref={container_ref} className="relative">
       <button
+        aria-controls={is_open ? menu_id : undefined}
+        aria-expanded={is_open}
+        aria-haspopup="menu"
         className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
         disabled={disabled}
         title={t("mail.insert_template")}
@@ -91,6 +100,7 @@ export function TemplatePicker({
             animate={{ opacity: 1, y: 0 }}
             className={`absolute z-50 w-64 border border-edge-primary rounded-lg shadow-lg overflow-hidden bg-modal-bg ${open_direction === "up" ? "bottom-full mb-2" : "mt-2"}`}
             exit={{ opacity: 0, y: open_direction === "up" ? 10 : -10 }}
+            id={menu_id}
             initial={
               reduce_motion
                 ? false

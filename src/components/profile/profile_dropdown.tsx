@@ -20,7 +20,7 @@
 //
 import type { ContactFormData } from "@/types/contacts";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   UserPlusIcon,
@@ -44,11 +44,13 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import {
   create_contact_encrypted,
-  list_contacts,
-  decrypt_contact,
   delete_contact,
 } from "@/services/api/contacts";
 import { block_sender } from "@/services/api/blocked_senders";
+import {
+  ensure_contact_email_index,
+  get_cached_contact_id,
+} from "@/services/contact_email_index";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { emit_mail_changed, emit_contacts_changed } from "@/hooks/mail_events";
@@ -72,14 +74,25 @@ export function ProfileDropdown({
   const [is_open, set_is_open] = useState(false);
   const [show_notes, set_show_notes] = useState(false);
   const [is_contact_loading, set_is_contact_loading] = useState(false);
-  const [existing_contact_id, set_existing_contact_id] = useState<
-    string | null
-  >(null);
+  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(
+    () => get_cached_contact_id(email) ?? null,
+  );
   const [is_blocking, set_is_blocking] = useState(false);
-  const checked_email_ref = useRef<string | null>(null);
 
   const display_name = name || get_email_username(email);
   const domain = get_email_domain(email);
+
+  const prewarm_contact_state = useCallback(() => {
+    if (!has_keys) return;
+
+    ensure_contact_email_index().then(() => {
+      set_existing_contact_id(get_cached_contact_id(email) ?? null);
+    });
+  }, [has_keys, email]);
+
+  useEffect(() => {
+    set_existing_contact_id(get_cached_contact_id(email) ?? null);
+  }, [email]);
 
   useEffect(() => {
     if (!is_open) {
@@ -88,50 +101,20 @@ export function ProfileDropdown({
       return;
     }
 
-    if (!has_keys || checked_email_ref.current === email) {
-      return;
-    }
+    if (!has_keys) return;
 
-    checked_email_ref.current = email;
+    let cancelled = false;
 
-    const check_contact = async () => {
-      try {
-        const result = await list_contacts({ limit: 200 });
-
-        if (result.data?.items && result.data.items.length > 0) {
-          for (const contact of result.data.items) {
-            try {
-              const decrypted = await decrypt_contact(contact);
-
-              if (
-                decrypted.emails.some(
-                  (e) => e.toLowerCase() === email.toLowerCase(),
-                )
-              ) {
-                set_existing_contact_id(contact.id);
-
-                return;
-              }
-            } catch (error) {
-              if (import.meta.env.DEV) console.error(error);
-              continue;
-            }
-          }
-        }
-        set_existing_contact_id(null);
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-        set_existing_contact_id(null);
+    ensure_contact_email_index().then(() => {
+      if (!cancelled) {
+        set_existing_contact_id(get_cached_contact_id(email) ?? null);
       }
+    });
+
+    return () => {
+      cancelled = true;
     };
-
-    check_contact();
   }, [is_open, email, has_keys]);
-
-  useEffect(() => {
-    checked_email_ref.current = null;
-    set_existing_contact_id(null);
-  }, [email]);
 
   const handle_copy_email = useCallback(async () => {
     try {
@@ -163,7 +146,6 @@ export function ProfileDropdown({
         if (result.data) {
           show_toast(t("common.removed_from_contacts"), "success");
           set_existing_contact_id(null);
-          checked_email_ref.current = null;
           emit_contacts_changed();
         } else if (result.error) {
           show_toast(result.error, "error");
@@ -228,7 +210,14 @@ export function ProfileDropdown({
 
   return (
     <DropdownMenu open={is_open} onOpenChange={set_is_open}>
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        asChild
+        onFocus={prewarm_contact_state}
+        onPointerDown={prewarm_contact_state}
+        onPointerEnter={prewarm_contact_state}
+      >
+        {children}
+      </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
         className="w-64"

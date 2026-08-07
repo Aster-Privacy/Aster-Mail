@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail, EmailListState } from "@/types/email";
+import type { BulkActionResult } from "@/hooks/bulk_action_result";
+import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 
 export const MIN_SKELETON_MS = 0;
 
@@ -30,6 +32,7 @@ export interface UseEmailListReturn {
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
+  restore_emails: (entries: RestoredEmailEntry[]) => void;
   toggle_star: (id: string) => Promise<void>;
   toggle_pin: (id: string) => void;
   mark_read: (id: string) => Promise<void>;
@@ -37,8 +40,8 @@ export interface UseEmailListReturn {
   archive_email: (id: string) => Promise<void>;
   unarchive_email: (id: string) => Promise<void>;
   mark_spam: (id: string) => Promise<void>;
-  bulk_delete: (ids: string[]) => Promise<void>;
-  bulk_archive: (ids: string[]) => Promise<void>;
-  bulk_unarchive: (ids: string[]) => Promise<void>;
+  bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_archive: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_unarchive: (ids: string[]) => Promise<BulkActionResult>;
   refresh: () => void;
 }

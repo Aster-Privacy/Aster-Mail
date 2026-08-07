@@ -102,6 +102,7 @@ vi.mock("@/services/category_index", () => ({
     category === "primary" ? ["p1"] : ["u1"],
   get_category_total: () => 1,
   is_fully_built: () => true,
+  is_index_settled: () => true,
   is_build_in_progress: () => false,
   is_build_stalled: () => false,
   subscribe: () => () => {},

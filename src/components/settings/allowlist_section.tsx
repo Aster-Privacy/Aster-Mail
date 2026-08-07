@@ -37,6 +37,14 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
+import {
   list_allowed_senders,
   remove_allowed_sender_by_token,
   bulk_remove_allowed_senders_by_tokens,
@@ -60,25 +68,16 @@ export function AllowlistSection() {
   const [new_value, set_new_value] = useState("");
   const [is_domain, set_is_domain] = useState(false);
   const [is_adding, set_is_adding] = useState(false);
-  const [form_visible, set_form_visible] = useState(false);
 
   const open_add_form = () => {
+    set_new_value("");
+    set_is_domain(false);
     set_show_add_form(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        set_form_visible(true);
-      });
-    });
   };
 
-  const close_add_form = () => {
-    set_form_visible(false);
-    setTimeout(() => {
-      set_show_add_form(false);
-      set_new_value("");
-      set_is_domain(false);
-    }, 200);
-  };
+  const close_add_form = useCallback(() => {
+    set_show_add_form(false);
+  }, []);
 
   const fetch_allowed_senders = useCallback(async () => {
     set_load_error(false);
@@ -298,75 +297,64 @@ export function AllowlistSection() {
         )}
       </div>
 
-      {show_add_form && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center"
-          style={{ opacity: form_visible ? 1 : 0, transition: "opacity 200ms" }}
-        >
-          <div
-            className="absolute inset-0 backdrop-blur-md"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            onClick={close_add_form}
-          />
-          <div
-            className="relative w-full max-w-md mx-4 rounded-xl border p-6 shadow-xl transition-all duration-200 bg-modal-bg border-edge-primary"
-            style={{
-              transform: form_visible
-                ? "scale(1) translateY(0)"
-                : "scale(0.97) translateY(4px)",
-              opacity: form_visible ? 1 : 0,
-            }}
-          >
-            <h4 className="text-[15px] font-semibold mb-2 text-txt-primary">
-              {t("settings.add_to_allowlist")}
-            </h4>
-            <p className="text-[13px] mb-4 text-txt-muted">
-              {t("settings.allowlist_popup_description")}
-            </p>
-            <div className="flex items-center gap-4 mb-4">
-              <Radio
-                checked={!is_domain}
-                label={t("settings.email_address")}
-                name="allowlist_type"
-                onChange={() => set_is_domain(false)}
-              />
-              <Radio
-                checked={is_domain}
-                label={t("settings.entire_domain")}
-                name="allowlist_type"
-                onChange={() => set_is_domain(true)}
-              />
-            </div>
-            <Input
-              className="w-full mb-4"
-              placeholder={
-                is_domain
-                  ? t("settings.enter_domain_placeholder")
-                  : t("settings.enter_email_placeholder")
-              }
-              type={is_domain ? "text" : "email"}
-              value={new_value}
-              onChange={(e) => set_new_value(e.target.value)}
-              onKeyDown={(e) => {
-                if (e["key"] === "Enter") {
-                  handle_add_allowed();
-                }
-              }}
+      <Modal
+        is_open={show_add_form}
+        on_close={close_add_form}
+        show_close_button={false}
+        size="md"
+      >
+        <ModalHeader className="pr-6">
+          <ModalTitle className="text-[15px]">
+            {t("settings.add_to_allowlist")}
+          </ModalTitle>
+          <ModalDescription>
+            {t("settings.allowlist_popup_description")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody className="px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Radio
+              checked={!is_domain}
+              label={t("settings.email_address")}
+              name="allowlist_type"
+              onChange={() => set_is_domain(false)}
             />
-            <div className="flex items-center justify-end gap-3">
-              <Button variant="ghost" onClick={close_add_form}>
-                {t("common.cancel")}
-              </Button>
-              <Button
-                disabled={is_adding || !new_value.trim()}
-                onClick={handle_add_allowed}
-              >
-                {is_adding ? <Spinner size="md" /> : t("common.add")}
-              </Button>
-            </div>
+            <Radio
+              checked={is_domain}
+              label={t("settings.entire_domain")}
+              name="allowlist_type"
+              onChange={() => set_is_domain(true)}
+            />
           </div>
-        </div>
-      )}
+          <Input
+            className="w-full"
+            placeholder={
+              is_domain
+                ? t("settings.enter_domain_placeholder")
+                : t("settings.enter_email_placeholder")
+            }
+            type={is_domain ? "text" : "email"}
+            value={new_value}
+            onChange={(e) => set_new_value(e.target.value)}
+            onKeyDown={(e) => {
+              if (e["key"] === "Enter") {
+                handle_add_allowed();
+              }
+            }}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" onClick={close_add_form}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={is_adding || !new_value.trim()}
+            onClick={handle_add_allowed}
+          >
+            {is_adding ? <Spinner size="md" /> : t("common.add")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       {load_error && allowed_senders.length === 0 ? (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">

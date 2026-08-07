@@ -53,6 +53,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
@@ -79,6 +80,7 @@ interface FolderOption {
   id: string;
   name: string;
   color: string;
+  is_assigned?: boolean;
 }
 
 interface TagOption {
@@ -88,8 +90,16 @@ interface TagOption {
   is_assigned: boolean;
 }
 
-interface EmailContextMenuContentProps {
+export interface ContextMenuSelectionScope {
+  count: number;
+  is_all_mode: boolean;
+  has_unread: boolean;
+  has_read: boolean;
+}
+
+export interface EmailContextMenuContentProps {
   email: InboxEmail;
+  selection?: ContextMenuSelectionScope;
   folders?: FolderOption[];
   tags?: TagOption[];
   current_view?: string;
@@ -99,6 +109,8 @@ interface EmailContextMenuContentProps {
   on_find_from_sender?: () => void;
   on_open_in_new_window?: () => void;
   on_toggle_read?: () => void;
+  on_mark_read?: () => void;
+  on_mark_unread?: () => void;
   on_toggle_pin?: () => void;
   on_snooze?: (snooze_until: Date) => Promise<void>;
   on_custom_snooze?: () => void;
@@ -131,6 +143,7 @@ function get_folder_style(color: string): React.CSSProperties {
 
 function EmailContextMenuContentInner({
   email,
+  selection,
   folders = [],
   tags = [],
   current_view = "inbox",
@@ -140,6 +153,8 @@ function EmailContextMenuContentInner({
   on_find_from_sender,
   on_open_in_new_window,
   on_toggle_read,
+  on_mark_read,
+  on_mark_unread,
   on_toggle_pin,
   on_snooze,
   on_custom_snooze,
@@ -173,6 +188,8 @@ function EmailContextMenuContentInner({
     [disabled],
   );
 
+  const is_selection = !!selection;
+  const supports_id_scope = !selection || !selection.is_all_mode;
   const is_trash = current_view === "trash" || email.is_trashed;
   const is_spam = current_view === "spam" || email.is_spam;
   const is_archive = current_view === "archive" || email.is_archived;
@@ -181,6 +198,7 @@ function EmailContextMenuContentInner({
   const is_scheduled = current_view === "scheduled";
 
   const show_find_from_sender =
+    !is_selection &&
     !!on_find_from_sender &&
     !!email.sender_email &&
     !is_drafts &&
@@ -188,7 +206,7 @@ function EmailContextMenuContentInner({
     !is_sent &&
     email.item_type !== "sent";
   const show_open_in_new_window =
-    !!on_open_in_new_window && !is_drafts && !is_scheduled;
+    !is_selection && !!on_open_in_new_window && !is_drafts && !is_scheduled;
 
   const email_folders = email.folders || [];
   const current_folder_id =
@@ -196,7 +214,22 @@ function EmailContextMenuContentInner({
 
   return (
     <ContextMenuContent className="w-56">
-      {on_reply && !is_sent && !is_drafts && !is_scheduled && (
+      {selection && (
+        <>
+          <ContextMenuLabel className="text-xs font-medium text-txt-muted">
+            {selection.is_all_mode
+              ? t("mail.menu_applies_to_all", {
+                  count: selection.count.toLocaleString(),
+                })
+              : t("mail.menu_applies_to_selection", {
+                  count: selection.count.toLocaleString(),
+                })}
+          </ContextMenuLabel>
+          <ContextMenuSeparator />
+        </>
+      )}
+
+      {!is_selection && on_reply && !is_sent && !is_drafts && !is_scheduled && (
         <ContextMenuItem
           disabled={loading_action === "reply"}
           onClick={() => handle_action("reply", on_reply)}
@@ -206,34 +239,38 @@ function EmailContextMenuContentInner({
         </ContextMenuItem>
       )}
 
-      {on_reply_all && !is_sent && !is_drafts && !is_scheduled && (
-        <ContextMenuItem
-          disabled={loading_action === "reply_all"}
-          onClick={() => handle_action("reply_all", on_reply_all)}
-        >
-          <svg
-            className="mr-2 h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
+      {!is_selection &&
+        on_reply_all &&
+        !is_sent &&
+        !is_drafts &&
+        !is_scheduled && (
+          <ContextMenuItem
+            disabled={loading_action === "reply_all"}
+            onClick={() => handle_action("reply_all", on_reply_all)}
           >
-            <path
-              d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M13 15L7 9m0 0l6-6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          {t("mail.reply_all")}
-        </ContextMenuItem>
-      )}
+            <svg
+              className="mr-2 h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M13 15L7 9m0 0l6-6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {t("mail.reply_all")}
+          </ContextMenuItem>
+        )}
 
-      {on_forward && !is_drafts && !is_scheduled && (
+      {!is_selection && on_forward && !is_drafts && !is_scheduled && (
         <ContextMenuItem
           disabled={loading_action === "forward"}
           onClick={() => handle_action("forward", on_forward)}
@@ -243,34 +280,57 @@ function EmailContextMenuContentInner({
         </ContextMenuItem>
       )}
 
-      {(on_reply || on_forward) && !is_sent && !is_drafts && !is_scheduled && (
-        <ContextMenuSeparator />
-      )}
+      {!is_selection &&
+        (on_reply || on_forward) &&
+        !is_sent &&
+        !is_drafts &&
+        !is_scheduled && <ContextMenuSeparator />}
 
-      {on_toggle_read &&
+      {!is_selection &&
+        on_toggle_read &&
         !is_drafts &&
         !is_scheduled &&
         !is_sent &&
         email.item_type !== "sent" && (
+          <ContextMenuItem
+            disabled={loading_action === "read"}
+            onClick={() => handle_action("read", on_toggle_read)}
+          >
+            {email.is_read ? (
+              <>
+                <EnvelopeIcon className="mr-2 h-4 w-4" />
+                {t("mail.mark_as_unread")}
+              </>
+            ) : (
+              <>
+                <EnvelopeOpenIcon className="mr-2 h-4 w-4" />
+                {t("mail.mark_as_read")}
+              </>
+            )}
+          </ContextMenuItem>
+        )}
+
+      {selection && on_mark_read && selection.has_unread && (
         <ContextMenuItem
-          disabled={loading_action === "read"}
-          onClick={() => handle_action("read", on_toggle_read)}
+          disabled={loading_action === "mark_read"}
+          onClick={() => handle_action("mark_read", on_mark_read)}
         >
-          {email.is_read ? (
-            <>
-              <EnvelopeIcon className="mr-2 h-4 w-4" />
-              {t("mail.mark_as_unread")}
-            </>
-          ) : (
-            <>
-              <EnvelopeOpenIcon className="mr-2 h-4 w-4" />
-              {t("mail.mark_as_read")}
-            </>
-          )}
+          <EnvelopeOpenIcon className="mr-2 h-4 w-4" />
+          {t("mail.mark_as_read")}
         </ContextMenuItem>
       )}
 
-      {on_toggle_pin && !is_drafts && !is_scheduled && (
+      {selection && on_mark_unread && selection.has_read && (
+        <ContextMenuItem
+          disabled={loading_action === "mark_unread"}
+          onClick={() => handle_action("mark_unread", on_mark_unread)}
+        >
+          <EnvelopeIcon className="mr-2 h-4 w-4" />
+          {t("mail.mark_as_unread")}
+        </ContextMenuItem>
+      )}
+
+      {!is_selection && on_toggle_pin && !is_drafts && !is_scheduled && (
         <ContextMenuItem
           disabled={loading_action === "pin"}
           onClick={() => handle_action("pin", on_toggle_pin)}
@@ -282,7 +342,8 @@ function EmailContextMenuContentInner({
         </ContextMenuItem>
       )}
 
-      {!is_drafts &&
+      {!is_selection &&
+        !is_drafts &&
         !is_scheduled &&
         !is_trash &&
         email.snoozed_until &&
@@ -296,10 +357,11 @@ function EmailContextMenuContentInner({
           </ContextMenuItem>
         )}
 
-      {!is_drafts &&
+      {supports_id_scope &&
+        !is_drafts &&
         !is_scheduled &&
         !is_trash &&
-        !email.snoozed_until &&
+        (is_selection || !email.snoozed_until) &&
         on_snooze && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
@@ -388,12 +450,18 @@ function EmailContextMenuContentInner({
           </ContextMenuSub>
         )}
 
-      {((folders.length > 0 &&
+      {((supports_id_scope &&
+        folders.length > 0 &&
         on_folder_toggle &&
         !is_drafts &&
         !is_scheduled) ||
-        (tags.length > 0 && on_tag_toggle && !is_drafts && !is_scheduled) ||
-        (categories_enabled &&
+        (supports_id_scope &&
+          tags.length > 0 &&
+          on_tag_toggle &&
+          !is_drafts &&
+          !is_scheduled) ||
+        (supports_id_scope &&
+          categories_enabled &&
           on_category_change &&
           !is_trash &&
           !is_spam &&
@@ -403,7 +471,8 @@ function EmailContextMenuContentInner({
           !is_scheduled) ||
         (is_archive && on_move_to_inbox)) && <ContextMenuSeparator />}
 
-      {folders.length > 0 &&
+      {supports_id_scope &&
+        folders.length > 0 &&
         on_folder_toggle &&
         !is_drafts &&
         !is_scheduled && (
@@ -421,7 +490,9 @@ function EmailContextMenuContentInner({
                     on_folder_toggle(folder.id);
                   }}
                 >
-                  {current_folder_id === folder.id && (
+                  {(selection
+                    ? folder.is_assigned
+                    : current_folder_id === folder.id) && (
                     <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
                   )}
                   <span
@@ -435,36 +506,41 @@ function EmailContextMenuContentInner({
           </ContextMenuSub>
         )}
 
-      {tags.length > 0 && on_tag_toggle && !is_drafts && !is_scheduled && (
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <TagIcon className="mr-2 h-4 w-4" />
-            {t("common.labels")}
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
-            {tags.map((tag) => (
-              <ContextMenuItem
-                key={tag.tag_token}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  on_tag_toggle(tag.tag_token);
-                }}
-              >
-                {tag.is_assigned && (
-                  <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
-                )}
-                <span
-                  className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: tag.color }}
-                />
-                <span className="truncate">{tag.name}</span>
-              </ContextMenuItem>
-            ))}
-          </ContextMenuSubContent>
-        </ContextMenuSub>
-      )}
+      {supports_id_scope &&
+        tags.length > 0 &&
+        on_tag_toggle &&
+        !is_drafts &&
+        !is_scheduled && (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <TagIcon className="mr-2 h-4 w-4" />
+              {t("common.labels")}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {tags.map((tag) => (
+                <ContextMenuItem
+                  key={tag.tag_token}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    on_tag_toggle(tag.tag_token);
+                  }}
+                >
+                  {tag.is_assigned && (
+                    <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                  )}
+                  <span
+                    className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: tag.color }}
+                  />
+                  <span className="truncate">{tag.name}</span>
+                </ContextMenuItem>
+              ))}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        )}
 
-      {categories_enabled &&
+      {supports_id_scope &&
+        categories_enabled &&
         on_category_change &&
         !is_trash &&
         !is_spam &&
@@ -486,9 +562,10 @@ function EmailContextMenuContentInner({
                     on_category_change(key);
                   }}
                 >
-                  {category_for_tab(email.mail_category) === key && (
-                    <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
-                  )}
+                  {!selection &&
+                    category_for_tab(email.mail_category) === key && (
+                      <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                    )}
                   <Icon className="mr-2 h-4 w-4" />
                   <span className="truncate">{t(label_key)}</span>
                 </ContextMenuItem>
@@ -601,7 +678,7 @@ function EmailContextMenuContentInner({
         </ContextMenuItem>
       )}
 
-      {on_print && (
+      {!is_selection && on_print && (
         <>
           <ContextMenuSeparator />
           <ContextMenuItem

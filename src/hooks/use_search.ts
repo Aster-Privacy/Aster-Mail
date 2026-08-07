@@ -53,7 +53,7 @@ import {
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
-import { build_list_preview } from "@/utils/preview_text";
+import { build_body_preview } from "@/utils/preview_text";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
@@ -1793,14 +1793,23 @@ async function build_search_index(
   }
 
   index.meta = meta;
+  index.built_at = meta.saved_at;
   index.total_indexed = meta.total;
   index.complete = meta.complete;
   index.disk_chunk_ids = meta.chunk_ids.slice(consumed);
   cached_index = index;
 
-  void start_background_rebuild(user_email, include_body, index);
+  if (!meta.complete || Date.now() - meta.saved_at >= ttl_ms) {
+    void start_background_rebuild(user_email, include_body, index);
+  }
 
   return index;
+}
+
+export function preheader_html_source(envelope: DecryptedEnvelope): string {
+  const html = envelope.body_html || envelope.html_body || "";
+
+  return html && !is_ratchet_envelope(html) ? html : "";
 }
 
 export function searchable_body_source(envelope: DecryptedEnvelope): string {
@@ -2126,7 +2135,10 @@ function to_search_result(
     id: item.id,
     subject: envelope?.subject || "(Encrypted)",
     preview: envelope
-      ? build_list_preview(strip_html_tags(searchable_body_source(envelope)))
+      ? build_body_preview(
+          searchable_body_source(envelope),
+          preheader_html_source(envelope),
+        )
       : "",
     sender_name:
       (!first_recipient && forwarding_display?.display_sender_name) ||

@@ -83,7 +83,7 @@ export function get_contrast_text(hex: string): "#ffffff" | "#111827" {
   return luminance > AVATAR_LUMINANCE_CROSSOVER ? "#111827" : "#ffffff";
 }
 
-function css_color_to_hex(color: string): string | null {
+export function css_color_to_hex(color: string): string | null {
   const value = color.trim();
 
   if (value.startsWith("#")) return value;

@@ -20,14 +20,14 @@
 //
 const STORAGE_KEY = "aster_icon_cache_v10";
 const OK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const FAIL_TTL_MS = 10 * 60 * 1000;
+const FAIL_TTL_MS = 6 * 60 * 60 * 1000;
 
 interface StoredEntry {
   status: "ok" | "fail";
   ts: number;
 }
 
-const memory_cache = new Map<string, "ok" | "fail">();
+const memory_cache = new Map<string, StoredEntry>();
 
 function load_from_storage(): void {
   try {
@@ -47,7 +47,7 @@ function load_from_storage(): void {
         continue;
       }
 
-      memory_cache.set(domain, entry.status);
+      memory_cache.set(domain, entry);
     }
 
     if (pruned) {
@@ -65,10 +65,9 @@ function schedule_flush(): void {
 
     try {
       const entries: Record<string, StoredEntry> = {};
-      const now = Date.now();
 
-      for (const [domain, status] of memory_cache) {
-        entries[domain] = { status, ts: now };
+      for (const [domain, entry] of memory_cache) {
+        entries[domain] = entry;
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
@@ -79,17 +78,17 @@ function schedule_flush(): void {
 load_from_storage();
 
 export function is_icon_failed(domain: string): boolean {
-  return memory_cache.get(domain) === "fail";
+  return memory_cache.get(domain)?.status === "fail";
 }
 
 export function mark_icon_ok(domain: string): void {
-  if (memory_cache.get(domain) === "ok") return;
-  memory_cache.set(domain, "ok");
+  if (memory_cache.get(domain)?.status === "ok") return;
+  memory_cache.set(domain, { status: "ok", ts: Date.now() });
   schedule_flush();
 }
 
 export function mark_icon_failed(domain: string): void {
-  if (memory_cache.get(domain) === "fail") return;
-  memory_cache.set(domain, "fail");
+  if (memory_cache.get(domain)?.status === "fail") return;
+  memory_cache.set(domain, { status: "fail", ts: Date.now() });
   schedule_flush();
 }

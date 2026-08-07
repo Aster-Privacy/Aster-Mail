@@ -64,6 +64,28 @@ import {
 export const HOVER_PRELOAD_DELAY_MS = 220;
 export const HOVER_PRELOAD_MAX_ATTEMPTS = 10;
 
+export interface SelectionMenuScope {
+  count: number;
+  is_all_mode: boolean;
+  has_unread: boolean;
+  has_read: boolean;
+  get_folder_status: (folder_id: string) => "all" | "some" | "none";
+  get_tag_status: (tag_token: string) => "all" | "some" | "none";
+  on_archive: () => void;
+  on_delete: () => void;
+  on_spam: () => void;
+  on_mark_read: () => void;
+  on_mark_unread: () => void;
+  on_restore: () => void;
+  on_mark_not_spam: () => void;
+  on_move_to_inbox: () => void;
+  on_snooze: (snooze_until: Date) => Promise<void>;
+  on_custom_snooze: () => void;
+  on_folder_toggle: (folder_id: string) => void;
+  on_tag_toggle: (tag_token: string) => void;
+  on_category_change?: (category: EmailCategory) => void;
+}
+
 export interface EmailListProps {
   pinned_emails: InboxEmail[];
   primary_emails: InboxEmail[];
@@ -99,6 +121,7 @@ export interface EmailListProps {
   on_move_to_inbox: (email: InboxEmail) => void;
   on_category_change?: (email: InboxEmail, category: EmailCategory) => void;
   categories_enabled?: boolean;
+  selection_menu?: SelectionMenuScope | null;
   selected_email_id?: string | null;
   focused_email_id?: string | null;
 }
@@ -139,6 +162,7 @@ export function EmailList({
   on_move_to_inbox,
   on_category_change,
   categories_enabled,
+  selection_menu,
   selected_email_id,
 }: EmailListProps): React.ReactElement {
   const { user } = use_auth();
@@ -153,6 +177,8 @@ export function EmailList({
   on_tag_toggle_ref.current = on_tag_toggle;
   const on_folder_toggle_ref = useRef(on_folder_toggle);
   on_folder_toggle_ref.current = on_folder_toggle;
+  const selection_menu_ref = useRef(selection_menu);
+  selection_menu_ref.current = selection_menu;
 
   const all_emails = useMemo(
     () => [...pinned_emails, ...primary_emails],
@@ -169,30 +195,62 @@ export function EmailList({
 
   menu_email_ref.current = live_menu_email;
 
+  const menu_uses_selection =
+    !!selection_menu && !!live_menu_email?.is_selected;
+
   const stable_on_tag_toggle = useCallback((tag_token: string) => {
+    const scope = selection_menu_ref.current;
+
+    if (scope && menu_email_ref.current?.is_selected) {
+      scope.on_tag_toggle(tag_token);
+
+      return;
+    }
+
     if (menu_email_ref.current) {
       on_tag_toggle_ref.current(menu_email_ref.current, tag_token);
     }
   }, []);
 
   const stable_on_folder_toggle = useCallback((folder_id: string) => {
+    const scope = selection_menu_ref.current;
+
+    if (scope && menu_email_ref.current?.is_selected) {
+      scope.on_folder_toggle(folder_id);
+
+      return;
+    }
+
     if (menu_email_ref.current) {
       on_folder_toggle_ref.current(menu_email_ref.current, folder_id);
     }
   }, []);
 
-  const menu_tags = useMemo(
-    () =>
-      live_menu_email
-        ? tags.map((t) => ({
-            ...t,
-            is_assigned:
-              live_menu_email.tags?.some((et) => et.id === t.tag_token) ||
-              false,
-          }))
-        : [],
-    [tags, live_menu_email],
-  );
+  const menu_tags = useMemo(() => {
+    if (!live_menu_email) return [];
+
+    if (menu_uses_selection && selection_menu) {
+      return tags.map((t) => ({
+        ...t,
+        is_assigned: selection_menu.get_tag_status(t.tag_token) === "all",
+      }));
+    }
+
+    return tags.map((t) => ({
+      ...t,
+      is_assigned:
+        live_menu_email.tags?.some((et) => et.id === t.tag_token) || false,
+    }));
+  }, [tags, live_menu_email, menu_uses_selection, selection_menu]);
+
+  const menu_folders = useMemo(() => {
+    if (!menu_uses_selection || !selection_menu) return folders;
+
+    return folders.map((f) => ({
+      ...f,
+      is_assigned: selection_menu.get_folder_status(f.id) === "all",
+    }));
+  }, [folders, menu_uses_selection, selection_menu]);
 
   const auto_selected_id_ref = useRef<string | null>(null);
   const menu_action_taken_ref = useRef(false);
@@ -314,16 +372,18 @@ export function EmailList({
     menu_email_ref.current = email;
     menu_action_taken_ref.current = false;
 
-    if (email.is_selected) {
+    if (email.is_selected || selection_menu) {
       auto_selected_id_ref.current = null;
-    } else {
-      auto_selected_id_ref.current = email.id;
 
-      if (on_select_only) {
-        on_select_only(email.id);
-      } else {
-        on_toggle_select(email.id);
-      }
+      return;
+    }
+
+    auto_selected_id_ref.current = email.id;
+
+    if (on_select_only) {
+      on_select_only(email.id);
+    } else {
+      on_toggle_select(email.id);
     }
   };
 
@@ -412,19 +472,35 @@ export function EmailList({
           categories_enabled={categories_enabled}
           current_view={current_view}
           email={live_menu_email}
-          folders={folders}
-          on_archive={run_menu_action(() => on_archive(live_menu_email))}
+          folders={menu_folders}
+          on_archive={run_menu_action(() =>
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_archive()
+              : on_archive(live_menu_email),
+          )}
           on_category_change={
-            on_category_change
-              ? run_menu_action((category: EmailCategory) =>
-                  on_category_change(live_menu_email, category),
-                )
-              : undefined
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_category_change
+                ? run_menu_action((category: EmailCategory) =>
+                    selection_menu.on_category_change?.(category),
+                  )
+                : undefined
+              : on_category_change
+                ? run_menu_action((category: EmailCategory) =>
+                    on_category_change(live_menu_email, category),
+                  )
+                : undefined
           }
           on_custom_snooze={run_menu_action(() =>
-            on_custom_snooze(live_menu_email),
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_custom_snooze()
+              : on_custom_snooze(live_menu_email),
           )}
-          on_delete={run_menu_action(() => on_delete(live_menu_email))}
+          on_delete={run_menu_action(() =>
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_delete()
+              : on_delete(live_menu_email),
+          )}
           on_find_from_sender={
             on_find_from_sender
               ? run_menu_action(() => on_find_from_sender(live_menu_email))
@@ -438,10 +514,24 @@ export function EmailList({
               : undefined
           }
           on_mark_not_spam={run_menu_action(() =>
-            on_mark_not_spam(live_menu_email),
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_mark_not_spam()
+              : on_mark_not_spam(live_menu_email),
           )}
+          on_mark_read={
+            menu_uses_selection && selection_menu
+              ? run_menu_action(() => selection_menu.on_mark_read())
+              : undefined
+          }
+          on_mark_unread={
+            menu_uses_selection && selection_menu
+              ? run_menu_action(() => selection_menu.on_mark_unread())
+              : undefined
+          }
           on_move_to_inbox={run_menu_action(() =>
-            on_move_to_inbox(live_menu_email),
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_move_to_inbox()
+              : on_move_to_inbox(live_menu_email),
           )}
           on_reply={run_menu_action(() => on_reply(live_menu_email))}
           on_reply_all={
@@ -449,17 +539,37 @@ export function EmailList({
               ? run_menu_action(() => on_reply_all(live_menu_email))
               : undefined
           }
-          on_restore={run_menu_action(() => on_restore(live_menu_email))}
-          on_snooze={run_menu_action((snooze_until: Date) =>
-            on_snooze(live_menu_email, snooze_until),
+          on_restore={run_menu_action(() =>
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_restore()
+              : on_restore(live_menu_email),
           )}
-          on_spam={run_menu_action(() => on_spam(live_menu_email))}
+          on_snooze={run_menu_action((snooze_until: Date) =>
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_snooze(snooze_until)
+              : on_snooze(live_menu_email, snooze_until),
+          )}
+          on_spam={run_menu_action(() =>
+            menu_uses_selection && selection_menu
+              ? selection_menu.on_spam()
+              : on_spam(live_menu_email),
+          )}
           on_tag_toggle={run_menu_action(stable_on_tag_toggle)}
           on_toggle_pin={run_menu_action(() => on_toggle_pin(live_menu_email))}
           on_toggle_read={run_menu_action(() =>
             on_toggle_read(live_menu_email),
           )}
           on_unsnooze={run_menu_action(() => on_unsnooze(live_menu_email))}
+          selection={
+            menu_uses_selection && selection_menu
+              ? {
+                  count: selection_menu.count,
+                  is_all_mode: selection_menu.is_all_mode,
+                  has_unread: selection_menu.has_unread,
+                  has_read: selection_menu.has_read,
+                }
+              : undefined
+          }
           tags={menu_tags}
         />
       )}
@@ -511,7 +621,11 @@ export function LoadingState(): React.ReactElement {
   return (
     <div ref={container_ref} className="overflow-hidden">
       {Array.from({ length: row_count }).map((_, i) => (
-        <SkeletonEmailRow key={i} is_compact={is_compact} />
+        <SkeletonEmailRow
+          key={i}
+          is_compact={is_compact}
+          show_avatar={preferences.show_profile_pictures !== false}
+        />
       ))}
     </div>
   );
@@ -519,17 +633,21 @@ export function LoadingState(): React.ReactElement {
 
 function SkeletonEmailRow({
   is_compact,
+  show_avatar,
 }: {
   is_compact: boolean;
+  show_avatar: boolean;
 }): React.ReactElement {
   return (
     <div
       className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 ${is_compact ? "py-1.5" : "py-2"} border-b overflow-hidden border-edge-secondary`}
     >
       <Skeleton className="w-[18px] h-[18px] flex-shrink-0" />
-      <Skeleton
-        className={`${is_compact ? "w-7 h-7" : "w-8 h-8"} rounded-full flex-shrink-0 hidden sm:block`}
-      />
+      {show_avatar && (
+        <Skeleton
+          className={`${is_compact ? "w-7 h-7" : "w-8 h-8"} rounded-full flex-shrink-0 hidden sm:block`}
+        />
+      )}
       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0">
           <Skeleton className="h-4 w-full max-w-[100px]" />

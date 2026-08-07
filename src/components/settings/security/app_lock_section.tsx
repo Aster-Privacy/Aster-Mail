@@ -496,7 +496,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               className={cn(
                 "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                 chosen_mode === "numeric"
-                  ? "bg-brand text-white border border-brand"
+                  ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
               )}
               onClick={() => set_chosen_mode("numeric")}
@@ -511,7 +511,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
               className={cn(
                 "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                 chosen_mode === "text"
-                  ? "bg-brand text-white border border-brand"
+                  ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
               )}
               onClick={() => set_chosen_mode("text")}
@@ -532,7 +532,7 @@ function SetupPinModal({ account_id, is_open, on_close, on_success }: {
                 className={cn(
                   "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-left",
                   chosen_digits === n
-                    ? "bg-brand text-white border border-brand"
+                    ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                     : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
                 )}
                 onClick={() => set_chosen_digits(n)}

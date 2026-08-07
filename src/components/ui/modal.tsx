@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { cn } from "@/lib/utils";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 
 interface ModalProps {
@@ -52,8 +53,6 @@ interface ModalFooterProps {
   className?: string;
 }
 
-const open_modal_stack: symbol[] = [];
-
 const modal_labels_context = React.createContext<{
   title_id: string;
   description_id: string;
@@ -77,104 +76,11 @@ export function Modal({
   close_on_overlay = true,
   z_index,
 }: ModalProps) {
-  React.useEffect(() => {
-    if (is_open) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [is_open]);
-
   const reduce_motion = use_should_reduce_motion();
   const instance_id = React.useId().replace(/:/g, "");
 
-  const modal_id_ref = React.useRef<symbol | null>(null);
-
-  if (modal_id_ref.current === null) {
-    modal_id_ref.current = Symbol("modal");
-  }
-
-  React.useEffect(() => {
-    if (!is_open) return;
-
-    const id = modal_id_ref.current!;
-
-    open_modal_stack.push(id);
-
-    return () => {
-      const index = open_modal_stack.indexOf(id);
-
-      if (index !== -1) open_modal_stack.splice(index, 1);
-    };
-  }, [is_open]);
-
-  React.useEffect(() => {
-    const handle_escape = (e: KeyboardEvent) => {
-      if (e["key"] !== "Escape" || !is_open) return;
-      if (open_modal_stack[open_modal_stack.length - 1] !== modal_id_ref.current) {
-        return;
-      }
-
-      on_close();
-    };
-
-    window.addEventListener("keydown", handle_escape);
-
-    return () => window.removeEventListener("keydown", handle_escape);
-  }, [is_open, on_close]);
-
-  const content_ref = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (!is_open) return;
-
-    const node = content_ref.current;
-
-    if (!node) return;
-
-    const opener = document.activeElement as HTMLElement | null;
-    const previously_focused = node.contains(opener) ? null : opener;
-
-    if (previously_focused) {
-      node.focus();
-    }
-
-    const handle_tab = (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
-
-      const active = document.activeElement as HTMLElement | null;
-
-      if (!node.contains(active)) return;
-
-      const focusables = Array.from(
-        node.querySelectorAll<HTMLElement>(
-          'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
-        ),
-      );
-
-      if (focusables.length === 0) return;
-
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-
-      if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    node.addEventListener("keydown", handle_tab);
-
-    return () => {
-      node.removeEventListener("keydown", handle_tab);
-      previously_focused?.focus?.();
-    };
-  }, [is_open]);
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(is_open, on_close, "modal");
 
   const label_ids = React.useMemo(
     () => ({
@@ -198,11 +104,13 @@ export function Modal({
             initial={reduce_motion ? false : { opacity: 0 }}
             style={{ backgroundColor: "var(--modal-overlay)" }}
             transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onClick={close_on_overlay ? on_close : undefined}
+            onPointerDown={
+              close_on_overlay ? handle_backdrop_pointer_down : undefined
+            }
           />
 
           <motion.div
-            ref={content_ref}
+            ref={dialog_ref}
             aria-describedby={label_ids.description_id}
             aria-labelledby={label_ids.title_id}
             aria-modal="true"

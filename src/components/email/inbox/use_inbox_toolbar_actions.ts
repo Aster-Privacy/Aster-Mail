@@ -21,6 +21,7 @@
 import type { UserPreferences } from "@/services/api/preferences";
 import type { InboxEmail, ConfirmationDialogState } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 
 import { useState, useCallback } from "react";
 
@@ -30,11 +31,19 @@ import { use_archive_snooze_actions } from "./use_archive_snooze_actions";
 
 import { show_action_toast, update_progress_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
-import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import {
-  adjust_unread_count,
-  adjust_starred_count,
-} from "@/hooks/use_mail_counts";
+  MAIL_EVENTS,
+  emit_mail_item_updated,
+  emit_mail_items_removed,
+} from "@/hooks/mail_events";
+import {
+  adjust_stats_unread,
+  adjust_stats_starred,
+  invalidate_mail_stats,
+} from "@/hooks/use_mail_stats";
+import { conversation_read_delta } from "@/hooks/unread_read_delta";
+import { invalidate_mail_cache } from "@/hooks/email_list_cache";
+import { request_cache } from "@/services/api/request_cache";
 import {
   compute_removal_deltas,
   compute_restore_deltas,
@@ -47,22 +56,29 @@ import {
   bulk_update_items_metadata,
 } from "@/services/crypto/mail_metadata";
 import {
-  batched_bulk_permanent_delete,
+  empty_spam,
   report_spam_sender,
   remove_spam_sender,
   trash_thread,
-  mark_thread_read,
 } from "@/services/api/mail";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
+import { expand_email_ids } from "@/hooks/email_list_helpers";
 import {
-  mark_thread_read_entries,
+  collect_conversation_thread_tokens,
+  mark_conversation_threads_read,
+} from "@/hooks/mark_conversation_read";
+import {
+  bulk_action_result,
+  show_bulk_result_toast,
+  type BulkActionResult,
+} from "@/hooks/bulk_action_result";
+import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
   reindex_ids,
 } from "@/services/category_index";
 
 const EMIT_UPDATED_MAX = 200;
-const THREAD_READ_CONCURRENCY = 10;
 
 async function run_bulk_metadata_update(
   emails: InboxEmail[],
@@ -109,22 +125,6 @@ async function run_bulk_metadata_update(
   return failed_id_set;
 }
 
-async function mark_threads_read_limited(thread_tokens: string[]): Promise<void> {
-  for (let i = 0; i < thread_tokens.length; i += THREAD_READ_CONCURRENCY) {
-    const chunk = thread_tokens.slice(i, i + THREAD_READ_CONCURRENCY);
-
-    await Promise.all(
-      chunk.map((token) =>
-        mark_thread_read(token)
-          .then((result) => {
-            if (!result.error) mark_thread_read_entries(token);
-          })
-          .catch(() => {}),
-      ),
-    );
-  }
-}
-
 interface UseInboxToolbarActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   current_view: string;
@@ -136,10 +136,11 @@ interface UseInboxToolbarActionsOptions {
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
-  bulk_delete: (ids: string[]) => Promise<void>;
+  restore_emails: (entries: RestoredEmailEntry[]) => void;
+  bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
   schedule_delete_drafts: (ids: string[]) => () => void;
-  bulk_archive: (ids: string[]) => Promise<void>;
-  bulk_unarchive: (ids: string[]) => Promise<void>;
+  bulk_archive: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_unarchive: (ids: string[]) => Promise<BulkActionResult>;
   bulk_snooze_action: (ids: string[], snooze_until: Date) => Promise<unknown>;
   folders_lookup: Map<string, { name: string; color?: string }>;
   tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
@@ -147,6 +148,7 @@ interface UseInboxToolbarActionsOptions {
     confirm_before_delete: boolean;
     confirm_before_spam: boolean;
     confirm_before_archive: boolean;
+    conversation_grouping?: boolean;
   };
   update_preference: <K extends keyof UserPreferences>(
     key: K,
@@ -166,6 +168,7 @@ export function use_inbox_toolbar_actions({
   update_email,
   remove_email,
   remove_emails,
+  restore_emails,
   bulk_delete,
   schedule_delete_drafts,
   bulk_archive,
@@ -214,9 +217,9 @@ export function use_inbox_toolbar_actions({
     current_view,
     email_state,
     get_selected_ids,
-    update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     bulk_delete,
     schedule_delete_drafts,
     preferences,
@@ -397,34 +400,46 @@ export function use_inbox_toolbar_actions({
 
   const confirm_empty_spam = useCallback(async (): Promise<void> => {
     set_is_emptying_spam(true);
+
+    const settle_caches = (): void => {
+      request_cache.invalidate("/mail/v1/messages");
+      invalidate_mail_cache("spam");
+      invalidate_mail_cache("all");
+      invalidate_mail_cache("starred");
+      invalidate_mail_stats();
+    };
+
     try {
       const spam_emails = email_state.emails.filter((e) => e.is_spam);
       const spam_ids = spam_emails.map((e) => e.id);
+      const result = await empty_spam();
 
-      if (spam_ids.length === 0) {
-        set_show_empty_spam_dialog(false);
-
-        return;
-      }
-      const result = await batched_bulk_permanent_delete(spam_ids);
-
-      if (result.success) {
+      if (result.data?.success) {
         for (const id of spam_ids) {
           remove_email(id);
         }
+        settle_caches();
+        emit_mail_items_removed({ ids: spam_ids });
+        remove_index_ids(spam_ids);
         show_action_toast({
           message: t("common.spam_emails_permanently_deleted", {
-            count: spam_ids.length,
+            count: result.data.deleted_count,
           }),
           action_type: "trash",
-          email_ids: spam_ids,
+          email_ids: [],
         });
+      } else {
+        settle_caches();
+        show_toast(t("common.spam_empty_failed"), "error");
       }
+    } catch {
+      settle_caches();
+      show_toast(t("common.spam_empty_failed"), "error");
     } finally {
       set_is_emptying_spam(false);
       set_show_empty_spam_dialog(false);
     }
-  }, [email_state.emails, remove_email]);
+  }, [email_state.emails, remove_email, t]);
 
   const cancel_empty_spam = useCallback((): void => {
     set_show_empty_spam_dialog(false);
@@ -437,19 +452,17 @@ export function use_inbox_toolbar_actions({
     if (selected.length === 0) return;
     const has_unread = selected.some((e) => !e.is_read);
     const new_state = has_unread;
-    const unread_count_delta = selected.reduce((acc, email) => {
-      if (email.item_type !== "received") return acc;
-      if (new_state && !email.is_read) return acc - 1;
-      if (!new_state && email.is_read) return acc + 1;
-
-      return acc;
-    }, 0);
+    const unread_count_delta = conversation_read_delta(
+      selected,
+      new_state,
+      preferences.conversation_grouping,
+    );
 
     for (const email of selected) {
       update_email(email.id, { is_read: new_state });
     }
     if (unread_count_delta !== 0) {
-      adjust_unread_count(unread_count_delta);
+      adjust_stats_unread(unread_count_delta);
     }
     const total = selected.length;
 
@@ -467,66 +480,68 @@ export function use_inbox_toolbar_actions({
       { is_read: new_state },
       t,
     );
+
+    if (new_state) {
+      const thread_candidates = selected.filter(
+        (email) => !failed_id_set.has(email.id),
+      );
+      const thread_tokens = collect_conversation_thread_tokens(
+        thread_candidates,
+        preferences.conversation_grouping,
+      );
+      const thread_result = await mark_conversation_threads_read(thread_tokens);
+      const failed_tokens = new Set(thread_result.failed_ids);
+
+      for (const email of thread_candidates) {
+        if (email.thread_token && failed_tokens.has(email.thread_token)) {
+          failed_id_set.add(email.id);
+        }
+      }
+    }
     const failed = selected.filter((email) => failed_id_set.has(email.id));
 
     if (failed.length > 0) {
       for (const email of failed) {
         update_email(email.id, { is_read: email.is_read });
       }
-      const failed_delta = failed.reduce((acc, email) => {
-        if (email.item_type !== "received") return acc;
-        if (new_state && !email.is_read) return acc - 1;
-        if (!new_state && email.is_read) return acc + 1;
-
-        return acc;
-      }, 0);
+      const failed_delta = conversation_read_delta(
+        failed,
+        new_state,
+        preferences.conversation_grouping,
+      );
 
       if (failed_delta !== 0) {
-        adjust_unread_count(-failed_delta);
+        adjust_stats_unread(-failed_delta);
       }
     }
 
-    if (new_state) {
-      const thread_tokens = new Set<string>();
+    const result = bulk_action_result(
+      selected.map((email) => email.id),
+      failed.map((email) => email.id),
+    );
 
-      for (const email of selected) {
-        if (
-          !failed_id_set.has(email.id) &&
-          email.item_type === "received" &&
-          email.thread_token &&
-          (email.grouped_email_ids?.length ?? 0) > 1
-        ) {
-          thread_tokens.add(email.thread_token);
-        }
-      }
-
-      if (thread_tokens.size > 0) {
-        void mark_threads_read_limited(Array.from(thread_tokens)).then(() =>
-          emit_mail_soft_refresh(),
-        );
-      }
-    }
-    if (failed.length > 0) {
-      show_toast(
-        new_state
-          ? t("common.failed_to_mark_as_read")
-          : t("common.failed_to_mark_as_unread"),
-        "error",
-      );
-    } else {
-      show_action_toast({
-        message: new_state
-          ? t("common.conversations_marked_as_read_bulk", {
-              count: selected.length,
-            })
-          : t("common.conversations_marked_as_unread_bulk", {
-              count: selected.length,
-            }),
-        action_type: "read",
-        email_ids: selected.map((e) => e.id),
-      });
-    }
-  }, [email_state.emails, update_email, is_drafts_view, is_scheduled_view]);
+    show_bulk_result_toast({
+      result,
+      t,
+      success_message: new_state
+        ? t("common.conversations_marked_as_read_bulk", {
+            count: selected.length,
+          })
+        : t("common.conversations_marked_as_unread_bulk", {
+            count: selected.length,
+          }),
+      error_message: new_state
+        ? t("common.failed_to_mark_as_read")
+        : t("common.failed_to_mark_as_unread"),
+      action_type: "read",
+    });
+  }, [
+    email_state.emails,
+    update_email,
+    is_drafts_view,
+    is_scheduled_view,
+    preferences.conversation_grouping,
+  ]);
 
   const handle_toolbar_mark_unread = useCallback(async (): Promise<void> => {
     if (is_drafts_view || is_scheduled_view) return;
@@ -535,18 +550,17 @@ export function use_inbox_toolbar_actions({
     );
 
     if (selected.length === 0) return;
-    const unread_count_delta = selected.reduce((acc, email) => {
-      if (email.item_type !== "received") return acc;
-      if (email.is_read) return acc + 1;
-
-      return acc;
-    }, 0);
+    const unread_count_delta = conversation_read_delta(
+      selected,
+      false,
+      preferences.conversation_grouping,
+    );
 
     for (const email of selected) {
       update_email(email.id, { is_read: false });
     }
     if (unread_count_delta !== 0) {
-      adjust_unread_count(unread_count_delta);
+      adjust_stats_unread(unread_count_delta);
     }
     const total = selected.length;
 
@@ -570,27 +584,36 @@ export function use_inbox_toolbar_actions({
       for (const email of failed) {
         update_email(email.id, { is_read: email.is_read });
       }
-      const failed_delta = failed.reduce((acc, email) => {
-        if (email.item_type !== "received") return acc;
-        if (email.is_read) return acc + 1;
-
-        return acc;
-      }, 0);
+      const failed_delta = conversation_read_delta(
+        failed,
+        false,
+        preferences.conversation_grouping,
+      );
 
       if (failed_delta !== 0) {
-        adjust_unread_count(-failed_delta);
+        adjust_stats_unread(-failed_delta);
       }
-      show_toast(t("common.failed_to_mark_as_unread"), "error");
-    } else {
-      show_action_toast({
-        message: t("common.conversations_marked_as_unread_bulk", {
-          count: selected.length,
-        }),
-        action_type: "read",
-        email_ids: selected.map((e) => e.id),
-      });
     }
-  }, [email_state.emails, update_email, is_drafts_view, is_scheduled_view]);
+
+    show_bulk_result_toast({
+      result: bulk_action_result(
+        selected.map((email) => email.id),
+        failed.map((email) => email.id),
+      ),
+      t,
+      success_message: t("common.conversations_marked_as_unread_bulk", {
+        count: selected.length,
+      }),
+      error_message: t("common.failed_to_mark_as_unread"),
+      action_type: "read",
+    });
+  }, [
+    email_state.emails,
+    update_email,
+    is_drafts_view,
+    is_scheduled_view,
+    preferences.conversation_grouping,
+  ]);
 
   const handle_toolbar_toggle_star = useCallback(async (): Promise<void> => {
     if (is_drafts_view || is_scheduled_view) return;
@@ -605,7 +628,7 @@ export function use_inbox_toolbar_actions({
     for (const email of changed) {
       update_email(email.id, { is_starred: new_state });
     }
-    adjust_starred_count(new_state ? changed.length : -changed.length);
+    adjust_stats_starred(new_state ? changed.length : -changed.length);
 
     const total = changed.length;
 
@@ -629,17 +652,21 @@ export function use_inbox_toolbar_actions({
       for (const email of failed) {
         update_email(email.id, { is_starred: email.is_starred });
       }
-      adjust_starred_count(new_state ? -failed.length : failed.length);
-      show_toast(t("common.failed_to_update_emails"), "error");
-    } else {
-      show_action_toast({
-        message: new_state
-          ? t("common.conversations_starred_bulk", { count: changed.length })
-          : t("common.conversations_unstarred_bulk", { count: changed.length }),
-        action_type: "star",
-        email_ids: changed.map((e) => e.id),
-      });
+      adjust_stats_starred(new_state ? -failed.length : failed.length);
     }
+
+    show_bulk_result_toast({
+      result: bulk_action_result(
+        changed.map((email) => email.id),
+        failed.map((email) => email.id),
+      ),
+      t,
+      success_message: new_state
+        ? t("common.conversations_starred_bulk", { count: changed.length })
+        : t("common.conversations_unstarred_bulk", { count: changed.length }),
+      error_message: t("common.failed_to_update_emails"),
+      action_type: "star",
+    });
   }, [email_state.emails, update_email, is_drafts_view, is_scheduled_view, t]);
 
   const perform_toolbar_spam = useCallback(async (): Promise<void> => {
@@ -648,61 +675,98 @@ export function use_inbox_toolbar_actions({
 
     if (selected.length === 0) return;
 
-    const expanded_ids = Array.from(
-      new Set(
-        selected.flatMap((e) =>
-          e.grouped_email_ids && e.grouped_email_ids.length > 1
-            ? e.grouped_email_ids
-            : [e.id],
-        ),
-      ),
-    );
+    const expanded_ids = Array.from(new Set(selected.flatMap(expand_email_ids)));
 
     remove_index_ids(expanded_ids);
 
-    const removed_thread_ids = selected.flatMap((e) =>
-      e.thread_token ? remove_thread_entries(e.thread_token) : [],
-    );
+    const thread_removed_ids = new Map<string, string[]>();
+
+    for (const email of selected) {
+      if (email.thread_token && !thread_removed_ids.has(email.thread_token)) {
+        thread_removed_ids.set(
+          email.thread_token,
+          remove_thread_entries(email.thread_token),
+        );
+      }
+    }
+
+    const message_ids_of = (email: InboxEmail): string[] =>
+      Array.from(
+        new Set([
+          ...expand_email_ids(email),
+          ...(email.thread_token
+            ? (thread_removed_ids.get(email.thread_token) ?? [])
+            : []),
+        ]),
+      );
     const all_spam_ids = Array.from(
-      new Set([...expanded_ids, ...removed_thread_ids]),
+      new Set(selected.flatMap(message_ids_of)),
     );
 
-    const result = await bulk_update_metadata_by_ids(all_spam_ids, {
-      is_spam: true,
-      is_trashed: false,
-    });
+    let failed_message_ids = all_spam_ids;
 
-    if (!result.success) {
-      reindex_ids(all_spam_ids);
+    try {
+      const update_result = await bulk_update_metadata_by_ids(all_spam_ids, {
+        is_spam: true,
+        is_trashed: false,
+      });
 
-      return;
+      failed_message_ids = update_result.failed_ids;
+    } catch {
+      failed_message_ids = all_spam_ids;
+    }
+
+    const failed_message_set = new Set(failed_message_ids);
+    const failed_emails = selected.filter((email) =>
+      message_ids_of(email).some((id) => failed_message_set.has(id)),
+    );
+    const failed_email_ids = new Set(failed_emails.map((email) => email.id));
+    const succeeded_emails = selected.filter(
+      (email) => !failed_email_ids.has(email.id),
+    );
+
+    if (failed_emails.length > 0) {
+      reindex_ids(Array.from(new Set(failed_emails.flatMap(message_ids_of))));
     }
     const unique_senders = new Set(
-      selected.map((e) => e.sender_email).filter(Boolean),
+      succeeded_emails.map((e) => e.sender_email).filter(Boolean),
     );
 
     for (const sender of unique_senders) {
       report_spam_sender(sender).catch(() => {});
     }
-    for (const email of selected) {
+    for (const email of succeeded_emails) {
       remove_email(email.id);
     }
-    show_action_toast({
-      message: t("common.conversations_marked_as_spam_bulk", {
-        count: selected.length,
+
+    const succeeded_message_ids = Array.from(
+      new Set(succeeded_emails.flatMap(message_ids_of)),
+    );
+
+    show_bulk_result_toast({
+      result: bulk_action_result(
+        selected.map((email) => email.id),
+        failed_email_ids,
+      ),
+      t,
+      success_message: t("common.conversations_marked_as_spam_bulk", {
+        count: succeeded_emails.length,
       }),
+      error_message: t("common.failed_to_mark_as_spam"),
       action_type: "spam",
-      email_ids: expanded_ids,
+      email_ids: succeeded_message_ids,
       on_undo: async () => {
-        await bulk_update_metadata_by_ids(all_spam_ids, { is_spam: false });
-        reindex_ids(all_spam_ids);
+        await bulk_update_metadata_by_ids(succeeded_message_ids, {
+          is_spam: false,
+        });
+        reindex_ids(succeeded_message_ids);
         for (const sender of unique_senders) {
           remove_spam_sender(sender).catch(() => {});
         }
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       },
     });
-  }, [email_state.emails, remove_email, is_drafts_view, is_scheduled_view]);
+  }, [email_state.emails, remove_email, is_drafts_view, is_scheduled_view, t]);
 
   const handle_toolbar_spam = useCallback((): void => {
     if (!preferences.confirm_before_spam) {

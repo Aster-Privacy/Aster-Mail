@@ -59,7 +59,7 @@ import {
   use_batch_actions,
 } from "@/components/inbox/header/header_toolbar";
 import { cn } from "@/lib/utils";
-import { is_compact_density } from "@/lib/list_density";
+import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import { use_preferences } from "@/contexts/preferences_context";
 import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
@@ -144,6 +144,7 @@ interface InboxHeaderProps {
   on_activate_select_all_mode?: () => void;
   on_clear_selection?: () => void;
   page_selected_count?: number;
+  excluded_count?: number;
 }
 
 export function InboxHeader({
@@ -208,6 +209,7 @@ export function InboxHeader({
   on_activate_select_all_mode,
   on_clear_selection,
   page_selected_count = 0,
+  excluded_count = 0,
   total_messages = 0,
 }: InboxHeaderProps) {
   const { t } = use_i18n();
@@ -218,9 +220,15 @@ export function InboxHeader({
     preferences.mail_list_density ?? "",
     preferences.compact_mode ?? false,
   );
-  const select_all_size_class = compact_rows ? "w-7 h-7" : "w-8 h-8";
+  const select_all_size_class = list_select_slot_class(
+    compact_rows,
+    preferences.show_profile_pictures !== false,
+  );
   const has_selection = all_selected || some_selected;
-  const display_selected = select_all_mode ? total_messages : selected_count;
+  const scope_selected_count = Math.max(total_messages - excluded_count, 0);
+  const display_selected = select_all_mode
+    ? scope_selected_count
+    : selected_count;
   const hide_mail_actions = is_drafts_view || is_scheduled_view;
   const show_select_all_banner =
     has_selection &&
@@ -304,7 +312,13 @@ export function InboxHeader({
           {leading_left_slot}
           {on_toggle_select_all && (
             <div className="group flex items-center flex-shrink-0">
-              <Tooltip tip={t("common.select_all")}>
+              <Tooltip
+                tip={
+                  all_selected || some_selected
+                    ? t("common.deselect_all")
+                    : t("common.select_all")
+                }
+              >
                 <div
                   className={cn(
                     "flex items-center justify-center cursor-pointer rounded-full",
@@ -928,7 +942,7 @@ export function InboxHeader({
             <>
               <span>
                 {t("mail.all_in_folder_selected", {
-                  count: total_messages.toLocaleString(),
+                  count: scope_selected_count.toLocaleString(),
                 })}
               </span>
               <button

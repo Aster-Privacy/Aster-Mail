@@ -43,12 +43,16 @@ import {
   batch_unarchive as api_batch_unarchive,
 } from "@/services/api/archive";
 import {
-  adjust_unread_count,
-  adjust_inbox_count,
-  adjust_trash_count,
-  adjust_sent_count,
-} from "@/hooks/use_mail_counts";
-import { adjust_stats_archived } from "@/hooks/use_mail_stats";
+  adjust_stats_unread,
+  adjust_stats_inbox,
+  adjust_stats_trash,
+  adjust_stats_sent,
+  adjust_stats_archived,
+} from "@/hooks/use_mail_stats";
+import {
+  conversation_has_unread_sibling,
+  read_clears_conversation,
+} from "@/hooks/unread_read_delta";
 import {
   decrypt_mail_metadata,
   encrypt_mail_metadata,
@@ -192,9 +196,19 @@ export function use_email_list_actions({
 
       if (email) {
         const new_read_state = !email.is_read;
+        const conversation_options = {
+          thread_token: email.thread_token,
+          grouped_count: email.grouped_email_ids?.length,
+          acted_id: id,
+        };
+        const should_adjust_unread =
+          email.item_type === "received" &&
+          (new_read_state
+            ? read_clears_conversation(conversation_options)
+            : !conversation_has_unread_sibling(conversation_options));
 
-        if (email.item_type === "received") {
-          adjust_unread_count(new_read_state ? -1 : 1);
+        if (should_adjust_unread) {
+          adjust_stats_unread(new_read_state ? -1 : 1);
         }
 
         let success = false;
@@ -206,19 +220,15 @@ export function use_email_list_actions({
         }
 
         if (!success) {
-          if (email.item_type === "received") {
-            adjust_unread_count(new_read_state ? 1 : -1);
+          if (should_adjust_unread) {
+            adjust_stats_unread(new_read_state ? 1 : -1);
           }
 
           return;
         }
 
         if (new_read_state && email.item_type === "received") {
-          mark_conversation_read({
-            thread_token: email.thread_token,
-            grouped_count: email.grouped_email_ids?.length,
-            acted_id: id,
-          });
+          mark_conversation_read(conversation_options);
         }
       }
     },
@@ -243,14 +253,14 @@ export function use_email_list_actions({
         remove_email_from_view_cache(aid);
       }
       if (should_adjust_unread) {
-        adjust_unread_count(-1);
+        adjust_stats_unread(-1);
       }
       if (is_received) {
-        adjust_inbox_count(-1);
+        adjust_stats_inbox(-1);
       } else if (is_sent) {
-        adjust_sent_count(-1);
+        adjust_stats_sent(-1);
       }
-      adjust_trash_count(all_ids.length);
+      adjust_stats_trash(all_ids.length);
 
       const result = await bulk_update_metadata_by_ids(all_ids, {
         is_trashed: true,
@@ -265,14 +275,14 @@ export function use_email_list_actions({
       } else {
         reindex_ids(all_ids);
         if (should_adjust_unread) {
-          adjust_unread_count(1);
+          adjust_stats_unread(1);
         }
         if (is_received) {
-          adjust_inbox_count(1);
+          adjust_stats_inbox(1);
         } else if (is_sent) {
-          adjust_sent_count(1);
+          adjust_stats_sent(1);
         }
-        adjust_trash_count(-all_ids.length);
+        adjust_stats_trash(-all_ids.length);
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
@@ -306,10 +316,10 @@ export function use_email_list_actions({
         remove_email_from_view_cache(aid);
       }
       if (should_adjust_unread) {
-        adjust_unread_count(-1);
+        adjust_stats_unread(-1);
       }
       if (is_received) {
-        adjust_inbox_count(-1);
+        adjust_stats_inbox(-1);
       }
       adjust_stats_archived(all_ids.length);
       const result = await api_batch_archive({ ids: all_ids, tier: "hot" });
@@ -323,10 +333,10 @@ export function use_email_list_actions({
       if (!result.data?.success) {
         reindex_ids(all_ids);
         if (should_adjust_unread) {
-          adjust_unread_count(1);
+          adjust_stats_unread(1);
         }
         if (is_received) {
-          adjust_inbox_count(1);
+          adjust_stats_inbox(1);
         }
         adjust_stats_archived(-all_ids.length);
         if (email_to_restore) {
@@ -359,10 +369,10 @@ export function use_email_list_actions({
 
       remove_email(id);
       if (should_adjust_unread) {
-        adjust_unread_count(1);
+        adjust_stats_unread(1);
       }
       if (is_received) {
-        adjust_inbox_count(1);
+        adjust_stats_inbox(1);
       }
       adjust_stats_archived(-1);
       const result = await api_batch_unarchive({ ids: [id] });
@@ -387,10 +397,10 @@ export function use_email_list_actions({
 
       if (!result.data?.success) {
         if (should_adjust_unread) {
-          adjust_unread_count(-1);
+          adjust_stats_unread(-1);
         }
         if (is_received) {
-          adjust_inbox_count(-1);
+          adjust_stats_inbox(-1);
         }
         adjust_stats_archived(1);
         refresh();
@@ -412,10 +422,10 @@ export function use_email_list_actions({
       remove_email(id);
       remove_index_ids(all_ids);
       if (should_adjust_unread) {
-        adjust_unread_count(-1);
+        adjust_stats_unread(-1);
       }
       if (is_received) {
-        adjust_inbox_count(-1);
+        adjust_stats_inbox(-1);
       }
 
       const result = await bulk_update_metadata_by_ids(all_ids, {
@@ -430,10 +440,10 @@ export function use_email_list_actions({
       } else {
         reindex_ids(all_ids);
         if (should_adjust_unread) {
-          adjust_unread_count(1);
+          adjust_stats_unread(1);
         }
         if (is_received) {
-          adjust_inbox_count(1);
+          adjust_stats_inbox(1);
         }
         refresh();
       }

@@ -39,69 +39,88 @@ const { link_ink_for, link_hover_ink_for } = await import(
   "./sandboxed_email_renderer"
 );
 
-function relative_luminance(hex: string): number {
-  const n = Number.parseInt(hex.slice(1), 16);
+const { contrast_ratio, hex_to_hsl } = await import("@/lib/email_ink");
 
-  return (
-    (0.2126 * ((n >> 16) & 255) +
-      0.7152 * ((n >> 8) & 255) +
-      0.0722 * (n & 255)) /
-    255
-  );
-}
-
+const LIGHT = "#ffffff";
+const DARK = "#121212";
 const BLUE = "#3b82f6";
 
+const THEME_ACCENTS = [
+  "#3b82f6",
+  "#a855f7",
+  "#22c55e",
+  "#f43f5e",
+  "#f97316",
+  "#14b88a",
+  "#6366f1",
+  "#f5be0b",
+  "#068fd4",
+  "#64748b",
+  "#84cc16",
+  "#cd1fd6",
+  "#31d926",
+  "#e0399d",
+  "#d4d4d8",
+];
+
+function hue_gap(a: string, b: string): number {
+  const diff = Math.abs(hex_to_hsl(a).h - hex_to_hsl(b).h);
+
+  return Math.min(diff, 360 - diff);
+}
+
 describe("link_ink_for", () => {
-  it("keeps a saturated accent", () => {
-    expect(link_ink_for("#2563eb")).toBe("#2563eb");
-    expect(link_ink_for("#e11d48")).toBe("#e11d48");
-    expect(link_ink_for("#16a34a")).toBe("#16a34a");
+  it("meets body text contrast on both surfaces for every theme accent", () => {
+    for (const accent of THEME_ACCENTS) {
+      expect(contrast_ratio(link_ink_for(accent, LIGHT), LIGHT)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast_ratio(link_ink_for(accent, DARK), DARK)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
-  it("falls back to blue for white, black and grey accents", () => {
-    expect(link_ink_for("#ffffff")).toBe(BLUE);
-    expect(link_ink_for("#000000")).toBe(BLUE);
-    expect(link_ink_for("#111111")).toBe(BLUE);
-    expect(link_ink_for("#9ca3af")).toBe(BLUE);
-    expect(link_ink_for("#f5f5f5")).toBe(BLUE);
+  it("keeps the accent hue instead of falling back to blue", () => {
+    for (const accent of THEME_ACCENTS.filter((c) => hex_to_hsl(c).s > 0.2)) {
+      expect(hue_gap(link_ink_for(accent, LIGHT), accent)).toBeLessThan(4);
+      expect(hue_gap(link_ink_for(accent, DARK), accent)).toBeLessThan(4);
+    }
   });
 
-  it("falls back to blue for garbage input", () => {
-    expect(link_ink_for("")).toBe(BLUE);
-    expect(link_ink_for("red")).toBe(BLUE);
-    expect(link_ink_for("javascript:alert(1)")).toBe(BLUE);
+  it("gives an achromatic accent a readable ink", () => {
+    expect(contrast_ratio(link_ink_for("#d4d4d8", DARK), DARK)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast_ratio(link_ink_for("#ffffff", LIGHT), LIGHT)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("returns a valid six digit hex for garbage input", () => {
+    expect(link_ink_for("", LIGHT)).toMatch(/^#[0-9a-f]{6}$/);
+    expect(link_ink_for("red", LIGHT)).toMatch(/^#[0-9a-f]{6}$/);
+    expect(link_ink_for("javascript:alert(1)", DARK)).toMatch(/^#[0-9a-f]{6}$/);
   });
 
   it("expands shorthand hex", () => {
-    expect(link_ink_for("#0f0")).toBe("#00ff00");
-    expect(link_ink_for("#fff")).toBe(BLUE);
+    expect(hue_gap(link_ink_for("#0f0", LIGHT), "#00ff00")).toBeLessThan(4);
   });
 });
 
 describe("link_hover_ink_for", () => {
-  it("differs from the resting link color in both themes", () => {
-    expect(link_hover_ink_for(BLUE, true)).not.toBe(BLUE);
-    expect(link_hover_ink_for(BLUE, false)).not.toBe(BLUE);
+  it("differs from the resting link color on both surfaces", () => {
+    expect(link_hover_ink_for(BLUE, DARK)).not.toBe(link_ink_for(BLUE, DARK));
+    expect(link_hover_ink_for(BLUE, LIGHT)).not.toBe(link_ink_for(BLUE, LIGHT));
   });
 
-  it("brightens in dark mode and darkens in light mode", () => {
-    expect(relative_luminance(link_hover_ink_for(BLUE, true))).toBeGreaterThan(
-      relative_luminance(BLUE),
-    );
-    expect(relative_luminance(link_hover_ink_for(BLUE, false))).toBeLessThan(
-      relative_luminance(BLUE),
-    );
+  it("keeps body text contrast on both surfaces", () => {
+    for (const accent of THEME_ACCENTS) {
+      expect(contrast_ratio(link_hover_ink_for(accent, LIGHT), LIGHT)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast_ratio(link_hover_ink_for(accent, DARK), DARK)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it("tracks the accent instead of a fixed hue", () => {
-    expect(link_hover_ink_for("#e11d48", true)).not.toBe(
-      link_hover_ink_for(BLUE, true),
+    expect(link_hover_ink_for("#e11d48", DARK)).not.toBe(
+      link_hover_ink_for(BLUE, DARK),
     );
   });
 
   it("returns a valid six digit hex", () => {
-    expect(link_hover_ink_for("#0f0", true)).toMatch(/^#[0-9a-f]{6}$/);
-    expect(link_hover_ink_for("garbage", false)).toMatch(/^#[0-9a-f]{6}$/);
+    expect(link_hover_ink_for("#0f0", DARK)).toMatch(/^#[0-9a-f]{6}$/);
+    expect(link_hover_ink_for("garbage", LIGHT)).toMatch(/^#[0-9a-f]{6}$/);
   });
 });

@@ -21,14 +21,27 @@
 import type { UserPreferences } from "@/services/api/preferences";
 import type { InboxEmail, ConfirmationDialogState } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { BulkActionResult } from "@/hooks/bulk_action_result";
+import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 
 import { useCallback } from "react";
 
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  bulk_action_result,
+  bulk_succeeded_ids,
+  show_bulk_result_toast,
+} from "@/hooks/bulk_action_result";
+import {
+  collect_restore_entries,
+  expand_email_ids,
+} from "@/hooks/email_list_helpers";
 import { MAIL_EVENTS, emit_mail_items_removed } from "@/hooks/mail_events";
-import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { adjust_trash_count } from "@/hooks/use_mail_counts";
+import {
+  invalidate_mail_stats,
+  adjust_stats_trash,
+} from "@/hooks/use_mail_stats";
 import { request_cache } from "@/services/api/request_cache";
 import {
   compute_trash_deltas,
@@ -52,10 +65,10 @@ interface UseDeleteActionsOptions {
     total_messages: number;
   };
   get_selected_ids: (emails: InboxEmail[]) => string[];
-  update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
-  bulk_delete: (ids: string[]) => Promise<void>;
+  restore_emails: (entries: RestoredEmailEntry[]) => void;
+  bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
   schedule_delete_drafts: (ids: string[]) => () => void;
   preferences: {
     confirm_before_delete: boolean;
@@ -88,9 +101,9 @@ export function use_delete_actions({
   current_view,
   email_state,
   get_selected_ids,
-  update_email,
   remove_email,
   remove_emails,
+  restore_emails,
   bulk_delete,
   schedule_delete_drafts,
   preferences,
@@ -108,6 +121,104 @@ export function use_delete_actions({
   set_show_empty_trash_dialog,
   set_is_emptying_trash,
 }: UseDeleteActionsOptions) {
+  const run_permanent_delete = useCallback(
+    async (ids: string[]): Promise<void> => {
+      const restore_entries = collect_restore_entries(email_state.emails, ids);
+      const selected_emails = restore_entries.map((entry) => entry.email);
+      const expanded_ids = Array.from(
+        new Set(selected_emails.flatMap(expand_email_ids)),
+      );
+
+      for (const id of ids) {
+        remove_email(id);
+      }
+      for (const eid of expanded_ids) {
+        remove_email_from_view_cache(eid);
+      }
+      const result = await batched_bulk_permanent_delete(expanded_ids);
+      const failed_message_ids = new Set(result.failed_ids);
+      const failed_emails = selected_emails.filter((e) =>
+        expand_email_ids(e).some((id) => failed_message_ids.has(id)),
+      );
+      const deleted_count = expanded_ids.length - failed_message_ids.size;
+
+      if (deleted_count > 0) {
+        adjust_stats_trash(-deleted_count);
+      }
+      if (failed_emails.length > 0) {
+        const failed_id_set = new Set(failed_emails.map((e) => e.id));
+
+        restore_emails(
+          restore_entries.filter((entry) => failed_id_set.has(entry.email.id)),
+        );
+        invalidate_mail_stats();
+      }
+      show_bulk_result_toast({
+        result: bulk_action_result(
+          ids,
+          failed_emails.map((e) => e.id),
+        ),
+        t,
+        success_message: t("common.emails_permanently_deleted", {
+          count: deleted_count,
+        }),
+        error_message: t("common.failed_to_permanently_delete"),
+        action_type: "trash",
+        email_ids: expanded_ids,
+      });
+    },
+    [email_state.emails, remove_email, restore_emails, t],
+  );
+
+  const run_move_to_trash = useCallback(
+    async (ids: string[]): Promise<void> => {
+      const selected_emails = email_state.emails.filter((e) =>
+        ids.includes(e.id),
+      );
+      const result = await bulk_delete(ids);
+      const succeeded_ids = bulk_succeeded_ids(result);
+      const succeeded_set = new Set(succeeded_ids);
+      const undo_ids = Array.from(
+        new Set(
+          selected_emails
+            .filter((e) => succeeded_set.has(e.id))
+            .flatMap(expand_email_ids),
+        ),
+      );
+
+      show_bulk_result_toast({
+        result,
+        t,
+        success_message: t("common.emails_moved_to_trash", {
+          count: succeeded_ids.length,
+        }),
+        error_message: t("common.failed_to_delete_emails"),
+        action_type: "trash",
+        email_ids: succeeded_ids,
+        on_undo: async () => {
+          await bulk_update_metadata_by_ids(undo_ids, {
+            is_trashed: false,
+          });
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+        },
+      });
+    },
+    [email_state.emails, bulk_delete, t],
+  );
+
+  const run_delete_drafts = useCallback(
+    (ids: string[]): void => {
+      schedule_delete_drafts(ids);
+
+      show_action_toast({
+        message: t("common.drafts_deleted", { count: ids.length }),
+        action_type: "trash",
+        email_ids: ids,
+      });
+    },
+    [schedule_delete_drafts, t],
+  );
+
   const handle_toolbar_delete = useCallback(async (): Promise<void> => {
     const is_trash_view = current_view === "trash";
 
@@ -115,78 +226,11 @@ export function use_delete_actions({
       const ids = get_selected_ids(email_state.emails);
 
       if (is_trash_view) {
-        const selected_emails = email_state.emails.filter((e) =>
-          ids.includes(e.id),
-        );
-        const expanded_ids = Array.from(
-          new Set(
-            selected_emails.flatMap((e) =>
-              e.grouped_email_ids && e.grouped_email_ids.length > 1
-                ? e.grouped_email_ids
-                : [e.id],
-            ),
-          ),
-        );
-
-        for (const id of ids) {
-          remove_email(id);
-        }
-        for (const eid of expanded_ids) {
-          remove_email_from_view_cache(eid);
-        }
-        const result = await batched_bulk_permanent_delete(expanded_ids);
-
-        if (result.success) {
-          adjust_trash_count(-expanded_ids.length);
-          show_action_toast({
-            message: t("common.emails_permanently_deleted", {
-              count: expanded_ids.length,
-            }),
-            action_type: "trash",
-            email_ids: expanded_ids,
-          });
-        } else {
-          for (const email of selected_emails) {
-            update_email(email.id, email);
-          }
-          invalidate_mail_stats();
-        }
+        await run_permanent_delete(ids);
       } else if (is_drafts_view) {
-        schedule_delete_drafts(ids);
-
-        show_action_toast({
-          message: t("common.drafts_deleted", { count: ids.length }),
-          action_type: "trash",
-          email_ids: ids,
-        });
+        run_delete_drafts(ids);
       } else {
-        const selected_emails = email_state.emails.filter((e) =>
-          ids.includes(e.id),
-        );
-        const expanded_ids = Array.from(
-          new Set(
-            selected_emails.flatMap((e) =>
-              e.grouped_email_ids && e.grouped_email_ids.length > 1
-                ? e.grouped_email_ids
-                : [e.id],
-            ),
-          ),
-        );
-
-        await bulk_delete(ids);
-        show_action_toast({
-          message: t("common.emails_moved_to_trash", { count: ids.length }),
-          action_type: "trash",
-          email_ids: ids,
-          on_undo: async () => {
-            await bulk_update_metadata_by_ids(expanded_ids, {
-              is_trashed: false,
-            });
-            window.dispatchEvent(
-              new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
-            );
-          },
-        });
+        await run_move_to_trash(ids);
       }
     } else {
       set_confirmations((prev) => ({ ...prev, show_delete: true }));
@@ -195,13 +239,11 @@ export function use_delete_actions({
     preferences.confirm_before_delete,
     get_selected_ids,
     email_state.emails,
-    bulk_delete,
-    schedule_delete_drafts,
+    run_permanent_delete,
+    run_move_to_trash,
+    run_delete_drafts,
     is_drafts_view,
     current_view,
-    remove_email,
-    update_email,
-    t,
     set_confirmations,
   ]);
 
@@ -213,76 +255,11 @@ export function use_delete_actions({
     const is_trash_view = current_view === "trash";
 
     if (is_trash_view) {
-      const selected_emails = email_state.emails.filter((e) =>
-        ids.includes(e.id),
-      );
-      const expanded_ids = Array.from(
-        new Set(
-          selected_emails.flatMap((e) =>
-            e.grouped_email_ids && e.grouped_email_ids.length > 1
-              ? e.grouped_email_ids
-              : [e.id],
-          ),
-        ),
-      );
-
-      for (const id of ids) {
-        remove_email(id);
-      }
-      for (const eid of expanded_ids) {
-        remove_email_from_view_cache(eid);
-      }
-      const result = await batched_bulk_permanent_delete(expanded_ids);
-
-      if (result.success) {
-        adjust_trash_count(-expanded_ids.length);
-        show_action_toast({
-          message: t("common.emails_permanently_deleted", {
-            count: expanded_ids.length,
-          }),
-          action_type: "trash",
-          email_ids: expanded_ids,
-        });
-      } else {
-        for (const email of selected_emails) {
-          update_email(email.id, email);
-        }
-        invalidate_mail_stats();
-      }
+      await run_permanent_delete(ids);
     } else if (is_drafts_view) {
-      schedule_delete_drafts(ids);
-
-      show_action_toast({
-        message: t("common.drafts_deleted", { count: ids.length }),
-        action_type: "trash",
-        email_ids: ids,
-      });
+      run_delete_drafts(ids);
     } else {
-      const selected_emails = email_state.emails.filter((e) =>
-        ids.includes(e.id),
-      );
-      const expanded_ids = Array.from(
-        new Set(
-          selected_emails.flatMap((e) =>
-            e.grouped_email_ids && e.grouped_email_ids.length > 1
-              ? e.grouped_email_ids
-              : [e.id],
-          ),
-        ),
-      );
-
-      await bulk_delete(ids);
-      show_action_toast({
-        message: t("common.emails_moved_to_trash", { count: ids.length }),
-        action_type: "trash",
-        email_ids: ids,
-        on_undo: async () => {
-          await bulk_update_metadata_by_ids(expanded_ids, {
-            is_trashed: false,
-          });
-          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
-        },
-      });
+      await run_move_to_trash(ids);
     }
     set_confirmations((prev) => ({ ...prev, show_delete: false }));
     set_dont_ask_delete(false);
@@ -290,15 +267,13 @@ export function use_delete_actions({
     dont_ask_delete,
     get_selected_ids,
     email_state.emails,
-    bulk_delete,
-    schedule_delete_drafts,
+    run_permanent_delete,
+    run_move_to_trash,
+    run_delete_drafts,
     is_drafts_view,
     current_view,
-    remove_email,
-    update_email,
     update_preference,
     save_now,
-    t,
     set_confirmations,
     set_dont_ask_delete,
   ]);
@@ -317,12 +292,16 @@ export function use_delete_actions({
     const is_trash_view = current_view === "trash";
 
     if (is_trash_view) {
+      const restore_entries = collect_restore_entries(email_state.emails, [
+        email.id,
+      ]);
+
       remove_email(email.id);
       remove_email_from_view_cache(email.id);
       const result = await permanent_delete_mail_item(email.id);
 
       if (result.data) {
-        adjust_trash_count(-1);
+        adjust_stats_trash(-1);
         emit_mail_items_removed({ ids: [email.id] });
         show_action_toast({
           message: t("common.email_permanently_deleted"),
@@ -330,8 +309,9 @@ export function use_delete_actions({
           email_ids: [email.id],
         });
       } else {
-        update_email(email.id, email);
+        restore_emails(restore_entries);
         invalidate_mail_stats();
+        show_toast(t("common.failed_to_permanently_delete"), "error");
       }
     } else if (is_drafts_view) {
       schedule_delete_drafts([email.id]);
@@ -403,14 +383,15 @@ export function use_delete_actions({
     pending_delete_email,
     dont_ask_single_delete,
     current_view,
+    email_state.emails,
     remove_email,
     remove_emails,
+    restore_emails,
     is_drafts_view,
     schedule_delete_drafts,
     update_preference,
     save_now,
     t,
-    update_email,
     set_show_single_delete_confirm,
     set_pending_delete_email,
     set_dont_ask_single_delete,
@@ -446,7 +427,7 @@ export function use_delete_actions({
         invalidate_mail_cache("trash");
         invalidate_mail_cache("all");
         invalidate_mail_cache("starred");
-        adjust_trash_count(-trash_count);
+        adjust_stats_trash(-trash_count);
         emit_mail_items_removed({ ids: removed_ids });
         invalidate_mail_stats();
         show_action_toast({

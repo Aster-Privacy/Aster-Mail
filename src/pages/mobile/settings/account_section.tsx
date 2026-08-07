@@ -385,7 +385,7 @@ export function AccountSection({
                 size="xl"
               />
             </span>
-            <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-white">
+            <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]">
               {uploading ? (
                 <Spinner size="xs" />
               ) : (
@@ -499,7 +499,7 @@ export function AccountSection({
                     className={cn(
                       "inline-flex select-none items-center gap-1.5 rounded-[12px] px-3 py-1.5 text-xs font-medium",
                       is_active
-                        ? "bg-[var(--accent-blue)] text-white"
+                        ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]",
                     )}
                     disabled={is_badge_saving}

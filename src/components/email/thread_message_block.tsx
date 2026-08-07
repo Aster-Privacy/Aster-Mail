@@ -105,10 +105,22 @@ import {
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
-import { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL, is_ratchet_envelope, is_password_protected_body } from "@/utils/email_crypto";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
+  is_ratchet_envelope,
+  is_password_protected_body,
+} from "@/utils/email_crypto";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
-import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  is_lockdown_enabled,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 import { resolve_received_on_address } from "@/utils/delivered_to";
+import {
+  normalize_alias_candidates,
+  use_alias_delivery,
+} from "@/hooks/use_alias_delivery";
 import { use_auth_safe } from "@/contexts/auth_context";
 
 interface ThreadMessageBlockProps {
@@ -246,15 +258,17 @@ export function ThreadMessageBlock({
   const [viewing_source, set_viewing_source] = useState(false);
   const [wrap_source, set_wrap_source] = useState(false);
   const [show_details_modal, set_show_details_modal] = useState(false);
-  const [unsub_state, set_unsub_state] = useState<"idle" | "loading" | "manual" | "done">("idle");
+  const [unsub_state, set_unsub_state] = useState<
+    "idle" | "loading" | "manual" | "done"
+  >("idle");
   const preloaded_sanitized = use_latched_by_id(
     message.id,
     preloaded_sanitized_prop,
   );
 
-  const [password_unlocked_body, set_password_unlocked_body] = useState<string | null>(
-    null,
-  );
+  const [password_unlocked_body, set_password_unlocked_body] = useState<
+    string | null
+  >(null);
   const password_protected =
     is_password_protected_body(message.body) && password_unlocked_body === null;
 
@@ -280,7 +294,10 @@ export function ThreadMessageBlock({
       return t("mail.pgp_password_protected_title");
     }
 
-    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL || clean_body === PGP_UNDECRYPTABLE_SENTINEL) {
+    if (
+      clean_body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+      clean_body === PGP_UNDECRYPTABLE_SENTINEL
+    ) {
       return t("mail.encrypted_message_unavailable");
     }
     const plain = strip_html_tags(clean_body).replace(/\s+/g, " ").trim();
@@ -288,10 +305,13 @@ export function ThreadMessageBlock({
     return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
   }, [clean_body, password_protected, t]);
 
-  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
+  const [lockdown_active, set_lockdown_active] = useState(() =>
+    is_lockdown_enabled(account_id),
+  );
 
   useEffect(() => {
-    const update = () => set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+    const update = () =>
+      set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
     return () => {
@@ -303,7 +323,8 @@ export function ThreadMessageBlock({
   const is_system = is_system_email(message.sender_email);
   const is_ghost_sender = is_ghost_email(message.sender_email);
   const show_sender_name = message.display_sender_name ?? message.sender_name;
-  const show_sender_email = message.display_sender_email ?? message.sender_email;
+  const show_sender_email =
+    message.display_sender_email ?? message.sender_email;
   const received_on_address = useMemo(
     () =>
       message.item_type === "received"
@@ -311,6 +332,24 @@ export function ThreadMessageBlock({
         : undefined,
     [message],
   );
+  const alias_candidates_key = useMemo(
+    () =>
+      message.item_type === "received"
+        ? normalize_alias_candidates([
+            received_on_address,
+            ...(message.to_recipients?.map((r) => r.email) ?? []),
+            ...(message.cc_recipients?.map((r) => r.email) ?? []),
+          ])
+        : "",
+    [
+      message.item_type,
+      message.to_recipients,
+      message.cc_recipients,
+      received_on_address,
+    ],
+  );
+  const alias_delivery = use_alias_delivery(undefined, alias_candidates_key);
+  const delivered_to_address = received_on_address ?? alias_delivery?.address;
   const has_plaintext_body =
     !password_protected &&
     !!message.body &&
@@ -396,12 +435,18 @@ export function ThreadMessageBlock({
       ? ("always" as ImageLoadMode)
       : preferences.load_remote_images;
 
-  const load_remote_content = !lockdown_active && external_content_mode === "always";
+  const load_remote_content =
+    !lockdown_active && external_content_mode === "always";
 
-  const has_loaded_types = loaded_content_types && loaded_content_types.size > 0;
+  const has_loaded_types =
+    loaded_content_types && loaded_content_types.size > 0;
 
   const sanitized_content = useMemo(() => {
-    if (preloaded_sanitized && base_image_mode !== "always" && !has_loaded_types) {
+    if (
+      preloaded_sanitized &&
+      base_image_mode !== "always" &&
+      !has_loaded_types
+    ) {
       const report: ExternalContentReport | null =
         preloaded_sanitized.external_content.blocked_count > 0
           ? preloaded_sanitized.external_content
@@ -495,16 +540,18 @@ export function ThreadMessageBlock({
   const cid_blob_urls_ref = useRef<string[]>([]);
   const cid_preload_consumed_ref = useRef(false);
 
-  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(() => {
-    if (!is_expanded || base_image_mode === "always") return null;
-    const preloaded = pop_preloaded_thread_cid(message.id);
-    if (preloaded) {
-      cid_blob_urls_ref.current = preloaded.blob_urls;
-      cid_preload_consumed_ref.current = true;
-      return preloaded.html;
-    }
-    return null;
-  });
+  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(
+    () => {
+      if (!is_expanded || base_image_mode === "always") return null;
+      const preloaded = pop_preloaded_thread_cid(message.id);
+      if (preloaded) {
+        cid_blob_urls_ref.current = preloaded.blob_urls;
+        cid_preload_consumed_ref.current = true;
+        return preloaded.html;
+      }
+      return null;
+    },
+  );
 
   useEffect(() => {
     if (cid_preload_consumed_ref.current) {
@@ -516,14 +563,22 @@ export function ThreadMessageBlock({
 
     const has_cid = extract_cid_references(sanitized_content.html).length > 0;
 
-    if (!has_cid || !is_expanded || message.is_sending === true || preferences.low_network_mode) {
+    if (
+      !has_cid ||
+      !is_expanded ||
+      message.is_sending === true ||
+      preferences.low_network_mode
+    ) {
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = [];
       set_cid_resolved_html(null);
       return;
     }
 
-    const preloaded = base_image_mode !== "always" ? pop_preloaded_thread_cid(message.id) : null;
+    const preloaded =
+      base_image_mode !== "always"
+        ? pop_preloaded_thread_cid(message.id)
+        : null;
     if (preloaded) {
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = preloaded.blob_urls;
@@ -546,7 +601,12 @@ export function ThreadMessageBlock({
     return () => {
       cancelled = true;
     };
-  }, [sanitized_content.html, message.id, is_expanded, preferences.low_network_mode]);
+  }, [
+    sanitized_content.html,
+    message.id,
+    is_expanded,
+    preferences.low_network_mode,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -740,7 +800,9 @@ export function ThreadMessageBlock({
   }
 
   return (
-    <div className={`overflow-hidden ${show_inline_reply || is_last_in_thread || is_single_message || hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}>
+    <div
+      className={`overflow-hidden ${show_inline_reply || is_last_in_thread || is_single_message || hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}
+    >
       <div
         className={`group flex items-start gap-3 px-4 pt-3 pb-1 ${can_collapse ? "cursor-pointer select-none" : ""}`}
         role={can_collapse ? "button" : undefined}
@@ -835,236 +897,307 @@ export function ThreadMessageBlock({
                 {t("mail.unsubscribe")}
               </button>
             )}
-            {unsub_state === "manual" && unsubscribe_url && !lockdown_active && (
-              <button
-                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(unsubscribe_url, "_blank", "noopener,noreferrer");
-                  set_unsub_state("done");
-                  on_manual_unsubscribed?.();
-                }}
-              >
-                {t("mail.open_unsubscribe_page")}
-              </button>
-            )}
-            {!lockdown_active && sanitized_content.report && sanitized_content.report.blocked_count > 0 && on_load_external_content && (() => {
-              const report = sanitized_content.report!;
-              const image_count = report.blocked_items.filter((i) => i.type === "image").length;
-              const tracker_count = report.blocked_items.filter((i) => i.type === "tracking_pixel").length;
-              const font_count = report.blocked_items.filter((i) => i.type === "font").length;
-              const css_count = report.blocked_items.filter((i) => i.type === "css").length;
-              const btn_class = "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
-              return (
-                <>
-                  {image_count > 0 && (
-                    <button
-                      className={btn_class}
-                      onClick={(e) => { e.stopPropagation(); on_load_external_content(["image"]); }}
-                    >
-                      {`${t("mail.load_external_content")} (${image_count} ${image_count === 1 ? t("mail.image") : t("mail.images")})`}
-                    </button>
-                  )}
-                  {tracker_count > 0 && (
-                    <button
-                      className={btn_class}
-                      onClick={(e) => { e.stopPropagation(); on_load_external_content(["tracking_pixel"]); }}
-                    >
-                      {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
-                    </button>
-                  )}
-                  {(font_count > 0 || css_count > 0) && (
-                    <button
-                      className={btn_class}
-                      onClick={(e) => { e.stopPropagation(); on_load_external_content(["font", "css"]); }}
-                    >
-                      {(() => {
-                        const parts: string[] = [];
-                        if (font_count > 0) parts.push(`${font_count} ${font_count === 1 ? t("mail.font") : t("mail.fonts")}`);
-                        if (css_count > 0) parts.push(`${css_count} ${t("mail.stylesheet")}`);
-                        return `${t("mail.load_external_content")} (${parts.join(", ")})`;
-                      })()}
-                    </button>
-                  )}
-                </>
-              );
-            })()}
+            {unsub_state === "manual" &&
+              unsubscribe_url &&
+              !lockdown_active && (
+                <button
+                  className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(
+                      unsubscribe_url,
+                      "_blank",
+                      "noopener,noreferrer",
+                    );
+                    set_unsub_state("done");
+                    on_manual_unsubscribed?.();
+                  }}
+                >
+                  {t("mail.open_unsubscribe_page")}
+                </button>
+              )}
+            {!lockdown_active &&
+              sanitized_content.report &&
+              sanitized_content.report.blocked_count > 0 &&
+              on_load_external_content &&
+              (() => {
+                const report = sanitized_content.report!;
+                const image_count = report.blocked_items.filter(
+                  (i) => i.type === "image",
+                ).length;
+                const tracker_count = report.blocked_items.filter(
+                  (i) => i.type === "tracking_pixel",
+                ).length;
+                const font_count = report.blocked_items.filter(
+                  (i) => i.type === "font",
+                ).length;
+                const css_count = report.blocked_items.filter(
+                  (i) => i.type === "css",
+                ).length;
+                const btn_class =
+                  "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
+                return (
+                  <>
+                    {image_count > 0 && (
+                      <button
+                        className={btn_class}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          on_load_external_content(["image"]);
+                        }}
+                      >
+                        {`${t("mail.load_external_content")} (${image_count} ${image_count === 1 ? t("mail.image") : t("mail.images")})`}
+                      </button>
+                    )}
+                    {tracker_count > 0 && (
+                      <button
+                        className={btn_class}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          on_load_external_content(["tracking_pixel"]);
+                        }}
+                      >
+                        {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
+                      </button>
+                    )}
+                    {(font_count > 0 || css_count > 0) && (
+                      <button
+                        className={btn_class}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          on_load_external_content(["font", "css"]);
+                        }}
+                      >
+                        {(() => {
+                          const parts: string[] = [];
+                          if (font_count > 0)
+                            parts.push(
+                              `${font_count} ${font_count === 1 ? t("mail.font") : t("mail.fonts")}`,
+                            );
+                          if (css_count > 0)
+                            parts.push(`${css_count} ${t("mail.stylesheet")}`);
+                          return `${t("mail.load_external_content")} (${parts.join(", ")})`;
+                        })()}
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
           </div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                className="flex items-center gap-0.5 text-xs text-txt-muted hover:text-txt-secondary mt-0.5"
-                onClick={(e) => e.stopPropagation()}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex items-center gap-0.5 text-xs text-txt-muted hover:text-txt-secondary mt-0.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {message.to_recipients && message.to_recipients.length > 0
+                    ? t("mail.to_recipients_prefix", {
+                        recipients: message.to_recipients
+                          .map((r) => r.name || r.email?.split("@")[0] || "")
+                          .join(", "),
+                      })
+                    : is_own_message
+                      ? ""
+                      : t("mail.to_recipients_prefix", {
+                          recipients: t("common.me"),
+                        })}{" "}
+                  &#9660;
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-[26rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                side="bottom"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
-                {message.to_recipients && message.to_recipients.length > 0
-                  ? t("mail.to_recipients_prefix", { recipients: message.to_recipients.map((r) => r.name || r.email?.split("@")[0] || "").join(", ") })
-                  : is_own_message
-                    ? ""
-                    : t("mail.to_recipients_prefix", { recipients: t("common.me") })}{" "}
-                &#9660;
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="w-[26rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
-              side="bottom"
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-            >
-              <div className="flex">
-                <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
-                  {t("common.from_label")}
-                </span>
-                <span className="min-w-0 text-txt-secondary break-words">
-                  {show_sender_name}{" "}
-                  <button
-                    className="hover:underline text-txt-muted break-all text-left"
-                    onClick={() => {
-                      navigator.clipboard
-                        .writeText(show_sender_email)
-                        .then(() => show_toast(t("common.email_copied"), "success"))
-                        .catch(() => {});
-                    }}
-                  >
-                    &lt;{show_sender_email}&gt;
-                  </button>
-                </span>
-              </div>
-              {received_on_address && (
                 <div className="flex">
                   <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
-                    {t("common.received_on_label")}
+                    {t("common.from_label")}
                   </span>
                   <span className="min-w-0 text-txt-secondary break-words">
-                    {received_on_address}
+                    {show_sender_name}{" "}
+                    <button
+                      className="hover:underline text-txt-muted break-all text-left"
+                      onClick={() => {
+                        navigator.clipboard
+                          .writeText(show_sender_email)
+                          .then(() =>
+                            show_toast(t("common.email_copied"), "success"),
+                          )
+                          .catch(() => {});
+                      }}
+                    >
+                      &lt;{show_sender_email}&gt;
+                    </button>
                   </span>
                 </div>
-              )}
-              {message.to_recipients && message.to_recipients.length > 0 && (
-                <div className="flex items-start">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
-                    {t("common.to_label")}
-                  </span>
-                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                    {message.to_recipients.map((r, i) => (
-                      <span
-                        key={r.email}
-                        className="inline-flex items-center gap-1"
-                      >
-                        <ProfileAvatar
-                          use_domain_logo
-                          email={r.email}
-                          name={r.name || ""}
-                          size="xs"
-                        />
-                        <button
-                          className="hover:underline"
-                          onClick={() => {
-                            navigator.clipboard
-                              .writeText(r.email)
-                              .then(() => show_toast(t("common.email_copied"), "success"))
-                              .catch(() => {});
-                          }}
+                {delivered_to_address && (
+                  <div className="flex">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                      {t("common.received_on_label")}
+                    </span>
+                    <span className="min-w-0 text-txt-secondary break-words">
+                      {delivered_to_address}
+                    </span>
+                  </div>
+                )}
+                {message.to_recipients && message.to_recipients.length > 0 && (
+                  <div className="flex items-start">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                      {t("common.to_label")}
+                    </span>
+                    <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                      {message.to_recipients.map((r, i) => (
+                        <span
+                          key={r.email}
+                          className="inline-flex items-center gap-1"
                         >
-                          {r.name || r.email}
-                        </button>
-                        {i < (message.to_recipients?.length ?? 0) - 1 && (
-                          <span>,</span>
-                        )}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              )}
-              {message.cc_recipients && message.cc_recipients.length > 0 && (
-                <div className="flex items-start">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
-                    {t("common.cc_label")}
-                  </span>
-                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                    {message.cc_recipients.map((r, i) => (
-                      <span
-                        key={r.email}
-                        className="inline-flex items-center gap-1"
-                      >
-                        <ProfileAvatar
-                          use_domain_logo
-                          email={r.email}
-                          name={r.name || ""}
-                          size="xs"
-                        />
-                        <button
-                          className="hover:underline"
-                          onClick={() => {
-                            navigator.clipboard
-                              .writeText(r.email)
-                              .then(() => show_toast(t("common.email_copied"), "success"))
-                              .catch(() => {});
-                          }}
+                          <ProfileAvatar
+                            use_domain_logo
+                            email={r.email}
+                            name={r.name || ""}
+                            size="xs"
+                          />
+                          <button
+                            className="hover:underline"
+                            onClick={() => {
+                              navigator.clipboard
+                                .writeText(r.email)
+                                .then(() =>
+                                  show_toast(
+                                    t("common.email_copied"),
+                                    "success",
+                                  ),
+                                )
+                                .catch(() => {});
+                            }}
+                          >
+                            {r.name || r.email}
+                          </button>
+                          {i < (message.to_recipients?.length ?? 0) - 1 && (
+                            <span>,</span>
+                          )}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                )}
+                {message.cc_recipients && message.cc_recipients.length > 0 && (
+                  <div className="flex items-start">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                      {t("common.cc_label")}
+                    </span>
+                    <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                      {message.cc_recipients.map((r, i) => (
+                        <span
+                          key={r.email}
+                          className="inline-flex items-center gap-1"
                         >
-                          {r.name || r.email}
-                        </button>
-                        {i < (message.cc_recipients?.length ?? 0) - 1 && (
-                          <span>,</span>
-                        )}
+                          <ProfileAvatar
+                            use_domain_logo
+                            email={r.email}
+                            name={r.name || ""}
+                            size="xs"
+                          />
+                          <button
+                            className="hover:underline"
+                            onClick={() => {
+                              navigator.clipboard
+                                .writeText(r.email)
+                                .then(() =>
+                                  show_toast(
+                                    t("common.email_copied"),
+                                    "success",
+                                  ),
+                                )
+                                .catch(() => {});
+                            }}
+                          >
+                            {r.name || r.email}
+                          </button>
+                          {i < (message.cc_recipients?.length ?? 0) - 1 && (
+                            <span>,</span>
+                          )}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                )}
+                {message.bcc_recipients &&
+                  message.bcc_recipients.length > 0 && (
+                    <div className="flex items-start">
+                      <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                        {t("common.bcc_label")}
                       </span>
-                    ))}
+                      <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                        {message.bcc_recipients.map((r, i) => (
+                          <span
+                            key={r.email}
+                            className="inline-flex items-center gap-1"
+                          >
+                            <ProfileAvatar
+                              use_domain_logo
+                              email={r.email}
+                              name={r.name || ""}
+                              size="xs"
+                            />
+                            <button
+                              className="hover:underline"
+                              onClick={() => {
+                                navigator.clipboard
+                                  .writeText(r.email)
+                                  .then(() =>
+                                    show_toast(
+                                      t("common.email_copied"),
+                                      "success",
+                                    ),
+                                  )
+                                  .catch(() => {});
+                              }}
+                            >
+                              {r.name || r.email}
+                            </button>
+                            {i < (message.bcc_recipients?.length ?? 0) - 1 && (
+                              <span>,</span>
+                            )}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  )}
+                <div className="flex">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                    {t("common.date_label")}
+                  </span>
+                  <span className="text-txt-secondary">
+                    {format_email_detail(new Date(message.timestamp))}
                   </span>
                 </div>
-              )}
-              {message.bcc_recipients && message.bcc_recipients.length > 0 && (
-                <div className="flex items-start">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
-                    {t("common.bcc_label")}
+                <div className="flex">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                    {t("common.subject_label")}
                   </span>
-                  <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                    {message.bcc_recipients.map((r, i) => (
-                      <span
-                        key={r.email}
-                        className="inline-flex items-center gap-1"
-                      >
-                        <ProfileAvatar
-                          use_domain_logo
-                          email={r.email}
-                          name={r.name || ""}
-                          size="xs"
-                        />
-                        <button
-                          className="hover:underline"
-                          onClick={() => {
-                            navigator.clipboard
-                              .writeText(r.email)
-                              .then(() => show_toast(t("common.email_copied"), "success"))
-                              .catch(() => {});
-                          }}
-                        >
-                          {r.name || r.email}
-                        </button>
-                        {i < (message.bcc_recipients?.length ?? 0) - 1 && (
-                          <span>,</span>
-                        )}
-                      </span>
-                    ))}
+                  <span className="min-w-0 text-txt-secondary break-words">
+                    {message.subject || t("mail.no_subject")}
                   </span>
                 </div>
-              )}
-              <div className="flex">
-                <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
-                  {t("common.date_label")}
-                </span>
-                <span className="text-txt-secondary">
-                  {format_email_detail(new Date(message.timestamp))}
-                </span>
-              </div>
-              <div className="flex">
-                <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
-                  {t("common.subject_label")}
-                </span>
-                <span className="min-w-0 text-txt-secondary break-words">
-                  {message.subject || t("mail.no_subject")}
-                </span>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+            {alias_delivery && (
+              <EmailTag
+                show_icon
+                className="flex-shrink-0 max-w-[12rem]"
+                icon="at"
+                label={alias_delivery.label}
+                size="xs"
+                title={t("mail.received_via_alias", {
+                  address: alias_delivery.address,
+                })}
+                variant="purple"
+              />
+            )}
+          </div>
           {received_on_address && (
             <span
               className="block truncate max-w-full text-xs text-txt-muted mt-0.5"
@@ -1274,9 +1407,7 @@ export function ThreadMessageBlock({
                 }}
               >
                 <CodeBracketIcon className="w-4 h-4 mr-2" />
-                {viewing_source
-                  ? t("mail.hide_source")
-                  : t("mail.view_source")}
+                {viewing_source ? t("mail.hide_source") : t("mail.view_source")}
               </DropdownMenuItem>
               {on_not_spam ? (
                 <DropdownMenuItem
@@ -1352,69 +1483,70 @@ export function ThreadMessageBlock({
       />
 
       {message.item_type === "received" &&
-        message.dmarc_result !== "pass" && (
-        message.spf_result === "fail" ||
-        message.dkim_result === "fail" ||
-        message.dmarc_result === "fail"
-      ) && (
-        <div className="mx-4 mt-2 mb-3 rounded-md bg-[#dc2626]">
-          <div className="flex items-center gap-2 px-3 py-2">
-            <ShieldExclamationIcon className="w-4 h-4 text-white flex-shrink-0" />
-            <p className="text-[13px] text-white leading-snug flex-1 min-w-0">
-              {t("common.auth_fail_banner_body")}
-            </p>
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={t("common.auth_fail_banner_title")}
-                  className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
-                  onClick={(e) => e.stopPropagation()}
+        message.dmarc_result !== "pass" &&
+        (message.spf_result === "fail" ||
+          message.dkim_result === "fail" ||
+          message.dmarc_result === "fail") && (
+          <div className="mx-4 mt-2 mb-3 rounded-md bg-[#dc2626]">
+            <div className="flex items-center gap-2 px-3 py-2">
+              <ShieldExclamationIcon className="w-4 h-4 text-white flex-shrink-0" />
+              <p className="text-[13px] text-white leading-snug flex-1 min-w-0">
+                {t("common.auth_fail_banner_body")}
+              </p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={t("common.auth_fail_banner_title")}
+                    className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <InformationCircleIcon className="w-4 h-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  className="max-w-xs space-y-2 text-[12px] leading-snug"
+                  side="bottom"
                 >
-                  <InformationCircleIcon className="w-4 h-4" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="end"
-                className="max-w-xs space-y-2 text-[12px] leading-snug"
-                side="bottom"
-              >
-                <p>{t("common.auth_fail_tooltip_intro")}</p>
-                {message.spf_result === "fail" && (
-                  <p>
-                    <span className="font-semibold">SPF: </span>
-                    {t("common.auth_fail_tooltip_spf")}
-                  </p>
-                )}
-                {message.dkim_result === "fail" && (
-                  <p>
-                    <span className="font-semibold">DKIM: </span>
-                    {t("common.auth_fail_tooltip_dkim")}
-                  </p>
-                )}
-                {message.dmarc_result === "fail" && (
-                  <p>
-                    <span className="font-semibold">DMARC: </span>
-                    {t("common.auth_fail_tooltip_dmarc")}
-                  </p>
-                )}
-              </PopoverContent>
-            </Popover>
+                  <p>{t("common.auth_fail_tooltip_intro")}</p>
+                  {message.spf_result === "fail" && (
+                    <p>
+                      <span className="font-semibold">SPF: </span>
+                      {t("common.auth_fail_tooltip_spf")}
+                    </p>
+                  )}
+                  {message.dkim_result === "fail" && (
+                    <p>
+                      <span className="font-semibold">DKIM: </span>
+                      {t("common.auth_fail_tooltip_dkim")}
+                    </p>
+                  )}
+                  {message.dmarc_result === "fail" && (
+                    <p>
+                      <span className="font-semibold">DMARC: </span>
+                      {t("common.auth_fail_tooltip_dmarc")}
+                    </p>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {message.item_type === "received" &&
         on_not_spam &&
         message.is_spam === true &&
         (message.spam_signals?.length ?? 0) > 0 && (
-        <SpamReasonsBanner
-          signals={message.spam_signals ?? []}
-          on_not_spam={() => on_not_spam(message)}
-        />
-      )}
+          <SpamReasonsBanner
+            signals={message.spam_signals ?? []}
+            on_not_spam={() => on_not_spam(message)}
+          />
+        )}
 
-      <div className={`${is_plain_text || html_blocked ? "pl-[52px] pb-4" : "pb-0"} pt-1`}>
+      <div
+        className={`${is_plain_text || html_blocked ? "pl-[52px] pb-4" : "pb-0"} pt-1`}
+      >
         {!is_ratchet_undecryptable && (
           <div
             className={`min-w-0 ${is_plain_text || html_blocked ? "pr-4" : "pl-[52px] pr-4"}`}
@@ -1442,7 +1574,9 @@ export function ThreadMessageBlock({
           </p>
         ) : (
           <ThreadMessageBody
-            body_background={html_blocked ? undefined : sanitized_content.body_background}
+            body_background={
+              html_blocked ? undefined : sanitized_content.body_background
+            }
             clean_body={clean_body}
             email_id={message.id}
             force_dark_mode={force_dark_mode}
@@ -1451,14 +1585,19 @@ export function ThreadMessageBlock({
             load_remote_content={html_blocked ? false : load_remote_content}
             on_document_ready={translation.on_document_ready}
             preserve_formatting={message.is_sending === true}
-            sanitized_html={html_blocked ? (plain_text_html ?? "") : effective_html}
+            sanitized_html={
+              html_blocked ? (plain_text_html ?? "") : effective_html
+            }
             set_wrap_source={set_wrap_source}
             viewing_source={viewing_source}
             wrap_source={wrap_source}
           />
         )}
 
-        <div className={is_plain_text || html_blocked ? "" : "pl-[52px]"} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={is_plain_text || html_blocked ? "" : "pl-[52px]"}
+          onClick={(e) => e.stopPropagation()}
+        >
           <AttachmentList
             has_recipient_key={message.has_recipient_key}
             hint_attachment_count={message.attachments?.length ?? 0}
@@ -1469,12 +1608,13 @@ export function ThreadMessageBlock({
             mail_item_id={message.id}
           />
         </div>
-
       </div>
 
-
       {!show_inline_reply && (
-        <div className={`${is_single_message || is_last_in_thread ? "sticky bottom-0 z-10" : ""} bg-[var(--bg-primary)]`} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`${is_single_message || is_last_in_thread ? "sticky bottom-0 z-10" : ""} bg-[var(--bg-primary)]`}
+          onClick={(e) => e.stopPropagation()}
+        >
           <ThreadMessageActions
             message={message}
             on_forward={on_forward}
@@ -1515,7 +1655,9 @@ export function ThreadMessageBlock({
                 on_close={on_close_inline_reply}
                 on_draft_saved={on_draft_saved}
                 on_set_inline_mode={on_set_inline_mode}
-                original_body={is_ratchet_undecryptable ? "" : message.body || ""}
+                original_body={
+                  is_ratchet_undecryptable ? "" : message.body || ""
+                }
                 original_cc={original_cc_emails}
                 original_email_id={message.id}
                 original_subject={message.subject}

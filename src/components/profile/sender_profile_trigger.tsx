@@ -49,10 +49,12 @@ import { use_i18n } from "@/lib/i18n/context";
 import { get_email_domain, get_email_username } from "@/lib/utils";
 import {
   create_contact_encrypted,
-  list_contacts,
-  decrypt_contact,
   delete_contact,
 } from "@/services/api/contacts";
+import {
+  ensure_contact_email_index,
+  get_cached_contact_id,
+} from "@/services/contact_email_index";
 import {
   block_sender,
   unblock_sender,
@@ -96,7 +98,9 @@ export function SenderProfileTrigger({
   const [is_open, set_is_open] = useState(false);
   const [show_notes, set_show_notes] = useState(false);
   const [is_contact_loading, set_is_contact_loading] = useState(false);
-  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(null);
+  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(
+    () => get_cached_contact_id(email) ?? null,
+  );
   const [is_blocking, set_is_blocking] = useState(false);
   const [is_allowlist_loading, set_is_allowlist_loading] = useState(false);
   const [is_allowlisted, set_is_allowlisted] = useState(false);
@@ -108,54 +112,38 @@ export function SenderProfileTrigger({
   const is_aster_user = ASTER_DOMAINS.has(root_domain);
   const display_name = name || get_email_username(email);
 
+  const load_status = useCallback(async () => {
+    if (!has_keys) return;
+
+    ensure_contact_email_index().then(() => {
+      set_existing_contact_id(get_cached_contact_id(email) ?? null);
+    });
+
+    if (is_aster_user || checked_ref.current === email) return;
+    checked_ref.current = email;
+    try {
+      const [allowlist_set, blocked_set] = await Promise.all([
+        check_allowed_senders([email]),
+        check_blocked_senders([email]),
+      ]);
+      set_is_allowlisted(allowlist_set.has(email.trim().toLowerCase()));
+      set_is_blocked(blocked_set.has(email.trim().toLowerCase()));
+    } catch {
+      checked_ref.current = null;
+    }
+  }, [email, has_keys, is_aster_user]);
+
   useEffect(() => {
     if (!is_open) {
       set_show_notes(false);
       return;
     }
-    if (!has_keys || checked_ref.current === email) return;
-    checked_ref.current = email;
-
-    const check_status = async () => {
-      try {
-        const [contacts_result, allowlist_set, blocked_set] = await Promise.all([
-          list_contacts({ limit: 200 }),
-          is_aster_user
-            ? Promise.resolve(new Set<string>())
-            : check_allowed_senders([email]),
-          is_aster_user
-            ? Promise.resolve(new Set<string>())
-            : check_blocked_senders([email]),
-        ]);
-        if (!is_aster_user) {
-          set_is_allowlisted(allowlist_set.has(email.trim().toLowerCase()));
-          set_is_blocked(blocked_set.has(email.trim().toLowerCase()));
-        }
-        if (contacts_result.data?.items) {
-          for (const contact of contacts_result.data.items) {
-            try {
-              const decrypted = await decrypt_contact(contact);
-              if (decrypted.emails.some((e) => e.toLowerCase() === email.toLowerCase())) {
-                set_existing_contact_id(contact.id);
-                return;
-              }
-            } catch {
-              continue;
-            }
-          }
-        }
-        set_existing_contact_id(null);
-      } catch {
-        set_existing_contact_id(null);
-      }
-    };
-
-    check_status();
-  }, [is_open, email, has_keys, is_aster_user]);
+    load_status();
+  }, [is_open, load_status]);
 
   useEffect(() => {
     checked_ref.current = null;
-    set_existing_contact_id(null);
+    set_existing_contact_id(get_cached_contact_id(email) ?? null);
     set_is_allowlisted(false);
     set_is_blocked(false);
   }, [email]);
@@ -186,7 +174,6 @@ export function SenderProfileTrigger({
         if (result.data) {
           show_toast(t("common.removed_from_contacts"), "success");
           set_existing_contact_id(null);
-          checked_ref.current = null;
           emit_contacts_changed();
         } else if (result.error) {
           show_toast(result.error, "error");
@@ -285,7 +272,12 @@ export function SenderProfileTrigger({
 
   return (
     <DropdownMenu open={is_open} onOpenChange={set_is_open}>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger
+        asChild
+        onFocus={load_status}
+        onPointerDown={load_status}
+        onPointerEnter={load_status}
+      >
         <button
           className={`outline-none${className ? ` ${className}` : ""}`}
           type="button"

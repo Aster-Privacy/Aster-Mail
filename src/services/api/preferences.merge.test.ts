@@ -138,4 +138,28 @@ describe("build_merged_preferences", () => {
 
     expect(merged.theme).toBe("dark");
   });
+
+  it("keeps the system theme instead of rewriting it to dark", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      theme: "system",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.theme).toBe("system");
+  });
+
+  it("keeps a cached system theme when the server blob omits the key", () => {
+    const server: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
+
+    delete server.theme;
+
+    const merged = build_merged_preferences(server, {
+      ...DEFAULT_PREFERENCES,
+      theme: "system",
+    });
+
+    expect(merged.theme).toBe("system");
+  });
 });

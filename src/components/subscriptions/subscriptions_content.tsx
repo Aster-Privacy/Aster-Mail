@@ -31,6 +31,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
+import { use_subscription_scan_in_flight } from "@/hooks/use_background_subscription_scan";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_page_search } from "@/hooks/use_page_search";
 import { use_external_link } from "@/contexts/external_link_context";
@@ -77,6 +78,7 @@ export function SubscriptionsContent({
     bulk_unsubscribe,
     reactivate,
   } = use_subscriptions();
+  const scan_in_flight = use_subscription_scan_in_flight();
 
   const [active_tab, set_active_tab] = useState<"active" | "unsubscribed">(
     "active",
@@ -289,7 +291,7 @@ export function SubscriptionsContent({
         <div className="flex-1" />
       </div>
 
-      {is_loading ? (
+      {is_loading || (scan_in_flight && subscriptions.length === 0) ? (
         <SubscriptionsListSkeleton />
       ) : current_list.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-txt-muted">

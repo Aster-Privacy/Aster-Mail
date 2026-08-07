@@ -38,7 +38,11 @@ import {
   decrypt_mail_metadata,
   update_item_metadata,
 } from "@/services/crypto/mail_metadata";
-import { classify, CATEGORY_TABS } from "@/services/mail_categorizer";
+import {
+  classify,
+  CATEGORY_TABS,
+  set_active_custom_categories,
+} from "@/services/mail_categorizer";
 import {
   BUILTIN_CATEGORY_IDS,
   fold_builtin,
@@ -67,6 +71,8 @@ const NOTIFY_THROTTLE_MS = 350;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
 const DELETE_SYNC_TOKEN_PREFIX = "aster_delete_sync_token_";
+const INDEX_READY_TIMEOUT_MS = 300000;
+const INDEX_READY_POLL_MS = 500;
 const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // A build that makes no forward progress for this long is considered wedged
 // (e.g. an in-flight request whose abort timer was frozen while the tab was
@@ -154,6 +160,7 @@ let loaded_for_account: string | null = null;
 let build_in_progress = false;
 let build_capped = false;
 let build_progress_ms = 0;
+let build_processed = 0;
 let build_token = 0;
 let version = 0;
 let sort_order: "asc" | "desc" = "desc";
@@ -197,6 +204,7 @@ export function get_active_tabs(): readonly string[] {
 
 export function set_custom_categories(rules: CustomCategoryRule[]): void {
   custom_categories = rules;
+  set_active_custom_categories(rules);
   // Existing entries were classified with the previous rule set, so a full
   // reconcile is needed to pick up new/changed custom-category matches.
   void build_index({ force: true });
@@ -228,8 +236,10 @@ const listeners = new Set<() => void>();
 const in_flight_reclassify = new Map<string, boolean>();
 const recent_reclassify_meta = new Map<string, string>();
 const recently_read = new Map<string, number>();
+const recent_pins = new Map<string, { category: EmailCategory; at: number }>();
 
 const RECENT_READ_GUARD_MS = 30000;
+const RECENT_PIN_GUARD_MS = 30000;
 
 function note_recently_read(id: string): void {
   recently_read.set(id, now_ms());
@@ -238,6 +248,32 @@ function note_recently_read(id: string): void {
 
     if (oldest) recently_read.delete(oldest);
   }
+}
+
+export function note_recent_pin(id: string, category: EmailCategory): void {
+  recent_pins.set(id, { category, at: now_ms() });
+  if (recent_pins.size > 500) {
+    const oldest = recent_pins.keys().next().value;
+
+    if (oldest) recent_pins.delete(oldest);
+  }
+}
+
+export function clear_recent_pin(id: string): void {
+  recent_pins.delete(id);
+}
+
+function pinned_category_for(id: string): EmailCategory | null {
+  const pin = recent_pins.get(id);
+
+  if (!pin) return null;
+  if (now_ms() - pin.at >= RECENT_PIN_GUARD_MS) {
+    recent_pins.delete(id);
+
+    return null;
+  }
+
+  return pin.category;
 }
 
 function now_ms(): number {
@@ -603,6 +639,12 @@ function apply_upsert(
       }
     }
 
+    const pinned_category = pinned_category_for(raw.id);
+
+    if (pinned_category && entry.category !== pinned_category) {
+      entry = { ...entry, category: pinned_category, category_pinned: true };
+    }
+
     if (
       !existing ||
       existing.category !== entry.category ||
@@ -742,6 +784,18 @@ export function upsert_entries(
     schedule_persist();
     notify_soon();
   }
+}
+
+export function get_index_entries(ids: string[]): CategoryIndexEntry[] {
+  const found: CategoryIndexEntry[] = [];
+
+  for (const id of ids) {
+    const entry = entries_map.get(id);
+
+    if (entry) found.push({ ...entry });
+  }
+
+  return found;
 }
 
 export function set_ids_read(ids: string[], is_read: boolean): void {
@@ -1149,14 +1203,15 @@ export function get_thread_rep_id(id: string): string | null {
 
 export function thread_has_unread_entries(
   thread_token: string,
-  exclude_id?: string,
+  exclude?: string | ReadonlySet<string>,
 ): boolean {
   if (!thread_token) return false;
 
   for (const [id, entry] of entries_map) {
     if (entry.thread_token !== thread_token) continue;
     if (entry.is_read) continue;
-    if (exclude_id && id === exclude_id) continue;
+    if (typeof exclude === "string" ? id === exclude : exclude?.has(id))
+      continue;
 
     return true;
   }
@@ -1242,12 +1297,76 @@ export function is_build_in_progress(): boolean {
   return build_in_progress;
 }
 
+export function is_index_settled(): boolean {
+  if (!fully_built || build_in_progress) return false;
+
+  return entries_map.size > 0 || last_build_ms > 0;
+}
+
 // True when a build claims to be running but has made no progress for longer
 // than BUILD_STALE_MS. Used to distinguish a healthy (slow) build from one that
 // has wedged behind a dead request, so callers can recover instead of waiting
 // on a latch that will never clear without a page reload.
 export function is_build_stalled(): boolean {
   return build_in_progress && now_ms() - build_progress_ms > BUILD_STALE_MS;
+}
+
+export function get_build_processed(): number {
+  return build_processed;
+}
+
+export type IndexReadyOutcome = "ready" | "capped" | "stalled" | "timeout";
+
+export async function wait_for_index_ready(options?: {
+  timeout_ms?: number;
+  on_progress?: (processed: number) => void;
+}): Promise<IndexReadyOutcome> {
+  if (is_index_capped()) return "capped";
+  if (is_index_settled()) return "ready";
+
+  const timeout_ms = options?.timeout_ms ?? INDEX_READY_TIMEOUT_MS;
+  const started_at = now_ms();
+
+  if (!build_in_progress) void build_index();
+
+  return await new Promise<IndexReadyOutcome>((resolve) => {
+    let settled = false;
+    let unsubscribe: () => void = () => {};
+    let poll: ReturnType<typeof setInterval> | null = null;
+
+    const finish = (outcome: IndexReadyOutcome): void => {
+      if (settled) return;
+      settled = true;
+      unsubscribe();
+      if (poll) clearInterval(poll);
+      resolve(outcome);
+    };
+
+    const check = (): void => {
+      options?.on_progress?.(build_processed);
+
+      if (is_index_capped()) {
+        finish("capped");
+
+        return;
+      }
+      if (is_index_settled()) {
+        finish("ready");
+
+        return;
+      }
+      if (is_build_stalled()) {
+        finish("stalled");
+
+        return;
+      }
+      if (now_ms() - started_at > timeout_ms) finish("timeout");
+    };
+
+    unsubscribe = subscribe(check);
+    poll = setInterval(check, INDEX_READY_POLL_MS);
+    check();
+  });
 }
 
 export function get_version(): number {
@@ -1422,6 +1541,7 @@ export async function build_index(options?: {
 
   build_in_progress = true;
   build_progress_ms = now_ms();
+  build_processed = 0;
 
   try {
     let cursor: string | undefined;
@@ -1475,6 +1595,8 @@ export async function build_index(options?: {
         }
 
         build_progress_ms = now_ms();
+        build_processed =
+          processed + Math.min(start + BUILD_DECRYPT_CHUNK, items.length);
 
         if (start + BUILD_DECRYPT_CHUNK < items.length) {
           await yield_to_browser();
@@ -1873,6 +1995,7 @@ export function clear_category_index_memory(): void {
   resync_failures = 0;
   entries_map = new Map();
   recently_read.clear();
+  recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
   derived = null;
@@ -2044,10 +2167,15 @@ export async function init_category_index(): Promise<void> {
   void build_index({ force: fully_built && entries_map.size === 0 });
 }
 
+export interface CategoryWriteResult {
+  applied: boolean;
+  undecryptable: boolean;
+}
+
 export async function set_message_category(
   email: InboxEmail,
   category: EmailCategory,
-): Promise<boolean> {
+): Promise<CategoryWriteResult> {
   const result = await update_item_metadata(
     email.id,
     {
@@ -2058,10 +2186,13 @@ export async function set_message_category(
     { category, category_pinned: true },
   );
 
-  if (!result.success) return false;
+  if (!result.success) {
+    return { applied: false, undecryptable: result.undecryptable === true };
+  }
 
   const existing = entries_map.get(email.id);
 
+  note_recent_pin(email.id, category);
   upsert_entries([
     {
       id: email.id,
@@ -2074,7 +2205,7 @@ export async function set_message_category(
     },
   ]);
 
-  return true;
+  return { applied: true, undecryptable: false };
 }
 
 export async function clear_category_index(): Promise<void> {
@@ -2100,6 +2231,7 @@ export async function clear_category_index(): Promise<void> {
   clear_entry_previews();
   entries_map = new Map();
   recently_read.clear();
+  recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
   fully_built = false;

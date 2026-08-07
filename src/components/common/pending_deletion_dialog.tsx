@@ -147,7 +147,7 @@ export function PendingDeletionDialog() {
             disabled={is_cancelling}
             style={{
               backgroundColor: "var(--accent-color)",
-              color: "#fff",
+              color: "var(--accent-fg, #ffffff)",
             }}
             onClick={handle_keep}
           >

@@ -23,7 +23,12 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useCallback } from "react";
 
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  bulk_action_result,
+  bulk_succeeded_ids,
+  show_bulk_result_toast,
+} from "@/hooks/bulk_action_result";
+import { expand_email_ids } from "@/hooks/email_list_helpers";
 import {
   MAIL_EVENTS,
   emit_mail_item_updated,
@@ -74,15 +79,10 @@ export function use_folder_tag_actions({
       if (selected.length === 0) return;
       const folder_data = folders_lookup.get(folder_token);
       const folder_name = folder_data?.name || "folder";
-      const all_ids = selected.flatMap((e) =>
-        e.grouped_email_ids && e.grouped_email_ids.length > 1
-          ? e.grouped_email_ids
-          : [e.id],
+      const all_ids = selected.flatMap(expand_email_ids);
+      const previous_states = new Map(
+        selected.map((e) => [e.id, e.folders || []]),
       );
-      const previous_states = selected.map((e) => ({
-        id: e.id,
-        folders: e.folders || [],
-      }));
 
       const is_inbox =
         current_view === "inbox" ||
@@ -110,54 +110,61 @@ export function use_folder_tag_actions({
           }
         }
       }
-      const result = should_remove
+      const batch_result = should_remove
         ? await batched_bulk_remove_folder(all_ids, folder_token)
         : await batched_bulk_add_folder(all_ids, folder_token);
 
-      if (result.affected_total === 0 && all_ids.length > 0) {
-        for (const prev of previous_states) {
-          update_email(prev.id, { folders: prev.folders });
+      const failed_message_ids = new Set(batch_result.failed_ids);
+      const failed_emails = selected.filter((e) =>
+        expand_email_ids(e).some((id) => failed_message_ids.has(id)),
+      );
+      const succeeded_emails = selected.filter(
+        (e) => !failed_emails.includes(e),
+      );
+      const succeeded_ids = succeeded_emails.flatMap(expand_email_ids);
+      const next_folders = should_remove
+        ? []
+        : [{ folder_token, name: folder_name, color: folder_data?.color }];
+
+      if (failed_emails.length > 0) {
+        for (const email of failed_emails) {
+          update_email(email.id, {
+            folders: previous_states.get(email.id) ?? [],
+          });
         }
         if (!should_remove && is_inbox) {
-          reindex_ids(all_ids);
+          reindex_ids(failed_emails.flatMap(expand_email_ids));
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }
-
-        return;
       }
-      for (const email of selected) {
-        emit_mail_item_updated({
-          id: email.id,
-          folders: should_remove
-            ? []
-            : [
-                {
-                  folder_token,
-                  name: folder_name,
-                  color: folder_data?.color,
-                },
-              ],
-        });
+      for (const email of succeeded_emails) {
+        emit_mail_item_updated({ id: email.id, folders: next_folders });
       }
-      show_action_toast({
-        message: should_remove
+      show_bulk_result_toast({
+        result: bulk_action_result(
+          selected.map((e) => e.id),
+          failed_emails.map((e) => e.id),
+        ),
+        t,
+        success_message: should_remove
           ? t("common.conversations_removed_from_folder", {
-              count: selected.length,
+              count: succeeded_emails.length,
               folder: folder_name,
             })
           : t("common.conversations_moved_to_folder", {
-              count: selected.length,
+              count: succeeded_emails.length,
               folder: folder_name,
             }),
+        error_message: t("common.failed_to_update_emails"),
         action_type: "folder",
-        email_ids: all_ids,
+        email_ids: succeeded_ids,
         on_undo: async () => {
           if (should_remove) {
-            await batched_bulk_add_folder(all_ids, folder_token);
-            remove_index_ids(all_ids);
+            await batched_bulk_add_folder(succeeded_ids, folder_token);
+            remove_index_ids(succeeded_ids);
           } else {
-            await batched_bulk_remove_folder(all_ids, folder_token);
-            reindex_ids(all_ids);
+            await batched_bulk_remove_folder(succeeded_ids, folder_token);
+            reindex_ids(succeeded_ids);
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
@@ -170,6 +177,7 @@ export function use_folder_tag_actions({
       current_view,
       is_drafts_view,
       is_scheduled_view,
+      t,
     ],
   );
 
@@ -181,15 +189,8 @@ export function use_folder_tag_actions({
       if (selected.length === 0) return;
       const tag_data = tags_lookup.get(tag_token);
       const tag_name = tag_data?.name || "label";
-      const all_ids = selected.flatMap((e) =>
-        e.grouped_email_ids && e.grouped_email_ids.length > 1
-          ? e.grouped_email_ids
-          : [e.id],
-      );
-      const previous_states = selected.map((e) => ({
-        id: e.id,
-        tags: e.tags || [],
-      }));
+      const all_ids = selected.flatMap(expand_email_ids);
+      const previous_states = new Map(selected.map((e) => [e.id, e.tags || []]));
 
       for (const email of selected) {
         if (should_remove) {
@@ -210,24 +211,34 @@ export function use_folder_tag_actions({
           });
         }
       }
-      const result = should_remove
+      const batch_result = should_remove
         ? await batched_bulk_remove_tag(all_ids, tag_token)
         : await batched_bulk_add_tag(all_ids, tag_token);
 
-      if (result.affected === 0 && all_ids.length > 0) {
-        for (const prev of previous_states) {
-          update_email(prev.id, { tags: prev.tags });
-        }
+      const failed_message_ids = new Set(batch_result.failed_ids);
+      const failed_emails = selected.filter((e) =>
+        expand_email_ids(e).some((id) => failed_message_ids.has(id)),
+      );
+      const succeeded_emails = selected.filter(
+        (e) => !failed_emails.includes(e),
+      );
+      const result = bulk_action_result(
+        selected.map((e) => e.id),
+        failed_emails.map((e) => e.id),
+      );
 
-        return;
+      for (const email of failed_emails) {
+        update_email(email.id, { tags: previous_states.get(email.id) ?? [] });
       }
-      for (const email of selected) {
+      for (const email of succeeded_emails) {
         emit_mail_item_updated({
           id: email.id,
           tags: should_remove
-            ? (email.tags || []).filter((t) => t.id !== tag_token)
+            ? (previous_states.get(email.id) ?? []).filter(
+                (tag) => tag.id !== tag_token,
+              )
             : [
-                ...(email.tags || []),
+                ...(previous_states.get(email.id) ?? []),
                 {
                   id: tag_token,
                   name: tag_name,
@@ -237,23 +248,31 @@ export function use_folder_tag_actions({
               ],
         });
       }
-      show_action_toast({
-        message: should_remove
+
+      const succeeded_ids = succeeded_emails.flatMap(expand_email_ids);
+
+      show_bulk_result_toast({
+        result,
+        t,
+        success_message: should_remove
           ? t("common.conversations_removed_label", {
-              count: selected.length,
+              count: bulk_succeeded_ids(result).length,
               label: tag_name,
             })
           : t("common.conversations_added_label", {
-              count: selected.length,
+              count: bulk_succeeded_ids(result).length,
               label: tag_name,
             }),
+        error_message: should_remove
+          ? t("common.failed_to_remove_labels")
+          : t("common.failed_to_add_labels"),
         action_type: "folder",
-        email_ids: all_ids,
+        email_ids: succeeded_ids,
         on_undo: async () => {
           if (should_remove) {
-            await batched_bulk_add_tag(all_ids, tag_token);
+            await batched_bulk_add_tag(succeeded_ids, tag_token);
           } else {
-            await batched_bulk_remove_tag(all_ids, tag_token);
+            await batched_bulk_remove_tag(succeeded_ids, tag_token);
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
@@ -265,6 +284,7 @@ export function use_folder_tag_actions({
       update_email,
       is_drafts_view,
       is_scheduled_view,
+      t,
     ],
   );
 

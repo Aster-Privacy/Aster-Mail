@@ -25,6 +25,7 @@ import { Button, Switch } from "@aster/ui";
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
 import { use_i18n } from "@/lib/i18n/context";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -58,10 +59,19 @@ function format_hour_label(hour: number, am: string, pm: string): string {
   return `${display} ${period}`;
 }
 
-function parse_time_value(value: string): { hour: number; minute: number } {
-  const [h, m] = value.split(":");
+function parse_time_value(
+  value: string,
+): { hour: number; minute: number } | null {
+  const match = /^(\d{1,2}):(\d{1,2})$/.exec(value);
 
-  return { hour: parseInt(h, 10) || 0, minute: parseInt(m, 10) || 0 };
+  if (!match) return null;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+
+  if (hour > 23 || minute > 59) return null;
+
+  return { hour, minute };
 }
 
 function build_time_value(hour: number, minute: number): string {
@@ -71,14 +81,17 @@ function build_time_value(hour: number, minute: number): string {
 function QuietHoursTimeSelect({
   label,
   value,
+  fallback_value,
   on_change,
 }: {
   label: string;
   value: string;
+  fallback_value: string;
   on_change: (value: string) => void;
 }) {
   const { t } = use_i18n();
-  const { hour, minute } = parse_time_value(value);
+  const { hour, minute } = parse_time_value(value) ??
+    parse_time_value(fallback_value) ?? { hour: 0, minute: 0 };
   const am = t("common.am");
   const pm = t("common.pm");
 
@@ -532,11 +545,13 @@ export function NotificationsSection() {
                 </div>
                 <div className="flex items-center gap-4">
                   <QuietHoursTimeSelect
+                    fallback_value={DEFAULT_PREFERENCES.quiet_hours_start}
                     label={t("settings.from")}
                     on_change={(v) => update_preference("quiet_hours_start", v, true)}
                     value={preferences.quiet_hours_start}
                   />
                   <QuietHoursTimeSelect
+                    fallback_value={DEFAULT_PREFERENCES.quiet_hours_end}
                     label={t("settings.to")}
                     on_change={(v) => update_preference("quiet_hours_end", v, true)}
                     value={preferences.quiet_hours_end}

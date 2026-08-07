@@ -62,6 +62,7 @@ interface PasswordSectionProps {
   password_loading: boolean;
   password_error: string;
   password_success: boolean;
+  password_unreadable_notice?: string;
   password_breach_warning?: boolean;
   on_new_password_blur?: () => void;
   on_change_password: () => void;
@@ -87,6 +88,7 @@ export function PasswordSection({
   password_loading,
   password_error,
   password_success,
+  password_unreadable_notice,
   password_breach_warning,
   on_new_password_blur,
   on_change_password,
@@ -191,6 +193,12 @@ export function PasswordSection({
           {t("settings.change_password")}
         </Button>
       </div>
+
+      {password_unreadable_notice && (
+        <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-txt-primary">
+          {password_unreadable_notice}
+        </div>
+      )}
 
       <Modal
         is_open={show_password_section}

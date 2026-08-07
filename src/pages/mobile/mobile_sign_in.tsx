@@ -67,6 +67,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
+import { get_app_query_param } from "@/lib/hard_redirect";
 import {
   stagger_container,
   fade_up_item,
@@ -82,6 +83,26 @@ import {
   INPUT_ICON_CLASS,
 } from "@/components/auth/mobile_auth_motion";
 
+type SignInDomain = "astermail.org" | "aster.cx";
+
+function parse_prefill_identity(): {
+  local: string;
+  domain: SignInDomain | null;
+} {
+  const raw = get_app_query_param("u") || "";
+  const at_index = raw.indexOf("@");
+
+  if (at_index === -1) return { local: raw, domain: null };
+
+  const domain = raw.slice(at_index + 1).toLowerCase();
+
+  return {
+    local: raw.slice(0, at_index),
+    domain:
+      domain === "aster.cx" || domain === "astermail.org" ? domain : null,
+  };
+}
+
 export default function MobileSignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,6 +110,7 @@ export default function MobileSignInPage() {
   const {
     login,
     add_account,
+    switch_to_account,
     is_adding_account,
     set_is_adding_account,
     is_authenticated,
@@ -101,14 +123,23 @@ export default function MobileSignInPage() {
   const reduce_motion = use_should_reduce_motion();
   const is_dark = theme === "dark";
 
+  const [reauth_account_id] = useState(() => get_app_query_param("reauth"));
+  const [previous_account_id] = useState(() => get_app_query_param("from"));
+
   const has_existing_session =
     !auth_loading &&
     is_authenticated &&
     !!current_account_id &&
     !is_adding_account &&
+    !reauth_account_id &&
     !location.state?.from;
 
   const preloaded = useRef(false);
+
+  useEffect(() => {
+    if (!reauth_account_id || auth_loading || is_adding_account) return;
+    set_is_adding_account(true);
+  }, [reauth_account_id, auth_loading, is_adding_account, set_is_adding_account]);
 
   useEffect(() => {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
@@ -133,11 +164,13 @@ export default function MobileSignInPage() {
   ]);
 
   const [is_password_visible, set_is_password_visible] = useState(false);
-  const [username, set_username] = useState("");
+  const [username, set_username] = useState(
+    () => parse_prefill_identity().local,
+  );
   const [password, set_password] = useState("");
-  const [email_domain, set_email_domain] = useState<
-    "astermail.org" | "aster.cx"
-  >("astermail.org");
+  const [email_domain, set_email_domain] = useState<SignInDomain>(
+    () => parse_prefill_identity().domain ?? "astermail.org",
+  );
   const [remember_me, set_remember_me] = useState(true);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState(() =>
@@ -317,8 +350,19 @@ export default function MobileSignInPage() {
     return null;
   }
 
-  const handle_cancel_add_account = () => {
+  const handle_cancel_add_account = async () => {
     set_is_adding_account(false);
+
+    if (!is_authenticated && previous_account_id) {
+      try {
+        await switch_to_account(previous_account_id);
+
+        return;
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+      }
+    }
+
     navigate("/");
   };
 
@@ -371,7 +415,11 @@ export default function MobileSignInPage() {
         (a) => a.user.email.toLowerCase() === normalized,
       );
 
-      if (existing && existing.id !== (await get_current_account_id())) {
+      if (
+        existing &&
+        existing.id !== reauth_account_id &&
+        existing.id !== (await get_current_account_id())
+      ) {
         await timing_safe_delay();
         set_error(t("errors.account_already_added"));
 
@@ -709,7 +757,7 @@ export default function MobileSignInPage() {
 
       <div className="flex-1 overflow-y-auto px-6">
         <div className="flex min-h-full flex-col justify-center py-10">
-          {is_adding_account && is_authenticated ? (
+          {is_adding_account && (is_authenticated || !!previous_account_id) ? (
             <motion.div
               animate={{ opacity: 1 }}
               className="mb-6"

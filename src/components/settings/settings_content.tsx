@@ -467,6 +467,8 @@ function SettingsContentInner({
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
+      if (result.data === null) return;
+
       set_dev_mode_enabled(result.data);
       write_dev_mode_cache(current_account_id, result.data);
     };
@@ -802,6 +804,8 @@ function SettingsContentInner({
 
   const [search_slot, set_search_slot] = useState<HTMLElement | null>(null);
   const [active_result_index, set_active_result_index] = useState(0);
+  const [results_dismissed, set_results_dismissed] = useState(false);
+  const search_field_ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     set_search_slot(document.getElementById("settings_search_slot"));
@@ -809,7 +813,28 @@ function SettingsContentInner({
 
   useEffect(() => {
     set_active_result_index(0);
+    set_results_dismissed(false);
   }, [search_query]);
+
+  const results_open =
+    search_query.trim().length >= 2 && !results_dismissed;
+
+  useEffect(() => {
+    if (!results_open) return;
+
+    const handle_pointer_down = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+
+      if (!target) return;
+      if (search_field_ref.current?.contains(target)) return;
+      set_results_dismissed(true);
+    };
+
+    window.addEventListener("pointerdown", handle_pointer_down);
+
+    return () =>
+      window.removeEventListener("pointerdown", handle_pointer_down);
+  }, [results_open]);
 
   const open_search_result = useCallback(
     (entry: { section: Section; label: string }) => {
@@ -847,7 +872,7 @@ function SettingsContentInner({
   };
 
   const search_field = is_popup || !search_slot ? null : createPortal(
-        <div className="relative w-full max-w-[620px]">
+        <div ref={search_field_ref} className="relative w-full max-w-[620px]">
             <MagnifyingGlassIcon
               className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
               style={{ color: "var(--icon-muted)" }}

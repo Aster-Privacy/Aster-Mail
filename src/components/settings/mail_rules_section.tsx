@@ -220,28 +220,33 @@ export function MailRulesSection() {
         </p>
       </div>
 
-      {loading && rules.length === 0 && (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-            />
-          ))}
-        </div>
-      )}
+      {(loading || retention.loading) &&
+        rules.length === 0 &&
+        retention.policies.length === 0 && (
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+              />
+            ))}
+          </div>
+        )}
 
-      {!loading && rules.length === 0 && retention.policies.length === 0 && (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <BoltIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
-          <p className="text-sm text-txt-muted mb-1">
-            {t("mail_rules.empty_title")}
-          </p>
-          <p className="text-xs text-txt-muted">
-            {t("mail_rules.empty_description")}
-          </p>
-        </div>
-      )}
+      {!loading &&
+        !retention.loading &&
+        rules.length === 0 &&
+        retention.policies.length === 0 && (
+          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+            <BoltIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
+            <p className="text-sm text-txt-muted mb-1">
+              {t("mail_rules.empty_title")}
+            </p>
+            <p className="text-xs text-txt-muted">
+              {t("mail_rules.empty_description")}
+            </p>
+          </div>
+        )}
 
       {rules.length > 0 && (
         <div className="space-y-2">

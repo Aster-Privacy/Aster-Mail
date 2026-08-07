@@ -26,6 +26,7 @@ import { createPortal } from "react-dom";
 import { InboxIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -38,6 +39,11 @@ import {
   category_color_style,
 } from "@/data/category_colors";
 import { use_category_previews } from "@/hooks/use_category_previews";
+import {
+  EMAIL_DRAG_MIME,
+  end_category_drag,
+  use_category_drag_active,
+} from "@/components/email/inbox/category_drag";
 
 interface TabConfig {
   key: EmailCategory;
@@ -55,14 +61,17 @@ interface CategoryTabsProps {
   active_category: EmailCategory;
   counts: CategoryCounts;
   on_change: (category: EmailCategory) => void;
+  on_category_drop?: (category: EmailCategory, email_ids: string[]) => void;
 }
 
 export function CategoryTabs({
   active_category,
   counts,
   on_change,
+  on_category_drop,
 }: CategoryTabsProps): React.ReactElement {
   const { t } = use_i18n();
+  const reduce_motion = use_should_reduce_motion();
   const { preferences } = use_preferences();
   const { limits } = use_plan_limits();
   const previews = use_category_previews(true);
@@ -123,16 +132,16 @@ export function CategoryTabs({
   } | null>(null);
   const [hover_visible, set_hover_visible] = useState(false);
   const hover_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reveal_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reveal_frame_ref = useRef<number | null>(null);
 
   const cancel_hover = useCallback(() => {
     if (hover_timer_ref.current) {
       clearTimeout(hover_timer_ref.current);
       hover_timer_ref.current = null;
     }
-    if (reveal_timer_ref.current) {
-      clearTimeout(reveal_timer_ref.current);
-      reveal_timer_ref.current = null;
+    if (reveal_frame_ref.current !== null) {
+      cancelAnimationFrame(reveal_frame_ref.current);
+      reveal_frame_ref.current = null;
     }
     set_hover_visible(false);
     set_hovered(null);
@@ -141,7 +150,9 @@ export function CategoryTabs({
   useEffect(() => {
     return () => {
       if (hover_timer_ref.current) clearTimeout(hover_timer_ref.current);
-      if (reveal_timer_ref.current) clearTimeout(reveal_timer_ref.current);
+      if (reveal_frame_ref.current !== null) {
+        cancelAnimationFrame(reveal_frame_ref.current);
+      }
     };
   }, []);
 
@@ -159,11 +170,51 @@ export function CategoryTabs({
           left: rect.left,
           top: rect.bottom + 8,
         });
+
+        if (reduce_motion) {
+          set_hover_visible(true);
+
+          return;
+        }
+
         set_hover_visible(false);
-        reveal_timer_ref.current = setTimeout(() => set_hover_visible(true), 20);
-      }, 420);
+        reveal_frame_ref.current = requestAnimationFrame(() => {
+          reveal_frame_ref.current = requestAnimationFrame(() =>
+            set_hover_visible(true),
+          );
+        });
+      }, 250);
     },
-    [],
+    [reduce_motion],
+  );
+
+  const drag_active = use_category_drag_active();
+  const drop_enabled = drag_active && !!on_category_drop;
+  const [drop_target, set_drop_target] = useState<EmailCategory | null>(null);
+
+  useEffect(() => {
+    if (!drop_enabled) set_drop_target(null);
+  }, [drop_enabled]);
+
+  const handle_drop = useCallback(
+    (e: React.DragEvent<HTMLButtonElement>, category: EmailCategory) => {
+      e.preventDefault();
+      set_drop_target(null);
+      end_category_drag();
+
+      const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
+
+      if (!raw || !on_category_drop) return;
+
+      try {
+        const ids = JSON.parse(raw) as unknown;
+
+        if (Array.isArray(ids) && ids.length > 0) {
+          on_category_drop(category, ids as string[]);
+        }
+      } catch {}
+    },
+    [on_category_drop],
   );
 
   const handle_wheel = (e: React.WheelEvent<HTMLDivElement>) => {
@@ -187,6 +238,7 @@ export function CategoryTabs({
         const new_count = is_active ? 0 : (bucket?.new_count ?? 0);
         const show_new = new_count > 0;
         const preview = show_new ? previews[key] : undefined;
+        const is_drop_target = drop_enabled && drop_target === key;
 
         return (
           <button
@@ -196,6 +248,10 @@ export function CategoryTabs({
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
+            } ${
+              is_drop_target
+                ? "bg-brand/10 text-brand ring-1 ring-inset ring-brand/40"
+                : ""
             }`}
             style={color_style}
             type="button"
@@ -204,6 +260,28 @@ export function CategoryTabs({
               cancel_hover();
               on_change(key);
             }}
+            onDragEnter={drop_enabled ? () => set_drop_target(key) : undefined}
+            onDragLeave={
+              drop_enabled
+                ? (e) => {
+                    if (e.currentTarget.contains(e.relatedTarget as Node)) {
+                      return;
+                    }
+                    set_drop_target((current) =>
+                      current === key ? null : current,
+                    );
+                  }
+                : undefined
+            }
+            onDragOver={
+              drop_enabled
+                ? (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }
+                : undefined
+            }
+            onDrop={drop_enabled ? (e) => handle_drop(e, key) : undefined}
             onFocus={(e) => schedule_hover(tab, e.currentTarget)}
             onMouseDown={(e) => e.preventDefault()}
             onMouseLeave={cancel_hover}
@@ -217,9 +295,9 @@ export function CategoryTabs({
                 }`}
               />
               <span
-                className={`flex flex-col items-start ${
+                className={`relative flex flex-col items-start ${
                   preview ? "min-w-[124px]" : "min-w-0"
-                }`}
+                } ${drop_enabled && !preview ? "-translate-y-2" : ""}`}
               >
                 <span
                   className="flex h-5 min-w-0 items-center gap-2"
@@ -236,10 +314,19 @@ export function CategoryTabs({
                   ) : null}
                 </span>
                 {preview ? (
-                  <span className="mt-[3px] block h-[13px] w-[124px] max-w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                  <span
+                    className={`mt-[3px] block h-[13px] w-[124px] max-w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted ${
+                      drop_enabled ? "invisible" : ""
+                    }`}
+                  >
                     {preview.subject
                       ? `${preview.sender} - ${preview.subject}`
                       : preview.sender}
+                  </span>
+                ) : null}
+                {drop_enabled ? (
+                  <span className="pointer-events-none absolute left-0 top-[23px] block h-[13px] w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-brand">
+                    {t("mail.drop_to_move_here")}
                   </span>
                 ) : null}
               </span>
@@ -255,7 +342,11 @@ export function CategoryTabs({
       {hovered &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-[70] max-w-[260px] rounded-[10px] px-3 py-2 text-[12px] leading-snug transition-all duration-150 ease-out"
+            className={`pointer-events-none fixed z-[70] max-w-[260px] rounded-[10px] px-3 py-2 text-[12px] leading-snug ${
+              reduce_motion
+                ? ""
+                : "transition-[opacity,transform] duration-150 ease-out"
+            }`}
             role="tooltip"
             style={{
               backgroundColor: "var(--dropdown-bg)",
@@ -266,7 +357,11 @@ export function CategoryTabs({
               left: `${Math.max(8, Math.min(hovered.left, window.innerWidth - 272))}px`,
               top: `${hovered.top}px`,
               opacity: hover_visible ? 1 : 0,
-              transform: hover_visible ? "translateY(0)" : "translateY(-4px)",
+              transform: reduce_motion
+                ? undefined
+                : hover_visible
+                  ? "translateY(0)"
+                  : "translateY(-4px)",
             }}
           >
             {hovered.description}

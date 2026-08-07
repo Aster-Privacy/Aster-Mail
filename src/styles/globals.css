@@ -60,6 +60,7 @@
   --icon-active: var(--text-primary);
   --checkbox-border: var(--icon-secondary);
   --accent-color: #3b82f6;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #76a8f9;
   --accent-mix-w80: #629bf8;
   --accent-mix-w85: #5895f7;
@@ -155,6 +156,7 @@
   );
   --icon-active: var(--text-primary);
   --accent-color: #3b82f6;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #76a8f9;
   --accent-mix-w80: #629bf8;
   --accent-mix-w85: #5895f7;
@@ -239,6 +241,7 @@
   --text-tertiary: #b39ecf;
   --text-muted: #8f7ea3;
   --accent-color: #a855f7;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #c288f9;
   --accent-mix-w80: #b977f9;
   --accent-mix-w85: #b56ff8;
@@ -313,6 +316,7 @@
   --text-tertiary: #9ecfb5;
   --text-muted: #7ea390;
   --accent-color: #22c55e;
+  --accent-fg: #111827;
   --accent-mix-w70: #64d68e;
   --accent-mix-w80: #4ed17e;
   --accent-mix-w85: #43ce76;
@@ -345,7 +349,7 @@
   --popover: #10201a;
   --popover-foreground: #eefbf4;
   --primary: #22c55e;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #041508;
   --secondary: #142a21;
   --secondary-foreground: #eefbf4;
   --muted: #142a21;
@@ -358,7 +362,7 @@
   --sidebar: #0a1712;
   --sidebar-foreground: #eefbf4;
   --sidebar-primary: #22c55e;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: #041508;
   --sidebar-accent: #183327;
   --sidebar-accent-foreground: #eefbf4;
   --sidebar-border: #2b4a3b;
@@ -387,6 +391,7 @@
   --text-tertiary: #cf9eae;
   --text-muted: #a37e8a;
   --accent-color: #f43f5e;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #f7798e;
   --accent-mix-w80: #f6657e;
   --accent-mix-w85: #f65c76;
@@ -461,6 +466,7 @@
   --text-tertiary: #d1ab7f;
   --text-muted: #a68a67;
   --accent-color: #f97316;
+  --accent-fg: #111827;
   --accent-mix-w70: #fb9d5c;
   --accent-mix-w80: #fa8f45;
   --accent-mix-w85: #fa8839;
@@ -493,7 +499,7 @@
   --popover: #241a10;
   --popover-foreground: #fdf3ea;
   --primary: #f97316;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #1a0c00;
   --secondary: #2c2014;
   --secondary-foreground: #fdf3ea;
   --muted: #2c2014;
@@ -506,7 +512,7 @@
   --sidebar: #1a120a;
   --sidebar-foreground: #fdf3ea;
   --sidebar-primary: #f97316;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: #1a0c00;
   --sidebar-accent: #352718;
   --sidebar-accent-foreground: #fdf3ea;
   --sidebar-border: #4d3820;
@@ -535,6 +541,7 @@
   --text-tertiary: #9ccec8;
   --text-muted: #7ea29d;
   --accent-color: #14b88a;
+  --accent-fg: #111827;
   --accent-mix-w70: #5bcdad;
   --accent-mix-w80: #43c6a1;
   --accent-mix-w85: #37c39c;
@@ -567,7 +574,7 @@
   --popover: #0f2020;
   --popover-foreground: #eafbf9;
   --primary: #14b88a;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #00170f;
   --secondary: #142a2a;
   --secondary-foreground: #eafbf9;
   --muted: #142a2a;
@@ -580,7 +587,7 @@
   --sidebar: #0a1717;
   --sidebar-foreground: #eafbf9;
   --sidebar-primary: #14b88a;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: #00170f;
   --sidebar-accent: #183232;
   --sidebar-accent-foreground: #eafbf9;
   --sidebar-border: #2b4949;
@@ -609,6 +616,7 @@
   --text-tertiary: #a5a8d9;
   --text-muted: #7d80ab;
   --accent-color: #6366f1;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #9294f5;
   --accent-mix-w80: #8285f4;
   --accent-mix-w85: #7a7df3;
@@ -683,6 +691,7 @@
   --text-tertiary: #d4bd82;
   --text-muted: #a4905e;
   --accent-color: #f5be0b;
+  --accent-fg: #111827;
   --accent-mix-w70: #f8d254;
   --accent-mix-w80: #f7cb3c;
   --accent-mix-w85: #f7c830;
@@ -715,7 +724,7 @@
   --popover: #201a0a;
   --popover-foreground: #fdf6e3;
   --primary: #f5be0b;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #1a1400;
   --secondary: #2b2210;
   --secondary-foreground: #fdf6e3;
   --muted: #2b2210;
@@ -728,7 +737,7 @@
   --sidebar: #171207;
   --sidebar-foreground: #fdf6e3;
   --sidebar-primary: #f5be0b;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: #1a1400;
   --sidebar-accent: #332813;
   --sidebar-accent-foreground: #fdf6e3;
   --sidebar-border: #4d3d18;
@@ -757,6 +766,7 @@
   --text-tertiary: #8fd0dd;
   --text-muted: #6b9ba5;
   --accent-color: #068fd4;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #51b1e1;
   --accent-mix-w80: #38a5dd;
   --accent-mix-w85: #2ba0da;
@@ -831,6 +841,7 @@
   --text-tertiary: #a8b0bb;
   --text-muted: #7c8591;
   --accent-color: #64748b;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #939eae;
   --accent-mix-w80: #8390a2;
   --accent-mix-w85: #7b899c;
@@ -905,6 +916,7 @@
   --text-tertiary: #9fc0e8;
   --text-muted: #6f8bb3;
   --accent-color: #3b82f6;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #76a8f9;
   --accent-mix-w80: #629bf8;
   --accent-mix-w85: #5895f7;
@@ -979,6 +991,7 @@
   --text-tertiary: #bdd482;
   --text-muted: #93a45e;
   --accent-color: #84cc16;
+  --accent-fg: #111827;
   --accent-mix-w70: #a9db5c;
   --accent-mix-w80: #9dd645;
   --accent-mix-w85: #96d439;
@@ -1053,6 +1066,7 @@
   --text-tertiary: #cf94c1;
   --text-muted: #a3768f;
   --accent-color: #cd1fd6;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #dc62e2;
   --accent-mix-w80: #d74cde;
   --accent-mix-w85: #d541dc;
@@ -1127,6 +1141,7 @@
   --text-tertiary: #8dd4a8;
   --text-muted: #63a47c;
   --accent-color: #31d926;
+  --accent-fg: #111827;
   --accent-mix-w70: #6fe467;
   --accent-mix-w80: #5ae151;
   --accent-mix-w85: #50df47;
@@ -1201,6 +1216,7 @@
   --text-tertiary: #d491ba;
   --text-muted: #a4698f;
   --accent-color: #e0399d;
+  --accent-fg: #ffffff;
   --accent-mix-w70: #e974ba;
   --accent-mix-w80: #e661b1;
   --accent-mix-w85: #e557ac;
@@ -1275,6 +1291,7 @@
   --text-tertiary: #a3a3a3;
   --text-muted: #737373;
   --accent-color: #d4d4d8;
+  --accent-fg: #111827;
   --accent-mix-w70: #e1e1e4;
   --accent-mix-w80: #dddde0;
   --accent-mix-w85: #dadade;
@@ -1833,10 +1850,10 @@ button.press_scale:active {
   --color-input-border: var(--input-border);
   --color-sidebar-bg-custom: var(--sidebar-bg);
   --color-sidebar-hover-custom: var(--sidebar-hover);
-  --color-blue-50: color-mix(in srgb, var(--accent-color) 5%, white);
-  --color-blue-100: color-mix(in srgb, var(--accent-color) 10%, white);
-  --color-blue-200: color-mix(in srgb, var(--accent-color) 20%, white);
-  --color-blue-300: color-mix(in srgb, var(--accent-color) 40%, white);
+  --color-blue-50: color-mix(in srgb, var(--accent-color) 5%, var(--bg-primary));
+  --color-blue-100: color-mix(in srgb, var(--accent-color) 10%, var(--bg-primary));
+  --color-blue-200: color-mix(in srgb, var(--accent-color) 20%, var(--bg-primary));
+  --color-blue-300: color-mix(in srgb, var(--accent-color) 40%, var(--bg-primary));
   --color-blue-400: var(--accent-mix-w70, #76a8f9);
   --color-blue-500: var(--accent-color);
   --color-blue-600: var(--accent-color);
@@ -1987,7 +2004,7 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
   --mail_row_selected_bg: color-mix(
     in srgb,
     var(--accent-color, #3b82f6) 26%,
-    #ffffff
+    var(--bg-primary, #ffffff)
   );
   background-color: var(--mail_row_selected_bg);
   border-bottom-color: color-mix(
@@ -1995,34 +2012,52 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
     var(--text-primary) 7%,
     var(--mail_row_selected_bg)
   );
+  --border-primary: color-mix(
+    in srgb,
+    var(--text-primary) 26%,
+    var(--mail_row_selected_bg)
+  );
+  --border-secondary: color-mix(
+    in srgb,
+    var(--text-primary) 16%,
+    var(--mail_row_selected_bg)
+  );
 }
 
 .dark .mail_row_selected {
   --mail_row_selected_bg: color-mix(
-    in oklch,
-    var(--accent-color, #3b82f6) 58%,
-    #00054f
+    in srgb,
+    var(--accent-color, #3b82f6) 45%,
+    var(--bg-primary, #121212)
   );
   --text-primary: #ffffff;
-  --text-secondary: #e6ecf8;
-  --text-tertiary: #d6e0f3;
-  --text-muted: #b7c7e8;
-  --icon-muted: #b7c7e8;
+  --text-secondary: color-mix(
+    in srgb,
+    #ffffff 93%,
+    var(--mail_row_selected_bg)
+  );
+  --text-tertiary: color-mix(
+    in srgb,
+    #ffffff 88%,
+    var(--mail_row_selected_bg)
+  );
+  --text-muted: color-mix(in srgb, #ffffff 82%, var(--mail_row_selected_bg));
+  --icon-muted: var(--text-muted);
 }
 
 .mail_row_selected:hover {
   --mail_row_selected_bg: color-mix(
     in srgb,
     var(--accent-color, #3b82f6) 34%,
-    #ffffff
+    var(--bg-primary, #ffffff)
   );
 }
 
 .dark .mail_row_selected:hover {
   --mail_row_selected_bg: color-mix(
-    in oklch,
-    var(--accent-color, #3b82f6) 68%,
-    #00054f
+    in srgb,
+    var(--accent-color, #3b82f6) 52%,
+    var(--bg-primary, #121212)
   );
 }
 
@@ -2704,7 +2739,7 @@ input:-webkit-autofill:active {
     var(--accent-color) 72%,
     var(--dropdown-bg)
   );
-  color: color-mix(in srgb, #fff 92%, var(--accent-color));
+  color: color-mix(in srgb, var(--accent-fg, #ffffff) 92%, var(--accent-color));
   box-shadow: inset 0 0 0 1px
     color-mix(in srgb, var(--accent-color) 45%, transparent);
 }

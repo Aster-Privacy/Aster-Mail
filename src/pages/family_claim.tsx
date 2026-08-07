@@ -174,7 +174,7 @@ export default function FamilyClaimPage() {
     <div className="fixed inset-0 flex flex-col transition-colors duration-200 bg-surf-primary">
       {preview.state === "ready" && (
         <div
-          className="w-full flex-shrink-0 text-white"
+          className="w-full flex-shrink-0 text-[var(--accent-fg,#ffffff)]"
           style={{ backgroundColor: "var(--accent-color)" }}
         >
           <div className="px-4 py-2 text-center">

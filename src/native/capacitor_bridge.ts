@@ -37,6 +37,7 @@ import {
   process_offline_queue,
 } from "./offline_queue";
 import { recover_fallback_sends } from "@/services/send_queue";
+import { css_color_to_hex } from "@/lib/avatar_color";
 
 let is_initialized = false;
 
@@ -100,6 +101,18 @@ export async function hide_splash(): Promise<void> {
   await SplashScreen.hide({ fadeOutDuration: 200 });
 }
 
+function status_bar_color(is_dark: boolean): string {
+  const fallback = is_dark ? "#121212" : "#ffffff";
+
+  if (typeof document === "undefined") return fallback;
+
+  const bg = getComputedStyle(document.documentElement)
+    .getPropertyValue("--bg-secondary")
+    .trim();
+
+  return css_color_to_hex(bg) ?? fallback;
+}
+
 async function setup_status_bar(): Promise<void> {
   if (!is_native_platform()) return;
 
@@ -110,9 +123,7 @@ async function setup_status_bar(): Promise<void> {
   await StatusBar.setStyle({ style: is_dark ? Style.Dark : Style.Light });
 
   if (get_platform() === "android") {
-    await StatusBar.setBackgroundColor({
-      color: is_dark ? "#121212" : "#ffffff",
-    });
+    await StatusBar.setBackgroundColor({ color: status_bar_color(is_dark) });
   }
 }
 
@@ -122,9 +133,7 @@ export async function update_status_bar_theme(is_dark: boolean): Promise<void> {
   await StatusBar.setStyle({ style: is_dark ? Style.Dark : Style.Light });
 
   if (get_platform() === "android") {
-    await StatusBar.setBackgroundColor({
-      color: is_dark ? "#121212" : "#ffffff",
-    });
+    await StatusBar.setBackgroundColor({ color: status_bar_color(is_dark) });
   }
 }
 

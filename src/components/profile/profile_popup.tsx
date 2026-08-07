@@ -18,23 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { AnimatePresence, motion } from "framer-motion";
 import {
   XMarkIcon,
   EnvelopeIcon,
   ClipboardDocumentIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { Button } from "@aster/ui";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { BadgeChip } from "@/components/ui/badge_chip";
+import { Modal, ModalTitle } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import { ProfileNotesBox } from "@/components/profile/profile_notes_box";
 import { show_toast } from "@/components/toast/simple_toast";
-import { use_should_reduce_motion } from "@/provider";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 
 interface ProfilePopupProps {
@@ -55,7 +54,6 @@ export function ProfilePopup({
   on_copy,
 }: ProfilePopupProps) {
   const { t } = use_i18n();
-  const reduce_motion = use_should_reduce_motion();
 
   const handle_copy = useCallback(async () => {
     try {
@@ -83,20 +81,6 @@ export function ProfilePopup({
     on_close();
   }, [email, on_compose, on_close]);
 
-  useEffect(() => {
-    if (!is_open) return;
-
-    const handle_keydown = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape") {
-        on_close();
-      }
-    };
-
-    window.addEventListener("keydown", handle_keydown);
-
-    return () => window.removeEventListener("keydown", handle_keydown);
-  }, [is_open, on_close]);
-
   const peer_profile = use_peer_profile(is_open ? email : null);
   const peer_display_name = peer_profile?.display_name;
   const display_name = peer_display_name || name || get_email_username(email);
@@ -106,105 +90,71 @@ export function ProfilePopup({
     (peer_profile?.show_badge_profile ?? false) && !!active_badge;
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-          exit={{ opacity: 0 }}
-          initial={reduce_motion ? false : { opacity: 0 }}
-          transition={{ duration: reduce_motion ? 0 : 0.15 }}
+    <Modal is_open={is_open} on_close={on_close} show_close_button={false} size="sm">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-edge-secondary">
+        <ModalTitle className="text-[13px] font-medium">
+          {t("common.profile")}
+        </ModalTitle>
+        <button
+          aria-label={t("common.close")}
+          className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover"
           onClick={on_close}
         >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
+          <XMarkIcon className="w-4 h-4 text-txt-muted" />
+        </button>
+      </div>
+
+      <div className="p-5">
+        <div className="flex flex-col items-center text-center mb-5">
+          <ProfileAvatar
+            use_domain_logo
+            className="mb-3 shadow-md ring-2 ring-white dark:ring-zinc-800"
+            email={email}
+            image_url={peer_profile?.profile_picture ?? undefined}
+            name={display_name}
+            size="xl"
           />
+          <h3 className="text-[16px] font-semibold text-txt-primary">
+            {display_name}
+          </h3>
+          {domain && (
+            <p className="text-[12px] mt-0.5 text-txt-muted">{domain}</p>
+          )}
+          {show_profile_badge && active_badge && (
+            <div className="mt-2">
+              <BadgeChip badge={active_badge} size="md" />
+            </div>
+          )}
+        </div>
 
-          <motion.div
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            className="relative w-full max-w-[360px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)]"
-            exit={{ scale: 0.96, opacity: 0, y: 8 }}
-            initial={reduce_motion ? false : { scale: 0.96, opacity: 0, y: 8 }}
-            transition={{
-              duration: reduce_motion ? 0 : 0.15,
-              ease: [0.19, 1, 0.22, 1],
-            }}
-            onClick={(e) => e.stopPropagation()}
+        <div className="flex items-center gap-3 p-3 rounded-xl mb-4 bg-surf-secondary">
+          <EnvelopeIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
+              {t("common.email")}
+            </p>
+            <p className="text-[13px] truncate text-txt-primary">{email}</p>
+          </div>
+          <button
+            aria-label={t("common.copy")}
+            className="p-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+            onClick={handle_copy}
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-edge-secondary">
-              <span className="text-[13px] font-medium text-txt-primary">
-                {t("common.profile")}
-              </span>
-              <button
-                className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover"
-                onClick={on_close}
-              >
-                <XMarkIcon className="w-4 h-4 text-txt-muted" />
-              </button>
-            </div>
+            <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
+          </button>
+        </div>
 
-            <div className="p-5">
-              <div className="flex flex-col items-center text-center mb-5">
-                <ProfileAvatar
-                  use_domain_logo
-                  className="mb-3 shadow-md ring-2 ring-white dark:ring-zinc-800"
-                  email={email}
-                  image_url={peer_profile?.profile_picture ?? undefined}
-                  name={display_name}
-                  size="xl"
-                />
-                <h3 className="text-[16px] font-semibold text-txt-primary">
-                  {display_name}
-                </h3>
-                {domain && (
-                  <p className="text-[12px] mt-0.5 text-txt-muted">{domain}</p>
-                )}
-                {show_profile_badge && active_badge && (
-                  <div className="mt-2">
-                    <BadgeChip badge={active_badge} size="md" />
-                  </div>
-                )}
-              </div>
+        <ProfileNotesBox email={email} />
 
-              <div className="flex items-center gap-3 p-3 rounded-xl mb-4 bg-surf-secondary">
-                <EnvelopeIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                    {t("common.email")}
-                  </p>
-                  <p className="text-[13px] truncate text-txt-primary">
-                    {email}
-                  </p>
-                </div>
-                <button
-                  className="p-2 rounded-[14px] transition-colors hover:bg-surf-hover"
-                  onClick={handle_copy}
-                >
-                  <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted" />
-                </button>
-              </div>
-
-              <ProfileNotesBox email={email} />
-
-              {on_compose && (
-                <div className="mt-4 pt-4 border-t border-edge-secondary">
-                  <Button
-                    className="w-full"
-                    variant="depth"
-                    onClick={handle_compose}
-                  >
-                    <PaperAirplaneIcon className="w-4 h-4" />
-                    {t("mail.send_email")}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        {on_compose && (
+          <div className="mt-4 pt-4 border-t border-edge-secondary">
+            <Button className="w-full" variant="depth" onClick={handle_compose}>
+              <PaperAirplaneIcon className="w-4 h-4" />
+              {t("mail.send_email")}
+            </Button>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }

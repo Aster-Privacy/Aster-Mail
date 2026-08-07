@@ -24,7 +24,7 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
 import { is_internal_email } from "./keys";
 
-import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -437,7 +437,7 @@ export async function cancel_scheduled_email(
     return create_error_response(response.error, response.code);
   }
 
-  invalidate_mail_counts();
+  invalidate_mail_stats();
 
   return { data: { success: true } };
 }
@@ -455,7 +455,7 @@ export async function reschedule_email(
     return create_error_response(response.error, response.code);
   }
 
-  invalidate_mail_counts();
+  invalidate_mail_stats();
 
   return { data: { success: true } };
 }
@@ -502,7 +502,7 @@ export async function create_scheduled_email(
     return create_error_response(response.error, response.code);
   }
 
-  invalidate_mail_counts();
+  invalidate_mail_stats();
 
   return {
     data: {
@@ -525,7 +525,7 @@ export async function send_scheduled_now(
     return create_error_response(response.error, response.code);
   }
 
-  invalidate_mail_counts();
+  invalidate_mail_stats();
 
   return { data: { success: true } };
 }

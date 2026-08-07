@@ -38,6 +38,14 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
+import {
   list_blocked_senders,
   unblock_sender_by_token,
   bulk_unblock_senders_by_tokens,
@@ -60,25 +68,16 @@ export function BlockedSection() {
   const [new_email, set_new_email] = useState("");
   const [is_domain, set_is_domain] = useState(false);
   const [is_adding, set_is_adding] = useState(false);
-  const [form_visible, set_form_visible] = useState(false);
 
   const open_add_form = () => {
+    set_new_email("");
+    set_is_domain(false);
     set_show_add_form(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        set_form_visible(true);
-      });
-    });
   };
 
-  const close_add_form = () => {
-    set_form_visible(false);
-    setTimeout(() => {
-      set_show_add_form(false);
-      set_new_email("");
-      set_is_domain(false);
-    }, 200);
-  };
+  const close_add_form = useCallback(() => {
+    set_show_add_form(false);
+  }, []);
 
   const fetch_blocked_senders = useCallback(async () => {
     set_load_error(false);
@@ -271,81 +270,70 @@ export function BlockedSection() {
         )}
       </div>
 
-      {show_add_form && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center"
-          style={{ opacity: form_visible ? 1 : 0, transition: "opacity 200ms" }}
-        >
-          <div
-            className="absolute inset-0 backdrop-blur-md"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            onClick={close_add_form}
-          />
-          <div
-            className="relative w-full max-w-md mx-4 rounded-xl border p-6 shadow-xl transition-all duration-200 bg-modal-bg border-edge-primary"
-            style={{
-              transform: form_visible
-                ? "scale(1) translateY(0)"
-                : "scale(0.97) translateY(4px)",
-              opacity: form_visible ? 1 : 0,
-            }}
-          >
-            <h4 className="text-[15px] font-semibold mb-2 text-txt-primary">
-              {t("mail.block_sender")}
-            </h4>
-            <p className="text-[13px] mb-4 text-txt-muted">
-              {t("settings.block_sender_popup_description")}
-            </p>
-            <div className="flex items-center gap-4 mb-4">
-              <Radio
-                checked={!is_domain}
-                label={t("settings.email_address")}
-                name="blocklist_type"
-                onChange={() => {
-                  set_is_domain(false);
-                  set_new_email("");
-                }}
-              />
-              <Radio
-                checked={is_domain}
-                label={t("settings.entire_domain")}
-                name="blocklist_type"
-                onChange={() => {
-                  set_is_domain(true);
-                  set_new_email("");
-                }}
-              />
-            </div>
-            <Input
-              className="w-full mb-4"
-              placeholder={
-                is_domain
-                  ? t("settings.enter_domain_placeholder")
-                  : t("common.enter_email_to_block")
-              }
-              type={is_domain ? "text" : "email"}
-              value={new_email}
-              onChange={(e) => set_new_email(e.target.value)}
-              onKeyDown={(e) => {
-                if (e["key"] === "Enter") {
-                  handle_add_blocked();
-                }
+      <Modal
+        is_open={show_add_form}
+        on_close={close_add_form}
+        show_close_button={false}
+        size="md"
+      >
+        <ModalHeader className="pr-6">
+          <ModalTitle className="text-[15px]">
+            {t("mail.block_sender")}
+          </ModalTitle>
+          <ModalDescription>
+            {t("settings.block_sender_popup_description")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody className="px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Radio
+              checked={!is_domain}
+              label={t("settings.email_address")}
+              name="blocklist_type"
+              onChange={() => {
+                set_is_domain(false);
+                set_new_email("");
               }}
             />
-            <div className="flex items-center justify-end gap-3">
-              <Button variant="ghost" onClick={close_add_form}>
-                {t("common.cancel")}
-              </Button>
-              <Button
-                disabled={is_adding || !new_email.trim()}
-                onClick={handle_add_blocked}
-              >
-                {is_adding ? <Spinner size="md" /> : t("common.block")}
-              </Button>
-            </div>
+            <Radio
+              checked={is_domain}
+              label={t("settings.entire_domain")}
+              name="blocklist_type"
+              onChange={() => {
+                set_is_domain(true);
+                set_new_email("");
+              }}
+            />
           </div>
-        </div>
-      )}
+          <Input
+            className="w-full"
+            placeholder={
+              is_domain
+                ? t("settings.enter_domain_placeholder")
+                : t("common.enter_email_to_block")
+            }
+            type={is_domain ? "text" : "email"}
+            value={new_email}
+            onChange={(e) => set_new_email(e.target.value)}
+            onKeyDown={(e) => {
+              if (e["key"] === "Enter") {
+                handle_add_blocked();
+              }
+            }}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" onClick={close_add_form}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={is_adding || !new_email.trim()}
+            onClick={handle_add_blocked}
+          >
+            {is_adding ? <Spinner size="md" /> : t("common.block")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       {load_error && blocked_senders.length === 0 ? (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">

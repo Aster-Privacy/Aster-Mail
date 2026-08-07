@@ -36,7 +36,7 @@ import {
   emit_mail_action,
 } from "../email_action_types";
 
-import { report_spam_sender, mark_thread_read } from "@/services/api/mail";
+import { report_spam_sender } from "@/services/api/mail";
 import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
@@ -52,9 +52,20 @@ import {
   hide_action_toast,
 } from "@/components/toast/action_toast";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
-import { adjust_starred_count } from "@/hooks/use_mail_counts";
-import { mark_thread_read_entries } from "@/services/category_index";
-import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import {
+  bulk_action_result,
+  show_bulk_result_toast,
+} from "@/hooks/bulk_action_result";
+import {
+  collect_conversation_thread_tokens,
+  mark_conversation_threads_read,
+} from "@/hooks/mark_conversation_read";
+import { conversation_read_delta } from "@/hooks/unread_read_delta";
+import { use_preferences } from "@/contexts/preferences_context";
+import {
+  adjust_stats_starred,
+  adjust_stats_unread,
+} from "@/hooks/use_mail_stats";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -113,6 +124,7 @@ export function use_bulk_actions(
   metadata: MetadataHelpers,
 ): BulkActions {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const {
     set_action_loading,
     set_action_error,
@@ -178,6 +190,7 @@ export function use_bulk_actions(
         on_before_api?: () => void;
         on_partial_failure?: (failed_ids: string[]) => void;
         on_full_rollback?: () => void;
+        finalize_failed_ids?: (succeeded_ids: string[]) => Promise<string[]>;
       },
     ): Promise<boolean> => {
       const ids = emails.map((e) => e.id);
@@ -244,10 +257,22 @@ export function use_bulk_actions(
 
         if (show_progress) hide_action_toast();
 
-        if (result.failed_ids.length > 0) {
-          const failed_set = new Set(result.failed_ids);
+        const failed_set = new Set(result.failed_ids);
 
-          for (const id of result.failed_ids) {
+        if (action_config.finalize_failed_ids) {
+          const extra_failed_ids = await action_config.finalize_failed_ids(
+            ids.filter((id) => !failed_set.has(id)),
+          );
+
+          for (const id of extra_failed_ids) {
+            failed_set.add(id);
+          }
+        }
+
+        const failed_ids = ids.filter((id) => failed_set.has(id));
+
+        if (failed_ids.length > 0) {
+          for (const id of failed_ids) {
             rollback_action(id, action_config.action_type);
           }
           if (!action_config.emit_view_change) {
@@ -260,12 +285,10 @@ export function use_bulk_actions(
               }
             }
           }
-          action_config.on_partial_failure?.(result.failed_ids);
+          action_config.on_partial_failure?.(failed_ids);
         }
 
-        const successful_ids = ids.filter(
-          (i) => !result.failed_ids.includes(i),
-        );
+        const successful_ids = ids.filter((i) => !failed_set.has(i));
 
         for (const id of successful_ids) {
           remove_pending_action(id, action_config.action_type);
@@ -275,9 +298,7 @@ export function use_bulk_actions(
         if (action_config.emit_view_change) {
           emit_mail_changed();
         } else {
-          for (const email of emails.filter(
-            (e) => !result.failed_ids.includes(e.id),
-          )) {
+          for (const email of emails.filter((e) => !failed_set.has(e.id))) {
             emit_mail_item_updated({
               id: email.id,
               ...action_config.optimistic_update,
@@ -289,72 +310,78 @@ export function use_bulk_actions(
         config.on_success?.(action_config.action_type);
 
         if (action_config.success_toast) {
-          const success_count = ids.length - result.failed_ids.length;
           const successful_emails = emails.filter(
-            (e) => !result.failed_ids.includes(e.id),
+            (e) => !failed_set.has(e.id),
           );
+          const compute_undo = action_config.success_toast.compute_undo_metadata;
+          const fixed_undo = action_config.success_toast.undo_metadata;
 
-          if (success_count > 0) {
-            const toast_config: Parameters<typeof show_action_toast>[0] = {
-              message: t(
-                action_config.success_toast.message_key as TranslationKey,
-                { count: String(success_count) },
-              ),
-              action_type: action_config.success_toast.toast_action_type,
-              email_ids: successful_ids,
-            };
+          let on_undo: (() => Promise<void>) | undefined;
 
-            const compute_undo = action_config.success_toast.compute_undo_metadata;
-            const fixed_undo = action_config.success_toast.undo_metadata;
-
-            if (compute_undo) {
-              toast_config.on_undo = async () => {
-                const groups = new Map<string, { meta: Partial<{
-                  is_read: boolean;
-                  is_starred: boolean;
-                  is_pinned: boolean;
-                  is_trashed: boolean;
-                  is_archived: boolean;
-                  is_spam: boolean;
-                }>; emails: InboxEmail[] }>();
-
-                for (const email of successful_emails) {
-                  const meta = compute_undo(email);
-                  const key = JSON.stringify(meta);
-                  const entry = groups.get(key);
-
-                  if (entry) {
-                    entry.emails.push(email);
-                  } else {
-                    groups.set(key, { meta, emails: [email] });
-                  }
+          if (compute_undo) {
+            on_undo = async () => {
+              const groups = new Map<
+                string,
+                {
+                  meta: Partial<{
+                    is_read: boolean;
+                    is_starred: boolean;
+                    is_pinned: boolean;
+                    is_trashed: boolean;
+                    is_archived: boolean;
+                    is_spam: boolean;
+                  }>;
+                  emails: InboxEmail[];
                 }
+              >();
 
-                for (const { meta, emails: group } of groups.values()) {
-                  await apply_archive_batch_for_undo(
-                    meta,
-                    group.map((e) => e.id),
-                  );
-                  await bulk_update_with_metadata(group, meta);
+              for (const email of successful_emails) {
+                const meta = compute_undo(email);
+                const key = JSON.stringify(meta);
+                const entry = groups.get(key);
+
+                if (entry) {
+                  entry.emails.push(email);
+                } else {
+                  groups.set(key, { meta, emails: [email] });
                 }
-                emit_mail_soft_refresh();
-              };
-            } else if (fixed_undo) {
-              toast_config.on_undo = async () => {
+              }
+
+              for (const { meta, emails: group } of groups.values()) {
                 await apply_archive_batch_for_undo(
-                  fixed_undo,
-                  successful_emails.map((e) => e.id),
+                  meta,
+                  group.map((e) => e.id),
                 );
-                await bulk_update_with_metadata(successful_emails, fixed_undo);
-                emit_mail_soft_refresh();
-              };
-            }
-
-            show_action_toast(toast_config);
+                await bulk_update_with_metadata(group, meta);
+              }
+              emit_mail_soft_refresh();
+            };
+          } else if (fixed_undo) {
+            on_undo = async () => {
+              await apply_archive_batch_for_undo(
+                fixed_undo,
+                successful_emails.map((e) => e.id),
+              );
+              await bulk_update_with_metadata(successful_emails, fixed_undo);
+              emit_mail_soft_refresh();
+            };
           }
+
+          show_bulk_result_toast({
+            result: bulk_action_result(ids, failed_ids),
+            t,
+            success_message: t(
+              action_config.success_toast.message_key as TranslationKey,
+              { count: String(successful_ids.length) },
+            ),
+            error_message: action_config.error_message,
+            action_type: action_config.success_toast.toast_action_type,
+            email_ids: successful_ids,
+            ...(on_undo ? { on_undo } : {}),
+          });
         }
 
-        return result.success;
+        return result.success && failed_ids.length === 0;
       } catch {
         for (const id of ids) {
           rollback_action(id, action_config.action_type);
@@ -398,7 +425,7 @@ export function use_bulk_actions(
       const count_delta = starred ? emails_changing : -emails_changing;
 
       if (count_delta !== 0) {
-        adjust_starred_count(count_delta);
+        adjust_stats_starred(count_delta);
       }
 
       return execute_bulk_action(emails, {
@@ -409,6 +436,12 @@ export function use_bulk_actions(
         }),
         metadata_update: { is_starred: starred },
         error_message: t("common.failed_to_update_emails"),
+        success_toast: {
+          message_key: starred
+            ? "common.conversations_starred_bulk"
+            : "common.conversations_unstarred_bulk",
+          toast_action_type: starred ? "star" : "unstar",
+        },
         on_partial_failure: (failed_ids) => {
           const failed_changing = emails.filter(
             (e) => failed_ids.includes(e.id) && e.is_starred !== starred,
@@ -416,12 +449,12 @@ export function use_bulk_actions(
           const failed_delta = starred ? -failed_changing : failed_changing;
 
           if (failed_delta !== 0) {
-            adjust_starred_count(failed_delta);
+            adjust_stats_starred(failed_delta);
           }
         },
         on_full_rollback: () => {
           if (count_delta !== 0) {
-            adjust_starred_count(-count_delta);
+            adjust_stats_starred(-count_delta);
           }
         },
       });
@@ -454,8 +487,7 @@ export function use_bulk_actions(
             const extra = (thread.data?.messages ?? [])
               .filter(
                 (message) =>
-                  message.item_type === "received" &&
-                  !base_ids.has(message.id),
+                  message.item_type === "received" && !base_ids.has(message.id),
               )
               .map((message) => message.id);
 
@@ -611,14 +643,15 @@ export function use_bulk_actions(
   const bulk_mark_read = useCallback(
     async (emails: InboxEmail[], is_read: boolean): Promise<boolean> => {
       const action_type: ActionType = is_read ? "read" : "unread";
-      const changing = emails.filter(
-        (e) => e.item_type === "received" && e.is_read !== is_read,
+      const unread_delta = conversation_read_delta(
+        emails,
+        is_read,
+        preferences.conversation_grouping,
       );
-      const unread_delta = is_read ? -changing.length : changing.length;
 
       if (unread_delta !== 0) adjust_stats_unread(unread_delta);
 
-      const success = await execute_bulk_action(emails, {
+      return execute_bulk_action(emails, {
         action_type,
         optimistic_update: { is_read },
         original_state_extractor: (email) => ({
@@ -628,51 +661,49 @@ export function use_bulk_actions(
         error_message: is_read
           ? t("common.failed_to_mark_as_read")
           : t("common.failed_to_mark_as_unread"),
+        success_toast: {
+          message_key: is_read
+            ? "common.conversations_marked_as_read_bulk"
+            : "common.conversations_marked_as_unread_bulk",
+          toast_action_type: is_read ? "read" : "unread",
+        },
         on_partial_failure: (failed_ids) => {
-          const failed_changing = emails.filter(
-            (e) =>
-              failed_ids.includes(e.id) &&
-              e.item_type === "received" &&
-              e.is_read !== is_read,
-          ).length;
-          const revert_delta = is_read ? failed_changing : -failed_changing;
+          const failed_set = new Set(failed_ids);
+          const revert_delta = -conversation_read_delta(
+            emails.filter((e) => failed_set.has(e.id)),
+            is_read,
+            preferences.conversation_grouping,
+          );
 
           if (revert_delta !== 0) adjust_stats_unread(revert_delta);
         },
         on_full_rollback: () => {
           if (unread_delta !== 0) adjust_stats_unread(-unread_delta);
         },
+        finalize_failed_ids: is_read
+          ? async (succeeded_ids) => {
+              const succeeded_set = new Set(succeeded_ids);
+              const candidates = emails.filter((e) =>
+                succeeded_set.has(e.id),
+              );
+              const thread_result = await mark_conversation_threads_read(
+                collect_conversation_thread_tokens(
+                  candidates,
+                  preferences.conversation_grouping,
+                ),
+              );
+              const failed_tokens = new Set(thread_result.failed_ids);
+
+              return candidates
+                .filter(
+                  (e) => !!e.thread_token && failed_tokens.has(e.thread_token),
+                )
+                .map((e) => e.id);
+            }
+          : undefined,
       });
-
-      if (success && is_read) {
-        const thread_tokens = new Set<string>();
-
-        for (const email of emails) {
-          if (
-            email.item_type === "received" &&
-            email.thread_token &&
-            (email.grouped_email_ids?.length ?? 0) > 1
-          ) {
-            thread_tokens.add(email.thread_token);
-          }
-        }
-
-        if (thread_tokens.size > 0) {
-          void Promise.all(
-            Array.from(thread_tokens).map((token) =>
-              mark_thread_read(token)
-                .then((result) => {
-                  if (!result.error) mark_thread_read_entries(token);
-                })
-                .catch(() => {}),
-            ),
-          ).then(() => emit_mail_soft_refresh());
-        }
-      }
-
-      return success;
     },
-    [execute_bulk_action, t],
+    [execute_bulk_action, t, preferences.conversation_grouping],
   );
 
   const bulk_mark_spam = useCallback(

@@ -419,7 +419,8 @@ export const tr = {
     pending_email_notifications: "Bekleyen e-posta bildirimleri",
     selected: "seçili",
     are_you_sure: "Emin misiniz?",
-    sign_out_all_confirmation: "Bu cihazdaki tüm hesaplardan çıkış yapmak istediğinizden emin misiniz?",
+    sign_out_all_confirmation:
+      "Bu cihazdaki tüm hesaplardan çıkış yapmak istediğinizden emin misiniz?",
     sign_out_confirmation:
       "Hesabınızdan çıkış yapmak istediğinizden emin misiniz?",
     remove_account_confirmation:
@@ -452,10 +453,13 @@ export const tr = {
       "Bu değişiklikler kaydedilmedi. Bir kez daha denemek genellikle yeterli olur. E-postaların kendileri olduğu gibi.",
     failed_to_archive_emails:
       "Arşivleme tamamlanmadı. Bir kez daha denemek genellikle yeterli olur. E-postalar hâlâ gelen kutunuzda.",
+    failed_to_unarchive_emails:
+      "Gelen kutusuna taşıma tamamlanmadı. Bir kez daha denemek genellikle yeterli olur. E-postalar hâlâ arşivde.",
     something_went_wrong_try_again:
       "Bu işe yaramadı. Birkaç saniye sonra tekrar denemek çoğunlukla bunu çözer.",
     something_went_wrong: "Bir hata oluştu.",
-    unexpected_error_refresh: "Bir sorun oluştu, devam etmek için sayfayı yenileyin.",
+    unexpected_error_refresh:
+      "Bir sorun oluştu, devam etmek için sayfayı yenileyin.",
     unsupported_browser: "Tarayıcı desteklenmiyor.",
     unsupported_browser_detail: "Lütfen farklı bir tarayıcı deneyin.",
     try_again: "Tekrar dene",
@@ -487,10 +491,8 @@ export const tr = {
     adding: "Ekleniyor...",
     checking: "Kontrol ediliyor...",
     host_name: "Sunucu Adı",
-    dns_required:
-      "Zorunlu",
-    dns_recommended:
-      "Onerilen",
+    dns_required: "Zorunlu",
+    dns_recommended: "Onerilen",
     dns_caveat_mx_replaces_existing:
       "Bu, mevcut MX kayitlarinin yerini alir. Eski posta saglayicinizin MX kayitlarini kaldirin, aksi halde yeni postalar Aster'a ulasmaz.",
     dns_caveat_spf_single_record_other_senders:
@@ -648,6 +650,8 @@ export const tr = {
     spam_emails_permanently_deleted:
       "{{count}} spam e-posta kalıcı olarak silindi",
     trash_emptied: "Çöp kutusu başarıyla boşaltıldı",
+    spam_empty_failed:
+      "İstenmeyen posta boşaltılamadı. Birazdan yapılacak yeni bir deneme genellikle işe yarar. Hiçbir şey silinmedi.",
     conversations_marked_as_spam_bulk:
       "{{count}} görüşme spam olarak işaretlendi",
     conversations_restored_bulk: "{{count}} görüşme geri yüklendi",
@@ -1504,6 +1508,16 @@ export const tr = {
       "Çöp kutusu boşaltılamadı. Kısa süre sonra tekrar denemek genellikle yeterli olur. Hiçbir şey kaldırılmadı.",
     conversations_starred_bulk: "{{count}} konuşma yıldızlandı",
     conversations_unstarred_bulk: "{{count}} konuşmanın yıldızı kaldırıldı",
+    conversations_moved_to_inbox_bulk:
+      "{{count}} konuşma gelen kutusuna taşındı",
+    conversations_marked_as_not_spam_bulk:
+      "{{count}} konuşma spam değil olarak işaretlendi",
+    bulk_action_partially_applied:
+      "{{total}} konuşmadan {{count}} tanesi güncellendi. Kalanlar değiştirilmedi.",
+    bulk_action_truncated:
+      "Bu işlem ilk {{count}} iletiyi kapsadı. Kalanlar için işlemi yeniden çalıştırın.",
+    bulk_action_continues_in_background:
+      "Kalan iletiler arka planda güncellenmeye devam ediyor.",
     select_none: "Hiçbiri",
     select_read: "Okunmuş",
     select_unread: "Okunmamış",
@@ -2269,17 +2283,22 @@ export const tr = {
     alias_details_title: "Ayrıntılar",
     alias_display_name_label: "Görünen ad",
     alias_note_label: "Not",
-    alias_details_description: "Bu takma ada bir ad verin ve nerede kullandığınızı not edin.",
-    alias_display_name_desc: "Bu takma addan yazdığınızda gönderen adı olarak görünür.",
+    alias_details_description:
+      "Bu takma ada bir ad verin ve nerede kullandığınızı not edin.",
+    alias_display_name_desc:
+      "Bu takma addan yazdığınızda gönderen adı olarak görünür.",
     alias_note_desc: "Bu takma adın ne için olduğuna dair özel bir not.",
     alias_websites_desc: "Bu takma adla kaydolduğunuz siteler.",
     alias_stats_description: "Bu takma adın işlediği posta miktarı.",
     alias_usage_used_of: "{{ max }} takma addan {{ used }} tanesi kullanıldı",
     alias_usage_unlock: "Sınırsıza geç",
-    alias_usage_nudge: "Ücretli planlar sınırsız takma ad, özel alan adları, takma ad kuralları ve gönderen sabitleme içerir.",
+    alias_usage_nudge:
+      "Ücretli planlar sınırsız takma ad, özel alan adları, takma ad kuralları ve gönderen sabitleme içerir.",
     alias_sender_pin_mode_label: "Mod",
-    alias_feature_locked_stats: "Bu takma adın etkinliğini görmek için planınızı yükseltin.",
-    alias_feature_locked_delivery_log: "Neyin engellendiğini görmek için planınızı yükseltin.",
+    alias_feature_locked_stats:
+      "Bu takma adın etkinliğini görmek için planınızı yükseltin.",
+    alias_feature_locked_delivery_log:
+      "Neyin engellendiğini görmek için planınızı yükseltin.",
     alias_paid_badge: "Ücretli",
     alias_field_display_name_label: "Görünen ad",
     alias_field_note_label: "Not",
@@ -2382,15 +2401,21 @@ export const tr = {
       "Bu ayar kaydedilmedi. Yeni bir deneme işe yarayacaktır.",
     alias_delivery_folder_missing: "Silinmiş klasör",
     alias_delivery_label: "Etiket",
-    alias_delivery_label_desc: "Bu takma ada gelen her iletiye bir etiket uygula.",
-    alias_delivery_label_info: "Bu takma ada gelen postalar kural gerekmeden otomatik etiketlenir. Etiket, iletinin düştüğü klasörden bağımsız uygulanır.",
+    alias_delivery_label_desc:
+      "Bu takma ada gelen her iletiye bir etiket uygula.",
+    alias_delivery_label_info:
+      "Bu takma ada gelen postalar kural gerekmeden otomatik etiketlenir. Etiket, iletinin düştüğü klasörden bağımsız uygulanır.",
     alias_delivery_label_none: "Etiket yok",
     alias_delivery_label_missing: "Silinmiş etiket",
     alias_delivery_label_error: "Ayar kaydedilmedi. Tekrar deneyin.",
-    alias_delivery_rule_note: "\"{{ rule }}\" kuralı bu takma adın postasını zaten {{ target }} klasörüne taşıyor.",
-    alias_delivery_rule_conflict: "\"{{ rule }}\" kuralı bu takma adın postasını {{ rule_target }} klasörüne taşıyor, bu yüzden {{ target }} içine düşmez.",
-    alias_delivery_label_rule_note: "\"{{ rule }}\" kuralı bu takma adın postasını zaten {{ target }} ile etiketliyor.",
-    alias_delivery_label_rule_conflict: "\"{{ rule }}\" kuralı bu takma adın postasını {{ target }} ile değil {{ rule_target }} ile etiketliyor.",
+    alias_delivery_rule_note:
+      '"{{ rule }}" kuralı bu takma adın postasını zaten {{ target }} klasörüne taşıyor.',
+    alias_delivery_rule_conflict:
+      '"{{ rule }}" kuralı bu takma adın postasını {{ rule_target }} klasörüne taşıyor, bu yüzden {{ target }} içine düşmez.',
+    alias_delivery_label_rule_note:
+      '"{{ rule }}" kuralı bu takma adın postasını zaten {{ target }} ile etiketliyor.',
+    alias_delivery_label_rule_conflict:
+      '"{{ rule }}" kuralı bu takma adın postasını {{ target }} ile değil {{ rule_target }} ile etiketliyor.',
     alias_relay_title: "Teslimat",
     alias_relay_description:
       "Bu rumuza gelen postanın nasıl teslim edileceğini seçin.",
@@ -3259,10 +3284,14 @@ export const tr = {
       "Takma adlarınızdan biri güvenli bir şekilde yeniden şifrelenemedi. Parolanız değiştirilmedi. Lütfen destek ekibiyle iletişime geçin veya etkilenen takma adı kaldırıp tekrar deneyin.",
     contact_reencrypt_failed:
       "Kişilerinizden biri güvenli bir şekilde yeniden şifrelenemedi. Parolanız değiştirilmedi. Lütfen destek ekibiyle iletişime geçin veya etkilenen kişiyi kaldırıp tekrar deneyin.",
+    password_change_fingerprint_mismatch:
+      "Bu oturum farklı bir ağda veya tarayıcıda başlatıldı, bu nedenle Aster Mail parolanızı değiştirmedi. Parolanızı değiştirmek için oturumu kapatın, yeniden oturum açın ve tekrar deneyin.",
     update_password: "Parolayı Güncelle",
     updating: "Güncelleniyor...",
     password_change_encrypted_data_warning:
       "Etiketleriniz, imzalarınız ve şablonlarınız parola değişikliğinde yeniden şifrelenir. Bu işlem sırasında bağlantı kesilirse o veriler kurtarılamaz.",
+    password_changed_items_unreadable:
+      "Parolan değiştirildi. Anahtarları kullanılamadığı için {{count}} şifreli öğe önceki şifrelemesini korudu. Posta teslimi bundan etkilenmez. Bunları geri yüklemek için destek ekibine başvur.",
     password_changed_signing_out:
       "Parola başarıyla değiştirildi. Çıkış yapılıyor...",
     session_security: "Oturum Güvenliği",
@@ -3355,7 +3384,8 @@ export const tr = {
     mark_as_read: "Okundu Olarak İşaretle",
     mark_as_read_description: "E-postalar ne zaman okundu olarak işaretlensin",
     emails_per_page: "Sayfa başına e-posta",
-    emails_per_page_description: "Gelen kutusu, arşiv ve diğer klasörlerde sayfa başına gösterilen e-posta sayısı",
+    emails_per_page_description:
+      "Gelen kutusu, arşiv ve diğer klasörlerde sayfa başına gösterilen e-posta sayısı",
     immediately: "Hemen",
     after_1_second: "1 saniye sonra",
     after_3_seconds: "3 saniye sonra",
@@ -3653,18 +3683,14 @@ export const tr = {
     dkim_record: "DKIM Kaydı (TXT)",
     email_authentication_policy: "E-posta Kimlik Doğrulama Politikası",
     dmarc_record: "DMARC Kaydı (TXT)",
-    tls_reporting:
-      "TLS Raporlama",
-    tlsrpt_record:
-      "TLS-RPT kaydi",
+    tls_reporting: "TLS Raporlama",
+    tlsrpt_record: "TLS-RPT kaydi",
     tlsrpt_description:
       "Istege bagli ama onerilir. Alici sunucular, alan adiniza sifreli teslimat basarisiz oldugunda size gunluk bir ozet gonderir; boylece sorunlari kullanicilarinizdan once fark edersiniz.",
-    dns_instruction_set_tlsrpt_host:
-      "Host degerini _smtp._tls yapin",
+    dns_instruction_set_tlsrpt_host: "Host degerini _smtp._tls yapin",
     dns_instruction_set_tlsrpt_value:
       "TLS-RPT degerini gosterildigi gibi birebir yapistirin",
-    optional_step:
-      "Istege bagli",
+    optional_step: "Istege bagli",
     gmail_import: "Gmail",
     gmail_import_description: "Google Takeout'tan MBOX",
     outlook_import: "Outlook",
@@ -4650,6 +4676,9 @@ export const tr = {
     conversation_grouping: "Görüşme Gruplaması",
     conversation_grouping_confirm_title: "Emin misiniz?",
     show_message_size: "Mesaj Boyutunu Göster",
+    show_alias_indicators: "Takma Ad Göstergelerini Göster",
+    show_alias_indicators_description:
+      "Takma adlarınızdan birine gelen mesajları işaretler",
     auto_save_recipients: "Son alıcıları otomatik kaydet",
     disable_recent_recipients_title: "Son alıcılar devre dışı bırakılsın mı?",
     disable_and_clear: "Devre Dışı Bırak ve Verileri Temizle",
@@ -5272,9 +5301,11 @@ export const tr = {
     domain_purchase_purchased_expires: "{{date}} tarihinde sona eriyor",
     domain_purchase_purchased_in_progress: "Ayarlanıyor...",
     domain_purchase_purchased_awaiting: "Ödeme bekleniyor",
-    domain_purchase_done_warmup: "Not: Alan adınızın DNS'inin internete yayılması bir saati bulabilir ve Gmail gibi sağlayıcılar yepyeni alan adlarına başlangıçta temkinli yaklaşır. Alan adınız geçmiş oluşturdukça teslimat oranı iyileşir.",
+    domain_purchase_done_warmup:
+      "Not: Alan adınızın DNS'inin internete yayılması bir saati bulabilir ve Gmail gibi sağlayıcılar yepyeni alan adlarına başlangıçta temkinli yaklaşır. Alan adınız geçmiş oluşturdukça teslimat oranı iyileşir.",
     domain_purchase_create_first_address: "İlk adresinizi oluşturun",
-    domain_purchase_progress_note: "Alan adınızı kaydedip posta kutularınızı kurarken lütfen bekleyin. Bu genellikle yaklaşık bir dakika sürer.",
+    domain_purchase_progress_note:
+      "Alan adınızı kaydedip posta kutularınızı kurarken lütfen bekleyin. Bu genellikle yaklaşık bir dakika sürer.",
     domain_purchase_complete_cta: "Satın almayı tamamla",
     domain_purchase_purchased_lapsed: "Süresi doldu - yeniden al",
     domain_purchase_error_paused:
@@ -5624,13 +5655,18 @@ export const tr = {
     crypto_native_status_underpaid: "Kısmen ödendi",
     crypto_native_what_happens: "Sırada ne var",
     crypto_native_stripe_option: "Stablecoin ile öde",
-    crypto_native_stripe_desc: "Ödeme sağlayıcımız üzerinden USDC ve diğer stablecoin'ler",
-    crypto_native_too_many_open: "Çok fazla tamamlanmamış kripto faturanız var. Önce birini tamamlayın veya iptal edin.",
-    crypto_native_daily_limit: "Bugün çok fazla kripto faturası oluşturdunuz. Lütfen daha sonra tekrar deneyin.",
+    crypto_native_stripe_desc:
+      "Ödeme sağlayıcımız üzerinden USDC ve diğer stablecoin'ler",
+    crypto_native_too_many_open:
+      "Çok fazla tamamlanmamış kripto faturanız var. Önce birini tamamlayın veya iptal edin.",
+    crypto_native_daily_limit:
+      "Bugün çok fazla kripto faturası oluşturdunuz. Lütfen daha sonra tekrar deneyin.",
     crypto_native_invoice_title: "{{coin}} ile öde",
-    crypto_native_awaiting_body: "Aşağıdaki adrese tam tutarı gönderin. Bu sayfa otomatik olarak güncellenir.",
+    crypto_native_awaiting_body:
+      "Aşağıdaki adrese tam tutarı gönderin. Bu sayfa otomatik olarak güncellenir.",
     crypto_native_received_title: "Ödeme alındı",
-    crypto_native_received_body: "Tutarın tamamı alındı ve işleniyor. Başka bir ödeme yapmanıza gerek yok.",
+    crypto_native_received_body:
+      "Tutarın tamamı alındı ve işleniyor. Başka bir ödeme yapmanıza gerek yok.",
     crypto_native_send_exactly: "Tam olarak gönderin",
     crypto_native_send_remaining: "Kalan tutarı gönderin",
     crypto_native_to_address: "Bu adrese",
@@ -5642,7 +5678,8 @@ export const tr = {
     crypto_native_no_wallet_handler:
       "Hiçbir cüzdan uygulaması açılmadı. Yukarıdaki adresi kopyalayıp cüzdanınıza yapıştırın.",
     crypto_native_copied: "Panoya kopyalandı",
-    crypto_native_network_warning: "Yalnızca {{chain}} ağı üzerinden {{coin}} gönderin. Başka bir varlık göndermek veya başka bir ağ kullanmak fonların kaybına yol açar.",
+    crypto_native_network_warning:
+      "Yalnızca {{chain}} ağı üzerinden {{coin}} gönderin. Başka bir varlık göndermek veya başka bir ağ kullanmak fonların kaybına yol açar.",
     crypto_native_usd_value_label: "Ödenecek tutar",
     crypto_native_usd_total_label: "Fatura toplamı",
     crypto_native_rate_locked: "Kurunuz bu fatura sona erene kadar sabitlendi.",
@@ -5652,11 +5689,14 @@ export const tr = {
     crypto_native_status_confirming: "Onaylanıyor ({{current}}/{{required}})",
     crypto_native_status_confirming_short: "Onaylanıyor",
     crypto_native_status_credited: "Ödeme alındı",
-    crypto_native_underpaid_body: "{{expected}} {{coin}} tutarının {{received}} kadarını aldık. Bu faturayı tamamlamak için kalan {{remaining}} {{coin}} tutarını aynı adrese gönderin.",
+    crypto_native_underpaid_body:
+      "{{expected}} {{coin}} tutarının {{received}} kadarını aldık. Bu faturayı tamamlamak için kalan {{remaining}} {{coin}} tutarını aynı adrese gönderin.",
     crypto_native_manual_review: "İnceleniyor",
-    crypto_native_manual_review_body: "Ödemeniz kısa bir manuel kontrol gerektiriyor. Hesabınıza kısa süre içinde yansıtacağız.",
+    crypto_native_manual_review_body:
+      "Ödemeniz kısa bir manuel kontrol gerektiriyor. Hesabınıza kısa süre içinde yansıtacağız.",
     crypto_native_transaction: "İşlem",
-    crypto_native_refund_notice: "Fazla ödemeler ve iadeler Aster hesap bakiyenize aktarılır.",
+    crypto_native_refund_notice:
+      "Fazla ödemeler ve iadeler Aster hesap bakiyenize aktarılır.",
     crypto_native_cancel_invoice: "Bu faturayı iptal et",
     crypto_native_cancel_failed: "Bu fatura iptal edilemedi.",
     crypto_native_cancel_has_payment:
@@ -5667,45 +5707,57 @@ export const tr = {
     crypto_native_view_billing: "Faturalandırmaya dön",
     crypto_native_invoice_cancelled: "Fatura iptal edildi",
     crypto_native_expired_title: "Bu faturanın süresi doldu",
-    crypto_native_expired_body: "Kurlar değişir, bu nedenle bu ödeme penceresi kapandı. Devam etmek için yeni bir ödeme başlatın.",
+    crypto_native_expired_body:
+      "Kurlar değişir, bu nedenle bu ödeme penceresi kapandı. Devam etmek için yeni bir ödeme başlatın.",
     crypto_native_cancelled_body:
       "Bu ödeme iptal edildi. Herhangi bir tahsilat yapılmadı. İstediğiniz zaman yeni bir ödeme başlatabilirsiniz.",
-    crypto_native_start_new_payment:
-      "Yeni ödeme başlat",
-    crypto_native_check_now:
-      "Şimdi kontrol et",
-    crypto_native_expired_do_not_send: "Bu faturadaki adrese gönderim yapmayın. Şimdi gönderilen fonların hesabınıza geçmesi için manuel inceleme gerekir.",
+    crypto_native_start_new_payment: "Yeni ödeme başlat",
+    crypto_native_check_now: "Şimdi kontrol et",
+    crypto_native_expired_do_not_send:
+      "Bu faturadaki adrese gönderim yapmayın. Şimdi gönderilen fonların hesabınıza geçmesi için manuel inceleme gerekir.",
     crypto_native_not_found: "Bu faturayı bulamadık",
     crypto_native_unavailable: "Ödeme yüklenemedi",
-    crypto_native_unavailable_body: "Sunucuya ulaşamadık. Bağlantınızı kontrol edip tekrar deneyin. Ödemeniz etkilenmedi.",
+    crypto_native_unavailable_body:
+      "Sunucuya ulaşamadık. Bağlantınızı kontrol edip tekrar deneyin. Ödemeniz etkilenmedi.",
     crypto_native_pending_banner: "Devam eden bir kripto ödemeniz var",
     crypto_native_pending_banner_action: "Ödemeye devam et",
-    crypto_native_pending_banner_multi: "Devam eden {{count}} kripto ödemeniz var",
-    crypto_native_back_hint: "Bu fatura hâlâ açık. Faturalandırma bölümünden istediğiniz zaman devam edebilirsiniz.",
+    crypto_native_pending_banner_multi:
+      "Devam eden {{count}} kripto ödemeniz var",
+    crypto_native_back_hint:
+      "Bu fatura hâlâ açık. Faturalandırma bölümünden istediğiniz zaman devam edebilirsiniz.",
     crypto_native_scan_hint: "Cüzdan uygulamanızla tarayın",
     crypto_native_scan_hint_address_only:
       "Cüzdan uygulamanızla tarayın, ardından {{amount}} tutarını elle girin",
     crypto_native_network_label: "Ağ",
     crypto_native_confirmations_label: "Onaylar",
-    crypto_native_confirmations_value: "{{required}} onaydan {{current}} tanesi",
+    crypto_native_confirmations_value:
+      "{{required}} onaydan {{current}} tanesi",
     crypto_native_received_label: "Şu ana kadar alınan",
     crypto_native_invoice_ref_label: "Fatura",
     crypto_native_paying_with_label: "Ödeme yöntemi",
     crypto_native_cancel_confirm_title: "Bu fatura iptal edilsin mi?",
-    crypto_native_cancel_confirm_body: "Ödeme adresi artık izlenmeyecek. İptalden sonra bu adrese fon göndermeyin. İstediğiniz zaman yeni bir ödeme başlatabilirsiniz.",
-    crypto_native_hint_awaiting: "Yukarıdaki adrese tam tutarı gönderin. Ağı sizin için otomatik olarak izliyoruz.",
-    crypto_native_hint_detected: "İşleminiz ağda. Bir bloğa dahil edilmesi bekleniyor.",
-    crypto_native_hint_confirming: "Ağda onaylanıyor. Bu tamamlanır tamamlanmaz planınız etkinleşir.",
+    crypto_native_cancel_confirm_body:
+      "Ödeme adresi artık izlenmeyecek. İptalden sonra bu adrese fon göndermeyin. İstediğiniz zaman yeni bir ödeme başlatabilirsiniz.",
+    crypto_native_hint_awaiting:
+      "Yukarıdaki adrese tam tutarı gönderin. Ağı sizin için otomatik olarak izliyoruz.",
+    crypto_native_hint_detected:
+      "İşleminiz ağda. Bir bloğa dahil edilmesi bekleniyor.",
+    crypto_native_hint_confirming:
+      "Ağda onaylanıyor. Bu tamamlanır tamamlanmaz planınız etkinleşir.",
     crypto_native_hint_credited: "Ödeme onaylandı. Planınız etkin.",
     crypto_native_time_remaining: "Kalan süre",
     crypto_native_expiring_soon:
       "5 dakikadan az kaldı. Ödemeniz ulaşmadan bu süre dolarsa güncel kurla yeni bir ödeme başlatabilirsiniz.",
-    crypto_native_hint_underpaid: "Bu ödemeyi tamamlamak için yukarıda gösterilen kalan tutarı aynı adrese gönderin.",
-    crypto_native_hint_manual_review: "Ekibimiz bu ödemeyi inceliyor. Sizin başka bir şey yapmanıza gerek yok.",
-    crypto_native_connection_lost: "Bağlantı kesildi. Otomatik olarak yeniden deneniyor.",
+    crypto_native_hint_underpaid:
+      "Bu ödemeyi tamamlamak için yukarıda gösterilen kalan tutarı aynı adrese gönderin.",
+    crypto_native_hint_manual_review:
+      "Ekibimiz bu ödemeyi inceliyor. Sizin başka bir şey yapmanıza gerek yok.",
+    crypto_native_connection_lost:
+      "Bağlantı kesildi. Otomatik olarak yeniden deneniyor.",
     crypto_native_coins_unavailable: "Kripto ödeme seçenekleri yüklenemedi.",
     crypto_native_copy_tx_hash: "İşlem hash'ini kopyala",
-    crypto_native_expiry_progress: "Bu faturanın süresi dolmadan önce kalan süre",
+    crypto_native_expiry_progress:
+      "Bu faturanın süresi dolmadan önce kalan süre",
     crypto_native_confirmations_progress: "Ağ onayları",
     crypto_paid_until: "{{date}} tarihine kadar ödendi (kripto)",
     crypto_no_renew_notice: "Kripto ödemeleri otomatik olarak yenilenmez.",
@@ -6206,18 +6258,23 @@ export const tr = {
   mail: {
     load_all_thread_messages: "Tüm mesajları yükle",
     move_to_category: "Kategoriye taşı",
+    menu_applies_to_selection: "{count} seçili öğeye uygulanır",
+    menu_applies_to_all: "Tüm {count} iletiye uygulanır",
     moved_to_category: "Kategoriye taşındı",
+    drop_to_move_here: "Taşımak için buraya bırakın",
     tab_new_count: "yeni",
     category_empty_primary_title: "Birincil'de hiçbir şey yok",
     category_empty_primary_desc:
       "Kişisel mesajlarınız ve sohbetleriniz burada görünecek.",
     category_empty_promotions_title: "İndirim yok",
-    category_empty_promotions_desc: "İndirimler, kampanyalar ve pazarlama e-postaları diğer postalarınızdan ayrı olarak burada görünür.",
+    category_empty_promotions_desc:
+      "İndirimler, kampanyalar ve pazarlama e-postaları diğer postalarınızdan ayrı olarak burada görünür.",
     category_empty_social_title: "Sosyal güncelleme yok",
     category_empty_social_desc:
       "Sosyal ağlardan ve topluluklardan gelen mesajlar burada görünecek.",
     category_empty_updates_title: "Bildirim yok",
-    category_empty_updates_desc: "Makbuzlar, onaylar ve faturalar burada görünür.",
+    category_empty_updates_desc:
+      "Makbuzlar, onaylar ve faturalar burada görünür.",
     category_empty_forums_title: "Tartışma yok",
     category_empty_forums_desc:
       "Posta listelerinden ve tartışma gruplarından gelen mesajlar burada görünecek.",
@@ -6448,6 +6505,10 @@ export const tr = {
       "Bu işlem bu görünümdeki her sohbeti etkileyecektir.",
     bulk_action_index_not_ready:
       "Bu sekme hâlâ dizinleniyor. Birazdan tekrar deneyin.",
+    bulk_action_index_building:
+      "Bu sekme hâlâ dizinleniyor. Dizin hazır olur olmaz işlem başlar.",
+    bulk_action_index_capped:
+      "Bu sekmede tek seferde güncellenemeyecek kadar çok konuşma var. Konuşmaları seçip yeniden deneyin.",
     archive_messages_title: "Mesajları Arşivle",
     archive_messages_confirmation:
       "Seçili mesajları arşivlemek istediğinizden emin misiniz?",
@@ -6797,6 +6858,7 @@ export const tr = {
     download_file_named: "{{ filename }} dosyasını indir",
     to_recipients_prefix: "{{ recipients }} kişisine",
     received_on_prefix: "{{ address }} adresinde alındı",
+    received_via_alias: "{{ address }} takma adresine teslim edildi",
     load_external_content: "Harici içerik yükle",
     image: "görsel",
     images: "görseller",
@@ -7122,7 +7184,8 @@ export const tr = {
       "Ek hesap oluşturmak için bir kurtarma e-postası gereklidir. Bu, tüm hesaplarınızı korumaya yardımcı olur.",
     username_min_length: "Burada en az 3 karakter işe yarar.",
     username_max_length: "Burada 40 karakterden az işe yarar.",
-    username_alphanumeric: "Harf, rakam ve nokta kullanın. Nokta başta, sonda veya art arda olamaz.",
+    username_alphanumeric:
+      "Harf, rakam ve nokta kullanın. Nokta başta, sonda veya art arda olamaz.",
     username_not_available: "Bu kullanıcı adı alındı. Başka biri işe yarar.",
     password_req_length: "En az 8 karakter",
     password_req_uppercase: "Bir büyük harf",
@@ -7556,16 +7619,13 @@ export const tr = {
   errors: {
     failed_remove_reaction: "Tepki kaldırılamadı. Lütfen tekrar deneyin.",
     cannot_react_own_message: "Kendi mesajınıza tepki veremezsiniz.",
-    cannot_react_draft:
-      "Taslak veya zamanlanmış mesaja tepki veremezsiniz.",
+    cannot_react_draft: "Taslak veya zamanlanmış mesaja tepki veremezsiniz.",
     cannot_react_spam_or_trash:
       "Spam veya Çöp kutusundaki mesajlara tepki veremezsiniz.",
-    cannot_react_reply_to:
-      "Yanıt adresi olan bir mesaja tepki veremezsiniz.",
+    cannot_react_reply_to: "Yanıt adresi olan bir mesaja tepki veremezsiniz.",
     cannot_react_too_many_recipients:
       "20'den fazla alıcısı olan bir mesaja tepki veremezsiniz.",
-    cannot_react_bcc:
-      "Gizli kopyada olduğunuz bir mesaja tepki veremezsiniz.",
+    cannot_react_bcc: "Gizli kopyada olduğunuz bir mesaja tepki veremezsiniz.",
     cannot_react_too_many_emojis:
       "Bu mesaj zaten en fazla sayıda tepkiye sahip.",
     cannot_react_no_recipient:
@@ -7641,6 +7701,8 @@ export const tr = {
       "Bu e-posta sunucuda bulunuyor ancak iletim sırasında bozulmuş görünüyor. Yenileyip bir kez daha denemek genellikle yeterli olur ve sürekli başarısız olursa hello@astermail.org yardımcı olabilir.",
     decrypt_sender_error:
       "Gönderici bu e-postayı okuyamadığımız bir şekilde şifrelemiş. Yeniden göndermesini istemek genellikle yeterli olur. Diğer e-postalarınız etkilenmedi.",
+    metadata_undecryptable_change:
+      "Bu cihaz bu mesajın ayrıntılarını açamıyor, bu yüzden değişikliğiniz kaydedilmiyor. Anahtarlarınızı yeniden yüklemek için oturumu kapatıp yeniden açın. Sunucudaki mesajınız değişmeden duruyor.",
     no_unsubscribe_method:
       "Bu gönderici bir abonelikten çıkma başlığı eklememiş. E-postanın içindeki bağlantı veya istenmeyen olarak işaretlemek aynı sonucu verir.",
     invalid_unsubscribe_address:
@@ -7880,8 +7942,10 @@ export const tr = {
     action_move_to: "Şuraya taşı",
     action_apply_label: "Etiket uygula",
     action_apply_labels: "Etiketler uygula",
-    alias_delivery_conflict: "{{ alias }} takma adı {{ alias_target }} klasörüne teslim ediyor, bu yüzden {{ rule_target }} klasörüne gönderen bu kural üstün gelir.",
-    alias_label_conflict: "{{ alias }} takma adı postasını {{ alias_target }} ile etiketliyor, bu kural ayrıca {{ rule_target }} ekler.",
+    alias_delivery_conflict:
+      "{{ alias }} takma adı {{ alias_target }} klasörüne teslim ediyor, bu yüzden {{ rule_target }} klasörüne gönderen bu kural üstün gelir.",
+    alias_label_conflict:
+      "{{ alias }} takma adı postasını {{ alias_target }} ile etiketliyor, bu kural ayrıca {{ rule_target }} ekler.",
     action_mark_as: "Şu şekilde işaretle",
     action_star: "Yıldızla",
     action_skip_inbox: "Gelen kutusunu atla",

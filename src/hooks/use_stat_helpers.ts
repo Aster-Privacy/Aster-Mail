@@ -19,12 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
-  adjust_unread_count,
-  adjust_inbox_count,
-  adjust_trash_count,
-  adjust_sent_count,
-} from "@/hooks/use_mail_counts";
-import { adjust_stats_archived } from "@/hooks/use_mail_stats";
+  adjust_stats_unread,
+  adjust_stats_inbox,
+  adjust_stats_trash,
+  adjust_stats_sent,
+  adjust_stats_archived,
+} from "@/hooks/use_mail_stats";
 
 export interface StatDeltas {
   unread: number;
@@ -101,16 +101,16 @@ export function compute_unarchive_deltas(email: {
 
 export function apply_stat_deltas(deltas: StatDeltas): void {
   if (deltas.unread !== 0) {
-    adjust_unread_count(deltas.unread);
+    adjust_stats_unread(deltas.unread);
   }
   if (deltas.inbox !== 0) {
-    adjust_inbox_count(deltas.inbox);
+    adjust_stats_inbox(deltas.inbox);
   }
   if (deltas.sent !== 0) {
-    adjust_sent_count(deltas.sent);
+    adjust_stats_sent(deltas.sent);
   }
   if (deltas.trash !== 0) {
-    adjust_trash_count(deltas.trash);
+    adjust_stats_trash(deltas.trash);
   }
   if (deltas.archived !== 0) {
     adjust_stats_archived(deltas.archived);

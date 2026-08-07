@@ -30,7 +30,7 @@ interface ComposeModeCardProps {
   label: string;
   is_selected: boolean;
   on_select: () => void;
-  theme: "light" | "dark";
+  theme: "light" | "dark" | "themed";
 }
 
 export function ComposeModeCard({
@@ -48,6 +48,7 @@ export function ComposeModeCard({
   };
 
   const get_border_color = () => {
+    if (theme === "themed") return "1px solid var(--border-secondary)";
     if (theme === "light") return "1px solid #e5e5e5";
 
     return "1px solid #1a1a1a";

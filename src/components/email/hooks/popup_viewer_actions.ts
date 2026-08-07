@@ -48,7 +48,8 @@ import {
 import { print_email } from "@/utils/print_email";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
-import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
@@ -92,16 +93,19 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
     deps.set_is_read(new_state);
 
-    const thread_has_other_unread =
+    const thread_has_other_unread = deps.thread_messages.some(
+      (m) => m.id !== deps.email_id && !m.is_read && m.item_type === "received",
+    );
+    const should_adjust_unread =
       is_received &&
-      deps.thread_messages.some(
-        (m) =>
-          m.id !== deps.email_id && !m.is_read && m.item_type === "received",
-      );
-    const should_adjust_unread = is_received && !thread_has_other_unread;
+      !conversation_has_unread_sibling({
+        thread_token: deps.mail_item.thread_token,
+        acted_id: deps.email_id,
+        sibling_unread: thread_has_other_unread,
+      });
 
     if (should_adjust_unread) {
-      adjust_unread_count(new_state ? -1 : 1);
+      adjust_stats_unread(new_state ? -1 : 1);
     }
 
     if (!new_state) {
@@ -121,7 +125,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     if (!result.success) {
       deps.set_is_read(!new_state);
       if (should_adjust_unread) {
-        adjust_unread_count(new_state ? 1 : -1);
+        adjust_stats_unread(new_state ? 1 : -1);
       }
     } else {
       deps.set_mail_item((prev) =>
@@ -737,19 +741,20 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       const new_read = !msg.is_read;
       const is_received = msg.item_type === "received";
 
-      const other_unread_in_thread =
-        is_received &&
-        deps.thread_messages.some(
-          (m) =>
-            m.id !== message_id && !m.is_read && m.item_type === "received",
-        );
+      const other_unread_in_thread = deps.thread_messages.some(
+        (m) => m.id !== message_id && !m.is_read && m.item_type === "received",
+      );
       const main_is_unread_received =
-        is_received &&
         deps.mail_item?.item_type === "received" &&
         !deps.is_read &&
         deps.mail_item?.id !== message_id;
       const should_adjust =
-        is_received && !other_unread_in_thread && !main_is_unread_received;
+        is_received &&
+        !conversation_has_unread_sibling({
+          thread_token: deps.mail_item?.thread_token,
+          acted_id: message_id,
+          sibling_unread: other_unread_in_thread || main_is_unread_received,
+        });
 
       deps.set_thread_messages((prev) =>
         prev.map((m) =>
@@ -758,7 +763,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       );
 
       if (should_adjust) {
-        adjust_unread_count(new_read ? -1 : 1);
+        adjust_stats_unread(new_read ? -1 : 1);
       }
 
       if (!new_read) {
@@ -780,7 +785,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             ),
           );
           if (should_adjust) {
-            adjust_unread_count(new_read ? 1 : -1);
+            adjust_stats_unread(new_read ? 1 : -1);
           }
         } else if (result.encrypted) {
           deps.set_thread_messages((prev) =>

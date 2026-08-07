@@ -20,11 +20,11 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { resolve_list_density } from "@/lib/list_density";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -277,16 +277,7 @@ export function QuickSettingsPanel({
     update_preference("color_theme", "default", true);
   };
 
-  useEffect(() => {
-    if (!is_open) return;
-    const handle_key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") on_close();
-    };
-
-    document.addEventListener("keydown", handle_key);
-
-    return () => document.removeEventListener("keydown", handle_key);
-  }, [is_open, on_close]);
+  use_escape_layer(is_open, on_close, "quick_settings_panel", false);
 
   if (!is_open) return null;
 

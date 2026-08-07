@@ -153,7 +153,7 @@ export function MobileUnsubscribeBanner({
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
-            className="rounded-[12px] bg-brand px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
+            className="rounded-[12px] bg-brand px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
             type="button"
             onClick={handle_unsubscribe}
           >
@@ -211,7 +211,7 @@ export function MobileExternalContentBanner({
         </p>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
-            className="rounded-[12px] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-white active:opacity-70"
+            className="rounded-[12px] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
             type="button"
             onClick={on_load}
           >

@@ -385,6 +385,8 @@ export const zh_CN = {
       "这些更改未能保存，再试一次应该可以。邮件本身没有变化。",
     failed_to_archive_emails:
       "归档未能完成，再试一次应该可以。邮件仍在您的收件箱中。",
+    failed_to_unarchive_emails:
+      "移回收件箱未能完成，再试一次应该可以。邮件仍在归档中。",
     something_went_wrong_try_again: "这次没有成功，稍后再试一次通常可以。",
     something_went_wrong: "发生了错误。",
     and: "和",
@@ -402,10 +404,8 @@ export const zh_CN = {
     adding: "添加中...",
     checking: "检查中...",
     host_name: "主机名",
-    dns_required:
-      "必填",
-    dns_recommended:
-      "建议",
+    dns_required: "必填",
+    dns_recommended: "建议",
     dns_caveat_mx_replaces_existing:
       "此记录会替换现有的 MX 记录。请删除原邮件服务商的 MX 记录，否则新邮件无法送达 Aster。",
     dns_caveat_spf_single_record_other_senders:
@@ -516,6 +516,8 @@ export const zh_CN = {
     added_label: "已添加标签{{label}}",
     spam_emails_permanently_deleted: "{{count}}封垃圾邮件已永久删除",
     trash_emptied: "回收站已清空",
+    spam_empty_failed:
+      "无法清空垃圾邮件。稍后再试一次通常就能成功。未删除任何内容。",
     conversations_marked_as_spam_bulk: "{{count}}个对话已标记为垃圾邮件",
     conversations_restored_bulk: "{{count}}个对话已恢复",
     failed_to_restore_conversations: "这些对话未能恢复，再试一次应该可以。",
@@ -1376,6 +1378,13 @@ export const zh_CN = {
       "我们无法清空回收站，稍后再试一次通常可以。没有移除任何内容。",
     conversations_starred_bulk: "{{count}}个对话已加星标",
     conversations_unstarred_bulk: "{{count}}个对话已取消星标",
+    conversations_moved_to_inbox_bulk: "{{count}}个对话已移至收件箱",
+    conversations_marked_as_not_spam_bulk: "{{count}}个对话已标记为非垃圾邮件",
+    bulk_action_partially_applied:
+      "已更新{{total}}个对话中的{{count}}个。其余未更改。",
+    bulk_action_truncated:
+      "本次操作处理了前 {{count}} 封邮件。再次运行以处理其余邮件。",
+    bulk_action_continues_in_background: "其余邮件仍在后台更新。",
     select_none: "无",
     select_read: "已读",
     select_unread: "未读",
@@ -1759,8 +1768,7 @@ export const zh_CN = {
     category_info_finance: "来自银行和金融服务机构的对账单、发票和提醒。",
     category_info_travel: "来自航空公司、酒店和网约车的预订、行程和确认信息。",
     category_info_shopping: "订单确认、发货更新和送达通知。",
-    category_info_custom:
-      "符合此类别自定义规则的邮件。",
+    category_info_custom: "符合此类别自定义规则的邮件。",
     custom_categories_title: "自定义分类",
     custom_categories_tutorial:
       "创建属于你自己的分类。按发件人域名或主题关键词匹配邮件。",
@@ -2084,7 +2092,8 @@ export const zh_CN = {
     alias_stats_description: "该别名处理过的邮件量。",
     alias_usage_used_of: "已使用 {{ max }} 个别名中的 {{ used }} 个",
     alias_usage_unlock: "获取无限量",
-    alias_usage_nudge: "付费方案包含无限别名、自定义域名、别名规则和发件人锁定。",
+    alias_usage_nudge:
+      "付费方案包含无限别名、自定义域名、别名规则和发件人锁定。",
     alias_sender_pin_mode_label: "模式",
     alias_feature_locked_stats: "升级方案即可查看该别名的活动。",
     alias_feature_locked_delivery_log: "升级方案即可查看被拦截的邮件。",
@@ -2185,14 +2194,19 @@ export const zh_CN = {
     alias_delivery_folder_missing: "已删除的文件夹",
     alias_delivery_label: "标签",
     alias_delivery_label_desc: "为发往此别名的每封邮件添加标签。",
-    alias_delivery_label_info: "发往此别名的邮件会自动加上标签，无需规则。标签与投递文件夹互不影响。",
+    alias_delivery_label_info:
+      "发往此别名的邮件会自动加上标签，无需规则。标签与投递文件夹互不影响。",
     alias_delivery_label_none: "不加标签",
     alias_delivery_label_missing: "已删除的标签",
     alias_delivery_label_error: "该设置未保存，请重试。",
-    alias_delivery_rule_note: "邮件规则“{{ rule }}”已将此别名的邮件移动到 {{ target }}。",
-    alias_delivery_rule_conflict: "邮件规则“{{ rule }}”会将此别名的邮件移动到 {{ rule_target }}，因此不会进入 {{ target }}。",
-    alias_delivery_label_rule_note: "邮件规则“{{ rule }}”已为此别名的邮件添加 {{ target }}。",
-    alias_delivery_label_rule_conflict: "邮件规则“{{ rule }}”为此别名的邮件添加的是 {{ rule_target }}，而不是 {{ target }}。",
+    alias_delivery_rule_note:
+      "邮件规则“{{ rule }}”已将此别名的邮件移动到 {{ target }}。",
+    alias_delivery_rule_conflict:
+      "邮件规则“{{ rule }}”会将此别名的邮件移动到 {{ rule_target }}，因此不会进入 {{ target }}。",
+    alias_delivery_label_rule_note:
+      "邮件规则“{{ rule }}”已为此别名的邮件添加 {{ target }}。",
+    alias_delivery_label_rule_conflict:
+      "邮件规则“{{ rule }}”为此别名的邮件添加的是 {{ rule_target }}，而不是 {{ target }}。",
     alias_relay_title: "投递",
     alias_relay_description: "选择发往此别名的邮件如何投递。",
     alias_relay_mode_native: "原生",
@@ -2999,10 +3013,14 @@ export const zh_CN = {
       "无法安全地重新加密您的一个别名。您的密码未更改。请联系支持团队，或移除受影响的别名后重试。",
     contact_reencrypt_failed:
       "无法安全地重新加密您的一个联系人。您的密码未更改。请联系支持团队，或移除受影响的联系人后重试。",
+    password_change_fingerprint_mismatch:
+      "此会话是在其他网络或浏览器中开始的，因此 Aster Mail 未更改您的密码。若要更改密码，请退出登录后重新登录，然后再试一次。",
     update_password: "更新密码",
     updating: "更新中...",
     password_change_encrypted_data_warning:
       "更改密码时，您的标签、签名和模板将被重新加密。如果此过程中断开连接，这些数据将无法恢复。",
+    password_changed_items_unreadable:
+      "密码已更改。{{count}} 个加密项目因密钥不可用而保留了先前的加密。邮件投递不受影响。如需恢复，请联系支持团队。",
     password_changed_signing_out: "密码更改成功，正在退出登录...",
     session_security: "会话安全",
     browsers_and_devices: "浏览器和设备",
@@ -3359,18 +3377,13 @@ export const zh_CN = {
     dkim_record: "DKIM 记录 (TXT)",
     email_authentication_policy: "邮件身份验证策略",
     dmarc_record: "DMARC 记录 (TXT)",
-    tls_reporting:
-      "TLS 报告",
-    tlsrpt_record:
-      "TLS-RPT 记录",
+    tls_reporting: "TLS 报告",
+    tlsrpt_record: "TLS-RPT 记录",
     tlsrpt_description:
       "可选但建议添加。当发往你域名的加密投递失败时，接收服务器会每天发送一份摘要，让你比用户更早发现问题。",
-    dns_instruction_set_tlsrpt_host:
-      "将主机设为 _smtp._tls",
-    dns_instruction_set_tlsrpt_value:
-      "按显示内容原样粘贴 TLS-RPT 值",
-    optional_step:
-      "可选",
+    dns_instruction_set_tlsrpt_host: "将主机设为 _smtp._tls",
+    dns_instruction_set_tlsrpt_value: "按显示内容原样粘贴 TLS-RPT 值",
+    optional_step: "可选",
     gmail_import: "Gmail",
     gmail_import_description: "来自 Google Takeout 的 MBOX",
     outlook_import: "Outlook",
@@ -4252,6 +4265,9 @@ export const zh_CN = {
     conversation_grouping_confirm_description:
       "关闭对话分组后，每封邮件将作为单独的项目显示在收件箱中，而不是将回复归为一组。这可能会使跟踪邮件线程更加困难。",
     show_message_size: "显示邮件大小",
+    show_alias_indicators: "显示别名标识",
+    show_alias_indicators_description:
+      "标记通过您的别名收到的邮件",
     show_message_size_description: "在收件箱列表中显示每封邮件的大小",
     auto_save_recipients: "自动保存最近收件人",
     auto_save_recipients_description:
@@ -4772,9 +4788,11 @@ export const zh_CN = {
     domain_purchase_purchased_expires: "{{date}} 到期",
     domain_purchase_purchased_in_progress: "正在设置...",
     domain_purchase_purchased_awaiting: "等待付款",
-    domain_purchase_done_warmup: "请注意：您域名的 DNS 可能需要最多一小时才能在互联网上传播，Gmail 等服务商起初会谨慎对待全新域名。随着域名积累历史，送达率会逐步提升。",
+    domain_purchase_done_warmup:
+      "请注意：您域名的 DNS 可能需要最多一小时才能在互联网上传播，Gmail 等服务商起初会谨慎对待全新域名。随着域名积累历史，送达率会逐步提升。",
     domain_purchase_create_first_address: "创建您的第一个地址",
-    domain_purchase_progress_note: "请稍候，我们正在注册您的域名并设置邮箱。通常需要大约一分钟。",
+    domain_purchase_progress_note:
+      "请稍候，我们正在注册您的域名并设置邮箱。通常需要大约一分钟。",
     domain_purchase_complete_cta: "完成购买",
     domain_purchase_purchased_lapsed: "已过期 - 重新购买",
     domain_purchase_error_paused: "域名购买暂停几分钟，请稍后再试。",
@@ -5354,8 +5372,7 @@ export const zh_CN = {
     crypto_modal_title: "加密货币支付",
     crypto_modal_price: "金额：{{amount}}",
     crypto_modal_confirm: "确认支付",
-    crypto_price_unavailable:
-      "此套餐暂无加密货币价格。请联系客服。",
+    crypto_price_unavailable: "此套餐暂无加密货币价格。请联系客服。",
     crypto_charged_in_usd: "以美元计费。",
     crypto_native_continue: "继续",
     crypto_native_choose_method: "选择支付方式",
@@ -5367,7 +5384,8 @@ export const zh_CN = {
     crypto_native_what_happens: "接下来会发生什么",
     crypto_native_stripe_option: "使用稳定币支付",
     crypto_native_stripe_desc: "通过我们的支付服务商使用 USDC 等稳定币付款",
-    crypto_native_too_many_open: "您有太多未完成的加密货币账单。请先完成或取消一个。",
+    crypto_native_too_many_open:
+      "您有太多未完成的加密货币账单。请先完成或取消一个。",
     crypto_native_daily_limit: "您今天创建的加密货币账单过多。请稍后再试。",
     crypto_native_invoice_title: "使用 {{coin}} 支付",
     crypto_native_awaiting_body: "请向下方地址发送准确金额。本页面会自动更新。",
@@ -5384,7 +5402,8 @@ export const zh_CN = {
     crypto_native_no_wallet_handler:
       "未打开任何钱包应用。请复制上面的地址并粘贴到你的钱包中。",
     crypto_native_copied: "已复制到剪贴板",
-    crypto_native_network_warning: "仅可通过 {{chain}} 网络发送 {{coin}}。发送其他资产或使用其他网络将导致资金损失。",
+    crypto_native_network_warning:
+      "仅可通过 {{chain}} 网络发送 {{coin}}。发送其他资产或使用其他网络将导致资金损失。",
     crypto_native_usd_value_label: "应付金额",
     crypto_native_usd_total_label: "账单总额",
     crypto_native_rate_locked: "在本账单过期前，您的汇率保持锁定。",
@@ -5394,9 +5413,11 @@ export const zh_CN = {
     crypto_native_status_confirming: "确认中（{{current}}/{{required}}）",
     crypto_native_status_confirming_short: "确认中",
     crypto_native_status_credited: "已收到付款",
-    crypto_native_underpaid_body: "我们已收到 {{expected}} {{coin}} 中的 {{received}}。请将剩余的 {{remaining}} {{coin}} 发送至同一地址以完成本账单。",
+    crypto_native_underpaid_body:
+      "我们已收到 {{expected}} {{coin}} 中的 {{received}}。请将剩余的 {{remaining}} {{coin}} 发送至同一地址以完成本账单。",
     crypto_native_manual_review: "审核中",
-    crypto_native_manual_review_body: "您的付款需要一次快速的人工核对。我们会尽快为您的账户入账。",
+    crypto_native_manual_review_body:
+      "您的付款需要一次快速的人工核对。我们会尽快为您的账户入账。",
     crypto_native_transaction: "交易",
     crypto_native_refund_notice: "多付的金额和退款将计入您的 Aster 账户余额。",
     crypto_native_cancel_invoice: "取消此账单",
@@ -5408,17 +5429,18 @@ export const zh_CN = {
     crypto_native_view_billing: "返回账单",
     crypto_native_invoice_cancelled: "发票已取消",
     crypto_native_expired_title: "此账单已过期",
-    crypto_native_expired_body: "汇率会变动，因此本次付款窗口已关闭。请发起新的付款以继续。",
+    crypto_native_expired_body:
+      "汇率会变动，因此本次付款窗口已关闭。请发起新的付款以继续。",
     crypto_native_cancelled_body:
       "此付款已取消，未产生任何扣款。您可以随时发起新的付款。",
-    crypto_native_start_new_payment:
-      "发起新的付款",
-    crypto_native_check_now:
-      "立即检查",
-    crypto_native_expired_do_not_send: "请勿向此账单中的地址转账。现在发送的资金需要人工审核后才能入账。",
+    crypto_native_start_new_payment: "发起新的付款",
+    crypto_native_check_now: "立即检查",
+    crypto_native_expired_do_not_send:
+      "请勿向此账单中的地址转账。现在发送的资金需要人工审核后才能入账。",
     crypto_native_not_found: "未找到此账单",
     crypto_native_unavailable: "无法加载付款",
-    crypto_native_unavailable_body: "无法连接服务器。请检查网络后重试。您的付款未受影响。",
+    crypto_native_unavailable_body:
+      "无法连接服务器。请检查网络后重试。您的付款未受影响。",
     crypto_native_pending_banner: "您有一笔进行中的加密货币付款",
     crypto_native_pending_banner_action: "继续付款",
     crypto_native_pending_banner_multi: "您有 {{count}} 笔进行中的加密货币付款",
@@ -5433,16 +5455,21 @@ export const zh_CN = {
     crypto_native_invoice_ref_label: "账单",
     crypto_native_paying_with_label: "支付方式",
     crypto_native_cancel_confirm_title: "要取消此账单吗？",
-    crypto_native_cancel_confirm_body: "系统将停止监控该付款地址。取消后请勿再向该地址转账。您可以随时发起新的付款。",
-    crypto_native_hint_awaiting: "请向上方地址发送准确金额。我们会自动监控网络。",
+    crypto_native_cancel_confirm_body:
+      "系统将停止监控该付款地址。取消后请勿再向该地址转账。您可以随时发起新的付款。",
+    crypto_native_hint_awaiting:
+      "请向上方地址发送准确金额。我们会自动监控网络。",
     crypto_native_hint_detected: "您的交易已进入网络，正在等待被打包进区块。",
-    crypto_native_hint_confirming: "正在网络上确认。确认完成后您的套餐将立即生效。",
+    crypto_native_hint_confirming:
+      "正在网络上确认。确认完成后您的套餐将立即生效。",
     crypto_native_hint_credited: "付款已确认，您的套餐已生效。",
     crypto_native_time_remaining: "剩余时间",
     crypto_native_expiring_soon:
       "剩余不到 5 分钟。如果在款项到达前此时段结束，你可以按当前汇率重新发起一笔付款。",
-    crypto_native_hint_underpaid: "请将上方显示的剩余金额发送到同一地址，以完成此付款。",
-    crypto_native_hint_manual_review: "我们的团队正在审核此付款，您无需再进行任何操作。",
+    crypto_native_hint_underpaid:
+      "请将上方显示的剩余金额发送到同一地址，以完成此付款。",
+    crypto_native_hint_manual_review:
+      "我们的团队正在审核此付款，您无需再进行任何操作。",
     crypto_native_connection_lost: "连接已断开，正在自动重试。",
     crypto_native_coins_unavailable: "无法加载加密货币付款方式。",
     crypto_native_copy_tx_hash: "复制交易哈希",
@@ -5630,12 +5657,16 @@ export const zh_CN = {
   mail: {
     load_all_thread_messages: "加载所有邮件",
     move_to_category: "移至分类",
+    menu_applies_to_selection: "适用于已选的 {count} 项",
+    menu_applies_to_all: "适用于全部 {count} 封邮件",
     moved_to_category: "已移至分类",
+    drop_to_move_here: "拖放到此处以移动",
     tab_new_count: "新",
     category_empty_primary_title: "“主要”中没有内容",
     category_empty_primary_desc: "你的个人消息和对话将显示在这里。",
     category_empty_promotions_title: "没有促销",
-    category_empty_promotions_desc: "促销和营销邮件会显示在这里，与其他邮件分开。",
+    category_empty_promotions_desc:
+      "促销和营销邮件会显示在这里，与其他邮件分开。",
     category_empty_social_title: "没有社交更新",
     category_empty_social_desc: "来自社交网络和社区的消息将显示在这里。",
     category_empty_updates_title: "没有通知",
@@ -5665,8 +5696,7 @@ export const zh_CN = {
     pgp_password_placeholder: "密码",
     pgp_password_decrypt: "解密",
     pgp_password_decrypting: "正在解密...",
-    pgp_password_incorrect:
-      "该密码无法解密。请向发件人确认后重试。",
+    pgp_password_incorrect: "该密码无法解密。请向发件人确认后重试。",
     inbox: "收件箱",
     sent: "已发送",
     drafts: "草稿",
@@ -5855,6 +5885,10 @@ export const zh_CN = {
     confirm_bulk_action_title: "确认批量操作",
     confirm_bulk_action_description: "此操作将影响此视图中的所有会话。",
     bulk_action_index_not_ready: "此标签页仍在建立索引。请稍后重试。",
+    bulk_action_index_building:
+      "此标签仍在建立索引。索引就绪后将立即执行操作。",
+    bulk_action_index_capped:
+      "此标签中的会话太多，无法一次性更新。请选择会话后重试。",
     archive_messages_title: "归档消息",
     archive_messages_confirmation: "确定要归档选中的消息吗？",
     mark_spam_title: "标记为垃圾邮件？",
@@ -6186,6 +6220,7 @@ export const zh_CN = {
     all_in_folder_selected: "所有 {{ count }} 个对话已选中。",
     to_recipients_prefix: "给 {{ recipients }}",
     received_on_prefix: "通过 {{ address }} 接收",
+    received_via_alias: "已送达别名 {{ address }}",
     download_file_named: "下载 {{ filename }}",
     load_external_content: "加载外部内容",
     image: "图片",
@@ -6317,7 +6352,8 @@ export const zh_CN = {
     folder_item_count: "{{count}} 项",
     folder_item_count_singular: "{{count}} 项",
     indexing_messages: "正在索引消息...",
-    message_download_status: "邮件下载状态：共 {{total}} 封，已下载 {{done}} 封",
+    message_download_status:
+      "邮件下载状态：共 {{total}} 封，已下载 {{done}} 封",
     estimated_time_remaining: "预计剩余时间：{{duration}}",
     download_paused: "下载已暂停",
     pause_download_action: "暂停",
@@ -6495,7 +6531,8 @@ export const zh_CN = {
       "创建附加账户需要提供恢复邮箱。这有助于保护您的所有账户。",
     username_min_length: "这里至少需要 3 个字符。",
     username_max_length: "这里需要少于 40 个字符。",
-    username_alphanumeric: "可使用字母、数字和点。点不能位于开头、结尾，也不能连续。",
+    username_alphanumeric:
+      "可使用字母、数字和点。点不能位于开头、结尾，也不能连续。",
     username_not_available: "这个用户名已被占用，换一个应该可以。",
     password_req_length: "至少8个字符",
     password_req_uppercase: "一个大写字母",
@@ -6954,6 +6991,8 @@ export const zh_CN = {
       "这封邮件在服务器上存在，但传输中看起来已损坏。刷新后再试一次通常可以解决，如果仍不行，可联系 hello@astermail.org 协助。",
     decrypt_sender_error:
       "发件人加密这封邮件的方式我们无法读取。请发件人重新发送通常可以解决。您的其他邮件不受影响。",
+    metadata_undecryptable_change:
+      "此设备无法打开这封邮件的详细信息，因此您的更改未保存。要重新加载密钥，请退出并重新登录。服务器上的邮件保持不变。",
     no_unsubscribe_method:
       "此发件人未附带退订标头。使用邮件正文中的链接，或将其标记为垃圾邮件，也能达到同样的效果。",
     invalid_unsubscribe_address:
@@ -7160,8 +7199,10 @@ export const zh_CN = {
     action_move_to: "移动到",
     action_apply_label: "应用标签",
     action_apply_labels: "应用标签",
-    alias_delivery_conflict: "别名 {{ alias }} 会投递到 {{ alias_target }}，但把它送往 {{ rule_target }} 的这条规则会优先生效。",
-    alias_label_conflict: "别名 {{ alias }} 会给邮件加上 {{ alias_target }}，这条规则还会再加上 {{ rule_target }}。",
+    alias_delivery_conflict:
+      "别名 {{ alias }} 会投递到 {{ alias_target }}，但把它送往 {{ rule_target }} 的这条规则会优先生效。",
+    alias_label_conflict:
+      "别名 {{ alias }} 会给邮件加上 {{ alias_target }}，这条规则还会再加上 {{ rule_target }}。",
     action_mark_as: "标记为",
     action_star: "加星标",
     action_skip_inbox: "跳过收件箱",

@@ -39,7 +39,7 @@ import {
   CheckIcon,
   StarIcon as StarIconSolid,
 } from "@heroicons/react/24/solid";
-import { Tooltip } from "@aster/ui";
+import { Checkbox, Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -59,12 +59,16 @@ import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { AttachmentChip } from "@/components/email/attachment_chip";
 import { cn, is_system_email } from "@/lib/utils";
-import { is_compact_density } from "@/lib/list_density";
+import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import { truncate_with_ellipsis } from "@/utils/preview_text";
 import {
   get_alias_hash_by_address,
   subscribe_aliases,
 } from "@/hooks/use_sidebar_aliases";
+import {
+  normalize_alias_candidates,
+  use_alias_delivery,
+} from "@/hooks/use_alias_delivery";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   outgoing_profile_email,
@@ -75,6 +79,10 @@ import {
   empty_selection_snapshot,
   type SelectionSnapshot,
 } from "@/components/email/inbox/selection_snapshot";
+import {
+  begin_category_drag,
+  end_category_drag,
+} from "@/components/email/inbox/category_drag";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
 interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -250,6 +258,11 @@ export const InboxEmailListItem = memo(
         preferences.compact_mode ?? false,
       );
       const avatar_size_class = compact_rows ? "w-7 h-7" : "w-8 h-8";
+      const show_avatar_column = show_profile_pictures !== false;
+      const select_slot_class = list_select_slot_class(
+        compact_rows,
+        show_avatar_column,
+      );
       const show_hover_actions =
         on_archive ||
         on_spam ||
@@ -307,6 +320,15 @@ export const InboxEmailListItem = memo(
         return match ? match.split("@")[1] : null;
       }, [email.recipient_addresses, alias_version]);
 
+      const alias_candidates_key = useMemo(
+        () => normalize_alias_candidates(email.recipient_addresses ?? []),
+        [email.recipient_addresses],
+      );
+      const alias_delivery = use_alias_delivery(
+        email.item_type === "received" ? email.routing_token : undefined,
+        email.item_type === "received" ? alias_candidates_key : "",
+      );
+
       const handle_drag_start = (e: React.DragEvent<HTMLDivElement>) => {
         sweep_drag_images();
 
@@ -325,7 +347,7 @@ export const InboxEmailListItem = memo(
 
         drag_el.setAttribute("data-astermail-drag-image", "1");
         drag_el.style.cssText =
-          "position:fixed;top:-1000px;left:-1000px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;font-family:system-ui,sans-serif;white-space:nowrap;pointer-events:none;z-index:99999;background:var(--accent-color,#3b82f6);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.3);";
+          "position:fixed;top:-1000px;left:-1000px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;font-family:system-ui,sans-serif;white-space:nowrap;pointer-events:none;z-index:99999;background:var(--accent-color,#3b82f6);color:var(--accent-fg,#ffffff);box-shadow:0 4px 12px rgba(0,0,0,0.3);";
 
         const icon = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -390,10 +412,12 @@ export const InboxEmailListItem = memo(
         );
         e.dataTransfer.effectAllowed = "move";
         set_is_dragging(true);
+        begin_category_drag();
       };
 
       const handle_drag_end = () => {
         set_is_dragging(false);
+        end_category_drag();
         if (drag_image_ref.current) {
           drag_image_ref.current.remove();
           drag_image_ref.current = null;
@@ -437,7 +461,7 @@ export const InboxEmailListItem = memo(
             <div
               className={cn(
                 "group/avatar aster_select_focus relative flex-shrink-0 flex items-center justify-center cursor-pointer",
-                avatar_size_class,
+                select_slot_class,
               )}
               role="button"
               tabIndex={0}
@@ -453,7 +477,12 @@ export const InboxEmailListItem = memo(
                 }
               }}
             >
-              {preferences.low_network_mode ? (
+              {!show_avatar_column ? (
+                <Checkbox
+                  checked={email.is_selected === true}
+                  className="pointer-events-none"
+                />
+              ) : preferences.low_network_mode ? (
                 <div
                   className={cn(
                     "rounded-full border-2 flex items-center justify-center transition-colors duration-150",
@@ -467,7 +496,7 @@ export const InboxEmailListItem = memo(
                     className={cn(
                       "w-4 h-4 transition-opacity duration-150",
                       email.is_selected
-                        ? "text-white opacity-100"
+                        ? "text-[var(--accent-fg,#ffffff)] opacity-100"
                         : "text-[var(--accent-color,#3b82f6)] opacity-0 group-hover/avatar:opacity-100",
                     )}
                   />
@@ -515,7 +544,7 @@ export const InboxEmailListItem = memo(
                         : "opacity-0 group-hover/avatar:opacity-100 bg-black/20 dark:bg-white/20",
                     )}
                   >
-                    <CheckIcon className="w-4 h-4 text-white" />
+                    <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" />
                   </div>
                 </>
               )}
@@ -680,6 +709,20 @@ export const InboxEmailListItem = memo(
                   label={t("mail.spam_label")}
                   muted={email.is_read}
                   variant="spam"
+                />
+              )}
+
+              {alias_delivery && (
+                <EmailTag
+                  show_icon
+                  className="flex-shrink-0 hidden sm:inline-flex max-w-[10rem]"
+                  icon="at"
+                  label={alias_delivery.label}
+                  muted={email.is_read}
+                  title={t("mail.received_via_alias", {
+                    address: alias_delivery.address,
+                  })}
+                  variant="purple"
                 />
               )}
 

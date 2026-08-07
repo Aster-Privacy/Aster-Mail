@@ -60,14 +60,17 @@ import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailList } from "@/components/mobile/mobile_email_list";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { EmptyTrashModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { empty_trash } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_cache } from "@/hooks/email_list_cache";
-import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  invalidate_mail_stats,
+  adjust_stats_trash,
+} from "@/hooks/use_mail_stats";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
-import { adjust_trash_count } from "@/hooks/use_mail_counts";
 import { request_cache } from "@/services/api/request_cache";
 import {
   DropdownMenu,
@@ -248,12 +251,18 @@ function MobileInbox({
     return [...pinned, ...enriched_unpinned];
   }, [enriched_pinned, enriched_unpinned]);
 
-  const folder_not_found =
-    folder_token &&
-    !folders_state.is_loading &&
-    !get_folder_by_token(folder_token);
-  const tag_not_found =
-    tag_token && !tags_state.is_loading && !get_tag_by_token(tag_token);
+  const folder_not_found = use_settled_not_found({
+    kind: "folder",
+    token: folder_token ?? null,
+    is_found: Boolean(folder_token && get_folder_by_token(folder_token)),
+    is_loading: folders_state.is_loading,
+  });
+  const tag_not_found = use_settled_not_found({
+    kind: "tag",
+    token: tag_token ?? null,
+    is_found: Boolean(tag_token && get_tag_by_token(tag_token)),
+    is_loading: tags_state.is_loading,
+  });
 
   const view_title = folder_token
     ? (get_folder_by_token(folder_token)?.name ?? t("common.folders"))
@@ -412,11 +421,8 @@ function MobileInbox({
     const any_unstarred = emails.some((e) => !e.is_starred);
 
     await actions.bulk_star(emails, any_unstarred);
-    for (const email of emails) {
-      update_email(email.id, { is_starred: any_unstarred });
-    }
     exit_selection_mode();
-  }, [get_selected_emails, actions, update_email, exit_selection_mode]);
+  }, [get_selected_emails, actions, exit_selection_mode]);
 
   const handle_bulk_toggle_read = useCallback(async () => {
     const emails = get_selected_emails();
@@ -425,11 +431,8 @@ function MobileInbox({
     const any_unread = emails.some((e) => !e.is_read);
 
     await actions.bulk_mark_read(emails, any_unread);
-    for (const email of emails) {
-      update_email(email.id, { is_read: any_unread });
-    }
     exit_selection_mode();
-  }, [get_selected_emails, actions, update_email, exit_selection_mode]);
+  }, [get_selected_emails, actions, exit_selection_mode]);
 
   const handle_archive = useCallback(
     async (email: InboxEmail) => {
@@ -558,7 +561,7 @@ function MobileInbox({
         invalidate_mail_cache("trash");
         invalidate_mail_cache("all");
         invalidate_mail_cache("starred");
-        adjust_trash_count(-trash_count);
+        adjust_stats_trash(-trash_count);
         emit_mail_items_removed({ ids: removed_ids });
         invalidate_mail_stats();
         show_action_toast({
@@ -731,7 +734,7 @@ function MobileInbox({
               {drafts_state.error}
             </p>
             <button
-              className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-white"
+              className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
               type="button"
               onClick={refresh_drafts}
             >
@@ -751,6 +754,11 @@ function MobileInbox({
             is_drafts_view ? drafts_state.is_loading : mail_state.is_loading
           }
           is_loading_more={is_drafts_view ? false : mail_state.is_loading_more}
+          has_initial_load={
+            is_drafts_view
+              ? !drafts_state.is_loading
+              : mail_state.has_initial_load
+          }
           has_load_error={is_drafts_view ? false : mail_state.has_load_error}
           is_refreshing={is_refreshing}
           on_archive={is_drafts_view ? undefined : handle_archive}

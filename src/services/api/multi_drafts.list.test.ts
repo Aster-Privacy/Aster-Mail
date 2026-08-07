@@ -38,8 +38,8 @@ vi.mock("@/services/crypto/legacy_keks", () => ({
   decrypt_aes_gcm_with_fallback: decrypt_mock,
 }));
 
-vi.mock("@/hooks/use_mail_counts", () => ({
-  invalidate_mail_counts: vi.fn(),
+vi.mock("@/hooks/use_mail_stats", () => ({
+  invalidate_mail_stats: vi.fn(),
 }));
 
 import { list_drafts_with_content } from "./multi_drafts";

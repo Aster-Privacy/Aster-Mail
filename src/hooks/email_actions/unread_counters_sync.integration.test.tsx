@@ -98,6 +98,12 @@ vi.mock("@/components/toast/action_toast", () => ({
 
 vi.mock("@/hooks/mark_conversation_read", () => ({
   mark_conversation_read: () => {},
+  conversation_needs_thread_read: () => false,
+  collect_conversation_thread_tokens: () => [],
+  mark_conversation_threads_read: async () => ({
+    attempted_ids: [],
+    failed_ids: [],
+  }),
 }));
 
 vi.mock("@/hooks/email_list_cache", () => ({
@@ -576,6 +582,129 @@ describe("unread counters stay in lockstep on read (integration)", () => {
 
     expect(stats_unread()).toBe(0);
     expect(cat_unread()).toBe(0);
+  });
+
+  it("mark_as_read on one message of a two-message conversation leaves the thread badge alone", async () => {
+    await seed(
+      [
+        { id: "m1", thread: "t1", is_read: false },
+        { id: "m2", thread: "t1", is_read: false },
+        { id: "m3", thread: "t3", is_read: false },
+      ],
+      2,
+    );
+
+    expect(stats_unread()).toBe(2);
+
+    hoisted.update_item_metadata.mockResolvedValue({
+      success: true,
+      encrypted: { encrypted_metadata: "em2", metadata_nonce: "mn2" },
+    });
+
+    await act(async () => {
+      await actions.mark_as_read(email("m1", "t1", false));
+      await flush();
+    });
+
+    expect(stats_unread()).toBe(2);
+  });
+
+  it("holds the thread badge steady when a gated mark_as_read write fails", async () => {
+    await seed(
+      [
+        { id: "m1", thread: "t1", is_read: false },
+        { id: "m2", thread: "t1", is_read: false },
+        { id: "m3", thread: "t3", is_read: false },
+      ],
+      2,
+    );
+
+    hoisted.update_item_metadata.mockResolvedValue({ success: false });
+
+    await act(async () => {
+      await actions.mark_as_read(email("m1", "t1", false));
+      await flush();
+    });
+
+    expect(stats_unread()).toBe(2);
+  });
+
+  it("mark_as_unread on a message whose sibling is already unread leaves the thread badge alone", async () => {
+    await seed(
+      [
+        { id: "m1", thread: "t1", is_read: true },
+        { id: "m2", thread: "t1", is_read: false },
+        { id: "m3", thread: "t3", is_read: true },
+      ],
+      1,
+    );
+
+    expect(stats_unread()).toBe(1);
+
+    hoisted.update_item_metadata.mockResolvedValue({
+      success: true,
+      encrypted: { encrypted_metadata: "em2", metadata_nonce: "mn2" },
+    });
+
+    await act(async () => {
+      await actions.mark_as_unread(email("m1", "t1", true));
+      await flush();
+    });
+
+    expect(stats_unread()).toBe(1);
+  });
+
+  it("mark_as_unread raises the thread badge when no sibling is unread", async () => {
+    await seed(
+      [
+        { id: "m1", thread: "t1", is_read: true },
+        { id: "m2", thread: "t1", is_read: true },
+        { id: "m3", thread: "t3", is_read: true },
+      ],
+      0,
+    );
+
+    hoisted.update_item_metadata.mockResolvedValue({ success: false });
+
+    await act(async () => {
+      await actions.mark_as_unread(email("m1", "t1", true));
+      await flush();
+    });
+
+    expect(stats_unread()).toBe(0);
+  });
+
+  it("bulk_mark_read counts a whole conversation once and reverts it once", async () => {
+    await seed(
+      [
+        { id: "m1", thread: "t1", is_read: false },
+        { id: "m2", thread: "t1", is_read: false },
+        { id: "m3", thread: "t3", is_read: false },
+      ],
+      2,
+    );
+
+    const write = deferred<{ success: boolean; failed_ids: string[] }>();
+    hoisted.bulk_update_items_metadata.mockReturnValue(write.promise);
+
+    const batch = [email("m1", "t1", false), email("m2", "t1", false)];
+
+    let action_promise: Promise<boolean>;
+
+    await act(async () => {
+      action_promise = actions.bulk_mark_read(batch, true);
+      await flush();
+    });
+
+    expect(stats_unread()).toBe(1);
+
+    await act(async () => {
+      write.resolve({ success: false, failed_ids: ["m1", "m2"] });
+      await action_promise;
+      await flush();
+    });
+
+    expect(stats_unread()).toBe(2);
   });
 
   it("bulk_mark_read reverts both counters when the whole batch fails", async () => {

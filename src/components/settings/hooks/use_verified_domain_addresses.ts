@@ -29,6 +29,7 @@ import {
   has_passphrase_in_memory,
   get_derived_encryption_key,
 } from "@/services/crypto/memory_key_store";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 const DEFAULT_DOMAINS = ["astermail.org", "aster.cx"];
 
@@ -45,7 +46,7 @@ export function use_verified_domain_addresses() {
   const load = useCallback(async () => {
     if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
       set_addresses([]);
-      set_is_loading(false);
+      set_is_loading(true);
 
       return;
     }
@@ -102,6 +103,16 @@ export function use_verified_domain_addresses() {
 
   useEffect(() => {
     load();
+
+    const handle_auth_ready = () => {
+      load();
+    };
+
+    window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
+
+    return () => {
+      window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
+    };
   }, [load]);
 
   return { addresses, is_loading, reload: load };

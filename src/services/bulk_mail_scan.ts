@@ -31,6 +31,7 @@ import { yield_to_browser } from "@/lib/scheduling";
 
 export const SCAN_PAGE_SIZE = 150;
 export const SCAN_ITEM_CAP = 5000;
+export const FULL_MAILBOX_ITEM_CAP = 50000;
 export const DECRYPT_YIELD_CHUNK = 25;
 
 export interface ScanReceivedResult {
@@ -89,6 +90,7 @@ async function scan_pages(
   fetch_page: (cursor?: string) => Promise<PageResponse>,
   signal?: AbortSignal,
   on_progress?: ScanProgress,
+  item_cap: number = SCAN_ITEM_CAP,
 ): Promise<ScanReceivedResult> {
   const items: MailItem[] = [];
   let cursor: string | undefined;
@@ -106,8 +108,8 @@ async function scan_pages(
     cursor = response.data.next_cursor;
     page_count += 1;
 
-    if (items.length >= SCAN_ITEM_CAP) {
-      items.length = SCAN_ITEM_CAP;
+    if (items.length >= item_cap) {
+      items.length = item_cap;
       reached_cap = true;
       cursor = undefined;
     }
@@ -125,6 +127,7 @@ async function scan_pages(
 export function scan_received_items(
   signal?: AbortSignal,
   on_progress?: ScanProgress,
+  item_cap?: number,
 ): Promise<ScanReceivedResult> {
   return scan_pages(
     (cursor) =>
@@ -135,6 +138,7 @@ export function scan_received_items(
       }),
     signal,
     on_progress,
+    item_cap,
   );
 }
 

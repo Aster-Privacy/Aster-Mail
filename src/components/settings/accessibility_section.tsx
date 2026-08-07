@@ -77,11 +77,8 @@ export function AccessibilitySection() {
   const commit_font_size = (n: number) => {
     const v = clamp_font_size(n);
 
+    set_font_size_input(String(v));
     update_preference("font_size_scale", v, true);
-  };
-
-  const commit_font_size_unclamped = (n: number) => {
-    update_preference("font_size_scale", Math.round(n), true);
   };
 
   const [shortcuts_modal_open, set_shortcuts_modal_open] = useState(false);
@@ -132,7 +129,7 @@ export function AccessibilitySection() {
 
                   return;
                 }
-                commit_font_size_unclamped(parsed);
+                commit_font_size(parsed);
               }}
               onChange={(e) => set_font_size_input(e.target.value)}
               onKeyDown={(e) => {
@@ -152,7 +149,7 @@ export function AccessibilitySection() {
         </div>
         <div className="mt-3 flex">
           <button
-            className="px-3 py-1.5 rounded-[12px] text-sm font-medium text-white bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
+            className="px-3 py-1.5 rounded-[12px] text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
             type="button"
             onClick={() => commit_font_size(FONT_SIZE_DEFAULT)}
           >

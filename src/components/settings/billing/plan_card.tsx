@@ -91,7 +91,7 @@ export function PlanCard({
     >
       {badge && (
         <span
-          className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap shadow-sm"
+          className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)] whitespace-nowrap shadow-sm"
           style={{ backgroundColor: "var(--accent-blue)" }}
         >
           {badge}
@@ -121,7 +121,7 @@ export function PlanCard({
           <span className="text-sm text-txt-muted">{period_label}</span>
           {save_label && (
             <span
-              className="ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+              className="ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent-fg,#ffffff)]"
               style={{ backgroundColor: "var(--accent-blue)" }}
             >
               {save_label}
@@ -201,7 +201,7 @@ export function Segmented<T extends string>({
           <button
             key={opt.id}
             className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none ${
-              active ? "text-white" : "text-txt-muted hover:text-txt-secondary"
+              active ? "text-[var(--accent-fg,#ffffff)]" : "text-txt-muted hover:text-txt-secondary"
             }`}
             style={active ? { backgroundColor: "var(--accent-blue)" } : undefined}
             type="button"
@@ -213,8 +213,8 @@ export function Segmented<T extends string>({
                 className="ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"
                 style={
                   active
-                    ? { backgroundColor: "rgba(255,255,255,0.22)", color: "#ffffff" }
-                    : { backgroundColor: "var(--accent-blue)", color: "#ffffff" }
+                    ? { backgroundColor: "rgba(255,255,255,0.22)", color: "var(--accent-fg, #ffffff)" }
+                    : { backgroundColor: "var(--accent-blue)", color: "var(--accent-fg, #ffffff)" }
                 }
               >
                 {opt.badge}

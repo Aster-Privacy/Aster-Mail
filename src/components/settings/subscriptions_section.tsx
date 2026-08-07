@@ -112,7 +112,8 @@ export function SubscriptionsSection() {
   const [subscriptions, set_subscriptions] = useState<Subscription[]>([]);
   const [stats, set_stats] = useState<SubscriptionStats | null>(null);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
-  const [is_initial_load, set_is_initial_load] = useState(true);
+  const [is_loading, set_is_loading] = useState(true);
+  const [has_loaded, set_has_loaded] = useState(false);
   const [is_scanning, set_is_scanning] = useState(false);
   const [scan_progress, set_scan_progress] = useState<ScanProgress | null>(
     null,
@@ -120,35 +121,32 @@ export function SubscriptionsSection() {
   const [is_unsubscribing, set_is_unsubscribing] = useState(false);
   const [show_snoozed, set_show_snoozed] = useState(false);
 
-  const fetch_subscriptions = useCallback(
-    async (show_loading = false) => {
-      try {
-        const status = show_snoozed ? "unsubscribed" : "active";
-        const [subs_result, stats_result] = await Promise.all([
-          list_subscriptions({ status, limit: 100 }),
-          get_subscription_stats(),
-        ]);
+  const fetch_subscriptions = useCallback(async () => {
+    set_is_loading(true);
+    try {
+      const status = show_snoozed ? "unsubscribed" : "active";
+      const [subs_result, stats_result] = await Promise.all([
+        list_subscriptions({ status, limit: 100 }),
+        get_subscription_stats(),
+      ]);
 
-        if (subs_result.data) {
-          set_subscriptions(subs_result.data.subscriptions);
-        }
-        if (stats_result.data) {
-          set_stats(stats_result.data);
-        }
-      } finally {
-        if (show_loading) {
-          set_is_initial_load(false);
-        }
+      if (subs_result.data) {
+        set_subscriptions(subs_result.data.subscriptions);
       }
-    },
-    [show_snoozed],
-  );
+      if (stats_result.data) {
+        set_stats(stats_result.data);
+      }
+    } finally {
+      set_is_loading(false);
+      set_has_loaded(true);
+    }
+  }, [show_snoozed]);
 
   const is_locked = false;
 
   useEffect(() => {
-    fetch_subscriptions(is_initial_load);
-  }, [fetch_subscriptions, is_initial_load]);
+    fetch_subscriptions();
+  }, [fetch_subscriptions]);
 
   const displayed_stats = {
     total: stats?.active ?? 0,
@@ -224,7 +222,10 @@ export function SubscriptionsSection() {
   const format_date = (date_string: string) => {
     const date = new Date(date_string);
 
-    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
   };
 
   if (is_locked) {
@@ -241,7 +242,7 @@ export function SubscriptionsSection() {
     );
   }
 
-  if (is_initial_load) {
+  if (!has_loaded) {
     return <SettingsSkeleton variant="list" />;
   }
 
@@ -349,7 +350,9 @@ export function SubscriptionsSection() {
           </div>
         </div>
 
-        {subscriptions.length === 0 ? (
+        {subscriptions.length === 0 && is_loading ? (
+          <SettingsSkeleton variant="list" />
+        ) : subscriptions.length === 0 ? (
           <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
             {show_snoozed ? (
               <SnoozeIcon className="mx-auto mb-2 text-txt-muted" size={24} />

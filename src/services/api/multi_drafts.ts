@@ -24,7 +24,7 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
 import { en } from "@/lib/i18n/translations/en";
 
-import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 const HASH_ALG = ["SHA", "256"].join("-");
 
@@ -535,7 +535,7 @@ export async function create_draft(
     return create_error_response(response.error, response.code);
   }
 
-  invalidate_mail_counts();
+  invalidate_mail_stats();
 
   const now = new Date().toISOString();
 
@@ -624,7 +624,7 @@ export async function update_draft(
     return { error: en.errors.version_conflict, code: "CONFLICT" };
   }
 
-  invalidate_mail_counts();
+  invalidate_mail_stats();
 
   const now = new Date().toISOString();
 
@@ -654,7 +654,7 @@ export async function delete_draft(
     return create_error_response(response.error, response.code);
   }
 
-  invalidate_mail_counts();
+  invalidate_mail_stats();
 
   return { data: { success: response.data.success } };
 }

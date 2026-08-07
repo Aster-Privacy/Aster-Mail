@@ -31,10 +31,15 @@ import {
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
 import {
-  adjust_unread_count,
-  adjust_starred_count,
-  adjust_trash_count,
-} from "@/hooks/use_mail_counts";
+  adjust_stats_unread,
+  adjust_stats_starred,
+  adjust_stats_trash,
+  invalidate_mail_stats,
+} from "@/hooks/use_mail_stats";
+import {
+  conversation_has_unread_sibling,
+  read_clears_conversation,
+} from "@/hooks/unread_read_delta";
 import {
   compute_trash_deltas,
   compute_untrash_deltas,
@@ -44,9 +49,12 @@ import {
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
-import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import {
+  collect_restore_entries,
+  type RestoredEmailEntry,
+} from "@/hooks/email_list_helpers";
 import { emit_mail_changed } from "@/hooks/email_action_types";
 import {
   remove_ids as remove_index_ids,
@@ -76,6 +84,7 @@ interface UseContextMenuActionsParams {
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
+  restore_emails: (entries: RestoredEmailEntry[]) => void;
   handle_open_compose: (
     mode: "reply" | "reply_all" | "forward",
     email: InboxEmail,
@@ -140,6 +149,7 @@ export function use_context_menu_actions({
   update_email,
   remove_email,
   remove_emails,
+  restore_emails,
   handle_open_compose,
   folders_lookup,
   tags_lookup,
@@ -180,6 +190,8 @@ export function use_context_menu_actions({
             ? email.grouped_email_ids
             : [email.id];
 
+        const restore_entries = collect_restore_entries(emails, [email.id]);
+
         remove_email(email.id);
         for (const eid of all_ids) {
           remove_email_from_view_cache(eid);
@@ -190,7 +202,7 @@ export function use_context_menu_actions({
             : (await batched_bulk_permanent_delete(all_ids)).success;
 
         if (succeeded) {
-          adjust_trash_count(-all_ids.length);
+          adjust_stats_trash(-all_ids.length);
           emit_mail_items_removed({ ids: all_ids });
           show_action_toast({
             message:
@@ -203,8 +215,9 @@ export function use_context_menu_actions({
             email_ids: all_ids,
           });
         } else {
-          update_email(email.id, email);
+          restore_emails(restore_entries);
           invalidate_mail_stats();
+          show_toast(t("common.failed_to_permanently_delete"), "error");
         }
 
         return;
@@ -445,10 +458,20 @@ export function use_context_menu_actions({
 
       const new_state = !email.is_read;
       const is_received = email.item_type === "received";
+      const conversation_options = {
+        thread_token: email.thread_token,
+        grouped_count: email.grouped_email_ids?.length,
+        acted_id: email.id,
+      };
+      const should_adjust_unread =
+        is_received &&
+        (new_state
+          ? read_clears_conversation(conversation_options)
+          : !conversation_has_unread_sibling(conversation_options));
 
       update_email(email.id, { is_read: new_state });
-      if (is_received) {
-        adjust_unread_count(new_state ? -1 : 1);
+      if (should_adjust_unread) {
+        adjust_stats_unread(new_state ? -1 : 1);
       }
       const result = await update_item_metadata(
         email.id,
@@ -468,11 +491,7 @@ export function use_context_menu_actions({
           metadata_nonce: result.encrypted?.metadata_nonce,
         });
         if (new_state && is_received) {
-          mark_conversation_read({
-            thread_token: email.thread_token,
-            grouped_count: email.grouped_email_ids?.length,
-            acted_id: email.id,
-          });
+          mark_conversation_read(conversation_options);
         }
         show_action_toast({
           message: new_state
@@ -481,8 +500,8 @@ export function use_context_menu_actions({
           action_type: "read",
           email_ids: [email.id],
           on_undo: async () => {
-            if (is_received) {
-              adjust_unread_count(new_state ? 1 : -1);
+            if (should_adjust_unread) {
+              adjust_stats_unread(new_state ? 1 : -1);
             }
             const undo_result = await update_item_metadata(
               email.id,
@@ -503,8 +522,8 @@ export function use_context_menu_actions({
         });
       } else {
         update_email(email.id, { is_read: email.is_read });
-        if (is_received) {
-          adjust_unread_count(new_state ? 1 : -1);
+        if (should_adjust_unread) {
+          adjust_stats_unread(new_state ? 1 : -1);
         }
         show_toast(
           new_state
@@ -574,7 +593,7 @@ export function use_context_menu_actions({
       const new_state = !email.is_starred;
 
       update_email(email.id, { is_starred: new_state });
-      adjust_starred_count(new_state ? 1 : -1);
+      adjust_stats_starred(new_state ? 1 : -1);
 
       const result = await update_item_metadata(
         email.id,
@@ -600,7 +619,7 @@ export function use_context_menu_actions({
           action_type: "star",
           email_ids: [email.id],
           on_undo: async () => {
-            adjust_starred_count(new_state ? -1 : 1);
+            adjust_stats_starred(new_state ? -1 : 1);
             const undo_result = await update_item_metadata(
               email.id,
               {
@@ -620,7 +639,7 @@ export function use_context_menu_actions({
         });
       } else {
         update_email(email.id, { is_starred: !new_state });
-        adjust_starred_count(new_state ? -1 : 1);
+        adjust_stats_starred(new_state ? -1 : 1);
         show_toast(t("common.failed_to_update"), "error");
       }
     };
@@ -1078,6 +1097,7 @@ export function use_context_menu_actions({
     update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     handle_open_compose,
     folders_lookup,
     tags_lookup,

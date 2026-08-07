@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -29,6 +29,11 @@ import { useTheme } from "@/contexts/theme_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_onboarding } from "@/hooks/use_onboarding";
 import { cn } from "@/lib/utils";
+import { use_body_scroll_lock } from "@/lib/body_scroll_lock";
+import {
+  is_top_overlay_layer,
+  use_escape_layer,
+} from "@/lib/overlay_layer_stack";
 import { use_should_reduce_motion } from "@/provider";
 
 const pulse_style = `
@@ -150,7 +155,6 @@ export function OnboardingTour() {
   const [current_step, set_current_step] = useState(0);
   const [target_rect, set_target_rect] = useState<DOMRect | null>(null);
   const [is_transitioning, set_is_transitioning] = useState(false);
-  const update_timer_ref = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (state?.current_step !== undefined) {
@@ -158,15 +162,7 @@ export function OnboardingTour() {
     }
   }, [state]);
 
-  useEffect(() => {
-    if (should_show_onboarding) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [should_show_onboarding]);
+  use_body_scroll_lock(should_show_onboarding);
 
   const scroll_to_element = useCallback((element: Element) => {
     const rect = element.getBoundingClientRect();
@@ -186,49 +182,77 @@ export function OnboardingTour() {
   }, []);
 
   const update_target_rect = useCallback(() => {
-    const current = onboarding_steps[current_step];
+    const selector = onboarding_steps[current_step].target_selector;
+    const element = selector ? document.querySelector(selector) : null;
 
-    if (current.target_selector) {
-      const element = document.querySelector(current.target_selector);
-
-      if (element) {
-        const rect = element.getBoundingClientRect();
-
-        set_target_rect(rect);
-        scroll_to_element(element);
-      } else {
-        set_target_rect(null);
-      }
-    } else {
-      set_target_rect(null);
-    }
-  }, [current_step, scroll_to_element]);
+    set_target_rect(element ? element.getBoundingClientRect() : null);
+  }, [current_step, onboarding_steps]);
 
   useEffect(() => {
-    const timeout = setTimeout(update_target_rect, 100);
+    if (!should_show_onboarding) return;
 
-    const handle_resize = () => {
-      if (update_timer_ref.current) {
-        clearTimeout(update_timer_ref.current);
-      }
-      update_timer_ref.current = setTimeout(update_target_rect, 100);
+    const selector = onboarding_steps[current_step].target_selector;
+
+    if (!selector) {
+      set_target_rect(null);
+
+      return;
+    }
+
+    let frame = 0;
+    let resize_observer: ResizeObserver | null = null;
+    let mutation_observer: MutationObserver | null = null;
+
+    const reposition = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update_target_rect);
     };
 
-    window.addEventListener("resize", handle_resize);
-    window.addEventListener("scroll", handle_resize, true);
+    const attach = (element: Element) => {
+      scroll_to_element(element);
+      reposition();
+      resize_observer = new ResizeObserver(reposition);
+      resize_observer.observe(element);
+      resize_observer.observe(document.documentElement);
+    };
 
-    const interval = setInterval(update_target_rect, 500);
+    const initial = document.querySelector(selector);
+
+    if (initial) {
+      attach(initial);
+    } else {
+      set_target_rect(null);
+      mutation_observer = new MutationObserver(() => {
+        const late = document.querySelector(selector);
+
+        if (!late) return;
+        mutation_observer?.disconnect();
+        mutation_observer = null;
+        attach(late);
+      });
+      mutation_observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
 
     return () => {
-      clearTimeout(timeout);
-      if (update_timer_ref.current) {
-        clearTimeout(update_timer_ref.current);
-      }
-      window.removeEventListener("resize", handle_resize);
-      window.removeEventListener("scroll", handle_resize, true);
-      clearInterval(interval);
+      cancelAnimationFrame(frame);
+      resize_observer?.disconnect();
+      mutation_observer?.disconnect();
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
     };
-  }, [update_target_rect]);
+  }, [
+    should_show_onboarding,
+    current_step,
+    onboarding_steps,
+    scroll_to_element,
+    update_target_rect,
+  ]);
 
   const handle_next = useCallback(async () => {
     if (is_transitioning) return;
@@ -276,13 +300,19 @@ export function OnboardingTour() {
     }
   }, [is_transitioning, skip_onboarding]);
 
-  useEffect(() => {
-    const handle_keydown = (e: KeyboardEvent) => {
-      if (!should_show_onboarding) return;
+  const layer_id = use_escape_layer(
+    should_show_onboarding,
+    handle_skip,
+    "onboarding_tour",
+  );
 
-      if (e["key"] === "Escape") {
-        handle_skip();
-      } else if (e["key"] === "ArrowRight") {
+  useEffect(() => {
+    if (!should_show_onboarding) return;
+
+    const handle_keydown = (e: KeyboardEvent) => {
+      if (!is_top_overlay_layer(layer_id)) return;
+
+      if (e["key"] === "ArrowRight") {
         handle_next();
       } else if (e["key"] === "ArrowLeft") {
         handle_previous();
@@ -292,7 +322,7 @@ export function OnboardingTour() {
     window.addEventListener("keydown", handle_keydown);
 
     return () => window.removeEventListener("keydown", handle_keydown);
-  }, [should_show_onboarding, handle_skip, handle_next, handle_previous]);
+  }, [should_show_onboarding, layer_id, handle_next, handle_previous]);
 
   const current = onboarding_steps[current_step];
   const progress = ((current_step + 1) / onboarding_steps.length) * 100;
@@ -426,7 +456,9 @@ export function OnboardingTour() {
                           left: target_rect.left - 8,
                           width: target_rect.width + 16,
                           height: target_rect.height + 16,
-                          "--tour-color": is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
+                          "--tour-color": is_dark
+                            ? "var(--accent-color-hover)"
+                            : "var(--accent-color)",
                           "--tour-color-fade": is_dark
                             ? "color-mix(in srgb, var(--accent-color-hover) 25%, transparent)"
                             : "color-mix(in srgb, var(--accent-color) 20%, transparent)",
@@ -494,7 +526,9 @@ export function OnboardingTour() {
                             backgroundColor: is_dark
                               ? "color-mix(in srgb, var(--accent-color-hover) 15%, transparent)"
                               : "color-mix(in srgb, var(--accent-color) 10%, transparent)",
-                            color: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
+                            color: is_dark
+                              ? "var(--accent-color-hover)"
+                              : "var(--accent-color)",
                           }}
                         >
                           {t("common.step")} {current_step + 1} {t("common.of")}{" "}
@@ -524,7 +558,9 @@ export function OnboardingTour() {
                             className="h-full rounded-full"
                             initial={false}
                             style={{
-                              backgroundColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
+                              backgroundColor: is_dark
+                                ? "var(--accent-color-hover)"
+                                : "var(--accent-color)",
                             }}
                             transition={{
                               duration: reduce_motion ? 0 : 0.3,

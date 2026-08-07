@@ -22,6 +22,7 @@ import {
   memo,
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -57,11 +58,9 @@ import {
   extract_query_terms,
   use_search,
 } from "@/hooks/use_search";
-import {
-  is_page_search_route,
-  set_page_search,
-} from "@/hooks/use_page_search";
+import { is_page_search_route, set_page_search } from "@/hooks/use_page_search";
 import { use_i18n } from "@/lib/i18n/context";
+import { has_open_overlay_layer } from "@/lib/overlay_layer_stack";
 import { use_preferences } from "@/contexts/preferences_context";
 
 const DEBOUNCE_MS = 180;
@@ -69,19 +68,21 @@ const MIN_QUERY_LENGTH = 2;
 const PREVIEW_LIMIT = 5;
 const PREVIEW_DEBOUNCE_MS = 90;
 
-const VIEW_SCOPES: Record<string, { label_key: TranslationKey; token: string }> =
-  {
-    "/": { label_key: "mail.inbox", token: "inbox" },
-    "/all": { label_key: "mail.all_mail", token: "all" },
-    "/starred": { label_key: "mail.starred", token: "starred" },
-    "/sent": { label_key: "mail.sent", token: "sent" },
-    "/drafts": { label_key: "mail.drafts", token: "drafts" },
-    "/scheduled": { label_key: "mail.scheduled", token: "scheduled" },
-    "/snoozed": { label_key: "mail.snoozed", token: "snoozed" },
-    "/archive": { label_key: "mail.archive", token: "archive" },
-    "/spam": { label_key: "mail.spam", token: "spam" },
-    "/trash": { label_key: "mail.trash", token: "trash" },
-  };
+const VIEW_SCOPES: Record<
+  string,
+  { label_key: TranslationKey; token: string }
+> = {
+  "/": { label_key: "mail.inbox", token: "inbox" },
+  "/all": { label_key: "mail.all_mail", token: "all" },
+  "/starred": { label_key: "mail.starred", token: "starred" },
+  "/sent": { label_key: "mail.sent", token: "sent" },
+  "/drafts": { label_key: "mail.drafts", token: "drafts" },
+  "/scheduled": { label_key: "mail.scheduled", token: "scheduled" },
+  "/snoozed": { label_key: "mail.snoozed", token: "snoozed" },
+  "/archive": { label_key: "mail.archive", token: "archive" },
+  "/spam": { label_key: "mail.spam", token: "spam" },
+  "/trash": { label_key: "mail.trash", token: "trash" },
+};
 
 interface SearchBarProps {
   is_pill?: boolean;
@@ -116,6 +117,7 @@ export function SearchBar({
   const wrapper_ref = useRef<HTMLDivElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
   const debounce_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const panel_id = useId();
 
   const [query, set_query] = useState(search_context || "");
   const [is_open, set_is_open] = useState(false);
@@ -270,7 +272,7 @@ export function SearchBar({
 
   useEffect(() => {
     if (!is_open) return;
-    const on_down = (e: MouseEvent | TouchEvent) => {
+    const on_down = (e: PointerEvent) => {
       const target = e.target as Node | null;
 
       if (!target) return;
@@ -284,18 +286,17 @@ export function SearchBar({
       close();
     };
 
-    window.addEventListener("mousedown", on_down);
-    window.addEventListener("touchstart", on_down, { passive: true });
+    window.addEventListener("pointerdown", on_down);
 
     return () => {
-      window.removeEventListener("mousedown", on_down);
-      window.removeEventListener("touchstart", on_down);
+      window.removeEventListener("pointerdown", on_down);
     };
   }, [is_open, close]);
 
   useEffect(() => {
     const on_key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        if (has_open_overlay_layer()) return;
         e.preventDefault();
         input_ref.current?.focus();
         set_is_open(true);
@@ -409,6 +410,8 @@ export function SearchBar({
     preview_click_handlers.current.clear();
   }, [handle_preview_click]);
 
+  const is_panel_open = is_open && !is_page_filter && rect !== null;
+
   const dropdown_style: React.CSSProperties | undefined = rect
     ? {
         position: "fixed",
@@ -456,6 +459,10 @@ export function SearchBar({
           />
           <input
             ref={input_ref}
+            aria-autocomplete={is_page_filter ? undefined : "list"}
+            aria-controls={is_panel_open ? panel_id : undefined}
+            aria-expanded={is_page_filter ? undefined : is_panel_open}
+            aria-haspopup={is_page_filter ? undefined : "listbox"}
             className={`flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm ${
               is_open
                 ? "text-[var(--text-secondary)] placeholder:text-[var(--text-muted)]"
@@ -468,6 +475,7 @@ export function SearchBar({
                   ? `${t("mail.search_in")} ${t(scope.label_key)}`
                   : t("common.search")
             }
+            role={is_page_filter ? undefined : "combobox"}
             type="text"
             value={query}
             onChange={handle_change}
@@ -481,37 +489,37 @@ export function SearchBar({
             onKeyDown={handle_key_down}
           />
           <div className="flex items-center gap-0.5 flex-shrink-0">
-          {(query || is_open) && (
-            <button
-              aria-label={query ? t("common.clear") : t("common.close")}
-              className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-              type="button"
-              onClick={() => {
-                if (query) {
-                  handle_clear();
-                } else {
+            {(query || is_open) && (
+              <button
+                aria-label={query ? t("common.clear") : t("common.close")}
+                className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                type="button"
+                onClick={() => {
+                  if (query) {
+                    handle_clear();
+                  } else {
+                    close();
+                    input_ref.current?.blur();
+                  }
+                }}
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            )}
+            {is_pill && !is_page_filter && (
+              <button
+                aria-label={t("mail.advanced_search")}
+                className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] focus:outline-none"
+                type="button"
+                onClick={() => {
                   close();
                   input_ref.current?.blur();
-                }
-              }}
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          )}
-          {is_pill && !is_page_filter && (
-            <button
-              aria-label={t("mail.advanced_search")}
-              className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] focus:outline-none"
-              type="button"
-              onClick={() => {
-                close();
-                input_ref.current?.blur();
-                set_is_advanced_open(true);
-              }}
-            >
-              <AdjustmentsHorizontalIcon className="w-5 h-5" />
-            </button>
-          )}
+                  set_is_advanced_open(true);
+                }}
+              >
+                <AdjustmentsHorizontalIcon className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -527,6 +535,7 @@ export function SearchBar({
                 ? "aster_search_open aster_search_open_panel rounded-b-[22px]"
                 : "rounded-b-lg border border-t-0 border-[var(--border-secondary)] shadow-md"
             }`}
+            id={panel_id}
             style={dropdown_style}
           >
             <SearchContentBanner
@@ -578,13 +587,15 @@ export function SearchBar({
               </div>
             )}
 
-            {preview_enabled && is_preview_loading && preview_results.length === 0 && (
-              <div className="px-1.5 pb-2">
-                <SearchResultSkeleton />
-                <SearchResultSkeleton />
-                <SearchResultSkeleton />
-              </div>
-            )}
+            {preview_enabled &&
+              is_preview_loading &&
+              preview_results.length === 0 && (
+                <div className="px-1.5 pb-2">
+                  <SearchResultSkeleton />
+                  <SearchResultSkeleton />
+                  <SearchResultSkeleton />
+                </div>
+              )}
 
             {preview_enabled &&
               !is_preview_loading &&
@@ -664,13 +675,7 @@ function format_preview_date(
   return format_date(date, options);
 }
 
-function PreviewText({
-  text,
-  terms,
-}: {
-  text: string;
-  terms: string[];
-}) {
+function PreviewText({ text, terms }: { text: string; terms: string[] }) {
   const parts = useMemo(
     () => apply_highlights(text, compute_highlight_ranges(text, terms)),
     [text, terms],

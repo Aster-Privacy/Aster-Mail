@@ -25,7 +25,12 @@ import type { UseEmailListReturn } from "./email_list_types";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
-import { fetch_mail_from_api, DEFAULT_PAGE_SIZE } from "./email_list_helpers";
+import {
+  fetch_mail_from_api,
+  insert_emails_at,
+  DEFAULT_PAGE_SIZE,
+  type RestoredEmailEntry,
+} from "./email_list_helpers";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import {
   view_cache,
@@ -61,6 +66,8 @@ export {
   remove_email_from_view_cache,
   mark_view_stale,
 };
+
+const LOADING_SAFETY_MS = 10_000;
 
 export function derive_page_from_list_length(
   list_length: number,
@@ -156,6 +163,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
   const abort_ref = useRef<AbortController | null>(null);
   const load_more_abort_ref = useRef<AbortController | null>(null);
+  const fetch_in_flight_ref = useRef(false);
   const mounted_ref = useRef(false);
   const prev_auth_ref = useRef<{
     has_keys: boolean;
@@ -242,6 +250,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       const start = Date.now();
 
       set_state((prev) => ({ ...prev, is_loading: true }));
+      fetch_in_flight_ref.current = true;
 
       try {
         const offset = page_offset_ref.current.get(page) ?? page * limit;
@@ -342,6 +351,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
             has_initial_load: true,
             has_load_error: prev.emails.length === 0,
           }));
+        }
+      } finally {
+        if (abort_ref.current?.signal === signal) {
+          fetch_in_flight_ref.current = false;
         }
       }
     },
@@ -569,25 +582,6 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     };
   }, []);
 
-  useEffect(() => {
-    if (!state.is_loading || state.has_initial_load) return;
-
-    const timer = setTimeout(() => {
-      set_state((prev) =>
-        prev.is_loading && !prev.has_initial_load
-          ? {
-              ...prev,
-              is_loading: false,
-              has_initial_load: true,
-              has_load_error: prev.emails.length === 0,
-            }
-          : prev,
-      );
-    }, 15000);
-
-    return () => clearTimeout(timer);
-  }, [state.is_loading, state.has_initial_load]);
-
   const state_view_ref = useRef<string>(current_view);
 
   useEffect(() => {
@@ -811,7 +805,16 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
   useEffect(() => {
     if (!state.is_loading) return;
-    const safety_timeout = setTimeout(() => {
+
+    let safety_timeout: ReturnType<typeof setTimeout>;
+
+    const settle_or_wait = () => {
+      if (fetch_in_flight_ref.current) {
+        safety_timeout = setTimeout(settle_or_wait, LOADING_SAFETY_MS);
+
+        return;
+      }
+
       set_state((prev) => {
         if (!prev.is_loading) return prev;
 
@@ -828,7 +831,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           has_load_error: prev.emails.length === 0,
         };
       });
-    }, 10_000);
+    };
+
+    safety_timeout = setTimeout(settle_or_wait, LOADING_SAFETY_MS);
 
     return () => clearTimeout(safety_timeout);
   }, [state.is_loading, has_keys, is_authenticated]);
@@ -881,6 +886,26 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     }));
   }, []);
 
+  const restore_emails = useCallback(
+    (entries: RestoredEmailEntry[]): void => {
+      if (entries.length === 0) return;
+      page_cache_ref.current.clear();
+      set_state((prev) => {
+        const emails = insert_emails_at(prev.emails, entries);
+
+        if (emails === prev.emails) return prev;
+
+        return {
+          ...prev,
+          emails,
+          total_messages:
+            prev.total_messages + (emails.length - prev.emails.length),
+        };
+      });
+    },
+    [],
+  );
+
   use_email_list_events({
     current_view,
     is_mail_view,
@@ -925,6 +950,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     toggle_star,
     toggle_pin,
     mark_read,

@@ -21,11 +21,16 @@
 import type { UserPreferences } from "@/services/api/preferences";
 import type { InboxEmail, ConfirmationDialogState } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { BulkActionResult } from "@/hooks/bulk_action_result";
 
 import { useCallback } from "react";
 
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  bulk_succeeded_ids,
+  show_bulk_result_toast,
+} from "@/hooks/bulk_action_result";
 import { MAIL_EVENTS, emit_mail_item_updated } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -51,8 +56,8 @@ interface UseArchiveSnoozeActionsOptions {
   get_selected_ids: (emails: InboxEmail[]) => string[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
-  bulk_archive: (ids: string[]) => Promise<void>;
-  bulk_unarchive: (ids: string[]) => Promise<void>;
+  bulk_archive: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_unarchive: (ids: string[]) => Promise<BulkActionResult>;
   bulk_snooze_action: (ids: string[], snooze_until: Date) => Promise<unknown>;
   preferences: {
     confirm_before_archive: boolean;
@@ -100,11 +105,27 @@ export function use_archive_snooze_actions({
   dont_ask_single_archive,
   set_dont_ask_single_archive,
 }: UseArchiveSnoozeActionsOptions) {
-  const handle_toolbar_archive = useCallback((): void => {
-    if (!preferences.confirm_before_archive) {
-      const ids = get_selected_ids(email_state.emails);
+  const run_bulk_archive = useCallback(
+    async (ids: string[]): Promise<void> => {
+      if (ids.length === 0) return;
+      const result = await bulk_archive(ids);
 
-      bulk_archive(ids);
+      show_bulk_result_toast({
+        result,
+        t,
+        success_message: t("common.n_conversations_archived", {
+          count: bulk_succeeded_ids(result).length,
+        }),
+        error_message: t("common.failed_to_archive_emails"),
+        action_type: "archive",
+      });
+    },
+    [bulk_archive, t],
+  );
+
+  const handle_toolbar_archive = useCallback(async (): Promise<void> => {
+    if (!preferences.confirm_before_archive) {
+      await run_bulk_archive(get_selected_ids(email_state.emails));
     } else {
       set_confirmations((prev) => ({ ...prev, show_archive: true }));
     }
@@ -112,30 +133,39 @@ export function use_archive_snooze_actions({
     preferences.confirm_before_archive,
     get_selected_ids,
     email_state.emails,
-    bulk_archive,
+    run_bulk_archive,
     set_confirmations,
   ]);
 
-  const handle_toolbar_unarchive = useCallback((): void => {
+  const handle_toolbar_unarchive = useCallback(async (): Promise<void> => {
     const ids = get_selected_ids(email_state.emails);
 
-    bulk_unarchive(ids);
-  }, [get_selected_ids, email_state.emails, bulk_unarchive]);
+    if (ids.length === 0) return;
+    const result = await bulk_unarchive(ids);
+
+    show_bulk_result_toast({
+      result,
+      t,
+      success_message: t("common.conversations_moved_to_inbox_bulk", {
+        count: bulk_succeeded_ids(result).length,
+      }),
+      error_message: t("common.failed_to_unarchive_emails"),
+      action_type: "archive",
+    });
+  }, [get_selected_ids, email_state.emails, bulk_unarchive, t]);
 
   const confirm_archive = useCallback(async (): Promise<void> => {
     if (dont_ask_archive) {
       update_preference("confirm_before_archive", false, true);
     }
-    const ids = get_selected_ids(email_state.emails);
-
-    await bulk_archive(ids);
+    await run_bulk_archive(get_selected_ids(email_state.emails));
     set_confirmations((prev) => ({ ...prev, show_archive: false }));
     set_dont_ask_archive(false);
   }, [
     dont_ask_archive,
     get_selected_ids,
     email_state.emails,
-    bulk_archive,
+    run_bulk_archive,
     update_preference,
     save_now,
     set_confirmations,
@@ -231,6 +261,7 @@ export function use_archive_snooze_actions({
       revert_stat_deltas(deltas);
       reindex_ids(Array.from(new Set([...archive_ids, ...removed_thread_ids])));
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      show_toast(t("common.failed_to_archive_emails"), "error");
     }
     set_show_single_archive_confirm(false);
     set_pending_archive_email(null);

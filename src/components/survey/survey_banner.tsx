@@ -124,7 +124,7 @@ export function SurveyBanner() {
         {!should_hide && (
           <motion.div
             animate={{ opacity: 1, height: "auto" }}
-            className="w-full text-white flex-shrink-0 overflow-hidden"
+            className="w-full text-[var(--accent-fg,#ffffff)] flex-shrink-0 overflow-hidden"
             exit={{ opacity: 0, height: 0, overflow: "hidden" }}
             initial={reduce_motion ? false : { opacity: 0, height: 0 }}
             style={{ backgroundColor: "var(--accent-color)" }}

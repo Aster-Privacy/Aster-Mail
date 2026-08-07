@@ -80,6 +80,12 @@ export function ContactAvatar({
   const [favicon_failed, set_favicon_failed] = useState<boolean>(
     domain ? is_icon_failed(domain) : false,
   );
+  const [prev_domain, set_prev_domain] = useState(domain);
+
+  if (domain !== prev_domain) {
+    set_prev_domain(domain);
+    set_favicon_failed(domain ? is_icon_failed(domain) : false);
+  }
 
   const cached_favicon_src = use_favicon_src(domain);
 

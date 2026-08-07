@@ -49,10 +49,17 @@ import {
   is_password_protected_body,
 } from "@/utils/email_crypto";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
-import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  is_lockdown_enabled,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { resolve_received_on_address } from "@/utils/delivered_to";
-
+import { EmailTag } from "@/components/ui/email_tag";
+import {
+  normalize_alias_candidates,
+  use_alias_delivery,
+} from "@/hooks/use_alias_delivery";
 
 export function format_safe_date(
   timestamp: string | number | undefined,
@@ -108,10 +115,13 @@ export function MobileThreadMessage({
   const { preferences } = use_preferences();
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
-  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
+  const [lockdown_active, set_lockdown_active] = useState(() =>
+    is_lockdown_enabled(account_id),
+  );
 
   useEffect(() => {
-    const update = () => set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+    const update = () =>
+      set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
     return () => {
@@ -120,9 +130,9 @@ export function MobileThreadMessage({
     };
   }, [auth?.current_account_id]);
 
-  const [password_unlocked_body, set_password_unlocked_body] = useState<string | null>(
-    null,
-  );
+  const [password_unlocked_body, set_password_unlocked_body] = useState<
+    string | null
+  >(null);
   const password_protected =
     is_password_protected_body(message.body) && password_unlocked_body === null;
 
@@ -160,7 +170,10 @@ export function MobileThreadMessage({
       return t("mail.pgp_password_protected_title");
     }
 
-    if (clean_body === RATCHET_UNDECRYPTABLE_SENTINEL || clean_body === PGP_UNDECRYPTABLE_SENTINEL) {
+    if (
+      clean_body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+      clean_body === PGP_UNDECRYPTABLE_SENTINEL
+    ) {
       return t("mail.encrypted_message_unavailable");
     }
     const plain = strip_html_tags(clean_body);
@@ -179,6 +192,24 @@ export function MobileThreadMessage({
         : undefined,
     [message],
   );
+
+  const alias_candidates_key = useMemo(
+    () =>
+      message.item_type === "received"
+        ? normalize_alias_candidates([
+            received_on_address,
+            ...(message.to_recipients?.map((r) => r.email) ?? []),
+            ...(message.cc_recipients?.map((r) => r.email) ?? []),
+          ])
+        : "",
+    [
+      message.item_type,
+      message.to_recipients,
+      message.cc_recipients,
+      received_on_address,
+    ],
+  );
+  const alias_delivery = use_alias_delivery(undefined, alias_candidates_key);
 
   const sanitize_result = useMemo(() => {
     if (!is_html_content(clean_body)) {
@@ -209,10 +240,13 @@ export function MobileThreadMessage({
       content_blocking:
         !is_system && preferences.block_external_content
           ? {
-              block_remote_images: lockdown_active || preferences.block_remote_images,
-              block_remote_fonts: lockdown_active || preferences.block_remote_fonts,
+              block_remote_images:
+                lockdown_active || preferences.block_remote_images,
+              block_remote_fonts:
+                lockdown_active || preferences.block_remote_fonts,
               block_remote_css: lockdown_active || preferences.block_remote_css,
-              block_tracking_pixels: lockdown_active || preferences.block_tracking_pixels,
+              block_tracking_pixels:
+                lockdown_active || preferences.block_tracking_pixels,
             }
           : lockdown_active
             ? {
@@ -400,6 +434,21 @@ export function MobileThreadMessage({
               {t("mail.received_on_prefix", { address: received_on_address })}
             </p>
           )}
+          {alias_delivery && (
+            <div className="mt-0.5 flex">
+              <EmailTag
+                show_icon
+                className="max-w-[12rem]"
+                icon="at"
+                label={alias_delivery.label}
+                size="xs"
+                title={t("mail.received_via_alias", {
+                  address: alias_delivery.address,
+                })}
+                variant="purple"
+              />
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <span className="text-[11px] leading-tight tabular-nums text-[var(--text-muted)]">
               {format_safe_date(message.timestamp, format_detail)}
@@ -448,7 +497,7 @@ export function MobileThreadMessage({
 
       <div className="flex items-center gap-2 border-t border-[var(--border-primary)] px-4 py-2">
         <button
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-white active:opacity-70"
+          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
           style={{
             background:
               "linear-gradient(180deg, var(--accent-color, #3b82f6) 0%, var(--accent-color-hover, #2563eb) 100%)",

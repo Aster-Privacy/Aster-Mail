@@ -51,6 +51,7 @@ import {
   GlobeAltIcon,
   InformationCircleIcon,
   EyeSlashIcon,
+  AtSymbolIcon,
 } from "@heroicons/react/16/solid";
 
 import { cn } from "@/lib/utils";
@@ -89,6 +90,7 @@ export const tag_icon_map: Record<
   globe: GlobeAltIcon,
   info: InformationCircleIcon,
   "eye-slash": EyeSlashIcon,
+  at: AtSymbolIcon,
 };
 
 export type TagIconName = keyof typeof tag_icon_map;

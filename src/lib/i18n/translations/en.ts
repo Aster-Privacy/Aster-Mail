@@ -491,7 +491,8 @@ export const en: Translations = {
     pending_email_notifications: "Pending email notifications",
     selected: "selected",
     are_you_sure: "Are you sure?",
-    sign_out_all_confirmation: "Are you sure you want to sign out of all accounts on this device?",
+    sign_out_all_confirmation:
+      "Are you sure you want to sign out of all accounts on this device?",
     sign_out_confirmation: "Are you sure you want to sign out of your account?",
     remove_account_confirmation:
       "Are you sure you want to remove this account? You can add it back later.",
@@ -523,10 +524,13 @@ export const en: Translations = {
       "These changes did not save. Another attempt should do it. The emails themselves are unchanged.",
     failed_to_archive_emails:
       "The archive did not finish. Another attempt should do it. The emails are still in your inbox.",
+    failed_to_unarchive_emails:
+      "Moving to the inbox did not finish. Another attempt should do it. The emails are still archived.",
     something_went_wrong_try_again:
       "That did not work. Another attempt in a moment usually does it.",
     something_went_wrong: "Something went wrong.",
-    unexpected_error_refresh: "Something went wrong, so please refresh the page to continue.",
+    unexpected_error_refresh:
+      "Something went wrong, so please refresh the page to continue.",
     unsupported_browser: "Unsupported browser.",
     unsupported_browser_detail: "Please try a different browser.",
     try_again: "Try Again",
@@ -558,10 +562,8 @@ export const en: Translations = {
     adding: "Adding...",
     checking: "Checking...",
     host_name: "Host Name",
-    dns_required:
-      "Required",
-    dns_recommended:
-      "Recommended",
+    dns_required: "Required",
+    dns_recommended: "Recommended",
     dns_caveat_mx_replaces_existing:
       "This replaces any existing MX records. Remove your old mail provider's MX records or new mail will not reach Aster.",
     dns_caveat_spf_single_record_other_senders:
@@ -722,6 +724,8 @@ export const en: Translations = {
     trash_emptied: "Trash emptied successfully",
     trash_empty_failed:
       "We could not empty trash. Another attempt in a moment usually does it. Nothing was removed.",
+    spam_empty_failed:
+      "We could not empty spam. Another attempt in a moment usually does it. Nothing was removed.",
     conversations_marked_as_spam_bulk:
       "{{count}} conversation(s) marked as spam",
     conversations_restored_bulk: "{{count}} conversation(s) restored",
@@ -734,6 +738,16 @@ export const en: Translations = {
       "{{count}} conversation(s) marked as unread",
     conversations_starred_bulk: "{{count}} conversation(s) starred",
     conversations_unstarred_bulk: "{{count}} conversation(s) unstarred",
+    conversations_moved_to_inbox_bulk:
+      "{{count}} conversation(s) moved to inbox",
+    conversations_marked_as_not_spam_bulk:
+      "{{count}} conversation(s) marked as not spam",
+    bulk_action_partially_applied:
+      "{{count}} of {{total}} conversations updated. The rest were not changed.",
+    bulk_action_truncated:
+      "This run covered the first {{count}} messages. Run it again to cover the rest.",
+    bulk_action_continues_in_background:
+      "The remaining messages are still updating in the background.",
     select_none: "None",
     select_read: "Read",
     select_unread: "Unread",
@@ -2215,10 +2229,14 @@ export const en: Translations = {
       "Could not safely re-encrypt one of your aliases. Your password was not changed. Please contact support or remove the affected alias and try again.",
     contact_reencrypt_failed:
       "Could not safely re-encrypt one of your contacts. Your password was not changed. Please contact support or remove the affected contact and try again.",
+    password_change_fingerprint_mismatch:
+      "This session started on a different network or browser, so Aster Mail didn't change your password. To change it, sign out, sign back in, and try again.",
     update_password: "Update Password",
     updating: "Updating...",
     password_change_encrypted_data_warning:
       "Your labels, signatures, and templates are re-encrypted when you change your password. If your connection drops during this, that data cannot be recovered.",
+    password_changed_items_unreadable:
+      "Your password changed. {{count}} encrypted items kept their earlier encryption because their key wasn't available. Mail delivery isn't affected. To restore them, contact support.",
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
     vault_recovery_title: "Recover Encrypted Data",
@@ -2345,7 +2363,8 @@ export const en: Translations = {
     mark_as_read: "Mark as Read",
     mark_as_read_description: "When to mark emails as read",
     emails_per_page: "Emails per page",
-    emails_per_page_description: "Number of emails shown per page in Inbox, Archive, and other folders",
+    emails_per_page_description:
+      "Number of emails shown per page in Inbox, Archive, and other folders",
     immediately: "Immediately",
     after_1_second: "After 1 second",
     after_3_seconds: "After 3 seconds",
@@ -2451,6 +2470,9 @@ export const en: Translations = {
     conversation_grouping_confirm_description:
       "Turning off conversation grouping will show each email as a separate item in your inbox instead of grouping replies together. This may make it harder to follow email threads.",
     show_message_size: "Show Message Size",
+    show_alias_indicators: "Show Alias Indicators",
+    show_alias_indicators_description:
+      "Mark messages that arrived through one of your aliases",
     show_message_size_description:
       "Display the size of each email in the inbox list",
     force_dark_mode_emails: "Force Dark Mode for Emails",
@@ -2731,9 +2753,12 @@ export const en: Translations = {
     crypto_native_status_underpaid: "Partially paid",
     crypto_native_what_happens: "What happens next",
     crypto_native_stripe_option: "Pay by stablecoin",
-    crypto_native_stripe_desc: "USDC and other stablecoins through our payment processor",
-    crypto_native_too_many_open: "You have too many unfinished crypto invoices. Finish or cancel one first.",
-    crypto_native_daily_limit: "You have created too many crypto invoices today. Please try again later.",
+    crypto_native_stripe_desc:
+      "USDC and other stablecoins through our payment processor",
+    crypto_native_too_many_open:
+      "You have too many unfinished crypto invoices. Finish or cancel one first.",
+    crypto_native_daily_limit:
+      "You have created too many crypto invoices today. Please try again later.",
     crypto_native_invoice_title: "Pay with {{coin}}",
     crypto_native_awaiting_body:
       "Send the exact amount to the address below. This page updates automatically.",
@@ -2755,7 +2780,8 @@ export const en: Translations = {
       "Send only {{coin}} on the {{chain}} network. Sending any other asset or using another network will result in loss of funds.",
     crypto_native_usd_value_label: "Amount due",
     crypto_native_usd_total_label: "Invoice total",
-    crypto_native_rate_locked: "Your rate is locked until this invoice expires.",
+    crypto_native_rate_locked:
+      "Your rate is locked until this invoice expires.",
     crypto_native_rate_value: "Rate used: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Choosing a coin creates your order with an obligation to pay, and locks your exchange rate. You pay by sending the funds yourself from your own wallet.",
@@ -2787,10 +2813,8 @@ export const en: Translations = {
       "Rates change, so this payment window has closed. Start a new payment to continue.",
     crypto_native_cancelled_body:
       "This payment was cancelled. Nothing was charged. You can start a new payment whenever you are ready.",
-    crypto_native_start_new_payment:
-      "Start a new payment",
-    crypto_native_check_now:
-      "Check now",
+    crypto_native_start_new_payment: "Start a new payment",
+    crypto_native_check_now: "Check now",
     crypto_native_expired_do_not_send:
       "Do not send to the address on this invoice. Funds sent now need a manual review before they can be credited.",
     crypto_native_not_found: "We couldn't find this invoice",
@@ -2799,7 +2823,8 @@ export const en: Translations = {
       "We could not reach the server. Check your connection and try again. Your payment has not been affected.",
     crypto_native_pending_banner: "You have a crypto payment in progress",
     crypto_native_pending_banner_action: "Resume payment",
-    crypto_native_pending_banner_multi: "You have {{count}} crypto payments in progress",
+    crypto_native_pending_banner_multi:
+      "You have {{count}} crypto payments in progress",
     crypto_native_back_hint:
       "This invoice is still open. You can pick it back up from Billing at any time.",
     crypto_native_scan_hint: "Scan with your wallet app",
@@ -4302,18 +4327,14 @@ export const en: Translations = {
     dkim_record: "DKIM Record (TXT)",
     email_authentication_policy: "Email Authentication Policy",
     dmarc_record: "DMARC Record (TXT)",
-    tls_reporting:
-      "TLS Reporting",
-    tlsrpt_record:
-      "TLS-RPT record",
+    tls_reporting: "TLS Reporting",
+    tlsrpt_record: "TLS-RPT record",
     tlsrpt_description:
       "Optional but recommended. Receiving servers send you a daily summary when encrypted delivery to your domain fails, so you spot problems before your users do.",
-    dns_instruction_set_tlsrpt_host:
-      "Set the host to _smtp._tls",
+    dns_instruction_set_tlsrpt_host: "Set the host to _smtp._tls",
     dns_instruction_set_tlsrpt_value:
       "Paste the TLS-RPT value exactly as shown",
-    optional_step:
-      "Optional",
+    optional_step: "Optional",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX from Google Takeout",
     outlook_import: "Outlook",
@@ -5047,9 +5068,11 @@ export const en: Translations = {
     domain_purchase_purchased_expires: "Expires {{date}}",
     domain_purchase_purchased_in_progress: "Being set up...",
     domain_purchase_purchased_awaiting: "Awaiting payment",
-    domain_purchase_done_warmup: "Heads up: it can take up to an hour for your domain's DNS to spread across the internet, and providers like Gmail treat brand-new domains cautiously at first. Deliverability improves as your domain builds history.",
+    domain_purchase_done_warmup:
+      "Heads up: it can take up to an hour for your domain's DNS to spread across the internet, and providers like Gmail treat brand-new domains cautiously at first. Deliverability improves as your domain builds history.",
     domain_purchase_create_first_address: "Create your first address",
-    domain_purchase_progress_note: "Please wait while we register your domain and set up your mailboxes. This usually takes about a minute.",
+    domain_purchase_progress_note:
+      "Please wait while we register your domain and set up your mailboxes. This usually takes about a minute.",
     domain_purchase_complete_cta: "Complete purchase",
     domain_purchase_purchased_lapsed: "Expired - buy again",
     domain_purchase_terms_notice:
@@ -5093,15 +5116,20 @@ export const en: Translations = {
     domain_health_recheck: "Check now",
     domain_health_checking: "Checking",
     domain_health_last_checked: "Last checked at {{when}}",
-    domain_health_auto_checking: "Checking again automatically every few seconds",
+    domain_health_auto_checking:
+      "Checking again automatically every few seconds",
     domain_check_mx_label: "Receiving mail",
     domain_check_spf_label: "Permission to send",
     domain_check_dkim_label: "Message signing",
     domain_check_dmarc_label: "Spoofing protection",
-    domain_check_mx_pass: "Email sent to this domain arrives in your Aster inbox.",
-    domain_check_spf_pass: "Other providers accept mail that Aster sends for you.",
-    domain_check_dkim_pass: "Your outgoing mail is signed, so it is not treated as forged.",
-    domain_check_dmarc_pass: "Nobody else can send mail pretending to be your domain.",
+    domain_check_mx_pass:
+      "Email sent to this domain arrives in your Aster inbox.",
+    domain_check_spf_pass:
+      "Other providers accept mail that Aster sends for you.",
+    domain_check_dkim_pass:
+      "Your outgoing mail is signed, so it is not treated as forged.",
+    domain_check_dmarc_pass:
+      "Nobody else can send mail pretending to be your domain.",
     domain_check_unknown: "We could not read this record yet. Still checking.",
     domain_check_generic_failure:
       "This record is not set up correctly yet. Add the record below to fix it.",
@@ -5854,7 +5882,8 @@ export const en: Translations = {
     alias_display_name_label: "Display name",
     alias_note_label: "Note",
     alias_details_description: "Name this alias and note where you use it.",
-    alias_display_name_desc: "Shown as the sender name when you write from this alias.",
+    alias_display_name_desc:
+      "Shown as the sender name when you write from this alias.",
     alias_note_desc: "A private reminder of what this alias is for.",
     alias_websites_desc: "Sites you signed up to with this alias.",
     alias_usage_used_of: "{{ used }} of {{ max }} aliases used",
@@ -5964,15 +5993,22 @@ export const en: Translations = {
       "That setting did not save. Another attempt should do it.",
     alias_delivery_folder_missing: "Deleted folder",
     alias_delivery_label: "Label",
-    alias_delivery_label_desc: "Apply a label to every message that arrives at this alias.",
-    alias_delivery_label_info: "Mail sent to this alias is labelled automatically, with no rule needed. The label is applied on top of wherever the message lands.",
+    alias_delivery_label_desc:
+      "Apply a label to every message that arrives at this alias.",
+    alias_delivery_label_info:
+      "Mail sent to this alias is labelled automatically, with no rule needed. The label is applied on top of wherever the message lands.",
     alias_delivery_label_none: "No label",
     alias_delivery_label_missing: "Deleted label",
-    alias_delivery_label_error: "That setting did not save. Another attempt should do it.",
-    alias_delivery_rule_note: "Mail rule \"{{ rule }}\" already moves mail for this alias to {{ target }}.",
-    alias_delivery_rule_conflict: "Mail rule \"{{ rule }}\" moves mail for this alias to {{ rule_target }}, so it will not land in {{ target }}.",
-    alias_delivery_label_rule_note: "Mail rule \"{{ rule }}\" already labels mail for this alias with {{ target }}.",
-    alias_delivery_label_rule_conflict: "Mail rule \"{{ rule }}\" labels mail for this alias with {{ rule_target }}, not {{ target }}.",
+    alias_delivery_label_error:
+      "That setting did not save. Another attempt should do it.",
+    alias_delivery_rule_note:
+      'Mail rule "{{ rule }}" already moves mail for this alias to {{ target }}.',
+    alias_delivery_rule_conflict:
+      'Mail rule "{{ rule }}" moves mail for this alias to {{ rule_target }}, so it will not land in {{ target }}.',
+    alias_delivery_label_rule_note:
+      'Mail rule "{{ rule }}" already labels mail for this alias with {{ target }}.',
+    alias_delivery_label_rule_conflict:
+      'Mail rule "{{ rule }}" labels mail for this alias with {{ rule_target }}, not {{ target }}.',
     alias_relay_title: "Delivery",
     alias_relay_description: "Choose how mail to this alias is delivered.",
     alias_relay_mode_native: "Native",
@@ -6474,6 +6510,7 @@ export const en: Translations = {
     download_file_named: "Download {{ filename }}",
     to_recipients_prefix: "to {{ recipients }}",
     received_on_prefix: "received on {{ address }}",
+    received_via_alias: "delivered to your alias {{ address }}",
     move_to_folder: "Move to folder",
     apply_label: "Apply label",
     select: "Select",
@@ -6609,6 +6646,10 @@ export const en: Translations = {
       "This action will affect every conversation in this view.",
     bulk_action_index_not_ready:
       "This tab is still being indexed. Try again in a moment.",
+    bulk_action_index_building:
+      "This tab is still being indexed. Your action starts as soon as the index is ready.",
+    bulk_action_index_capped:
+      "This tab has too many conversations to update at once. Select conversations and try again.",
     archive_messages_title: "Archive Messages",
     archive_messages_confirmation:
       "Are you sure you want to archive the selected messages?",
@@ -6717,18 +6758,23 @@ export const en: Translations = {
     restore: "Restore",
     move_to_inbox: "Move to inbox",
     move_to_category: "Move to category",
+    menu_applies_to_selection: "Applies to {count} selected",
+    menu_applies_to_all: "Applies to all {count} messages",
     moved_to_category: "Moved to category",
+    drop_to_move_here: "Drop to move here",
     tab_new_count: "new",
     category_empty_primary_title: "Nothing in Primary",
     category_empty_primary_desc:
       "Your personal messages and conversations will show up here.",
     category_empty_promotions_title: "No deals",
-    category_empty_promotions_desc: "Deals, sales, and marketing emails will appear here, away from the rest of your mail.",
+    category_empty_promotions_desc:
+      "Deals, sales, and marketing emails will appear here, away from the rest of your mail.",
     category_empty_social_title: "No social updates",
     category_empty_social_desc:
       "Messages from social networks and communities will appear here.",
     category_empty_updates_title: "No notifications",
-    category_empty_updates_desc: "Receipts, confirmations, and bills will appear here.",
+    category_empty_updates_desc:
+      "Receipts, confirmations, and bills will appear here.",
     category_empty_forums_title: "No discussions",
     category_empty_forums_desc:
       "Messages from mailing lists and discussion groups will appear here.",
@@ -6886,7 +6932,8 @@ export const en: Translations = {
     showing_results: "Showing {{shown}} of {{total}} results",
     indexing: "Indexing",
     indexing_messages: "Indexing messages...",
-    message_download_status: "Message download status: {{done}} out of {{total}}",
+    message_download_status:
+      "Message download status: {{done}} out of {{total}}",
     estimated_time_remaining: "Estimated time remaining: {{duration}}",
     download_paused: "Downloading paused",
     pause_download_action: "Pause",
@@ -7341,7 +7388,8 @@ export const en: Translations = {
       "Our automated security system has placed limits on your account for now, and a few features may be unavailable. The rest of your account works normally. If this looks wrong, hello@astermail.org can help.",
     username_min_length: "At least 3 characters will work here.",
     username_max_length: "Fewer than 40 characters will work here.",
-    username_alphanumeric: "Use letters, numbers and dots. Dots cannot be first, last, or doubled.",
+    username_alphanumeric:
+      "Use letters, numbers and dots. Dots cannot be first, last, or doubled.",
     username_not_available: "This username is taken. Another one should work.",
     password_req_length: "At least 8 characters",
     password_req_uppercase: "One uppercase letter",
@@ -7971,6 +8019,8 @@ export const en: Translations = {
       "This email is on the server but looks corrupted on the wire. A refresh and another attempt usually does it, and hello@astermail.org can help if it keeps failing.",
     decrypt_sender_error:
       "The sender encrypted this email in a way we cannot read. Asking them to resend it should do it. Your other emails are unaffected.",
+    metadata_undecryptable_change:
+      "This device cannot open this message's details, so your change is not saved. To reload your keys, sign out and back in. Your message on the server is unchanged.",
     no_unsubscribe_method:
       "This sender did not include an unsubscribe header. The link in the email itself, or marking it as spam, will get the same result.",
     invalid_unsubscribe_address:
@@ -8090,8 +8140,10 @@ export const en: Translations = {
     action_move_to: "Move to",
     action_apply_label: "Apply label",
     action_apply_labels: "Apply labels",
-    alias_delivery_conflict: "Alias {{ alias }} delivers to {{ alias_target }}, so this rule sending it to {{ rule_target }} will win instead.",
-    alias_label_conflict: "Alias {{ alias }} labels its mail {{ alias_target }}, so this rule adding {{ rule_target }} applies as well.",
+    alias_delivery_conflict:
+      "Alias {{ alias }} delivers to {{ alias_target }}, so this rule sending it to {{ rule_target }} will win instead.",
+    alias_label_conflict:
+      "Alias {{ alias }} labels its mail {{ alias_target }}, so this rule adding {{ rule_target }} applies as well.",
     action_mark_as: "Mark as",
     action_star: "Star",
     action_skip_inbox: "Skip inbox",

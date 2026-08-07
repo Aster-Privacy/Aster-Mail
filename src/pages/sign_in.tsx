@@ -144,6 +144,26 @@ async function decrypt_with_prf(
   }
 }
 
+type SignInDomain = "astermail.org" | "aster.cx";
+
+function parse_prefill_identity(): {
+  local: string;
+  domain: SignInDomain | null;
+} {
+  const raw = get_app_query_param("u") || "";
+  const at_index = raw.indexOf("@");
+
+  if (at_index === -1) return { local: raw, domain: null };
+
+  const domain = raw.slice(at_index + 1).toLowerCase();
+
+  return {
+    local: raw.slice(0, at_index),
+    domain:
+      domain === "aster.cx" || domain === "astermail.org" ? domain : null,
+  };
+}
+
 interface AlertProps {
   message: string;
   is_dark: boolean;
@@ -205,6 +225,7 @@ export default function SignInPage() {
   const {
     login,
     add_account,
+    switch_to_account,
     is_adding_account,
     set_is_adding_account,
     is_authenticated,
@@ -216,11 +237,15 @@ export default function SignInPage() {
   const { t } = use_i18n();
   const is_dark = theme === "dark";
 
+  const [reauth_account_id] = useState(() => get_app_query_param("reauth"));
+  const [previous_account_id] = useState(() => get_app_query_param("from"));
+
   const has_existing_session =
     !auth_loading &&
     is_authenticated &&
     !!current_account_id &&
     !is_adding_account &&
+    !reauth_account_id &&
     !location.state?.from;
 
   const preloaded = useRef(false);
@@ -228,12 +253,12 @@ export default function SignInPage() {
 
   const [is_password_visible, set_is_password_visible] = useState(false);
   const [username, set_username] = useState(
-    () => get_app_query_param("u") || "",
+    () => parse_prefill_identity().local,
   );
   const [password, set_password] = useState("");
-  const [email_domain, set_email_domain] = useState<
-    "astermail.org" | "aster.cx"
-  >("astermail.org");
+  const [email_domain, set_email_domain] = useState<SignInDomain>(
+    () => parse_prefill_identity().domain ?? "astermail.org",
+  );
   const [remember_me, set_remember_me] = useState(true);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState(() =>
@@ -352,6 +377,11 @@ export default function SignInPage() {
       import("@/pages/register").catch(() => {});
     }
   }, []);
+
+  useEffect(() => {
+    if (!reauth_account_id || auth_loading || is_adding_account) return;
+    set_is_adding_account(true);
+  }, [reauth_account_id, auth_loading, is_adding_account, set_is_adding_account]);
 
   useEffect(() => {
     if (has_existing_session) {
@@ -861,8 +891,19 @@ export default function SignInPage() {
     );
   }
 
-  const handle_cancel_add_account = () => {
+  const handle_cancel_add_account = async () => {
     set_is_adding_account(false);
+
+    if (!is_authenticated && previous_account_id) {
+      try {
+        await switch_to_account(previous_account_id);
+
+        return;
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+      }
+    }
+
     navigate("/");
   };
 
@@ -916,7 +957,11 @@ export default function SignInPage() {
         (a) => a.user.email.toLowerCase() === normalized,
       );
 
-      if (existing && existing.id !== (await get_current_account_id())) {
+      if (
+        existing &&
+        existing.id !== reauth_account_id &&
+        existing.id !== (await get_current_account_id())
+      ) {
         await timing_safe_delay();
         set_error(t("errors.account_already_added"));
 
@@ -1243,7 +1288,7 @@ export default function SignInPage() {
             transition={page_transition}
             variants={page_variants}
           >
-            {is_adding_account && is_authenticated && (
+            {is_adding_account && (is_authenticated || !!previous_account_id) && (
               <button
                 className="flex items-center gap-1 text-sm mb-6 transition-colors hover:opacity-80 text-txt-tertiary"
                 onClick={handle_cancel_add_account}

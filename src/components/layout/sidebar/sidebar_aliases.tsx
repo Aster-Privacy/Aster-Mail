@@ -162,7 +162,10 @@ export const SidebarAliases = memo(function SidebarAliases({
             data-rail-tip={t("common.aliases")}
             onClick={() => on_settings_click("aliases")}
           >
-            <AtSymbolIcon className="w-5 h-5" style={{ color: "#8b5cf6" }} />
+            <AtSymbolIcon
+              className="w-5 h-5"
+              style={{ color: "var(--accent-color)" }}
+            />
           </button>
         </div>
       )}

@@ -91,7 +91,7 @@ export function DomainResultsToolbar({
 
   const tld_chip_class = (selected: boolean) =>
     selected
-      ? "shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-1 focus-visible:ring-offset-surf-primary"
+      ? "shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium text-[var(--accent-fg,#ffffff)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-1 focus-visible:ring-offset-surf-primary"
       : "shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium border border-edge-secondary text-txt-secondary hover:bg-surf-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-1 focus-visible:ring-offset-surf-primary";
 
   return (
@@ -110,7 +110,7 @@ export function DomainResultsToolbar({
             onClick={() => on_filter(option)}
             className={
               filter === option
-                ? "h-8 px-3.5 text-[13px] font-medium text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-color)]"
+                ? "h-8 px-3.5 text-[13px] font-medium text-[var(--accent-fg,#ffffff)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-color)]"
                 : "h-8 px-3.5 text-[13px] font-medium text-txt-secondary hover:bg-surf-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-color)]"
             }
             style={

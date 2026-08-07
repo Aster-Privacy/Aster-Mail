@@ -20,7 +20,7 @@
 //
 import type { SenderVerificationStatus } from "@/types/email";
 
-import { useState, useEffect } from "react";
+import { useId, useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckBadgeIcon,
@@ -31,6 +31,7 @@ import {
 import { LockIcon } from "@/components/common/icons";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_should_reduce_motion } from "@/provider";
 
 interface EncryptionInfoDropdownProps {
@@ -58,22 +59,27 @@ export function EncryptionInfoDropdown({
   const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const [is_open, set_is_open] = useState(false);
+  const panel_id = useId();
+  const container_ref = useRef<HTMLDivElement>(null);
+  const close_dropdown = useCallback(() => set_is_open(false), []);
+
+  use_escape_layer(is_open, close_dropdown, "encryption_info_dropdown");
 
   useEffect(() => {
     if (!is_open) return;
 
-    const handle_escape = (event: KeyboardEvent) => {
-      if (event["key"] === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        set_is_open(false);
-      }
+    const handle_pointer_down = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+
+      if (!target) return;
+      if (container_ref.current?.contains(target)) return;
+      set_is_open(false);
     };
 
-    window.addEventListener("keydown", handle_escape, true);
+    document.addEventListener("pointerdown", handle_pointer_down);
 
     return () => {
-      window.removeEventListener("keydown", handle_escape, true);
+      document.removeEventListener("pointerdown", handle_pointer_down);
     };
   }, [is_open]);
 
@@ -85,8 +91,11 @@ export function EncryptionInfoDropdown({
   const lock_color = is_encrypted ? "rgb(59, 130, 246)" : "var(--text-muted)";
 
   return (
-    <div className="relative inline-flex">
+    <div ref={container_ref} className="relative inline-flex">
       <button
+        aria-controls={is_open ? panel_id : undefined}
+        aria-expanded={is_open}
+        aria-haspopup="dialog"
         className="flex-shrink-0 flex items-center gap-1 transition-colors hover:opacity-80"
         style={{ color: lock_color }}
         onClick={(e) => {
@@ -100,18 +109,11 @@ export function EncryptionInfoDropdown({
 
       <AnimatePresence>
         {is_open && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={(e) => {
-                e.stopPropagation();
-                set_is_open(false);
-              }}
-            />
             <motion.div
               animate={{ opacity: 1, y: 0 }}
               className="absolute left-0 top-full mt-2 z-50 w-64 rounded-lg border shadow-lg bg-surf-primary border-edge-secondary"
               exit={{ opacity: 0, y: -4 }}
+              id={panel_id}
               initial={reduce_motion ? false : { opacity: 0, y: -4 }}
               transition={{
                 duration: reduce_motion ? 0 : 0.15,
@@ -192,7 +194,6 @@ export function EncryptionInfoDropdown({
                 </div>
               </div>
             </motion.div>
-          </>
         )}
       </AnimatePresence>
     </div>

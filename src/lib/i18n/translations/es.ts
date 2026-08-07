@@ -422,7 +422,8 @@ export const es = {
     pending_email_notifications: "Notificaciones de correo pendientes",
     selected: "seleccionado(s)",
     are_you_sure: "¿Estás seguro?",
-    sign_out_all_confirmation: "¿Seguro que quieres cerrar sesión en todas las cuentas de este dispositivo?",
+    sign_out_all_confirmation:
+      "¿Seguro que quieres cerrar sesión en todas las cuentas de este dispositivo?",
     sign_out_confirmation:
       "¿Estás seguro de que quieres cerrar sesión en tu cuenta?",
     remove_account_confirmation:
@@ -455,10 +456,13 @@ export const es = {
       "Estos cambios no se guardaron. Otro intento debería resolverlo. Los correos en sí no han cambiado.",
     failed_to_archive_emails:
       "El archivado no se completó. Otro intento debería resolverlo. Los correos siguen en tu bandeja de entrada.",
+    failed_to_unarchive_emails:
+      "El traslado a la bandeja de entrada no se completó. Otro intento debería resolverlo. Los correos siguen archivados.",
     something_went_wrong_try_again:
       "Eso no funcionó. Otro intento en un momento suele resolverlo.",
     something_went_wrong: "Se ha producido un error.",
-    unexpected_error_refresh: "Algo salió mal, así que actualiza la página para continuar.",
+    unexpected_error_refresh:
+      "Algo salió mal, así que actualiza la página para continuar.",
     unsupported_browser: "Navegador no compatible.",
     unsupported_browser_detail: "Por favor, prueba con otro navegador.",
     try_again: "Inténtalo de nuevo.",
@@ -492,10 +496,8 @@ export const es = {
     adding: "Añadiendo...",
     checking: "Comprobando...",
     host_name: "Nombre de host",
-    dns_required:
-      "Obligatorio",
-    dns_recommended:
-      "Recomendado",
+    dns_required: "Obligatorio",
+    dns_recommended: "Recomendado",
     dns_caveat_mx_replaces_existing:
       "Esto sustituye a los registros MX existentes. Elimina los registros MX de tu proveedor de correo anterior o el correo nuevo no llegara a Aster.",
     dns_caveat_spf_single_record_other_senders:
@@ -654,6 +656,8 @@ export const es = {
     spam_emails_permanently_deleted:
       "{{count}} correo(s) de spam eliminado(s) permanentemente",
     trash_emptied: "Papelera vaciada exitosamente",
+    spam_empty_failed:
+      "No se pudo vaciar el spam. Un nuevo intento en un momento suele funcionar. No se eliminó nada.",
     conversations_marked_as_spam_bulk:
       "{{count}} conversación(es) marcada(s) como spam",
     conversations_restored_bulk: "{{count}} conversación(es) restaurada(s)",
@@ -1471,6 +1475,16 @@ export const es = {
       "{{count}} conversación(es) marcada(s) con estrella",
     conversations_unstarred_bulk:
       "Estrella quitada de {{count}} conversación(es)",
+    conversations_moved_to_inbox_bulk:
+      "{{count}} conversación(es) movida(s) a la bandeja de entrada",
+    conversations_marked_as_not_spam_bulk:
+      "{{count}} conversación(es) marcada(s) como no spam",
+    bulk_action_partially_applied:
+      "{{count}} de {{total}} conversaciones actualizadas. El resto no cambió.",
+    bulk_action_truncated:
+      "Esta ejecución abarcó los primeros {{count}} mensajes. Vuelve a ejecutarla para abarcar el resto.",
+    bulk_action_continues_in_background:
+      "Los mensajes restantes se siguen actualizando en segundo plano.",
     custom_fields: "Campos personalizados",
     device_revoked: "Dispositivo revocado",
     display_name_too_long: "El nombre visible es demasiado largo",
@@ -2267,16 +2281,20 @@ export const es = {
     alias_display_name_label: "Nombre visible",
     alias_note_label: "Nota",
     alias_details_description: "Nombra este alias y anota dónde lo usas.",
-    alias_display_name_desc: "Se muestra como nombre del remitente cuando escribes desde este alias.",
+    alias_display_name_desc:
+      "Se muestra como nombre del remitente cuando escribes desde este alias.",
     alias_note_desc: "Un recordatorio privado de para qué sirve este alias.",
     alias_websites_desc: "Sitios en los que te registraste con este alias.",
     alias_stats_description: "Cuánto correo ha gestionado este alias.",
     alias_usage_used_of: "{{ used }} de {{ max }} alias usados",
     alias_usage_unlock: "Consigue ilimitados",
-    alias_usage_nudge: "Los planes de pago incluyen alias ilimitados, dominios propios, reglas de alias y fijación de remitentes.",
+    alias_usage_nudge:
+      "Los planes de pago incluyen alias ilimitados, dominios propios, reglas de alias y fijación de remitentes.",
     alias_sender_pin_mode_label: "Modo",
-    alias_feature_locked_stats: "Mejora tu plan para ver la actividad de este alias.",
-    alias_feature_locked_delivery_log: "Mejora tu plan para ver lo que se bloqueó.",
+    alias_feature_locked_stats:
+      "Mejora tu plan para ver la actividad de este alias.",
+    alias_feature_locked_delivery_log:
+      "Mejora tu plan para ver lo que se bloqueó.",
     alias_paid_badge: "De pago",
     alias_field_display_name_label: "Nombre para mostrar",
     alias_field_note_label: "Nota",
@@ -2382,15 +2400,21 @@ export const es = {
       "Ese ajuste no se guardó. Otro intento debería bastar.",
     alias_delivery_folder_missing: "Carpeta eliminada",
     alias_delivery_label: "Etiqueta",
-    alias_delivery_label_desc: "Aplica una etiqueta a cada mensaje que llegue a este alias.",
-    alias_delivery_label_info: "El correo enviado a este alias se etiqueta automáticamente, sin necesidad de reglas. La etiqueta se aplica además de la carpeta de destino.",
+    alias_delivery_label_desc:
+      "Aplica una etiqueta a cada mensaje que llegue a este alias.",
+    alias_delivery_label_info:
+      "El correo enviado a este alias se etiqueta automáticamente, sin necesidad de reglas. La etiqueta se aplica además de la carpeta de destino.",
     alias_delivery_label_none: "Sin etiqueta",
     alias_delivery_label_missing: "Etiqueta eliminada",
     alias_delivery_label_error: "El ajuste no se guardó. Inténtalo de nuevo.",
-    alias_delivery_rule_note: "La regla \"{{ rule }}\" ya mueve el correo de este alias a {{ target }}.",
-    alias_delivery_rule_conflict: "La regla \"{{ rule }}\" mueve el correo de este alias a {{ rule_target }}, así que no llegará a {{ target }}.",
-    alias_delivery_label_rule_note: "La regla \"{{ rule }}\" ya etiqueta el correo de este alias con {{ target }}.",
-    alias_delivery_label_rule_conflict: "La regla \"{{ rule }}\" etiqueta el correo de este alias con {{ rule_target }}, no con {{ target }}.",
+    alias_delivery_rule_note:
+      'La regla "{{ rule }}" ya mueve el correo de este alias a {{ target }}.',
+    alias_delivery_rule_conflict:
+      'La regla "{{ rule }}" mueve el correo de este alias a {{ rule_target }}, así que no llegará a {{ target }}.',
+    alias_delivery_label_rule_note:
+      'La regla "{{ rule }}" ya etiqueta el correo de este alias con {{ target }}.',
+    alias_delivery_label_rule_conflict:
+      'La regla "{{ rule }}" etiqueta el correo de este alias con {{ rule_target }}, no con {{ target }}.',
     alias_relay_title: "Entrega",
     alias_relay_description: "Elige cómo se entrega el correo a este alias.",
     alias_relay_mode_native: "Nativo",
@@ -3275,10 +3299,14 @@ export const es = {
       "No se pudo volver a cifrar de forma segura uno de tus alias. Tu contraseña no se ha cambiado. Por favor, contacta con soporte o elimina el alias afectado e inténtalo de nuevo.",
     contact_reencrypt_failed:
       "No se pudo volver a cifrar de forma segura uno de tus contactos. Tu contraseña no se ha cambiado. Por favor, contacta con soporte o elimina el contacto afectado e inténtalo de nuevo.",
+    password_change_fingerprint_mismatch:
+      "Esta sesión se inició en otra red u otro navegador, por lo que Aster Mail no cambió tu contraseña. Para cambiarla, cierra sesión, vuelve a iniciar sesión e inténtalo de nuevo.",
     update_password: "Actualizar contraseña",
     updating: "Actualizando...",
     password_change_encrypted_data_warning:
       "Tus etiquetas, firmas y plantillas se vuelven a cifrar al cambiar la contraseña. Si tu conexión se cae durante este proceso, esos datos no se podrán recuperar.",
+    password_changed_items_unreadable:
+      "Tu contraseña cambió. {{count}} elementos cifrados conservaron su cifrado anterior porque su clave no estaba disponible. La entrega de correo no se ve afectada. Para restaurarlos, contacta con el soporte.",
     password_changed_signing_out:
       "Contraseña cambiada exitosamente. Cerrando sesión...",
     session_security: "Seguridad de sesión",
@@ -3371,7 +3399,8 @@ export const es = {
     mark_as_read: "Marcar como leído",
     mark_as_read_description: "Cuándo marcar correos como leídos",
     emails_per_page: "Correos por página",
-    emails_per_page_description: "Número de correos mostrados por página en Recibidos, Archivo y otras carpetas",
+    emails_per_page_description:
+      "Número de correos mostrados por página en Recibidos, Archivo y otras carpetas",
     immediately: "Inmediatamente",
     after_1_second: "Después de 1 segundo",
     after_3_seconds: "Después de 3 segundos",
@@ -3677,18 +3706,14 @@ export const es = {
     dkim_record: "Registro DKIM (TXT)",
     email_authentication_policy: "Política de autenticación de correo",
     dmarc_record: "Registro DMARC (TXT)",
-    tls_reporting:
-      "Informes TLS",
-    tlsrpt_record:
-      "Registro TLS-RPT",
+    tls_reporting: "Informes TLS",
+    tlsrpt_record: "Registro TLS-RPT",
     tlsrpt_description:
       "Opcional pero recomendado. Los servidores receptores te envian un resumen diario cuando falla la entrega cifrada a tu dominio, para que detectes problemas antes que tus usuarios.",
-    dns_instruction_set_tlsrpt_host:
-      "Establece el host en _smtp._tls",
+    dns_instruction_set_tlsrpt_host: "Establece el host en _smtp._tls",
     dns_instruction_set_tlsrpt_value:
       "Pega el valor TLS-RPT exactamente como aparece",
-    optional_step:
-      "Opcional",
+    optional_step: "Opcional",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX de Google Takeout",
     outlook_import: "Outlook",
@@ -4679,6 +4704,9 @@ export const es = {
     conversation_grouping: "Agrupar conversaciones",
     conversation_grouping_confirm_title: "¿Estás seguro?",
     show_message_size: "Mostrar tamaño del mensaje",
+    show_alias_indicators: "Mostrar indicadores de alias",
+    show_alias_indicators_description:
+      "Marca los mensajes que llegaron a través de uno de tus alias",
     auto_save_recipients: "Guardar destinatarios recientes automáticamente",
     disable_recent_recipients_title: "¿Desactivar destinatarios recientes?",
     disable_and_clear: "Desactivar y borrar datos",
@@ -5337,9 +5365,11 @@ export const es = {
     domain_purchase_purchased_expires: "Caduca el {{date}}",
     domain_purchase_purchased_in_progress: "Configurándose...",
     domain_purchase_purchased_awaiting: "Pago pendiente",
-    domain_purchase_done_warmup: "Aviso: el DNS de tu dominio puede tardar hasta una hora en propagarse por internet, y proveedores como Gmail tratan con cautela los dominios recién creados. La entregabilidad mejora a medida que tu dominio gana historial.",
+    domain_purchase_done_warmup:
+      "Aviso: el DNS de tu dominio puede tardar hasta una hora en propagarse por internet, y proveedores como Gmail tratan con cautela los dominios recién creados. La entregabilidad mejora a medida que tu dominio gana historial.",
     domain_purchase_create_first_address: "Crea tu primera dirección",
-    domain_purchase_progress_note: "Espera mientras registramos tu dominio y configuramos tus buzones. Esto suele tardar alrededor de un minuto.",
+    domain_purchase_progress_note:
+      "Espera mientras registramos tu dominio y configuramos tus buzones. Esto suele tardar alrededor de un minuto.",
     domain_purchase_complete_cta: "Completar compra",
     domain_purchase_purchased_lapsed: "Caducado - comprar de nuevo",
     domain_purchase_error_paused:
@@ -5527,13 +5557,18 @@ export const es = {
     crypto_native_status_underpaid: "Pago parcial",
     crypto_native_what_happens: "Qué ocurre a continuación",
     crypto_native_stripe_option: "Pagar con stablecoin",
-    crypto_native_stripe_desc: "USDC y otras stablecoins a través de nuestro procesador de pagos",
-    crypto_native_too_many_open: "Tienes demasiadas facturas de criptomonedas sin finalizar. Completa o cancela una primero.",
-    crypto_native_daily_limit: "Has creado demasiadas facturas de criptomonedas hoy. Inténtalo de nuevo más tarde.",
+    crypto_native_stripe_desc:
+      "USDC y otras stablecoins a través de nuestro procesador de pagos",
+    crypto_native_too_many_open:
+      "Tienes demasiadas facturas de criptomonedas sin finalizar. Completa o cancela una primero.",
+    crypto_native_daily_limit:
+      "Has creado demasiadas facturas de criptomonedas hoy. Inténtalo de nuevo más tarde.",
     crypto_native_invoice_title: "Pagar con {{coin}}",
-    crypto_native_awaiting_body: "Envía el importe exacto a la dirección de abajo. Esta página se actualiza automáticamente.",
+    crypto_native_awaiting_body:
+      "Envía el importe exacto a la dirección de abajo. Esta página se actualiza automáticamente.",
     crypto_native_received_title: "Pago recibido",
-    crypto_native_received_body: "Hemos recibido el importe completo y lo estamos procesando. No es necesario que envíes otro pago.",
+    crypto_native_received_body:
+      "Hemos recibido el importe completo y lo estamos procesando. No es necesario que envíes otro pago.",
     crypto_native_send_exactly: "Envía exactamente",
     crypto_native_send_remaining: "Envía el importe restante",
     crypto_native_to_address: "A esta dirección",
@@ -5545,21 +5580,26 @@ export const es = {
     crypto_native_no_wallet_handler:
       "No se abrió ninguna aplicación de cartera. Copia la dirección de arriba y pégala en tu cartera.",
     crypto_native_copied: "Copiado al portapapeles",
-    crypto_native_network_warning: "Envía únicamente {{coin}} en la red {{chain}}. Enviar cualquier otro activo o usar otra red provocará la pérdida de los fondos.",
+    crypto_native_network_warning:
+      "Envía únicamente {{coin}} en la red {{chain}}. Enviar cualquier otro activo o usar otra red provocará la pérdida de los fondos.",
     crypto_native_usd_value_label: "Importe a pagar",
     crypto_native_usd_total_label: "Total de la factura",
-    crypto_native_rate_locked: "Tu tipo de cambio está fijado hasta que caduque esta factura.",
+    crypto_native_rate_locked:
+      "Tu tipo de cambio está fijado hasta que caduque esta factura.",
     crypto_native_expires_in: "Caduca en {{time}}",
     crypto_native_status_awaiting: "Esperando el pago",
     crypto_native_status_detected: "Pago detectado",
     crypto_native_status_confirming: "Confirmando ({{current}}/{{required}})",
     crypto_native_status_confirming_short: "Confirmando",
     crypto_native_status_credited: "Pago recibido",
-    crypto_native_underpaid_body: "Hemos recibido {{received}} de {{expected}} {{coin}}. Envía los {{remaining}} {{coin}} restantes a la misma dirección para completar esta factura.",
+    crypto_native_underpaid_body:
+      "Hemos recibido {{received}} de {{expected}} {{coin}}. Envía los {{remaining}} {{coin}} restantes a la misma dirección para completar esta factura.",
     crypto_native_manual_review: "En revisión",
-    crypto_native_manual_review_body: "Tu pago necesita una comprobación manual rápida. Abonaremos tu cuenta en breve.",
+    crypto_native_manual_review_body:
+      "Tu pago necesita una comprobación manual rápida. Abonaremos tu cuenta en breve.",
     crypto_native_transaction: "Transacción",
-    crypto_native_refund_notice: "Los pagos de más y los reembolsos se abonan al saldo de tu cuenta de Aster.",
+    crypto_native_refund_notice:
+      "Los pagos de más y los reembolsos se abonan al saldo de tu cuenta de Aster.",
     crypto_native_cancel_invoice: "Cancelar esta factura",
     crypto_native_cancel_failed: "No se pudo cancelar esta factura.",
     crypto_native_cancel_has_payment:
@@ -5570,21 +5610,24 @@ export const es = {
     crypto_native_view_billing: "Volver a facturación",
     crypto_native_invoice_cancelled: "Factura cancelada",
     crypto_native_expired_title: "Esta factura ha caducado",
-    crypto_native_expired_body: "Los tipos de cambio varían, así que esta ventana de pago se ha cerrado. Inicia un nuevo pago para continuar.",
+    crypto_native_expired_body:
+      "Los tipos de cambio varían, así que esta ventana de pago se ha cerrado. Inicia un nuevo pago para continuar.",
     crypto_native_cancelled_body:
       "Este pago se canceló. No se cobró nada. Puedes iniciar un pago nuevo cuando quieras.",
-    crypto_native_start_new_payment:
-      "Iniciar un pago nuevo",
-    crypto_native_check_now:
-      "Comprobar ahora",
-    crypto_native_expired_do_not_send: "No envíes nada a la dirección de esta factura. Los fondos enviados ahora necesitan una revisión manual antes de poder abonarse.",
+    crypto_native_start_new_payment: "Iniciar un pago nuevo",
+    crypto_native_check_now: "Comprobar ahora",
+    crypto_native_expired_do_not_send:
+      "No envíes nada a la dirección de esta factura. Los fondos enviados ahora necesitan una revisión manual antes de poder abonarse.",
     crypto_native_not_found: "No encontramos esta factura",
     crypto_native_unavailable: "No se pudo cargar el pago",
-    crypto_native_unavailable_body: "No pudimos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo. Tu pago no se ha visto afectado.",
+    crypto_native_unavailable_body:
+      "No pudimos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo. Tu pago no se ha visto afectado.",
     crypto_native_pending_banner: "Tienes un pago con cripto en curso",
     crypto_native_pending_banner_action: "Reanudar el pago",
-    crypto_native_pending_banner_multi: "Tienes {{count}} pagos con cripto en curso",
-    crypto_native_back_hint: "Esta factura sigue abierta. Puedes retomarla desde Facturación en cualquier momento.",
+    crypto_native_pending_banner_multi:
+      "Tienes {{count}} pagos con cripto en curso",
+    crypto_native_back_hint:
+      "Esta factura sigue abierta. Puedes retomarla desde Facturación en cualquier momento.",
     crypto_native_scan_hint: "Escanea con tu app de cartera",
     crypto_native_scan_hint_address_only:
       "Escanea con tu aplicación de billetera y luego introduce {{amount}} manualmente",
@@ -5595,20 +5638,29 @@ export const es = {
     crypto_native_invoice_ref_label: "Factura",
     crypto_native_paying_with_label: "Pagando con",
     crypto_native_cancel_confirm_title: "¿Cancelar esta factura?",
-    crypto_native_cancel_confirm_body: "La dirección de pago dejará de supervisarse. No envíes fondos a ella después de cancelar. Puedes iniciar un nuevo pago en cualquier momento.",
-    crypto_native_hint_awaiting: "Envía el importe exacto a la dirección de arriba. Vigilamos la red automáticamente.",
-    crypto_native_hint_detected: "Tu transacción está en la red. Esperando a que se incluya en un bloque.",
-    crypto_native_hint_confirming: "Confirmando en la red. Tu plan se activa en cuanto termine.",
+    crypto_native_cancel_confirm_body:
+      "La dirección de pago dejará de supervisarse. No envíes fondos a ella después de cancelar. Puedes iniciar un nuevo pago en cualquier momento.",
+    crypto_native_hint_awaiting:
+      "Envía el importe exacto a la dirección de arriba. Vigilamos la red automáticamente.",
+    crypto_native_hint_detected:
+      "Tu transacción está en la red. Esperando a que se incluya en un bloque.",
+    crypto_native_hint_confirming:
+      "Confirmando en la red. Tu plan se activa en cuanto termine.",
     crypto_native_hint_credited: "Pago confirmado. Tu plan está activo.",
     crypto_native_time_remaining: "Tiempo restante",
     crypto_native_expiring_soon:
       "Quedan menos de 5 minutos. Si esta ventana se cierra antes de que llegue tu pago, puedes iniciar uno nuevo al precio actual.",
-    crypto_native_hint_underpaid: "Envía el importe restante que se muestra arriba a la misma dirección para completar este pago.",
-    crypto_native_hint_manual_review: "Nuestro equipo está revisando este pago. No necesitas hacer nada más.",
-    crypto_native_connection_lost: "Se perdió la conexión. Reintentando automáticamente.",
-    crypto_native_coins_unavailable: "No se pudieron cargar las opciones de pago con criptomonedas.",
+    crypto_native_hint_underpaid:
+      "Envía el importe restante que se muestra arriba a la misma dirección para completar este pago.",
+    crypto_native_hint_manual_review:
+      "Nuestro equipo está revisando este pago. No necesitas hacer nada más.",
+    crypto_native_connection_lost:
+      "Se perdió la conexión. Reintentando automáticamente.",
+    crypto_native_coins_unavailable:
+      "No se pudieron cargar las opciones de pago con criptomonedas.",
     crypto_native_copy_tx_hash: "Copiar hash de la transacción",
-    crypto_native_expiry_progress: "Tiempo restante antes de que caduque esta factura",
+    crypto_native_expiry_progress:
+      "Tiempo restante antes de que caduque esta factura",
     crypto_native_confirmations_progress: "Confirmaciones de red",
     crypto_modal_price: "Monto: {{amount}}",
     crypto_modal_title: "Pago con criptomoneda",
@@ -6171,18 +6223,23 @@ export const es = {
   mail: {
     load_all_thread_messages: "Cargar todos los mensajes",
     move_to_category: "Mover a la categoría",
+    menu_applies_to_selection: "Se aplica a {count} seleccionados",
+    menu_applies_to_all: "Se aplica a los {count} mensajes",
     moved_to_category: "Movido a la categoría",
+    drop_to_move_here: "Suelta aquí para mover",
     tab_new_count: "nuevos",
     category_empty_primary_title: "No hay nada en Principal",
     category_empty_primary_desc:
       "Tus mensajes personales y conversaciones aparecerán aquí.",
     category_empty_promotions_title: "No hay descuentos",
-    category_empty_promotions_desc: "Los descuentos, las rebajas y los correos de marketing aparecerán aquí, lejos del resto de tu correo.",
+    category_empty_promotions_desc:
+      "Los descuentos, las rebajas y los correos de marketing aparecerán aquí, lejos del resto de tu correo.",
     category_empty_social_title: "No hay novedades sociales",
     category_empty_social_desc:
       "Los mensajes de redes sociales y comunidades aparecerán aquí.",
     category_empty_updates_title: "No hay notificaciones",
-    category_empty_updates_desc: "Los recibos, las confirmaciones y las facturas aparecerán aquí.",
+    category_empty_updates_desc:
+      "Los recibos, las confirmaciones y las facturas aparecerán aquí.",
     category_empty_forums_title: "No hay debates",
     category_empty_forums_desc:
       "Los mensajes de listas de correo y grupos de discusión aparecerán aquí.",
@@ -6416,6 +6473,10 @@ export const es = {
       "Esta acción afectará a todas las conversaciones de esta vista.",
     bulk_action_index_not_ready:
       "Esta pestaña todavía se está indexando. Inténtalo de nuevo en un momento.",
+    bulk_action_index_building:
+      "Esta pestaña todavía se está indexando. La acción empieza en cuanto el índice esté listo.",
+    bulk_action_index_capped:
+      "Esta pestaña tiene demasiadas conversaciones para actualizarlas de una vez. Selecciona conversaciones e inténtalo de nuevo.",
     archive_messages_title: "Archivar mensajes",
     archive_messages_confirmation:
       "¿Estás seguro de que quieres archivar los mensajes seleccionados?",
@@ -6958,6 +7019,7 @@ export const es = {
     stylesheet: "Hoja de estilo",
     to_recipients_prefix: "para {{ recipients }}",
     received_on_prefix: "recibido en {{ address }}",
+    received_via_alias: "entregado a tu alias {{ address }}",
     tracker: "Rastreador",
     tracker_domain: "{{domain}}",
     trackers: "Rastreadores",
@@ -7093,7 +7155,8 @@ export const es = {
       "Se requiere un correo de recuperación para crear una cuenta adicional. Esto ayuda a proteger todas tus cuentas.",
     username_min_length: "Usa al menos 3 caracteres.",
     username_max_length: "Usa menos de 40 caracteres.",
-    username_alphanumeric: "Usa letras, números y puntos. Los puntos no pueden ir al principio, al final ni duplicados.",
+    username_alphanumeric:
+      "Usa letras, números y puntos. Los puntos no pueden ir al principio, al final ni duplicados.",
     username_not_available:
       "Este nombre de usuario está ocupado. Otro debería funcionar.",
     password_req_length: "Al menos 8 caracteres",
@@ -7599,6 +7662,8 @@ export const es = {
       "Este correo está en el servidor pero parece dañado en la transmisión. Actualizar y otro intento suele resolverlo, y hello@astermail.org puede ayudar si sigue fallando.",
     decrypt_sender_error:
       "El remitente cifró este correo de una forma que no podemos leer. Pedirle que lo reenvíe debería resolverlo. Tus otros correos no se ven afectados.",
+    metadata_undecryptable_change:
+      "Este dispositivo no puede abrir los detalles de este mensaje, por lo que tu cambio no se guarda. Para recargar tus claves, cierra sesión y vuelve a iniciarla. Tu mensaje en el servidor sigue igual.",
     no_unsubscribe_method:
       "Este remitente no incluyó una cabecera de baja. El enlace dentro del propio correo, o marcarlo como spam, dará el mismo resultado.",
     invalid_unsubscribe_address:
@@ -7734,8 +7799,10 @@ export const es = {
     drag_handle: "Tirador para arrastrar",
     action_apply_label: "Aplicar etiqueta",
     action_apply_labels: "Aplicar etiquetas",
-    alias_delivery_conflict: "El alias {{ alias }} entrega en {{ alias_target }}, así que esta regla que lo envía a {{ rule_target }} prevalecerá.",
-    alias_label_conflict: "El alias {{ alias }} etiqueta su correo con {{ alias_target }}, y esta regla añade además {{ rule_target }}.",
+    alias_delivery_conflict:
+      "El alias {{ alias }} entrega en {{ alias_target }}, así que esta regla que lo envía a {{ rule_target }} prevalecerá.",
+    alias_label_conflict:
+      "El alias {{ alias }} etiqueta su correo con {{ alias_target }}, y esta regla añade además {{ rule_target }}.",
     action_auto_reply: "Respuesta automática",
     action_categorize: "Categorizar",
     action_delete: "Eliminar",

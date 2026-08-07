@@ -785,6 +785,25 @@ export function SearchResultsPage({
     menu_email_ref.current = email;
   }, []);
 
+  const menu_selection = useMemo(() => {
+    if (
+      !menu_email ||
+      selected_ids.size < 2 ||
+      !selected_ids.has(menu_email.id)
+    ) {
+      return null;
+    }
+
+    const selected = filtered_results.filter((r) => selected_ids.has(r.id));
+
+    return {
+      count: selected_ids.size,
+      is_all_mode: false,
+      has_unread: selected.some((r) => !r.is_read),
+      has_read: selected.some((r) => r.is_read),
+    };
+  }, [menu_email, selected_ids, filtered_results]);
+
   const run_single = useCallback(
     async (
       fn: (emails: InboxEmail[]) => Promise<unknown>,
@@ -919,7 +938,7 @@ export function SearchResultsPage({
             {state.error}
           </p>
           <button
-            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-white hover:opacity-90"
+            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
             onClick={() => {
               clear_index();
               perform_search(query);
@@ -1022,20 +1041,35 @@ export function SearchResultsPage({
           current_view="search"
           email={menu_email}
           on_archive={() =>
-            void run_single(
-              (emails) => email_actions.bulk_archive(emails),
-              true,
-            )
+            menu_selection
+              ? void handle_bulk_archive()
+              : void run_single(
+                  (emails) => email_actions.bulk_archive(emails),
+                  true,
+                )
           }
           on_delete={() =>
-            void run_single((emails) => email_actions.bulk_delete(emails), true)
+            menu_selection
+              ? void handle_bulk_delete()
+              : void run_single(
+                  (emails) => email_actions.bulk_delete(emails),
+                  true,
+                )
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
+          on_mark_read={
+            menu_selection ? () => void handle_bulk_mark_read() : undefined
+          }
+          on_mark_unread={
+            menu_selection ? () => void handle_bulk_mark_unread() : undefined
+          }
           on_spam={() =>
-            void run_single(
-              (emails) => email_actions.bulk_mark_spam(emails),
-              true,
-            )
+            menu_selection
+              ? void handle_bulk_spam()
+              : void run_single(
+                  (emails) => email_actions.bulk_mark_spam(emails),
+                  true,
+                )
           }
           on_toggle_read={() =>
             void run_single(
@@ -1044,6 +1078,7 @@ export function SearchResultsPage({
               false,
             )
           }
+          selection={menu_selection ?? undefined}
         />
       )}
     </ContextMenu>

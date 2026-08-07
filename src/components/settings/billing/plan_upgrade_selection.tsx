@@ -486,7 +486,7 @@ export function PlanUpgradeSelection({
                       </span>
                       {billing_period === "yearly" && (
                         <span
-                          className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
+                          className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                           style={{ backgroundColor: "var(--accent-blue)" }}
                         >
                           {tier.savings_label}
@@ -580,7 +580,7 @@ export function PlanUpgradeSelection({
                       </span>
                       {saves > 0 && (
                         <span
-                          className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
+                          className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                           style={{ backgroundColor: "var(--accent-blue)" }}
                         >
                           {t("settings.save_yearly", {

@@ -23,6 +23,9 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
+import { is_top_overlay_layer } from "@/lib/overlay_layer_stack";
+
 import { use_preferences } from "@/contexts/preferences_context";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
@@ -44,6 +47,11 @@ import {
   get_cached_attachment_meta,
   type CachedAttachmentMeta,
 } from "@/services/attachment_meta_cache";
+import {
+  fetch_attachment_bytes,
+  get_cached_preview_url,
+  set_cached_preview_url,
+} from "@/services/attachment_preview_cache";
 import { format_bytes } from "@/lib/utils";
 import {
   get_type_label,
@@ -128,6 +136,7 @@ function build_cards_from_cached_meta(
       data_nonce: "",
       encrypted_meta: item.encrypted_meta,
       meta_nonce: item.meta_nonce,
+      preview_url: get_cached_preview_url(item.id),
     });
   }
 
@@ -266,40 +275,47 @@ function ImagePreviewModal({
   reduce_motion: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
-  const overlay_ref = useRef<HTMLDivElement>(null);
+  const { layer_id, dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(true, on_close, "image_preview");
 
   useEffect(() => {
+    if (!on_prev && !on_next) return;
+
     const handle_key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (!is_top_overlay_layer(layer_id)) return;
+
+      if (e.key === "ArrowLeft" && on_prev) {
         e.preventDefault();
         e.stopPropagation();
-        on_close();
+        on_prev();
       }
-      if (e.key === "ArrowLeft" && on_prev) on_prev();
-      if (e.key === "ArrowRight" && on_next) on_next();
+
+      if (e.key === "ArrowRight" && on_next) {
+        e.preventDefault();
+        e.stopPropagation();
+        on_next();
+      }
     };
 
     window.addEventListener("keydown", handle_key, true);
-    document.body.style.overflow = "hidden";
 
-    return () => {
-      window.removeEventListener("keydown", handle_key, true);
-      document.body.style.overflow = "";
-    };
-  }, [on_close, on_prev, on_next]);
+    return () => window.removeEventListener("keydown", handle_key, true);
+  }, [layer_id, on_prev, on_next]);
 
   return (
     <motion.div
-      ref={overlay_ref}
+      ref={dialog_ref}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      aria-label={filename}
+      aria-modal="true"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 outline-none"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
+      role="dialog"
       style={{ backgroundColor: "rgba(0, 0, 0, 0.85)" }}
+      tabIndex={-1}
       transition={{ duration: reduce_motion ? 0 : 0.2 }}
-      onClick={(e) => {
-        if (e.target === overlay_ref.current) on_close();
-      }}
+      onPointerDown={handle_backdrop_pointer_down}
     >
       {on_prev && (
         <button
@@ -551,6 +567,7 @@ export function AttachmentList({
           data_nonce,
           encrypted_meta: att.encrypted_meta,
           meta_nonce: att.meta_nonce,
+          preview_url: get_cached_preview_url(att.id),
         };
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
@@ -566,6 +583,7 @@ export function AttachmentList({
           data_nonce,
           encrypted_meta: att.encrypted_meta,
           meta_nonce: att.meta_nonce,
+          preview_url: get_cached_preview_url(att.id),
         };
       }
     }
@@ -574,6 +592,7 @@ export function AttachmentList({
       await Promise.all(
         infos.map(async (info) => {
           if (!is_previewable_image(info.content_type)) return;
+          if (get_cached_preview_url(info.id)) return;
           if (!info.encrypted_data) return;
 
           try {
@@ -589,13 +608,12 @@ export function AttachmentList({
               info.seq_num,
             );
             const blob = new Blob([data], { type: info.content_type });
-            const url = URL.createObjectURL(blob);
+            const url = set_cached_preview_url(
+              info.id,
+              URL.createObjectURL(blob),
+            );
 
-            if (cancelled) {
-              URL.revokeObjectURL(url);
-
-              return;
-            }
+            if (cancelled) return;
 
             set_attachments((prev) =>
               prev.map((a) =>
@@ -612,27 +630,7 @@ export function AttachmentList({
     }
 
     async function hydrate_bytes(cards: DecryptedAttachmentInfo[]) {
-      const bytes_promise = (async () => {
-        const byte_map = new Map<
-          string,
-          { encrypted_data: string; data_nonce: string }
-        >();
-
-        try {
-          const response = await list_attachments(mail_item_id);
-
-          for (const att of response.data?.attachments ?? []) {
-            byte_map.set(att.id, {
-              encrypted_data: att.encrypted_data,
-              data_nonce: att.data_nonce,
-            });
-          }
-        } catch {
-          return byte_map;
-        }
-
-        return byte_map;
-      })();
+      const bytes_promise = fetch_attachment_bytes(mail_item_id);
 
       bytes_fetch_ref.current = bytes_promise;
 
@@ -757,13 +755,7 @@ export function AttachmentList({
 
     return () => {
       cancelled = true;
-      set_attachments((prev) => {
-        for (const a of prev) {
-          if (a.preview_url) URL.revokeObjectURL(a.preview_url);
-        }
-
-        return [];
-      });
+      set_attachments([]);
     };
   }, [mail_item_id, inline_cids, inline_filenames, t, preferences.low_network_mode, user_expanded]);
 
@@ -827,13 +819,18 @@ export function AttachmentList({
             })
             .catch(() => {});
 
-          const url = await Promise.race([thumbnail_promise, timeout_promise]);
+          const raw_url = await Promise.race([
+            thumbnail_promise,
+            timeout_promise,
+          ]);
 
           if (cancelled) {
             pdf_attempted_ref.current.delete(att.id);
 
             return;
           }
+
+          const url = set_cached_preview_url(att.id, raw_url);
 
           set_attachments((prev) =>
             prev.map((a) => (a.id === att.id ? { ...a, preview_url: url } : a)),
@@ -909,7 +906,10 @@ export function AttachmentList({
               hydrated.seq_num,
             );
             const blob = new Blob([data], { type: hydrated.content_type });
-            const url = URL.createObjectURL(blob);
+            const url = set_cached_preview_url(
+              att.id,
+              URL.createObjectURL(blob),
+            );
 
             set_attachments((prev) =>
               prev.map((a) =>

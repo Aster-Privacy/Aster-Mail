@@ -431,7 +431,7 @@ export const RegisterStepPlanSelection = ({
           className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
           style={{
             backgroundColor: "var(--accent-blue)",
-            color: "#ffffff",
+            color: "var(--accent-fg, #ffffff)",
           }}
         >
           <AcademicCapIcon className="w-4 h-4 shrink-0" />
@@ -444,7 +444,7 @@ export const RegisterStepPlanSelection = ({
           className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
           style={{
             backgroundColor: "var(--accent-blue)",
-            color: "#ffffff",
+            color: "var(--accent-fg, #ffffff)",
           }}
         >
           <AcademicCapIcon className="w-4 h-4 shrink-0" />
@@ -556,7 +556,7 @@ export const RegisterStepPlanSelection = ({
                     </span>
                     {billing_period === "yearly" && (
                       <span
-                        className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
+                        className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                         style={{ backgroundColor: "var(--accent-blue)" }}
                       >
                         {tier.savings_label}
@@ -653,7 +653,7 @@ export const RegisterStepPlanSelection = ({
                     </span>
                     {saves > 0 && (
                       <span
-                        className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
+                        className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                         style={{ backgroundColor: "var(--accent-blue)" }}
                       >
                         {t("settings.save_yearly", {

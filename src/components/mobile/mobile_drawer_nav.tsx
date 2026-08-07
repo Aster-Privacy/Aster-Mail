@@ -54,6 +54,7 @@ import { tag_icon_map } from "@/components/ui/email_tag";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
+import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 
 function get_alias_color(address: string): string {
   let hash = 0;
@@ -116,10 +117,13 @@ interface DrawerNavContentProps {
   active_path: string;
   handle_nav: (path: string) => void;
   folders: DecryptedFolder[];
+  folders_loading: boolean;
   folder_unread_counts: Record<string, number>;
   tags: DecryptedTag[];
+  tags_loading: boolean;
   tag_counts: Record<string, number>;
   aliases: SidebarAlias[];
+  aliases_loading: boolean;
   alias_unread_counts?: Record<string, number>;
   stats: {
     inbox: number;
@@ -153,10 +157,13 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   active_path,
   handle_nav,
   folders,
+  folders_loading,
   folder_unread_counts,
   tags,
+  tags_loading,
   tag_counts,
   aliases,
+  aliases_loading,
   alias_unread_counts = {},
   stats,
   on_open_create_folder,
@@ -342,11 +349,14 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           </button>
         </div>
       </div>
-      {folders.length === 0 && (
-        <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
-          {t("common.no_folders_yet")}
-        </p>
-      )}
+      {folders.length === 0 &&
+        (folders_loading ? (
+          <NavSectionSkeleton rows={3} />
+        ) : (
+          <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
+            {t("common.no_folders_yet")}
+          </p>
+        ))}
       {folder_nodes.map((node) => {
         const folder = node.folder;
         const guides = folder_guides.get(folder.folder_token);
@@ -482,11 +492,14 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           </button>
         </div>
       </div>
-      {tags.length === 0 && (
-        <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
-          {t("common.no_labels_yet")}
-        </p>
-      )}
+      {tags.length === 0 &&
+        (tags_loading ? (
+          <NavSectionSkeleton rows={2} />
+        ) : (
+          <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
+            {t("common.no_labels_yet")}
+          </p>
+        ))}
       {tags.map((tag) => {
         const path = `/tag/${encodeURIComponent(tag.tag_token)}`;
         const count = tag_counts[tag.tag_token];
@@ -532,11 +545,14 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           </button>
         </div>
       </div>
-      {aliases.length === 0 && (
-        <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
-          {t("common.no_aliases_yet")}
-        </p>
-      )}
+      {aliases.length === 0 &&
+        (aliases_loading ? (
+          <NavSectionSkeleton rows={2} />
+        ) : (
+          <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
+            {t("common.no_aliases_yet")}
+          </p>
+        ))}
       {aliases.map((alias) => {
         const path = `/alias/${encodeURIComponent(alias.full_address)}`;
         const unread_count = alias.alias_address_hash

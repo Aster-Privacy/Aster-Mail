@@ -38,7 +38,14 @@ import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
+import { EmailTag } from "@/components/ui/email_tag";
+import {
+  normalize_alias_candidates,
+  use_alias_delivery,
+} from "@/hooks/use_alias_delivery";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
+import { list_select_slot_class } from "@/lib/list_density";
 import { use_date_format } from "@/hooks/use_date_format";
 import {
   outgoing_profile_email,
@@ -84,7 +91,10 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     current_view,
   } = props;
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const { format_email_list } = use_date_format();
+  const show_avatar = preferences.show_profile_pictures !== false;
+  const select_slot_class = list_select_slot_class(false, show_avatar);
   const long_press_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const long_press_fired = useRef(false);
 
@@ -241,6 +251,15 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       )
     : (email.display_sender_email ?? email.sender_email);
 
+  const alias_candidates_key = useMemo(
+    () => normalize_alias_candidates(email.recipient_addresses ?? []),
+    [email.recipient_addresses],
+  );
+  const alias_delivery = use_alias_delivery(
+    email.item_type === "received" ? email.routing_token : undefined,
+    email.item_type === "received" ? alias_candidates_key : "",
+  );
+
   const row_content = (
     <div
       className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors active:bg-[var(--bg-tertiary)] ${
@@ -260,24 +279,39 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       onTouchMove={handle_touch_move}
       onTouchStart={handle_touch_start}
     >
-      <div className="relative mt-0.5 shrink-0">
-        <ProfileAvatar
-          use_domain_logo
-          email={show_sender_email}
-          name={show_sender_name}
-          size="md"
-        />
-        {selection_mode && is_selected && (
-          <motion.div
-            animate={{ scale: 1, opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent-color,#3b82f6)]"
-            initial={{ scale: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 25 }}
-          >
-            <CheckIcon className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </motion.div>
-        )}
-      </div>
+      {show_avatar ? (
+        <div className="relative mt-0.5 shrink-0">
+          <ProfileAvatar
+            use_domain_logo
+            email={show_sender_email}
+            name={show_sender_name}
+            size="md"
+          />
+          {selection_mode && is_selected && (
+            <motion.div
+              animate={{ scale: 1, opacity: 1 }}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent-color,#3b82f6)]"
+              initial={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+            >
+              <CheckIcon className="h-5 w-5 text-white" strokeWidth={2.5} />
+            </motion.div>
+          )}
+        </div>
+      ) : selection_mode ? (
+        <div className={`relative mt-1 shrink-0 ${select_slot_class}`}>
+          {is_selected && (
+            <motion.div
+              animate={{ scale: 1, opacity: 1 }}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent-color,#3b82f6)]"
+              initial={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+            >
+              <CheckIcon className="h-3 w-3 text-white" strokeWidth={2.5} />
+            </motion.div>
+          )}
+        </div>
+      ) : null}
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
@@ -291,10 +325,22 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             {display_name_label}
           </span>
 
-          <OfficialBadge
-            className="shrink-0"
-            email={show_sender_email}
-          />
+          <OfficialBadge className="shrink-0" email={show_sender_email} />
+
+          {alias_delivery && (
+            <EmailTag
+              show_icon
+              className="shrink-0 max-w-[7rem]"
+              icon="at"
+              label={alias_delivery.label}
+              muted={email.is_read}
+              size="xs"
+              title={t("mail.received_via_alias", {
+                address: alias_delivery.address,
+              })}
+              variant="purple"
+            />
+          )}
 
           {thread_count > 1 && (
             <span className="shrink-0 rounded border border-[var(--border-primary)] px-1 text-[11px] tabular-nums text-[var(--text-muted)]">

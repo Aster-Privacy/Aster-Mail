@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 import { use_platform } from "@/hooks/use_platform";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
 import { use_primary_identity } from "@/lib/primary_identity";
@@ -112,7 +113,11 @@ export const MobileDrawer = memo(function MobileDrawer({
     update_existing_tag,
     delete_existing_tag,
   } = use_tags();
-  const { aliases, unread_counts: alias_unread_counts } = use_sidebar_aliases();
+  const {
+    aliases,
+    is_loading: aliases_loading,
+    unread_counts: alias_unread_counts,
+  } = use_sidebar_aliases();
   const { stats } = use_mail_stats();
 
   const [show_account_menu, set_show_account_menu] = useState(false);
@@ -176,17 +181,8 @@ export const MobileDrawer = memo(function MobileDrawer({
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (is_open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [is_open]);
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLElement>(is_open, on_close, "mobile_drawer");
 
   useEffect(() => {
     if (!is_open) return;
@@ -555,15 +551,17 @@ export const MobileDrawer = memo(function MobileDrawer({
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onClick={on_close}
+            onPointerDown={handle_backdrop_pointer_down}
           />
         )}
       </AnimatePresence>
 
       <motion.nav
+        ref={dialog_ref}
         animate={{ x: is_open ? 0 : -320 }}
-        className="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col"
+        className="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col outline-none"
         initial={false}
+        tabIndex={-1}
         style={{
           paddingTop: safe_area_insets.top,
           paddingBottom: safe_area_insets.bottom,
@@ -632,8 +630,10 @@ export const MobileDrawer = memo(function MobileDrawer({
               active_path={active_path}
               alias_unread_counts={alias_unread_counts}
               aliases={aliases}
+              aliases_loading={aliases_loading}
               folder_unread_counts={folder_unread_counts}
               folders={folders}
+              folders_loading={folders_state.is_loading}
               handle_nav={handle_nav}
               indicator_style={indicator_style}
               nav_container_ref={nav_container_ref}
@@ -659,6 +659,7 @@ export const MobileDrawer = memo(function MobileDrawer({
               stats={stats}
               tag_counts={tag_counts}
               tags={tags}
+              tags_loading={tags_state.is_loading}
             />
           </div>
         </div>

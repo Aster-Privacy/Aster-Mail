@@ -23,7 +23,10 @@ import { describe, it, expect } from "vitest";
 import {
   ELLIPSIS,
   PREVIEW_SOURCE_CHAR_CAP,
+  build_body_preview,
   build_list_preview,
+  extract_preheader_text,
+  strip_preview_filler,
   truncate_with_ellipsis,
 } from "./preview_text";
 
@@ -54,9 +57,9 @@ describe("truncate_with_ellipsis", () => {
   });
 
   it("cuts mid-word when the last space is too far back", () => {
-    expect(
-      truncate_with_ellipsis(`ab ${"c".repeat(40)}`, 20),
-    ).toBe(`ab ${"c".repeat(17)}${ELLIPSIS}`);
+    expect(truncate_with_ellipsis(`ab ${"c".repeat(40)}`, 20)).toBe(
+      `ab ${"c".repeat(17)}${ELLIPSIS}`,
+    );
   });
 
   it("returns an empty string for a non-positive cap", () => {
@@ -79,5 +82,97 @@ describe("build_list_preview", () => {
 
   it("passes through preview text that fits", () => {
     expect(build_list_preview("a short preview")).toBe("a short preview");
+  });
+});
+
+describe("strip_preview_filler", () => {
+  it("removes zero-width and padding filler characters", () => {
+    expect(
+      strip_preview_filler(
+        "Get 30% off\u200c\u200b\u200d\u2060\ufeff\u034f\u00ad\u00a0 today",
+      ),
+    ).toBe("Get 30% off today");
+  });
+});
+
+describe("extract_preheader_text", () => {
+  it("reads a display:none preheader", () => {
+    const html =
+      '<body><div style="display:none">Get 30% off your next 3 meals.</div><table><tr><td>Visible header</td></tr></table></body>';
+
+    expect(extract_preheader_text(html)).toBe("Get 30% off your next 3 meals.");
+  });
+
+  it("reads a max-height:0 preheader", () => {
+    const html =
+      '<body><span style="max-height:0px;overflow:hidden;mso-hide:all">Your order shipped today.</span><p>Hello there</p></body>';
+
+    expect(extract_preheader_text(html)).toBe("Your order shipped today.");
+  });
+
+  it("reads a font-size:0 preheader", () => {
+    const html =
+      '<body><div style="font-size:0;line-height:0;color:#ffffff">Two seats left for the workshop.</div><h1>Workshop</h1></body>';
+
+    expect(extract_preheader_text(html)).toBe(
+      "Two seats left for the workshop.",
+    );
+  });
+
+  it("descends through empty wrappers to reach the preheader", () => {
+    const html =
+      '<body><div><div></div><div style="opacity:0">Weekend deals inside.</div><p>Shop now</p></div></body>';
+
+    expect(extract_preheader_text(html)).toBe("Weekend deals inside.");
+  });
+
+  it("drops zwnj padding that follows the preheader", () => {
+    const padding = "\u200c\u00a0".repeat(60);
+    const html = `<body><div style="display:none">Free shipping this week.${padding}</div><p>Body</p></body>`;
+
+    expect(extract_preheader_text(html)).toBe("Free shipping this week.");
+  });
+
+  it("ignores a hidden block that holds only filler", () => {
+    const html = `<body><div style="display:none">${"\u200c".repeat(40)}</div><p>Body</p></body>`;
+
+    expect(extract_preheader_text(html)).toBe("");
+  });
+
+  it("returns nothing when the first content is visible", () => {
+    const html = "<body><p>Hi Sam, here are the notes from today.</p></body>";
+
+    expect(extract_preheader_text(html)).toBe("");
+  });
+
+  it("returns nothing for plain text", () => {
+    expect(extract_preheader_text("just a normal message")).toBe("");
+  });
+});
+
+describe("build_body_preview", () => {
+  it("prefers the preheader over the visible body", () => {
+    const html =
+      '<body><div style="display:none">Get 30% off your next 3 meals.</div><h1>Weekly menu</h1><p>Pick your meals</p></body>';
+
+    expect(build_body_preview("Weekly menu Pick your meals", html)).toBe(
+      "Get 30% off your next 3 meals.",
+    );
+  });
+
+  it("falls back to visible html text when there is no preheader", () => {
+    const html = "<body><h1>Weekly menu</h1><p>Pick your meals</p></body>";
+
+    expect(build_body_preview("", html)).toBe("Weekly menu Pick your meals");
+  });
+
+  it("keeps plain text bodies unchanged", () => {
+    expect(build_body_preview("Lunch at one?", "")).toBe("Lunch at one?");
+  });
+
+  it("strips filler characters from a plain text body", () => {
+    expect(build_body_preview("Lunch\u200b\u00a0at one?", "")).toBe(
+      "Lunch at one?",
+    );
   });
 });

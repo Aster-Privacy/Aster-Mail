@@ -178,6 +178,7 @@ export interface UserPreferences {
   enabled_categories: string[];
   custom_categories: CustomCategoryRule[];
   show_message_size: boolean;
+  show_alias_indicators: boolean;
   show_badges_in_signature: boolean;
   show_aster_branding: boolean;
   show_signature_separator: boolean;
@@ -209,12 +210,16 @@ export async function sync_quiet_hours_to_server(
   try {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    await api_client.put("/sync/v1/quiet-hours", {
-      enabled,
-      start_time,
-      end_time,
-      timezone,
-    });
+    await api_client.put(
+      "/sync/v1/quiet-hours",
+      {
+        enabled,
+        start_time,
+        end_time,
+        timezone,
+      },
+      { skip_upgrade_prompt: true },
+    );
   } catch (e) {
     if (import.meta.env.DEV) console.error(e);
   }
@@ -338,18 +343,9 @@ export function get_cached_preferences(): UserPreferences | null {
     const cached = localStorage.getItem(PREFS_CACHE_KEY);
 
     if (cached) {
-      const parsed = JSON.parse(cached) as UserPreferences;
-      const result = { ...DEFAULT_PREFERENCES, ...parsed };
+      const parsed = JSON.parse(cached) as Record<string, unknown>;
 
-      if (
-        result.theme !== "light" &&
-        result.theme !== "dark" &&
-        result.theme !== "system"
-      ) {
-        result.theme = "dark";
-      }
-
-      return result;
+      return build_merged_preferences(parsed, null);
     }
   } catch {}
 
@@ -498,6 +494,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   enabled_categories: [...DEFAULT_ENABLED_CATEGORIES],
   custom_categories: [],
   show_message_size: false,
+  show_alias_indicators: true,
   show_badges_in_signature: true,
   show_aster_branding: true,
   show_signature_separator: true,
@@ -578,12 +575,18 @@ async function save_preferences_via_http(
   return !response.error && response.data?.success === true;
 }
 
+const NULLABLE_PREFERENCE_KEYS = new Set<string>(["default_signature_id"]);
+
 export function build_merged_preferences(
   server: Record<string, unknown>,
   cached: UserPreferences | null,
 ): UserPreferences {
   const cleaned = Object.fromEntries(
-    Object.entries(server).filter(([, v]) => v !== undefined && v !== null),
+    Object.entries(server).filter(
+      ([key, value]) =>
+        value !== undefined &&
+        (value !== null || NULLABLE_PREFERENCE_KEYS.has(key)),
+    ),
   );
   const merged = {
     ...DEFAULT_PREFERENCES,
@@ -591,7 +594,11 @@ export function build_merged_preferences(
     ...cleaned,
   } as UserPreferences;
 
-  if (merged.theme !== "light" && merged.theme !== "dark") {
+  if (
+    merged.theme !== "light" &&
+    merged.theme !== "dark" &&
+    merged.theme !== "system"
+  ) {
     merged.theme = "dark";
   }
 
@@ -893,9 +900,9 @@ async function decrypt_dev_mode(
 
 export async function get_dev_mode(
   vault: EncryptedVault | null,
-): Promise<{ data: boolean }> {
+): Promise<{ data: boolean | null }> {
   if (!vault) {
-    return { data: false };
+    return { data: null };
   }
 
   try {
@@ -904,7 +911,7 @@ export async function get_dev_mode(
     );
 
     if (response.error || !response.data) {
-      return { data: false };
+      return { data: null };
     }
 
     const { encrypted_dev_mode, dev_mode_nonce } = response.data;
@@ -921,7 +928,7 @@ export async function get_dev_mode(
 
     return { data: enabled };
   } catch {
-    return { data: false };
+    return { data: null };
   }
 }
 

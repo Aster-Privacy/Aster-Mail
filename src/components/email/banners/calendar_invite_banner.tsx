@@ -189,7 +189,7 @@ export function CalendarInviteBanner({
         {response === null ? (
           <div className="flex items-center gap-2">
             <button
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[12px] bg-brand text-white transition-opacity disabled:opacity-60"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[12px] bg-brand text-[var(--accent-fg,#ffffff)] transition-opacity disabled:opacity-60"
               type="button"
               disabled={is_busy}
               onClick={() => handle_respond("accepted")}

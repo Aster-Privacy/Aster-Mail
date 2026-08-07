@@ -110,7 +110,7 @@ export function StorageBanner({
         className="mx-3 mt-2 px-4 py-3 rounded-lg flex items-center gap-3"
         style={{
           backgroundColor: "var(--accent-color-hover)",
-          color: "#fff",
+          color: "var(--accent-fg, #ffffff)",
         }}
       >
         <CircleStackIcon className="w-5 h-5 flex-shrink-0 text-white" />

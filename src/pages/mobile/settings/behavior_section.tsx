@@ -257,6 +257,17 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
+            label={t("settings.show_alias_indicators")}
+            trailing={
+              <Switch
+                checked={preferences.show_alias_indicators !== false}
+                onCheckedChange={(v) =>
+                  update_preference("show_alias_indicators", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             label={t("settings.force_dark_mode_emails")}
             trailing={
               <Switch

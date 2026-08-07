@@ -53,7 +53,7 @@ export function FilterChip({
   const { t } = use_i18n();
 
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand text-white">
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand text-[var(--accent-fg,#ffffff)]">
       <span>{filter.label}</span>
       {filter.removable && (
         <button
@@ -86,7 +86,7 @@ export function QuickFilterButton({
     <button
       className={`px-3 py-1.5 text-xs rounded-full border transition-all duration-150 font-medium ${
         is_active
-          ? "bg-brand text-white border-brand"
+          ? "bg-brand text-[var(--accent-fg,#ffffff)] border-brand"
           : "bg-surf-card text-txt-secondary border-edge-secondary"
       }`}
       onClick={on_click}
@@ -550,7 +550,7 @@ export function SaveSearchDialog({
             {t("common.cancel")}
           </button>
           <button
-            className="px-4 py-2 text-sm rounded-[14px] font-medium transition-all hover:opacity-90 bg-brand text-white"
+            className="px-4 py-2 text-sm rounded-[14px] font-medium transition-all hover:opacity-90 bg-brand text-[var(--accent-fg,#ffffff)]"
             onClick={handle_save}
           >
             {t("common.save")}

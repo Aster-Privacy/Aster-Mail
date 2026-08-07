@@ -21,6 +21,9 @@
 import type { InboxEmail, InboxFilterType, EmailCategory } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { ActionToastConfig } from "@/components/toast/action_toast";
+import type { SelectionMenuScope } from "@/components/email/inbox/inbox_email_list";
 
 import {
   useState,
@@ -64,8 +67,19 @@ import {
   remove_ids as remove_category_index_ids,
   reindex_ids as reindex_category_ids,
   is_fully_built as is_category_index_built,
+  is_index_settled,
+  is_index_capped,
+  wait_for_index_ready,
 } from "@/services/category_index";
-import { run_category_scope_action } from "@/components/email/inbox/category_bulk_actions";
+import { use_category_drop } from "@/components/email/inbox/use_category_drop";
+import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
+import type { CategoryBulkOutcome } from "@/components/email/inbox/category_bulk_actions";
+
+import {
+  run_category_scope_action,
+  supports_category_scope,
+} from "@/components/email/inbox/category_bulk_actions";
 import { builtin_category_def } from "@/data/category_catalog";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { category_for_tab } from "@/services/mail_categorizer";
@@ -138,6 +152,52 @@ export type {
   DraftClickData,
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
+
+const BULK_SCOPE_TOAST: Record<
+  BulkScopeAction,
+  { message_key: TranslationKey; action_type: ActionToastConfig["action_type"] }
+> = {
+  trash: {
+    message_key: "common.n_conversations_moved_to_trash",
+    action_type: "trash",
+  },
+  archive: {
+    message_key: "common.n_conversations_archived",
+    action_type: "archive",
+  },
+  unarchive: {
+    message_key: "common.conversations_moved_to_inbox_bulk",
+    action_type: "restore",
+  },
+  mark_read: {
+    message_key: "common.conversations_marked_as_read_bulk",
+    action_type: "read",
+  },
+  mark_unread: {
+    message_key: "common.conversations_marked_as_unread_bulk",
+    action_type: "unread",
+  },
+  star: {
+    message_key: "common.conversations_starred_bulk",
+    action_type: "star",
+  },
+  unstar: {
+    message_key: "common.conversations_unstarred_bulk",
+    action_type: "unstar",
+  },
+  mark_spam: {
+    message_key: "common.conversations_marked_as_spam_bulk",
+    action_type: "spam",
+  },
+  unmark_spam: {
+    message_key: "common.conversations_marked_as_not_spam_bulk",
+    action_type: "not_spam",
+  },
+  restore_trash: {
+    message_key: "common.conversations_restored_bulk",
+    action_type: "restore",
+  },
+};
 
 export function EmailInbox({
   on_settings_click,
@@ -307,15 +367,24 @@ export function EmailInbox({
     : null;
   const folders_loading_for_view =
     is_folder_view && folders_state.is_loading && !current_folder;
-  const folder_not_found =
-    is_folder_view && !folders_state.is_loading && !current_folder;
+  const folder_not_found = use_settled_not_found({
+    kind: "folder",
+    token: folder_view_token,
+    is_found: Boolean(current_folder),
+    is_loading: folders_state.is_loading,
+  });
 
   const is_tag_view = current_view.startsWith("tag-");
   const tag_view_token = is_tag_view ? current_view.replace("tag-", "") : null;
   const current_tag = is_tag_view
     ? tags_state.tags.find((t) => t.tag_token === tag_view_token)
     : null;
-  const tag_not_found = is_tag_view && !tags_state.is_loading && !current_tag;
+  const tag_not_found = use_settled_not_found({
+    kind: "tag",
+    token: tag_view_token,
+    is_found: Boolean(current_tag),
+    is_loading: tags_state.is_loading,
+  });
 
   const locked_folder = useMemo(() => {
     if (!current_folder) return null;
@@ -356,6 +425,7 @@ export function EmailInbox({
     update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     bulk_delete,
     bulk_archive,
     bulk_unarchive,
@@ -494,13 +564,18 @@ export function EmailInbox({
   const handle_category_change = useCallback(
     async (email: InboxEmail, category: EmailCategory) => {
       if (category_for_tab(email.mail_category) === category) return;
-      const ok = await set_message_category(email, category);
+      const outcome = await set_message_category(email, category);
 
-      if (ok) {
+      if (outcome.applied) {
         update_email(email.id, { mail_category: category });
         show_toast(t("mail.moved_to_category"), "success");
       } else {
-        show_toast(t("common.something_went_wrong"), "error");
+        show_toast(
+          outcome.undecryptable
+            ? t("errors.metadata_undecryptable_change")
+            : t("common.something_went_wrong"),
+          "error",
+        );
       }
     },
     [update_email, t],
@@ -722,6 +797,7 @@ export function EmailInbox({
     update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     bulk_delete,
     schedule_delete_drafts,
     bulk_archive,
@@ -733,6 +809,7 @@ export function EmailInbox({
       confirm_before_delete: preferences.confirm_before_delete,
       confirm_before_spam: preferences.confirm_before_spam,
       confirm_before_archive: preferences.confirm_before_archive,
+      conversation_grouping: preferences.conversation_grouping,
     },
     update_preference,
     save_now,
@@ -747,6 +824,7 @@ export function EmailInbox({
     update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     handle_open_compose,
     folders_lookup,
     tags_lookup,
@@ -913,11 +991,36 @@ export function EmailInbox({
   );
   const primary_emails = all_primary_emails;
 
+  const handle_category_drop = use_category_drop({
+    emails: filtered_emails,
+    update_email,
+    t,
+  });
+
   const skeleton_pending =
     is_paginating ||
     (filtered_emails.length === 0 &&
-      (folders_loading_for_view || !email_state.has_initial_load));
-  const skeleton_visible = skeleton_pending;
+      (folders_loading_for_view ||
+        !email_state.has_initial_load ||
+        email_state.is_loading));
+  const empty_state_key = `${current_view}|${user?.id ?? ""}|${
+    categories.enabled ? categories.active_category : ""
+  }|${current_page}|${active_filter}`;
+  const empty_state_settled =
+    email_state.has_initial_load &&
+    !email_state.is_loading &&
+    !email_state.is_loading_more &&
+    !is_paginating &&
+    !folders_loading_for_view &&
+    !manual_refresh_active &&
+    (!categories.enabled || is_index_settled());
+  const empty_state_visible = use_settled_empty_state({
+    view_key: empty_state_key,
+    is_empty: filtered_emails.length === 0,
+    is_settled: empty_state_settled,
+  });
+  const skeleton_visible =
+    !empty_state_visible && (skeleton_pending || filtered_emails.length === 0);
 
   const is_client_filtered = active_filter !== "all";
   const stats_total_for_view = useMemo(() => {
@@ -1012,7 +1115,7 @@ export function EmailInbox({
       current_page,
       has_initial_load: email_state.has_initial_load,
       is_loading: email_state.is_loading,
-      skeleton_visible,
+      skeleton_visible: skeleton_pending,
       email_count: filtered_emails.length,
       effective_total: effective_total_for_pages,
       attempts: empty_recovery_ref.current.attempts,
@@ -1029,7 +1132,7 @@ export function EmailInbox({
     current_page,
     email_state.has_initial_load,
     email_state.is_loading,
-    skeleton_visible,
+    skeleton_pending,
     filtered_emails.length,
     effective_total_for_pages,
     refresh_active_list,
@@ -1129,7 +1232,11 @@ export function EmailInbox({
   }, []);
 
   const run_category_bulk_action = useCallback(
-    async (action: BulkScopeAction): Promise<boolean> => {
+    async (
+      action: BulkScopeAction,
+      progress: { completed: number; total: number },
+      exclude_ids: string[],
+    ): Promise<CategoryBulkOutcome> => {
       let progress_toast_shown = false;
 
       try {
@@ -1137,7 +1244,10 @@ export function EmailInbox({
           action,
           categories.active_category,
           {
+            exclude_ids,
             on_progress: (completed, total) => {
+              progress.completed = completed;
+              progress.total = total;
               if (total < PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS) return;
               if (!progress_toast_shown) {
                 progress_toast_shown = true;
@@ -1158,7 +1268,7 @@ export function EmailInbox({
           },
         );
 
-        return outcome !== "not_ready";
+        return outcome;
       } finally {
         if (progress_toast_shown) hide_action_toast();
       }
@@ -1168,16 +1278,73 @@ export function EmailInbox({
 
   const run_scope_action = useCallback(
     async (action: BulkScopeAction) => {
+      const progress = { completed: 0, total: 0 };
+      const exclude_ids = selection.excluded_ids;
+      const settle_view = (refetch: boolean) => {
+        selection.exit_select_all_mode();
+        selection.handle_clear_selection();
+        set_current_page(0);
+        if (!refetch) return;
+        fetch_page(0, page_size);
+        mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+      };
+
       try {
-        if (categories.enabled) {
-          const handled = await run_category_bulk_action(action);
+        let affected_count = 0;
+        let completed = true;
+        let handled_by_category = false;
 
-          if (!handled) {
-            show_toast(t("mail.bulk_action_index_not_ready"), "error");
+        if (categories.enabled && supports_category_scope(action)) {
+          let outcome = await run_category_bulk_action(
+            action,
+            progress,
+            exclude_ids,
+          );
 
-            return;
+          if (outcome === "not_ready") {
+            if (is_index_capped()) {
+              show_toast(t("mail.bulk_action_index_capped"), "error");
+
+              return;
+            }
+
+            show_toast(t("mail.bulk_action_index_building"), "info");
+
+            const ready = await wait_for_index_ready({
+              on_progress: (processed) => {
+                progress.total = Math.max(progress.total, processed);
+              },
+            });
+
+            if (ready !== "ready") {
+              show_toast(
+                ready === "capped"
+                  ? t("mail.bulk_action_index_capped")
+                  : t("mail.bulk_action_index_not_ready"),
+                "error",
+              );
+
+              return;
+            }
+
+            outcome = await run_category_bulk_action(
+              action,
+              progress,
+              exclude_ids,
+            );
+
+            if (outcome === "not_ready") {
+              show_toast(t("mail.bulk_action_index_not_ready"), "error");
+
+              return;
+            }
           }
-        } else {
+          if (outcome !== "unsupported") {
+            handled_by_category = true;
+            affected_count = progress.completed;
+          }
+        }
+        if (!handled_by_category) {
           if (!scope_for_view) {
             show_toast(t("mail.bulk_action_index_not_ready"), "error");
 
@@ -1187,17 +1354,42 @@ export function EmailInbox({
           const res = await bulk_action_by_scope({
             action,
             scope: scope_for_view,
+            ...(exclude_ids.length > 0 ? { exclude_ids } : {}),
           });
 
           if (res.error) throw new Error(res.error);
+          affected_count = res.data?.affected_count ?? 0;
+          completed = res.data?.completed !== false;
         }
-        selection.exit_select_all_mode();
-        selection.handle_clear_selection();
-        set_current_page(0);
-        fetch_page(0, page_size);
-        mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+        settle_view(completed);
+
+        if (!completed) {
+          show_toast(t("common.bulk_action_continues_in_background"), "info");
+
+          return;
+        }
+
+        const toast_info = BULK_SCOPE_TOAST[action];
+
+        show_action_toast({
+          message: t(toast_info.message_key, { count: affected_count }),
+          action_type: toast_info.action_type,
+          email_ids: [],
+        });
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
+        if (progress.completed > 0) {
+          settle_view(true);
+          show_toast(
+            t("common.bulk_action_partially_applied", {
+              count: progress.completed,
+              total: progress.total,
+            }),
+            "error",
+          );
+
+          return;
+        }
         show_toast(t("common.something_went_wrong"), "error");
       }
     },
@@ -1328,6 +1520,85 @@ export function EmailInbox({
     }
     toolbar.handle_toolbar_restore();
   }, [selection, toolbar, run_scope_action, queue_select_all_action]);
+
+  const handle_not_spam_wrapped = useCallback(() => {
+    if (selection.select_all_mode) {
+      queue_select_all_action(() => {
+        void run_scope_action("unmark_spam");
+      });
+
+      return;
+    }
+    toolbar.handle_toolbar_restore();
+  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
+
+  const selected_emails = useMemo(
+    () => email_state.emails.filter((e) => e.is_selected),
+    [email_state.emails],
+  );
+
+  const selection_menu = useMemo((): SelectionMenuScope | null => {
+    const is_all_mode = selection.select_all_mode;
+    const count = is_all_mode
+      ? Math.max(effective_total_for_pages - selection.excluded_ids.length, 0)
+      : selection.selected_count;
+
+    if (!is_all_mode && count < 2) return null;
+
+    return {
+      count,
+      is_all_mode,
+      has_unread: is_all_mode || selected_emails.some((e) => !e.is_read),
+      has_read: is_all_mode || selected_emails.some((e) => e.is_read),
+      get_folder_status: selection.get_folder_status_for_selection,
+      get_tag_status: selection.get_tag_status_for_selection,
+      on_archive: handle_archive_wrapped,
+      on_delete: handle_delete_wrapped,
+      on_spam: handle_spam_wrapped,
+      on_mark_read: handle_mark_read_wrapped,
+      on_mark_unread: handle_mark_unread_wrapped,
+      on_restore: handle_restore_wrapped,
+      on_mark_not_spam: handle_not_spam_wrapped,
+      on_move_to_inbox: handle_unarchive_wrapped,
+      on_snooze: toolbar.handle_toolbar_snooze,
+      on_custom_snooze: () => set_show_toolbar_custom_snooze(true),
+      on_folder_toggle: (folder_token: string) => {
+        toolbar.handle_toolbar_toggle_folder(
+          folder_token,
+          selection.get_folder_status_for_selection(folder_token) === "all",
+        );
+      },
+      on_tag_toggle: (tag_token: string) => {
+        toolbar.handle_toolbar_toggle_tag(
+          tag_token,
+          selection.get_tag_status_for_selection(tag_token) === "all",
+        );
+      },
+      on_category_change: categories.enabled
+        ? (category: EmailCategory) => {
+            void handle_category_drop(
+              category,
+              selected_emails.map((e) => e.id),
+            );
+          }
+        : undefined,
+    };
+  }, [
+    selection,
+    selected_emails,
+    effective_total_for_pages,
+    toolbar,
+    categories.enabled,
+    handle_category_drop,
+    handle_archive_wrapped,
+    handle_delete_wrapped,
+    handle_spam_wrapped,
+    handle_mark_read_wrapped,
+    handle_mark_unread_wrapped,
+    handle_restore_wrapped,
+    handle_not_spam_wrapped,
+    handle_unarchive_wrapped,
+  ]);
 
   const nav = use_inbox_navigation({
     current_view,
@@ -1541,9 +1812,7 @@ export function EmailInbox({
           folder_id={locked_folder.id}
           folder_name={locked_folder.name}
         />
-      ) : !skeleton_visible &&
-        filtered_emails.length === 0 &&
-        email_state.has_initial_load ? (
+      ) : empty_state_visible ? (
         categories.enabled && !email_state.has_load_error ? (
           <CategoryEmptyState category={categories.active_category} />
         ) : (
@@ -1555,7 +1824,7 @@ export function EmailInbox({
           />
         )
       ) : (
-        <div className="relative min-h-full">
+        <div className="relative min-h-full -mt-px border-t border-edge-secondary">
           <div>
             {filtered_emails.length > 0 && (
               <EmailList
@@ -1594,6 +1863,7 @@ export function EmailInbox({
                 pinned_emails={pinned_emails}
                 primary_emails={primary_emails}
                 selected_email_id={active_email_id ?? split_scheduled_data?.id}
+                selection_menu={selection_menu}
                 show_email_preview={preferences.show_email_preview}
                 show_message_size={preferences.show_message_size}
                 show_profile_pictures={preferences.show_profile_pictures}
@@ -1651,6 +1921,7 @@ export function EmailInbox({
                           ? filtered_emails.filter((e) => !e.is_read).length
                           : undefined
             }
+            excluded_count={selection.excluded_ids.length}
             filtered_count={effective_total_for_pages}
             folders={folders_state.folders
               .filter((f) => !f.is_system)
@@ -1766,6 +2037,7 @@ export function EmailInbox({
             <CategoryTabs
               active_category={categories.active_category}
               counts={categories.counts}
+              on_category_drop={handle_category_drop}
               on_change={categories.set_active_category}
             />
           )}

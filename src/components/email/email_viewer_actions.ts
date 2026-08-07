@@ -57,12 +57,15 @@ import {
 import { print_email } from "@/utils/print_email";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
-import { adjust_unread_count } from "@/hooks/use_mail_counts";
 import {
   adjust_stats_spam,
   adjust_stats_unread,
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
+import {
+  conversation_has_unread_sibling,
+  read_clears_conversation,
+} from "@/hooks/unread_read_delta";
 import {
   compute_archive_deltas,
   compute_unarchive_deltas,
@@ -285,16 +288,24 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         : prev,
     );
 
-    const thread_has_other_unread =
+    const thread_has_other_unread = deps.thread_messages.some(
+      (m) => m.id !== deps.email_id && !m.is_read && m.item_type === "received",
+    );
+    const conversation_options = {
+      thread_token: current_mail_item.thread_token,
+      thread_message_count: current_mail_item.thread_message_count,
+      conversation_grouping: deps.preferences_conversation_grouping,
+      acted_id: deps.email_id,
+      sibling_unread: thread_has_other_unread,
+    };
+    const should_adjust_unread =
       is_received &&
-      deps.thread_messages.some(
-        (m) =>
-          m.id !== deps.email_id && !m.is_read && m.item_type === "received",
-      );
-    const should_adjust_unread = is_received && !thread_has_other_unread;
+      (new_state
+        ? read_clears_conversation(conversation_options)
+        : !conversation_has_unread_sibling(conversation_options));
 
     if (should_adjust_unread) {
-      adjust_unread_count(new_state ? -1 : 1);
+      adjust_stats_unread(new_state ? -1 : 1);
     }
 
     if (!new_state) {
@@ -324,7 +335,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           : prev,
       );
       if (should_adjust_unread) {
-        adjust_unread_count(new_state ? 1 : -1);
+        adjust_stats_unread(new_state ? 1 : -1);
       }
     } else {
       deps.set_mail_item((prev) =>
@@ -345,12 +356,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
       if (new_state && is_received) {
-        mark_conversation_read({
-          thread_token: current_mail_item.thread_token,
-          thread_message_count: current_mail_item.thread_message_count,
-          conversation_grouping: deps.preferences_conversation_grouping,
-          acted_id: deps.email_id,
-        });
+        mark_conversation_read(conversation_options);
       }
     }
   }, [
@@ -1020,19 +1026,20 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const new_read = !msg.is_read;
       const is_received = msg.item_type === "received";
 
-      const other_unread_in_thread =
-        is_received &&
-        deps.thread_messages.some(
-          (m) =>
-            m.id !== message_id && !m.is_read && m.item_type === "received",
-        );
+      const other_unread_in_thread = deps.thread_messages.some(
+        (m) => m.id !== message_id && !m.is_read && m.item_type === "received",
+      );
       const main_is_unread_received =
-        is_received &&
         deps.mail_item?.item_type === "received" &&
         !deps.is_read &&
         deps.mail_item?.id !== message_id;
       const should_adjust =
-        is_received && !other_unread_in_thread && !main_is_unread_received;
+        is_received &&
+        !conversation_has_unread_sibling({
+          thread_token: deps.mail_item?.thread_token,
+          acted_id: message_id,
+          sibling_unread: other_unread_in_thread || main_is_unread_received,
+        });
 
       deps.set_thread_messages((prev) =>
         prev.map((m) =>
@@ -1041,7 +1048,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       );
 
       if (should_adjust) {
-        adjust_unread_count(new_read ? -1 : 1);
+        adjust_stats_unread(new_read ? -1 : 1);
       }
 
       if (!new_read) {
@@ -1063,7 +1070,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             ),
           );
           if (should_adjust) {
-            adjust_unread_count(new_read ? 1 : -1);
+            adjust_stats_unread(new_read ? 1 : -1);
           }
         } else if (result.encrypted) {
           deps.set_thread_messages((prev) =>

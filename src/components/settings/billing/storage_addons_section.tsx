@@ -136,7 +136,7 @@ export function StorageAddonsSection({
             >
               {badge && (
                 <span
-                  className="absolute -top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
+                  className="absolute -top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-[var(--accent-fg,#ffffff)]"
                   style={{
                     backgroundColor: "var(--accent-color-hover)",
                   }}

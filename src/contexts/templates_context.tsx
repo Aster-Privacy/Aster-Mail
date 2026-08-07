@@ -25,6 +25,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   ReactNode,
 } from "react";
 
@@ -54,8 +55,11 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
   const { t } = use_i18n();
   const [templates, set_templates] = useState<DecryptedTemplate[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const load_generation_ref = useRef(0);
 
   const load_templates = useCallback(async () => {
+    const this_generation = ++load_generation_ref.current;
+
     if (!vault || !is_authenticated || is_completing_registration) {
       set_templates([]);
       set_is_loading(false);
@@ -68,10 +72,14 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
     try {
       const response = await list_templates();
 
+      if (this_generation !== load_generation_ref.current) return;
+
       if (response.data) {
         set_templates(response.data.templates);
       }
     } catch {
+      if (this_generation !== load_generation_ref.current) return;
+
       set_templates([]);
     }
 

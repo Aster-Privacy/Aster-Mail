@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UserPreferences } from "@/services/api/preferences";
+import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
 import { en } from "@/lib/i18n/translations/en";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
@@ -71,10 +72,19 @@ function get_notification_sound(): HTMLAudioElement {
   return notification_sound;
 }
 
-function parse_time(time_string: string): { hours: number; minutes: number } {
-  const [hours, minutes] = time_string.split(":").map(Number);
+function parse_time(
+  time_string: string,
+): { hours: number; minutes: number } | null {
+  const match = /^(\d{1,2}):(\d{1,2})$/.exec(time_string);
 
-  return { hours: hours || 0, minutes: minutes || 0 };
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+
+  if (hours > 23 || minutes > 59) return null;
+
+  return { hours, minutes };
 }
 
 function is_within_quiet_hours(preferences: UserPreferences): boolean {
@@ -85,8 +95,14 @@ function is_within_quiet_hours(preferences: UserPreferences): boolean {
   const now = new Date();
   const current_minutes = now.getHours() * 60 + now.getMinutes();
 
-  const start = parse_time(preferences.quiet_hours_start);
-  const end = parse_time(preferences.quiet_hours_end);
+  const start =
+    parse_time(preferences.quiet_hours_start) ??
+    parse_time(DEFAULT_PREFERENCES.quiet_hours_start);
+  const end =
+    parse_time(preferences.quiet_hours_end) ??
+    parse_time(DEFAULT_PREFERENCES.quiet_hours_end);
+
+  if (!start || !end) return false;
 
   const start_minutes = start.hours * 60 + start.minutes;
   const end_minutes = end.hours * 60 + end.minutes;

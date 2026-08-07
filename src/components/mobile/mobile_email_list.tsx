@@ -45,6 +45,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
 import { Spinner } from "@/components/ui/spinner";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { use_i18n } from "@/lib/i18n/context";
@@ -63,6 +64,7 @@ interface MobileEmailListProps {
   pinned_emails?: InboxEmail[];
   is_loading: boolean;
   is_loading_more?: boolean;
+  has_initial_load?: boolean;
   has_more?: boolean;
   has_load_error?: boolean;
   current_view: string;
@@ -186,6 +188,7 @@ export const MobileEmailList = memo(function MobileEmailList({
   pinned_emails,
   is_loading,
   is_loading_more,
+  has_initial_load = true,
   has_more,
   has_load_error,
   current_view,
@@ -483,7 +486,16 @@ export const MobileEmailList = memo(function MobileEmailList({
     };
   }, [selection_mode]);
 
-  if (is_loading) {
+  const all_emails_empty =
+    emails.length === 0 && (!pinned_emails || pinned_emails.length === 0);
+  const empty_state_visible = use_settled_empty_state({
+    view_key: current_view,
+    is_empty: all_emails_empty,
+    is_settled:
+      has_initial_load && !is_loading && !is_loading_more && !is_refreshing,
+  });
+
+  if ((is_loading || all_emails_empty) && !empty_state_visible) {
     return (
       <div className="flex-1 space-y-1 px-0 pt-1">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -500,10 +512,7 @@ export const MobileEmailList = memo(function MobileEmailList({
     );
   }
 
-  const all_emails_empty =
-    emails.length === 0 && (!pinned_emails || pinned_emails.length === 0);
-
-  if (all_emails_empty && has_load_error) {
+  if (empty_state_visible && has_load_error) {
     return (
       <div className="relative flex flex-1 flex-col items-center justify-center gap-3 px-8">
         <ShieldExclamationIcon
@@ -528,7 +537,7 @@ export const MobileEmailList = memo(function MobileEmailList({
     );
   }
 
-  if (all_emails_empty) {
+  if (empty_state_visible) {
     const { icon: EmptyIcon, color: icon_color } = get_empty_icon(current_view);
     const empty_text = get_empty_text(
       current_view,

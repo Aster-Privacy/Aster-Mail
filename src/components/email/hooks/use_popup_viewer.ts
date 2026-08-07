@@ -50,7 +50,8 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_date_format } from "@/hooks/use_date_format";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
@@ -530,8 +531,18 @@ export function use_popup_viewer({
           const mark_read = async () => {
             if (current_email_id !== email_id) return;
 
-            if (is_received) {
-              adjust_unread_count(-1);
+            const conversation_options = {
+              thread_token: mail_data.thread_token,
+              thread_message_count: mail_data.thread_message_count,
+              grouped_count: grouped_email_ids?.length,
+              conversation_grouping: preferences.conversation_grouping,
+              acted_id: mail_data.id,
+            };
+            const clears_conversation =
+              read_clears_conversation(conversation_options);
+
+            if (is_received && clears_conversation) {
+              adjust_stats_unread(-1);
             }
             const result = await update_item_metadata(
               current_email_id,
@@ -567,16 +578,10 @@ export function use_popup_viewer({
                 metadata_nonce: result.encrypted?.metadata_nonce,
               });
               if (is_received) {
-                mark_conversation_read({
-                  thread_token: mail_data.thread_token,
-                  thread_message_count: mail_data.thread_message_count,
-                  grouped_count: grouped_email_ids?.length,
-                  conversation_grouping: preferences.conversation_grouping,
-                  acted_id: mail_data.id,
-                });
+                mark_conversation_read(conversation_options);
               }
-            } else if (!result.success && is_received) {
-              adjust_unread_count(1);
+            } else if (!result.success && is_received && clears_conversation) {
+              adjust_stats_unread(1);
             }
           };
 

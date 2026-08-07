@@ -195,6 +195,14 @@ export interface ClassifyOptions {
   rule_category?: string | null;
 }
 
+let active_custom_categories: readonly CustomCategoryRule[] = [];
+
+export function set_active_custom_categories(
+  rules: readonly CustomCategoryRule[],
+): void {
+  active_custom_categories = rules;
+}
+
 function resolve_rule_category(
   rule_category: string | null | undefined,
   custom_categories?: readonly CustomCategoryRule[] | null,
@@ -218,15 +226,21 @@ export function classify(
     return metadata.category;
   }
 
-  const from_rule = resolve_rule_category(
-    options?.rule_category,
-    options?.custom_categories,
-  );
+  const rules = options?.custom_categories ?? active_custom_categories;
+  const email = envelope.from?.email || "";
+  const from_domain = get_sender_domain(email);
+
+  if (
+    domain_in_set(from_domain, ASTER_SET) &&
+    envelope.sender_verification !== "invalid"
+  ) {
+    return "primary";
+  }
+
+  const from_rule = resolve_rule_category(options?.rule_category, rules);
 
   if (from_rule) return from_rule;
 
-  const email = envelope.from?.email || "";
-  const from_domain = get_sender_domain(email);
   const localpart = get_localpart(email);
   const subject = (envelope.subject || "").slice(0, MAX_SUBJECT);
   const headers = build_header_lookup(envelope.raw_headers);
@@ -249,26 +263,10 @@ export function classify(
   const in_any = (set: Set<string>): boolean =>
     auth_domains.some((d) => domain_in_set(d, set));
 
-  // 1. System / internal Aster mail -> Primary. Inbound mail forging an
-  //    astermail.org From is rejected upstream by DMARC at the mail server, so
-  //    it does not reach the inbox; this client rule is display-layer foldering,
-  //    not a security boundary. We still drop the rule if a signed envelope
-  //    explicitly failed verification.
-  if (
-    domain_in_set(from_domain, ASTER_SET) &&
-    envelope.sender_verification !== "invalid"
-  ) {
-    return "primary";
-  }
-
   // 1b. User-defined custom categories take priority over every built-in
   //     bucket below, since the user explicitly asked for this sender/subject
   //     to land somewhere specific.
-  const custom_match = match_custom_category(
-    auth_domains,
-    subject,
-    options?.custom_categories,
-  );
+  const custom_match = match_custom_category(auth_domains, subject, rules);
 
   if (custom_match) {
     return custom_match;

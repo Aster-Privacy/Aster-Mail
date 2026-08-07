@@ -35,6 +35,12 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+} from "@/components/ui/modal";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -65,7 +71,6 @@ export function AutoForwardSection() {
   const [editing_rule, set_editing_rule] =
     useState<ForwardingRuleResponse | null>(null);
   const [is_saving, set_is_saving] = useState(false);
-  const [form_visible, set_form_visible] = useState(false);
   const [resending_address, set_resending_address] = useState<string | null>(
     null,
   );
@@ -73,20 +78,12 @@ export function AutoForwardSection() {
   const open_builder = (rule?: ForwardingRuleResponse) => {
     set_editing_rule(rule ?? null);
     set_show_builder(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        set_form_visible(true);
-      });
-    });
   };
 
-  const close_builder = () => {
-    set_form_visible(false);
-    setTimeout(() => {
-      set_show_builder(false);
-      set_editing_rule(null);
-    }, 200);
-  };
+  const close_builder = useCallback(() => {
+    set_show_builder(false);
+    set_editing_rule(null);
+  }, []);
 
   const fetch_rules = useCallback(async () => {
     try {
@@ -421,46 +418,31 @@ export function AutoForwardSection() {
           )}
         </div>
 
-        {show_builder && (
-          <div
-            className="fixed inset-0 z-[60] flex items-center justify-center"
-            style={{
-              opacity: form_visible ? 1 : 0,
-              transition: "opacity 200ms",
-            }}
-          >
-            <div
-              className="absolute inset-0 backdrop-blur-md"
-              style={{ backgroundColor: "var(--modal-overlay)" }}
-              onClick={close_builder}
+        <Modal
+          is_open={show_builder}
+          on_close={close_builder}
+          show_close_button={false}
+          size="lg"
+        >
+          <ModalHeader className="pr-6 pb-3">
+            <ModalTitle className="text-[15px]">
+              {editing_rule
+                ? t("settings.edit_forwarding_rule")
+                : t("settings.create_forwarding_rule")}
+            </ModalTitle>
+          </ModalHeader>
+          <ModalBody className="px-6 pb-6">
+            <ForwardingRuleBuilder
+              initial_conditions={editing_rule?.conditions}
+              initial_forward_to={editing_rule?.forward_to}
+              initial_keep_copy={editing_rule?.keep_copy}
+              initial_name={editing_rule?.name}
+              is_saving={is_saving}
+              on_cancel={close_builder}
+              on_save={handle_save_rule}
             />
-            <div
-              className="relative w-full max-w-lg mx-4 rounded-xl border p-6 shadow-xl transition-all duration-200 max-h-[85vh] overflow-y-auto bg-modal-bg border-edge-primary"
-              style={{
-                transform: form_visible
-                  ? "scale(1) translateY(0)"
-                  : "scale(0.97) translateY(4px)",
-                opacity: form_visible ? 1 : 0,
-              }}
-            >
-              <h4 className="text-[15px] font-semibold mb-5 text-txt-primary">
-                {editing_rule
-                  ? t("settings.edit_forwarding_rule")
-                  : t("settings.create_forwarding_rule")}
-              </h4>
-
-              <ForwardingRuleBuilder
-                initial_conditions={editing_rule?.conditions}
-                initial_forward_to={editing_rule?.forward_to}
-                initial_keep_copy={editing_rule?.keep_copy}
-                initial_name={editing_rule?.name}
-                is_saving={is_saving}
-                on_cancel={close_builder}
-                on_save={handle_save_rule}
-              />
-            </div>
-          </div>
-        )}
+          </ModalBody>
+        </Modal>
 
         {rules.length === 0 ? (
           <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
@@ -560,7 +542,7 @@ export function AutoForwardSection() {
                         className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
                         style={{
                           backgroundColor: "var(--accent-color-hover)",
-                          color: "#fff",
+                          color: "var(--accent-fg, #ffffff)",
                         }}
                       >
                         {t("settings.keeps_copy")}

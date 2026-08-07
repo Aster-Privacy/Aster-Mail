@@ -20,10 +20,42 @@
 //
 
 interface ComposeMockupProps {
-  theme: "light" | "dark";
+  theme: "light" | "dark" | "themed";
 }
 
-function get_colors(theme: "light" | "dark") {
+function get_colors(theme: "light" | "dark" | "themed") {
+  if (theme === "themed") {
+    return {
+      bg: "var(--bg-primary)",
+      sidebar_bg: "var(--bg-secondary)",
+      sidebar_border: "var(--border-secondary)",
+      brand: "var(--accent-color)",
+      compose_gradient:
+        "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color), var(--accent-mix-b80, #2f68c5))",
+      compose_border_top: "rgba(255,255,255,0.15)",
+      compose_border_bottom: "rgba(0,0,0,0.15)",
+      text_primary: "var(--text-primary)",
+      text_secondary: "var(--text-secondary)",
+      text_tertiary: "var(--text-tertiary)",
+      text_muted: "var(--text-muted)",
+      selected_bg:
+        "color-mix(in srgb, var(--accent-color) 18%, var(--bg-primary))",
+      indicator_bg: "var(--bg-primary)",
+      indicator_border: "var(--border-secondary)",
+      border: "var(--border-secondary)",
+      border_secondary: "var(--border-secondary)",
+      body_line: "var(--border-secondary)",
+      avatar_read:
+        "color-mix(in srgb, var(--text-muted) 55%, var(--bg-primary))",
+      storage_track: "rgba(255,255,255,0.08)",
+      modal_overlay: "rgba(0,0,0,0.75)",
+      card_shadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
+      input_bg: "var(--bg-secondary)",
+      toolbar_bg: "var(--bg-tertiary, var(--bg-secondary))",
+      send_btn: "var(--accent-color)",
+    };
+  }
+
   if (theme === "light") {
     return {
       bg: "#ffffff",

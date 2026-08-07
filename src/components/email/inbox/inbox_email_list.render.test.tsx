@@ -67,6 +67,7 @@ vi.mock("@/hooks/use_peer_profile", () => ({
 
 vi.mock("@/hooks/use_sidebar_aliases", () => ({
   get_alias_hash_by_address: () => null,
+  resolve_alias_delivery: () => null,
   subscribe_aliases: () => () => {},
 }));
 

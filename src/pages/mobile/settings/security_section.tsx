@@ -130,6 +130,7 @@ export function SecuritySection({
   const [pw_loading, set_pw_loading] = useState(false);
   const [pw_error, set_pw_error] = useState("");
   const [pw_success, set_pw_success] = useState(false);
+  const [pw_unreadable_notice, set_pw_unreadable_notice] = useState("");
   const [pw_breach_warning, set_pw_breach_warning] = useState(false);
   const [logout_others_loading, set_logout_others_loading] = useState(false);
   const [logout_others_result, set_logout_others_result] = useState<{
@@ -215,6 +216,10 @@ export function SecuritySection({
   const handle_change_password = useCallback(async () => {
     set_pw_error("");
     set_pw_success(false);
+    set_pw_unreadable_notice("");
+
+    let unreadable_item_count = 0;
+
     if (!user?.email) {
       set_pw_error(t("settings.user_not_found"));
 
@@ -441,7 +446,17 @@ export function SecuritySection({
           re_encrypted_destinations,
           re_encrypted_directories,
           re_encrypted_domain_addresses,
-        } = await re_encrypt_user_data(current_password, new_password);
+          skipped,
+        } = await re_encrypt_user_data(current_password, new_password, {
+          data_kek: vault.data_kek,
+          legacy_keks: vault.legacy_keks,
+        });
+
+        unreadable_item_count =
+          skipped.alias_ids.length +
+          skipped.contact_ids.length +
+          skipped.domain_address_ids.length +
+          skipped.unreadable_field_count;
 
         res = await change_password({
           current_password_hash: current_pw_hash,
@@ -493,6 +508,15 @@ export function SecuritySection({
           old_identity_key,
           vault.identity_key,
         ).catch(() => {});
+      }
+
+      if (unreadable_item_count > 0) {
+        set_pw_unreadable_notice(
+          t("settings.password_changed_items_unreadable").replace(
+            "{{count}}",
+            String(unreadable_item_count),
+          ),
+        );
       }
 
       set_pw_success(true);
@@ -769,11 +793,18 @@ export function SecuritySection({
 
         <SettingsGroup title={t("settings.change_password")}>
           {!show_password_change ? (
-            <SettingsRow
-              icon={<LockClosedIcon className="h-4 w-4" />}
-              label={t("settings.change_password")}
-              on_press={() => set_show_password_change(true)}
-            />
+            <>
+              <SettingsRow
+                icon={<LockClosedIcon className="h-4 w-4" />}
+                label={t("settings.change_password")}
+                on_press={() => set_show_password_change(true)}
+              />
+              {pw_unreadable_notice && (
+                <p className="px-4 pb-3 text-[13px] text-[var(--color-warning,#f59e0b)]">
+                  {pw_unreadable_notice}
+                </p>
+              )}
+            </>
           ) : (
             <div className="space-y-3 px-4 py-3">
               <div className="relative">

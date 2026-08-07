@@ -100,7 +100,7 @@ export function SendingMessageBlock({
               className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
               style={{
                 backgroundColor: "color-mix(in srgb, var(--accent-color) 15%, transparent)",
-                color: "rgb(59, 130, 246)",
+                color: "var(--accent-color)",
               }}
             >
               <PaperAirplaneIcon className="w-3 h-3 animate-pulse" />

@@ -29,9 +29,21 @@ import { list_alias_contacts } from "../api/alias_contacts";
 import { list_alias_destinations } from "../api/alias_destinations";
 import { list_alias_directories } from "../api/alias_directories";
 import { list_domains, list_domain_addresses } from "../api/domains";
-import { decrypt_aes_gcm_with_fallback } from "./legacy_keks";
+import { get_legacy_crypto_keys } from "./legacy_keks";
 
 const HASH_ALG = ["SHA", "256"].join("-");
+
+export interface OldKeyMaterial {
+  data_kek?: string;
+  legacy_keks?: { k: string }[];
+}
+
+export interface ReEncryptSkipReport {
+  alias_ids: string[];
+  contact_ids: string[];
+  domain_address_ids: string[];
+  unreadable_field_count: number;
+}
 
 export interface ReEncryptedAlias {
   id: string;
@@ -182,25 +194,100 @@ async function derive_domain_address_hmac_key(
   );
 }
 
-async function resolve_old_aes_key(old_passphrase: string): Promise<CryptoKey> {
+async function import_aes_decryption_key(raw: Uint8Array): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+}
+
+async function build_old_key_candidates(
+  old_passphrase: string,
+  material?: OldKeyMaterial,
+): Promise<CryptoKey[]> {
+  const candidates: CryptoKey[] = [];
   const session_key = await get_or_create_derived_encryption_crypto_key();
 
-  return session_key ?? derive_aes_key(old_passphrase);
+  if (session_key) {
+    candidates.push(session_key);
+  }
+
+  const raw_candidates: Uint8Array[] = [];
+
+  raw_candidates.push(
+    await derive_encryption_key_from_passphrase(
+      new TextEncoder().encode(old_passphrase),
+    ),
+  );
+
+  const encoded_material = [
+    ...(material?.data_kek ? [material.data_kek] : []),
+    ...(material?.legacy_keks ?? []).map((entry) => entry.k),
+  ];
+
+  for (const encoded of encoded_material) {
+    try {
+      raw_candidates.push(base64_to_array(encoded));
+    } catch {
+      continue;
+    }
+  }
+
+  const seen = new Set<string>();
+
+  for (const raw of raw_candidates) {
+    const fingerprint = array_to_base64(raw);
+
+    if (seen.has(fingerprint)) continue;
+
+    seen.add(fingerprint);
+
+    try {
+      candidates.push(await import_aes_decryption_key(raw));
+    } catch {
+      continue;
+    }
+  }
+
+  candidates.push(...get_legacy_crypto_keys());
+
+  return candidates;
+}
+
+async function decrypt_with_candidates(
+  candidates: CryptoKey[],
+  ciphertext: Uint8Array,
+  nonce: Uint8Array,
+): Promise<ArrayBuffer> {
+  let last_error: unknown = new Error("no_candidate_key");
+
+  for (const candidate of candidates) {
+    try {
+      return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: nonce },
+        candidate,
+        ciphertext,
+      );
+    } catch (error) {
+      last_error = error;
+    }
+  }
+
+  throw last_error instanceof Error ? last_error : new Error(String(last_error));
 }
 
 async function re_encrypt_field(
   encrypted_b64: string,
   nonce_b64: string,
-  old_key: CryptoKey,
+  old_keys: CryptoKey[],
   new_key: CryptoKey,
 ): Promise<{ encrypted: string; nonce: string }> {
   const ciphertext = base64_to_array(encrypted_b64);
   const nonce = base64_to_array(nonce_b64);
-  const decrypted = await decrypt_aes_gcm_with_fallback(
-    old_key,
-    ciphertext,
-    nonce,
-  );
+  const decrypted = await decrypt_with_candidates(old_keys, ciphertext, nonce);
   const new_nonce = crypto.getRandomValues(new Uint8Array(12));
   const new_ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: new_nonce },
@@ -217,12 +304,15 @@ async function re_encrypt_field(
 async function carry_forward_field(
   encrypted_b64: string,
   nonce_b64: string,
-  old_key: CryptoKey,
+  old_keys: CryptoKey[],
   new_key: CryptoKey,
+  report: ReEncryptSkipReport,
 ): Promise<{ encrypted: string; nonce: string }> {
   try {
-    return await re_encrypt_field(encrypted_b64, nonce_b64, old_key, new_key);
+    return await re_encrypt_field(encrypted_b64, nonce_b64, old_keys, new_key);
   } catch {
+    report.unreadable_field_count += 1;
+
     return { encrypted: encrypted_b64, nonce: nonce_b64 };
   }
 }
@@ -230,6 +320,7 @@ async function carry_forward_field(
 export async function re_encrypt_user_data(
   old_passphrase: string,
   new_passphrase: string,
+  old_key_material?: OldKeyMaterial,
 ): Promise<{
   re_encrypted_aliases: ReEncryptedAlias[];
   re_encrypted_contacts: ReEncryptedContact[];
@@ -238,20 +329,28 @@ export async function re_encrypt_user_data(
   re_encrypted_destinations: ReEncryptedDestination[];
   re_encrypted_directories: ReEncryptedDirectory[];
   re_encrypted_domain_addresses: ReEncryptedDomainAddress[];
+  skipped: ReEncryptSkipReport;
 }> {
   const [
-    old_aes,
+    old_keys,
     new_aes,
     new_alias_hmac,
     new_contacts_hmac,
     new_domain_hmac,
   ] = await Promise.all([
-    resolve_old_aes_key(old_passphrase),
+    build_old_key_candidates(old_passphrase, old_key_material),
     derive_aes_key(new_passphrase),
     derive_alias_hmac_key(new_passphrase),
     derive_contacts_hmac_key(new_passphrase),
     derive_domain_address_hmac_key(new_passphrase),
   ]);
+
+  const skipped: ReEncryptSkipReport = {
+    alias_ids: [],
+    contact_ids: [],
+    domain_address_ids: [],
+    unreadable_field_count: 0,
+  };
 
   const re_encrypted_aliases: ReEncryptedAlias[] = [];
   const re_encrypted_pins: ReEncryptedPin[] = [];
@@ -276,8 +375,8 @@ export async function re_encrypt_user_data(
       try {
         const lp_ciphertext = base64_to_array(alias.encrypted_local_part);
         const lp_nonce = base64_to_array(alias.local_part_nonce);
-        const lp_plaintext = await decrypt_aes_gcm_with_fallback(
-          old_aes,
+        const lp_plaintext = await decrypt_with_candidates(
+          old_keys,
           lp_ciphertext,
           lp_nonce,
         );
@@ -308,8 +407,9 @@ export async function re_encrypt_user_data(
             await carry_forward_field(
               alias.encrypted_display_name,
               alias.display_name_nonce,
-              old_aes,
+              old_keys,
               new_aes,
+              skipped,
             );
 
           result.encrypted_display_name = encrypted_display_name;
@@ -321,8 +421,9 @@ export async function re_encrypt_user_data(
             await carry_forward_field(
               alias.encrypted_note,
               alias.note_nonce,
-              old_aes,
+              old_keys,
               new_aes,
+              skipped,
             );
 
           result.encrypted_note = encrypted_note;
@@ -334,8 +435,9 @@ export async function re_encrypt_user_data(
             await carry_forward_field(
               alias.encrypted_websites,
               alias.websites_nonce,
-              old_aes,
+              old_keys,
               new_aes,
+              skipped,
             );
 
           result.encrypted_websites = encrypted_websites;
@@ -343,10 +445,8 @@ export async function re_encrypt_user_data(
         }
 
         re_encrypted_aliases.push(result);
-      } catch (err) {
-        throw new Error(
-          `alias_reencrypt_failed:${alias.id}:${err instanceof Error ? err.message : String(err)}`,
-        );
+      } catch {
+        skipped.alias_ids.push(alias.id);
       }
 
       const pins_response = await list_alias_pins(alias.id);
@@ -359,7 +459,7 @@ export async function re_encrypt_user_data(
             const { encrypted, nonce } = await re_encrypt_field(
               pin.encrypted_sender,
               pin.sender_nonce,
-              old_aes,
+              old_keys,
               new_aes,
             );
 
@@ -385,7 +485,7 @@ export async function re_encrypt_user_data(
             const { encrypted, nonce } = await re_encrypt_field(
               alias_contact.encrypted_contact,
               alias_contact.contact_nonce,
-              old_aes,
+              old_keys,
               new_aes,
             );
 
@@ -411,7 +511,7 @@ export async function re_encrypt_user_data(
             const { encrypted, nonce } = await re_encrypt_field(
               destination.encrypted_destination,
               destination.destination_nonce,
-              old_aes,
+              old_keys,
               new_aes,
             );
 
@@ -452,8 +552,8 @@ export async function re_encrypt_user_data(
       try {
         const ct_ciphertext = base64_to_array(contact.encrypted_data);
         const ct_nonce = base64_to_array(contact.data_nonce);
-        const ct_plaintext = await decrypt_aes_gcm_with_fallback(
-          old_aes,
+        const ct_plaintext = await decrypt_with_candidates(
+          old_keys,
           ct_ciphertext,
           ct_nonce,
         );
@@ -483,6 +583,7 @@ export async function re_encrypt_user_data(
           contact_token: array_to_base64(new Uint8Array(contact_token_sig)),
         });
       } catch {
+        skipped.contact_ids.push(contact.id);
         continue;
       }
     }
@@ -502,7 +603,7 @@ export async function re_encrypt_user_data(
         const { encrypted, nonce } = await re_encrypt_field(
           directory.encrypted_label,
           directory.label_nonce,
-          old_aes,
+          old_keys,
           new_aes,
         );
 
@@ -529,8 +630,8 @@ export async function re_encrypt_user_data(
         try {
           const lp_ciphertext = base64_to_array(address.encrypted_local_part);
           const lp_nonce = base64_to_array(address.local_part_nonce);
-          const lp_plaintext = await decrypt_aes_gcm_with_fallback(
-            old_aes,
+          const lp_plaintext = await decrypt_with_candidates(
+            old_keys,
             lp_ciphertext,
             lp_nonce,
           );
@@ -565,8 +666,9 @@ export async function re_encrypt_user_data(
             } = await carry_forward_field(
               address.encrypted_display_name,
               address.display_name_nonce,
-              old_aes,
+              old_keys,
               new_aes,
+              skipped,
             );
 
             result.encrypted_display_name = encrypted_display_name;
@@ -574,10 +676,8 @@ export async function re_encrypt_user_data(
           }
 
           re_encrypted_domain_addresses.push(result);
-        } catch (err) {
-          throw new Error(
-            `domain_address_reencrypt_failed:${address.id}:${err instanceof Error ? err.message : String(err)}`,
-          );
+        } catch {
+          skipped.domain_address_ids.push(address.id);
         }
       }
     }
@@ -591,5 +691,6 @@ export async function re_encrypt_user_data(
     re_encrypted_destinations,
     re_encrypted_directories,
     re_encrypted_domain_addresses,
+    skipped,
   };
 }

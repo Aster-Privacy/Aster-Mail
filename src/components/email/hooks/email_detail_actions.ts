@@ -60,10 +60,11 @@ import {
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
 import {
-  adjust_unread_count,
-  adjust_trash_count,
-} from "@/hooks/use_mail_counts";
-import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+  adjust_stats_unread,
+  adjust_stats_trash,
+  invalidate_mail_stats,
+} from "@/hooks/use_mail_stats";
+import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import {
   compute_archive_deltas,
   compute_trash_deltas,
@@ -243,7 +244,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       deps.set_is_trash_loading(false);
 
       if (!result.error) {
-        adjust_trash_count(-1);
+        adjust_stats_trash(-1);
         invalidate_mail_stats();
         remove_email_from_view_cache(deps.email_id);
         emit_mail_items_removed({ ids: [deps.email_id] });
@@ -493,19 +494,20 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       const new_read = !msg.is_read;
       const is_received = msg.item_type === "received";
 
-      const other_unread_in_thread =
-        is_received &&
-        deps.thread_messages.some(
-          (m) =>
-            m.id !== message_id && !m.is_read && m.item_type === "received",
-        );
+      const other_unread_in_thread = deps.thread_messages.some(
+        (m) => m.id !== message_id && !m.is_read && m.item_type === "received",
+      );
       const main_is_unread_received =
-        is_received &&
         deps.mail_item?.item_type === "received" &&
         deps.mail_item?.metadata?.is_read === false &&
         deps.mail_item?.id !== message_id;
       const should_adjust =
-        is_received && !other_unread_in_thread && !main_is_unread_received;
+        is_received &&
+        !conversation_has_unread_sibling({
+          thread_token: deps.mail_item?.thread_token,
+          acted_id: message_id,
+          sibling_unread: other_unread_in_thread || main_is_unread_received,
+        });
 
       deps.set_thread_messages((prev) =>
         prev.map((m) =>
@@ -514,7 +516,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       );
 
       if (should_adjust) {
-        adjust_unread_count(new_read ? -1 : 1);
+        adjust_stats_unread(new_read ? -1 : 1);
       }
 
       update_item_metadata(
@@ -532,7 +534,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             ),
           );
           if (should_adjust) {
-            adjust_unread_count(new_read ? 1 : -1);
+            adjust_stats_unread(new_read ? 1 : -1);
           }
         } else if (result.encrypted) {
           emit_mail_item_updated({

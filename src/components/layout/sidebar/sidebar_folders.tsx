@@ -39,6 +39,7 @@ import {
 } from "@/hooks/use_folders";
 import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
+import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
@@ -99,7 +100,7 @@ export const SidebarFolders = memo(function SidebarFolders({
   folder_unread_counts,
   folders_expanded,
   set_folders_expanded,
-  is_loading: _is_loading,
+  is_loading,
   handle_nav_click,
   set_selected_item,
   navigate,
@@ -579,11 +580,14 @@ export const SidebarFolders = memo(function SidebarFolders({
         {root_count === 0 &&
           !is_collapsed &&
           !section_collapsed &&
-          !is_pinned && (
+          !is_pinned &&
+          (is_loading ? (
+            <NavSectionSkeleton rows={3} />
+          ) : (
             <p className="text-[11px] px-2.5 py-2 text-txt-muted">
               {t("common.no_folders_yet")}
             </p>
-          )}
+          ))}
       </div>
     </>
   );

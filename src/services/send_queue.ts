@@ -55,7 +55,7 @@ import {
 } from "@/native/offline_queue";
 
 import { emit_email_sent } from "@/hooks/mail_events";
-import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   extract_inline_images,
@@ -145,7 +145,7 @@ class SendQueue {
 
       try {
         await execute_send(current_email);
-        invalidate_mail_counts();
+        invalidate_mail_stats();
         emit_email_sent();
         current_email.callbacks.on_complete();
       } catch (err) {
@@ -232,7 +232,7 @@ class SendQueue {
     await this.with_send_lock(async () => {
       try {
         await execute_send(current_email);
-        invalidate_mail_counts();
+        invalidate_mail_stats();
         emit_email_sent();
         current_email.callbacks.on_complete();
       } catch (err) {
@@ -541,7 +541,7 @@ export async function queue_email_to_server(
 
     const options: QueueEmailOptions = {
       on_sent: () => {
-        invalidate_mail_counts();
+        invalidate_mail_stats();
         callbacks.on_sent?.();
       },
       on_cancelled: callbacks.on_cancelled,
@@ -582,7 +582,7 @@ export async function send_server_queued_immediately(
   const result = await undo_send_manager.send_immediately(queue_id);
 
   if (result) {
-    invalidate_mail_counts();
+    invalidate_mail_stats();
   }
 
   return result;

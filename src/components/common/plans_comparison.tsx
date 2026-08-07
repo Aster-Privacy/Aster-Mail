@@ -686,7 +686,7 @@ function MobilePlanCard({
           </div>
           {selected && (
             <div className="w-6 h-6 rounded-full bg-brand flex items-center justify-center">
-              <CheckIcon className="w-4 h-4 text-white" strokeWidth={2.5} />
+              <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" strokeWidth={2.5} />
             </div>
           )}
         </div>

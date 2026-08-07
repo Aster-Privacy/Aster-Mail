@@ -93,6 +93,7 @@ import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
+import { resolve_password_change_error } from "./password_change_error";
 import { show_toast } from "@/components/toast/simple_toast";
 
 export const SESSION_TIMEOUT_OPTIONS = [
@@ -158,6 +159,8 @@ export function use_security() {
   const [password_loading, set_password_loading] = useState(false);
   const [password_error, set_password_error] = useState("");
   const [password_success, set_password_success] = useState(false);
+  const [password_unreadable_notice, set_password_unreadable_notice] =
+    useState("");
   const [password_breach_warning, set_password_breach_warning] =
     useState(false);
   const [logout_others_loading, set_logout_others_loading] = useState(false);
@@ -469,6 +472,9 @@ export function use_security() {
   const handle_change_password = async () => {
     set_password_error("");
     set_password_success(false);
+    set_password_unreadable_notice("");
+
+    let unreadable_item_count = 0;
 
     if (!user?.email) {
       set_password_error(t("settings.user_not_found"));
@@ -740,7 +746,17 @@ export function use_security() {
           re_encrypted_destinations,
           re_encrypted_directories,
           re_encrypted_domain_addresses,
-        } = await re_encrypt_user_data(current_password, new_password);
+          skipped,
+        } = await re_encrypt_user_data(current_password, new_password, {
+          data_kek: vault.data_kek,
+          legacy_keks: vault.legacy_keks,
+        });
+
+        unreadable_item_count =
+          skipped.alias_ids.length +
+          skipped.contact_ids.length +
+          skipped.domain_address_ids.length +
+          skipped.unreadable_field_count;
 
         response = await change_password({
           current_password_hash,
@@ -760,7 +776,7 @@ export function use_security() {
       }
 
       if (response.error) {
-        set_password_error(response.error);
+        set_password_error(resolve_password_change_error(response.error, t));
         set_password_loading(false);
 
         return;
@@ -787,15 +803,18 @@ export function use_security() {
       try {
         const prefs_result = await get_preferences(vault);
 
-        if (prefs_result.loaded_from_server) {
-          await save_preferences(prefs_result.data, vault);
+        if (
+          prefs_result.loaded_from_server &&
+          !prefs_result.server_blob_unusable
+        ) {
+          await save_preferences(preferences, vault);
         }
       } catch {}
 
       try {
         const dev_mode_result = await get_dev_mode(vault);
 
-        if (dev_mode_result.data !== undefined) {
+        if (dev_mode_result.data !== null) {
           await save_dev_mode(dev_mode_result.data, vault);
         }
       } catch {}
@@ -823,6 +842,15 @@ export function use_security() {
         password_strength_tier: new_password_strength_tier,
       }));
       fetch_security_status();
+
+      if (unreadable_item_count > 0) {
+        set_password_unreadable_notice(
+          t("settings.password_changed_items_unreadable").replace(
+            "{{count}}",
+            String(unreadable_item_count),
+          ),
+        );
+      }
 
       set_password_success(true);
       set_show_password_section(false);
@@ -1088,6 +1116,7 @@ export function use_security() {
     password_loading,
     password_error,
     password_success,
+    password_unreadable_notice,
     handle_change_password,
     handle_password_cancel,
 

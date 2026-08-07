@@ -267,7 +267,7 @@ export function VerificationGate({ children }: { children: React.ReactNode }) {
                   disabled={is_submitting || !email.trim()}
                   style={{
                     backgroundColor: "var(--accent-color)",
-                    color: "#ffffff",
+                    color: "var(--accent-fg, #ffffff)",
                   }}
                   onClick={handle_submit_email}
                 >

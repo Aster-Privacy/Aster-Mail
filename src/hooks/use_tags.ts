@@ -248,23 +248,14 @@ export function use_tags(): UseTagsReturn {
 
   const fetch_tags = useCallback(
     async (params: ListTagsParams = {}): Promise<void> => {
-      if (!has_passphrase_in_memory()) {
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-        }));
-
-        return;
-      }
-
       const vault = get_vault_from_memory();
 
-      if (!vault?.identity_key) {
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          error: t("common.no_vault_available"),
-        }));
+      if (!has_passphrase_in_memory() || !vault?.identity_key) {
+        set_state((prev) =>
+          prev.is_loading && prev.error === null
+            ? prev
+            : { ...prev, is_loading: true, error: null },
+        );
 
         return;
       }

@@ -147,6 +147,8 @@ function MobileSettingsPage() {
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
+      if (result.data === null) return;
+
       set_dev_mode_enabled(result.data);
       write_dev_mode_cache(current_account_id, result.data);
     };

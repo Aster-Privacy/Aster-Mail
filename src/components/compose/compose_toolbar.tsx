@@ -23,6 +23,7 @@ import type { TextAlignment, FontSizeLabel } from "@/hooks/use_editor";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import {
+  useId,
   useState,
   useRef,
   useEffect,
@@ -37,10 +38,60 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { AttachmentIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { format_last_saved } from "@/components/compose/compose_shared";
 import EmojiPicker from "@/components/compose/emoji_picker";
 
 const FORMAT_BAR_STORAGE_KEY = "aster_compose_format_bar_open";
+
+function use_anchored_layer(
+  open: boolean,
+  anchor_ref: React.RefObject<HTMLElement | null>,
+  reposition: (rect: DOMRect) => void,
+  on_dismiss: () => void,
+) {
+  const reposition_ref = useRef(reposition);
+  const dismiss_ref = useRef(on_dismiss);
+
+  useEffect(() => {
+    reposition_ref.current = reposition;
+    dismiss_ref.current = on_dismiss;
+  });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    const update = () => {
+      const node = anchor_ref.current;
+
+      if (!node) return;
+
+      const rect = node.getBoundingClientRect();
+      const off_screen =
+        rect.bottom <= 0 ||
+        rect.top >= window.innerHeight ||
+        rect.right <= 0 ||
+        rect.left >= window.innerWidth;
+
+      if (off_screen) {
+        dismiss_ref.current();
+
+        return;
+      }
+
+      reposition_ref.current(rect);
+    };
+
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open, anchor_ref]);
+}
 
 function read_format_bar_preference(): boolean {
   try {
@@ -192,6 +243,7 @@ function FontSizeSelect({
   const [pos, set_pos] = useState({ top: 0, left: 0 });
   const button_ref = useRef<HTMLButtonElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const list_id = useId();
   const current_option = FONT_SIZE_OPTIONS.find(
     (o) => o.value === current_size,
   );
@@ -213,20 +265,29 @@ function FontSizeSelect({
       document.removeEventListener("mousedown", handle_click_outside);
   }, [open]);
 
+  const close_dropdown = useCallback(() => set_open(false), []);
+
+  use_escape_layer(open, close_dropdown, "compose_font_size");
+
+  use_anchored_layer(
+    open,
+    button_ref,
+    (rect) => set_pos({ top: rect.top, left: rect.left }),
+    close_dropdown,
+  );
+
   return (
     <div>
       <button
         ref={button_ref}
+        aria-controls={open ? list_id : undefined}
+        aria-expanded={open}
+        aria-haspopup="listbox"
         aria-label={t("common.font_size_label")}
         className="h-7 px-2 text-xs rounded-md cursor-pointer flex items-center gap-1 transition-colors hover:bg-black/5 dark:hover:bg-white/10 whitespace-nowrap bg-transparent text-txt-muted"
         type="button"
         onClick={() => {
-          if (!open && button_ref.current) {
-            on_before_open?.();
-            const rect = button_ref.current.getBoundingClientRect();
-
-            set_pos({ top: rect.top, left: rect.left });
-          }
+          if (!open) on_before_open?.();
           set_open(!open);
         }}
         onMouseDown={(e) => e.preventDefault()}
@@ -247,6 +308,7 @@ function FontSizeSelect({
           <div
             ref={dropdown_ref}
             className="fixed rounded-xl border shadow-lg py-1 min-w-[110px] bg-modal-bg border-edge-primary"
+            id={list_id}
             style={{
               zIndex: 9999,
               left: pos.left,
@@ -299,6 +361,7 @@ function ColorPickerPopover({
   const [custom_hex, set_custom_hex] = useState("#000000");
   const button_ref = useRef<HTMLButtonElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const panel_id = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -325,16 +388,17 @@ function ColorPickerPopover({
     set_custom_hex(active_color);
   }, [open, mode]);
 
-  useLayoutEffect(() => {
-    if (!open || !button_ref.current) return;
+  const close_popover = useCallback(() => set_open(false), []);
 
-    const rect = button_ref.current.getBoundingClientRect();
+  use_escape_layer(open, close_popover, "compose_color_picker");
 
-    set_pos({
-      top: rect.top,
-      center_x: rect.left + rect.width / 2,
-    });
-  }, [open]);
+  use_anchored_layer(
+    open,
+    button_ref,
+    (rect) =>
+      set_pos({ top: rect.top, center_x: rect.left + rect.width / 2 }),
+    close_popover,
+  );
 
   const handle_color_select = (color: string) => {
     set_custom_hex(color);
@@ -350,6 +414,9 @@ function ColorPickerPopover({
     <div>
       <button
         ref={button_ref}
+        aria-controls={open ? panel_id : undefined}
+        aria-expanded={open}
+        aria-haspopup="dialog"
         className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"
         title={t("mail.font_color")}
         type="button"
@@ -376,6 +443,7 @@ function ColorPickerPopover({
           <div
             ref={dropdown_ref}
             className="fixed -translate-x-1/2 rounded-2xl shadow-lg border w-[280px] bg-modal-bg border-edge-primary"
+            id={panel_id}
             style={{
               zIndex: 9999,
               left: pos.center_x,
@@ -674,16 +742,18 @@ function LinkPopover({
   const card_ref = useRef<HTMLDivElement>(null);
   const url_input_ref = useRef<HTMLInputElement>(null);
 
-  useLayoutEffect(() => {
-    if (!open || !anchor_ref.current) return;
+  use_escape_layer(open, on_close, "compose_link_popover");
 
-    const rect = anchor_ref.current.getBoundingClientRect();
-
-    set_pos({
-      top: rect.top,
-      left: Math.max(8, Math.min(rect.left, window.innerWidth - 308)),
-    });
-  }, [open]);
+  use_anchored_layer(
+    open,
+    anchor_ref,
+    (rect) =>
+      set_pos({
+        top: rect.top,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - 308)),
+      }),
+    on_close,
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -733,7 +803,6 @@ function LinkPopover({
           e.preventDefault();
           handle_insert();
         }
-        if (e.key === "Escape") on_close();
       }}
     >
       <Input
@@ -781,6 +850,7 @@ function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   const [emoji_pos, set_emoji_pos] = useState({ top: 0, right: 0 });
   const emoji_btn_ref = useRef<HTMLButtonElement>(null);
   const emoji_picker_ref = useRef<HTMLDivElement>(null);
+  const emoji_panel_id = useId();
 
   useEffect(() => {
     if (!show_emoji) return;
@@ -798,6 +868,21 @@ function InsertTools({ compose }: { compose: ComposeToolbarState }) {
     return () =>
       document.removeEventListener("mousedown", handle_click_outside);
   }, [show_emoji]);
+
+  const close_emoji = useCallback(() => set_show_emoji(false), []);
+
+  use_escape_layer(show_emoji, close_emoji, "compose_emoji_picker");
+
+  use_anchored_layer(
+    show_emoji,
+    emoji_btn_ref,
+    (rect) =>
+      set_emoji_pos({
+        top: rect.top,
+        right: window.innerWidth - rect.right,
+      }),
+    close_emoji,
+  );
 
   const handle_open_link_dialog = () => {
     freeze_selection();
@@ -845,19 +930,14 @@ function InsertTools({ compose }: { compose: ComposeToolbarState }) {
         <div>
           <button
             ref={emoji_btn_ref}
+            aria-controls={show_emoji ? emoji_panel_id : undefined}
+            aria-expanded={show_emoji}
+            aria-haspopup="dialog"
             className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_emoji ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
             title={t("common.emoji")}
             type="button"
             onClick={() => {
-              if (!show_emoji && emoji_btn_ref.current) {
-                freeze_selection();
-                const rect = emoji_btn_ref.current.getBoundingClientRect();
-
-                set_emoji_pos({
-                  top: rect.top,
-                  right: window.innerWidth - rect.right,
-                });
-              }
+              if (!show_emoji) freeze_selection();
               set_show_emoji(!show_emoji);
             }}
             onMouseDown={(e) => e.preventDefault()}
@@ -872,6 +952,7 @@ function InsertTools({ compose }: { compose: ComposeToolbarState }) {
                 <div
                   ref={emoji_picker_ref}
                   className="fixed"
+                  id={emoji_panel_id}
                   style={{
                     zIndex: 9999,
                     right: emoji_pos.right,

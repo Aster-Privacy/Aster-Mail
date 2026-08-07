@@ -20,12 +20,15 @@
 //
 import type { AttachmentMeta } from "@/services/crypto/attachment_crypto";
 
-import { list_attachments } from "@/services/api/attachments";
 import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
 import { array_to_base64 } from "@/services/crypto/envelope";
+import {
+  fetch_attachment_records,
+  get_cached_preview_url,
+} from "@/services/attachment_preview_cache";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
@@ -47,16 +50,82 @@ export interface CidResolutionResult {
 
 export type CidUrlMode = "blob" | "data";
 
-export function extract_cid_references(html: string): string[] {
-  const cid_regex = /src=["']cid:([^"']+)["']/gi;
-  const cids: string[] = [];
-  let match: RegExpExecArray | null;
+const CID_ATTRIBUTES = "src|srcset|background|poster|lowsrc";
 
-  while ((match = cid_regex.exec(html)) !== null) {
-    cids.push(match[1]);
+const TRANSPARENT_GIF =
+  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+
+function cid_attribute_pattern(cid_body: string): RegExp {
+  return new RegExp(
+    `\\b(${CID_ATTRIBUTES})\\s*=\\s*(["'])cid:(${cid_body})\\2`,
+    "gi",
+  );
+}
+
+function cid_css_url_pattern(cid_body: string): RegExp {
+  return new RegExp(
+    `url\\(\\s*(["']?)cid:(${cid_body})\\1\\s*\\)`,
+    "gi",
+  );
+}
+
+function escape_regexp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function extract_cid_references(html: string): string[] {
+  const cids: string[] = [];
+  const patterns = [
+    cid_attribute_pattern(`[^"']+`),
+    cid_css_url_pattern(`[^"')\\s]+`),
+  ];
+
+  for (const pattern of patterns) {
+    let match: RegExpExecArray | null;
+
+    while ((match = pattern.exec(html)) !== null) {
+      cids.push(pattern === patterns[0] ? match[3] : match[2]);
+    }
   }
 
   return cids;
+}
+
+export function replace_cid_reference(
+  html: string,
+  cid: string,
+  url: string,
+): string {
+  const escaped = escape_regexp(cid);
+
+  return html
+    .replace(
+      cid_attribute_pattern(escaped),
+      (_match, attribute: string, quote: string) =>
+        `${attribute}=${quote}${url}${quote}`,
+    )
+    .replace(
+      cid_css_url_pattern(escaped),
+      (_match, quote: string) => `url(${quote}${url}${quote})`,
+    );
+}
+
+export function strip_unresolved_cid_references(
+  html: string,
+  pending = false,
+): string {
+  const marker = pending ? ` data-cid-pending="1"` : "";
+
+  return html
+    .replace(
+      new RegExp(
+        `\\b(${CID_ATTRIBUTES})\\s*=\\s*(["'])[^"']*cid:[^"']*\\2`,
+        "gi",
+      ),
+      (_match, attribute: string, quote: string) =>
+        `${attribute}=${quote}${TRANSPARENT_GIF}${quote}${marker}`,
+    )
+    .replace(cid_css_url_pattern(`[^"')\\s]+`), `url(${TRANSPARENT_GIF})`);
 }
 
 export function extract_cid_inline_filenames(html: string): Set<string> {
@@ -85,10 +154,10 @@ export async function resolve_cid_references(
     return { html, blob_urls: [] };
   }
 
-  const response = await list_attachments(mail_item_id);
+  const records = await fetch_attachment_records(mail_item_id);
 
-  if (response.error || !response.data) {
-    return { html, blob_urls: [] };
+  if (records.length === 0) {
+    return { html: strip_unresolved_cid_references(html), blob_urls: [] };
   }
 
   const normalize = (s: string): string =>
@@ -104,7 +173,7 @@ export async function resolve_cid_references(
   let resolved_html = html;
 
   const meta_results = await Promise.allSettled(
-    response.data.attachments.map((att) =>
+    records.map((att) =>
       decrypt_attachment_meta(att.encrypted_meta, att.meta_nonce).then((meta) => ({ att, meta })),
     ),
   );
@@ -156,6 +225,12 @@ export async function resolve_cid_references(
 
   const data_results = await Promise.allSettled(
     to_fetch.map(async ({ att, meta, original_cid }) => {
+      const cached_url = url_mode === "blob" ? get_cached_preview_url(att.id) : undefined;
+
+      if (cached_url) {
+        return { original_cid, url: cached_url, is_blob: false };
+      }
+
       const data = await decrypt_attachment_data(
         att.encrypted_data,
         att.data_nonce,
@@ -184,18 +259,10 @@ export async function resolve_cid_references(
 
     if (is_blob) blob_urls.push(url);
 
-    const escaped_cid = original_cid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-    resolved_html = resolved_html.replace(
-      new RegExp(`src=["']cid:${escaped_cid}["']`, "gi"),
-      `src="${url}"`,
-    );
+    resolved_html = replace_cid_reference(resolved_html, original_cid, url);
   }
 
-  resolved_html = resolved_html.replace(
-    /src=["']cid:[^"']+["']/gi,
-    'src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="',
-  );
+  resolved_html = strip_unresolved_cid_references(resolved_html);
 
   return { html: resolved_html, blob_urls };
 }

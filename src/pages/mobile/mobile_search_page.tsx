@@ -169,7 +169,7 @@ function MobileSearchPage() {
               key={filter.id}
               className={`shrink-0 rounded-full px-3 py-1 text-[13px] font-medium transition-colors ${
                 active_filter === filter.id
-                  ? "bg-[var(--accent-color,#3b82f6)] text-white"
+                  ? "bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]"
                   : "border border-[var(--border-primary)] text-[var(--text-secondary)]"
               }`}
               type="button"

@@ -126,6 +126,9 @@ export function AppearanceSection() {
   };
 
   const is_default_color = (preferences.color_theme ?? "default") === "default";
+  const mockup_theme: "light" | "dark" | "themed" = is_default_color
+    ? theme
+    : "themed";
 
   const handle_custom_color_change = (hex: string, immediate: boolean) => {
     if (!is_valid_hex_color(hex)) return;
@@ -665,7 +668,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "popup", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
           <ViewModeCard
             is_selected={preferences.email_view_mode === "split"}
@@ -674,7 +677,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "split", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
           <ViewModeCard
             is_selected={preferences.email_view_mode === "fullpage"}
@@ -683,7 +686,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "fullpage", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
         </div>
 
@@ -731,7 +734,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "popup", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
           <ViewModeCard
             is_selected={preferences.email_view_mode === "split"}
@@ -740,7 +743,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "split", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
           <ViewModeCard
             is_selected={preferences.email_view_mode === "fullpage"}
@@ -749,7 +752,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "fullpage", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
         </div>
 
@@ -776,7 +779,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("compose_window_mode", "default", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
           <ComposeModeCard
             is_selected={
@@ -787,7 +790,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("compose_window_mode", "fullscreen", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
           <ComposeModeCard
             is_selected={
@@ -798,7 +801,7 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("compose_window_mode", "minimized", true)
             }
-            theme={theme}
+            theme={mockup_theme}
           />
         </div>
       </div>

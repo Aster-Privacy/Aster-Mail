@@ -157,7 +157,7 @@ export function Slider({
       />
       {is_dragging && format_tooltip && (
         <div
-          className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium text-white bg-[var(--accent-blue)] shadow-lg pointer-events-none whitespace-nowrap"
+          className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-blue)] shadow-lg pointer-events-none whitespace-nowrap"
           style={{ left: `${display_percent}%` }}
         >
           {format_tooltip(display_value)}

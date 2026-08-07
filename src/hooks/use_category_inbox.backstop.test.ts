@@ -93,6 +93,7 @@ vi.mock("@/services/category_index", () => ({
   get_page_ids: () => [],
   get_category_total: () => 0,
   is_fully_built: () => false,
+  is_index_settled: () => false,
   is_build_in_progress: mocks.is_build_in_progress,
   is_build_stalled: mocks.is_build_stalled,
   subscribe: () => () => {},
@@ -155,20 +156,21 @@ describe("use_category_inbox loading backstop", () => {
     vi.useRealTimers();
   });
 
-  it("hard 30s backstop clears the skeleton even while a build claims to be in progress", () => {
+  it("keeps the skeleton up for as long as a healthy build is still running", () => {
     const { states, root } = render_hook();
 
     expect(states.at(-1)!.is_loading).toBe(true);
 
-    // Soft 10s backstop must NOT clear while a healthy build is still running.
     act(() => {
-      vi.advanceTimersByTime(10_000);
+      vi.advanceTimersByTime(60_000);
     });
     expect(states.at(-1)!.is_loading).toBe(true);
+    expect(states.at(-1)!.has_initial_load).toBe(false);
 
-    // Hard 30s backstop clears regardless - no infinite skeleton.
+    mocks.is_build_in_progress.mockReturnValue(false);
+
     act(() => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(6_000);
     });
     expect(states.at(-1)!.is_loading).toBe(false);
     expect(states.at(-1)!.has_initial_load).toBe(true);
@@ -176,7 +178,7 @@ describe("use_category_inbox loading backstop", () => {
     act(() => root.unmount());
   });
 
-  it("soft 10s backstop clears once the build is reported stalled", () => {
+  it("backstop clears once the build is reported stalled", () => {
     mocks.is_build_stalled.mockReturnValue(true);
 
     const { states, root } = render_hook();
@@ -184,7 +186,7 @@ describe("use_category_inbox loading backstop", () => {
     expect(states.at(-1)!.is_loading).toBe(true);
 
     act(() => {
-      vi.advanceTimersByTime(10_000);
+      vi.advanceTimersByTime(6_000);
     });
     expect(states.at(-1)!.is_loading).toBe(false);
 

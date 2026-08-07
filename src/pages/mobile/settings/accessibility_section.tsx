@@ -119,7 +119,7 @@ export function AccessibilitySection({
             </div>
             <div className="mt-3 flex">
               <button
-                className="px-3 py-1.5 rounded-[12px] text-sm font-medium text-white bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
+                className="px-3 py-1.5 rounded-[12px] text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
                 type="button"
                 onClick={() => commit_font_size(FONT_SIZE_DEFAULT)}
               >

@@ -18,13 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { BulkActionResult } from "./bulk_action_result";
+
 import { emit_mail_soft_refresh } from "./email_action_types";
+import { bulk_action_result } from "./bulk_action_result";
 
 import { mark_thread_read } from "@/services/api/mail";
 import {
   mark_thread_read_entries,
   thread_has_unread_entries,
 } from "@/services/category_index";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+
+const THREAD_READ_CONCURRENCY = 10;
 
 //
 // Reading or marking a message read only ever touches the single message in
@@ -60,31 +66,110 @@ interface MarkConversationReadOptions {
 // for real conversations. A lone message with no unread indexed siblings
 // still clears on its own.
 //
-export function mark_conversation_read({
+export function conversation_needs_thread_read({
   thread_token,
   thread_message_count,
   grouped_count,
   conversation_grouping,
   acted_id,
-}: MarkConversationReadOptions): void {
-  if (!thread_token) return;
+}: MarkConversationReadOptions): boolean {
+  if (!thread_token) return false;
 
   const grouping_on = conversation_grouping !== false;
   const acted_on_group = (grouped_count ?? 0) > 1;
-  const opened_grouped_thread =
-    grouping_on && (thread_message_count ?? 0) > 1;
+  const opened_grouped_thread = grouping_on && (thread_message_count ?? 0) > 1;
   const indexed_thread_pending =
     grouping_on && thread_has_unread_entries(thread_token, acted_id);
 
-  if (!acted_on_group && !opened_grouped_thread && !indexed_thread_pending) {
-    return;
+  return acted_on_group || opened_grouped_thread || indexed_thread_pending;
+}
+
+export interface ConversationThreadCandidate {
+  id: string;
+  item_type?: string;
+  is_read?: boolean;
+  thread_token?: string | null;
+  thread_message_count?: number | null;
+  grouped_email_ids?: string[];
+}
+
+export function collect_conversation_thread_tokens(
+  emails: ConversationThreadCandidate[],
+  conversation_grouping?: boolean,
+): string[] {
+  const tokens = new Set<string>();
+
+  for (const email of emails) {
+    if (email.item_type !== "received") continue;
+    if (!email.thread_token || tokens.has(email.thread_token)) continue;
+    if (
+      conversation_needs_thread_read({
+        thread_token: email.thread_token,
+        thread_message_count: email.thread_message_count,
+        grouped_count: email.grouped_email_ids?.length,
+        conversation_grouping,
+        acted_id: email.id,
+      })
+    ) {
+      tokens.add(email.thread_token);
+    }
   }
+
+  return Array.from(tokens);
+}
+
+export async function mark_conversation_threads_read(
+  thread_tokens: string[],
+): Promise<BulkActionResult> {
+  if (thread_tokens.length === 0) return bulk_action_result([]);
+
+  const failed_tokens: string[] = [];
+
+  for (
+    let index = 0;
+    index < thread_tokens.length;
+    index += THREAD_READ_CONCURRENCY
+  ) {
+    const chunk = thread_tokens.slice(index, index + THREAD_READ_CONCURRENCY);
+
+    await Promise.all(
+      chunk.map(async (token) => {
+        try {
+          const result = await mark_thread_read(token);
+
+          if (result.error) {
+            failed_tokens.push(token);
+
+            return;
+          }
+          mark_thread_read_entries(token);
+        } catch {
+          failed_tokens.push(token);
+        }
+      }),
+    );
+  }
+
+  emit_mail_soft_refresh();
+  invalidate_mail_stats();
+
+  return bulk_action_result(thread_tokens, failed_tokens);
+}
+
+export function mark_conversation_read(
+  options: MarkConversationReadOptions,
+): void {
+  const { thread_token } = options;
+
+  if (!thread_token) return;
+  if (!conversation_needs_thread_read(options)) return;
 
   void mark_thread_read(thread_token)
     .then((result) => {
       if (!result.error) {
         mark_thread_read_entries(thread_token);
         emit_mail_soft_refresh();
+        invalidate_mail_stats();
       }
     })
     .catch(() => {});

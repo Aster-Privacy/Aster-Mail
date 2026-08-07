@@ -214,6 +214,7 @@ export interface RequestConfig extends RequestInit {
   skip_cache?: boolean;
   skip_session_refresh?: boolean;
   skip_dedup?: boolean;
+  skip_upgrade_prompt?: boolean;
 }
 
 const IDENTITY_CHECK_MIN_INTERVAL_MS = 30000;
@@ -1362,6 +1363,7 @@ class ApiClient {
       cache_ttl: _cache_ttl,
       skip_cache: _skip_cache,
       skip_session_refresh = false,
+      skip_upgrade_prompt = false,
       ...options
     } = config;
 
@@ -1526,15 +1528,18 @@ class ApiClient {
             response.status === 403 &&
             error_data.code === "PLAN_LIMIT_EXCEEDED"
           ) {
-            window.dispatchEvent(
-              new CustomEvent("aster:plan-limit-hit", {
-                detail: {
-                  message: error_data.error || "Plan limit reached",
-                  resource:
-                    (error_data.details?.resource as string | undefined) ?? null,
-                },
-              }),
-            );
+            if (!skip_upgrade_prompt) {
+              window.dispatchEvent(
+                new CustomEvent("aster:plan-limit-hit", {
+                  detail: {
+                    message: error_data.error || "Plan limit reached",
+                    resource:
+                      (error_data.details?.resource as string | undefined) ??
+                      null,
+                  },
+                }),
+              );
+            }
 
             return {
               error: error_data.error || "Plan limit reached",
@@ -1547,13 +1552,15 @@ class ApiClient {
             response.status === 413 &&
             error_data.code === "STORAGE_QUOTA_EXCEEDED"
           ) {
-            window.dispatchEvent(
-              new CustomEvent("aster:storage-full", {
-                detail: {
-                  message: error_data.error || "Storage full",
-                },
-              }),
-            );
+            if (!skip_upgrade_prompt) {
+              window.dispatchEvent(
+                new CustomEvent("aster:storage-full", {
+                  detail: {
+                    message: error_data.error || "Storage full",
+                  },
+                }),
+              );
+            }
 
             return {
               error: error_data.error || "Storage quota exceeded",

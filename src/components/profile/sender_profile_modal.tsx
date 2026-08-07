@@ -43,10 +43,12 @@ import { use_should_reduce_motion } from "@/provider";
 import { get_email_domain, get_email_username } from "@/lib/utils";
 import {
   create_contact_encrypted,
-  list_contacts,
-  decrypt_contact,
   delete_contact,
 } from "@/services/api/contacts";
+import {
+  ensure_contact_email_index,
+  get_cached_contact_id,
+} from "@/services/contact_email_index";
 import { block_sender } from "@/services/api/blocked_senders";
 import {
   allow_sender,
@@ -86,7 +88,9 @@ export function SenderProfileModal({
   const reduce_motion = use_should_reduce_motion();
 
   const [is_contact_loading, set_is_contact_loading] = useState(false);
-  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(null);
+  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(
+    () => get_cached_contact_id(email) ?? null,
+  );
   const [is_blocking, set_is_blocking] = useState(false);
   const [is_allowlist_loading, set_is_allowlist_loading] = useState(false);
   const [is_allowlisted, set_is_allowlisted] = useState(false);
@@ -98,53 +102,40 @@ export function SenderProfileModal({
   const display_name = name || get_email_username(email);
 
   useEffect(() => {
-    if (!is_open || !has_keys || checked_ref.current === email) return;
-    checked_ref.current = email;
+    if (!is_open || !has_keys) return;
 
-    const check_status = async () => {
-      try {
-        const [contacts_result, allowlist_set] = await Promise.all([
-          list_contacts({ limit: 200 }),
-          is_aster_user
-            ? Promise.resolve(new Set<string>())
-            : check_allowed_senders([email]),
-        ]);
+    let cancelled = false;
 
-        if (!is_aster_user) {
-          set_is_allowlisted(
-            allowlist_set.has(email.trim().toLowerCase()),
-          );
-        }
-
-        if (contacts_result.data?.items) {
-          for (const contact of contacts_result.data.items) {
-            try {
-              const decrypted = await decrypt_contact(contact);
-              if (
-                decrypted.emails.some(
-                  (e) => e.toLowerCase() === email.toLowerCase(),
-                )
-              ) {
-                set_existing_contact_id(contact.id);
-                return;
-              }
-            } catch {
-              continue;
-            }
-          }
-        }
-        set_existing_contact_id(null);
-      } catch {
-        set_existing_contact_id(null);
+    ensure_contact_email_index().then(() => {
+      if (!cancelled) {
+        set_existing_contact_id(get_cached_contact_id(email) ?? null);
       }
-    };
+    });
 
-    check_status();
+    if (is_aster_user || checked_ref.current === email) {
+      return () => {
+        cancelled = true;
+      };
+    }
+    checked_ref.current = email;
+    check_allowed_senders([email])
+      .then((allowlist_set) => {
+        if (!cancelled) {
+          set_is_allowlisted(allowlist_set.has(email.trim().toLowerCase()));
+        }
+      })
+      .catch(() => {
+        checked_ref.current = null;
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [is_open, email, has_keys, is_aster_user]);
 
   useEffect(() => {
     checked_ref.current = null;
-    set_existing_contact_id(null);
+    set_existing_contact_id(get_cached_contact_id(email) ?? null);
     set_is_allowlisted(false);
   }, [email]);
 
@@ -183,7 +174,6 @@ export function SenderProfileModal({
         if (result.data) {
           show_toast(t("common.removed_from_contacts"), "success");
           set_existing_contact_id(null);
-          checked_ref.current = null;
           emit_contacts_changed();
         } else if (result.error) {
           show_toast(result.error, "error");

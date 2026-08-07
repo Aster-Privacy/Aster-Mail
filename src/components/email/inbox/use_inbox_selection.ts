@@ -90,11 +90,20 @@ export function use_inbox_selection({
   const last_shift_target_ref = useRef<string | null>(null);
 
   const [select_all_mode, set_select_all_mode] = useState(false);
+  const [excluded_ids, set_excluded_ids] = useState<string[]>([]);
   const activate_select_all_mode = useCallback(() => {
+    set_excluded_ids([]);
     set_select_all_mode(true);
   }, []);
   const exit_select_all_mode = useCallback(() => {
+    set_excluded_ids([]);
     set_select_all_mode(false);
+  }, []);
+  const excluded_from_select_all = useCallback((id: string): void => {
+    set_excluded_ids((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }, []);
+  const included_in_select_all = useCallback((id: string): void => {
+    set_excluded_ids((prev) => prev.filter((existing) => existing !== id));
   }, []);
 
   const selection_scope_ref = useRef({
@@ -114,6 +123,7 @@ export function use_inbox_selection({
       category: active_category,
     };
     set_select_all_mode(false);
+    set_excluded_ids([]);
     shift_anchor_ref.current = null;
     last_shift_target_ref.current = null;
 
@@ -132,8 +142,15 @@ export function use_inbox_selection({
     (id: string): void => {
       const shift = shift_ref.current;
       const update_fn = get_update_fn();
+      const track_scope = (target_id: string, next_selected: boolean): void => {
+        if (!select_all_mode) return;
+        if (next_selected) {
+          included_in_select_all(target_id);
 
-      set_select_all_mode(false);
+          return;
+        }
+        excluded_from_select_all(target_id);
+      };
 
       if (shift && shift_anchor_ref.current !== null) {
         const anchor_index = page_emails.findIndex(
@@ -164,6 +181,7 @@ export function use_inbox_selection({
 
                   if (target && target.is_selected === should_select) {
                     update_fn(target.id, { is_selected: !should_select });
+                    track_scope(target.id, !should_select);
                   }
                 }
               }
@@ -175,6 +193,7 @@ export function use_inbox_selection({
 
             if (target && target.is_selected !== should_select) {
               update_fn(target.id, { is_selected: should_select });
+              track_scope(target.id, should_select);
             }
           }
 
@@ -184,18 +203,30 @@ export function use_inbox_selection({
         }
       }
 
+      const clicked = emails.find((e) => e.id === id);
+
+      track_scope(id, !(clicked?.is_selected ?? false));
       toggle_select(id, emails, update_fn);
       shift_anchor_ref.current = id;
       last_shift_target_ref.current = null;
     },
-    [toggle_select, emails, get_update_fn, page_emails, shift_ref],
+    [
+      toggle_select,
+      emails,
+      get_update_fn,
+      page_emails,
+      shift_ref,
+      select_all_mode,
+      included_in_select_all,
+      excluded_from_select_all,
+    ],
   );
 
   const handle_select_only = useCallback(
     (id: string): void => {
       const update_fn = get_update_fn();
 
-      set_select_all_mode(false);
+      exit_select_all_mode();
 
       emails.forEach((e) => {
         if (e.is_selected && e.id !== id) {
@@ -212,14 +243,14 @@ export function use_inbox_selection({
       shift_anchor_ref.current = id;
       last_shift_target_ref.current = null;
     },
-    [emails, get_update_fn],
+    [emails, get_update_fn, exit_select_all_mode],
   );
 
   const handle_toggle_select_all = useCallback((): void => {
     const update_fn = get_update_fn();
     const has_selection = emails.some((e) => e.is_selected);
 
-    set_select_all_mode(false);
+    exit_select_all_mode();
 
     if (has_selection) {
       emails.forEach((e) => {
@@ -234,19 +265,19 @@ export function use_inbox_selection({
     page_emails.forEach((e) => {
       update_fn(e.id, { is_selected: true });
     });
-  }, [page_emails, emails, get_update_fn]);
+  }, [page_emails, emails, get_update_fn, exit_select_all_mode]);
 
   const handle_clear_selection = useCallback((): void => {
     const update_fn = get_update_fn();
 
-    set_select_all_mode(false);
+    exit_select_all_mode();
 
     emails.forEach((e) => {
       if (e.is_selected) {
         update_fn(e.id, { is_selected: false });
       }
     });
-  }, [emails, get_update_fn]);
+  }, [emails, get_update_fn, exit_select_all_mode]);
 
   const handle_select_by_filter = useCallback(
     (
@@ -254,6 +285,8 @@ export function use_inbox_selection({
     ): void => {
       const update_fn = get_update_fn();
       const page_id_set = new Set(page_emails.map((e) => e.id));
+
+      exit_select_all_mode();
 
       const match = (e: InboxEmail): boolean => {
         switch (mode) {
@@ -281,7 +314,7 @@ export function use_inbox_selection({
         }
       });
     },
-    [page_emails, emails, get_update_fn],
+    [page_emails, emails, get_update_fn, exit_select_all_mode],
   );
 
   const get_folder_status_for_selection = useCallback(
@@ -334,5 +367,6 @@ export function use_inbox_selection({
     select_all_mode,
     activate_select_all_mode,
     exit_select_all_mode,
+    excluded_ids,
   };
 }

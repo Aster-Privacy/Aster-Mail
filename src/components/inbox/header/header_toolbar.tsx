@@ -43,7 +43,11 @@ import { SenderActionModal } from "@/components/modals/sender_action_modal";
 import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal";
 import { SnoozeSimilarModal } from "@/components/modals/snooze_similar_modal";
 import { ArchiveNewslettersModal } from "@/components/modals/archive_newsletters_modal";
-import { batched_bulk_patch_metadata } from "@/services/api/mail";
+import {
+  batched_bulk_patch_metadata,
+  bulk_action_by_scope,
+  bulk_undo,
+} from "@/services/api/mail";
 import {
   encrypt_mail_metadata,
   metadata_flag_patch,
@@ -55,21 +59,29 @@ import {
   update_progress_toast,
   hide_action_toast,
 } from "@/components/toast/action_toast";
-import { adjust_unread_count } from "@/hooks/use_mail_counts";
-import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  adjust_stats_unread,
+  invalidate_mail_stats,
+} from "@/hooks/use_mail_stats";
 import {
   emit_mail_items_removed,
   emit_mail_item_updated,
 } from "@/hooks/mail_events";
-import { use_folders, has_protected_folder_label } from "@/hooks/use_folders";
+import {
+  use_folders,
+  has_protected_folder_label,
+  get_protected_folder_tokens,
+} from "@/hooks/use_folders";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   decrypt_items_metadata_for_action,
   scan_received_items,
+  FULL_MAILBOX_ITEM_CAP,
 } from "@/services/bulk_mail_scan";
 import { map_in_chunks } from "@/lib/scheduling";
+import { show_toast } from "@/components/toast/simple_toast";
 
 const QUICK_ACTION_CONFIRM_KEYS: Record<
   string,
@@ -88,6 +100,66 @@ const QUICK_ACTION_CONFIRM_KEYS: Record<
     message: "mail.delete_old_confirm_message",
   },
 };
+
+type Translate = ReturnType<typeof use_i18n>["t"];
+
+function notify_scan_truncated(reached_cap: boolean, t: Translate): void {
+  if (!reached_cap) return;
+
+  show_toast(
+    t("common.bulk_action_truncated", {
+      count: String(FULL_MAILBOX_ITEM_CAP),
+    }),
+    "warning",
+  );
+}
+
+async function mark_all_read_by_scope(t: Translate): Promise<void> {
+  const res = await bulk_action_by_scope({
+    action: "mark_read",
+    scope: { item_type: "received", is_trashed: false },
+  });
+
+  if (res.error || !res.data) {
+    show_toast(t("common.something_went_wrong"), "error");
+
+    return;
+  }
+
+  const { batch_id, affected_count, undoable, completed } = res.data;
+  const finished = completed !== false;
+
+  if (affected_count > 0) {
+    stale_all_view_caches();
+    adjust_stats_unread(-affected_count);
+    invalidate_mail_stats();
+    window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+  }
+
+  show_action_toast({
+    message: t("common.emails_marked_as_read", {
+      count: String(affected_count),
+    }),
+    action_type: "read",
+    email_ids: [],
+    on_undo:
+      undoable && finished
+        ? async () => {
+            adjust_stats_unread(affected_count);
+            await bulk_undo(batch_id);
+            stale_all_view_caches();
+            invalidate_mail_stats();
+            window.dispatchEvent(
+              new CustomEvent("astermail:mail-soft-refresh"),
+            );
+          }
+        : undefined,
+  });
+
+  if (!finished) {
+    show_toast(t("common.bulk_action_continues_in_background"), "info");
+  }
+}
 
 interface HeaderToolbarProps {
   on_settings_click: () => void;
@@ -528,7 +600,11 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
 
         return;
       } else if (action === "archive_all_read") {
-        const all_items = (await scan_received_items()).items;
+        const { items: all_items, reached_cap } = await scan_received_items(
+          undefined,
+          undefined,
+          FULL_MAILBOX_ITEM_CAP,
+        );
 
         {
           await decrypt_items_metadata_for_action(all_items);
@@ -660,9 +736,21 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               },
             });
           }
+
+          notify_scan_truncated(reached_cap, t);
         }
       } else if (action === "mark_all_read") {
-        const all_items = (await scan_received_items()).items;
+        if (get_protected_folder_tokens().size === 0) {
+          await mark_all_read_by_scope(t);
+
+          return;
+        }
+
+        const { items: all_items, reached_cap } = await scan_received_items(
+          undefined,
+          undefined,
+          FULL_MAILBOX_ITEM_CAP,
+        );
 
         {
           await decrypt_items_metadata_for_action(all_items);
@@ -743,7 +831,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
             );
 
             if (succeeded_items.length > 0) {
-              adjust_unread_count(-succeeded_items.length);
+              adjust_stats_unread(-succeeded_items.length);
 
               for (const item of succeeded_items) {
                 emit_mail_item_updated({ id: item.id, is_read: true });
@@ -758,7 +846,7 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               action_type: "read",
               email_ids: succeeded_items.map((item) => item.id),
               on_undo: async () => {
-                adjust_unread_count(succeeded_items.length);
+                adjust_stats_unread(succeeded_items.length);
 
                 const undo_updates = await map_in_chunks(
                   succeeded_items,
@@ -812,9 +900,15 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               },
             });
           }
+
+          notify_scan_truncated(reached_cap, t);
         }
       } else if (action === "delete_old") {
-        const all_items = (await scan_received_items()).items;
+        const { items: all_items, reached_cap } = await scan_received_items(
+          undefined,
+          undefined,
+          FULL_MAILBOX_ITEM_CAP,
+        );
 
         {
           await decrypt_items_metadata_for_action(all_items);
@@ -971,6 +1065,8 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               email_ids: [],
             });
           }
+
+          notify_scan_truncated(reached_cap, t);
         }
       } else if (action === "archive_newsletters") {
         set_is_archive_newsletters_modal_open(true);

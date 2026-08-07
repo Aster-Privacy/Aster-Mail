@@ -18,12 +18,43 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { accent_foreground_for } from "@/lib/resolved_accent";
+import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
+import { LINK_VISITED_VAR } from "@/lib/email_contrast_repair";
+
+export const DARK_INHERITED_INK = "#d4d4d4";
+
 const DEFAULT_BODY_FONT_STACK =
   "'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+const LIGHT_BODY_SURFACE = "#ffffff";
+const DARK_BODY_SURFACE = "#121212";
+
+export interface EmailBodyInk {
+  accent: string;
+  accent_fg: string;
+  link: string;
+  link_visited: string;
+}
+
+export function build_email_body_ink(
+  accent_color: string,
+  surface = LIGHT_BODY_SURFACE,
+): EmailBodyInk {
+  const link = derive_link_ink(accent_color, surface);
+
+  return {
+    accent: accent_color,
+    accent_fg: accent_foreground_for(accent_color),
+    link,
+    link_visited: derive_visited_ink(link, surface),
+  };
+}
 
 export function build_email_body_css(
   accent_color = "#3b82f6",
   body_font_stack = DEFAULT_BODY_FONT_STACK,
+  ink: EmailBodyInk = build_email_body_ink(accent_color),
 ) {
   return `
 @font-face {
@@ -136,8 +167,8 @@ body {
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
-  background-color: ${accent_color};
-  color: white;
+  background-color: ${ink.accent};
+  color: ${ink.accent_fg};
   border: none;
   cursor: pointer;
   transition: opacity 0.15s;
@@ -270,6 +301,14 @@ img {
   height: auto;
 }
 
+a {
+  color: ${ink.link};
+}
+
+a:visited {
+  color: ${ink.link_visited};
+}
+
 [data-aster-translated] {
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -313,11 +352,31 @@ export const LINK_BUTTON_HOVER_SELECTOR =
 
 export const LINK_BUTTON_EXCLUDE = ':not([style*="background" i])';
 
-export function build_forced_dark_mode_css(accent_color = "#3b82f6", accent_color_hover = "#60a5fa") {
+const QUOTE_SCOPE_EXCLUDE =
+  ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
+
+export function build_auto_dark_mode_css(
+  text_color = DARK_INHERITED_INK,
+  link_color = "#60a5fa",
+  link_visited_color = derive_visited_ink(link_color, DARK_BODY_SURFACE),
+) {
+  return `html { color-scheme: dark !important; }
+html, body { background-color: transparent !important; color: ${text_color}; }
+body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
+a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_color}; }
+a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
+a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }`;
+}
+
+export function build_forced_dark_mode_css(
+  rail_color = "#3b82f6",
+  link_color = "#60a5fa",
+  link_visited_color = derive_visited_ink(link_color, DARK_BODY_SURFACE),
+) {
   return `
 html, body {
   background-color: transparent !important;
-  color: #d4d4d4 !important;
+  color: ${DARK_INHERITED_INK};
   color-scheme: dark !important;
 }
 
@@ -329,19 +388,8 @@ details, summary, address, hgroup {
   background-image: none !important;
 }
 
-body, p, span, div, td, th, li, ol, ul, dl, dt, dd,
-h1, h2, h3, h4, h5, h6,
-strong, em, b, i, u, s, del, ins,
-small, big, sub, sup, mark,
-label, legend, figcaption, caption,
-cite, code, pre, address, time,
-var, samp, kbd, abbr, dfn,
-blockquote {
-  color: #d4d4d4 !important;
-}
-
-a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${accent_color_hover} !important; }
-a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: #a78bfa !important; }
+a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_color}; }
+a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
 
 a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }
 
@@ -353,20 +401,16 @@ hr {
   color: #374151 !important;
 }
 
-*, *::before, *::after {
-  border-color: #374151 !important;
-}
-
 blockquote {
   border-left-color: #4b5563 !important;
 }
 
 blockquote blockquote {
-  border-left-color: ${accent_color} !important;
+  border-left-color: ${rail_color} !important;
 }
 
 blockquote blockquote blockquote {
-  border-left-color: #8b5cf6 !important;
+  border-left-color: color-mix(in srgb, ${rail_color} 55%, #4b5563) !important;
 }
 
 .aster-quote-toggle {

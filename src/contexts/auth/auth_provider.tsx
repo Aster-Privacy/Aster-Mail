@@ -57,6 +57,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import {
   type User,
+  type StoredAccount,
   initialize_accounts,
   get_all_accounts,
   get_current_account,
@@ -905,11 +906,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   const switch_in_flight = useRef(false);
+  const session_expired_muted_until = useRef(0);
+
+  const begin_account_reauth = useCallback(
+    (target: StoredAccount, previous_account_id: string | null) => {
+      set_is_adding_account(true);
+
+      const params = new URLSearchParams();
+
+      params.set("u", target.user.email);
+      params.set("reason", "session_expired");
+      params.set("reauth", target.id);
+
+      if (previous_account_id && previous_account_id !== target.id) {
+        params.set("from", previous_account_id);
+      }
+
+      navigate(`/sign-in?${params.toString()}`);
+    },
+    [navigate, set_is_adding_account],
+  );
 
   const switch_to_account = useCallback(
     async (account_id: string) => {
       if (switch_in_flight.current) return;
       switch_in_flight.current = true;
+      session_expired_muted_until.current = Date.now() + 30000;
 
       try {
         const accounts = await get_all_accounts();
@@ -918,8 +940,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!target) return;
         if (target.id === state.current_account_id) return;
 
-        const local = target.user.email.split("@")[0] ?? "";
+        const previous_account_id = state.current_account_id;
         const target_kind = await get_account_kind(target.id);
+
+        let stored_passphrase: string | null = null;
+        let stored_vault: ReturnType<typeof get_stored_encrypted_vault> = null;
+
+        if (target_kind !== "shared") {
+          try {
+            stored_passphrase = await get_session_passphrase(target.id);
+          } catch {
+            stored_passphrase = null;
+          }
+          stored_vault = get_stored_encrypted_vault(target.id);
+
+          if (!stored_passphrase || !stored_vault) {
+            begin_account_reauth(target, previous_account_id);
+
+            return;
+          }
+        }
 
         set_is_adding_account(true);
         sync_client.disconnect();
@@ -1009,15 +1049,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
-        let stored_passphrase: string | null = null;
-
-        try {
-          stored_passphrase = await get_session_passphrase(target.id);
-        } catch {
-          stored_passphrase = null;
-        }
-        const stored_vault = get_stored_encrypted_vault(target.id);
-
         if (stored_passphrase && stored_vault) {
           set_is_adding_account(false);
 
@@ -1045,8 +1076,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
             return;
           }
-
-          set_is_adding_account(true);
         }
 
         set_state((prev) => ({
@@ -1057,14 +1086,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           has_keys: false,
           current_account_id: target.id,
         }));
-        navigate(
-          `/sign-in?u=${encodeURIComponent(local)}&reason=session_expired`,
-        );
+        begin_account_reauth(target, previous_account_id);
       } finally {
         switch_in_flight.current = false;
+        session_expired_muted_until.current = Date.now() + 5000;
       }
     },
-    [navigate, state.current_account_id, set_is_adding_account, login, t],
+    [
+      navigate,
+      state.current_account_id,
+      set_is_adding_account,
+      begin_account_reauth,
+      login,
+      t,
+    ],
   );
 
   const clear_local_auth_data = useCallback(async () => {
@@ -1256,7 +1291,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     const handle_session_expired = async () => {
+      if (Date.now() < session_expired_muted_until.current) return;
+
       await new Promise((resolve) => setTimeout(resolve, 600));
+
+      if (Date.now() < session_expired_muted_until.current) return;
       const still_valid = await api_client.check_auth_status();
       if (still_valid) {
         api_client.set_authenticated(true);

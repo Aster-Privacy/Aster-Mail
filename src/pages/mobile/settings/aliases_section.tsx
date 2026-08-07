@@ -872,7 +872,7 @@ export function AliasesSection({
                     {order.status === "pending_payment" && (
                       <>
                         <span
-                          className="rounded-full bg-[var(--accent-color)] px-3 py-1 text-[12px] font-semibold text-white"
+                          className="rounded-full bg-[var(--accent-color)] px-3 py-1 text-[12px] font-semibold text-[var(--accent-fg,#ffffff)]"
                           role="button"
                           onClick={(e) => {
                             e.stopPropagation();

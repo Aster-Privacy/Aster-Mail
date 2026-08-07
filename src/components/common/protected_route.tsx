@@ -50,12 +50,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!is_authenticated && !is_completing_registration) {
+    const search = location.search || window.location.search;
+
     return (
-      <Navigate
-        replace
-        state={{ from: location }}
-        to={"/sign-in" + location.search}
-      />
+      <Navigate replace state={{ from: location }} to={"/sign-in" + search} />
     );
   }
 

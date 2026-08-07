@@ -51,8 +51,10 @@ import {
   emit_mail_stats_stale,
 } from "@/hooks/mail_events";
 import { use_show_mobile_ui } from "@/hooks/use_platform";
-import { adjust_inbox_count } from "@/hooks/use_mail_counts";
-import { adjust_stats_archived } from "@/hooks/use_mail_stats";
+import {
+  adjust_stats_inbox,
+  adjust_stats_archived,
+} from "@/hooks/use_mail_stats";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
   batched_bulk_add_folder,
@@ -798,7 +800,7 @@ export function use_index_page_state() {
           void bulk_update_metadata_by_ids(moved_ids, {
             is_archived: true,
           }).catch(() => {});
-          adjust_inbox_count(-moved_ids.length);
+          adjust_stats_inbox(-moved_ids.length);
           adjust_stats_archived(moved_ids.length);
           stale_all_view_caches();
           remove_category_index_ids(moved_ids);
@@ -836,7 +838,7 @@ export function use_index_page_state() {
               void bulk_update_metadata_by_ids(moved_ids, {
                 is_archived: false,
               }).catch(() => {});
-              adjust_inbox_count(moved_ids.length);
+              adjust_stats_inbox(moved_ids.length);
               adjust_stats_archived(-moved_ids.length);
               stale_all_view_caches();
             }

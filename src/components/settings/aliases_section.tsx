@@ -560,7 +560,7 @@ export function AliasesSection() {
                   </div>
                   <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                     <button
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
                       type="button"
                       onClick={() => {
                         set_purchase_order_id(null);
@@ -738,7 +738,7 @@ export function AliasesSection() {
                             {order.status === "pending_payment" && (
                               <>
                                 <button
-                                  className="px-3 py-1 rounded-full text-xs font-semibold text-white bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
+                                  className="px-3 py-1 rounded-full text-xs font-semibold text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();

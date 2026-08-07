@@ -96,6 +96,18 @@ describe("bulk_mail_scan", () => {
     );
   });
 
+  it("honors a caller supplied cap and still reports truncation", async () => {
+    list_mail_items.mockImplementation(async () =>
+      make_page(SCAN_PAGE_SIZE, "more"),
+    );
+
+    const cap = SCAN_PAGE_SIZE * 4;
+    const result = await scan_received_items(undefined, undefined, cap);
+
+    expect(result.items).toHaveLength(cap);
+    expect(result.reached_cap).toBe(true);
+  });
+
   it("stops paging when the signal aborts", async () => {
     const controller = new AbortController();
 

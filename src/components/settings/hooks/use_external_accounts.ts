@@ -539,7 +539,6 @@ export function use_external_accounts() {
     form_delete_after_fetch: form.form_delete_after_fetch,
     set_form_delete_after_fetch: form.set_form_delete_after_fetch,
     expanded_error_ids,
-    modal_ref: form.modal_ref,
     is_form_busy: form.is_form_busy,
     truncated_folders: form.truncated_folders,
     open_add_form: form.open_add_form,

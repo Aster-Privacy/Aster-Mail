@@ -69,6 +69,7 @@ vi.mock("@/lib/cid_resolver", () => ({
   extract_cid_references: () => [],
   resolve_cid_references: vi.fn(),
   revoke_cid_blob_urls: vi.fn(),
+  strip_unresolved_cid_references: (html: string) => html,
 }));
 
 vi.mock("@/components/email/reveal_on_fonts_ready", () => ({

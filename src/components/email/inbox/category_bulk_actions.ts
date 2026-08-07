@@ -35,10 +35,26 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 export const CATEGORY_ACTION_CHUNK_SIZE = 100;
 
-export type CategoryBulkOutcome = "done" | "noop" | "not_ready";
+export type CategoryBulkOutcome = "done" | "noop" | "not_ready" | "unsupported";
+
+export const CATEGORY_SCOPE_ACTIONS: ReadonlySet<BulkScopeAction> =
+  new Set<BulkScopeAction>([
+    "archive",
+    "trash",
+    "mark_spam",
+    "mark_read",
+    "mark_unread",
+    "star",
+    "unstar",
+  ]);
+
+export function supports_category_scope(action: BulkScopeAction): boolean {
+  return CATEGORY_SCOPE_ACTIONS.has(action);
+}
 
 export interface CategoryBulkOptions {
   on_progress?: (completed: number, total: number) => void;
+  exclude_ids?: string[];
 }
 
 function chunk_ids(ids: string[]): string[][] {
@@ -88,10 +104,16 @@ export async function run_category_scope_action(
   category: EmailCategory,
   options?: CategoryBulkOptions,
 ): Promise<CategoryBulkOutcome> {
+  if (!supports_category_scope(action)) return "unsupported";
   if (!is_fully_built()) return "not_ready";
   if (is_index_capped()) return "not_ready";
 
-  const { all_ids } = get_category_action_ids(category);
+  const excluded = new Set(options?.exclude_ids ?? []);
+  const { all_ids: scoped_ids } = get_category_action_ids(category);
+  const all_ids =
+    excluded.size === 0
+      ? scoped_ids
+      : scoped_ids.filter((id) => !excluded.has(id));
 
   if (all_ids.length === 0) return "noop";
 
@@ -190,7 +212,7 @@ export async function run_category_scope_action(
       break;
     }
     default:
-      return "not_ready";
+      return "unsupported";
   }
 
   invalidate_mail_stats();

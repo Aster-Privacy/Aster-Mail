@@ -416,7 +416,8 @@ export const ja = {
     pending_email_notifications: "保留中のメール通知",
     selected: "選択済み",
     are_you_sure: "よろしいですか？",
-    sign_out_all_confirmation: "このデバイスのすべてのアカウントからサインアウトしてもよろしいですか？",
+    sign_out_all_confirmation:
+      "このデバイスのすべてのアカウントからサインアウトしてもよろしいですか？",
     sign_out_confirmation: "アカウントからサインアウトしてもよろしいですか？",
     remove_account_confirmation:
       "このアカウントを削除してもよろしいですか？後で再度追加できます。",
@@ -448,10 +449,13 @@ export const ja = {
       "変更が保存されませんでした。もう一度試すと通ることが多いです。メール自体には変更ありません。",
     failed_to_archive_emails:
       "アーカイブが完了しませんでした。もう一度試すと通ることが多いです。メールはまだ受信箱にあります。",
+    failed_to_unarchive_emails:
+      "受信箱への移動が完了しませんでした。もう一度試すと通ることが多いです。メールはまだアーカイブにあります。",
     something_went_wrong_try_again:
       "うまくいきませんでした。しばらくしてからもう一度試すと、解決することが多いです。",
     something_went_wrong: "エラーが発生しました。",
-    unexpected_error_refresh: "問題が発生したため、ページを再読み込みして続行してください。",
+    unexpected_error_refresh:
+      "問題が発生したため、ページを再読み込みして続行してください。",
     unsupported_browser: "対応していないブラウザです。",
     unsupported_browser_detail: "別のブラウザをお試しください。",
     try_again: "もう一度試す",
@@ -484,10 +488,8 @@ export const ja = {
     adding: "追加中...",
     checking: "確認中...",
     host_name: "ホスト名",
-    dns_required:
-      "必須",
-    dns_recommended:
-      "推奨",
+    dns_required: "必須",
+    dns_recommended: "推奨",
     dns_caveat_mx_replaces_existing:
       "これは既存の MX レコードを置き換えます。以前のメールプロバイダーの MX レコードを削除しないと、新しいメールは Aster に届きません。",
     dns_caveat_spf_single_record_other_senders:
@@ -645,6 +647,8 @@ export const ja = {
     spam_emails_permanently_deleted:
       "{{count}}件のスパムメールを完全に削除しました",
     trash_emptied: "ゴミ箱を正常に空にしました",
+    spam_empty_failed:
+      "迷惑メールを空にできませんでした。少ししてからもう一度お試しください。削除されたものはありません。",
     conversations_marked_as_spam_bulk:
       "{{count}}件の会話をスパムとしてマークしました",
     conversations_restored_bulk: "{{count}}件の会話を復元しました",
@@ -1526,6 +1530,16 @@ export const ja = {
     contacts_unstarred: "{{ count }}件の連絡先のスターを外しました",
     conversations_starred_bulk: "{{count}}件の会話にスターを付けました",
     conversations_unstarred_bulk: "{{count}}件の会話のスターを外しました",
+    conversations_moved_to_inbox_bulk:
+      "{{count}}件の会話を受信トレイに移動しました",
+    conversations_marked_as_not_spam_bulk:
+      "{{count}}件の会話を迷惑メールではないとしてマークしました",
+    bulk_action_partially_applied:
+      "{{total}}件中{{count}}件の会話を更新しました。残りは変更されていません。",
+    bulk_action_truncated:
+      "この操作は最初の{{count}}件のメッセージを処理しました。残りを処理するには、もう一度実行してください。",
+    bulk_action_continues_in_background:
+      "残りのメッセージはバックグラウンドで更新中です。",
     custom_fields: "カスタムフィールド",
     device_revoked:
       "このデバイスはアカウントから削除され、サインアウトされました。心当たりがない場合は、astermail.org/security でパスワードをすぐに変更してください。",
@@ -1919,8 +1933,7 @@ export const ja = {
     category_info_travel:
       "航空会社、ホテル、配車サービスからの予約、旅程、確認メール。",
     category_info_shopping: "注文確認、配送状況の更新、配達通知。",
-    category_info_custom:
-      "このカテゴリのカスタムルールに一致するメール。",
+    category_info_custom: "このカテゴリのカスタムルールに一致するメール。",
     custom_categories_title: "カスタムカテゴリ",
     custom_categories_tutorial:
       "自分だけのカテゴリを作りましょう。送信者のドメインや件名のキーワードでメールを振り分けます。",
@@ -2265,17 +2278,22 @@ export const ja = {
     alias_details_title: "詳細",
     alias_display_name_label: "表示名",
     alias_note_label: "メモ",
-    alias_details_description: "このエイリアスに名前を付け、使い道をメモします。",
-    alias_display_name_desc: "このエイリアスから送信するときに差出人名として表示されます。",
+    alias_details_description:
+      "このエイリアスに名前を付け、使い道をメモします。",
+    alias_display_name_desc:
+      "このエイリアスから送信するときに差出人名として表示されます。",
     alias_note_desc: "このエイリアスの用途を記す非公開のメモです。",
     alias_websites_desc: "このエイリアスで登録したサイトです。",
     alias_stats_description: "このエイリアスが扱ったメールの量です。",
     alias_usage_used_of: "エイリアス {{ max }} 件中 {{ used }} 件を使用中",
     alias_usage_unlock: "無制限にする",
-    alias_usage_nudge: "有料プランには無制限のエイリアス、独自ドメイン、エイリアスルール、送信者ピン留めが含まれます。",
+    alias_usage_nudge:
+      "有料プランには無制限のエイリアス、独自ドメイン、エイリアスルール、送信者ピン留めが含まれます。",
     alias_sender_pin_mode_label: "モード",
-    alias_feature_locked_stats: "このエイリアスのアクティビティを見るにはプランをアップグレードしてください。",
-    alias_feature_locked_delivery_log: "ブロックされたメールを見るにはプランをアップグレードしてください。",
+    alias_feature_locked_stats:
+      "このエイリアスのアクティビティを見るにはプランをアップグレードしてください。",
+    alias_feature_locked_delivery_log:
+      "ブロックされたメールを見るにはプランをアップグレードしてください。",
     alias_paid_badge: "有料",
     alias_field_display_name_label: "表示名",
     alias_field_note_label: "メモ",
@@ -2386,15 +2404,22 @@ export const ja = {
       "この設定は保存されませんでした。もう一度お試しください。",
     alias_delivery_folder_missing: "削除されたフォルダー",
     alias_delivery_label: "ラベル",
-    alias_delivery_label_desc: "このエイリアス宛のすべてのメールにラベルを付けます。",
-    alias_delivery_label_info: "このエイリアス宛のメールにはルールなしで自動的にラベルが付きます。ラベルは配信先フォルダーとは別に適用されます。",
+    alias_delivery_label_desc:
+      "このエイリアス宛のすべてのメールにラベルを付けます。",
+    alias_delivery_label_info:
+      "このエイリアス宛のメールにはルールなしで自動的にラベルが付きます。ラベルは配信先フォルダーとは別に適用されます。",
     alias_delivery_label_none: "ラベルなし",
     alias_delivery_label_missing: "削除されたラベル",
-    alias_delivery_label_error: "設定を保存できませんでした。もう一度お試しください。",
-    alias_delivery_rule_note: "ルール「{{ rule }}」は、このエイリアスのメールをすでに {{ target }} に移動しています。",
-    alias_delivery_rule_conflict: "ルール「{{ rule }}」がこのエイリアスのメールを {{ rule_target }} に移動するため、{{ target }} には届きません。",
-    alias_delivery_label_rule_note: "ルール「{{ rule }}」は、このエイリアスのメールにすでに {{ target }} を付けています。",
-    alias_delivery_label_rule_conflict: "ルール「{{ rule }}」はこのエイリアスのメールに {{ target }} ではなく {{ rule_target }} を付けます。",
+    alias_delivery_label_error:
+      "設定を保存できませんでした。もう一度お試しください。",
+    alias_delivery_rule_note:
+      "ルール「{{ rule }}」は、このエイリアスのメールをすでに {{ target }} に移動しています。",
+    alias_delivery_rule_conflict:
+      "ルール「{{ rule }}」がこのエイリアスのメールを {{ rule_target }} に移動するため、{{ target }} には届きません。",
+    alias_delivery_label_rule_note:
+      "ルール「{{ rule }}」は、このエイリアスのメールにすでに {{ target }} を付けています。",
+    alias_delivery_label_rule_conflict:
+      "ルール「{{ rule }}」はこのエイリアスのメールに {{ target }} ではなく {{ rule_target }} を付けます。",
     alias_relay_title: "配信",
     alias_relay_description: "このエイリアス宛のメールの配信方法を選択します。",
     alias_relay_mode_native: "ネイティブ",
@@ -3274,10 +3299,14 @@ export const ja = {
       "エイリアスの一つを安全に再暗号化できませんでした。パスワードは変更されていません。サポートまでお問い合わせいただくか、該当のエイリアスを削除してから再度お試しください。",
     contact_reencrypt_failed:
       "連絡先の一つを安全に再暗号化できませんでした。パスワードは変更されていません。サポートまでお問い合わせいただくか、該当の連絡先を削除してから再度お試しください。",
+    password_change_fingerprint_mismatch:
+      "このセッションは別のネットワークまたはブラウザで開始されたため、Aster Mail はパスワードを変更しませんでした。変更するには、サインアウトしてから再度サインインし、もう一度お試しください。",
     update_password: "パスワードを更新",
     updating: "更新中...",
     password_change_encrypted_data_warning:
       "パスワード変更時にラベル、署名、テンプレートが再暗号化されます。この処理中に接続が切れると、そのデータは復元できません。",
+    password_changed_items_unreadable:
+      "パスワードを変更しました。鍵が利用できなかったため、{{count}} 件の暗号化された項目は以前の暗号化のままです。メールの配信には影響しません。復元するには、サポートにお問い合わせください。",
     password_changed_signing_out:
       "パスワードが正常に変更されました。サインアウトしています...",
     session_security: "セッションセキュリティ",
@@ -3368,7 +3397,8 @@ export const ja = {
     mark_as_read: "既読にする",
     mark_as_read_description: "メールを既読にするタイミング",
     emails_per_page: "1ページあたりのメール数",
-    emails_per_page_description: "受信トレイ、アーカイブ、その他のフォルダーで1ページに表示するメール数",
+    emails_per_page_description:
+      "受信トレイ、アーカイブ、その他のフォルダーで1ページに表示するメール数",
     immediately: "すぐに",
     after_1_second: "1秒後",
     after_3_seconds: "3秒後",
@@ -3666,18 +3696,13 @@ export const ja = {
     dkim_record: "DKIMレコード（TXT）",
     email_authentication_policy: "メール認証ポリシー",
     dmarc_record: "DMARCレコード（TXT）",
-    tls_reporting:
-      "TLS レポート",
-    tlsrpt_record:
-      "TLS-RPT レコード",
+    tls_reporting: "TLS レポート",
+    tlsrpt_record: "TLS-RPT レコード",
     tlsrpt_description:
       "任意ですが推奨します。ドメインへの暗号化配送が失敗すると受信側サーバーが日次の要約を送ってくれるため、利用者より先に問題に気づけます。",
-    dns_instruction_set_tlsrpt_host:
-      "ホストを _smtp._tls に設定します",
-    dns_instruction_set_tlsrpt_value:
-      "TLS-RPT の値を表示どおりに貼り付けます",
-    optional_step:
-      "任意",
+    dns_instruction_set_tlsrpt_host: "ホストを _smtp._tls に設定します",
+    dns_instruction_set_tlsrpt_value: "TLS-RPT の値を表示どおりに貼り付けます",
+    optional_step: "任意",
     gmail_import: "Gmail",
     gmail_import_description: "Google TakeoutからのMBOX",
     outlook_import: "Outlook",
@@ -4669,6 +4694,9 @@ export const ja = {
     conversation_grouping_confirm_description:
       "会話のグループ化をオフにすると、返信をまとめる代わりに各メールが個別のアイテムとして受信トレイに表示されます。メールのスレッドを追跡しにくくなる場合があります。",
     show_message_size: "メッセージサイズを表示",
+    show_alias_indicators: "エイリアスインジケーターを表示",
+    show_alias_indicators_description:
+      "エイリアス宛てに届いたメッセージに印を付けます",
     show_message_size_description:
       "受信トレイのリストに各メールのサイズを表示します",
     auto_save_recipients: "最近の受信者を自動保存",
@@ -5227,9 +5255,11 @@ export const ja = {
     domain_purchase_purchased_expires: "{{date}} に期限切れ",
     domain_purchase_purchased_in_progress: "設定中...",
     domain_purchase_purchased_awaiting: "支払い待ち",
-    domain_purchase_done_warmup: "ご注意: ドメインのDNSがインターネット全体に反映されるまで最大1時間かかることがあり、Gmailなどのプロバイダーは新しいドメインを最初は慎重に扱います。ドメインの実績が増えるにつれて到達率は向上します。",
+    domain_purchase_done_warmup:
+      "ご注意: ドメインのDNSがインターネット全体に反映されるまで最大1時間かかることがあり、Gmailなどのプロバイダーは新しいドメインを最初は慎重に扱います。ドメインの実績が増えるにつれて到達率は向上します。",
     domain_purchase_create_first_address: "最初のアドレスを作成",
-    domain_purchase_progress_note: "ドメインの登録とメールボックスの設定を行っています。通常は1分ほどで完了します。",
+    domain_purchase_progress_note:
+      "ドメインの登録とメールボックスの設定を行っています。通常は1分ほどで完了します。",
     domain_purchase_complete_cta: "購入を完了",
     domain_purchase_purchased_lapsed: "期限切れ - 再購入",
     domain_purchase_error_paused:
@@ -5489,13 +5519,18 @@ export const ja = {
     crypto_native_status_underpaid: "一部支払い済み",
     crypto_native_what_happens: "この後の流れ",
     crypto_native_stripe_option: "ステーブルコインで支払う",
-    crypto_native_stripe_desc: "決済代行を通じて USDC などのステーブルコインでお支払いいただけます",
-    crypto_native_too_many_open: "未完了の暗号資産の請求が多すぎます。まず一つを完了するかキャンセルしてください。",
-    crypto_native_daily_limit: "本日作成した暗号資産の請求が多すぎます。しばらくしてからお試しください。",
+    crypto_native_stripe_desc:
+      "決済代行を通じて USDC などのステーブルコインでお支払いいただけます",
+    crypto_native_too_many_open:
+      "未完了の暗号資産の請求が多すぎます。まず一つを完了するかキャンセルしてください。",
+    crypto_native_daily_limit:
+      "本日作成した暗号資産の請求が多すぎます。しばらくしてからお試しください。",
     crypto_native_invoice_title: "{{coin}} で支払う",
-    crypto_native_awaiting_body: "下記のアドレスに正確な金額を送金してください。このページは自動的に更新されます。",
+    crypto_native_awaiting_body:
+      "下記のアドレスに正確な金額を送金してください。このページは自動的に更新されます。",
     crypto_native_received_title: "入金を受け取りました",
-    crypto_native_received_body: "全額を受け取り、現在処理中です。追加のお支払いは必要ありません。",
+    crypto_native_received_body:
+      "全額を受け取り、現在処理中です。追加のお支払いは必要ありません。",
     crypto_native_send_exactly: "正確に送金する金額",
     crypto_native_send_remaining: "残りの送金額",
     crypto_native_to_address: "送金先アドレス",
@@ -5507,21 +5542,26 @@ export const ja = {
     crypto_native_no_wallet_handler:
       "ウォレットアプリが開きませんでした。上のアドレスをコピーしてウォレットに貼り付けてください。",
     crypto_native_copied: "クリップボードにコピーしました",
-    crypto_native_network_warning: "{{chain}} ネットワークの {{coin}} のみを送金してください。他の資産を送金したり、別のネットワークを使用したりすると資金を失います。",
+    crypto_native_network_warning:
+      "{{chain}} ネットワークの {{coin}} のみを送金してください。他の資産を送金したり、別のネットワークを使用したりすると資金を失います。",
     crypto_native_usd_value_label: "お支払い金額",
     crypto_native_usd_total_label: "請求合計",
-    crypto_native_rate_locked: "レートはこの請求が期限切れになるまで固定されます。",
+    crypto_native_rate_locked:
+      "レートはこの請求が期限切れになるまで固定されます。",
     crypto_native_expires_in: "残り {{time}} で期限切れ",
     crypto_native_status_awaiting: "入金待ち",
     crypto_native_status_detected: "入金を検出しました",
     crypto_native_status_confirming: "承認中 ({{current}}/{{required}})",
     crypto_native_status_confirming_short: "承認中",
     crypto_native_status_credited: "入金を受け取りました",
-    crypto_native_underpaid_body: "{{expected}} {{coin}} のうち {{received}} を受け取りました。この請求を完了するには、残りの {{remaining}} {{coin}} を同じアドレスに送金してください。",
+    crypto_native_underpaid_body:
+      "{{expected}} {{coin}} のうち {{received}} を受け取りました。この請求を完了するには、残りの {{remaining}} {{coin}} を同じアドレスに送金してください。",
     crypto_native_manual_review: "確認中",
-    crypto_native_manual_review_body: "お支払いの手動確認が必要です。まもなくアカウントに反映されます。",
+    crypto_native_manual_review_body:
+      "お支払いの手動確認が必要です。まもなくアカウントに反映されます。",
     crypto_native_transaction: "トランザクション",
-    crypto_native_refund_notice: "過払い分と返金は Aster アカウントの残高に加算されます。",
+    crypto_native_refund_notice:
+      "過払い分と返金は Aster アカウントの残高に加算されます。",
     crypto_native_cancel_invoice: "この請求をキャンセル",
     crypto_native_cancel_failed: "この請求をキャンセルできませんでした。",
     crypto_native_cancel_has_payment:
@@ -5532,21 +5572,24 @@ export const ja = {
     crypto_native_view_billing: "請求に戻る",
     crypto_native_invoice_cancelled: "請求をキャンセルしました",
     crypto_native_expired_title: "この請求は期限切れです",
-    crypto_native_expired_body: "レートは変動するため、この支払い受付は終了しました。続けるには新しい支払いを開始してください。",
+    crypto_native_expired_body:
+      "レートは変動するため、この支払い受付は終了しました。続けるには新しい支払いを開始してください。",
     crypto_native_cancelled_body:
       "この支払いはキャンセルされました。請求は発生していません。いつでも新しい支払いを開始できます。",
-    crypto_native_start_new_payment:
-      "新しい支払いを開始",
-    crypto_native_check_now:
-      "今すぐ確認",
-    crypto_native_expired_do_not_send: "この請求のアドレスには送金しないでください。今送金された資金は、反映される前に手動確認が必要になります。",
+    crypto_native_start_new_payment: "新しい支払いを開始",
+    crypto_native_check_now: "今すぐ確認",
+    crypto_native_expired_do_not_send:
+      "この請求のアドレスには送金しないでください。今送金された資金は、反映される前に手動確認が必要になります。",
     crypto_native_not_found: "この請求が見つかりませんでした",
     crypto_native_unavailable: "支払いを読み込めませんでした",
-    crypto_native_unavailable_body: "サーバーに接続できませんでした。接続を確認して再試行してください。お支払いには影響ありません。",
+    crypto_native_unavailable_body:
+      "サーバーに接続できませんでした。接続を確認して再試行してください。お支払いには影響ありません。",
     crypto_native_pending_banner: "進行中の暗号資産の支払いがあります",
     crypto_native_pending_banner_action: "支払いを再開",
-    crypto_native_pending_banner_multi: "進行中の暗号資産の支払いが{{count}}件あります",
-    crypto_native_back_hint: "この請求はまだ有効です。請求からいつでも再開できます。",
+    crypto_native_pending_banner_multi:
+      "進行中の暗号資産の支払いが{{count}}件あります",
+    crypto_native_back_hint:
+      "この請求はまだ有効です。請求からいつでも再開できます。",
     crypto_native_scan_hint: "ウォレットアプリで読み取ってください",
     crypto_native_scan_hint_address_only:
       "ウォレットアプリでスキャンし、{{amount}} を手動で入力してください",
@@ -5557,18 +5600,26 @@ export const ja = {
     crypto_native_invoice_ref_label: "請求",
     crypto_native_paying_with_label: "支払い方法",
     crypto_native_cancel_confirm_title: "この請求をキャンセルしますか？",
-    crypto_native_cancel_confirm_body: "支払いアドレスの監視を停止します。キャンセル後はこのアドレスに送金しないでください。新しい支払いはいつでも開始できます。",
-    crypto_native_hint_awaiting: "上記のアドレスに正確な金額を送金してください。ネットワークは自動的に監視しています。",
-    crypto_native_hint_detected: "トランザクションはネットワーク上にあります。ブロックへの取り込みを待っています。",
-    crypto_native_hint_confirming: "ネットワークで承認中です。完了次第、プランが有効になります。",
+    crypto_native_cancel_confirm_body:
+      "支払いアドレスの監視を停止します。キャンセル後はこのアドレスに送金しないでください。新しい支払いはいつでも開始できます。",
+    crypto_native_hint_awaiting:
+      "上記のアドレスに正確な金額を送金してください。ネットワークは自動的に監視しています。",
+    crypto_native_hint_detected:
+      "トランザクションはネットワーク上にあります。ブロックへの取り込みを待っています。",
+    crypto_native_hint_confirming:
+      "ネットワークで承認中です。完了次第、プランが有効になります。",
     crypto_native_hint_credited: "支払いが確認されました。プランが有効です。",
     crypto_native_time_remaining: "残り時間",
     crypto_native_expiring_soon:
       "残り5分未満です。お支払いが届く前にこの受付時間が終了した場合は、現在のレートで新しいお支払いを開始できます。",
-    crypto_native_hint_underpaid: "上記の残額を同じアドレスに送金して、この支払いを完了してください。",
-    crypto_native_hint_manual_review: "この支払いは当社チームが確認中です。お客様の操作は不要です。",
-    crypto_native_connection_lost: "接続が切断されました。自動的に再試行しています。",
-    crypto_native_coins_unavailable: "暗号資産の支払い方法を読み込めませんでした。",
+    crypto_native_hint_underpaid:
+      "上記の残額を同じアドレスに送金して、この支払いを完了してください。",
+    crypto_native_hint_manual_review:
+      "この支払いは当社チームが確認中です。お客様の操作は不要です。",
+    crypto_native_connection_lost:
+      "接続が切断されました。自動的に再試行しています。",
+    crypto_native_coins_unavailable:
+      "暗号資産の支払い方法を読み込めませんでした。",
     crypto_native_copy_tx_hash: "トランザクションハッシュをコピー",
     crypto_native_expiry_progress: "この請求が期限切れになるまでの残り時間",
     crypto_native_confirmations_progress: "ネットワークの承認数",
@@ -6190,13 +6241,17 @@ export const ja = {
   mail: {
     load_all_thread_messages: "すべてのメッセージを読み込む",
     move_to_category: "カテゴリに移動",
+    menu_applies_to_selection: "選択した {count} 件に適用",
+    menu_applies_to_all: "すべての {count} 件のメッセージに適用",
     moved_to_category: "カテゴリに移動しました",
+    drop_to_move_here: "ここにドロップして移動",
     tab_new_count: "新着",
     category_empty_primary_title: "メインには何もありません",
     category_empty_primary_desc:
       "個人的なメッセージや会話がここに表示されます。",
     category_empty_promotions_title: "セールはありません",
-    category_empty_promotions_desc: "セールや販促メールは、他のメールと分けてここに表示されます。",
+    category_empty_promotions_desc:
+      "セールや販促メールは、他のメールと分けてここに表示されます。",
     category_empty_social_title: "ソーシャルの更新はありません",
     category_empty_social_desc:
       "ソーシャルネットワークやコミュニティからのメッセージがここに表示されます。",
@@ -6437,6 +6492,10 @@ export const ja = {
       "この操作はこのビューのすべての会話に影響します。",
     bulk_action_index_not_ready:
       "このタブはまだインデックス作成中です。しばらくしてからもう一度お試しください。",
+    bulk_action_index_building:
+      "このタブはまだインデックスを作成中です。準備ができ次第操作を開始します。",
+    bulk_action_index_capped:
+      "このタブには一度に更新できないほど多くのスレッドがあります。スレッドを選択してやり直してください。",
     archive_messages_title: "メッセージをアーカイブ",
     archive_messages_confirmation:
       "選択したメッセージをアーカイブしてもよろしいですか？",
@@ -6778,6 +6837,7 @@ export const ja = {
     download_file_named: "{{ filename }} をダウンロード",
     to_recipients_prefix: "{{ recipients }} 宛て",
     received_on_prefix: "{{ address }} で受信",
+    received_via_alias: "エイリアス {{ address }} に配信",
     trash_auto_delete_notice:
       "ゴミ箱のアイテムは {{ days }} 日後に自動的に削除されます。",
     spam_auto_delete_notice:
@@ -7104,7 +7164,8 @@ export const ja = {
       "追加アカウントを作成するには回復用メールアドレスが必要です。これによりすべてのアカウントが保護されます。",
     username_min_length: "ここには 3 文字以上が必要です。",
     username_max_length: "ここには 40 文字未満で入力すると使えます。",
-    username_alphanumeric: "英数字とドットが使えます。ドットは先頭・末尾・連続では使用できません。",
+    username_alphanumeric:
+      "英数字とドットが使えます。ドットは先頭・末尾・連続では使用できません。",
     username_not_available:
       "このユーザー名はすでに使われています。別のものでしたら使えます。",
     password_req_length: "8文字以上",
@@ -7627,6 +7688,8 @@ export const ja = {
       "このメールはサーバー上にありますが、通信経路で破損しているようです。更新してもう一度試すと通ることが多く、解決しない場合は hello@astermail.org にお問い合わせいただけます。",
     decrypt_sender_error:
       "送信者はこのメールを当方で読めない方式で暗号化していました。送信者に再送を依頼することで解決できます。他のメールには影響ありません。",
+    metadata_undecryptable_change:
+      "このデバイスではこのメッセージの詳細を開けないため、変更は保存されません。鍵を再読み込みするには、サインアウトして再度サインインしてください。サーバー上のメッセージは変わりません。",
     no_unsubscribe_method:
       "この送信者は配信停止ヘッダーを含めていませんでした。メール本文内のリンクを使うか、迷惑メールとして扱うことで同じ結果を得られます。",
     invalid_unsubscribe_address:
@@ -7863,8 +7926,10 @@ export const ja = {
     action_move_to: "移動先",
     action_apply_label: "ラベルを適用",
     action_apply_labels: "ラベルを適用",
-    alias_delivery_conflict: "エイリアス {{ alias }} は {{ alias_target }} に配信しますが、{{ rule_target }} へ送るこのルールが優先されます。",
-    alias_label_conflict: "エイリアス {{ alias }} はメールに {{ alias_target }} を付けます。このルールはさらに {{ rule_target }} を付けます。",
+    alias_delivery_conflict:
+      "エイリアス {{ alias }} は {{ alias_target }} に配信しますが、{{ rule_target }} へ送るこのルールが優先されます。",
+    alias_label_conflict:
+      "エイリアス {{ alias }} はメールに {{ alias_target }} を付けます。このルールはさらに {{ rule_target }} を付けます。",
     action_mark_as: "マーク",
     action_star: "スター",
     action_skip_inbox: "受信トレイをスキップ",

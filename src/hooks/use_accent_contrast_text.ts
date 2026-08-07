@@ -18,41 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
-
-import { get_contrast_text_for_css_color } from "@/lib/avatar_color";
-
-function read_accent_contrast_text(): "#ffffff" | "#111827" {
-  if (typeof window === "undefined") return "#ffffff";
-
-  const accent = getComputedStyle(document.documentElement)
-    .getPropertyValue("--accent-color")
-    .trim();
-
-  if (!accent) return "#ffffff";
-
-  return get_contrast_text_for_css_color(accent);
-}
+import { use_resolved_accent } from "@/lib/resolved_accent";
 
 export function use_accent_contrast_text(): "#ffffff" | "#111827" {
-  const [contrast_text, set_contrast_text] = useState(read_accent_contrast_text);
-
-  useEffect(() => {
-    const sync = () => {
-      set_contrast_text(read_accent_contrast_text());
-    };
-
-    sync();
-
-    const observer = new MutationObserver(sync);
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class", "style"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  return contrast_text;
+  return use_resolved_accent().accent_fg;
 }

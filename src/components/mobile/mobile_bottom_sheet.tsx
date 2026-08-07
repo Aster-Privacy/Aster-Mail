@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { memo, useEffect, type ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import {
   motion,
   AnimatePresence,
@@ -27,6 +27,7 @@ import {
 } from "framer-motion";
 
 import { use_platform } from "@/hooks/use_platform";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 
 interface MobileBottomSheetProps {
@@ -43,18 +44,8 @@ export const MobileBottomSheet = memo(function MobileBottomSheet({
   const { safe_area_insets } = use_platform();
   const reduce_motion = use_should_reduce_motion();
   const drag_controls = useDragControls();
-
-  useEffect(() => {
-    if (is_open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [is_open]);
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(is_open, on_close, "bottom_sheet");
 
   const handle_drag_end = (_: unknown, info: PanInfo) => {
     if (info.offset.y > 100 || info.velocity.y > 300) {
@@ -72,12 +63,16 @@ export const MobileBottomSheet = memo(function MobileBottomSheet({
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onClick={on_close}
+            onPointerDown={handle_backdrop_pointer_down}
           />
 
           <motion.div
+            ref={dialog_ref}
             animate={{ y: 0 }}
-            className="fixed inset-x-0 bottom-0 z-[61] flex max-h-[85vh] flex-col rounded-t-2xl bg-[var(--bg-primary)]"
+            aria-modal="true"
+            className="fixed inset-x-0 bottom-0 z-[61] flex max-h-[85vh] flex-col rounded-t-2xl bg-[var(--bg-primary)] outline-none"
+            role="dialog"
+            tabIndex={-1}
             drag="y"
             dragConstraints={{ top: 0 }}
             dragControls={drag_controls}

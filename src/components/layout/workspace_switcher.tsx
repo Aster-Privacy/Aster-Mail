@@ -37,7 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { AccountAvatarButton } from "@/components/ui/account_avatar_button";
 import { use_auth } from "@/contexts/auth_context";
-import { use_mail_stats } from "@/hooks/use_mail_stats";
+import { use_mail_stats, prefetch_mail_stats } from "@/hooks/use_mail_stats";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_file_picker_open } from "@/hooks/use_profile_picture_upload";
@@ -108,6 +108,7 @@ export function WorkspaceSwitcher({
   const token_backed_sessions = api_client.can_persist_session();
   const [plan_flags, set_plan_flags] = useState<Record<string, boolean>>({});
   const popover_ref = useRef<HTMLDivElement>(null);
+  const pointer_close_ref = useRef(false);
 
   const other_accounts = useMemo(
     () => accounts.filter((a) => a.id !== current_account_id),
@@ -160,8 +161,8 @@ export function WorkspaceSwitcher({
   useEffect(() => {
     if (!is_open) return;
 
-    const close_for_tab_change = () => {
-      if (!document.hidden || is_file_picker_open()) return;
+    const close_popover = () => {
+      if (is_file_picker_open()) return;
 
       const node = popover_ref.current;
 
@@ -172,12 +173,20 @@ export function WorkspaceSwitcher({
       on_open_change(false);
     };
 
-    window.addEventListener("blur", close_for_tab_change);
-    document.addEventListener("visibilitychange", close_for_tab_change);
+    const close_for_visibility_change = () => {
+      if (!document.hidden) return;
+      close_popover();
+    };
+
+    window.addEventListener("blur", close_popover);
+    document.addEventListener("visibilitychange", close_for_visibility_change);
 
     return () => {
-      window.removeEventListener("blur", close_for_tab_change);
-      document.removeEventListener("visibilitychange", close_for_tab_change);
+      window.removeEventListener("blur", close_popover);
+      document.removeEventListener(
+        "visibilitychange",
+        close_for_visibility_change,
+      );
     };
   }, [is_open, on_open_change]);
 
@@ -191,8 +200,13 @@ export function WorkspaceSwitcher({
   }, [stats.storage_total_bytes, stats.storage_used_bytes]);
 
   useEffect(() => {
-    if (!is_open || stats_ready) return;
-    refresh();
+    if (!is_open) return;
+    if (!stats_ready) {
+      refresh();
+
+      return;
+    }
+    prefetch_mail_stats();
   }, [is_open, stats_ready, refresh]);
 
   const storage_used_label = useMemo(() => {
@@ -295,8 +309,16 @@ export function WorkspaceSwitcher({
           align={align}
           className="account_menu_surface w-[352px] max-w-[calc(100vw-24px)] p-2 rounded-[24px] data-[state=closed]:animate-none data-[state=closed]:zoom-out-100 data-[state=closed]:slide-in-from-top-0"
           sideOffset={8}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => {
+            if (pointer_close_ref.current) e.preventDefault();
+            pointer_close_ref.current = false;
+          }}
+          onOpenAutoFocus={() => {
+            pointer_close_ref.current = false;
+          }}
+          onPointerDownOutside={() => {
+            pointer_close_ref.current = true;
+          }}
           style={{
             boxShadow:
               "0 18px 40px -12px rgba(0, 0, 0, 0.5), 0 4px 12px -4px rgba(0, 0, 0, 0.3)",

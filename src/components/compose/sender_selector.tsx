@@ -22,6 +22,7 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { TranslationKey } from "@/lib/i18n";
 
 import {
+  useId,
   useState,
   useRef,
   useEffect,
@@ -44,6 +45,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_should_reduce_motion } from "@/provider";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
 function get_alias_color(address: string): string {
   let hash = 0;
@@ -322,6 +324,7 @@ export function SenderSelector({
   const dropdown_ref = useRef<HTMLDivElement>(null);
   const panel_ref = useRef<HTMLDivElement>(null);
   const search_input_ref = useRef<HTMLInputElement>(null);
+  const panel_id = useId();
   const [panel_style, set_panel_style] = useState<CSSProperties>({});
 
   const reposition_panel = useCallback(() => {
@@ -418,19 +421,9 @@ export function SenderSelector({
     }
   }, [is_open]);
 
-  useEffect(() => {
-    function handle_escape(event: KeyboardEvent) {
-      if (event["key"] === "Escape") {
-        set_is_open(false);
-      }
-    }
+  const close_selector = useCallback(() => set_is_open(false), []);
 
-    if (is_open) {
-      document.addEventListener("keydown", handle_escape);
-
-      return () => document.removeEventListener("keydown", handle_escape);
-    }
-  }, [is_open]);
+  use_escape_layer(is_open, close_selector, "compose_sender_selector");
 
   const display_option = selected || options[0];
 
@@ -535,6 +528,9 @@ export function SenderSelector({
   return (
     <div ref={dropdown_ref} className="relative flex-1">
       <button
+        aria-controls={is_open ? panel_id : undefined}
+        aria-expanded={is_open}
+        aria-haspopup="listbox"
         className="flex items-center gap-1.5 py-0.5 px-1 -ml-1 rounded transition-colors disabled:opacity-50"
         disabled={disabled}
         type="button"
@@ -561,6 +557,7 @@ export function SenderSelector({
             animate={{ opacity: 1, y: 0 }}
             className="z-[70] rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
             exit={{ opacity: 0, y: -8 }}
+            id={panel_id}
             initial={reduce_motion ? false : { opacity: 0, y: -8 }}
             style={panel_style}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}

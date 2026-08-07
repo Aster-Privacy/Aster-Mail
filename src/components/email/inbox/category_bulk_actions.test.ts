@@ -90,6 +90,7 @@ beforeEach(() => {
     success: true,
     updated_count: 0,
     failed_ids: [],
+    undecryptable_ids: [],
   });
 });
 
@@ -177,7 +178,12 @@ describe("run_category_scope_action", () => {
     mock_bulk_update.mockImplementation(async () => {
       call_order.push("blob");
 
-      return { success: true, updated_count: 0, failed_ids: [] };
+      return {
+        success: true,
+        updated_count: 0,
+        failed_ids: [],
+        undecryptable_ids: [],
+      };
     });
 
     const outcome = await run_category_scope_action("archive", "primary");
@@ -215,6 +221,7 @@ describe("run_category_scope_action", () => {
       success: false,
       updated_count: 0,
       failed_ids: all_ids,
+      undecryptable_ids: [],
     });
 
     const outcome = await run_category_scope_action("archive", "primary");
@@ -231,6 +238,7 @@ describe("run_category_scope_action", () => {
       success: false,
       updated_count: 8,
       failed_ids: ["id_3", "id_7"],
+      undecryptable_ids: [],
     });
 
     await expect(
@@ -278,6 +286,7 @@ describe("run_category_scope_action", () => {
       success: true,
       updated_count: 0,
       failed_ids: [],
+      undecryptable_ids: [],
     });
 
     await run_category_scope_action("star", "primary");

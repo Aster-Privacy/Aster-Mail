@@ -26,6 +26,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_overlay_layer } from "@/lib/overlay_layer_stack";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_preferences } from "@/contexts/preferences_context";
 
@@ -44,6 +45,8 @@ export function SignaturePicker({
     use_signatures();
   const { preferences } = use_preferences();
   const [is_open, set_is_open] = useState(false);
+
+  use_overlay_layer(is_open, "compose_signature_picker");
 
   const handle_select = (content: string, is_html: boolean) => {
     on_select(content, is_html);

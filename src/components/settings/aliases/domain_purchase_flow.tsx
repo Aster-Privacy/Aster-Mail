@@ -253,7 +253,7 @@ function ResultRow({
           </span>
         </span>
         {primary && (
-          <span className="hidden sm:inline-block px-4 py-1.5 rounded-full text-[13px] font-semibold text-white bg-[var(--accent-color)]">
+          <span className="hidden sm:inline-block px-4 py-1.5 rounded-full text-[13px] font-semibold text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]">
             {t("common.continue")}
           </span>
         )}
@@ -809,7 +809,7 @@ export function DomainPurchaseFlow({
                     key={y}
                     className={`flex-1 h-10 rounded-full border text-sm transition-colors ${
                       years === y
-                        ? "border-transparent text-white font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_years(y)}
@@ -837,7 +837,7 @@ export function DomainPurchaseFlow({
                     key={method}
                     className={`flex-1 h-10 rounded-full border text-sm flex items-center justify-center gap-2 transition-colors ${
                       payment_method === method
-                        ? "border-transparent text-white font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_payment_method(method)}
@@ -1093,7 +1093,7 @@ export function DomainPurchaseFlow({
                     key={tld}
                     className={`h-11 px-6 rounded-full border text-[15px] transition-colors ${
                       intro_tld === tld
-                        ? "border-transparent text-white font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => {
@@ -1107,7 +1107,7 @@ export function DomainPurchaseFlow({
                 <button
                   className={`h-11 px-6 rounded-full border text-[15px] transition-colors ${
                     intro_tld === null
-                      ? "border-transparent text-white font-semibold bg-[var(--accent-color)]"
+                      ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
                       : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                   }`}
                   onClick={() => {

@@ -420,7 +420,8 @@ export const ru = {
     pending_email_notifications: "Ожидающие уведомления по электронной почте",
     selected: "выбрано",
     are_you_sure: "Вы уверены?",
-    sign_out_all_confirmation: "Вы уверены, что хотите выйти из всех аккаунтов на этом устройстве?",
+    sign_out_all_confirmation:
+      "Вы уверены, что хотите выйти из всех аккаунтов на этом устройстве?",
     sign_out_confirmation: "Вы уверены, что хотите выйти из аккаунта?",
     remove_account_confirmation:
       "Вы уверены, что хотите удалить этот аккаунт? Вы сможете добавить его позже.",
@@ -452,10 +453,13 @@ export const ru = {
       "Эти изменения не сохранились. Повторная попытка обычно помогает. Сами письма остаются без изменений.",
     failed_to_archive_emails:
       "Архивация не завершилась. Повторная попытка обычно помогает. Письма по-прежнему в почтовом ящике.",
+    failed_to_unarchive_emails:
+      "Перемещение во входящие не завершилось. Повторная попытка обычно помогает. Письма по-прежнему в архиве.",
     something_went_wrong_try_again:
       "Это не сработало. Повторная попытка через мгновение обычно помогает.",
     something_went_wrong: "Произошла ошибка.",
-    unexpected_error_refresh: "Что-то пошло не так, обновите страницу, чтобы продолжить.",
+    unexpected_error_refresh:
+      "Что-то пошло не так, обновите страницу, чтобы продолжить.",
     unsupported_browser: "Браузер не поддерживается.",
     unsupported_browser_detail: "Попробуйте другой браузер.",
     try_again: "Повторная попытка обычно помогает.",
@@ -488,10 +492,8 @@ export const ru = {
     adding: "Добавление...",
     checking: "Проверка...",
     host_name: "Имя хоста",
-    dns_required:
-      "Обязательно",
-    dns_recommended:
-      "Рекомендуется",
+    dns_required: "Обязательно",
+    dns_recommended: "Рекомендуется",
     dns_caveat_mx_replaces_existing:
       "Это заменит существующие записи MX. Удалите записи MX прежнего почтового провайдера, иначе новая почта не дойдёт до Aster.",
     dns_caveat_spf_single_record_other_senders:
@@ -650,6 +652,8 @@ export const ru = {
     spam_emails_permanently_deleted:
       "{{count}} спам-письм(о/а) удалено навсегда",
     trash_emptied: "Корзина успешно очищена",
+    spam_empty_failed:
+      "Не удалось очистить спам. Обычно повторная попытка через мгновение помогает. Ничего не удалено.",
     conversations_marked_as_spam_bulk:
       "{{count}} разговор(ов) отмечено как спам",
     conversations_restored_bulk: "{{count}} разговор(ов) восстановлено",
@@ -1471,6 +1475,16 @@ export const ru = {
     contacts_unstarred: "{{ count }} контакт(а/ов) сняты отметки",
     conversations_starred_bulk: "{{count}} беседа(ы) отмечена звёздочкой",
     conversations_unstarred_bulk: "{{count}} беседа(ы) сняты отметки",
+    conversations_moved_to_inbox_bulk:
+      "{{count}} беседа(ы) перемещены во входящие",
+    conversations_marked_as_not_spam_bulk:
+      "{{count}} беседа(ы) отмечены как не спам",
+    bulk_action_partially_applied:
+      "Обновлено {{count}} из {{total}} бесед. Остальные не изменились.",
+    bulk_action_truncated:
+      "Эта операция охватила первые {{count}} писем. Запустите её снова, чтобы обработать остальные.",
+    bulk_action_continues_in_background:
+      "Остальные письма всё ещё обновляются в фоновом режиме.",
     custom_fields: "Пользовательские поля",
     device_revoked:
       "Это устройство было удалено из вашего аккаунта, и вы вышли из системы. Если это были не вы, немедленно измените пароль на astermail.org/security.",
@@ -2278,17 +2292,22 @@ export const ru = {
     alias_details_title: "Подробности",
     alias_display_name_label: "Отображаемое имя",
     alias_note_label: "Заметка",
-    alias_details_description: "Назовите этот псевдоним и отметьте, где он нужен.",
-    alias_display_name_desc: "Показывается как имя отправителя, когда вы пишете с этого псевдонима.",
+    alias_details_description:
+      "Назовите этот псевдоним и отметьте, где он нужен.",
+    alias_display_name_desc:
+      "Показывается как имя отправителя, когда вы пишете с этого псевдонима.",
     alias_note_desc: "Личная заметка о назначении этого псевдонима.",
     alias_websites_desc: "Сайты, где вы регистрировались с этим псевдонимом.",
     alias_stats_description: "Сколько почты обработал этот псевдоним.",
     alias_usage_used_of: "Использовано {{ used }} из {{ max }} псевдонимов",
     alias_usage_unlock: "Снять ограничение",
-    alias_usage_nudge: "В платные планы входят безлимитные псевдонимы, свои домены, правила псевдонимов и закрепление отправителей.",
+    alias_usage_nudge:
+      "В платные планы входят безлимитные псевдонимы, свои домены, правила псевдонимов и закрепление отправителей.",
     alias_sender_pin_mode_label: "Режим",
-    alias_feature_locked_stats: "Перейдите на платный план, чтобы видеть активность этого псевдонима.",
-    alias_feature_locked_delivery_log: "Перейдите на платный план, чтобы видеть заблокированные письма.",
+    alias_feature_locked_stats:
+      "Перейдите на платный план, чтобы видеть активность этого псевдонима.",
+    alias_feature_locked_delivery_log:
+      "Перейдите на платный план, чтобы видеть заблокированные письма.",
     alias_paid_badge: "Платно",
     alias_field_display_name_label: "Отображаемое имя",
     alias_field_note_label: "Заметка",
@@ -2397,15 +2416,21 @@ export const ru = {
       "Настройка не сохранилась. Попробуйте еще раз.",
     alias_delivery_folder_missing: "Удаленная папка",
     alias_delivery_label: "Метка",
-    alias_delivery_label_desc: "Назначать метку каждому письму, приходящему на этот алиас.",
-    alias_delivery_label_info: "Письма на этот алиас помечаются автоматически, правило не нужно. Метка добавляется независимо от папки доставки.",
+    alias_delivery_label_desc:
+      "Назначать метку каждому письму, приходящему на этот алиас.",
+    alias_delivery_label_info:
+      "Письма на этот алиас помечаются автоматически, правило не нужно. Метка добавляется независимо от папки доставки.",
     alias_delivery_label_none: "Без метки",
     alias_delivery_label_missing: "Удалённая метка",
     alias_delivery_label_error: "Настройка не сохранилась. Попробуйте ещё раз.",
-    alias_delivery_rule_note: "Правило \"{{ rule }}\" уже перемещает почту этого алиаса в {{ target }}.",
-    alias_delivery_rule_conflict: "Правило \"{{ rule }}\" перемещает почту этого алиаса в {{ rule_target }}, поэтому она не попадёт в {{ target }}.",
-    alias_delivery_label_rule_note: "Правило \"{{ rule }}\" уже помечает почту этого алиаса меткой {{ target }}.",
-    alias_delivery_label_rule_conflict: "Правило \"{{ rule }}\" помечает почту этого алиаса меткой {{ rule_target }}, а не {{ target }}.",
+    alias_delivery_rule_note:
+      'Правило "{{ rule }}" уже перемещает почту этого алиаса в {{ target }}.',
+    alias_delivery_rule_conflict:
+      'Правило "{{ rule }}" перемещает почту этого алиаса в {{ rule_target }}, поэтому она не попадёт в {{ target }}.',
+    alias_delivery_label_rule_note:
+      'Правило "{{ rule }}" уже помечает почту этого алиаса меткой {{ target }}.',
+    alias_delivery_label_rule_conflict:
+      'Правило "{{ rule }}" помечает почту этого алиаса меткой {{ rule_target }}, а не {{ target }}.',
     alias_relay_title: "Доставка",
     alias_relay_description:
       "Выберите, как доставляется почта на этот псевдоним.",
@@ -3283,10 +3308,14 @@ export const ru = {
       "Не удалось безопасно перешифровать один из ваших псевдонимов. Пароль не был изменён. Пожалуйста, обратитесь в поддержку или удалите затронутый псевдоним и попробуйте снова.",
     contact_reencrypt_failed:
       "Не удалось безопасно перешифровать один из ваших контактов. Пароль не был изменён. Пожалуйста, обратитесь в поддержку или удалите затронутый контакт и попробуйте снова.",
+    password_change_fingerprint_mismatch:
+      "Эта сессия началась в другой сети или в другом браузере, поэтому Aster Mail не изменил ваш пароль. Чтобы изменить его, выйдите из аккаунта, войдите снова и повторите попытку.",
     update_password: "Обновить пароль",
     updating: "Обновление...",
     password_change_encrypted_data_warning:
       "Ваши метки, подписи и шаблоны повторно шифруются при смене пароля. Если соединение прервётся в процессе, эти данные не удастся восстановить.",
+    password_changed_items_unreadable:
+      "Пароль изменён. {{count}} зашифрованных элементов сохранили прежнее шифрование, так как их ключ был недоступен. На доставку почты это не влияет. Чтобы восстановить их, обратитесь в службу поддержки.",
     password_changed_signing_out:
       "Пароль успешно изменён. Выполняется выход из системы...",
     session_security: "Безопасность сессии",
@@ -3379,7 +3408,8 @@ export const ru = {
     mark_as_read: "Отметить как прочитанное",
     mark_as_read_description: "Когда отмечать письма как прочитанные",
     emails_per_page: "Писем на странице",
-    emails_per_page_description: "Количество писем, отображаемых на странице во Входящих, Архиве и других папках",
+    emails_per_page_description:
+      "Количество писем, отображаемых на странице во Входящих, Архиве и других папках",
     immediately: "Сразу",
     after_1_second: "Через 1 секунду",
     after_3_seconds: "Через 3 секунды",
@@ -3678,18 +3708,14 @@ export const ru = {
     dkim_record: "Запись DKIM (TXT)",
     email_authentication_policy: "Политика аутентификации почты",
     dmarc_record: "Запись DMARC (TXT)",
-    tls_reporting:
-      "Отчёты TLS",
-    tlsrpt_record:
-      "Запись TLS-RPT",
+    tls_reporting: "Отчёты TLS",
+    tlsrpt_record: "Запись TLS-RPT",
     tlsrpt_description:
       "Необязательно, но рекомендуется. Принимающие серверы будут присылать ежедневную сводку, если зашифрованная доставка в ваш домен не удалась, и вы заметите проблему раньше пользователей.",
-    dns_instruction_set_tlsrpt_host:
-      "Укажите хост _smtp._tls",
+    dns_instruction_set_tlsrpt_host: "Укажите хост _smtp._tls",
     dns_instruction_set_tlsrpt_value:
       "Вставьте значение TLS-RPT точно так, как показано",
-    optional_step:
-      "Необязательно",
+    optional_step: "Необязательно",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX из Google Takeout",
     outlook_import: "Outlook",
@@ -4678,6 +4704,9 @@ export const ru = {
     conversation_grouping: "Группировка переписок",
     conversation_grouping_confirm_title: "Вы уверены?",
     show_message_size: "Показывать размер сообщения",
+    show_alias_indicators: "Показывать индикаторы псевдонимов",
+    show_alias_indicators_description:
+      "Отмечать письма, пришедшие на один из ваших псевдонимов",
     auto_save_recipients: "Автосохранение недавних получателей",
     disable_recent_recipients_title: "Отключить недавних получателей?",
     disable_and_clear: "Отключить и удалить данные",
@@ -5328,9 +5357,11 @@ export const ru = {
     domain_purchase_purchased_expires: "Истекает {{date}}",
     domain_purchase_purchased_in_progress: "Настраивается...",
     domain_purchase_purchased_awaiting: "Ожидает оплаты",
-    domain_purchase_done_warmup: "Обратите внимание: распространение DNS вашего домена по интернету может занять до часа, а провайдеры вроде Gmail поначалу осторожно относятся к совершенно новым доменам. Доставляемость улучшается по мере накопления истории домена.",
+    domain_purchase_done_warmup:
+      "Обратите внимание: распространение DNS вашего домена по интернету может занять до часа, а провайдеры вроде Gmail поначалу осторожно относятся к совершенно новым доменам. Доставляемость улучшается по мере накопления истории домена.",
     domain_purchase_create_first_address: "Создайте свой первый адрес",
-    domain_purchase_progress_note: "Подождите, пока мы регистрируем ваш домен и настраиваем почтовые ящики. Обычно это занимает около минуты.",
+    domain_purchase_progress_note:
+      "Подождите, пока мы регистрируем ваш домен и настраиваем почтовые ящики. Обычно это занимает около минуты.",
     domain_purchase_complete_cta: "Завершить покупку",
     domain_purchase_purchased_lapsed: "Истёк - купить снова",
     domain_purchase_error_paused:
@@ -5526,13 +5557,18 @@ export const ru = {
     crypto_native_status_underpaid: "Оплачено частично",
     crypto_native_what_happens: "Что будет дальше",
     crypto_native_stripe_option: "Оплатить стейблкоином",
-    crypto_native_stripe_desc: "USDC и другие стейблкоины через нашего платёжного провайдера",
-    crypto_native_too_many_open: "Слишком много незавершённых криптосчетов. Сначала завершите или отмените один.",
-    crypto_native_daily_limit: "Сегодня создано слишком много криптосчетов. Попробуйте позже.",
+    crypto_native_stripe_desc:
+      "USDC и другие стейблкоины через нашего платёжного провайдера",
+    crypto_native_too_many_open:
+      "Слишком много незавершённых криптосчетов. Сначала завершите или отмените один.",
+    crypto_native_daily_limit:
+      "Сегодня создано слишком много криптосчетов. Попробуйте позже.",
     crypto_native_invoice_title: "Оплата в {{coin}}",
-    crypto_native_awaiting_body: "Отправьте точную сумму на адрес ниже. Страница обновляется автоматически.",
+    crypto_native_awaiting_body:
+      "Отправьте точную сумму на адрес ниже. Страница обновляется автоматически.",
     crypto_native_received_title: "Платёж получен",
-    crypto_native_received_body: "Полная сумма получена и обрабатывается. Отправлять что-либо ещё не нужно.",
+    crypto_native_received_body:
+      "Полная сумма получена и обрабатывается. Отправлять что-либо ещё не нужно.",
     crypto_native_send_exactly: "Отправьте ровно",
     crypto_native_send_remaining: "Отправьте оставшуюся сумму",
     crypto_native_to_address: "На этот адрес",
@@ -5544,21 +5580,26 @@ export const ru = {
     crypto_native_no_wallet_handler:
       "Приложение кошелька не открылось. Скопируйте адрес выше и вставьте его в свой кошелёк.",
     crypto_native_copied: "Скопировано в буфер обмена",
-    crypto_native_network_warning: "Отправляйте только {{coin}} в сети {{chain}}. Отправка любого другого актива или использование другой сети приведёт к потере средств.",
+    crypto_native_network_warning:
+      "Отправляйте только {{coin}} в сети {{chain}}. Отправка любого другого актива или использование другой сети приведёт к потере средств.",
     crypto_native_usd_value_label: "Сумма к оплате",
     crypto_native_usd_total_label: "Итого по счёту",
-    crypto_native_rate_locked: "Ваш курс зафиксирован до истечения срока этого счёта.",
+    crypto_native_rate_locked:
+      "Ваш курс зафиксирован до истечения срока этого счёта.",
     crypto_native_expires_in: "Истекает через {{time}}",
     crypto_native_status_awaiting: "Ожидание платежа",
     crypto_native_status_detected: "Платёж обнаружен",
     crypto_native_status_confirming: "Подтверждение ({{current}}/{{required}})",
     crypto_native_status_confirming_short: "Подтверждение",
     crypto_native_status_credited: "Платёж получен",
-    crypto_native_underpaid_body: "Мы получили {{received}} из {{expected}} {{coin}}. Отправьте оставшиеся {{remaining}} {{coin}} на тот же адрес, чтобы завершить оплату счёта.",
+    crypto_native_underpaid_body:
+      "Мы получили {{received}} из {{expected}} {{coin}}. Отправьте оставшиеся {{remaining}} {{coin}} на тот же адрес, чтобы завершить оплату счёта.",
     crypto_native_manual_review: "На проверке",
-    crypto_native_manual_review_body: "Ваш платёж требует быстрой ручной проверки. Мы пополним ваш счёт в ближайшее время.",
+    crypto_native_manual_review_body:
+      "Ваш платёж требует быстрой ручной проверки. Мы пополним ваш счёт в ближайшее время.",
     crypto_native_transaction: "Транзакция",
-    crypto_native_refund_notice: "Переплаты и возвраты зачисляются на баланс вашего аккаунта Aster.",
+    crypto_native_refund_notice:
+      "Переплаты и возвраты зачисляются на баланс вашего аккаунта Aster.",
     crypto_native_cancel_invoice: "Отменить этот счёт",
     crypto_native_cancel_failed: "Не удалось отменить этот счёт.",
     crypto_native_cancel_has_payment:
@@ -5569,21 +5610,24 @@ export const ru = {
     crypto_native_view_billing: "Назад к оплате",
     crypto_native_invoice_cancelled: "Счет отменен",
     crypto_native_expired_title: "Срок действия этого счёта истёк",
-    crypto_native_expired_body: "Курсы меняются, поэтому окно оплаты закрыто. Начните новый платёж, чтобы продолжить.",
+    crypto_native_expired_body:
+      "Курсы меняются, поэтому окно оплаты закрыто. Начните новый платёж, чтобы продолжить.",
     crypto_native_cancelled_body:
       "Этот платёж отменён. Списаний не было. Вы можете начать новый платёж в любой момент.",
-    crypto_native_start_new_payment:
-      "Начать новый платёж",
-    crypto_native_check_now:
-      "Проверить сейчас",
-    crypto_native_expired_do_not_send: "Не отправляйте средства на адрес из этого счёта. Средства, отправленные сейчас, потребуют ручной проверки перед зачислением.",
+    crypto_native_start_new_payment: "Начать новый платёж",
+    crypto_native_check_now: "Проверить сейчас",
+    crypto_native_expired_do_not_send:
+      "Не отправляйте средства на адрес из этого счёта. Средства, отправленные сейчас, потребуют ручной проверки перед зачислением.",
     crypto_native_not_found: "Не удалось найти этот счёт",
     crypto_native_unavailable: "Не удалось загрузить платёж",
-    crypto_native_unavailable_body: "Не удалось связаться с сервером. Проверьте подключение и попробуйте снова. На ваш платёж это не повлияло.",
+    crypto_native_unavailable_body:
+      "Не удалось связаться с сервером. Проверьте подключение и попробуйте снова. На ваш платёж это не повлияло.",
     crypto_native_pending_banner: "У вас есть незавершённый криптоплатёж",
     crypto_native_pending_banner_action: "Продолжить платёж",
-    crypto_native_pending_banner_multi: "У вас {{count}} незавершённых криптоплатежей",
-    crypto_native_back_hint: "Этот счёт ещё активен. Вы можете вернуться к нему в разделе оплаты в любое время.",
+    crypto_native_pending_banner_multi:
+      "У вас {{count}} незавершённых криптоплатежей",
+    crypto_native_back_hint:
+      "Этот счёт ещё активен. Вы можете вернуться к нему в разделе оплаты в любое время.",
     crypto_native_scan_hint: "Отсканируйте в приложении кошелька",
     crypto_native_scan_hint_address_only:
       "Отсканируйте в приложении кошелька, затем введите {{amount}} вручную",
@@ -5594,20 +5638,29 @@ export const ru = {
     crypto_native_invoice_ref_label: "Счёт",
     crypto_native_paying_with_label: "Оплата в",
     crypto_native_cancel_confirm_title: "Отменить этот счёт?",
-    crypto_native_cancel_confirm_body: "Адрес платежа перестанет отслеживаться. Не отправляйте на него средства после отмены. Вы можете начать новый платёж в любое время.",
-    crypto_native_hint_awaiting: "Отправьте точную сумму на адрес выше. Мы автоматически следим за сетью.",
-    crypto_native_hint_detected: "Ваша транзакция в сети. Ожидаем её включения в блок.",
-    crypto_native_hint_confirming: "Идёт подтверждение в сети. Тариф активируется сразу после завершения.",
+    crypto_native_cancel_confirm_body:
+      "Адрес платежа перестанет отслеживаться. Не отправляйте на него средства после отмены. Вы можете начать новый платёж в любое время.",
+    crypto_native_hint_awaiting:
+      "Отправьте точную сумму на адрес выше. Мы автоматически следим за сетью.",
+    crypto_native_hint_detected:
+      "Ваша транзакция в сети. Ожидаем её включения в блок.",
+    crypto_native_hint_confirming:
+      "Идёт подтверждение в сети. Тариф активируется сразу после завершения.",
     crypto_native_hint_credited: "Платёж подтверждён. Ваш тариф активен.",
     crypto_native_time_remaining: "Оставшееся время",
     crypto_native_expiring_soon:
       "Осталось менее 5 минут. Если это окно закроется до поступления платежа, вы можете начать новый по текущему курсу.",
-    crypto_native_hint_underpaid: "Отправьте оставшуюся сумму, указанную выше, на тот же адрес, чтобы завершить этот платёж.",
-    crypto_native_hint_manual_review: "Наша команда проверяет этот платёж. От вас больше ничего не требуется.",
-    crypto_native_connection_lost: "Соединение потеряно. Выполняется автоматическое переподключение.",
-    crypto_native_coins_unavailable: "Не удалось загрузить способы оплаты криптовалютой.",
+    crypto_native_hint_underpaid:
+      "Отправьте оставшуюся сумму, указанную выше, на тот же адрес, чтобы завершить этот платёж.",
+    crypto_native_hint_manual_review:
+      "Наша команда проверяет этот платёж. От вас больше ничего не требуется.",
+    crypto_native_connection_lost:
+      "Соединение потеряно. Выполняется автоматическое переподключение.",
+    crypto_native_coins_unavailable:
+      "Не удалось загрузить способы оплаты криптовалютой.",
     crypto_native_copy_tx_hash: "Скопировать хеш транзакции",
-    crypto_native_expiry_progress: "Время до истечения срока действия этого счёта",
+    crypto_native_expiry_progress:
+      "Время до истечения срока действия этого счёта",
     crypto_native_confirmations_progress: "Подтверждения сети",
     crypto_modal_price: "{{amount}}",
     crypto_modal_title: "Оплата криптовалютой",
@@ -6229,13 +6282,17 @@ export const ru = {
   mail: {
     load_all_thread_messages: "Загрузить все сообщения",
     move_to_category: "Переместить в категорию",
+    menu_applies_to_selection: "Применяется к {count} выбранным",
+    menu_applies_to_all: "Применяется ко всем {count} сообщениям",
     moved_to_category: "Перемещено в категорию",
+    drop_to_move_here: "Перетащите сюда, чтобы переместить",
     tab_new_count: "новых",
     category_empty_primary_title: "В «Основных» пусто",
     category_empty_primary_desc:
       "Здесь будут отображаться ваши личные сообщения и переписки.",
     category_empty_promotions_title: "Нет скидок",
-    category_empty_promotions_desc: "Скидки, распродажи и рекламные письма появятся здесь, отдельно от остальной почты.",
+    category_empty_promotions_desc:
+      "Скидки, распродажи и рекламные письма появятся здесь, отдельно от остальной почты.",
     category_empty_social_title: "Нет обновлений из соцсетей",
     category_empty_social_desc:
       "Здесь будут появляться сообщения из социальных сетей и сообществ.",
@@ -6473,6 +6530,10 @@ export const ru = {
       "Это действие затронет все беседы в этом представлении.",
     bulk_action_index_not_ready:
       "Эта вкладка ещё индексируется. Повторите попытку через мгновение.",
+    bulk_action_index_building:
+      "Эта вкладка ещё индексируется. Действие начнётся, как только индекс будет готов.",
+    bulk_action_index_capped:
+      "В этой вкладке слишком много переписок, чтобы обновить их сразу. Выберите переписки и попробуйте снова.",
     archive_messages_title: "Архивировать сообщения",
     archive_messages_confirmation:
       "Вы уверены, что хотите архивировать выбранные сообщения?",
@@ -6867,8 +6928,7 @@ export const ru = {
     image: "изображение",
     images: "изображения",
     indexing_messages: "Индексирование сообщений...",
-    message_download_status:
-      "Статус загрузки сообщений: {{done}} из {{total}}",
+    message_download_status: "Статус загрузки сообщений: {{done}} из {{total}}",
     estimated_time_remaining: "Осталось примерно: {{duration}}",
     download_paused: "Загрузка приостановлена",
     pause_download_action: "Приостановить",
@@ -7015,6 +7075,7 @@ export const ru = {
     stylesheet: "таблица стилей",
     to_recipients_prefix: "кому {{ recipients }}",
     received_on_prefix: "получено на {{ address }}",
+    received_via_alias: "доставлено на псевдоним {{ address }}",
     tracker: "трекер",
     tracker_domain: "{{domain}}",
     trackers: "трекеры",
@@ -7148,7 +7209,8 @@ export const ru = {
       "Для создания дополнительного аккаунта требуется резервный email. Это помогает защитить все ваши аккаунты.",
     username_min_length: "Сюда подходит не менее 3 символов.",
     username_max_length: "Сюда подходит меньше 40 символов.",
-    username_alphanumeric: "Используйте буквы, цифры и точки. Точка не может быть в начале, в конце или идти подряд.",
+    username_alphanumeric:
+      "Используйте буквы, цифры и точки. Точка не может быть в начале, в конце или идти подряд.",
     username_not_available:
       "Это имя пользователя занято. Другое обычно подходит.",
     password_req_length: "Не менее 8 символов",
@@ -7588,8 +7650,7 @@ export const ru = {
   },
   errors: {
     failed_remove_reaction: "Не удалось удалить реакцию. Попробуйте ещё раз.",
-    cannot_react_own_message:
-      "Нельзя поставить реакцию на своё сообщение.",
+    cannot_react_own_message: "Нельзя поставить реакцию на своё сообщение.",
     cannot_react_draft:
       "Нельзя поставить реакцию на черновик или запланированное сообщение.",
     cannot_react_spam_or_trash:
@@ -7675,6 +7736,8 @@ export const ru = {
       "Это письмо есть на сервере, но при передаче выглядит повреждённым. Обновление и ещё одна попытка обычно помогают, а hello@astermail.org подскажет, если не получится.",
     decrypt_sender_error:
       "Отправитель зашифровал это письмо способом, который мы не можем прочитать. Просьба переслать его обычно решает вопрос. Остальные письма не затронуты.",
+    metadata_undecryptable_change:
+      "Это устройство не может открыть данные этого письма, поэтому ваше изменение не сохраняется. Чтобы загрузить ключи заново, выйдите и войдите снова. Письмо на сервере остаётся без изменений.",
     no_unsubscribe_method:
       "Этот отправитель не добавил заголовок отписки. Ссылка в самом письме или пометка как спам дадут тот же результат.",
     invalid_unsubscribe_address:
@@ -7857,8 +7920,10 @@ export const ru = {
     no_labels_create_hint: "Меток пока нет. Создайте новую в боковой панели.",
     action_apply_label: "Применить метку",
     action_apply_labels: "Применить метки",
-    alias_delivery_conflict: "Алиас {{ alias }} доставляет в {{ alias_target }}, поэтому это правило с {{ rule_target }} окажется главнее.",
-    alias_label_conflict: "Алиас {{ alias }} помечает почту меткой {{ alias_target }}, а это правило добавляет ещё {{ rule_target }}.",
+    alias_delivery_conflict:
+      "Алиас {{ alias }} доставляет в {{ alias_target }}, поэтому это правило с {{ rule_target }} окажется главнее.",
+    alias_label_conflict:
+      "Алиас {{ alias }} помечает почту меткой {{ alias_target }}, а это правило добавляет ещё {{ rule_target }}.",
     action_auto_reply: "Автоответ",
     action_categorize: "Категоризировать",
     action_delete: "Удалить",

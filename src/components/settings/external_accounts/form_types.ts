@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { RefObject } from "react";
 import type {
   DecryptedExternalAccount,
   ExternalAccountFolder,
@@ -32,7 +31,6 @@ import type {
 export interface AddAccountFormProps {
   editing_account: DecryptedExternalAccount | null;
   form_visible: boolean;
-  modal_ref: RefObject<HTMLDivElement>;
   close_form: () => void;
   form_email: string;
   form_display_name: string;

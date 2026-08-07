@@ -325,12 +325,12 @@ export function TotpSetupModal({
             className="flex items-center gap-2 p-3 rounded-lg"
             style={{
               backgroundColor: "var(--accent-color-hover)",
-              color: "#fff",
+              color: "var(--accent-fg, #ffffff)",
             }}
           >
             <ExclamationTriangleIcon
               className="w-5 h-5 flex-shrink-0"
-              style={{ color: "#fff" }}
+              style={{ color: "var(--accent-fg, #ffffff)" }}
             />
             <p className="text-xs" style={{ color: "#fff" }}>
               {t("settings.backup_code_security_note")}

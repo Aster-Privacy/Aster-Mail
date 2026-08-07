@@ -87,7 +87,7 @@ export const RegisterStepWelcome = ({ reg }: RegisterStepWelcomeProps) => {
               letterSpacing: "0.06em",
               textTransform: "uppercase",
               lineHeight: 1,
-              color: "#ffffff",
+              color: "var(--accent-fg, #ffffff)",
               backgroundColor: "var(--accent-color-hover)",
             }}
           >

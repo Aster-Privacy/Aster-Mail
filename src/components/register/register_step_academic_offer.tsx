@@ -257,7 +257,7 @@ export const RegisterStepAcademicOffer = ({
           role="tab"
           style={
             role === "student"
-              ? { backgroundColor: "var(--accent-blue)", color: "#ffffff" }
+              ? { backgroundColor: "var(--accent-blue)", color: "var(--accent-fg, #ffffff)" }
               : { color: "var(--text-tertiary)" }
           }
           type="button"
@@ -272,7 +272,7 @@ export const RegisterStepAcademicOffer = ({
           role="tab"
           style={
             role === "journalist"
-              ? { backgroundColor: "var(--accent-blue)", color: "#ffffff" }
+              ? { backgroundColor: "var(--accent-blue)", color: "var(--accent-fg, #ffffff)" }
               : { color: "var(--text-tertiary)" }
           }
           type="button"

@@ -213,7 +213,7 @@ export function SearchModal({
 
   useEffect(() => {
     if (!is_open) return;
-    const on_pointer_down = (e: MouseEvent | TouchEvent) => {
+    const on_pointer_down = (e: PointerEvent) => {
       const node = dropdown_ref.current;
       const anchor = anchor_ref?.current;
       const target = e.target as Node | null;
@@ -224,12 +224,10 @@ export function SearchModal({
       handle_close();
     };
 
-    window.addEventListener("mousedown", on_pointer_down);
-    window.addEventListener("touchstart", on_pointer_down, { passive: true });
+    window.addEventListener("pointerdown", on_pointer_down);
 
     return () => {
-      window.removeEventListener("mousedown", on_pointer_down);
-      window.removeEventListener("touchstart", on_pointer_down);
+      window.removeEventListener("pointerdown", on_pointer_down);
     };
   }, [is_open, handle_close, anchor_ref]);
 

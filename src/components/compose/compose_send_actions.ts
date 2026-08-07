@@ -35,7 +35,7 @@ import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { invalidate_mail_counts } from "@/hooks/use_mail_counts";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 export interface SendActionContext {
   undo_send_enabled: boolean;
@@ -133,7 +133,7 @@ export async function execute_internal_send(
       {
         on_sent: () => {
           ctx.set_queued_email_id(null);
-          invalidate_mail_counts();
+          invalidate_mail_stats();
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
@@ -253,7 +253,7 @@ export async function execute_external_email_send(
       {
         on_sent: () => {
           ctx.set_queued_email_id(null);
-          invalidate_mail_counts();
+          invalidate_mail_stats();
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();

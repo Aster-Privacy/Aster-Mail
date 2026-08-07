@@ -121,7 +121,6 @@ export function ExternalAccountsSection() {
           is_submitting={state.is_submitting}
           is_testing={state.is_testing}
           is_testing_smtp={state.is_testing_smtp}
-          modal_ref={state.modal_ref}
           selected_folders={state.selected_folders}
           set_form_archive_sent={state.set_form_archive_sent}
           set_form_delete_after_fetch={state.set_form_delete_after_fetch}

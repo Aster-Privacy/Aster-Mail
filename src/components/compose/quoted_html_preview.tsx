@@ -21,6 +21,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { strip_unresolved_cid_references } from "@/lib/cid_resolver";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_external_link } from "@/contexts/external_link_context";
@@ -32,11 +33,13 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
   const sanitized_html = useMemo(() => {
     const lockdown_mode = is_any_lockdown_active();
 
-    return sanitize_html(html, {
-      external_content_mode: lockdown_mode ? "never" : "always",
-      lockdown_mode,
-      image_proxy_url: get_image_proxy_url(),
-    }).html;
+    return strip_unresolved_cid_references(
+      sanitize_html(html, {
+        external_content_mode: lockdown_mode ? "never" : "always",
+        lockdown_mode,
+        image_proxy_url: get_image_proxy_url(),
+      }).html,
+    );
   }, [html]);
 
   useEffect(() => {

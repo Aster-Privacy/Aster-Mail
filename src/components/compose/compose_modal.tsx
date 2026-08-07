@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
@@ -41,6 +41,7 @@ import {
   ComposeErrorFallback,
 } from "@/components/ui/error_boundary";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_compose } from "@/components/compose/use_compose";
 import {
   ComposeFormFields,
@@ -93,21 +94,7 @@ export function ComposeModal({
     return false;
   }, []);
 
-  useEffect(() => {
-    if (!is_open) return;
-
-    const handle_escape = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        on_close();
-      }
-    };
-
-    document.addEventListener("keydown", handle_escape);
-
-    return () => document.removeEventListener("keydown", handle_escape);
-  }, [is_open, on_close]);
+  use_escape_layer(is_open, on_close, "compose_modal");
 
   return (
     <AnimatePresence>

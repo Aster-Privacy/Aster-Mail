@@ -371,7 +371,7 @@ export function use_scheduled_emails(
     } else if (!has_keys) {
       scheduled_cache = null;
       has_loaded_ref.current = false;
-      set_is_loading(false);
+      set_is_loading(true);
       set_emails([]);
     }
 
@@ -404,6 +404,7 @@ export function use_scheduled_emails(
           clearInterval(vault_check_ref.current);
           vault_check_ref.current = null;
         }
+        set_error(t("common.no_vault_available"));
         set_is_loading(false);
       }
     }, 100);
@@ -414,7 +415,7 @@ export function use_scheduled_emails(
         vault_check_ref.current = null;
       }
     };
-  }, [auth_loading, has_keys, is_active, fetch_scheduled]);
+  }, [auth_loading, has_keys, is_active, fetch_scheduled, t]);
 
   useEffect(() => {
     if (!is_active) return;
@@ -441,15 +442,6 @@ export function use_scheduled_emails(
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
     };
   }, [is_active, has_keys, refresh]);
-
-  useEffect(() => {
-    if (!is_loading) return;
-    const safety_timeout = setTimeout(() => {
-      set_is_loading(false);
-    }, 10_000);
-
-    return () => clearTimeout(safety_timeout);
-  }, [is_loading]);
 
   useEffect(() => {
     if (has_keys && !is_loading) {

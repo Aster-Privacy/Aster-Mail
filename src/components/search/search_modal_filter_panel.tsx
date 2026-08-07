@@ -289,7 +289,7 @@ export function SearchModalFilterPanel({
                 <span />
               )}
               <button
-                className="inline-flex items-center gap-1.5 h-9 px-5 rounded-[12px] bg-[var(--accent-color,#3b82f6)] text-white text-[13px] font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color,#3b82f6)]"
+                className="inline-flex items-center gap-1.5 h-9 px-5 rounded-[12px] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)] text-[13px] font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color,#3b82f6)]"
                 type="submit"
               >
                 <MagnifyingGlassIcon className="w-4 h-4" />

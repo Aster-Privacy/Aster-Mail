@@ -24,11 +24,28 @@ import { Capacitor } from "@capacitor/core";
 import { start_iframe_autoscroll } from "@/components/email/iframe_autoscroll";
 import {
   build_email_body_css,
+  build_auto_dark_mode_css,
+  build_email_body_ink,
   build_forced_dark_mode_css,
   LINK_BUTTON_EXCLUDE,
   LINK_BUTTON_HOVER_SELECTOR,
 } from "@/lib/email_body_styles";
+import {
+  LINK_HOVER_VAR,
+  repair_email_contrast,
+} from "@/lib/email_contrast_repair";
 import { hex_to_rgba } from "@/lib/material_theme";
+import {
+  derive_link_hover_ink,
+  derive_link_ink,
+  derive_rail_color,
+  derive_visited_ink,
+  normalize_hex,
+} from "@/lib/email_ink";
+import {
+  DEFAULT_ACCENT_COLOR,
+  use_resolved_accent,
+} from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
   build_font_face_css,
@@ -40,11 +57,13 @@ import {
   extract_cid_references,
   resolve_cid_references,
   revoke_cid_blob_urls,
+  strip_unresolved_cid_references,
 } from "@/lib/cid_resolver";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences, FONT_SIZE_DEFAULT, normalize_font_size_scale } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { forward_iframe_outside_interaction } from "@/lib/iframe_outside_interaction";
 import { api_client } from "@/services/api/client";
 import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
@@ -158,7 +177,7 @@ async function resolve_native_images(doc: Document): Promise<void> {
 const BODY_PADDING = "8px 16px 16px 16px";
 
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
-const FALLBACK_ACCENT = "#3b82f6";
+const FALLBACK_ACCENT = DEFAULT_ACCENT_COLOR;
 
 function safe_hex(value: string | undefined, fallback = FALLBACK_ACCENT): string {
   return value && HEX_COLOR_PATTERN.test(value.trim()) ? value.trim() : fallback;
@@ -172,40 +191,26 @@ function expand_hex(value: string): string {
     : `#${raw}`;
 }
 
-export function link_ink_for(value: string): string {
-  const hex = expand_hex(safe_hex(value));
-  const n = Number.parseInt(hex.slice(1), 16);
+export function link_ink_for(value: string, background = "#ffffff"): string {
+  const hex = expand_hex(safe_hex(value, DEFAULT_ACCENT_COLOR));
+  const surface = normalize_hex(background) ?? "#ffffff";
 
-  if (!Number.isFinite(n)) return FALLBACK_ACCENT;
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const saturation = max === 0 ? 0 : (max - min) / max;
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-
-  if (saturation < 0.18 || luminance > 0.88 || luminance < 0.1) {
-    return FALLBACK_ACCENT;
-  }
-
-  return hex;
+  return derive_link_ink(hex, surface);
 }
 
-export function link_hover_ink_for(value: string, is_dark: boolean): string {
-  const hex = expand_hex(safe_hex(value));
-  const n = Number.parseInt(hex.slice(1), 16);
+export function link_hover_ink_for(
+  value: string,
+  background: string | boolean = "#ffffff",
+): string {
+  const hex = expand_hex(safe_hex(value, DEFAULT_ACCENT_COLOR));
+  const surface =
+    typeof background === "boolean"
+      ? background
+        ? "#121212"
+        : "#ffffff"
+      : (normalize_hex(background) ?? "#ffffff");
 
-  if (!Number.isFinite(n)) return FALLBACK_ACCENT;
-
-  const target = is_dark ? 255 : 0;
-  const mix = is_dark ? 0.42 : 0.38;
-  const to_hex = (channel: number) =>
-    Math.round(channel + (target - channel) * mix)
-      .toString(16)
-      .padStart(2, "0");
-
-  return `#${to_hex((n >> 16) & 255)}${to_hex((n >> 8) & 255)}${to_hex(n & 255)}`;
+  return derive_link_hover_ink(hex, surface);
 }
 
 export const FIT_SLACK_PX = 4;
@@ -362,6 +367,7 @@ export function SandboxedEmailRenderer({
     cached_height ? `${cached_height}px` : "0px",
   );
   const [height_ready, set_height_ready] = useState(!!cached_height);
+  const contrast_repair_ref = useRef({ enabled: false, surface: "#121212" });
   const prev_html_ref = useRef(sanitized_html);
   const iframe_ref = useRef<HTMLIFrameElement | null>(null);
   const doc_nonce_ref = useRef(0);
@@ -378,19 +384,6 @@ export function SandboxedEmailRenderer({
   const on_document_ready_ref = useRef(on_document_ready);
 
   on_document_ready_ref.current = on_document_ready;
-
-  if (prev_html_ref.current !== sanitized_html) {
-    prev_html_ref.current = sanitized_html;
-    const new_cached = email_id ? get_cached_iframe_height(email_id) : undefined;
-
-    set_iframe_height(new_cached ? `${new_cached}px` : "0px");
-    set_height_ready(!!new_cached);
-    has_fired_ready_ref.current = !!new_cached;
-    if (stable_timer_ref.current) {
-      clearTimeout(stable_timer_ref.current);
-      stable_timer_ref.current = null;
-    }
-  }
 
   load_remote_ref.current = load_remote_content;
   const [internal_cid_html, set_internal_cid_html] = useState<string | null>(
@@ -468,13 +461,11 @@ export function SandboxedEmailRenderer({
     (has_pending_cids && stable_cid_html_ref.current
       ? stable_cid_html_ref.current
       : has_pending_cids
-        ? sanitized_html.replace(
-            /src=["']cid:[^"']+["']/gi,
-            'src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-cid-pending="1"',
-          )
+        ? strip_unresolved_cid_references(sanitized_html, true)
         : sanitized_html);
 
   const { theme } = useTheme();
+  const resolved_accent = use_resolved_accent();
   const app_is_dark = theme === "dark";
   const is_dark_theme = app_is_dark && !disable_auto_dark_mode;
   const is_html_email = !is_plain_text;
@@ -516,6 +507,8 @@ export function SandboxedEmailRenderer({
       ? "#e5e5e5"
       : "#111827";
   const simple_dark_html = is_dark_theme && !force_dark_mode && is_html_email && !has_newsletter_layout && !declares_light_scheme;
+  const auto_dark_active =
+    is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html);
   const html_text_color = force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
   const html_bg = force_dark_mode || simple_dark_html
     ? "transparent"
@@ -538,58 +531,87 @@ export function SandboxedEmailRenderer({
       ? `html body, html body *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }`
       : "";
 
-  const accent_hex = safe_hex(preferences.accent_color);
-  const accent_hover_hex = safe_hex(preferences.accent_color_hover, accent_hex);
-  const link_hover_ink = link_ink_for(is_dark_theme ? accent_hover_hex : accent_hex);
-  const link_hover_paint = link_hover_ink_for(link_hover_ink, is_dark_theme);
+  const accent_hex = safe_hex(resolved_accent.accent);
+  const body_ink_surface =
+    force_dark_mode || simple_dark_html || (!is_html_email && is_dark_theme)
+      ? (normalize_hex(resolved_accent.surface) ?? "#121212")
+      : "#ffffff";
+  const link_ink = link_ink_for(accent_hex, body_ink_surface);
+  const link_hover_paint = link_hover_ink_for(link_ink, body_ink_surface);
+  const link_visited_ink = derive_visited_ink(link_ink, body_ink_surface);
+  const quote_rail_ink = derive_rail_color(accent_hex, body_ink_surface);
+
+  const contrast_repair_active = force_dark_mode || auto_dark_active;
+
+  contrast_repair_ref.current = {
+    enabled: contrast_repair_active,
+    surface: body_ink_surface,
+  };
+
+  const [contrast_ready, set_contrast_ready] = useState(!contrast_repair_active);
+  const prev_contrast_repair_ref = useRef(contrast_repair_active);
+
+  if (prev_contrast_repair_ref.current !== contrast_repair_active) {
+    prev_contrast_repair_ref.current = contrast_repair_active;
+    set_contrast_ready(!contrast_repair_active);
+  }
+
+  if (prev_html_ref.current !== sanitized_html) {
+    prev_html_ref.current = sanitized_html;
+    const new_cached = email_id ? get_cached_iframe_height(email_id) : undefined;
+
+    set_iframe_height(new_cached ? `${new_cached}px` : "0px");
+    set_height_ready(!!new_cached);
+    set_contrast_ready(!contrast_repair_active);
+    has_fired_ready_ref.current = !!new_cached;
+    if (stable_timer_ref.current) {
+      clearTimeout(stable_timer_ref.current);
+      stable_timer_ref.current = null;
+    }
+  }
+
+  const email_body_ink = build_email_body_ink(accent_hex, body_ink_surface);
 
   const link_underline_css = preferences.link_underlines
-    ? `a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { text-decoration: underline !important; text-decoration-color: ${link_hover_ink} !important; text-underline-offset: 2px; }`
+    ? `a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { text-decoration: underline !important; text-decoration-color: ${link_ink} !important; text-underline-offset: 2px; }`
     : "";
 
   const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
+  const hover_paint = `var(${LINK_HOVER_VAR}, ${link_hover_paint})`;
   const link_hover_css = `a { transition: none; }
 a${LINK_BUTTON_EXCLUDE}:hover, a${LINK_BUTTON_EXCLUDE}:hover *${LINK_MEDIA_EXCLUDE} {
-  color: ${link_hover_paint} !important;
+  color: ${hover_paint} !important;
   text-decoration: underline !important;
-  text-decoration-color: ${link_hover_paint} !important;
+  text-decoration-color: ${hover_paint} !important;
 }
 ${LINK_BUTTON_HOVER_SELECTOR} {
   filter: brightness(1.08);
 }
 a:focus-visible {
-  outline: 2px solid ${link_hover_ink} !important;
+  outline: 2px solid ${link_ink} !important;
   outline-offset: 1px;
 }`;
 
   const quote_toggle_css = `.aster-quote-toggle { display: inline-block !important; padding: 0 3px !important; font-size: 6px !important; line-height: 12px !important; letter-spacing: 1px !important; background: rgba(128, 128, 128, 0.1) !important; border: 1px solid rgba(128, 128, 128, 0.15) !important; border-radius: 99px !important; color: rgba(100, 100, 100, 0.55) !important; cursor: pointer !important; vertical-align: middle !important; }
 .aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
-.aster-quoted-content { border-left-color: ${accent_hover_hex} !important; }`;
+.aster-quoted-content { border-left-color: ${quote_rail_ink} !important; }`;
 
-  const QUOTE_SCOPE_EXCLUDE =
-    ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
-  const plain_dark_css =
-    is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html)
-      ? `html { color-scheme: dark !important; }
-html, body { background-color: transparent !important; color: ${plain_text_color} !important; }
-body *${QUOTE_SCOPE_EXCLUDE} { color: inherit !important; }
-body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
-a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_hover_ink} !important; }
-a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }`
-      : "";
+  const plain_dark_css = auto_dark_active
+    ? build_auto_dark_mode_css(plain_text_color, link_ink, link_visited_ink)
+    : "";
   const dark_mode_css = force_dark_mode
-    ? build_forced_dark_mode_css(accent_hex, link_hover_ink)
+    ? build_forced_dark_mode_css(quote_rail_ink, link_ink, link_visited_ink)
     : plain_dark_css;
 
   const force_light_scheme = is_html_email && !force_dark_mode && !simple_dark_html;
 
   const simple_html = is_html_email && !has_table_layout;
   const html_body_style = simple_html
-    ? `background-color:${html_bg};color:${html_text_color};padding:${BODY_PADDING};font-family:${base_font};font-size:14px;line-height:1.6;word-wrap:break-word`
+    ? `background-color:${html_bg};${auto_dark_active ? "" : `color:${html_text_color};`}padding:${BODY_PADDING};font-family:${base_font};font-size:14px;line-height:1.6;word-wrap:break-word`
     : `background-color:${html_bg};padding:${BODY_PADDING}`;
   const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:${BODY_PADDING};font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
-  const iframe_css = build_email_body_css(accent_hex, base_font);
+  const iframe_css = build_email_body_css(accent_hex, base_font, email_body_ink);
 
   const html_el_style =
     is_html_email && !force_dark_mode && !simple_dark_html
@@ -640,7 +662,7 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 ${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
 ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important; }</style>` : ""}
 <style>${quote_toggle_css}</style>
-<style>::selection { background: ${hex_to_rgba(link_hover_ink, 0.35)}; }
+<style>::selection { background: ${hex_to_rgba(link_ink, 0.35)}; }
 .aster-quote-toggle, .aster-forwarded-collapse > summary, .remote-content-banner { -webkit-user-select: none !important; user-select: none !important; }</style>
 ${email_font_face_css ? `<style>${email_font_face_css}</style>` : ""}
 ${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}
@@ -649,7 +671,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>${link_hover_css}</style>
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
 </head>
-<body style="${is_html_email ? html_body_style : plain_body_style}">${resolved_html.replace(/src=["']cid:[^"']*["']/gi, 'src="data:,"')}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
+<body style="${is_html_email ? html_body_style : plain_body_style}">${strip_unresolved_cid_references(resolved_html)}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
 </html>`;
 
   const collapse_forwarded_content = useCallback(
@@ -1194,6 +1216,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
     if (!iframe?.contentDocument?.body) return;
     if (iframe.contentDocument.body.hasAttribute("data-aster-processed")) {
+      set_contrast_ready(true);
       remeasure_ref.current?.();
 
       return;
@@ -1253,6 +1276,16 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         trim_trailing_empty_blocks(iframe.contentDocument);
       }
     }
+
+    if (contrast_repair_ref.current.enabled) {
+      try {
+        repair_email_contrast(iframe.contentDocument, {
+          surface: contrast_repair_ref.current.surface,
+          view: iframe.contentWindow,
+        });
+      } catch {}
+    }
+    set_contrast_ready(true);
 
     const MAX_IFRAME_HEIGHT = 12000;
 
@@ -1588,6 +1621,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       doc_fonts.addEventListener?.("loadingdone", remeasure_if_current_doc);
     }
 
+    forward_iframe_outside_interaction(iframe.contentDocument);
+
     iframe.contentDocument.addEventListener(
       "wheel",
       (e) => {
@@ -1888,7 +1923,18 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     };
   }, [srcdoc_html, doc_nonce, handle_load]);
 
-  const show_skeleton = !height_ready;
+  useEffect(() => {
+    if (contrast_ready) return;
+
+    const timer = setTimeout(
+      () => set_contrast_ready(true),
+      CONTENT_READY_FALLBACK_MS,
+    );
+
+    return () => clearTimeout(timer);
+  }, [contrast_ready, srcdoc_html]);
+
+  const show_skeleton = !height_ready || !contrast_ready;
 
   return (
     <>
@@ -2023,7 +2069,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           maxHeight: "12000px",
           overflow: "hidden",
           display: "block",
-          opacity: height_ready ? 1 : 0,
+          opacity: height_ready && contrast_ready ? 1 : 0,
           backgroundColor: effective_bg,
           touchAction: "pan-y",
         }}

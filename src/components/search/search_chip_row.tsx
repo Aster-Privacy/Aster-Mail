@@ -640,7 +640,7 @@ export function SearchChipRow({
               onChange={(event) => set_custom_before(event.target.value)}
             />
             <button
-              className="h-8 rounded-[10px] text-xs font-medium bg-[var(--accent-blue)] text-white hover:opacity-90 transition-opacity"
+              className="h-8 rounded-[10px] text-xs font-medium bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90 transition-opacity"
               type="button"
               onClick={apply_custom_range}
             >

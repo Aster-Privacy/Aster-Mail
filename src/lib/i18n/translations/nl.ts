@@ -415,7 +415,8 @@ export const nl = {
     pending_email_notifications: "Wachtende e-mailmeldingen",
     selected: "geselecteerd",
     are_you_sure: "Weet je het zeker?",
-    sign_out_all_confirmation: "Weet je zeker dat je wilt uitloggen bij alle accounts op dit apparaat?",
+    sign_out_all_confirmation:
+      "Weet je zeker dat je wilt uitloggen bij alle accounts op dit apparaat?",
     sign_out_confirmation: "Weet je zeker dat je wilt uitloggen?",
     remove_account_confirmation:
       "Weet je zeker dat je dit account wilt verwijderen? Je kunt het later opnieuw toevoegen.",
@@ -447,8 +448,11 @@ export const nl = {
       "Deze wijzigingen zijn niet opgeslagen. Een nieuwe poging zou werken. De e-mails zelf zijn ongewijzigd.",
     failed_to_archive_emails:
       "Het archiveren is niet voltooid. Een nieuwe poging zou werken. De e-mails staan nog in uw inbox.",
+    failed_to_unarchive_emails:
+      "Het verplaatsen naar de inbox is niet voltooid. Een nieuwe poging zou werken. De e-mails staan nog in het archief.",
     something_went_wrong: "Er is een fout opgetreden.",
-    unexpected_error_refresh: "Er ging iets mis, vernieuw de pagina om verder te gaan.",
+    unexpected_error_refresh:
+      "Er ging iets mis, vernieuw de pagina om verder te gaan.",
     unsupported_browser: "Browser niet ondersteund.",
     unsupported_browser_detail: "Probeer een andere browser.",
     try_again: "Een nieuwe poging zou werken.",
@@ -479,10 +483,8 @@ export const nl = {
     adding: "Toevoegen...",
     checking: "Controleren...",
     host_name: "Hostnaam",
-    dns_required:
-      "Vereist",
-    dns_recommended:
-      "Aanbevolen",
+    dns_required: "Vereist",
+    dns_recommended: "Aanbevolen",
     dns_caveat_mx_replaces_existing:
       "Dit vervangt bestaande MX-records. Verwijder de MX-records van je vorige mailprovider, anders bereikt nieuwe post Aster niet.",
     dns_caveat_spf_single_record_other_senders:
@@ -638,6 +640,8 @@ export const nl = {
     spam_emails_permanently_deleted:
       "{{count}} spam-e-mail(s) permanent verwijderd",
     trash_emptied: "Prullenbak succesvol geleegd",
+    spam_empty_failed:
+      "Spam kon niet worden geleegd. Een nieuwe poging over een moment helpt meestal. Er is niets verwijderd.",
     conversations_marked_as_spam_bulk:
       "{{count}} gesprek(ken) als spam gemarkeerd",
     conversations_restored_bulk: "{{count}} gesprek(ken) hersteld",
@@ -1465,6 +1469,16 @@ export const nl = {
     contacts_unstarred: "Ster verwijderd van {{count}} contacten",
     conversations_starred_bulk: "{{count}} gesprekken met ster gemarkeerd",
     conversations_unstarred_bulk: "Ster verwijderd van {{count}} gesprekken",
+    conversations_moved_to_inbox_bulk:
+      "{{count}} gesprek(ken) verplaatst naar Postvak IN",
+    conversations_marked_as_not_spam_bulk:
+      "{{count}} gesprek(ken) gemarkeerd als geen spam",
+    bulk_action_partially_applied:
+      "{{count}} van {{total}} gesprekken bijgewerkt. De rest is niet gewijzigd.",
+    bulk_action_truncated:
+      "Deze actie verwerkte de eerste {{count}} berichten. Voer de actie opnieuw uit voor de rest.",
+    bulk_action_continues_in_background:
+      "De overige berichten worden nog op de achtergrond bijgewerkt.",
     custom_fields: "Aangepaste velden",
     device_revoked: "Apparaat ingetrokken",
     display_name_too_long: "Weergavenaam is te lang",
@@ -2219,17 +2233,22 @@ export const nl = {
     alias_details_title: "Details",
     alias_display_name_label: "Weergavenaam",
     alias_note_label: "Notitie",
-    alias_details_description: "Geef deze alias een naam en noteer waar je hem gebruikt.",
-    alias_display_name_desc: "Wordt getoond als afzendernaam wanneer je vanaf deze alias schrijft.",
+    alias_details_description:
+      "Geef deze alias een naam en noteer waar je hem gebruikt.",
+    alias_display_name_desc:
+      "Wordt getoond als afzendernaam wanneer je vanaf deze alias schrijft.",
     alias_note_desc: "Een privénotitie waarvoor deze alias bedoeld is.",
     alias_websites_desc: "Sites waarvoor je je met deze alias hebt aangemeld.",
     alias_stats_description: "Hoeveel post deze alias heeft verwerkt.",
     alias_usage_used_of: "{{ used }} van {{ max }} aliassen gebruikt",
     alias_usage_unlock: "Onbeperkt krijgen",
-    alias_usage_nudge: "Betaalde abonnementen bevatten onbeperkte aliassen, eigen domeinen, aliasregels en afzendervastzetting.",
+    alias_usage_nudge:
+      "Betaalde abonnementen bevatten onbeperkte aliassen, eigen domeinen, aliasregels en afzendervastzetting.",
     alias_sender_pin_mode_label: "Modus",
-    alias_feature_locked_stats: "Upgrade je abonnement om de activiteit van deze alias te zien.",
-    alias_feature_locked_delivery_log: "Upgrade je abonnement om te zien wat er is geblokkeerd.",
+    alias_feature_locked_stats:
+      "Upgrade je abonnement om de activiteit van deze alias te zien.",
+    alias_feature_locked_delivery_log:
+      "Upgrade je abonnement om te zien wat er is geblokkeerd.",
     alias_paid_badge: "Betaald",
     alias_field_display_name_label: "Weergavenaam",
     alias_field_note_label: "Notitie",
@@ -2339,15 +2358,22 @@ export const nl = {
       "Die instelling is niet opgeslagen. Nog een poging zou moeten lukken.",
     alias_delivery_folder_missing: "Verwijderde map",
     alias_delivery_label: "Label",
-    alias_delivery_label_desc: "Geef elk bericht dat op deze alias binnenkomt een label.",
-    alias_delivery_label_info: "Post naar deze alias krijgt automatisch een label, zonder regel. Het label komt bovenop de doelmap.",
+    alias_delivery_label_desc:
+      "Geef elk bericht dat op deze alias binnenkomt een label.",
+    alias_delivery_label_info:
+      "Post naar deze alias krijgt automatisch een label, zonder regel. Het label komt bovenop de doelmap.",
     alias_delivery_label_none: "Geen label",
     alias_delivery_label_missing: "Verwijderd label",
-    alias_delivery_label_error: "Deze instelling is niet opgeslagen. Probeer het opnieuw.",
-    alias_delivery_rule_note: "Regel \"{{ rule }}\" verplaatst post voor deze alias al naar {{ target }}.",
-    alias_delivery_rule_conflict: "Regel \"{{ rule }}\" verplaatst post voor deze alias naar {{ rule_target }}, dus die komt niet in {{ target }}.",
-    alias_delivery_label_rule_note: "Regel \"{{ rule }}\" labelt post voor deze alias al met {{ target }}.",
-    alias_delivery_label_rule_conflict: "Regel \"{{ rule }}\" labelt post voor deze alias met {{ rule_target }}, niet met {{ target }}.",
+    alias_delivery_label_error:
+      "Deze instelling is niet opgeslagen. Probeer het opnieuw.",
+    alias_delivery_rule_note:
+      'Regel "{{ rule }}" verplaatst post voor deze alias al naar {{ target }}.',
+    alias_delivery_rule_conflict:
+      'Regel "{{ rule }}" verplaatst post voor deze alias naar {{ rule_target }}, dus die komt niet in {{ target }}.',
+    alias_delivery_label_rule_note:
+      'Regel "{{ rule }}" labelt post voor deze alias al met {{ target }}.',
+    alias_delivery_label_rule_conflict:
+      'Regel "{{ rule }}" labelt post voor deze alias met {{ rule_target }}, niet met {{ target }}.',
     alias_relay_title: "Bezorging",
     alias_relay_description: "Kies hoe e-mail naar deze alias wordt bezorgd.",
     alias_relay_mode_native: "Native",
@@ -3261,10 +3287,14 @@ export const nl = {
       "Een van uw aliassen kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder de betreffende alias en probeer het opnieuw.",
     contact_reencrypt_failed:
       "Een van uw contacten kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder het betreffende contact en probeer het opnieuw.",
+    password_change_fingerprint_mismatch:
+      "Deze sessie is gestart op een ander netwerk of een andere browser, dus Aster Mail heeft uw wachtwoord niet gewijzigd. Om het te wijzigen, meldt u zich af, meldt u zich opnieuw aan en probeert u het opnieuw.",
     update_password: "Wachtwoord bijwerken",
     updating: "Bijwerken...",
     password_change_encrypted_data_warning:
       "Uw labels, handtekeningen en sjablonen worden opnieuw versleuteld bij een wachtwoordwijziging. Als uw verbinding tijdens dit proces wegvalt, kunnen die gegevens niet worden hersteld.",
+    password_changed_items_unreadable:
+      "Je wachtwoord is gewijzigd. {{count}} versleutelde items behouden hun eerdere versleuteling omdat hun sleutel niet beschikbaar was. De bezorging van e-mail wordt niet beïnvloed. Neem contact op met de ondersteuning om ze te herstellen.",
     password_changed_signing_out:
       "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     session_security: "Sessiebeveiliging",
@@ -3354,7 +3384,8 @@ export const nl = {
     mark_as_read: "Als gelezen markeren",
     mark_as_read_description: "Wanneer e-mails als gelezen worden gemarkeerd",
     emails_per_page: "E-mails per pagina",
-    emails_per_page_description: "Aantal e-mails per pagina in Postvak IN, Archief en andere mappen",
+    emails_per_page_description:
+      "Aantal e-mails per pagina in Postvak IN, Archief en andere mappen",
     immediately: "Direct",
     after_1_second: "Na 1 seconde",
     after_3_seconds: "Na 3 seconden",
@@ -3630,18 +3661,14 @@ export const nl = {
     dkim_record: "DKIM-record (TXT)",
     email_authentication_policy: "E-mailauthenticatiebeleid",
     dmarc_record: "DMARC-record (TXT)",
-    tls_reporting:
-      "TLS-rapportage",
-    tlsrpt_record:
-      "TLS-RPT-record",
+    tls_reporting: "TLS-rapportage",
+    tlsrpt_record: "TLS-RPT-record",
     tlsrpt_description:
       "Optioneel maar aanbevolen. Ontvangende servers sturen je een dagelijkse samenvatting wanneer versleutelde bezorging aan je domein mislukt, zodat je problemen eerder ziet dan je gebruikers.",
-    dns_instruction_set_tlsrpt_host:
-      "Stel de host in op _smtp._tls",
+    dns_instruction_set_tlsrpt_host: "Stel de host in op _smtp._tls",
     dns_instruction_set_tlsrpt_value:
       "Plak de TLS-RPT-waarde exact zoals weergegeven",
-    optional_step:
-      "Optioneel",
+    optional_step: "Optioneel",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX van Google Takeout",
     outlook_import: "Outlook",
@@ -4607,6 +4634,9 @@ export const nl = {
     conversation_grouping_confirm_description:
       "Het uitschakelen van gespreksgroepering toont elke e-mail als apart item in je inbox in plaats van antwoorden te groeperen. Dit kan het lastiger maken om e-mailthreads te volgen.",
     show_message_size: "Berichtgrootte tonen",
+    show_alias_indicators: "Aliasindicatoren tonen",
+    show_alias_indicators_description:
+      "Berichten markeren die via een van je aliassen zijn binnengekomen",
     show_message_size_description:
       "Toon de grootte van elke e-mail in de inboxlijst",
     folder_lock_mode_description:
@@ -5209,9 +5239,11 @@ export const nl = {
     domain_purchase_purchased_expires: "Verloopt op {{date}}",
     domain_purchase_purchased_in_progress: "Wordt ingesteld...",
     domain_purchase_purchased_awaiting: "Wacht op betaling",
-    domain_purchase_done_warmup: "Let op: het kan tot een uur duren voordat de DNS van je domein zich over het internet verspreidt, en providers zoals Gmail behandelen gloednieuwe domeinen aanvankelijk voorzichtig. De bezorgbaarheid verbetert naarmate je domein historie opbouwt.",
+    domain_purchase_done_warmup:
+      "Let op: het kan tot een uur duren voordat de DNS van je domein zich over het internet verspreidt, en providers zoals Gmail behandelen gloednieuwe domeinen aanvankelijk voorzichtig. De bezorgbaarheid verbetert naarmate je domein historie opbouwt.",
     domain_purchase_create_first_address: "Maak je eerste adres",
-    domain_purchase_progress_note: "Even geduld terwijl we je domein registreren en je mailboxen instellen. Dit duurt meestal ongeveer een minuut.",
+    domain_purchase_progress_note:
+      "Even geduld terwijl we je domein registreren en je mailboxen instellen. Dit duurt meestal ongeveer een minuut.",
     domain_purchase_complete_cta: "Aankoop voltooien",
     domain_purchase_purchased_lapsed: "Verlopen - opnieuw kopen",
     domain_purchase_error_paused:
@@ -5513,13 +5545,18 @@ export const nl = {
     crypto_native_status_underpaid: "Gedeeltelijk betaald",
     crypto_native_what_happens: "Wat er nu gebeurt",
     crypto_native_stripe_option: "Betalen met stablecoin",
-    crypto_native_stripe_desc: "USDC en andere stablecoins via onze betaalprovider",
-    crypto_native_too_many_open: "U heeft te veel openstaande crypto-facturen. Rond er eerst een af of annuleer er een.",
-    crypto_native_daily_limit: "U heeft vandaag te veel crypto-facturen aangemaakt. Probeer het later opnieuw.",
+    crypto_native_stripe_desc:
+      "USDC en andere stablecoins via onze betaalprovider",
+    crypto_native_too_many_open:
+      "U heeft te veel openstaande crypto-facturen. Rond er eerst een af of annuleer er een.",
+    crypto_native_daily_limit:
+      "U heeft vandaag te veel crypto-facturen aangemaakt. Probeer het later opnieuw.",
     crypto_native_invoice_title: "Betalen met {{coin}}",
-    crypto_native_awaiting_body: "Stuur het exacte bedrag naar het adres hieronder. Deze pagina wordt automatisch bijgewerkt.",
+    crypto_native_awaiting_body:
+      "Stuur het exacte bedrag naar het adres hieronder. Deze pagina wordt automatisch bijgewerkt.",
     crypto_native_received_title: "Betaling ontvangen",
-    crypto_native_received_body: "Het volledige bedrag is ontvangen en wordt verwerkt. U hoeft niets meer te betalen.",
+    crypto_native_received_body:
+      "Het volledige bedrag is ontvangen en wordt verwerkt. U hoeft niets meer te betalen.",
     crypto_native_send_exactly: "Stuur exact",
     crypto_native_send_remaining: "Stuur het resterende bedrag",
     crypto_native_to_address: "Naar dit adres",
@@ -5531,7 +5568,8 @@ export const nl = {
     crypto_native_no_wallet_handler:
       "Er is geen wallet-app geopend. Kopieer het adres hierboven en plak het in je wallet.",
     crypto_native_copied: "Gekopieerd naar klembord",
-    crypto_native_network_warning: "Stuur alleen {{coin}} via het {{chain}}-netwerk. Een ander asset sturen of een ander netwerk gebruiken leidt tot verlies van je tegoed.",
+    crypto_native_network_warning:
+      "Stuur alleen {{coin}} via het {{chain}}-netwerk. Een ander asset sturen of een ander netwerk gebruiken leidt tot verlies van je tegoed.",
     crypto_native_usd_value_label: "Te betalen bedrag",
     crypto_native_usd_total_label: "Factuurtotaal",
     crypto_native_rate_locked: "Je koers staat vast tot deze factuur verloopt.",
@@ -5541,11 +5579,14 @@ export const nl = {
     crypto_native_status_confirming: "Bevestigen ({{current}}/{{required}})",
     crypto_native_status_confirming_short: "Bevestigen",
     crypto_native_status_credited: "Betaling ontvangen",
-    crypto_native_underpaid_body: "We hebben {{received}} van {{expected}} {{coin}} ontvangen. Stuur de resterende {{remaining}} {{coin}} naar hetzelfde adres om deze factuur af te ronden.",
+    crypto_native_underpaid_body:
+      "We hebben {{received}} van {{expected}} {{coin}} ontvangen. Stuur de resterende {{remaining}} {{coin}} naar hetzelfde adres om deze factuur af te ronden.",
     crypto_native_manual_review: "In beoordeling",
-    crypto_native_manual_review_body: "Je betaling heeft een korte handmatige controle nodig. We schrijven het bedrag binnenkort bij.",
+    crypto_native_manual_review_body:
+      "Je betaling heeft een korte handmatige controle nodig. We schrijven het bedrag binnenkort bij.",
     crypto_native_transaction: "Transactie",
-    crypto_native_refund_notice: "Te veel betaalde bedragen en terugbetalingen worden bijgeschreven op je Aster-accountsaldo.",
+    crypto_native_refund_notice:
+      "Te veel betaalde bedragen en terugbetalingen worden bijgeschreven op je Aster-accountsaldo.",
     crypto_native_cancel_invoice: "Deze factuur annuleren",
     crypto_native_cancel_failed: "Kon deze factuur niet annuleren.",
     crypto_native_cancel_has_payment:
@@ -5556,21 +5597,24 @@ export const nl = {
     crypto_native_view_billing: "Terug naar facturering",
     crypto_native_invoice_cancelled: "Factuur geannuleerd",
     crypto_native_expired_title: "Deze factuur is verlopen",
-    crypto_native_expired_body: "Koersen veranderen, dus dit betaalvenster is gesloten. Start een nieuwe betaling om door te gaan.",
+    crypto_native_expired_body:
+      "Koersen veranderen, dus dit betaalvenster is gesloten. Start een nieuwe betaling om door te gaan.",
     crypto_native_cancelled_body:
       "Deze betaling is geannuleerd. Er is niets in rekening gebracht. Je kunt op elk moment een nieuwe betaling starten.",
-    crypto_native_start_new_payment:
-      "Nieuwe betaling starten",
-    crypto_native_check_now:
-      "Nu controleren",
-    crypto_native_expired_do_not_send: "Stuur niets naar het adres op deze factuur. Bedragen die je nu stuurt, moeten handmatig worden gecontroleerd voordat ze kunnen worden bijgeschreven.",
+    crypto_native_start_new_payment: "Nieuwe betaling starten",
+    crypto_native_check_now: "Nu controleren",
+    crypto_native_expired_do_not_send:
+      "Stuur niets naar het adres op deze factuur. Bedragen die je nu stuurt, moeten handmatig worden gecontroleerd voordat ze kunnen worden bijgeschreven.",
     crypto_native_not_found: "We konden deze factuur niet vinden",
     crypto_native_unavailable: "Kon betaling niet laden",
-    crypto_native_unavailable_body: "We konden de server niet bereiken. Controleer je verbinding en probeer het opnieuw. Je betaling is niet beïnvloed.",
+    crypto_native_unavailable_body:
+      "We konden de server niet bereiken. Controleer je verbinding en probeer het opnieuw. Je betaling is niet beïnvloed.",
     crypto_native_pending_banner: "Je hebt een cryptobetaling die nog loopt",
     crypto_native_pending_banner_action: "Betaling hervatten",
-    crypto_native_pending_banner_multi: "Je hebt {{count}} cryptobetalingen die nog lopen",
-    crypto_native_back_hint: "Deze factuur staat nog open. Je kunt hem op elk moment hervatten via Facturering.",
+    crypto_native_pending_banner_multi:
+      "Je hebt {{count}} cryptobetalingen die nog lopen",
+    crypto_native_back_hint:
+      "Deze factuur staat nog open. Je kunt hem op elk moment hervatten via Facturering.",
     crypto_native_scan_hint: "Scan met je wallet-app",
     crypto_native_scan_hint_address_only:
       "Scan met je wallet-app en voer daarna {{amount}} handmatig in",
@@ -5581,20 +5625,29 @@ export const nl = {
     crypto_native_invoice_ref_label: "Factuur",
     crypto_native_paying_with_label: "Betalen met",
     crypto_native_cancel_confirm_title: "Deze factuur annuleren?",
-    crypto_native_cancel_confirm_body: "Het betaaladres wordt niet langer gecontroleerd. Stuur er na het annuleren geen tegoed meer naartoe. Je kunt op elk moment een nieuwe betaling starten.",
-    crypto_native_hint_awaiting: "Stuur het exacte bedrag naar het adres hierboven. Wij controleren het netwerk automatisch.",
-    crypto_native_hint_detected: "Je transactie staat op het netwerk. We wachten tot die in een blok wordt opgenomen.",
-    crypto_native_hint_confirming: "Bevestigen op het netwerk. Je abonnement wordt actief zodra dit klaar is.",
+    crypto_native_cancel_confirm_body:
+      "Het betaaladres wordt niet langer gecontroleerd. Stuur er na het annuleren geen tegoed meer naartoe. Je kunt op elk moment een nieuwe betaling starten.",
+    crypto_native_hint_awaiting:
+      "Stuur het exacte bedrag naar het adres hierboven. Wij controleren het netwerk automatisch.",
+    crypto_native_hint_detected:
+      "Je transactie staat op het netwerk. We wachten tot die in een blok wordt opgenomen.",
+    crypto_native_hint_confirming:
+      "Bevestigen op het netwerk. Je abonnement wordt actief zodra dit klaar is.",
     crypto_native_hint_credited: "Betaling bevestigd. Je abonnement is actief.",
     crypto_native_time_remaining: "Resterende tijd",
     crypto_native_expiring_soon:
       "Minder dan 5 minuten over. Sluit dit venster voordat je betaling binnen is, dan kun je een nieuwe starten tegen de huidige koers.",
-    crypto_native_hint_underpaid: "Stuur het resterende bedrag hierboven naar hetzelfde adres om deze betaling af te ronden.",
-    crypto_native_hint_manual_review: "Ons team beoordeelt deze betaling. Je hoeft verder niets te doen.",
-    crypto_native_connection_lost: "Verbinding verbroken. We proberen het automatisch opnieuw.",
-    crypto_native_coins_unavailable: "De cryptobetaalopties konden niet worden geladen.",
+    crypto_native_hint_underpaid:
+      "Stuur het resterende bedrag hierboven naar hetzelfde adres om deze betaling af te ronden.",
+    crypto_native_hint_manual_review:
+      "Ons team beoordeelt deze betaling. Je hoeft verder niets te doen.",
+    crypto_native_connection_lost:
+      "Verbinding verbroken. We proberen het automatisch opnieuw.",
+    crypto_native_coins_unavailable:
+      "De cryptobetaalopties konden niet worden geladen.",
     crypto_native_copy_tx_hash: "Transactiehash kopiëren",
-    crypto_native_expiry_progress: "Resterende tijd voordat deze factuur verloopt",
+    crypto_native_expiry_progress:
+      "Resterende tijd voordat deze factuur verloopt",
     crypto_native_confirmations_progress: "Netwerkbevestigingen",
     crypto_modal_price: "Prijs: {{amount}}",
     crypto_modal_title: "Betalen met cryptovaluta",
@@ -6166,18 +6219,23 @@ export const nl = {
   mail: {
     load_all_thread_messages: "Alle berichten laden",
     move_to_category: "Naar categorie verplaatsen",
+    menu_applies_to_selection: "Geldt voor {count} geselecteerde",
+    menu_applies_to_all: "Geldt voor alle {count} berichten",
     moved_to_category: "Naar categorie verplaatst",
+    drop_to_move_here: "Sleep hierheen om te verplaatsen",
     tab_new_count: "nieuw",
     category_empty_primary_title: "Niets in Primair",
     category_empty_primary_desc:
       "Je persoonlijke berichten en gesprekken verschijnen hier.",
     category_empty_promotions_title: "Geen deals",
-    category_empty_promotions_desc: "Deals, kortingen en marketing-e-mails verschijnen hier, los van je overige post.",
+    category_empty_promotions_desc:
+      "Deals, kortingen en marketing-e-mails verschijnen hier, los van je overige post.",
     category_empty_social_title: "Geen sociale updates",
     category_empty_social_desc:
       "Berichten van sociale netwerken en communities verschijnen hier.",
     category_empty_updates_title: "Geen meldingen",
-    category_empty_updates_desc: "Bonnen, bevestigingen en rekeningen verschijnen hier.",
+    category_empty_updates_desc:
+      "Bonnen, bevestigingen en rekeningen verschijnen hier.",
     category_empty_forums_title: "Geen discussies",
     category_empty_forums_desc:
       "Berichten van mailinglijsten en discussiegroepen verschijnen hier.",
@@ -6421,6 +6479,10 @@ export const nl = {
       "Deze actie heeft invloed op elk gesprek in deze weergave.",
     bulk_action_index_not_ready:
       "Dit tabblad wordt nog geïndexeerd. Probeer het zo opnieuw.",
+    bulk_action_index_building:
+      "Dit tabblad wordt nog geïndexeerd. Je actie start zodra de index klaar is.",
+    bulk_action_index_capped:
+      "Dit tabblad bevat te veel gesprekken om in één keer bij te werken. Selecteer gesprekken en probeer het opnieuw.",
     archive_messages_title: "Berichten archiveren",
     archive_messages_confirmation:
       "Weet je zeker dat je de geselecteerde berichten wilt archiveren?",
@@ -6763,6 +6825,7 @@ export const nl = {
     download_file_named: "{{ filename }} downloaden",
     to_recipients_prefix: "aan {{ recipients }}",
     received_on_prefix: "ontvangen op {{ address }}",
+    received_via_alias: "bezorgd op je alias {{ address }}",
     trash_auto_delete_notice:
       "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd.",
     spam_auto_delete_notice:
@@ -7272,7 +7335,8 @@ export const nl = {
       "Maak een sterk wachtwoord om je account te beschermen",
     recovery_email_required_notice:
       "Een back-up-e-mailadres is vereist om spam te voorkomen.",
-    username_alphanumeric: "Gebruik letters, cijfers en punten. Punten mogen niet aan het begin, aan het eind of dubbel staan.",
+    username_alphanumeric:
+      "Gebruik letters, cijfers en punten. Punten mogen niet aan het begin, aan het eind of dubbel staan.",
     abuse_account_limit:
       "Ons geautomatiseerde beveiligingssysteem heeft deze aanmelding gemarkeerd, en we kunnen het account niet aanmaken. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
     abuse_flagged_message:
@@ -7527,8 +7591,7 @@ export const nl = {
   errors: {
     failed_remove_reaction:
       "Kan reactie niet verwijderen. Probeer het opnieuw.",
-    cannot_react_own_message:
-      "Je kunt niet op je eigen bericht reageren.",
+    cannot_react_own_message: "Je kunt niet op je eigen bericht reageren.",
     cannot_react_draft:
       "Je kunt niet reageren op een concept of gepland bericht.",
     cannot_react_spam_or_trash:
@@ -7614,6 +7677,8 @@ export const nl = {
       "Deze e-mail staat op de server maar lijkt onderweg beschadigd. Vernieuwen en het opnieuw proberen volstaat meestal, en hello@astermail.org kan helpen als het blijft mislukken.",
     decrypt_sender_error:
       "De afzender heeft deze e-mail versleuteld op een manier die wij niet kunnen lezen. De afzender vragen om hem opnieuw te sturen volstaat meestal. Uw andere e-mails zijn niet getroffen.",
+    metadata_undecryptable_change:
+      "Dit apparaat kan de details van dit bericht niet openen, dus uw wijziging wordt niet opgeslagen. Meld u af en weer aan om uw sleutels opnieuw te laden. Uw bericht op de server blijft ongewijzigd.",
     no_unsubscribe_method:
       "Deze afzender heeft geen afmeldingsheader meegestuurd. De link in de e-mail zelf, of het markeren als spam, geeft hetzelfde resultaat.",
     invalid_unsubscribe_address:
@@ -7851,8 +7916,10 @@ export const nl = {
     action_move_to: "Verplaatsen naar",
     action_apply_label: "Label toepassen",
     action_apply_labels: "Labels toepassen",
-    alias_delivery_conflict: "Alias {{ alias }} bezorgt in {{ alias_target }}, dus deze regel die naar {{ rule_target }} stuurt wint.",
-    alias_label_conflict: "Alias {{ alias }} labelt post met {{ alias_target }}, deze regel voegt daarnaast {{ rule_target }} toe.",
+    alias_delivery_conflict:
+      "Alias {{ alias }} bezorgt in {{ alias_target }}, dus deze regel die naar {{ rule_target }} stuurt wint.",
+    alias_label_conflict:
+      "Alias {{ alias }} labelt post met {{ alias_target }}, deze regel voegt daarnaast {{ rule_target }} toe.",
     action_mark_as: "Markeren als",
     action_star: "Ster",
     action_skip_inbox: "Inbox overslaan",

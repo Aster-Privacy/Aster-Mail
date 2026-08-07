@@ -21,7 +21,8 @@
 import type { ExternalContentReport, BlockedItem } from "@/lib/html_sanitizer";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useRef, useEffect } from "react";
+import { useId, useState, useRef, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldExclamationIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -89,6 +90,10 @@ const get_type_label = (type: BlockedItem["type"], t: TFunc): string => {
   }
 };
 
+const POPOVER_MAX_WIDTH_PX = 400;
+const POPOVER_GAP_PX = 8;
+const POPOVER_EDGE_PADDING_PX = 8;
+
 const truncate_url = (url: string, max_length: number = 60): string => {
   if (url.length <= max_length) return url;
   try {
@@ -120,8 +125,10 @@ export function ExternalContentBanner({
   const { handle_external_link } = use_external_link();
   const [is_open, set_is_open] = useState(false);
   const [ctrl_held, set_ctrl_held] = useState(false);
+  const [popover_pos, set_popover_pos] = useState({ top: 0, left: 0 });
   const popover_ref = useRef<HTMLDivElement>(null);
   const button_ref = useRef<HTMLButtonElement>(null);
+  const popover_id = useId();
 
   useEffect(() => {
     const on_key_down = (e: KeyboardEvent) => {
@@ -180,6 +187,46 @@ export function ExternalContentBanner({
     };
   }, [is_open]);
 
+  useLayoutEffect(() => {
+    if (!is_open) return;
+
+    let frame = 0;
+
+    const reposition = () => {
+      const anchor = button_ref.current;
+
+      if (!anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      const width = popover_ref.current?.offsetWidth ?? POPOVER_MAX_WIDTH_PX;
+
+      set_popover_pos({
+        top: rect.bottom + POPOVER_GAP_PX,
+        left: Math.max(
+          POPOVER_EDGE_PADDING_PX,
+          Math.min(
+            rect.left,
+            window.innerWidth - width - POPOVER_EDGE_PADDING_PX,
+          ),
+        ),
+      });
+    };
+
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(reposition);
+    };
+
+    reposition();
+    window.addEventListener("scroll", schedule, true);
+    window.addEventListener("resize", schedule);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [is_open]);
+
   if (blocked_content.blocked_count === 0) {
     return null;
   }
@@ -196,6 +243,9 @@ export function ExternalContentBanner({
             <div className="relative flex-shrink-0 flex items-center">
               <button
                 ref={button_ref}
+                aria-controls={is_open && has_details ? popover_id : undefined}
+                aria-expanded={has_details ? is_open : undefined}
+                aria-haspopup={has_details ? "dialog" : undefined}
                 className={`flex items-center rounded p-0.5 transition-colors ${is_open ? "text-brand" : "text-txt-tertiary"}`}
                 title={
                   has_details
@@ -208,68 +258,74 @@ export function ExternalContentBanner({
                 <ShieldExclamationIcon className="w-5 h-5" />
               </button>
 
-              <AnimatePresence>
-                {is_open && has_details && (
-                  <motion.div
-                    ref={popover_ref}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute left-0 top-full mt-2 z-50 rounded-lg shadow-lg bg-surf-card border border-edge-primary"
-                    exit={{ opacity: 0, y: -4 }}
-                    initial={reduce_motion ? false : { opacity: 0, y: -4 }}
-                    style={{
-                      minWidth: "280px",
-                      maxWidth: "400px",
-                    }}
-                    transition={{
-                      duration: reduce_motion ? 0 : 0.12,
-                    }}
-                  >
-                    <div className="px-3 py-2.5">
-                      <div className="text-xs font-medium mb-2 text-txt-tertiary">
-                        {t("common.blocked_content_count", {
-                          count: blocked_content.blocked_count,
-                        })}
-                      </div>
-                      <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[200px]">
-                        {blocked_content.blocked_items.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 text-xs"
-                          >
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded font-medium flex-shrink-0 bg-surf-tertiary text-txt-tertiary text-[10px] uppercase tracking-wide">
-                              {get_type_label(item.type, t)}
-                            </span>
-                            <span
-                              className={`truncate font-mono text-txt-muted ${ctrl_held ? "hover:underline cursor-pointer" : ""}`}
-                              role="link"
-                              tabIndex={0}
-                              title={`${item.url}\n${t("common.ctrl_click_to_open")}`}
-                              onClick={(e) => {
-                                if (e.ctrlKey || e.metaKey) {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handle_external_link(item.url);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (
-                                  e.key === "Enter" &&
-                                  (e.ctrlKey || e.metaKey)
-                                ) {
-                                  e.preventDefault();
-                                  handle_external_link(item.url);
-                                }
-                              }}
+              {createPortal(
+                <AnimatePresence>
+                  {is_open && has_details && (
+                    <motion.div
+                      ref={popover_ref}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="fixed z-50 rounded-lg shadow-lg bg-surf-card border border-edge-primary"
+                      exit={{ opacity: 0, y: -4 }}
+                      id={popover_id}
+                      initial={reduce_motion ? false : { opacity: 0, y: -4 }}
+                      style={{
+                        top: popover_pos.top,
+                        left: popover_pos.left,
+                        minWidth: "280px",
+                        maxWidth: `${POPOVER_MAX_WIDTH_PX}px`,
+                      }}
+                      transition={{
+                        duration: reduce_motion ? 0 : 0.12,
+                      }}
+                    >
+                      <div className="px-3 py-2.5">
+                        <div className="text-xs font-medium mb-2 text-txt-tertiary">
+                          {t("common.blocked_content_count", {
+                            count: blocked_content.blocked_count,
+                          })}
+                        </div>
+                        <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[200px]">
+                          {blocked_content.blocked_items.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2 text-xs"
                             >
-                              {truncate_url(item.url)}
-                            </span>
-                          </div>
-                        ))}
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded font-medium flex-shrink-0 bg-surf-tertiary text-txt-tertiary text-[10px] uppercase tracking-wide">
+                                {get_type_label(item.type, t)}
+                              </span>
+                              <span
+                                className={`truncate font-mono text-txt-muted ${ctrl_held ? "hover:underline cursor-pointer" : ""}`}
+                                role="link"
+                                tabIndex={0}
+                                title={`${item.url}\n${t("common.ctrl_click_to_open")}`}
+                                onClick={(e) => {
+                                  if (e.ctrlKey || e.metaKey) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handle_external_link(item.url);
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (
+                                    e.key === "Enter" &&
+                                    (e.ctrlKey || e.metaKey)
+                                  ) {
+                                    e.preventDefault();
+                                    handle_external_link(item.url);
+                                  }
+                                }}
+                              >
+                                {truncate_url(item.url)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>,
+                document.body,
+              )}
             </div>
             <span className="text-sm">
               {t("mail.external_content_blocked", { message })}
@@ -282,7 +338,7 @@ export function ExternalContentBanner({
               </span>
             ) : (
               <button
-                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
                 type="button"
                 onClick={on_load}
               >

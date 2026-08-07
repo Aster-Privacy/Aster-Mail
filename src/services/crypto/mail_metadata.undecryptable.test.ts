@@ -20,15 +20,22 @@
 //
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { update_item_metadata } from "./mail_metadata";
+import {
+  blob_only_update_fields,
+  bulk_update_items_metadata,
+  update_item_metadata,
+} from "./mail_metadata";
 
 const patch_mail_item_metadata = vi.fn();
 const get_mail_item = vi.fn();
+const batched_bulk_patch_metadata = vi.fn();
 
 vi.mock("@/services/api/mail", () => ({
   patch_mail_item_metadata: (...args: unknown[]) =>
     patch_mail_item_metadata(...args),
   get_mail_item: (...args: unknown[]) => get_mail_item(...args),
+  batched_bulk_patch_metadata: (...args: unknown[]) =>
+    batched_bulk_patch_metadata(...args),
 }));
 
 vi.mock("./memory_key_store", () => ({
@@ -67,6 +74,14 @@ beforeEach(() => {
   patch_mail_item_metadata.mockResolvedValue({ data: { success: true } });
   get_mail_item.mockReset();
   get_mail_item.mockResolvedValue({ data: { id: "server-item" } });
+  batched_bulk_patch_metadata.mockReset();
+  batched_bulk_patch_metadata.mockImplementation(
+    async (items: Array<{ id: string }>) => ({
+      succeeded_ids: items.map((item) => item.id),
+      failed_ids: [],
+      was_cancelled: false,
+    }),
+  );
   blob_store.clear();
 });
 
@@ -109,5 +124,135 @@ describe("update_item_metadata on undecryptable items", () => {
 
     expect(payload.encrypted_metadata).toBeDefined();
     expect(payload.is_archived).toBe(true);
+  });
+
+  it("fails a category write instead of dropping it silently", async () => {
+    const item_id = crypto.randomUUID();
+
+    const result = await update_item_metadata(
+      item_id,
+      {
+        encrypted_metadata: "unreadable-blob",
+        metadata_nonce: "unreadable-nonce",
+        metadata_version: 4,
+      },
+      { category: "social", category_pinned: true },
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.undecryptable).toBe(true);
+    expect(result.unapplied_fields).toEqual(["category", "category_pinned"]);
+    expect(patch_mail_item_metadata).not.toHaveBeenCalled();
+  });
+
+  it("fails a mixed write rather than applying only the flag half", async () => {
+    const item_id = crypto.randomUUID();
+
+    const result = await update_item_metadata(
+      item_id,
+      {
+        encrypted_metadata: "unreadable-blob",
+        metadata_nonce: "unreadable-nonce",
+        metadata_version: 2,
+      },
+      { is_read: true, snoozed_until: "2026-08-07T00:00:00.000Z" },
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.unapplied_fields).toEqual(["snoozed_until"]);
+    expect(patch_mail_item_metadata).not.toHaveBeenCalled();
+  });
+
+  it("does not cache a failed blob write as a completed one", async () => {
+    const item_id = crypto.randomUUID();
+    const base = {
+      encrypted_metadata: "unreadable-blob",
+      metadata_nonce: "unreadable-nonce",
+      metadata_version: 1,
+    };
+
+    const first = await update_item_metadata(item_id, base, {
+      category: "social",
+    });
+    const second = await update_item_metadata(item_id, base, {
+      category: "social",
+    });
+
+    expect(first.success).toBe(false);
+    expect(second.success).toBe(false);
+  });
+});
+
+describe("bulk_update_items_metadata on undecryptable items", () => {
+  it("reports a blob-resident write as failed for the affected ids", async () => {
+    const result = await bulk_update_items_metadata(
+      [
+        { id: "readable" },
+        {
+          id: "unreadable",
+          encrypted_metadata: "unreadable-blob",
+          metadata_nonce: "unreadable-nonce",
+        },
+      ],
+      { category: "social" },
+    );
+
+    expect(result.failed_ids).toEqual(["unreadable"]);
+    expect(result.undecryptable_ids).toEqual(["unreadable"]);
+    expect(result.success).toBe(false);
+
+    const sent = batched_bulk_patch_metadata.mock.calls[0]![0] as Array<{
+      id: string;
+    }>;
+
+    expect(sent.map((item) => item.id)).toEqual(["readable"]);
+  });
+
+  it("still degrades to a flags-only patch when only flags were requested", async () => {
+    const result = await bulk_update_items_metadata(
+      [
+        {
+          id: "unreadable",
+          encrypted_metadata: "unreadable-blob",
+          metadata_nonce: "unreadable-nonce",
+        },
+      ],
+      { is_trashed: true },
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.undecryptable_ids).toEqual([]);
+
+    const sent = batched_bulk_patch_metadata.mock.calls[0]![0] as Array<
+      Record<string, unknown>
+    >;
+
+    expect(sent[0]!.encrypted_metadata).toBeUndefined();
+    expect(sent[0]!.is_trashed).toBe(true);
+  });
+});
+
+describe("blob_only_update_fields", () => {
+  it("treats every server flag as writable without the blob", () => {
+    expect(
+      blob_only_update_fields({
+        is_read: true,
+        is_starred: true,
+        is_pinned: true,
+        is_trashed: true,
+        is_archived: true,
+        is_spam: true,
+      }),
+    ).toEqual([]);
+  });
+
+  it("names the blob-resident fields in an update", () => {
+    expect(
+      blob_only_update_fields({
+        is_read: true,
+        category: "social",
+        snoozed_until: undefined,
+      }),
+    ).toEqual(["category", "snoozed_until"]);
   });
 });

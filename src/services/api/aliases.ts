@@ -1051,17 +1051,27 @@ let routing_hash_backfill_done = false;
 // drop all inbound mail. We recompute the hash locally (we can decrypt the address) and
 // PATCH it. The server only fills a NULL and never overwrites, so this is idempotent and
 // safe to run alongside the server-side backfill. Runs at most once per session.
-export async function backfill_missing_routing_hashes(): Promise<void> {
+export async function backfill_missing_routing_hashes(
+  prefetched_aliases?: EmailAlias[],
+): Promise<void> {
   if (routing_hash_backfill_done) return;
   routing_hash_backfill_done = true;
 
   try {
-    const { aliases, error } = await list_all_aliases();
+    let aliases: EmailAlias[];
 
-    if (error) {
-      routing_hash_backfill_done = false;
+    if (prefetched_aliases) {
+      aliases = prefetched_aliases;
+    } else {
+      const response = await list_all_aliases();
 
-      return;
+      if (response.error) {
+        routing_hash_backfill_done = false;
+
+        return;
+      }
+
+      aliases = response.aliases;
     }
 
     for (const alias of aliases) {

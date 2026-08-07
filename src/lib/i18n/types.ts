@@ -929,6 +929,7 @@ export interface CommonTranslations {
   no_emails_match_criteria: string;
   failed_to_update_emails: string;
   failed_to_archive_emails: string;
+  failed_to_unarchive_emails: string;
   something_went_wrong_try_again: string;
   something_went_wrong: string;
   unexpected_error_refresh: string;
@@ -1094,6 +1095,7 @@ export interface CommonTranslations {
   spam_emails_permanently_deleted: string;
   trash_emptied: string;
   trash_empty_failed: string;
+  spam_empty_failed: string;
   conversations_marked_as_spam_bulk: string;
   conversations_restored_bulk: string;
   failed_to_restore_conversations: string;
@@ -1102,6 +1104,11 @@ export interface CommonTranslations {
   conversations_marked_as_unread_bulk: string;
   conversations_starred_bulk: string;
   conversations_unstarred_bulk: string;
+  conversations_moved_to_inbox_bulk: string;
+  conversations_marked_as_not_spam_bulk: string;
+  bulk_action_partially_applied: string;
+  bulk_action_truncated: string;
+  bulk_action_continues_in_background: string;
   select_none: string;
   select_read: string;
   select_unread: string;
@@ -2303,9 +2310,11 @@ export interface SettingsTranslations {
   failed_change_password: string;
   alias_reencrypt_failed: string;
   contact_reencrypt_failed: string;
+  password_change_fingerprint_mismatch: string;
   update_password: string;
   updating: string;
   password_change_encrypted_data_warning: string;
+  password_changed_items_unreadable: string;
   password_changed_signing_out: string;
   vault_recovery_title: string;
   vault_recovery_description: string;
@@ -2500,6 +2509,8 @@ export interface SettingsTranslations {
   conversation_grouping_confirm_description: string;
   show_message_size: string;
   show_message_size_description: string;
+  show_alias_indicators: string;
+  show_alias_indicators_description: string;
   force_dark_mode_emails: string;
   force_dark_mode_emails_description: string;
   translation: string;
@@ -5254,8 +5265,8 @@ export interface SettingsTranslations {
   alias_advanced_hide: string;
   alias_advanced_show: string;
   alias_details_title: string;
-    alias_display_name_label: string;
-    alias_note_label: string;
+  alias_display_name_label: string;
+  alias_note_label: string;
   alias_details_description: string;
   alias_display_name_desc: string;
   alias_note_desc: string;
@@ -5799,6 +5810,7 @@ export interface MailTranslations {
   download_file_named: string;
   to_recipients_prefix: string;
   received_on_prefix: string;
+  received_via_alias: string;
   move_to_folder: string;
   apply_label: string;
   select: string;
@@ -5913,6 +5925,8 @@ export interface MailTranslations {
   confirm_bulk_action_title: string;
   confirm_bulk_action_description: string;
   bulk_action_index_not_ready: string;
+  bulk_action_index_building: string;
+  bulk_action_index_capped: string;
   archive_messages_title: string;
   archive_messages_confirmation: string;
   mark_spam_title: string;
@@ -6011,8 +6025,11 @@ export interface MailTranslations {
   pick_date_time: string;
   restore: string;
   move_to_inbox: string;
+  menu_applies_to_selection: string;
+  menu_applies_to_all: string;
   move_to_category: string;
   moved_to_category: string;
+  drop_to_move_here: string;
   tab_new_count: string;
   category_empty_primary_title: string;
   category_empty_primary_desc: string;
@@ -6977,6 +6994,7 @@ export interface ErrorTranslations {
   decrypt_wrong_key: string;
   decrypt_corrupt_ciphertext: string;
   decrypt_sender_error: string;
+  metadata_undecryptable_change: string;
   no_unsubscribe_method: string;
   invalid_unsubscribe_address: string;
   tor_unsupported_platform: string;

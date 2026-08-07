@@ -21,6 +21,7 @@
 import type { InboxEmail, EmailListState, EmailCategory } from "@/types/email";
 import type { FormatOptions } from "@/utils/date_format";
 import type { UseEmailListReturn } from "./email_list_types";
+import type { BulkActionResult } from "./bulk_action_result";
 
 import {
   useState,
@@ -34,7 +35,9 @@ import {
 import {
   fetch_mail_by_ids_reconciled,
   group_emails_by_thread,
+  insert_emails_at,
   DEFAULT_PAGE_SIZE,
+  type RestoredEmailEntry,
 } from "./email_list_helpers";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_email_list_actions } from "./use_email_list_actions";
@@ -52,7 +55,7 @@ import {
   init_category_index,
   get_page_ids,
   get_category_total,
-  is_fully_built,
+  is_index_settled,
   is_build_in_progress,
   is_build_stalled,
   subscribe as subscribe_index,
@@ -87,6 +90,7 @@ const EMPTY_STATE: EmailListState = {
 };
 
 const MIN_REFRESH_SKELETON_MS = 550;
+const LOADING_BACKSTOP_MS = 6_000;
 const MAX_FETCH_RETRIES = 4;
 const FETCH_RETRY_DELAY_MS = 1500;
 
@@ -287,6 +291,7 @@ export function use_category_inbox(
   const fetch_retry_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const fetch_in_flight_ref = useRef(false);
   const fetch_page_ref = useRef<
     ((page: number, limit: number, force?: boolean) => Promise<void>) | null
   >(null);
@@ -347,38 +352,37 @@ export function use_category_inbox(
   }, [enabled, has_keys, user?.email]);
 
   useEffect(() => {
+    if (!enabled) return;
     if (!state.is_loading) return;
 
-    // Soft backstop: clear the skeleton once the index is idle (or has wedged).
-    // A healthy build still in progress keeps the skeleton up.
-    const soft = setTimeout(() => {
-      if (is_build_in_progress() && !is_build_stalled()) return;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const settle_or_wait = () => {
+      const fetch_pending =
+        fetch_in_flight_ref.current || fetch_retry_timer_ref.current !== null;
+      const build_healthy = is_build_in_progress() && !is_build_stalled();
+
+      if (fetch_pending || build_healthy) {
+        timer = setTimeout(settle_or_wait, LOADING_BACKSTOP_MS);
+
+        return;
+      }
+
       if (is_build_stalled()) {
         void init_category_index();
       }
+
       set_state((prev) =>
         prev.is_loading
           ? { ...prev, is_loading: false, has_initial_load: true }
           : prev,
       );
-    }, 6_000);
-
-    // Hard backstop: never leave the user on an infinite skeleton, even if a
-    // build cannot be recovered. The index recovers on tab focus; this just
-    // guarantees the UI always resolves to content or an empty state.
-    const hard = setTimeout(() => {
-      set_state((prev) =>
-        prev.is_loading
-          ? { ...prev, is_loading: false, has_initial_load: true }
-          : prev,
-      );
-    }, 15_000);
-
-    return () => {
-      clearTimeout(soft);
-      clearTimeout(hard);
     };
-  }, [state.is_loading]);
+
+    timer = setTimeout(settle_or_wait, LOADING_BACKSTOP_MS);
+
+    return () => clearTimeout(timer);
+  }, [enabled, state.is_loading]);
 
   const page_cache_key = useCallback(
     (target_page: number, ids: string[]): string =>
@@ -435,7 +439,7 @@ export function use_category_inbox(
         // Only show the empty state once the index is fully built and no build
         // is in progress; keep the skeleton while building so we never flash
         // "No <tab>" before content loads.
-        const built = is_fully_built() && !is_build_in_progress();
+        const built = is_index_settled();
 
         abort_ref.current = null;
         set_state({
@@ -467,6 +471,7 @@ export function use_category_inbox(
       }
 
       set_state((prev) => ({ ...prev, is_loading: true }));
+      fetch_in_flight_ref.current = true;
 
       try {
         const {
@@ -585,6 +590,8 @@ export function use_category_inbox(
           has_initial_load: true,
           has_load_error: prev.emails.length === 0,
         }));
+      } finally {
+        fetch_in_flight_ref.current = false;
       }
     },
     [
@@ -609,7 +616,7 @@ export function use_category_inbox(
     if (!enabled) return;
 
     const ids = get_page_ids(active_category, page, page_size);
-    const built = is_fully_built() && !is_build_in_progress() ? "b1" : "b0";
+    const built = is_index_settled() ? "b1" : "b0";
     const unread_bits = ids
       .map((id) => (is_representative_unread(id) ? "u" : "r"))
       .join("");
@@ -718,6 +725,24 @@ export function use_category_inbox(
       emails: prev.emails.filter((e) => !id_set.has(e.id)),
       total_messages: Math.max(0, prev.total_messages - ids.length),
     }));
+  }, []);
+
+  const restore_emails = useCallback((entries: RestoredEmailEntry[]): void => {
+    if (entries.length === 0) return;
+    page_cache.current.clear();
+    reindex_ids(entries.map((entry) => entry.email.id));
+    set_state((prev) => {
+      const emails = insert_emails_at(prev.emails, entries);
+
+      if (emails === prev.emails) return prev;
+
+      return {
+        ...prev,
+        emails,
+        total_messages:
+          prev.total_messages + (emails.length - prev.emails.length),
+      };
+    });
   }, []);
 
   const refresh = useCallback(() => {
@@ -862,36 +887,43 @@ export function use_category_inbox(
   );
 
   const bulk_delete = useCallback(
-    async (ids: string[]): Promise<void> => {
+    async (ids: string[]): Promise<BulkActionResult> => {
       remove_ids(ids);
-      await raw_bulk.bulk_delete(ids);
+
+      return raw_bulk.bulk_delete(ids);
     },
     [raw_bulk],
   );
 
   const bulk_archive = useCallback(
-    async (ids: string[]): Promise<void> => {
+    async (ids: string[]): Promise<BulkActionResult> => {
       const id_set = new Set(ids);
       const selected = state.emails.filter((e) => id_set.has(e.id));
 
       remove_ids(ids);
-      await raw_bulk.bulk_archive(ids);
+
+      const result = await raw_bulk.bulk_archive(ids);
+      const failed = new Set(result.failed_ids);
+
       for (const email of selected) {
+        if (failed.has(email.id)) continue;
         finish_thread_action(email, async (sibling_ids) => {
-          const result = await api_batch_archive({
+          const sibling_result = await api_batch_archive({
             ids: sibling_ids,
             tier: "hot",
           });
 
-          if (result.data?.success) {
+          if (sibling_result.data?.success) {
             void bulk_update_metadata_by_ids(sibling_ids, {
               is_archived: true,
             }).catch(() => {});
           }
 
-          return !!result.data?.success;
+          return !!sibling_result.data?.success;
         });
       }
+
+      return result;
     },
     [raw_bulk, state.emails, finish_thread_action],
   );
@@ -904,6 +936,7 @@ export function use_category_inbox(
     update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     toggle_star,
     toggle_pin,
     mark_read,

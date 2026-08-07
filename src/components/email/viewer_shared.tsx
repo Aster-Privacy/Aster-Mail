@@ -1091,7 +1091,7 @@ export function ViewerUnsubscribeBanner({
                 info.unsubscribe_mailto ||
                 info.list_unsubscribe_header) && (
                 <button
-                  className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+                  className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
                   type="button"
                   onClick={handle_unsubscribe}
                 >
@@ -1100,7 +1100,7 @@ export function ViewerUnsubscribeBanner({
               )}
             {status === "error" && info.unsubscribe_link && (
               <button
-                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
                 type="button"
                 onClick={() => handle_external_link(info.unsubscribe_link!)}
               >

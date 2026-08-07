@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface RailTipState {
@@ -30,6 +30,7 @@ interface RailTipState {
 const SHOW_DELAY_MS = 400;
 const GAP_PX = 10;
 const EDGE_PADDING_PX = 8;
+const TIP_ID = "aster_rail_tip";
 
 export function RailTipLayer() {
   const [tip, set_tip] = useState<RailTipState | null>(null);
@@ -45,9 +46,16 @@ export function RailTipLayer() {
       }
     };
 
+    const clear_target = () => {
+      if (target_ref.current?.getAttribute("aria-describedby") === TIP_ID) {
+        target_ref.current.removeAttribute("aria-describedby");
+      }
+      target_ref.current = null;
+    };
+
     const hide = () => {
       clear_timer();
-      target_ref.current = null;
+      clear_target();
       set_tip(null);
     };
 
@@ -57,6 +65,7 @@ export function RailTipLayer() {
       if (!text) return;
       const rect = el.getBoundingClientRect();
 
+      el.setAttribute("aria-describedby", TIP_ID);
       set_tip({
         text,
         top: rect.top + rect.height / 2,
@@ -64,10 +73,12 @@ export function RailTipLayer() {
       });
     };
 
+    const target_from = (node: EventTarget | null) =>
+      ((node as HTMLElement | null)?.closest?.("[data-rail-tip]") ??
+        null) as HTMLElement | null;
+
     const handle_over = (e: PointerEvent) => {
-      const el = (e.target as HTMLElement | null)?.closest?.(
-        "[data-rail-tip]",
-      ) as HTMLElement | null;
+      const el = target_from(e.target);
 
       if (!el || !el.getAttribute("data-rail-tip")) {
         if (target_ref.current) hide();
@@ -76,6 +87,7 @@ export function RailTipLayer() {
       }
       if (el === target_ref.current) return;
       clear_timer();
+      clear_target();
       target_ref.current = el;
       set_tip(null);
       timer_ref.current = window.setTimeout(() => {
@@ -83,7 +95,30 @@ export function RailTipLayer() {
       }, SHOW_DELAY_MS);
     };
 
+    const handle_focus_in = (e: FocusEvent) => {
+      const el = target_from(e.target);
+
+      if (!el || !el.getAttribute("data-rail-tip")) {
+        if (target_ref.current) hide();
+
+        return;
+      }
+      if (el === target_ref.current) return;
+      clear_timer();
+      clear_target();
+      target_ref.current = el;
+      show_for(el);
+    };
+
+    const handle_focus_out = (e: FocusEvent) => {
+      if (target_ref.current && target_from(e.target) === target_ref.current) {
+        hide();
+      }
+    };
+
     document.addEventListener("pointerover", handle_over);
+    document.addEventListener("focusin", handle_focus_in);
+    document.addEventListener("focusout", handle_focus_out);
     document.addEventListener("pointerdown", hide);
     window.addEventListener("blur", hide);
     window.addEventListener("scroll", hide, true);
@@ -91,7 +126,10 @@ export function RailTipLayer() {
 
     return () => {
       clear_timer();
+      clear_target();
       document.removeEventListener("pointerover", handle_over);
+      document.removeEventListener("focusin", handle_focus_in);
+      document.removeEventListener("focusout", handle_focus_out);
       document.removeEventListener("pointerdown", hide);
       window.removeEventListener("blur", hide);
       window.removeEventListener("scroll", hide, true);
@@ -99,7 +137,7 @@ export function RailTipLayer() {
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!tip || !node_ref.current) return;
     const rect = node_ref.current.getBoundingClientRect();
     const max_left = window.innerWidth - rect.width - EDGE_PADDING_PX;
@@ -121,6 +159,7 @@ export function RailTipLayer() {
     <div
       ref={node_ref}
       className="aster_tip_portal"
+      id={TIP_ID}
       role="tooltip"
       style={{
         position: "fixed",

@@ -21,7 +21,7 @@
 import type { SpamSettings } from "@/services/api/preferences";
 import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Badge, Switch } from "@aster/ui";
 import {
@@ -303,7 +303,18 @@ export function BehaviorSection() {
     {
       label: t("settings.emails_per_page"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: ["page size", "per page", "pagination", "results", "emails per page"],
+      keywords: [
+        "page size",
+        "per page",
+        "pagination",
+        "results",
+        "emails per page",
+      ],
+    },
+    {
+      label: t("settings.show_alias_indicators"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
+      keywords: ["alias", "indicator", "badge", "delivered to"],
     },
     {
       label: t("settings.translate_incoming"),
@@ -373,7 +384,10 @@ export function BehaviorSection() {
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
   });
-  const [family_policy, set_family_policy] = useState<MemberRetentionPolicy | null>(null);
+  const dev_mode_generation_ref = useRef(0);
+  const spam_generation_ref = useRef(0);
+  const [family_policy, set_family_policy] =
+    useState<MemberRetentionPolicy | null>(null);
   const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
@@ -382,25 +396,35 @@ export function BehaviorSection() {
       return false;
     }
   });
-  const is_web = !Capacitor.isNativePlatform() && !("__TAURI_INTERNALS__" in window);
+  const is_web =
+    !Capacitor.isNativePlatform() && !("__TAURI_INTERNALS__" in window);
 
   useEffect(() => {
     const vault = get_vault_from_memory();
+    const dev_mode_generation = ++dev_mode_generation_ref.current;
+    const spam_generation = ++spam_generation_ref.current;
 
     get_dev_mode(vault).then((result) => {
+      if (dev_mode_generation !== dev_mode_generation_ref.current) return;
+      if (result.data === null) return;
+
       set_dev_mode_enabled(result.data);
       write_dev_mode_cache(current_account_id, result.data);
     });
     get_spam_settings().then((result) => {
+      if (spam_generation !== spam_generation_ref.current) return;
+
       if (result.data) {
         set_spam_settings(result.data);
       }
     });
-    get_member_retention_policy().then((result) => {
-      if (result.data) {
-        set_family_policy(result.data);
-      }
-    }).catch(() => {});
+    get_member_retention_policy()
+      .then((result) => {
+        if (result.data) {
+          set_family_policy(result.data);
+        }
+      })
+      .catch(() => {});
   }, [current_account_id]);
 
   const handle_dev_mode_toggle = async () => {
@@ -410,12 +434,19 @@ export function BehaviorSection() {
 
     const new_value = !dev_mode_enabled;
 
+    dev_mode_generation_ref.current += 1;
     set_dev_mode_enabled(new_value);
     write_dev_mode_cache(current_account_id, new_value);
     await save_dev_mode(new_value, vault);
     window.dispatchEvent(
       new CustomEvent("dev-mode-changed", { detail: new_value }),
     );
+  };
+
+  const apply_spam_settings = (updated: SpamSettings) => {
+    spam_generation_ref.current += 1;
+    set_spam_settings(updated);
+    save_spam_settings(updated);
   };
 
   const handle_mailto_toggle = () => {
@@ -562,7 +593,8 @@ export function BehaviorSection() {
               {t("settings.conversation_grouping_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            size="lg"
             checked={preferences.conversation_grouping !== false}
             onCheckedChange={() =>
               update_preference(
@@ -596,7 +628,8 @@ export function BehaviorSection() {
               {t("settings.show_message_size_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            size="lg"
             checked={preferences.show_message_size === true}
             onCheckedChange={() =>
               update_preference(
@@ -607,6 +640,23 @@ export function BehaviorSection() {
             }
           />
         </div>
+
+        <ToggleSetting
+          description={t("settings.show_alias_indicators_description")}
+          enabled={preferences.show_alias_indicators !== false}
+          info={{
+            title: t("settings.show_alias_indicators"),
+            description: t("settings.show_alias_indicators_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "show_alias_indicators",
+              preferences.show_alias_indicators === false,
+              true,
+            )
+          }
+          title={t("settings.show_alias_indicators")}
+        />
 
         <ToggleSetting
           description={t("settings.force_dark_mode_emails_description")}
@@ -760,7 +810,7 @@ export function BehaviorSection() {
                 />
                 {is_dragging_sidebar_width && (
                   <div
-                    className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium text-white bg-[var(--accent-blue)] shadow-lg pointer-events-none whitespace-nowrap transition-[left] duration-75 ease-out"
+                    className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-blue)] shadow-lg pointer-events-none whitespace-nowrap transition-[left] duration-75 ease-out"
                     style={{ left: `${percent}%` }}
                   >
                     {current_width}px
@@ -802,7 +852,7 @@ export function BehaviorSection() {
                   className={cn(
                     "px-3 py-1.5 text-xs rounded-[12px] border-0 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]",
                     current === width
-                      ? "bg-[var(--accent-blue)] text-white"
+                      ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                       : "bg-surf-secondary hover:bg-surf-hover",
                   )}
                   style={{
@@ -1027,7 +1077,7 @@ export function BehaviorSection() {
                     className={cn(
                       "px-3 py-1.5 text-xs rounded-[12px] transition-colors",
                       current === seconds
-                        ? "bg-[var(--accent-blue)] text-white"
+                        ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                         : "bg-surf-secondary hover:bg-surf-hover",
                     )}
                     style={{
@@ -1122,13 +1172,10 @@ export function BehaviorSection() {
           description={t("settings.spam_filter_enabled_description")}
           enabled={spam_settings.spam_filter_enabled}
           on_toggle={() => {
-            const updated = {
+            apply_spam_settings({
               ...spam_settings,
               spam_filter_enabled: !spam_settings.spam_filter_enabled,
-            };
-
-            set_spam_settings(updated);
-            save_spam_settings(updated);
+            });
           }}
           title={t("settings.spam_filter_enabled")}
         />
@@ -1140,10 +1187,7 @@ export function BehaviorSection() {
             description: t("settings.info_spam_sensitivity_description"),
           }}
           on_change={(value) => {
-            const updated = { ...spam_settings, spam_sensitivity: value };
-
-            set_spam_settings(updated);
-            save_spam_settings(updated);
+            apply_spam_settings({ ...spam_settings, spam_sensitivity: value });
           }}
           options={[
             { value: "low", label: t("settings.spam_low") },
@@ -1156,17 +1200,18 @@ export function BehaviorSection() {
 
         <SelectSetting
           description={t("settings.auto_delete_spam_description")}
-          disabled={!!family_policy?.enforce_on_members && family_policy.spam_retention_days != null}
+          disabled={
+            !!family_policy?.enforce_on_members &&
+            family_policy.spam_retention_days != null
+          }
           disabled_note={t("settings.controlled_by_family_admin")}
           on_change={(value) => {
             const days = value === "never" ? 0 : parseInt(value, 10);
-            const updated = {
+
+            apply_spam_settings({
               ...spam_settings,
               spam_retention_days: days,
-            };
-
-            set_spam_settings(updated);
-            save_spam_settings(updated);
+            });
           }}
           options={[
             { value: "7", label: t("settings.retention_7_days") },
@@ -1176,11 +1221,14 @@ export function BehaviorSection() {
           ]}
           title={t("settings.auto_delete_spam_after")}
           value={
-            family_policy?.enforce_on_members && family_policy.spam_retention_days != null
-              ? (family_policy.spam_retention_days === 0 ? "never" : String(family_policy.spam_retention_days))
-              : (spam_settings.spam_retention_days === 0
+            family_policy?.enforce_on_members &&
+            family_policy.spam_retention_days != null
+              ? family_policy.spam_retention_days === 0
                 ? "never"
-                : String(spam_settings.spam_retention_days))
+                : String(family_policy.spam_retention_days)
+              : spam_settings.spam_retention_days === 0
+                ? "never"
+                : String(spam_settings.spam_retention_days)
           }
         />
       </div>

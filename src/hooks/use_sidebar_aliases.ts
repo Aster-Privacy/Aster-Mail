@@ -21,7 +21,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import {
-  list_aliases,
+  list_all_aliases,
   decrypt_aliases,
   get_alias_counts,
   get_alias_unread_counts,
@@ -38,6 +38,11 @@ import {
   decrypt_domain_addresses,
   compute_address_routing_hash,
 } from "@/services/api/domains";
+import {
+  list_ghost_aliases,
+  decrypt_ghost_aliases,
+  type DecryptedGhostAlias,
+} from "@/services/api/ghost_aliases";
 import { list_my_groups } from "@/services/api/family_org";
 import {
   has_passphrase_in_memory,
@@ -107,6 +112,10 @@ const cached_aliases: { data: DecryptedEmailAlias[] } = {
   data: [],
 };
 
+const cached_ghost_aliases: { data: DecryptedGhostAlias[] } = {
+  data: [],
+};
+
 const alias_subscribers = new Set<() => void>();
 
 function notify_alias_subscribers(): void {
@@ -127,10 +136,144 @@ export function subscribe_aliases(cb: () => void): () => void {
   };
 }
 
-export function get_alias_hash_by_address(address: string): string | null {
-  const alias = cached_aliases.data.find((a) => a.full_address === address);
+export interface AliasDelivery {
+  address: string;
+  label: string;
+}
 
-  return alias?.alias_address_hash ?? null;
+export interface AliasDeliveryIndex {
+  hash_by_address: Map<string, string>;
+  delivery_by_hash: Map<string, AliasDelivery>;
+  delivery_by_address: Map<string, AliasDelivery>;
+}
+
+function is_user_alias(alias: DecryptedEmailAlias): boolean {
+  return !alias.id.startsWith("domain-") && !alias.id.startsWith("group-");
+}
+
+function normalize_address(address: string): string {
+  return address.trim().toLowerCase();
+}
+
+export function build_alias_delivery_index(
+  aliases: DecryptedEmailAlias[],
+  ghost_aliases: DecryptedGhostAlias[],
+): AliasDeliveryIndex {
+  const hash_by_address = new Map<string, string>();
+  const delivery_by_hash = new Map<string, AliasDelivery>();
+  const delivery_by_address = new Map<string, AliasDelivery>();
+
+  for (const alias of aliases) {
+    const address = normalize_address(alias.full_address);
+
+    if (address && alias.alias_address_hash && !hash_by_address.has(address)) {
+      hash_by_address.set(address, alias.alias_address_hash);
+    }
+
+    if (!is_user_alias(alias)) continue;
+
+    const label = alias.display_name?.trim() || alias.local_part;
+
+    if (!label) continue;
+
+    const delivery: AliasDelivery = { address: alias.full_address, label };
+
+    if (
+      alias.alias_address_hash &&
+      !delivery_by_hash.has(alias.alias_address_hash)
+    ) {
+      delivery_by_hash.set(alias.alias_address_hash, delivery);
+    }
+
+    if (address && !delivery_by_address.has(address)) {
+      delivery_by_address.set(address, delivery);
+    }
+  }
+
+  for (const ghost of ghost_aliases) {
+    const address = normalize_address(ghost.full_address);
+    const label = ghost.local_part;
+
+    if (!label) continue;
+
+    const delivery: AliasDelivery = { address: ghost.full_address, label };
+
+    if (
+      ghost.alias_address_hash &&
+      !delivery_by_hash.has(ghost.alias_address_hash)
+    ) {
+      delivery_by_hash.set(ghost.alias_address_hash, delivery);
+    }
+
+    if (address && !delivery_by_address.has(address)) {
+      delivery_by_address.set(address, delivery);
+    }
+  }
+
+  return { hash_by_address, delivery_by_hash, delivery_by_address };
+}
+
+let alias_index: AliasDeliveryIndex = build_alias_delivery_index([], []);
+
+function rebuild_alias_index(): void {
+  alias_index = build_alias_delivery_index(
+    cached_aliases.data,
+    cached_ghost_aliases.data,
+  );
+}
+
+async function refresh_ghost_alias_index(): Promise<void> {
+  try {
+    const response = await list_ghost_aliases();
+
+    if (!response.data) return;
+
+    const decrypted = await decrypt_ghost_aliases(response.data.aliases);
+
+    cached_ghost_aliases.data = decrypted;
+    rebuild_alias_index();
+    notify_alias_subscribers();
+  } catch {
+    return;
+  }
+}
+
+export function get_alias_hash_by_address(address: string): string | null {
+  return alias_index.hash_by_address.get(normalize_address(address)) ?? null;
+}
+
+export function resolve_alias_delivery_in(
+  index: AliasDeliveryIndex,
+  routing_token: string | undefined,
+  addresses: string[],
+): AliasDelivery | null {
+  if (
+    index.delivery_by_hash.size === 0 &&
+    index.delivery_by_address.size === 0
+  ) {
+    return null;
+  }
+
+  if (routing_token) {
+    const by_hash = index.delivery_by_hash.get(routing_token);
+
+    if (by_hash) return by_hash;
+  }
+
+  for (const address of addresses) {
+    const match = index.delivery_by_address.get(normalize_address(address));
+
+    if (match) return match;
+  }
+
+  return null;
+}
+
+export function resolve_alias_delivery(
+  routing_token: string | undefined,
+  addresses: string[],
+): AliasDelivery | null {
+  return resolve_alias_delivery_in(alias_index, routing_token, addresses);
 }
 
 interface UseSidebarAliasesReturn {
@@ -187,31 +330,32 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   fetch_unread_ref.current = fetch_unread_counts;
 
   const fetch_aliases = useCallback(async () => {
-    if (!has_passphrase_in_memory()) {
-      set_is_loading(false);
+    if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
+      set_is_loading(true);
 
       return;
     }
 
-    if (!get_derived_encryption_key()) {
-      set_is_loading(false);
-
-      return;
+    if (cached_aliases.data.length === 0) {
+      set_is_loading(true);
     }
 
     try {
       const [list_response, counts_response] = await Promise.all([
-        list_aliases({ limit: 50 }),
+        list_all_aliases(),
         get_alias_counts(),
       ]);
 
       const merged: DecryptedEmailAlias[] = [];
+      const raw_alias_list = list_response.error ? null : list_response.aliases;
 
-      if (list_response.data) {
-        const raw_aliases = list_response.data.aliases;
+      if (raw_alias_list) {
+        const raw_aliases = raw_alias_list;
         const decrypted = await decrypt_aliases(raw_aliases);
 
-        const failed_placeholders = decrypted.filter((a) => a.decryption_failed);
+        const failed_placeholders = decrypted.filter(
+          (a) => a.decryption_failed,
+        );
 
         merged.push(...decrypted.filter((a) => !a.decryption_failed));
 
@@ -277,7 +421,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         for (const g of groups_response.data ?? []) {
           if (!g.email_local_part || !g.domain_name) continue;
           const full_address = `${g.email_local_part}@${g.domain_name}`;
-          const already = merged.some(a => a.full_address === full_address);
+          const already = merged.some((a) => a.full_address === full_address);
           if (already) continue;
           merged.push({
             id: `group-${g.id}`,
@@ -295,11 +439,13 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       } catch {}
 
       cached_aliases.data = merged;
+      rebuild_alias_index();
       set_aliases(merged);
       notify_alias_subscribers();
 
       void fetch_unread_ref.current?.();
-      void backfill_missing_routing_hashes();
+      void backfill_missing_routing_hashes(raw_alias_list ?? undefined);
+      void refresh_ghost_alias_index();
 
       if (counts_response.data) {
         const counts = counts_response.data as AliasCountsResponse;
@@ -325,6 +471,8 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       prev_user_id !== current_user_id
     ) {
       cached_aliases.data = [];
+      cached_ghost_aliases.data = [];
+      rebuild_alias_index();
       set_aliases([]);
       set_is_loading(true);
       set_can_create(false);

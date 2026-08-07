@@ -23,7 +23,7 @@ import type {
   TlsMethod,
 } from "@/components/settings/hooks/external_accounts_utils";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 import {
   clamp_timeout,
@@ -72,9 +72,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
   const [form_archive_sent, set_form_archive_sent] = useState(false);
   const [form_delete_after_fetch, set_form_delete_after_fetch] =
     useState(false);
-
-  const modal_ref = useRef<HTMLDivElement>(null);
-  const previous_focus_ref = useRef<HTMLElement | null>(null);
 
   const get_effective_smtp_host = useCallback(
     () => (smtp_same_as_incoming ? form_host.trim() : form_smtp_host.trim()),
@@ -220,16 +217,10 @@ export function use_external_accounts_form(t: I18nTranslate) {
   }, [clear_sensitive_form_fields, test_hook.reset_test_state]);
 
   const open_add_form = useCallback(() => {
-    previous_focus_ref.current = document.activeElement as HTMLElement | null;
     reset_form();
     set_editing_account(null);
     set_show_add_form(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        set_form_visible(true);
-        modal_ref.current?.focus();
-      });
-    });
+    set_form_visible(true);
   }, [reset_form]);
 
   const close_form = useCallback(() => {
@@ -237,28 +228,10 @@ export function use_external_accounts_form(t: I18nTranslate) {
     test_hook.set_is_testing_smtp(false);
     set_is_submitting(false);
     set_form_visible(false);
-    setTimeout(() => {
-      set_show_add_form(false);
-      set_editing_account(null);
-      reset_form();
-      if (previous_focus_ref.current) {
-        previous_focus_ref.current.focus();
-        previous_focus_ref.current = null;
-      }
-    }, 200);
+    set_show_add_form(false);
+    set_editing_account(null);
+    reset_form();
   }, [reset_form, test_hook.set_is_testing, test_hook.set_is_testing_smtp]);
-
-  useEffect(() => {
-    const handle_keydown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && (show_add_form || editing_account)) {
-        close_form();
-      }
-    };
-
-    document.addEventListener("keydown", handle_keydown);
-
-    return () => document.removeEventListener("keydown", handle_keydown);
-  }, [show_add_form, editing_account, close_form]);
 
   const handle_protocol_change = useCallback(
     (protocol: "imap" | "pop3") => {
@@ -385,7 +358,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
   }, []);
 
   const handle_edit = useCallback((account: DecryptedExternalAccount) => {
-    previous_focus_ref.current = document.activeElement as HTMLElement | null;
     set_editing_account(account);
     set_form_email(account.email);
     set_form_display_name(account.display_name);
@@ -412,12 +384,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
     set_form_archive_sent(false);
     set_form_delete_after_fetch(false);
     set_show_add_form(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        set_form_visible(true);
-        modal_ref.current?.focus();
-      });
-    });
+    set_form_visible(true);
   }, []);
 
   const is_form_busy =
@@ -479,7 +446,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
     set_form_archive_sent,
     form_delete_after_fetch,
     set_form_delete_after_fetch,
-    modal_ref,
     is_mounted_ref: test_hook.is_mounted_ref,
     is_form_busy,
     truncated_folders,

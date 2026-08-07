@@ -544,23 +544,14 @@ export function use_folders(): UseFoldersReturn {
 
   const fetch_folders = useCallback(
     async (params: ListFoldersParams = {}): Promise<void> => {
-      if (!has_passphrase_in_memory()) {
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-        }));
-
-        return;
-      }
-
       const vault = get_vault_from_memory();
 
-      if (!vault?.identity_key) {
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          error: t("common.no_vault_available"),
-        }));
+      if (!has_passphrase_in_memory() || !vault?.identity_key) {
+        set_state((prev) =>
+          prev.is_loading && prev.error === null
+            ? prev
+            : { ...prev, is_loading: true, error: null },
+        );
 
         return;
       }
@@ -1173,6 +1164,7 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, counts_handler);
+    window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_update_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
@@ -1186,6 +1178,7 @@ export function use_folders(): UseFoldersReturn {
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
       window.removeEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
       window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, counts_handler);
+      window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, counts_handler);
       window.removeEventListener(
         MAIL_EVENTS.MAIL_ITEM_UPDATED,
         item_update_handler,

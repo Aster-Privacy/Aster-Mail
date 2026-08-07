@@ -24,6 +24,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   ReactNode,
 } from "react";
 
@@ -59,8 +60,11 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
   const [default_signature, set_default_signature] =
     useState<DecryptedSignature | null>(null);
   const [is_loading, set_is_loading] = useState(true);
+  const load_generation_ref = useRef(0);
 
   const load_signatures = useCallback(async () => {
+    const this_generation = ++load_generation_ref.current;
+
     if (!vault || !is_authenticated || is_completing_registration) {
       set_signatures([]);
       set_default_signature(null);
@@ -77,6 +81,8 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
         get_default_signature(),
       ]);
 
+      if (this_generation !== load_generation_ref.current) return;
+
       if (list_response.data) {
         set_signatures(list_response.data.signatures);
       }
@@ -85,6 +91,8 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
         set_default_signature(default_response.data);
       }
     } catch {
+      if (this_generation !== load_generation_ref.current) return;
+
       set_signatures([]);
       set_default_signature(null);
     }

@@ -54,6 +54,7 @@ export interface BatchArchiveResponse {
   success: boolean;
   archived_count: number;
   total_size_bytes: number;
+  failed_ids?: string[];
 }
 
 export interface BatchUnarchiveRequest {
@@ -63,6 +64,7 @@ export interface BatchUnarchiveRequest {
 export interface BatchUnarchiveResponse {
   success: boolean;
   unarchived_count: number;
+  failed_ids?: string[];
 }
 
 export interface PromoteTierRequest {
@@ -127,6 +129,29 @@ export interface BatchedArchiveResult {
   failed_ids: string[];
 }
 
+function partition_batch(
+  batch: string[],
+  reported_failed_ids: string[] | undefined,
+  succeeded_ids: string[],
+  failed_ids: string[],
+): void {
+  if (!Array.isArray(reported_failed_ids)) {
+    succeeded_ids.push(...batch);
+
+    return;
+  }
+
+  const reported = new Set(reported_failed_ids);
+
+  for (const id of batch) {
+    if (reported.has(id)) {
+      failed_ids.push(id);
+    } else {
+      succeeded_ids.push(id);
+    }
+  }
+}
+
 export async function batched_archive(
   ids: string[],
   tier = "hot",
@@ -140,8 +165,13 @@ export async function batched_archive(
       () => null,
     );
 
-    if (response && !response.error) {
-      succeeded_ids.push(...batch);
+    if (response && !response.error && response.data?.success === true) {
+      partition_batch(
+        batch,
+        response.data.failed_ids,
+        succeeded_ids,
+        failed_ids,
+      );
     } else {
       failed_ids.push(...batch);
     }
@@ -160,8 +190,13 @@ export async function batched_unarchive(
     const batch = ids.slice(i, i + BATCH_LIMITS.ARCHIVE);
     const response = await batch_unarchive({ ids: batch }).catch(() => null);
 
-    if (response && !response.error) {
-      succeeded_ids.push(...batch);
+    if (response && !response.error && response.data?.success === true) {
+      partition_batch(
+        batch,
+        response.data.failed_ids,
+        succeeded_ids,
+        failed_ids,
+      );
     } else {
       failed_ids.push(...batch);
     }

@@ -295,7 +295,7 @@ export function use_contacts_state() {
 
   const fetch_contacts = useCallback(async () => {
     if (!has_keys) {
-      set_is_loading(false);
+      set_is_loading(true);
 
       return;
     }

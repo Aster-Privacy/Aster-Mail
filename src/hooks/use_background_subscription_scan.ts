@@ -25,7 +25,7 @@ import type {
   SubscriptionCacheCategory,
 } from "@/services/subscription_cache";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth } from "@/contexts/auth_context";
@@ -565,6 +565,31 @@ async function run_background_scan(
   await save_subscription_cache(new_cache, vault);
 }
 
+let scan_in_flight = false;
+const scan_in_flight_subscribers = new Set<() => void>();
+
+function set_scan_in_flight(value: boolean): void {
+  if (scan_in_flight === value) return;
+  scan_in_flight = value;
+  scan_in_flight_subscribers.forEach((notify) => notify());
+}
+
+function subscribe_scan_in_flight(notify: () => void): () => void {
+  scan_in_flight_subscribers.add(notify);
+
+  return () => {
+    scan_in_flight_subscribers.delete(notify);
+  };
+}
+
+export function use_subscription_scan_in_flight(): boolean {
+  return useSyncExternalStore(
+    subscribe_scan_in_flight,
+    () => scan_in_flight,
+    () => false,
+  );
+}
+
 export function use_background_subscription_scan(): void {
   const { vault } = use_auth();
   const has_started_ref = useRef(false);
@@ -582,12 +607,14 @@ export function use_background_subscription_scan(): void {
         return;
       }
       is_scanning_ref.current = true;
+      set_scan_in_flight(true);
 
       run_background_scan(vault)
         .catch(() => {})
         .finally(() => {
           clear_scan_key_cache();
           is_scanning_ref.current = false;
+          set_scan_in_flight(false);
           last_scan_completed_at_ref.current = Date.now();
         });
     },
@@ -598,6 +625,7 @@ export function use_background_subscription_scan(): void {
     if (!vault) return;
     if (has_started_ref.current) return;
     has_started_ref.current = true;
+    set_scan_in_flight(true);
 
     let idle_handle: number | null = null;
 
@@ -618,6 +646,7 @@ export function use_background_subscription_scan(): void {
       if (idle_handle !== null && typeof cancelIdleCallback === "function") {
         cancelIdleCallback(idle_handle);
       }
+      if (!is_scanning_ref.current) set_scan_in_flight(false);
     };
   }, [vault, trigger_scan]);
 

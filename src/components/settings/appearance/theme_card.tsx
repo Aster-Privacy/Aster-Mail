@@ -44,33 +44,6 @@ export function ThemeCard({
   full_width = false,
   size = "default",
 }: ThemeCardProps) {
-  const get_mockup = () => {
-    if (mode === "light") return <ThemeMockupLight />;
-    if (mode === "dark") return <ThemeMockupDark />;
-    if (mode === "system") return <ThemeMockupSystem />;
-
-    return <ThemeMockupColor name={mode} />;
-  };
-
-  const get_border_color = () => {
-    if (mode === "light") return "1px solid #e5e5e5";
-    if (mode === "system") return "1px solid var(--border-secondary)";
-    if (mode === "purple") return "1px solid #3a2d4d";
-    if (mode === "green") return "1px solid #2b4a3b";
-    if (mode === "rose") return "1px solid #4d2a35";
-    if (mode === "orange") return "1px solid #4d3820";
-    if (mode === "teal") return "1px solid #2b4949";
-
-    return "1px solid #1a1a1a";
-  };
-
-  const get_bg_color = () => {
-    if (mode === "light") return "#ffffff";
-    if (mode === "system") return "var(--bg-primary)";
-
-    return "#121212";
-  };
-
   const color_names: ColorThemeName[] = [
     "purple",
     "green",
@@ -88,9 +61,32 @@ export function ThemeCard({
     "pink",
     "black",
   ];
-  const scope_class = color_names.includes(mode as ColorThemeName)
-    ? `dark theme-${mode}`
-    : "";
+  const is_color_theme = color_names.includes(mode as ColorThemeName);
+
+  const get_mockup = () => {
+    if (mode === "light") return <ThemeMockupLight />;
+    if (mode === "dark") return <ThemeMockupDark />;
+    if (mode === "system") return <ThemeMockupSystem />;
+
+    return <ThemeMockupColor name={mode} />;
+  };
+
+  const get_border_color = () => {
+    if (mode === "light") return "1px solid #e5e5e5";
+    if (mode === "system" || is_color_theme)
+      return "1px solid var(--border-secondary)";
+
+    return "1px solid #1a1a1a";
+  };
+
+  const get_bg_color = () => {
+    if (mode === "light") return "#ffffff";
+    if (mode === "system" || is_color_theme) return "var(--bg-primary)";
+
+    return "#121212";
+  };
+
+  const scope_class = is_color_theme ? `dark theme-${mode}` : "";
 
   return (
     <button

@@ -87,6 +87,10 @@ import {
   prefetch_attachment_meta,
   clear_attachment_meta_cache,
 } from "@/services/attachment_meta_cache";
+import {
+  prefetch_attachment_previews,
+  clear_attachment_preview_cache,
+} from "@/services/attachment_preview_cache";
 
 export interface PreloadedSanitizedContent {
   html: string;
@@ -224,6 +228,7 @@ export function clear_preload_cache(): void {
   }
   preload_cache.clear();
   clear_attachment_meta_cache();
+  clear_attachment_preview_cache();
 }
 
 export function mark_preload_stale(email_id?: string): void {
@@ -815,6 +820,7 @@ export async function preload_email_detail(
 
       await attachment_meta_ready;
       await prefetch_attachment_meta(thread_messages.map((msg) => msg.id));
+      void prefetch_attachment_previews(target_id);
 
       if (decrypted_metadata) {
         item.metadata = decrypted_metadata;

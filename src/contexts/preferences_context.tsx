@@ -81,7 +81,7 @@ import {
   get_primary_font_family,
   is_font_family_loaded,
 } from "@/lib/loaded_fonts";
-import { get_contrast_text_for_css_color } from "@/lib/avatar_color";
+import { refresh_resolved_accent } from "@/lib/resolved_accent";
 import {
   is_dark_only_color_theme,
   set_palette_forces_dark,
@@ -172,20 +172,9 @@ function apply_color_theme_class(
 
 function sync_accent_derived_appearance() {
   const root = document.documentElement;
-  const accent = getComputedStyle(root)
-    .getPropertyValue("--accent-color")
-    .trim();
+  const { accent_fg } = refresh_resolved_accent();
 
-  if (!accent) {
-    root.style.removeProperty("--accent-fg");
-
-    return;
-  }
-
-  root.style.setProperty(
-    "--accent-fg",
-    get_contrast_text_for_css_color(accent),
-  );
+  root.style.setProperty("--accent-fg", accent_fg);
 }
 
 function sync_meta_theme_color() {
@@ -247,7 +236,7 @@ const LEGACY_FONT_SIZE_MAP: Record<string, number> = {
 
 export function normalize_font_size_scale(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.max(1, Math.round(value));
+    return Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, Math.round(value)));
   }
   if (typeof value === "string" && value in LEGACY_FONT_SIZE_MAP) {
     return LEGACY_FONT_SIZE_MAP[value];
@@ -283,6 +272,22 @@ function normalize_preferences(prefs: UserPreferences): UserPreferences {
   }
 
   return { ...prefs, font_size_scale: scale };
+}
+
+function apply_pending_preferences(
+  incoming: UserPreferences,
+  local: UserPreferences,
+  pending_keys: Set<keyof UserPreferences>,
+): UserPreferences {
+  if (pending_keys.size === 0) return incoming;
+
+  const result = { ...incoming };
+
+  for (const key of pending_keys) {
+    (result as unknown as Record<string, unknown>)[key] = local[key] as unknown;
+  }
+
+  return result;
 }
 
 interface PreferencesProviderProps {
@@ -342,6 +347,11 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
   const set_language_ref = useRef(set_language);
   set_language_ref.current = set_language;
 
+  const preferences_ref = useRef(preferences);
+  preferences_ref.current = preferences;
+
+  const pending_keys_ref = useRef<Set<keyof UserPreferences>>(new Set());
+
   const has_loaded_ref = useRef(false);
   const fallback_base_ref = useRef<UserPreferences | null>(null);
   const server_base_ref = useRef<UserPreferences | null>(null);
@@ -399,6 +409,10 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
         server_base_ref.current = to_save;
 
+        if (!latest_prefs_ref.current || latest_prefs_ref.current === prefs) {
+          pending_keys_ref.current.clear();
+        }
+
         return to_save;
       } catch (err) {
         if (import.meta.env.DEV) {
@@ -436,6 +450,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       cache_preferences_locally(saved);
 
       if (saved !== prefs && !latest_prefs_ref.current) {
+        preferences_ref.current = saved;
         set_preferences(saved);
       }
 
@@ -553,65 +568,79 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       value: UserPreferences[K],
       immediate?: boolean,
     ) => {
-      set_preferences((prev) => {
-        const updated: UserPreferences = { ...prev, [key]: value };
+      pending_keys_ref.current.add(key);
 
-        if (key === "low_network_mode") {
-          updated.low_network_mode_user_set = true;
-        }
+      const updated: UserPreferences = {
+        ...preferences_ref.current,
+        [key]: value,
+      };
 
-        if (
-          key === "session_timeout_enabled" ||
-          key === "session_timeout_minutes"
-        ) {
-          configure_session_timeout(
-            updated.session_timeout_enabled,
-            updated.session_timeout_minutes,
-          );
-        }
+      if (key === "low_network_mode") {
+        updated.low_network_mode_user_set = true;
+      }
 
-        if (
-          key === "quiet_hours_enabled" ||
-          key === "quiet_hours_start" ||
-          key === "quiet_hours_end"
-        ) {
-          sync_quiet_hours_to_server(
-            updated.quiet_hours_enabled,
-            updated.quiet_hours_start,
-            updated.quiet_hours_end,
-          );
-        }
+      if (
+        key === "session_timeout_enabled" ||
+        key === "session_timeout_minutes"
+      ) {
+        configure_session_timeout(
+          updated.session_timeout_enabled,
+          updated.session_timeout_minutes,
+        );
+      }
 
-        if (immediate) {
-          save_immediately(updated);
-        } else {
-          trigger_save(updated);
-        }
+      if (
+        key === "quiet_hours_enabled" ||
+        key === "quiet_hours_start" ||
+        key === "quiet_hours_end"
+      ) {
+        sync_quiet_hours_to_server(
+          updated.quiet_hours_enabled,
+          updated.quiet_hours_start,
+          updated.quiet_hours_end,
+        );
+      }
 
-        return updated;
-      });
+      preferences_ref.current = updated;
+      set_preferences(updated);
+
+      if (immediate) {
+        save_immediately(updated);
+      } else {
+        trigger_save(updated);
+      }
     },
     [trigger_save, save_immediately],
   );
 
   const update_preferences = useCallback(
     (updates: Partial<UserPreferences>, immediate?: boolean) => {
-      set_preferences((prev) => {
-        const updated = { ...prev, ...updates };
+      for (const key of Object.keys(updates) as (keyof UserPreferences)[]) {
+        pending_keys_ref.current.add(key);
+      }
 
-        if (immediate) {
-          save_immediately(updated);
-        } else {
-          trigger_save(updated);
-        }
+      const updated = { ...preferences_ref.current, ...updates };
 
-        return updated;
-      });
+      preferences_ref.current = updated;
+      set_preferences(updated);
+
+      if (immediate) {
+        save_immediately(updated);
+      } else {
+        trigger_save(updated);
+      }
     },
     [trigger_save, save_immediately],
   );
 
   const reset_to_defaults = useCallback(() => {
+    for (const key of Object.keys(
+      DEFAULT_PREFERENCES,
+    ) as (keyof UserPreferences)[]) {
+      pending_keys_ref.current.add(key);
+    }
+
+    preferences_ref.current = DEFAULT_PREFERENCES;
     set_preferences(DEFAULT_PREFERENCES);
     set_theme_ref.current(DEFAULT_PREFERENCES.theme);
 
@@ -660,23 +689,26 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
   const reset_section = useCallback(
     (keys: (keyof UserPreferences)[]) => {
-      set_preferences((prev) => {
-        const updated = { ...prev };
+      for (const key of keys) {
+        pending_keys_ref.current.add(key);
+      }
 
-        for (const key of keys) {
-          (updated as Record<string, unknown>)[key] = DEFAULT_PREFERENCES[key];
-        }
+      const updated = { ...preferences_ref.current };
 
-        if (debounce_timer.current) {
-          clearTimeout(debounce_timer.current);
-          debounce_timer.current = null;
-        }
+      for (const key of keys) {
+        (updated as Record<string, unknown>)[key] = DEFAULT_PREFERENCES[key];
+      }
 
-        latest_prefs_ref.current = updated;
-        do_save(updated);
+      if (debounce_timer.current) {
+        clearTimeout(debounce_timer.current);
+        debounce_timer.current = null;
+      }
 
-        return updated;
-      });
+      preferences_ref.current = updated;
+      set_preferences(updated);
+
+      latest_prefs_ref.current = updated;
+      do_save(updated);
     },
     [do_save],
   );
@@ -808,19 +840,34 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
       has_loaded_ref.current = true;
       server_base_ref.current = merged;
-      cache_preferences_locally(merged);
-      set_preferences(merged);
-      set_low_network_mode(merged.low_network_mode);
-      apply_visual_preferences(merged);
+
+      const applied = apply_pending_preferences(
+        merged,
+        preferences_ref.current,
+        pending_keys_ref.current,
+      );
+
+      cache_preferences_locally(applied);
+      preferences_ref.current = applied;
+      set_preferences(applied);
+      set_low_network_mode(applied.low_network_mode);
+      apply_visual_preferences(applied);
     } else {
       const cached = get_cached_preferences();
 
       if (cached) {
-        set_preferences(cached);
-        set_low_network_mode(cached.low_network_mode);
-        apply_visual_preferences(cached);
+        const applied = apply_pending_preferences(
+          cached,
+          preferences_ref.current,
+          pending_keys_ref.current,
+        );
+
+        preferences_ref.current = applied;
+        set_preferences(applied);
+        set_low_network_mode(applied.low_network_mode);
+        apply_visual_preferences(applied);
         has_loaded_ref.current = true;
-        fallback_base_ref.current = cached;
+        fallback_base_ref.current = applied;
       }
     }
 
@@ -866,6 +913,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       debounce_timer.current = null;
     }
     latest_prefs_ref.current = null;
+    pending_keys_ref.current.clear();
     has_loaded_ref.current = false;
     fallback_base_ref.current = null;
     server_base_ref.current = null;
@@ -890,72 +938,82 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           const cached = get_cached_preferences();
 
           if (cached) {
-            response = { data: cached, loaded_from_server: false };
-            set_preferences(cached);
-            apply_visual_preferences(cached);
+            const applied = apply_pending_preferences(
+              cached,
+              preferences_ref.current,
+              pending_keys_ref.current,
+            );
+
+            response = { data: applied, loaded_from_server: false };
+            preferences_ref.current = applied;
+            set_preferences(applied);
+            apply_visual_preferences(applied);
             has_loaded_ref.current = true;
-            fallback_base_ref.current = cached;
+            fallback_base_ref.current = applied;
           }
         }
 
         if (response.loaded_from_server && response.data) {
           has_loaded_ref.current = true;
           fallback_base_ref.current = null;
-          server_base_ref.current = response.data;
-          cache_preferences_locally(response.data);
-          if (debounce_timer.current) {
-            clearTimeout(debounce_timer.current);
-            debounce_timer.current = null;
-          }
-          latest_prefs_ref.current = null;
-          beacon_payload_ref.current = null;
 
-          let merged = normalize_preferences({
+          const normalized = normalize_preferences({
             ...DEFAULT_PREFERENCES,
             ...response.data,
           });
+          const merged = reconcile_low_network_mode(normalized);
 
-          const reconciled = reconcile_low_network_mode(merged);
+          server_base_ref.current = merged;
 
-          if (reconciled !== merged) {
-            merged = reconciled;
-            server_base_ref.current = merged;
-            cache_preferences_locally(merged);
-            do_save(merged).catch(() => {});
+          const applied = apply_pending_preferences(
+            merged,
+            preferences_ref.current,
+            pending_keys_ref.current,
+          );
+
+          cache_preferences_locally(applied);
+          preferences_ref.current = applied;
+          set_preferences(applied);
+
+          if (
+            merged !== normalized ||
+            latest_prefs_ref.current ||
+            pending_keys_ref.current.size > 0
+          ) {
+            schedule_save(applied);
           }
 
-          set_preferences(merged);
           cache_sidebar_state(
             "sidebar_more_collapsed",
-            merged.sidebar_more_collapsed,
+            applied.sidebar_more_collapsed,
           );
           cache_sidebar_state(
             "sidebar_folders_collapsed",
-            merged.sidebar_folders_collapsed,
+            applied.sidebar_folders_collapsed,
           );
           cache_sidebar_state(
             "sidebar_labels_collapsed",
-            merged.sidebar_labels_collapsed,
+            applied.sidebar_labels_collapsed,
           );
           cache_sidebar_state(
             "sidebar_aliases_collapsed",
-            merged.sidebar_aliases_collapsed,
+            applied.sidebar_aliases_collapsed,
           );
-          apply_visual_preferences(response.data);
+          apply_visual_preferences(applied);
 
           await load_notification_preferences(v);
 
-          if (response.data.desktop_notifications && "Notification" in window) {
+          if (applied.desktop_notifications && "Notification" in window) {
             if (Notification.permission === "default") {
               request_notification_permission();
             }
           }
 
-          if (response.data.quiet_hours_enabled) {
+          if (applied.quiet_hours_enabled) {
             sync_quiet_hours_to_server(
-              response.data.quiet_hours_enabled,
-              response.data.quiet_hours_start,
-              response.data.quiet_hours_end,
+              applied.quiet_hours_enabled,
+              applied.quiet_hours_start,
+              applied.quiet_hours_end,
             );
           }
         }

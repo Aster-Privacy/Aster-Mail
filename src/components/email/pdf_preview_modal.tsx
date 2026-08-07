@@ -24,6 +24,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
@@ -76,11 +77,17 @@ export function PdfPreviewModal({
   reduce_motion,
 }: PdfPreviewModalProps) {
   const { t } = use_i18n();
-  const overlay_ref = useRef<HTMLDivElement>(null);
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(true, on_close, "pdf_preview");
   const scroll_ref = useRef<HTMLDivElement>(null);
   const pdf_doc_ref = useRef<PDFDocumentProxy | null>(null);
   const render_lock_ref = useRef(false);
   const created_urls_ref = useRef<string[]>([]);
+  const decrypted_ref = useRef<{
+    data: ArrayBuffer;
+    filename: string;
+    content_type: string;
+  } | null>(null);
   const [total_pages, set_total_pages] = useState(0);
   const [is_loading, set_is_loading] = useState(true);
   const [render_error, set_render_error] = useState<string | false>(false);
@@ -109,13 +116,22 @@ export function PdfPreviewModal({
 
         if (cancelled) return;
 
+        decrypted_ref.current = {
+          data,
+          filename: meta.filename,
+          content_type: meta.content_type,
+        };
+
         const { load_pdf_document, render_pdf_page } = await import(
           "@/lib/pdf_utils"
         );
         const timeout = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("timeout")), 30000),
         );
-        const doc = await Promise.race([load_pdf_document(data), timeout]);
+        const doc = await Promise.race([
+          load_pdf_document(data.slice(0)),
+          timeout,
+        ]);
 
         if (cancelled) {
           doc.destroy();
@@ -174,11 +190,24 @@ export function PdfPreviewModal({
       pdf_doc_ref.current = null;
       created_urls_ref.current.forEach((url) => URL.revokeObjectURL(url));
       created_urls_ref.current = [];
+      decrypted_ref.current = null;
     };
   }, [att]);
 
   const handle_download = useCallback(async () => {
     try {
+      const cached = decrypted_ref.current;
+
+      if (cached) {
+        download_decrypted_attachment(
+          cached.data,
+          cached.filename,
+          cached.content_type,
+        );
+
+        return;
+      }
+
       const meta = await decrypt_attachment_meta(
         att.encrypted_meta,
         att.meta_nonce,
@@ -192,42 +221,32 @@ export function PdfPreviewModal({
         att.seq_num,
       );
 
+      decrypted_ref.current = {
+        data,
+        filename: meta.filename,
+        content_type: meta.content_type,
+      };
+
       download_decrypted_attachment(data, meta.filename, meta.content_type);
     } catch {
       /* download failed */
     }
   }, [att]);
 
-  useEffect(() => {
-    const handle_key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        on_close();
-      }
-    };
-
-    window.addEventListener("keydown", handle_key, true);
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      window.removeEventListener("keydown", handle_key, true);
-      document.body.style.overflow = "";
-    };
-  }, [on_close]);
-
   return (
     <motion.div
-      ref={overlay_ref}
+      ref={dialog_ref}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
+      aria-label={filename}
+      aria-modal="true"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center outline-none"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
+      role="dialog"
       style={{ backgroundColor: "rgba(0, 0, 0, 0.85)" }}
+      tabIndex={-1}
       transition={{ duration: reduce_motion ? 0 : 0.2 }}
-      onClick={(e) => {
-        if (e.target === overlay_ref.current) on_close();
-      }}
+      onPointerDown={handle_backdrop_pointer_down}
     >
       <motion.div
         animate={{ scale: 1, opacity: 1 }}

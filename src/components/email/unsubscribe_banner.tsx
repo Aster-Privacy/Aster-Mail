@@ -190,7 +190,7 @@ export function UnsubscribeBanner({
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-white"
+              className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
               type="button"
               onClick={handle_unsubscribe}
             >

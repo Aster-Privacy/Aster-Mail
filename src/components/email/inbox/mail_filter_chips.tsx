@@ -143,7 +143,7 @@ const CHIP_BASE_CLASS =
   "inline-flex items-center gap-1 h-7 px-3 rounded-full border text-xs whitespace-nowrap transition-colors";
 
 const CHIP_ACTIVE_CLASS =
-  "border-transparent bg-[var(--accent-blue)] text-white";
+  "border-transparent bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]";
 
 const CHIP_IDLE_CLASS =
   "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]";
@@ -339,7 +339,7 @@ export function MailFilterChips({
                   onKeyDown={(event) => event.stopPropagation()}
                 />
                 <button
-                  className="h-8 rounded-md text-xs font-medium bg-[var(--accent-blue)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="h-8 rounded-md text-xs font-medium bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90 transition-opacity disabled:opacity-50"
                   disabled={!filters.custom_after && !filters.custom_before}
                   type="button"
                   onClick={() => {

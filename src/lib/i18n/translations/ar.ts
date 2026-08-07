@@ -418,7 +418,8 @@ export const ar = {
     pending_email_notifications: "إشعارات البريد المعلقة",
     selected: "محدد",
     are_you_sure: "هل أنت متأكد؟",
-    sign_out_all_confirmation: "هل أنت متأكد أنك تريد تسجيل الخروج من جميع الحسابات على هذا الجهاز؟",
+    sign_out_all_confirmation:
+      "هل أنت متأكد أنك تريد تسجيل الخروج من جميع الحسابات على هذا الجهاز؟",
     sign_out_confirmation: "هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟",
     remove_account_confirmation:
       "هل أنت متأكد أنك تريد إزالة هذا الحساب؟ يمكنك إضافته مرة أخرى لاحقًا.",
@@ -450,10 +451,13 @@ export const ar = {
       "هذه التغييرات لم تُحفظ. محاولة أخرى ينبغي أن تنجح. الرسائل ذاتها لم تتغير.",
     failed_to_archive_emails:
       "الأرشفة لم تكتمل. محاولة أخرى ينبغي أن تنجح. الرسائل لا تزال في صندوق الوارد.",
+    failed_to_unarchive_emails:
+      "النقل إلى صندوق الوارد لم يكتمل. محاولة أخرى ينبغي أن تنجح. الرسائل لا تزال في الأرشيف.",
     something_went_wrong_try_again:
       "ذلك لم ينجح. محاولة أخرى بعد لحظات غالبًا ما تفي بالغرض.",
     something_went_wrong: "حدث خطأ ما.",
-    unexpected_error_refresh: "حدث خطأ غير متوقع، لذا يرجى تحديث الصفحة للمتابعة.",
+    unexpected_error_refresh:
+      "حدث خطأ غير متوقع، لذا يرجى تحديث الصفحة للمتابعة.",
     unsupported_browser: "متصفح غير مدعوم.",
     unsupported_browser_detail: "يرجى تجربة متصفح آخر.",
     try_again: "محاولة أخرى ينبغي أن تنجح.",
@@ -485,10 +489,8 @@ export const ar = {
     adding: "جارٍ الإضافة...",
     checking: "جارٍ التحقق...",
     host_name: "اسم المضيف",
-    dns_required:
-      "مطلوب",
-    dns_recommended:
-      "موصى به",
+    dns_required: "مطلوب",
+    dns_recommended: "موصى به",
     dns_caveat_mx_replaces_existing:
       "يحل هذا محل سجلات MX الحالية. احذف سجلات MX الخاصة بمزود البريد السابق وإلا لن يصل البريد الجديد إلى Aster.",
     dns_caveat_spf_single_record_other_senders:
@@ -640,6 +642,8 @@ export const ar = {
     added_label: "تمت إضافة التصنيف {{label}}",
     spam_emails_permanently_deleted: "تم حذف {{count}} رسالة مزعجة نهائيًا",
     trash_emptied: "تم تفريغ سلة المهملات بنجاح",
+    spam_empty_failed:
+      "تعذر إفراغ البريد المزعج. عادةً ما تنجح محاولة أخرى بعد قليل. لم يُحذف أي شيء.",
     conversations_marked_as_spam_bulk: "تم تعليم {{count}} محادثة كرسائل مزعجة",
     conversations_restored_bulk: "تمت استعادة {{count}} محادثة",
     failed_to_restore_conversations:
@@ -1585,6 +1589,16 @@ export const ar = {
       "تعذّر تفريغ سلة المهملات. محاولة أخرى بعد لحظة عادةً ما تحل الأمر. لم تُزَل أي عناصر.",
     conversations_starred_bulk: "تم تمييز {{count}} محادثة بنجمة",
     conversations_unstarred_bulk: "تمت إزالة النجمة من {{count}} محادثة",
+    conversations_moved_to_inbox_bulk:
+      "تم نقل {{count}} محادثة إلى البريد الوارد",
+    conversations_marked_as_not_spam_bulk:
+      "تم تعليم {{count}} محادثة كغير مزعجة",
+    bulk_action_partially_applied:
+      "تم تحديث {{count}} من {{total}} محادثة. لم تتغير البقية.",
+    bulk_action_truncated:
+      "شملت هذه العملية أول {{count}} رسالة. شغّلها مرة أخرى لتشمل البقية.",
+    bulk_action_continues_in_background:
+      "لا تزال الرسائل المتبقية قيد التحديث في الخلفية.",
     select_none: "لا شيء",
     select_read: "المقروءة",
     select_unread: "غير المقروءة",
@@ -1855,8 +1869,7 @@ export const ar = {
     category_info_travel:
       "حجوزات وخطط رحلات وتأكيدات من شركات الطيران والفنادق وخدمات النقل.",
     category_info_shopping: "تأكيدات الطلبات وتحديثات الشحن وإشعارات التوصيل.",
-    category_info_custom:
-      "رسائل تطابق قواعدك المخصصة لهذه الفئة.",
+    category_info_custom: "رسائل تطابق قواعدك المخصصة لهذه الفئة.",
     custom_categories_title: "الفئات المخصصة",
     custom_categories_tutorial:
       "أنشئ فئتك الخاصة. طابق الرسائل حسب نطاق المرسل أو كلمة مفتاحية في الموضوع.",
@@ -2195,13 +2208,15 @@ export const ar = {
     alias_display_name_label: "الاسم المعروض",
     alias_note_label: "ملاحظة",
     alias_details_description: "سمِّ هذا الاسم المستعار ودوّن أين تستخدمه.",
-    alias_display_name_desc: "يظهر كاسم المرسل عند الكتابة من هذا الاسم المستعار.",
+    alias_display_name_desc:
+      "يظهر كاسم المرسل عند الكتابة من هذا الاسم المستعار.",
     alias_note_desc: "تذكير خاص بالغرض من هذا الاسم المستعار.",
     alias_websites_desc: "المواقع التي سجّلت فيها بهذا الاسم المستعار.",
     alias_stats_description: "حجم البريد الذي عالجه هذا الاسم المستعار.",
     alias_usage_used_of: "تم استخدام {{ used }} من {{ max }} اسمًا مستعارًا",
     alias_usage_unlock: "احصل على عدد غير محدود",
-    alias_usage_nudge: "تشمل الخطط المدفوعة أسماء مستعارة غير محدودة ونطاقات مخصصة وقواعد للأسماء المستعارة وتثبيت المرسلين.",
+    alias_usage_nudge:
+      "تشمل الخطط المدفوعة أسماء مستعارة غير محدودة ونطاقات مخصصة وقواعد للأسماء المستعارة وتثبيت المرسلين.",
     alias_sender_pin_mode_label: "الوضع",
     alias_feature_locked_stats: "قم بترقية خطتك لعرض نشاط هذا الاسم المستعار.",
     alias_feature_locked_delivery_log: "قم بترقية خطتك لمعرفة ما تم حظره.",
@@ -2306,15 +2321,21 @@ export const ar = {
     alias_delivery_folder_error: "لم يتم حفظ هذا الإعداد. محاولة أخرى ستنجح.",
     alias_delivery_folder_missing: "مجلد محذوف",
     alias_delivery_label: "التسمية",
-    alias_delivery_label_desc: "تطبيق تسمية على كل رسالة تصل إلى هذا الاسم المستعار.",
-    alias_delivery_label_info: "يتم وسم البريد الوارد إلى هذا الاسم المستعار تلقائيًا دون الحاجة إلى قاعدة. تُطبّق التسمية بغض النظر عن المجلد الذي يصل إليه البريد.",
+    alias_delivery_label_desc:
+      "تطبيق تسمية على كل رسالة تصل إلى هذا الاسم المستعار.",
+    alias_delivery_label_info:
+      "يتم وسم البريد الوارد إلى هذا الاسم المستعار تلقائيًا دون الحاجة إلى قاعدة. تُطبّق التسمية بغض النظر عن المجلد الذي يصل إليه البريد.",
     alias_delivery_label_none: "بدون تسمية",
     alias_delivery_label_missing: "تسمية محذوفة",
     alias_delivery_label_error: "لم يتم حفظ الإعداد. حاول مرة أخرى.",
-    alias_delivery_rule_note: "القاعدة \"{{ rule }}\" تنقل بريد هذا الاسم المستعار بالفعل إلى {{ target }}.",
-    alias_delivery_rule_conflict: "القاعدة \"{{ rule }}\" تنقل بريد هذا الاسم المستعار إلى {{ rule_target }}، لذلك لن يصل إلى {{ target }}.",
-    alias_delivery_label_rule_note: "القاعدة \"{{ rule }}\" تضع بالفعل التسمية {{ target }} على بريد هذا الاسم المستعار.",
-    alias_delivery_label_rule_conflict: "القاعدة \"{{ rule }}\" تضع التسمية {{ rule_target }} على بريد هذا الاسم المستعار، وليس {{ target }}.",
+    alias_delivery_rule_note:
+      'القاعدة "{{ rule }}" تنقل بريد هذا الاسم المستعار بالفعل إلى {{ target }}.',
+    alias_delivery_rule_conflict:
+      'القاعدة "{{ rule }}" تنقل بريد هذا الاسم المستعار إلى {{ rule_target }}، لذلك لن يصل إلى {{ target }}.',
+    alias_delivery_label_rule_note:
+      'القاعدة "{{ rule }}" تضع بالفعل التسمية {{ target }} على بريد هذا الاسم المستعار.',
+    alias_delivery_label_rule_conflict:
+      'القاعدة "{{ rule }}" تضع التسمية {{ rule_target }} على بريد هذا الاسم المستعار، وليس {{ target }}.',
     alias_relay_title: "التسليم",
     alias_relay_description:
       "اختر كيفية تسليم البريد الموجَّه إلى هذا الاسم المستعار.",
@@ -3226,10 +3247,14 @@ export const ar = {
       "تعذّر إعادة تشفير أحد الأسماء المستعارة بأمان. لم يتم تغيير كلمة المرور. يُرجى التواصل مع الدعم أو إزالة الاسم المستعار المتأثر والمحاولة مرة أخرى.",
     contact_reencrypt_failed:
       "تعذّر إعادة تشفير إحدى جهات الاتصال بأمان. لم يتم تغيير كلمة المرور. يُرجى التواصل مع الدعم أو إزالة جهة الاتصال المتأثرة والمحاولة مرة أخرى.",
+    password_change_fingerprint_mismatch:
+      "بدأت هذه الجلسة على شبكة أو متصفح مختلف، لذا لم يغيّر Aster Mail كلمة المرور. لتغييرها، سجّل الخروج ثم سجّل الدخول مرة أخرى وحاول مجددًا.",
     update_password: "تحديث كلمة المرور",
     updating: "جارٍ التحديث...",
     password_change_encrypted_data_warning:
       "تُعاد تشفير التسميات والتوقيعات والقوالب عند تغيير كلمة المرور. إذا انقطع الاتصال خلال هذه العملية، فلن يمكن استرداد هذه البيانات.",
+    password_changed_items_unreadable:
+      "تم تغيير كلمة السر. احتفظ {{count}} من العناصر المشفّرة بتشفيرها السابق لأنّ مفتاحها لم يكن متاحاً. لا يتأثر تسليم البريد. للاستعادة، تواصل مع الدعم.",
     password_changed_signing_out:
       "تم تغيير كلمة المرور بنجاح. جارٍ تسجيل خروجك...",
     session_security: "أمان الجلسة",
@@ -3313,7 +3338,8 @@ export const ar = {
     mark_as_read: "تعليم كمقروء",
     mark_as_read_description: "متى يتم تعليم الرسائل كمقروءة",
     emails_per_page: "عدد الرسائل في الصفحة",
-    emails_per_page_description: "عدد الرسائل المعروضة في كل صفحة في البريد الوارد والأرشيف والمجلدات الأخرى",
+    emails_per_page_description:
+      "عدد الرسائل المعروضة في كل صفحة في البريد الوارد والأرشيف والمجلدات الأخرى",
     immediately: "فورًا",
     after_1_second: "بعد ثانية واحدة",
     after_3_seconds: "بعد 3 ثوانٍ",
@@ -3601,18 +3627,13 @@ export const ar = {
     dkim_record: "سجل DKIM (TXT)",
     email_authentication_policy: "سياسة مصادقة البريد الإلكتروني",
     dmarc_record: "سجل DMARC (TXT)",
-    tls_reporting:
-      "تقارير TLS",
-    tlsrpt_record:
-      "سجل TLS-RPT",
+    tls_reporting: "تقارير TLS",
+    tlsrpt_record: "سجل TLS-RPT",
     tlsrpt_description:
       "اختياري لكنه موصى به. ترسل لك الخوادم المستقبِلة ملخصًا يوميًا عند فشل التسليم المشفّر إلى نطاقك، فتكتشف المشكلات قبل مستخدميك.",
-    dns_instruction_set_tlsrpt_host:
-      "اضبط المضيف على _smtp._tls",
-    dns_instruction_set_tlsrpt_value:
-      "الصق قيمة TLS-RPT كما هي تمامًا",
-    optional_step:
-      "اختياري",
+    dns_instruction_set_tlsrpt_host: "اضبط المضيف على _smtp._tls",
+    dns_instruction_set_tlsrpt_value: "الصق قيمة TLS-RPT كما هي تمامًا",
+    optional_step: "اختياري",
     gmail_import: "Gmail",
     gmail_import_description: "MBOX من Google Takeout",
     outlook_import: "Outlook",
@@ -4553,6 +4574,9 @@ export const ar = {
     conversation_grouping_confirm_description:
       "سيؤدي إيقاف تجميع المحادثات إلى عرض كل رسالة كعنصر منفصل في صندوق الوارد بدلاً من تجميع الردود معًا. قد يصعب هذا متابعة سلاسل الرسائل.",
     show_message_size: "عرض حجم الرسالة",
+    show_alias_indicators: "عرض مؤشرات الأسماء المستعارة",
+    show_alias_indicators_description:
+      "وضع علامة على الرسائل التي وصلت عبر أحد أسمائك المستعارة",
     show_message_size_description: "عرض حجم كل رسالة في قائمة صندوق الوارد",
     auto_save_recipients: "حفظ المستلمين الأخيرين تلقائيًا",
     auto_save_recipients_description:
@@ -5093,9 +5117,11 @@ export const ar = {
     domain_purchase_purchased_expires: "تنتهي في {{date}}",
     domain_purchase_purchased_in_progress: "قيد الإعداد...",
     domain_purchase_purchased_awaiting: "في انتظار الدفع",
-    domain_purchase_done_warmup: "تنبيه: قد يستغرق انتشار DNS لنطاقك عبر الإنترنت ما يصل إلى ساعة، ويتعامل مزودون مثل Gmail بحذر مع النطاقات الجديدة تمامًا في البداية. تتحسن قابلية التسليم مع تراكم سجل نطاقك.",
+    domain_purchase_done_warmup:
+      "تنبيه: قد يستغرق انتشار DNS لنطاقك عبر الإنترنت ما يصل إلى ساعة، ويتعامل مزودون مثل Gmail بحذر مع النطاقات الجديدة تمامًا في البداية. تتحسن قابلية التسليم مع تراكم سجل نطاقك.",
     domain_purchase_create_first_address: "أنشئ عنوانك الأول",
-    domain_purchase_progress_note: "يرجى الانتظار بينما نسجّل نطاقك ونجهّز صناديق البريد. يستغرق ذلك عادةً نحو دقيقة.",
+    domain_purchase_progress_note:
+      "يرجى الانتظار بينما نسجّل نطاقك ونجهّز صناديق البريد. يستغرق ذلك عادةً نحو دقيقة.",
     domain_purchase_complete_cta: "إكمال الشراء",
     domain_purchase_purchased_lapsed: "منتهٍ - اشترِ مجددًا",
     domain_purchase_error_paused:
@@ -5412,12 +5438,16 @@ export const ar = {
     crypto_native_what_happens: "ما الذي يحدث بعد ذلك",
     crypto_native_stripe_option: "الدفع بعملة مستقرة",
     crypto_native_stripe_desc: "USDC وعملات مستقرة أخرى عبر مزود الدفع لدينا",
-    crypto_native_too_many_open: "لديك عدد كبير من فواتير العملات المشفرة غير المكتملة. أكمل إحداها أو ألغها أولاً.",
-    crypto_native_daily_limit: "لقد أنشأت عددًا كبيرًا من فواتير العملات المشفرة اليوم. يرجى المحاولة لاحقًا.",
+    crypto_native_too_many_open:
+      "لديك عدد كبير من فواتير العملات المشفرة غير المكتملة. أكمل إحداها أو ألغها أولاً.",
+    crypto_native_daily_limit:
+      "لقد أنشأت عددًا كبيرًا من فواتير العملات المشفرة اليوم. يرجى المحاولة لاحقًا.",
     crypto_native_invoice_title: "الدفع باستخدام {{coin}}",
-    crypto_native_awaiting_body: "أرسل المبلغ بالضبط إلى العنوان أدناه. تُحدَّث هذه الصفحة تلقائيًا.",
+    crypto_native_awaiting_body:
+      "أرسل المبلغ بالضبط إلى العنوان أدناه. تُحدَّث هذه الصفحة تلقائيًا.",
     crypto_native_received_title: "تم استلام الدفعة",
-    crypto_native_received_body: "تم استلام المبلغ بالكامل وتجري معالجته. لا حاجة إلى إرسال أي دفعة أخرى.",
+    crypto_native_received_body:
+      "تم استلام المبلغ بالكامل وتجري معالجته. لا حاجة إلى إرسال أي دفعة أخرى.",
     crypto_native_send_exactly: "أرسل بالضبط",
     crypto_native_send_remaining: "أرسل المبلغ المتبقي",
     crypto_native_to_address: "إلى هذا العنوان",
@@ -5429,21 +5459,26 @@ export const ar = {
     crypto_native_no_wallet_handler:
       "لم يُفتح أي تطبيق محفظة. انسخ العنوان أعلاه والصقه في محفظتك بدلاً من ذلك.",
     crypto_native_copied: "تم النسخ إلى الحافظة",
-    crypto_native_network_warning: "أرسل {{coin}} فقط عبر شبكة {{chain}}. إرسال أي أصل آخر أو استخدام شبكة أخرى سيؤدي إلى فقدان الأموال.",
+    crypto_native_network_warning:
+      "أرسل {{coin}} فقط عبر شبكة {{chain}}. إرسال أي أصل آخر أو استخدام شبكة أخرى سيؤدي إلى فقدان الأموال.",
     crypto_native_usd_value_label: "المبلغ المستحق",
     crypto_native_usd_total_label: "إجمالي الفاتورة",
-    crypto_native_rate_locked: "سعر الصرف مثبَّت حتى انتهاء صلاحية هذه الفاتورة.",
+    crypto_native_rate_locked:
+      "سعر الصرف مثبَّت حتى انتهاء صلاحية هذه الفاتورة.",
     crypto_native_expires_in: "تنتهي الصلاحية خلال {{time}}",
     crypto_native_status_awaiting: "في انتظار الدفع",
     crypto_native_status_detected: "تم رصد الدفعة",
     crypto_native_status_confirming: "جارٍ التأكيد ({{current}}/{{required}})",
     crypto_native_status_confirming_short: "جارٍ التأكيد",
     crypto_native_status_credited: "تم استلام الدفعة",
-    crypto_native_underpaid_body: "استلمنا {{received}} من أصل {{expected}} {{coin}}. أرسل المبلغ المتبقي {{remaining}} {{coin}} إلى العنوان نفسه لإتمام هذه الفاتورة.",
+    crypto_native_underpaid_body:
+      "استلمنا {{received}} من أصل {{expected}} {{coin}}. أرسل المبلغ المتبقي {{remaining}} {{coin}} إلى العنوان نفسه لإتمام هذه الفاتورة.",
     crypto_native_manual_review: "قيد المراجعة",
-    crypto_native_manual_review_body: "تحتاج دفعتك إلى مراجعة يدوية سريعة. سنضيف الرصيد إلى حسابك قريبًا.",
+    crypto_native_manual_review_body:
+      "تحتاج دفعتك إلى مراجعة يدوية سريعة. سنضيف الرصيد إلى حسابك قريبًا.",
     crypto_native_transaction: "المعاملة",
-    crypto_native_refund_notice: "تُضاف المبالغ الزائدة والمستردات إلى رصيد حسابك في Aster.",
+    crypto_native_refund_notice:
+      "تُضاف المبالغ الزائدة والمستردات إلى رصيد حسابك في Aster.",
     crypto_native_cancel_invoice: "إلغاء هذه الفاتورة",
     crypto_native_cancel_failed: "تعذر إلغاء هذه الفاتورة.",
     crypto_native_cancel_has_payment:
@@ -5454,21 +5489,24 @@ export const ar = {
     crypto_native_view_billing: "العودة إلى الفوترة",
     crypto_native_invoice_cancelled: "تم إلغاء الفاتورة",
     crypto_native_expired_title: "انتهت صلاحية هذه الفاتورة",
-    crypto_native_expired_body: "تتغير الأسعار، لذلك أُغلقت نافذة الدفع هذه. ابدأ دفعة جديدة للمتابعة.",
+    crypto_native_expired_body:
+      "تتغير الأسعار، لذلك أُغلقت نافذة الدفع هذه. ابدأ دفعة جديدة للمتابعة.",
     crypto_native_cancelled_body:
       "تم إلغاء هذه العملية. لم يتم خصم أي مبلغ. يمكنك بدء عملية دفع جديدة في أي وقت.",
-    crypto_native_start_new_payment:
-      "بدء عملية دفع جديدة",
-    crypto_native_check_now:
-      "تحقق الآن",
-    crypto_native_expired_do_not_send: "لا ترسل أي أموال إلى العنوان الموجود في هذه الفاتورة. الأموال المُرسَلة الآن تحتاج إلى مراجعة يدوية قبل إضافتها إلى رصيدك.",
+    crypto_native_start_new_payment: "بدء عملية دفع جديدة",
+    crypto_native_check_now: "تحقق الآن",
+    crypto_native_expired_do_not_send:
+      "لا ترسل أي أموال إلى العنوان الموجود في هذه الفاتورة. الأموال المُرسَلة الآن تحتاج إلى مراجعة يدوية قبل إضافتها إلى رصيدك.",
     crypto_native_not_found: "تعذر العثور على هذه الفاتورة",
     crypto_native_unavailable: "تعذر تحميل الدفع",
-    crypto_native_unavailable_body: "تعذر الوصول إلى الخادم. تحقق من اتصالك وحاول مرة أخرى. لم تتأثر دفعتك.",
+    crypto_native_unavailable_body:
+      "تعذر الوصول إلى الخادم. تحقق من اتصالك وحاول مرة أخرى. لم تتأثر دفعتك.",
     crypto_native_pending_banner: "لديك عملية دفع بالعملات الرقمية قيد التنفيذ",
     crypto_native_pending_banner_action: "استئناف الدفع",
-    crypto_native_pending_banner_multi: "لديك {{count}} من عمليات الدفع بالعملات الرقمية قيد التنفيذ",
-    crypto_native_back_hint: "لا تزال هذه الفاتورة مفتوحة. يمكنك متابعتها من الفوترة في أي وقت.",
+    crypto_native_pending_banner_multi:
+      "لديك {{count}} من عمليات الدفع بالعملات الرقمية قيد التنفيذ",
+    crypto_native_back_hint:
+      "لا تزال هذه الفاتورة مفتوحة. يمكنك متابعتها من الفوترة في أي وقت.",
     crypto_native_scan_hint: "امسح الرمز بتطبيق محفظتك",
     crypto_native_scan_hint_address_only:
       "امسح الرمز بتطبيق محفظتك، ثم أدخل {{amount}} يدويًا",
@@ -5479,20 +5517,29 @@ export const ar = {
     crypto_native_invoice_ref_label: "الفاتورة",
     crypto_native_paying_with_label: "الدفع باستخدام",
     crypto_native_cancel_confirm_title: "إلغاء هذه الفاتورة؟",
-    crypto_native_cancel_confirm_body: "سيتوقف رصد عنوان الدفع. لا ترسل أي أموال إليه بعد الإلغاء. يمكنك بدء عملية دفع جديدة في أي وقت.",
-    crypto_native_hint_awaiting: "أرسل المبلغ بالضبط إلى العنوان أعلاه. نراقب الشبكة تلقائيًا بحثًا عنه.",
-    crypto_native_hint_detected: "معاملتك موجودة على الشبكة. في انتظار إدراجها في كتلة.",
-    crypto_native_hint_confirming: "جارٍ التأكيد على الشبكة. تُفعَّل خطتك بمجرد الانتهاء.",
+    crypto_native_cancel_confirm_body:
+      "سيتوقف رصد عنوان الدفع. لا ترسل أي أموال إليه بعد الإلغاء. يمكنك بدء عملية دفع جديدة في أي وقت.",
+    crypto_native_hint_awaiting:
+      "أرسل المبلغ بالضبط إلى العنوان أعلاه. نراقب الشبكة تلقائيًا بحثًا عنه.",
+    crypto_native_hint_detected:
+      "معاملتك موجودة على الشبكة. في انتظار إدراجها في كتلة.",
+    crypto_native_hint_confirming:
+      "جارٍ التأكيد على الشبكة. تُفعَّل خطتك بمجرد الانتهاء.",
     crypto_native_hint_credited: "تم تأكيد الدفع. خطتك نشطة الآن.",
     crypto_native_time_remaining: "الوقت المتبقي",
     crypto_native_expiring_soon:
       "بقي أقل من 5 دقائق. إذا انتهت هذه المهلة قبل وصول دفعتك، يمكنك بدء دفعة جديدة بالسعر الحالي.",
-    crypto_native_hint_underpaid: "أرسل المبلغ المتبقي الموضح أعلاه إلى العنوان نفسه لإكمال هذه الدفعة.",
-    crypto_native_hint_manual_review: "يقوم فريقنا بمراجعة هذه الدفعة. لا يلزم أي إجراء إضافي منك.",
-    crypto_native_connection_lost: "انقطع الاتصال. تجري إعادة المحاولة تلقائيًا.",
-    crypto_native_coins_unavailable: "تعذر تحميل خيارات الدفع بالعملات الرقمية.",
+    crypto_native_hint_underpaid:
+      "أرسل المبلغ المتبقي الموضح أعلاه إلى العنوان نفسه لإكمال هذه الدفعة.",
+    crypto_native_hint_manual_review:
+      "يقوم فريقنا بمراجعة هذه الدفعة. لا يلزم أي إجراء إضافي منك.",
+    crypto_native_connection_lost:
+      "انقطع الاتصال. تجري إعادة المحاولة تلقائيًا.",
+    crypto_native_coins_unavailable:
+      "تعذر تحميل خيارات الدفع بالعملات الرقمية.",
     crypto_native_copy_tx_hash: "نسخ معرّف المعاملة",
-    crypto_native_expiry_progress: "الوقت المتبقي قبل انتهاء صلاحية هذه الفاتورة",
+    crypto_native_expiry_progress:
+      "الوقت المتبقي قبل انتهاء صلاحية هذه الفاتورة",
     crypto_native_confirmations_progress: "تأكيدات الشبكة",
     crypto_paid_until: "مدفوع حتى {{date}} (عملة مشفرة)",
     crypto_no_renew_notice: "مشتريات العملة المشفرة لا تُجدَّد تلقائيًا.",
@@ -5980,12 +6027,16 @@ export const ar = {
   mail: {
     load_all_thread_messages: "تحميل كل الرسائل",
     move_to_category: "النقل إلى فئة",
+    menu_applies_to_selection: "ينطبق على {count} محددة",
+    menu_applies_to_all: "ينطبق على جميع الرسائل ({count})",
     moved_to_category: "تم النقل إلى الفئة",
+    drop_to_move_here: "أفلِت هنا للنقل",
     tab_new_count: "جديد",
     category_empty_primary_title: "لا شيء في الأساسي",
     category_empty_primary_desc: "ستظهر هنا رسائلك ومحادثاتك الشخصية.",
     category_empty_promotions_title: "لا توجد صفقات",
-    category_empty_promotions_desc: "ستظهر هنا رسائل التسويق والتخفيضات بعيدًا عن بقية بريدك.",
+    category_empty_promotions_desc:
+      "ستظهر هنا رسائل التسويق والتخفيضات بعيدًا عن بقية بريدك.",
     category_empty_social_title: "لا توجد تحديثات اجتماعية",
     category_empty_social_desc:
       "ستظهر هنا الرسائل من الشبكات الاجتماعية والمجتمعات.",
@@ -6215,6 +6266,10 @@ export const ar = {
       "سيؤثر هذا الإجراء على كل محادثة في هذا العرض.",
     bulk_action_index_not_ready:
       "لا تزال فهرسة علامة التبويب هذه جارية. حاول مرة أخرى بعد قليل.",
+    bulk_action_index_building:
+      "لا تزال فهرسة هذه العلامة جارية. سيبدأ الإجراء فور جاهزية الفهرس.",
+    bulk_action_index_capped:
+      "تحتوي هذه العلامة على محادثات أكثر من أن تُحدّث دفعة واحدة. حدّد محادثات ثم أعد المحاولة.",
     archive_messages_title: "أرشفة الرسائل",
     archive_messages_confirmation:
       "هل أنت متأكد أنك تريد أرشفة الرسائل المحددة؟",
@@ -6555,6 +6610,7 @@ export const ar = {
     download_file_named: "تنزيل {{ filename }}",
     to_recipients_prefix: "إلى {{ recipients }}",
     received_on_prefix: "تم الاستلام على {{ address }}",
+    received_via_alias: "تم التسليم إلى الاسم المستعار {{ address }}",
     load_external_content: "تحميل المحتوى الخارجي",
     images: "صور",
     tracker: "متتبع",
@@ -6871,7 +6927,8 @@ export const ar = {
       "البريد الإلكتروني للاسترداد مطلوب لإنشاء حساب إضافي. يساعد هذا في حماية جميع حساباتك.",
     username_min_length: "3 أحرف على الأقل ستعمل هنا.",
     username_max_length: "أقل من 40 حرفًا سيعمل هنا.",
-    username_alphanumeric: "استخدم الحروف والأرقام والنقاط. لا يمكن أن تكون النقطة في البداية أو النهاية أو مكررة.",
+    username_alphanumeric:
+      "استخدم الحروف والأرقام والنقاط. لا يمكن أن تكون النقطة في البداية أو النهاية أو مكررة.",
     username_not_available: "اسم المستخدم هذا مأخوذ. اسم آخر ينبغي أن يعمل.",
     password_req_length: "8 أحرف على الأقل",
     password_req_uppercase: "حرف كبير واحد",
@@ -7292,16 +7349,13 @@ export const ar = {
     cannot_react_draft: "لا يمكنك التفاعل مع مسودة أو رسالة مجدولة.",
     cannot_react_spam_or_trash:
       "لا يمكنك التفاعل مع الرسائل في البريد غير المرغوب أو سلة المهملات.",
-    cannot_react_reply_to:
-      "لا يمكنك التفاعل مع رسالة تحتوي على عنوان للرد.",
+    cannot_react_reply_to: "لا يمكنك التفاعل مع رسالة تحتوي على عنوان للرد.",
     cannot_react_too_many_recipients:
       "لا يمكنك التفاعل مع رسالة تضم أكثر من 20 مستلمًا.",
-    cannot_react_bcc:
-      "لا يمكنك التفاعل مع رسالة وصلتك بنسخة مخفية.",
+    cannot_react_bcc: "لا يمكنك التفاعل مع رسالة وصلتك بنسخة مخفية.",
     cannot_react_too_many_emojis:
       "وصلت هذه الرسالة إلى الحد الأقصى من التفاعلات.",
-    cannot_react_no_recipient:
-      "لا يوجد مرسل لهذه الرسالة لإرسال التفاعل إليه.",
+    cannot_react_no_recipient: "لا يوجد مرسل لهذه الرسالة لإرسال التفاعل إليه.",
     failed_send_reaction: "تعذر إرسال التفاعل. يرجى المحاولة مرة أخرى.",
     reactions_disabled: "التفاعلات معطلة في إعداداتك.",
     pending_email_verification:
@@ -7370,6 +7424,8 @@ export const ar = {
       "هذا البريد موجود على الخادم لكنه يبدو تالفًا أثناء النقل. التحديث ثم محاولة جديدة يكفيان عادةً، ويمكن التواصل مع hello@astermail.org في حال استمرار الأمر.",
     decrypt_sender_error:
       "شفّر المرسل هذا البريد بطريقة لا يمكننا قراءتها. طلب إعادة الإرسال منه يحلّ الأمر عادةً. رسائلك الأخرى لم تتأثر.",
+    metadata_undecryptable_change:
+      "لا يستطيع هذا الجهاز فتح تفاصيل هذه الرسالة، لذا لم يُحفظ تغييرك. لإعادة تحميل مفاتيحك، سجّل الخروج ثم الدخول مجددًا. رسالتك على الخادم لم تتغير.",
     no_unsubscribe_method:
       "لم يُضمّن هذا المرسل ترويسة إلغاء الاشتراك. يبقى الرابط داخل البريد نفسه، أو تعليمه كمزعج، طريقةً تؤدي إلى النتيجة ذاتها.",
     invalid_unsubscribe_address:
@@ -7600,8 +7656,10 @@ export const ar = {
     action_move_to: "نقل إلى",
     action_apply_label: "تطبيق تصنيف",
     action_apply_labels: "تطبيق تصنيفات",
-    alias_delivery_conflict: "الاسم المستعار {{ alias }} يسلّم إلى {{ alias_target }}، لذا ستغلب هذه القاعدة التي ترسله إلى {{ rule_target }}.",
-    alias_label_conflict: "الاسم المستعار {{ alias }} يضع التسمية {{ alias_target }} على بريده، وهذه القاعدة تضيف {{ rule_target }} أيضًا.",
+    alias_delivery_conflict:
+      "الاسم المستعار {{ alias }} يسلّم إلى {{ alias_target }}، لذا ستغلب هذه القاعدة التي ترسله إلى {{ rule_target }}.",
+    alias_label_conflict:
+      "الاسم المستعار {{ alias }} يضع التسمية {{ alias_target }} على بريده، وهذه القاعدة تضيف {{ rule_target }} أيضًا.",
     action_mark_as: "تعليم كـ",
     action_star: "تمييز بنجمة",
     action_skip_inbox: "تخطي صندوق الوارد",

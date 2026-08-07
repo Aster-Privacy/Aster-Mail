@@ -57,6 +57,23 @@ export const ENCRYPTED_METADATA_FIELDS = [
   "category_pinned",
 ] as const;
 
+export const SERVER_FLAG_FIELDS = [
+  "is_read",
+  "is_starred",
+  "is_pinned",
+  "is_trashed",
+  "is_archived",
+  "is_spam",
+] as const;
+
+const server_flag_field_set: ReadonlySet<string> = new Set(SERVER_FLAG_FIELDS);
+
+export function blob_only_update_fields(
+  updates: Partial<MailItemMetadata>,
+): string[] {
+  return Object.keys(updates).filter((key) => !server_flag_field_set.has(key));
+}
+
 export interface EncryptedMailMetadataResult {
   encrypted_metadata: string;
   metadata_nonce: string;
@@ -396,11 +413,15 @@ export interface MetadataUpdateResult {
   metadata_nonce: string;
 }
 
-type UpdateResult = {
+export interface MetadataWriteResult {
   success: boolean;
   encrypted?: MetadataUpdateResult;
   written_version?: number;
-};
+  undecryptable?: boolean;
+  unapplied_fields?: string[];
+}
+
+type UpdateResult = MetadataWriteResult;
 
 const in_flight_requests = new Map<string, Promise<UpdateResult>>();
 const item_chains = new Map<string, Promise<UpdateResult>>();
@@ -545,6 +566,16 @@ export async function update_item_metadata(
 
     const is_undecryptable =
       !current_metadata && !!base.encrypted_metadata && !!base.metadata_nonce;
+    const blob_only_fields = blob_only_update_fields(updates);
+
+    if (is_undecryptable && blob_only_fields.length > 0) {
+      return {
+        success: false,
+        undecryptable: true,
+        unapplied_fields: blob_only_fields,
+        written_version: base.metadata_version,
+      };
+    }
 
     if (!current_metadata) {
       current_metadata = create_default_metadata();
@@ -654,6 +685,7 @@ export async function bulk_update_items_metadata(
   success: boolean;
   updated_count: number;
   failed_ids: string[];
+  undecryptable_ids: string[];
   encrypted_by_id: Map<
     string,
     { encrypted_metadata: string; metadata_nonce: string }
@@ -682,6 +714,8 @@ export async function bulk_update_items_metadata(
     is_spam?: boolean;
   }> = [];
   const failed_ids: string[] = [];
+  const undecryptable_ids: string[] = [];
+  const blob_only_fields = blob_only_update_fields(updates);
   const now = new Date().toISOString();
 
   for (const item of items) {
@@ -697,6 +731,12 @@ export async function bulk_update_items_metadata(
 
     const is_undecryptable =
       !current_metadata && !!item.encrypted_metadata && !!item.metadata_nonce;
+
+    if (is_undecryptable && blob_only_fields.length > 0) {
+      failed_ids.push(item.id);
+      undecryptable_ids.push(item.id);
+      continue;
+    }
 
     if (!current_metadata) {
       current_metadata = create_default_metadata();
@@ -782,7 +822,13 @@ export async function bulk_update_items_metadata(
   }
 
   if (bulk_items.length === 0 && flag_only_items.length === 0) {
-    return { success: false, updated_count: 0, failed_ids, encrypted_by_id };
+    return {
+      success: false,
+      updated_count: 0,
+      failed_ids,
+      undecryptable_ids,
+      encrypted_by_id,
+    };
   }
 
   const result = await batched_bulk_patch_metadata(
@@ -799,6 +845,7 @@ export async function bulk_update_items_metadata(
     success: failed_ids.length === 0 && !result.was_cancelled,
     updated_count: result.succeeded_ids.length,
     failed_ids,
+    undecryptable_ids,
     encrypted_by_id,
   };
 }
@@ -810,9 +857,15 @@ export async function bulk_update_metadata_by_ids(
   success: boolean;
   updated_count: number;
   failed_ids: string[];
+  undecryptable_ids: string[];
 }> {
   if (ids.length === 0) {
-    return { success: true, updated_count: 0, failed_ids: [] };
+    return {
+      success: true,
+      updated_count: 0,
+      failed_ids: [],
+      undecryptable_ids: [],
+    };
   }
 
   const { list_mail_items } = await import("@/services/api/mail");
@@ -856,6 +909,7 @@ export async function bulk_update_metadata_by_ids(
       success: false,
       updated_count: 0,
       failed_ids: failed_fetch,
+      undecryptable_ids: [],
     };
   }
 
@@ -865,5 +919,6 @@ export async function bulk_update_metadata_by_ids(
     success: result.success && failed_fetch.length === 0,
     updated_count: result.updated_count,
     failed_ids: [...failed_fetch, ...result.failed_ids],
+    undecryptable_ids: result.undecryptable_ids,
   };
 }

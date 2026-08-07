@@ -71,7 +71,8 @@ import {
   delete_preloaded_email,
   type PreloadedSanitizedContent,
 } from "@/components/email/hooks/preload_cache";
-import { adjust_unread_count } from "@/hooks/use_mail_counts";
+import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { use_email_viewer_actions } from "@/components/email/email_viewer_actions";
@@ -410,9 +411,18 @@ export function use_email_viewer({
           const is_received = preloaded.mail_item.item_type === "received";
           const mark_read = async () => {
             const item = preloaded.mail_item;
+            const conversation_options = {
+              thread_token: item.thread_token,
+              thread_message_count: item.thread_message_count,
+              grouped_count: grouped_email_ids_ref.current?.length,
+              conversation_grouping: preferences.conversation_grouping,
+              acted_id: item.id,
+            };
+            const clears_conversation =
+              read_clears_conversation(conversation_options);
 
-            if (is_received) {
-              adjust_unread_count(-1);
+            if (is_received && clears_conversation) {
+              adjust_stats_unread(-1);
             }
             if (!cancelled) {
               set_is_read(true);
@@ -452,21 +462,15 @@ export function use_email_viewer({
                 metadata_nonce: result.encrypted?.metadata_nonce,
               });
               if (is_received) {
-                mark_conversation_read({
-                  thread_token: item.thread_token,
-                  thread_message_count: item.thread_message_count,
-                  grouped_count: grouped_email_ids_ref.current?.length,
-                  conversation_grouping: preferences.conversation_grouping,
-                  acted_id: item.id,
-                });
+                mark_conversation_read(conversation_options);
               }
             } else if (!result.success) {
               if (!cancelled) {
                 set_is_read(false);
               }
               emit_mail_item_updated({ id: item.id, is_read: false });
-              if (is_received) {
-                adjust_unread_count(1);
+              if (is_received && clears_conversation) {
+                adjust_stats_unread(1);
               }
             }
           };
@@ -622,8 +626,18 @@ export function use_email_viewer({
       ) {
         const is_received_item = item.item_type === "received";
         const mark_read = async () => {
-          if (is_received_item) {
-            adjust_unread_count(-1);
+          const conversation_options = {
+            thread_token: item.thread_token,
+            thread_message_count: item.thread_message_count,
+            grouped_count: grouped_email_ids_ref.current?.length,
+            conversation_grouping: preferences.conversation_grouping,
+            acted_id: item.id,
+          };
+          const clears_conversation =
+            read_clears_conversation(conversation_options);
+
+          if (is_received_item && clears_conversation) {
+            adjust_stats_unread(-1);
           }
           if (!cancelled) {
             set_is_read(true);
@@ -665,21 +679,15 @@ export function use_email_viewer({
               metadata_nonce: result.encrypted?.metadata_nonce,
             });
             if (is_received_item) {
-              mark_conversation_read({
-                thread_token: item.thread_token,
-                thread_message_count: item.thread_message_count,
-                grouped_count: grouped_email_ids_ref.current?.length,
-                conversation_grouping: preferences.conversation_grouping,
-                acted_id: item.id,
-              });
+              mark_conversation_read(conversation_options);
             }
           } else if (!result.success) {
             if (!cancelled) {
               set_is_read(false);
             }
             emit_mail_item_updated({ id: item.id, is_read: false });
-            if (is_received_item) {
-              adjust_unread_count(1);
+            if (is_received_item && clears_conversation) {
+              adjust_stats_unread(1);
             }
           }
         };

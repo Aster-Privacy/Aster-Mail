@@ -33,6 +33,15 @@ export function is_compact_density(
   return compact_mode || density === "compact" || density === "Compact";
 }
 
+export function list_select_slot_class(
+  compact: boolean,
+  show_profile_pictures: boolean,
+): string {
+  if (!show_profile_pictures) return "w-[18px] h-[18px]";
+
+  return compact ? "w-7 h-7" : "w-8 h-8";
+}
+
 export function list_row_intrinsic_height(
   density: string,
   compact_mode: boolean,

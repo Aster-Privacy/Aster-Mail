@@ -89,7 +89,7 @@ function OptionButton({ is_selected, label, on_click }: OptionButtonProps) {
     <button
       className={`px-3 py-2 text-xs rounded-[14px] border transition-colors ${
         is_selected
-          ? "bg-brand border-brand text-white"
+          ? "bg-brand border-brand text-[var(--accent-fg,#ffffff)]"
           : "bg-surf-secondary border-edge-secondary text-txt-secondary"
       }`}
       type="button"

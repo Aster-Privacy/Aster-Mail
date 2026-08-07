@@ -607,17 +607,6 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
     };
   }, [fetch_snoozed]);
 
-  useEffect(() => {
-    if (!state.is_loading) return;
-    const safety_timeout = setTimeout(() => {
-      set_state((prev) =>
-        prev.is_loading ? { ...prev, is_loading: false } : prev,
-      );
-    }, 10_000);
-
-    return () => clearTimeout(safety_timeout);
-  }, [state.is_loading]);
-
   return {
     state,
     fetch_snoozed,

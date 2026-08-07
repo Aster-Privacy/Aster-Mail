@@ -69,8 +69,11 @@ export function AboutSection({
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
-      set_dev_mode(result.data);
-      write_dev_mode_cache(current_account_id, result.data);
+      if (result.data !== null) {
+        set_dev_mode(result.data);
+        write_dev_mode_cache(current_account_id, result.data);
+      }
+
       set_dev_loading(false);
     };
 

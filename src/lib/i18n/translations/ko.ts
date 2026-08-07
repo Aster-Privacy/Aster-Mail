@@ -448,10 +448,13 @@ export const ko = {
       "변경 사항이 저장되지 않았습니다. 다시 시도하면 됩니다. 이메일 자체는 그대로입니다.",
     failed_to_archive_emails:
       "보관이 완료되지 않았습니다. 다시 시도하면 됩니다. 이메일은 받은편지함에 그대로 있습니다.",
+    failed_to_unarchive_emails:
+      "받은편지함으로 이동이 완료되지 않았습니다. 다시 시도하면 됩니다. 이메일은 보관함에 그대로 있습니다.",
     something_went_wrong_try_again:
       "동작이 완료되지 않았습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다.",
     something_went_wrong: "오류가 발생했습니다.",
-    unexpected_error_refresh: "문제가 발생했으니 페이지를 새로고침해 계속해 주세요.",
+    unexpected_error_refresh:
+      "문제가 발생했으니 페이지를 새로고침해 계속해 주세요.",
     unsupported_browser: "지원하지 않는 브라우저입니다.",
     unsupported_browser_detail: "다른 브라우저를 사용해 주세요.",
     try_again: "다시 시도",
@@ -483,10 +486,8 @@ export const ko = {
     adding: "추가 중...",
     checking: "확인 중...",
     host_name: "호스트 이름",
-    dns_required:
-      "필수",
-    dns_recommended:
-      "권장",
+    dns_required: "필수",
+    dns_recommended: "권장",
     dns_caveat_mx_replaces_existing:
       "기존 MX 레코드를 대체합니다. 이전 메일 제공업체의 MX 레코드를 제거하지 않으면 새 메일이 Aster에 도달하지 않습니다.",
     dns_caveat_spf_single_record_other_senders:
@@ -641,6 +642,8 @@ export const ko = {
     added_label: "{{label}} 라벨 추가됨",
     spam_emails_permanently_deleted: "{{count}}개의 스팸 이메일이 영구 삭제됨",
     trash_emptied: "휴지통이 비워졌습니다",
+    spam_empty_failed:
+      "스팸을 비울 수 없습니다. 잠시 후 다시 시도하면 보통 해결됩니다. 삭제된 항목은 없습니다.",
     conversations_marked_as_spam_bulk: "{{count}}개의 대화가 스팸으로 표시됨",
     conversations_restored_bulk: "{{count}}개의 대화가 복원됨",
     failed_to_restore_conversations:
@@ -1579,6 +1582,16 @@ export const ko = {
       "휴지통을 비울 수 없었습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다. 아무것도 제거되지 않았습니다.",
     conversations_starred_bulk: "{{count}}개의 대화에 별표 표시됨",
     conversations_unstarred_bulk: "{{count}}개의 대화에서 별표 해제됨",
+    conversations_moved_to_inbox_bulk:
+      "{{count}}개의 대화가 받은편지함으로 이동됨",
+    conversations_marked_as_not_spam_bulk:
+      "{{count}}개의 대화가 스팸이 아님으로 표시됨",
+    bulk_action_partially_applied:
+      "{{total}}개 중 {{count}}개의 대화가 업데이트되었습니다. 나머지는 변경되지 않았습니다.",
+    bulk_action_truncated:
+      "이번 작업은 처음 {{count}}개의 메일을 처리했습니다. 나머지를 처리하려면 다시 실행하세요.",
+    bulk_action_continues_in_background:
+      "나머지 메일은 백그라운드에서 계속 업데이트되고 있습니다.",
     select_none: "없음",
     select_read: "읽음",
     select_unread: "읽지 않음",
@@ -2178,17 +2191,22 @@ export const ko = {
     alias_details_title: "세부정보",
     alias_display_name_label: "표시 이름",
     alias_note_label: "메모",
-    alias_details_description: "이 별칭에 이름을 붙이고 어디에 쓰는지 메모하세요.",
-    alias_display_name_desc: "이 별칭으로 메일을 보낼 때 보내는 사람 이름으로 표시됩니다.",
+    alias_details_description:
+      "이 별칭에 이름을 붙이고 어디에 쓰는지 메모하세요.",
+    alias_display_name_desc:
+      "이 별칭으로 메일을 보낼 때 보내는 사람 이름으로 표시됩니다.",
     alias_note_desc: "이 별칭의 용도를 적어 두는 비공개 메모입니다.",
     alias_websites_desc: "이 별칭으로 가입한 사이트입니다.",
     alias_stats_description: "이 별칭이 처리한 메일 양입니다.",
     alias_usage_used_of: "별칭 {{ max }}개 중 {{ used }}개 사용",
     alias_usage_unlock: "무제한으로 전환",
-    alias_usage_nudge: "유료 플랜에는 무제한 별칭, 사용자 지정 도메인, 별칭 규칙, 발신자 고정이 포함됩니다.",
+    alias_usage_nudge:
+      "유료 플랜에는 무제한 별칭, 사용자 지정 도메인, 별칭 규칙, 발신자 고정이 포함됩니다.",
     alias_sender_pin_mode_label: "모드",
-    alias_feature_locked_stats: "이 별칭의 활동을 보려면 플랜을 업그레이드하세요.",
-    alias_feature_locked_delivery_log: "차단된 메일을 보려면 플랜을 업그레이드하세요.",
+    alias_feature_locked_stats:
+      "이 별칭의 활동을 보려면 플랜을 업그레이드하세요.",
+    alias_feature_locked_delivery_log:
+      "차단된 메일을 보려면 플랜을 업그레이드하세요.",
     alias_paid_badge: "유료",
     alias_field_display_name_label: "표시 이름",
     alias_field_note_label: "메모",
@@ -2292,15 +2310,22 @@ export const ko = {
       "설정이 저장되지 않았습니다. 다시 시도해 보세요.",
     alias_delivery_folder_missing: "삭제된 폴더",
     alias_delivery_label: "라벨",
-    alias_delivery_label_desc: "이 별칭으로 도착하는 모든 메일에 라벨을 지정합니다.",
-    alias_delivery_label_info: "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 라벨은 배달 폴더와 별개로 적용됩니다.",
+    alias_delivery_label_desc:
+      "이 별칭으로 도착하는 모든 메일에 라벨을 지정합니다.",
+    alias_delivery_label_info:
+      "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 라벨은 배달 폴더와 별개로 적용됩니다.",
     alias_delivery_label_none: "라벨 없음",
     alias_delivery_label_missing: "삭제된 라벨",
-    alias_delivery_label_error: "설정이 저장되지 않았습니다. 다시 시도해 주세요.",
-    alias_delivery_rule_note: "메일 규칙 \"{{ rule }}\"이(가) 이미 이 별칭의 메일을 {{ target }}(으)로 옮깁니다.",
-    alias_delivery_rule_conflict: "메일 규칙 \"{{ rule }}\"이(가) 이 별칭의 메일을 {{ rule_target }}(으)로 옮기므로 {{ target }}에 도착하지 않습니다.",
-    alias_delivery_label_rule_note: "메일 규칙 \"{{ rule }}\"이(가) 이미 이 별칭의 메일에 {{ target }}을(를) 지정합니다.",
-    alias_delivery_label_rule_conflict: "메일 규칙 \"{{ rule }}\"은(는) 이 별칭의 메일에 {{ target }}이(가) 아닌 {{ rule_target }}을(를) 지정합니다.",
+    alias_delivery_label_error:
+      "설정이 저장되지 않았습니다. 다시 시도해 주세요.",
+    alias_delivery_rule_note:
+      '메일 규칙 "{{ rule }}"이(가) 이미 이 별칭의 메일을 {{ target }}(으)로 옮깁니다.',
+    alias_delivery_rule_conflict:
+      '메일 규칙 "{{ rule }}"이(가) 이 별칭의 메일을 {{ rule_target }}(으)로 옮기므로 {{ target }}에 도착하지 않습니다.',
+    alias_delivery_label_rule_note:
+      '메일 규칙 "{{ rule }}"이(가) 이미 이 별칭의 메일에 {{ target }}을(를) 지정합니다.',
+    alias_delivery_label_rule_conflict:
+      '메일 규칙 "{{ rule }}"은(는) 이 별칭의 메일에 {{ target }}이(가) 아닌 {{ rule_target }}을(를) 지정합니다.',
     alias_relay_title: "전송",
     alias_relay_description: "이 별칭으로 오는 메일의 전송 방식을 선택하세요.",
     alias_relay_mode_native: "네이티브",
@@ -3262,10 +3287,14 @@ export const ko = {
       "별칭 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 별칭을 제거한 후 다시 시도해 주세요.",
     contact_reencrypt_failed:
       "연락처 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 연락처를 제거한 후 다시 시도해 주세요.",
+    password_change_fingerprint_mismatch:
+      "이 세션은 다른 네트워크 또는 브라우저에서 시작되었으므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 비밀번호를 변경하려면 로그아웃한 후 다시 로그인하고 시도해 주세요.",
     update_password: "비밀번호 업데이트",
     updating: "업데이트 중...",
     password_change_encrypted_data_warning:
       "비밀번호를 변경하면 라벨, 서명, 템플릿이 재암호화됩니다. 이 과정 중 연결이 끊기면 해당 데이터는 복구할 수 없습니다.",
+    password_changed_items_unreadable:
+      "비밀번호를 변경했습니다. 키를 사용할 수 없어 암호화된 항목 {{count}}개가 이전 암호화를 유지합니다. 메일 수신에는 영향이 없습니다. 복원하려면 지원팀에 문의하세요.",
     password_changed_signing_out:
       "비밀번호가 성공적으로 변경되었습니다. 로그아웃 중...",
     session_security: "세션 보안",
@@ -3351,7 +3380,8 @@ export const ko = {
     mark_as_read: "읽음으로 표시",
     mark_as_read_description: "이메일을 읽음으로 표시할 시점",
     emails_per_page: "페이지당 이메일 수",
-    emails_per_page_description: "받은편지함, 보관함 및 기타 폴더에서 페이지당 표시되는 이메일 수",
+    emails_per_page_description:
+      "받은편지함, 보관함 및 기타 폴더에서 페이지당 표시되는 이메일 수",
     immediately: "즉시",
     after_1_second: "1초 후",
     after_3_seconds: "3초 후",
@@ -3639,18 +3669,13 @@ export const ko = {
     dkim_record: "DKIM 레코드 (TXT)",
     email_authentication_policy: "이메일 인증 정책",
     dmarc_record: "DMARC 레코드 (TXT)",
-    tls_reporting:
-      "TLS 보고",
-    tlsrpt_record:
-      "TLS-RPT 레코드",
+    tls_reporting: "TLS 보고",
+    tlsrpt_record: "TLS-RPT 레코드",
     tlsrpt_description:
       "선택 사항이지만 권장합니다. 도메인으로의 암호화 전송이 실패하면 수신 서버가 일일 요약을 보내주므로 사용자보다 먼저 문제를 발견할 수 있습니다.",
-    dns_instruction_set_tlsrpt_host:
-      "호스트를 _smtp._tls 로 설정하세요",
-    dns_instruction_set_tlsrpt_value:
-      "TLS-RPT 값을 표시된 그대로 붙여넣으세요",
-    optional_step:
-      "선택",
+    dns_instruction_set_tlsrpt_host: "호스트를 _smtp._tls 로 설정하세요",
+    dns_instruction_set_tlsrpt_value: "TLS-RPT 값을 표시된 그대로 붙여넣으세요",
+    optional_step: "선택",
     gmail_import: "Gmail",
     gmail_import_description: "Google Takeout의 MBOX",
     outlook_import: "Outlook",
@@ -4615,6 +4640,9 @@ export const ko = {
     conversation_grouping_confirm_description:
       "대화 그룹화를 끄면 답장을 그룹으로 묶는 대신 각 이메일이 받은 편지함에 별도 항목으로 표시됩니다. 이메일 스레드를 따라가기 어려울 수 있습니다.",
     show_message_size: "메시지 크기 표시",
+    show_alias_indicators: "별칭 표시 보기",
+    show_alias_indicators_description:
+      "별칭으로 도착한 메시지에 표시합니다",
     show_message_size_description:
       "받은 편지함 목록에서 각 이메일의 크기를 표시합니다",
     auto_save_recipients: "최근 수신자 자동 저장",
@@ -5161,9 +5189,11 @@ export const ko = {
     domain_purchase_purchased_expires: "{{date}} 만료",
     domain_purchase_purchased_in_progress: "설정 중...",
     domain_purchase_purchased_awaiting: "결제 대기 중",
-    domain_purchase_done_warmup: "참고: 도메인의 DNS가 인터넷에 전파되는 데 최대 1시간이 걸릴 수 있으며, Gmail 같은 제공업체는 갓 만들어진 도메인을 처음에는 신중하게 다룹니다. 도메인 이력이 쌓일수록 전달률이 좋아집니다.",
+    domain_purchase_done_warmup:
+      "참고: 도메인의 DNS가 인터넷에 전파되는 데 최대 1시간이 걸릴 수 있으며, Gmail 같은 제공업체는 갓 만들어진 도메인을 처음에는 신중하게 다룹니다. 도메인 이력이 쌓일수록 전달률이 좋아집니다.",
     domain_purchase_create_first_address: "첫 주소 만들기",
-    domain_purchase_progress_note: "도메인을 등록하고 메일함을 설정하는 동안 잠시 기다려 주세요. 보통 1분 정도 걸립니다.",
+    domain_purchase_progress_note:
+      "도메인을 등록하고 메일함을 설정하는 동안 잠시 기다려 주세요. 보통 1분 정도 걸립니다.",
     domain_purchase_complete_cta: "구매 완료하기",
     domain_purchase_purchased_lapsed: "만료됨 - 다시 구매",
     domain_purchase_error_paused:
@@ -5481,13 +5511,18 @@ export const ko = {
     crypto_native_status_underpaid: "부분 결제됨",
     crypto_native_what_happens: "다음 단계",
     crypto_native_stripe_option: "스테이블코인으로 결제",
-    crypto_native_stripe_desc: "결제 대행사를 통해 USDC 등 스테이블코인으로 결제하세요",
-    crypto_native_too_many_open: "완료되지 않은 암호화폐 인보이스가 너무 많습니다. 먼저 하나를 완료하거나 취소하세요.",
-    crypto_native_daily_limit: "오늘 생성한 암호화폐 인보이스가 너무 많습니다. 나중에 다시 시도해 주세요.",
+    crypto_native_stripe_desc:
+      "결제 대행사를 통해 USDC 등 스테이블코인으로 결제하세요",
+    crypto_native_too_many_open:
+      "완료되지 않은 암호화폐 인보이스가 너무 많습니다. 먼저 하나를 완료하거나 취소하세요.",
+    crypto_native_daily_limit:
+      "오늘 생성한 암호화폐 인보이스가 너무 많습니다. 나중에 다시 시도해 주세요.",
     crypto_native_invoice_title: "{{coin}}(으)로 결제",
-    crypto_native_awaiting_body: "아래 주소로 정확한 금액을 보내세요. 이 페이지는 자동으로 업데이트됩니다.",
+    crypto_native_awaiting_body:
+      "아래 주소로 정확한 금액을 보내세요. 이 페이지는 자동으로 업데이트됩니다.",
     crypto_native_received_title: "결제 수신됨",
-    crypto_native_received_body: "전액이 수신되어 처리 중입니다. 추가로 결제하지 않으셔도 됩니다.",
+    crypto_native_received_body:
+      "전액이 수신되어 처리 중입니다. 추가로 결제하지 않으셔도 됩니다.",
     crypto_native_send_exactly: "정확히 보낼 금액",
     crypto_native_send_remaining: "남은 금액 보내기",
     crypto_native_to_address: "받는 주소",
@@ -5499,7 +5534,8 @@ export const ko = {
     crypto_native_no_wallet_handler:
       "지갑 앱이 열리지 않았습니다. 위 주소를 복사해 지갑에 붙여넣으세요.",
     crypto_native_copied: "클립보드에 복사됨",
-    crypto_native_network_warning: "{{chain}} 네트워크의 {{coin}}만 보내세요. 다른 자산을 보내거나 다른 네트워크를 사용하면 자금을 잃게 됩니다.",
+    crypto_native_network_warning:
+      "{{chain}} 네트워크의 {{coin}}만 보내세요. 다른 자산을 보내거나 다른 네트워크를 사용하면 자금을 잃게 됩니다.",
     crypto_native_usd_value_label: "결제 금액",
     crypto_native_usd_total_label: "청구 총액",
     crypto_native_rate_locked: "환율은 이 청구서가 만료될 때까지 고정됩니다.",
@@ -5509,11 +5545,14 @@ export const ko = {
     crypto_native_status_confirming: "승인 중 ({{current}}/{{required}})",
     crypto_native_status_confirming_short: "승인 중",
     crypto_native_status_credited: "결제 완료",
-    crypto_native_underpaid_body: "{{expected}} {{coin}} 중 {{received}}을(를) 받았습니다. 이 청구서를 완료하려면 남은 {{remaining}} {{coin}}을(를) 같은 주소로 보내세요.",
+    crypto_native_underpaid_body:
+      "{{expected}} {{coin}} 중 {{received}}을(를) 받았습니다. 이 청구서를 완료하려면 남은 {{remaining}} {{coin}}을(를) 같은 주소로 보내세요.",
     crypto_native_manual_review: "검토 중",
-    crypto_native_manual_review_body: "결제에 대한 간단한 수동 확인이 필요합니다. 곧 계정에 반영해 드리겠습니다.",
+    crypto_native_manual_review_body:
+      "결제에 대한 간단한 수동 확인이 필요합니다. 곧 계정에 반영해 드리겠습니다.",
     crypto_native_transaction: "트랜잭션",
-    crypto_native_refund_notice: "초과 결제 및 환불은 Aster 계정 잔액으로 적립됩니다.",
+    crypto_native_refund_notice:
+      "초과 결제 및 환불은 Aster 계정 잔액으로 적립됩니다.",
     crypto_native_cancel_invoice: "이 청구서 취소",
     crypto_native_cancel_failed: "이 청구서를 취소하지 못했습니다.",
     crypto_native_cancel_has_payment:
@@ -5524,21 +5563,24 @@ export const ko = {
     crypto_native_view_billing: "결제 정보로 돌아가기",
     crypto_native_invoice_cancelled: "청구서가 취소되었습니다",
     crypto_native_expired_title: "이 청구서는 만료되었습니다",
-    crypto_native_expired_body: "환율이 변동하므로 이 결제 창은 마감되었습니다. 계속하려면 새 결제를 시작하세요.",
+    crypto_native_expired_body:
+      "환율이 변동하므로 이 결제 창은 마감되었습니다. 계속하려면 새 결제를 시작하세요.",
     crypto_native_cancelled_body:
       "이 결제는 취소되었습니다. 청구된 금액은 없습니다. 언제든지 새 결제를 시작할 수 있습니다.",
-    crypto_native_start_new_payment:
-      "새 결제 시작",
-    crypto_native_check_now:
-      "지금 확인",
-    crypto_native_expired_do_not_send: "이 청구서의 주소로 보내지 마세요. 지금 보낸 자금은 반영되기 전에 수동 검토가 필요합니다.",
+    crypto_native_start_new_payment: "새 결제 시작",
+    crypto_native_check_now: "지금 확인",
+    crypto_native_expired_do_not_send:
+      "이 청구서의 주소로 보내지 마세요. 지금 보낸 자금은 반영되기 전에 수동 검토가 필요합니다.",
     crypto_native_not_found: "이 청구서를 찾을 수 없습니다",
     crypto_native_unavailable: "결제를 불러오지 못했습니다",
-    crypto_native_unavailable_body: "서버에 연결하지 못했습니다. 연결을 확인한 후 다시 시도하세요. 결제에는 영향이 없습니다.",
+    crypto_native_unavailable_body:
+      "서버에 연결하지 못했습니다. 연결을 확인한 후 다시 시도하세요. 결제에는 영향이 없습니다.",
     crypto_native_pending_banner: "진행 중인 암호화폐 결제가 있습니다",
     crypto_native_pending_banner_action: "결제 재개",
-    crypto_native_pending_banner_multi: "진행 중인 암호화폐 결제가 {{count}}건 있습니다",
-    crypto_native_back_hint: "이 청구서는 아직 유효합니다. 결제 정보에서 언제든지 다시 진행할 수 있습니다.",
+    crypto_native_pending_banner_multi:
+      "진행 중인 암호화폐 결제가 {{count}}건 있습니다",
+    crypto_native_back_hint:
+      "이 청구서는 아직 유효합니다. 결제 정보에서 언제든지 다시 진행할 수 있습니다.",
     crypto_native_scan_hint: "지갑 앱으로 스캔하세요",
     crypto_native_scan_hint_address_only:
       "지갑 앱으로 스캔한 다음 {{amount}}을(를) 직접 입력하세요",
@@ -5549,18 +5591,27 @@ export const ko = {
     crypto_native_invoice_ref_label: "청구서",
     crypto_native_paying_with_label: "결제 수단",
     crypto_native_cancel_confirm_title: "이 청구서를 취소할까요?",
-    crypto_native_cancel_confirm_body: "결제 주소 모니터링이 중단됩니다. 취소 후에는 이 주소로 자금을 보내지 마세요. 새 결제는 언제든지 시작할 수 있습니다.",
-    crypto_native_hint_awaiting: "위 주소로 정확한 금액을 보내세요. 네트워크를 자동으로 확인하고 있습니다.",
-    crypto_native_hint_detected: "트랜잭션이 네트워크에 등록되었습니다. 블록에 포함되기를 기다리는 중입니다.",
-    crypto_native_hint_confirming: "네트워크에서 승인 중입니다. 완료되는 즉시 요금제가 활성화됩니다.",
-    crypto_native_hint_credited: "결제가 확인되었습니다. 요금제가 활성화되었습니다.",
+    crypto_native_cancel_confirm_body:
+      "결제 주소 모니터링이 중단됩니다. 취소 후에는 이 주소로 자금을 보내지 마세요. 새 결제는 언제든지 시작할 수 있습니다.",
+    crypto_native_hint_awaiting:
+      "위 주소로 정확한 금액을 보내세요. 네트워크를 자동으로 확인하고 있습니다.",
+    crypto_native_hint_detected:
+      "트랜잭션이 네트워크에 등록되었습니다. 블록에 포함되기를 기다리는 중입니다.",
+    crypto_native_hint_confirming:
+      "네트워크에서 승인 중입니다. 완료되는 즉시 요금제가 활성화됩니다.",
+    crypto_native_hint_credited:
+      "결제가 확인되었습니다. 요금제가 활성화되었습니다.",
     crypto_native_time_remaining: "남은 시간",
     crypto_native_expiring_soon:
       "5분 미만 남았습니다. 결제가 도착하기 전에 이 시간이 끝나면 현재 환율로 새 결제를 시작할 수 있습니다.",
-    crypto_native_hint_underpaid: "위에 표시된 잔액을 동일한 주소로 보내 이 결제를 완료하세요.",
-    crypto_native_hint_manual_review: "저희 팀이 이 결제를 검토하고 있습니다. 추가로 하실 일은 없습니다.",
-    crypto_native_connection_lost: "연결이 끊겼습니다. 자동으로 다시 시도하고 있습니다.",
-    crypto_native_coins_unavailable: "암호화폐 결제 수단을 불러오지 못했습니다.",
+    crypto_native_hint_underpaid:
+      "위에 표시된 잔액을 동일한 주소로 보내 이 결제를 완료하세요.",
+    crypto_native_hint_manual_review:
+      "저희 팀이 이 결제를 검토하고 있습니다. 추가로 하실 일은 없습니다.",
+    crypto_native_connection_lost:
+      "연결이 끊겼습니다. 자동으로 다시 시도하고 있습니다.",
+    crypto_native_coins_unavailable:
+      "암호화폐 결제 수단을 불러오지 못했습니다.",
     crypto_native_copy_tx_hash: "트랜잭션 해시 복사",
     crypto_native_expiry_progress: "이 청구서가 만료되기까지 남은 시간",
     crypto_native_confirmations_progress: "네트워크 승인 수",
@@ -6012,12 +6063,16 @@ export const ko = {
   mail: {
     load_all_thread_messages: "모든 메시지 불러오기",
     move_to_category: "카테고리로 이동",
+    menu_applies_to_selection: "선택한 {count}개에 적용",
+    menu_applies_to_all: "전체 {count}개 메일에 적용",
     moved_to_category: "카테고리로 이동됨",
+    drop_to_move_here: "여기에 놓아 이동",
     tab_new_count: "신규",
     category_empty_primary_title: "기본에 아무것도 없습니다",
     category_empty_primary_desc: "개인 메시지와 대화가 여기에 표시됩니다.",
     category_empty_promotions_title: "할인 없음",
-    category_empty_promotions_desc: "할인 및 마케팅 이메일이 나머지 메일과 분리되어 여기에 표시됩니다.",
+    category_empty_promotions_desc:
+      "할인 및 마케팅 이메일이 나머지 메일과 분리되어 여기에 표시됩니다.",
     category_empty_social_title: "소셜 업데이트 없음",
     category_empty_social_desc:
       "소셜 네트워크와 커뮤니티의 메시지가 여기에 표시됩니다.",
@@ -6252,6 +6307,10 @@ export const ko = {
       "이 작업은 이 보기의 모든 대화에 영향을 줍니다.",
     bulk_action_index_not_ready:
       "이 탭은 아직 색인 중입니다. 잠시 후 다시 시도하세요.",
+    bulk_action_index_building:
+      "이 탭은 아직 색인 중입니다. 색인이 준비되는 대로 작업이 시작됩니다.",
+    bulk_action_index_capped:
+      "이 탭에는 한 번에 업데이트하기에 너무 많은 대화가 있습니다. 대화를 선택한 다음 다시 시도하세요.",
     archive_messages_title: "메시지 보관",
     archive_messages_confirmation: "선택한 메시지를 보관하시겠습니까?",
     mark_spam_title: "스팸으로 표시하시겠습니까?",
@@ -6596,6 +6655,7 @@ export const ko = {
     download_file_named: "{{filename}} 다운로드",
     to_recipients_prefix: "{{ recipients }}에게",
     received_on_prefix: "{{ address }}(으)로 수신",
+    received_via_alias: "별칭 {{ address }}(으)로 전달됨",
     load_external_content: "외부 콘텐츠 불러오기",
     image: "이미지",
     images: "이미지",
@@ -6650,8 +6710,7 @@ export const ko = {
     folder_item_count: "{{count}}개 항목",
     folder_item_count_singular: "{{count}}개 항목",
     indexing_messages: "메시지 인덱싱 중...",
-    message_download_status:
-      "메시지 다운로드 상태: {{total}}개 중 {{done}}개",
+    message_download_status: "메시지 다운로드 상태: {{total}}개 중 {{done}}개",
     estimated_time_remaining: "예상 남은 시간: {{duration}}",
     download_paused: "다운로드 일시중지됨",
     pause_download_action: "일시중지",
@@ -6913,7 +6972,8 @@ export const ko = {
       "추가 계정을 만들려면 복구 이메일이 필요합니다. 이를 통해 모든 계정을 보호할 수 있습니다.",
     username_min_length: "여기에는 최소 3자가 필요합니다.",
     username_max_length: "여기에는 40자 미만이면 됩니다.",
-    username_alphanumeric: "영문자, 숫자, 점을 사용할 수 있습니다. 점은 처음, 끝, 연속으로 쓸 수 없습니다.",
+    username_alphanumeric:
+      "영문자, 숫자, 점을 사용할 수 있습니다. 점은 처음, 끝, 연속으로 쓸 수 없습니다.",
     username_not_available:
       "이 사용자 이름은 사용 중입니다. 다른 이름이면 됩니다.",
     password_req_length: "최소 8자",
@@ -7328,19 +7388,16 @@ export const ko = {
   errors: {
     failed_remove_reaction: "반응을 삭제하지 못했습니다. 다시 시도해 주세요.",
     cannot_react_own_message: "자신의 메시지에는 반응할 수 없습니다.",
-    cannot_react_draft:
-      "임시 보관 또는 예약된 메시지에는 반응할 수 없습니다.",
+    cannot_react_draft: "임시 보관 또는 예약된 메시지에는 반응할 수 없습니다.",
     cannot_react_spam_or_trash:
       "스팸 또는 휴지통의 메시지에는 반응할 수 없습니다.",
-    cannot_react_reply_to:
-      "회신 주소가 있는 메시지에는 반응할 수 없습니다.",
+    cannot_react_reply_to: "회신 주소가 있는 메시지에는 반응할 수 없습니다.",
     cannot_react_too_many_recipients:
       "수신자가 20명을 넘는 메시지에는 반응할 수 없습니다.",
     cannot_react_bcc: "숨은 참조로 받은 메시지에는 반응할 수 없습니다.",
     cannot_react_too_many_emojis:
       "이 메시지에는 이미 최대 개수의 반응이 있습니다.",
-    cannot_react_no_recipient:
-      "이 메시지에는 반응을 보낼 발신자가 없습니다.",
+    cannot_react_no_recipient: "이 메시지에는 반응을 보낼 발신자가 없습니다.",
     failed_send_reaction: "반응을 보내지 못했습니다. 다시 시도해 주세요.",
     reactions_disabled: "설정에서 반응이 꺼져 있습니다.",
     pending_email_verification:
@@ -7412,6 +7469,8 @@ export const ko = {
       "이 이메일은 서버에 있지만 전송 중 손상된 것으로 보입니다. 새로 고침 후 다시 시도하면 해결됩니다. 계속 실패한다면 hello@astermail.org이 도와드릴 수 있습니다.",
     decrypt_sender_error:
       "보낸 사람이 이 이메일을 읽을 수 없는 방식으로 암호화했습니다. 다시 보내달라고 요청하면 해결됩니다. 다른 이메일에는 영향이 없습니다.",
+    metadata_undecryptable_change:
+      "이 기기에서는 이 메시지의 세부 정보를 열 수 없어 변경사항이 저장되지 않습니다. 키를 다시 불러오려면 로그아웃한 다음 다시 로그인하세요. 서버의 메시지는 그대로입니다.",
     no_unsubscribe_method:
       "이 발신자는 수신거부 헤더를 포함하지 않았습니다. 이메일 본문의 링크를 사용하거나 스팸으로 표시해도 같은 결과를 얻을 수 있습니다.",
     invalid_unsubscribe_address:
@@ -7627,8 +7686,10 @@ export const ko = {
     action_move_to: "이동",
     action_apply_label: "라벨 적용",
     action_apply_labels: "라벨 적용",
-    alias_delivery_conflict: "별칭 {{ alias }}은(는) {{ alias_target }}으로 배달하지만, {{ rule_target }}(으)로 보내는 이 규칙이 우선합니다.",
-    alias_label_conflict: "별칭 {{ alias }}은(는) 메일에 {{ alias_target }}을(를) 지정하며, 이 규칙은 {{ rule_target }}도 추가합니다.",
+    alias_delivery_conflict:
+      "별칭 {{ alias }}은(는) {{ alias_target }}으로 배달하지만, {{ rule_target }}(으)로 보내는 이 규칙이 우선합니다.",
+    alias_label_conflict:
+      "별칭 {{ alias }}은(는) 메일에 {{ alias_target }}을(를) 지정하며, 이 규칙은 {{ rule_target }}도 추가합니다.",
     action_mark_as: "표시",
     action_star: "별표",
     action_skip_inbox: "받은 편지함 건너뜀",

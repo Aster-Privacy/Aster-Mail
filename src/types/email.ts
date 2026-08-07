@@ -182,6 +182,7 @@ export interface InboxEmail {
   tags?: InboxEmailTag[];
   snoozed_until?: string;
   thread_token?: string;
+  routing_token?: string;
   thread_message_count?: number;
   thread_participant_names?: string[];
   encrypted_metadata?: string;

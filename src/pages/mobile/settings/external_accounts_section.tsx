@@ -154,7 +154,7 @@ export function ExternalAccountsSection({
               <button
                 className={`flex-1 rounded-[14px] py-2.5 text-center text-[14px] font-medium transition-colors ${
                   state.form_protocol === "imap"
-                    ? "bg-[var(--accent-color,#3b82f6)] text-white"
+                    ? "bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]"
                     : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
                 }`}
                 type="button"
@@ -165,7 +165,7 @@ export function ExternalAccountsSection({
               <button
                 className={`flex-1 rounded-[14px] py-2.5 text-center text-[14px] font-medium transition-colors ${
                   state.form_protocol === "pop3"
-                    ? "bg-[var(--accent-color,#3b82f6)] text-white"
+                    ? "bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]"
                     : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
                 }`}
                 type="button"
@@ -569,7 +569,7 @@ export function ExternalAccountsSection({
                           key={opt.value}
                           className={`flex-1 rounded-[14px] py-2 text-center text-[13px] font-medium transition-colors ${
                             state.form_tls_method === opt.value
-                              ? "bg-[var(--accent-color,#3b82f6)] text-white"
+                              ? "bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]"
                               : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
                           }`}
                           type="button"

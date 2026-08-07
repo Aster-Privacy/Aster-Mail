@@ -30,8 +30,7 @@ import {
   PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
-import { strip_html_tags } from "@/lib/html_sanitizer";
-import { build_list_preview } from "@/utils/preview_text";
+import { build_body_preview } from "@/utils/preview_text";
 import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -440,6 +439,7 @@ export function mail_to_email(
       folders,
       tags,
       snoozed_until: effective_metadata.snoozed_until,
+      routing_token: item.routing_token,
       encrypted_metadata: item.encrypted_metadata,
       metadata_nonce: item.metadata_nonce,
       metadata_version: item.metadata_version,
@@ -474,7 +474,7 @@ export function mail_to_email(
     (!resolved_text && is_ratchet_envelope(raw_html));
   const preview_text = is_undecryptable_body
     ? RATCHET_UNDECRYPTABLE_SENTINEL
-    : build_list_preview(strip_html_tags(resolved_text || resolved_html));
+    : build_body_preview(resolved_text, resolved_html);
   const raw_ts =
     envelope.sent_at ||
     (envelope as unknown as Record<string, string>).date ||
@@ -519,6 +519,7 @@ export function mail_to_email(
     tags,
     snoozed_until: effective_metadata.snoozed_until,
     thread_token: item.thread_token,
+    routing_token: item.routing_token,
     thread_message_count: item.thread_message_count,
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,
@@ -671,6 +672,50 @@ export function sort_emails_by_timestamp(
 
     return order === "asc" ? ts_a - ts_b : ts_b - ts_a;
   });
+}
+
+export interface RestoredEmailEntry {
+  email: InboxEmail;
+  index: number;
+}
+
+export function insert_emails_at(
+  emails: InboxEmail[],
+  entries: RestoredEmailEntry[],
+): InboxEmail[] {
+  const present = new Set(emails.map((e) => e.id));
+  const fresh = entries
+    .filter((entry) => !present.has(entry.email.id))
+    .sort((a, b) => a.index - b.index);
+
+  if (fresh.length === 0) return emails;
+
+  const restored = [...emails];
+
+  for (const entry of fresh) {
+    const position = Math.min(Math.max(entry.index, 0), restored.length);
+
+    restored.splice(position, 0, entry.email);
+  }
+
+  return restored;
+}
+
+export function collect_restore_entries(
+  emails: InboxEmail[],
+  ids: string[],
+): RestoredEmailEntry[] {
+  const id_set = new Set(ids);
+
+  return emails
+    .map((email, index) => ({ email, index }))
+    .filter((entry) => id_set.has(entry.email.id));
+}
+
+export function expand_email_ids(email: InboxEmail): string[] {
+  return email.grouped_email_ids && email.grouped_email_ids.length > 1
+    ? email.grouped_email_ids
+    : [email.id];
 }
 
 export function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {

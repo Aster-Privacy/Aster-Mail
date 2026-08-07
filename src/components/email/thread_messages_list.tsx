@@ -49,7 +49,7 @@ import {
 import { get_cached_folders } from "@/hooks/use_folders";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { adjust_starred_count } from "@/hooks/use_mail_counts";
+import { adjust_stats_starred } from "@/hooks/use_mail_stats";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 
@@ -540,7 +540,7 @@ export const ThreadMessagesList = forwardRef<
         return next;
       });
 
-      adjust_starred_count(new_starred ? 1 : -1);
+      adjust_stats_starred(new_starred ? 1 : -1);
 
       update_item_metadata(
         msg.id,
@@ -562,7 +562,7 @@ export const ThreadMessagesList = forwardRef<
 
             return next;
           });
-          adjust_starred_count(new_starred ? -1 : 1);
+          adjust_stats_starred(new_starred ? -1 : 1);
         } else {
           emit_mail_item_updated({
             id: msg.id,

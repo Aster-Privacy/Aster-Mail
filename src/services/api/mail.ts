@@ -401,6 +401,15 @@ export async function empty_trash(): Promise<
   );
 }
 
+export async function empty_spam(): Promise<
+  ApiResponse<{ success: boolean; deleted_count: number }>
+> {
+  return api_client.delete<{ success: boolean; deleted_count: number }>(
+    "/mail/v1/messages/spam",
+    { timeout: 120000 },
+  );
+}
+
 export type BulkScopeAction =
   | "trash"
   | "archive"
@@ -434,6 +443,7 @@ export interface BulkScopeResponse {
   batch_id: string;
   affected_count: number;
   undoable: boolean;
+  completed?: boolean;
 }
 
 export async function bulk_action_by_scope(

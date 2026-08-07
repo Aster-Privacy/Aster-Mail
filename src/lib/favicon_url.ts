@@ -22,11 +22,13 @@ import { Capacitor } from "@capacitor/core";
 
 import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { is_icon_failed } from "@/lib/icon_cache";
 
 const NATIVE_BASE = "https://app.astermail.org/api/images/v1/favicon";
 const WEB_BASE = "/api/images/v1/favicon";
 const EMPTY_FAVICON =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'/>";
+const FAILED_FAVICON = "data:,";
 const DOMAIN_PATTERN =
   /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
 
@@ -47,6 +49,10 @@ export function get_favicon_url(domain: string): string {
 
   if (is_any_lockdown_active()) {
     return EMPTY_FAVICON;
+  }
+
+  if (is_icon_failed(trimmed)) {
+    return FAILED_FAVICON;
   }
 
   const method = connection_store.get_method();
