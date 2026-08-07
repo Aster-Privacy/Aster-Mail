@@ -22,6 +22,7 @@ import {
   derive_encryption_key_from_passphrase,
   get_or_create_derived_encryption_crypto_key,
 } from "./memory_key_store";
+import type { ApiResponse } from "../api/client";
 import { list_aliases } from "../api/aliases";
 import { list_contacts } from "../api/contacts";
 import { list_alias_pins } from "../api/alias_pins";
@@ -317,6 +318,39 @@ async function carry_forward_field(
   }
 }
 
+const LIST_RETRY_ATTEMPTS = 4;
+const LIST_RETRY_BASE_DELAY_MS = 400;
+
+const DEFINITIVE_LIST_ERROR_CODES = new Set([
+  "UNAUTHORIZED",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "VALIDATION_ERROR",
+]);
+
+function sleep(duration_ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, duration_ms));
+}
+
+export async function list_page_with_retry<T>(
+  fetch_page: () => Promise<ApiResponse<T>>,
+): Promise<ApiResponse<T>> {
+  let response = await fetch_page();
+
+  for (let attempt = 1; attempt < LIST_RETRY_ATTEMPTS; attempt += 1) {
+    if (response.data && !response.error) return response;
+    if (response.code && DEFINITIVE_LIST_ERROR_CODES.has(response.code)) {
+      return response;
+    }
+
+    await sleep(LIST_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1));
+
+    response = await fetch_page();
+  }
+
+  return response;
+}
+
 export async function re_encrypt_user_data(
   old_passphrase: string,
   new_passphrase: string,
@@ -361,7 +395,9 @@ export async function re_encrypt_user_data(
   let alias_offset = 0;
 
   while (true) {
-    const response = await list_aliases({ limit: 100, offset: alias_offset });
+    const response = await list_page_with_retry(() =>
+      list_aliases({ limit: 100, offset: alias_offset }),
+    );
 
     if (response.error || !response.data) {
       throw new Error(
@@ -540,7 +576,7 @@ export async function re_encrypt_user_data(
 
     if (contact_cursor) params.cursor = contact_cursor;
 
-    const response = await list_contacts(params);
+    const response = await list_page_with_retry(() => list_contacts(params));
 
     if (response.error || !response.data) {
       throw new Error(
