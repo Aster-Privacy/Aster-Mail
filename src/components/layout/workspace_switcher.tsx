@@ -42,7 +42,6 @@ import { use_mail_stats, prefetch_mail_stats } from "@/hooks/use_mail_stats";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { PlanBadge } from "@/components/common/plan_badge";
 import { use_preferences } from "@/contexts/preferences_context";
-import { is_file_picker_open } from "@/hooks/use_profile_picture_upload";
 import { get_all_accounts } from "@/services/account_manager";
 import { api_client } from "@/services/api/client";
 import { has_stored_session_passphrase } from "@/contexts/auth/session_passphrase";
@@ -147,35 +146,6 @@ export function WorkspaceSwitcher({
       cancelled = true;
     };
   }, [is_open, current_account_id, limits]);
-
-  useEffect(() => {
-    if (!is_open) return;
-
-    const close_popover = () => {
-      if (is_file_picker_open()) return;
-
-      const node = popover_ref.current;
-
-      if (node) {
-        node.style.display = "none";
-        void node.offsetHeight;
-      }
-      on_open_change(false);
-    };
-
-    const close_when_hidden = () => {
-      if (!document.hidden) return;
-      close_popover();
-    };
-
-    window.addEventListener("blur", close_when_hidden);
-    document.addEventListener("visibilitychange", close_when_hidden);
-
-    return () => {
-      window.removeEventListener("blur", close_when_hidden);
-      document.removeEventListener("visibilitychange", close_when_hidden);
-    };
-  }, [is_open, on_open_change]);
 
   const storage_percent = useMemo(() => {
     if (!stats.storage_total_bytes) return 0;
@@ -475,14 +445,14 @@ export function WorkspaceSwitcher({
             <div className="account_menu_tile flex-col items-stretch gap-2 py-3">
               <div className="flex items-baseline justify-between gap-2">
                 <span
-                  className="text-[12px] font-medium"
+                  className="whitespace-nowrap text-[12px] font-medium"
                   style={{ color: "var(--text-secondary)" }}
                 >
                   {t("common.storage_used")}
                 </span>
                 {storage_used_label ? (
                   <span
-                    className="text-[12px] tabular-nums"
+                    className="truncate text-[12px] tabular-nums"
                     style={{ color: "var(--text-muted)" }}
                   >
                     {storage_used_label}

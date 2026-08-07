@@ -287,6 +287,14 @@ export function QuickSettingsPanel({
         <h2 className="flex-1 truncate text-[16px] font-medium text-txt-primary">
           {t("settings.quick_settings")}
         </h2>
+        <button
+          className="quick_settings_link flex-shrink-0 text-[13px]"
+          style={{ color: "var(--quick-link, #3b82f6)" }}
+          type="button"
+          onClick={() => on_open_full_settings()}
+        >
+          {t("settings.see_all_settings")}
+        </button>
         <Button
           aria-label={t("common.close")}
           className="h-7 w-7 text-[var(--icon-muted)]"
@@ -397,20 +405,6 @@ export function QuickSettingsPanel({
           title={t("settings.theme")}
           value={theme_preference}
         />
-
-        <div
-          className="px-4 pb-1 pt-3"
-          style={{ borderTop: "1px solid var(--border-secondary)" }}
-        >
-          <button
-            className="quick_settings_link text-[13px]"
-            style={{ color: "var(--quick-link, #3b82f6)" }}
-            type="button"
-            onClick={() => on_open_full_settings()}
-          >
-            {t("settings.see_all_settings")}
-          </button>
-        </div>
 
         <div className="h-3 flex-shrink-0" />
       </div>
