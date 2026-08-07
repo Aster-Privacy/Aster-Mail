@@ -485,9 +485,13 @@ export async function re_encrypt_user_data(
         skipped.alias_ids.push(alias.id);
       }
 
-      const pins_response = await list_alias_pins(alias.id);
+      const pins_response = await list_page_with_retry(() =>
+        list_alias_pins(alias.id),
+      );
 
-      if (!pins_response.error && pins_response.data) {
+      if (pins_response.error || !pins_response.data) {
+        skipped.unreadable_field_count += 1;
+      } else {
         for (const pin of pins_response.data.pins) {
           if (!pin.encrypted_sender || !pin.sender_nonce) continue;
 
@@ -510,9 +514,13 @@ export async function re_encrypt_user_data(
         }
       }
 
-      const alias_contacts_response = await list_alias_contacts(alias.id);
+      const alias_contacts_response = await list_page_with_retry(() =>
+        list_alias_contacts(alias.id),
+      );
 
-      if (!alias_contacts_response.error && alias_contacts_response.data) {
+      if (alias_contacts_response.error || !alias_contacts_response.data) {
+        skipped.unreadable_field_count += 1;
+      } else {
         for (const alias_contact of alias_contacts_response.data.contacts) {
           if (!alias_contact.encrypted_contact || !alias_contact.contact_nonce)
             continue;
@@ -536,9 +544,13 @@ export async function re_encrypt_user_data(
         }
       }
 
-      const destinations_response = await list_alias_destinations(alias.id);
+      const destinations_response = await list_page_with_retry(() =>
+        list_alias_destinations(alias.id),
+      );
 
-      if (!destinations_response.error && destinations_response.data) {
+      if (destinations_response.error || !destinations_response.data) {
+        skipped.unreadable_field_count += 1;
+      } else {
         for (const destination of destinations_response.data.destinations) {
           if (!destination.encrypted_destination || !destination.destination_nonce)
             continue;
@@ -629,9 +641,13 @@ export async function re_encrypt_user_data(
     contact_cursor = response.data.next_cursor;
   }
 
-  const directories_response = await list_alias_directories();
+  const directories_response = await list_page_with_retry(() =>
+    list_alias_directories(),
+  );
 
-  if (!directories_response.error && directories_response.data) {
+  if (directories_response.error || !directories_response.data) {
+    skipped.unreadable_field_count += 1;
+  } else {
     for (const directory of directories_response.data.directories) {
       if (!directory.encrypted_label || !directory.label_nonce) continue;
 
@@ -654,13 +670,20 @@ export async function re_encrypt_user_data(
     }
   }
 
-  const domains_response = await list_domains();
+  const domains_response = await list_page_with_retry(() => list_domains());
 
-  if (!domains_response.error && domains_response.data) {
+  if (domains_response.error || !domains_response.data) {
+    skipped.unreadable_field_count += 1;
+  } else {
     for (const domain of domains_response.data.domains) {
-      const addresses_response = await list_domain_addresses(domain.id);
+      const addresses_response = await list_page_with_retry(() =>
+        list_domain_addresses(domain.id),
+      );
 
-      if (addresses_response.error || !addresses_response.data) continue;
+      if (addresses_response.error || !addresses_response.data) {
+        skipped.unreadable_field_count += 1;
+        continue;
+      }
 
       for (const address of addresses_response.data.addresses) {
         try {
