@@ -164,6 +164,10 @@ impl PublicKey {
         crate::key_selection::has_valid_encryption_subkey(&self.signed_public())
     }
 
+    pub fn has_unsupported_encryption_algorithm(&self) -> bool {
+        crate::key_selection::has_unsupported_encryption_subkey(&self.signed_public())
+    }
+
     pub fn encryption_expires_at(&self) -> Option<chrono::DateTime<chrono::Utc>> {
         crate::key_selection::encryption_expires_at(&self.signed_public())
     }

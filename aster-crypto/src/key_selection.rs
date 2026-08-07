@@ -20,8 +20,9 @@
 //
 use chrono::{DateTime, Utc};
 use pgp::composed::{SignedPublicKey, SignedPublicSubKey};
+use pgp::crypto::ecc_curve::ECCCurve;
 use pgp::packet::SignatureType;
-use pgp::types::PublicKeyTrait;
+use pgp::types::{EcdhPublicParams, PublicKeyTrait, PublicParams};
 
 fn subkey_is_revoked(sub: &SignedPublicSubKey) -> bool {
     sub.signatures
@@ -63,12 +64,32 @@ fn subkey_expires_at(sub: &SignedPublicSubKey) -> Option<DateTime<Utc>> {
     Some(created + duration)
 }
 
+fn subkey_algo_is_supported(sub: &SignedPublicSubKey) -> bool {
+    match sub.key.public_params() {
+        PublicParams::ECDH(EcdhPublicParams::Known { curve, .. }) => matches!(
+            curve,
+            ECCCurve::Curve25519 | ECCCurve::P256 | ECCCurve::P384 | ECCCurve::P521
+        ),
+        PublicParams::ECDH(EcdhPublicParams::Unsupported { .. }) => false,
+        _ => true,
+    }
+}
+
 fn capable_subkeys(spk: &SignedPublicKey) -> Vec<&SignedPublicSubKey> {
     spk.public_subkeys
         .iter()
         .filter(|s| !subkey_is_revoked(s))
         .filter(|s| subkey_allows_encryption(s))
+        .filter(|s| subkey_algo_is_supported(s))
         .collect()
+}
+
+pub(crate) fn has_unsupported_encryption_subkey(spk: &SignedPublicKey) -> bool {
+    spk.public_subkeys
+        .iter()
+        .filter(|s| !subkey_is_revoked(s))
+        .filter(|s| subkey_allows_encryption(s))
+        .any(|s| !subkey_algo_is_supported(s))
 }
 
 fn primary_expired(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
