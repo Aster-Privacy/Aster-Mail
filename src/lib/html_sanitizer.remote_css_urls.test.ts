@@ -176,6 +176,62 @@ describe("remote css urls in sandboxed rendering", () => {
     expect(result.html).not.toContain("tracker.example.com");
   });
 
+  it("strips a remote url() hidden behind a css comment inside the parens", () => {
+    const result = sanitize_html(
+      head_style_email(`.a { background-image: url(/*c*/"${TRACKER}"); }`),
+      options("never"),
+    );
+
+    expect(result.html).not.toContain("tracker.example.com");
+  });
+
+  it("strips a remote url() hidden behind a css comment before the parens", () => {
+    const result = sanitize_html(
+      head_style_email(`.a { background-image: url/*c*/("${TRACKER}"); }`),
+      options("never"),
+    );
+
+    expect(result.html).not.toContain("tracker.example.com");
+  });
+
+  it("removes remote @font-face when a comment splits the at-rule", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `@font-face/*c*/{ font-family: x; src: url(https://fonts.example.com/x.woff2); }`,
+      ),
+      options("never"),
+    );
+
+    expect(result.html).not.toContain("fonts.example.com");
+  });
+
+  it("keeps a comment-like sequence inside a quoted css string", () => {
+    const result = sanitize_html(
+      head_style_email(`.a { color: red; font-family: "a/*b*/c"; }`),
+      options("never"),
+    );
+
+    expect(result.html).toContain("a/*b*/c");
+  });
+
+  it("keeps cid url() references so inline attachment images still render", () => {
+    const result = sanitize_html(
+      head_style_email(`.a { background-image: url(cid:logo123@aster); }`),
+      options("never"),
+    );
+
+    expect(result.html).toContain("cid:logo123@aster");
+  });
+
+  it("keeps blob url() references produced by the cid resolver", () => {
+    const result = sanitize_html(
+      head_style_email(`.a { background-image: url(blob:https://app.example/abc); }`),
+      options("never"),
+    );
+
+    expect(result.html).toContain("blob:https://app.example/abc");
+  });
+
   it("processes many url() declarations with trailing junk in reasonable time", () => {
     const evil = Array.from(
       { length: 400 },

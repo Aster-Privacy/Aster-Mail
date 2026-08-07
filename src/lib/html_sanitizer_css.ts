@@ -33,6 +33,52 @@ export function is_transparent_color_value(value: string): boolean {
   return TRANSPARENT_COLOR_VALUE_RE.test(value.trim());
 }
 
+export function strip_css_comments(css: string): string {
+  if (css.indexOf("/*") === -1) return css;
+
+  let result = "";
+  let index = 0;
+  let quote: string | null = null;
+
+  while (index < css.length) {
+    const char = css[index];
+
+    if (quote) {
+      result += char;
+
+      if (char === "\\" && index + 1 < css.length) {
+        result += css[index + 1];
+        index += 2;
+        continue;
+      }
+
+      if (char === quote) quote = null;
+      index++;
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char;
+      result += char;
+      index++;
+      continue;
+    }
+
+    if (char === "/" && css[index + 1] === "*") {
+      const end = css.indexOf("*/", index + 2);
+
+      index = end === -1 ? css.length : end + 2;
+      result += " ";
+      continue;
+    }
+
+    result += char;
+    index++;
+  }
+
+  return result;
+}
+
 function decode_css_escapes(css: string): string {
   return css
     .replace(/\\([0-9a-fA-F]{1,6})\s?/g, (_, hex) => {
@@ -90,7 +136,7 @@ export function escape_style_terminator(css: string): string {
 }
 
 export function strip_css_urls(css: string): string {
-  const decoded = decode_css_escapes(css);
+  const decoded = strip_css_comments(decode_css_escapes(css));
   const url_stripped = decoded.replace(
     /url\s*\(([^)]*)\)/gi,
     (_match, url_content) => {
@@ -103,6 +149,14 @@ export function strip_css_urls(css: string): string {
         inner = inner.slice(1, -1).trim();
       }
       const trimmed = inner.toLowerCase();
+
+      if (
+        trimmed.startsWith("cid:") ||
+        trimmed.startsWith("blob:") ||
+        trimmed.startsWith("#")
+      ) {
+        return _match;
+      }
 
       if (trimmed.startsWith("data:")) {
         const safe_css_data_types = [
@@ -153,7 +207,9 @@ export function block_remote_fonts(css: string): string {
 }
 
 export function sanitize_style(style: string, sandbox_mode: boolean): string {
-  const decoded = decode_css_escapes(decode_css_entities(style));
+  const decoded = strip_css_comments(
+    decode_css_escapes(decode_css_entities(style)),
+  );
 
   for (const pattern of DANGEROUS_CSS_PATTERNS) {
     if (pattern.test(decoded)) {
@@ -216,7 +272,7 @@ export function strip_dark_mode_media(css: string): string {
 }
 
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {
-  let decoded = decode_css_escapes(decode_css_entities(css));
+  let decoded = strip_css_comments(decode_css_escapes(decode_css_entities(css)));
 
   decoded = decoded.replace(/@import[^;]*;?/gi, "");
   decoded = decoded.replace(/@charset[^;]*;?/gi, "");
