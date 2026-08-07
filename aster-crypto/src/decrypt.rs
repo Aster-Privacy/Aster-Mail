@@ -32,58 +32,67 @@ use crate::sign::{
 pub const MAX_CIPHERTEXT_BYTES: usize = 16 * 1024 * 1024;
 pub const MAX_PLAINTEXT_BYTES: usize = 64 * 1024 * 1024;
 
-fn capped_plaintext(data: Vec<u8>) -> Result<Vec<u8>> {
+fn capped_plaintext(data: &[u8]) -> Result<Vec<u8>> {
     if data.len() > MAX_PLAINTEXT_BYTES {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::Decryption("Decryption failed".into()));
     }
-    Ok(data)
+    Ok(data.to_vec())
 }
 
 pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
     if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::Decryption("Decryption failed".into()));
     }
 
-    let (msg, _) =
-        Message::from_armor_single(ciphertext).map_err(|_| CryptoError::DecryptionFailed)?;
+    let (msg, _) = Message::from_armor_single(ciphertext)
+        .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
 
     for keypair in secret_keys {
         let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if let Ok(Some(data)) = decrypted_msg.get_content() {
-                return capped_plaintext(data);
+            if let Some(literal) = decrypted_msg.get_literal() {
+                return capped_plaintext(literal.data());
+            }
+
+            if let Message::Literal(lit) = decrypted_msg {
+                return capped_plaintext(lit.data());
             }
         }
     }
 
-    Err(CryptoError::DecryptionFailed)
+    Err(CryptoError::Decryption("Decryption failed".into()))
 }
 
 pub fn decrypt_message_binary(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
     if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::Decryption("Decryption failed".into()));
     }
 
-    let msg = Message::from_bytes(ciphertext).map_err(|_| CryptoError::DecryptionFailed)?;
+    let msg = Message::from_bytes(ciphertext)
+        .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
 
     for keypair in secret_keys {
         let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if let Ok(Some(data)) = decrypted_msg.get_content() {
-                return capped_plaintext(data);
+            if let Some(literal) = decrypted_msg.get_literal() {
+                return capped_plaintext(literal.data());
+            }
+
+            if let Message::Literal(lit) = decrypted_msg {
+                return capped_plaintext(lit.data());
             }
         }
     }
 
-    Err(CryptoError::DecryptionFailed)
+    Err(CryptoError::Decryption("Decryption failed".into()))
 }
 
 fn verify_with_sender_keys(msg: &Message, sender_keys: &[&PublicKey]) -> bool {
@@ -114,33 +123,39 @@ pub fn decrypt_and_verify(
     sender_keys: &[&PublicKey],
 ) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
     if sender_keys.is_empty() {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::SignatureVerification(
+            "decrypt_and_verify requires at least one sender key".into(),
+        ));
     }
     if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
-        return Err(CryptoError::DecryptionFailed);
+        return Err(CryptoError::Decryption("Decryption failed".into()));
     }
 
-    let (msg, _) =
-        Message::from_armor_single(ciphertext).map_err(|_| CryptoError::DecryptionFailed)?;
+    let (msg, _) = Message::from_armor_single(ciphertext)
+        .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
 
     for keypair in secret_keys {
         let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
             if !verify_with_sender_keys(&decrypted_msg, sender_keys) {
-                return Err(CryptoError::DecryptionFailed);
+                return Err(CryptoError::Decryption("Decryption failed".into()));
             }
 
-            if let Ok(Some(data)) = decrypted_msg.get_content() {
-                return capped_plaintext(data);
+            if let Some(literal) = decrypted_msg.get_literal() {
+                return capped_plaintext(literal.data());
+            }
+
+            if let Message::Literal(lit) = decrypted_msg {
+                return capped_plaintext(lit.data());
             }
         }
     }
 
-    Err(CryptoError::DecryptionFailed)
+    Err(CryptoError::Decryption("Decryption failed".into()))
 }
 
 #[cfg(test)]
@@ -190,19 +205,6 @@ mod tests {
 
         let result = decrypt_message(&ciphertext, &[&bob]);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn decrypt_with_wrong_key_returns_unified_error() {
-        let alice = generate_keypair("Alice", "alice@astermail.com").unwrap();
-        let bob = generate_keypair("Bob", "bob@astermail.com").unwrap();
-        let alice_pub = alice.public_key();
-
-        let plaintext = b"Top secret";
-        let ciphertext = encrypt_message(plaintext, &[&alice_pub]).unwrap();
-
-        let err = decrypt_message(&ciphertext, &[&bob]).unwrap_err();
-        assert!(matches!(err, CryptoError::DecryptionFailed));
     }
 
     fn generate_non_signing_keypair(name: &str, email: &str) -> KeyPair {

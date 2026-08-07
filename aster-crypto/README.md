@@ -55,7 +55,7 @@ cargo test
    
 ## A note on security
 
-aster-crypto wraps the reputable and well audited [`pgp`](https://crates.io/crates/pgp) (RFC 4880) and [`argon2`](https://crates.io/crates/argon2) crates, zeroizes secret material on drop, and keeps a deliberately small public API, but you should still have a good grasp of the primitives before you wire it anywhere in your own product.
+aster-crypto wraps the [`pgp`](https://crates.io/crates/pgp) (RFC 4880) and [`argon2`](https://crates.io/crates/argon2) crates and keeps a deliberately small public API. The `pgp` crate owns all secret key material and zeroizes it on drop, and aster-crypto adds no `Drop` implementation of its own. Before you wire this into your own product, make sure you have a good grasp of the primitives.
 
 Found a vulnerability? Please email [security@astermail.org](mailto:security@astermail.org) privately and please do not open a public issue.
 

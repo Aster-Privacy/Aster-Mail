@@ -32,9 +32,6 @@ pub enum CryptoError {
     #[error("decryption failed: {0}")]
     Decryption(String),
 
-    #[error("decryption failed")]
-    DecryptionFailed,
-
     #[error("signing failed: {0}")]
     Signing(String),
 
