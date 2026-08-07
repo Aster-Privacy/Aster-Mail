@@ -143,10 +143,21 @@ export interface SecureViewDeleteResponse {
 
 export async function delete_secure_view(
   token: string,
+  auth_proof?: string | null,
+  password?: string | null,
 ): Promise<SecureViewDeleteResponse> {
+  const payload: Record<string, string> = {};
+
+  if (auth_proof) payload.auth_proof = auth_proof;
+  if (password) payload.password = password;
+
   const response = await fetch(`/api/view/${encodeURIComponent(token)}`, {
     method: "DELETE",
-    headers: { Accept: "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

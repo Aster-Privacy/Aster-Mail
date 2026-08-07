@@ -422,7 +422,11 @@ export default function SecureViewPage() {
     set_is_deleting(true);
 
     try {
-      const response = await delete_secure_view(token);
+      const response = await delete_secure_view(
+        token,
+        auth_proof,
+        password || null,
+      );
 
       if (!response.success) {
         const code = response.error || "";
