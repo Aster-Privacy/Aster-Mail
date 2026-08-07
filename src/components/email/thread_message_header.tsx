@@ -164,6 +164,11 @@ export function ThreadMessageHeader({
             {t("mail.failed_status")}
           </span>
         )}
+        {message.send_status === "failed" && message.send_error && (
+          <span className="max-w-[260px] text-right text-xs leading-snug text-red-500/80">
+            {message.send_error}
+          </span>
+        )}
         {message.send_status === "delivered" && (
           <span className="inline-flex items-center gap-1 text-xs text-green-500">
             <CheckCircleIcon className="h-3.5 w-3.5" />

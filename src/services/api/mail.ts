@@ -61,6 +61,7 @@ export interface MailItem {
   metadata_version?: number;
   scheduled_at?: string;
   send_status?: string;
+  send_error?: string;
   message_ts?: string;
   snoozed_until?: string;
   is_trashed?: boolean;
@@ -772,6 +773,7 @@ export interface ThreadMessageItem {
   metadata_version?: number;
   is_external?: boolean;
   send_status?: string;
+  send_error?: string;
   message_ts: string;
   created_at: string;
   metadata?: MailItemMetadata;

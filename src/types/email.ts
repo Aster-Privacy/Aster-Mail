@@ -195,6 +195,7 @@ export interface InboxEmail {
   recipient_names?: string[];
   reply_to?: { name?: string; email: string };
   send_status?: string;
+  send_error?: string;
   size_bytes?: number;
   phishing_level?: "safe" | "suspicious" | "dangerous";
 }

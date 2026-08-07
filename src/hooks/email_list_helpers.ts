@@ -449,6 +449,7 @@ export function mail_to_email(
       expires_at: item.expires_at,
       expiry_type: item.expiry_type,
       send_status: effective_metadata.send_status,
+      send_error: item.send_error,
       size_bytes:
         effective_metadata.size_bytes ||
         Math.ceil((item.encrypted_envelope?.length || 0) * 0.75),
@@ -533,6 +534,7 @@ export function mail_to_email(
     recipient_names,
     reply_to: extract_reply_to(envelope.raw_headers),
     send_status: effective_metadata.send_status,
+    send_error: item.send_error,
     size_bytes:
       effective_metadata.size_bytes ||
       Math.ceil((item.encrypted_envelope?.length || 0) * 0.75),

@@ -52,6 +52,7 @@ export interface DecryptedThreadMessage {
   has_recipient_key?: boolean;
   is_sending?: boolean;
   send_status?: string;
+  send_error?: string;
   encrypted_metadata?: string;
   metadata_nonce?: string;
   attachments?: ThreadAttachment[];
