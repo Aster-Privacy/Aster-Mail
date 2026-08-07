@@ -32,12 +32,12 @@ import {
   ExclamationTriangleIcon,
   TrashIcon,
   UsersIcon,
-  EnvelopeIcon,
   EnvelopeOpenIcon,
   ChevronDownIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
+import { AllMailIcon } from "@/components/common/icons";
 import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { use_i18n } from "@/lib/i18n/context";
@@ -386,7 +386,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               })
             }
           >
-            <EnvelopeIcon
+            <AllMailIcon
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
               style={{
                 color:

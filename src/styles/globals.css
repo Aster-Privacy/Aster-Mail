@@ -2755,6 +2755,8 @@ input:-webkit-autofill:active {
   --plan_badge_accent: var(--accent-color, #3b82f6);
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+  max-width: 100%;
   padding: 0.16em 0.62em 0.2em;
   border-radius: 999px;
   font-size: 0.72rem;

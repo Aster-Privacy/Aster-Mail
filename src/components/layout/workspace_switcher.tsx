@@ -355,8 +355,9 @@ export function WorkspaceSwitcher({
                     />
                   )}
                   <span
-                    className="text-[15px] font-semibold leading-tight truncate"
+                    className="min-w-0 flex-1 text-[15px] font-semibold leading-tight truncate"
                     style={{ color: "var(--text-primary)" }}
+                    title={current_display_name}
                   >
                     {current_display_name}
                   </span>

@@ -43,6 +43,34 @@ export const InboxIcon: React.FC<icon_svg_props> = ({
   </svg>
 );
 
+export const AllMailIcon: React.FC<icon_svg_props> = ({
+  size = 24,
+  width,
+  height,
+  ...props
+}) => (
+  <svg
+    aria-hidden="true"
+    fill="none"
+    focusable="false"
+    height={size || height}
+    role="presentation"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={1.5}
+    viewBox="0 0 24 24"
+    width={size || width}
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path d="M7.25 4.75h9.5" />
+    <path d="M5.25 7.75h13.5" />
+    <rect height="9.5" rx="2.25" width="18" x="3" y="10.25" />
+    <path d="M3.6 11.35 11.13 16.2a1.6 1.6 0 0 0 1.74 0l7.53-4.85" />
+  </svg>
+);
+
 export const ComposeIcon: React.FC<icon_svg_props> = ({
   size = 24,
   width,
