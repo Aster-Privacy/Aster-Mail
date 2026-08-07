@@ -247,6 +247,11 @@ export interface CachedUserInfo {
 
 export type SessionReestablishResult = "ok" | "expired" | "unavailable";
 
+interface PendingTokenWrite {
+  access_token: string | null;
+  refresh_token?: string | null;
+}
+
 class ApiClient {
   private refresh_timeout: number | null = null;
   private is_authenticated_flag: boolean = false;
@@ -267,6 +272,8 @@ class ApiClient {
   private expected_user_id: string | null = null;
   private identity_mismatch_dispatched: boolean = false;
   private last_identity_check_timestamp: number = 0;
+  private pending_account_token_writes: Map<string, PendingTokenWrite> =
+    new Map();
 
   constructor() {
     this.load_stored_tokens();
@@ -575,7 +582,11 @@ class ApiClient {
     return is_valid;
   }
 
-  set_dev_token(token: string, refresh_token?: string): void {
+  set_dev_token(
+    token: string,
+    refresh_token?: string,
+    owner_account_id?: string | null,
+  ): void {
     this.dev_access_token = token;
     if (refresh_token) {
       this.active_refresh_token = refresh_token;
@@ -594,7 +605,7 @@ class ApiClient {
         localStorage.setItem(TAURI_TOKEN_KEY, token);
       } catch {}
     }
-    this.persist_to_active_account(token, refresh_token);
+    this.persist_to_active_account(token, refresh_token, owner_account_id);
   }
 
   suspend_account_persist(): void {
@@ -603,14 +614,91 @@ class ApiClient {
 
   resume_account_persist(): void {
     this.suspend_account_persist_flag = false;
+    void this.flush_pending_account_token_writes();
+  }
+
+  private token_owner_account_id(): string | null {
+    if (this.account_add_in_progress) return null;
+
+    return this.expected_user_id;
+  }
+
+  private queue_account_token_write(
+    account_id: string,
+    access_token: string | null,
+    refresh_token?: string | null,
+  ): void {
+    const existing = this.pending_account_token_writes.get(account_id);
+
+    this.pending_account_token_writes.set(account_id, {
+      access_token,
+      refresh_token:
+        refresh_token === undefined ? existing?.refresh_token : refresh_token,
+    });
+  }
+
+  private async write_account_tokens(
+    account_id: string,
+    access_token: string | null,
+    refresh_token?: string | null,
+  ): Promise<void> {
+    try {
+      const { update_account_tokens } = await import(
+        "@/services/account_manager"
+      );
+
+      if (this.intentional_logout) return;
+
+      await update_account_tokens(account_id, access_token, refresh_token);
+    } catch {}
+  }
+
+  private async flush_pending_account_token_writes(): Promise<void> {
+    if (this.suspend_account_persist_flag) return;
+    if (this.intentional_logout) {
+      this.pending_account_token_writes.clear();
+
+      return;
+    }
+    if (this.pending_account_token_writes.size === 0) return;
+
+    const entries = Array.from(this.pending_account_token_writes.entries());
+
+    this.pending_account_token_writes.clear();
+
+    for (const [account_id, write] of entries) {
+      await this.write_account_tokens(
+        account_id,
+        write.access_token,
+        write.refresh_token,
+      );
+    }
   }
 
   private persist_to_active_account(
     access_token: string | null,
     refresh_token?: string | null,
+    owner_account_id?: string | null,
   ): void {
-    if (this.suspend_account_persist_flag) return;
     if (this.intentional_logout) return;
+    if (owner_account_id === null) return;
+
+    const owner_id = owner_account_id ?? this.token_owner_account_id();
+
+    if (this.suspend_account_persist_flag) {
+      if (owner_id) {
+        this.queue_account_token_write(owner_id, access_token, refresh_token);
+      }
+
+      return;
+    }
+
+    if (owner_id) {
+      void this.write_account_tokens(owner_id, access_token, refresh_token);
+
+      return;
+    }
+
     import("@/services/account_manager")
       .then(async ({ get_current_account_id, update_account_tokens }) => {
         if (this.intentional_logout) return;
@@ -757,6 +845,11 @@ class ApiClient {
     const max_retries = 3;
     const retry_delay_base = 2000;
 
+    const owner_account_id: string | null | undefined = this
+      .account_add_in_progress
+      ? null
+      : (this.expected_user_id ?? undefined);
+
     let stored_refresh_token: string | null = this.active_refresh_token;
     if (Capacitor.isNativePlatform()) {
       stored_refresh_token =
@@ -765,9 +858,7 @@ class ApiClient {
 
     for (let attempt = 0; attempt < max_retries; attempt++) {
       try {
-        const scoped_user_id = this.account_add_in_progress
-          ? null
-          : this.expected_user_id;
+        const scoped_user_id = owner_account_id ?? null;
         const body: {
           refresh_token?: string;
           expected_user_id?: string;
@@ -793,9 +884,21 @@ class ApiClient {
           clear_csrf_cache();
           this.set_csrf(response.data.csrf_token);
           if (response.data.access_token) {
-            this.set_dev_token(response.data.access_token, response.data.refresh_token);
-          } else if (response.data.refresh_token && Capacitor.isNativePlatform()) {
-            this.persist_native_refresh_token(response.data.refresh_token);
+            this.set_dev_token(
+              response.data.access_token,
+              response.data.refresh_token,
+              owner_account_id,
+            );
+          } else if (response.data.refresh_token) {
+            this.active_refresh_token = response.data.refresh_token;
+            if (Capacitor.isNativePlatform()) {
+              this.persist_native_refresh_token(response.data.refresh_token);
+            }
+            this.persist_to_active_account(
+              this.dev_access_token,
+              response.data.refresh_token,
+              owner_account_id,
+            );
           }
           this.schedule_token_refresh();
           this.verify_identity(true);
@@ -923,6 +1026,7 @@ class ApiClient {
   begin_intentional_logout(): void {
     this.intentional_logout = true;
     this.suspend_account_persist_flag = true;
+    this.pending_account_token_writes.clear();
     this.session_expired_dispatched = true;
     if (this.refresh_timeout) {
       clearTimeout(this.refresh_timeout);
@@ -954,6 +1058,7 @@ class ApiClient {
       this.suspend_account_persist_flag = false;
       this.session_expired_dispatched = false;
       this.initial_auth_verified = true;
+      void this.flush_pending_account_token_writes();
       if (!this.last_refresh_timestamp) {
         this.last_refresh_timestamp = Date.now();
       }
@@ -1086,6 +1191,7 @@ class ApiClient {
             this.set_dev_token(
               refreshed.data.access_token,
               refreshed.data.refresh_token,
+              account_id,
             );
           } else if (refreshed.data.refresh_token) {
             this.active_refresh_token = refreshed.data.refresh_token;
@@ -1139,17 +1245,32 @@ class ApiClient {
       this.is_authenticated_flag = true;
       this.initial_auth_verified = true;
 
-      const me_response = await this.get<{ user_id: string }>(
-        "/core/v1/auth/me",
-        { skip_cache: true, skip_session_refresh: true, skip_dedup: true },
-      );
+      const verify_identity_call = () =>
+        this.get<{ user_id: string }>("/core/v1/auth/me", {
+          skip_cache: true,
+          skip_session_refresh: true,
+          skip_dedup: true,
+        });
+
+      let me_response = await verify_identity_call();
+
+      const me_denied = (response: typeof me_response): boolean =>
+        response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN";
+
+      if (!me_response.data?.user_id && me_denied(me_response)) {
+        if (!cookies_reissued) {
+          cookies_reissued = await reissue_cookies();
+
+          if (cookies_reissued) {
+            me_response = await verify_identity_call();
+          }
+        }
+      }
 
       if (!me_response.data?.user_id) {
-        const denied =
-          me_response.code === "UNAUTHORIZED" ||
-          me_response.code === "FORBIDDEN";
+        const denied = me_denied(me_response);
 
-        if (denied) {
+        if (denied && reissue_denied) {
           await clear_dead_tokens();
         }
 
@@ -1191,7 +1312,11 @@ class ApiClient {
 
       return "ok";
     } finally {
+      this.pending_account_token_writes.delete(account_id);
       this.suspend_account_persist_flag = prior_suspend;
+      if (!prior_suspend) {
+        void this.flush_pending_account_token_writes();
+      }
     }
   }
 

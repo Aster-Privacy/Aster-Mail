@@ -143,6 +143,21 @@ export function accounts_storage_unreadable(): boolean {
   return last_load_failed;
 }
 
+let account_write_chain: Promise<unknown> = Promise.resolve();
+
+export function serialize_account_write<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
+  const run = account_write_chain.then(operation, operation);
+
+  account_write_chain = run.then(
+    () => undefined,
+    () => undefined,
+  );
+
+  return run;
+}
+
 async function save_accounts_data(data: AccountsData): Promise<void> {
   if (data.accounts.length === 0 && last_load_failed) return;
 
@@ -451,28 +466,30 @@ export async function update_account_tokens(
   access_token: string | null,
   refresh_token: string | null | undefined,
 ): Promise<boolean> {
-  const data = await get_accounts_data_async();
-  const account = data.accounts.find((a) => a.id === account_id);
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const account = data.accounts.find((a) => a.id === account_id);
 
-  if (!account) return false;
+    if (!account) return false;
 
-  const persist_access = api_client.can_persist_session();
+    const persist_access = api_client.can_persist_session();
 
-  if (access_token === null || !persist_access) {
-    delete account.access_token;
-  } else {
-    account.access_token = access_token;
-  }
+    if (access_token === null || !persist_access) {
+      delete account.access_token;
+    } else {
+      account.access_token = access_token;
+    }
 
-  if (refresh_token === null) {
-    delete account.refresh_token;
-  } else if (refresh_token !== undefined) {
-    account.refresh_token = refresh_token;
-  }
+    if (refresh_token === null) {
+      delete account.refresh_token;
+    } else if (refresh_token !== undefined) {
+      account.refresh_token = refresh_token;
+    }
 
-  await save_accounts_data(data);
+    await save_accounts_data(data);
 
-  return true;
+    return true;
+  });
 }
 
 export async function get_account_tokens(
