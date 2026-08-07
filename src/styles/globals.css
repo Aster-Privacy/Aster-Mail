@@ -2752,11 +2752,9 @@ input:-webkit-autofill:active {
 }
 
 .plan_badge {
-  --plan_badge_accent: #3b82f6;
-  position: relative;
+  --plan_badge_accent: var(--accent-color, #3b82f6);
   display: inline-flex;
   align-items: center;
-  gap: 0.28em;
   padding: 0.16em 0.62em 0.2em;
   border-radius: 999px;
   font-size: 0.72rem;
@@ -2765,68 +2763,16 @@ input:-webkit-autofill:active {
   line-height: 1.35;
   white-space: nowrap;
   color: #fff;
-  isolation: isolate;
-  overflow: hidden;
   background:
     radial-gradient(
-      118% 170% at 14% -10%,
-      color-mix(in srgb, var(--plan_badge_accent) 72%, #ffffff 28%) 0%,
-      transparent 56%
-    ),
-    radial-gradient(
-      142% 190% at 90% 130%,
-      color-mix(in srgb, var(--plan_badge_accent) 94%, #000000 6%) 0%,
-      transparent 60%
+      120% 180% at 30% -30%,
+      color-mix(in srgb, var(--plan_badge_accent) 82%, #ffffff 18%) 0%,
+      transparent 70%
     ),
     linear-gradient(
-      138deg,
-      color-mix(in srgb, var(--plan_badge_accent) 90%, #000000 10%) 0%,
-      color-mix(in srgb, var(--plan_badge_accent) 52%, #05070f 48%) 100%
+      175deg,
+      color-mix(in srgb, var(--plan_badge_accent) 96%, #000000 4%) 0%,
+      color-mix(in srgb, var(--plan_badge_accent) 74%, #05070f 26%) 100%
     );
-  box-shadow:
-    0 0 0 0.5px color-mix(in srgb, var(--plan_badge_accent) 58%, transparent),
-    0 1px 5px -1px color-mix(in srgb, var(--plan_badge_accent) 50%, transparent),
-    inset 0 0.5px 0 color-mix(in srgb, #ffffff 52%, transparent);
-}
-
-.plan_badge::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  opacity: 0;
-  background: linear-gradient(
-    104deg,
-    transparent 26%,
-    color-mix(in srgb, #ffffff 42%, transparent) 47%,
-    transparent 66%
-  );
-}
-
-.plan_badge_tier_star::after {
-  opacity: 0.35;
-}
-
-.plan_badge_tier_nova::after {
-  opacity: 0.55;
-}
-
-.plan_badge_tier_supernova::after {
-  opacity: 0.75;
-}
-
-.plan_badge_tier_supernova {
-  box-shadow:
-    0 0 0 0.5px color-mix(in srgb, var(--plan_badge_accent) 70%, transparent),
-    0 1px 8px -1px color-mix(in srgb, var(--plan_badge_accent) 72%, transparent),
-    0 0 14px -4px color-mix(in srgb, var(--plan_badge_accent) 62%, transparent),
-    inset 0 0.5px 0 color-mix(in srgb, #ffffff 66%, transparent);
-}
-
-.plan_badge_spark {
-  width: 0.62em;
-  height: 0.62em;
-  flex: none;
-  filter: drop-shadow(0 0 2px color-mix(in srgb, #ffffff 70%, transparent));
+  box-shadow: inset 0 0.5px 0 color-mix(in srgb, #ffffff 46%, transparent);
 }
