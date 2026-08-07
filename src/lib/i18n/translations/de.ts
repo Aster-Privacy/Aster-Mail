@@ -3041,9 +3041,11 @@ export const de = {
     fam_org_status_expiring: "Läuft ab",
     fam_org_status_cancelled: "Gekündigt",
     fam_org_members_count:
-      "{{active}} von {{max}} Mitgliedern · {{seats}} Platz verfügbar",
+      "{{used}} von {{max}} Plätzen belegt · {{seats}} Platz verfügbar",
     fam_org_members_count_plural:
-      "{{active}} von {{max}} Mitgliedern · {{seats}} Plätze verfügbar",
+      "{{used}} von {{max}} Plätzen belegt · {{seats}} Plätze verfügbar",
+    fam_seats_breakdown:
+      "{{members}} Mitglieder, {{invites}} Einladungen, {{reserved}} reservierte Adressen, {{grace}} kürzlich entfernte Mitglieder",
     fam_org_setting_up: "Ihr Familientarif wird eingerichtet...",
     fam_org_refresh: "Aktualisieren",
     fam_org_checklist_title: "Erste Schritte mit Ihrem Familientarif",
@@ -3349,6 +3351,10 @@ export const de = {
     user_not_found: "Benutzer nicht gefunden",
     current_password_incorrect: "Aktuelles Passwort ist falsch",
     failed_change_password: "Passwort konnte nicht geändert werden",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "{{plan}}-Abonnent",
     alias_reencrypt_failed:
       "Einer Ihrer Aliase konnte nicht sicher neu verschlüsselt werden. Ihr Passwort wurde nicht geändert. Bitte wenden Sie sich an den Support oder entfernen Sie den betroffenen Alias und versuchen Sie es erneut.",
     contact_reencrypt_failed:

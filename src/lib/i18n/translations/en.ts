@@ -2225,6 +2225,10 @@ export const en: Translations = {
     session_expired_sign_in: "Session expired. Please sign in again.",
     current_password_incorrect: "Current password is incorrect",
     failed_change_password: "Failed to change password",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "{{plan}} subscriber",
     alias_reencrypt_failed:
       "Could not safely re-encrypt one of your aliases. Your password was not changed. Please contact support or remove the affected alias and try again.",
     contact_reencrypt_failed:
@@ -3099,7 +3103,7 @@ export const en: Translations = {
     fam_kids_subtitle:
       "Hold an address for your child now and let them finish setup later with their own password.",
     fam_kids_seats_used:
-      "{{used}} of {{max}} family seats used (members, invites and reservations)",
+      "{{used}} of {{max}} family seats used",
     fam_kids_reserve_btn: "Reserve an address",
     fam_kids_seats_full:
       "Your family group is full. Free a seat to reserve another address.",
@@ -3546,9 +3550,11 @@ export const en: Translations = {
     fam_org_status_expiring: "Expiring",
     fam_org_status_cancelled: "Cancelled",
     fam_org_members_count:
-      "{{active}} of {{max}} members · {{seats}} seat available",
+      "{{used}} of {{max}} seats used · {{seats}} seat available",
     fam_org_members_count_plural:
-      "{{active}} of {{max}} members · {{seats}} seats available",
+      "{{used}} of {{max}} seats used · {{seats}} seats available",
+    fam_seats_breakdown:
+      "{{members}} members, {{invites}} invitations, {{reserved}} reserved addresses, {{grace}} recently removed members",
     fam_org_setting_up: "Setting up your family plan...",
     fam_org_refresh: "Refresh",
     fam_org_left_title: "You've left the family plan",

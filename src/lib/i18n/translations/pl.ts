@@ -2999,9 +2999,11 @@ export const pl = {
     fam_org_status_expiring: "Wygasa",
     fam_org_status_cancelled: "Anulowany",
     fam_org_members_count:
-      "{{active}} z {{max}} członków · {{seats}} miejsce dostępne",
+      "zajęte miejsca: {{used}} z {{max}} · dostępne: {{seats}}",
     fam_org_members_count_plural:
-      "{{active}} z {{max}} członków · {{seats}} miejsc dostępnych",
+      "zajęte miejsca: {{used}} z {{max}} · dostępne: {{seats}}",
+    fam_seats_breakdown:
+      "{{members}} osób, {{invites}} zaproszeń, {{reserved}} zarezerwowanych adresów, {{grace}} niedawno usuniętych osób",
     fam_org_setting_up: "Konfigurowanie planu rodzinnego...",
     fam_org_refresh: "Odśwież",
     fam_org_checklist_title: "Rozpocznij korzystanie z planu rodzinnego",
@@ -3315,6 +3317,10 @@ export const pl = {
       "Sesja została zakończona. Trzeba zalogować się ponownie, aby kontynuować. Dane i wersje robocze są zapisane na serwerze.",
     current_password_incorrect: "Aktualne hasło jest nieprawidłowe",
     failed_change_password: "Nie udało się zmienić hasła",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "Subskrybent {{plan}}",
     alias_reencrypt_failed:
       "Nie udało się bezpiecznie ponownie zaszyfrować jednego z aliasów. Hasło nie zostało zmienione. Skontaktuj się z pomocą techniczną lub usuń problematyczny alias i spróbuj ponownie.",
     contact_reencrypt_failed:

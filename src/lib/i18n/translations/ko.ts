@@ -2887,9 +2887,11 @@ export const ko = {
     fam_org_status_expiring: "만료 예정",
     fam_org_status_cancelled: "취소됨",
     fam_org_members_count:
-      "구성원 {{max}}명 중 {{active}}명 · 좌석 {{seats}}개 사용 가능",
+      "{{max}}석 중 {{used}}석 사용 중 · {{seats}}석 사용 가능",
     fam_org_members_count_plural:
-      "구성원 {{max}}명 중 {{active}}명 · 좌석 {{seats}}개 사용 가능",
+      "{{max}}석 중 {{used}}석 사용 중 · {{seats}}석 사용 가능",
+    fam_seats_breakdown:
+      "구성원 {{members}}명, 초대 {{invites}}건, 예약 주소 {{reserved}}건, 최근 삭제한 구성원 {{grace}}명",
     fam_org_setting_up: "가족 요금제를 설정하는 중...",
     fam_org_refresh: "새로 고침",
     fam_org_checklist_title: "가족 요금제 시작하기",
@@ -3283,6 +3285,10 @@ export const ko = {
     session_expired_sign_in: "세션이 만료되었습니다. 다시 로그인해 주세요.",
     current_password_incorrect: "현재 비밀번호가 올바르지 않습니다",
     failed_change_password: "비밀번호 변경 실패",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "{{plan}} 구독자",
     alias_reencrypt_failed:
       "별칭 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 별칭을 제거한 후 다시 시도해 주세요.",
     contact_reencrypt_failed:

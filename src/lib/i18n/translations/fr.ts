@@ -3000,9 +3000,11 @@ export const fr = {
     fam_org_status_expiring: "Expire bientôt",
     fam_org_status_cancelled: "Annulé",
     fam_org_members_count:
-      "{{active}} membres sur {{max}} · {{seats}} place disponible",
+      "{{used}} places sur {{max}} occupées · {{seats}} place disponible",
     fam_org_members_count_plural:
-      "{{active}} membres sur {{max}} · {{seats}} places disponibles",
+      "{{used}} places sur {{max}} occupées · {{seats}} places disponibles",
+    fam_seats_breakdown:
+      "{{members}} membres, {{invites}} invitations, {{reserved}} adresses réservées, {{grace}} membres retirés récemment",
     fam_org_setting_up: "Configuration de votre forfait Famille...",
     fam_org_refresh: "Actualiser",
     fam_org_checklist_title: "Démarrez avec votre forfait Famille",
@@ -3323,6 +3325,10 @@ export const fr = {
     session_expired_sign_in: "Session expirée. Veuillez vous reconnecter.",
     current_password_incorrect: "Le mot de passe actuel est incorrect",
     failed_change_password: "Échec du REDACTEDnt de mot de passe",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "Abonné {{plan}}",
     alias_reencrypt_failed:
       "Impossible de rechiffrer en toute sécurité l'un de vos alias. Votre mot de passe n'a pas été modifié. Veuillez contacter le support ou supprimer l'alias concerné, puis réessayer.",
     contact_reencrypt_failed:

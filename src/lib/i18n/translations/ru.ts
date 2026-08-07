@@ -2989,9 +2989,11 @@ export const ru = {
     fam_org_status_expiring: "Истекает",
     fam_org_status_cancelled: "Отменён",
     fam_org_members_count:
-      "{{active}} из {{max}} участников · {{seats}} место доступно",
+      "занято мест: {{used}} из {{max}} · доступно: {{seats}}",
     fam_org_members_count_plural:
-      "{{active}} из {{max}} участников · {{seats}} мест доступно",
+      "занято мест: {{used}} из {{max}} · доступно: {{seats}}",
+    fam_seats_breakdown:
+      "{{members}} участников, {{invites}} приглашений, {{reserved}} зарезервированных адресов, {{grace}} недавно удалённых участников",
     fam_org_setting_up: "Настройка вашего семейного тарифа...",
     fam_org_refresh: "Обновить",
     fam_org_checklist_title: "Начните работу с семейным тарифом",
@@ -3304,6 +3306,10 @@ export const ru = {
       "Сессия завершилась. Повторный вход возвращает на то же место. Данные и черновики сохранены на сервере.",
     current_password_incorrect: "Текущий пароль неверен",
     failed_change_password: "Не удалось изменить пароль",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "Подписчик {{plan}}",
     alias_reencrypt_failed:
       "Не удалось безопасно перешифровать один из ваших псевдонимов. Пароль не был изменён. Пожалуйста, обратитесь в поддержку или удалите затронутый псевдоним и попробуйте снова.",
     contact_reencrypt_failed:

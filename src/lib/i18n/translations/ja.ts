@@ -2984,9 +2984,11 @@ export const ja = {
     fam_org_status_expiring: "期限切れ間近",
     fam_org_status_cancelled: "キャンセル済み",
     fam_org_members_count:
-      "{{max}} 人中 {{active}} 人のメンバー · 残り {{seats}} 席",
+      "{{max}} 席中 {{used}} 席使用中 · 空き {{seats}} 席",
     fam_org_members_count_plural:
-      "{{max}} 人中 {{active}} 人のメンバー · 残り {{seats}} 席",
+      "{{max}} 席中 {{used}} 席使用中 · 空き {{seats}} 席",
+    fam_seats_breakdown:
+      "メンバー {{members}} 人、招待 {{invites}} 件、予約アドレス {{reserved}} 件、最近削除したメンバー {{grace}} 人",
     fam_org_setting_up: "ファミリープランを設定しています...",
     fam_org_refresh: "更新",
     fam_org_checklist_title: "ファミリープランを始めましょう",
@@ -3295,6 +3297,10 @@ export const ja = {
       "セッションが期限切れです。再度サインインしてください。",
     current_password_incorrect: "現在のパスワードが正しくありません",
     failed_change_password: "パスワードの変更に失敗しました",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "{{plan}} 加入者",
     alias_reencrypt_failed:
       "エイリアスの一つを安全に再暗号化できませんでした。パスワードは変更されていません。サポートまでお問い合わせいただくか、該当のエイリアスを削除してから再度お試しください。",
     contact_reencrypt_failed:

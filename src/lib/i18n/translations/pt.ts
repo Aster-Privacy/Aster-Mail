@@ -2995,9 +2995,11 @@ export const pt = {
     fam_org_status_expiring: "A expirar",
     fam_org_status_cancelled: "Cancelado",
     fam_org_members_count:
-      "{{active}} de {{max}} membros · {{seats}} lugar disponível",
+      "{{used}} de {{max}} lugares ocupados · {{seats}} lugar disponível",
     fam_org_members_count_plural:
-      "{{active}} de {{max}} membros · {{seats}} lugares disponíveis",
+      "{{used}} de {{max}} lugares ocupados · {{seats}} lugares disponíveis",
+    fam_seats_breakdown:
+      "{{members}} membros, {{invites}} convites, {{reserved}} endereços reservados, {{grace}} membros removidos recentemente",
     fam_org_setting_up: "A configurar o seu plano de família...",
     fam_org_refresh: "Atualizar",
     fam_org_checklist_title: "Comece a usar o seu plano de família",
@@ -3310,6 +3312,10 @@ export const pt = {
       "Sessão expirada. Por favor, faça login novamente.",
     current_password_incorrect: "A senha atual está incorreta",
     failed_change_password: "Falha ao alterar a senha",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "Assinante {{plan}}",
     alias_reencrypt_failed:
       "Não foi possível recriptografar com segurança um dos seus aliases. Sua senha não foi alterada. Por favor, entre em contato com o suporte ou remova o alias afetado e tente novamente.",
     contact_reencrypt_failed:

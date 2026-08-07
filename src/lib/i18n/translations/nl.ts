@@ -2936,9 +2936,11 @@ export const nl = {
     fam_org_status_expiring: "Verloopt binnenkort",
     fam_org_status_cancelled: "Geannuleerd",
     fam_org_members_count:
-      "{{active}} van {{max}} leden · {{seats}} plaats beschikbaar",
+      "{{used}} van {{max}} plaatsen bezet · {{seats}} plaats beschikbaar",
     fam_org_members_count_plural:
-      "{{active}} van {{max}} leden · {{seats}} plaatsen beschikbaar",
+      "{{used}} van {{max}} plaatsen bezet · {{seats}} plaatsen beschikbaar",
+    fam_seats_breakdown:
+      "{{members}} leden, {{invites}} uitnodigingen, {{reserved}} gereserveerde adressen, {{grace}} onlangs verwijderde leden",
     fam_org_setting_up: "Je gezinsabonnement wordt ingesteld...",
     fam_org_refresh: "Vernieuwen",
     fam_org_checklist_title: "Aan de slag met je gezinsabonnement",
@@ -3283,6 +3285,10 @@ export const nl = {
       "Uw sessie is beëindigd. Opnieuw aanmelden pakt verder waar u gebleven was. Uw gegevens en concepten zijn op de server opgeslagen.",
     current_password_incorrect: "Huidig wachtwoord is onjuist",
     failed_change_password: "Wachtwoord wijzigen mislukt",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "{{plan}}-abonnee",
     alias_reencrypt_failed:
       "Een van uw aliassen kon niet veilig opnieuw worden versleuteld. Uw wachtwoord is niet gewijzigd. Neem contact op met support of verwijder de betreffende alias en probeer het opnieuw.",
     contact_reencrypt_failed:

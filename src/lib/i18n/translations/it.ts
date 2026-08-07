@@ -3011,9 +3011,11 @@ export const it = {
     fam_org_status_expiring: "In scadenza",
     fam_org_status_cancelled: "Annullato",
     fam_org_members_count:
-      "{{active}} di {{max}} membri · {{seats}} posto disponibile",
+      "{{used}} di {{max}} posti occupati · {{seats}} posto disponibile",
     fam_org_members_count_plural:
-      "{{active}} di {{max}} membri · {{seats}} posti disponibili",
+      "{{used}} di {{max}} posti occupati · {{seats}} posti disponibili",
+    fam_seats_breakdown:
+      "{{members}} membri, {{invites}} inviti, {{reserved}} indirizzi riservati, {{grace}} membri rimossi di recente",
     fam_org_setting_up: "Configurazione del tuo piano famiglia in corso...",
     fam_org_refresh: "Aggiorna",
     fam_org_checklist_title: "Inizia con il tuo piano famiglia",
@@ -3349,6 +3351,10 @@ export const it = {
     session_expired_sign_in: "Sessione scaduta. Effettua nuovamente l'accesso.",
     current_password_incorrect: "La password attuale non è corretta",
     failed_change_password: "Cambio password non riuscito",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "Abbonato {{plan}}",
     alias_reencrypt_failed:
       "Non è stato possibile ricifrare in modo sicuro uno dei tuoi alias. La password non è stata modificata. Contatta l'assistenza oppure rimuovi l'alias interessato e riprova.",
     contact_reencrypt_failed:

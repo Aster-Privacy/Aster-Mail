@@ -2974,9 +2974,11 @@ export const es = {
     fam_org_status_expiring: "Por caducar",
     fam_org_status_cancelled: "Cancelado",
     fam_org_members_count:
-      "{{active}} de {{max}} miembros · {{seats}} plaza disponible",
+      "{{used}} de {{max}} plazas ocupadas · {{seats}} plaza disponible",
     fam_org_members_count_plural:
-      "{{active}} de {{max}} miembros · {{seats}} plazas disponibles",
+      "{{used}} de {{max}} plazas ocupadas · {{seats}} plazas disponibles",
+    fam_seats_breakdown:
+      "{{members}} miembros, {{invites}} invitaciones, {{reserved}} direcciones reservadas, {{grace}} miembros eliminados hace poco",
     fam_org_setting_up: "Configurando tu plan familiar...",
     fam_org_refresh: "Actualizar",
     fam_org_checklist_title: "Comienza con tu plan familiar",
@@ -3295,6 +3297,10 @@ export const es = {
       "Sesión expirada. Por favor, inicia sesión de nuevo.",
     current_password_incorrect: "La contraseña actual es incorrecta",
     failed_change_password: "Error al cambiar la contraseña",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "Suscriptor {{plan}}",
     alias_reencrypt_failed:
       "No se pudo volver a cifrar de forma segura uno de tus alias. Tu contraseña no se ha cambiado. Por favor, contacta con soporte o elimina el alias afectado e inténtalo de nuevo.",
     contact_reencrypt_failed:

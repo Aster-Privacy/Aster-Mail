@@ -2308,6 +2308,10 @@ export interface SettingsTranslations {
   session_expired_sign_in: string;
   current_password_incorrect: string;
   failed_change_password: string;
+  plan_badge_star: string;
+  plan_badge_nova: string;
+  plan_badge_supernova: string;
+  plan_badge_aria: string;
   alias_reencrypt_failed: string;
   contact_reencrypt_failed: string;
   password_change_fingerprint_mismatch: string;
@@ -3405,6 +3409,7 @@ export interface SettingsTranslations {
   fam_org_status_cancelled: string;
   fam_org_members_count: string;
   fam_org_members_count_plural: string;
+  fam_seats_breakdown: string;
   fam_org_setting_up: string;
   fam_org_refresh: string;
   fam_org_left_title: string;

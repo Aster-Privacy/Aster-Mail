@@ -39,6 +39,8 @@ import { AccountAvatarButton } from "@/components/ui/account_avatar_button";
 import { use_auth } from "@/contexts/auth_context";
 import { use_mail_stats, prefetch_mail_stats } from "@/hooks/use_mail_stats";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { get_avatar_color } from "@/lib/avatar_color";
+import { PlanBadge } from "@/components/common/plan_badge";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_file_picker_open } from "@/hooks/use_profile_picture_upload";
 import { get_all_accounts } from "@/services/account_manager";
@@ -359,6 +361,10 @@ export function WorkspaceSwitcher({
                   >
                     {current_display_name}
                   </span>
+                  <PlanBadge
+                    accent_color={get_avatar_color(current_user_email)}
+                    plan_code={limits?.plan_code}
+                  />
                 </span>
                 <button
                   className="text-[12px] leading-tight truncate text-left transition-colors hover:text-[var(--text-secondary)]"

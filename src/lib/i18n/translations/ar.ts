@@ -2877,9 +2877,12 @@ export const ar = {
     fam_org_status_active: "نشطة",
     fam_org_status_expiring: "على وشك الانتهاء",
     fam_org_status_cancelled: "ملغاة",
-    fam_org_members_count: "{{active}} من {{max}} أعضاء · {{seats}} مقعد متاح",
+    fam_org_members_count:
+      "{{used}} من {{max}} مقاعد مستخدمة · {{seats}} مقعد متاح",
     fam_org_members_count_plural:
-      "{{active}} من {{max}} أعضاء · {{seats}} مقاعد متاحة",
+      "{{used}} من {{max}} مقاعد مستخدمة · {{seats}} مقاعد متاحة",
+    fam_seats_breakdown:
+      "{{members}} أعضاء، {{invites}} دعوات، {{reserved}} عناوين محجوزة، {{grace}} أعضاء أُزيلوا مؤخرًا",
     fam_org_setting_up: "جارٍ إعداد خطتك العائلية...",
     fam_org_refresh: "تحديث",
     fam_org_checklist_title: "ابدأ مع خطتك العائلية",
@@ -3243,6 +3246,10 @@ export const ar = {
     session_expired_sign_in: "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجددًا.",
     current_password_incorrect: "كلمة المرور الحالية غير صحيحة",
     failed_change_password: "فشل في تغيير كلمة المرور",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "مشترك {{plan}}",
     alias_reencrypt_failed:
       "تعذّر إعادة تشفير أحد الأسماء المستعارة بأمان. لم يتم تغيير كلمة المرور. يُرجى التواصل مع الدعم أو إزالة الاسم المستعار المتأثر والمحاولة مرة أخرى.",
     contact_reencrypt_failed:

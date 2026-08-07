@@ -2720,9 +2720,11 @@ export const zh_CN = {
     fam_org_status_expiring: "即将到期",
     fam_org_status_cancelled: "已取消",
     fam_org_members_count:
-      "{{max}} 位成员中的 {{active}} 位 · 剩余 {{seats}} 个席位",
+      "{{max}} 个名额中已用 {{used}} 个 · 剩余 {{seats}} 个",
     fam_org_members_count_plural:
-      "{{max}} 位成员中的 {{active}} 位 · 剩余 {{seats}} 个席位",
+      "{{max}} 个名额中已用 {{used}} 个 · 剩余 {{seats}} 个",
+    fam_seats_breakdown:
+      "成员 {{members}} 名、邀请 {{invites}} 个、预留地址 {{reserved}} 个、最近移除的成员 {{grace}} 名",
     fam_org_setting_up: "正在设置您的家庭套餐...",
     fam_org_refresh: "刷新",
     fam_org_checklist_title: "开始使用您的家庭套餐",
@@ -3009,6 +3011,10 @@ export const zh_CN = {
       "您的会话已结束，重新登录后可以接着之前的进度。您的数据和草稿都已保存在服务器上。",
     current_password_incorrect: "当前密码不正确",
     failed_change_password: "更改密码失败",
+    plan_badge_star: "Star",
+    plan_badge_nova: "Nova",
+    plan_badge_supernova: "Supernova",
+    plan_badge_aria: "{{plan}} 订阅者",
     alias_reencrypt_failed:
       "无法安全地重新加密您的一个别名。您的密码未更改。请联系支持团队，或移除受影响的别名后重试。",
     contact_reencrypt_failed:
