@@ -62,6 +62,7 @@ import {
   type results_sort,
 } from "./domain_results_utils";
 import type { ApiErrorCode } from "@/services/api/client";
+import { is_https_payment_url } from "@/lib/payment_url";
 
 type PurchaseView = "search" | "confirm" | "progress";
 
@@ -566,7 +567,7 @@ export function DomainPurchaseFlow({
         captcha_token ?? undefined,
       );
 
-      if (response.data) {
+      if (response.data && is_https_payment_url(response.data.checkout_url)) {
         write_checkout_draft(null);
         try {
           sessionStorage.setItem(

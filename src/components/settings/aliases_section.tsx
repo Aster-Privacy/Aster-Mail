@@ -63,6 +63,7 @@ import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section
 import { AliasImportModal } from "@/components/settings/aliases/alias_import_modal";
 import { AliasExportModal } from "@/components/settings/aliases/alias_export_modal";
 import { AliasPreferencesPanel } from "@/components/settings/aliases/alias_preferences_panel";
+import { is_https_payment_url } from "@/lib/payment_url";
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
@@ -302,7 +303,10 @@ export function AliasesSection() {
         captcha_token,
       );
 
-      if (response.data?.checkout_url) {
+      if (
+        response.data?.checkout_url &&
+        is_https_payment_url(response.data.checkout_url)
+      ) {
         window.location.href = response.data.checkout_url;
 
         return;
