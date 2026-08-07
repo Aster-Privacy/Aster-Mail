@@ -3,14 +3,20 @@
 Third-party code. Not covered by this project's AGPLv3 license; retains its own.
 
 - Source: `@browsermt/bergamot-translator`
-- Pinned version: `0.4.9`
+- npm package version: `0.4.9`
+- Build stamp compiled into the wasm worker: `BERGAMOT_VERSION_FULL = "v0.4.5+4917c11"`
 - Upstream: https://github.com/browsermt/bergamot-translator
 - License: MPL-2.0
 
+The npm package version and the build stamp differ because the stamp records the
+upstream C++ source revision the WebAssembly module was compiled from, not the npm
+release. Record both when re-pinning. Don't reconcile them by editing either one.
+
 ## Files
 
-- `translator.js` - unmodified ES module runtime (`BatchTranslator`, `TranslatorBacking`).
-- `public/bergamot/translator-worker.js` - unmodified worker glue.
+- `translator.js` - ES module runtime (`BatchTranslator`, `TranslatorBacking`).
+  Locally modified, see below.
+- `public/bergamot/translator-worker.js` - worker glue. Locally modified, see below.
 - `public/bergamot/bergamot-translator-worker.js` - unmodified emscripten JS.
 - `public/bergamot/bergamot-translator-worker.wasm` - unmodified marian NMT wasm.
 
@@ -23,12 +29,28 @@ Cloud Storage; we never use it. See `engine_bergamot.ts`, which supplies a custo
 
 ## Local modifications
 
-`translator.js` carries one deliberate patch from the pinned upstream: the
-hardcoded worker URL at `TranslatorBacking.loadWorker()` is replaced by an
+Two files diverge from upstream. Re-apply both when re-pinning.
+
+### `translator.js`: injectable worker URL
+
+The hardcoded worker URL at `TranslatorBacking.loadWorker()` is replaced by an
 injectable resolver (`setWorkerUrlResolver`, defined near the top of the file).
-`engine_bergamot.ts` points it at the stable static path `/bergamot/`, so the
-worker and its sibling `importScripts` / wasm fetch resolve correctly instead of
-being hash-renamed by the bundler. Re-apply this patch when re-pinning.
+`engine_bergamot.ts` points it at the stable static path `/bergamot/`, so the worker
+and its sibling `importScripts` and wasm fetch resolve correctly instead of being
+hash-renamed by the bundler.
+
+### `public/bergamot/translator-worker.js`: message origin check
+
+The worker's `message` listener now drops events whose origin is neither empty nor
+our own origin, before destructuring the payload:
+
+    self.addEventListener('message', async function(event) {
+        if (event.origin !== '' && event.origin !== self.location.origin)
+            return;
+        const {data: {id, name, args}} = event;
+
+Added in `69a5b190` to close a code scanning finding. Upstream accepts messages from
+any origin.
 
 ## Updating
 
@@ -37,4 +59,5 @@ Re-pin deliberately. Do not track upstream `main`.
     npm pack @browsermt/bergamot-translator@<version>
 
 Extract and copy `translator.js` here and the three `worker/` files to
-`public/bergamot/`. Re-run the translation test suite. Bump the version above.
+`public/bergamot/`. Re-apply both local modifications above. Re-run the translation
+test suite. Update the version, the build stamp, and this section.
