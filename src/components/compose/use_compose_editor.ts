@@ -22,6 +22,7 @@ import { useState, useCallback } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_editor, type UseEditorReturn } from "@/hooks/use_editor";
+import { escape_html } from "@/hooks/editor_utils";
 import { use_preferences } from "@/contexts/preferences_context";
 
 export interface UseComposeEditorOptions {
@@ -77,7 +78,7 @@ export function use_compose_editor({
     if (is_plain_text_mode) {
       if (editor_el) {
         const text = editor_el.innerText || "";
-        const html = text.replace(/\n/g, "<br>");
+        const html = escape_html(text).replace(/\n/g, "<br>");
 
         editor_el.innerHTML = html;
         set_message(html);

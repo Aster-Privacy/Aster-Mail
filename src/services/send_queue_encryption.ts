@@ -89,6 +89,15 @@ const FIELD_ID_RECIPIENTS = 0x01;
 const FIELD_ID_SUBJECT = 0x02;
 const FIELD_ID_BODY = 0x03;
 
+const HTML_TAG_PROBE = /<[a-z][\s\S]*>/i;
+
+export function plain_text_to_html(text: string): string {
+  return text
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br>");
+}
+
 export async function resolve_username_for_key_lookup(
   email: string,
 ): Promise<string | null> {
@@ -451,7 +460,7 @@ export async function create_sent_envelope(
     );
   }
 
-  const body_is_plain_text = !/<[a-z][\s\S]*>/i.test(email.body);
+  const body_is_plain_text = !HTML_TAG_PROBE.test(email.body);
 
   const plain_body_text = body_is_plain_text
     ? email.body
@@ -487,9 +496,7 @@ export async function create_sent_envelope(
     version: 1,
     subject: email.envelope_subject || email.subject,
     body_text: plain_body_text,
-    body_html: body_is_plain_text
-      ? email.body.replace(/\n/g, "<br>")
-      : email.body,
+    body_html: body_is_plain_text ? plain_text_to_html(email.body) : email.body,
     from: { name: "", email: sender_email },
     to: email.to.map((e) => ({ name: "", email: e })),
     cc: (email.cc || []).map((e) => ({ name: "", email: e })),

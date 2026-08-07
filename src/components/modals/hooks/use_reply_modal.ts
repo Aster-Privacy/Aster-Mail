@@ -114,6 +114,7 @@ import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
+import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
 
 function normalize_html_newlines(html: string): string {
   let result = "";
@@ -1050,7 +1051,7 @@ export function use_reply_modal({
     const quoted_content = include_quoted ? build_quoted_content() : "";
     const trimmed_reply = reply_message.trim();
     const reply_body = is_plain_text_mode
-      ? trimmed_reply.replace(/\n/g, "<br>")
+      ? escape_plain_text(trimmed_reply).replace(/\n/g, "<br>")
       : normalize_html_newlines(trimmed_reply);
     const message_with_signature = reply_body + quoted_content;
 
@@ -1365,7 +1366,7 @@ export function use_reply_modal({
     const quoted_content = include_quoted ? build_quoted_content() : "";
     const sched_trimmed = reply_message.trim();
     const sched_reply_body = is_plain_text_mode
-      ? sched_trimmed.replace(/\n/g, "<br>")
+      ? escape_plain_text(sched_trimmed).replace(/\n/g, "<br>")
       : normalize_html_newlines(sched_trimmed);
     const message_with_signature = sched_reply_body + quoted_content;
 

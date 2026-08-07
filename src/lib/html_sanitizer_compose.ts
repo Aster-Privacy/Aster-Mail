@@ -131,11 +131,11 @@ export function sanitize_outgoing_html(html: string): string {
       }
     }
 
-    if (el.tagName === "A") {
-      const href = el.getAttribute("href") || "";
+    for (const name of ["href", "xlink:href"]) {
+      const value = el.getAttribute(name);
 
-      if (OUTGOING_DANGEROUS_HREF.test(href)) {
-        el.removeAttribute("href");
+      if (value && OUTGOING_DANGEROUS_HREF.test(value)) {
+        el.removeAttribute(name);
       }
     }
 
