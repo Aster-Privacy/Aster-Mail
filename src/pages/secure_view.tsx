@@ -158,6 +158,7 @@ export default function SecureViewPage() {
   const [view_state, set_view_state] = useState<ViewState>("loading");
   const [metadata, set_metadata] = useState<SecureViewMetadata | null>(null);
   const [password, set_password] = useState("");
+  const [auth_proof, set_auth_proof] = useState<string | null>(null);
   const [is_unlocking, set_is_unlocking] = useState(false);
   const [error, set_error] = useState("");
   const [decrypted, set_decrypted] = useState<DecryptedSecureMessage | null>(
@@ -280,12 +281,12 @@ export default function SecureViewPage() {
 
     try {
       const is_zk = metadata.is_zero_knowledge && !!metadata.kdf_salt;
+      const proof = is_zk
+        ? await derive_auth_proof(password, metadata.kdf_salt!)
+        : null;
 
       const response = is_zk
-        ? await verify_secure_view(
-            token,
-            await derive_auth_proof(password, metadata.kdf_salt!),
-          )
+        ? await verify_secure_view(token, proof)
         : await verify_secure_view(token, null, password);
 
       if (!response.success || !response.content) {
@@ -305,6 +306,8 @@ export default function SecureViewPage() {
       }
 
       const content = response.content;
+
+      set_auth_proof(proof);
 
       if (!is_zk) {
         if (!content.subject || !content.body) {
@@ -378,13 +381,20 @@ export default function SecureViewPage() {
     set_is_replying(true);
 
     try {
-      const response = await reply_to_secure_view(token, reply_text.trim());
+      const response = await reply_to_secure_view(
+        token,
+        reply_text.trim(),
+        auth_proof,
+        password || null,
+      );
 
       if (!response.success) {
         const code = response.error || "";
 
         if (code === "reply_limit_reached") {
           set_reply_error(sv("secure_view.reply_limit_reached"));
+        } else if (code === "locked") {
+          set_reply_error(sv("secure_view.locked"));
         } else if (code === "expired") {
           set_view_state("expired");
         } else if (code === "deleted") {

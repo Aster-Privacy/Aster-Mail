@@ -112,18 +112,22 @@ export interface SecureViewReplyResponse {
 export async function reply_to_secure_view(
   token: string,
   body: string,
+  auth_proof?: string | null,
+  password?: string | null,
 ): Promise<SecureViewReplyResponse> {
-  const response = await fetch(
-    `/api/view/${encodeURIComponent(token)}/reply`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ body }),
+  const payload: Record<string, string> = { body };
+
+  if (auth_proof) payload.auth_proof = auth_proof;
+  if (password) payload.password = password;
+
+  const response = await fetch(`/api/view/${encodeURIComponent(token)}/reply`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
     },
-  );
+    body: JSON.stringify(payload),
+  });
 
   if (!response.ok) {
     throw new Error(`secure_view_reply_failed_${response.status}`);

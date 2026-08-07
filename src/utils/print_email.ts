@@ -65,6 +65,60 @@ function strip_style_blocks(html: string): string {
   return doc.body.innerHTML;
 }
 
+const FORBIDDEN_PRINT_SELECTOR =
+  "script, iframe, frame, object, embed, form, link, meta, base, style, svg";
+
+const URL_ATTRIBUTES = [
+  "href",
+  "src",
+  "srcset",
+  "action",
+  "formaction",
+  "xlink:href",
+];
+
+function is_executable_url(value: string): boolean {
+  const normalized = [...value]
+    .filter((c) => c.charCodeAt(0) > 0x20 && c.charCodeAt(0) !== 0x7f)
+    .join("")
+    .toLowerCase();
+
+  return (
+    normalized.startsWith("javascript:") ||
+    normalized.startsWith("vbscript:") ||
+    normalized.startsWith("data:text/html")
+  );
+}
+
+export function set_print_content(container: HTMLElement, html: string): void {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc.body
+    .querySelectorAll(FORBIDDEN_PRINT_SELECTOR)
+    .forEach((el) => el.remove());
+
+  doc.body.querySelectorAll("*").forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+
+      if (name.startsWith("on")) {
+        el.removeAttribute(attr.name);
+        continue;
+      }
+
+      if (URL_ATTRIBUTES.includes(name) && is_executable_url(attr.value)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  container.replaceChildren(
+    ...Array.from(doc.body.childNodes, (node) =>
+      document.importNode(node, true),
+    ),
+  );
+}
+
 function expand_collapsed_sections(root: HTMLElement): void {
   root
     .querySelectorAll<HTMLDetailsElement>("details")
@@ -424,7 +478,7 @@ export function print_thread(data: PrintThreadData): void {
   const container = document.createElement("div");
 
   container.id = "aster-print-root";
-  container.innerHTML = build_print_thread_body(data);
+  set_print_content(container, build_print_thread_body(data));
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
@@ -470,7 +524,7 @@ export function setup_thread_print_intercept(
     const container = document.createElement("div");
 
     container.id = "aster-print-root";
-    container.innerHTML = build_print_thread_body(data);
+    set_print_content(container, build_print_thread_body(data));
     expand_collapsed_sections(container);
     document.body.appendChild(container);
 
@@ -516,7 +570,7 @@ export function print_email(email: PrintEmailData): void {
   const container = document.createElement("div");
 
   container.id = "aster-print-root";
-  container.innerHTML = build_print_body(email);
+  set_print_content(container, build_print_body(email));
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
