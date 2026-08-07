@@ -174,20 +174,17 @@ export function WorkspaceSwitcher({
       on_open_change(false);
     };
 
-    const close_for_visibility_change = () => {
+    const close_when_hidden = () => {
       if (!document.hidden) return;
       close_popover();
     };
 
-    window.addEventListener("blur", close_popover);
-    document.addEventListener("visibilitychange", close_for_visibility_change);
+    window.addEventListener("blur", close_when_hidden);
+    document.addEventListener("visibilitychange", close_when_hidden);
 
     return () => {
-      window.removeEventListener("blur", close_popover);
-      document.removeEventListener(
-        "visibilitychange",
-        close_for_visibility_change,
-      );
+      window.removeEventListener("blur", close_when_hidden);
+      document.removeEventListener("visibilitychange", close_when_hidden);
     };
   }, [is_open, on_open_change]);
 
@@ -314,8 +311,10 @@ export function WorkspaceSwitcher({
             if (pointer_close_ref.current) e.preventDefault();
             pointer_close_ref.current = false;
           }}
-          onOpenAutoFocus={() => {
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
             pointer_close_ref.current = false;
+            popover_ref.current?.focus();
           }}
           onPointerDownOutside={() => {
             pointer_close_ref.current = true;

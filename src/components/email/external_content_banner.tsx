@@ -173,6 +173,7 @@ export function ExternalContentBanner({
     };
 
     const handle_blur = () => {
+      if (!document.hidden) return;
       set_is_open(false);
     };
 
