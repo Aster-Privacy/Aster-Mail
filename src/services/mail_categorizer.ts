@@ -45,6 +45,8 @@ import {
 import type { CustomCategoryRule } from "@/data/category_catalog";
 import { BUILTIN_CATEGORY_IDS, fold_builtin } from "@/data/category_catalog";
 
+export const CLASSIFIER_VERSION = 2;
+
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
   "promotions",

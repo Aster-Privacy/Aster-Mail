@@ -41,6 +41,7 @@ import {
 import {
   classify,
   CATEGORY_TABS,
+  CLASSIFIER_VERSION,
   set_active_custom_categories,
 } from "@/services/mail_categorizer";
 import {
@@ -112,6 +113,7 @@ interface PersistedMeta {
   chunk_count: number;
   built_at_ms: number;
   fully_built: boolean;
+  classifier_version?: number;
   seen_ts?: Record<string, number>;
 }
 
@@ -373,6 +375,7 @@ async function persist_now(): Promise<void> {
       chunk_count: PERSIST_CHUNK_COUNT,
       built_at_ms: last_build_ms,
       fully_built,
+      classifier_version: CLASSIFIER_VERSION,
       seen_ts,
     };
     const encrypted_meta = await secure_encrypt(JSON.stringify(meta));
@@ -500,6 +503,8 @@ async function load_from_disk(account_id: string): Promise<void> {
     const payload = JSON.parse(decrypted) as Partial<PersistedIndex> &
       Partial<PersistedMeta>;
     const valid_entries: [string, CategoryIndexEntry][] = [];
+
+    if (payload.classifier_version !== CLASSIFIER_VERSION) return;
 
     if (payload.chunked === true) {
       const chunk_count =
