@@ -442,9 +442,11 @@ export default function SecureViewPage() {
 
     return (
       <div className="w-full space-y-1 text-sm text-txt-tertiary">
-        <p>
-          {sv("secure_view.from")} {sender_label}
-        </p>
+        {sender_label ? (
+          <p>
+            {sv("secure_view.from")} {sender_label}
+          </p>
+        ) : null}
         <p>
           {sv("secure_view.expires")} {expires_label}
         </p>
