@@ -2999,7 +2999,7 @@ export const pt = {
     fam_org_members_count_plural:
       "{{used}} de {{max}} lugares ocupados · {{seats}} lugares disponíveis",
     fam_seats_breakdown:
-      "{{members}} membros, {{invites}} convites, {{reserved}} endereços reservados, {{grace}} membros removidos recentemente",
+      "{{members}} membros, {{invites}} convites, {{reserved}} endereços reservados",
     fam_org_setting_up: "A configurar o seu plano de família...",
     fam_org_refresh: "Atualizar",
     fam_org_checklist_title: "Comece a usar o seu plano de família",

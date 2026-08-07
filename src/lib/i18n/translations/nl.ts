@@ -2940,7 +2940,7 @@ export const nl = {
     fam_org_members_count_plural:
       "{{used}} van {{max}} plaatsen bezet · {{seats}} plaatsen beschikbaar",
     fam_seats_breakdown:
-      "{{members}} leden, {{invites}} uitnodigingen, {{reserved}} gereserveerde adressen, {{grace}} onlangs verwijderde leden",
+      "{{members}} leden, {{invites}} uitnodigingen, {{reserved}} gereserveerde adressen",
     fam_org_setting_up: "Je gezinsabonnement wordt ingesteld...",
     fam_org_refresh: "Vernieuwen",
     fam_org_checklist_title: "Aan de slag met je gezinsabonnement",

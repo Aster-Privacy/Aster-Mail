@@ -3003,7 +3003,7 @@ export const pl = {
     fam_org_members_count_plural:
       "zajęte miejsca: {{used}} z {{max}} · dostępne: {{seats}}",
     fam_seats_breakdown:
-      "{{members}} osób, {{invites}} zaproszeń, {{reserved}} zarezerwowanych adresów, {{grace}} niedawno usuniętych osób",
+      "{{members}} osób, {{invites}} zaproszeń, {{reserved}} zarezerwowanych adresów",
     fam_org_setting_up: "Konfigurowanie planu rodzinnego...",
     fam_org_refresh: "Odśwież",
     fam_org_checklist_title: "Rozpocznij korzystanie z planu rodzinnego",

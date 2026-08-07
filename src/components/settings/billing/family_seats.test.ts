@@ -78,16 +78,18 @@ describe("family_seat_usage", () => {
     expect(usage.seats_remaining).toBe(3);
   });
 
-  it("excludes grace-period members from the visible roster count", () => {
+  it("frees the seat of a member who was removed and is in their grace period", () => {
     const usage = family_seat_usage({
-      members: members(1, 4),
+      members: members(3, 2),
       pending_invites: [],
       max_members: 6,
-      seats_used: 5,
+      seats_used: 3,
     });
 
-    expect(usage.active_members).toBe(1);
-    expect(usage.seats_used).toBe(5);
+    expect(usage.active_members).toBe(3);
+    expect(usage.seats_used).toBe(3);
+    expect(usage.seats_remaining).toBe(3);
+    expect(usage.seats_full).toBe(false);
   });
 
   it("keeps the server breakdown so the total can explain itself", () => {
@@ -95,14 +97,13 @@ describe("family_seat_usage", () => {
       active_members: 3,
       pending_invites: 0,
       reserved_addresses: 0,
-      grace_members: 2,
     };
 
     const usage = family_seat_usage({
       members: members(3, 2),
       pending_invites: [],
       max_members: 6,
-      seats_used: 5,
+      seats_used: 3,
       seats,
     });
 
@@ -112,15 +113,15 @@ describe("family_seat_usage", () => {
 
   it("sums every breakdown part to the enforced total", () => {
     const shapes: SeatBreakdown[] = [
-      { active_members: 3, pending_invites: 0, reserved_addresses: 0, grace_members: 2 },
-      { active_members: 3, pending_invites: 2, reserved_addresses: 0, grace_members: 0 },
-      { active_members: 1, pending_invites: 1, reserved_addresses: 2, grace_members: 1 },
-      { active_members: 0, pending_invites: 0, reserved_addresses: 0, grace_members: 0 },
+      { active_members: 3, pending_invites: 0, reserved_addresses: 0 },
+      { active_members: 3, pending_invites: 2, reserved_addresses: 0 },
+      { active_members: 1, pending_invites: 1, reserved_addresses: 2 },
+      { active_members: 0, pending_invites: 0, reserved_addresses: 0 },
     ];
 
     for (const seats of shapes) {
       const usage = family_seat_usage({
-        members: members(seats.active_members, seats.grace_members),
+        members: members(seats.active_members, 2),
         pending_invites: [],
         max_members: 6,
         seats_used: seat_breakdown_total(seats),

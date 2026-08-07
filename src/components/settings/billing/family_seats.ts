@@ -23,7 +23,6 @@ export interface SeatBreakdown {
   active_members: number;
   pending_invites: number;
   reserved_addresses: number;
-  grace_members: number;
 }
 
 export interface SeatSource {
@@ -45,8 +44,7 @@ export interface SeatUsage {
 export function seat_breakdown_total(breakdown: SeatBreakdown): number {
   return breakdown.active_members
     + breakdown.pending_invites
-    + breakdown.reserved_addresses
-    + breakdown.grace_members;
+    + breakdown.reserved_addresses;
 }
 
 export function family_seat_usage(group: SeatSource): SeatUsage {

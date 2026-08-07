@@ -3554,7 +3554,7 @@ export const en: Translations = {
     fam_org_members_count_plural:
       "{{used}} of {{max}} seats used · {{seats}} seats available",
     fam_seats_breakdown:
-      "{{members}} members, {{invites}} invitations, {{reserved}} reserved addresses, {{grace}} recently removed members",
+      "{{members}} members, {{invites}} invitations, {{reserved}} reserved addresses",
     fam_org_setting_up: "Setting up your family plan...",
     fam_org_refresh: "Refresh",
     fam_org_left_title: "You've left the family plan",

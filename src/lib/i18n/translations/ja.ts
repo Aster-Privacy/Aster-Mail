@@ -2988,7 +2988,7 @@ export const ja = {
     fam_org_members_count_plural:
       "{{max}} 席中 {{used}} 席使用中 · 空き {{seats}} 席",
     fam_seats_breakdown:
-      "メンバー {{members}} 人、招待 {{invites}} 件、予約アドレス {{reserved}} 件、最近削除したメンバー {{grace}} 人",
+      "メンバー {{members}} 人、招待 {{invites}} 件、予約アドレス {{reserved}} 件",
     fam_org_setting_up: "ファミリープランを設定しています...",
     fam_org_refresh: "更新",
     fam_org_checklist_title: "ファミリープランを始めましょう",

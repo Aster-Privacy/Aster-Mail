@@ -3004,7 +3004,7 @@ export const fr = {
     fam_org_members_count_plural:
       "{{used}} places sur {{max}} occupées · {{seats}} places disponibles",
     fam_seats_breakdown:
-      "{{members}} membres, {{invites}} invitations, {{reserved}} adresses réservées, {{grace}} membres retirés récemment",
+      "{{members}} membres, {{invites}} invitations, {{reserved}} adresses réservées",
     fam_org_setting_up: "Configuration de votre forfait Famille...",
     fam_org_refresh: "Actualiser",
     fam_org_checklist_title: "Démarrez avec votre forfait Famille",

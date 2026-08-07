@@ -2724,7 +2724,7 @@ export const zh_CN = {
     fam_org_members_count_plural:
       "{{max}} 个名额中已用 {{used}} 个 · 剩余 {{seats}} 个",
     fam_seats_breakdown:
-      "成员 {{members}} 名、邀请 {{invites}} 个、预留地址 {{reserved}} 个、最近移除的成员 {{grace}} 名",
+      "成员 {{members}} 名、邀请 {{invites}} 个、预留地址 {{reserved}} 个",
     fam_org_setting_up: "正在设置您的家庭套餐...",
     fam_org_refresh: "刷新",
     fam_org_checklist_title: "开始使用您的家庭套餐",

@@ -3015,7 +3015,7 @@ export const it = {
     fam_org_members_count_plural:
       "{{used}} di {{max}} posti occupati · {{seats}} posti disponibili",
     fam_seats_breakdown:
-      "{{members}} membri, {{invites}} inviti, {{reserved}} indirizzi riservati, {{grace}} membri rimossi di recente",
+      "{{members}} membri, {{invites}} inviti, {{reserved}} indirizzi riservati",
     fam_org_setting_up: "Configurazione del tuo piano famiglia in corso...",
     fam_org_refresh: "Aggiorna",
     fam_org_checklist_title: "Inizia con il tuo piano famiglia",

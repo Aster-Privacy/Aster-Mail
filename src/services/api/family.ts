@@ -44,7 +44,6 @@ export interface SeatBreakdown {
   active_members: number;
   pending_invites: number;
   reserved_addresses: number;
-  grace_members: number;
 }
 
 export interface FamilyGroupResponse {

@@ -3045,7 +3045,7 @@ export const de = {
     fam_org_members_count_plural:
       "{{used}} von {{max}} Plätzen belegt · {{seats}} Plätze verfügbar",
     fam_seats_breakdown:
-      "{{members}} Mitglieder, {{invites}} Einladungen, {{reserved}} reservierte Adressen, {{grace}} kürzlich entfernte Mitglieder",
+      "{{members}} Mitglieder, {{invites}} Einladungen, {{reserved}} reservierte Adressen",
     fam_org_setting_up: "Ihr Familientarif wird eingerichtet...",
     fam_org_refresh: "Aktualisieren",
     fam_org_checklist_title: "Erste Schritte mit Ihrem Familientarif",

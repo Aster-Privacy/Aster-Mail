@@ -2882,7 +2882,7 @@ export const ar = {
     fam_org_members_count_plural:
       "{{used}} من {{max}} مقاعد مستخدمة · {{seats}} مقاعد متاحة",
     fam_seats_breakdown:
-      "{{members}} أعضاء، {{invites}} دعوات، {{reserved}} عناوين محجوزة، {{grace}} أعضاء أُزيلوا مؤخرًا",
+      "{{members}} أعضاء، {{invites}} دعوات، {{reserved}} عناوين محجوزة",
     fam_org_setting_up: "جارٍ إعداد خطتك العائلية...",
     fam_org_refresh: "تحديث",
     fam_org_checklist_title: "ابدأ مع خطتك العائلية",

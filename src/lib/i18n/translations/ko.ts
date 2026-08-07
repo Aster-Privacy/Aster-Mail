@@ -2891,7 +2891,7 @@ export const ko = {
     fam_org_members_count_plural:
       "{{max}}석 중 {{used}}석 사용 중 · {{seats}}석 사용 가능",
     fam_seats_breakdown:
-      "구성원 {{members}}명, 초대 {{invites}}건, 예약 주소 {{reserved}}건, 최근 삭제한 구성원 {{grace}}명",
+      "구성원 {{members}}명, 초대 {{invites}}건, 예약 주소 {{reserved}}건",
     fam_org_setting_up: "가족 요금제를 설정하는 중...",
     fam_org_refresh: "새로 고침",
     fam_org_checklist_title: "가족 요금제 시작하기",

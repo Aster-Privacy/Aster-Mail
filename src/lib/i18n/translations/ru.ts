@@ -2993,7 +2993,7 @@ export const ru = {
     fam_org_members_count_plural:
       "занято мест: {{used}} из {{max}} · доступно: {{seats}}",
     fam_seats_breakdown:
-      "{{members}} участников, {{invites}} приглашений, {{reserved}} зарезервированных адресов, {{grace}} недавно удалённых участников",
+      "{{members}} участников, {{invites}} приглашений, {{reserved}} зарезервированных адресов",
     fam_org_setting_up: "Настройка вашего семейного тарифа...",
     fam_org_refresh: "Обновить",
     fam_org_checklist_title: "Начните работу с семейным тарифом",

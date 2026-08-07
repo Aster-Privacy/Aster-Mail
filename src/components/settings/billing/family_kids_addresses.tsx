@@ -235,8 +235,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
               {t("settings.fam_seats_breakdown", {
                 members: seat_breakdown.active_members,
                 invites: seat_breakdown.pending_invites,
-                reserved: seat_breakdown.reserved_addresses,
-                grace: seat_breakdown.grace_members,
+                reserved: seat_breakdown.reserved_addresses,
               })}
             </p>
           )}

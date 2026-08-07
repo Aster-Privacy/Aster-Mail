@@ -2973,7 +2973,7 @@ export const tr = {
     fam_org_members_count_plural:
       "{{max}} koltuktan {{used}} tanesi dolu · {{seats}} koltuk uygun",
     fam_seats_breakdown:
-      "{{members}} üye, {{invites}} davet, {{reserved}} ayrılmış adres, {{grace}} yakında çıkarılan üye",
+      "{{members}} üye, {{invites}} davet, {{reserved}} ayrılmış adres",
     fam_org_setting_up: "Aile planınız ayarlanıyor...",
     fam_org_refresh: "Yenile",
     fam_org_checklist_title: "Aile planınızı kullanmaya başlayın",

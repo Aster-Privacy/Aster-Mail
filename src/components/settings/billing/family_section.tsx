@@ -2210,7 +2210,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               members: seat_breakdown.active_members,
               invites: seat_breakdown.pending_invites,
               reserved: seat_breakdown.reserved_addresses,
-              grace: seat_breakdown.grace_members,
             })}
           </p>
         )}
