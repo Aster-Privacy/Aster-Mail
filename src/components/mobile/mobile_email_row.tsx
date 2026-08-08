@@ -37,6 +37,7 @@ import {
   type SwipeAction,
 } from "@/components/mobile/swipe_actions";
 import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
+import { PinIcon } from "@/components/common/icons";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
@@ -389,7 +390,10 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             )}
 
             {email.is_pinned && (
-              <span className="h-2 w-2 rounded-full bg-[var(--accent-color,#3b82f6)]" />
+              <PinIcon
+                filled
+                className="h-3.5 w-3.5 -rotate-[38deg] text-[var(--accent-color,#3b82f6)]"
+              />
             )}
           </div>
         </div>
