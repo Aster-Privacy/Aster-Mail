@@ -120,5 +120,7 @@ updates/UPLOAD.md
 /wizard_*.png
 /_mail_fontfix_epoch.txt
 /_calendar_diag/
+/_sweep_shots/
+/_sweep_findings.json
 .claude/
 /_headless_shell_out/
