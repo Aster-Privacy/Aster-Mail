@@ -73,6 +73,11 @@ const cached_tags: { data: DecryptedTag[]; total: number } = {
   total: 0,
 };
 
+export function clear_tags_cache(): void {
+  cached_tags.data = [];
+  cached_tags.total = 0;
+}
+
 interface UseTagsReturn {
   state: TagsState;
   counts: TagCounts;
@@ -244,6 +249,7 @@ export function use_tags(): UseTagsReturn {
   const [counts, set_counts] = useState<TagCounts>({});
   const abort_ref = useRef<AbortController | null>(null);
   const prev_user_id_ref = useRef<string | null>(null);
+  const fetch_generation_ref = useRef(0);
   const counts_generation_ref = useRef(0);
 
   const fetch_tags = useCallback(
@@ -263,6 +269,8 @@ export function use_tags(): UseTagsReturn {
       abort_ref.current?.abort();
       abort_ref.current = new AbortController();
 
+      const this_generation = ++fetch_generation_ref.current;
+
       set_state((prev) => {
         if (prev.tags.length === 0) {
           return { ...prev, is_loading: true, error: null };
@@ -276,6 +284,8 @@ export function use_tags(): UseTagsReturn {
           include_counts: true,
           ...params,
         });
+
+        if (this_generation !== fetch_generation_ref.current) return;
 
         if (response.error || !response.data) {
           set_state((prev) => ({
@@ -293,6 +303,8 @@ export function use_tags(): UseTagsReturn {
           ),
         );
 
+        if (this_generation !== fetch_generation_ref.current) return;
+
         const decrypted_tags = decrypted_results.filter(
           (tag): tag is DecryptedTag => tag !== null,
         );
@@ -307,6 +319,8 @@ export function use_tags(): UseTagsReturn {
           total: response.data.total,
         });
       } catch (err) {
+        if (this_generation !== fetch_generation_ref.current) return;
+
         set_state((prev) => ({
           ...prev,
           is_loading: false,
@@ -642,6 +656,8 @@ export function use_tags(): UseTagsReturn {
       current_user_id !== null &&
       prev_user_id !== current_user_id
     ) {
+      fetch_generation_ref.current += 1;
+      counts_generation_ref.current += 1;
       cached_tags.data = [];
       cached_tags.total = 0;
       set_state({

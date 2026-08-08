@@ -1083,6 +1083,8 @@ export function use_folders(): UseFoldersReturn {
       current_user_id !== null &&
       prev_user_id !== current_user_id
     ) {
+      fetch_generation_ref.current += 1;
+      counts_generation_ref.current += 1;
       cached_folders.data = [];
       cached_folders.total = 0;
       set_state({
