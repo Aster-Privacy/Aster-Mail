@@ -55,7 +55,7 @@ export interface RatchetKeySet {
   ratchet_pq_identity_seed?: string;
 }
 
-export const RATCHET_PREVIOUS_KEYS_LIMIT = 10;
+export const RATCHET_PREVIOUS_KEYS_LIMIT = 32;
 
 export function retain_previous_ratchet_keys(
   vault: EncryptedVault,
