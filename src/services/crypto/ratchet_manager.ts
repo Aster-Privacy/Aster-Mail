@@ -46,6 +46,7 @@ import {
   load_ratchet_from_server,
   derive_ratchet_encryption_key,
 } from "./ratchet_sync";
+import { merge_ratchet_states } from "./ratchet_state_merge";
 import {
   get_derived_encryption_key,
   get_passphrase_from_memory,
@@ -349,6 +350,32 @@ export async function upload_prekey_bundle(
   return !response.error;
 }
 
+async function adopt_server_state_before_send(
+  conversation_id: string,
+  ratchet: DoubleRatchet,
+): Promise<void> {
+  try {
+    const sync_key = await get_sync_encryption_key();
+
+    if (!sync_key) {
+      return;
+    }
+
+    const server = await load_ratchet_from_server(conversation_id, sync_key);
+
+    if (!server) {
+      return;
+    }
+
+    const local = await ratchet.serialize();
+    const remote = await server.ratchet.serialize();
+
+    ratchet.adopt_state(merge_ratchet_states(local, remote));
+  } catch {
+    return;
+  }
+}
+
 async function get_sync_encryption_key(): Promise<CryptoKey | null> {
   const master_key = get_derived_encryption_key();
 
@@ -413,6 +440,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
     }
 
     let ratchet = await load_ratchet_state(conversation_id);
+
+    if (ratchet) {
+      await adopt_server_state_before_send(conversation_id, ratchet);
+    }
 
     let ephemeral_key_base64 = "";
     let pq_ciphertext_base64: string | undefined;
