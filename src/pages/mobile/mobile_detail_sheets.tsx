@@ -44,8 +44,8 @@ import {
   SunIcon,
   InformationCircleIcon,
   ArrowDownTrayIcon,
-  MapPinIcon,
 } from "@heroicons/react/24/outline";
+import { PinIcon } from "@/components/common/icons";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import {
   addHours,
@@ -216,7 +216,7 @@ export function MobileActionMenuSheet({
             type="button"
             onClick={on_toggle_pin}
           >
-            <MapPinIcon className={`h-5 w-5 ${is_pinned ? "text-[var(--accent-color,#3b82f6)]" : "text-[var(--text-muted)]"}`} />
+            <PinIcon className={`h-5 w-5 ${is_pinned ? "-rotate-[38deg] text-[var(--accent-color,#3b82f6)]" : "text-[var(--text-muted)]"}`} filled={is_pinned} />
             <span className="text-[14px] text-[var(--text-primary)]">
               {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
             </span>

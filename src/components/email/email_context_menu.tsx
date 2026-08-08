@@ -27,7 +27,6 @@ import {
   ArrowUturnRightIcon,
   EnvelopeIcon,
   EnvelopeOpenIcon,
-  MapPinIcon,
   FolderPlusIcon,
   TagIcon,
   ArchiveBoxIcon,
@@ -47,6 +46,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
+import { PinIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { category_for_tab } from "@/services/mail_categorizer";
 import {
@@ -335,8 +335,9 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "pin"}
           onClick={() => handle_action("pin", on_toggle_pin)}
         >
-          <MapPinIcon
-            className={`mr-2 h-4 w-4 ${email.is_pinned ? "fill-blue-500 text-blue-500" : ""}`}
+          <PinIcon
+            className={`mr-2 h-4 w-4 ${email.is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+            filled={!!email.is_pinned}
           />
           {email.is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
         </ContextMenuItem>

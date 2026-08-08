@@ -36,9 +36,10 @@ import {
   PrinterIcon,
   FolderIcon,
   NoSymbolIcon,
-  MapPinIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
+
+import { PinIcon } from "@/components/common/icons";
 
 import {
   DropdownMenu,
@@ -175,7 +176,10 @@ export function PopupEmailActions({
           variant="ghost"
           onClick={on_pin_toggle}
         >
-          <MapPinIcon className={`w-4 h-4 ${is_pinned ? "-rotate-45" : ""}`} />
+          <PinIcon
+            className={`w-4 h-4 ${is_pinned ? "-rotate-[38deg]" : ""}`}
+            filled={is_pinned}
+          />
         </Button>
       </Tooltip>
 
@@ -245,8 +249,9 @@ export function PopupEmailActions({
             )}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={on_pin_toggle}>
-            <MapPinIcon
-              className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-45 text-blue-500" : ""}`}
+            <PinIcon
+              className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+              filled={is_pinned}
             />
             {is_pinned ? t("mail.unpin") : t("common.pinned_to_top")}
           </DropdownMenuItem>

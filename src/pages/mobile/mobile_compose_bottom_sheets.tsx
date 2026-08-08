@@ -48,26 +48,10 @@ import {
   sender_type_color,
 } from "./mobile_compose_helpers";
 
+import { PinIcon } from "@/components/common/icons";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
-
-function SenderPinIcon({ filled }: { filled: boolean }) {
-  return (
-    <svg
-      className="h-5 w-5"
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
-    </svg>
-  );
-}
 
 export function MobileSenderSheet({
   is_open,
@@ -185,7 +169,12 @@ export function MobileSenderSheet({
                     )
                   }
                 >
-                  <SenderPinIcon filled={preferred_id === sender.id} />
+                  <PinIcon
+                    className={`h-5 w-5 transition-transform duration-200 ${
+                      preferred_id === sender.id ? "-rotate-[38deg]" : ""
+                    }`}
+                    filled={preferred_id === sender.id}
+                  />
                 </button>
               )}
             </div>

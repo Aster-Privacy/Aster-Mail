@@ -50,33 +50,11 @@ import {
 } from "@/lib/preferred_sender";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
 
 const AVATAR_MAX_SIZE = 256;
-
-function PinIcon({
-  filled,
-  className,
-}: {
-  filled: boolean;
-  className?: string;
-}) {
-  return (
-    <svg
-      className={className}
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={filled ? "0" : "1.5"}
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
-    </svg>
-  );
-}
 
 function compress_avatar(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -490,7 +468,7 @@ export function AliasItem({
               <PinIcon
                 className={
                   alias.is_pinned
-                    ? "w-[18px] h-[18px] rotate-45 transition-transform duration-200"
+                    ? "w-[18px] h-[18px] -rotate-[38deg] transition-transform duration-200"
                     : "w-[18px] h-[18px] transition-transform duration-200"
                 }
                 filled={!!alias.is_pinned}

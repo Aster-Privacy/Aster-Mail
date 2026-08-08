@@ -20,6 +20,10 @@
 //
 import type { icon_svg_props } from "@/types";
 
+type pin_icon_props = icon_svg_props & {
+  filled?: boolean;
+};
+
 export const InboxIcon: React.FC<icon_svg_props> = ({
   size = 24,
   width,
@@ -733,15 +737,16 @@ export const CloseIcon: React.FC<icon_svg_props> = ({
   </svg>
 );
 
-export const PinIcon: React.FC<icon_svg_props> = ({
+export const PinIcon: React.FC<pin_icon_props> = ({
   size = 24,
   width,
   height,
+  filled = false,
   ...props
 }) => (
   <svg
     aria-hidden="true"
-    fill="currentColor"
+    fill="none"
     focusable="false"
     height={size || height}
     role="presentation"
@@ -750,7 +755,26 @@ export const PinIcon: React.FC<icon_svg_props> = ({
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z" />
+    <path
+      d="M9.4 3h5.2"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth={filled ? 2.6 : 1.5}
+    />
+    <path
+      d="M10.6 3.4v4.1a3.1 3.1 0 0 1-1.16 2.42l-1.9 1.53c-.62.5-.27 1.55.53 1.55h8.06c.8 0 1.15-1.05.53-1.55l-1.9-1.53A3.1 3.1 0 0 1 13.4 7.5V3.4Z"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={filled ? 1.1 : 1.5}
+    />
+    <path
+      d="M12 13v7.4"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth={filled ? 2.2 : 1.5}
+    />
   </svg>
 );
 

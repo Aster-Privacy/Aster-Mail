@@ -41,6 +41,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
+import { PinIcon } from "@/components/common/icons";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_should_reduce_motion } from "@/provider";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
@@ -173,42 +174,6 @@ interface SenderSelectorProps {
   on_set_preferred?: (id: string | null) => void;
 }
 
-function PinIcon({
-  filled,
-  className,
-}: {
-  filled: boolean;
-  className?: string;
-}) {
-  if (filled) {
-    return (
-      <svg
-        className={className}
-        fill="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M14 4V2h-4v2H8l-2 7h4v7l2 2 2-2v-7h4l-2-7z" />
-    </svg>
-  );
-}
-
 function get_email_username(email: string): string {
   return email.split("@")[0] || email;
 }
@@ -285,7 +250,7 @@ function render_option(
           }}
         >
           <PinIcon
-            className={`w-4 h-4 transition-transform duration-200 ${is_preferred ? "rotate-45" : ""}`}
+            className={`w-4 h-4 transition-transform duration-200 ${is_preferred ? "-rotate-[38deg]" : ""}`}
             filled={is_preferred}
           />
         </button>

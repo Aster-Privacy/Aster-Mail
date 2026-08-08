@@ -31,7 +31,6 @@ import {
   EnvelopeOpenIcon,
   ExclamationTriangleIcon,
   InboxIcon,
-  MapPinIcon,
   PaperClipIcon,
   StarIcon,
   TrashIcon,
@@ -47,6 +46,7 @@ import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
 } from "@/utils/email_crypto";
+import { PinIcon } from "@/components/common/icons";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { BadgeChip } from "@/components/ui/badge_chip";
@@ -554,7 +554,10 @@ export const InboxEmailListItem = memo(
           </Tooltip>
 
           {email.is_pinned && (
-            <MapPinIcon className="w-4 h-4 text-blue-500 flex-shrink-0 -rotate-45 hidden sm:block" />
+            <PinIcon
+              className="w-4 h-4 text-blue-500 flex-shrink-0 -rotate-[38deg] hidden sm:block"
+              filled
+            />
           )}
 
           {!email.is_read && (

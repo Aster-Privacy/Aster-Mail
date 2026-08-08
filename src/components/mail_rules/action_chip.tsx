@@ -28,12 +28,12 @@ import {
   TrashIcon,
   PaperAirplaneIcon,
   ChatBubbleLeftRightIcon,
-  MapPinIcon,
   ClockIcon,
   BellIcon,
   BellSlashIcon,
 } from "@heroicons/react/24/outline";
 
+import { PinIcon } from "@/components/common/icons";
 import { ChipPill, ChipSegment } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 import { use_folders } from "@/hooks/use_folders";
@@ -93,7 +93,7 @@ export function ActionChip({
     delete: TrashIcon,
     forward: PaperAirplaneIcon,
     auto_reply: ChatBubbleLeftRightIcon,
-    pin: MapPinIcon,
+    pin: PinIcon,
     snooze: ClockIcon,
     categorize: TagIcon,
     notify:

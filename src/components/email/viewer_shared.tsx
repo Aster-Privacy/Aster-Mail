@@ -38,7 +38,6 @@ import {
   PrinterIcon,
   FolderIcon,
   InboxIcon,
-  MapPinIcon,
   ChevronDoubleUpIcon,
   ChevronDoubleDownIcon,
   ChevronLeftIcon,
@@ -54,6 +53,7 @@ import { Button, Tooltip } from "@aster/ui";
 import { use_external_link } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { PinIcon } from "@/components/common/icons";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
@@ -343,8 +343,9 @@ export function ViewerToolbarActions({
             variant="ghost"
             onClick={on_pin_toggle}
           >
-            <MapPinIcon
-              className={`${icon_size} ${is_pinned ? "-rotate-45" : ""}`}
+            <PinIcon
+              className={`${icon_size} ${is_pinned ? "-rotate-[38deg]" : ""}`}
+              filled={is_pinned}
             />
           </Button>
         </Tooltip>
@@ -551,8 +552,9 @@ export function ViewerToolbarActions({
             )}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={on_pin_toggle}>
-            <MapPinIcon
-              className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-45 text-blue-500" : ""}`}
+            <PinIcon
+              className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+              filled={is_pinned}
             />
             {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
           </DropdownMenuItem>

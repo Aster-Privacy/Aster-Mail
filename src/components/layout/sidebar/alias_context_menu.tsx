@@ -23,9 +23,10 @@ import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import {
   ClipboardDocumentIcon,
   Cog6ToothIcon,
-  MapPinIcon,
   PowerIcon,
 } from "@heroicons/react/24/outline";
+
+import { PinIcon } from "@/components/common/icons";
 
 import {
   ContextMenu,
@@ -132,8 +133,9 @@ export function AliasContextMenu({
 
         {is_real_alias && (
           <ContextMenuItem onClick={toggle_pin}>
-            <MapPinIcon
-              className="mr-2 h-4 w-4"
+            <PinIcon
+              className={`mr-2 h-4 w-4 ${alias.is_pinned ? "-rotate-[38deg]" : ""}`}
+              filled={!!alias.is_pinned}
               style={{
                 color: alias.is_pinned
                   ? "var(--color-blue-500, #3b82f6)"
