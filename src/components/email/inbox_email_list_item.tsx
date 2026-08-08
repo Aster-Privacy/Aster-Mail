@@ -59,6 +59,7 @@ import {
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { AttachmentChip } from "@/components/email/attachment_chip";
+import { fetch_priority_attr } from "@/lib/fetch_priority";
 import { cn, is_system_email } from "@/lib/utils";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import { truncate_with_ellipsis } from "@/utils/preview_text";
@@ -522,7 +523,7 @@ export const InboxEmailListItem = memo(
                         )}
                         decoding="async"
                         draggable={false}
-                        fetchPriority="high"
+                        {...fetch_priority_attr("high")}
                         src={mail_logo_url}
                       />
                     ) : (
@@ -713,23 +714,6 @@ export const InboxEmailListItem = memo(
                 />
               )}
 
-              {alias_delivery && (
-                <Tooltip
-                  tip={t("mail.received_via_alias", {
-                    address: alias_delivery.address,
-                  })}
-                >
-                  <span
-                    aria-label={t("mail.received_via_alias", {
-                      address: alias_delivery.address,
-                    })}
-                    className="flex-shrink-0 hidden sm:inline-flex items-center text-txt-muted"
-                  >
-                    <AtSymbolIcon className="h-3.5 w-3.5" />
-                  </span>
-                </Tooltip>
-              )}
-
               {custom_domain_label && (
                 <EmailTag
                   show_icon
@@ -913,6 +897,26 @@ export const InboxEmailListItem = memo(
           )}
 
           <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ml-auto">
+            {alias_delivery && (
+              <Tooltip
+                tip={t("mail.received_via_alias", {
+                  address: alias_delivery.address,
+                })}
+              >
+                <span
+                  aria-label={t("mail.received_via_alias", {
+                    address: alias_delivery.address,
+                  })}
+                  className={cn(
+                    "flex-shrink-0 inline-flex items-center text-txt-muted",
+                    show_hover_actions && "group-hover:opacity-0",
+                  )}
+                >
+                  <AtSymbolIcon className="h-3.5 w-3.5" />
+                </span>
+              </Tooltip>
+            )}
+
             {email.has_attachment && (
               <PaperClipIcon
                 className={cn(
