@@ -1979,18 +1979,19 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         >
           &#x2715;
         </button>
-        <img
-          alt=""
-          src={zoomed_image}
-          style={{
-            maxWidth: "90vw",
-            maxHeight: "90vh",
-            objectFit: "contain",
-            borderRadius: 4,
-            cursor: "default",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
+        <div style={{ cursor: "default" }} onClick={(e) => e.stopPropagation()}>
+          <img
+            alt=""
+            src={zoomed_image}
+            style={{
+              maxWidth: "90vw",
+              maxHeight: "90vh",
+              objectFit: "contain",
+              borderRadius: 4,
+              display: "block",
+            }}
+          />
+        </div>
       </div>
     )}
     <div

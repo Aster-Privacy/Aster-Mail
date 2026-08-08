@@ -42,10 +42,11 @@ export function SettingsTabBar<T extends string>({
 }: SettingsTabBarProps<T>) {
   return (
     <div className="border-b border-edge-secondary">
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1" role="tablist">
         {tabs.map(({ key, label, icon }) => (
           <button
             key={key}
+            role="tab"
             aria-selected={active === key}
             className="relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap outline-none transition-colors"
             style={{

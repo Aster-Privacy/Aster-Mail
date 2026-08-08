@@ -47,7 +47,7 @@ vi.mock("@/components/auth/turnstile_widget", () => ({
   TurnstileWidget: forwardRef<
     HTMLDivElement,
     { on_verify: (token: string) => void }
-  >(({ on_verify }, ref) => {
+  >(function TurnstileWidget({ on_verify }, ref) {
     verify_captcha = on_verify;
 
     return <div ref={ref} data-testid="turnstile" />;

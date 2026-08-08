@@ -46,6 +46,39 @@ import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 
 const DL = "/api/bridge/v1/download";
 
+interface BridgeDownloadLinkProps {
+  platform: string;
+  is_locked: boolean;
+  className: string;
+  children: React.ReactNode;
+}
+
+function BridgeDownloadLink({
+  platform,
+  is_locked,
+  className,
+  children,
+}: BridgeDownloadLinkProps) {
+  const classes = [
+    className,
+    is_locked ? "opacity-40 cursor-not-allowed" : "",
+  ].join(" ");
+
+  if (is_locked) {
+    return (
+      <button type="button" disabled className={classes}>
+        {children}
+      </button>
+    );
+  }
+
+  return (
+    <a href={`${DL}/${platform}`} className={classes}>
+      {children}
+    </a>
+  );
+}
+
 interface PlatformCard {
   id: string;
   name_key: TranslationKey;
@@ -264,29 +297,23 @@ export function BridgeSection() {
             </div>
             <p className="text-sm text-txt-muted leading-relaxed flex-1">{t(card.desc_key)}</p>
             <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-              <a
-                href={is_locked ? undefined : `${DL}/${card.platform}`}
-                aria-disabled={is_locked}
-                className={[
-                  "aster_btn aster_btn_depth aster_btn_md flex items-center justify-center gap-1.5 whitespace-nowrap",
-                  is_locked ? "opacity-40 cursor-not-allowed pointer-events-none" : "",
-                ].join(" ")}
+              <BridgeDownloadLink
+                platform={card.platform}
+                is_locked={is_locked}
+                className="aster_btn aster_btn_depth aster_btn_md flex items-center justify-center gap-1.5 whitespace-nowrap"
               >
                 <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
                 {t(card.cta_key)}
-              </a>
+              </BridgeDownloadLink>
               {card.sub_links && card.sub_links.map((link) => (
-                <a
+                <BridgeDownloadLink
                   key={link.platform}
-                  href={is_locked ? undefined : `${DL}/${link.platform}`}
-                  aria-disabled={is_locked}
-                  className={[
-                    "aster_btn aster_btn_outline aster_btn_md whitespace-nowrap",
-                    is_locked ? "opacity-40 cursor-not-allowed pointer-events-none" : "",
-                  ].join(" ")}
+                  platform={link.platform}
+                  is_locked={is_locked}
+                  className="aster_btn aster_btn_outline aster_btn_md whitespace-nowrap"
                 >
                   {t(link.label_key)}
-                </a>
+                </BridgeDownloadLink>
               ))}
             </div>
           </div>
