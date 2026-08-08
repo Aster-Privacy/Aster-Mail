@@ -70,16 +70,15 @@ describe("retain_previous_ratchet_keys", () => {
   });
 
   it("caps history at RATCHET_PREVIOUS_KEYS_LIMIT, dropping the oldest", () => {
-    const history = [
-      key_set("v3"),
-      key_set("v2"),
-      key_set("v1"),
-      key_set("v0"),
-    ];
-    const result = retain_previous_ratchet_keys(vault_with("v4", history));
+    const history = Array.from({ length: RATCHET_PREVIOUS_KEYS_LIMIT + 1 }, (_, i) =>
+      key_set(`v${RATCHET_PREVIOUS_KEYS_LIMIT - i}`),
+    );
+    const result = retain_previous_ratchet_keys(
+      vault_with(`v${RATCHET_PREVIOUS_KEYS_LIMIT + 1}`, history),
+    );
 
     expect(result).toHaveLength(RATCHET_PREVIOUS_KEYS_LIMIT);
-    expect(result[0]).toEqual(key_set("v4"));
+    expect(result[0]).toEqual(key_set(`v${RATCHET_PREVIOUS_KEYS_LIMIT + 1}`));
     expect(result.at(-1)).not.toEqual(key_set("v0"));
   });
 
