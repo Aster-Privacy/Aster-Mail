@@ -115,7 +115,7 @@ describe("build_alias_delivery_index", () => {
     ).toEqual({ address: "shopping@aster.cx", label: "shopping" });
   });
 
-  it("prefers the display name as the label", () => {
+  it("labels the alias by its local part even when a display name is set", () => {
     const index = build_alias_delivery_index(
       [
         make_alias({
@@ -128,7 +128,32 @@ describe("build_alias_delivery_index", () => {
     );
 
     expect(resolve_alias_delivery_in(index, "hash-a1", [])?.label).toBe(
-      "Shopping",
+      "shopping",
+    );
+  });
+
+  it("labels distinct aliases distinctly when they share one display name", () => {
+    const index = build_alias_delivery_index(
+      [
+        make_alias({
+          id: "a1",
+          local_part: "thehindu.3month",
+          display_name: "Mr. Jarvis",
+        }),
+        make_alias({
+          id: "a2",
+          local_part: "banking",
+          display_name: "Mr. Jarvis",
+        }),
+      ],
+      [],
+    );
+
+    expect(resolve_alias_delivery_in(index, "hash-a1", [])?.label).toBe(
+      "thehindu.3month",
+    );
+    expect(resolve_alias_delivery_in(index, "hash-a2", [])?.label).toBe(
+      "banking",
     );
   });
 

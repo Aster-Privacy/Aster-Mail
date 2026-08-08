@@ -172,7 +172,7 @@ export function build_alias_delivery_index(
 
     if (!is_user_alias(alias)) continue;
 
-    const label = alias.display_name?.trim() || alias.local_part;
+    const label = alias.local_part;
 
     if (!label) continue;
 
