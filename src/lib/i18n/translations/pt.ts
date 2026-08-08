@@ -3884,7 +3884,7 @@ export const pt = {
       "Impede que os e-mails se liguem ao exterior quando os abre. Os remetentes usam pixels, fontes e CSS para registar quem abre seus e-mails.",
     info_block_tracking_links_title: "O que são links de rastreamento?",
     info_block_tracking_links_description:
-      "Links em e-mails frequentemente passam pelo servidor do remetente para registar cliques. Isto remove esses redirecionamentos para que os links vão diretamente ao destino.",
+      "Os e-mails de marketing acrescentam etiquetas ocultas aos seus links, como utm_source, fbclid e gclid. Essas etiquetas dizem ao remetente de que campanha vem e confirmam que clicou. O Aster remove-as de todos os links da mensagem, por isso o link continua a abrir a mesma página sem comunicar nada.",
     info_two_factor_auth_title: "Autenticação de dois fatores",
     info_two_factor_auth_description:
       "Adiciona uma segunda camada de segurança ao entrar. Após sua senha insere um código de 6 dígitos do seu app autenticador.",

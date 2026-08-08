@@ -4510,7 +4510,7 @@ export const en: Translations = {
       "Blocks emails from phoning home when you open them. Senders use tracking pixels, fonts, and CSS to record who opened their emails and when.",
     info_block_tracking_links_title: "What are Tracking Links?",
     info_block_tracking_links_description:
-      "Links in emails often redirect through a sender's server first so they can record whether you clicked. This strips those redirects so links go straight to the destination.",
+      "Marketing emails add hidden tags to their links, such as utm_source, fbclid, and gclid. Those tags tell the sender which campaign you came from and confirm that you clicked. Aster removes them from every link in a message, so the link still opens the same page without reporting back.",
     info_two_factor_auth_title: "Two-Factor Authentication",
     info_two_factor_auth_description:
       "Adds a second layer of sign-in security. After your password, you'll enter a 6-digit code from your authenticator app.",

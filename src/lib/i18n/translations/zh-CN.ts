@@ -3525,7 +3525,7 @@ export const zh_CN = {
       "阻止邮件在打开时向外发送数据。发件人使用追踪像素、字体和CSS记录谁在何时打开了他们的邮件。",
     info_block_tracking_links_title: "什么是追踪链接？",
     info_block_tracking_links_description:
-      "邮件中的链接通常先经过发件人服务器以记录点击。此功能去除这些重定向，使链接直接指向目标。",
+      "营销邮件会在链接中加入 utm_source、fbclid、gclid 等隐藏标记。这些标记会告诉发件人你来自哪个推广活动，并确认你点击了链接。Aster 会从邮件的每个链接中移除它们，链接仍然打开同一个页面，但不会回传任何信息。",
     info_two_factor_auth_title: "双重身份验证",
     info_two_factor_auth_description:
       "为登录添加第二层安全保护。输入密码后，您还需输入验证器应用生成的6位验证码。",

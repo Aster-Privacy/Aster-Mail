@@ -3874,7 +3874,7 @@ export const de = {
       "Verhindert, dass E-Mails beim Öffnen nach Hause telefonieren. Absender verwenden Tracking-Pixel, Schriften und CSS, um zu erfassen, wer ihre E-Mails wann geöffnet hat.",
     info_block_tracking_links_title: "Was sind Tracking-Links?",
     info_block_tracking_links_description:
-      "Links in E-Mails leiten oft zuerst über den Server des Absenders, damit dieser Klicks erfassen kann. Dies entfernt diese Weiterleitungen, damit Links direkt zum Ziel führen.",
+      "Werbe-E-Mails hängen versteckte Kennzeichen an ihre Links, etwa utm_source, fbclid und gclid. Diese verraten dem Absender, aus welcher Kampagne Sie kommen und dass Sie geklickt haben. Aster entfernt sie aus jedem Link einer Nachricht, sodass der Link weiterhin dieselbe Seite öffnet, ohne etwas zu melden.",
     info_two_factor_auth_title: "Zwei-Faktor-Authentifizierung",
     info_two_factor_auth_description:
       "Fügt eine zweite Sicherheitsebene beim Anmelden hinzu. Nach Ihrem Passwort geben Sie einen 6-stelligen Code aus Ihrer Authenticator-App ein.",

@@ -3851,7 +3851,7 @@ export const tr = {
       "E-postaların açıldığında dışarıya bağlanmasını engeller. Göndericiler, kimler ve ne zaman açtıklarını kayıt altına almak için piksel, yazı tipi ve CSS kullanır.",
     info_block_tracking_links_title: "İzleme Bağlantıları Nedir?",
     info_block_tracking_links_description:
-      "E-postalardaki bağlantılar genellikle önce gönderenin sunucusundan geçer ve tıklamaları kaydeder. Bu yönlendirmeleri kaldırarak bağlantılar doğrudan hedefe gider.",
+      "Pazarlama e-postaları bağlantılarına utm_source, fbclid ve gclid gibi gizli etiketler ekler. Bu etiketler gönderene hangi kampanyadan geldiğinizi söyler ve bağlantıya tıkladığınızı doğrular. Aster bunları iletideki her bağlantıdan kaldırır; bağlantı yine aynı sayfayı açar ama geri bilgi göndermez.",
     info_two_factor_auth_title: "İki Faktörlü Kimlik Doğrulama",
     info_two_factor_auth_description:
       "Girişe ikinci bir güvenlik katmanı ekler. Şifrenizden sonra kimlik doğrulama uygulamanızdan 6 haneli kod girersiniz.",

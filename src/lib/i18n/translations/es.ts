@@ -3875,7 +3875,7 @@ export const es = {
       "Evita que los correos se conecten al exterior cuando los abres. Los remitentes usan píxeles, fuentes y CSS para registrar quién abre sus correos.",
     info_block_tracking_links_title: "¿Qué son los enlaces de rastreo?",
     info_block_tracking_links_description:
-      "Los enlaces en correos suelen pasar primero por el servidor del remitente para registrar clics. Esto elimina esas redirecciones para que los enlaces vayan directamente al destino.",
+      "Los correos publicitarios añaden etiquetas ocultas a sus enlaces, como utm_source, fbclid y gclid. Esas etiquetas indican al remitente de qué campaña vienes y confirman que hiciste clic. Aster las elimina de todos los enlaces del mensaje, así que el enlace abre la misma página sin informar de nada.",
     info_two_factor_auth_title: "Autenticación de dos factores",
     info_two_factor_auth_description:
       "Añade una segunda capa de seguridad al iniciar sesión. Tras tu contraseña introduces un código de 6 dígitos desde tu app de autenticación.",

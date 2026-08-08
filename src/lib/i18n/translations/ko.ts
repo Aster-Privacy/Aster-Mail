@@ -3834,7 +3834,7 @@ export const ko = {
       "이메일을 열 때 외부 연결을 차단합니다. 발신자는 픽셀, 폰트, CSS를 사용하여 누가 언제 이메일을 열었는지 기록합니다.",
     info_block_tracking_links_title: "추적 링크란?",
     info_block_tracking_links_description:
-      "이메일의 링크는 클릭을 기록하기 위해 먼저 발신자 서버를 거칩니다. 이 리디렉션을 제거하여 링크가 목적지로 바로 연결됩니다.",
+      "마케팅 이메일은 링크에 utm_source, fbclid, gclid 같은 숨겨진 태그를 붙입니다. 이 태그는 어떤 캠페인에서 왔는지 발신자에게 알려 주고 링크를 클릭했다는 사실도 알립니다. Aster는 메일의 모든 링크에서 이런 태그를 제거하므로 링크는 같은 페이지를 열면서도 아무것도 알리지 않습니다.",
     info_two_factor_auth_title: "이중 인증",
     info_two_factor_auth_description:
       "로그인에 두 번째 보안 레이어를 추가합니다. 비밀번호 입력 후 인증 앱에서 6자리 코드를 입력합니다.",

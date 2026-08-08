@@ -3825,7 +3825,7 @@ export const nl = {
       "Voorkomt dat e-mails bij het openen naar huis bellen. Afzenders gebruiken trackingpixels, lettertypen en CSS om bij te houden wie hun e-mails wanneer opende.",
     info_block_tracking_links_title: "Wat zijn trackinglinks?",
     info_block_tracking_links_description:
-      "Links in e-mails gaan vaak eerst via de server van de afzender zodat klikken worden bijgehouden. Dit verwijdert die omleidingen zodat links rechtstreeks naar het doel gaan.",
+      "Marketingmails voegen verborgen labels toe aan hun links, zoals utm_source, fbclid en gclid. Die labels vertellen de afzender uit welke campagne je komt en bevestigen dat je hebt geklikt. Aster haalt ze uit elke link in een bericht, zodat de link dezelfde pagina opent zonder iets terug te melden.",
     info_two_factor_auth_title: "Tweefactorauthenticatie",
     info_two_factor_auth_description:
       "Voegt een tweede beveiligingslaag toe bij het inloggen. Na uw wachtwoord voert u een 6-cijferige code in vanuit uw authenticator-app.",

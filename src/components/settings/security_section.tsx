@@ -327,8 +327,9 @@ export function SecuritySection({
 
             <div className="flex items-center justify-between py-4">
               <div className="flex-1 pr-4">
-                <p className="text-sm font-medium text-txt-primary">
+                <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                   {t("settings.block_tracking_links")}
+                  <InfoPopover description={t("settings.info_block_tracking_links_description")} title={t("settings.info_block_tracking_links_title")} />
                 </p>
                 <p className="text-sm mt-0.5 text-txt-muted">
                   {t("settings.block_tracking_links_description")}

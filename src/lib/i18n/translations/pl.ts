@@ -3884,7 +3884,7 @@ export const pl = {
       "Zapobiega wysyłaniu danych z e-maili przy ich otwieraniu. Nadawcy używają pikseli, czcionek i CSS, by rejestrować kto i kiedy otworzył ich e-maile.",
     info_block_tracking_links_title: "Czym są linki śledzące?",
     info_block_tracking_links_description:
-      "Linki w e-mailach często najpierw przechodzą przez serwer nadawcy, by rejestrować kliknięcia. To usuwa te przekierowania, by linki prowadziły prosto do celu.",
+      "Wiadomości marketingowe dodają do swoich linków ukryte znaczniki, takie jak utm_source, fbclid i gclid. Mówią one nadawcy, z jakiej kampanii przychodzisz, i potwierdzają, że kliknięto link. Aster usuwa je z każdego linku w wiadomości, więc link nadal otwiera tę samą stronę, ale niczego nie zgłasza.",
     info_two_factor_auth_title: "Uwierzytelnianie dwuskładnikowe",
     info_two_factor_auth_description:
       "Dodaje drugą warstwę zabezpieczeń przy logowaniu. Po haśle wprowadzasz 6-cyfrowy kod z aplikacji uwierzytelniającej.",

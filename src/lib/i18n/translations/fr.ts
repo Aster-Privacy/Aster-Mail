@@ -3907,7 +3907,7 @@ export const fr = {
       "Empêche les e-mails de se connecter à l'extérieur quand vous les ouvrez. Les expéditeurs utilisent des pixels, polices et CSS pour savoir qui a ouvert leurs e-mails.",
     info_block_tracking_links_title: "Que sont les liens de suivi ?",
     info_block_tracking_links_description:
-      "Les liens dans les e-mails passent souvent d'abord par le serveur de l'expéditeur pour enregistrer les clics. Cela supprime ces redirections pour aller directement à la destination.",
+      "Les e-mails publicitaires ajoutent des étiquettes cachées à leurs liens, comme utm_source, fbclid et gclid. Elles indiquent à l'expéditeur de quelle campagne vous venez et confirment que vous avez cliqué. Aster les retire de chaque lien du message, si bien que le lien ouvre toujours la même page sans rien signaler.",
     info_two_factor_auth_title: "Authentification à deux facteurs",
     info_two_factor_auth_description:
       "Ajoute une deuxième couche de sécurité à la connexion. Après votre mot de passe, vous saisissez un code à 6 chiffres depuis votre application d'authentification.",
