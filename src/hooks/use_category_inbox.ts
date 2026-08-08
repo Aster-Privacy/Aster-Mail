@@ -107,6 +107,65 @@ function build_page_cache_key(
   return `${category}:${target_page}:${variant}:${unread_bits}:${ids.join(",")}`;
 }
 
+const PAGE_CACHE_LIMIT = 24;
+
+function cache_key_ids(key: string): string[] {
+  return key.split(":").slice(4).join(":").split(",");
+}
+
+function evict_cache_entries_touching(
+  cache: Map<string, InboxEmail[]>,
+  ids: Set<string>,
+): void {
+  for (const key of cache.keys()) {
+    if (cache_key_ids(key).some((id) => ids.has(id))) cache.delete(key);
+  }
+}
+
+function touch_cache_entry(
+  cache: Map<string, InboxEmail[]>,
+  key: string,
+  value: InboxEmail[],
+): void {
+  cache.delete(key);
+  cache.set(key, value);
+
+  if (cache.size > PAGE_CACHE_LIMIT) {
+    const oldest = cache.keys().next().value;
+
+    if (oldest) cache.delete(oldest);
+  }
+}
+
+function is_awake(email: InboxEmail): boolean {
+  if (!email.snoozed_until) return true;
+
+  const wake_ms = new Date(email.snoozed_until).getTime();
+
+  return Number.isNaN(wake_ms) || wake_ms <= Date.now();
+}
+
+function belongs_in_inbox(email: InboxEmail): boolean {
+  return (
+    email.item_type === "received" &&
+    !email.is_trashed &&
+    !email.is_archived &&
+    !email.is_spam &&
+    (email.labels?.length ?? 0) === 0 &&
+    (email.folders?.length ?? 0) === 0 &&
+    is_awake(email)
+  );
+}
+
+function build_load_failed_state(prev: EmailListState): EmailListState {
+  return {
+    ...prev,
+    is_loading: false,
+    has_initial_load: true,
+    has_load_error: prev.emails.length === 0,
+  };
+}
+
 function build_list_state(
   prev: EmailListState,
   emails: InboxEmail[],
@@ -173,6 +232,9 @@ export function use_category_inbox(
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
   const prev_category_ref = useRef(active_category);
+  const committed_category_ref = useRef(active_category);
+
+  committed_category_ref.current = active_category;
 
   const page_variant = useMemo(
     () =>
@@ -190,14 +252,7 @@ export function use_category_inbox(
         rep_id && rep_id !== detail.id ? [detail.id, rep_id] : [detail.id],
       );
 
-      for (const key of page_cache.current.keys()) {
-        const ids_part = key.split(":").slice(4).join(":");
-        const key_ids = ids_part.split(",");
-
-        if (key_ids.some((id) => affected_ids.has(id))) {
-          page_cache.current.delete(key);
-        }
-      }
+      evict_cache_entries_touching(page_cache.current, affected_ids);
 
       const left_inbox =
         detail.is_trashed === true ||
@@ -243,13 +298,7 @@ export function use_category_inbox(
       for (const id of detail.ids) mark_preload_stale(id);
       remove_ids(detail.ids);
 
-      for (const key of page_cache.current.keys()) {
-        const ids_part = key.split(":").slice(4).join(":");
-
-        if (ids_part.split(",").some((id) => id_set.has(id))) {
-          page_cache.current.delete(key);
-        }
-      }
+      evict_cache_entries_touching(page_cache.current, id_set);
 
       set_state((prev) => {
         const emails = prev.emails.filter((e) => !id_set.has(e.id));
@@ -298,6 +347,8 @@ export function use_category_inbox(
 
   if (prev_category_ref.current !== active_category) {
     prev_category_ref.current = active_category;
+    abort_ref.current?.abort();
+    abort_ref.current = null;
 
     const switch_ids = get_page_ids(active_category, page, page_size);
     const switch_cached =
@@ -429,6 +480,7 @@ export function use_category_inbox(
         return true;
       };
 
+      const fetch_category = active_category;
       const ids = get_page_ids(active_category, target_page, limit);
       const total = get_category_total(active_category);
       const has_more = (target_page + 1) * limit < total;
@@ -436,9 +488,6 @@ export function use_category_inbox(
       abort_ref.current?.abort();
 
       if (ids.length === 0) {
-        // Only show the empty state once the index is fully built and no build
-        // is in progress; keep the skeleton while building so we never flash
-        // "No <tab>" before content loads.
         const built = is_index_settled();
 
         abort_ref.current = null;
@@ -463,8 +512,7 @@ export function use_category_inbox(
 
       if (cached) {
         abort_ref.current = null;
-        page_cache.current.delete(cache_key);
-        page_cache.current.set(cache_key, cached);
+        touch_cache_entry(page_cache.current, cache_key, cached);
         set_state((prev) => build_list_state(prev, cached, total, has_more));
 
         return;
@@ -486,20 +534,12 @@ export function use_category_inbox(
         );
 
         if (controller.signal.aborted) return;
+        if (committed_category_ref.current !== fetch_category) return;
 
         if (!request_ok) {
-          // The row fetch itself failed (network / edge / transient). Never
-          // prune the index on a failed request, and never flash an empty
-          // inbox that contradicts a positive count: retry with backoff, and
-          // only resolve to an empty state once retries are exhausted.
           if (schedule_retry()) return;
 
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            has_initial_load: true,
-            has_load_error: prev.emails.length === 0,
-          }));
+          set_state(build_load_failed_state);
 
           return;
         }
@@ -524,20 +564,6 @@ export function use_category_inbox(
         reconcile_server_read(fetched);
         reconcile_unread_thread_siblings(fetched);
 
-        const belongs_in_inbox = (email: InboxEmail) =>
-          email.item_type === "received" &&
-          !email.is_trashed &&
-          !email.is_archived &&
-          !email.is_spam &&
-          (email.labels?.length ?? 0) === 0 &&
-          (email.folders?.length ?? 0) === 0 &&
-          (() => {
-            if (!email.snoozed_until) return true;
-            const wake_ms = new Date(email.snoozed_until).getTime();
-
-            return Number.isNaN(wake_ms) || wake_ms <= Date.now();
-          })();
-
         const stale_fetched = fetched
           .filter((email) => !belongs_in_inbox(email))
           .map((email) => email.id);
@@ -561,12 +587,7 @@ export function use_category_inbox(
             ? group_emails_by_thread(received_only)
             : received_only;
 
-        page_cache.current.set(cache_key, grouped);
-        if (page_cache.current.size > 24) {
-          const oldest = page_cache.current.keys().next().value;
-
-          if (oldest) page_cache.current.delete(oldest);
-        }
+        touch_cache_entry(page_cache.current, cache_key, grouped);
 
         const pruned =
           missing_ids.length > 0 ||
@@ -582,14 +603,10 @@ export function use_category_inbox(
         );
       } catch {
         if (controller.signal.aborted) return;
+        if (committed_category_ref.current !== fetch_category) return;
         if (schedule_retry()) return;
 
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          has_initial_load: true,
-          has_load_error: prev.emails.length === 0,
-        }));
+        set_state(build_load_failed_state);
       } finally {
         fetch_in_flight_ref.current = false;
       }
@@ -813,10 +830,6 @@ export function use_category_inbox(
             }
           }
 
-          // A thread larger than one message page could not be fully enumerated
-          // here, so some siblings were never acted on server-side. Reconcile
-          // the whole index against the server inbox instead of trusting the
-          // optimistic thread removal.
           if (total > messages.length) {
             request_full_rebuild();
 
