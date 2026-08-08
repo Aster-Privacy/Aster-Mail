@@ -20,13 +20,9 @@
 //
 import type { StepUpHardwareKeyAssertion } from "./webauthn";
 
-import { get_user_salt } from "./auth";
+import { api_client } from "./client";
 
-import {
-  hash_email,
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
+import { derive_password_hash, base64_to_array } from "@/services/crypto/key_manager";
 
 export interface StepUpCredentials {
   password_hash: string;
@@ -34,19 +30,37 @@ export interface StepUpCredentials {
   hardware_key_assertion?: StepUpHardwareKeyAssertion;
 }
 
-export async function derive_step_up_credentials(
-  email: string,
-  password: string,
-  totp_code?: string,
-): Promise<StepUpCredentials> {
-  const user_hash = await hash_email(email);
-  const salt_response = await get_user_salt({ user_hash });
+export interface StepUpRequirements {
+  salt: Uint8Array;
+  totp_required: boolean;
+}
 
-  if (salt_response.error || !salt_response.data) {
+interface AccountSaltResponse {
+  salt: string;
+  totp_required: boolean;
+}
+
+export async function fetch_step_up_requirements(): Promise<StepUpRequirements> {
+  const salt_response = await api_client.get<AccountSaltResponse>(
+    "/crypto/v1/encryption/salt",
+    { skip_cache: true },
+  );
+
+  if (salt_response.error || !salt_response.data?.salt) {
     throw new Error(salt_response.error || "Could not load account data");
   }
 
-  const salt = base64_to_array(salt_response.data.salt);
+  return {
+    salt: base64_to_array(salt_response.data.salt),
+    totp_required: salt_response.data.totp_required === true,
+  };
+}
+
+export async function derive_step_up_credentials(
+  password: string,
+  totp_code?: string,
+): Promise<StepUpCredentials> {
+  const { salt } = await fetch_step_up_requirements();
   const { hash: password_hash } = await derive_password_hash(password, salt);
 
   const trimmed_code = totp_code?.trim();

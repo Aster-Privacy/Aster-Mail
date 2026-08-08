@@ -34,11 +34,9 @@ import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { cn } from "@/lib/utils";
-import { get_user_salt } from "@/services/api/auth";
-import { get_totp_status } from "@/services/api/totp";
+import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
-import { hash_email, derive_password_hash } from "@/services/crypto/key_manager_pgp";
-import { base64_to_array } from "@/services/crypto/key_manager";
+import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
 import {
   get_app_lock_config,
   has_duress_pin,
@@ -132,7 +130,6 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
   on_success: () => void;
 }) {
   const { t } = use_i18n();
-  const auth = use_auth_safe();
   const config = get_app_lock_config(account_id);
   const pin_type = config?.pin_type ?? "numeric";
   const digits = pin_type === "numeric" ? (config?.digits ?? 4) : 0;
@@ -180,34 +177,50 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
   useEffect(() => {
     if (!is_open) { reset(); return; }
     set_totp_loading(true);
-    get_totp_status()
-      .then((res) => {
-        if (res.data) set_totp_required(res.data.enabled);
+    fetch_step_up_requirements()
+      .then((requirements) => set_totp_required(requirements.totp_required))
+      .catch(() => {})
+      .finally(() => {
         set_totp_loading(false);
         setTimeout(() => password_ref.current?.focus(), 150);
-      })
-      .catch(() => set_totp_loading(false));
+      });
   }, [is_open, reset]);
 
   const handle_verify_credentials = useCallback(async () => {
     if (verifying_creds || !password) return;
     if (totp_required && totp_code.length !== 6) {
-      set_creds_error(t("settings.duress_pin_invalid_credentials"));
+      set_creds_error(t("settings.please_enter_2fa_code"));
       return;
     }
     set_verifying_creds(true);
     set_creds_error(null);
+
+    let requirements: Awaited<ReturnType<typeof fetch_step_up_requirements>>;
+
     try {
-      const email = auth?.user?.email;
-      if (!email) throw new Error("no_email");
-      const user_hash = await hash_email(email);
-      const salt_res = await get_user_salt({ user_hash });
-      if (salt_res.error || !salt_res.data) throw new Error("salt");
-      const salt = base64_to_array(salt_res.data.salt);
-      const { hash: password_hash } = await derive_password_hash(password, salt);
+      requirements = await fetch_step_up_requirements();
+    } catch {
+      set_creds_error(t("settings.failed_retrieve_auth"));
+      set_verifying_creds(false);
+      return;
+    }
+
+    set_totp_required(requirements.totp_required);
+
+    if (requirements.totp_required && totp_code.length !== 6) {
+      set_creds_error(t("settings.please_enter_2fa_code"));
+      set_verifying_creds(false);
+      return;
+    }
+
+    try {
+      const { hash: password_hash } = await derive_password_hash(
+        password,
+        requirements.salt,
+      );
       const res = await verify_vanguard_credentials({
         password_hash,
-        totp_code: totp_required ? totp_code : undefined,
+        totp_code: requirements.totp_required ? totp_code : undefined,
       });
       if (res.error || !res.data?.valid) {
         set_creds_error(t("settings.duress_pin_invalid_credentials"));
@@ -216,10 +229,10 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
       }
       set_step(pin_type === "numeric" ? "set_pin" : "set_text");
     } catch {
-      set_creds_error(t("settings.duress_pin_invalid_credentials"));
+      set_creds_error(t("settings.failed_retrieve_auth"));
     }
     set_verifying_creds(false);
-  }, [verifying_creds, password, totp_required, totp_code, auth, account_id, t, pin_type]);
+  }, [verifying_creds, password, totp_required, totp_code, t, pin_type]);
 
   const handle_first_digit = useCallback((d: string) => {
     const next = first_pin + d;

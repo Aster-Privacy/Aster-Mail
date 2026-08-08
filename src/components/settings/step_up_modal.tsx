@@ -34,13 +34,14 @@ import {
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { get_totp_status } from "@/services/api/totp";
-import { derive_step_up_credentials } from "@/services/api/step_up";
+import {
+  derive_step_up_credentials,
+  fetch_step_up_requirements,
+} from "@/services/api/step_up";
 import {
   list_hardware_keys,
   perform_step_up_webauthn_assertion,
 } from "@/services/api/webauthn";
-import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 
@@ -64,7 +65,6 @@ export function StepUpModal({
   destructive = false,
 }: StepUpModalProps) {
   const { t } = use_i18n();
-  const { user } = use_auth();
   const [password, set_password] = useState("");
   const [code, set_code] = useState("");
   const [totp_required, set_totp_required] = useState(false);
@@ -85,9 +85,9 @@ export function StepUpModal({
     set_has_hardware_keys(false);
     setTimeout(() => input_ref.current?.focus(), 100);
 
-    get_totp_status()
-      .then((res) => {
-        if (res.data?.enabled) set_totp_required(true);
+    fetch_step_up_requirements()
+      .then((requirements) => {
+        set_totp_required(requirements.totp_required);
       })
       .catch(() => {});
 
@@ -104,7 +104,7 @@ export function StepUpModal({
     !!password && (!totp_required || code.length === 6) && !is_loading;
 
   const handle_confirm = async () => {
-    if (!password || !user?.email || submitting_ref.current) return;
+    if (!password || submitting_ref.current) return;
     if (totp_required && code.length !== 6) return;
 
     submitting_ref.current = true;
@@ -113,7 +113,6 @@ export function StepUpModal({
 
     try {
       const credentials = await derive_step_up_credentials(
-        user.email,
         password,
         totp_required ? code : undefined,
       );

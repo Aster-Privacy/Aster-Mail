@@ -20,46 +20,48 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { derive_step_up_credentials } from "./step_up";
-import { get_user_salt } from "./auth";
+import {
+  derive_step_up_credentials,
+  fetch_step_up_requirements,
+} from "./step_up";
+import { api_client } from "./client";
 
 import {
-  hash_email,
   derive_password_hash,
   base64_to_array,
 } from "@/services/crypto/key_manager";
 
-vi.mock("./auth", () => ({
-  get_user_salt: vi.fn(),
+vi.mock("./client", () => ({
+  api_client: { get: vi.fn() },
 }));
 
 vi.mock("@/services/crypto/key_manager", () => ({
-  hash_email: vi.fn(),
   derive_password_hash: vi.fn(),
   base64_to_array: vi.fn(),
 }));
 
 describe("derive_step_up_credentials", () => {
   beforeEach(() => {
-    vi.mocked(hash_email).mockReset().mockResolvedValue("USER_HASH");
     vi.mocked(base64_to_array)
       .mockReset()
       .mockReturnValue(new Uint8Array([1, 2, 3]));
     vi.mocked(derive_password_hash)
       .mockReset()
       .mockResolvedValue({ hash: "PWHASH", salt: "SALT" } as never);
-    vi.mocked(get_user_salt)
+    vi.mocked(api_client.get)
       .mockReset()
-      .mockResolvedValue({ data: { salt: "c2FsdA==" } } as never);
+      .mockResolvedValue({
+        data: { salt: "c2FsdA==", totp_required: false },
+      } as never);
   });
 
   it("derives the password hash from the account salt without a code", async () => {
-    const creds = await derive_step_up_credentials("me@aster.cx", "hunter2");
+    const creds = await derive_step_up_credentials("hunter2");
 
-    expect(vi.mocked(hash_email)).toHaveBeenCalledWith("me@aster.cx");
-    expect(vi.mocked(get_user_salt)).toHaveBeenCalledWith({
-      user_hash: "USER_HASH",
-    });
+    expect(vi.mocked(api_client.get)).toHaveBeenCalledWith(
+      "/crypto/v1/encryption/salt",
+      { skip_cache: true },
+    );
     expect(vi.mocked(derive_password_hash)).toHaveBeenCalledWith(
       "hunter2",
       new Uint8Array([1, 2, 3]),
@@ -68,33 +70,42 @@ describe("derive_step_up_credentials", () => {
   });
 
   it("passes a trimmed totp code through", async () => {
-    const creds = await derive_step_up_credentials(
-      "me@aster.cx",
-      "hunter2",
-      " 123456 ",
-    );
+    const creds = await derive_step_up_credentials("hunter2", " 123456 ");
 
     expect(creds).toEqual({ password_hash: "PWHASH", totp_code: "123456" });
   });
 
   it("omits an empty totp code", async () => {
-    const creds = await derive_step_up_credentials(
-      "me@aster.cx",
-      "hunter2",
-      "",
-    );
+    const creds = await derive_step_up_credentials("hunter2", "");
 
     expect(creds.totp_code).toBeUndefined();
   });
 
   it("throws when the salt lookup fails", async () => {
-    vi.mocked(get_user_salt).mockResolvedValue({
-      error: "boom",
+    vi.mocked(api_client.get).mockResolvedValue({ error: "boom" } as never);
+
+    await expect(derive_step_up_credentials("hunter2")).rejects.toThrow("boom");
+    expect(vi.mocked(derive_password_hash)).not.toHaveBeenCalled();
+  });
+
+  it("reports the two factor requirement from the account salt", async () => {
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { salt: "c2FsdA==", totp_required: true },
     } as never);
 
-    await expect(
-      derive_step_up_credentials("me@aster.cx", "hunter2"),
-    ).rejects.toThrow("boom");
-    expect(vi.mocked(derive_password_hash)).not.toHaveBeenCalled();
+    const requirements = await fetch_step_up_requirements();
+
+    expect(requirements.totp_required).toBe(true);
+    expect(requirements.salt).toEqual(new Uint8Array([1, 2, 3]));
+  });
+
+  it("treats a missing two factor flag as not required", async () => {
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { salt: "c2FsdA==" },
+    } as never);
+
+    const requirements = await fetch_step_up_requirements();
+
+    expect(requirements.totp_required).toBe(false);
   });
 });

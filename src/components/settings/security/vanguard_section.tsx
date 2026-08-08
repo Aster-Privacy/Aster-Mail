@@ -58,17 +58,11 @@ import {
   get_vanguard_status,
 } from "@/services/api/vanguard";
 import { enable_lockdown, disable_lockdown } from "@/services/api/lockdown";
-import { get_user_salt } from "@/services/api/auth";
-import {
-  hash_email,
-  derive_password_hash,
-} from "@/services/crypto/key_manager_pgp";
-import { base64_to_array } from "@/services/crypto/key_manager";
-import { get_totp_status } from "@/services/api/totp";
+import { fetch_step_up_requirements } from "@/services/api/step_up";
+import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
 
 function LockdownSection({ account_id }: { account_id: string }) {
   const { t } = use_i18n();
-  const auth = use_auth_safe();
 
   const [enabled, set_enabled] = useState(false);
   const [show_disable_modal, set_show_disable_modal] = useState(false);
@@ -98,10 +92,10 @@ function LockdownSection({ account_id }: { account_id: string }) {
       });
     } else {
       set_totp_loading(true);
-      get_totp_status().then((res) => {
-        set_totp_required(res.data?.enabled ?? false);
-        set_totp_loading(false);
-      });
+      fetch_step_up_requirements()
+        .then((requirements) => set_totp_required(requirements.totp_required))
+        .catch(() => {})
+        .finally(() => set_totp_loading(false));
       set_show_disable_modal(true);
     }
   };
@@ -109,22 +103,35 @@ function LockdownSection({ account_id }: { account_id: string }) {
   const confirm_disable = async () => {
     set_disabling(true);
     set_creds_error(null);
+
+    let requirements: Awaited<ReturnType<typeof fetch_step_up_requirements>>;
+
     try {
-      const email = auth?.user?.email;
+      requirements = await fetch_step_up_requirements();
+    } catch {
+      set_creds_error(t("settings.failed_retrieve_auth"));
+      set_disabling(false);
 
-      if (!email) throw new Error("no_email");
-      const user_hash = await hash_email(email);
-      const salt_res = await get_user_salt({ user_hash });
+      return;
+    }
 
-      if (salt_res.error || !salt_res.data) throw new Error("salt");
-      const salt = base64_to_array(salt_res.data.salt);
+    set_totp_required(requirements.totp_required);
+
+    if (requirements.totp_required && totp_code.trim().length !== 6) {
+      set_creds_error(t("settings.please_enter_2fa_code"));
+      set_disabling(false);
+
+      return;
+    }
+
+    try {
       const { hash: password_hash } = await derive_password_hash(
         password,
-        salt,
+        requirements.salt,
       );
       const res = await disable_lockdown({
         password_hash,
-        totp_code: totp_required ? totp_code : undefined,
+        totp_code: requirements.totp_required ? totp_code : undefined,
       });
 
       if (res.error) {

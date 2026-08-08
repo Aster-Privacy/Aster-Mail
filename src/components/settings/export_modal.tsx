@@ -48,12 +48,13 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_auth } from "@/contexts/auth_context";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { clamp_password } from "@/services/sanitize";
-import { get_totp_status } from "@/services/api/totp";
-import { derive_step_up_credentials } from "@/services/api/step_up";
+import {
+  derive_step_up_credentials,
+  fetch_step_up_requirements,
+} from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
 import {
   verify_passphrase_for_export,
@@ -101,7 +102,6 @@ function format_bytes(n: number): string {
 
 export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const { t } = use_i18n();
-  const { user } = use_auth();
 
   const [step, set_step] = useState<ExportStep>("reauth");
   const [passphrase, set_passphrase] = useState("");
@@ -170,9 +170,9 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
 
   useEffect(() => {
     if (step !== "verify") return;
-    get_totp_status()
-      .then((res) => {
-        if (res.data?.enabled) set_verify_totp_required(true);
+    fetch_step_up_requirements()
+      .then((requirements) => {
+        set_verify_totp_required(requirements.totp_required);
       })
       .catch(() => {});
     setTimeout(() => verify_input_ref.current?.focus(), 100);
@@ -200,7 +200,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     !verify_loading;
 
   const handle_verify_submit = useCallback(async () => {
-    if (!verify_can_submit || !user?.email || verify_submitting_ref.current) return;
+    if (!verify_can_submit || verify_submitting_ref.current) return;
 
     verify_submitting_ref.current = true;
     set_verify_loading(true);
@@ -208,7 +208,6 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
 
     try {
       const credentials = await derive_step_up_credentials(
-        user.email,
         verify_password,
         verify_totp_required ? verify_code : undefined,
       );
@@ -241,7 +240,6 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     }
   }, [
     t,
-    user,
     verify_can_submit,
     verify_code,
     verify_password,
