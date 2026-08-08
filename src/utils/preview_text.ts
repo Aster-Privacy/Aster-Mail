@@ -30,7 +30,8 @@ export const PREHEADER_PARSE_CAP = 8192;
 
 const PREHEADER_MIN_CHARS = 4;
 
-const FILLER_CHARS = /[\u200b\u200c\u200d\u2060\ufeff\u034f\u00ad\u00a0]/g;
+const FILLER_CHARS =
+  /[\u200b\u200c\u200d\u2060\u2066-\u2069\ufeff\u034f\u00ad\u00a0\u180e\u3164\ufff9-\ufffc]/g;
 
 const HIDDEN_STYLE_PATTERNS = [
   /display\s*:\s*none/i,
@@ -141,7 +142,12 @@ export function truncate_with_ellipsis(value: string, cap: number): string {
   if (cap <= 0) return "";
   if (normalized.length <= cap) return normalized;
 
-  const clipped = normalized.slice(0, cap);
+  const raw_clipped = normalized.slice(0, cap);
+  const last_code = raw_clipped.charCodeAt(raw_clipped.length - 1);
+  const clipped =
+    last_code >= 0xd800 && last_code <= 0xdbff
+      ? raw_clipped.slice(0, -1)
+      : raw_clipped;
   const last_space = clipped.lastIndexOf(" ");
   const cut = last_space > cap * 0.6 ? clipped.slice(0, last_space) : clipped;
 

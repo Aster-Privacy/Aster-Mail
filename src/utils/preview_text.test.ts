@@ -93,6 +93,24 @@ describe("strip_preview_filler", () => {
       ),
     ).toBe("Get 30% off today");
   });
+
+  it("removes object replacement characters left by inline images", () => {
+    expect(strip_preview_filler("￼￼ Your Apple Account")).toBe(
+      "Your Apple Account",
+    );
+  });
+
+  it("removes interlinear annotation markers", () => {
+    expect(strip_preview_filler("a￹b￺c￻d")).toBe("abcd");
+  });
+});
+
+describe("truncate_with_ellipsis", () => {
+  it("does not split an astral character at the cap", () => {
+    const value = `${"a".repeat(9)}\u{1f600}tail`;
+
+    expect(truncate_with_ellipsis(value, 10)).toBe(`${"a".repeat(9)}${ELLIPSIS}`);
+  });
 });
 
 describe("extract_preheader_text", () => {
