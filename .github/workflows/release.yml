@@ -61,7 +61,8 @@ jobs:
             libxdo-dev \
             libssl-dev \
             build-essential \
-            file
+            file \
+            xdg-utils
 
       - name: Import Apple certificate
         if: matrix.leg == 'mac'

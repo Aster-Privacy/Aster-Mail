@@ -1,0 +1,113 @@
+name: Linux ARM AppImage
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach the ARM AppImage to (leave blank to only upload a build artifact)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    timeout-minutes: 75
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          toolchain: stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            build-essential \
+            file \
+            xdg-utils \
+            libfuse2 \
+            desktop-file-utils
+
+      - name: Build @aster/ui
+        run: |
+          git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
+          cd ../aster-ui
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund --force
+
+      - name: Build ARM AppImage
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          NO_STRIP: 'true'
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: npm run tauri build -- --bundles appimage --verbose
+
+      - name: Collect canonical names
+        id: collect
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=$(mktemp -d)
+          SRC=$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*aarch64.AppImage' | head -1)
+          if [ -z "$SRC" ]; then
+            echo "::error::no aarch64 AppImage produced"
+            exit 1
+          fi
+          cp "$SRC" "$OUT/Aster-Mail-aarch64.AppImage"
+          if [ -f "${SRC}.sig" ]; then
+            cp "${SRC}.sig" "$OUT/Aster-Mail-aarch64.AppImage.sig"
+          else
+            echo "::warning::AppImage signature absent; the updater cannot use this build"
+          fi
+          echo "outdir=$OUT" >> "$GITHUB_OUTPUT"
+          ls -la "$OUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: aster-mail-linux-arm64-appimage
+          path: ${{ steps.collect.outputs.outdir }}
+          if-no-files-found: error
+
+      - name: Attach to release
+        if: inputs.tag != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OUTDIR: ${{ steps.collect.outputs.outdir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release upload "${{ inputs.tag }}" \
+            "$OUTDIR/Aster-Mail-aarch64.AppImage" \
+            --repo "$GITHUB_REPOSITORY" --clobber
+          if [ -f "$OUTDIR/Aster-Mail-aarch64.AppImage.sig" ]; then
+            gh release upload "${{ inputs.tag }}" \
+              "$OUTDIR/Aster-Mail-aarch64.AppImage.sig" \
+              --repo "$GITHUB_REPOSITORY" --clobber
+          fi
