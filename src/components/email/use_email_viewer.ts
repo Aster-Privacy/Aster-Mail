@@ -78,6 +78,7 @@ import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelop
 import { use_email_viewer_actions } from "@/components/email/email_viewer_actions";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
+import { viewer_still_showing } from "@/components/email/thread_reply_target";
 
 export type {
   EmailRecipient,
@@ -854,6 +855,29 @@ export function use_email_viewer({
 
   const last_thread_fetch_ref = useRef<number>(0);
   const thread_fetch_in_flight_ref = useRef<boolean>(false);
+  const open_email_id_ref = useRef<string | null>(email_id);
+  const open_thread_token_ref = useRef<string | null>(null);
+
+  useEffect(() => {
+    open_email_id_ref.current = email_id;
+  }, [email_id]);
+
+  useEffect(() => {
+    open_thread_token_ref.current =
+      email && email.id === email_id ? (email.thread_token ?? null) : null;
+  }, [email, email_id]);
+
+  const still_showing = useCallback(
+    (thread_token: string, original_email_id?: string | null): boolean =>
+      viewer_still_showing(
+        {
+          email_id: open_email_id_ref.current,
+          thread_token: open_thread_token_ref.current,
+        },
+        { thread_token, original_email_id },
+      ),
+    [],
+  );
 
   useEffect(() => {
     const thread_token = email?.thread_token;
@@ -974,6 +998,10 @@ export function use_email_viewer({
       for (const delay of delays_ms) {
         await new Promise((resolve) => setTimeout(resolve, delay));
 
+        if (!still_showing(detail.thread_token, detail.original_email_id)) {
+          return;
+        }
+
         if (thread_fetch_in_flight_ref.current) continue;
 
         thread_fetch_in_flight_ref.current = true;
@@ -993,6 +1021,10 @@ export function use_email_viewer({
         last_thread_fetch_ref.current = Date.now();
 
         if (thread_result.messages.length > prev_server_count) break;
+      }
+
+      if (!still_showing(detail.thread_token, detail.original_email_id)) {
+        return;
       }
 
       if (thread_result.messages.length > 0) {
@@ -1034,6 +1066,7 @@ export function use_email_viewer({
     mail_item?.is_trashed,
     mail_item?.is_spam,
     preferences.conversation_grouping,
+    still_showing,
   ]);
 
   useEffect(() => {

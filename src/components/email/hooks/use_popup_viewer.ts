@@ -80,6 +80,7 @@ import {
   type EmailPopupViewerProps,
 } from "@/components/email/hooks/popup_viewer_types";
 import { use_popup_viewer_actions } from "@/components/email/hooks/popup_viewer_actions";
+import { viewer_still_showing } from "@/components/email/thread_reply_target";
 
 export type {
   EmailRecipient,
@@ -146,6 +147,28 @@ export function use_popup_viewer({
   const timestamp_date = useRef<Date | null>(null);
   const fetch_seq_ref = useRef(0);
   const mark_as_read_timeout = useRef<number | null>(null);
+  const open_email_id_ref = useRef<string | null>(email_id);
+  const open_thread_token_ref = useRef<string | null>(null);
+
+  useEffect(() => {
+    open_email_id_ref.current = email_id;
+  }, [email_id]);
+
+  useEffect(() => {
+    open_thread_token_ref.current = current_thread_token ?? null;
+  }, [current_thread_token]);
+
+  const still_showing = useCallback(
+    (thread_token: string, original_email_id?: string | null): boolean =>
+      viewer_still_showing(
+        {
+          email_id: open_email_id_ref.current,
+          thread_token: open_thread_token_ref.current,
+        },
+        { thread_token, original_email_id },
+      ),
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -750,12 +773,21 @@ export function use_popup_viewer({
 
       for (const delay of delays_ms) {
         await new Promise((resolve) => setTimeout(resolve, delay));
+
+        if (!still_showing(detail.thread_token, detail.original_email_id)) {
+          return;
+        }
+
         thread_result = await fetch_and_decrypt_thread_messages(
           detail.thread_token,
           user?.email,
         );
 
         if (thread_result.messages.length > prev_server_count) break;
+      }
+
+      if (!still_showing(detail.thread_token, detail.original_email_id)) {
+        return;
       }
 
       if (thread_result.messages.length > 0) {
@@ -798,6 +830,7 @@ export function use_popup_viewer({
     thread_messages,
     user?.email,
     preferences.conversation_grouping,
+    still_showing,
   ]);
 
   useEffect(() => {
