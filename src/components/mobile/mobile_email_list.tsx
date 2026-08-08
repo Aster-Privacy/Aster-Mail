@@ -183,6 +183,10 @@ function get_empty_text(
 
 const list_scroll_positions = new Map<string, number>();
 
+const VIEWPORT_FILL_SLACK_PX = 24;
+
+const VIEWPORT_FILL_MAX_ATTEMPTS = 5;
+
 export const MobileEmailList = memo(function MobileEmailList({
   emails,
   pinned_emails,
@@ -365,6 +369,47 @@ export const MobileEmailList = memo(function MobileEmailList({
 
     return () => el.removeEventListener("scroll", handle_scroll);
   }, [has_more, is_loading_more, on_load_more]);
+
+  const fill_attempts_ref = useRef(0);
+  const fill_baseline_ref = useRef(-1);
+
+  useEffect(() => {
+    fill_attempts_ref.current = 0;
+    fill_baseline_ref.current = -1;
+  }, [current_view]);
+
+  useEffect(() => {
+    if (!has_more || is_loading || is_loading_more || !has_initial_load) return;
+
+    const el = scroll_ref.current;
+
+    if (!el) return;
+
+    if (emails.length !== fill_baseline_ref.current) {
+      fill_baseline_ref.current = emails.length;
+      fill_attempts_ref.current = 0;
+    }
+
+    if (fill_attempts_ref.current >= VIEWPORT_FILL_MAX_ATTEMPTS) return;
+
+    const frame = requestAnimationFrame(() => {
+      if (el.scrollHeight <= el.clientHeight + VIEWPORT_FILL_SLACK_PX) {
+        fill_attempts_ref.current += 1;
+        on_load_more();
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [
+    has_more,
+    is_loading,
+    is_loading_more,
+    has_initial_load,
+    on_load_more,
+    current_view,
+    emails.length,
+    pinned_emails?.length,
+  ]);
 
   const on_drag_select_ref = useRef(on_drag_select);
 
