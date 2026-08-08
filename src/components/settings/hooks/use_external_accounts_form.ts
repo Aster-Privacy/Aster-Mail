@@ -36,6 +36,9 @@ import {
 } from "@/services/api/external_accounts";
 import { use_external_accounts_test } from "@/components/settings/hooks/use_external_accounts_test";
 
+const IMPLICIT_TLS_PORTS = new Set([993, 995]);
+const STARTTLS_PORTS = new Set([143, 110]);
+
 export function use_external_accounts_form(t: I18nTranslate) {
   const [show_add_form, set_show_add_form] = useState(false);
   const [editing_account, set_editing_account] =
@@ -277,7 +280,13 @@ export function use_external_accounts_form(t: I18nTranslate) {
       } else {
         const parsed = parseInt(value, 10);
         if (!Number.isNaN(parsed)) {
-          set_form_port(Math.max(0, Math.min(65535, parsed)));
+          const clamped = Math.max(0, Math.min(65535, parsed));
+          set_form_port(clamped);
+          if (IMPLICIT_TLS_PORTS.has(clamped)) {
+            set_form_use_tls(true);
+          } else if (STARTTLS_PORTS.has(clamped)) {
+            set_form_use_tls(false);
+          }
         }
       }
       test_hook.clear_test_results();
