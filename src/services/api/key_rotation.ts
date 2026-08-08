@@ -81,6 +81,7 @@ export async function update_vault(
   vault_nonce: string,
   vault_format?: number,
   expected_user_id?: string,
+  preserve_pq_prekeys?: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   const response = await api_client.put<{ success: boolean }>(
     "/crypto/v1/keys/vault",
@@ -89,6 +90,7 @@ export async function update_vault(
       vault_nonce,
       vault_format: vault_format ?? 1,
       expected_user_id,
+      preserve_pq_prekeys: preserve_pq_prekeys ?? false,
     },
   );
 

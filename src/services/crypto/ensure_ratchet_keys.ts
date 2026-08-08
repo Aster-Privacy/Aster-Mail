@@ -113,6 +113,7 @@ async function push_vault_to_server(
     vault_nonce,
     expected_user_id,
     vault_format: vault_format ?? 1,
+    preserve_pq_prekeys: true,
   });
 
   return !response.error;

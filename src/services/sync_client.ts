@@ -232,6 +232,7 @@ class SyncClient {
           this.last_auth_error = false;
           this.reconnect_attempt = 0;
           this.start_heartbeat();
+          void check_and_replenish_prekeys();
           if (is_reconnect) {
             void sync_recent(true);
             window.dispatchEvent(

@@ -610,9 +610,9 @@ export class DoubleRatchet {
         message_key,
         ad,
       );
-    } catch (error) {
+    } catch {
       secure_zero_memory(message_key);
-      throw error;
+      return null;
     }
 
     state.skipped_message_keys.splice(index, 1);

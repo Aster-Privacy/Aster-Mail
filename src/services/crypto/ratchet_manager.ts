@@ -216,6 +216,30 @@ async function run_serialized_for_conversation<T>(
   return current;
 }
 
+interface RatchetIdentity {
+  user_id: string;
+  kem_identity_key: string;
+  signed_prekey: string;
+  signed_prekey_signature: string;
+  pq_kem_public_key?: string | null;
+}
+
+async function fetch_ratchet_identity(
+  username: string,
+  email?: string,
+): Promise<RatchetIdentity | null> {
+  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  const path = `/crypto/v1/ratchet/identity/${encodeURIComponent(username)}${params}`;
+
+  const response = await api_client.get<RatchetIdentity>(path);
+
+  if (response.error || !response.data) {
+    return null;
+  }
+
+  return response.data;
+}
+
 async function fetch_prekey_bundle(
   username: string,
   email?: string,
@@ -406,10 +430,27 @@ async function encrypt_for_ratchet_recipient_unlocked(
       let recipient_changed = false;
 
       if (!sender_changed) {
-        bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
+        const identity = await fetch_ratchet_identity(
+          recipient_username,
+          recipient_email,
+        );
 
-        if (bundle && bootstrap?.recipient_identity_key !== bundle.kem_identity_key) {
-          recipient_changed = true;
+        if (identity) {
+          if (bootstrap?.recipient_identity_key !== identity.kem_identity_key) {
+            recipient_changed = true;
+          }
+        } else {
+          bundle = await fetch_prekey_bundle(
+            recipient_username,
+            recipient_email,
+          );
+
+          if (
+            bundle &&
+            bootstrap?.recipient_identity_key !== bundle.kem_identity_key
+          ) {
+            recipient_changed = true;
+          }
         }
       }
 

@@ -259,6 +259,21 @@ export async function upload_prekeys(
   return !response.error;
 }
 
+async function pq_replenishment_needed(): Promise<boolean> {
+  try {
+    const response = await api_client.get<{
+      pq_prekeys_available: number;
+      needs_pq_replenishment: boolean;
+    }>("/crypto/v1/keys/prekeys/status");
+
+    if (response.error || !response.data) return true;
+
+    return response.data.needs_pq_replenishment === true;
+  } catch {
+    return true;
+  }
+}
+
 export async function generate_and_upload_prekeys(
   force: boolean = false,
 ): Promise<boolean> {
@@ -287,6 +302,10 @@ export async function generate_and_upload_prekeys(
 
   try {
     await drain_pending_rollbacks();
+
+    if (!force && !(await pq_replenishment_needed())) {
+      return false;
+    }
 
     const taken = await load_taken_key_ids();
     const pq = generate_pq_prekeys(PQ_PREKEY_BATCH_SIZE, taken);

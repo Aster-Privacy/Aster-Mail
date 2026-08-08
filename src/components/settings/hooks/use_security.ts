@@ -919,6 +919,7 @@ export function use_security() {
           vault_nonce,
           expected_user_id: user.id,
           vault_format: vault.vault_format ?? 1,
+          preserve_pq_prekeys: true,
         });
 
         if (push_response.error) return;

@@ -119,6 +119,7 @@ async function run_adoption(
     vault_nonce,
     expected_user_id: user_id,
     vault_format: MASTER_KEY_VAULT_FORMAT,
+    preserve_pq_prekeys: true,
   });
 
   if (response.error) return false;
