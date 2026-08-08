@@ -96,6 +96,7 @@ import {
 } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
+import { clear_tags_cache } from "@/hooks/use_tags";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
@@ -134,6 +135,7 @@ async function clear_account_scoped_caches(): Promise<void> {
   clear_mail_stats();
   clear_mail_cache();
   clear_folders_cache();
+  clear_tags_cache();
   clear_preload_cache();
   clear_plan_limits_cache();
   clear_aliases_cache();
