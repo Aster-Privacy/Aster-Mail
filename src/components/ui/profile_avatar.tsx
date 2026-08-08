@@ -25,6 +25,7 @@ import {
   mark_icon_failed,
   mark_icon_ok,
 } from "@/lib/icon_cache";
+import { fetch_priority_attr } from "@/lib/fetch_priority";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import {
@@ -370,7 +371,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         }
         decoding="async"
         draggable={false}
-        fetchPriority={is_local_logo_source ? "high" : "low"}
+        {...fetch_priority_attr(is_local_logo_source ? "high" : "low")}
         referrerPolicy="no-referrer"
         src={actual_src}
         style={
