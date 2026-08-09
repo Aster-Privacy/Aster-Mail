@@ -23,15 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowDownTrayIcon,
-  
-  
-  
-  
-  
   InformationCircleIcon,
-  
-  
-  
 } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
 
@@ -59,7 +51,6 @@ import {
   delete_import_job,
   type ImportJob,
   type ImportSource,
-  
 } from "@/services/api/email_import";
 import {
   list_external_accounts,
@@ -69,7 +60,6 @@ import {
   get_sync_progress,
   purge_external_account_mail,
   type DecryptedExternalAccount,
-  
 } from "@/services/api/external_accounts";
 import { stop_sync_polling } from "@/services/sync_manager";
 import {

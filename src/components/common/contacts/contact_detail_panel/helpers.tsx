@@ -40,13 +40,7 @@ import type {
 } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { } from "@heroicons/react/24/solid";
-import { } from "@aster/ui";
 
-import { } from "@/components/common/contacts/contact_avatar";
-import { } from "@/components/contacts/contact_history_panel";
-import { } from "@/components/toast/simple_toast";
-import { } from "@/lib/strip_image_metadata";
 
 
 export const COLOR_SWATCHES: { key: string; value: string }[] = [

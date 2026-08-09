@@ -23,49 +23,17 @@ import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 
 
 import {
-  
-  
-  
   type MailItem,
 } from "@/services/api/mail";
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
 import {
-  
-  
-  
-  
-  
   type ParsedOperator,
 } from "@/utils/search_operators";
-import { } from "@/contexts/auth_context";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import {
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   type SnapshotMeta,
-  
 } from "@/services/search_index_store";
 import {
-  
-  
   type ChunkSkipPlan,
 } from "@/services/search_chunk_filter";
-import { } from "@/hooks/mail_events";
 
 export interface ActiveFilter {
   id: string;

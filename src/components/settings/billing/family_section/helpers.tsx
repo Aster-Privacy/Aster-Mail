@@ -18,23 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { } from "@/components/settings/billing/shared_mailboxes_tab";
-import { } from "@/components/ui/input";
-import { } from "@/components/ui/slider";
-import { } from "@/components/ui/info_popover";
-import { } from "@/components/ui/spinner";
-import { } from "@/components/ui/profile_avatar";
-import { } from "@/services/api/billing";
-import { } from "../family_seats";
-import { } from "../family_kids_addresses";
-import { } from "@/components/settings/settings_tab_bar";
-import { } from "@/components/settings/stat_ring";
-import { } from "@/components/toast/simple_toast";
-import { } from "@/services/api/aliases";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import type { TranslationKey } from "@/lib/i18n/types";
-import { } from "@/lib/utils";
 
 export type FamilyTab = "overview" | "members" | "kids" | "shared" | "groups" | "activity" | "filters" | "domains" | "security" | "retention";
 

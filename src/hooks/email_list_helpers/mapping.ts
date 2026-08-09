@@ -32,33 +32,23 @@ import {
 import { build_body_preview } from "@/utils/preview_text";
 import {
   classify,
-  
 } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { extract_reply_to } from "@/utils/reply_to";
 import {
-  
-  
   type MailItem,
 } from "@/services/api/mail";
 import {
-  
-  
-  
-  
   normalize_envelope_recipients,
 } from "@/services/crypto/envelope";
 import {
-  
   extract_metadata_from_server,
 } from "@/services/crypto/mail_metadata";
 import {
-  
   type FormatOptions,
 } from "@/utils/date_format";
 import {
-  
   get_cached_profile,
 } from "@/services/api/sender_profiles";
 import { format_timestamp } from "./display";

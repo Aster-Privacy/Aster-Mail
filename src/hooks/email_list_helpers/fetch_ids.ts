@@ -26,15 +26,11 @@ import type {
 
 import {
   list_mail_items,
-  
-  
 } from "@/services/api/mail";
 import {
   decrypt_mail_metadata,
-  
 } from "@/services/crypto/mail_metadata";
 import {
-  
   type FormatOptions,
 } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";

@@ -23,17 +23,8 @@ import type { } from "@/lib/i18n/types";
 
 
 
-import { } from "@/components/settings/aliases/alias_rule_editor_modal";
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
-import { } from "@/components/email/shared/decrypt_envelope";
 import { use_i18n } from "@/lib/i18n/context";
-import { } from "@/components/toast/simple_toast";
-import { } from "@/components/ui/spinner";
-import { } from "@/components/ui/input";
-import { } from "@/components/settings/aliases/feature_lock";
-import { } from "@/hooks/use_folders";
-import { } from "@/hooks/use_tags";
-import { } from "@/components/settings/aliases/info_hint";
 
 import { MAX_DISPLAY_NAME_LENGTH, MAX_NOTE_LENGTH, PanelRow, TextFieldRow } from "./shared";
 export interface AliasDetailsProps {

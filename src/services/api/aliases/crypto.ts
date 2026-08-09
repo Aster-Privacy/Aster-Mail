@@ -22,7 +22,6 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import type { } from "@/lib/i18n/types";
 
 
-import { } from "@/lib/i18n/translations/en";
 import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,

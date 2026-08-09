@@ -21,34 +21,13 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
-  
-  
-  
-  
   DocumentArrowUpIcon,
-  
-  
-  
-  
-  
 } from "@heroicons/react/24/outline";
 
-import { } from "../import_modal";
 
-import { } from "@/components/ui/spinner";
-import { } from "@/lib/i18n/context";
-import { } from "@/components/toast/simple_toast";
 import {
-  
-  
-  
   type ImportSource,
-  
 } from "@/services/api/email_import";
-import { } from "@/services/sync_manager";
-import { } from "@/services/api/folders";
-import { } from "@/services/crypto/memory_key_store";
-import { } from "@/services/labels/ensure_defaults";
 
 
 export type OAuthProvider = "google" | "microsoft" | "yahoo";

@@ -21,28 +21,14 @@
 import type { } from "@/services/api/preferences";
 import type { } from "@/services/api/family_org";
 
-import { } from "@capacitor/core";
 import {  Switch } from "@aster/ui";
 import {
-  
-  
   LockClosedIcon,
-  
-  
-  
-  
-  
-  
   XMarkIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
 
-import { } from "../settings_save_indicator";
 
-import { } from "@/contexts/preferences_context";
-import { } from "@/contexts/auth_context";
-import { } from "@/services/api/family_org";
-import { } from "@/services/crypto/memory_key_store";
 import {
   Select,
   SelectContent,
@@ -50,21 +36,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { } from "@/components/ui/input";
-import { } from "@/lib/utils";
-import { } from "@/lib/i18n/context";
-import { } from "@/components/settings/search_context";
 import {
   SUPPORTED_LANGUAGES,
   type LanguageCode,
 } from "@/services/translation/engine_types";
 import {
   language_display_name,
-  
 } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { } from "@/components/common/upgrade_gate";
-import { } from "@/hooks/use_plan_limits";
 
 
 export interface ToggleSettingProps {

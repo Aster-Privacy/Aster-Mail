@@ -25,8 +25,6 @@ import { useState, useCallback } from "react";
 import { REFRESH_STATE_MS } from "@/constants/timings";
 import {
   batched_bulk_patch_metadata,
-  
-  
 } from "@/services/api/mail";
 import {
   encrypt_mail_metadata,
@@ -48,7 +46,6 @@ import {
   emit_mail_item_updated,
 } from "@/hooks/mail_events";
 import {
-  
   has_protected_folder_label,
   get_protected_folder_tokens,
 } from "@/hooks/use_folders";

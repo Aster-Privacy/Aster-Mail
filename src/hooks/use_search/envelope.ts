@@ -23,10 +23,7 @@ import type { DecryptedEnvelope, } from "@/types/email";
 
 
 import {
-  
-  
   reencrypt_mail_item_envelope,
-  
 } from "@/services/api/mail";
 import {
   decrypt_envelope_with_bytes,
@@ -40,21 +37,11 @@ import {
   get_vault_from_memory,
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
-import { } from "@/services/locked_folders";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
-import { } from "@/contexts/auth_context";
 import {
   normalize_envelope_from,
-  
 } from "@/services/crypto/envelope_normalize";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
-import { } from "@/hooks/mail_events";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string,

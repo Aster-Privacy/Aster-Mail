@@ -21,34 +21,15 @@
 import type { } from "@/lib/i18n/types";
 
 import {
-  
-  
-  
   ClockIcon,
-  
-  
-  
-  
   TrashIcon,
-  
 } from "@heroicons/react/24/outline";
 
-import { } from "../import_modal";
 
-import { } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
-import { } from "@/components/toast/simple_toast";
 import {
-  
-  
   type ImportJob,
-  
-  
 } from "@/services/api/email_import";
-import { } from "@/services/sync_manager";
-import { } from "@/services/api/folders";
-import { } from "@/services/crypto/memory_key_store";
-import { } from "@/services/labels/ensure_defaults";
 
 import { format_relative_time, get_status_icon, get_status_label } from "./status";
 

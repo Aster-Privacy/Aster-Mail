@@ -23,34 +23,19 @@ import type { } from "@/lib/i18n/types";
 
 import { useCallback, useEffect,  useState } from "react";
 import {
-  
-  
   AdjustmentsHorizontalIcon,
   NoSymbolIcon,
-  
   EyeSlashIcon,
-  
 } from "@heroicons/react/24/outline";
 
 import {  format_relative_time } from "../alias_stats_format";
 
-import { } from "@/components/settings/aliases/alias_rule_editor_modal";
-import { } from "@/components/settings/aliases/alias_websites_editor";
-import { } from "@/components/email/shared/decrypt_envelope";
 import { use_i18n } from "@/lib/i18n/context";
-import { } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
-import { } from "@/components/ui/input";
-import { } from "@/components/settings/aliases/feature_lock";
-import { } from "@/hooks/use_folders";
-import { } from "@/hooks/use_tags";
-import { } from "@/components/settings/aliases/info_hint";
 import {
   get_alias_delivery_log,
   get_domain_address_delivery_log,
-  
   type DeliveryEvent,
-  
 } from "@/services/api/aliases";
 
 export function delivery_reason_label(

@@ -23,8 +23,6 @@ import type {  FontSizeLabel } from "@/hooks/use_editor";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import {
-  
-  
   useRef,
   useEffect,
   useLayoutEffect,

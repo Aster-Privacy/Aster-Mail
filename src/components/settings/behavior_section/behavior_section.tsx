@@ -34,8 +34,6 @@ import {
   ShieldCheckIcon,
   ViewColumnsIcon,
   LanguageIcon,
-  
-  
 } from "@heroicons/react/24/outline";
 
 import { SettingsSaveIndicatorInline } from "../settings_save_indicator";
@@ -69,11 +67,9 @@ import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_register_search_items } from "@/components/settings/search_context";
 import {
-  
   type LanguageCode,
 } from "@/services/translation/engine_types";
 import {
-  
   derive_accepted_languages,
 } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";

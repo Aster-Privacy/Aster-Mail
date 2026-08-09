@@ -23,20 +23,9 @@ import type { AttachmentPreviewEntry } from "@/hooks/use_attachment_previews";
 
 import {     useRef, } from "react";
 import {
-  
-  
-  
-  
-  
-  
-  
-  
-  
   StarIcon,
-  
 } from "@heroicons/react/24/outline";
 import {
-  
   StarIcon as StarIconSolid,
 } from "@heroicons/react/24/solid";
 import {  Tooltip } from "@aster/ui";
@@ -45,7 +34,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { is_compact_density, } from "@/lib/list_density";
 import { truncate_with_ellipsis } from "@/utils/preview_text";
 import {
-  
   type SelectionSnapshot,
 } from "@/components/email/inbox/selection_snapshot";
 

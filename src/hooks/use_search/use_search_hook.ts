@@ -25,46 +25,23 @@ import {
   useCallback,
   useEffect,
   useRef,
-  
 } from "react";
 
 import {
-  
-  
-  
   type MailItem,
 } from "@/services/api/mail";
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
 import {
   parse_search_query,
-  
-  
-  
-  
-  
 } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   build_chunk_skip_plan,
-  
-  
 } from "@/services/search_chunk_filter";
 import {
-  
-  
-  
   reset_index_download_state,
   set_index_download_paused,
-  
-  
 } from "@/services/search/index_download_control";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 

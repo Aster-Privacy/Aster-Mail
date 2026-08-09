@@ -18,12 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { } from "@/services/crypto/constants";
 import type { EncryptedVault } from "../key_manager";
 import { hash_recovery_email } from "../key_manager";
-import { } from "../memory_key_store";
-import { } from "../secure_memory";
-import { } from "../legacy_keks";
 import { api_client } from "@/services/api/client";
 import type { } from "@/services/api/signatures";
 import type { } from "@/services/api/templates";
@@ -33,14 +29,6 @@ import {
   derive_preferences_key_raw,
   prepare_preferences_payload,
 } from "@/services/api/preferences";
-import { } from "@/services/api/aliases";
-import { } from "@/services/api/contacts";
-import { } from "@/services/api/alias_pins";
-import { } from "@/services/api/alias_contacts";
-import { } from "@/services/api/alias_destinations";
-import { } from "@/services/api/alias_directories";
-import { } from "@/services/api/auth";
-import { } from "@/services/crypto/envelope";
 import { array_to_base64, base64_to_array } from "../base64";
 
 

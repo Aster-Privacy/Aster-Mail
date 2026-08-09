@@ -20,75 +20,21 @@
 //
 import { useState, useEffect,   } from "react";
 import {
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   GlobeAltIcon,
-  
-  
-  
-  
-  
 } from "@heroicons/react/24/outline";
-import { } from "@/components/settings/billing/shared_mailboxes_tab";
-import { } from "@/components/ui/input";
-import { } from "@/components/ui/slider";
-import { } from "@/components/ui/info_popover";
 import { Spinner } from "@/components/ui/spinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { } from "@/services/api/billing";
 import {
-    
-    
-  
-     
   list_family_domains, share_domain, revoke_domain_share,
-   
-   
-   
-    
    type FamilyDomain,
-    
-    
 } from "@/services/api/family_org";
 import {
-  
-  
-  
-  
-  
-  
-  
-  
-  
   type FamilyMemberInfo,
 } from "@/services/api/family";
-import { } from "../family_seats";
-import { } from "../family_kids_addresses";
-import { } from "@/components/settings/settings_tab_bar";
-import { } from "@/components/settings/stat_ring";
 import { show_toast } from "@/components/toast/simple_toast";
-import { } from "@/services/api/aliases";
 import { use_i18n } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import type { } from "@/lib/i18n/types";
-import { } from "@/lib/utils";
 
 export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
   const { t } = use_i18n();

@@ -18,13 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { } from "@/services/crypto/constants";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 
 import { en } from "@/lib/i18n/translations/en";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/services/crypto/legacy_keks";
 
 
 export const RESERVED_ALIAS_NAMES = new Set([

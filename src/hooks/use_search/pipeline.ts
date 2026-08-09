@@ -25,7 +25,6 @@ import type {  MailItemMetadata } from "@/types/email";
 import {
   list_encrypted_mail_items,
   list_mail_items,
-  
   type MailItem,
 } from "@/services/api/mail";
 import {
@@ -33,43 +32,21 @@ import {
   extract_metadata_from_server,
 } from "@/services/crypto/mail_metadata";
 import { filter_locked_mail_items } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
-import { } from "@/contexts/auth_context";
 import {
   decrypt_body_text_with_bundle,
-  
 } from "@/utils/email_crypto";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import {
   bound_index_body,
-  
-  
   metadata_fingerprint,
-  
-  
   slim_envelope_for_index,
   trim_item_for_index,
-  
-  
-  
   type SnapshotWriter,
 } from "@/services/search_index_store";
 import {
-  
   is_index_download_paused,
   record_index_download_checkpoint,
-  
-  
-  
-  
 } from "@/services/search/index_download_control";
-import { } from "@/hooks/mail_events";
 
 import { ENVELOPE_FETCH_CHUNK, ENVELOPE_PAGE_LIMIT, INDEX_PAGE_LIMIT, MAX_RAM_INDEX_ITEMS } from "./constants";
 import { decrypt_envelope_for_search } from "./envelope";

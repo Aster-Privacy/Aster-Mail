@@ -22,12 +22,7 @@ import type { } from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import {
-  
   useState,
-  
-  
-  
-  
 } from "react";
 import { Button } from "@aster/ui";
 

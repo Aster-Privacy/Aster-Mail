@@ -21,22 +21,11 @@
 
 
 
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
-import { } from "@/contexts/auth_context";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import {
   secure_store,
   secure_retrieve,
   secure_remove,
 } from "@/services/crypto/secure_storage";
-import { } from "@/hooks/mail_events";
 
 import { clear_search_index } from "./index_cache";
 import { SavedSearch, SearchHistoryEntry } from "./types";

@@ -27,10 +27,7 @@ import type { } from "@/components/email/hooks/preload_cache";
 
 import React, {    } from "react";
 
-import { } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
-import { } from "@/components/common/icons";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
@@ -51,14 +48,7 @@ import {
 } from "@/components/ui/email_tag";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
-import { } from "@/components/modals/view_source_modal";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
-import { } from "@/components/email/sending_message_block";
-import { } from "@/components/email/thread_draft_badge";
-import { } from "@/components/email/banners/purchase_details_banner";
-import { } from "@/components/email/banners/shipping_details_banner";
-import { } from "@/components/email/banners/calendar_invite_banner";
-import { } from "@/services/extraction/extractor";
 
 export interface ViewerEmailHeaderProps {
   email: DecryptedEmail;

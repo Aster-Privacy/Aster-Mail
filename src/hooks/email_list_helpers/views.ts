@@ -20,9 +20,7 @@
 //
 
 import {
-  
   type ListMailItemsParams,
-  
 } from "@/services/api/mail";
 
 

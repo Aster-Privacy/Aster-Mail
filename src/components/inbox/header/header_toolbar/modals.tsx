@@ -26,8 +26,6 @@ import { SnoozeSimilarModal } from "@/components/modals/snooze_similar_modal";
 import { ArchiveNewslettersModal } from "@/components/modals/archive_newsletters_modal";
 import {
   use_folders,
-  
-  
 } from "@/hooks/use_folders";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";

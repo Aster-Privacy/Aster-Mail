@@ -35,10 +35,8 @@ import {
 } from "@/services/api/mail";
 import {
   decrypt_mail_metadata,
-  
 } from "@/services/crypto/mail_metadata";
 import {
-  
   type FormatOptions,
 } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
@@ -51,7 +49,6 @@ import {
 } from "@/services/locked_folders";
 import {
   resolve_sender_profiles,
-  
 } from "@/services/api/sender_profiles";
 import { decrypt_envelope } from "./decrypt";
 import { should_keep_email_in_view } from "./display";

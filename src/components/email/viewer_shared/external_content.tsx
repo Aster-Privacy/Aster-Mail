@@ -26,28 +26,7 @@ import type { } from "@/components/email/use_email_viewer";
 import type { } from "@/components/email/hooks/preload_cache";
 
 
-import { } from "@/contexts/external_link_context";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
-import { } from "@/components/common/icons";
-import { } from "@/components/ui/profile_avatar";
-import { } from "@/components/ui/badge_chip";
-import { } from "@/hooks/use_peer_profile";
-import { } from "@/components/common/encryption_info_dropdown";
-import { } from "@/components/email/tracking_protection_shield";
-import { } from "@/lib/utils";
 
-import { } from "@/components/email/official_badge";
-import { } from "@/components/email/email_profile_trigger";
-import { } from "@/components/ui/snooze_badge";
-import { } from "@/components/modals/view_source_modal";
-import { } from "@/components/email/expiration_countdown";
-import { } from "@/components/email/sending_message_block";
-import { } from "@/components/email/thread_draft_badge";
-import { } from "@/components/email/banners/purchase_details_banner";
-import { } from "@/components/email/banners/shipping_details_banner";
-import { } from "@/components/email/banners/calendar_invite_banner";
-import { } from "@/services/extraction/extractor";
 
 
 export let loaded_content_email_id: string | null = null;

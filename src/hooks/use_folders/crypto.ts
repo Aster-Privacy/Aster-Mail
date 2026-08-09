@@ -22,17 +22,7 @@ import { HASH_ALG } from "@/services/crypto/constants";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
-  
-  
-  
-  
-  
-  
   type FolderDefinition,
-  
-  
-  
-  
 } from "@/services/api/folders";
 import { DecryptedFolder, is_system_folder_type } from "./tree";
 

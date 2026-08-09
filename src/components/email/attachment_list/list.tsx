@@ -43,7 +43,6 @@ import {
 } from "@/services/crypto/attachment_crypto";
 import {
   get_cached_attachment_meta,
-  
 } from "@/services/attachment_meta_cache";
 import {
   fetch_attachment_bytes,
@@ -51,8 +50,6 @@ import {
   set_cached_preview_url,
 } from "@/services/attachment_preview_cache";
 import {
-  
-  
   is_previewable_image,
   is_previewable_pdf,
 } from "@/lib/attachment_utils";

@@ -38,14 +38,11 @@ import {
 } from "@/lib/email_contrast_repair";
 import { hex_to_rgba } from "@/lib/material_theme";
 import {
-  
-  
   derive_rail_color,
   derive_visited_ink,
   normalize_hex,
 } from "@/lib/email_ink";
 import {
-  
   use_resolved_accent,
 } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";

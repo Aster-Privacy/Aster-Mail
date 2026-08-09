@@ -23,35 +23,14 @@ import type {  MailItemMetadata } from "@/types/email";
 
 
 import {
-  
-  
-  
   type MailItem,
 } from "@/services/api/mail";
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
 import {
-  
-  
-  
-  
-  
   type ParsedOperator,
 } from "@/utils/search_operators";
-import { } from "@/contexts/auth_context";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import {
-  
   date_boundary_local,
-  
 } from "@/services/search_chunk_filter";
-import { } from "@/hooks/mail_events";
 
 import { CachedIndex, ScanCacheEntry, ScanCandidate, SearchMailboxScope, SearchOptions } from "./types";
 export const PROGRESS_FLUSH_MS = 120;

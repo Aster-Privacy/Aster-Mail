@@ -22,38 +22,22 @@ import type { } from "@/lib/i18n/types";
 
 import { useState, useEffect,  useRef } from "react";
 import {
-  
   ArrowPathIcon,
-  
   ClockIcon,
-  
   ExclamationTriangleIcon,
-  
-  
   TrashIcon,
-  
 } from "@heroicons/react/24/outline";
 import { Button, } from "@aster/ui";
 
-import { } from "../import_modal";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
-  
-  
-  
-  
   get_sync_progress,
-  
   type DecryptedExternalAccount,
   type SyncProgressEvent,
 } from "@/services/api/external_accounts";
-import { } from "@/services/sync_manager";
-import { } from "@/services/api/folders";
-import { } from "@/services/crypto/memory_key_store";
-import { } from "@/services/labels/ensure_defaults";
 
 import { get_provider_icon } from "./provider_icon";
 import { format_relative_time } from "./status";

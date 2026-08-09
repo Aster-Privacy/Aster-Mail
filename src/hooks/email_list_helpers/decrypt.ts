@@ -36,7 +36,6 @@ import {
   decrypt_envelope_with_identity_key,
   base64_to_array,
   normalize_envelope_from,
-  
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 

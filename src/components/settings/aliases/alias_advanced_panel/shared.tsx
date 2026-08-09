@@ -24,16 +24,11 @@ import type { } from "@/lib/i18n/types";
 import {  useEffect,  useState } from "react";
 
 
-import { } from "@/components/settings/aliases/alias_rule_editor_modal";
-import { } from "@/components/settings/aliases/alias_websites_editor";
-import { } from "@/components/email/shared/decrypt_envelope";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
-import { } from "@/hooks/use_folders";
-import { } from "@/hooks/use_tags";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 
 export const INPUT_CLASS =

@@ -22,7 +22,6 @@ import { useCallback, useEffect, useRef, useState, } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  
   CheckCircleIcon,
   CheckIcon,
   ClipboardDocumentIcon,
@@ -45,7 +44,6 @@ import {
   cancel_crypto_native_invoice,
   format_price,
   get_crypto_native_invoice,
-  
   type CryptoNativeInvoiceStatus,
 } from "@/services/api/billing";
 import {

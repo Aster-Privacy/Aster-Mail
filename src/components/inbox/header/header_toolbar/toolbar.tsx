@@ -20,11 +20,8 @@
 //
 
 import {
-  
-  
   ArrowPathIcon,
   BoltIcon,
-  
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 

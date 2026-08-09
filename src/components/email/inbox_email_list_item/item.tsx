@@ -32,7 +32,6 @@ import {
   ExclamationTriangleIcon,
   InboxIcon,
   PaperClipIcon,
-  
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -78,7 +77,6 @@ import {
 } from "@/hooks/email_list_helpers";
 import {
   empty_selection_snapshot,
-  
 } from "@/components/email/inbox/selection_snapshot";
 import {
   begin_category_drag,

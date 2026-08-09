@@ -22,26 +22,10 @@ import type { LanguageCode } from "@/lib/i18n/types";
 
 import {
   createContext,
-  
-  
-  
   ReactNode,
-  
-  
 } from "react";
 
 import {
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   type UserPreferences,
 } from "@/services/api/preferences";
 import {

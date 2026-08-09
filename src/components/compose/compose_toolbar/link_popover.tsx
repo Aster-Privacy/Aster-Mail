@@ -22,12 +22,9 @@ import type { } from "@/lib/i18n/types";
 import type { } from "@/components/compose/compose_shared";
 
 import {
-  
   useState,
   useRef,
   useEffect,
-  
-  
 } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@aster/ui";

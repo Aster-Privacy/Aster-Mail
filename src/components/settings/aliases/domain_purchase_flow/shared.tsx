@@ -18,16 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { } from "framer-motion";
 import {
-  
-  
-  
-  
-  
-  
-  
-  
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -36,20 +27,13 @@ import {
 } from "@heroicons/react/24/solid";
 import { Badge,  Tooltip } from "@aster/ui";
 
-import { } from "@/components/ui/spinner";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { } from "@/components/modals/confirmation_modal";
 import {
-  
-  
-  
   format_domain_price,
   type DomainSearchResult,
-  
 } from "@/services/api/domains";
 import type { ApiErrorCode } from "@/services/api/client";
-import { } from "@/lib/payment_url";
 
 
 export type PurchaseView = "search" | "confirm" | "progress";

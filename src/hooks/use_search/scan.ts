@@ -22,36 +22,11 @@
 
 
 import {
-  
-  
-  
   type MailItem,
 } from "@/services/api/mail";
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
-import { } from "@/contexts/auth_context";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import {
-  
-  
-  
-  
   open_snapshot_reader,
-  
-  
-  
-  
-  
-  
-  
 } from "@/services/search_index_store";
-import { } from "@/hooks/mail_events";
 
 import { cached_index } from "./index_cache";
 import { CachedIndex, DecryptedIndexEntry, IndexPerson, ScanOptions } from "./types";

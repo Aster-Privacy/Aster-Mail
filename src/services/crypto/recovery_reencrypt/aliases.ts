@@ -18,13 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { } from "@/services/crypto/constants";
 import type { } from "../key_manager";
-import { } from "../key_manager";
-import { } from "../memory_key_store";
-import { } from "../secure_memory";
-import { } from "../legacy_keks";
-import { } from "@/services/api/client";
 import type { } from "@/services/api/signatures";
 import type { } from "@/services/api/templates";
 import type { } from "@/services/api/blocked_senders";
@@ -37,10 +31,8 @@ import { list_alias_destinations } from "@/services/api/alias_destinations";
 import { list_alias_directories } from "@/services/api/alias_directories";
 import { list_domains, list_domain_addresses } from "@/services/api/domains";
 import { rekey_user_data } from "@/services/api/auth";
-import { } from "@/services/crypto/envelope";
 import { array_to_base64, base64_to_array } from "../base64";
 import {
-  
   type ReEncryptedAlias,
   type ReEncryptedContact,
   type ReEncryptedPin,

@@ -24,19 +24,9 @@ import type { } from "@/services/api/user";
 
 import {
   type Attachment,
-  
-  
-  
-  
-  
-  
-  
-  
-  
   MAX_INLINE_IMAGES,
   MAX_INLINE_IMAGE_SIZE,
   MAX_TOTAL_INLINE_SIZE,
-  
 } from "@/components/compose/compose_shared";
 import { array_to_base64 } from "@/services/crypto/envelope";
 

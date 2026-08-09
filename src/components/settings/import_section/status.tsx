@@ -21,34 +21,15 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
-  
-  
   CheckCircleIcon,
-  
-  
-  
-  
-  
-  
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 
-import { } from "../import_modal";
 
 import { Spinner } from "@/components/ui/spinner";
-import { } from "@/lib/i18n/context";
-import { } from "@/components/toast/simple_toast";
 import {
-  
-  
-  
-  
   type ImportStatus,
 } from "@/services/api/email_import";
-import { } from "@/services/sync_manager";
-import { } from "@/services/api/folders";
-import { } from "@/services/crypto/memory_key_store";
-import { } from "@/services/labels/ensure_defaults";
 
 
 export function get_status_icon(status: ImportStatus) {

@@ -18,21 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { } from "@aster/ui";
 
-import { } from "@/components/ui/coin_icon";
-import { } from "@/components/ui/rounded_qr_code";
-import { } from "@/components/ui/spinner";
-import { } from "@/components/email/inbox/inbox_confirmation_dialog";
-import { } from "@/components/toast/simple_toast";
-import { } from "@/lib/i18n/context";
-import { } from "@/services/api/request_cache";
-import { } from "@/hooks/use_mail_stats";
 import {
-  
-  
-  
-  
   type CryptoNativeInvoiceStatus,
 } from "@/services/api/billing";
 

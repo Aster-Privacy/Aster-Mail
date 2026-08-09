@@ -21,15 +21,12 @@
 
 
 import {
-  
   bulk_action_by_scope,
   bulk_undo,
 } from "@/services/api/mail";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
   show_action_toast,
-  
-  
 } from "@/components/toast/action_toast";
 import {
   adjust_stats_unread,
@@ -37,8 +34,6 @@ import {
 } from "@/hooks/use_mail_stats";
 import { use_i18n } from "@/lib/i18n/context";
 import {
-  
-  
   FULL_MAILBOX_ITEM_CAP,
 } from "@/services/bulk_mail_scan";
 import { show_toast } from "@/components/toast/simple_toast";

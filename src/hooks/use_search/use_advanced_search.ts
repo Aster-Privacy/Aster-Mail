@@ -23,30 +23,12 @@
 import {
   useState,
   useCallback,
-  
-  
-  
 } from "react";
 
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
 import {
   parse_search_query,
-  
-  
-  
   get_quick_filters,
-  
 } from "@/utils/search_operators";
-import { } from "@/contexts/auth_context";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
-import { } from "@/hooks/mail_events";
 
 import { AdvancedSearchState, QuickFilter, SearchScope, SortOption } from "./types";
 import { use_search } from "./use_search_hook";

@@ -20,15 +20,6 @@
 //
 
 import {
-  
-  
-  
-  
-  
-  
-  
-  
-  
   type ListFoldersParams,
   type DeleteFolderRequest,
 } from "@/services/api/folders";

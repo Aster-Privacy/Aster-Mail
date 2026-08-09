@@ -20,23 +20,13 @@
 //
 import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "../key_manager";
-import { } from "../key_manager";
 import { derive_encryption_key_from_passphrase } from "../memory_key_store";
 import { zero_uint8_array } from "../secure_memory";
 import { append_legacy_key_raw_bytes } from "../legacy_keks";
-import { } from "@/services/api/client";
 import type { } from "@/services/api/signatures";
 import type { } from "@/services/api/templates";
 import type { } from "@/services/api/blocked_senders";
 import type { } from "@/services/api/allowed_senders";
-import { } from "@/services/api/aliases";
-import { } from "@/services/api/contacts";
-import { } from "@/services/api/alias_pins";
-import { } from "@/services/api/alias_contacts";
-import { } from "@/services/api/alias_destinations";
-import { } from "@/services/api/alias_directories";
-import { } from "@/services/api/auth";
-import { } from "@/services/crypto/envelope";
 import {  base64_to_array } from "../base64";
 
 

@@ -21,40 +21,20 @@
 
 
 
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
-import { } from "@/lib/html_sanitizer";
-import { } from "@/utils/preview_text";
-import { } from "@/lib/utils";
-import { } from "@/utils/forwarding_alias";
-import { } from "@/contexts/auth_context";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import {
-  
   clear_search_snapshots,
   has_index_storage_headroom,
-  
   open_snapshot_reader,
   open_snapshot_writer,
-  
-  
   SNAPSHOT_CHUNK_SIZE,
   type PersistedSearchEntry,
   type SnapshotMeta,
-  
 } from "@/services/search_index_store";
 import {
-  
   is_index_download_paused,
   record_index_download_checkpoint,
   reset_index_download_state,
-  
-  
-  
 } from "@/services/search/index_download_control";
-import { } from "@/hooks/mail_events";
 
 import { DEEP_SEGMENT_ITEMS, DEEP_SEGMENT_PAUSE_MS, INDEX_TTL_MS, MAX_INDEX_ITEMS, MAX_RAM_INDEX_ITEMS } from "./constants";
 import { run_index_pipeline } from "./pipeline";

@@ -21,24 +21,11 @@
 import {  useEffect, useRef,  type ReactNode } from "react";
 import {
   ArrowLeftIcon,
-  
   CheckIcon,
   ClipboardDocumentIcon,
-  
-  
-  
-  
 } from "@heroicons/react/24/outline";
-import { } from "@aster/ui";
 
-import { } from "@/components/ui/coin_icon";
-import { } from "@/components/ui/rounded_qr_code";
 import { Spinner } from "@/components/ui/spinner";
-import { } from "@/components/email/inbox/inbox_confirmation_dialog";
-import { } from "@/components/toast/simple_toast";
-import { } from "@/lib/i18n/context";
-import { } from "@/services/api/request_cache";
-import { } from "@/hooks/use_mail_stats";
 
 
 export interface StatusStep {

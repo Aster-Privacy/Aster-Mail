@@ -23,13 +23,10 @@ import { Capacitor } from "@capacitor/core";
 import {
   derive_link_hover_ink,
   derive_link_ink,
-  
-  
   normalize_hex,
 } from "@/lib/email_ink";
 import {
   DEFAULT_ACCENT_COLOR,
-  
 } from "@/lib/resolved_accent";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { api_client } from "@/services/api/client";

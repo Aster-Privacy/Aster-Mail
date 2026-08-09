@@ -23,43 +23,28 @@ import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 
 
 import {
-  
-  
-  
   type MailItem,
 } from "@/services/api/mail";
-import { } from "@/services/locked_folders";
-import { } from "@/workers/pgp_decrypt_pool";
-import { } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { build_body_preview } from "@/utils/preview_text";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
-  
   expand_date_shortcut,
   parse_size_value,
   parse_size_range,
-  
   type ParsedOperator,
 } from "@/utils/search_operators";
-import { } from "@/contexts/auth_context";
 import {
-  
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import {
   normalize_envelope_from,
   normalize_envelope_recipients,
 } from "@/services/crypto/envelope_normalize";
-import { } from "@/lib/i18n/context";
-import { } from "@/contexts/preferences_context";
 import {
-  
   date_boundary_local,
-  
 } from "@/services/search_chunk_filter";
-import { } from "@/hooks/mail_events";
 
 import { SearchResultItem } from "./types";
 export function preheader_html_source(envelope: DecryptedEnvelope): string {

@@ -70,9 +70,6 @@ import {
   get_aster_footer,
   MAX_ATTACHMENT_SIZE,
   MAX_TOTAL_ATTACHMENTS_SIZE,
-  
-  
-  
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
 import {

@@ -25,25 +25,15 @@ import { useCallback, useEffect,  useState } from "react";
 import {
   TrashIcon,
   PlusIcon,
-  
-  
   PencilSquareIcon,
-  
-  
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
 
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
-import { } from "@/components/settings/aliases/alias_websites_editor";
-import { } from "@/components/email/shared/decrypt_envelope";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
-import { } from "@/components/ui/input";
-import { } from "@/components/settings/aliases/feature_lock";
-import { } from "@/hooks/use_folders";
-import { } from "@/hooks/use_tags";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
   list_alias_rules,

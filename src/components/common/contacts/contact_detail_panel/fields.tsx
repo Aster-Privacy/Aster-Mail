@@ -42,32 +42,14 @@ import type { TranslationKey } from "@/lib/i18n";
 
 import { useEffect,  useState } from "react";
 import {
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   PlusIcon,
   XMarkIcon,
   ChevronDownIcon,
-
   KeyIcon,
 } from "@heroicons/react/24/outline";
-import { } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
-import { } from "@/components/common/contacts/contact_avatar";
-import { } from "@/components/contacts/contact_history_panel";
 import { show_toast } from "@/components/toast/simple_toast";
-import { } from "@/lib/strip_image_metadata";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Modal,

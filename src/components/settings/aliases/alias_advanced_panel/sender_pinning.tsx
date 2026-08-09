@@ -25,23 +25,13 @@ import { useCallback, useEffect,  useState } from "react";
 import {
   TrashIcon,
   PlusIcon,
-  
-  
-  
-  
-  
 } from "@heroicons/react/24/outline";
 import { Button, } from "@aster/ui";
 
 
-import { } from "@/components/settings/aliases/alias_rule_editor_modal";
-import { } from "@/components/settings/aliases/alias_websites_editor";
-import { } from "@/components/email/shared/decrypt_envelope";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
-import { } from "@/components/ui/input";
-import { } from "@/components/settings/aliases/feature_lock";
 import {
   Select,
   SelectTrigger,
@@ -49,9 +39,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { } from "@/hooks/use_folders";
-import { } from "@/hooks/use_tags";
-import { } from "@/components/settings/aliases/info_hint";
 import {
   list_alias_pins,
   add_alias_pin,
