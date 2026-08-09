@@ -70,9 +70,9 @@ import {
   get_aster_footer,
   MAX_ATTACHMENT_SIZE,
   MAX_TOTAL_ATTACHMENTS_SIZE,
-  MAX_INLINE_IMAGES,
-  MAX_INLINE_IMAGE_SIZE,
-  MAX_TOTAL_INLINE_SIZE,
+  
+  
+  
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
 import {
@@ -87,7 +87,6 @@ import {
   decrypt_attachment_data,
   prepare_external_attachments,
 } from "@/services/crypto/attachment_crypto";
-import { array_to_base64 } from "@/services/crypto/envelope";
 import {
   get_forward_mail_id,
   clear_forward_mail_id,
@@ -99,127 +98,7 @@ import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { inline_email_css } from "@/lib/forward_css_inliner";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
-
-const escape_regexp = (value: string): string =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const normalize_cid = (value: string): string =>
-  value.replace(/^<+|>+$/g, "").trim();
-
-const escape_html_attr = (value: string): string =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-
-const is_embeddable_inline_image = (att: Attachment): boolean =>
-  typeof att.mime_type === "string" &&
-  /^image\/[a-z0-9.+-]+$/i.test(att.mime_type) &&
-  att.mime_type.toLowerCase() !== "image/svg+xml";
-
-interface InlineSubstitutionResult {
-  content: string;
-  embedded_attachment_ids: Set<string>;
-}
-
-export function apply_inline_image_substitutions(
-  base_content: string,
-  all_attachments: Attachment[],
-): InlineSubstitutionResult {
-  let content = base_content;
-  const embedded_attachment_ids = new Set<string>();
-  let embedded_bytes = 0;
-  let embedded_count = 0;
-
-  const within_budget = (att: Attachment): boolean =>
-    embedded_count < MAX_INLINE_IMAGES &&
-    att.size_bytes <= MAX_INLINE_IMAGE_SIZE &&
-    embedded_bytes + att.size_bytes <= MAX_TOTAL_INLINE_SIZE;
-
-  const to_data_url = (att: Attachment): string =>
-    `data:${att.mime_type};base64,${array_to_base64(new Uint8Array(att.data))}`;
-
-  const embed = (att: Attachment): string => {
-    embedded_bytes += att.size_bytes;
-    embedded_count += 1;
-    embedded_attachment_ids.add(att.id);
-
-    return to_data_url(att);
-  };
-
-  const inline_atts = all_attachments.filter(
-    (att) => att.content_id && is_embeddable_inline_image(att),
-  );
-  const unreferenced: Attachment[] = [];
-
-  for (const att of inline_atts) {
-    const cid = normalize_cid(att.content_id || "");
-
-    if (!cid) {
-      unreferenced.push(att);
-      continue;
-    }
-
-    const cid_variants = Array.from(new Set([cid, escape_html_attr(cid)]));
-    const pattern = new RegExp(
-      `src=["']cid:(?:${cid_variants.map(escape_regexp).join("|")})["']`,
-      "gi",
-    );
-    const referenced = pattern.test(content);
-
-    pattern.lastIndex = 0;
-
-    if (!referenced) {
-      unreferenced.push(att);
-      continue;
-    }
-
-    if (within_budget(att)) {
-      const url = embed(att);
-
-      content = content.replace(pattern, () => `src="${url}"`);
-    }
-  }
-
-  const blob_srcs = content.match(/src="blob:[^"]*"/g) || [];
-
-  for (const blob_match of blob_srcs) {
-    const att = unreferenced.shift();
-
-    if (att && within_budget(att)) {
-      const url = embed(att);
-
-      content = content.replace(blob_match, () => `src="${url}"`);
-    } else {
-      content = content.replace(blob_match, () => 'src=""');
-    }
-  }
-
-  for (const att of unreferenced) {
-    if (!within_budget(att)) continue;
-
-    const url = embed(att);
-
-    content += `<br><img src="${url}" alt="${escape_html_attr(att.name)}" style="max-width:100%">`;
-  }
-
-  return { content, embedded_attachment_ids };
-}
-
-interface UseForwardModalProps {
-  is_open: boolean;
-  on_close: () => void;
-  sender_name: string;
-  sender_email: string;
-  email_subject: string;
-  email_body: string;
-  email_timestamp: string;
-  is_external: boolean;
-  original_mail_id?: string;
-  thread_token?: string;
-  thread_ghost_email?: string;
-}
+import { UseForwardModalProps, apply_inline_image_substitutions } from "./helpers";
 
 export function use_forward_modal({
   is_open,

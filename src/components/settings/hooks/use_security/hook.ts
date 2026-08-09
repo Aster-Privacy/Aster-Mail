@@ -93,37 +93,9 @@ import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
-import { resolve_password_change_error } from "./password_change_error";
+import { resolve_password_change_error } from "../password_change_error";
 import { show_toast } from "@/components/toast/simple_toast";
-
-export const SESSION_TIMEOUT_OPTIONS = [
-  { value: 5, label_key: "settings.five_minutes" as const },
-  { value: 15, label_key: "settings.fifteen_minutes" as const },
-  { value: 30, label_key: "settings.thirty_minutes" as const },
-  { value: 60, label_key: "settings.one_hour" as const },
-  { value: 120, label_key: "settings.two_hours" as const },
-  { value: 240, label_key: "settings.four_hours" as const },
-  { value: 480, label_key: "settings.eight_hours" as const },
-];
-
-export const KEY_ROTATION_OPTIONS = [
-  { value: 24, label_key: "settings.daily" as const },
-  { value: 168, label_key: "settings.weekly" as const },
-  { value: 336, label_key: "settings.biweekly" as const },
-  { value: 720, label_key: "settings.monthly" as const },
-];
-
-export const KEY_HISTORY_OPTIONS = [
-  { value: 5, label_key: "settings.five_keys" as const },
-  { value: 10, label_key: "settings.ten_keys" as const },
-  { value: 25, label_key: "settings.twenty_five_keys" as const },
-  { value: 0, label_key: "settings.unlimited" as const },
-];
-
-interface LogoutOthersResponse {
-  message: string;
-  sessions_revoked: number;
-}
+import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
 
 export function use_security() {
   const { t } = use_i18n();
