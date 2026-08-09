@@ -107,7 +107,7 @@ describe("load_forward_attachments", () => {
     expect(carried[0].data.byteLength).toBe(2048);
   });
 
-  it("skips inline images already embedded in the forwarded body", async () => {
+  it("skips only inline images the forwarded body references", async () => {
     stub_source_attachments([
       {
         filename: "logo.png",
@@ -128,7 +128,10 @@ describe("load_forward_attachments", () => {
       body_html: '<img src="cid:logo123"> hello',
     });
 
-    expect(carried.map((a) => a.name)).toEqual(["invoice.pdf"]);
+    expect(carried.map((a) => a.name)).toEqual([
+      "signature.png",
+      "invoice.pdf",
+    ]);
   });
 
   it("keeps the forward when a single attachment fails to decrypt", async () => {

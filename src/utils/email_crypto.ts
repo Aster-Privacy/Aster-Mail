@@ -251,14 +251,24 @@ function get_boundary(headers: string): string | null {
   return match?.[1] ?? null;
 }
 
+interface MultipartResult {
+  content: string;
+  is_html: boolean;
+}
+
+const MAX_MULTIPART_DEPTH = 10;
+
 function extract_text_from_multipart(
   body: string,
   boundary: string,
   prefer_html: boolean,
-): string | null {
+  depth = 0,
+): MultipartResult | null {
+  if (depth > MAX_MULTIPART_DEPTH) return null;
+
   const parts = body.split(`--${boundary}`);
-  let plain_result: string | null = null;
-  let html_result: string | null = null;
+  let plain_result: MultipartResult | null = null;
+  let html_result: MultipartResult | null = null;
 
   for (const part of parts) {
     const trimmed = part.replace(/^[\r\n]+/, "");
@@ -272,33 +282,47 @@ function extract_text_from_multipart(
     const lower_headers = split.headers.toLowerCase();
     const nested_boundary = get_boundary(split.headers);
 
-    if (
-      nested_boundary &&
-      (lower_headers.includes("multipart/alternative") ||
-        lower_headers.includes("multipart/related") ||
-        lower_headers.includes("multipart/mixed"))
-    ) {
+    if (nested_boundary && lower_headers.includes("multipart/")) {
       const nested = extract_text_from_multipart(
         split.body,
         nested_boundary,
         prefer_html,
+        depth + 1,
       );
 
-      if (nested) return nested;
+      if (nested?.is_html) {
+        if (!html_result) html_result = nested;
+      } else if (nested && !plain_result) {
+        plain_result = nested;
+      }
 
       continue;
     }
 
+    if (is_attachment_disposition(lower_headers)) continue;
+
     if (lower_headers.includes("text/html")) {
-      html_result = decode_transfer_encoding(split.body.trim(), lower_headers);
+      if (!html_result) {
+        html_result = {
+          content: decode_transfer_encoding(split.body.trim(), lower_headers),
+          is_html: true,
+        };
+      }
     } else if (lower_headers.includes("text/plain") && !plain_result) {
-      plain_result = decode_transfer_encoding(split.body.trim(), lower_headers);
+      plain_result = {
+        content: decode_transfer_encoding(split.body.trim(), lower_headers),
+        is_html: false,
+      };
     }
   }
 
-  if (prefer_html && html_result) return html_result;
+  return prefer_html
+    ? (html_result ?? plain_result)
+    : (plain_result ?? html_result);
+}
 
-  return html_result ?? plain_result;
+function is_attachment_disposition(lower_headers: string): boolean {
+  return /content-disposition\s*:\s*attachment/i.test(lower_headers);
 }
 
 function extract_mime_body(raw: string): string {
@@ -312,7 +336,7 @@ function extract_mime_body(raw: string): string {
   if (boundary) {
     const result = extract_text_from_multipart(split.body, boundary, true);
 
-    if (result) return result;
+    if (result) return result.content;
   }
 
   const lower_headers = split.headers.toLowerCase();

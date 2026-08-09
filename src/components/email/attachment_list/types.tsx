@@ -58,7 +58,6 @@ export function is_inline_attachment(
     filename: string;
     content_type: string;
     content_id?: string;
-    is_inline?: boolean;
   },
   filter: InlineAttachmentFilter,
 ): boolean {
@@ -73,7 +72,7 @@ export function is_inline_attachment(
     filter.inline_filenames.size > 0 &&
     filter.inline_filenames.has(meta.filename.toLowerCase());
 
-  return !!meta.is_inline || is_cid_match || is_filename_match;
+  return is_cid_match || is_filename_match;
 }
 
 export function build_cards_from_cached_meta(
@@ -90,7 +89,6 @@ export function build_cards_from_cached_meta(
           filename: item.filename,
           content_type: item.content_type,
           content_id: item.content_id,
-          is_inline: item.is_inline,
         },
         filter,
       );

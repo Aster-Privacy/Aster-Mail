@@ -55,8 +55,6 @@ function is_inline_source_attachment(
   inline_cids: Set<string>,
   inline_filenames: Set<string>,
 ): boolean {
-  if (meta.is_inline) return true;
-
   const content_id = meta.content_id
     ? normalize_reference(meta.content_id)
     : "";
