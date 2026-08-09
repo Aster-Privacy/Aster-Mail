@@ -44,16 +44,9 @@ import {
 import { yield_to_browser } from "@/lib/scheduling";
 import { batch_archive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
-import {
-  decrypt_mail_envelope,
-  normalize_envelope_from,
-} from "@/services/crypto/envelope";
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import { normalize_envelope_from } from "@/services/crypto/envelope";
 import { get_favicon_url } from "@/lib/favicon_url";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import {
-  get_passphrase_bytes,
-  get_vault_from_memory,
-} from "@/services/crypto/memory_key_store";
 import {
   encrypt_mail_metadata,
   metadata_flag_patch,
@@ -100,32 +93,24 @@ async function decrypt_envelope_local(
   encrypted: string,
   nonce: string,
 ): Promise<DecryptedEnvelope | null> {
-  const passphrase = get_passphrase_bytes();
-  const vault = get_vault_from_memory();
+  const raw = await decrypt_mail_envelope<Record<string, unknown>>(
+    encrypted,
+    nonce,
+  );
 
-  try {
-    const raw = await decrypt_mail_envelope<Record<string, unknown>>(
-      encrypted,
-      nonce,
-      passphrase,
-      vault?.identity_key ?? null,
-    );
+  if (!raw) return null;
 
-    if (!raw) return null;
-    const from = normalize_envelope_from(raw.from);
+  const from = normalize_envelope_from(raw.from);
 
-    if (!from) return null;
+  if (!from?.email) return null;
 
-    return {
-      from,
-      body_html: (raw.body_html ?? raw.html_body) as string | undefined,
-      body_text: (raw.body_text ?? raw.text_body) as string | undefined,
-      list_unsubscribe: raw.list_unsubscribe as string | undefined,
-      list_unsubscribe_post: raw.list_unsubscribe_post as string | undefined,
-    };
-  } finally {
-    if (passphrase) zero_uint8_array(passphrase);
-  }
+  return {
+    from,
+    body_html: (raw.body_html ?? raw.html_body) as string | undefined,
+    body_text: (raw.body_text ?? raw.text_body) as string | undefined,
+    list_unsubscribe: raw.list_unsubscribe as string | undefined,
+    list_unsubscribe_post: raw.list_unsubscribe_post as string | undefined,
+  };
 }
 
 export function MassUnsubscribeModal({

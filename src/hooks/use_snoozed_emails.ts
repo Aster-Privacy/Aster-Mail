@@ -20,7 +20,6 @@
 //
 import type { InboxEmail, DecryptedEnvelope } from "@/types/email";
 import type { MailItemMetadata } from "@/types/email";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 
@@ -35,22 +34,12 @@ import { strip_html_tags } from "@/lib/html_sanitizer";
 import { build_list_preview } from "@/utils/preview_text";
 import { is_astermail_sender, get_email_username } from "@/lib/utils";
 import { list_mail_items, type MailItem } from "@/services/api/mail";
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   list_snoozed_emails,
   unsnooze_by_mail_item,
   type SnoozedItem,
 } from "@/services/api/snooze";
-import {
-  get_passphrase_bytes,
-  get_passphrase_from_memory,
-  get_vault_from_memory,
-} from "@/services/crypto/memory_key_store";
-import {
-  decrypt_envelope_with_bytes,
-  normalize_envelope_from,
-} from "@/services/crypto/envelope";
-import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   decrypt_mail_metadata,
   extract_metadata_from_server,
@@ -64,8 +53,6 @@ import {
   type FormatOptions,
 } from "@/utils/date_format";
 import mail_logo_url from "@/assets/mail_logo.webp";
-
-const HASH_ALG = ["SHA", "256"].join("-");
 
 interface SnoozedEmailListState {
   emails: InboxEmail[];
@@ -81,147 +68,6 @@ interface UseSnoozedEmailsReturn {
   fetch_snoozed: () => Promise<void>;
   unsnooze: (mail_item_id: string) => Promise<void>;
   refresh: () => void;
-}
-
-function base64_to_array(base64: string): Uint8Array {
-  try {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-
-    return bytes;
-  } catch {
-    return new Uint8Array(0);
-  }
-}
-
-const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
-
-async function try_decrypt_with_identity_key(
-  encrypted: string,
-  nonce_bytes: Uint8Array,
-  identity_key: string,
-): Promise<DecryptedEnvelope | null> {
-  const encrypted_bytes = base64_to_array(encrypted);
-
-  for (const version of ENVELOPE_KEY_VERSIONS) {
-    try {
-      const key_hash = await crypto.subtle.digest(
-        HASH_ALG,
-        new TextEncoder().encode(identity_key + version),
-      );
-      const crypto_key = await crypto.subtle.importKey(
-        "raw",
-        key_hash,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
-      );
-      const decrypted = await decrypt_aes_gcm_with_fallback(
-        crypto_key,
-        encrypted_bytes,
-        nonce_bytes,
-      );
-
-      const parsed = JSON.parse(new TextDecoder().decode(decrypted));
-      const from = normalize_envelope_from(parsed.from);
-
-      if (from) parsed.from = from;
-
-      return parsed;
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
-}
-
-async function decrypt_envelope(
-  encrypted: string,
-  nonce: string,
-): Promise<DecryptedEnvelope | null> {
-  const nonce_bytes = nonce ? base64_to_array(nonce) : new Uint8Array(0);
-
-  if (nonce_bytes.length === 0) {
-    try {
-      const encrypted_bytes = base64_to_array(encrypted);
-      const text = new TextDecoder().decode(encrypted_bytes);
-
-      if (!text.startsWith("-----BEGIN PGP")) {
-        return JSON.parse(text) as DecryptedEnvelope;
-      }
-
-      const vault = get_vault_from_memory();
-      const pass = get_passphrase_from_memory();
-
-      if (vault?.identity_key && pass) {
-        const decrypted = await decrypt_message_with_any_key(
-          text,
-          [vault.identity_key, ...(vault.previous_keys ?? [])],
-          pass,
-        );
-
-        return JSON.parse(decrypted) as DecryptedEnvelope;
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
-  }
-
-  const passphrase = get_passphrase_bytes();
-
-  if (!passphrase) return null;
-
-  try {
-    if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
-      const result = await decrypt_envelope_with_bytes<DecryptedEnvelope>(
-        encrypted,
-        passphrase,
-      );
-
-      zero_uint8_array(passphrase);
-
-      return result;
-    }
-
-    zero_uint8_array(passphrase);
-
-    const vault = get_vault_from_memory();
-
-    if (!vault?.identity_key) return null;
-
-    const result = await try_decrypt_with_identity_key(
-      encrypted,
-      nonce_bytes,
-      vault.identity_key,
-    );
-
-    if (result) return result;
-
-    if (vault.previous_keys && vault.previous_keys.length > 0) {
-      for (const prev_key of vault.previous_keys) {
-        const prev_result = await try_decrypt_with_identity_key(
-          encrypted,
-          nonce_bytes,
-          prev_key,
-        );
-
-        if (prev_result) return prev_result;
-      }
-    }
-
-    return null;
-  } catch {
-    zero_uint8_array(passphrase);
-
-    return null;
-  }
 }
 
 function mail_to_email(
@@ -447,7 +293,11 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
           );
 
           const [envelope, metadata] = await Promise.all([
-            decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
+            decrypt_mail_envelope<DecryptedEnvelope>(
+              item.encrypted_envelope,
+              item.envelope_nonce,
+              item.id,
+            ),
             has_metadata
               ? decrypt_mail_metadata(
                   item.encrypted_metadata!,

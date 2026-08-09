@@ -47,6 +47,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager";
 import {
@@ -283,6 +284,7 @@ async function try_decrypt_with_identity_key(
 export async function decrypt_envelope(
   encrypted: string,
   nonce: string,
+  mail_item_id?: string,
 ): Promise<DecryptedEnvelope | null> {
   const nonce_bytes = nonce ? base64_to_array(nonce) : new Uint8Array(0);
 
@@ -332,10 +334,6 @@ export async function decrypt_envelope(
 
     zero_uint8_array(passphrase);
 
-    const vault = get_vault_from_memory();
-
-    if (!vault?.identity_key) return null;
-
     const first_byte = base64_to_array(encrypted)[0];
     if (
       nonce_bytes.length === 12 &&
@@ -347,9 +345,19 @@ export async function decrypt_envelope(
       const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(
         encrypted,
         nonce,
+        mail_item_id,
       );
       if (ecies_result) return ecies_result;
     }
+
+    let vault = get_vault_from_memory();
+
+    if (!vault?.identity_key) {
+      await wait_for_keys_ready();
+      vault = get_vault_from_memory();
+    }
+
+    if (!vault?.identity_key) return null;
 
     const result = await try_decrypt_with_identity_key(
       encrypted,
@@ -603,7 +611,7 @@ export async function fetch_mail_by_ids_reconciled(
 
       try {
         [envelope, metadata] = await Promise.all([
-          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
+          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
           has_metadata
             ? decrypt_mail_metadata(
                 item.encrypted_metadata!,
@@ -909,7 +917,7 @@ export async function fetch_mail_from_api(
         const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
         const [envelope, metadata] = await Promise.all([
-          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce),
+          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
           has_metadata
             ? decrypt_mail_metadata(
                 item.encrypted_metadata!,

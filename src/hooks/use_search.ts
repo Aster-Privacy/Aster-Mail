@@ -49,6 +49,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
@@ -681,10 +682,6 @@ async function decrypt_envelope_for_search(
 
     zero_uint8_array(passphrase);
 
-    const vault = get_vault_from_memory();
-
-    if (!vault?.identity_key) return null;
-
     const first_byte = base64_to_array(encrypted)[0];
 
     if (
@@ -697,10 +694,20 @@ async function decrypt_envelope_for_search(
       const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(
         encrypted,
         nonce,
+        item_id,
       );
 
       if (ecies_result) return ecies_result;
     }
+
+    let vault = get_vault_from_memory();
+
+    if (!vault?.identity_key) {
+      await wait_for_keys_ready();
+      vault = get_vault_from_memory();
+    }
+
+    if (!vault?.identity_key) return null;
 
     const result = await try_decrypt_with_identity_key(
       encrypted,
@@ -885,7 +892,10 @@ async function run_index_pipeline(
       item.item_type === "received" || item.item_type === "sent";
 
     return (
-      !!prior_entry && immutable && (prior_entry.has_body || !include_body)
+      !!prior_entry &&
+      !!prior_entry.envelope &&
+      immutable &&
+      (prior_entry.has_body || !include_body)
     );
   };
 
@@ -948,7 +958,12 @@ async function run_index_pipeline(
     const immutable =
       item.item_type === "received" || item.item_type === "sent";
 
-    if (prior_entry && immutable && (prior_entry.has_body || !include_body)) {
+    if (
+      prior_entry &&
+      prior_entry.envelope &&
+      immutable &&
+      (prior_entry.has_body || !include_body)
+    ) {
       if (prior_entry.meta_fp === meta_fp) {
         return { id: item.id, entry: prior_entry, fresh: false };
       }
@@ -1030,7 +1045,7 @@ async function run_index_pipeline(
         meta_fp,
         has_body: include_body,
       },
-      fresh: true,
+      fresh: envelope !== null,
     };
   };
 

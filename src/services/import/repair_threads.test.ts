@@ -48,8 +48,7 @@ function make_item(overrides: Partial<MailItem> & { id: string }): MailItem {
 
 const mock_list_mail_items = vi.fn();
 const mock_link_mail_to_thread = vi.fn();
-const mock_base64_to_array = vi.fn();
-const mock_decrypt_envelope_with_bytes = vi.fn();
+const mock_decrypt_mail_envelope = vi.fn();
 const mock_get_passphrase_bytes = vi.fn();
 const mock_get_vault_from_memory = vi.fn();
 const mock_zero_uint8_array = vi.fn();
@@ -60,10 +59,9 @@ vi.mock("@/services/api/mail", () => ({
     mock_link_mail_to_thread(...args),
 }));
 
-vi.mock("@/services/crypto/envelope", () => ({
-  decrypt_envelope_with_bytes: (...args: unknown[]) =>
-    mock_decrypt_envelope_with_bytes(...args),
-  base64_to_array: (...args: unknown[]) => mock_base64_to_array(...args),
+vi.mock("@/components/email/shared/decrypt_envelope", () => ({
+  decrypt_mail_envelope: (...args: unknown[]) =>
+    mock_decrypt_mail_envelope(...args),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -79,15 +77,16 @@ function setup_crypto_mocks() {
   mock_get_passphrase_bytes.mockReturnValue(new Uint8Array([1, 2, 3]));
   mock_get_vault_from_memory.mockReturnValue({ identity_key: "test-key" });
 
-  mock_base64_to_array.mockImplementation((b64: string) => {
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
+  mock_decrypt_mail_envelope.mockImplementation(async (encrypted: string) => {
+    try {
+      return JSON.parse(
+        new TextDecoder().decode(
+          Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0)),
+        ),
+      );
+    } catch {
+      return null;
     }
-
-    return bytes;
   });
 
   mock_link_mail_to_thread.mockResolvedValue({ data: { success: true } });
@@ -140,9 +139,9 @@ describe("thread_imported_emails", () => {
     expect(mock_zero_uint8_array).toHaveBeenCalled();
   });
 
-  it("returns 0 when no vault identity_key", async () => {
+  it("returns 0 when no vault is in memory", async () => {
     mock_get_passphrase_bytes.mockReturnValue(new Uint8Array([1]));
-    mock_get_vault_from_memory.mockReturnValue({ identity_key: null });
+    mock_get_vault_from_memory.mockReturnValue(null);
     const thread_imported_emails = await reimport_fresh();
     const result = await thread_imported_emails();
 

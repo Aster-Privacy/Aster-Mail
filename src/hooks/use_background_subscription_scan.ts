@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   CachedSubscription,
   SubscriptionCacheData,
@@ -36,15 +35,7 @@ import {
 } from "@/services/subscription_cache";
 import { list_mail_items } from "@/services/api/mail";
 import type { MailItem } from "@/services/api/mail";
-import {
-  base64_to_array,
-  decrypt_envelope_with_bytes,
-} from "@/services/crypto/envelope";
-import {
-  get_passphrase_bytes,
-  get_vault_from_memory,
-} from "@/services/crypto/memory_key_store";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   detect_unsubscribe_info,
   get_sender_domain,
@@ -59,141 +50,9 @@ interface ScanEnvelope {
   body_text?: string;
 }
 
-const HASH_ALG = "SHA-256";
-const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 const SCAN_COOLDOWN_MS = 5 * 60 * 1000;
 const DECRYPT_CONCURRENCY = 8;
 const SCAN_IDLE_TIMEOUT_MS = 10000;
-
-let scan_key_cache: {
-  identity_key: string;
-  keys: Map<string, CryptoKey>;
-} | null = null;
-
-async function get_envelope_key(
-  identity_key: string,
-  version: string,
-): Promise<CryptoKey> {
-  if (!scan_key_cache || scan_key_cache.identity_key !== identity_key) {
-    scan_key_cache = { identity_key, keys: new Map() };
-  }
-
-  const cached = scan_key_cache.keys.get(version);
-
-  if (cached) return cached;
-
-  const key_hash = await crypto.subtle.digest(
-    HASH_ALG,
-    new TextEncoder().encode(identity_key + version),
-  );
-  const crypto_key = await crypto.subtle.importKey(
-    "raw",
-    key_hash,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["decrypt"],
-  );
-
-  scan_key_cache.keys.set(version, crypto_key);
-
-  return crypto_key;
-}
-
-function clear_scan_key_cache(): void {
-  scan_key_cache = null;
-}
-
-async function try_decrypt_with_identity_key(
-  encrypted: string,
-  nonce_bytes: Uint8Array,
-  identity_key: string,
-): Promise<ScanEnvelope | null> {
-  const encrypted_bytes = base64_to_array(encrypted);
-
-  for (const version of ENVELOPE_KEY_VERSIONS) {
-    try {
-      const crypto_key = await get_envelope_key(identity_key, version);
-      const decrypted = await decrypt_aes_gcm_with_fallback(
-        crypto_key,
-        encrypted_bytes,
-        nonce_bytes,
-      );
-
-      return JSON.parse(new TextDecoder().decode(decrypted));
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
-}
-
-async function decrypt_scan_envelope(
-  encrypted: string,
-  nonce: string,
-): Promise<ScanEnvelope | null> {
-  const nonce_bytes = nonce ? base64_to_array(nonce) : new Uint8Array(0);
-
-  if (nonce_bytes.length === 0) {
-    try {
-      const encrypted_bytes = base64_to_array(encrypted);
-      const json = new TextDecoder().decode(encrypted_bytes);
-
-      return JSON.parse(json) as ScanEnvelope;
-    } catch {
-      return null;
-    }
-  }
-
-  const passphrase = get_passphrase_bytes();
-
-  if (!passphrase) return null;
-
-  try {
-    if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
-      const result = await decrypt_envelope_with_bytes<ScanEnvelope>(
-        encrypted,
-        passphrase,
-      );
-
-      zero_uint8_array(passphrase);
-
-      return result;
-    }
-
-    zero_uint8_array(passphrase);
-
-    const vault = get_vault_from_memory();
-
-    if (!vault?.identity_key) return null;
-
-    const result = await try_decrypt_with_identity_key(
-      encrypted,
-      nonce_bytes,
-      vault.identity_key,
-    );
-
-    if (result) return result;
-
-    if (vault.previous_keys && vault.previous_keys.length > 0) {
-      for (const prev_key of vault.previous_keys) {
-        const prev_result = await try_decrypt_with_identity_key(
-          encrypted,
-          nonce_bytes,
-          prev_key,
-        );
-
-        if (prev_result) return prev_result;
-      }
-    }
-
-    return null;
-  } catch {
-    zero_uint8_array(passphrase);
-
-    return null;
-  }
-}
 
 const SYSTEM_DOMAINS = ["astermail.org", "astermail.com"];
 
@@ -414,9 +273,10 @@ async function run_background_scan(
       const batch = scannable.slice(start, start + DECRYPT_CONCURRENCY);
       const envelopes = await Promise.all(
         batch.map((item) =>
-          decrypt_scan_envelope(
+          decrypt_mail_envelope<ScanEnvelope>(
             item.encrypted_envelope,
             item.envelope_nonce,
+            item.id,
           ).catch(() => null),
         ),
       );
@@ -612,7 +472,6 @@ export function use_background_subscription_scan(): void {
       run_background_scan(vault)
         .catch(() => {})
         .finally(() => {
-          clear_scan_key_cache();
           is_scanning_ref.current = false;
           set_scan_in_flight(false);
           last_scan_completed_at_ref.current = Date.now();

@@ -19,12 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { list_mail_items } from "@/services/api/mail";
-import {
-  decrypt_envelope_with_bytes,
-  base64_to_array,
-} from "@/services/crypto/envelope";
-import { get_passphrase_bytes } from "@/services/crypto/memory_key_store";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   track_subscription,
   type SubscriptionCategory,
@@ -140,36 +135,6 @@ function categorize_sender(
   return "unknown";
 }
 
-async function decrypt_envelope(
-  encrypted: string,
-  nonce: string,
-): Promise<DecryptedEnvelope | null> {
-  const passphrase = get_passphrase_bytes();
-
-  if (!passphrase) return null;
-
-  try {
-    const nonce_bytes = base64_to_array(nonce);
-
-    if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
-      const result = await decrypt_envelope_with_bytes<DecryptedEnvelope>(
-        encrypted,
-        passphrase,
-      );
-
-      zero_uint8_array(passphrase);
-
-      return result;
-    }
-
-    zero_uint8_array(passphrase);
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 export interface ScanProgress {
   total: number;
   processed: number;
@@ -204,9 +169,10 @@ export async function scan_inbox_for_subscriptions(
     if (has_protected_folder_label(item.labels)) continue;
 
     try {
-      const envelope = await decrypt_envelope(
+      const envelope = await decrypt_mail_envelope<DecryptedEnvelope>(
         item.encrypted_envelope,
         item.envelope_nonce,
+        item.id,
       );
 
       if (envelope?.from?.email) {

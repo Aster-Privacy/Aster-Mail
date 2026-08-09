@@ -24,8 +24,8 @@ import type {
   ReactionSummary,
   ThreadWithMessages,
 } from "@/services/api/mail";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { en } from "@/lib/i18n/translations/en";
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 
 import {
   get_thread_messages,
@@ -36,22 +36,15 @@ import {
 } from "./api/mail";
 import {
   get_passphrase_bytes,
-  get_passphrase_from_memory,
   get_vault_from_memory,
   wait_for_keys_ready,
 } from "./crypto/memory_key_store";
-import {
-  decrypt_envelope_with_bytes,
-  array_to_base64,
-  base64_to_array,
-  normalize_envelope_from,
-} from "./crypto/envelope";
+import { array_to_base64 } from "./crypto/envelope";
 import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
 } from "./crypto/ratchet_manager";
 import { zero_uint8_array } from "./crypto/secure_memory";
-import { decrypt_message_with_any_key } from "./crypto/key_manager";
 import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 
 import {
@@ -67,7 +60,6 @@ import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 
 const HASH_ALG = ["SHA", "256"].join("-");
-const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 
 interface DecryptedEnvelope {
   subject: string;
@@ -83,122 +75,6 @@ interface DecryptedEnvelope {
   raw_headers?: { name: string; value: string }[];
 }
 
-async function decrypt_message_envelope(
-  encrypted_envelope: string,
-  envelope_nonce: string,
-): Promise<DecryptedEnvelope | null> {
-  const nonce_bytes = envelope_nonce
-    ? base64_to_array(envelope_nonce)
-    : new Uint8Array(0);
-
-  if (nonce_bytes.length === 0) {
-    try {
-      const encrypted_bytes = base64_to_array(encrypted_envelope);
-      const text = new TextDecoder().decode(encrypted_bytes);
-
-      let parsed: DecryptedEnvelope;
-
-      if (!text.startsWith("-----BEGIN PGP")) {
-        parsed = JSON.parse(text) as DecryptedEnvelope;
-      } else {
-        const vault = get_vault_from_memory();
-        const pass = get_passphrase_from_memory();
-
-        if (!vault?.identity_key || !pass) return null;
-
-        const decrypted = await decrypt_message_with_any_key(
-          text,
-          [vault.identity_key, ...(vault.previous_keys ?? [])],
-          pass,
-        );
-
-        parsed = JSON.parse(decrypted) as DecryptedEnvelope;
-      }
-
-      const from = normalize_envelope_from(parsed.from);
-
-      if (from) parsed.from = from;
-
-      return parsed;
-    } catch {
-      return null;
-    }
-  }
-
-  let passphrase_bytes = get_passphrase_bytes();
-
-  if (!passphrase_bytes) {
-    await wait_for_keys_ready();
-    passphrase_bytes = get_passphrase_bytes();
-  }
-
-  if (!passphrase_bytes) return null;
-
-  try {
-    if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
-      const result = await decrypt_envelope_with_bytes<DecryptedEnvelope>(
-        encrypted_envelope,
-        passphrase_bytes,
-      );
-
-      zero_uint8_array(passphrase_bytes);
-
-      if (result) {
-        const from = normalize_envelope_from(result.from);
-
-        if (from) result.from = from;
-      }
-
-      return result;
-    }
-
-    zero_uint8_array(passphrase_bytes);
-
-    const vault = get_vault_from_memory();
-
-    if (!vault?.identity_key) return null;
-
-    const enc_bytes = base64_to_array(encrypted_envelope);
-
-    const keys_to_try = [vault.identity_key, ...(vault.previous_keys ?? [])];
-
-    for (const key_string of keys_to_try) {
-      for (const version of ENVELOPE_KEY_VERSIONS) {
-        try {
-          const key_hash = await crypto.subtle.digest(
-            HASH_ALG,
-            new TextEncoder().encode(key_string + version),
-          );
-          const crypto_key = await crypto.subtle.importKey(
-            "raw",
-            key_hash,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["decrypt"],
-          );
-          const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
-
-          const parsed = JSON.parse(new TextDecoder().decode(decrypted));
-          const from = normalize_envelope_from(parsed.from);
-
-          if (from) parsed.from = from;
-
-          return parsed;
-        } catch {
-          continue;
-        }
-      }
-    }
-
-    return null;
-  } catch (error) {
-    if (import.meta.env.DEV) console.error(error);
-    zero_uint8_array(passphrase_bytes);
-
-    return null;
-  }
-}
-
 async function decrypt_reaction_body(
   mail_item_id: string,
   our_email: string,
@@ -209,9 +85,10 @@ async function decrypt_reaction_body(
     if (response.error || !response.data) return null;
 
     const item = response.data;
-    const envelope = await decrypt_message_envelope(
+    const envelope = await decrypt_mail_envelope<DecryptedEnvelope>(
       item.encrypted_envelope,
       item.envelope_nonce,
+      item.id,
     );
 
     if (!envelope) return null;
@@ -295,7 +172,11 @@ export async function resolve_reaction_emojis(
       const match = resolved.get(reaction.reaction_mail_item_id);
 
       return match
-        ? { ...reaction, emoji: match.emoji, reactor_email: match.reactor_email }
+        ? {
+            ...reaction,
+            emoji: match.emoji,
+            reactor_email: match.reactor_email,
+          }
         : reaction;
     });
   }
@@ -356,7 +237,11 @@ export async function fetch_and_decrypt_thread_messages(
 
   const decrypt_promises = messages_to_decrypt.map(async (msg) => {
     const [envelope, decrypted_metadata] = await Promise.all([
-      decrypt_message_envelope(msg.encrypted_envelope, msg.envelope_nonce),
+      decrypt_mail_envelope<DecryptedEnvelope>(
+        msg.encrypted_envelope,
+        msg.envelope_nonce,
+        msg.id,
+      ),
       msg.encrypted_metadata && msg.metadata_nonce
         ? decrypt_mail_metadata(
             msg.encrypted_metadata,
@@ -497,7 +382,8 @@ export async function fetch_and_decrypt_thread_messages(
       sender_name:
         envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
       sender_email: envelope.from?.email || "",
-      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
+      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
+        {}),
       subject: envelope.subject,
       body: body_content,
       html_content: effective_html,
@@ -556,7 +442,11 @@ export async function fetch_and_decrypt_virtual_group(
 
   const decrypt_promises = visible_items.map(async (item) => {
     const [envelope, decrypted_metadata] = await Promise.all([
-      decrypt_message_envelope(item.encrypted_envelope, item.envelope_nonce),
+      decrypt_mail_envelope<DecryptedEnvelope>(
+        item.encrypted_envelope,
+        item.envelope_nonce,
+        item.id,
+      ),
       item.encrypted_metadata && item.metadata_nonce
         ? decrypt_mail_metadata(
             item.encrypted_metadata,
@@ -691,7 +581,8 @@ export async function fetch_and_decrypt_virtual_group(
       sender_name:
         envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
       sender_email: envelope.from?.email || "",
-      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
+      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
+        {}),
       subject: envelope.subject,
       body: body_content,
       html_content: effective_html,
@@ -712,7 +603,6 @@ export async function fetch_and_decrypt_virtual_group(
       reactions: item.reactions,
     };
   });
-
 
   const decrypted = await Promise.all(decrypt_promises);
   const results = decrypted.filter(

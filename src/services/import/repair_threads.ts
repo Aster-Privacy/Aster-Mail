@@ -18,16 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   list_mail_items,
   link_mail_to_thread,
   type MailItem,
 } from "@/services/api/mail";
-import {
-  decrypt_envelope_with_bytes,
-  base64_to_array,
-} from "@/services/crypto/envelope";
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   get_passphrase_bytes,
   get_vault_from_memory,
@@ -36,7 +32,6 @@ import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const HASH_ALG = "SHA-256";
 const FETCH_LIMIT = 50;
-const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 const COOLDOWN_MS = 10_000;
 
 let last_run_at = 0;
@@ -81,61 +76,16 @@ interface DecryptedItem {
 
 async function decrypt_subject_from_item(
   item: MailItem,
-  passphrase_bytes: Uint8Array,
-  identity_key: string,
 ): Promise<string | null> {
   if (!item.encrypted_envelope) return null;
 
-  try {
-    const nonce_bytes = item.envelope_nonce
-      ? base64_to_array(item.envelope_nonce)
-      : new Uint8Array(0);
+  const envelope = await decrypt_mail_envelope<{ subject?: string }>(
+    item.encrypted_envelope,
+    item.envelope_nonce,
+    item.id,
+  );
 
-    if (nonce_bytes.length === 0) {
-      const enc_bytes = base64_to_array(item.encrypted_envelope);
-      const json = new TextDecoder().decode(enc_bytes);
-      const parsed = JSON.parse(json);
-
-      return parsed.subject || null;
-    }
-
-    if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
-      const result = await decrypt_envelope_with_bytes<{ subject?: string }>(
-        item.encrypted_envelope,
-        passphrase_bytes,
-      );
-
-      return result?.subject || null;
-    }
-
-    const enc_bytes = base64_to_array(item.encrypted_envelope);
-
-    for (const version of ENVELOPE_KEY_VERSIONS) {
-      try {
-        const key_hash = await crypto.subtle.digest(
-          HASH_ALG,
-          new TextEncoder().encode(identity_key + version),
-        );
-        const crypto_key = await crypto.subtle.importKey(
-          "raw",
-          key_hash,
-          { name: "AES-GCM", length: 256 },
-          false,
-          ["decrypt"],
-        );
-        const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
-        const parsed = JSON.parse(new TextDecoder().decode(decrypted));
-
-        return parsed.subject || null;
-      } catch {
-        continue;
-      }
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
+  return envelope?.subject || null;
 }
 
 async function fetch_all_items(): Promise<MailItem[]> {
@@ -168,9 +118,7 @@ export async function thread_imported_emails(): Promise<number> {
 
   if (!passphrase_bytes) return 0;
 
-  const vault = get_vault_from_memory();
-
-  if (!vault?.identity_key) {
+  if (!get_vault_from_memory()) {
     zero_uint8_array(passphrase_bytes);
 
     return 0;
@@ -189,11 +137,7 @@ export async function thread_imported_emails(): Promise<number> {
     const decrypted_all: DecryptedItem[] = [];
 
     for (const item of threaded) {
-      const subject = await decrypt_subject_from_item(
-        item,
-        passphrase_bytes,
-        vault.identity_key,
-      );
+      const subject = await decrypt_subject_from_item(item);
 
       if (subject) {
         decrypted_all.push({
@@ -206,11 +150,7 @@ export async function thread_imported_emails(): Promise<number> {
     }
 
     for (const item of unthreaded) {
-      const subject = await decrypt_subject_from_item(
-        item,
-        passphrase_bytes,
-        vault.identity_key,
-      );
+      const subject = await decrypt_subject_from_item(item);
 
       if (subject) {
         decrypted_all.push({
