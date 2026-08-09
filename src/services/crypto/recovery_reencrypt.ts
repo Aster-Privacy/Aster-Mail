@@ -145,6 +145,120 @@ async function re_encrypt_field(
   return re_encrypt_field_with_candidates(enc_b64, nonce_b64, [old_key], new_key);
 }
 
+type FieldPair = [encrypted_field: string, nonce_field: string];
+
+export async function re_encrypt_collection<T>(
+  items: T[],
+  fields: FieldPair[],
+  old_aes: CryptoKey,
+  new_aes: CryptoKey,
+  update: (item: T, patch: Record<string, string>) => Promise<unknown>,
+): Promise<boolean> {
+  let ok = true;
+
+  for (const item of items) {
+    try {
+      const source = item as Record<string, string>;
+      const patch: Record<string, string> = {};
+
+      await Promise.all(
+        fields.map(async ([encrypted_field, nonce_field]) => {
+          const result = await re_encrypt_field(
+            source[encrypted_field],
+            source[nonce_field],
+            old_aes,
+            new_aes,
+          );
+
+          patch[encrypted_field] = result.encrypted;
+          patch[nonce_field] = result.nonce;
+        }),
+      );
+
+      await update(item, patch);
+    } catch {
+      ok = false;
+      continue;
+    }
+  }
+
+  return ok;
+}
+
+async function identity_scoped_key_pair(
+  old_identity_key: string,
+  new_identity_key: string,
+  suffix: string,
+): Promise<{ old_key: CryptoKey; new_key: CryptoKey }> {
+  const digest = (identity_key: string) =>
+    crypto.subtle.digest(
+      HASH_ALG,
+      new TextEncoder().encode(identity_key + suffix),
+    );
+
+  const [old_raw_hash, new_raw_hash] = await Promise.all([
+    digest(old_identity_key),
+    digest(new_identity_key),
+  ]);
+
+  const [old_key, new_key] = await Promise.all([
+    crypto.subtle.importKey(
+      "raw",
+      old_raw_hash,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"],
+    ),
+    crypto.subtle.importKey(
+      "raw",
+      new_raw_hash,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"],
+    ),
+  ]);
+
+  return { old_key, new_key };
+}
+
+export async function re_encrypt_identity_scoped_setting(
+  endpoint: string,
+  suffix: string,
+  [encrypted_field, nonce_field]: FieldPair,
+  old_identity_key: string,
+  new_identity_key: string,
+): Promise<void> {
+  if (old_identity_key === new_identity_key) return;
+
+  const resp =
+    await api_client.get<Record<string, string | null>>(endpoint);
+
+  if (resp.error || !resp.data) return;
+
+  const encrypted_value = resp.data[encrypted_field];
+  const nonce_value = resp.data[nonce_field];
+
+  if (!encrypted_value || !nonce_value) return;
+
+  const { old_key, new_key } = await identity_scoped_key_pair(
+    old_identity_key,
+    new_identity_key,
+    suffix,
+  );
+
+  const { encrypted, nonce } = await re_encrypt_field(
+    encrypted_value,
+    nonce_value,
+    old_key,
+    new_key,
+  );
+
+  await api_client.put(endpoint, {
+    [encrypted_field]: encrypted,
+    [nonce_field]: nonce,
+  });
+}
+
 async function re_encrypt_signatures(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
@@ -155,33 +269,16 @@ async function re_encrypt_signatures(
 
   if (resp.error || !resp.data) return false;
 
-  let ok = true;
-
-  for (const sig of resp.data.signatures) {
-    try {
-      const [name, content] = await Promise.all([
-        re_encrypt_field(sig.encrypted_name, sig.name_nonce, old_aes, new_aes),
-        re_encrypt_field(
-          sig.encrypted_content,
-          sig.content_nonce,
-          old_aes,
-          new_aes,
-        ),
-      ]);
-
-      await api_client.put(`/mail/v1/signatures/${sig.id}`, {
-        encrypted_name: name.encrypted,
-        name_nonce: name.nonce,
-        encrypted_content: content.encrypted,
-        content_nonce: content.nonce,
-      });
-    } catch {
-      ok = false;
-      continue;
-    }
-  }
-
-  return ok;
+  return re_encrypt_collection(
+    resp.data.signatures,
+    [
+      ["encrypted_name", "name_nonce"],
+      ["encrypted_content", "content_nonce"],
+    ],
+    old_aes,
+    new_aes,
+    (sig, patch) => api_client.put(`/mail/v1/signatures/${sig.id}`, patch),
+  );
 }
 
 async function re_encrypt_templates(
@@ -194,41 +291,17 @@ async function re_encrypt_templates(
 
   if (resp.error || !resp.data) return false;
 
-  let ok = true;
-
-  for (const t of resp.data.templates) {
-    try {
-      const [name, category, content] = await Promise.all([
-        re_encrypt_field(t.encrypted_name, t.name_nonce, old_aes, new_aes),
-        re_encrypt_field(
-          t.encrypted_category,
-          t.category_nonce,
-          old_aes,
-          new_aes,
-        ),
-        re_encrypt_field(
-          t.encrypted_content,
-          t.content_nonce,
-          old_aes,
-          new_aes,
-        ),
-      ]);
-
-      await api_client.put(`/mail/v1/templates/${t.id}`, {
-        encrypted_name: name.encrypted,
-        name_nonce: name.nonce,
-        encrypted_category: category.encrypted,
-        category_nonce: category.nonce,
-        encrypted_content: content.encrypted,
-        content_nonce: content.nonce,
-      });
-    } catch {
-      ok = false;
-      continue;
-    }
-  }
-
-  return ok;
+  return re_encrypt_collection(
+    resp.data.templates,
+    [
+      ["encrypted_name", "name_nonce"],
+      ["encrypted_category", "category_nonce"],
+      ["encrypted_content", "content_nonce"],
+    ],
+    old_aes,
+    new_aes,
+    (t, patch) => api_client.put(`/mail/v1/templates/${t.id}`, patch),
+  );
 }
 
 async function re_encrypt_blocked_senders(
@@ -971,17 +1044,11 @@ async function re_encrypt_recovery_email(
 
   if (!encrypted_email || !email_nonce) return;
 
-  const RECOVERY_SUFFIX = "astermail-recovery-email-v1";
-
-  const [old_raw_hash, new_raw_hash] = await Promise.all([
-    crypto.subtle.digest(HASH_ALG, new TextEncoder().encode(old_identity_key + RECOVERY_SUFFIX)),
-    crypto.subtle.digest(HASH_ALG, new TextEncoder().encode(new_identity_key + RECOVERY_SUFFIX)),
-  ]);
-
-  const [old_key, new_key] = await Promise.all([
-    crypto.subtle.importKey("raw", old_raw_hash, { name: "AES-GCM", length: 256 }, false, ["decrypt"]),
-    crypto.subtle.importKey("raw", new_raw_hash, { name: "AES-GCM", length: 256 }, false, ["encrypt"]),
-  ]);
+  const { old_key, new_key } = await identity_scoped_key_pair(
+    old_identity_key,
+    new_identity_key,
+    "astermail-recovery-email-v1",
+  );
 
   const ct = base64_to_array(encrypted_email);
   const iv = base64_to_array(email_nonce);
@@ -1004,86 +1071,26 @@ async function re_encrypt_onboarding_state(
   old_identity_key: string,
   new_identity_key: string,
 ): Promise<void> {
-  if (old_identity_key === new_identity_key) return;
-
-  const resp = await api_client.get<{
-    encrypted_state: string | null;
-    state_nonce: string | null;
-    is_completed: boolean;
-    is_skipped: boolean;
-  }>("/core/v1/onboarding");
-
-  if (resp.error || !resp.data) return;
-
-  const { encrypted_state, state_nonce } = resp.data;
-
-  if (!encrypted_state || !state_nonce) return;
-
-  const ONBOARDING_SUFFIX = "astermail-onboarding-v1";
-
-  const [old_raw_hash, new_raw_hash] = await Promise.all([
-    crypto.subtle.digest(HASH_ALG, new TextEncoder().encode(old_identity_key + ONBOARDING_SUFFIX)),
-    crypto.subtle.digest(HASH_ALG, new TextEncoder().encode(new_identity_key + ONBOARDING_SUFFIX)),
-  ]);
-
-  const [old_key, new_key] = await Promise.all([
-    crypto.subtle.importKey("raw", old_raw_hash, { name: "AES-GCM", length: 256 }, false, ["decrypt"]),
-    crypto.subtle.importKey("raw", new_raw_hash, { name: "AES-GCM", length: 256 }, false, ["encrypt"]),
-  ]);
-
-  const { encrypted, nonce } = await re_encrypt_field(
-    encrypted_state,
-    state_nonce,
-    old_key,
-    new_key,
+  return re_encrypt_identity_scoped_setting(
+    "/core/v1/onboarding",
+    "astermail-onboarding-v1",
+    ["encrypted_state", "state_nonce"],
+    old_identity_key,
+    new_identity_key,
   );
-
-  await api_client.put("/core/v1/onboarding", {
-    encrypted_state: encrypted,
-    state_nonce: nonce,
-  });
 }
 
 async function re_encrypt_dev_mode(
   old_identity_key: string,
   new_identity_key: string,
 ): Promise<void> {
-  if (old_identity_key === new_identity_key) return;
-
-  const resp = await api_client.get<{
-    encrypted_dev_mode: string | null;
-    dev_mode_nonce: string | null;
-  }>("/settings/v1/preferences/dev-mode");
-
-  if (resp.error || !resp.data) return;
-
-  const { encrypted_dev_mode, dev_mode_nonce } = resp.data;
-
-  if (!encrypted_dev_mode || !dev_mode_nonce) return;
-
-  const DEVMODE_SUFFIX = "astermail-devmode-v1";
-
-  const [old_raw_hash, new_raw_hash] = await Promise.all([
-    crypto.subtle.digest(HASH_ALG, new TextEncoder().encode(old_identity_key + DEVMODE_SUFFIX)),
-    crypto.subtle.digest(HASH_ALG, new TextEncoder().encode(new_identity_key + DEVMODE_SUFFIX)),
-  ]);
-
-  const [old_key, new_key] = await Promise.all([
-    crypto.subtle.importKey("raw", old_raw_hash, { name: "AES-GCM", length: 256 }, false, ["decrypt"]),
-    crypto.subtle.importKey("raw", new_raw_hash, { name: "AES-GCM", length: 256 }, false, ["encrypt"]),
-  ]);
-
-  const { encrypted, nonce } = await re_encrypt_field(
-    encrypted_dev_mode,
-    dev_mode_nonce,
-    old_key,
-    new_key,
+  return re_encrypt_identity_scoped_setting(
+    "/settings/v1/preferences/dev-mode",
+    "astermail-devmode-v1",
+    ["encrypted_dev_mode", "dev_mode_nonce"],
+    old_identity_key,
+    new_identity_key,
   );
-
-  await api_client.put("/settings/v1/preferences/dev-mode", {
-    encrypted_dev_mode: encrypted,
-    dev_mode_nonce: nonce,
-  });
 }
 
 async function re_encrypt_external_accounts(
@@ -1106,35 +1113,29 @@ async function re_encrypt_external_accounts(
 
   const new_hmac = await derive_hmac_key(new_raw, "external-accounts-hmac-v1");
 
-  let ok = true;
-
-  for (const account of resp.data.accounts) {
-    try {
-      const { encrypted, nonce } = await re_encrypt_field(
-        account.encrypted_account_data,
-        account.account_data_nonce,
-        old_aes,
-        new_aes,
-      );
+  return re_encrypt_collection(
+    resp.data.accounts,
+    [["encrypted_account_data", "account_data_nonce"]],
+    old_aes,
+    new_aes,
+    async (account, patch) => {
+      const encrypted = patch.encrypted_account_data;
+      const nonce = patch.account_data_nonce;
       const combined = `${encrypted}:${nonce}:external-accounts-v1`;
       const hash_buf = await crypto.subtle.sign(
         "HMAC",
         new_hmac,
         new TextEncoder().encode(combined),
       );
+
       await api_client.put("/mail/v1/external_accounts/update", {
         account_token: account.account_token,
         encrypted_account_data: encrypted,
         account_data_nonce: nonce,
         integrity_hash: array_to_base64(new Uint8Array(hash_buf)),
       });
-    } catch {
-      ok = false;
-      continue;
-    }
-  }
-
-  return ok;
+    },
+  );
 }
 
 async function re_encrypt_contact_field_values(
