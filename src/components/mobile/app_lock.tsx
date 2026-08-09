@@ -52,6 +52,7 @@ import { sync_client } from "@/services/sync_client";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { set_app_network_locked } from "@/services/app_lock_network_gate";
+import { lock_all_folders } from "@/hooks/use_protected_folder";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -536,6 +537,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
       hidden_at_ref.current = null;
       if (hidden_for >= LOCK_TIMEOUT_MS) {
         clear_session_unlock(id);
+        lock_all_folders();
         const vt = config.pin_type ?? "numeric";
         set_web_pin_type(vt);
         set_web_pin_digits(vt === "numeric" ? (config.digits || 4) : 0);

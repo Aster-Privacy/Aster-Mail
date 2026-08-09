@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import { api_client, type ApiResponse } from "./client";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
@@ -28,7 +29,6 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";

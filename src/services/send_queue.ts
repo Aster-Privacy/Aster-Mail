@@ -35,7 +35,11 @@ import {
 } from "./undo_send_manager";
 import { type QueueEmailRequest } from "./api/undo_send";
 import { array_to_base64 } from "./crypto/envelope";
-import { SendError, create_error } from "./send_queue_types";
+import {
+  SendError,
+  PostQuantumUnavailableError,
+  create_error,
+} from "./send_queue_types";
 import {
   check_send_readiness_internal,
   execute_send,
@@ -444,6 +448,7 @@ async function prepare_email_for_server_queue(
     bundled_body_for_recipient,
     all_recipients,
     sender_email,
+    email.allow_non_post_quantum === true,
   );
 
   const internal_email: QueuedEmailInternal = {
@@ -562,6 +567,10 @@ export async function queue_email_to_server(
       pending_send,
     };
   } catch (err) {
+    if (err instanceof PostQuantumUnavailableError) {
+      throw err;
+    }
+
     const error = err as SendError;
 
     callbacks.on_error?.(error.message || en.errors.failed_queue_email);

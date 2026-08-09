@@ -100,7 +100,7 @@ import { clear_tags_cache } from "@/hooks/use_tags";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
-import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
+import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";

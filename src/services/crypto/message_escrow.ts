@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import { api_client } from "@/services/api/client";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
@@ -25,7 +27,6 @@ import {
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const API_BASE = "/crypto/v1/ratchet";
 const MAX_ESCROW_PLAINTEXT_BYTES = 100 * 1024;
 const ESCROW_MISS_TTL_MS = 24 * 60 * 60 * 1000;
@@ -129,23 +130,6 @@ interface EscrowEntry {
   message_id: string;
   encrypted_plaintext: string;
   plaintext_nonce: string;
-}
-
-function array_to_base64(arr: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < arr.length; i++) {
-    binary += String.fromCharCode(arr[i]);
-  }
-  return btoa(binary);
-}
-
-function base64_to_array(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
 }
 
 async function derive_escrow_key_from_base(

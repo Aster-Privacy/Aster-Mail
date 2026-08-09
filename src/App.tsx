@@ -115,12 +115,14 @@ const ExternalRedirect = ({ url }: { url: string }) => {
 
 import { ActionToast } from "@/components/toast/action_toast";
 import { SimpleToast } from "@/components/toast/simple_toast";
+import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
 import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
+import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
 import { OfflineIndicator } from "@/components/common/offline_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
@@ -490,10 +492,12 @@ function App() {
       <ActionToast />
       <SimpleToast />
       <UnsubscribeConfirmationModal />
+      <PostQuantumSendPrompt />
       <UpgradeModal />
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />
+      <FolderUnlockPrompt />
       <OfflineIndicator position="top" />
     </AppLock>
   );

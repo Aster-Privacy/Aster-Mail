@@ -22,6 +22,26 @@ import type { MailItemMetadata } from "@/types/email";
 
 import { api_client, type ApiResponse } from "./client";
 
+import { get_unlock_token } from "@/services/folder_unlock_store";
+import {
+  remember_items_folder_context,
+  remember_item_folder_context,
+  resolve_item_unlock_token,
+  resolve_items_unlock_token,
+  resolve_thread_unlock_token,
+  remember_thread_message_ids,
+  set_active_folder_token,
+} from "@/services/folder_context";
+import { with_folder_unlock } from "./folder_unlock_retry";
+
+function get_unlock_token_for_label(
+  label_token: string | undefined,
+): string | null {
+  if (!label_token) return null;
+
+  return get_unlock_token(label_token);
+}
+
 export interface MailItemFolder {
   token: string;
   name: string;
@@ -112,6 +132,7 @@ export interface ListMailItemsParams {
   group_by_thread?: boolean;
   order?: "asc" | "desc";
   skip_total?: boolean;
+  folder_unlock_token?: string;
 }
 
 export interface ListEncryptedMailItemsParams {
@@ -200,10 +221,29 @@ export async function list_mail_items(
   params: ListMailItemsParams = {},
 ): Promise<ApiResponse<MailItemsListResponse>> {
   if (params.ids && params.ids.length > 0) {
-    return api_client.post<MailItemsListResponse>("/mail/v1/messages/batch", {
-      ids: params.ids,
-      limit: params.limit,
-    });
+    const batch_ids = params.ids;
+    const known_token =
+      params.folder_unlock_token ??
+      get_unlock_token_for_label(params.label_token) ??
+      resolve_items_unlock_token(batch_ids);
+    const response = await with_folder_unlock<MailItemsListResponse>(
+      known_token,
+      (unlock_token) =>
+        api_client.post<MailItemsListResponse>(
+          "/mail/v1/messages/batch",
+          {
+            ids: batch_ids,
+            limit: params.limit,
+          },
+          unlock_token ? { folder_unlock_token: unlock_token } : {},
+        ),
+    );
+
+    if (response.data?.items) {
+      remember_items_folder_context(response.data.items, params.label_token);
+    }
+
+    return response;
   }
 
   const query_params = new URLSearchParams();
@@ -238,8 +278,25 @@ export async function list_mail_items(
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;
+  const unlock_token =
+    params.folder_unlock_token ??
+    get_unlock_token_for_label(params.label_token) ??
+    undefined;
 
-  return api_client.get<MailItemsListResponse>(endpoint, { retry: 2 });
+  if (unlock_token && params.label_token) {
+    set_active_folder_token(params.label_token);
+  }
+
+  const response = await api_client.get<MailItemsListResponse>(endpoint, {
+    retry: 2,
+    ...(unlock_token ? { folder_unlock_token: unlock_token } : {}),
+  });
+
+  if (response.data?.items) {
+    remember_items_folder_context(response.data.items, params.label_token);
+  }
+
+  return response;
 }
 
 export async function list_encrypted_mail_items(
@@ -262,9 +319,26 @@ export async function list_encrypted_mail_items(
 
 const prefetch_cache = new Map<string, Promise<ApiResponse<MailItem>>>();
 
+async function fetch_mail_item(
+  item_id: string,
+): Promise<ApiResponse<MailItem>> {
+  const response = await with_folder_unlock<MailItem>(
+    resolve_item_unlock_token(item_id),
+    (unlock_token) =>
+      api_client.get<MailItem>(
+        `/mail/v1/messages/${item_id}`,
+        unlock_token ? { folder_unlock_token: unlock_token } : undefined,
+      ),
+  );
+
+  if (response.data) remember_item_folder_context(response.data);
+
+  return response;
+}
+
 export function prefetch_mail_item(item_id: string): void {
   if (prefetch_cache.has(item_id)) return;
-  const promise = api_client.get<MailItem>(`/mail/v1/messages/${item_id}`);
+  const promise = fetch_mail_item(item_id);
 
   prefetch_cache.set(item_id, promise);
   setTimeout(() => prefetch_cache.delete(item_id), 60_000);
@@ -281,7 +355,7 @@ export async function get_mail_item(
     return cached;
   }
 
-  return api_client.get<MailItem>(`/mail/v1/messages/${item_id}`);
+  return fetch_mail_item(item_id);
 }
 
 export async function create_mail_item(
@@ -836,8 +910,13 @@ export async function list_threads(
 export async function get_thread(
   thread_token: string,
 ): Promise<ApiResponse<MailThread>> {
-  return api_client.get<MailThread>(
-    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}`,
+  return with_folder_unlock<MailThread>(
+    resolve_thread_unlock_token(thread_token),
+    (unlock_token) =>
+      api_client.get<MailThread>(
+        `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}`,
+        unlock_token ? { folder_unlock_token: unlock_token } : undefined,
+      ),
   );
 }
 
@@ -850,9 +929,23 @@ export async function get_thread_messages(
   if (options?.is_spam) params.set("is_spam", "true");
   const qs = params.toString();
   const suffix = qs ? `?${qs}` : "";
-  return api_client.get<ThreadWithMessages>(
-    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/messages${suffix}`,
+  const response = await with_folder_unlock<ThreadWithMessages>(
+    resolve_thread_unlock_token(thread_token),
+    (unlock_token) =>
+      api_client.get<ThreadWithMessages>(
+        `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/messages${suffix}`,
+        unlock_token ? { folder_unlock_token: unlock_token } : undefined,
+      ),
   );
+
+  if (response.data?.messages) {
+    remember_thread_message_ids(
+      thread_token,
+      response.data.messages.map((message) => message.id),
+    );
+  }
+
+  return response;
 }
 
 export async function mark_thread_read(

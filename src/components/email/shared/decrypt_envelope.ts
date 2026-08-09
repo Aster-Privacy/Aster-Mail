@@ -19,9 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedEnvelope } from "@/types/email";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 import { register_attachment_entry } from "@/services/crypto/inbound_attachment_keys";
+import { derive_pq_identity_from_seed } from "@/services/crypto/ratchet_manager";
 
 import {
   get_passphrase_bytes,
@@ -38,6 +38,7 @@ import {
 } from "@/services/crypto/key_manager";
 import {
   decrypt_envelope_with_bytes,
+  decrypt_envelope_with_identity_key,
   base64_to_array,
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
@@ -187,9 +188,6 @@ export async function decrypt_inbound_pq_hybrid(
   }
 }
 
-const HASH_ALG = ["SHA", "256"].join("-");
-const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
-
 function register_envelope_attachment_keys(
   mail_item_id: string | undefined,
   parsed_obj: unknown,
@@ -338,17 +336,28 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         ecdh: string;
         pq?: string;
       }> = [];
+      const resolve_pq = (secret?: string, seed?: string): string | undefined => {
+        if (secret) return secret;
+        if (!seed) return undefined;
+        return derive_pq_identity_from_seed(seed)?.pq_identity_secret;
+      };
       if (vault.ratchet_identity_key) {
         ratchet_key_sets.push({
           ecdh: vault.ratchet_identity_key,
-          pq: vault.ratchet_pq_identity_key,
+          pq: resolve_pq(
+            vault.ratchet_pq_identity_key,
+            vault.ratchet_pq_identity_seed,
+          ),
         });
       }
       for (const prev of vault.ratchet_previous_keys ?? []) {
         if (prev.ratchet_identity_key) {
           ratchet_key_sets.push({
             ecdh: prev.ratchet_identity_key,
-            pq: prev.ratchet_pq_identity_key,
+            pq: resolve_pq(
+              prev.ratchet_pq_identity_key,
+              prev.ratchet_pq_identity_seed,
+            ),
           });
         }
       }
@@ -390,66 +399,32 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
     if (!vault.identity_key) return null;
 
-    for (const version of ENVELOPE_KEY_VERSIONS) {
-      try {
-        const key_hash = await crypto.subtle.digest(
-          HASH_ALG,
-          new TextEncoder().encode(vault.identity_key + version),
-        );
-        const crypto_key = await crypto.subtle.importKey(
-          "raw",
-          key_hash,
-          { name: "AES-GCM", length: 256 },
-          false,
-          ["decrypt"],
-        );
-        const decrypted = await decrypt_aes_gcm_with_fallback(
-          crypto_key,
-          enc_bytes,
-          nonce_bytes,
-        );
+    const finalize_envelope = (plaintext: ArrayBuffer): T => {
+      const parsed = JSON.parse(new TextDecoder().decode(plaintext));
 
-        const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+      register_envelope_attachment_keys(mail_item_id, parsed);
 
-        register_envelope_attachment_keys(mail_item_id, parsed);
+      return normalize_parsed_envelope(parsed) as T;
+    };
 
-        return normalize_parsed_envelope(parsed) as T;
-      } catch {
-        continue;
-      }
-    }
+    const from_identity = await decrypt_envelope_with_identity_key(
+      vault.identity_key,
+      enc_bytes,
+      nonce_bytes,
+      finalize_envelope,
+    );
 
-    if (vault.previous_keys?.length) {
-      for (const previous_key of vault.previous_keys) {
-        for (const version of ENVELOPE_KEY_VERSIONS) {
-          try {
-            const key_hash = await crypto.subtle.digest(
-              HASH_ALG,
-              new TextEncoder().encode(previous_key + version),
-            );
-            const crypto_key = await crypto.subtle.importKey(
-              "raw",
-              key_hash,
-              { name: "AES-GCM", length: 256 },
-              false,
-              ["decrypt"],
-            );
-            const decrypted = await decrypt_aes_gcm_with_fallback(
-              crypto_key,
-              enc_bytes,
-              nonce_bytes,
-            );
+    if (from_identity) return from_identity;
 
-            const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+    for (const previous_key of vault.previous_keys || []) {
+      const from_previous = await decrypt_envelope_with_identity_key(
+        previous_key,
+        enc_bytes,
+        nonce_bytes,
+        finalize_envelope,
+      );
 
-            register_envelope_attachment_keys(mail_item_id, parsed);
-
-            return normalize_parsed_envelope(parsed) as T;
-          } catch {
-            continue;
-          }
-        }
-      }
+      if (from_previous) return from_previous;
     }
 
     return null;

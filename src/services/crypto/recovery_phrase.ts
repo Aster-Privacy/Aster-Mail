@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { array_to_base64, base64_to_array } from "./base64";
 import { generateMnemonic, validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
 
@@ -51,27 +52,6 @@ export function is_valid_recovery_phrase(phrase: string): boolean {
 
 export function get_phrase_wordlist(): readonly string[] {
   return wordlist;
-}
-
-function array_to_base64(arr: Uint8Array): string {
-  let binary = "";
-
-  for (let i = 0; i < arr.length; i++) {
-    binary += String.fromCharCode(arr[i]);
-  }
-
-  return btoa(binary);
-}
-
-function base64_to_array(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
 }
 
 async function derive_phrase_wrap_key(

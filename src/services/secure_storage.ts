@@ -1,3 +1,4 @@
+import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 //
 // Aster Communications Inc.
@@ -19,7 +20,6 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const HASH_ALG = ["SHA", "256"].join("-");
 const DB_NAME = "astermail_session_db";
 const DB_VERSION = 1;
 const STORE_NAME = "session_data";

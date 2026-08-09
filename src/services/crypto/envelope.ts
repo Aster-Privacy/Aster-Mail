@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { zero_uint8_array } from "./secure_memory";
+import { array_to_base64, base64_to_array } from "./base64";
+import { HASH_ALG } from "./key_manager_core";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { with_cached_envelope_key } from "./envelope_key_cache";
 
@@ -28,8 +30,7 @@ import {
 } from "./envelope_normalize";
 
 export { normalize_envelope_from, normalize_envelope_recipients };
-
-const HASH_ALG = ["SHA", "256"].join("-");
+export { array_to_base64, base64_to_array } from "./base64";
 
 export function normalize_parsed_envelope<T>(parsed: T): T {
   if (!parsed || typeof parsed !== "object") return parsed;
@@ -117,26 +118,6 @@ export async function derive_envelope_key(
   zero_uint8_array(passphrase_bytes);
 
   return key;
-}
-
-export function array_to_base64(arr: Uint8Array | ArrayBuffer): string {
-  const bytes = arr instanceof Uint8Array ? arr : new Uint8Array(arr);
-  let binary = "";
-
-  bytes.forEach((b) => (binary += String.fromCharCode(b)));
-
-  return btoa(binary);
-}
-
-export function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
 }
 
 export async function encrypt_envelope_with_bytes(
@@ -241,6 +222,40 @@ export async function decrypt_envelope<T>(
 }
 
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
+
+export async function decrypt_envelope_with_identity_key<T>(
+  identity_key: string,
+  encrypted_bytes: Uint8Array,
+  nonce_bytes: Uint8Array,
+  finalize: (plaintext: ArrayBuffer) => T,
+): Promise<T | null> {
+  for (const version of ENVELOPE_KEY_VERSIONS) {
+    try {
+      const key_hash = await crypto.subtle.digest(
+        HASH_ALG,
+        new TextEncoder().encode(identity_key + version),
+      );
+      const crypto_key = await crypto.subtle.importKey(
+        "raw",
+        key_hash,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["decrypt"],
+      );
+      const decrypted = await decrypt_aes_gcm_with_fallback(
+        crypto_key,
+        encrypted_bytes,
+        nonce_bytes,
+      );
+
+      return finalize(decrypted);
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
 
 export async function encrypt_envelope_with_identity_key(
   data: object,

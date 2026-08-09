@@ -18,11 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
-const HASH_ALG = "SHA-256";
 const DOMAIN = "astermail-calendar-v1";
 
 export interface EncryptedRecord {

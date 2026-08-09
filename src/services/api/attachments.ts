@@ -19,6 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { with_folder_unlock } from "./folder_unlock_retry";
+
+import {
+  resolve_item_unlock_token,
+  resolve_items_unlock_token,
+} from "@/services/folder_context";
 
 export interface MailAttachment {
   id: string;
@@ -49,16 +55,27 @@ export interface AttachmentsListResponse {
 export async function list_attachments(
   mail_id: string,
 ): Promise<ApiResponse<AttachmentsListResponse>> {
-  return api_client.get<AttachmentsListResponse>(
-    `/mail/v1/attachments/by-mail/${mail_id}`,
+  return with_folder_unlock<AttachmentsListResponse>(
+    resolve_item_unlock_token(mail_id),
+    (unlock_token) =>
+      api_client.get<AttachmentsListResponse>(
+        `/mail/v1/attachments/by-mail/${mail_id}`,
+        unlock_token ? { folder_unlock_token: unlock_token } : undefined,
+      ),
   );
 }
 
 export async function get_attachment(
   attachment_id: string,
+  mail_item_id?: string,
 ): Promise<ApiResponse<MailAttachment>> {
-  return api_client.get<MailAttachment>(
-    `/mail/v1/attachments/${attachment_id}`,
+  return with_folder_unlock<MailAttachment>(
+    resolve_item_unlock_token(mail_item_id),
+    (unlock_token) =>
+      api_client.get<MailAttachment>(
+        `/mail/v1/attachments/${attachment_id}`,
+        unlock_token ? { folder_unlock_token: unlock_token } : undefined,
+      ),
   );
 }
 
@@ -96,8 +113,13 @@ export interface BatchAttachmentMetaResponse {
 export async function batch_attachment_meta(
   mail_ids: string[],
 ): Promise<ApiResponse<BatchAttachmentMetaResponse>> {
-  return api_client.post<BatchAttachmentMetaResponse>(
-    "/mail/v1/attachments/meta/batch",
-    { mail_ids },
+  return with_folder_unlock<BatchAttachmentMetaResponse>(
+    resolve_items_unlock_token(mail_ids),
+    (unlock_token) =>
+      api_client.post<BatchAttachmentMetaResponse>(
+        "/mail/v1/attachments/meta/batch",
+        { mail_ids },
+        unlock_token ? { folder_unlock_token: unlock_token } : undefined,
+      ),
   );
 }

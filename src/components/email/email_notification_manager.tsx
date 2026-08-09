@@ -31,12 +31,24 @@ import { subscribe_to_push } from "@/services/push_subscription";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_lockdown_enabled } from "@/services/lockdown_store";
 import { get_mail_item_folders } from "@/services/api/mail";
+import {
+  get_locked_folder_tokens,
+  has_protected_folders,
+} from "@/services/locked_folders";
 
-async function is_email_in_muted_folder(
+async function is_email_notification_suppressed(
   email_id: string,
   muted_folder_tokens: string[],
 ): Promise<boolean> {
-  if (!email_id || muted_folder_tokens.length === 0) {
+  const locked_tokens = has_protected_folders()
+    ? get_locked_folder_tokens()
+    : new Set<string>();
+
+  if (!email_id) {
+    return false;
+  }
+
+  if (muted_folder_tokens.length === 0 && locked_tokens.size === 0) {
     return false;
   }
 
@@ -50,7 +62,9 @@ async function is_email_in_muted_folder(
 
     const muted = new Set(muted_folder_tokens);
 
-    return folder_tokens.some((token) => muted.has(token));
+    return folder_tokens.some(
+      (token) => muted.has(token) || locked_tokens.has(token),
+    );
   } catch {
     return false;
   }
@@ -142,12 +156,12 @@ export function EmailNotificationManager() {
       }
 
       void (async () => {
-        const muted = await is_email_in_muted_folder(
+        const suppressed = await is_email_notification_suppressed(
           email_id,
           preferences_ref.current.muted_folder_tokens ?? [],
         );
 
-        if (muted) {
+        if (suppressed) {
           return;
         }
 

@@ -37,6 +37,9 @@ vi.mock("@/services/crypto/legacy_keks", () => ({
 
 vi.mock("./double_ratchet", () => ({
   DoubleRatchet: { deserialize: vi.fn() },
+}));
+
+vi.mock("./ratchet_state_store", () => ({
   save_ratchet_state: vi.fn(),
   load_ratchet_state: vi.fn(),
   list_ratchet_conversations: vi.fn(),

@@ -197,13 +197,26 @@ class SecureBuffer {
   }
 }
 
+const MAX_RANDOM_CHUNK_BYTES = 65536;
+
+function fill_random(arr: Uint8Array): void {
+  for (let offset = 0; offset < arr.length; offset += MAX_RANDOM_CHUNK_BYTES) {
+    crypto.getRandomValues(
+      arr.subarray(
+        offset,
+        Math.min(offset + MAX_RANDOM_CHUNK_BYTES, arr.length),
+      ),
+    );
+  }
+}
+
 function zero_uint8_array(arr: Uint8Array): void {
   if (arr.length === 0) {
     return;
   }
-  crypto.getRandomValues(arr);
+  fill_random(arr);
   arr.fill(0);
-  crypto.getRandomValues(arr);
+  fill_random(arr);
   arr.fill(0);
 }
 

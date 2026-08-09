@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   encrypted_get,
   encrypted_set,
@@ -27,7 +28,6 @@ import { get_derived_encryption_key } from "./memory_key_store";
 import {
   base64_to_array,
   compute_hash,
-  secure_zero_memory,
 } from "./key_manager_core";
 
 const PIN_STORAGE_KEY_PREFIX = "ratchet_identity_pin_";
@@ -67,7 +67,7 @@ async function get_pin_storage_key(): Promise<CryptoKey> {
     ["encrypt", "decrypt"],
   );
 
-  secure_zero_memory(key_bytes);
+  zero_uint8_array(key_bytes);
 
   return crypto_key;
 }

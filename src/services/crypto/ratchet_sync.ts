@@ -18,17 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client } from "@/services/api/client";
+import { save_ratchet_state, load_ratchet_state } from "./ratchet_state_store";
 import {
   DoubleRatchet,
-  save_ratchet_state,
-  load_ratchet_state,
   type SerializedState,
 } from "./double_ratchet";
 import { merge_ratchet_states } from "./ratchet_state_merge";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const API_BASE = "/crypto/v1/ratchet";
 
 const NOT_FOUND_TTL_MS = 5 * 60 * 1000;
@@ -48,24 +48,7 @@ interface EncryptedStatePayload {
   state_nonce: string;
 }
 
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-  return btoa(binary);
-}
 
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
 
 async function encrypt_state_for_server(
   state: string,
@@ -368,22 +351,6 @@ export async function load_ratchet_from_server(
   return { ratchet, version: response.data.state_version };
 }
 
-export async function delete_ratchet_from_server(
-  conversation_id: string,
-): Promise<void> {
-  const conversation_id_b64 = array_to_base64(
-    new TextEncoder().encode(conversation_id),
-  );
-
-  const response = await api_client.delete(
-    `${API_BASE}/state/${encodeURIComponent(conversation_id_b64)}`,
-  );
-
-  if (response.error && response.code !== "NOT_FOUND") {
-    throw new Error(response.error || "Failed to delete ratchet state");
-  }
-}
-
 export async function list_server_ratchet_states(
   _encryption_key: CryptoKey,
 ): Promise<
@@ -423,7 +390,7 @@ export async function sync_all_ratchet_states(
       server_states.map((s) => [s.conversation_id, s]),
     );
 
-    const local_states = await import("./double_ratchet").then((m) =>
+    const local_states = await import("./ratchet_state_store").then((m) =>
       m.list_ratchet_conversations(),
     );
 

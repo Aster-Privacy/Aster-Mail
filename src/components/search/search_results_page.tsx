@@ -78,6 +78,7 @@ import { resolve_list_density } from "@/lib/list_density";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
+import { filter_locked_folder_emails } from "@/services/locked_folders";
 
 const MIN_LIST_WIDTH = 280;
 const SNIPPET_WINDOW = 120;
@@ -284,7 +285,7 @@ export function SearchResultsPage({
   const search_terms = useMemo(() => extract_query_terms(query), [query]);
 
   const filtered_results = useMemo(() => {
-    let results = [...state.results];
+    let results = filter_locked_folder_emails([...state.results]);
 
     if (filters.read_status === "read") {
       results = results.filter((r) => r.is_read);

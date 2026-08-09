@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import * as openpgp from "openpgp";
 
 import { clamp_password } from "@/services/sanitize";
@@ -36,7 +37,6 @@ function build_vault_aad(version: number): Uint8Array {
 import {
   HASH_ALG,
   KEY_DERIVATION_ITERATIONS,
-  secure_zero_memory,
   array_to_base64,
   base64_to_array,
   generate_random_bytes,
@@ -123,7 +123,7 @@ export async function with_decrypted_key<T>(
     throw error;
   } finally {
     if (decrypted_material) {
-      secure_zero_memory(decrypted_material);
+      zero_uint8_array(decrypted_material);
     }
   }
 }
@@ -186,7 +186,7 @@ export async function generate_identity_keypair(
   const entropy_test = generate_random_bytes(1024);
   const entropy_check = verify_entropy_quality(entropy_test);
 
-  secure_zero_memory(entropy_test);
+  zero_uint8_array(entropy_test);
 
   if (!entropy_check.valid) {
     throw new Error(
@@ -226,7 +226,7 @@ export async function generate_signed_prekey(
   const entropy_test = generate_random_bytes(1024);
   const entropy_check = verify_entropy_quality(entropy_test);
 
-  secure_zero_memory(entropy_test);
+  zero_uint8_array(entropy_test);
 
   if (!entropy_check.valid) {
     throw new Error(
@@ -740,9 +740,9 @@ export async function decrypt_vault_to_handles(
   const recovery_codes_bytes = encoder.encode(recovery_codes_string);
   const recovery_codes_hash = await compute_hash(recovery_codes_bytes);
 
-  secure_zero_memory(identity_key_bytes);
-  secure_zero_memory(signed_prekey_bytes);
-  secure_zero_memory(new Uint8Array(decrypted));
+  zero_uint8_array(identity_key_bytes);
+  zero_uint8_array(signed_prekey_bytes);
+  zero_uint8_array(new Uint8Array(decrypted));
 
   log_key_usage(identity_handle.key_id, "load", true, "vault_decrypt");
   log_key_usage(prekey_handle.key_id, "load", true, "vault_decrypt");
@@ -1219,7 +1219,7 @@ export function string_to_passphrase(password: string): Uint8Array {
 }
 
 export function zero_passphrase(passphrase: Uint8Array): void {
-  secure_zero_memory(passphrase);
+  zero_uint8_array(passphrase);
 }
 
 export function get_key_usage_log(key_id?: string): KeyUsageRecord[] {
@@ -1280,7 +1280,7 @@ export function clear_key_manager_state(): void {
 }
 
 export function clear_key_handle(handle: EncryptedKeyHandle): void {
-  secure_zero_memory(handle.encrypted_key);
+  zero_uint8_array(handle.encrypted_key);
   log_key_usage(handle.key_id, "decrypt", true, "handle_cleared");
 }
 

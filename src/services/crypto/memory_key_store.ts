@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { HASH_ALG } from "@/services/crypto/constants";
+import { base64_to_array } from "./base64";
 import type { EncryptedVault } from "./key_manager";
 
 import { sha256 } from "@noble/hashes/sha256";
@@ -32,7 +34,6 @@ import {
 import {
   store_key,
   get_key,
-  remove_key,
   clear_all_keys as clear_crypto_key_cache,
   start_session,
   refresh_session,
@@ -50,7 +51,6 @@ import {
 
 import { en } from "@/lib/i18n/translations/en";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export const MASTER_KEY_VAULT_FORMAT = 2;
 
@@ -62,17 +62,6 @@ export function is_master_key_vault(
     (vault.vault_format ?? 1) >= MASTER_KEY_VAULT_FORMAT &&
     !!vault.data_kek
   );
-}
-
-function base64_to_array(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
 }
 
 function arrays_equal(a: Uint8Array, b: Uint8Array): boolean {
@@ -143,11 +132,6 @@ if (import.meta.hot) {
 const DERIVED_KEY_LENGTH = 32;
 const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
-
-const IDENTITY_KEY_CACHE_ID = "identity_crypto_key";
-const SIGNED_PREKEY_CACHE_ID = "signed_prekey_crypto_key";
-const IDENTITY_PRIVATE_KEY_CACHE_ID = "identity_private_crypto_key";
-const SIGNED_PREKEY_PRIVATE_CACHE_ID = "signed_prekey_private_crypto_key";
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -315,10 +299,6 @@ export function get_derived_encryption_key(): Uint8Array | null {
   return copy;
 }
 
-export function get_derived_encryption_crypto_key(): CryptoKey | null {
-  return get_key("derived_encryption_key");
-}
-
 export async function get_or_create_derived_encryption_crypto_key(): Promise<CryptoKey | null> {
   let cached = get_key("derived_encryption_key");
 
@@ -344,26 +324,6 @@ export function get_passphrase_from_memory(): string | null {
   }
 
   return secure_passphrase.to_string();
-}
-
-export async function with_passphrase<T>(
-  callback: (passphrase_bytes: Uint8Array) => Promise<T>,
-): Promise<T | null> {
-  if (!secure_passphrase || secure_passphrase.is_cleared()) {
-    return null;
-  }
-
-  const bytes = secure_passphrase.get_bytes();
-
-  if (!bytes) {
-    return null;
-  }
-
-  try {
-    return await callback(bytes);
-  } finally {
-    zero_uint8_array(bytes);
-  }
 }
 
 export function clear_passphrase(): void {
@@ -408,10 +368,6 @@ export function has_vault_in_memory(): boolean {
 
 export function get_vault_owner_id(): string | null {
   return vault_owner_id;
-}
-
-export function set_vault_owner_id(user_id: string | null): void {
-  vault_owner_id = user_id;
 }
 
 export function is_vault_owned_by(user_id: string | null | undefined): boolean {
@@ -506,30 +462,6 @@ export function extend_passphrase_timeout(): void {
   refresh_session();
 }
 
-export function set_passphrase_timeout(timeout_ms: number): void {
-  if (secure_passphrase) {
-    secure_passphrase.set_auto_zero_timeout(timeout_ms);
-  }
-}
-
-export function get_public_key_for_display(): string | null {
-  return vault_in_memory?.signed_prekey ?? null;
-}
-
-export function get_key_fingerprint(): string | null {
-  if (!vault_in_memory) return null;
-
-  const lines = vault_in_memory.identity_key.split("\n");
-  const fingerprint = lines.find(
-    (line) => line.length === 40 && /^[A-F0-9]+$/i.test(line),
-  );
-
-  return (
-    fingerprint?.match(/.{4}/g)?.join(" ") ??
-    vault_in_memory.identity_key.substring(0, 16) + "..."
-  );
-}
-
 function validate_passphrase(entered: string): string | null {
   if (!secure_passphrase || secure_passphrase.is_cleared())
     return en.errors.session_expired_login;
@@ -597,76 +529,6 @@ export function consume_export_token(token: string): boolean {
   return true;
 }
 
-export function get_recovery_codes_with_confirmation(
-  entered_passphrase: string,
-): { success: boolean; codes?: string[]; error?: string } {
-  const error = validate_passphrase(entered_passphrase);
-
-  if (error) return { success: false, error };
-
-  return { success: true, codes: [...vault_in_memory!.recovery_codes] };
-}
-
-export function store_identity_crypto_key(key: CryptoKey): void {
-  refresh_session();
-  store_key(IDENTITY_KEY_CACHE_ID, key, "identity");
-}
-
-export function get_identity_crypto_key(): CryptoKey | null {
-  refresh_session();
-
-  return get_key(IDENTITY_KEY_CACHE_ID);
-}
-
-export function has_identity_crypto_key(): boolean {
-  return has_key(IDENTITY_KEY_CACHE_ID);
-}
-
-export function store_identity_private_crypto_key(key: CryptoKey): void {
-  refresh_session();
-  store_key(IDENTITY_PRIVATE_KEY_CACHE_ID, key, "identity");
-}
-
-export function get_identity_private_crypto_key(): CryptoKey | null {
-  refresh_session();
-
-  return get_key(IDENTITY_PRIVATE_KEY_CACHE_ID);
-}
-
-export function has_identity_private_crypto_key(): boolean {
-  return has_key(IDENTITY_PRIVATE_KEY_CACHE_ID);
-}
-
-export function store_signed_prekey_crypto_key(key: CryptoKey): void {
-  refresh_session();
-  store_key(SIGNED_PREKEY_CACHE_ID, key, "signed_prekey");
-}
-
-export function get_signed_prekey_crypto_key(): CryptoKey | null {
-  refresh_session();
-
-  return get_key(SIGNED_PREKEY_CACHE_ID);
-}
-
-export function has_signed_prekey_crypto_key(): boolean {
-  return has_key(SIGNED_PREKEY_CACHE_ID);
-}
-
-export function store_signed_prekey_private_crypto_key(key: CryptoKey): void {
-  refresh_session();
-  store_key(SIGNED_PREKEY_PRIVATE_CACHE_ID, key, "signed_prekey");
-}
-
-export function get_signed_prekey_private_crypto_key(): CryptoKey | null {
-  refresh_session();
-
-  return get_key(SIGNED_PREKEY_PRIVATE_CACHE_ID);
-}
-
-export function has_signed_prekey_private_crypto_key(): boolean {
-  return has_key(SIGNED_PREKEY_PRIVATE_CACHE_ID);
-}
-
 export function store_ke_crypto_key(id: string, key: CryptoKey): void {
   refresh_session();
   store_key(`ke:${id}`, key, "ke");
@@ -680,10 +542,6 @@ export function get_ke_crypto_key(id: string): CryptoKey | null {
 
 export function has_ke_crypto_key(id: string): boolean {
   return has_key(`ke:${id}`);
-}
-
-export function remove_ke_crypto_key(id: string): boolean {
-  return remove_key(`ke:${id}`);
 }
 
 export function store_aes_crypto_key(id: string, key: CryptoKey): void {
@@ -701,6 +559,3 @@ export function has_aes_crypto_key(id: string): boolean {
   return has_key(`aes:${id}`);
 }
 
-export function remove_aes_crypto_key(id: string): boolean {
-  return remove_key(`aes:${id}`);
-}

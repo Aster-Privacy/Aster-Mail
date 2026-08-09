@@ -216,6 +216,21 @@ export interface RequestConfig extends RequestInit {
   skip_session_refresh?: boolean;
   skip_dedup?: boolean;
   skip_upgrade_prompt?: boolean;
+  folder_unlock_token?: string;
+}
+
+const FOLDER_UNLOCK_HEADER = "X-Folder-Unlock";
+
+export function unlock_token_cache_suffix(token: string | undefined): string {
+  if (!token) return "";
+
+  let hash = 5381;
+
+  for (let i = 0; i < token.length; i++) {
+    hash = ((hash << 5) + hash + token.charCodeAt(i)) >>> 0;
+  }
+
+  return `|u:${hash.toString(36)}`;
 }
 
 const IDENTITY_CHECK_MIN_INTERVAL_MS = 30000;
@@ -1490,6 +1505,7 @@ class ApiClient {
       skip_cache: _skip_cache,
       skip_session_refresh = false,
       skip_upgrade_prompt = false,
+      folder_unlock_token,
       ...options
     } = config;
 
@@ -1498,6 +1514,14 @@ class ApiClient {
       "X-Aster-Client": CLIENT_PLATFORM_HEADER,
       ...((options.headers as Record<string, string>) || {}),
     };
+
+    const apply_folder_unlock_header = (): void => {
+      if (folder_unlock_token) {
+        headers[FOLDER_UNLOCK_HEADER] = folder_unlock_token;
+      }
+    };
+
+    apply_folder_unlock_header();
 
     const device_id = get_device_id();
 
@@ -1590,6 +1614,7 @@ class ApiClient {
                 if (this.dev_access_token) {
                   headers["Authorization"] = `Bearer ${this.dev_access_token}`;
                 }
+                apply_folder_unlock_header();
                 const fresh_csrf = get_csrf_token_from_cookie();
 
                 if (fresh_csrf) {
@@ -1748,6 +1773,7 @@ class ApiClient {
                 if (this.dev_access_token) {
                   headers["Authorization"] = `Bearer ${this.dev_access_token}`;
                 }
+                apply_folder_unlock_header();
                 const fresh_csrf = get_csrf_token_from_cookie();
 
                 if (fresh_csrf && is_state_changing_method(method)) {
@@ -1787,6 +1813,7 @@ class ApiClient {
             clear_csrf_cache();
             try {
               await this.refresh_session();
+              apply_folder_unlock_header();
               const fresh_csrf = get_csrf_token_from_cookie();
 
               if (fresh_csrf) {
@@ -1915,7 +1942,9 @@ class ApiClient {
     config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     const { cache_ttl, skip_cache, skip_dedup, ...fetch_config } = config ?? {};
-    const cache_key = `GET:${endpoint}`;
+    const cache_key = `GET:${endpoint}${unlock_token_cache_suffix(
+      fetch_config.folder_unlock_token,
+    )}`;
 
     return request_cache.get_or_fetch<ApiResponse<T>>(
       cache_key,

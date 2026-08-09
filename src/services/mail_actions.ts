@@ -28,6 +28,7 @@ import {
   parse_undo_send_period,
 } from "./send_queue";
 import { get_or_create_thread_token } from "./thread_service";
+import { ensure_post_quantum_consent } from "./post_quantum_consent";
 
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
@@ -215,10 +216,22 @@ export async function send_reply(
     }
   }
 
+  const consent = await ensure_post_quantum_consent(
+    [...recipients, ...(cc ?? [])],
+    params.sender_email || current_user_email,
+  );
+
+  if (!consent.proceed) {
+    callbacks.on_cancel?.();
+
+    return { success: false };
+  }
+
   if (delay_seconds > 0) {
     const result = await queue_email_to_server(
       {
         to: recipients,
+        allow_non_post_quantum: consent.allow_non_post_quantum,
         cc,
         subject,
         envelope_subject: base_subject,
@@ -259,6 +272,7 @@ export async function send_reply(
     {
       to: recipients,
       cc,
+      allow_non_post_quantum: consent.allow_non_post_quantum,
       subject,
       envelope_subject: base_subject,
       body: params.message,
@@ -334,10 +348,26 @@ export async function send_forward(
   const delay_ms = parse_undo_send_period(undo_send_period);
   const delay_seconds = delay_ms / 1000;
 
+  const consent = await ensure_post_quantum_consent(
+    [
+      ...params.recipients,
+      ...(params.cc_recipients ?? []),
+      ...(params.bcc_recipients ?? []),
+    ],
+    params.sender_email,
+  );
+
+  if (!consent.proceed) {
+    callbacks.on_cancel?.();
+
+    return { success: false };
+  }
+
   if (delay_seconds > 0) {
     const result = await queue_email_to_server(
       {
         to: params.recipients,
+        allow_non_post_quantum: consent.allow_non_post_quantum,
         cc: params.cc_recipients,
         bcc: params.bcc_recipients,
         subject,
@@ -372,6 +402,7 @@ export async function send_forward(
   const queued_id = queue_email(
     {
       to: params.recipients,
+      allow_non_post_quantum: consent.allow_non_post_quantum,
       cc: params.cc_recipients,
       bcc: params.bcc_recipients,
       subject,

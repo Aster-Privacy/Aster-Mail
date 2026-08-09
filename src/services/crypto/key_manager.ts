@@ -1,4 +1,5 @@
-//
+//import { zero_uint8_array } from "@/services/crypto/secure_memory";
+
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -18,10 +19,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+export { zero_uint8_array } from "./secure_memory";
+
 export {
   base64_to_array,
   array_to_base64,
-  secure_zero_memory,
   generate_random_bytes,
   generate_key_id,
   compute_hash,

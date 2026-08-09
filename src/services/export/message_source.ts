@@ -22,6 +22,7 @@ import type { DecryptedEnvelope } from "@/types/email";
 import type { ExportAttachment } from "@/utils/export";
 import { list_mail_items } from "@/services/api/mail";
 import { list_attachments } from "@/services/api/attachments";
+import { filter_locked_mail_items } from "@/services/locked_folders";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   decrypt_attachment_meta,
@@ -153,7 +154,7 @@ export function create_account_message_source(): ExportSource {
         });
         if (!page.data?.items?.length) break;
 
-        for (const item of page.data.items) {
+        for (const item of filter_locked_mail_items(page.data.items)) {
           if (signal.aborted) return;
 
           const envelope = await decrypt_mail_envelope(

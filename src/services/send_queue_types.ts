@@ -27,7 +27,8 @@ export type SendErrorType =
   | "send_failed"
   | "rate_limited"
   | "recipient_error"
-  | "mixed_recipients";
+  | "mixed_recipients"
+  | "post_quantum_unavailable";
 
 export class SendError extends Error {
   type: SendErrorType;
@@ -36,6 +37,16 @@ export class SendError extends Error {
     super(message);
     this.type = type;
     this.name = "SendError";
+  }
+}
+
+export class PostQuantumUnavailableError extends SendError {
+  recipients: string[];
+
+  constructor(message: string, recipients: string[]) {
+    super(message, "post_quantum_unavailable");
+    this.recipients = recipients;
+    this.name = "PostQuantumUnavailableError";
   }
 }
 
@@ -84,6 +95,7 @@ export interface EmailParams {
   forward_original_mail_id?: string;
   in_reply_to?: string;
   force_pgp?: boolean;
+  allow_non_post_quantum?: boolean;
 }
 
 export interface QueueCallbacks {

@@ -18,28 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { sender_verification_status } from "./key_manager_pgp";
-
 import {
   get_recipient_public_key,
   extract_username_from_email,
   is_internal_email,
 } from "@/services/api/keys";
-
-export type verification_policy =
-  | "informational"
-  | "warn_invalid"
-  | "block_invalid";
-
-export const current_verification_policy: verification_policy = "informational";
-
-export function should_render_message(status: sender_verification_status): boolean {
-  if (current_verification_policy === "block_invalid" && status === "invalid") {
-    return false;
-  }
-
-  return true;
-}
 
 const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
 const resolver_cache = new Map<string, { keys: string[]; timestamp: number }>();
@@ -101,6 +84,3 @@ export async function resolve_sender_verification_keys(
   }
 }
 
-export function clear_sender_verification_cache(): void {
-  resolver_cache.clear();
-}

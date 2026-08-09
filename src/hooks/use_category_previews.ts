@@ -36,6 +36,7 @@ import {
   on_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { list_mail_items } from "@/services/api/mail";
+import { filter_locked_mail_items } from "@/services/locked_folders";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
 import { build_category_preview } from "@/lib/category_preview_text";
 
@@ -66,6 +67,13 @@ function reset_if_stale(): void {
 
   if (generation === cache_generation) return;
   cache_generation = generation;
+  preview_cache.clear();
+  attempts.clear();
+  in_flight.clear();
+}
+
+export function clear_category_preview_cache(): void {
+  cache_generation = -1;
   preview_cache.clear();
   attempts.clear();
   in_flight.clear();
@@ -106,7 +114,7 @@ async function fetch_previews(ids: string[]): Promise<boolean> {
 
     if (generation !== get_index_generation()) return false;
 
-    const items = response.data?.items ?? [];
+    const items = filter_locked_mail_items(response.data?.items ?? []);
 
     for (const item of items) {
       const envelope = await decrypt_envelope(
@@ -262,7 +270,7 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
 
         if (cancelled || generation !== get_index_generation()) return;
 
-        const items = response.data?.items ?? [];
+        const items = filter_locked_mail_items(response.data?.items ?? []);
 
         for (const item of items) {
           const envelope = await decrypt_envelope(

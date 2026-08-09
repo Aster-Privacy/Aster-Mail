@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
@@ -26,7 +27,6 @@ import type { StepUpCredentials } from "./step_up";
 
 import { hash_recovery_email } from "@/services/crypto/key_manager";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 interface GetRecoveryEmailApiResponse {
   encrypted_email: string | null;

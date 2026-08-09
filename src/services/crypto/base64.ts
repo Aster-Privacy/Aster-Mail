@@ -18,5 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export * from "./mail_metadata_core";
-export * from "./mail_metadata_writer";
+export function array_to_base64(array: Uint8Array | ArrayBuffer): string {
+  const bytes = array instanceof Uint8Array ? array : new Uint8Array(array);
+
+  let binary = "";
+
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+
+  return btoa(binary);
+}
+
+export function base64_to_array(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type { CustomCategoryRule } from "@/data/category_catalog";
@@ -32,7 +33,6 @@ import {
 
 import { api_client } from "./client";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface UserPreferences {
   theme: "light" | "dark" | "system";
@@ -194,6 +194,7 @@ export interface UserPreferences {
   thread_count_position: "left" | "right";
   compose_window_mode: "default" | "fullscreen" | "minimized";
   reactions_enabled: boolean;
+  purge_locked_folder_on_delete: boolean;
   family_setup_wizard_dismissed: boolean;
   translate_incoming: "off" | "ask" | "always";
   translate_languages: string[];
@@ -510,6 +511,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   thread_count_position: "left",
   compose_window_mode: "default",
   reactions_enabled: true,
+  purge_locked_folder_on_delete: false,
   family_setup_wizard_dismissed: false,
   translate_incoming: "off",
   translate_languages: [],

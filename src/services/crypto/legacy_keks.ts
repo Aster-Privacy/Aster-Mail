@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import type { LegacyDerivedKek } from "./key_manager_core";
 
 import { zero_uint8_array } from "./secure_memory";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const DERIVED_KEY_LENGTH = 32;
 const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
@@ -89,33 +90,14 @@ export async function derive_kek_from_password(
   return new Uint8Array(derived_bits);
 }
 
-function to_base64(bytes: Uint8Array): string {
-  let binary = "";
 
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-
-  return btoa(binary);
-}
-
-function from_base64(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
 
 export function serialize_kek_for_vault(
   raw_key: Uint8Array,
   added_at: Date = new Date(),
 ): LegacyDerivedKek {
   return {
-    k: to_base64(raw_key),
+    k: array_to_base64(raw_key),
     added_at: added_at.toISOString(),
   };
 }
@@ -170,7 +152,7 @@ export async function load_legacy_keks_into_memory(
 
   for (const entry of list) {
     try {
-      const raw = from_base64(entry.k);
+      const raw = base64_to_array(entry.k);
 
       await remember_legacy_raw(raw);
       zero_uint8_array(raw);
@@ -213,10 +195,6 @@ export function get_legacy_crypto_keys(): CryptoKey[] {
   return legacy_crypto_keys;
 }
 
-export function get_legacy_hkdf_keys(): CryptoKey[] {
-  return legacy_hkdf_keys;
-}
-
 export async function decrypt_with_legacy_derived_keys(
   derive: (base: CryptoKey) => Promise<CryptoKey>,
   ciphertext: BufferSource,
@@ -235,29 +213,12 @@ export async function decrypt_with_legacy_derived_keys(
   return null;
 }
 
-export function has_legacy_keks(): boolean {
-  return legacy_crypto_keys.length > 0;
-}
-
 export async function append_legacy_key_raw_bytes(
   raw: Uint8Array,
 ): Promise<void> {
   try {
     await remember_legacy_raw(raw);
   } catch {}
-}
-
-export function retire_kek_from_list(
-  existing: LegacyDerivedKek[] | undefined,
-  raw_key: Uint8Array,
-): LegacyDerivedKek[] {
-  if (!existing || existing.length === 0) {
-    return [];
-  }
-
-  const target = to_base64(raw_key);
-
-  return existing.filter((entry) => entry.k !== target);
 }
 
 export async function decrypt_aes_gcm_with_fallback(

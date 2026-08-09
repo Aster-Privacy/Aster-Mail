@@ -18,21 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "./key_manager";
 
 import {
-  get_draft,
   create_draft,
   update_draft,
   delete_draft,
   type DraftContent,
   type DraftAttachmentData,
-  type DraftWithContent,
   type DraftType,
 } from "@/services/api/multi_drafts";
 import { emit_drafts_changed, emit_draft_updated } from "@/hooks/mail_events";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface DraftData {
   to_recipients: string[];
@@ -425,34 +423,3 @@ class DraftManager {
 
 export const draft_manager = new DraftManager();
 
-export interface DraftDataWithVersion extends DraftData {
-  version: number;
-  draft_type: DraftType;
-  reply_to_id?: string;
-  forward_from_id?: string;
-}
-
-export async function get_draft_by_id(
-  id: string,
-  vault: EncryptedVault,
-): Promise<DraftDataWithVersion | null> {
-  const response = await get_draft(id, vault);
-
-  if (!response.data) {
-    return null;
-  }
-
-  const draft: DraftWithContent = response.data;
-
-  return {
-    to_recipients: draft.content.to_recipients,
-    cc_recipients: draft.content.cc_recipients,
-    bcc_recipients: draft.content.bcc_recipients,
-    subject: draft.content.subject,
-    message: draft.content.message,
-    version: draft.version,
-    draft_type: draft.draft_type,
-    reply_to_id: draft.reply_to_id,
-    forward_from_id: draft.forward_from_id,
-  };
-}

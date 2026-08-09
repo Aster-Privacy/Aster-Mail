@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_derived_encryption_key,
@@ -39,7 +41,6 @@ import { clear_notification_state } from "@/services/notification_service";
 import { clear_external_key_cache } from "@/services/api/keys";
 import { clear_csrf_cache } from "@/services/api/csrf";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const CURRENT_VERSION = 1;
 const STORAGE_SALT_KEY = "aster_storage_salt";
 const DEVICE_ID_KEY = "aster_device_id";
@@ -74,24 +75,7 @@ interface DerivedKeys {
 let cached_keys: DerivedKeys | null = null;
 let cached_key_fingerprint: string | null = null;
 
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-  return btoa(binary);
-}
 
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
 
 function generate_random_bytes(length: number): Uint8Array {
   const arr = new Uint8Array(length);
@@ -440,49 +424,6 @@ export function clear_secure_storage_cache(): void {
   cached_key_fingerprint = null;
 }
 
-export function get_device_fingerprint(): string {
-  return get_or_create_device_id();
-}
-
-export async function verify_storage_access(): Promise<boolean> {
-  try {
-    await get_derived_keys();
-
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export async function rotate_device_binding(): Promise<void> {
-  const keys_to_migrate: string[] = [];
-  const values_to_migrate: Map<string, unknown> = new Map();
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (key && !key.startsWith("aster_")) {
-      const value = await secure_retrieve(key);
-
-      if (value !== null) {
-        keys_to_migrate.push(key);
-        values_to_migrate.set(key, value);
-      }
-    }
-  }
-
-  localStorage.removeItem(DEVICE_ID_KEY);
-  clear_secure_storage_cache();
-
-  for (const key of keys_to_migrate) {
-    const value = values_to_migrate.get(key);
-
-    if (value !== undefined) {
-      await secure_store(key, value);
-    }
-  }
-}
-
 function secure_clear_session_storage(): void {
   const keys_to_remove: string[] = [];
 
@@ -635,10 +576,6 @@ export async function wipe_all_storage(): Promise<void> {
   secure_clear_session_storage();
 
   secure_clear_local_storage();
-}
-
-export async function secure_logout(): Promise<void> {
-  await wipe_all_storage();
 }
 
 let device_encryption_key: CryptoKey | null = null;

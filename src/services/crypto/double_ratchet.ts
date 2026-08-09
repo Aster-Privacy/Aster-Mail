@@ -18,21 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import {
-  encrypted_get,
-  encrypted_set,
-  encrypted_delete,
-} from "./encrypted_storage";
-import {
-  get_derived_encryption_key,
-  has_vault_in_memory,
-} from "./memory_key_store";
 
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const KDF_INFO_ROOT = new TextEncoder().encode("Aster Mail_Root_KDF");
 const KDF_INFO_CHAIN = new TextEncoder().encode("Aster Mail_Chain_KDF");
 const MAX_SKIP = 1000;
@@ -142,25 +135,6 @@ function clone_state(state: RatchetState): RatchetState {
     updated_at: state.updated_at,
     bootstrap: state.bootstrap ? { ...state.bootstrap } : undefined,
   };
-}
-
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-  return btoa(binary);
-}
-
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
 }
 
 async function generate_dh_keypair(): Promise<RatchetKeyPair> {
@@ -435,7 +409,7 @@ export class DoubleRatchet {
   async encrypt(plaintext: string): Promise<EncryptedMessage> {
     const sealed = await this.encrypt_returning_message_key(plaintext);
 
-    secure_zero_memory(sealed.message_key);
+    zero_uint8_array(sealed.message_key);
 
     return sealed.message;
   }
@@ -473,7 +447,7 @@ export class DoubleRatchet {
     this.state.dirty_since_sync = true;
     this.state.updated_at = Date.now();
 
-    secure_zero_memory(chain_key);
+    zero_uint8_array(chain_key);
 
     return {
       message: {
@@ -558,8 +532,8 @@ export class DoubleRatchet {
         ad,
       );
     } catch (error) {
-      secure_zero_memory(chain_key);
-      secure_zero_memory(message_key);
+      zero_uint8_array(chain_key);
+      zero_uint8_array(message_key);
       throw error;
     }
 
@@ -569,8 +543,8 @@ export class DoubleRatchet {
     work.updated_at = Date.now();
     this.state = work;
 
-    secure_zero_memory(chain_key);
-    secure_zero_memory(message_key);
+    zero_uint8_array(chain_key);
+    zero_uint8_array(message_key);
 
     const decoder = new TextDecoder();
 
@@ -611,12 +585,12 @@ export class DoubleRatchet {
         ad,
       );
     } catch {
-      secure_zero_memory(message_key);
+      zero_uint8_array(message_key);
       return null;
     }
 
     state.skipped_message_keys.splice(index, 1);
-    secure_zero_memory(message_key);
+    zero_uint8_array(message_key);
 
     const decoder = new TextDecoder();
 
@@ -647,7 +621,7 @@ export class DoubleRatchet {
         timestamp: Date.now(),
       });
 
-      secure_zero_memory(chain_key);
+      zero_uint8_array(chain_key);
       chain_key = new_chain_key;
       state.recv_message_number++;
     }
@@ -697,14 +671,14 @@ export class DoubleRatchet {
     state.root_key = array_to_base64(newer_root_key);
     state.chain_key_send = array_to_base64(send_chain_key);
 
-    secure_zero_memory(root_key);
-    secure_zero_memory(dh_output);
-    secure_zero_memory(new_root_key);
-    secure_zero_memory(chain_key);
-    secure_zero_memory(new_dh_keypair.secret_key);
-    secure_zero_memory(new_dh_output);
-    secure_zero_memory(newer_root_key);
-    secure_zero_memory(send_chain_key);
+    zero_uint8_array(root_key);
+    zero_uint8_array(dh_output);
+    zero_uint8_array(new_root_key);
+    zero_uint8_array(chain_key);
+    zero_uint8_array(new_dh_keypair.secret_key);
+    zero_uint8_array(new_dh_output);
+    zero_uint8_array(newer_root_key);
+    zero_uint8_array(send_chain_key);
   }
 
   private static cleanup_old_skipped_keys_on(state: RatchetState): void {
@@ -768,186 +742,6 @@ export class DoubleRatchet {
     }
 
     return new DoubleRatchet(data.state, data.conversation_id);
-  }
-}
-
-function secure_zero_memory(buffer: Uint8Array): void {
-  crypto.getRandomValues(buffer);
-  buffer.fill(0);
-}
-
-const RATCHET_STORAGE_KEY_PREFIX = "ratchet_state_";
-const RATCHET_INDEX_KEY = "ratchet_conversation_index";
-
-async function get_storage_encryption_key(): Promise<CryptoKey> {
-  if (!has_vault_in_memory()) {
-    throw new Error("Session expired. Please log in again.");
-  }
-
-  const encryption_key = get_derived_encryption_key();
-
-  if (!encryption_key) {
-    throw new Error("Key material unavailable. Please log in again.");
-  }
-
-  const crypto_key = await crypto.subtle.importKey(
-    "raw",
-    encryption_key,
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"],
-  );
-
-  secure_zero_memory(encryption_key);
-
-  return crypto_key;
-}
-
-async function current_account_uid(): Promise<string | null> {
-  try {
-    const { get_current_account_id } = await import(
-      "@/services/account_manager"
-    );
-
-    return await get_current_account_id();
-  } catch {
-    return null;
-  }
-}
-
-function legacy_state_key(conversation_id: string): string {
-  return `${RATCHET_STORAGE_KEY_PREFIX}${conversation_id}`;
-}
-
-function state_key_for(uid: string | null, conversation_id: string): string {
-  if (!uid) return legacy_state_key(conversation_id);
-
-  return `${RATCHET_STORAGE_KEY_PREFIX}${uid}_${conversation_id}`;
-}
-
-function index_key_for(uid: string | null): string {
-  if (!uid) return RATCHET_INDEX_KEY;
-
-  return `${RATCHET_INDEX_KEY}_${uid}`;
-}
-
-async function add_conversation_to_index(
-  storage_key: CryptoKey,
-  uid: string | null,
-  conversation_id: string,
-): Promise<void> {
-  const key = index_key_for(uid);
-  const index = (await encrypted_get<string[]>(key, storage_key)) || [];
-
-  if (!index.includes(conversation_id)) {
-    index.push(conversation_id);
-    await encrypted_set(key, index, storage_key);
-  }
-}
-
-export async function save_ratchet_state(
-  ratchet: DoubleRatchet,
-): Promise<void> {
-  const serialized = await ratchet.serialize();
-  const storage_key = await get_storage_encryption_key();
-  const uid = await current_account_uid();
-  const state_key = state_key_for(uid, serialized.conversation_id);
-
-  await encrypted_set(state_key, serialized, storage_key);
-  await add_conversation_to_index(storage_key, uid, serialized.conversation_id);
-}
-
-export async function load_ratchet_state(
-  conversation_id: string,
-): Promise<DoubleRatchet | null> {
-  const storage_key = await get_storage_encryption_key();
-  const uid = await current_account_uid();
-  const state_key = state_key_for(uid, conversation_id);
-
-  let state = await encrypted_get<SerializedState>(state_key, storage_key);
-
-  if (!state && uid) {
-    const legacy_key = legacy_state_key(conversation_id);
-    const legacy_state = await encrypted_get<SerializedState>(
-      legacy_key,
-      storage_key,
-    );
-
-    if (legacy_state) {
-      await encrypted_set(state_key, legacy_state, storage_key);
-      await encrypted_delete(legacy_key);
-      await add_conversation_to_index(storage_key, uid, conversation_id);
-      state = legacy_state;
-    }
-  }
-
-  if (!state) return null;
-
-  return DoubleRatchet.deserialize(state);
-}
-
-export async function delete_ratchet_state(
-  conversation_id: string,
-): Promise<void> {
-  const storage_key = await get_storage_encryption_key();
-  const uid = await current_account_uid();
-
-  await encrypted_delete(state_key_for(uid, conversation_id));
-
-  if (uid) {
-    await encrypted_delete(legacy_state_key(conversation_id));
-  }
-
-  const index_key = index_key_for(uid);
-  const index = (await encrypted_get<string[]>(index_key, storage_key)) || [];
-  const filtered = index.filter((id) => id !== conversation_id);
-
-  if (filtered.length === 0) {
-    await encrypted_delete(index_key);
-  } else {
-    await encrypted_set(index_key, filtered, storage_key);
-  }
-}
-
-export async function list_ratchet_conversations(): Promise<string[]> {
-  try {
-    const storage_key = await get_storage_encryption_key();
-    const uid = await current_account_uid();
-    const index = await encrypted_get<string[]>(
-      index_key_for(uid),
-      storage_key,
-    );
-
-    return index || [];
-  } catch {
-    return [];
-  }
-}
-
-export async function clear_all_ratchet_states(): Promise<void> {
-  try {
-    const storage_key = await get_storage_encryption_key();
-    const uid = await current_account_uid();
-    const index_keys = uid
-      ? [index_key_for(uid), RATCHET_INDEX_KEY]
-      : [RATCHET_INDEX_KEY];
-
-    for (const key of index_keys) {
-      const is_legacy = key === RATCHET_INDEX_KEY && uid !== null;
-      const index = (await encrypted_get<string[]>(key, storage_key)) || [];
-
-      for (const conversation_id of index) {
-        const state_key = is_legacy
-          ? legacy_state_key(conversation_id)
-          : state_key_for(uid, conversation_id);
-
-        await encrypted_delete(state_key);
-      }
-
-      await encrypted_delete(key);
-    }
-  } catch {
-    return;
   }
 }
 

@@ -38,6 +38,7 @@ import { list_allowed_senders } from "@/services/api/allowed_senders";
 import { list_forwarding_rules } from "@/services/api/auto_forward";
 import { list_external_accounts } from "@/services/api/external_accounts";
 import { get_cached_folders } from "@/hooks/use_folders";
+import { is_folder_token_locked } from "@/services/locked_folders";
 
 export interface AccountDataSelection {
   contacts: boolean;
@@ -234,7 +235,9 @@ export async function build_account_data_files(
     });
   }
 
-  const folders = get_cached_folders();
+  const folders = get_cached_folders().filter(
+    (folder) => !is_folder_token_locked(folder.folder_token),
+  );
   if (folders.length > 0) {
     files.push({
       name: "folders.json",

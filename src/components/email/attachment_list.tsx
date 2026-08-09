@@ -668,7 +668,7 @@ export function AttachmentList({
         if (bytes) return { ...att, ...bytes };
       }
 
-      const response = await get_attachment(att.id);
+      const response = await get_attachment(att.id, att.mail_item_id);
 
       if (!response.data?.encrypted_data) {
         throw new Error("attachment_bytes_unavailable");

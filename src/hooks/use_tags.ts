@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
@@ -43,7 +44,6 @@ import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface DecryptedTag {
   id: string;

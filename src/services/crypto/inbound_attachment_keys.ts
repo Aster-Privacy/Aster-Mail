@@ -39,14 +39,6 @@ export const register_attachment_entry = (
   registry.set(registry_key(mail_item_id, seq), entry);
 };
 
-export const register_attachment_key = (
-  mail_item_id: string,
-  seq: number,
-  key: string,
-): void => {
-  register_attachment_entry(mail_item_id, seq, { key });
-};
-
 export const get_attachment_entry = (
   mail_item_id: string,
   seq: number,

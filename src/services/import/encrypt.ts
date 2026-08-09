@@ -18,10 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { ParsedEmail } from "./parser";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const IMPORT_KEY_VERSION = "astermail-import-v1";
 const NONCE_LENGTH = 12;
 

@@ -146,23 +146,6 @@ export function get_grant_signing_keys(): sender_signing_key[] {
   );
 }
 
-export function get_grant_decryption_keys(): {
-  secret_keys: string[];
-  passphrase: string;
-} {
-  const vault = get_vault_from_memory();
-  const passphrase = get_passphrase_from_memory();
-
-  if (!vault || !passphrase) {
-    throw new Error("your account must be unlocked to manage shared mailboxes");
-  }
-
-  return {
-    secret_keys: [vault.identity_key, ...(vault.previous_keys ?? [])],
-    passphrase,
-  };
-}
-
 export async function fetch_member_public_key(
   username: string,
   email: string,

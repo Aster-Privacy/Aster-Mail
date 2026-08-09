@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   get_vault_from_memory,
   get_derived_encryption_key,
@@ -27,7 +28,6 @@ import { list_aliases } from "@/services/api/aliases";
 import { list_contacts } from "@/services/api/contacts";
 import { rekey_user_data } from "@/services/api/auth";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 let rekey_attempted = false;
 

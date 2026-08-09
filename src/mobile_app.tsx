@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MobileDrawer } from "@/components/mobile/mobile_drawer";
 import { MobileFab } from "@/components/mobile/mobile_fab";
 import { SimpleToast } from "@/components/toast/simple_toast";
+import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
@@ -801,6 +802,7 @@ function MobileApp() {
         <ActionToast position="top" />
         <UndoSendContainer is_mobile max_visible={1} position="bottom-center" />
         <UndoSendPreviewModal />
+        <PostQuantumSendPrompt />
       </div>
     </AppLock>
   );

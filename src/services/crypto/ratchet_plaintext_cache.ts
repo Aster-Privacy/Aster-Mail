@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   encrypted_get,
   encrypted_set,
@@ -36,11 +37,6 @@ const RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
 interface CachedPlaintext {
   plaintext: string;
   stored_at: number;
-}
-
-function secure_zero_memory(buffer: Uint8Array): void {
-  crypto.getRandomValues(buffer);
-  buffer.fill(0);
 }
 
 async function namespaced_cache_id(message_id: string): Promise<string> {
@@ -71,7 +67,7 @@ async function get_cache_key(): Promise<CryptoKey | null> {
     ["encrypt", "decrypt"],
   );
 
-  secure_zero_memory(raw);
+  zero_uint8_array(raw);
 
   return key;
 }
@@ -131,17 +127,6 @@ export async function set_cached_ratchet_plaintext(
     const cache_id = await namespaced_cache_id(message_id);
 
     await encrypted_set(cache_id, entry, key);
-  } catch {
-    /* best-effort */
-  }
-}
-
-export async function delete_cached_ratchet_plaintext(
-  message_id: string,
-): Promise<void> {
-  if (!message_id) return;
-  try {
-    await encrypted_delete(await namespaced_cache_id(message_id));
   } catch {
     /* best-effort */
   }

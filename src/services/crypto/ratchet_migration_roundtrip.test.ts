@@ -46,11 +46,10 @@ vi.mock("@/services/account_manager", () => ({
   get_current_account_id: vi.fn(async () => h.state.uid),
 }));
 
+import { save_ratchet_state, load_ratchet_state } from "./ratchet_state_store";
 import {
   DoubleRatchet,
   generate_keypair,
-  save_ratchet_state,
-  load_ratchet_state,
 } from "./double_ratchet";
 
 describe("ratchet migrate-on-read keeps existing conversations decryptable", () => {

@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import type { EncryptedVault } from "./key_manager";
 import type { RatchetKeySet } from "./key_manager_core";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
@@ -28,10 +31,9 @@ const _KC = ["P", "256"].join("-");
 import { api_client } from "../api/client";
 import { get_recipient_public_key } from "../api/keys";
 
+import { save_ratchet_state, load_ratchet_state } from "./ratchet_state_store";
 import {
   DoubleRatchet,
-  save_ratchet_state,
-  load_ratchet_state,
   type EncryptedMessage,
   type RatchetKeyPair,
   type BootstrapData,
@@ -39,6 +41,7 @@ import {
 import {
   perform_x3dh_sender,
   perform_x3dh_receiver,
+  bundle_supports_pq,
   type PrekeyBundle,
 } from "./x3dh";
 import {
@@ -79,13 +82,11 @@ import {
 import {
   base64_to_array as core_base64_to_array,
   compute_hash,
-  secure_zero_memory,
   pin_fingerprint,
   verify_pinned_fingerprint,
   PINNED_FINGERPRINTS,
 } from "./key_manager_core";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 async function detect_identity_pin_drift(
   pin_id: string,
@@ -148,26 +149,7 @@ interface RatchetEnvelope {
   recipients: Record<string, RatchetRecipientData>;
 }
 
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
 
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
-}
-
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
 
 function jwk_d_to_bytes(jwk: JsonWebKey): Uint8Array {
   const d_base64url = jwk.d!;
@@ -622,7 +604,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
     } catch {
       throw new RecoveryLaneUnavailableError(recipient_email);
     } finally {
-      secure_zero_memory(message_key);
+      zero_uint8_array(message_key);
     }
 
     await save_ratchet_state(ratchet);
@@ -891,12 +873,17 @@ function recovery_lane_key_candidates(
     ratchet_identity_public?: string;
     ratchet_pq_identity_key?: string;
     ratchet_pq_identity_public?: string;
+    ratchet_pq_identity_seed?: string;
   }) => {
     if (source.ratchet_identity_key && source.ratchet_identity_public) {
       candidates.push({
         identity_jwk: source.ratchet_identity_key,
         identity_public: source.ratchet_identity_public,
-        pq_identity_secret: source.ratchet_pq_identity_key ?? "",
+        pq_identity_secret:
+          resolve_pq_identity_secret(
+            source.ratchet_pq_identity_key,
+            source.ratchet_pq_identity_seed,
+          ) ?? "",
         pq_identity_public: source.ratchet_pq_identity_public ?? "",
       });
     }
@@ -940,7 +927,7 @@ async function try_recovery_lane(
   } catch {
     return null;
   } finally {
-    secure_zero_memory(message_key);
+    zero_uint8_array(message_key);
   }
 }
 
@@ -1023,6 +1010,10 @@ async function init_receiver_from_bootstrap(
     sender_identity_raw,
     sender_ephemeral_raw,
     pq_input,
+    resolve_pq_identity_secret(
+      keys.ratchet_pq_identity_key,
+      keys.ratchet_pq_identity_seed,
+    ),
   );
 
   const own_keypair = await jwk_to_ratchet_keypair(
@@ -1263,6 +1254,65 @@ export async function generate_pq_identity_keys(): Promise<{
     pq_identity_public: array_to_base64(pq_keys.publicKey),
     pq_identity_seed: array_to_base64(pq_seed),
   };
+}
+
+export function is_post_quantum_recipient_data(
+  data: RatchetRecipientData | null | undefined,
+): boolean {
+  return Boolean(data?.pq_ciphertext) && data?.pq_key_id !== undefined;
+}
+
+export async function recipient_supports_post_quantum(
+  sender_email: string,
+  recipient_email: string,
+  recipient_username: string,
+): Promise<boolean> {
+  const conversation_id = await derive_conversation_id(
+    sender_email,
+    recipient_email,
+  );
+
+  const existing = await load_ratchet_state(conversation_id);
+  const bootstrap = existing?.get_bootstrap();
+
+  if (bootstrap) {
+    return Boolean(bootstrap.pq_ciphertext);
+  }
+
+  const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
+
+  if (!bundle) return false;
+
+  return bundle_supports_pq(bundle);
+}
+
+export function resolve_pq_identity_secret(
+  secret_base64?: string | null,
+  seed_base64?: string | null,
+): string | null {
+  if (secret_base64) return secret_base64;
+  if (!seed_base64) return null;
+  return derive_pq_identity_from_seed(seed_base64)?.pq_identity_secret ?? null;
+}
+
+export function derive_pq_identity_from_seed(seed_base64: string): {
+  pq_identity_secret: string;
+  pq_identity_public: string;
+} | null {
+  try {
+    const seed = base64_to_array(seed_base64);
+
+    if (seed.length !== 64) return null;
+
+    const pq_keys = ml_kem768.keygen(seed);
+
+    return {
+      pq_identity_secret: array_to_base64(pq_keys.secretKey),
+      pq_identity_public: array_to_base64(pq_keys.publicKey),
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function generate_exportable_ke_keypair(): Promise<{

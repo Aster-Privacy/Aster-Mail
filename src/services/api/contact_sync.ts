@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   SyncSource,
@@ -37,7 +39,6 @@ import {
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -172,13 +173,6 @@ export async function trigger_sync(
   );
 }
 
-function secure_zero_memory(buffer: Uint8Array): void {
-  crypto.getRandomValues(buffer);
-  buffer.fill(0);
-  crypto.getRandomValues(buffer);
-  buffer.fill(0);
-}
-
 async function generate_search_token(value: string): Promise<string> {
   await get_contacts_encryption_key();
   const raw_key = get_derived_encryption_key();
@@ -196,8 +190,8 @@ async function generate_search_token(value: string): Promise<string> {
 
   const hash = await crypto.subtle.digest(HASH_ALG, combined);
 
-  secure_zero_memory(combined);
-  secure_zero_memory(raw_key);
+  zero_uint8_array(combined);
+  zero_uint8_array(raw_key);
 
   const search_key = await crypto.subtle.importKey(
     "raw",

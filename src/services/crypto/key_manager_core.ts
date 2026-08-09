@@ -18,7 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export const HASH_ALG = ["SHA", "256"].join("-");
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { array_to_base64 } from "./base64";
+import { HASH_ALG } from "./constants";
+
+export { array_to_base64, base64_to_array } from "./base64";
+export { HASH_ALG } from "./constants";
+
 export const KEY_DERIVATION_ITERATIONS = 310000;
 
 const ENTROPY_QUALITY_THRESHOLD = 0.7;
@@ -156,32 +162,6 @@ export type KeyOperation =
 export const KEY_USAGE_LOG: KeyUsageRecord[] = [];
 export const PINNED_FINGERPRINTS: Map<string, PinnedFingerprint> = new Map();
 
-export function secure_zero_memory(buffer: Uint8Array): void {
-  crypto.getRandomValues(buffer);
-  buffer.fill(0);
-}
-
-export function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
-}
-
-export function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
-
 export function generate_random_bytes(length: number): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(length));
 }
@@ -192,7 +172,7 @@ export function generate_key_id(): string {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  secure_zero_memory(bytes);
+  zero_uint8_array(bytes);
 
   return hex;
 }

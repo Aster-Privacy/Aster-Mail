@@ -18,5 +18,4 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export * from "./mail_metadata_core";
-export * from "./mail_metadata_writer";
+export const HASH_ALG = ["SHA", "256"].join("-");

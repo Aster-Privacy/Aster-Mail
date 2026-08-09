@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { array_to_base64, base64_to_array } from "./base64";
 import {
   encrypt_vault,
   decrypt_vault,
@@ -31,9 +32,10 @@ import {
 import {
   generate_ratchet_keys,
   generate_pq_identity_keys,
+  derive_pq_identity_from_seed,
   upload_prekey_bundle,
 } from "./ratchet_manager";
-import { clear_all_ratchet_states } from "./double_ratchet";
+import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
 import { get_current_account } from "../account_manager";
@@ -159,17 +161,6 @@ function base64url_to_bytes(b64url: string): Uint8Array {
   return bytes;
 }
 
-function base64_to_bytes(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
-
 async function keypairs_consistent(
   jwk_string: string,
   public_b64: string,
@@ -190,7 +181,7 @@ async function keypairs_consistent(
     derived.set(x, 1);
     derived.set(y, 33);
 
-    const stored = base64_to_bytes(public_b64);
+    const stored = base64_to_array(public_b64);
 
     if (stored.length !== 65) return false;
 
@@ -281,16 +272,6 @@ function retain_replaced_pq_identity(
   return previous.slice(0, RATCHET_PREVIOUS_KEY_RETENTION);
 }
 
-function bytes_to_base64(bytes: Uint8Array): string {
-  let binary = "";
-
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-
-  return btoa(binary);
-}
-
 function derive_public_b64_from_jwk(jwk_string: string): string | null {
   try {
     const jwk: JsonWebKey = JSON.parse(jwk_string);
@@ -308,7 +289,7 @@ function derive_public_b64_from_jwk(jwk_string: string): string | null {
     derived.set(x, 1);
     derived.set(y, 33);
 
-    return bytes_to_base64(derived);
+    return array_to_base64(derived);
   } catch {
     return null;
   }
@@ -377,9 +358,14 @@ async function run_locked(): Promise<boolean> {
       !!vault.ratchet_signed_prekey &&
       !!vault.ratchet_signed_prekey_public;
 
+    const pq_from_seed =
+      !vault.ratchet_pq_identity_key && vault.ratchet_pq_identity_seed
+        ? derive_pq_identity_from_seed(vault.ratchet_pq_identity_seed)
+        : null;
+
     const has_pq =
-      !!vault.ratchet_pq_identity_key &&
-      !!vault.ratchet_pq_identity_public &&
+      (!!vault.ratchet_pq_identity_key || !!pq_from_seed) &&
+      (!!vault.ratchet_pq_identity_public || !!pq_from_seed) &&
       !!vault.ratchet_pq_identity_seed;
 
     const need_forced_regen =
@@ -435,6 +421,11 @@ async function run_locked(): Promise<boolean> {
     };
 
     let clear_states = false;
+
+    if (pq_from_seed) {
+      next_vault.ratchet_pq_identity_key = pq_from_seed.pq_identity_secret;
+      next_vault.ratchet_pq_identity_public = pq_from_seed.pq_identity_public;
+    }
 
     const repaired_identity_public =
       !need_forced_regen && vault.ratchet_identity_key

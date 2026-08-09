@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   store_ke_crypto_key,
@@ -29,7 +30,6 @@ import {
 } from "./memory_key_store";
 import {
   HASH_ALG,
-  secure_zero_memory,
   generate_random_bytes,
 } from "./key_manager_core";
 
@@ -152,7 +152,7 @@ export async function compute_agreement_as_key(
     ["encrypt", "decrypt"],
   );
 
-  secure_zero_memory(new Uint8Array(shared_bits));
+  zero_uint8_array(new Uint8Array(shared_bits));
 
   if (cache_id) {
     store_aes_crypto_key(cache_id, aes_key);
@@ -281,9 +281,9 @@ export async function derive_chain_key_as_crypto_key(
     ["encrypt", "decrypt"],
   );
 
-  secure_zero_memory(chain_bytes);
-  secure_zero_memory(new_chain_bytes);
-  secure_zero_memory(message_bytes);
+  zero_uint8_array(chain_bytes);
+  zero_uint8_array(new_chain_bytes);
+  zero_uint8_array(message_bytes);
 
   if (cache_id) {
     store_aes_crypto_key(`${cache_id}:chain`, new_chain_key);

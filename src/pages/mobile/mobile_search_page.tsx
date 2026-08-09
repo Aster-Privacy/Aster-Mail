@@ -35,6 +35,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { use_preferences } from "@/contexts/preferences_context";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
+import { filter_locked_folder_emails } from "@/services/locked_folders";
 
 type SearchFilter = "all" | "unread" | "attachments" | "starred";
 
@@ -96,7 +97,9 @@ function MobileSearchPage() {
   );
 
   const filtered_results = useMemo(() => {
-    const results = (search.state.results ?? []) as InboxEmail[];
+    const results = filter_locked_folder_emails(
+      (search.state.results ?? []) as InboxEmail[],
+    );
 
     if (active_filter === "all") return results;
     if (active_filter === "unread") return results.filter((e) => !e.is_read);

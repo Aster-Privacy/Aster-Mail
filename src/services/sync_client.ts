@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "./crypto/key_manager";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
@@ -41,7 +42,6 @@ import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 type ServerMessageType =
   | "auth_success"

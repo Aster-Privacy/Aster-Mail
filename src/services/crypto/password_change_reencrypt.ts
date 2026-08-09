@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import {
   derive_encryption_key_from_passphrase,
   get_or_create_derived_encryption_crypto_key,
@@ -31,8 +33,18 @@ import { list_alias_destinations } from "../api/alias_destinations";
 import { list_alias_directories } from "../api/alias_directories";
 import { list_domains, list_domain_addresses } from "../api/domains";
 import { get_legacy_crypto_keys } from "./legacy_keks";
+import {
+  decrypt_with_candidates,
+  re_encrypt_field_with_candidates as re_encrypt_field,
+  type ReEncryptedAlias,
+  type ReEncryptedContact,
+  type ReEncryptedPin,
+  type ReEncryptedAliasContact,
+  type ReEncryptedDestination,
+  type ReEncryptedDirectory,
+  type ReEncryptedDomainAddress,
+} from "./reencrypt_shared";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface OldKeyMaterial {
   data_kek?: string;
@@ -44,80 +56,6 @@ export interface ReEncryptSkipReport {
   contact_ids: string[];
   domain_address_ids: string[];
   unreadable_field_count: number;
-}
-
-export interface ReEncryptedAlias {
-  id: string;
-  encrypted_local_part: string;
-  local_part_nonce: string;
-  encrypted_display_name?: string;
-  display_name_nonce?: string;
-  alias_address_hash: string;
-  encrypted_note?: string;
-  note_nonce?: string;
-  encrypted_websites?: string;
-  websites_nonce?: string;
-}
-
-export interface ReEncryptedContact {
-  id: string;
-  encrypted_data: string;
-  data_nonce: string;
-  contact_token: string;
-}
-
-export interface ReEncryptedPin {
-  id: string;
-  encrypted_sender: string;
-  sender_nonce: string;
-}
-
-export interface ReEncryptedAliasContact {
-  id: string;
-  encrypted_contact: string;
-  contact_nonce: string;
-}
-
-export interface ReEncryptedDestination {
-  id: string;
-  encrypted_destination: string;
-  destination_nonce: string;
-}
-
-export interface ReEncryptedDirectory {
-  id: string;
-  encrypted_label: string;
-  label_nonce: string;
-}
-
-export interface ReEncryptedDomainAddress {
-  id: string;
-  encrypted_local_part: string;
-  local_part_nonce: string;
-  local_part_hash: string;
-  encrypted_display_name?: string;
-  display_name_nonce?: string;
-}
-
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
-}
-
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
 }
 
 async function derive_aes_key(passphrase: string): Promise<CryptoKey> {
@@ -256,50 +194,6 @@ async function build_old_key_candidates(
   candidates.push(...get_legacy_crypto_keys());
 
   return candidates;
-}
-
-async function decrypt_with_candidates(
-  candidates: CryptoKey[],
-  ciphertext: Uint8Array,
-  nonce: Uint8Array,
-): Promise<ArrayBuffer> {
-  let last_error: unknown = new Error("no_candidate_key");
-
-  for (const candidate of candidates) {
-    try {
-      return await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: nonce },
-        candidate,
-        ciphertext,
-      );
-    } catch (error) {
-      last_error = error;
-    }
-  }
-
-  throw last_error instanceof Error ? last_error : new Error(String(last_error));
-}
-
-async function re_encrypt_field(
-  encrypted_b64: string,
-  nonce_b64: string,
-  old_keys: CryptoKey[],
-  new_key: CryptoKey,
-): Promise<{ encrypted: string; nonce: string }> {
-  const ciphertext = base64_to_array(encrypted_b64);
-  const nonce = base64_to_array(nonce_b64);
-  const decrypted = await decrypt_with_candidates(old_keys, ciphertext, nonce);
-  const new_nonce = crypto.getRandomValues(new Uint8Array(12));
-  const new_ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: new_nonce },
-    new_key,
-    decrypted,
-  );
-
-  return {
-    encrypted: array_to_base64(new Uint8Array(new_ciphertext)),
-    nonce: array_to_base64(new_nonce),
-  };
 }
 
 async function carry_forward_field(

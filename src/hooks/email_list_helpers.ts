@@ -24,7 +24,6 @@ import type {
   MailItemMetadata,
 } from "@/types/email";
 
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -52,6 +51,7 @@ import {
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager";
 import {
   decrypt_envelope_with_bytes,
+  decrypt_envelope_with_identity_key,
   base64_to_array,
   normalize_envelope_from,
   normalize_envelope_recipients,
@@ -69,11 +69,15 @@ import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import {
+  filter_locked_mail_items,
+  is_folder_token_locked,
+  request_folder_unlock,
+} from "@/services/locked_folders";
+import {
   resolve_sender_profiles,
   get_cached_profile,
 } from "@/services/api/sender_profiles";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export const DEFAULT_PAGE_SIZE = 50;
 
@@ -239,46 +243,25 @@ function format_timestamp(date: Date, options: FormatOptions): string {
   return format_email_list_timestamp(date, options);
 }
 
-const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 
 async function try_decrypt_with_identity_key(
   encrypted: string,
   nonce_bytes: Uint8Array,
   identity_key: string,
 ): Promise<DecryptedEnvelope | null> {
-  const encrypted_bytes = base64_to_array(encrypted);
-
-  for (const version of ENVELOPE_KEY_VERSIONS) {
-    try {
-      const key_hash = await crypto.subtle.digest(
-        HASH_ALG,
-        new TextEncoder().encode(identity_key + version),
-      );
-      const crypto_key = await crypto.subtle.importKey(
-        "raw",
-        key_hash,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
-      );
-      const decrypted = await decrypt_aes_gcm_with_fallback(
-        crypto_key,
-        encrypted_bytes,
-        nonce_bytes,
-      );
-
-      const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+  return decrypt_envelope_with_identity_key(
+    identity_key,
+    base64_to_array(encrypted),
+    nonce_bytes,
+    (plaintext) => {
+      const parsed = JSON.parse(new TextDecoder().decode(plaintext));
       const from = normalize_envelope_from(parsed.from);
 
       if (from) parsed.from = from;
 
       return parsed;
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
+    },
+  );
 }
 
 export async function decrypt_envelope(
@@ -895,9 +878,19 @@ export async function fetch_mail_from_api(
 
   const response = await list_mail_items(params);
 
+  if (
+    response.code === "FORBIDDEN" &&
+    params.label_token &&
+    is_folder_token_locked(params.label_token)
+  ) {
+    request_folder_unlock(params.label_token);
+
+    return { emails: [], total: 0, has_more: false, raw_consumed: 0 };
+  }
+
   if (signal.aborted || !response.data) return null;
 
-  const returned_items = response.data.items;
+  const returned_items = filter_locked_mail_items(response.data.items);
   const items = returned_items.filter((item) => item.is_reaction !== true);
   const hidden_count = returned_items.length - items.length;
   const raw_total = response.data.total ?? 0;

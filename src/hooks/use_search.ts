@@ -29,7 +29,6 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   list_encrypted_mail_items,
   list_mail_items,
@@ -42,6 +41,7 @@ import {
 } from "@/services/crypto/mail_metadata";
 import {
   decrypt_envelope_with_bytes,
+  decrypt_envelope_with_identity_key,
   encrypt_envelope_with_identity_key,
   base64_to_array,
 } from "@/services/crypto/envelope";
@@ -51,6 +51,7 @@ import {
   get_vault_from_memory,
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
+import { filter_locked_mail_items } from "@/services/locked_folders";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { strip_html_tags } from "@/lib/html_sanitizer";
@@ -482,8 +483,6 @@ export interface CachedIndex {
   meta: SnapshotMeta | null;
 }
 
-const HASH_ALG = ["SHA", "256"].join("-");
-const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 const ENVELOPE_FETCH_CHUNK = 100;
 const INDEX_PAGE_LIMIT = 500;
 const ENVELOPE_PAGE_LIMIT = 200;
@@ -506,39 +505,19 @@ async function try_decrypt_with_identity_key(
   nonce_bytes: Uint8Array,
   identity_key: string,
 ): Promise<DecryptedEnvelope | null> {
-  const encrypted_bytes = base64_to_array(encrypted);
-
-  for (const version of ENVELOPE_KEY_VERSIONS) {
-    try {
-      const key_hash = await crypto.subtle.digest(
-        HASH_ALG,
-        new TextEncoder().encode(identity_key + version),
-      );
-      const crypto_key = await crypto.subtle.importKey(
-        "raw",
-        key_hash,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
-      );
-      const decrypted = await decrypt_aes_gcm_with_fallback(
-        crypto_key,
-        encrypted_bytes,
-        nonce_bytes,
-      );
-
-      const parsed = JSON.parse(new TextDecoder().decode(decrypted));
+  return decrypt_envelope_with_identity_key(
+    identity_key,
+    base64_to_array(encrypted),
+    nonce_bytes,
+    (plaintext) => {
+      const parsed = JSON.parse(new TextDecoder().decode(plaintext));
       const from = normalize_envelope_from(parsed.from);
 
       if (from) parsed.from = from;
 
       return parsed;
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
+    },
+  );
 }
 
 const legacy_migration_attempted = new Set<string>();
@@ -1138,6 +1117,8 @@ async function run_index_pipeline(
     if (page_items.length > room) {
       page_items = page_items.slice(0, room);
     }
+
+    page_items = filter_locked_mail_items(page_items);
 
     display_total = Math.max(
       display_total,

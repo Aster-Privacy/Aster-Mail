@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
@@ -31,7 +32,6 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface DnsRecord {
   record_type: string;

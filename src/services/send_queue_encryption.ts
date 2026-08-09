@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { MailItemMetadata } from "@/types/email";
 import type {
   QueuedEmailInternal,
@@ -44,6 +45,8 @@ import {
 import {
   encrypt_for_ratchet_recipient,
   build_ratchet_envelope,
+  is_post_quantum_recipient_data,
+  recipient_supports_post_quantum,
   RecoveryLaneUnavailableError,
 } from "./crypto/ratchet_manager";
 import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
@@ -64,6 +67,7 @@ import {
 import { create_attachment } from "./api/attachments";
 import {
   SendError,
+  PostQuantumUnavailableError,
   create_error,
   format_time_remaining,
 } from "./send_queue_types";
@@ -84,7 +88,6 @@ import {
 } from "@/stores/ghost_alias_store";
 import { en } from "@/lib/i18n/translations/en";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const FIELD_ID_RECIPIENTS = 0x01;
 const FIELD_ID_SUBJECT = 0x02;
 const FIELD_ID_BODY = 0x03;
@@ -224,10 +227,58 @@ export function check_send_readiness_internal(): SendReadinessResult {
   return { ready: true };
 }
 
+function post_quantum_error(recipients: string[]): PostQuantumUnavailableError {
+  return new PostQuantumUnavailableError(
+    en.errors.post_quantum_unavailable.replace(
+      "{{recipients}}",
+      recipients.join(", "),
+    ),
+    recipients,
+  );
+}
+
+export async function check_post_quantum_coverage(
+  recipients: string[],
+  sender_email?: string,
+): Promise<string[]> {
+  if (!sender_email) return [];
+
+  const internal_recipients = recipients.filter(is_internal_email);
+
+  if (internal_recipients.length === 0) return [];
+  if (recipients.some((r) => !is_internal_email(r))) return [];
+
+  const missing: string[] = [];
+
+  for (const recipient of internal_recipients) {
+    const username = await resolve_username_for_key_lookup(recipient);
+
+    if (!username) {
+      missing.push(recipient);
+      continue;
+    }
+
+    try {
+      const supported = await recipient_supports_post_quantum(
+        sender_email,
+        recipient,
+        username,
+      );
+
+      if (!supported) missing.push(recipient);
+    } catch {
+      continue;
+    }
+  }
+
+  return missing;
+}
+
 export async function encrypt_for_recipients(
   body: string,
   recipients: string[],
   sender_email?: string,
+  allow_non_post_quantum = false,
 ): Promise<EncryptionResult> {
   const internal_recipients = recipients.filter(is_internal_email);
 
@@ -335,6 +386,16 @@ export async function encrypt_for_recipients(
     }
 
     if (all_ratchet_ok && Object.keys(ratchet_results).length > 0) {
+      if (!allow_non_post_quantum) {
+        const non_pq = Object.entries(ratchet_results)
+          .filter(([, data]) => !is_post_quantum_recipient_data(data))
+          .map(([recipient]) => recipient);
+
+        if (non_pq.length > 0) {
+          throw post_quantum_error(non_pq);
+        }
+      }
+
       const envelope = build_ratchet_envelope(
         vault.ratchet_identity_public,
         ratchet_results as Record<
@@ -345,6 +406,10 @@ export async function encrypt_for_recipients(
 
       return { encrypted_body: envelope, is_encrypted: true };
     }
+  }
+
+  if (!allow_non_post_quantum) {
+    throw post_quantum_error(internal_recipients);
   }
 
   const public_keys: string[] = [];
@@ -595,6 +660,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     bundled_body_for_recipient,
     all_recipients,
     sender_email,
+    email.allow_non_post_quantum === true,
   );
 
   const final_recipient_body = is_encrypted ? encrypted_body : body_for_recipient;

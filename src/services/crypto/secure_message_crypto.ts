@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64, base64_to_array } from "./envelope";
 import { zero_uint8_array } from "./secure_memory";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
@@ -51,7 +52,6 @@ import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 const AEAD_BINDING_WRITE_ENABLED = true;
 
 const PBKDF2_ITERATIONS = 310000;
-const HASH_ALG = ["SHA", "256"].join("-");
 const SALT_LENGTH = 16;
 const KEM_SEED_LENGTH = 64;
 const NONCE_LENGTH = 12;

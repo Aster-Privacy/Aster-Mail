@@ -32,6 +32,7 @@ export { parse_csv_file } from "./csv_parser";
 export { parse_pst_file } from "./pst_parser";
 export { extract_email_address } from "./mime_utils";
 
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { ParsedEmail, ParseResult, ParseProgressCallback } from "./types";
 
 import { parse_mbox_file } from "./mbox_parser";
@@ -42,7 +43,6 @@ import { extract_email_address } from "./mime_utils";
 import { en } from "@/lib/i18n/translations/en";
 import { get_active_translations } from "@/lib/i18n/translations";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 const REJECTED_EXTENSIONS = new Set([
   ".jpg",

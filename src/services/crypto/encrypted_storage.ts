@@ -1,3 +1,5 @@
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   decrypt_aes_gcm_with_fallback,
   decrypt_with_legacy_derived_keys,
@@ -23,7 +25,6 @@ import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const HASH_ALG = ["SHA", "256"].join("-");
 const DB_NAME = "astermail_secure_db";
 const DB_VERSION = 1;
 const STORE_NAME = "encrypted_data";
@@ -39,21 +40,6 @@ const CURRENT_VERSION = 1;
 
 let db_instance: IDBDatabase | null = null;
 let db_promise: Promise<IDBDatabase> | null = null;
-
-function fill_random(buffer: Uint8Array): void {
-  const max = 65536;
-
-  for (let i = 0; i < buffer.length; i += max) {
-    crypto.getRandomValues(buffer.subarray(i, Math.min(i + max, buffer.length)));
-  }
-}
-
-function secure_zero_memory(buffer: Uint8Array): void {
-  fill_random(buffer);
-  buffer.fill(0);
-  fill_random(buffer);
-  buffer.fill(0);
-}
 
 async function open_database(): Promise<IDBDatabase> {
   if (db_instance) {
@@ -146,7 +132,7 @@ async function derive_storage_key_from_crypto_key(
     ["deriveKey"],
   );
 
-  secure_zero_memory(key_bytes);
+  zero_uint8_array(key_bytes);
 
   return crypto.subtle.deriveKey(
     {
@@ -184,7 +170,7 @@ export async function encrypted_set(
     plaintext,
   );
 
-  secure_zero_memory(plaintext);
+  zero_uint8_array(plaintext);
 
   const entry: EncryptedEntry = {
     iv,
@@ -260,7 +246,7 @@ export async function encrypted_get<T>(
     const json_string = decoder.decode(decrypted_buffer);
     const decrypted_bytes = new Uint8Array(decrypted_buffer);
 
-    secure_zero_memory(decrypted_bytes);
+    zero_uint8_array(decrypted_bytes);
 
     return JSON.parse(json_string) as T;
   } catch {
@@ -279,19 +265,6 @@ export async function encrypted_delete(key: string): Promise<void> {
     request.onsuccess = () => resolve();
     request.onerror = () =>
       reject(new Error("Failed to delete encrypted data"));
-  });
-}
-
-export async function encrypted_has(key: string): Promise<boolean> {
-  const db = await open_database();
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(STORE_NAME, "readonly");
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.getKey(key);
-
-    request.onsuccess = () => resolve(request.result !== undefined);
-    request.onerror = () => reject(new Error("Failed to check encrypted data"));
   });
 }
 

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import * as openpgp from "openpgp";
 
 import {
@@ -36,7 +37,7 @@ import {
   generate_ratchet_keys,
   upload_prekey_bundle,
 } from "@/services/crypto/ratchet_manager";
-import { clear_all_ratchet_states } from "@/services/crypto/double_ratchet";
+import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
 import {
   get_identity_key_status,
   rotate_identity_key,
@@ -52,7 +53,6 @@ import {
   serialize_kek_for_vault,
 } from "@/services/crypto/legacy_keks";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface RotationCheckResult {
   needs_rotation: boolean;

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
+import { array_to_base64, base64_to_array } from "./base64";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import {
@@ -30,7 +32,6 @@ export const RECOVERY_LANE_VERSION = 1;
 
 const LANE_LABEL = "aster.ratchet.recovery.lane.v1";
 const AES_ALG = "AES-GCM";
-const HASH_ALG = "SHA-256";
 const NONCE_BYTES = 12;
 
 export interface RecoveryLaneData {
@@ -51,27 +52,6 @@ export interface RecoveryLaneOwnKeys {
   identity_jwk: string;
   identity_public: string;
   pq_identity_secret?: string;
-}
-
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
-}
-
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
 }
 
 async function build_binding_info(

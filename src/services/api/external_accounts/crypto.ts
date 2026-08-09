@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { ExternalAccountData } from "./types";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -39,7 +40,6 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const EXTERNAL_ACCOUNTS_HMAC_KEY_ID = "external_accounts_hmac_key";
 
 async function get_hmac_key(): Promise<CryptoKey> {

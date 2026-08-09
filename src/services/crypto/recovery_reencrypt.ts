@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "./key_manager";
 import { hash_recovery_email } from "./key_manager";
 import { derive_encryption_key_from_passphrase } from "./memory_key_store";
@@ -60,30 +61,23 @@ import {
 } from "@/services/api/mail";
 import { derive_metadata_key } from "@/services/crypto/envelope";
 import { list_tags, update_tag } from "@/services/api/tags";
+import { array_to_base64, base64_to_array } from "./base64";
+import {
+  re_encrypt_field_with_candidates,
+  type ReEncryptedAlias,
+  type ReEncryptedContact,
+  type ReEncryptedPin,
+  type ReEncryptedAliasContact,
+  type ReEncryptedDestination,
+  type ReEncryptedDirectory,
+  type ReEncryptedDomainAddress,
+} from "./reencrypt_shared";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const PENDING_KEY = "aster_pending_reencryption";
 
 interface PendingReencryptData {
   old_data_kek?: string;
   old_identity_key: string;
-}
-
-function array_to_b64(a: Uint8Array): string {
-  let b = "";
-
-  for (let i = 0; i < a.length; i++) b += String.fromCharCode(a[i]);
-
-  return btoa(b);
-}
-
-function b64_to_array(b64: string): Uint8Array {
-  const b = atob(b64);
-  const a = new Uint8Array(b.length);
-
-  for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i);
-
-  return a;
 }
 
 export async function store_pending_reencryption(
@@ -148,20 +142,7 @@ async function re_encrypt_field(
   old_key: CryptoKey,
   new_key: CryptoKey,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const ct = b64_to_array(enc_b64);
-  const iv = b64_to_array(nonce_b64);
-  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_key, ct);
-  const new_iv = crypto.getRandomValues(new Uint8Array(12));
-  const new_ct = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: new_iv },
-    new_key,
-    pt,
-  );
-
-  return {
-    encrypted: array_to_b64(new Uint8Array(new_ct)),
-    nonce: array_to_b64(new_iv),
-  };
+  return re_encrypt_field_with_candidates(enc_b64, nonce_b64, [old_key], new_key);
 }
 
 async function re_encrypt_signatures(
@@ -273,8 +254,8 @@ async function re_encrypt_blocked_senders(
 
   for (const item of resp.data.blocked_senders) {
     try {
-      const ct = b64_to_array(item.encrypted_sender_data);
-      const iv = b64_to_array(item.sender_data_nonce);
+      const ct = base64_to_array(item.encrypted_sender_data);
+      const iv = base64_to_array(item.sender_data_nonce);
       const pt = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv },
         old_aes,
@@ -338,8 +319,8 @@ async function re_encrypt_allowed_senders(
 
   for (const item of resp.data.allowed_senders) {
     try {
-      const ct = b64_to_array(item.encrypted_sender_data);
-      const iv = b64_to_array(item.sender_data_nonce);
+      const ct = base64_to_array(item.encrypted_sender_data);
+      const iv = base64_to_array(item.sender_data_nonce);
       const pt = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv },
         old_aes,
@@ -390,8 +371,8 @@ async function re_encrypt_recent_recipients(
 
   for (const r of resp.data.items) {
     try {
-      const ct = b64_to_array(r.encrypted_email);
-      const iv = b64_to_array(r.email_nonce);
+      const ct = base64_to_array(r.encrypted_email);
+      const iv = base64_to_array(r.email_nonce);
       const pt = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv },
         old_aes,
@@ -415,59 +396,6 @@ async function re_encrypt_recent_recipients(
   });
 
   return ok;
-}
-
-interface ReEncryptedAlias {
-  id: string;
-  encrypted_local_part: string;
-  local_part_nonce: string;
-  encrypted_display_name?: string;
-  display_name_nonce?: string;
-  alias_address_hash: string;
-  encrypted_note?: string;
-  note_nonce?: string;
-  encrypted_websites?: string;
-  websites_nonce?: string;
-}
-
-interface ReEncryptedContact {
-  id: string;
-  encrypted_data: string;
-  data_nonce: string;
-  contact_token: string;
-}
-
-interface ReEncryptedPin {
-  id: string;
-  encrypted_sender: string;
-  sender_nonce: string;
-}
-
-interface ReEncryptedAliasContact {
-  id: string;
-  encrypted_contact: string;
-  contact_nonce: string;
-}
-
-interface ReEncryptedDestination {
-  id: string;
-  encrypted_destination: string;
-  destination_nonce: string;
-}
-
-interface ReEncryptedDirectory {
-  id: string;
-  encrypted_label: string;
-  label_nonce: string;
-}
-
-interface ReEncryptedDomainAddress {
-  id: string;
-  encrypted_local_part: string;
-  local_part_nonce: string;
-  local_part_hash: string;
-  encrypted_display_name?: string;
-  display_name_nonce?: string;
 }
 
 async function re_encrypt_aliases_contacts(
@@ -494,8 +422,8 @@ async function re_encrypt_aliases_contacts(
       if (alias.is_random) continue;
 
       try {
-        const lp_ct = b64_to_array(alias.encrypted_local_part);
-        const lp_iv = b64_to_array(alias.local_part_nonce);
+        const lp_ct = base64_to_array(alias.encrypted_local_part);
+        const lp_iv = base64_to_array(alias.local_part_nonce);
         const lp_pt = await crypto.subtle.decrypt(
           { name: "AES-GCM", iv: lp_iv },
           old_aes,
@@ -519,9 +447,9 @@ async function re_encrypt_aliases_contacts(
 
         const entry: ReEncryptedAlias = {
           id: alias.id,
-          encrypted_local_part: array_to_b64(new Uint8Array(new_lp_ct)),
-          local_part_nonce: array_to_b64(new_lp_iv),
-          alias_address_hash: array_to_b64(new Uint8Array(addr_sig)),
+          encrypted_local_part: array_to_base64(new Uint8Array(new_lp_ct)),
+          local_part_nonce: array_to_base64(new_lp_iv),
+          alias_address_hash: array_to_base64(new Uint8Array(addr_sig)),
         };
 
         if (alias.encrypted_display_name && alias.display_name_nonce) {
@@ -585,8 +513,8 @@ async function re_encrypt_aliases_contacts(
 
     for (const contact of resp.data.items) {
       try {
-        const ct = b64_to_array(contact.encrypted_data);
-        const iv = b64_to_array(contact.data_nonce);
+        const ct = base64_to_array(contact.encrypted_data);
+        const iv = base64_to_array(contact.data_nonce);
         const pt = await crypto.subtle.decrypt(
           { name: "AES-GCM", iv },
           old_aes,
@@ -616,9 +544,9 @@ async function re_encrypt_aliases_contacts(
 
         re_encrypted_contacts.push({
           id: contact.id,
-          encrypted_data: array_to_b64(new Uint8Array(new_ct)),
-          data_nonce: array_to_b64(new_ct_iv),
-          contact_token: array_to_b64(new Uint8Array(token_sig)),
+          encrypted_data: array_to_base64(new Uint8Array(new_ct)),
+          data_nonce: array_to_base64(new_ct_iv),
+          contact_token: array_to_base64(new Uint8Array(token_sig)),
         });
       } catch {
         continue;
@@ -781,9 +709,9 @@ async function re_encrypt_alias_sub_items_recovery(
       for (const address of addrs_resp.data.addresses) {
         try {
           const lp_pt = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv: b64_to_array(address.local_part_nonce) },
+            { name: "AES-GCM", iv: base64_to_array(address.local_part_nonce) },
             old_aes,
-            b64_to_array(address.encrypted_local_part),
+            base64_to_array(address.encrypted_local_part),
           );
           const local_part = new TextDecoder().decode(lp_pt);
           const new_lp_iv = crypto.getRandomValues(new Uint8Array(12));
@@ -801,9 +729,9 @@ async function re_encrypt_alias_sub_items_recovery(
 
           const entry: ReEncryptedDomainAddress = {
             id: address.id,
-            encrypted_local_part: array_to_b64(new Uint8Array(new_lp_ct)),
-            local_part_nonce: array_to_b64(new_lp_iv),
-            local_part_hash: array_to_b64(new Uint8Array(hash_sig)),
+            encrypted_local_part: array_to_base64(new Uint8Array(new_lp_ct)),
+            local_part_nonce: array_to_base64(new_lp_iv),
+            local_part_hash: array_to_base64(new Uint8Array(hash_sig)),
           };
 
           if (address.encrypted_display_name && address.display_name_nonce) {
@@ -1055,8 +983,8 @@ async function re_encrypt_recovery_email(
     crypto.subtle.importKey("raw", new_raw_hash, { name: "AES-GCM", length: 256 }, false, ["encrypt"]),
   ]);
 
-  const ct = b64_to_array(encrypted_email);
-  const iv = b64_to_array(email_nonce);
+  const ct = base64_to_array(encrypted_email);
+  const iv = base64_to_array(email_nonce);
   const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_key, ct);
   const email_text = new TextDecoder().decode(pt);
 
@@ -1065,8 +993,8 @@ async function re_encrypt_recovery_email(
   const email_hash = await hash_recovery_email(email_text);
 
   await api_client.put("/core/v1/recovery/email", {
-    encrypted_email: array_to_b64(new Uint8Array(new_ct)),
-    email_nonce: array_to_b64(new_iv),
+    encrypted_email: array_to_base64(new Uint8Array(new_ct)),
+    email_nonce: array_to_base64(new_iv),
     email_hash,
     plaintext_email: email_text,
   });
@@ -1198,7 +1126,7 @@ async function re_encrypt_external_accounts(
         account_token: account.account_token,
         encrypted_account_data: encrypted,
         account_data_nonce: nonce,
-        integrity_hash: array_to_b64(new Uint8Array(hash_buf)),
+        integrity_hash: array_to_base64(new Uint8Array(hash_buf)),
       });
     } catch {
       ok = false;
@@ -1444,8 +1372,8 @@ async function re_encrypt_contact_sync_sources(
 
   for (const source of resp.data.items) {
     try {
-      const ct = b64_to_array(source.encrypted_config);
-      const iv = b64_to_array(source.config_nonce);
+      const ct = base64_to_array(source.encrypted_config);
+      const iv = base64_to_array(source.config_nonce);
       const config_pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_aes, ct);
       decrypted.push({ source_type: source.source_type, config_pt });
     } catch {
@@ -1472,8 +1400,8 @@ async function re_encrypt_contact_sync_sources(
       );
       await api_client.post("/contacts/v1/sync/sources", {
         source_type: item.source_type,
-        encrypted_config: array_to_b64(new Uint8Array(new_ct)),
-        config_nonce: array_to_b64(new_iv),
+        encrypted_config: array_to_base64(new Uint8Array(new_ct)),
+        config_nonce: array_to_base64(new_iv),
       });
     } catch {
       ok = false;
@@ -1537,7 +1465,7 @@ async function re_encrypt_drafts(
         await api_client.put(`/mail/v1/drafts/${draft.id}`, {
           encrypted_content: encrypted,
           content_nonce: nonce,
-          content_hash: array_to_b64(new Uint8Array(hash_buf)),
+          content_hash: array_to_base64(new Uint8Array(hash_buf)),
           version: draft.version,
           size_bytes: encrypted.length,
           has_attachments: draft.has_attachments,
@@ -1598,7 +1526,7 @@ export async function reencrypt_settings_password_change(
     zero_uint8_array(old_bytes);
     zero_uint8_array(new_bytes);
 
-    old_data_kek_b64 = array_to_b64(old_raw);
+    old_data_kek_b64 = array_to_base64(old_raw);
 
     const old_aes = await import_aes_key(old_raw, ["decrypt"]);
     const new_aes = await import_aes_key(new_raw, ["encrypt"]);
@@ -1675,8 +1603,8 @@ async function re_encrypt_mail_metadata(
         if (!item.encrypted_metadata || !item.metadata_nonce) continue;
 
         try {
-          const ct = b64_to_array(item.encrypted_metadata);
-          const iv = b64_to_array(item.metadata_nonce);
+          const ct = base64_to_array(item.encrypted_metadata);
+          const iv = base64_to_array(item.metadata_nonce);
           const pt = await crypto.subtle.decrypt(
             { name: "AES-GCM", iv },
             old_key,
@@ -1690,8 +1618,8 @@ async function re_encrypt_mail_metadata(
           );
 
           await update_mail_item(item.id, {
-            encrypted_metadata: array_to_b64(new Uint8Array(new_ct)),
-            metadata_nonce: array_to_b64(new_iv),
+            encrypted_metadata: array_to_base64(new Uint8Array(new_ct)),
+            metadata_nonce: array_to_base64(new_iv),
           });
         } catch {
           ok = false;
@@ -1845,8 +1773,8 @@ async function re_encrypt_profile_notes(
 
   for (const note of resp.data.notes) {
     try {
-      const ct = b64_to_array(note.encrypted_note);
-      const iv = b64_to_array(note.note_nonce);
+      const ct = base64_to_array(note.encrypted_note);
+      const iv = base64_to_array(note.note_nonce);
       const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_aes, ct);
 
       const new_iv = crypto.getRandomValues(new Uint8Array(12));
@@ -1856,8 +1784,8 @@ async function re_encrypt_profile_notes(
         pt,
       );
 
-      const new_encrypted_note = array_to_b64(new Uint8Array(new_ct));
-      const new_note_nonce = array_to_b64(new_iv);
+      const new_encrypted_note = array_to_base64(new Uint8Array(new_ct));
+      const new_note_nonce = array_to_base64(new_iv);
 
       const integrity_input = new TextEncoder().encode(
         `${new_encrypted_note}:${new_note_nonce}:profile-notes-v1`,
@@ -1867,7 +1795,7 @@ async function re_encrypt_profile_notes(
         new_hmac,
         integrity_input,
       );
-      const new_integrity_hash = array_to_b64(new Uint8Array(new_integrity_sig));
+      const new_integrity_hash = array_to_base64(new Uint8Array(new_integrity_sig));
 
       await api_client.put("/settings/v1/profile_notes", {
         email_token: note.email_token,
@@ -1939,7 +1867,7 @@ export async function check_and_run_recovery_reencryption(
   let complete = false;
 
   try {
-    old_raw = b64_to_array(pending.old_data_kek);
+    old_raw = base64_to_array(pending.old_data_kek);
     const passphrase_bytes = new TextEncoder().encode(passphrase);
 
     new_raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
