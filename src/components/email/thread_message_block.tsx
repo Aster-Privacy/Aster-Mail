@@ -626,7 +626,9 @@ export function ThreadMessageBlock({
 
   const plain_text_html = useMemo(() => {
     if (!html_blocked) return null;
-    return plain_text_to_html(html_to_readable_plain_text(clean_body));
+    return plain_text_to_html(
+      html_to_readable_plain_text(clean_body, { keep_link_urls: true }),
+    );
   }, [html_blocked, clean_body]);
 
   const inline_cids = useMemo(() => {

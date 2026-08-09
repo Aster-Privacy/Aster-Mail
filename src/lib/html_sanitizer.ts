@@ -997,7 +997,46 @@ export function plain_text_to_html(text: string): string {
     .join("\n");
 }
 
-export function html_to_readable_plain_text(html: string): string {
+export interface ReadablePlainTextOptions {
+  keep_link_urls?: boolean;
+}
+
+function append_link_urls(doc: Document) {
+  const anchors = Array.from(
+    doc.querySelectorAll<HTMLAnchorElement>("a[href]"),
+  );
+  const labelled = new Set<string>();
+
+  anchors.forEach((el) => {
+    const href = (el.getAttribute("href") ?? "").trim();
+
+    if (href && (el.textContent ?? "").trim()) labelled.add(href);
+  });
+
+  let previous_href = "";
+
+  anchors.forEach((el) => {
+    const href = (el.getAttribute("href") ?? "").trim();
+
+    if (!/^https?:\/\//i.test(href)) return;
+
+    const label = (el.textContent ?? "").replace(/\s+/g, "");
+
+    if (!label && labelled.has(href)) return;
+    if (href === previous_href) return;
+
+    previous_href = href;
+
+    if (label.includes(href)) return;
+
+    el.append(doc.createTextNode(` ${href} `));
+  });
+}
+
+export function html_to_readable_plain_text(
+  html: string,
+  options: ReadablePlainTextOptions = {},
+): string {
   if (!html || typeof html !== "string") return "";
   if (typeof DOMParser === "undefined") return strip_html_tags(html);
 
@@ -1018,13 +1057,15 @@ export function html_to_readable_plain_text(html: string): string {
     if (
       /display\s*:\s*none/i.test(s) ||
       /visibility\s*:\s*hidden/i.test(s) ||
-      /max-height\s*:\s*0/i.test(s) ||
-      /font-size\s*:\s*0/i.test(s) ||
-      /opacity\s*:\s*0/i.test(s)
+      /max-height\s*:\s*0(?![.0-9])/i.test(s) ||
+      /font-size\s*:\s*0(?![.0-9])/i.test(s) ||
+      /opacity\s*:\s*0(?![.0-9])/i.test(s)
     ) {
       el.remove();
     }
   });
+
+  if (options.keep_link_urls) append_link_urls(doc);
 
   doc.querySelectorAll("br").forEach((el) => el.replaceWith(doc.createTextNode("\n")));
 

@@ -164,7 +164,9 @@ export function EmailViewerContent({
 
   const plain_text_html = useMemo(() => {
     if (!html_blocked) return null;
-    return plain_text_to_html(html_to_readable_plain_text(raw_content ?? ""));
+    return plain_text_to_html(
+      html_to_readable_plain_text(raw_content ?? "", { keep_link_urls: true }),
+    );
   }, [html_blocked, raw_content]);
 
   const effective_content_mode = preferences.low_network_mode
