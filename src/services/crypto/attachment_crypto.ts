@@ -20,7 +20,11 @@
 //
 import type { Attachment } from "@/components/compose/compose_shared";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { get_attachment_key } from "@/services/crypto/inbound_attachment_keys";
+import {
+  get_attachment_key,
+  get_attachment_entry,
+  type InboundAttachmentEntry,
+} from "@/services/crypto/inbound_attachment_keys";
 import { sanitize_download_filename } from "@/lib/attachment_utils";
 
 import {
@@ -64,7 +68,28 @@ export interface AttachmentMeta {
   session_key: string;
   content_id?: string;
   is_inline?: boolean;
+  size_bytes?: number;
 }
+
+export interface ResolvedAttachmentMeta {
+  filename: string | null;
+  content_type: string | null;
+  session_key: string;
+  content_id?: string;
+  is_inline?: boolean;
+  size_bytes: number;
+  is_placeholder: boolean;
+}
+
+export interface ResolveAttachmentMetaInput {
+  encrypted_meta: string;
+  meta_nonce?: string;
+  mail_item_id?: string;
+  seq_num?: number;
+  size_bytes?: number;
+}
+
+export const DEFAULT_ATTACHMENT_CONTENT_TYPE = "application/octet-stream";
 
 const AEAD_BINDING_WRITE_ENABLED = false;
 
@@ -207,9 +232,156 @@ export function prepare_external_attachments(
   }));
 }
 
+export function is_sealed_meta_nonce(meta_nonce?: string): boolean {
+  if (!meta_nonce) return false;
+
+  let nonce: Uint8Array;
+
+  try {
+    nonce = base64_to_array(meta_nonce);
+  } catch {
+    return false;
+  }
+
+  return nonce.length > 0 && nonce.some((byte) => byte !== 0);
+}
+
+async function decrypt_sealed_attachment_meta(
+  encrypted_meta: string,
+  meta_nonce: string,
+  session_key_b64: string,
+): Promise<AttachmentMeta> {
+  const key_bytes = base64_to_array(session_key_b64);
+  const nonce = base64_to_array(meta_nonce);
+  const ciphertext = base64_to_array(encrypted_meta);
+
+  const session_key = await crypto.subtle.importKey(
+    "raw",
+    key_bytes,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+
+  zero_uint8_array(key_bytes);
+
+  const plaintext = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: nonce,
+      additionalData: new Uint8Array(0),
+    },
+    session_key,
+    ciphertext,
+  );
+
+  const parsed = JSON.parse(new TextDecoder().decode(plaintext));
+
+  if (!parsed || typeof parsed.filename !== "string") {
+    throw new Error("sealed attachment metadata is malformed");
+  }
+
+  return {
+    filename: parsed.filename,
+    content_type:
+      typeof parsed.content_type === "string" && parsed.content_type.length > 0
+        ? parsed.content_type
+        : DEFAULT_ATTACHMENT_CONTENT_TYPE,
+    session_key: session_key_b64,
+    content_id:
+      typeof parsed.content_id === "string" ? parsed.content_id : undefined,
+  };
+}
+
+async function read_row_attachment_meta(
+  encrypted_meta: string,
+  meta_nonce: string | undefined,
+  entry: InboundAttachmentEntry | null,
+): Promise<AttachmentMeta | null> {
+  if (!encrypted_meta) return null;
+
+  if (is_sealed_meta_nonce(meta_nonce) && entry?.key) {
+    try {
+      return await decrypt_sealed_attachment_meta(
+        encrypted_meta,
+        meta_nonce as string,
+        entry.key,
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    return await decrypt_client_authored_meta(encrypted_meta);
+  } catch {
+    return null;
+  }
+}
+
+export async function resolve_attachment_meta(
+  input: ResolveAttachmentMetaInput,
+): Promise<ResolvedAttachmentMeta> {
+  const entry =
+    input.mail_item_id !== undefined && input.seq_num !== undefined
+      ? get_attachment_entry(input.mail_item_id, input.seq_num)
+      : null;
+
+  const row_meta = await read_row_attachment_meta(
+    input.encrypted_meta,
+    input.meta_nonce,
+    entry,
+  );
+
+  const filename = entry?.filename ?? row_meta?.filename ?? null;
+  const resolved_content_type = entry?.content_type ?? row_meta?.content_type;
+  const content_type =
+    resolved_content_type && resolved_content_type.length > 0
+      ? resolved_content_type
+      : filename !== null
+        ? DEFAULT_ATTACHMENT_CONTENT_TYPE
+        : null;
+
+  return {
+    filename,
+    content_type,
+    session_key: row_meta?.session_key || entry?.key || "",
+    content_id: entry?.content_id ?? row_meta?.content_id,
+    is_inline: row_meta?.is_inline,
+    size_bytes: entry?.size ?? row_meta?.size_bytes ?? input.size_bytes ?? 0,
+    is_placeholder: filename === null,
+  };
+}
+
 export async function decrypt_attachment_meta(
   encrypted_meta: string,
-  _meta_nonce?: string,
+  meta_nonce?: string,
+  mail_item_id?: string,
+  seq_num?: number,
+): Promise<AttachmentMeta> {
+  const resolved = await resolve_attachment_meta({
+    encrypted_meta,
+    meta_nonce,
+    mail_item_id,
+    seq_num,
+  });
+
+  if (resolved.filename === null || resolved.content_type === null) {
+    throw new Error("attachment metadata unavailable");
+  }
+
+  return {
+    filename: resolved.filename,
+    content_type: resolved.content_type,
+    session_key: resolved.session_key,
+    content_id: resolved.content_id,
+    is_inline: resolved.is_inline,
+    size_bytes: resolved.size_bytes,
+  };
+}
+
+async function decrypt_client_authored_meta(
+  encrypted_meta: string,
 ): Promise<AttachmentMeta> {
   const meta_bytes = base64_to_array(encrypted_meta);
   const meta_text = new TextDecoder().decode(meta_bytes);

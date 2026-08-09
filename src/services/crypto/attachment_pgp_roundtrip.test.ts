@@ -34,6 +34,7 @@ vi.mock("./memory_key_store", () => ({
 
 vi.mock("@/services/crypto/inbound_attachment_keys", () => ({
   get_attachment_key: vi.fn(() => ""),
+  get_attachment_entry: vi.fn(() => null),
 }));
 
 import {

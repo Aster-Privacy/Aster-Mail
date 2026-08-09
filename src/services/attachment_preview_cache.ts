@@ -163,6 +163,8 @@ export async function prefetch_attachment_previews(
         const meta = await decrypt_attachment_meta(
           att.encrypted_meta,
           att.meta_nonce,
+          att.mail_item_id,
+          att.seq_num,
         );
 
         if (!is_previewable_image(meta.content_type)) return;

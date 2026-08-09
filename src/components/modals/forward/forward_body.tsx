@@ -286,6 +286,7 @@ export function ForwardBody({
           compose={{
             scheduled_time,
             is_scheduling,
+            is_sending,
             has_recipients: can_send || is_sending,
             handle_scheduled_send,
             handle_send: handle_forward,

@@ -18,23 +18,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const registry = new Map<string, string>();
+export interface InboundAttachmentEntry {
+  key: string;
+  filename?: string;
+  content_type?: string;
+  content_id?: string;
+  size?: number;
+}
+
+const registry = new Map<string, InboundAttachmentEntry>();
 
 const registry_key = (mail_item_id: string, seq: number): string =>
   `${mail_item_id}:${seq}`;
+
+export const register_attachment_entry = (
+  mail_item_id: string,
+  seq: number,
+  entry: InboundAttachmentEntry,
+): void => {
+  registry.set(registry_key(mail_item_id, seq), entry);
+};
 
 export const register_attachment_key = (
   mail_item_id: string,
   seq: number,
   key: string,
 ): void => {
-  registry.set(registry_key(mail_item_id, seq), key);
+  register_attachment_entry(mail_item_id, seq, { key });
 };
+
+export const get_attachment_entry = (
+  mail_item_id: string,
+  seq: number,
+): InboundAttachmentEntry | null =>
+  registry.get(registry_key(mail_item_id, seq)) ?? null;
 
 export const get_attachment_key = (
   mail_item_id: string,
   seq: number,
-): string => registry.get(registry_key(mail_item_id, seq)) ?? "";
+): string => registry.get(registry_key(mail_item_id, seq))?.key ?? "";
 
 export const clear_attachment_keys = (): void => {
   registry.clear();

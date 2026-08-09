@@ -174,7 +174,12 @@ export async function resolve_cid_references(
 
   const meta_results = await Promise.allSettled(
     records.map((att) =>
-      decrypt_attachment_meta(att.encrypted_meta, att.meta_nonce).then((meta) => ({ att, meta })),
+      decrypt_attachment_meta(
+        att.encrypted_meta,
+        att.meta_nonce,
+        att.mail_item_id,
+        att.seq_num,
+      ).then((meta) => ({ att, meta })),
     ),
   );
 

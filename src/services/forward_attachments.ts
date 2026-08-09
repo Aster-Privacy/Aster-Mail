@@ -111,7 +111,12 @@ export async function load_forward_attachments(
   const meta_results = await Promise.allSettled(
     items.map(async (item) => ({
       item,
-      meta: await decrypt_attachment_meta(item.encrypted_meta, item.meta_nonce),
+      meta: await decrypt_attachment_meta(
+        item.encrypted_meta,
+        item.meta_nonce,
+        item.mail_item_id,
+        item.seq_num,
+      ),
     })),
   );
 

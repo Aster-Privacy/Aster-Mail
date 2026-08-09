@@ -22,7 +22,7 @@ import {
   batch_attachment_meta,
   type AttachmentMetaItem,
 } from "@/services/api/attachments";
-import { decrypt_attachment_meta } from "@/services/crypto/attachment_crypto";
+import { resolve_attachment_meta } from "@/services/crypto/attachment_crypto";
 
 export interface CachedAttachmentMeta {
   id: string;
@@ -72,27 +72,26 @@ async function to_cached_meta(
     id: item.id,
     mail_item_id: item.mail_item_id,
     seq_num: item.seq_num,
-    size_bytes: item.size_bytes,
     encrypted_meta: item.encrypted_meta,
     meta_nonce: item.meta_nonce,
   };
 
-  try {
-    const meta = await decrypt_attachment_meta(
-      item.encrypted_meta,
-      item.meta_nonce,
-    );
+  const meta = await resolve_attachment_meta({
+    encrypted_meta: item.encrypted_meta,
+    meta_nonce: item.meta_nonce,
+    mail_item_id: item.mail_item_id,
+    seq_num: item.seq_num,
+    size_bytes: item.size_bytes,
+  });
 
-    return {
-      ...base,
-      filename: meta.filename,
-      content_type: meta.content_type,
-      content_id: meta.content_id,
-      is_inline: meta.is_inline,
-    };
-  } catch {
-    return { ...base, filename: null, content_type: null };
-  }
+  return {
+    ...base,
+    size_bytes: meta.size_bytes || item.size_bytes,
+    filename: meta.filename,
+    content_type: meta.content_type,
+    content_id: meta.content_id,
+    is_inline: meta.is_inline,
+  };
 }
 
 export function prefetch_attachment_meta(

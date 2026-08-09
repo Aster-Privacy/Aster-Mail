@@ -207,6 +207,8 @@ export function use_attachment_previews(
             const meta = await decrypt_attachment_meta(
               item.encrypted_meta,
               item.meta_nonce,
+              item.mail_item_id,
+              item.seq_num,
             );
 
             return {

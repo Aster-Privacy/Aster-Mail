@@ -112,6 +112,7 @@ async function fetch_previews(ids: string[]): Promise<boolean> {
       const envelope = await decrypt_envelope(
         item.encrypted_envelope,
         item.envelope_nonce,
+        item.id,
       );
 
       if (generation !== get_index_generation()) return false;
@@ -267,6 +268,7 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
           const envelope = await decrypt_envelope(
             item.encrypted_envelope,
             item.envelope_nonce,
+            item.id,
           );
 
           if (cancelled || generation !== get_index_generation()) return;

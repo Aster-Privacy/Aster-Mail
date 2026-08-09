@@ -244,7 +244,14 @@ export interface DecryptedEnvelope {
   list_unsubscribe_post?: string;
   raw_headers?: { name: string; value: string }[];
   sender_verification?: SenderVerificationStatus;
-  attachment_keys?: Array<{ seq: number; key: string }>;
+  attachment_keys?: Array<{
+    seq: number;
+    key: string;
+    filename?: string;
+    content_type?: string;
+    content_id?: string;
+    size?: number;
+  }>;
 }
 
 export type InboxFilterType = "all" | "read" | "unread" | "attachments";

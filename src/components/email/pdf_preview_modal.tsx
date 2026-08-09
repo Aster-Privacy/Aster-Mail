@@ -104,6 +104,8 @@ export function PdfPreviewModal({
         const meta = await decrypt_attachment_meta(
           att.encrypted_meta,
           att.meta_nonce,
+          att.mail_item_id,
+          att.seq_num,
         );
 
         const data = await decrypt_attachment_data(
@@ -211,6 +213,8 @@ export function PdfPreviewModal({
       const meta = await decrypt_attachment_meta(
         att.encrypted_meta,
         att.meta_nonce,
+        att.mail_item_id,
+        att.seq_num,
       );
 
       const data = await decrypt_attachment_data(

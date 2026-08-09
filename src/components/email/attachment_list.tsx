@@ -536,6 +536,8 @@ export function AttachmentList({
             const meta = await decrypt_attachment_meta(
               info.encrypted_meta,
               info.meta_nonce,
+              info.mail_item_id,
+              info.seq_num,
             );
             const data = await decrypt_attachment_data(
               info.encrypted_data,
@@ -603,6 +605,8 @@ export function AttachmentList({
           const meta = await decrypt_attachment_meta(
             att.encrypted_meta,
             att.meta_nonce,
+            att.mail_item_id,
+            att.seq_num,
           );
           const data = await decrypt_attachment_data(
             att.encrypted_data,
@@ -709,6 +713,8 @@ export function AttachmentList({
         const meta = await decrypt_attachment_meta(
           att.encrypted_meta,
           att.meta_nonce,
+          att.mail_item_id,
+          att.seq_num,
         );
 
         if (is_inline_attachment(meta, { inline_cids, inline_filenames })) {
@@ -943,6 +949,8 @@ export function AttachmentList({
         const meta = await decrypt_attachment_meta(
           hydrated.encrypted_meta,
           hydrated.meta_nonce,
+          hydrated.mail_item_id,
+          hydrated.seq_num,
         );
 
         const data = await decrypt_attachment_data(
@@ -979,6 +987,8 @@ export function AttachmentList({
             const meta = await decrypt_attachment_meta(
               hydrated.encrypted_meta,
               hydrated.meta_nonce,
+              hydrated.mail_item_id,
+              hydrated.seq_num,
             );
             const data = await decrypt_attachment_data(
               hydrated.encrypted_data,

@@ -40,6 +40,7 @@ vi.mock("@/services/crypto/legacy_keks", () => ({
 
 vi.mock("@/services/crypto/inbound_attachment_keys", () => ({
   get_attachment_key: vi.fn(),
+  get_attachment_entry: vi.fn(() => null),
 }));
 
 vi.mock("./envelope", async (importOriginal) => {

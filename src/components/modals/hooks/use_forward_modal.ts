@@ -332,6 +332,7 @@ export function use_forward_modal({
 
   attachments_ref.current = attachments;
 
+  const original_has_attachments_ref = useRef(false);
   const files_drop_ref = useRef<((files: File[]) => void) | null>(null);
 
   const editor = use_editor({
@@ -419,6 +420,7 @@ export function use_forward_modal({
       set_is_sending(false);
       set_error_message(null);
       set_attachments([]);
+      original_has_attachments_ref.current = false;
       set_is_loading_attachments(false);
       set_attachment_error(null);
       set_scheduled_time(null);
@@ -498,6 +500,8 @@ export function use_forward_modal({
           return;
         }
 
+        original_has_attachments_ref.current = true;
+
         const loaded: Attachment[] = [];
         let total_size = 0;
 
@@ -508,6 +512,8 @@ export function use_forward_modal({
             const meta = await decrypt_attachment_meta(
               att.encrypted_meta,
               att.meta_nonce,
+              att.mail_item_id,
+              att.seq_num,
             );
 
             const decrypted_data = await decrypt_attachment_data(
@@ -758,6 +764,9 @@ export function use_forward_modal({
     );
     const fwd_attachments =
       remaining_attachments.length > 0 ? remaining_attachments : undefined;
+    const fwd_server_source_id = original_has_attachments_ref.current
+      ? undefined
+      : fwd_mail_id;
 
     const result = await send_forward(
       {
@@ -772,7 +781,7 @@ export function use_forward_modal({
         sender_alias_hash: fwd_sender_alias_hash,
         sender_display_name: fwd_sender_display_name,
         attachments: fwd_attachments,
-        forward_original_mail_id: fwd_mail_id,
+        forward_original_mail_id: fwd_server_source_id,
       },
       {
         on_complete: () => {
