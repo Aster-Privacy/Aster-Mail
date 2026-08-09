@@ -18,18 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedThreadMessage } from "@/types/thread";
-import type {
-  ExternalContentReport,
-  ImageLoadMode,
-} from "@/lib/html_sanitizer";
-import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
+import { render_collapsed_thread_message } from "./thread_message_collapsed";
 
-import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 
-import { useState, useMemo, useEffect, useRef } from "react";
 
-import { dispatch_iframe_ready } from "@/components/email/sandboxed_email_renderer";
 import {
   AtSymbolIcon,
   StarIcon,
@@ -55,16 +47,7 @@ import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
 import { EmailTag } from "@/components/ui/email_tag";
-import { is_ghost_email } from "@/stores/ghost_alias_store";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import {
-  sanitize_html,
-  is_html_content,
-  has_rich_html,
-  plain_text_to_html,
-  html_to_readable_plain_text,
-  strip_html_tags,
-} from "@/lib/html_sanitizer";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -80,573 +63,101 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { is_system_email } from "@/lib/utils";
 
 import { OfficialBadge } from "@/components/email/official_badge";
-import { get_image_proxy_url } from "@/lib/image_proxy";
-import { use_i18n } from "@/lib/i18n/context";
-import { use_preferences } from "@/contexts/preferences_context";
-import { use_date_format } from "@/hooks/use_date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
-import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banner";
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
-import { use_email_translation } from "@/components/email/hooks/use_email_translation";
-import { analyze_email_content } from "@/lib/phishing_analyzer";
-import type { PhishingLevel } from "@/lib/phishing_analyzer";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
-import {
-  extract_cid_references,
-  extract_cid_inline_filenames,
-  resolve_cid_references,
-  revoke_cid_blob_urls,
-} from "@/lib/cid_resolver";
-import {
-  RATCHET_UNDECRYPTABLE_SENTINEL,
-  PGP_UNDECRYPTABLE_SENTINEL,
-  is_ratchet_envelope,
-  is_password_protected_body,
-} from "@/utils/email_crypto";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
-import {
-  is_lockdown_enabled,
-  LOCKDOWN_CHANGED_EVENT,
-} from "@/services/lockdown_store";
-import { resolve_received_on_address } from "@/utils/delivered_to";
-import {
-  normalize_alias_candidates,
-  use_alias_delivery,
-} from "@/hooks/use_alias_delivery";
-import { use_auth_safe } from "@/contexts/auth_context";
 
-interface ThreadMessageBlockProps {
-  message: DecryptedThreadMessage;
-  is_own_message: boolean;
-  is_expanded: boolean;
-  is_reply?: boolean;
-  is_single_message?: boolean;
-  is_last_in_thread?: boolean;
-  hide_bottom_border?: boolean;
-  on_toggle: () => void;
-  is_starred?: boolean;
-  is_read?: boolean;
-  on_star_toggle?: () => void;
-  on_toggle_read?: () => void;
-  on_reply?: (message: DecryptedThreadMessage) => void;
-  on_reply_all?: (message: DecryptedThreadMessage) => void;
-  on_forward?: (message: DecryptedThreadMessage) => void;
-  on_archive?: (message: DecryptedThreadMessage) => void;
-  on_trash?: (message: DecryptedThreadMessage) => void;
-  on_print?: (message: DecryptedThreadMessage) => void;
-  on_view_source?: (message: DecryptedThreadMessage) => void;
-  on_report_phishing?: (message: DecryptedThreadMessage) => void;
-  on_block_sender?: (message: DecryptedThreadMessage) => void;
-  on_not_spam?: (message: DecryptedThreadMessage) => void;
-  folders?: { id: string; name: string; color: string }[];
-  message_folder_tokens?: string[];
-  on_move_to_folder?: (
-    message: DecryptedThreadMessage,
-    folder_token: string,
-  ) => void;
-  external_content_mode?: ImageLoadMode;
-  on_external_content_detected?: (report: ExternalContentReport) => void;
-  force_dark_mode?: boolean;
-  disable_auto_dark_mode?: boolean;
-  on_toggle_dark_mode?: () => void;
-  show_inline_reply?: boolean;
-  inline_reply_thread_token?: string;
-  inline_reply_is_external?: boolean;
-  on_close_inline_reply?: () => void;
-  inline_mode?: "reply" | "reply_all" | "forward";
-  on_set_inline_mode?: (mode: "reply" | "reply_all" | "forward") => void;
-  on_draft_saved?: (draft: {
-    id: string;
-    version: number;
-    content: import("@/services/api/multi_drafts").DraftContent;
-  }) => void;
-  existing_draft?: {
-    id: string;
-    version: number;
-    reply_to_id?: string;
-    content: import("@/services/api/multi_drafts").DraftContent;
-  } | null;
-  preloaded_sanitized?: PreloadedSanitizedContent;
-  size_bytes?: number;
-  on_unsubscribe?: () => Promise<"success" | "manual">;
-  on_manual_unsubscribed?: () => void;
-  unsubscribe_url?: string;
-  loaded_content_types?: Set<string>;
-  on_load_external_content?: (types?: string[]) => void;
-}
-
-function strip_quotes(body: string): string {
-  const wrote_re = /On .+wrote:\s*/i;
-  const match = body.match(wrote_re);
-  let processed = body;
-  if (match && match.index !== undefined) {
-    const before = body.substring(0, match.index).trim();
-    if (before.length > 0) {
-      processed = before;
-    } else {
-      processed = body.substring(match.index + match[0].length);
-    }
-  }
-  return (
-    processed
-      .replace(/^>.*$/gm, "")
-      .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
-      .trim() || body
-  );
-}
-
-export function ThreadMessageBlock({
-  message,
-  is_own_message,
-  is_expanded,
-  is_reply: _is_reply = false,
-  is_single_message = false,
-  is_last_in_thread = false,
-  hide_bottom_border = false,
-  on_toggle,
-  is_starred = false,
-  is_read = true,
-  on_star_toggle,
-  on_toggle_read,
-  on_reply,
-  on_reply_all,
-  on_forward,
-  on_archive,
-  on_trash,
-  on_print,
-  on_view_source: _on_view_source,
-  on_report_phishing,
-  on_block_sender,
-  on_not_spam,
-  folders = [],
-  message_folder_tokens,
-  on_move_to_folder,
-  external_content_mode,
-  on_external_content_detected,
-  force_dark_mode = false,
-  disable_auto_dark_mode = false,
-  on_toggle_dark_mode,
-  show_inline_reply,
-  inline_reply_thread_token,
-  inline_reply_is_external,
-  on_close_inline_reply,
-  inline_mode = "reply",
-  on_set_inline_mode,
-  on_draft_saved,
-  existing_draft,
-  preloaded_sanitized: preloaded_sanitized_prop,
-  size_bytes,
-  on_unsubscribe,
-  on_manual_unsubscribed,
-  unsubscribe_url,
-  loaded_content_types,
-  on_load_external_content,
-}: ThreadMessageBlockProps): React.ReactElement {
-  const { t } = use_i18n();
-  const { preferences } = use_preferences();
-  const auth = use_auth_safe();
-  const account_id = auth?.current_account_id ?? "";
-  const { format_email_detail } = use_date_format();
-  const [viewing_source, set_viewing_source] = useState(false);
-  const [wrap_source, set_wrap_source] = useState(false);
-  const [show_details_modal, set_show_details_modal] = useState(false);
-  const [unsub_state, set_unsub_state] = useState<
-    "idle" | "loading" | "manual" | "done"
-  >("idle");
-  const preloaded_sanitized = use_latched_by_id(
-    message.id,
-    preloaded_sanitized_prop,
-  );
-
-  const [password_unlocked_body, set_password_unlocked_body] = useState<
-    string | null
-  >(null);
-  const password_protected =
-    is_password_protected_body(message.body) && password_unlocked_body === null;
-
-  useEffect(() => {
-    set_password_unlocked_body(null);
-  }, [message.id]);
-
-  const clean_body = useMemo(() => {
-    if (password_unlocked_body !== null) {
-      return password_unlocked_body;
-    }
-
-    if (message.html_content && !is_ratchet_envelope(message.html_content)) {
-      return message.html_content;
-    }
-
-    return strip_quotes(message.body);
-  }, [message.body, message.html_content, password_unlocked_body]);
-  const has_reported_external_content = useRef(false);
-
-  const collapsed_preview = useMemo(() => {
-    if (password_protected) {
-      return t("mail.pgp_password_protected_title");
-    }
-
-    if (
-      clean_body === RATCHET_UNDECRYPTABLE_SENTINEL ||
-      clean_body === PGP_UNDECRYPTABLE_SENTINEL
-    ) {
-      return t("mail.encrypted_message_unavailable");
-    }
-    const plain = strip_html_tags(clean_body).replace(/\s+/g, " ").trim();
-
-    return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
-  }, [clean_body, password_protected, t]);
-
-  const [lockdown_active, set_lockdown_active] = useState(() =>
-    is_lockdown_enabled(account_id),
-  );
-
-  useEffect(() => {
-    const update = () =>
-      set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
-    window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
-    window.addEventListener("storage", update);
-    return () => {
-      window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
-      window.removeEventListener("storage", update);
-    };
-  }, [auth?.current_account_id]);
-
-  const is_system = is_system_email(message.sender_email);
-  const is_ghost_sender = is_ghost_email(message.sender_email);
-  const show_sender_name = message.display_sender_name ?? message.sender_name;
-  const show_sender_email =
-    message.display_sender_email ?? message.sender_email;
-  const received_on_address = useMemo(
-    () =>
-      message.item_type === "received"
-        ? resolve_received_on_address(message)
-        : undefined,
-    [message],
-  );
-  const alias_candidates_key = useMemo(
-    () =>
-      message.item_type === "received"
-        ? normalize_alias_candidates([
-            received_on_address,
-            ...(message.to_recipients?.map((r) => r.email) ?? []),
-            ...(message.cc_recipients?.map((r) => r.email) ?? []),
-          ])
-        : "",
-    [
-      message.item_type,
-      message.to_recipients,
-      message.cc_recipients,
-      received_on_address,
-    ],
-  );
-  const alias_delivery = use_alias_delivery(undefined, alias_candidates_key);
-  const delivered_to_address = received_on_address ?? alias_delivery?.address;
-  const has_plaintext_body =
-    !password_protected &&
-    !!message.body &&
-    message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
-    message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
-    !is_ratchet_envelope(message.body);
-  const is_ratchet_undecryptable =
-    !has_plaintext_body &&
-    (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
-      message.body === PGP_UNDECRYPTABLE_SENTINEL ||
-      is_ratchet_envelope(message.body) ||
-      is_ratchet_envelope(message.html_content));
-  const rich_html_source = message.html_content || message.body;
-  const is_plain_text = !rich_html_source || !has_rich_html(rich_html_source);
-
-  const translation_enabled = preferences.translate_incoming !== "off";
-
-  const [phishing_level, set_phishing_level] = useState<PhishingLevel>("safe");
-  const [phishing_checked, set_phishing_checked] = useState(false);
-
-  useEffect(() => {
-    if (!translation_enabled) {
-      set_phishing_level("safe");
-      set_phishing_checked(false);
-
-      return;
-    }
-
-    let cancelled = false;
-
-    set_phishing_level("safe");
-    set_phishing_checked(false);
-
-    analyze_email_content(
-      message.html_content ?? "",
-      message.body ?? "",
-      message.sender_name ?? "",
-      message.sender_email ?? "",
-      !is_system,
-    )
-      .then((result) => {
-        if (!cancelled) set_phishing_level(result.level);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) set_phishing_checked(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    translation_enabled,
-    message.id,
-    message.html_content,
-    message.body,
-    message.sender_name,
-    message.sender_email,
-    is_system,
-  ]);
-
-  const translation = use_email_translation({
-    account_id,
-    email_id: message.id,
-    subject: message.subject ?? "",
-    translatable:
-      !is_ratchet_undecryptable &&
-      message.is_spam !== true &&
-      message.item_type !== "draft" &&
-      phishing_checked &&
-      phishing_level === "safe",
-  });
-
-  useEffect(() => {
-    if (is_ratchet_undecryptable) {
-      dispatch_iframe_ready(message.id);
-    }
-  }, [is_ratchet_undecryptable, message.id]);
-
-  const base_image_mode = is_system
-    ? ("always" as ImageLoadMode)
-    : !preferences.block_external_content
-      ? ("always" as ImageLoadMode)
-      : preferences.load_remote_images;
-
-  const load_remote_content =
-    !lockdown_active && external_content_mode === "always";
-
-  const has_loaded_types =
-    loaded_content_types && loaded_content_types.size > 0;
-
-  const sanitized_content = useMemo(() => {
-    if (
-      preloaded_sanitized &&
-      base_image_mode !== "always" &&
-      !has_loaded_types
-    ) {
-      const report: ExternalContentReport | null =
-        preloaded_sanitized.external_content.blocked_count > 0
-          ? preloaded_sanitized.external_content
-          : null;
-
-      return {
-        html: preloaded_sanitized.html,
-        report,
-        body_background: preloaded_sanitized.body_background,
-      };
-    }
-
-    if (!is_html_content(clean_body)) {
-      return {
-        html: plain_text_to_html(clean_body),
-        report: null,
-        body_background: undefined,
-      };
-    }
-
-    const block_images = loaded_content_types?.has("image")
-      ? false
-      : preferences.block_remote_images;
-    const block_fonts = loaded_content_types?.has("font")
-      ? false
-      : preferences.block_remote_fonts;
-    const block_css = loaded_content_types?.has("css")
-      ? false
-      : preferences.block_remote_css;
-    const block_pixels = loaded_content_types?.has("tracking_pixel")
-      ? false
-      : preferences.block_tracking_pixels;
-
-    const result = sanitize_html(clean_body, {
-      external_content_mode: lockdown_active ? "never" : base_image_mode,
-      image_proxy_url: get_image_proxy_url(),
-      sandbox_mode: true,
-      lockdown_mode: lockdown_active,
-      content_blocking:
-        !is_system && (lockdown_active || preferences.block_external_content)
-          ? {
-              block_remote_images: lockdown_active || block_images,
-              block_remote_fonts: lockdown_active || block_fonts,
-              block_remote_css: lockdown_active || block_css,
-              block_tracking_pixels: lockdown_active || block_pixels,
-            }
-          : undefined,
-    });
-
-    const report: ExternalContentReport | null =
-      result.external_content.blocked_count > 0
-        ? result.external_content
-        : null;
-
-    return {
-      html: result.html,
-      report,
-      body_background: result.body_background,
-    };
-  }, [
-    preloaded_sanitized,
-    clean_body,
-    base_image_mode,
-    has_loaded_types,
-    loaded_content_types,
-    lockdown_active,
-    preferences.block_external_content,
-    preferences.block_remote_images,
-    preferences.block_remote_fonts,
-    preferences.block_remote_css,
-    preferences.block_tracking_pixels,
-  ]);
-
-  useEffect(() => {
-    if (
-      !is_system &&
-      sanitized_content.report &&
-      sanitized_content.report.blocked_count > 0 &&
-      on_external_content_detected &&
-      !has_reported_external_content.current
-    ) {
-      has_reported_external_content.current = true;
-      on_external_content_detected(sanitized_content.report);
-    }
-  }, [is_system, sanitized_content.report, on_external_content_detected]);
-
-  useEffect(() => {
-    has_reported_external_content.current = false;
-  }, [message.id]);
-
-  const cid_blob_urls_ref = useRef<string[]>([]);
-  const cid_preload_consumed_ref = useRef(false);
-
-  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(
-    () => {
-      if (!is_expanded || base_image_mode === "always") return null;
-      const preloaded = pop_preloaded_thread_cid(message.id);
-      if (preloaded) {
-        cid_blob_urls_ref.current = preloaded.blob_urls;
-        cid_preload_consumed_ref.current = true;
-        return preloaded.html;
-      }
-      return null;
-    },
-  );
-
-  useEffect(() => {
-    if (cid_preload_consumed_ref.current) {
-      cid_preload_consumed_ref.current = false;
-      return;
-    }
-
-    let cancelled = false;
-
-    const has_cid = extract_cid_references(sanitized_content.html).length > 0;
-
-    if (
-      !has_cid ||
-      !is_expanded ||
-      message.is_sending === true ||
-      preferences.low_network_mode
-    ) {
-      revoke_cid_blob_urls(cid_blob_urls_ref.current);
-      cid_blob_urls_ref.current = [];
-      set_cid_resolved_html(null);
-      return;
-    }
-
-    const preloaded =
-      base_image_mode !== "always"
-        ? pop_preloaded_thread_cid(message.id)
-        : null;
-    if (preloaded) {
-      revoke_cid_blob_urls(cid_blob_urls_ref.current);
-      cid_blob_urls_ref.current = preloaded.blob_urls;
-      set_cid_resolved_html(preloaded.html);
-      return;
-    }
-
-    resolve_cid_references(sanitized_content.html, message.id)
-      .then((result) => {
-        if (cancelled) {
-          revoke_cid_blob_urls(result.blob_urls);
-          return;
-        }
-        revoke_cid_blob_urls(cid_blob_urls_ref.current);
-        cid_blob_urls_ref.current = result.blob_urls;
-        set_cid_resolved_html(result.html);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    sanitized_content.html,
-    message.id,
+import { use_thread_message_block } from "./use_thread_message_block";
+import type { ThreadMessageBlockProps } from "./use_thread_message_block";
+export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactElement {
+  const {
+    message,
+    is_own_message,
     is_expanded,
-    preferences.low_network_mode,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      revoke_cid_blob_urls(cid_blob_urls_ref.current);
-      cid_blob_urls_ref.current = [];
-    };
-  }, []);
-
-  const effective_html = cid_resolved_html ?? sanitized_content.html;
-
-  const html_blocked =
-    is_html_content(clean_body) &&
-    (preferences.html_rendering_mode === "plain_text" ||
-      preferences.low_network_mode);
-
-  const plain_text_html = useMemo(() => {
-    if (!html_blocked) return null;
-    return plain_text_to_html(
-      html_to_readable_plain_text(clean_body, { keep_link_urls: true }),
-    );
-  }, [html_blocked, clean_body]);
-
-  const inline_cids = useMemo(() => {
-    const refs = extract_cid_references(sanitized_content.html);
-
-    return refs.length > 0
-      ? new Set(refs.map((r) => r.toLowerCase()))
-      : undefined;
-  }, [sanitized_content.html]);
-
-  const inline_filenames = useMemo(() => {
-    const names = extract_cid_inline_filenames(sanitized_content.html);
-
-    return names.size > 0 ? names : undefined;
-  }, [sanitized_content.html]);
-
-  const name = is_own_message ? t("common.me") : show_sender_name;
-  const can_collapse = !is_single_message && !is_last_in_thread;
+    is_single_message = false,
+    is_last_in_thread = false,
+    hide_bottom_border = false,
+    on_toggle,
+    is_starred = false,
+    is_read = true,
+    on_star_toggle,
+    on_toggle_read,
+    on_reply,
+    on_reply_all,
+    on_forward,
+    on_archive,
+    on_trash,
+    on_print,
+    on_report_phishing,
+    on_block_sender,
+    on_not_spam,
+    folders = [],
+    message_folder_tokens,
+    on_move_to_folder,
+    force_dark_mode = false,
+    disable_auto_dark_mode = false,
+    on_toggle_dark_mode,
+    show_inline_reply,
+    inline_reply_thread_token,
+    inline_reply_is_external,
+    on_close_inline_reply,
+    inline_mode = "reply",
+    on_set_inline_mode,
+    on_draft_saved,
+    existing_draft,
+    size_bytes,
+    on_unsubscribe,
+    on_manual_unsubscribed,
+    unsubscribe_url,
+    on_load_external_content,
+  } = props;
+  const state = use_thread_message_block(props);
+  const {
+    t,
+    auth,
+    format_email_detail,
+    viewing_source,
+    set_viewing_source,
+    wrap_source,
+    set_wrap_source,
+    show_details_modal,
+    set_show_details_modal,
+    unsub_state,
+    set_unsub_state,
+    set_password_unlocked_body,
+    password_protected,
+    clean_body,
+    lockdown_active,
+    is_system,
+    is_ghost_sender,
+    show_sender_name,
+    show_sender_email,
+    received_on_address,
+    alias_delivery,
+    delivered_to_address,
+    is_ratchet_undecryptable,
+    is_plain_text,
+    translation,
+    load_remote_content,
+    sanitized_content,
+    effective_html,
+    html_blocked,
+    plain_text_html,
+    inline_cids,
+    inline_filenames,
+    name,
+    can_collapse,
+  } = state;
 
   if (message.is_deleted) {
     return (
@@ -657,150 +168,7 @@ export function ThreadMessageBlock({
   }
 
   if (!is_expanded && !is_last_in_thread && !is_single_message) {
-    return (
-      <div
-        className={`group flex cursor-pointer select-none gap-3 px-4 py-3 hover:bg-surf-hover/20 ${hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}
-        role="button"
-        tabIndex={0}
-        onClick={(e) => {
-          e.stopPropagation();
-          on_toggle();
-        }}
-        onKeyDown={(e) => {
-          if (e["key"] === "Enter" || e["key"] === " ") {
-            e.preventDefault();
-            e.stopPropagation();
-            on_toggle();
-          }
-        }}
-      >
-        <ProfileAvatar
-          use_domain_logo
-          className="flex-shrink-0 mt-0.5"
-          email={show_sender_email}
-          name={show_sender_name}
-          size="md"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-txt-primary truncate">
-              {name}
-            </span>
-            {is_ghost_sender && (
-              <EmailTag
-                className="flex-shrink-0"
-                icon="eye-slash"
-                label={t("common.ghost_label")}
-                muted={is_read}
-                size="sm"
-                title={t("common.ghost_mode_tooltip")}
-                variant="purple"
-              />
-            )}
-          </div>
-          {collapsed_preview && (
-            <p className="text-sm text-txt-muted truncate mt-0.5">
-              {collapsed_preview}
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-0.5 flex-shrink-0 mt-0.5">
-          <button
-            className="rounded-full p-1.5 hover:bg-surf-hover"
-            title={is_starred ? t("mail.unstar") : t("mail.star")}
-            onClick={(e) => {
-              e.stopPropagation();
-              on_star_toggle?.();
-            }}
-          >
-            {is_starred ? (
-              <StarIconSolid className="h-[18px] w-[18px] text-amber-400" />
-            ) : (
-              <StarIcon className="h-[18px] w-[18px] text-txt-muted" />
-            )}
-          </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="rounded-full p-1.5 hover:bg-surf-hover"
-                title={t("common.more")}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <EllipsisHorizontalIcon className="h-[18px] w-[18px] text-txt-muted" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              {on_forward && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle();
-                    on_forward(message);
-                  }}
-                >
-                  <ArrowUturnRightIcon className="w-4 h-4 mr-2" />
-                  {t("mail.forward")}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              {message.item_type !== "sent" && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle_read?.();
-                  }}
-                >
-                  {is_read ? (
-                    <EyeSlashIcon className="w-4 h-4 mr-2" />
-                  ) : (
-                    <EyeIcon className="w-4 h-4 mr-2" />
-                  )}
-                  {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  on_star_toggle?.();
-                }}
-              >
-                {is_starred ? (
-                  <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
-                ) : (
-                  <StarIcon className="w-4 h-4 mr-2" />
-                )}
-                {is_starred ? t("mail.unstar") : t("mail.star")}
-              </DropdownMenuItem>
-              {on_trash && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_trash(message);
-                    }}
-                  >
-                    <TrashIcon className="w-4 h-4 mr-2" />
-                    {t("mail.move_to_trash")}
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <span className="text-[13px] text-txt-muted whitespace-nowrap ml-1.5 flex-shrink-0">
-            {format_email_detail(new Date(message.timestamp))}
-          </span>
-        </div>
-
-        <MessageDetailsModal
-          is_open={show_details_modal}
-          message={message}
-          on_close={() => set_show_details_modal(false)}
-          size_bytes={size_bytes}
-        />
-      </div>
-    );
+    return render_collapsed_thread_message(props, state);
   }
 
   return (
