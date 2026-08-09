@@ -25,6 +25,11 @@ import { Button } from "@aster/ui";
 import { show_toast } from "@/components/toast/simple_toast";
 import { open_external } from "@/utils/open_link";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  error_message_of,
+  is_chunk_load_error,
+  trigger_chunk_recovery,
+} from "@/lib/chunk_recovery";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -51,11 +56,19 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, error_info: React.ErrorInfo): void {
+    if (is_chunk_load_error(error_message_of(error))) {
+      trigger_chunk_recovery();
+    }
+
     this.props.on_error?.(error, error_info);
   }
 
   render(): ReactNode {
     if (this.state.has_error) {
+      if (is_chunk_load_error(error_message_of(this.state.error))) {
+        return <ChunkRecoveryFallback />;
+      }
+
       if (this.props.fallback) {
         return this.props.fallback;
       }
@@ -231,6 +244,28 @@ export function ComposeErrorFallback() {
       <div className="text-sm mb-4 max-w-md">
         {t("common.composer_load_error")}
       </div>
+    </div>
+  );
+}
+
+function ChunkRecoveryFallback() {
+  const { t } = use_i18n();
+
+  return (
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center"
+      style={{ color: "var(--text-secondary)" }}
+    >
+      <span
+        className="rounded-full border-2 border-t-transparent animate-spin motion-reduce:animate-none"
+        style={{
+          width: "22px",
+          height: "22px",
+          borderColor: "var(--accent-color, #3b82f6)",
+          borderTopColor: "transparent",
+        }}
+      />
+      <div className="text-[13px]">{t("common.loading")}</div>
     </div>
   );
 }

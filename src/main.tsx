@@ -34,9 +34,13 @@ import {
 import { recover_fallback_sends } from "@/services/send_queue";
 import {
   start_version_check,
-  hard_flush_and_reload,
   version_check_blocking,
 } from "@/lib/version_check";
+import {
+  error_message_of,
+  is_chunk_load_error,
+  trigger_chunk_recovery,
+} from "@/lib/chunk_recovery";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
 import { connection_store } from "@/services/routing/connection_store";
@@ -130,38 +134,8 @@ if (is_tauri_runtime && "serviceWorker" in navigator) {
   })();
 }
 
-const CHUNK_RELOAD_MARKER = "aster:chunk_reload_at";
-const CHUNK_RELOAD_COOLDOWN_MS = 30_000;
-
-function is_chunk_load_error(message: string): boolean {
-  return (
-    message.includes("Importing a module script failed") ||
-    message.includes("Failed to fetch dynamically imported module") ||
-    message.includes("error loading dynamically imported module") ||
-    message.includes("Failed to load module script") ||
-    /ChunkLoadError/i.test(message)
-  );
-}
-
-function trigger_chunk_recovery(): void {
-  try {
-    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_MARKER) || "0");
-    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return;
-    sessionStorage.setItem(CHUNK_RELOAD_MARKER, String(Date.now()));
-  } catch {
-    return;
-  }
-  void hard_flush_and_reload();
-}
-
 window.addEventListener("unhandledrejection", (event) => {
-  const reason = event.reason;
-  const message =
-    typeof reason === "string"
-      ? reason
-      : reason && typeof reason === "object" && "message" in reason
-        ? String((reason as { message: unknown }).message)
-        : "";
+  const message = error_message_of(event.reason);
 
   if (is_chunk_load_error(message)) {
     event.preventDefault();
