@@ -52,6 +52,7 @@ import { get_aster_footer } from "@/components/compose/compose_shared";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { fetch_my_badges, type Badge } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
+import { Spinner } from "@/components/ui/spinner";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -647,9 +648,11 @@ export const InlineReplySection = forwardRef<
                   }
                   onClick={handle_send_reply}
                 >
-                  {send_state === "sending"
-                    ? t("common.sending")
-                    : t("mail.send")}
+                  {send_state === "sending" ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    t("mail.send")
+                  )}
                 </Button>
                 <button
                   className="px-4 py-2.5 border border-edge-secondary rounded-[14px] font-medium transition-colors text-sm hover_bg text-txt-secondary"
