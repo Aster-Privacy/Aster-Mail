@@ -87,6 +87,10 @@ export type {
   ForwardData,
 } from "@/components/email/email_viewer_types";
 
+export const REPLY_ARRIVAL_POLL_DELAYS_MS = [
+  500, 800, 1200, 2000, 3000, 5000, 8000, 12000,
+];
+
 function reconcile_thread_messages(
   prev: DecryptedThreadMessage[],
   server: DecryptedThreadMessage[],
@@ -990,7 +994,7 @@ export function use_email_viewer({
         (m) => !m.is_sending,
       ).length;
 
-      const delays_ms = [500, 800, 1200, 2000, 3000];
+      const delays_ms = REPLY_ARRIVAL_POLL_DELAYS_MS;
       let thread_result: Awaited<
         ReturnType<typeof fetch_and_decrypt_thread_messages>
       > = { messages: [], thread_data: null, truncated: false };

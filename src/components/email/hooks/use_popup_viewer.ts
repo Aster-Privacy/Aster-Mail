@@ -24,6 +24,7 @@ import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
+import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import {
   get_draft_by_thread,
@@ -766,7 +767,7 @@ export function use_popup_viewer({
         (m) => !m.is_sending,
       ).length;
 
-      const delays_ms = [500, 800, 1200, 2000, 3000];
+      const delays_ms = REPLY_ARRIVAL_POLL_DELAYS_MS;
       let thread_result: Awaited<
         ReturnType<typeof fetch_and_decrypt_thread_messages>
       > = { messages: [], thread_data: null, truncated: false };

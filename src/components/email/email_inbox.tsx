@@ -127,6 +127,7 @@ import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_to
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
+import { use_inbox_selection_menu } from "@/components/email/inbox/use_inbox_selection_menu";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { prewarm_search_index } from "@/hooks/use_search";
@@ -1164,6 +1165,19 @@ export function EmailInbox({
     t,
   ]);
 
+  const bulk_actions = use_inbox_bulk_actions({
+    categories,
+    selection,
+    toolbar,
+    current_view,
+    page_size,
+    scope_for_view,
+    fetch_page,
+    set_current_page,
+    t,
+  });
+  });
+
   const {
     pending_select_all_action,
     set_pending_select_all_action,
@@ -1176,85 +1190,18 @@ export function EmailInbox({
     handle_toggle_star_wrapped,
     handle_restore_wrapped,
     handle_not_spam_wrapped,
-  } = use_inbox_bulk_actions({
+  } = bulk_actions;
+
+  const selection_menu = use_inbox_selection_menu({
     categories,
     selection,
     toolbar,
-    current_view,
-    page_size,
-    scope_for_view,
-    fetch_page,
-    set_current_page,
-    t,
-  });
-
-  const selected_emails = useMemo(
-    () => email_state.emails.filter((e) => e.is_selected),
-    [email_state.emails],
-  );
-
-  const selection_menu = useMemo((): SelectionMenuScope | null => {
-    const is_all_mode = selection.select_all_mode;
-    const count = is_all_mode
-      ? Math.max(effective_total_for_pages - selection.excluded_ids.length, 0)
-      : selection.selected_count;
-
-    if (!is_all_mode && count < 2) return null;
-
-    return {
-      count,
-      is_all_mode,
-      has_unread: is_all_mode || selected_emails.some((e) => !e.is_read),
-      has_read: is_all_mode || selected_emails.some((e) => e.is_read),
-      get_folder_status: selection.get_folder_status_for_selection,
-      get_tag_status: selection.get_tag_status_for_selection,
-      on_archive: handle_archive_wrapped,
-      on_delete: handle_delete_wrapped,
-      on_spam: handle_spam_wrapped,
-      on_mark_read: handle_mark_read_wrapped,
-      on_mark_unread: handle_mark_unread_wrapped,
-      on_restore: handle_restore_wrapped,
-      on_mark_not_spam: handle_not_spam_wrapped,
-      on_move_to_inbox: handle_unarchive_wrapped,
-      on_snooze: toolbar.handle_toolbar_snooze,
-      on_custom_snooze: () => set_show_toolbar_custom_snooze(true),
-      on_folder_toggle: (folder_token: string) => {
-        toolbar.handle_toolbar_toggle_folder(
-          folder_token,
-          selection.get_folder_status_for_selection(folder_token) === "all",
-        );
-      },
-      on_tag_toggle: (tag_token: string) => {
-        toolbar.handle_toolbar_toggle_tag(
-          tag_token,
-          selection.get_tag_status_for_selection(tag_token) === "all",
-        );
-      },
-      on_category_change: categories.enabled
-        ? (category: EmailCategory) => {
-            void handle_category_drop(
-              category,
-              selected_emails.map((e) => e.id),
-            );
-          }
-        : undefined,
-    };
-  }, [
-    selection,
-    selected_emails,
+    bulk_actions,
+    email_state,
     effective_total_for_pages,
-    toolbar,
-    categories.enabled,
     handle_category_drop,
-    handle_archive_wrapped,
-    handle_delete_wrapped,
-    handle_spam_wrapped,
-    handle_mark_read_wrapped,
-    handle_mark_unread_wrapped,
-    handle_restore_wrapped,
-    handle_not_spam_wrapped,
-    handle_unarchive_wrapped,
-  ]);
+    set_show_toolbar_custom_snooze,
+  });
 
   const nav = use_inbox_navigation({
     current_view,
