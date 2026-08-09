@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { AliasRun } from "@/services/api/aliases";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   TrashIcon,
   PlusIcon,
@@ -56,7 +57,12 @@ import {
   alias_rule_delivery,
   alias_rule_label,
 } from "@/lib/alias_rule_delivery";
-import { get_alias_preferences } from "@/services/api/aliases";
+import {
+  cancel_alias_run,
+  get_alias_preferences,
+  get_alias_run,
+  run_alias_on_existing,
+} from "@/services/api/aliases";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
   list_alias_pins,
@@ -1133,7 +1139,86 @@ const DELIVERY_NO_LABEL_VALUE = "__no_label__";
 
 const DELIVERABLE_FOLDER_TYPES = new Set(["folder", "custom", "spam", "trash"]);
 
+const ALIAS_RUN_POLL_MIN_MS = 1200;
+const ALIAS_RUN_POLL_MAX_MS = 8000;
+const ALIAS_RUN_POLL_BACKOFF = 1.5;
+
+function is_alias_run_active(run: AliasRun | null): boolean {
+  return !!run && (run.status === "pending" || run.status === "running");
+}
+
+function use_alias_run(alias_id?: string) {
+  const [run, set_run] = useState<AliasRun | null>(null);
+  const timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const delay_ref = useRef(ALIAS_RUN_POLL_MIN_MS);
+  const mounted_ref = useRef(true);
+  const refresh_ref = useRef<() => Promise<void>>();
+
+  const schedule = useCallback(() => {
+    if (timer_ref.current !== null) {
+      clearTimeout(timer_ref.current);
+    }
+    timer_ref.current = setTimeout(() => {
+      timer_ref.current = null;
+      void refresh_ref.current?.();
+    }, delay_ref.current);
+    delay_ref.current = Math.min(
+      Math.round(delay_ref.current * ALIAS_RUN_POLL_BACKOFF),
+      ALIAS_RUN_POLL_MAX_MS,
+    );
+  }, []);
+
+  const refresh = useCallback(async () => {
+    if (!alias_id) return;
+
+    const response = await get_alias_run(alias_id);
+
+    if (!mounted_ref.current || response.error) return;
+
+    const next = response.data?.run ?? null;
+
+    set_run(next);
+
+    if (is_alias_run_active(next)) {
+      schedule();
+    } else {
+      delay_ref.current = ALIAS_RUN_POLL_MIN_MS;
+    }
+  }, [alias_id, schedule]);
+
+  useEffect(() => {
+    refresh_ref.current = refresh;
+  }, [refresh]);
+
+  useEffect(() => {
+    mounted_ref.current = true;
+    void refresh();
+
+    return () => {
+      mounted_ref.current = false;
+      if (timer_ref.current !== null) {
+        clearTimeout(timer_ref.current);
+        timer_ref.current = null;
+      }
+    };
+  }, [refresh]);
+
+  const track = useCallback(
+    (next: AliasRun | null) => {
+      set_run(next);
+      delay_ref.current = ALIAS_RUN_POLL_MIN_MS;
+      if (is_alias_run_active(next)) {
+        schedule();
+      }
+    },
+    [schedule],
+  );
+
+  return { run, track };
+}
+
 export function DeliveryPanel({
+  alias_id,
   alias_address,
   never_inbox,
   delivery_folder_token,
@@ -1141,6 +1226,7 @@ export function DeliveryPanel({
   on_save,
   on_saved,
 }: {
+  alias_id?: string;
   alias_address?: string;
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
@@ -1161,6 +1247,8 @@ export function DeliveryPanel({
   );
   const [saving, set_saving] = useState(false);
   const [label_saving, set_label_saving] = useState(false);
+  const [apply_busy, set_apply_busy] = useState(false);
+  const { run, track } = use_alias_run(alias_id);
 
   useEffect(() => {
     void fetch_folders();
@@ -1285,6 +1373,89 @@ export function DeliveryPanel({
     });
   };
 
+  const selected_folder_type = custom_folders.find(
+    (folder) => folder.folder_token === value,
+  )?.folder_type;
+
+  const apply_unsupported = selected_folder_type === "spam";
+
+  const apply_nothing_to_do =
+    value === DELIVERY_INBOX_VALUE && label_value === DELIVERY_NO_LABEL_VALUE;
+
+  const run_active = is_alias_run_active(run);
+
+  const handle_apply_existing = async () => {
+    if (!alias_id) return;
+
+    set_apply_busy(true);
+
+    const response = await run_alias_on_existing(alias_id);
+
+    set_apply_busy(false);
+
+    if (response.error) {
+      show_toast(t("settings.alias_apply_existing_failed"), "error");
+
+      return;
+    }
+    track(response.data?.run ?? null);
+    show_toast(t("settings.alias_apply_existing_started"), "success");
+  };
+
+  const handle_cancel_apply = async () => {
+    if (!alias_id) return;
+
+    set_apply_busy(true);
+
+    const response = await cancel_alias_run(alias_id);
+
+    set_apply_busy(false);
+
+    if (response.error) {
+      show_toast(t("settings.alias_apply_existing_cancel_failed"), "error");
+
+      return;
+    }
+    track(response.data?.run ?? null);
+  };
+
+  const apply_status_label = (): string | null => {
+    if (apply_unsupported) {
+      return t("settings.alias_apply_existing_unavailable");
+    }
+    if (!run) return null;
+    if (run.status === "pending") {
+      return t("settings.alias_apply_existing_queued");
+    }
+    if (run.status === "running") {
+      return run.total_estimate
+        ? t("settings.alias_apply_existing_progress_total", {
+            applied: run.applied,
+            scanned: run.scanned,
+            total: run.total_estimate,
+          })
+        : t("settings.alias_apply_existing_progress", {
+            applied: run.applied,
+            scanned: run.scanned,
+          });
+    }
+    if (run.status === "completed") {
+      return t("settings.alias_apply_existing_done", {
+        applied: run.applied,
+        scanned: run.scanned,
+      });
+    }
+    if (run.status === "canceled") {
+      return t("settings.alias_apply_existing_canceled", {
+        applied: run.applied,
+      });
+    }
+
+    return t("settings.alias_apply_existing_error");
+  };
+
+  const apply_status = apply_status_label();
+
   return (
     <div className="divide-y divide-edge-secondary">
       <PanelRow
@@ -1398,6 +1569,43 @@ export function DeliveryPanel({
                   .join(", "),
               })}
         </div>
+      )}
+
+      {alias_id && (
+        <PanelRow
+          align_top
+          description={t("settings.alias_apply_existing_desc")}
+          info={t("settings.alias_apply_existing_info")}
+          label={t("settings.alias_apply_existing")}
+        >
+          <div className="flex flex-col items-end gap-1.5">
+            <Button
+              data-testid="alias_apply_existing_button"
+              disabled={
+                apply_busy ||
+                saving ||
+                label_saving ||
+                apply_unsupported ||
+                (!run_active && apply_nothing_to_do)
+              }
+              size="sm"
+              variant="secondary"
+              onClick={run_active ? handle_cancel_apply : handle_apply_existing}
+            >
+              {run_active
+                ? t("settings.alias_apply_existing_cancel")
+                : t("settings.alias_apply_existing_action")}
+            </Button>
+            {apply_status && (
+              <span
+                className="max-w-56 text-right text-xs text-txt-muted"
+                data-testid="alias_apply_existing_status"
+              >
+                {apply_status}
+              </span>
+            )}
+          </div>
+        </PanelRow>
       )}
     </div>
   );

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
@@ -30,7 +31,6 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface EmailAlias {
   id: string;
@@ -1418,6 +1418,52 @@ export async function get_alias_activity(
 ): Promise<ApiResponse<AliasActivityResponse>> {
   return api_client.get<AliasActivityResponse>(
     `/addresses/v1/aliases/${alias_id}/activity`,
+  );
+}
+
+export interface AliasRun {
+  run_id: string;
+  alias_id: string;
+  status: string;
+  include_trashed: boolean;
+  scanned: number;
+  matched: number;
+  applied: number;
+  total_estimate?: number;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+  error?: string;
+}
+
+export interface AliasRunStatusResponse {
+  run: AliasRun | null;
+}
+
+export async function run_alias_on_existing(
+  alias_id: string,
+  include_trashed = false,
+): Promise<ApiResponse<AliasRunStatusResponse>> {
+  return api_client.post<AliasRunStatusResponse>(
+    `/addresses/v1/aliases/${alias_id}/run-on-existing?include_trashed=${include_trashed ? "true" : "false"}`,
+    {},
+  );
+}
+
+export async function get_alias_run(
+  alias_id: string,
+): Promise<ApiResponse<AliasRunStatusResponse>> {
+  return api_client.get<AliasRunStatusResponse>(
+    `/addresses/v1/aliases/${alias_id}/run`,
+  );
+}
+
+export async function cancel_alias_run(
+  alias_id: string,
+): Promise<ApiResponse<AliasRunStatusResponse>> {
+  return api_client.post<AliasRunStatusResponse>(
+    `/addresses/v1/aliases/${alias_id}/run/cancel`,
+    {},
   );
 }
 

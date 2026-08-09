@@ -237,6 +237,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Default Reply",        section: "behavior", breadcrumb: "Behavior > Composing & Replies", keywords: ["reply all", "reply to sender"] },
   { label: "Auto-save recent recipients to contacts", section: "behavior", breadcrumb: "Behavior > Composing & Replies", keywords: ["auto save contacts", "recent recipients", "save contacts automatically", "address book"] },
   { label: "Reactions",            section: "behavior", breadcrumb: "Behavior > Composing & Replies", keywords: ["emoji reactions", "thumbs up"] },
+  { label: "Purge Protected Folder Contents", section: "behavior", breadcrumb: "Behavior > Composing & Replies", keywords: ["purge folder", "destroy mail", "delete protected folder", "permanent delete"] },
   { label: "Protected Folders",    section: "behavior", breadcrumb: "Behavior > Password-protected folders", keywords: ["folder password", "lock folder", "folder lock mode", "unlock"] },
   { label: "Folder Lock Mode",     section: "behavior", breadcrumb: "Behavior > Password-protected folders", keywords: ["lock on leave", "unlocked for session"] },
   { label: "Cancellation Period",  section: "behavior", breadcrumb: "Behavior > Undo Send", keywords: ["undo send delay", "undo window", "seconds"] },

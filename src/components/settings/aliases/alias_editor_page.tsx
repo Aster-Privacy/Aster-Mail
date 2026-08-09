@@ -181,6 +181,7 @@ export function AliasEditorPage({
         render: () => (
           <DeliveryPanel
             alias_address={alias.full_address}
+            alias_id={alias.id}
             delivery_folder_token={alias.delivery_folder_token}
             delivery_label_token={alias.delivery_label_token}
             never_inbox={alias.never_inbox}

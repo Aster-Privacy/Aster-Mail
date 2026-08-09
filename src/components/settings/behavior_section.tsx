@@ -938,6 +938,19 @@ export function BehaviorSection() {
           }
           title={t("settings.reactions_enabled")}
         />
+
+        <ToggleSetting
+          description={t("settings.purge_locked_folder_on_delete_description")}
+          enabled={preferences.purge_locked_folder_on_delete === true}
+          on_toggle={() =>
+            update_preference(
+              "purge_locked_folder_on_delete",
+              preferences.purge_locked_folder_on_delete !== true,
+              true,
+            )
+          }
+          title={t("settings.purge_locked_folder_on_delete")}
+        />
       </div>
 
       <UpgradeGate
