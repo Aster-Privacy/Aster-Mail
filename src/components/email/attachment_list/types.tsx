@@ -58,6 +58,7 @@ export function is_inline_attachment(
     filename: string;
     content_type: string;
     content_id?: string;
+    is_inline?: boolean;
   },
   filter: InlineAttachmentFilter,
 ): boolean {
@@ -89,6 +90,7 @@ export function build_cards_from_cached_meta(
           filename: item.filename,
           content_type: item.content_type,
           content_id: item.content_id,
+          is_inline: item.is_inline,
         },
         filter,
       );

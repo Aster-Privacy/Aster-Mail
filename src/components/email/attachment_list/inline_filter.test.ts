@@ -52,6 +52,7 @@ describe("is_inline_attachment", () => {
           filename: "screenshot_1.png",
           content_type: "image/png",
           content_id: "unreferenced",
+          is_inline: true,
         },
         { inline_cids: new Set(), inline_filenames: new Set() },
       ),
@@ -61,7 +62,11 @@ describe("is_inline_attachment", () => {
   it("keeps an inline-marked pdf", () => {
     expect(
       is_inline_attachment(
-        { filename: "invoice.pdf", content_type: "application/pdf" },
+        {
+          filename: "invoice.pdf",
+          content_type: "application/pdf",
+          is_inline: true,
+        },
         { inline_cids: new Set(["logo123"]) },
       ),
     ).toBe(false);
@@ -70,7 +75,7 @@ describe("is_inline_attachment", () => {
   it("keeps an attachment when the body has not been parsed yet", () => {
     expect(
       is_inline_attachment(
-        { filename: "photo.jpg", content_type: "image/jpeg" },
+        { filename: "photo.jpg", content_type: "image/jpeg", is_inline: true },
         {},
       ),
     ).toBe(false);
