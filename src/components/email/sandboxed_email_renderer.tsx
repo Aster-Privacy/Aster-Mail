@@ -229,6 +229,41 @@ export function fit_zoom_for(
   return Math.round(Math.max(MIN_FIT_ZOOM, Math.min(base_zoom, needed)) * 1000) / 1000;
 }
 
+export const COLLAPSED_CONTENT_HEIGHT_PX = 8;
+const CONTENT_BOUNDS_NODE_LIMIT = 3000;
+
+export function should_recover_collapsed_height(
+  measured: number,
+  has_content: boolean,
+): boolean {
+  return has_content && measured < COLLAPSED_CONTENT_HEIGHT_PX;
+}
+
+export function body_has_renderable_content(body: HTMLElement): boolean {
+  if ((body.textContent ?? "").trim().length > 0) return true;
+
+  return body.querySelector("img,table,svg,video,canvas") !== null;
+}
+
+export function measure_content_bounds(body: HTMLElement): number {
+  let deepest = 0;
+  let visited = 0;
+
+  const walk = (el: Element) => {
+    if (visited >= CONTENT_BOUNDS_NODE_LIMIT) return;
+    visited += 1;
+
+    const rect = el.getBoundingClientRect();
+
+    deepest = Math.max(deepest, rect.bottom, rect.top + el.scrollHeight);
+    Array.from(el.children).forEach(walk);
+  };
+
+  Array.from(body.children).forEach(walk);
+
+  return deepest;
+}
+
 const IFRAME_HEIGHT_CACHE_LIMIT = 300;
 const iframe_height_cache = new Map<string, number>();
 
@@ -1382,6 +1417,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         body.scrollHeight * body_zoom,
       );
       const measured = Math.max(rect.bottom, scroll_height);
+      const recovered = should_recover_collapsed_height(
+        measured,
+        body_has_renderable_content(body),
+      )
+        ? measure_content_bounds(body)
+        : measured;
 
       if (saved_html_h) html.style.setProperty("height", saved_html_h, saved_html_h_pri);
       else html.style.removeProperty("height");
@@ -1404,7 +1445,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         window.scrollTo(window.scrollX, saved_window_scroll);
       }
 
-      return measured;
+      return recovered;
     };
 
     const sync_clip_overflow = (doc: Document, clipped: boolean) => {
