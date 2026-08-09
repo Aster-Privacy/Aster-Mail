@@ -26,9 +26,9 @@ export const ELLIPSIS = "…";
 
 export const PREHEADER_HTML_SCAN_CAP = 65536;
 
-export const PREHEADER_PARSE_CAP = 8192;
-
 const PREHEADER_MIN_CHARS = 4;
+
+const PREHEADER_MAX_CHARS = 600;
 
 const FILLER_CHARS =
   /[\u200b\u200c\u200d\u2060\u2066-\u2069\ufeff\u034f\u00ad\u00a0\u180e\u3164\ufff9-\ufffc]/g;
@@ -48,18 +48,110 @@ const HIDDEN_STYLE_PATTERNS = [
 const HIDDEN_CLASS_PATTERN =
   /(^|[\s_-])(preheader|preview[-_]?text)([\s_-]|$)/i;
 
+const CSS_RULE_PATTERN = /([^{}]+)\{([^{}]*)\}/g;
+
+const STYLE_BLOCK_PATTERN = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
+
+type hidden_selectors = {
+  classes: Set<string>;
+  ids: Set<string>;
+};
+
 export function strip_preview_filler(value: string): string {
   if (!value) return "";
 
   return value.replace(FILLER_CHARS, "").replace(/\s+/g, " ").trim();
 }
 
-function is_hidden_element(element: Element): boolean {
+function drop_at_rule_groups(css: string): string {
+  let result = "";
+  let index = 0;
+
+  while (index < css.length) {
+    const at = css.indexOf("@", index);
+
+    if (at === -1) {
+      result += css.slice(index);
+      break;
+    }
+
+    const open = css.indexOf("{", at);
+
+    if (open === -1) {
+      result += css.slice(index, at);
+      break;
+    }
+
+    result += css.slice(index, at);
+
+    let depth = 0;
+    let cursor = open;
+
+    for (; cursor < css.length; cursor += 1) {
+      if (css[cursor] === "{") depth += 1;
+      else if (css[cursor] === "}") {
+        depth -= 1;
+
+        if (depth === 0) break;
+      }
+    }
+
+    index = cursor === css.length ? css.length : cursor + 1;
+  }
+
+  return result;
+}
+
+function collect_hidden_selectors(html: string): hidden_selectors {
+  const classes = new Set<string>();
+  const ids = new Set<string>();
+
+  for (const block of html.matchAll(STYLE_BLOCK_PATTERN)) {
+    const css = drop_at_rule_groups(block[1] ?? "");
+
+    for (const rule of css.matchAll(CSS_RULE_PATTERN)) {
+      const declarations = rule[2] ?? "";
+
+      if (!HIDDEN_STYLE_PATTERNS.some((pattern) => pattern.test(declarations))) {
+        continue;
+      }
+
+      for (const selector of (rule[1] ?? "").split(",")) {
+        const target = selector.trim().split(/[\s>+~]+/).pop() ?? "";
+
+        for (const match of target.matchAll(/\.([A-Za-z0-9_-]+)/g)) {
+          classes.add(match[1].toLowerCase());
+        }
+
+        for (const match of target.matchAll(/#([A-Za-z0-9_-]+)/g)) {
+          ids.add(match[1].toLowerCase());
+        }
+      }
+    }
+  }
+
+  return { classes, ids };
+}
+
+function is_hidden_element(
+  element: Element,
+  selectors: hidden_selectors,
+): boolean {
   if (element.hasAttribute("hidden")) return true;
 
   const class_name = element.getAttribute("class") ?? "";
+  const id = element.getAttribute("id") ?? "";
 
   if (HIDDEN_CLASS_PATTERN.test(class_name)) return true;
+  if (HIDDEN_CLASS_PATTERN.test(id)) return true;
+
+  if (selectors.classes.size) {
+    for (const token of class_name.split(/\s+/)) {
+      if (token && selectors.classes.has(token.toLowerCase())) return true;
+    }
+  }
+
+  if (id && selectors.ids.has(id.toLowerCase())) return true;
 
   const style = element.getAttribute("style") ?? "";
 
@@ -68,10 +160,14 @@ function is_hidden_element(element: Element): boolean {
   return HIDDEN_STYLE_PATTERNS.some((pattern) => pattern.test(style));
 }
 
-function first_hidden_text(node: Element): string {
+function collect_leading_hidden_text(
+  node: Element,
+  selectors: hidden_selectors,
+  parts: string[],
+): boolean {
   for (const child of Array.from(node.childNodes)) {
     if (child.nodeType === 3) {
-      if (strip_preview_filler(child.textContent ?? "")) return "";
+      if (strip_preview_filler(child.textContent ?? "")) return true;
 
       continue;
     }
@@ -83,23 +179,29 @@ function first_hidden_text(node: Element): string {
 
     if (!text) continue;
 
-    if (is_hidden_element(element)) return text;
+    if (is_hidden_element(element, selectors)) {
+      parts.push(text);
 
-    return first_hidden_text(element);
+      if (parts.join(" ").length >= PREHEADER_MAX_CHARS) return true;
+
+      continue;
+    }
+
+    if (collect_leading_hidden_text(element, selectors, parts)) return true;
   }
 
-  return "";
+  return false;
 }
 
 export function extract_preheader_text(html: string): string {
   if (!html || typeof html !== "string") return "";
   if (typeof DOMParser === "undefined") return "";
 
-  const cleaned = html
-    .slice(0, PREHEADER_HTML_SCAN_CAP)
+  const scanned = html.slice(0, PREHEADER_HTML_SCAN_CAP);
+  const selectors = collect_hidden_selectors(scanned);
+  const cleaned = scanned
     .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<(style|script|head|title)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
-    .slice(0, PREHEADER_PARSE_CAP);
+    .replace(/<(style|script|head|title)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
 
   let doc: Document;
 
@@ -115,7 +217,11 @@ export function extract_preheader_text(html: string): string {
 
   if (!doc.body) return "";
 
-  const text = first_hidden_text(doc.body);
+  const parts: string[] = [];
+
+  collect_leading_hidden_text(doc.body, selectors, parts);
+
+  const text = strip_preview_filler(parts.join(" "));
 
   if (text.length < PREHEADER_MIN_CHARS) return "";
   if (!/[\p{L}\p{N}]/u.test(text)) return "";

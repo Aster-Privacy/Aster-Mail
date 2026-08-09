@@ -166,6 +166,52 @@ describe("extract_preheader_text", () => {
   it("returns nothing for plain text", () => {
     expect(extract_preheader_text("just a normal message")).toBe("");
   });
+
+  it("keeps reading past a boilerplate hidden block", () => {
+    const html =
+      '<body><div style="display:none">View this email in your browser</div><div style="display:none">Get 30% off your next 3 meals.</div><h1>Weekly menu</h1></body>';
+
+    expect(extract_preheader_text(html)).toBe(
+      "View this email in your browser Get 30% off your next 3 meals.",
+    );
+  });
+
+  it("reads a preheader hidden by a stylesheet rule", () => {
+    const html =
+      '<html><head><style>.ph{display:none;max-height:0}</style></head><body><div class="ph">Two seats left for the workshop.</div><h1>Workshop</h1></body></html>';
+
+    expect(extract_preheader_text(html)).toBe(
+      "Two seats left for the workshop.",
+    );
+  });
+
+  it("reads a preheader hidden by a stylesheet id rule", () => {
+    const html =
+      '<html><head><style>#lead{font-size:0}</style></head><body><div id="lead">Your order shipped today.</div><p>Hello</p></body></html>';
+
+    expect(extract_preheader_text(html)).toBe("Your order shipped today.");
+  });
+
+  it("ignores a rule that only hides inside a media query", () => {
+    const html =
+      '<html><head><style>@media (max-width:600px){.mobile{display:none}}</style></head><body><div class="mobile">Visible on desktop</div><p>Body</p></body></html>';
+
+    expect(extract_preheader_text(html)).toBe("");
+  });
+
+  it("reads a preheader that sits past the old parse cap", () => {
+    const bloat = `<div style="${"padding:0;".repeat(1200)}"></div>`;
+    const html = `<body>${bloat}<div style="display:none">Weekend deals inside.</div><p>Shop now</p></body>`;
+
+    expect(extract_preheader_text(html)).toBe("Weekend deals inside.");
+  });
+
+  it("stops accumulating once the hidden run is long enough", () => {
+    const block = '<div style="display:none">alpha beta gamma delta</div>';
+    const html = `<body>${block.repeat(80)}<p>Body</p></body>`;
+
+    expect(extract_preheader_text(html).length).toBeLessThan(700);
+  });
 });
 
 describe("build_body_preview", () => {
