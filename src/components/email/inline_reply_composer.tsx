@@ -194,6 +194,12 @@ export const InlineReplyComposer = forwardRef<
     existing_draft,
   });
 
+  const reply_all_recipients = [
+    ...reply_modal.recipients.to,
+    ...reply_modal.recipients.cc,
+    ...reply_modal.recipients.bcc,
+  ];
+
   const forward_modal = use_forward_modal({
     is_open: inline_mode === "forward",
     on_close,
@@ -373,6 +379,7 @@ export const InlineReplyComposer = forwardRef<
             })
           }
           on_show_cc={() => reply_modal.set_show_cc(true)}
+          all_recipients={reply_all_recipients}
           recipients={reply_modal.recipients.to}
           show_cc={reply_modal.show_cc}
         />
@@ -415,6 +422,7 @@ export const InlineReplyComposer = forwardRef<
                 email,
               })
             }
+            all_recipients={reply_all_recipients}
             recipients={reply_modal.recipients.cc}
           />
         </div>

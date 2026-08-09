@@ -277,6 +277,7 @@ interface RecipientFieldProps {
   auto_focus?: boolean;
   pgp_enabled?: boolean;
   on_toggle_pgp?: () => void;
+  all_recipients?: string[];
 }
 
 export function RecipientField({
@@ -298,6 +299,7 @@ export function RecipientField({
   auto_focus = false,
   pgp_enabled = false,
   on_toggle_pgp,
+  all_recipients,
 }: RecipientFieldProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -314,6 +316,26 @@ export function RecipientField({
   const [discovery_tick, set_discovery_tick] = useState(0);
 
   const show_locks = preferences.show_encryption_indicators;
+
+  const has_external_recipient = (all_recipients ?? recipients).some(
+    (email) => is_valid_email(email) && !is_internal_email(email),
+  );
+
+  const resolve_encryption_status = (
+    email: string,
+  ): EncryptionStatus | undefined => {
+    const status = encryption_map.get(email);
+
+    if (
+      status === "encrypted" &&
+      has_external_recipient &&
+      is_internal_email(email)
+    ) {
+      return "transit";
+    }
+
+    return status;
+  };
 
   useEffect(() => {
     if (!show_locks) return;
@@ -623,9 +645,7 @@ export function RecipientField({
               key={email}
               email={email}
               encryption_status={
-                show_locks
-                  ? encryption_map.get(email)
-                  : undefined
+                show_locks ? resolve_encryption_status(email) : undefined
               }
               image_url={contact_avatar_map.get(email.toLowerCase())}
               on_remove={() => on_remove_recipient(email)}
@@ -724,6 +744,12 @@ export function ComposeFormFields({
 }: ComposeFormFieldsProps) {
   const { t } = use_i18n();
 
+  const compose_all_recipients = [
+    ...compose.recipients.to,
+    ...compose.recipients.cc,
+    ...compose.recipients.bcc,
+  ];
+
   return (
     <>
       <div className="py-2 border-b border-edge-secondary">
@@ -742,6 +768,7 @@ export function ComposeFormFields({
           on_toggle_pgp={compose.toggle_pgp}
           pgp_enabled={compose.pgp_enabled}
           recent_recipients={compose.recent_recipients}
+          all_recipients={compose_all_recipients}
           recipients={compose.recipients.to}
           show_bcc={compose.visibility.bcc}
           show_cc={compose.visibility.cc}
@@ -764,6 +791,7 @@ export function ComposeFormFields({
             on_toggle_pgp={compose.toggle_pgp}
             pgp_enabled={compose.pgp_enabled}
             recent_recipients={compose.recent_recipients}
+            all_recipients={compose_all_recipients}
             recipients={compose.recipients.cc}
           />
         </div>
@@ -785,6 +813,7 @@ export function ComposeFormFields({
             on_toggle_pgp={compose.toggle_pgp}
             pgp_enabled={compose.pgp_enabled}
             recent_recipients={compose.recent_recipients}
+            all_recipients={compose_all_recipients}
             recipients={compose.recipients.bcc}
           />
         </div>
