@@ -71,7 +71,11 @@ import {
   sink_abort,
   type ExportSink,
 } from "@/services/export/destination";
-import { run_export, type ExportProgress, type ExportSummary } from "@/services/export/pipeline";
+import {
+  run_export,
+  type ExportProgress,
+  type ExportSummary,
+} from "@/services/export/pipeline";
 import { create_account_message_source } from "@/services/export/message_source";
 import { emit_export_event } from "@/services/export/audit";
 import { build_account_data_files } from "@/services/export/account_data";
@@ -129,6 +133,15 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const [date_to, set_date_to] = useState("");
   const [progress, set_progress] = useState<ExportProgress | null>(null);
   const [summary, set_summary] = useState<ExportSummary | null>(null);
+  const undecryptable_count =
+    summary?.errors.filter((e) => e.code === "envelope_undecryptable").length ??
+    0;
+  const skipped_attachment_count =
+    summary?.errors.filter(
+      (e) =>
+        e.code === "attachment_undecryptable" ||
+        e.code === "attachment_list_failed",
+    ).length ?? 0;
   const [destination_label, set_destination_label] = useState<string | null>(
     null,
   );
@@ -323,7 +336,16 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       set_summary(result);
       set_step("complete");
     },
-    [date_from, date_to, format, include_mail, include_contacts, include_settings, t, token],
+    [
+      date_from,
+      date_to,
+      format,
+      include_mail,
+      include_contacts,
+      include_settings,
+      t,
+      token,
+    ],
   );
 
   const handle_pick_destination = useCallback(async () => {
@@ -410,7 +432,9 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
               status={verify_error ? "error" : "default"}
               type={verify_show_password ? "text" : "password"}
               value={verify_password}
-              onChange={(e) => set_verify_password(clamp_password(e.target.value))}
+              onChange={(e) =>
+                set_verify_password(clamp_password(e.target.value))
+              }
               onKeyDown={(e) =>
                 e["key"] === "Enter" &&
                 !verify_totp_required &&
@@ -473,7 +497,11 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     );
     footer = (
       <>
-        <Button disabled={verify_loading} variant="outline" onClick={handle_close}>
+        <Button
+          disabled={verify_loading}
+          variant="outline"
+          onClick={handle_close}
+        >
           {t("common.cancel")}
         </Button>
         <Button
@@ -696,7 +724,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   } else if (step === "progress") {
     const total = progress?.total ?? 0;
     const processed = progress?.processed ?? 0;
-    const percent = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
+    const percent =
+      total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
     title = t("settings.export_step_progress_title");
     body = (
       <div className="space-y-4">
@@ -762,6 +791,20 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
             <p className="text-xs text-red-500 mt-2">
               {t("settings.export_complete_errors", {
                 count: String(summary.errors.length),
+              })}
+            </p>
+          )}
+          {undecryptable_count > 0 && (
+            <p className="text-xs text-red-500">
+              {t("settings.export_complete_skipped_undecryptable", {
+                count: String(undecryptable_count),
+              })}
+            </p>
+          )}
+          {skipped_attachment_count > 0 && (
+            <p className="text-xs text-red-500">
+              {t("settings.export_complete_skipped_attachments", {
+                count: String(skipped_attachment_count),
               })}
             </p>
           )}

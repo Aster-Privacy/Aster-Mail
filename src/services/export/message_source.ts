@@ -27,8 +27,10 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
+import { hash_prefix } from "./pipeline";
 import type {
   ExportScope,
+  ExportError,
   ExportSource,
   ExportSourceContext,
   PipelineMessage,
@@ -62,12 +64,24 @@ function in_date_range(iso: string, scope: ExportScope): boolean {
 async function build_attachments(
   mail_id: string,
   has_attachments?: boolean,
+  report_error?: (e: ExportError) => void,
 ): Promise<ExportAttachment[]> {
   const result: ExportAttachment[] = [];
 
   if (has_attachments === false) return result;
 
-  const list = await list_attachments(mail_id);
+  let list: Awaited<ReturnType<typeof list_attachments>>;
+  try {
+    list = await list_attachments(mail_id);
+  } catch {
+    report_error?.({
+      message_id_prefix: await hash_prefix(mail_id),
+      kind: "attachment",
+      code: "attachment_list_failed",
+    });
+    return result;
+  }
+
   if (!list.data?.attachments?.length) return result;
 
   for (const att of list.data.attachments) {
@@ -75,6 +89,8 @@ async function build_attachments(
       const meta = await decrypt_attachment_meta(
         att.encrypted_meta,
         att.meta_nonce,
+        att.mail_item_id,
+        att.seq_num,
       );
       const data_buf = await decrypt_attachment_data(
         att.encrypted_data,
@@ -93,7 +109,11 @@ async function build_attachments(
         open: () => bytes,
       });
     } catch {
-      // skip undecryptable attachment, exporting message body is still useful
+      report_error?.({
+        message_id_prefix: await hash_prefix(mail_id),
+        kind: "attachment",
+        code: "attachment_undecryptable",
+      });
     }
   }
   return result;
@@ -103,7 +123,10 @@ export function create_account_message_source(): ExportSource {
   let total = 0;
 
   return {
-    async prepare(_scope: ExportScope, _signal: AbortSignal): Promise<ExportSourceContext> {
+    async prepare(
+      _scope: ExportScope,
+      _signal: AbortSignal,
+    ): Promise<ExportSourceContext> {
       const probe = await list_mail_items({
         limit: 1,
         item_type: "all",
@@ -116,6 +139,7 @@ export function create_account_message_source(): ExportSource {
     async *messages(
       scope: ExportScope,
       signal: AbortSignal,
+      report_error?: (e: ExportError) => void,
     ): AsyncIterable<PipelineMessage> {
       let cursor: string | undefined = undefined;
 
@@ -135,8 +159,16 @@ export function create_account_message_source(): ExportSource {
           const envelope = await decrypt_mail_envelope(
             item.encrypted_envelope,
             item.envelope_nonce,
+            item.id,
           );
-          if (!envelope) continue;
+          if (!envelope) {
+            report_error?.({
+              message_id_prefix: await hash_prefix(item.id),
+              kind: "decrypt",
+              code: "envelope_undecryptable",
+            });
+            continue;
+          }
 
           const decrypted = envelope as DecryptedEnvelope;
           if (!in_date_range(decrypted.sent_at || item.created_at, scope)) {
@@ -156,6 +188,7 @@ export function create_account_message_source(): ExportSource {
           const attachments = await build_attachments(
             item.id,
             item.has_attachments,
+            report_error,
           );
 
           yield {

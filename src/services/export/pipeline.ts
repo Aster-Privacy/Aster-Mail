@@ -58,8 +58,15 @@ export interface ExportSourceContext {
 }
 
 export interface ExportSource {
-  prepare(scope: ExportScope, signal: AbortSignal): Promise<ExportSourceContext>;
-  messages(scope: ExportScope, signal: AbortSignal): AsyncIterable<PipelineMessage>;
+  prepare(
+    scope: ExportScope,
+    signal: AbortSignal,
+  ): Promise<ExportSourceContext>;
+  messages(
+    scope: ExportScope,
+    signal: AbortSignal,
+    report_error?: (e: ExportError) => void,
+  ): AsyncIterable<PipelineMessage>;
 }
 
 export interface ExportProgress {
@@ -97,7 +104,7 @@ export interface RunExportArgs {
   on_error?: (e: ExportError) => void;
 }
 
-async function hash_prefix(input: string): Promise<string> {
+export async function hash_prefix(input: string): Promise<string> {
   const data = new TextEncoder().encode(input);
   const buf = await crypto.subtle.digest("SHA-256", data);
   const bytes = new Uint8Array(buf);
@@ -134,8 +141,19 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
   };
   emit();
 
+  const report_error = (e: ExportError) => {
+    errors.push(e);
+    args.on_error?.(e);
+    progress.errors = errors.length;
+    emit();
+  };
+
   try {
-    for await (const msg of args.source.messages(args.scope, args.signal)) {
+    for await (const msg of args.source.messages(
+      args.scope,
+      args.signal,
+      report_error,
+    )) {
       if (args.signal.aborted) {
         cancelled = true;
         break;
@@ -219,7 +237,8 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
 }
 
 function classify_error(err: unknown): ExportError["kind"] {
-  if (err instanceof DOMException && err.name === "AbortError") return "unknown";
+  if (err instanceof DOMException && err.name === "AbortError")
+    return "unknown";
   const msg = (err as Error)?.message ?? "";
   if (/decrypt|envelope/i.test(msg)) return "decrypt";
   if (/attachment/i.test(msg)) return "attachment";
