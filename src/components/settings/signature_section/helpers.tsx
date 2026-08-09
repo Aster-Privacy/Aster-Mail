@@ -19,39 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
-  
-  
-  
-  
   type ReactNode,
 } from "react";
 
-import { } from "@/components/modals/confirmation_modal";
-import { } from "@/components/settings/settings_skeleton";
-import { } from "@/components/ui/spinner";
-import { } from "@/components/ui/input";
-import { } from "@/lib/i18n/context";
-import { } from "@/provider";
-import { } from "@/contexts/preferences_context";
-import { } from "@/contexts/signatures_context";
-import { } from "@/hooks/use_editor";
-import { } from "@/hooks/use_editor_format";
-import { } from "@/components/toast/simple_toast";
-import { } from "@/components/compose/link_dialog";
-import { } from "@/lib/html_sanitizer";
 import {
-  
-  
-  
-  
-  
-  
-  
   type SignaturePlacement,
 } from "@/services/api/signatures";
-import { } from "@/services/api/user";
-import { } from "@/hooks/use_plan_limits";
-import { } from "@/components/settings/aliases/feature_lock";
 
 
 export function escape_html(str: string): string {
