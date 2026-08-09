@@ -122,6 +122,7 @@ import { get_spam_settings } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
 import type { MemberRetentionPolicy } from "@/services/api/family_org";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
+import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
@@ -1319,71 +1320,17 @@ export function EmailInbox({
     on_split_scheduled_close,
   });
 
-  const list_scroll_top_ref = useRef(0);
-  const scroll_idle_timer_ref = useRef<number | null>(null);
-  const handle_list_scroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>): void => {
-      const container = e.currentTarget;
-
-      list_scroll_top_ref.current = container.scrollTop;
-
-      container.classList.add("list_scrolling");
-
-      if (scroll_idle_timer_ref.current !== null) {
-        window.clearTimeout(scroll_idle_timer_ref.current);
-      }
-
-      scroll_idle_timer_ref.current = window.setTimeout(() => {
-        scroll_idle_timer_ref.current = null;
-        container.classList.remove("list_scrolling");
-      }, 120);
-    },
-    [],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (scroll_idle_timer_ref.current !== null) {
-        window.clearTimeout(scroll_idle_timer_ref.current);
-      }
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    if (show_full_email_viewer) return;
-    const container = split_pane.list_scroll_ref.current;
-    if (container && list_scroll_top_ref.current > 0) {
-      container.scrollTop = list_scroll_top_ref.current;
-    }
-  }, [show_full_email_viewer, split_pane.list_scroll_ref]);
-
-  const handle_page_change = useCallback(
-    (page: number): void => {
-      if (page !== current_page && !is_page_cached(page, page_size)) {
-        set_is_paginating(true);
-      }
-      list_scroll_top_ref.current = 0;
-      split_pane.list_panel_ref.current?.scrollTo(0, 0);
-      split_pane.list_scroll_ref.current?.scrollTo(0, 0);
-      set_current_page(page);
-    },
-    [
+  const { handle_list_scroll, handle_page_change, handle_filter_change } =
+    use_inbox_list_scroll({
+      show_full_email_viewer,
+      split_pane,
       current_page,
-      is_page_cached,
       page_size,
+      is_page_cached,
       set_is_paginating,
       set_current_page,
-      split_pane.list_panel_ref,
-      split_pane.list_scroll_ref,
-    ],
-  );
-  const handle_filter_change = useCallback(
-    (filter: InboxFilterType): void => {
-      set_active_filter(filter);
-      set_current_page(0);
-    },
-    [set_current_page],
-  );
+      set_active_filter,
+    });
 
   const email_list_content = (
     <>
