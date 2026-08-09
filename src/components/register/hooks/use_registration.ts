@@ -55,6 +55,10 @@ import { save_phrase_wrap } from "@/services/api/recovery";
 import { register_user } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
 import {
+  generate_ratchet_keys,
+  upload_prekey_bundle,
+} from "@/services/crypto/ratchet_manager";
+import {
   save_recovery_email,
   check_recovery_email_verified,
   resend_recovery_verification,
@@ -78,6 +82,44 @@ import { check_password_breach } from "@/services/breach_check";
 import { EMAIL_REGEX } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_plans } from "@/components/register/register_step_plan_selection";
+
+export async function build_registration_ratchet_fields(): Promise<
+  Partial<EncryptedVault>
+> {
+  try {
+    const keys = await generate_ratchet_keys();
+
+    if (!keys) return {};
+
+    return {
+      ratchet_identity_key: keys.identity_jwk,
+      ratchet_identity_public: keys.identity_public,
+      ratchet_signed_prekey: keys.signed_prekey_jwk,
+      ratchet_signed_prekey_public: keys.signed_prekey_public,
+      ratchet_pq_identity_key: keys.pq_identity_secret,
+      ratchet_pq_identity_public: keys.pq_identity_public,
+      ratchet_pq_identity_seed: keys.pq_identity_seed,
+      ratchet_regen_v4_done: true,
+    };
+  } catch {
+    return {};
+  }
+}
+
+export async function publish_registration_prekey_bundle(
+  vault: EncryptedVault,
+): Promise<boolean> {
+  try {
+    if (!vault.ratchet_identity_public || !vault.ratchet_signed_prekey_public) {
+      return false;
+    }
+    if (await upload_prekey_bundle(vault)) return true;
+
+    return await upload_prekey_bundle(vault);
+  } catch {
+    return false;
+  }
+}
 
 function random_index(max: number): number {
   if (max <= 1) {
@@ -340,13 +382,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     RegisterRequest,
     "recovery_email"
   > | null>(null);
-  const pending_vault_data_ref = useRef<{
-    identity_key: string;
-    signed_prekey: string;
-    signed_prekey_private: string;
-    recovery_codes: string[];
-    data_kek: string;
-  } | null>(null);
+  const pending_vault_data_ref = useRef<EncryptedVault | null>(null);
 
   const handle_password_next = async () => {
     set_error("");
@@ -469,7 +505,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
       set_generation_status(t("auth.encrypting_key_vault"));
       await yield_to_ui();
       const master_key = crypto.getRandomValues(new Uint8Array(32));
-      const vault_data = {
+      const ratchet_fields = await build_registration_ratchet_fields();
+      const vault_data: EncryptedVault = {
         identity_key: identity_keypair.secret_key,
         signed_prekey: signed_prekey.public_key,
         signed_prekey_private: signed_prekey.secret_key,
@@ -477,6 +514,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         data_kek: array_to_base64(master_key),
         vault_format: MASTER_KEY_VAULT_FORMAT,
         mk_created_at: new Date().toISOString(),
+        ...ratchet_fields,
       };
 
       master_key.fill(0);
@@ -587,6 +625,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         );
 
         upload_phrase_wrap(vault_data);
+        void publish_registration_prekey_bundle(vault_data);
         check_and_replenish_prekeys();
       }
 
@@ -1040,6 +1079,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         saved_params.vault_nonce,
       );
       upload_phrase_wrap(saved_vault);
+      void publish_registration_prekey_bundle(saved_vault);
       check_and_replenish_prekeys();
     }
 
