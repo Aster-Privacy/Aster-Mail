@@ -110,7 +110,6 @@ export function ContactsContent({
 
         {state.selected_contact || state.is_creating_new ? (
         <ContactDetailPanel
-          copied_field={state.copied_field}
           is_creating_new={state.is_creating_new}
           is_submitting={state.is_submitting}
           on_cancel_create={state.handle_cancel_create}

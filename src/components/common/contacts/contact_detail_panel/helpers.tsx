@@ -66,7 +66,6 @@ export interface ContactDetailPanelProps {
   selected_contact: DecryptedContact | null;
   show_history: boolean;
   set_show_history: (show: boolean) => void;
-  copied_field: string | null;
   on_edit: (contact: DecryptedContact) => void;
   on_delete_request: (contact: DecryptedContact) => void;
   on_compose_email: (email: string) => void;

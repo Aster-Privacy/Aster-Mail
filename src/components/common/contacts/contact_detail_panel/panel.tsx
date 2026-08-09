@@ -77,7 +77,6 @@ export function ContactDetailPanel({
   selected_contact,
   show_history,
   set_show_history,
-  copied_field,
   on_compose_email,
   on_copy,
   on_delete_request,
@@ -608,7 +607,6 @@ export function ContactDetailPanel({
                     {selected_contact.emails.map((email) => (
                       <ContactPgpKeyRow
                         key={email}
-                        copied_field={copied_field}
                         email={email}
                         on_copy={on_copy}
                         t={t}

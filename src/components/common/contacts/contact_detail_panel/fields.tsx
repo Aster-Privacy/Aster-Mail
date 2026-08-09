@@ -58,19 +58,26 @@ import {
   PlusIcon,
   XMarkIcon,
   ChevronDownIcon,
-  
+
   KeyIcon,
-  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
 import { } from "@/components/common/contacts/contact_avatar";
 import { } from "@/components/contacts/contact_history_panel";
-import { } from "@/components/toast/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { } from "@/lib/strip_image_metadata";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Modal,
+  ModalBody,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/modal";
 import {
   discover_external_key,
+  format_fingerprint,
   get_key_source_label_key,
   type ExternalKeyInfo,
 } from "@/services/api/keys";
@@ -120,16 +127,15 @@ export function FieldLabel({
 export function ContactPgpKeyRow({
   email,
   t,
-  copied_field,
   on_copy,
 }: {
   email: string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
-  copied_field: string | null;
   on_copy: (text: string, field: string) => void;
 }) {
   const [key_info, set_key_info] = useState<ExternalKeyInfo | null>(null);
   const [is_loading, set_is_loading] = useState(true);
+  const [is_key_open, set_is_key_open] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -152,7 +158,7 @@ export function ContactPgpKeyRow({
   const field_key = `pgp_key_${email}`;
 
   return (
-    <div className="flex items-start justify-between gap-3 py-2.5 px-3 rounded-lg bg-surf-secondary border border-edge-primary">
+    <div className="flex items-start justify-between gap-3 py-2.5 px-3 rounded-lg bg-surf-secondary">
       <div className="min-w-0 flex-1 flex items-start gap-2">
         <KeyIcon className="w-3.5 h-3.5 text-txt-muted mt-0.5 flex-shrink-0" />
         <div className="min-w-0">
@@ -160,9 +166,12 @@ export function ContactPgpKeyRow({
             {email}
           </p>
           {is_loading ? (
-            <p className="text-[12px] text-txt-muted mt-0.5">
-              {t("settings.pgp_key_checking")}
-            </p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <Spinner size="xs" />
+              <p className="text-[12px] text-txt-muted">
+                {t("settings.pgp_key_checking")}
+              </p>
+            </div>
           ) : key_info?.found ? (
             <div className="mt-0.5 space-y-0.5">
               <p className="text-[12px] text-emerald-500 font-medium">
@@ -189,19 +198,55 @@ export function ContactPgpKeyRow({
         </div>
       </div>
       {key_info?.found && key_info.public_key && (
-        <Button
-          className="flex-shrink-0"
-          size="sm"
-          variant="ghost"
-          onClick={() => on_copy(key_info.public_key as string, field_key)}
-        >
-          {copied_field === field_key ? (
-            <CheckIcon className="w-4 h-4" />
-          ) : (
-            t("settings.copy_public_key")
-          )}
-        </Button>
+        <div className="flex-shrink-0 flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => set_is_key_open(true)}
+          >
+            {t("settings.view_public_key")}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              on_copy(key_info.public_key as string, field_key);
+              show_toast(t("common.copied"), "success");
+            }}
+          >
+            {t("settings.copy_public_key")}
+          </Button>
+        </div>
       )}
+      <Modal is_open={is_key_open} size="2xl" on_close={() => set_is_key_open(false)}>
+        <ModalHeader>
+          <ModalTitle>{t("settings.view_public_key")}</ModalTitle>
+        </ModalHeader>
+        <ModalBody className="space-y-3">
+          <p className="text-[13px] text-txt-secondary break-all">{email}</p>
+          {key_info?.fingerprint && (
+            <p className="text-[12px] text-txt-muted font-mono break-all">
+              {format_fingerprint(key_info.fingerprint)}
+            </p>
+          )}
+          <pre className="max-h-[50vh] overflow-auto rounded-lg bg-surf-secondary p-3 text-[11px] leading-relaxed text-txt-primary font-mono whitespace-pre-wrap break-all">
+            {key_info?.public_key}
+          </pre>
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                if (!key_info?.public_key) return;
+                on_copy(key_info.public_key, field_key);
+                show_toast(t("common.copied"), "success");
+              }}
+            >
+              {t("settings.copy_public_key")}
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>
     </div>
   );
 }
@@ -274,7 +319,7 @@ export function TypedList<T extends string>({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
           type="button"
           onClick={on_add}
         >
@@ -384,7 +429,7 @@ export function AddressList({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] border border-edge-secondary/60 dark:border-edge-primary bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
           type="button"
           onClick={on_add}
         >
