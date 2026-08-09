@@ -37,6 +37,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Dark mode",            section: "appearance", breadcrumb: "Appearance > Theme" },
   { label: "Light mode",           section: "appearance", breadcrumb: "Appearance > Theme" },
   { label: "System theme",         section: "appearance", breadcrumb: "Appearance > Theme" },
+  { label: "Sync theme across devices", section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["theme sync", "per device theme", "device theme", "separate theme"] },
   { label: "Color theme",          section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["purple", "green", "rose", "orange", "teal", "indigo", "amber", "cyan", "slate", "aster blue", "blue", "lime", "fuchsia", "magenta", "emerald", "pink", "black", "dark", "oled", "accent color"] },
   { label: "Custom theme",         section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["custom color", "palette", "seed color", "custom palette", "starplan", "premium theme"] },
   { label: "Font",                 section: "appearance", breadcrumb: "Appearance > Theme", keywords: ["font switcher", "typeface", "font family", "starplan"] },

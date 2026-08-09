@@ -29,7 +29,7 @@ import {
   PencilSquareIcon,
   ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
-import { UpgradeBtn } from "@aster/ui";
+import { Switch, UpgradeBtn } from "@aster/ui";
 
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -66,6 +66,12 @@ import {
   CUSTOM_THEME_ROLE_KEYS,
   type MaterialThemeVars,
 } from "@/lib/material_theme";
+import {
+  build_theme_fields_update,
+  build_theme_sync_toggle_update,
+  get_effective_theme_fields,
+  is_theme_sync_enabled,
+} from "@/lib/theme_sync";
 
 const CUSTOM_THEME_ROLE_LABEL_KEYS: Record<string, keyof SettingsTranslations> =
   {
@@ -82,24 +88,48 @@ const LANGUAGES = get_supported_languages();
 
 export function AppearanceSection() {
   const { theme, theme_preference, set_theme_preference } = useTheme();
-  const { preferences, update_preference } = use_preferences();
+  const { preferences, update_preference, update_preferences } =
+    use_preferences();
   const { t, set_language } = use_i18n();
   const [show_more_themes, set_show_more_themes] = useState(false);
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
+  const effective_theme_fields = get_effective_theme_fields(preferences);
+  const theme_sync_enabled = is_theme_sync_enabled(preferences);
 
   useEffect(() => {
     if (!limits || is_paid_plan) return;
-    if (preferences.color_theme !== "custom") return;
+    if (effective_theme_fields.color_theme !== "custom") return;
 
-    update_preference("color_theme", "default", true);
-    update_preference("custom_theme_overrides", {}, true);
-  }, [limits, is_paid_plan, preferences.color_theme]);
+    update_preferences(
+      {
+        ...build_theme_fields_update(preferences, { color_theme: "default" }),
+        custom_theme_overrides: {},
+      },
+      true,
+    );
+  }, [limits, is_paid_plan, effective_theme_fields.color_theme]);
 
   const handle_theme_select = (mode: "light" | "dark" | "system") => {
     set_theme_preference(mode);
-    update_preference("theme", mode, true);
-    update_preference("color_theme", "default", true);
+    update_preferences(
+      build_theme_fields_update(preferences, {
+        theme: mode,
+        color_theme: "default",
+      }),
+      true,
+    );
+  };
+
+  const handle_theme_sync_change = (enabled: boolean) => {
+    update_preferences(
+      build_theme_sync_toggle_update(preferences, enabled),
+      true,
+    );
+
+    if (enabled) {
+      set_theme_preference(preferences.theme);
+    }
   };
 
   const handle_color_theme_select = (
@@ -121,11 +151,16 @@ export function AppearanceSection() {
       | "black",
   ) => {
     set_theme_preference("dark");
-    update_preference("theme", "dark", true);
-    update_preference("color_theme", value, true);
+    update_preferences(
+      build_theme_fields_update(preferences, {
+        theme: "dark",
+        color_theme: value,
+      }),
+      true,
+    );
   };
 
-  const is_default_color = (preferences.color_theme ?? "default") === "default";
+  const is_default_color = effective_theme_fields.color_theme === "default";
   const mockup_theme: "light" | "dark" | "themed" = is_default_color
     ? theme
     : "themed";
@@ -133,8 +168,13 @@ export function AppearanceSection() {
   const handle_custom_color_change = (hex: string, immediate: boolean) => {
     if (!is_valid_hex_color(hex)) return;
 
-    update_preference("custom_theme_seed", hex, immediate);
-    update_preference("color_theme", "custom", immediate);
+    update_preferences(
+      build_theme_fields_update(preferences, {
+        custom_theme_seed: hex,
+        color_theme: "custom",
+      }),
+      immediate,
+    );
   };
 
   const handle_font_change = (value: string) => {
@@ -146,8 +186,8 @@ export function AppearanceSection() {
   };
 
   const custom_theme_base = generate_material_theme(
-    is_valid_hex_color(preferences.custom_theme_seed)
-      ? preferences.custom_theme_seed
+    is_valid_hex_color(effective_theme_fields.custom_theme_seed)
+      ? effective_theme_fields.custom_theme_seed
       : "#3b82f6",
     theme === "dark",
   );
@@ -159,12 +199,16 @@ export function AppearanceSection() {
   ) => {
     if (!is_valid_hex_color(hex)) return;
 
-    update_preference(
-      "custom_theme_overrides",
-      { ...preferences.custom_theme_overrides, [key]: hex },
+    update_preferences(
+      {
+        custom_theme_overrides: {
+          ...preferences.custom_theme_overrides,
+          [key]: hex,
+        },
+        ...build_theme_fields_update(preferences, { color_theme: "custom" }),
+      },
       immediate,
     );
-    update_preference("color_theme", "custom", immediate);
   };
 
   const handle_role_override_reset = (key: keyof MaterialThemeVars) => {
@@ -261,7 +305,7 @@ export function AppearanceSection() {
           />
           <ThemeCard
             full_width={!show_more_themes}
-            is_selected={preferences.color_theme === "aster-blue"}
+            is_selected={effective_theme_fields.color_theme === "aster-blue"}
             label={t("settings.color_theme_aster_blue")}
             mode="aster-blue"
             on_select={() => handle_color_theme_select("aster-blue")}
@@ -269,85 +313,85 @@ export function AppearanceSection() {
           {show_more_themes && (
             <>
               <ThemeCard
-                is_selected={preferences.color_theme === "purple"}
+                is_selected={effective_theme_fields.color_theme === "purple"}
                 label={t("settings.color_theme_purple")}
                 mode="purple"
                 on_select={() => handle_color_theme_select("purple")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "green"}
+                is_selected={effective_theme_fields.color_theme === "green"}
                 label={t("settings.color_theme_green")}
                 mode="green"
                 on_select={() => handle_color_theme_select("green")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "rose"}
+                is_selected={effective_theme_fields.color_theme === "rose"}
                 label={t("settings.color_theme_rose")}
                 mode="rose"
                 on_select={() => handle_color_theme_select("rose")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "orange"}
+                is_selected={effective_theme_fields.color_theme === "orange"}
                 label={t("settings.color_theme_orange")}
                 mode="orange"
                 on_select={() => handle_color_theme_select("orange")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "teal"}
+                is_selected={effective_theme_fields.color_theme === "teal"}
                 label={t("settings.color_theme_teal")}
                 mode="teal"
                 on_select={() => handle_color_theme_select("teal")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "indigo"}
+                is_selected={effective_theme_fields.color_theme === "indigo"}
                 label={t("settings.color_theme_indigo")}
                 mode="indigo"
                 on_select={() => handle_color_theme_select("indigo")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "amber"}
+                is_selected={effective_theme_fields.color_theme === "amber"}
                 label={t("settings.color_theme_amber")}
                 mode="amber"
                 on_select={() => handle_color_theme_select("amber")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "cyan"}
+                is_selected={effective_theme_fields.color_theme === "cyan"}
                 label={t("settings.color_theme_cyan")}
                 mode="cyan"
                 on_select={() => handle_color_theme_select("cyan")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "slate"}
+                is_selected={effective_theme_fields.color_theme === "slate"}
                 label={t("settings.color_theme_slate")}
                 mode="slate"
                 on_select={() => handle_color_theme_select("slate")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "lime"}
+                is_selected={effective_theme_fields.color_theme === "lime"}
                 label={t("settings.color_theme_lime")}
                 mode="lime"
                 on_select={() => handle_color_theme_select("lime")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "fuchsia"}
+                is_selected={effective_theme_fields.color_theme === "fuchsia"}
                 label={t("settings.color_theme_fuchsia")}
                 mode="fuchsia"
                 on_select={() => handle_color_theme_select("fuchsia")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "black"}
+                is_selected={effective_theme_fields.color_theme === "black"}
                 label={t("settings.color_theme_black")}
                 mode="black"
                 on_select={() => handle_color_theme_select("black")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "emerald"}
+                is_selected={effective_theme_fields.color_theme === "emerald"}
                 label={t("settings.color_theme_emerald")}
                 mode="emerald"
                 on_select={() => handle_color_theme_select("emerald")}
               />
               <ThemeCard
-                is_selected={preferences.color_theme === "pink"}
+                is_selected={effective_theme_fields.color_theme === "pink"}
                 label={t("settings.color_theme_pink")}
                 mode="pink"
                 on_select={() => handle_color_theme_select("pink")}
@@ -372,6 +416,16 @@ export function AppearanceSection() {
             </>
           )}
         </button>
+        <SettingRow
+          description={t("settings.theme_sync_across_devices_description")}
+          label={t("settings.theme_sync_across_devices")}
+        >
+          <Switch
+            checked={theme_sync_enabled}
+            size="lg"
+            onCheckedChange={handle_theme_sync_change}
+          />
+        </SettingRow>
       </div>
 
       <div className="pt-3">
@@ -449,8 +503,8 @@ export function AppearanceSection() {
                 <ColorSwatchPicker
                   label={t("settings.custom_theme_color_label")}
                   value={
-                    is_valid_hex_color(preferences.custom_theme_seed)
-                      ? preferences.custom_theme_seed
+                    is_valid_hex_color(effective_theme_fields.custom_theme_seed)
+                      ? effective_theme_fields.custom_theme_seed
                       : "#3b82f6"
                   }
                   onChange={(hex) => handle_custom_color_change(hex, false)}
@@ -461,7 +515,7 @@ export function AppearanceSection() {
                     {t("settings.custom_theme_color_label")}
                   </p>
                   <p className="text-xs text-txt-muted">
-                    {preferences.color_theme === "custom"
+                    {effective_theme_fields.color_theme === "custom"
                       ? t("settings.custom_theme_active")
                       : t("settings.custom_theme_inactive")}
                   </p>

@@ -28,6 +28,7 @@ import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { resolve_list_density } from "@/lib/list_density";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { build_theme_fields_update } from "@/lib/theme_sync";
 
 interface QuickSettingsPanelProps {
   is_open: boolean;
@@ -269,12 +270,18 @@ export function QuickSettingsPanel({
 }: QuickSettingsPanelProps) {
   const { t } = use_i18n();
   const { theme_preference, set_theme_preference } = useTheme();
-  const { preferences, update_preference } = use_preferences();
+  const { preferences, update_preference, update_preferences } =
+    use_preferences();
 
   const handle_theme_select = (mode: "light" | "dark") => {
     set_theme_preference(mode);
-    update_preference("theme", mode, true);
-    update_preference("color_theme", "default", true);
+    update_preferences(
+      build_theme_fields_update(preferences, {
+        theme: mode,
+        color_theme: "default",
+      }),
+      true,
+    );
   };
 
   use_escape_layer(is_open, on_close, "quick_settings_panel", false);

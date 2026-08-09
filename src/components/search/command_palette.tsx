@@ -47,6 +47,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { build_theme_fields_update } from "@/lib/theme_sync";
 import { empty_trash, type MailItem } from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
@@ -105,7 +106,7 @@ export function CommandPalette({
   const navigate = useNavigate();
   const { theme_preference, set_theme_preference } = useTheme();
   const { logout } = use_auth();
-  const { update_preference } = use_preferences();
+  const { preferences, update_preferences } = use_preferences();
   const [query, set_query] = useState("");
   const [selected_index, set_selected_index] = useState(0);
   const [loading_action, set_loading_action] = useState<string | null>(null);
@@ -658,7 +659,10 @@ export function CommandPalette({
           const new_theme = theme_preference === "dark" ? "light" : "dark";
 
           set_theme_preference(new_theme);
-          update_preference("theme", new_theme, true);
+          update_preferences(
+            build_theme_fields_update(preferences, { theme: new_theme }),
+            true,
+          );
           on_close();
         },
       },
@@ -711,7 +715,8 @@ export function CommandPalette({
       on_shortcuts,
       theme_preference,
       set_theme_preference,
-      update_preference,
+      preferences,
+      update_preferences,
       logout,
       execute_metadata_action,
       execute_archive_action,

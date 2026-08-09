@@ -134,6 +134,18 @@ export interface UserPreferences {
     | "black";
   custom_theme_seed: string;
   custom_theme_overrides: Record<string, string>;
+  theme_sync_enabled_web: boolean;
+  theme_web: string;
+  color_theme_web: string;
+  custom_theme_seed_web: string;
+  theme_sync_enabled_ios?: boolean;
+  theme_ios?: string;
+  color_theme_ios?: string;
+  custom_theme_seed_ios?: string;
+  theme_sync_enabled_android?: boolean;
+  theme_android?: string;
+  color_theme_android?: string;
+  custom_theme_seed_android?: string;
   font_choice: string;
   email_font_choice: string;
   reduce_motion: boolean;
@@ -456,6 +468,10 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   color_theme: "default",
   custom_theme_seed: "#3b82f6",
   custom_theme_overrides: {},
+  theme_sync_enabled_web: true,
+  theme_web: "",
+  color_theme_web: "",
+  custom_theme_seed_web: "",
   font_choice: "default",
   email_font_choice: "match_app",
   reduce_motion: false,

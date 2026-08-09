@@ -2039,6 +2039,8 @@ export interface SettingsTranslations {
   theme_light: string;
   theme_dark: string;
   theme_system: string;
+  theme_sync_across_devices: string;
+  theme_sync_across_devices_description: string;
   color_theme: string;
   color_theme_description: string;
   color_theme_default: string;

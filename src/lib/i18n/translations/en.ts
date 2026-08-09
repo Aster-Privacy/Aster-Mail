@@ -1920,6 +1920,9 @@ export const en: Translations = {
     theme_light: "Light",
     theme_dark: "Dark",
     theme_system: "System",
+    theme_sync_across_devices: "Sync theme across devices",
+    theme_sync_across_devices_description:
+      "Turn this off to keep a separate theme on this device.",
     color_theme: "Color theme",
     color_theme_description: "Choose a preset color palette for the app",
     color_theme_default: "Default",

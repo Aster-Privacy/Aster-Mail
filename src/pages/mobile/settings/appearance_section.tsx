@@ -31,6 +31,10 @@ import {
 import { SettingsGroup, SettingsHeader, OptionList } from "./shared";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  build_theme_fields_update,
+  get_effective_theme_fields,
+} from "@/lib/theme_sync";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_display_name as _get_display_name } from "@/lib/i18n/languages";
 import { useTheme } from "@/contexts/theme_context";
@@ -47,7 +51,8 @@ export function AppearanceSection({
 }) {
   const { t } = use_i18n();
   const { theme_preference, set_theme_preference } = useTheme();
-  const { preferences, update_preference } = use_preferences();
+  const { preferences, update_preference, update_preferences } =
+    use_preferences();
   const { set_language } = use_i18n();
 
   const theme_options: {
@@ -117,7 +122,12 @@ export function AppearanceSection({
                 type="button"
                 onClick={() => {
                   set_theme_preference(opt.value);
-                  update_preference("theme", opt.value, true);
+                  update_preferences(
+                    build_theme_fields_update(preferences, {
+                      theme: opt.value,
+                    }),
+                    true,
+                  );
                 }}
               >
                 <span className="flex h-5 w-5 items-center justify-center text-[var(--text-muted)]">
@@ -126,7 +136,9 @@ export function AppearanceSection({
                 <span className="flex-1 text-[15px] text-[var(--text-primary)]">
                   {opt.label}
                 </span>
-                {(theme_preference ?? preferences.theme) === opt.value && (
+                {(theme_preference ??
+                  get_effective_theme_fields(preferences).theme) ===
+                  opt.value && (
                   <CheckIcon className="h-5 w-5 text-[var(--accent-color,#3b82f6)]" />
                 )}
               </button>

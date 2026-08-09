@@ -86,6 +86,7 @@ import {
   is_dark_only_color_theme,
   set_palette_forces_dark,
 } from "@/lib/dark_mode";
+import { get_effective_theme_fields } from "@/lib/theme_sync";
 
 const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -640,8 +641,13 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       pending_keys_ref.current.add(key);
     }
 
-    preferences_ref.current = DEFAULT_PREFERENCES;
-    set_preferences(DEFAULT_PREFERENCES);
+    const reset_preferences = {
+      ...preferences_ref.current,
+      ...DEFAULT_PREFERENCES,
+    };
+
+    preferences_ref.current = reset_preferences;
+    set_preferences(reset_preferences);
     set_theme_ref.current(DEFAULT_PREFERENCES.theme);
 
     const language_code = label_to_language_code(DEFAULT_PREFERENCES.language);
@@ -683,8 +689,8 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       debounce_timer.current = null;
     }
 
-    latest_prefs_ref.current = DEFAULT_PREFERENCES;
-    do_save(DEFAULT_PREFERENCES);
+    latest_prefs_ref.current = reset_preferences;
+    do_save(reset_preferences);
   }, [do_save]);
 
   const reset_section = useCallback(
@@ -715,8 +721,13 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
 
   const apply_visual_preferences = useCallback(
     (prefs: Partial<UserPreferences>) => {
-      if (prefs.theme) {
-        set_theme_ref.current(prefs.theme);
+      const effective_theme = get_effective_theme_fields({
+        ...DEFAULT_PREFERENCES,
+        ...prefs,
+      });
+
+      if (prefs.theme || prefs.theme_web) {
+        set_theme_ref.current(effective_theme.theme);
       }
 
       const language_code = prefs.language
@@ -734,12 +745,12 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
           DEFAULT_PREFERENCES.session_timeout_minutes,
       );
 
-      if (prefs.color_theme) {
+      if (prefs.color_theme || prefs.color_theme_web) {
         apply_color_theme_class(
-          prefs.color_theme,
+          effective_theme.color_theme,
           prefs.accent_color ?? DEFAULT_PREFERENCES.accent_color,
           prefs.accent_color_hover ?? DEFAULT_PREFERENCES.accent_color_hover,
-          prefs.custom_theme_seed ?? DEFAULT_PREFERENCES.custom_theme_seed,
+          effective_theme.custom_theme_seed,
           theme_ref.current === "dark",
           prefs.custom_theme_overrides ??
             DEFAULT_PREFERENCES.custom_theme_overrides,
@@ -1057,23 +1068,29 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     );
   }, [preferences.font_size_scale]);
 
+  const effective_theme_fields = get_effective_theme_fields(preferences);
+
   useEffect(() => {
     apply_color_theme_class(
-      preferences.color_theme,
+      effective_theme_fields.color_theme,
       preferences.accent_color,
       preferences.accent_color_hover,
-      preferences.custom_theme_seed,
+      effective_theme_fields.custom_theme_seed,
       theme === "dark",
       preferences.custom_theme_overrides,
     );
   }, [
-    preferences.color_theme,
+    effective_theme_fields.color_theme,
     preferences.accent_color,
     preferences.accent_color_hover,
-    preferences.custom_theme_seed,
+    effective_theme_fields.custom_theme_seed,
     preferences.custom_theme_overrides,
     theme,
   ]);
+
+  useEffect(() => {
+    set_theme_ref.current(effective_theme_fields.theme);
+  }, [effective_theme_fields.theme]);
 
   useEffect(() => {
     document.documentElement.style.setProperty(

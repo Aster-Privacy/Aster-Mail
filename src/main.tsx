@@ -45,6 +45,7 @@ import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
+import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_mobile_experience } from "@/hooks/use_mobile_experience";
 import "@/styles/fonts.css";
@@ -104,6 +105,7 @@ if (is_tauri_runtime) {
     })
     .catch(() => {});
   void apply_desktop_content_protection(is_any_lockdown_active());
+  void start_desktop_link_bridge();
 }
 
 if (is_tauri_runtime && "serviceWorker" in navigator) {

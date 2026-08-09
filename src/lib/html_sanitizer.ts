@@ -647,11 +647,14 @@ function sanitize_html_impl(
 
     if (tag_name === "a") {
       new_element.setAttribute("rel", "noopener noreferrer");
-      if (!new_element.hasAttribute("target")) {
-        new_element.setAttribute("target", "_blank");
-      }
       const href = new_element.getAttribute("href");
       const lower_href = (href || "").toLowerCase().trim();
+      const is_http_href =
+        lower_href.startsWith("http://") || lower_href.startsWith("https://");
+
+      if (is_http_href || !new_element.hasAttribute("target")) {
+        new_element.setAttribute("target", "_blank");
+      }
 
       if (
         href &&

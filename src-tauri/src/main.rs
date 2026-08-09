@@ -32,8 +32,50 @@ use tauri::menu::Submenu;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, State, WindowEvent,
+    webview::NewWindowResponse,
+    Emitter, Manager, State, Url, WindowEvent,
 };
+
+const LINK_ACTIVATED_EVENT: &str = "aster://link-activated";
+
+const APP_NAVIGATION_HOSTS: &[&str] = &[
+    "tauri.localhost",
+    "asset.localhost",
+    "ipc.localhost",
+    "localhost",
+    "127.0.0.1",
+    "challenges.cloudflare.com",
+    "js.stripe.com",
+    "hooks.stripe.com",
+    "api.stripe.com",
+    "m.stripe.network",
+    "r.stripe.com",
+    "q.stripe.com",
+];
+
+const APP_NAVIGATION_SUFFIXES: &[&str] = &[
+    ".astermail.org",
+    ".astermail.com",
+    ".stripe.com",
+    ".stripe.network",
+    ".onion",
+];
+
+fn is_app_navigation(url: &Url) -> bool {
+    if !matches!(url.scheme(), "http" | "https") {
+        return true;
+    }
+
+    let Some(host) = url.host_str() else {
+        return true;
+    };
+    let host = host.to_ascii_lowercase();
+
+    APP_NAVIGATION_HOSTS.iter().any(|entry| host == *entry)
+        || APP_NAVIGATION_SUFFIXES
+            .iter()
+            .any(|suffix| host.ends_with(suffix))
+}
 
 struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
 
@@ -257,6 +299,34 @@ fn main() {
         .setup(|app| {
             #[cfg(target_os = "macos")]
             clear_stale_webkit_keychain();
+
+            let window_config = app
+                .config()
+                .app
+                .windows
+                .iter()
+                .find(|window| window.label == "main")
+                .cloned()
+                .ok_or("main window is missing from the app configuration")?;
+
+            let navigation_handle = app.handle().clone();
+            let new_window_handle = app.handle().clone();
+
+            tauri::WebviewWindowBuilder::from_config(app, &window_config)?
+                .on_navigation(move |url| {
+                    if url.scheme() != "mailto" && is_app_navigation(url) {
+                        return true;
+                    }
+                    let _ = navigation_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+
+                    false
+                })
+                .on_new_window(move |url, _features| {
+                    let _ = new_window_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+
+                    NewWindowResponse::Deny
+                })
+                .build()?;
 
             #[cfg(target_os = "macos")]
             let tray_icon_bytes = include_bytes!("../icons/icon_macos_template.png").as_slice();
