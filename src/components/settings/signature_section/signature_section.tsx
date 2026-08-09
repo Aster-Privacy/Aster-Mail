@@ -23,7 +23,7 @@ import {
   useEffect,
   useCallback,
   useRef,
-  type ReactNode,
+  
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -82,95 +82,7 @@ import {
 } from "@/hooks/use_sender_aliases";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 
-function escape_html(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-const IMAGE_MAGIC_BYTES: Record<string, number[]> = {
-  "image/png": [0x89, 0x50, 0x4e, 0x47],
-  "image/jpeg": [0xff, 0xd8, 0xff],
-  "image/gif": [0x47, 0x49, 0x46],
-  "image/webp": [0x52, 0x49, 0x46, 0x46],
-};
-
-function validate_image_magic_bytes(
-  data: ArrayBuffer,
-  mime_type: string,
-): boolean {
-  const expected = IMAGE_MAGIC_BYTES[mime_type];
-
-  if (!expected) return false;
-
-  const bytes = new Uint8Array(data.slice(0, expected.length));
-
-  return expected.every((b, i) => bytes[i] === b);
-}
-
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-
-function has_editor_content(html: string): boolean {
-  const temp = document.createElement("div");
-
-  temp.innerHTML = html;
-
-  if (temp.querySelector("img, hr, table")) return true;
-
-  return (temp.textContent || "").replace(/​/g, "").trim().length > 0;
-}
-
-interface FmtButtonProps {
-  active?: boolean;
-  onClick: () => void;
-  children: ReactNode;
-  title?: string;
-}
-
-function FmtButton({ active, onClick, children, title }: FmtButtonProps) {
-  return (
-    <button
-      aria-label={title}
-      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted"}`}
-      title={title}
-      type="button"
-      onClick={onClick}
-      onMouseDown={(e) => e.preventDefault()}
-    >
-      {children}
-    </button>
-  );
-}
-
-function FmtDivider() {
-  return <div className="w-px h-5 mx-1 bg-edge-secondary" />;
-}
-
-type SignatureMode = "disabled" | "auto" | "manual";
-
-interface EditorState {
-  is_open: boolean;
-  editing_id: string | null;
-  name: string;
-  content: string;
-  is_saving: boolean;
-  alias_id: string | null;
-  placement: SignaturePlacement | null;
-  show_validation: boolean;
-}
-
-const initial_editor_state: EditorState = {
-  is_open: false,
-  editing_id: null,
-  name: "",
-  content: "",
-  is_saving: false,
-  alias_id: null,
-  placement: null,
-  show_validation: false,
-};
+import { EditorState, FmtButton, FmtDivider, IMAGE_MAGIC_BYTES, MAX_IMAGE_SIZE, SignatureMode, escape_html, has_editor_content, initial_editor_state, validate_image_magic_bytes } from "./helpers";
 
 export function SignatureSection() {
   const { t } = use_i18n();

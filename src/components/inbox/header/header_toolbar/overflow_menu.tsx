@@ -1,0 +1,183 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import type { InboxFilterType, } from "@/types/email";
+
+import {
+  Cog6ToothIcon,
+  EllipsisVerticalIcon,
+  ArrowPathIcon,
+  
+  CheckIcon,
+} from "@heroicons/react/24/outline";
+import { Button, } from "@aster/ui";
+
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown_menu";
+import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
+
+
+export interface MobileOverflowMenuProps {
+  handle_refresh: () => void;
+  active_filter: InboxFilterType;
+  on_filter_change?: (filter: InboxFilterType) => void;
+  handle_batch_action: (action: string) => Promise<void>;
+  on_settings_click: () => void;
+}
+
+export function MobileOverflowMenu({
+  handle_refresh,
+  active_filter,
+  on_filter_change,
+  handle_batch_action,
+  on_settings_click,
+}: MobileOverflowMenuProps) {
+  const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
+  const sort_order = preferences.inbox_sort_order ?? "newest_first";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          className="md:hidden h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
+          size="icon"
+          variant="ghost"
+        >
+          <EllipsisVerticalIcon className="w-[18px] h-[18px]" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem onClick={handle_refresh}>
+          <ArrowPathIcon className="w-4 h-4 mr-2" />
+          {t("common.refresh")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => on_filter_change?.("all")}>
+          <span className="w-4 mr-2">
+            {active_filter === "all" && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t("mail.all_emails")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => on_filter_change?.("unread")}>
+          <span className="w-4 mr-2">
+            {active_filter === "unread" && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t("mail.unread_only")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => on_filter_change?.("read")}>
+          <span className="w-4 mr-2">
+            {active_filter === "read" && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t("mail.read_only")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => on_filter_change?.("attachments")}>
+          <span className="w-4 mr-2">
+            {active_filter === "attachments" && (
+              <CheckIcon className="w-4 h-4" />
+            )}
+          </span>
+          {t("mail.with_attachments")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{t("mail.sort_by")}</DropdownMenuLabel>
+        <DropdownMenuItem
+          onClick={() =>
+            update_preference("inbox_sort_order", "newest_first", true)
+          }
+        >
+          <span className="w-4 mr-2">
+            {sort_order === "newest_first" && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t("mail.newest_first")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() =>
+            update_preference("inbox_sort_order", "oldest_first", true)
+          }
+        >
+          <span className="w-4 mr-2">
+            {sort_order === "oldest_first" && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t("mail.oldest_first")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{t("mail.quick_actions")}</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => handle_batch_action("mark_all_read")}>
+          {t("mail.mark_all_read")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => handle_batch_action("archive_all_read")}
+        >
+          {t("mail.archive_all_read_emails")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handle_batch_action("delete_old")}>
+          {t("mail.delete_emails_older_than_30_days")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{t("mail.sender_actions")}</DropdownMenuLabel>
+        <DropdownMenuItem
+          onClick={() => handle_batch_action("archive_from_sender")}
+        >
+          {t("mail.archive_all_from_sender")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => handle_batch_action("delete_from_sender")}
+        >
+          {t("mail.delete_all_from_sender")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => handle_batch_action("move_from_sender")}
+        >
+          {t("mail.move_all_from_sender")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{t("mail.smart_actions")}</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => handle_batch_action("snooze_similar")}>
+          {t("mail.snooze_similar_emails")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => handle_batch_action("unsubscribe_bulk")}
+        >
+          {t("mail.bulk_unsubscribe")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => handle_batch_action("archive_newsletters")}
+        >
+          {t("mail.archive_all_newsletters")}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={on_settings_click}>
+          <Cog6ToothIcon className="w-4 h-4 mr-2" />
+          {t("settings.title")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
