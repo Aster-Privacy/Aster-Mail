@@ -34,6 +34,7 @@ import {
   upload_prekey_bundle,
 } from "./ratchet_manager";
 import { clear_all_ratchet_states } from "./double_ratchet";
+import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
@@ -121,11 +122,25 @@ async function push_vault_to_server(
 
 let in_flight: Promise<boolean> | null = null;
 
+async function report_capability(): Promise<void> {
+  try {
+    const account = await get_current_account();
+    const user_id = account?.user?.id;
+
+    if (!user_id) return;
+
+    await report_envelope_capability_if_due(user_id);
+  } catch {
+    return;
+  }
+}
+
 export async function ensure_ratchet_keys(): Promise<boolean> {
   if (in_flight) return in_flight;
 
   in_flight = run().finally(() => {
     in_flight = null;
+    void report_capability();
   });
 
   return in_flight;

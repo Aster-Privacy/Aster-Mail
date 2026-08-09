@@ -158,6 +158,7 @@ export type ApiErrorCode =
   | "USERNAME_IN_USE"
   | "REGISTRATION_SUSPENDED"
   | "RECOVERY_EMAIL_REQUIRED"
+  | "EXTERNAL_SEND_QUOTA_REACHED"
   | "APP_LOCKED";
 
 export interface ApiError {
