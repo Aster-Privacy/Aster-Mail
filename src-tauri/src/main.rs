@@ -61,13 +61,21 @@ const APP_NAVIGATION_SUFFIXES: &[&str] = &[
     ".onion",
 ];
 
+const INTERNAL_SCHEMES: &[&str] = &["about", "blob", "data", "tauri", "asset", "ipc", "file"];
+
+const FORWARDED_SCHEMES: &[&str] = &["http", "https", "mailto", "aster"];
+
 fn is_app_navigation(url: &Url) -> bool {
-    if !matches!(url.scheme(), "http" | "https") {
+    if INTERNAL_SCHEMES.contains(&url.scheme()) {
         return true;
     }
 
+    if !matches!(url.scheme(), "http" | "https") {
+        return false;
+    }
+
     let Some(host) = url.host_str() else {
-        return true;
+        return false;
     };
     let host = host.to_ascii_lowercase();
 
@@ -75,6 +83,10 @@ fn is_app_navigation(url: &Url) -> bool {
         || APP_NAVIGATION_SUFFIXES
             .iter()
             .any(|suffix| host.ends_with(suffix))
+}
+
+fn should_forward_to_app(url: &Url) -> bool {
+    FORWARDED_SCHEMES.contains(&url.scheme())
 }
 
 struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
@@ -112,8 +124,22 @@ fn set_content_protection(window: tauri::WebviewWindow, enabled: bool) -> std::r
         .map_err(|e| e.to_string())
 }
 
+#[cfg(target_os = "macos")]
+fn open_in_default_handler(app: &tauri::AppHandle, url: String) {
+    let _ = app.run_on_main_thread(move || {
+        use objc2_app_kit::NSWorkspace;
+        use objc2_foundation::{NSString, NSURL};
+
+        let target = NSURL::URLWithString(&NSString::from_str(&url));
+
+        if let Some(target) = target {
+            NSWorkspace::sharedWorkspace().openURL(&target);
+        }
+    });
+}
+
 #[tauri::command]
-fn open_external_url(url: String) -> std::result::Result<(), String> {
+fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<(), String> {
     if url.chars().any(|c| c.is_control() || c.is_whitespace()) {
         return Err("url contains invalid characters".into());
     }
@@ -129,25 +155,29 @@ fn open_external_url(url: String) -> std::result::Result<(), String> {
         _ => return Err("scheme not allowed".into()),
     }
 
-    std::thread::spawn(move || {
-        #[cfg(windows)]
-        {
-            use std::os::windows::process::CommandExt;
-            const CREATE_NO_WINDOW: u32 = 0x08000000;
-            let _ = std::process::Command::new("rundll32")
-                .args(["url.dll,FileProtocolHandler", &url])
-                .creation_flags(CREATE_NO_WINDOW)
-                .spawn();
-        }
-        #[cfg(target_os = "macos")]
-        {
-            let _ = std::process::Command::new("open").arg(&url).spawn();
-        }
-        #[cfg(all(unix, not(target_os = "macos")))]
-        {
-            let _ = std::process::Command::new("xdg-open").arg(&url).spawn();
-        }
-    });
+    #[cfg(target_os = "macos")]
+    open_in_default_handler(&app, url);
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = &app;
+        std::thread::spawn(move || {
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                const CREATE_NO_WINDOW: u32 = 0x08000000;
+                let _ = std::process::Command::new("rundll32")
+                    .args(["url.dll,FileProtocolHandler", &url])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn();
+            }
+            #[cfg(all(unix, not(target_os = "macos")))]
+            {
+                let _ = std::process::Command::new("xdg-open").arg(&url).spawn();
+            }
+        });
+    }
+
     Ok(())
 }
 
@@ -314,15 +344,19 @@ fn main() {
 
             tauri::WebviewWindowBuilder::from_config(app, &window_config)?
                 .on_navigation(move |url| {
-                    if url.scheme() != "mailto" && is_app_navigation(url) {
+                    if is_app_navigation(url) {
                         return true;
                     }
-                    let _ = navigation_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+                    if should_forward_to_app(url) {
+                        let _ = navigation_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+                    }
 
                     false
                 })
                 .on_new_window(move |url, _features| {
-                    let _ = new_window_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+                    if should_forward_to_app(&url) {
+                        let _ = new_window_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+                    }
 
                     NewWindowResponse::Deny
                 })
