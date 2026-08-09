@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   list_mail_items,
   link_mail_to_thread,
@@ -30,7 +31,6 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
-const HASH_ALG = "SHA-256";
 const FETCH_LIMIT = 50;
 const COOLDOWN_MS = 10_000;
 

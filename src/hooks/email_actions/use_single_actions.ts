@@ -515,7 +515,10 @@ export function use_single_actions(
         },
         true,
         {
-          message: t("common.conversation_archived"),
+          message:
+            grouped_ids.length > 1
+              ? t("common.conversation_archived")
+              : t("common.message_archived"),
           action_type: "archive",
           email_ids: grouped_ids,
           on_undo: async () => {
@@ -676,7 +679,10 @@ export function use_single_actions(
         },
         true,
         {
-          message: t("common.conversation_moved_to_trash_toast"),
+          message:
+            email.thread_token || grouped_ids.length > 1
+              ? t("common.conversation_moved_to_trash_toast")
+              : t("common.message_moved_to_trash"),
           action_type: "trash",
           email_ids: grouped_ids,
           on_undo: async () => {
@@ -739,7 +745,7 @@ export function use_single_actions(
         () => update_with_metadata(email, spam_update),
         true,
         {
-          message: t("common.conversation_marked_as_spam_toast"),
+          message: t("common.message_marked_as_spam"),
           action_type: "spam",
           email_ids: [email.id],
           on_undo: async () => {

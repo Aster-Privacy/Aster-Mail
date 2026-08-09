@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import type { DecryptedThreadMessage, ThreadContext } from "@/types/thread";
 import type {
   MailItem,
@@ -56,10 +57,10 @@ import {
   is_password_protected_body,
   resolve_inbound_pgp_body,
 } from "@/utils/email_crypto";
+import { filter_locked_mail_items } from "@/services/locked_folders";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 interface DecryptedEnvelope {
   subject: string;
@@ -436,8 +437,8 @@ export async function fetch_and_decrypt_virtual_group(
     return [];
   }
 
-  const visible_items = response.data.items.filter(
-    (item) => !item.is_spam && !item.is_reaction,
+  const visible_items = filter_locked_mail_items(
+    response.data.items.filter((item) => !item.is_spam && !item.is_reaction),
   );
 
   const decrypt_promises = visible_items.map(async (item) => {

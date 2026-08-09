@@ -208,7 +208,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       });
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
-        message: deps.t("common.conversation_archived"),
+        message: deps.t("common.message_archived"),
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
@@ -279,7 +279,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         remove_email_from_view_cache(deps.email_id);
         emit_mail_items_removed({ ids: [deps.email_id] });
         show_action_toast({
-          message: deps.t("common.conversation_moved_to_trash"),
+          message: deps.t("common.message_moved_to_trash"),
           action_type: "trash",
           email_ids: [deps.email_id],
           on_undo: async () => {
@@ -394,7 +394,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         if (result.success) {
           emit_mail_items_removed({ ids: [msg.id] });
           show_action_toast({
-            message: deps.t("common.conversation_moved_to_trash"),
+            message: deps.t("common.message_moved_to_trash"),
             action_type: "trash",
             email_ids: [msg.id],
             on_undo: async () => {

@@ -63,6 +63,10 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
+import {
+  has_protected_folders,
+  request_folder_unlock,
+} from "@/services/locked_folders";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
@@ -585,6 +589,18 @@ export function use_email_detail() {
         }
       }
 
+      if (
+        (response.code === "NOT_FOUND" || response.code === "FORBIDDEN") &&
+        has_protected_folders()
+      ) {
+        request_folder_unlock();
+        await ensure_min_duration();
+        set_error(t("common.email_in_locked_folder"));
+        set_is_loading(false);
+
+        return;
+      }
+
       await ensure_min_duration();
       set_error(response.error);
       set_is_loading(false);
@@ -605,6 +621,7 @@ export function use_email_detail() {
             folder.password_set &&
             !is_folder_unlocked(folder.id)
           ) {
+            request_folder_unlock(mail_folder.token);
             await ensure_min_duration();
             set_error(t("common.email_in_locked_folder"));
             set_is_loading(false);

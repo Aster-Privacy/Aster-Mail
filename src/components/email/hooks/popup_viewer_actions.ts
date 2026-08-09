@@ -166,7 +166,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       });
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
-        message: deps.t("common.conversation_archived"),
+        message: deps.t("common.message_archived"),
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
@@ -212,7 +212,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       }
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
-        message: deps.t("common.conversation_marked_as_spam"),
+        message: deps.t("common.message_marked_as_spam"),
         action_type: "spam",
         email_ids: [deps.email_id],
         on_undo: async () => {
@@ -261,7 +261,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     if (result.success) {
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
-        message: deps.t("common.conversation_moved_to_trash"),
+        message: deps.t("common.message_moved_to_trash"),
         action_type: "trash",
         email_ids: [deps.email_id],
         on_undo: async () => {

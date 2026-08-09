@@ -123,7 +123,7 @@ export function EmailViewer({
       await bulk_update_metadata_by_ids([email.id], { is_archived: true });
       emit_mail_changed();
       show_action_toast({
-        message: t("common.conversation_archived"),
+        message: t("common.message_archived"),
         action_type: "archive",
         email_ids: [email.id],
         on_undo: async () => {
@@ -160,7 +160,7 @@ export function EmailViewer({
       }
       emit_mail_changed();
       show_action_toast({
-        message: t("common.conversation_marked_as_spam_toast"),
+        message: t("common.message_marked_as_spam"),
         action_type: "spam",
         email_ids: [email.id],
         on_undo: async () => {
@@ -196,7 +196,7 @@ export function EmailViewer({
     if (result.success) {
       emit_mail_changed();
       show_action_toast({
-        message: t("common.conversation_moved_to_trash_toast"),
+        message: t("common.message_moved_to_trash"),
         action_type: "trash",
         email_ids: [email.id],
         on_undo: async () => {
