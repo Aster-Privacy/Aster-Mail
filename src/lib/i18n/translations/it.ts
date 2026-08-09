@@ -21,6 +21,17 @@
 
 export const it = {
   common: {
+    delete_folder_account_password: "Password dell'account",
+    delete_folder_step_up_hint: "Questa cartella è protetta da password. Inserisca la password del suo account per eliminarla.",
+    delete_folder_totp_code: "Codice di autenticazione a due fattori",
+    delete_folder_purge_option: "Distruggi definitivamente la posta contenuta",
+    delete_folder_purge_warning: "La posta eliminata definitivamente viene distrutta su ogni dispositivo e non può essere recuperata.",
+    delete_folder_purge_acknowledge: "Capisco che questa posta non può essere recuperata.",
+    delete_folder_purged_items: "Cartella eliminata e {count} messaggi distrutti definitivamente.",
+    delete_folder_deleted_no_purge: "Cartella eliminata. La posta al suo interno resta nel suo account.",
+    delete_folder_password_required: "Inserisca la password del suo account.",
+    delete_folder_totp_required: "Inserisca il codice di autenticazione a due fattori.",
+    delete_folder_verification_failed: "Controlli password e codice, poi riprovi.",
     qr_code: "Codice QR",
     profile_picture_removed: "Immagine del profilo rimossa",
     failed_remove_profile_picture:
@@ -983,6 +994,7 @@ export const it = {
       "Non siamo riusciti ad annullare quell'azione. Spostarla indietro manualmente è la soluzione alternativa.",
     message_archived: "Messaggio archiviato",
     message_moved_to_trash: "Messaggio spostato nel cestino",
+    message_marked_as_spam: "Messaggio contrassegnato come spam",
     undo_failed:
       "L'annullamento non ha funzionato. Un altro tentativo dovrebbe bastare.",
     expired: "Scaduto",
@@ -1713,6 +1725,8 @@ export const it = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Elimina il contenuto delle cartelle protette",
+    purge_locked_folder_on_delete_description: "Preseleziona la distruzione definitiva della posta contenuta quando elimina una cartella protetta da password",
     settings_view_mode: "Vista impostazioni",
     settings_view_mode_description:
       "Apri le impostazioni a pagina intera o in una finestra popup",
@@ -2434,6 +2448,21 @@ export const it = {
       "La posta inviata a questo alias viene etichettata automaticamente, senza regole. L'etichetta si aggiunge alla cartella di destinazione.",
     alias_delivery_label_none: "Nessuna etichetta",
     alias_delivery_label_missing: "Etichetta eliminata",
+    alias_apply_existing: "Applica alla posta esistente",
+    alias_apply_existing_desc: "Sposta la posta già ricevuta da questo alias nella cartella e nell'etichetta che hai scelto.",
+    alias_apply_existing_info: "Questa azione applica la cartella di consegna e l'etichetta qui sopra alla posta già presente nel tuo account. Viene eseguita in background e le tue regole di posta non vengono rieseguite.",
+    alias_apply_existing_action: "Applica ora",
+    alias_apply_existing_cancel: "Interrompi",
+    alias_apply_existing_started: "Applicazione delle impostazioni di consegna alla posta esistente. L'operazione viene eseguita in background.",
+    alias_apply_existing_failed: "Impossibile avviare l'applicazione di queste impostazioni.",
+    alias_apply_existing_cancel_failed: "Impossibile interrompere questa operazione.",
+    alias_apply_existing_queued: "In coda...",
+    alias_apply_existing_progress: "Applicazione: {{scanned}} analizzati, {{applied}} aggiornati",
+    alias_apply_existing_progress_total: "Applicazione: {{scanned}} di {{total}} analizzati, {{applied}} aggiornati",
+    alias_apply_existing_done: "Fatto: {{scanned}} analizzati, {{applied}} aggiornati",
+    alias_apply_existing_canceled: "Interrotto: {{applied}} aggiornati",
+    alias_apply_existing_error: "Applicazione alla posta esistente non riuscita. Riprova.",
+    alias_apply_existing_unavailable: "La posta già presente nel tuo account non può essere spostata in Spam.",
     alias_delivery_label_error: "L'impostazione non è stata salvata. Riprova.",
     alias_delivery_rule_note:
       'La regola "{{ rule }}" sposta già la posta di questo alias in {{ target }}.',

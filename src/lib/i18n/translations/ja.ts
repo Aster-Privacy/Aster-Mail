@@ -20,6 +20,17 @@
 //
 export const ja = {
   common: {
+    delete_folder_account_password: "アカウントのパスワード",
+    delete_folder_step_up_hint: "このフォルダはパスワードで保護されています。削除するにはアカウントのパスワードを入力してください。",
+    delete_folder_totp_code: "2ファクタ認証コード",
+    delete_folder_purge_option: "中のメールを完全に削除する",
+    delete_folder_purge_warning: "完全に削除したメールはすべてのデバイスから消え、復元できません。",
+    delete_folder_purge_acknowledge: "このメールを復元できないことを理解しました。",
+    delete_folder_purged_items: "フォルダを削除し、{count} 件のメッセージを完全に削除しました。",
+    delete_folder_deleted_no_purge: "フォルダを削除しました。中のメールはアカウントに残ります。",
+    delete_folder_password_required: "アカウントのパスワードを入力してください。",
+    delete_folder_totp_required: "2ファクタ認証コードを入力してください。",
+    delete_folder_verification_failed: "パスワードとコードを確認して、もう一度お試しください。",
     qr_code: "QRコード",
     profile_picture_removed: "プロフィール写真を削除しました",
     failed_remove_profile_picture:
@@ -966,6 +977,7 @@ export const ja = {
       "取り消すことができませんでした。手動で戻すのが回避策です。",
     message_archived: "メッセージをアーカイブしました",
     message_moved_to_trash: "メッセージをゴミ箱に移動しました",
+    message_marked_as_spam: "メッセージをスパムとしてマークしました",
     undo_failed:
       "取り消しがうまくいきませんでした。もう一度試すと通ることが多いです。",
     expired: "期限切れ",
@@ -1697,6 +1709,8 @@ export const ja = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "保護フォルダの中身を完全に削除",
+    purge_locked_folder_on_delete_description: "パスワード保護されたフォルダを削除するとき、中のメールの完全削除をあらかじめ選択します",
     settings_view_mode: "設定の表示",
     settings_view_mode_description: "設定を全画面またはポップアップで開く",
     quick_settings: "設定",
@@ -2410,6 +2424,21 @@ export const ja = {
       "このエイリアス宛のメールにはルールなしで自動的にラベルが付きます。ラベルは配信先フォルダーとは別に適用されます。",
     alias_delivery_label_none: "ラベルなし",
     alias_delivery_label_missing: "削除されたラベル",
+    alias_apply_existing: "既存のメールに適用",
+    alias_apply_existing_desc: "このエイリアスがすでに受信したメールを、選択したフォルダとラベルに整理します。",
+    alias_apply_existing_info: "上で選択した配信先フォルダとラベルを、アカウント内にあるメールに適用します。処理はバックグラウンドで実行され、メールルールは再実行されません。",
+    alias_apply_existing_action: "今すぐ適用",
+    alias_apply_existing_cancel: "停止",
+    alias_apply_existing_started: "配信設定を既存のメールに適用しています。処理はバックグラウンドで実行されます。",
+    alias_apply_existing_failed: "この設定の適用を開始できませんでした。",
+    alias_apply_existing_cancel_failed: "この処理を停止できませんでした。",
+    alias_apply_existing_queued: "待機中...",
+    alias_apply_existing_progress: "適用中: {{scanned}} 件をスキャン、{{applied}} 件を更新",
+    alias_apply_existing_progress_total: "適用中: {{total}} 件中 {{scanned}} 件をスキャン、{{applied}} 件を更新",
+    alias_apply_existing_done: "完了: {{scanned}} 件をスキャン、{{applied}} 件を更新",
+    alias_apply_existing_canceled: "停止しました: {{applied}} 件を更新",
+    alias_apply_existing_error: "既存のメールへの適用に失敗しました。もう一度お試しください。",
+    alias_apply_existing_unavailable: "アカウント内にあるメールは迷惑メールに移動できません。",
     alias_delivery_label_error:
       "設定を保存できませんでした。もう一度お試しください。",
     alias_delivery_rule_note:

@@ -20,6 +20,17 @@
 //
 export const fr = {
   common: {
+    delete_folder_account_password: "Mot de passe du compte",
+    delete_folder_step_up_hint: "Ce dossier est protégé par un mot de passe. Saisissez le mot de passe de votre compte pour le supprimer.",
+    delete_folder_totp_code: "Code d'authentification à deux facteurs",
+    delete_folder_purge_option: "Détruire définitivement les messages qu'il contient",
+    delete_folder_purge_warning: "Les messages purgés sont détruits sur tous les appareils et ne peuvent pas être récupérés.",
+    delete_folder_purge_acknowledge: "Je comprends que ces messages ne pourront pas être récupérés.",
+    delete_folder_purged_items: "Dossier supprimé et {count} messages détruits définitivement.",
+    delete_folder_deleted_no_purge: "Dossier supprimé. Les messages qu'il contenait restent dans votre compte.",
+    delete_folder_password_required: "Saisissez le mot de passe de votre compte.",
+    delete_folder_totp_required: "Saisissez votre code d'authentification à deux facteurs.",
+    delete_folder_verification_failed: "Vérifiez votre mot de passe et votre code, puis réessayez.",
     qr_code: "Code QR",
     profile_picture_removed: "Photo de profil supprimée",
     failed_remove_profile_picture:
@@ -981,6 +992,7 @@ export const fr = {
       "Nous n'avons pas pu annuler cela. Le remettre manuellement est la solution de contournement.",
     message_archived: "Message archivé",
     message_moved_to_trash: "Message déplacé vers la corbeille",
+    message_marked_as_spam: "Message marqué comme indésirable",
     undo_failed:
       "L'annulation n'a pas fonctionné. Un autre essai devrait suffire.",
     expired: "Expiré",
@@ -1690,6 +1702,8 @@ export const fr = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Purger le contenu des dossiers protégés",
+    purge_locked_folder_on_delete_description: "Présélectionne la destruction définitive des messages lorsque vous supprimez un dossier protégé par mot de passe",
     settings_view_mode: "Affichage des paramètres",
     settings_view_mode_description:
       "Ouvrir les paramètres en pleine page ou en fenêtre contextuelle",
@@ -2421,6 +2435,21 @@ export const fr = {
       "Les messages envoyés à cet alias sont étiquetés automatiquement, sans règle. L'étiquette s'ajoute au dossier de destination.",
     alias_delivery_label_none: "Aucune étiquette",
     alias_delivery_label_missing: "Étiquette supprimée",
+    alias_apply_existing: "Appliquer aux e-mails existants",
+    alias_apply_existing_desc: "Classez les e-mails déjà reçus par cet alias dans le dossier et l'étiquette que vous avez choisis.",
+    alias_apply_existing_info: "Cette action applique le dossier de distribution et l'étiquette ci-dessus aux e-mails déjà présents dans votre compte. Elle s'exécute en arrière-plan, et vos règles de messagerie ne sont pas réexécutées.",
+    alias_apply_existing_action: "Appliquer",
+    alias_apply_existing_cancel: "Arrêter",
+    alias_apply_existing_started: "Application de vos paramètres de distribution aux e-mails existants. L'opération s'exécute en arrière-plan.",
+    alias_apply_existing_failed: "Impossible de lancer l'application de ces paramètres.",
+    alias_apply_existing_cancel_failed: "Impossible d'arrêter cette opération.",
+    alias_apply_existing_queued: "En file d'attente...",
+    alias_apply_existing_progress: "Application : {{scanned}} analysés, {{applied}} mis à jour",
+    alias_apply_existing_progress_total: "Application : {{scanned}} sur {{total}} analysés, {{applied}} mis à jour",
+    alias_apply_existing_done: "Terminé : {{scanned}} analysés, {{applied}} mis à jour",
+    alias_apply_existing_canceled: "Arrêté : {{applied}} mis à jour",
+    alias_apply_existing_error: "L'application aux e-mails existants a échoué. Réessayez.",
+    alias_apply_existing_unavailable: "Les e-mails déjà présents dans votre compte ne peuvent pas être déplacés vers Spam.",
     alias_delivery_label_error: "Ce réglage n'a pas été enregistré. Réessayez.",
     alias_delivery_rule_note:
       'La règle "{{ rule }}" déplace déjà les messages de cet alias vers {{ target }}.',

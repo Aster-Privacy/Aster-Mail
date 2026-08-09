@@ -20,6 +20,17 @@
 //
 export const pl = {
   common: {
+    delete_folder_account_password: "Hasło konta",
+    delete_folder_step_up_hint: "Ten folder jest chroniony hasłem. Wpisz hasło konta, aby go usunąć.",
+    delete_folder_totp_code: "Kod uwierzytelniania dwuskładnikowego",
+    delete_folder_purge_option: "Trwale usuń wiadomości w środku",
+    delete_folder_purge_warning: "Trwale usunięte wiadomości znikają na każdym urządzeniu i nie da się ich odzyskać.",
+    delete_folder_purge_acknowledge: "Rozumiem, że tych wiadomości nie da się odzyskać.",
+    delete_folder_purged_items: "Folder usunięty, a {count} wiadomości trwale skasowanych.",
+    delete_folder_deleted_no_purge: "Folder usunięty. Wiadomości w środku pozostają na koncie.",
+    delete_folder_password_required: "Wpisz hasło konta.",
+    delete_folder_totp_required: "Wpisz kod uwierzytelniania dwuskładnikowego.",
+    delete_folder_verification_failed: "Sprawdź hasło i kod, a potem spróbuj ponownie.",
     qr_code: "Kod QR",
     profile_picture_removed: "Zdjęcie profilowe usunięte",
     failed_remove_profile_picture:
@@ -972,6 +983,7 @@ export const pl = {
       "Nie udało się tego cofnąć. Ręczne przeniesienie z powrotem to obejście.",
     message_archived: "Wiadomość zarchiwizowana",
     message_moved_to_trash: "Wiadomość przeniesiona do kosza",
+    message_marked_as_spam: "Wiadomość oznaczona jako spam",
     undo_failed: "Cofnięcie nie zadziałało. Kolejna próba powinna to załatwić.",
     expired: "Wygasło",
     expires_in: "Wygasa za ",
@@ -1705,6 +1717,8 @@ export const pl = {
     or: "lub",
   },
   settings: {
+    purge_locked_folder_on_delete: "Usuwanie zawartości chronionych folderów",
+    purge_locked_folder_on_delete_description: "Zaznacza z góry trwałe usunięcie wiadomości przy kasowaniu folderu chronionego hasłem",
     settings_view_mode: "Widok ustawień",
     settings_view_mode_description:
       "Otwieraj ustawienia jako pełną stronę lub okno podręczne",
@@ -2431,6 +2445,21 @@ export const pl = {
       "Poczta wysłana na ten alias jest etykietowana automatycznie, bez reguły. Etykieta działa niezależnie od folderu docelowego.",
     alias_delivery_label_none: "Brak etykiety",
     alias_delivery_label_missing: "Usunięta etykieta",
+    alias_apply_existing: "Zastosuj do istniejącej poczty",
+    alias_apply_existing_desc: "Przenieś pocztę już odebraną przez ten alias do wybranego folderu i etykiety.",
+    alias_apply_existing_info: "Ta opcja stosuje folder dostarczania i etykietę powyżej do poczty, która już jest na Twoim koncie. Działa w tle, a reguły poczty nie są uruchamiane ponownie.",
+    alias_apply_existing_action: "Zastosuj teraz",
+    alias_apply_existing_cancel: "Zatrzymaj",
+    alias_apply_existing_started: "Trwa stosowanie ustawień dostarczania do istniejącej poczty. Działa w tle.",
+    alias_apply_existing_failed: "Nie udało się rozpocząć stosowania tych ustawień.",
+    alias_apply_existing_cancel_failed: "Nie udało się zatrzymać tej operacji.",
+    alias_apply_existing_queued: "W kolejce...",
+    alias_apply_existing_progress: "Stosowanie: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
+    alias_apply_existing_progress_total: "Stosowanie: przeskanowano {{scanned}} z {{total}}, zaktualizowano {{applied}}",
+    alias_apply_existing_done: "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
+    alias_apply_existing_canceled: "Zatrzymano: zaktualizowano {{applied}}",
+    alias_apply_existing_error: "Zastosowanie do istniejącej poczty nie powiodło się. Spróbuj ponownie.",
+    alias_apply_existing_unavailable: "Poczty, która już jest na Twoim koncie, nie można przenieść do folderu Spam.",
     alias_delivery_label_error:
       "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
     alias_delivery_rule_note:

@@ -22,6 +22,17 @@ import type { Translations } from "../types";
 
 export const en: Translations = {
   common: {
+    delete_folder_account_password: "Account password",
+    delete_folder_step_up_hint: "This folder is password protected. Enter your account password to delete it.",
+    delete_folder_totp_code: "Two-factor authentication code",
+    delete_folder_purge_option: "Permanently destroy the mail inside",
+    delete_folder_purge_warning: "Purged mail is destroyed on every device and cannot be recovered.",
+    delete_folder_purge_acknowledge: "I understand that this mail cannot be recovered.",
+    delete_folder_purged_items: "Deleted the folder and permanently destroyed {count} messages.",
+    delete_folder_deleted_no_purge: "Deleted the folder. The mail inside stays in your account.",
+    delete_folder_password_required: "Enter your account password.",
+    delete_folder_totp_required: "Enter your two-factor authentication code.",
+    delete_folder_verification_failed: "Check your password and code, then try again.",
     qr_code: "QR code",
     app_name: "Aster Mail",
     loading: "Loading...",
@@ -1081,6 +1092,10 @@ export const en: Translations = {
       "We could not queue this email for later sending. Another attempt should do it. Your draft is saved.",
     cannot_mix_recipients:
       "Aster users and outside addresses cannot go in the same email. Sending them as two separate messages will work.",
+    post_quantum_unavailable_title: "Send without post-quantum encryption?",
+    post_quantum_unavailable_message:
+      "{{recipients}} has not published post-quantum keys yet, so this message can only use standard end-to-end encryption. Ask them to open Aster or update their app to turn post-quantum protection back on.",
+    post_quantum_send_anyway: "Send anyway",
     empty_body_error:
       "A subject or some message text is needed before this can send.",
     subject_too_long:
@@ -1099,6 +1114,7 @@ export const en: Translations = {
       "We could not undo that. Moving it back manually is the workaround.",
     message_archived: "Message archived",
     message_moved_to_trash: "Message moved to trash",
+    message_marked_as_spam: "Message marked as spam",
     undo_failed: "Undo did not work. Another attempt should do it.",
     action_undone: "Action undone",
     expired: "Expired",
@@ -1693,6 +1709,8 @@ export const en: Translations = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Purge Protected Folder Contents",
+    purge_locked_folder_on_delete_description: "Preselect permanent destruction of the mail inside when you delete a password-protected folder",
     settings_view_mode: "Settings view",
     settings_view_mode_description:
       "Open settings as a full page or a popup window",
@@ -6008,6 +6026,21 @@ export const en: Translations = {
       "Mail sent to this alias is labelled automatically, with no rule needed. The label is applied on top of wherever the message lands.",
     alias_delivery_label_none: "No label",
     alias_delivery_label_missing: "Deleted label",
+    alias_apply_existing: "Apply to existing mail",
+    alias_apply_existing_desc: "Sort mail this alias already received into the folder and label you chose.",
+    alias_apply_existing_info: "This applies the delivery folder and label above to mail already in your account. It runs in the background, and your mail rules don't run again.",
+    alias_apply_existing_action: "Apply now",
+    alias_apply_existing_cancel: "Stop",
+    alias_apply_existing_started: "Applying your delivery settings to existing mail. This runs in the background.",
+    alias_apply_existing_failed: "Could not start applying these settings.",
+    alias_apply_existing_cancel_failed: "Could not stop this run.",
+    alias_apply_existing_queued: "Queued...",
+    alias_apply_existing_progress: "Applying: {{scanned}} scanned, {{applied}} updated",
+    alias_apply_existing_progress_total: "Applying: {{scanned}} of {{total}} scanned, {{applied}} updated",
+    alias_apply_existing_done: "Done: {{scanned}} scanned, {{applied}} updated",
+    alias_apply_existing_canceled: "Stopped: {{applied}} updated",
+    alias_apply_existing_error: "Applying to existing mail failed. Try again.",
+    alias_apply_existing_unavailable: "Mail already in your account can't be moved to Spam.",
     alias_delivery_label_error:
       "That setting did not save. Another attempt should do it.",
     alias_delivery_rule_note:
@@ -7908,6 +7941,8 @@ export const en: Translations = {
       "You have required encryption turned on, and we do not have a key for {{recipients}}. Asking them to share a key, or turning off required encryption in Settings, will let this send. Your draft is saved.",
     cannot_send_no_recipient_keys:
       "You have required encryption turned on, and none of your recipients have a key on file. Asking them to share one, or turning off required encryption in Settings, will let this send. Your draft is saved.",
+    post_quantum_unavailable:
+      "Aster keeps messages between Aster accounts under post-quantum encryption, and {{recipients}} has not published post-quantum keys yet. Ask them to open Aster or update their app, then try again. Your draft is saved.",
     cannot_send_no_recovery_key:
       "Aster can't send this message yet because the recipient's account is missing the keys needed to read it. Ask them to open Aster on any device or update their app to refresh those keys, then try again. Your draft is saved.",
     failed_send_external:

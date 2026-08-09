@@ -20,6 +20,17 @@
 //
 export const pt = {
   common: {
+    delete_folder_account_password: "Senha da conta",
+    delete_folder_step_up_hint: "Esta pasta é protegida por senha. Digite a senha da sua conta para excluí-la.",
+    delete_folder_totp_code: "Código de autenticação em duas etapas",
+    delete_folder_purge_option: "Destruir permanentemente os e-mails de dentro",
+    delete_folder_purge_warning: "E-mails destruídos são apagados em todos os dispositivos e não podem ser recuperados.",
+    delete_folder_purge_acknowledge: "Entendo que estes e-mails não podem ser recuperados.",
+    delete_folder_purged_items: "Pasta excluída e {count} mensagens destruídas permanentemente.",
+    delete_folder_deleted_no_purge: "Pasta excluída. Os e-mails de dentro permanecem na sua conta.",
+    delete_folder_password_required: "Digite a senha da sua conta.",
+    delete_folder_totp_required: "Digite o código de autenticação em duas etapas.",
+    delete_folder_verification_failed: "Confira sua senha e o código e tente novamente.",
     qr_code: "Código QR",
     profile_picture_removed: "Foto de perfil removida",
     failed_remove_profile_picture:
@@ -869,6 +880,7 @@ export const pt = {
       "Não foi possível desfazer isso. Movê-lo de volta manualmente é a alternativa.",
     message_archived: "Mensagem arquivada",
     message_moved_to_trash: "Mensagem movida para a lixeira",
+    message_marked_as_spam: "Mensagem marcada como spam",
     undo_failed: "Desfazer não funcionou. Outra tentativa deve funcionar.",
     expired: "Expirado",
     expires_in: "Expira em ",
@@ -1704,6 +1716,8 @@ export const pt = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Destruir conteúdo de pastas protegidas",
+    purge_locked_folder_on_delete_description: "Pré-seleciona a destruição permanente dos e-mails ao excluir uma pasta protegida por senha",
     settings_view_mode: "Visualização das configurações",
     settings_view_mode_description:
       "Abrir as configurações em página inteira ou janela popup",
@@ -2427,6 +2441,21 @@ export const pt = {
       "O correio enviado para este alias é etiquetado automaticamente, sem precisar de regra. A etiqueta soma-se à pasta de destino.",
     alias_delivery_label_none: "Sem etiqueta",
     alias_delivery_label_missing: "Etiqueta eliminada",
+    alias_apply_existing: "Aplicar ao correio existente",
+    alias_apply_existing_desc: "Organize o correio que este alias já recebeu na pasta e na etiqueta escolhidas.",
+    alias_apply_existing_info: "Isto aplica a pasta de entrega e a etiqueta acima ao correio que já está na sua conta. É executado em segundo plano e as suas regras de correio não voltam a ser executadas.",
+    alias_apply_existing_action: "Aplicar agora",
+    alias_apply_existing_cancel: "Parar",
+    alias_apply_existing_started: "A aplicar as suas definições de entrega ao correio existente. É executado em segundo plano.",
+    alias_apply_existing_failed: "Não foi possível começar a aplicar estas definições.",
+    alias_apply_existing_cancel_failed: "Não foi possível parar esta execução.",
+    alias_apply_existing_queued: "Em fila...",
+    alias_apply_existing_progress: "A aplicar: {{scanned}} analisados, {{applied}} atualizados",
+    alias_apply_existing_progress_total: "A aplicar: {{scanned}} de {{total}} analisados, {{applied}} atualizados",
+    alias_apply_existing_done: "Concluído: {{scanned}} analisados, {{applied}} atualizados",
+    alias_apply_existing_canceled: "Parado: {{applied}} atualizados",
+    alias_apply_existing_error: "Não foi possível aplicar ao correio existente. Tente novamente.",
+    alias_apply_existing_unavailable: "O correio que já está na sua conta não pode ser movido para Spam.",
     alias_delivery_label_error:
       "A definição não foi guardada. Tente novamente.",
     alias_delivery_rule_note:

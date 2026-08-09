@@ -20,6 +20,17 @@
 //
 export const de = {
   common: {
+    delete_folder_account_password: "Kontopasswort",
+    delete_folder_step_up_hint: "Dieser Ordner ist passwortgeschützt. Geben Sie Ihr Kontopasswort ein, um ihn zu löschen.",
+    delete_folder_totp_code: "Code der Zwei-Faktor-Authentifizierung",
+    delete_folder_purge_option: "Die enthaltenen E-Mails endgültig vernichten",
+    delete_folder_purge_warning: "Vernichtete E-Mails werden auf allen Geräten zerstört und lassen sich nicht wiederherstellen.",
+    delete_folder_purge_acknowledge: "Mir ist klar, dass sich diese E-Mails nicht wiederherstellen lassen.",
+    delete_folder_purged_items: "Ordner gelöscht und {count} Nachrichten endgültig vernichtet.",
+    delete_folder_deleted_no_purge: "Ordner gelöscht. Die enthaltenen E-Mails bleiben in Ihrem Konto.",
+    delete_folder_password_required: "Geben Sie Ihr Kontopasswort ein.",
+    delete_folder_totp_required: "Geben Sie Ihren Code der Zwei-Faktor-Authentifizierung ein.",
+    delete_folder_verification_failed: "Prüfen Sie Passwort und Code und versuchen Sie es erneut.",
     qr_code: "QR-Code",
     profile_picture_removed: "Profilbild entfernt",
     failed_remove_profile_picture:
@@ -908,6 +919,7 @@ export const de = {
       "Das ließ sich nicht rückgängig machen. Ein manuelles Zurückschieben ist der Umweg.",
     message_archived: "Nachricht archiviert",
     message_moved_to_trash: "Nachricht in den Papierkorb verschoben",
+    message_marked_as_spam: "Nachricht als Spam markiert",
     expired: "Abgelaufen",
     expires_in: "Läuft ab in ",
     report_phishing: "Spam melden",
@@ -1718,6 +1730,8 @@ export const de = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Inhalt geschützter Ordner vernichten",
+    purge_locked_folder_on_delete_description: "Wählt beim Löschen eines passwortgeschützten Ordners die endgültige Vernichtung der enthaltenen E-Mails vor",
     settings_view_mode: "Einstellungsansicht",
     settings_view_mode_description:
       "Einstellungen als ganze Seite oder Popup-Fenster öffnen",
@@ -2458,6 +2472,21 @@ export const de = {
       "E-Mails an diesen Alias werden automatisch mit einem Label versehen, ganz ohne Regel. Das Label gilt zusätzlich zum Zielordner.",
     alias_delivery_label_none: "Kein Label",
     alias_delivery_label_missing: "Gelöschtes Label",
+    alias_apply_existing: "Auf vorhandene E-Mails anwenden",
+    alias_apply_existing_desc: "Sortieren Sie E-Mails, die dieser Alias bereits erhalten hat, in den gewählten Ordner und das gewählte Label ein.",
+    alias_apply_existing_info: "Damit werden der oben gewählte Zustellordner und das Label auf E-Mails angewendet, die bereits in Ihrem Konto liegen. Der Vorgang läuft im Hintergrund, und Ihre E-Mail-Regeln werden nicht erneut ausgeführt.",
+    alias_apply_existing_action: "Jetzt anwenden",
+    alias_apply_existing_cancel: "Stoppen",
+    alias_apply_existing_started: "Ihre Zustelleinstellungen werden auf vorhandene E-Mails angewendet. Der Vorgang läuft im Hintergrund.",
+    alias_apply_existing_failed: "Diese Einstellungen konnten nicht angewendet werden.",
+    alias_apply_existing_cancel_failed: "Dieser Vorgang konnte nicht gestoppt werden.",
+    alias_apply_existing_queued: "In Warteschlange ...",
+    alias_apply_existing_progress: "Wird angewendet: {{scanned}} geprüft, {{applied}} aktualisiert",
+    alias_apply_existing_progress_total: "Wird angewendet: {{scanned}} von {{total}} geprüft, {{applied}} aktualisiert",
+    alias_apply_existing_done: "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert",
+    alias_apply_existing_canceled: "Gestoppt: {{applied}} aktualisiert",
+    alias_apply_existing_error: "Das Anwenden auf vorhandene E-Mails ist fehlgeschlagen. Versuchen Sie es erneut.",
+    alias_apply_existing_unavailable: "E-Mails, die bereits in Ihrem Konto sind, können nicht in den Spam-Ordner verschoben werden.",
     alias_delivery_label_error:
       "Die Einstellung wurde nicht gespeichert. Bitte erneut versuchen.",
     alias_delivery_rule_note:

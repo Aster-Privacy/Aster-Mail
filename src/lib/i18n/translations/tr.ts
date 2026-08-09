@@ -20,6 +20,17 @@
 //
 export const tr = {
   common: {
+    delete_folder_account_password: "Hesap parolası",
+    delete_folder_step_up_hint: "Bu klasör parola korumalı. Silmek için hesap parolanızı girin.",
+    delete_folder_totp_code: "İki adımlı doğrulama kodu",
+    delete_folder_purge_option: "İçindeki postayı kalıcı olarak yok et",
+    delete_folder_purge_warning: "Yok edilen posta her cihazda silinir ve geri getirilemez.",
+    delete_folder_purge_acknowledge: "Bu postanın geri getirilemeyeceğini anlıyorum.",
+    delete_folder_purged_items: "Klasör silindi ve {count} ileti kalıcı olarak yok edildi.",
+    delete_folder_deleted_no_purge: "Klasör silindi. İçindeki posta hesabınızda kalır.",
+    delete_folder_password_required: "Hesap parolanızı girin.",
+    delete_folder_totp_required: "İki adımlı doğrulama kodunuzu girin.",
+    delete_folder_verification_failed: "Parolanızı ve kodunuzu kontrol edip yeniden deneyin.",
     qr_code: "QR kodu",
     profile_picture_removed: "Profil fotoğrafı kaldırıldı",
     failed_remove_profile_picture:
@@ -971,6 +982,7 @@ export const tr = {
       "Bunu geri alamadık. Manuel olarak geri taşımak yedek yoldur.",
     message_archived: "Mesaj arşivlendi",
     message_moved_to_trash: "Mesaj çöp kutusuna taşındı",
+    message_marked_as_spam: "Mesaj spam olarak işaretlendi",
     undo_failed:
       "Geri alma işe yaramadı. Bir kez daha denemek genellikle yeterli olur.",
     expired: "Süresi doldu",
@@ -1699,6 +1711,8 @@ export const tr = {
     or: "veya",
   },
   settings: {
+    purge_locked_folder_on_delete: "Korumalı klasör içeriğini yok et",
+    purge_locked_folder_on_delete_description: "Parola korumalı bir klasörü sildiğinizde içindeki postanın kalıcı olarak yok edilmesini önceden seçer",
     settings_view_mode: "Ayarlar görünümü",
     settings_view_mode_description:
       "Ayarları tam sayfa veya açılır pencere olarak aç",
@@ -2407,6 +2421,21 @@ export const tr = {
       "Bu takma ada gelen postalar kural gerekmeden otomatik etiketlenir. Etiket, iletinin düştüğü klasörden bağımsız uygulanır.",
     alias_delivery_label_none: "Etiket yok",
     alias_delivery_label_missing: "Silinmiş etiket",
+    alias_apply_existing: "Mevcut postaya uygula",
+    alias_apply_existing_desc: "Bu takma adın daha önce aldığı postaları seçtiğiniz klasöre ve etikete taşıyın.",
+    alias_apply_existing_info: "Bu işlem, yukarıdaki teslim klasörünü ve etiketi hesabınızda zaten bulunan postalara uygular. Arka planda çalışır ve posta kurallarınız yeniden çalıştırılmaz.",
+    alias_apply_existing_action: "Şimdi uygula",
+    alias_apply_existing_cancel: "Durdur",
+    alias_apply_existing_started: "Teslim ayarlarınız mevcut postalara uygulanıyor. İşlem arka planda çalışır.",
+    alias_apply_existing_failed: "Bu ayarlar uygulanmaya başlanamadı.",
+    alias_apply_existing_cancel_failed: "Bu işlem durdurulamadı.",
+    alias_apply_existing_queued: "Sırada...",
+    alias_apply_existing_progress: "Uygulanıyor: {{scanned}} tarandı, {{applied}} güncellendi",
+    alias_apply_existing_progress_total: "Uygulanıyor: {{total}} içinden {{scanned}} tarandı, {{applied}} güncellendi",
+    alias_apply_existing_done: "Tamamlandı: {{scanned}} tarandı, {{applied}} güncellendi",
+    alias_apply_existing_canceled: "Durduruldu: {{applied}} güncellendi",
+    alias_apply_existing_error: "Mevcut postaya uygulama başarısız oldu. Yeniden deneyin.",
+    alias_apply_existing_unavailable: "Hesabınızda zaten bulunan postalar Spam klasörüne taşınamaz.",
     alias_delivery_label_error: "Ayar kaydedilmedi. Tekrar deneyin.",
     alias_delivery_rule_note:
       '"{{ rule }}" kuralı bu takma adın postasını zaten {{ target }} klasörüne taşıyor.',

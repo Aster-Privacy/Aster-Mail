@@ -20,6 +20,17 @@
 //
 export const ko = {
   common: {
+    delete_folder_account_password: "계정 비밀번호",
+    delete_folder_step_up_hint: "이 폴더는 비밀번호로 보호되어 있습니다. 삭제하려면 계정 비밀번호를 입력하세요.",
+    delete_folder_totp_code: "2단계 인증 코드",
+    delete_folder_purge_option: "안에 있는 메일을 영구 삭제",
+    delete_folder_purge_warning: "영구 삭제된 메일은 모든 기기에서 사라지며 복구할 수 없습니다.",
+    delete_folder_purge_acknowledge: "이 메일을 복구할 수 없음을 이해합니다.",
+    delete_folder_purged_items: "폴더를 삭제하고 {count}개의 메시지를 영구 삭제했습니다.",
+    delete_folder_deleted_no_purge: "폴더를 삭제했습니다. 안에 있던 메일은 계정에 남아 있습니다.",
+    delete_folder_password_required: "계정 비밀번호를 입력하세요.",
+    delete_folder_totp_required: "2단계 인증 코드를 입력하세요.",
+    delete_folder_verification_failed: "비밀번호와 코드를 확인한 뒤 다시 시도하세요.",
     qr_code: "QR 코드",
     profile_picture_removed: "프로필 사진이 삭제되었습니다",
     failed_remove_profile_picture:
@@ -943,6 +954,7 @@ export const ko = {
       "되돌릴 수 없었습니다. 직접 원래 위치로 옮기는 것이 대안입니다.",
     message_archived: "메시지 보관됨",
     message_moved_to_trash: "메시지가 휴지통으로 이동됨",
+    message_marked_as_spam: "메시지가 스팸으로 표시됨",
     undo_failed: "되돌리기가 작동하지 않았습니다. 다시 시도하면 됩니다.",
     expired: "만료됨",
     expires_in: "만료까지 ",
@@ -1659,6 +1671,8 @@ export const ko = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "보호된 폴더 내용 완전 삭제",
+    purge_locked_folder_on_delete_description: "비밀번호로 보호된 폴더를 삭제할 때 안의 메일을 영구 삭제하도록 미리 선택합니다",
     settings_view_mode: "설정 보기",
     settings_view_mode_description: "설정을 전체 페이지 또는 팝업 창으로 열기",
     quick_settings: "설정",
@@ -2316,6 +2330,21 @@ export const ko = {
       "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 라벨은 배달 폴더와 별개로 적용됩니다.",
     alias_delivery_label_none: "라벨 없음",
     alias_delivery_label_missing: "삭제된 라벨",
+    alias_apply_existing: "기존 메일에 적용",
+    alias_apply_existing_desc: "이 별칭이 이미 받은 메일을 선택한 폴더와 라벨로 정리합니다.",
+    alias_apply_existing_info: "위에서 선택한 배달 폴더와 라벨을 계정에 이미 있는 메일에 적용합니다. 백그라운드에서 실행되며 메일 규칙은 다시 실행되지 않습니다.",
+    alias_apply_existing_action: "지금 적용",
+    alias_apply_existing_cancel: "중지",
+    alias_apply_existing_started: "배달 설정을 기존 메일에 적용하고 있습니다. 백그라운드에서 실행됩니다.",
+    alias_apply_existing_failed: "이 설정을 적용할 수 없습니다.",
+    alias_apply_existing_cancel_failed: "이 작업을 중지할 수 없습니다.",
+    alias_apply_existing_queued: "대기 중...",
+    alias_apply_existing_progress: "적용 중: {{scanned}}개 검사, {{applied}}개 업데이트",
+    alias_apply_existing_progress_total: "적용 중: {{total}}개 중 {{scanned}}개 검사, {{applied}}개 업데이트",
+    alias_apply_existing_done: "완료: {{scanned}}개 검사, {{applied}}개 업데이트",
+    alias_apply_existing_canceled: "중지됨: {{applied}}개 업데이트",
+    alias_apply_existing_error: "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
+    alias_apply_existing_unavailable: "계정에 이미 있는 메일은 스팸으로 옮길 수 없습니다.",
     alias_delivery_label_error:
       "설정이 저장되지 않았습니다. 다시 시도해 주세요.",
     alias_delivery_rule_note:

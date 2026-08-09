@@ -20,6 +20,17 @@
 //
 export const nl = {
   common: {
+    delete_folder_account_password: "Accountwachtwoord",
+    delete_folder_step_up_hint: "Deze map is beveiligd met een wachtwoord. Voer uw accountwachtwoord in om de map te verwijderen.",
+    delete_folder_totp_code: "Tweestapsverificatiecode",
+    delete_folder_purge_option: "De e-mails erin definitief vernietigen",
+    delete_folder_purge_warning: "Vernietigde e-mails worden op elk apparaat verwijderd en kunnen niet worden hersteld.",
+    delete_folder_purge_acknowledge: "Ik begrijp dat deze e-mails niet kunnen worden hersteld.",
+    delete_folder_purged_items: "Map verwijderd en {count} berichten definitief vernietigd.",
+    delete_folder_deleted_no_purge: "Map verwijderd. De e-mails erin blijven in uw account.",
+    delete_folder_password_required: "Voer uw accountwachtwoord in.",
+    delete_folder_totp_required: "Voer uw tweestapsverificatiecode in.",
+    delete_folder_verification_failed: "Controleer uw wachtwoord en code en probeer het opnieuw.",
     qr_code: "QR-code",
     profile_picture_removed: "Profielfoto verwijderd",
     failed_remove_profile_picture:
@@ -947,6 +958,7 @@ export const nl = {
       "We konden dat niet ongedaan maken. Het handmatig terugzetten is de tussenoplossing.",
     message_archived: "Bericht gearchiveerd",
     message_moved_to_trash: "Bericht naar prullenbak verplaatst",
+    message_marked_as_spam: "Bericht als spam gemarkeerd",
     undo_failed:
       "Ongedaan maken heeft niet gewerkt. Een nieuwe poging zou werken.",
     expired: "Verlopen",
@@ -1681,6 +1693,8 @@ export const nl = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Inhoud van beveiligde mappen vernietigen",
+    purge_locked_folder_on_delete_description: "Selecteert vooraf het definitief vernietigen van de e-mails wanneer u een met een wachtwoord beveiligde map verwijdert",
     settings_view_mode: "Instellingenweergave",
     settings_view_mode_description:
       "Instellingen openen als volledige pagina of pop-upvenster",
@@ -2364,6 +2378,21 @@ export const nl = {
       "Post naar deze alias krijgt automatisch een label, zonder regel. Het label komt bovenop de doelmap.",
     alias_delivery_label_none: "Geen label",
     alias_delivery_label_missing: "Verwijderd label",
+    alias_apply_existing: "Toepassen op bestaande e-mail",
+    alias_apply_existing_desc: "Verplaats e-mail die dit alias al heeft ontvangen naar de map en het label die je hebt gekozen.",
+    alias_apply_existing_info: "Hiermee pas je de bezorgmap en het label hierboven toe op e-mail die al in je account staat. Dit gebeurt op de achtergrond, en je e-mailregels worden niet opnieuw uitgevoerd.",
+    alias_apply_existing_action: "Nu toepassen",
+    alias_apply_existing_cancel: "Stoppen",
+    alias_apply_existing_started: "Je bezorginstellingen worden toegepast op bestaande e-mail. Dit gebeurt op de achtergrond.",
+    alias_apply_existing_failed: "Deze instellingen konden niet worden toegepast.",
+    alias_apply_existing_cancel_failed: "Deze bewerking kon niet worden gestopt.",
+    alias_apply_existing_queued: "In wachtrij...",
+    alias_apply_existing_progress: "Bezig: {{scanned}} gescand, {{applied}} bijgewerkt",
+    alias_apply_existing_progress_total: "Bezig: {{scanned}} van {{total}} gescand, {{applied}} bijgewerkt",
+    alias_apply_existing_done: "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt",
+    alias_apply_existing_canceled: "Gestopt: {{applied}} bijgewerkt",
+    alias_apply_existing_error: "Toepassen op bestaande e-mail is mislukt. Probeer het opnieuw.",
+    alias_apply_existing_unavailable: "E-mail die al in je account staat, kan niet naar Spam worden verplaatst.",
     alias_delivery_label_error:
       "Deze instelling is niet opgeslagen. Probeer het opnieuw.",
     alias_delivery_rule_note:

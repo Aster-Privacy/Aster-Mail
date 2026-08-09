@@ -20,6 +20,17 @@
 //
 export const es = {
   common: {
+    delete_folder_account_password: "Contraseña de la cuenta",
+    delete_folder_step_up_hint: "Esta carpeta está protegida con contraseña. Introduce la contraseña de tu cuenta para eliminarla.",
+    delete_folder_totp_code: "Código de verificación en dos pasos",
+    delete_folder_purge_option: "Destruir de forma permanente el correo que contiene",
+    delete_folder_purge_warning: "El correo purgado se destruye en todos los dispositivos y no se puede recuperar.",
+    delete_folder_purge_acknowledge: "Entiendo que este correo no se puede recuperar.",
+    delete_folder_purged_items: "Carpeta eliminada y {count} mensajes destruidos de forma permanente.",
+    delete_folder_deleted_no_purge: "Carpeta eliminada. El correo que contenía permanece en tu cuenta.",
+    delete_folder_password_required: "Introduce la contraseña de tu cuenta.",
+    delete_folder_totp_required: "Introduce el código de verificación en dos pasos.",
+    delete_folder_verification_failed: "Comprueba tu contraseña y el código, y vuelve a intentarlo.",
     qr_code: "Código QR",
     profile_picture_removed: "Foto de perfil eliminada",
     failed_remove_profile_picture:
@@ -974,6 +985,7 @@ export const es = {
       "No pudimos deshacer eso. Moverlo de vuelta manualmente es la alternativa.",
     message_archived: "Mensaje archivado",
     message_moved_to_trash: "Mensaje movido a la papelera",
+    message_marked_as_spam: "Mensaje marcado como spam",
     undo_failed: "Deshacer no funcionó. Otro intento debería resolverlo.",
     expired: "Expirado",
     expires_in: "Expira en ",
@@ -1680,6 +1692,8 @@ export const es = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Purgar contenido de carpetas protegidas",
+    purge_locked_folder_on_delete_description: "Preselecciona la destrucción permanente del correo cuando eliminas una carpeta protegida con contraseña",
     settings_view_mode: "Vista de configuración",
     settings_view_mode_description:
       "Abrir la configuración como página completa o ventana emergente",
@@ -2406,6 +2420,21 @@ export const es = {
       "El correo enviado a este alias se etiqueta automáticamente, sin necesidad de reglas. La etiqueta se aplica además de la carpeta de destino.",
     alias_delivery_label_none: "Sin etiqueta",
     alias_delivery_label_missing: "Etiqueta eliminada",
+    alias_apply_existing: "Aplicar al correo existente",
+    alias_apply_existing_desc: "Organiza el correo que este alias ya recibió en la carpeta y la etiqueta que elegiste.",
+    alias_apply_existing_info: "Esto aplica la carpeta de entrega y la etiqueta de arriba al correo que ya está en tu cuenta. Se ejecuta en segundo plano y tus reglas de correo no se vuelven a ejecutar.",
+    alias_apply_existing_action: "Aplicar ahora",
+    alias_apply_existing_cancel: "Detener",
+    alias_apply_existing_started: "Aplicando tu configuración de entrega al correo existente. Se ejecuta en segundo plano.",
+    alias_apply_existing_failed: "No se pudo empezar a aplicar esta configuración.",
+    alias_apply_existing_cancel_failed: "No se pudo detener esta ejecución.",
+    alias_apply_existing_queued: "En cola...",
+    alias_apply_existing_progress: "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
+    alias_apply_existing_progress_total: "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
+    alias_apply_existing_done: "Listo: {{scanned}} revisados, {{applied}} actualizados",
+    alias_apply_existing_canceled: "Detenido: {{applied}} actualizados",
+    alias_apply_existing_error: "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
+    alias_apply_existing_unavailable: "El correo que ya está en tu cuenta no se puede mover a Spam.",
     alias_delivery_label_error: "El ajuste no se guardó. Inténtalo de nuevo.",
     alias_delivery_rule_note:
       'La regla "{{ rule }}" ya mueve el correo de este alias a {{ target }}.',

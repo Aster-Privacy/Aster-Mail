@@ -20,6 +20,17 @@
 //
 export const ru = {
   common: {
+    delete_folder_account_password: "Пароль учётной записи",
+    delete_folder_step_up_hint: "Эта папка защищена паролем. Введите пароль учётной записи, чтобы удалить её.",
+    delete_folder_totp_code: "Код двухфакторной аутентификации",
+    delete_folder_purge_option: "Безвозвратно уничтожить письма внутри",
+    delete_folder_purge_warning: "Уничтоженные письма удаляются на всех устройствах, восстановить их нельзя.",
+    delete_folder_purge_acknowledge: "Я понимаю, что эти письма восстановить нельзя.",
+    delete_folder_purged_items: "Папка удалена, безвозвратно уничтожено писем: {count}.",
+    delete_folder_deleted_no_purge: "Папка удалена. Письма внутри остаются в учётной записи.",
+    delete_folder_password_required: "Введите пароль учётной записи.",
+    delete_folder_totp_required: "Введите код двухфакторной аутентификации.",
+    delete_folder_verification_failed: "Проверьте пароль и код, затем повторите попытку.",
     qr_code: "QR-код",
     profile_picture_removed: "Фото профиля удалено",
     failed_remove_profile_picture:
@@ -972,6 +983,7 @@ export const ru = {
       "Отменить это действие не удалось. Возврат вручную обычно обходное решение.",
     message_archived: "Сообщение архивировано",
     message_moved_to_trash: "Сообщение перемещено в корзину",
+    message_marked_as_spam: "Сообщение отмечено как спам",
     undo_failed: "Отмена не сработала. Повторная попытка обычно помогает.",
     expired: "Истекло",
     expires_in: "Истекает через ",
@@ -1701,6 +1713,8 @@ export const ru = {
     or: "or",
   },
   settings: {
+    purge_locked_folder_on_delete: "Уничтожать содержимое защищённых папок",
+    purge_locked_folder_on_delete_description: "Заранее отмечает безвозвратное уничтожение писем при удалении папки, защищённой паролем",
     settings_view_mode: "Вид настроек",
     settings_view_mode_description:
       "Открывать настройки на всю страницу или во всплывающем окне",
@@ -2422,6 +2436,21 @@ export const ru = {
       "Письма на этот алиас помечаются автоматически, правило не нужно. Метка добавляется независимо от папки доставки.",
     alias_delivery_label_none: "Без метки",
     alias_delivery_label_missing: "Удалённая метка",
+    alias_apply_existing: "Применить к имеющейся почте",
+    alias_apply_existing_desc: "Переместите письма, которые этот алиас уже получил, в выбранную папку и присвойте им выбранную метку.",
+    alias_apply_existing_info: "Папка доставки и метка, указанные выше, будут применены к письмам, которые уже есть в вашем аккаунте. Операция выполняется в фоне, правила почты повторно не применяются.",
+    alias_apply_existing_action: "Применить",
+    alias_apply_existing_cancel: "Остановить",
+    alias_apply_existing_started: "Настройки доставки применяются к имеющейся почте. Операция выполняется в фоне.",
+    alias_apply_existing_failed: "Не удалось применить эти настройки.",
+    alias_apply_existing_cancel_failed: "Не удалось остановить эту операцию.",
+    alias_apply_existing_queued: "В очереди...",
+    alias_apply_existing_progress: "Применение: проверено {{scanned}}, обновлено {{applied}}",
+    alias_apply_existing_progress_total: "Применение: проверено {{scanned}} из {{total}}, обновлено {{applied}}",
+    alias_apply_existing_done: "Готово: проверено {{scanned}}, обновлено {{applied}}",
+    alias_apply_existing_canceled: "Остановлено: обновлено {{applied}}",
+    alias_apply_existing_error: "Не удалось применить к имеющейся почте. Повторите попытку.",
+    alias_apply_existing_unavailable: "Письма, которые уже есть в вашем аккаунте, нельзя переместить в спам.",
     alias_delivery_label_error: "Настройка не сохранилась. Попробуйте ещё раз.",
     alias_delivery_rule_note:
       'Правило "{{ rule }}" уже перемещает почту этого алиаса в {{ target }}.',

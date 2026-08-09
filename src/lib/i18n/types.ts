@@ -489,6 +489,9 @@ export interface MailRulesTranslations {
 }
 
 export interface CommonTranslations {
+  post_quantum_unavailable_title: string;
+  post_quantum_unavailable_message: string;
+  post_quantum_send_anyway: string;
   upgrade_tooltip: string;
   help: string;
   removing: string;
@@ -685,6 +688,17 @@ export interface CommonTranslations {
   delete_folder_warning: string;
   delete_folder_subfolders: string;
   delete_folder_confirm: string;
+  delete_folder_account_password: string;
+  delete_folder_step_up_hint: string;
+  delete_folder_totp_code: string;
+  delete_folder_purge_option: string;
+  delete_folder_purge_warning: string;
+  delete_folder_purge_acknowledge: string;
+  delete_folder_purged_items: string;
+  delete_folder_deleted_no_purge: string;
+  delete_folder_password_required: string;
+  delete_folder_totp_required: string;
+  delete_folder_verification_failed: string;
   collapse_all: string;
   expand_all: string;
   unsubscribed_successfully: string;
@@ -1352,6 +1366,7 @@ export interface CommonTranslations {
   failed_to_undo_trash: string;
   message_archived: string;
   message_moved_to_trash: string;
+  message_marked_as_spam: string;
   undo_failed: string;
   action_undone: string;
   expired: string;
@@ -2441,6 +2456,8 @@ export interface SettingsTranslations {
   auto_advance_description: string;
   reactions_enabled: string;
   reactions_enabled_description: string;
+  purge_locked_folder_on_delete: string;
+  purge_locked_folder_on_delete_description: string;
   auto_advance_next: string;
   auto_advance_previous: string;
   auto_advance_back: string;
@@ -5382,6 +5399,21 @@ export interface SettingsTranslations {
   alias_delivery_label_none: string;
   alias_delivery_label_missing: string;
   alias_delivery_label_error: string;
+  alias_apply_existing: string;
+  alias_apply_existing_desc: string;
+  alias_apply_existing_info: string;
+  alias_apply_existing_action: string;
+  alias_apply_existing_cancel: string;
+  alias_apply_existing_started: string;
+  alias_apply_existing_failed: string;
+  alias_apply_existing_cancel_failed: string;
+  alias_apply_existing_queued: string;
+  alias_apply_existing_progress: string;
+  alias_apply_existing_progress_total: string;
+  alias_apply_existing_done: string;
+  alias_apply_existing_canceled: string;
+  alias_apply_existing_error: string;
+  alias_apply_existing_unavailable: string;
   alias_delivery_rule_note: string;
   alias_delivery_rule_conflict: string;
   alias_delivery_label_rule_note: string;
@@ -6867,6 +6899,7 @@ export interface AuthTranslations {
 }
 
 export interface ErrorTranslations {
+  post_quantum_unavailable: string;
   generic: string;
   failed_remove_reaction: string;
   cannot_react_own_message: string;
