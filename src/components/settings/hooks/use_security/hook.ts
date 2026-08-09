@@ -18,32 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_settings_cache } from "@/contexts/settings_cache_context";
-import type { ApiResponse } from "@/services/api/client";
-import { get_totp_status, TotpStatusResponse } from "@/services/api/totp";
+import type { TotpStatusResponse } from "@/services/api/totp";
 import {
   change_password,
-  get_login_alerts_status,
-  get_login_events,
   get_user_salt,
   set_login_alerts,
   type LoginEventEntry,
 } from "@/services/api/auth";
 import { api_client } from "@/services/api/client";
 import {
-  list_sessions,
   revoke_session,
   revoke_all_sessions,
   type Session,
 } from "@/services/api/sessions";
-import { get_recovery_email } from "@/services/api/recovery_email";
 import {
-  get_security_status,
-  backfill_password_strength_tier,
   type SecurityStatusResponse,
 } from "@/services/api/account";
 import { compute_password_strength_tier } from "@/services/password_strength_score";
@@ -96,6 +89,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { resolve_password_change_error } from "../password_change_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
+import { use_security_fetchers } from "./fetchers";
 
 export function use_security() {
   const { t } = use_i18n();
@@ -150,206 +144,31 @@ export function use_security() {
   const [security_status, set_security_status] =
     useState<SecurityStatusResponse | null>(null);
 
-  const fetch_totp_status = useCallback(async () => {
-    try {
-      const response = await get_totp_status();
-
-      if (response.data) {
-        set_totp_status(response.data);
-        cache.set_entry("totp_status", {
-          data: response,
-          error: null,
-          fetched_at: Date.now(),
-          is_loading: false,
-        });
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
-    }
-  }, [cache]);
-
-  const fetch_login_alerts_status = useCallback(async () => {
-    try {
-      const response = await get_login_alerts_status();
-
-      if (response.data) {
-        set_login_alerts_enabled(response.data.enabled);
-        cache.set_entry("login_alerts_status", {
-          data: response,
-          error: null,
-          fetched_at: Date.now(),
-          is_loading: false,
-        });
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
-    }
-  }, [cache]);
-
-  const fetch_login_events = useCallback(async () => {
-    set_login_events_loading(true);
-    try {
-      const response = await get_login_events();
-      if (response.data) {
-        set_login_events(response.data.events);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-    } finally {
-      set_login_events_loading(false);
-    }
-  }, []);
-
-  const fetch_ipfs_status = useCallback(async () => {
-    try {
-      const response = await api_client.get<{
-        ipfs_available: boolean;
-        ipfs_storage_enabled: boolean;
-      }>("/settings/v1/encryption");
-
-      if (response.data) {
-        set_ipfs_available(response.data.ipfs_available);
-        set_ipfs_storage_enabled(response.data.ipfs_storage_enabled);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
-    }
-  }, []);
-
-  const fetch_recovery_email_status = useCallback(async () => {
-    const vault = get_vault_from_memory();
-
-    if (!vault) return;
-
-    try {
-      const result = await get_recovery_email(vault);
-
-      set_recovery_email_verified(result.data.verified ?? false);
-      cache.set_entry("recovery_email_status", {
-        data: result,
-        error: null,
-        fetched_at: Date.now(),
-        is_loading: false,
-      });
-    } catch {}
-  }, [cache]);
-
-  const fetch_security_status = useCallback(async () => {
-    try {
-      const response = await get_security_status();
-
-      if (!response.data) return;
-
-      let status = response.data;
-
-      if (status.password_strength_tier === null) {
-        const passphrase = get_passphrase_from_memory();
-
-        if (passphrase) {
-          const tier = compute_password_strength_tier(passphrase);
-
-          status = { ...status, password_strength_tier: tier };
-          backfill_password_strength_tier(tier).catch(() => {});
-        }
-      }
-
-      set_security_status(status);
-      cache.set_entry("security_status", {
-        data: { ...response, data: status },
-        error: null,
-        fetched_at: Date.now(),
-        is_loading: false,
-      });
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
-    }
-  }, [cache]);
-
-  const hydrate_security_status = useCallback(async () => {
-    const cached = cache.get_entry<ApiResponse<SecurityStatusResponse>>(
-      "security_status",
-    );
-
-    if (cache.is_fresh("security_status") && cached?.data?.data) {
-      set_security_status(cached.data.data);
-
-      return;
-    }
-
-    await fetch_security_status();
-  }, [cache, fetch_security_status]);
-
-  const hydrate_totp_status = useCallback(async () => {
-    const cached = cache.get_entry<ApiResponse<TotpStatusResponse>>(
-      "totp_status",
-    );
-
-    if (cache.is_fresh("totp_status") && cached?.data?.data) {
-      set_totp_status(cached.data.data);
-
-      return;
-    }
-
-    await fetch_totp_status();
-  }, [cache, fetch_totp_status]);
-
-  const hydrate_login_alerts_status = useCallback(async () => {
-    const cached = cache.get_entry<ApiResponse<{ enabled: boolean }>>(
-      "login_alerts_status",
-    );
-
-    if (cache.is_fresh("login_alerts_status") && cached?.data?.data) {
-      set_login_alerts_enabled(cached.data.data.enabled);
-
-      return;
-    }
-
-    await fetch_login_alerts_status();
-  }, [cache, fetch_login_alerts_status]);
-
-  const hydrate_recovery_email_status = useCallback(async () => {
-    const cached = cache.get_entry<{ data: { verified: boolean } }>(
-      "recovery_email_status",
-    );
-
-    if (cache.is_fresh("recovery_email_status") && cached?.data) {
-      set_recovery_email_verified(cached.data.data.verified ?? false);
-
-      return;
-    }
-
-    await fetch_recovery_email_status();
-  }, [cache, fetch_recovery_email_status]);
-
-  const fetch_sessions = useCallback(async () => {
-    set_sessions_loading(true);
-    set_sessions_error(null);
-
-    try {
-      const response = await list_sessions();
-
-      if (response.data) {
-        set_sessions(response.data.sessions);
-      } else {
-        set_sessions_error(
-          response.error || t("settings.failed_load_sessions"),
-        );
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      set_sessions_error(t("settings.failed_load_sessions"));
-    } finally {
-      set_sessions_loading(false);
-    }
-  }, [t]);
+  const {
+    fetch_totp_status,
+    fetch_login_events,
+    fetch_ipfs_status,
+    fetch_security_status,
+    hydrate_security_status,
+    hydrate_totp_status,
+    hydrate_login_alerts_status,
+    hydrate_recovery_email_status,
+    fetch_sessions,
+  } = use_security_fetchers({
+    t,
+    cache,
+    set_totp_status,
+    set_login_alerts_enabled,
+    set_login_events,
+    set_login_events_loading,
+    set_ipfs_available,
+    set_ipfs_storage_enabled,
+    set_sessions,
+    set_sessions_loading,
+    set_sessions_error,
+    set_recovery_email_verified,
+    set_security_status,
+  });
 
   useEffect(() => {
     Promise.all([
