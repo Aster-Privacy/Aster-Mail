@@ -167,6 +167,19 @@ describe("extract_preheader_text", () => {
     expect(extract_preheader_text("just a normal message")).toBe("");
   });
 
+  it("ignores overflow hidden in a style attribute", () => {
+    const html =
+      '<body><div style="overflow: hidden; color: red">Not a preheader</div><p>Body</p></body>';
+
+    expect(extract_preheader_text(html)).toBe("");
+  });
+
+  it("reads a block marked with the hidden attribute", () => {
+    const html = "<body><div hidden>Real preheader</div><p>Body</p></body>";
+
+    expect(extract_preheader_text(html)).toBe("Real preheader");
+  });
+
   it("keeps reading past a boilerplate hidden block", () => {
     const html =
       '<body><div style="display:none">View this email in your browser</div><div style="display:none">Get 30% off your next 3 meals.</div><h1>Weekly menu</h1></body>';
