@@ -21,7 +21,6 @@
 import type { InboxEmail, InboxFilterType, EmailCategory } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
-import type { SelectionMenuScope } from "@/components/email/inbox/inbox_email_list";
 
 import {
   useState,
@@ -1176,7 +1175,6 @@ export function EmailInbox({
     set_current_page,
     t,
   });
-  });
 
   const {
     pending_select_all_action,
@@ -1189,7 +1187,6 @@ export function EmailInbox({
     handle_mark_unread_wrapped,
     handle_toggle_star_wrapped,
     handle_restore_wrapped,
-    handle_not_spam_wrapped,
   } = bulk_actions;
 
   const selection_menu = use_inbox_selection_menu({
