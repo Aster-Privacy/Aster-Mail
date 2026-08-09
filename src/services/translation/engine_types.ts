@@ -118,11 +118,3 @@ export function pivot_route(from: LanguageCode, to: LanguageCode): LanguagePair[
     { from: PIVOT_LANGUAGE, to },
   ];
 }
-
-export function assert_segment_count(expected: number, received: string[]): string[] {
-  if (received.length !== expected) {
-    throw new SegmentCountMismatchError(expected, received.length);
-  }
-
-  return received;
-}

@@ -48,12 +48,6 @@ export interface CombinedPhishingResult {
   all_categories: Set<string>;
 }
 
-interface ServerPhishingData {
-  phishing_level?: string;
-  phishing_score?: number;
-  phishing_signals?: PhishingSignal[];
-}
-
 const URGENCY_PHRASES = [
   "your account will be suspended",
   "your account has been compromised",
@@ -305,44 +299,4 @@ export async function analyze_email_content(
   }
 
   return { level, score, signals, categories };
-}
-
-export function combine_phishing_results(
-  server_data: ServerPhishingData,
-  client_result: PhishingAnalysisResult,
-): CombinedPhishingResult {
-  const server_score = server_data.phishing_score || 0;
-  const server_signals = server_data.phishing_signals || [];
-  const server_categories = new Set(server_signals.map((s) => s.category));
-
-  const combined_score = server_score + client_result.score;
-  const all_signals = [...server_signals, ...client_result.signals];
-  const all_categories = new Set([
-    ...server_categories,
-    ...client_result.categories,
-  ]);
-
-  let level: PhishingLevel = "safe";
-
-  if (combined_score >= 12.0 && all_categories.size >= 3) {
-    level = "dangerous";
-  } else if (combined_score >= 6.0 && all_categories.size >= 2) {
-    level = "suspicious";
-  }
-
-  if (
-    server_data.phishing_level === "dangerous" &&
-    client_result.signals.length === 0
-  ) {
-    level = "suspicious";
-  }
-
-  return {
-    level,
-    combined_score,
-    server_score,
-    client_score: client_result.score,
-    all_signals,
-    all_categories,
-  };
 }

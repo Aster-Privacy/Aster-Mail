@@ -283,8 +283,3 @@ export async function clear_device_session(): Promise<void> {
   if (!is_tauri()) return;
   await invoke("device_clear_session");
 }
-
-export async function clear_device_identity(): Promise<void> {
-  if (!is_tauri()) return;
-  await invoke("device_clear_identity");
-}

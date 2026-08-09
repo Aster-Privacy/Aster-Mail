@@ -21,7 +21,6 @@
 import type {
   ActiveFilter,
   SortOption,
-  SearchScope,
   SearchHistoryEntry,
   SavedSearch,
 } from "@/hooks/use_search";
@@ -133,61 +132,6 @@ export function SortDropdown({
   );
 }
 
-export function SearchScopeToggle({
-  scope,
-  current_folder,
-  on_change,
-}: {
-  scope: SearchScope;
-  current_folder?: string;
-  on_change: (scope: SearchScope) => void;
-}) {
-  const { t } = use_i18n();
-
-  return (
-    <div className="flex items-center gap-1 rounded-lg p-0.5 bg-surf-tertiary">
-      <button
-        className="px-2.5 py-1 text-xs rounded-[12px] transition-all duration-150"
-        style={{
-          backgroundColor:
-            scope.type === "all" ? "var(--bg-card)" : "transparent",
-          color:
-            scope.type === "all" ? "var(--text-primary)" : "var(--text-muted)",
-          boxShadow:
-            scope.type === "all" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-        }}
-        onClick={() => on_change({ type: "all" })}
-      >
-        {t("mail.all_mail")}
-      </button>
-      {current_folder && (
-        <button
-          className="px-2.5 py-1 text-xs rounded-[12px] transition-all duration-150"
-          style={{
-            backgroundColor:
-              scope.type === "current_folder"
-                ? "var(--bg-card)"
-                : "transparent",
-            color:
-              scope.type === "current_folder"
-                ? "var(--text-primary)"
-                : "var(--text-muted)",
-            boxShadow:
-              scope.type === "current_folder"
-                ? "0 1px 3px rgba(0,0,0,0.1)"
-                : "none",
-          }}
-          onClick={() =>
-            on_change({ type: "current_folder", folder: current_folder })
-          }
-        >
-          {current_folder.charAt(0).toUpperCase() + current_folder.slice(1)}
-        </button>
-      )}
-    </div>
-  );
-}
-
 export function FolderResultsBadges({
   folder_counts,
 }: {
@@ -266,36 +210,6 @@ export function OperatorSuggestions({
         >
           <span className="font-mono">{suggestion.operator}</span>
           <span className="ml-1.5 opacity-70">{suggestion.description}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-export function DateShortcutPills({
-  on_select,
-}: {
-  on_select: (shortcut: string) => void;
-}) {
-  const { t } = use_i18n();
-  const shortcuts = useMemo(
-    () => [
-      { label: t("mail.filter_today"), value: "date:today" },
-      { label: t("mail.filter_this_week"), value: "date:this_week" },
-      { label: t("mail.filter_this_month"), value: "date:this_month" },
-    ],
-    [t],
-  );
-
-  return (
-    <div className="flex items-center gap-1.5">
-      {shortcuts.map((shortcut) => (
-        <button
-          key={shortcut.value}
-          className="px-2 py-1 text-[10px] rounded-full border transition-colors hover:bg-surf-hover bg-surf-card border-edge-secondary text-txt-muted"
-          onClick={() => on_select(shortcut.value)}
-        >
-          {shortcut.label}
         </button>
       ))}
     </div>

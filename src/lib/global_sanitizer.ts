@@ -431,31 +431,3 @@ export interface SanitizationRule {
 export type SanitizationRules<T> = {
   [K in keyof T]?: SanitizationRule;
 };
-
-export function create_sanitized_api_call<
-  TRequest extends Record<string, unknown>,
-  TResponse,
->(
-  url: string,
-  rules: SanitizationRules<TRequest>,
-): (data: TRequest, options?: RequestInit) => Promise<TResponse> {
-  return async (data: TRequest, options: RequestInit = {}) => {
-    const sanitized_data = GlobalSanitizer.sanitize_object(data, rules);
-
-    const response = await fetch(url, {
-      ...options,
-      method: options.method || "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      body: JSON.stringify(sanitized_data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API call failed: ${response.statusText}`);
-    }
-
-    return response.json() as Promise<TResponse>;
-  };
-}

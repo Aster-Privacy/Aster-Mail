@@ -290,42 +290,6 @@ export async function get_failed_actions(): Promise<QueuedAction[]> {
   return run_exclusive(read_failed_unlocked);
 }
 
-export async function retry_failed_action(id: string): Promise<void> {
-  await run_exclusive(async () => {
-    const failed = await read_failed_unlocked();
-    const target = failed.find((a) => a.id === id);
-
-    if (!target) return;
-
-    await write_failed_unlocked(failed.filter((a) => a.id !== id));
-
-    const queue = await read_queue_unlocked();
-
-    queue.push({ ...target, retry_count: 0, last_error: undefined });
-    await write_queue_unlocked(queue);
-  });
-
-  const status = await get_network_status();
-
-  if (status.connected) {
-    process_offline_queue();
-  }
-}
-
-export async function clear_failed_action(id: string): Promise<void> {
-  await run_exclusive(async () => {
-    const failed = await read_failed_unlocked();
-
-    await write_failed_unlocked(failed.filter((a) => a.id !== id));
-  });
-}
-
-export async function get_failed_count(): Promise<number> {
-  const failed = await get_failed_actions();
-
-  return failed.length;
-}
-
 export async function process_offline_queue(): Promise<void> {
   if (is_processing) return;
 

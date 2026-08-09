@@ -46,10 +46,6 @@ export interface SaveRecentRecipientEntry {
   email_nonce: string;
 }
 
-export interface SaveRecentRecipientsRequest {
-  recipients: SaveRecentRecipientEntry[];
-}
-
 export interface SaveRecentRecipientsResponse {
   success: boolean;
   saved_count: number;

@@ -20,16 +20,6 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState } from "react";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  XMarkIcon,
-  TableCellsIcon,
-} from "@heroicons/react/24/outline";
-
-import { use_i18n } from "@/lib/i18n/context";
-
 type TranslateFunction = (
   key: TranslationKey,
   params?: Record<string, string | number>,
@@ -236,97 +226,4 @@ export function get_plan_comparison_rows(
       supernova: "✓",
     },
   ];
-}
-
-export function PlanComparisonTable() {
-  const { t } = use_i18n();
-  const [is_open, set_is_open] = useState(true);
-  const rows = get_plan_comparison_rows(t);
-
-  return (
-    <div className="pt-4">
-      <button
-        className="w-full flex items-center justify-between py-3 text-left"
-        type="button"
-        onClick={() => set_is_open(!is_open)}
-      >
-        <div className="flex items-center gap-2">
-          <TableCellsIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          <h3 className="text-base font-semibold text-txt-primary">
-            {t("settings.compare_plans")}
-          </h3>
-        </div>
-        <ChevronDownIcon
-          className={`w-4 h-4 text-txt-muted transition-transform ${is_open ? "rotate-180" : ""}`}
-        />
-      </button>
-      <div className="h-px bg-edge-secondary" />
-
-      {is_open && (
-        <div className="mt-3 overflow-x-auto rounded-xl border border-edge-secondary">
-          <table className="w-full text-xs">
-            <thead>
-              <tr style={{ backgroundColor: "var(--bg-tertiary)" }}>
-                <th className="text-left px-3 py-2.5 font-semibold text-txt-primary border-b border-edge-secondary min-w-[140px]">
-                  {t("settings.feature")}
-                </th>
-                <th className="text-center px-2 py-2.5 font-semibold text-txt-muted border-b border-edge-secondary">
-                  Free
-                </th>
-                <th className="text-center px-2 py-2.5 font-semibold text-txt-primary border-b border-edge-secondary">
-                  Star
-                </th>
-                <th
-                  className="text-center px-2 py-2.5 font-semibold border-b border-edge-secondary"
-                  style={{ color: "var(--accent-blue)" }}
-                >
-                  Nova
-                </th>
-                <th className="text-center px-2 py-2.5 font-semibold text-txt-primary border-b border-edge-secondary">
-                  Supernova
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr
-                  key={i}
-                  style={{
-                    backgroundColor:
-                      i % 2 === 0 ? "transparent" : "var(--bg-tertiary)",
-                  }}
-                >
-                  <td className="px-3 py-2 text-txt-secondary border-b border-edge-secondary/50">
-                    {row.label}
-                  </td>
-                  {(["free", "star", "nova", "supernova"] as const).map(
-                    (plan) => (
-                      <td
-                        key={plan}
-                        className="text-center px-2 py-2 border-b border-edge-secondary/50"
-                      >
-                        {row[plan] === "✓" ? (
-                          <CheckIcon
-                            className="w-4 h-4 mx-auto"
-                            strokeWidth={2.5}
-                            style={{ color: "var(--color-success)" }}
-                          />
-                        ) : row[plan] === "-" ? (
-                          <XMarkIcon className="w-3.5 h-3.5 mx-auto text-txt-muted/40" />
-                        ) : (
-                          <span className="text-txt-primary font-medium">
-                            {row[plan]}
-                          </span>
-                        )}
-                      </td>
-                    ),
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
 }

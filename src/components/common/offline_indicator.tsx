@@ -103,24 +103,3 @@ export function OfflineIndicator({
     </AnimatePresence>
   );
 }
-
-export function OfflineBadge({ className }: { className?: string }) {
-  const { t } = use_i18n();
-  const { is_online } = use_online_status();
-
-  if (is_online) return null;
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full",
-        "bg-amber-100 text-amber-700 text-xs font-medium",
-        "dark:bg-amber-900/30 dark:text-amber-400",
-        className,
-      )}
-    >
-      <WifiIcon className="h-3 w-3" />
-      {t("common.offline")}
-    </span>
-  );
-}

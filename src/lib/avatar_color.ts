@@ -54,7 +54,6 @@ function to_linear(channel: number): number {
 }
 
 const AVATAR_LUMINANCE_CROSSOVER = 0.55;
-const SURFACE_LUMINANCE_CROSSOVER = 0.4;
 
 function get_relative_luminance(hex: string): number | null {
   const normalized = hex.replace("#", "");
@@ -107,18 +106,4 @@ export function css_color_to_hex(color: string): string | null {
     Math.round(channel).toString(16).padStart(2, "0");
 
   return `#${to_hex(r)}${to_hex(g)}${to_hex(b)}`;
-}
-
-export function get_contrast_text_for_css_color(
-  color: string,
-): "#ffffff" | "#111827" {
-  const hex = css_color_to_hex(color);
-
-  if (!hex) return "#ffffff";
-
-  const luminance = get_relative_luminance(hex);
-
-  if (luminance === null) return "#ffffff";
-
-  return luminance > SURFACE_LUMINANCE_CROSSOVER ? "#111827" : "#ffffff";
 }

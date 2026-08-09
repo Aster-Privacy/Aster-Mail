@@ -26,7 +26,6 @@ import {
   MAIL_EVENTS,
   type DraftUpdatedEventDetail,
   on_mail_event,
-  emit_drafts_changed,
 } from "./mail_events";
 import { invalidate_mail_stats, adjust_stats_drafts } from "./use_mail_stats";
 
@@ -650,10 +649,6 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     }),
     [state, refresh, update_draft, schedule_delete_drafts],
   );
-}
-
-export function invalidate_drafts_cache(): void {
-  emit_drafts_changed();
 }
 
 export function clear_drafts_cache(): void {

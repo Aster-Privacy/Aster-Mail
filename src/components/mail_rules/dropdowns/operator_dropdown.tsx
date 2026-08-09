@@ -94,12 +94,6 @@ export const OPERATORS_BY_FIELD = (field: ConditionField): OperatorOption[] => {
   }
 };
 
-export function get_operators_for_field(
-  field: ConditionField,
-): OperatorOption[] {
-  return OPERATORS_BY_FIELD(field);
-}
-
 export function has_operator_picker(field: ConditionField): boolean {
   const k = field_kind(field);
 

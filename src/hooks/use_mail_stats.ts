@@ -848,14 +848,6 @@ export function adjust_stats_drafts(delta: number): void {
   stats_store.adjust("drafts", delta);
 }
 
-export function adjust_stats_scheduled(delta: number): void {
-  stats_store.adjust("scheduled", delta);
-}
-
-export function adjust_stats_snoozed(delta: number): void {
-  stats_store.adjust("snoozed", delta);
-}
-
 export function adjust_stats_starred(delta: number): void {
   stats_store.adjust("starred", delta);
 }
@@ -868,19 +860,6 @@ export function adjust_stats_spam(delta: number): void {
   stats_store.adjust("spam", delta);
 }
 
-export function adjust_stats_contacts(delta: number): void {
-  stats_store.adjust("contacts", delta);
-}
-
-export function adjust_stats_total(delta: number): void {
-  stats_store.adjust("total_items", delta);
-  stats_store.adjust("total_items_collapsed", delta);
-}
-
 export function clear_mail_stats(): void {
   stats_store.clear();
-}
-
-export function set_storage_total_bytes(bytes: number): void {
-  stats_store.set_storage_total(bytes);
 }

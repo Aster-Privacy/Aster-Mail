@@ -178,26 +178,8 @@ export function use_is_mobile(): boolean {
   return is_phone || (is_tablet && is_native);
 }
 
-export function use_is_tablet(): boolean {
-  const { is_tablet } = use_platform();
-
-  return is_tablet;
-}
-
 export function use_show_mobile_ui(): boolean {
   const { is_phone, is_native, viewport_width } = use_platform();
 
   return is_phone || (is_native && viewport_width < TABLET_MIN_WIDTH);
-}
-
-export function use_show_tablet_split_view(): boolean {
-  const { is_tablet, is_native, viewport_width } = use_platform();
-
-  return (is_tablet || viewport_width >= TABLET_MIN_WIDTH) && is_native;
-}
-
-export function use_safe_area_insets(): SafeAreaInsets {
-  const { safe_area_insets } = use_platform();
-
-  return safe_area_insets;
 }

@@ -20,7 +20,6 @@
 //
 const enc = new TextEncoder();
 const LF = 0x0a;
-const CR = 0x0d;
 const GT = 0x3e;
 const FROM_BYTES = enc.encode("From ");
 
@@ -94,8 +93,4 @@ export async function* mboxrd_quote(
       yield pending;
     }
   }
-}
-
-export function unused_keep_cr(): number {
-  return CR;
 }

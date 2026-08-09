@@ -337,12 +337,6 @@ function apply_vars_with_derived(vars: MaterialThemeVars): void {
   }
 }
 
-export function apply_material_theme(seed_hex: string, is_dark: boolean): void {
-  if (typeof document === "undefined") return;
-
-  apply_vars_with_derived(generate_material_theme(seed_hex, is_dark));
-}
-
 export function apply_custom_theme(
   seed_hex: string,
   is_dark: boolean,

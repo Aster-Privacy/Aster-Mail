@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export type CalendarViewMode = "month" | "week" | "day" | "agenda";
 
 export type CalendarEventStatus = "confirmed" | "tentative" | "cancelled";
 

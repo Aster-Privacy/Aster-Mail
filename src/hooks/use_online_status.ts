@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 
 interface OnlineStatusState {
@@ -118,40 +118,4 @@ export function use_online_status(): OnlineStatusState {
   }, []);
 
   return state;
-}
-
-export function get_online_status(): boolean {
-  return current_status;
-}
-
-export function use_offline_ready(): {
-  is_ready: boolean;
-  check_ready: () => Promise<boolean>;
-} {
-  const [is_ready, set_is_ready] = useState(false);
-
-  const check_ready = useCallback(async (): Promise<boolean> => {
-    if (!("serviceWorker" in navigator)) {
-      return false;
-    }
-
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const ready = registration.active !== null;
-
-      set_is_ready(ready);
-
-      return ready;
-    } catch {
-      set_is_ready(false);
-
-      return false;
-    }
-  }, []);
-
-  useEffect(() => {
-    check_ready();
-  }, [check_ready]);
-
-  return { is_ready, check_ready };
 }

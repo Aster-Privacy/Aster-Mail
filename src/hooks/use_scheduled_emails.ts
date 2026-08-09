@@ -472,10 +472,6 @@ export function use_scheduled_emails(
   );
 }
 
-export function invalidate_scheduled_cache(): void {
-  emit_scheduled_changed({ action: "updated" });
-}
-
 export function clear_scheduled_cache(): void {
   scheduled_cache = null;
 }

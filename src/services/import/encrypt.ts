@@ -205,37 +205,3 @@ export interface ImportBatchResult {
   encrypted_emails: EncryptedImportEmail[];
   failed_count: number;
 }
-
-export async function encrypt_import_batch(
-  emails: ParsedEmail[],
-  vault: EncryptedVault,
-  source: string,
-  message_id_hashes: Map<string, string>,
-): Promise<ImportBatchResult> {
-  const encrypted_emails: EncryptedImportEmail[] = [];
-  let failed_count = 0;
-
-  for (const email of emails) {
-    const hash = message_id_hashes.get(email.message_id);
-
-    if (!hash) {
-      failed_count++;
-      continue;
-    }
-
-    try {
-      const encrypted = await encrypt_imported_email(
-        email,
-        vault,
-        source,
-        hash,
-      );
-
-      encrypted_emails.push(encrypted);
-    } catch {
-      failed_count++;
-    }
-  }
-
-  return { encrypted_emails, failed_count };
-}

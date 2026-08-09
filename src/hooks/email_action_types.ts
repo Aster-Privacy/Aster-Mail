@@ -45,12 +45,6 @@ export interface ActionState {
 
 export type ActionStates = Record<ActionType, ActionState>;
 
-export interface PendingAction<T> {
-  id: string;
-  original_state: T;
-  action_type: ActionType;
-}
-
 export interface EmailActionsConfig {
   on_optimistic_update?: (id: string, updates: Partial<InboxEmail>) => void;
   on_bulk_optimistic_update?: (

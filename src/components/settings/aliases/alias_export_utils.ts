@@ -67,13 +67,6 @@ export type DomainAddressColumn = (typeof DOMAIN_ADDRESS_COLUMNS)[number];
 export type DirectoryColumn = (typeof DIRECTORY_COLUMNS)[number];
 export type GhostColumn = (typeof GHOST_COLUMNS)[number];
 
-export const SOURCE_COLUMNS = {
-  aliases: ALIAS_COLUMNS,
-  domain_addresses: DOMAIN_ADDRESS_COLUMNS,
-  directories: DIRECTORY_COLUMNS,
-  ghost: GHOST_COLUMNS,
-} as const;
-
 export const UTF8_BOM = String.fromCharCode(0xfeff);
 
 export const CSV_LINE_BREAK = "\r\n";

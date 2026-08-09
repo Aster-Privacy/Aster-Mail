@@ -294,10 +294,6 @@ export function emit_scheduled_cancelled(
   mail_event_bus.emit(MAIL_EVENTS.SCHEDULED_CANCELLED, detail);
 }
 
-export function emit_email_received(detail: EmailReceivedEventDetail): void {
-  mail_event_bus.emit(MAIL_EVENTS.EMAIL_RECEIVED, detail);
-}
-
 export function emit_contacts_changed(): void {
   mail_event_bus.emit(MAIL_EVENTS.CONTACTS_CHANGED);
 }

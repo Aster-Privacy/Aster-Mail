@@ -37,19 +37,6 @@ function result_tld(r: DomainSearchResult): string {
   return idx === -1 ? "" : r.domain.slice(idx + 1).toLowerCase();
 }
 
-export function collect_tlds(results: DomainSearchResult[]): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const r of results) {
-    const tld = result_tld(r);
-    if (tld && !seen.has(tld)) {
-      seen.add(tld);
-      out.push(tld);
-    }
-  }
-  return out;
-}
-
 export function filter_results(
   results: DomainSearchResult[],
   filter: results_filter,

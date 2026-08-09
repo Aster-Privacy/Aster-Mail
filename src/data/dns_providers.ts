@@ -30,8 +30,6 @@ export interface DnsProvider {
   dashboard_url?: string;
 }
 
-export const DEFAULT_ROOT_HOST_STYLE: RootHostStyle = "at";
-
 export function format_root_host(provider: DnsProvider | null): string {
   if (provider?.root_host_style === "blank") return "";
 

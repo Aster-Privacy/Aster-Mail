@@ -127,9 +127,3 @@ export function default_condition_for_field(field: ConditionField): LeafConditio
       };
   }
 }
-
-export function is_text_like_field(field: ConditionField): boolean {
-  const k = field_kind(field);
-
-  return k === "address" || k === "text" || k === "header" || k === "attachment_name";
-}

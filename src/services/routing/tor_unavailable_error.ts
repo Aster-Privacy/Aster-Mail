@@ -33,12 +33,3 @@ export class TorUnavailableError extends Error {
     this.code = code;
   }
 }
-
-export function is_tor_unavailable_error(
-  err: unknown,
-): err is TorUnavailableError {
-  return (
-    err instanceof Error &&
-    (err as { name?: string }).name === "TorUnavailableError"
-  );
-}

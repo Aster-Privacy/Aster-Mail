@@ -246,7 +246,3 @@ export function is_email_font_override(
 
   return id !== EMAIL_FONT_MATCH_APP_ID && FONT_OPTIONS_BY_ID.has(id);
 }
-
-export function is_valid_font_id(id: string): boolean {
-  return FONT_OPTIONS_BY_ID.has(id);
-}

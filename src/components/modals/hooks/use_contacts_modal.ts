@@ -734,5 +734,3 @@ export function use_contacts_modal({
     full_name,
   };
 }
-
-export type UseContactsModalReturn = ReturnType<typeof use_contacts_modal>;

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { MailItem, ReactionSummary } from "@/services/api/mail";
+import type { ReactionSummary } from "@/services/api/mail";
 import type { SenderVerificationStatus } from "@/types/email";
 
 export interface ThreadMessage {
@@ -79,29 +79,8 @@ export interface ThreadAttachment {
   content_id?: string;
 }
 
-export interface ThreadViewState {
-  thread_token: string;
-  subject: string;
-  messages: DecryptedThreadMessage[];
-  expanded_ids: Set<string>;
-  is_loading: boolean;
-}
-
 export interface ThreadContext {
   thread_token: string;
   original_email_id: string;
   in_reply_to?: string;
-}
-
-export function mail_item_to_thread_message(item: MailItem): ThreadMessage {
-  return {
-    id: item.id,
-    item_type: item.item_type as "received" | "sent" | "draft",
-    encrypted_envelope: item.encrypted_envelope,
-    envelope_nonce: item.envelope_nonce,
-    is_read: item.metadata?.is_read ?? false,
-    is_trashed: item.metadata?.is_trashed ?? false,
-    message_ts: item.metadata?.message_ts ?? new Date().toISOString(),
-    created_at: item.created_at,
-  };
 }

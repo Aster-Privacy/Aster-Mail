@@ -22,8 +22,6 @@ import type { UserPreferences } from "@/services/api/preferences";
 
 import { DARK_ONLY_COLOR_THEMES } from "@/lib/dark_mode";
 
-export const THEME_SYNC_PLATFORM = "web";
-
 export type ThemePreferenceValue = UserPreferences["theme"];
 export type ColorThemeValue = UserPreferences["color_theme"];
 

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { LockClosedIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -49,25 +49,6 @@ export function is_alias_limit_error(response: {
 
 export function prompt_alias_limit_upgrade() {
   show_plan_limit_upgrade({ resource: "aliases" });
-}
-
-export function PaidPill({ className = "" }: { className?: string }) {
-  const { t } = use_i18n();
-
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide ${className}`}
-      style={{
-        borderColor: "color-mix(in srgb, var(--accent-color) 35%, transparent)",
-        backgroundColor:
-          "color-mix(in srgb, var(--accent-color) 12%, transparent)",
-        color: "var(--accent-color)",
-      }}
-    >
-      <SparklesIcon className="h-2.5 w-2.5" />
-      {t("settings.alias_paid_badge")}
-    </span>
-  );
 }
 
 export function RequiredPlanPill({

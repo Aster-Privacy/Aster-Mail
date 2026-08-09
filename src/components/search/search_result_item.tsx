@@ -18,11 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedContact } from "@/types/contacts";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 
 import { useState, useMemo, forwardRef, memo } from "react";
-import { FolderIcon, UserIcon } from "@heroicons/react/24/outline";
+import { FolderIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { strip_html_tags } from "@/lib/html_sanitizer";
@@ -65,98 +64,6 @@ export function HighlightedText({
         ),
       )}
     </>
-  );
-}
-
-export function ContactResultRow({
-  contact,
-  on_click,
-  on_profile_click,
-  search_query,
-}: {
-  contact: DecryptedContact;
-  on_click: () => void;
-  on_profile_click: () => void;
-  search_query?: string;
-}) {
-  const { t } = use_i18n();
-  const display_name =
-    `${contact.first_name} ${contact.last_name}`.trim() || t("common.unknown");
-  const primary_email = contact.emails?.[0] || "";
-
-  const get_match_context = () => {
-    if (!search_query || search_query.length < 2) return null;
-    const q = search_query.toLowerCase();
-    const name_lower = display_name.toLowerCase();
-    const email_lower = primary_email.toLowerCase();
-
-    if (name_lower.includes(q) || email_lower.includes(q)) return null;
-
-    if (contact.company?.toLowerCase().includes(q)) {
-      return contact.company;
-    }
-    if (contact.job_title?.toLowerCase().includes(q)) {
-      return contact.job_title;
-    }
-    if (contact.phone?.toLowerCase().includes(q)) {
-      return contact.phone;
-    }
-    if (contact.address?.city?.toLowerCase().includes(q)) {
-      return contact.address.city;
-    }
-    if (contact.address?.country?.toLowerCase().includes(q)) {
-      return contact.address.country;
-    }
-
-    return null;
-  };
-
-  const match_context = get_match_context();
-
-  return (
-    <div
-      className="group flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer hover:bg-[var(--bg-hover)] focus:outline-none focus-visible:outline-2 focus-visible:outline-[var(--accent-color,#3b82f6)]"
-      role="button"
-      tabIndex={0}
-      onClick={on_click}
-      onKeyDown={(e: React.KeyboardEvent) => {
-        if (e["key"] === "Enter" || e["key"] === " ") {
-          e.preventDefault();
-          on_click();
-        }
-      }}
-    >
-      <ProfileAvatar
-        use_domain_logo
-        email={primary_email}
-        image_url={contact.avatar_url}
-        name={display_name}
-        size="sm"
-      />
-      <div className="flex-1 min-w-0">
-        <span className="text-sm font-medium block truncate text-txt-primary">
-          {display_name}
-        </span>
-        <span className="text-xs block truncate text-txt-muted">
-          {match_context
-            ? `${primary_email} · ${match_context}`
-            : primary_email}
-        </span>
-      </div>
-      <button
-        className="p-1.5 rounded-[14px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-tertiary)]"
-        title={t("mail.view_contact_profile")}
-        onClick={(e) => {
-          e.stopPropagation();
-          on_profile_click();
-        }}
-      >
-        <UserIcon className="w-4 h-4 text-[var(--text-muted)]" />
-      </button>
-      <span className="text-[10px] px-1.5 py-0.5 rounded group-hover:hidden bg-surf-tertiary text-txt-muted">
-        {t("mail.contact")}
-      </span>
-    </div>
   );
 }
 

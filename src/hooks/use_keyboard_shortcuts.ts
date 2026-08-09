@@ -399,7 +399,3 @@ export function use_keyboard_shortcuts(
 }
 
 export { is_typing, is_touch_device, get_active_element };
-
-export function are_shortcuts_available(): boolean {
-  return !is_typing() && !is_touch_device();
-}

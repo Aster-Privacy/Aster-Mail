@@ -52,13 +52,6 @@ export function set_my_badge_prefs(prefs: BadgePreferences | null) {
   notify();
 }
 
-export function reset_my_badge_prefs() {
-  current = null;
-  has_fetched = false;
-  is_fetching = false;
-  notify();
-}
-
 async function ensure_loaded() {
   if (has_fetched || is_fetching) return;
   is_fetching = true;

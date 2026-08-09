@@ -226,18 +226,6 @@ export function detect_unsubscribe_info(
   return result;
 }
 
-export function has_unsubscribe_content(content?: string): boolean {
-  if (!content) return false;
-
-  for (const pattern of UNSUBSCRIBE_TEXT_PATTERNS) {
-    if (pattern.test(content)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 export function get_unsubscribe_display_text(
   info: UnsubscribeInfo,
   t?: (key: TranslationKey) => string,

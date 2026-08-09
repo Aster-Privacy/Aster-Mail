@@ -57,20 +57,3 @@ export async function map_in_chunks<T, R>(
 
   return results;
 }
-
-export async function for_each_yielding<T>(
-  items: readonly T[],
-  chunk_size: number,
-  handler: (item: T, index: number) => Promise<void> | void,
-  signal?: AbortSignal,
-): Promise<void> {
-  for (let index = 0; index < items.length; index += 1) {
-    if (signal?.aborted) return;
-
-    await handler(items[index], index);
-
-    if (index > 0 && index % chunk_size === 0) {
-      await yield_to_browser();
-    }
-  }
-}

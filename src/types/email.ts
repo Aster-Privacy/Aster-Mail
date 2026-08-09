@@ -85,13 +85,6 @@ export interface Email {
   sender_verification?: SenderVerificationStatus;
 }
 
-export interface EmailThread {
-  id: string;
-  emails: Email[];
-  participant_count: number;
-  last_activity: string;
-}
-
 export interface DecryptedEmail extends Email {
   body: string;
   html_content?: string;
@@ -104,26 +97,6 @@ export interface EmailReply {
   timestamp: string;
   body: string;
   attachments?: EmailAttachment[];
-}
-
-export interface EmailFilter {
-  type: "all" | "read" | "unread" | "attachments" | "starred";
-}
-
-export function create_empty_email(id: string): Email {
-  return {
-    id,
-    sender: { name: "", email: "" },
-    subject: "",
-    preview: "",
-    timestamp: new Date().toISOString(),
-    is_read: false,
-    is_starred: false,
-    is_pinned: false,
-    is_trashed: false,
-    is_archived: false,
-    has_attachment: false,
-  };
 }
 
 export type MailItemType =
@@ -255,12 +228,6 @@ export interface DecryptedEnvelope {
 }
 
 export type InboxFilterType = "all" | "read" | "unread" | "attachments";
-
-export interface ContextMenuState {
-  x: number;
-  y: number;
-  email: InboxEmail;
-}
 
 export interface EmailListState {
   emails: InboxEmail[];

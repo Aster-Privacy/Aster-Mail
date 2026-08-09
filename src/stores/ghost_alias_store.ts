@@ -52,10 +52,6 @@ export function get_ghost_sender(email: string): SenderOption | undefined {
   return ghost_entries.get(email.toLowerCase())?.sender;
 }
 
-export function clear_ghost_emails() {
-  ghost_entries.clear();
-}
-
 export function looks_like_unregistered_ghost_email(email: string): boolean {
   const normalized = email.toLowerCase();
 

@@ -213,10 +213,6 @@ function set_persisted_section(section: Section) {
   write_last_settings_section(section);
 }
 
-export function get_default_settings_section(): Section {
-  return get_persisted_section() || "appearance";
-}
-
 interface NavItem {
   id: Section;
   label: string;

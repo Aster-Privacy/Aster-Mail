@@ -20,8 +20,6 @@
 //
 import { EngineUnavailableError, type TranslationEngine } from "./engine_types";
 
-export const DEFAULT_ENGINE_ID = "bergamot";
-
 export type EngineLoader = () => Promise<TranslationEngine>;
 
 const loaders = new Map<string, EngineLoader>();

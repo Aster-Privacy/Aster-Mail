@@ -39,10 +39,8 @@ import { parse_mbox_file } from "./mbox_parser";
 import { parse_eml_file } from "./eml_parser";
 import { parse_csv_file } from "./csv_parser";
 import { parse_pst_file } from "./pst_parser";
-import { extract_email_address } from "./mime_utils";
 import { en } from "@/lib/i18n/translations/en";
 import { get_active_translations } from "@/lib/i18n/translations";
-
 
 const REJECTED_EXTENSIONS = new Set([
   ".jpg",
@@ -266,10 +264,6 @@ export async function compute_message_id_hash(
   }
 
   return btoa(binary);
-}
-
-export function extract_sender_email(from: string): string {
-  return extract_email_address(from);
 }
 
 export function extract_sender_name(from: string): string {

@@ -25,10 +25,6 @@ export const BATCH_LIMITS = {
   DRAFTS: 50,
 } as const;
 
-export const BATCH_DELAYS = {
-  DEFAULT_MS: 0,
-} as const;
-
 export const PROGRESS_THRESHOLDS = {
   SHOW_TOAST_PROGRESS: 50,
   SHOW_MODAL: 200,

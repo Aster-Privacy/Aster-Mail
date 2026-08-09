@@ -19,9 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 const QP_SOFT_LIMIT = 76;
-const QP_NEEDS_ENCODE = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff=]/;
 const BASE64_LINE_BYTES = 57;
-const BASE64_LINE_CHARS = 76;
 
 const BASE64_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -163,12 +161,4 @@ export async function* base64_encode_stream(
     }
     yield enc.encode(tail.join("\r\n") + "\r\n");
   }
-}
-
-export function base64_line_chars(): number {
-  return BASE64_LINE_CHARS;
-}
-
-export function qp_needs(input: string): boolean {
-  return QP_NEEDS_ENCODE.test(input);
 }

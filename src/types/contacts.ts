@@ -266,12 +266,6 @@ export interface BulkDeleteContactsResponse {
   failed: string[];
 }
 
-export interface SearchContactsQuery {
-  q: string;
-  field?: "name" | "email" | "company" | "all";
-  limit?: number;
-}
-
 export interface SearchContactsResponse {
   items: Contact[];
   total: number;
@@ -284,11 +278,6 @@ export interface ContactActivity {
   created_at: string;
 }
 
-export interface ContactActivityResponse {
-  activities: ContactActivity[];
-  has_more: boolean;
-}
-
 export const CONTACT_DATA_VERSION = 2;
 
 export const RELATIONSHIP_LABELS: Record<string, string> = {
@@ -297,17 +286,6 @@ export const RELATIONSHIP_LABELS: Record<string, string> = {
   family: "Family",
   other: "Other",
 };
-
-export const GROUP_COLORS = [
-  "#ef4444",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#14b8a6",
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
-];
 
 export interface ContactPhoto {
   id: string;
@@ -524,30 +502,4 @@ export interface ImportVCardContact {
   data_nonce: string;
   name_search_token?: string;
   email_search_token?: string;
-}
-
-export interface RecentContact {
-  id: string;
-  contact_token: string;
-  encrypted_data: string;
-  data_nonce: string;
-  last_contacted_at?: string;
-  email_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DecryptedRecentContact extends DecryptedContact {
-  last_contacted_at?: string;
-  email_count: number;
-}
-
-export interface ExtendedDecryptedContact extends DecryptedContact {
-  has_photo?: boolean;
-  attachment_count?: number;
-  custom_field_count?: number;
-  contact_source?: string;
-  photo_blob_url?: string;
-  custom_fields?: DecryptedCustomFieldValue[];
-  stats?: ContactEmailStats;
 }
