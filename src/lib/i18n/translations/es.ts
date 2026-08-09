@@ -5790,6 +5790,10 @@ export const es = {
     export_cancel: "Cancelar exportación",
     export_complete_bytes: "{{bytes}} exportados",
     export_complete_errors: "{{count}} error(es)",
+    export_complete_skipped_undecryptable:
+      "No se pudieron descifrar {{ count }} mensaje(s), por lo que no se incluyeron en este archivo.",
+    export_complete_skipped_attachments:
+      "No se pudieron descifrar {{ count }} archivo(s) adjunto(s), por lo que no se incluyeron en este archivo.",
     export_complete_errors_in_mbox_hint: "Algunos mensajes fueron omitidos.",
     export_complete_location: "Guardado en: {{location}}",
     export_cancelled_partial_saved:

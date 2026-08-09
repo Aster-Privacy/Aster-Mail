@@ -6025,6 +6025,10 @@ export const ar = {
     export_complete_errors: "تعذّر تصدير {{ count }} رسالة.",
     export_complete_bytes: "الحجم الإجمالي: {{ bytes }}",
     export_complete_location: "محفوظ في: {{ location }}",
+    export_complete_skipped_undecryptable:
+      "تعذّر فك تشفير {{ count }} رسالة، ولم تُدرج في هذا الأرشيف.",
+    export_complete_skipped_attachments:
+      "تعذّر فك تشفير {{ count }} مرفق، ولم تُدرج في هذا الأرشيف.",
     export_complete_errors_in_mbox_hint:
       "تم إلحاق سجل الأخطاء بنهاية ملف صندوق البريد.",
     export_error_write_fatal:

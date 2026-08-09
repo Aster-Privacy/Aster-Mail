@@ -2983,8 +2983,7 @@ export const ja = {
     fam_org_status_active: "有効",
     fam_org_status_expiring: "期限切れ間近",
     fam_org_status_cancelled: "キャンセル済み",
-    fam_org_members_count:
-      "{{max}} 席中 {{used}} 席使用中 · 空き {{seats}} 席",
+    fam_org_members_count: "{{max}} 席中 {{used}} 席使用中 · 空き {{seats}} 席",
     fam_org_members_count_plural:
       "{{max}} 席中 {{used}} 席使用中 · 空き {{seats}} 席",
     fam_seats_breakdown:
@@ -6238,6 +6237,10 @@ export const ja = {
       "{{ count }}件のメッセージをエクスポートできませんでした。",
     export_complete_bytes: "合計サイズ：{{ bytes }}",
     export_complete_location: "保存先：{{ location }}",
+    export_complete_skipped_undecryptable:
+      "{{ count }} 件のメッセージを復号できなかったため、このアーカイブには含まれていません。",
+    export_complete_skipped_attachments:
+      "{{ count }} 件の添付ファイルを復号できなかったため、このアーカイブには含まれていません。",
     export_complete_errors_in_mbox_hint:
       "エラーログがメールボックスファイルの末尾に追記されています。",
     export_error_write_fatal:

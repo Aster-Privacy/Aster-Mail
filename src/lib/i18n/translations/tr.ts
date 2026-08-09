@@ -6255,6 +6255,10 @@ export const tr = {
     export_complete_errors: "{{ count }} mesaj dışa aktarılamadı.",
     export_complete_bytes: "Toplam boyut: {{ bytes }}",
     export_complete_location: "Kaydedildi: {{ location }}",
+    export_complete_skipped_undecryptable:
+      "{{ count }} ileti şifresi çözülemediği için bu arşive eklenmedi.",
+    export_complete_skipped_attachments:
+      "{{ count }} ek şifresi çözülemediği için bu arşive eklenmedi.",
     export_complete_errors_in_mbox_hint:
       "Posta kutusu dosyasının sonuna bir hata günlüğü eklendi.",
     export_error_write_fatal:

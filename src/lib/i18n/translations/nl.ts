@@ -5783,6 +5783,10 @@ export const nl = {
       "Exporteren geannuleerd. Voortgang opgeslagen in {{location}}.",
     export_complete_bytes: "Geschreven: {{bytes}}",
     export_complete_errors: "Fouten: {{count}}",
+    export_complete_skipped_undecryptable:
+      "{{ count }} bericht(en) konden niet worden ontsleuteld en ontbreken in dit archief.",
+    export_complete_skipped_attachments:
+      "{{ count }} bijlage(n) konden niet worden ontsleuteld en ontbreken in dit archief.",
     export_complete_errors_in_mbox_hint:
       "Sommige berichten konden niet worden geexporteerd",
     export_complete_location: "Opgeslagen op: {{location}}",

@@ -5804,6 +5804,10 @@ export const ru = {
     export_complete_bytes: "Общий размер: {{ bytes }}",
     export_complete_errors:
       "{{ count }} сообщение(й) не удалось экспортировать.",
+    export_complete_skipped_undecryptable:
+      "Не удалось расшифровать сообщений: {{ count }}. Они не вошли в этот архив.",
+    export_complete_skipped_attachments:
+      "Не удалось расшифровать вложений: {{ count }}. Они не вошли в этот архив.",
     export_complete_errors_in_mbox_hint:
       "Журнал ошибок добавлен в конец файла почтового ящика.",
     export_complete_location: "Сохранено: {{ location }}",

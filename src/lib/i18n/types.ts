@@ -5560,6 +5560,8 @@ export interface SettingsTranslations {
   export_complete_errors: string;
   export_complete_bytes: string;
   export_complete_location: string;
+  export_complete_skipped_undecryptable: string;
+  export_complete_skipped_attachments: string;
   export_complete_errors_in_mbox_hint: string;
   export_error_write_fatal: string;
   export_error_no_vault: string;

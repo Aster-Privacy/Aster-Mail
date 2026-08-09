@@ -4273,8 +4273,7 @@ export const zh_CN = {
       "关闭对话分组后，每封邮件将作为单独的项目显示在收件箱中，而不是将回复归为一组。这可能会使跟踪邮件线程更加困难。",
     show_message_size: "显示邮件大小",
     show_alias_indicators: "显示别名标识",
-    show_alias_indicators_description:
-      "标记通过您的别名收到的邮件",
+    show_alias_indicators_description: "标记通过您的别名收到的邮件",
     show_message_size_description: "在收件箱列表中显示每封邮件的大小",
     auto_save_recipients: "自动保存最近收件人",
     auto_save_recipients_description:
@@ -5212,6 +5211,10 @@ export const zh_CN = {
     export_complete_bytes: "文件大小：{{bytes}}",
     export_complete_location: "保存位置：{{location}}",
     export_complete_errors: "{{count}} 封邮件跳过",
+    export_complete_skipped_undecryptable:
+      "有 {{ count }} 封邮件无法解密，未包含在此存档中。",
+    export_complete_skipped_attachments:
+      "有 {{ count }} 个附件无法解密，未包含在此存档中。",
     export_complete_errors_in_mbox_hint: "跳过的邮件记录在导出旁边的日志文件中",
     export_cancelled_partial_saved: "导出已取消。进度已保存到 {{location}}。",
     export_error_no_vault: "您的私钥未加载，登录后再试一次就可以。",

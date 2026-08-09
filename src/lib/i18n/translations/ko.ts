@@ -4651,8 +4651,7 @@ export const ko = {
       "대화 그룹화를 끄면 답장을 그룹으로 묶는 대신 각 이메일이 받은 편지함에 별도 항목으로 표시됩니다. 이메일 스레드를 따라가기 어려울 수 있습니다.",
     show_message_size: "메시지 크기 표시",
     show_alias_indicators: "별칭 표시 보기",
-    show_alias_indicators_description:
-      "별칭으로 도착한 메시지에 표시합니다",
+    show_alias_indicators_description: "별칭으로 도착한 메시지에 표시합니다",
     show_message_size_description:
       "받은 편지함 목록에서 각 이메일의 크기를 표시합니다",
     auto_save_recipients: "최근 수신자 자동 저장",
@@ -6060,6 +6059,10 @@ export const ko = {
     export_complete_errors: "오류: {{count}}개",
     export_complete_bytes: "총 크기: {{bytes}}",
     export_complete_location: "저장 위치: {{location}}",
+    export_complete_skipped_undecryptable:
+      "메시지 {{ count }}개를 복호화하지 못해 이 아카이브에서 제외되었습니다.",
+    export_complete_skipped_attachments:
+      "첨부 파일 {{ count }}개를 복호화하지 못해 이 아카이브에서 제외되었습니다.",
     export_complete_errors_in_mbox_hint:
       "일부 메시지를 내보내지 못했습니다. 다시 시도하면 됩니다.",
     export_error_write_fatal:

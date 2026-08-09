@@ -3106,8 +3106,7 @@ export const en: Translations = {
     fam_kids_title: "Reserved addresses for kids",
     fam_kids_subtitle:
       "Hold an address for your child now and let them finish setup later with their own password.",
-    fam_kids_seats_used:
-      "{{used}} of {{max}} family seats used",
+    fam_kids_seats_used: "{{used}} of {{max}} family seats used",
     fam_kids_reserve_btn: "Reserve an address",
     fam_kids_seats_full:
       "Your family group is full. Free a seat to reserve another address.",
@@ -6226,6 +6225,10 @@ export const en: Translations = {
     export_complete_errors: "{{ count }} message(s) could not be exported.",
     export_complete_bytes: "Total size: {{ bytes }}",
     export_complete_location: "Saved to: {{ location }}",
+    export_complete_skipped_undecryptable:
+      "{{ count }} message(s) couldn't be decrypted and were left out of this archive.",
+    export_complete_skipped_attachments:
+      "{{ count }} attachment(s) couldn't be decrypted and were left out of this archive.",
     export_complete_errors_in_mbox_hint:
       "An error log was appended to the end of the mailbox file.",
     export_error_write_fatal:

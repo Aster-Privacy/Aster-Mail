@@ -6288,6 +6288,10 @@ export const pt = {
     export_complete_errors: "{{ count }} mensagem(ns) não foram exportadas.",
     export_complete_bytes: "Tamanho total: {{ bytes }}",
     export_complete_location: "Salvo em: {{ location }}",
+    export_complete_skipped_undecryptable:
+      "Não foi possível descriptografar {{ count }} mensagem(ns), que ficaram de fora deste arquivo.",
+    export_complete_skipped_attachments:
+      "Não foi possível descriptografar {{ count }} anexo(s), que ficaram de fora deste arquivo.",
     export_complete_errors_in_mbox_hint:
       "Um log de erros foi anexado ao final do arquivo mailbox.",
     export_error_write_fatal:

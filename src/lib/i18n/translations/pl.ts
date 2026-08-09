@@ -6282,6 +6282,10 @@ export const pl = {
       "{{ count }} wiadomości nie udało się wyeksportować.",
     export_complete_bytes: "Łączny rozmiar: {{ bytes }}",
     export_complete_location: "Zapisano do: {{ location }}",
+    export_complete_skipped_undecryptable:
+      "Nie udało się odszyfrować {{ count }} wiadomości, więc nie ma ich w tym archiwum.",
+    export_complete_skipped_attachments:
+      "Nie udało się odszyfrować {{ count }} załączników, więc nie ma ich w tym archiwum.",
     export_complete_errors_in_mbox_hint:
       "Dziennik błędów został dołączony na końcu pliku skrzynki pocztowej.",
     export_error_write_fatal:

@@ -5892,6 +5892,10 @@ export const de = {
     export_complete_bytes: "Gesamtgröße: {{ bytes }}",
     export_complete_errors:
       "{{ count }} Nachricht(en) konnten nicht exportiert werden.",
+    export_complete_skipped_undecryptable:
+      "{{ count }} Nachricht(en) konnten nicht entschlüsselt werden und fehlen in diesem Archiv.",
+    export_complete_skipped_attachments:
+      "{{ count }} Anhang/Anhänge konnten nicht entschlüsselt werden und fehlen in diesem Archiv.",
     export_complete_errors_in_mbox_hint:
       "Ein Fehlerprotokoll wurde am Ende der Postfachdatei angehängt.",
     export_complete_location: "Gespeichert unter: {{ location }}",

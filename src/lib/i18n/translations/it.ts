@@ -6323,6 +6323,10 @@ export const it = {
     export_complete_errors: "{{ count }} messaggio/i non sono stati esportati.",
     export_complete_bytes: "Dimensione totale: {{ bytes }}",
     export_complete_location: "Salvato in: {{ location }}",
+    export_complete_skipped_undecryptable:
+      "Non è stato possibile decrittare {{ count }} messaggio/i, che non sono inclusi in questo archivio.",
+    export_complete_skipped_attachments:
+      "Non è stato possibile decrittare {{ count }} allegato/i, che non sono inclusi in questo archivio.",
     export_complete_errors_in_mbox_hint:
       "Un registro degli errori è stato aggiunto alla fine del file mailbox.",
     export_error_write_fatal:

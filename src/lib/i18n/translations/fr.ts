@@ -5853,6 +5853,10 @@ export const fr = {
     export_cancel: "Annuler l'exportation",
     export_complete_bytes: "{{bytes}} exportés",
     export_complete_errors: "{{count}} erreur(s)",
+    export_complete_skipped_undecryptable:
+      "{{ count }} message(s) n'ont pas pu être déchiffrés et ne figurent pas dans cette archive.",
+    export_complete_skipped_attachments:
+      "{{ count }} pièce(s) jointe(s) n'ont pas pu être déchiffrées et ne figurent pas dans cette archive.",
     export_complete_errors_in_mbox_hint: "Certains messages ont été ignorés.",
     export_complete_location: "Enregistre dans : {{location}}",
     export_cancelled_partial_saved:
