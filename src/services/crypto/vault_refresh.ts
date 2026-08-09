@@ -127,6 +127,23 @@ async function run(): Promise<RefreshedVault | null> {
   }
 }
 
+function vaults_carry_the_same_identity(
+  current: EncryptedVault,
+  refreshed: EncryptedVault,
+): boolean {
+  return (
+    current.ratchet_identity_public === refreshed.ratchet_identity_public &&
+    (current.ratchet_pq_identity_public ?? null) ===
+      (refreshed.ratchet_pq_identity_public ?? null) &&
+    Boolean(current.ratchet_pq_identity_key ?? current.ratchet_pq_identity_seed) ===
+      Boolean(
+        refreshed.ratchet_pq_identity_key ?? refreshed.ratchet_pq_identity_seed,
+      ) &&
+    (current.ratchet_previous_keys?.length ?? 0) >=
+      (refreshed.ratchet_previous_keys?.length ?? 0)
+  );
+}
+
 export async function adopt_refreshed_vault(
   refreshed: RefreshedVault,
 ): Promise<boolean> {
@@ -142,10 +159,7 @@ export async function adopt_refreshed_vault(
 
       const current = get_vault_from_memory();
 
-      if (
-        current &&
-        current.ratchet_identity_public === refreshed.vault.ratchet_identity_public
-      ) {
+      if (current && vaults_carry_the_same_identity(current, refreshed.vault)) {
         adopted_encrypted_vault = refreshed.encrypted_vault;
 
         return true;

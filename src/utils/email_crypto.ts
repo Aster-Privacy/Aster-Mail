@@ -31,7 +31,6 @@ import {
 } from "@/services/crypto/ratchet_manager";
 import {
   decrypt_message,
-  encrypt_message_multi,
 } from "@/services/crypto/key_manager";
 import {
   discover_external_keys_batch,
@@ -846,28 +845,5 @@ export async function derive_own_public_key(): Promise<string | null> {
     return public_key;
   } catch {
     return null;
-  }
-}
-
-export async function encrypt_for_external_recipients(
-  body: string,
-  recipient_keys: RecipientKeyResult[],
-): Promise<string> {
-  const public_keys = recipient_keys
-    .filter((r) => r.has_key && r.public_key)
-    .map((r) => r.public_key as string);
-
-  if (public_keys.length === 0) {
-    return body;
-  }
-
-  const own_public_key = await derive_own_public_key();
-
-  if (own_public_key) public_keys.push(own_public_key);
-
-  try {
-    return await encrypt_message_multi(body, public_keys);
-  } catch {
-    throw new Error("pgp_encrypt_failed");
   }
 }

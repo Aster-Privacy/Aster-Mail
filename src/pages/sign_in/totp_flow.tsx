@@ -21,7 +21,7 @@
 import { TotpVerification } from "@/components/auth/totp_verification";
 import { TotpVerifyResponse } from "@/services/api/totp";
 
-interface TotpFlowProps {
+export interface TotpFlowProps {
   pending_login_token: string;
   on_success: (totp_response: TotpVerifyResponse) => Promise<void>;
   on_cancel: () => void;

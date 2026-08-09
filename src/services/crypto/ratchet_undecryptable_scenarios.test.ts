@@ -151,6 +151,26 @@ async function receive(
   );
 }
 
+async function receive_without_recovery_lane(
+  envelope_json: string,
+  receiver_vault: EncryptedVault,
+  message_id?: string,
+) {
+  h.vault = receiver_vault;
+
+  const parsed = parse_ratchet_envelope(envelope_json)!;
+
+  delete parsed.recipients[RECIPIENT].recovery;
+
+  return decrypt_ratchet_message(
+    RECIPIENT,
+    SENDER,
+    parsed,
+    receiver_vault,
+    message_id,
+  );
+}
+
 function snapshot_state() {
   return new Map(
     [...h.store.entries()].map(([key, value]) => [
@@ -251,6 +271,70 @@ describe("undecryptable-message failure modes", () => {
     h.store.clear();
 
     expect(await receive(envelope, legacy_vault)).toBe("classical lane only");
+  });
+
+  it("opens a post-quantum bootstrap sealed to the current identity without the recovery lane", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const envelope = await send("current identity, post-quantum", sender_vault);
+
+    expect(recovery_of(envelope)?.kem_ct).toBeTruthy();
+
+    h.store.clear();
+
+    expect(
+      await receive_without_recovery_lane(envelope, receiver_vault, "pq1"),
+    ).toBe("current identity, post-quantum");
+  });
+
+  it("opens a post-quantum bootstrap from a rotated-away identity without the recovery lane", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const old_keys = (await generate_ratchet_keys())!;
+
+    h.bundle = bundle_for(make_vault(old_keys));
+
+    const envelope = await send("rotated identity, post-quantum", sender_vault);
+
+    const rotated_vault = make_vault((await generate_ratchet_keys())!);
+
+    rotated_vault.ratchet_previous_keys = [
+      {
+        ratchet_identity_key: old_keys.identity_jwk,
+        ratchet_identity_public: old_keys.identity_public,
+        ratchet_signed_prekey: old_keys.signed_prekey_jwk,
+        ratchet_signed_prekey_public: old_keys.signed_prekey_public,
+        ratchet_pq_identity_key: old_keys.pq_identity_secret,
+        ratchet_pq_identity_public: old_keys.pq_identity_public,
+        ratchet_pq_identity_seed: old_keys.pq_identity_seed,
+      },
+    ] as EncryptedVault["ratchet_previous_keys"];
+
+    h.store.clear();
+
+    expect(
+      await receive_without_recovery_lane(envelope, rotated_vault, "pq2"),
+    ).toBe("rotated identity, post-quantum");
+  });
+
+  it("rebuilds the post-quantum identity secret from the seed alone", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const envelope = await send("seed-only vault", sender_vault);
+
+    delete (receiver_vault as unknown as Record<string, unknown>)
+      .ratchet_pq_identity_key;
+
+    h.store.clear();
+
+    expect(
+      await receive_without_recovery_lane(envelope, receiver_vault, "pq3"),
+    ).toBe("seed-only vault");
   });
 
   it("decrypts messages that arrive out of order", async () => {

@@ -30,7 +30,7 @@ import {
 } from "@/services/api/passkeys";
 import type { TotpVerifyResponse } from "@/services/api/totp";
 
-interface PasskeySignInButtonProps {
+export interface PasskeySignInButtonProps {
   remember_me: boolean;
   on_success: (response: TotpVerifyResponse) => Promise<void>;
   on_error: (message: string) => void;

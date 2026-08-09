@@ -21,7 +21,7 @@
 import { WebauthnVerification } from "@/components/auth/webauthn_verification";
 import { TotpVerifyResponse } from "@/services/api/totp";
 
-interface WebauthnFlowProps {
+export interface WebauthnFlowProps {
   pending_login_token: string;
   available_2fa_methods: string[];
   on_success: (totp_response: TotpVerifyResponse) => Promise<void>;

@@ -21,7 +21,7 @@
 import { BackupCodeInput } from "@/components/auth/backup_code_input";
 import { TotpVerifyResponse } from "@/services/api/totp";
 
-interface PasswordRecoveryFlowProps {
+export interface PasswordRecoveryFlowProps {
   pending_login_token: string;
   available_2fa_methods: string[];
   on_success: (totp_response: TotpVerifyResponse) => Promise<void>;
