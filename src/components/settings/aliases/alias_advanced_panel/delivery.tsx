@@ -77,6 +77,7 @@ export const DELIVERABLE_FOLDER_TYPES = new Set(["folder", "custom", "spam", "tr
 export const ALIAS_RUN_POLL_MIN_MS = 1200;
 export const ALIAS_RUN_POLL_MAX_MS = 8000;
 export const ALIAS_RUN_POLL_BACKOFF = 1.5;
+export const ALIAS_RUN_POLL_MAX_FAILURES = 5;
 
 export function is_alias_run_active(run: AliasRun | null): boolean {
   return !!run && (run.status === "pending" || run.status === "running");
@@ -86,6 +87,8 @@ export function use_alias_run(alias_id?: string) {
   const [run, set_run] = useState<AliasRun | null>(null);
   const timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const delay_ref = useRef(ALIAS_RUN_POLL_MIN_MS);
+  const failures_ref = useRef(0);
+  const active_ref = useRef(false);
   const mounted_ref = useRef(true);
   const refresh_ref = useRef<() => Promise<void>>();
 
@@ -108,13 +111,24 @@ export function use_alias_run(alias_id?: string) {
 
     const response = await get_alias_run(alias_id);
 
-    if (!mounted_ref.current || response.error) return;
+    if (!mounted_ref.current) return;
+
+    if (response.error) {
+      failures_ref.current += 1;
+      if (active_ref.current && failures_ref.current < ALIAS_RUN_POLL_MAX_FAILURES) {
+        schedule();
+      }
+
+      return;
+    }
 
     const next = response.data?.run ?? null;
 
+    failures_ref.current = 0;
+    active_ref.current = is_alias_run_active(next);
     set_run(next);
 
-    if (is_alias_run_active(next)) {
+    if (active_ref.current) {
       schedule();
     } else {
       delay_ref.current = ALIAS_RUN_POLL_MIN_MS;
@@ -142,7 +156,9 @@ export function use_alias_run(alias_id?: string) {
     (next: AliasRun | null) => {
       set_run(next);
       delay_ref.current = ALIAS_RUN_POLL_MIN_MS;
-      if (is_alias_run_active(next)) {
+      failures_ref.current = 0;
+      active_ref.current = is_alias_run_active(next);
+      if (active_ref.current) {
         schedule();
       }
     },
