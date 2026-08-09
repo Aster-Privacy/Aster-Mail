@@ -21,7 +21,7 @@
 import type { DecryptedEnvelope } from "@/types/email";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
-import { register_attachment_key } from "@/services/crypto/inbound_attachment_keys";
+import { register_attachment_entry } from "@/services/crypto/inbound_attachment_keys";
 
 import {
   get_passphrase_bytes,
@@ -95,10 +95,17 @@ async function derive_pq_hybrid_aes_key(
   ikm.set(new Uint8Array(ecdh_shared), 0);
   ikm.set(ml_kem_ss.slice(0, 32), 32);
 
-  const hkdf_key = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveKey"]);
+  const hkdf_key = await crypto.subtle.importKey("raw", ikm, "HKDF", false, [
+    "deriveKey",
+  ]);
 
   return crypto.subtle.deriveKey(
-    { name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: INBOUND_PQ_HYBRID_INFO },
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt: new Uint8Array(0),
+      info: INBOUND_PQ_HYBRID_INFO,
+    },
     hkdf_key,
     { name: "AES-GCM", length: 256 },
     false,
@@ -106,7 +113,7 @@ async function derive_pq_hybrid_aes_key(
   );
 }
 
-async function decrypt_inbound_ecies(
+export async function decrypt_inbound_ecies(
   enc_bytes: Uint8Array,
   nonce_bytes: Uint8Array,
   identity_key_jwk_str: string,
@@ -118,7 +125,10 @@ async function decrypt_inbound_ecies(
     const identity_jwk: JsonWebKey = JSON.parse(identity_key_jwk_str);
     const identity_private = await import_ke_private_key(identity_jwk);
     const eph_public = await import_ke_public_key(eph_pub_raw);
-    const shared_bits = await compute_agreement_bits(identity_private, eph_public);
+    const shared_bits = await compute_agreement_bits(
+      identity_private,
+      eph_public,
+    );
     const aes_key = await derive_aes_key_from_bytes(
       shared_bits,
       new Uint8Array(0),
@@ -136,7 +146,7 @@ async function decrypt_inbound_ecies(
   }
 }
 
-async function decrypt_inbound_pq_hybrid(
+export async function decrypt_inbound_pq_hybrid(
   enc_bytes: Uint8Array,
   nonce_bytes: Uint8Array,
   identity_key_jwk_str: string,
@@ -148,12 +158,17 @@ async function decrypt_inbound_pq_hybrid(
       1 + INBOUND_ECIES_EPH_KEY_LEN,
       1 + INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN,
     );
-    const ciphertext = enc_bytes.slice(1 + INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN);
+    const ciphertext = enc_bytes.slice(
+      1 + INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN,
+    );
 
     const identity_jwk: JsonWebKey = JSON.parse(identity_key_jwk_str);
     const identity_private = await import_ke_private_key(identity_jwk);
     const eph_public = await import_ke_public_key(eph_pub_raw);
-    const ecdh_shared = await compute_agreement_bits(identity_private, eph_public);
+    const ecdh_shared = await compute_agreement_bits(
+      identity_private,
+      eph_public,
+    );
 
     const pq_sk = base64_to_array(pq_identity_secret_b64);
     const ml_kem_ss = ml_kem768.decapsulate(ml_kem_ct, pq_sk);
@@ -188,15 +203,24 @@ function register_envelope_attachment_keys(
   if (!Array.isArray(keys)) return;
 
   for (const k of keys) {
-    if (typeof k?.seq === "number" && typeof k?.key === "string") {
-      register_attachment_key(mail_item_id, k.seq, k.key);
-    }
+    if (typeof k?.seq !== "number" || typeof k?.key !== "string") continue;
+
+    register_attachment_entry(mail_item_id, k.seq, {
+      key: k.key,
+      filename: typeof k.filename === "string" ? k.filename : undefined,
+      content_type:
+        typeof k.content_type === "string" ? k.content_type : undefined,
+      content_id: typeof k.content_id === "string" ? k.content_id : undefined,
+      size: typeof k.size === "number" ? k.size : undefined,
+    });
   }
 }
 
-export async function decrypt_mail_envelope<
-  T extends { from: { name: string; email: string } } = DecryptedEnvelope,
->(encrypted_envelope: string, envelope_nonce: string, mail_item_id?: string): Promise<T | null> {
+export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
+  encrypted_envelope: string,
+  envelope_nonce: string,
+  mail_item_id?: string,
+): Promise<T | null> {
   const nonce_bytes = envelope_nonce
     ? base64_to_array(envelope_nonce)
     : new Uint8Array(0);
@@ -295,7 +319,7 @@ export async function decrypt_mail_envelope<
 
     const vault = get_vault_from_memory();
 
-    if (!vault?.identity_key) return null;
+    if (!vault) return null;
 
     const enc_bytes = base64_to_array(encrypted_envelope);
 
@@ -304,8 +328,12 @@ export async function decrypt_mail_envelope<
       marker === INBOUND_ECIES_MARKER ||
       marker === INBOUND_ECIES_COMPRESSED_MARKER ||
       marker === INBOUND_PQ_HYBRID_MARKER;
+    const minimum_marker_length =
+      marker === INBOUND_PQ_HYBRID_MARKER
+        ? 1 + INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN
+        : 1 + INBOUND_ECIES_EPH_KEY_LEN;
 
-    if (is_ecies_marker && enc_bytes.length > 1 + INBOUND_ECIES_EPH_KEY_LEN) {
+    if (is_ecies_marker && enc_bytes.length > minimum_marker_length) {
       const ratchet_key_sets: Array<{
         ecdh: string;
         pq?: string;
@@ -335,9 +363,19 @@ export async function decrypt_mail_envelope<
             key_set.pq,
           );
         } else if (marker === INBOUND_ECIES_COMPRESSED_MARKER) {
-          plain = await decrypt_inbound_ecies(enc_bytes, nonce_bytes, key_set.ecdh, true);
+          plain = await decrypt_inbound_ecies(
+            enc_bytes,
+            nonce_bytes,
+            key_set.ecdh,
+            true,
+          );
         } else if (marker === INBOUND_ECIES_MARKER) {
-          plain = await decrypt_inbound_ecies(enc_bytes, nonce_bytes, key_set.ecdh, false);
+          plain = await decrypt_inbound_ecies(
+            enc_bytes,
+            nonce_bytes,
+            key_set.ecdh,
+            false,
+          );
         }
 
         if (plain) {
@@ -349,6 +387,8 @@ export async function decrypt_mail_envelope<
         }
       }
     }
+
+    if (!vault.identity_key) return null;
 
     for (const version of ENVELOPE_KEY_VERSIONS) {
       try {
@@ -363,7 +403,11 @@ export async function decrypt_mail_envelope<
           false,
           ["decrypt"],
         );
-        const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
+        const decrypted = await decrypt_aes_gcm_with_fallback(
+          crypto_key,
+          enc_bytes,
+          nonce_bytes,
+        );
 
         const parsed = JSON.parse(new TextDecoder().decode(decrypted));
 
@@ -390,7 +434,11 @@ export async function decrypt_mail_envelope<
               false,
               ["decrypt"],
             );
-            const decrypted = await decrypt_aes_gcm_with_fallback(crypto_key, enc_bytes, nonce_bytes);
+            const decrypted = await decrypt_aes_gcm_with_fallback(
+              crypto_key,
+              enc_bytes,
+              nonce_bytes,
+            );
 
             const parsed = JSON.parse(new TextDecoder().decode(decrypted));
 

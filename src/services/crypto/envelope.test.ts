@@ -32,8 +32,6 @@ import {
   decrypt_envelope_with_bytes,
   derive_envelope_key,
   derive_envelope_key_from_bytes,
-  decrypt_mail_envelope,
-  decrypt_mail_envelope_with_fallback,
   encrypt_metadata,
   decrypt_metadata,
   is_encrypted_blob,
@@ -289,83 +287,6 @@ describe("Envelope Encryption/Decryption", () => {
       );
 
       expect(decrypted).toEqual(original);
-    });
-  });
-});
-
-describe("Mail Envelope Decryption", () => {
-  describe("decrypt_mail_envelope", () => {
-    it("should handle unencrypted data (empty nonce)", async () => {
-      const data = { subject: "Test" };
-      const encoded = array_to_base64(
-        new TextEncoder().encode(JSON.stringify(data)),
-      );
-
-      const result = await decrypt_mail_envelope<typeof data>(
-        encoded,
-        "",
-        null,
-        null,
-      );
-
-      expect(result).toEqual(data);
-    });
-
-    it("should decrypt envelope-encrypted data (nonce byte 1)", async () => {
-      const original = { subject: "Secret" };
-      const passphrase = new TextEncoder().encode("password");
-      const encrypted = await encrypt_envelope_with_bytes(original, passphrase);
-
-      const result = await decrypt_mail_envelope<typeof original>(
-        encrypted.encrypted,
-        encrypted.nonce,
-        passphrase,
-        null,
-      );
-
-      expect(result).toEqual(original);
-    });
-
-    it("should return null when no keys provided", async () => {
-      const result = await decrypt_mail_envelope(
-        "encrypted_data",
-        "some_nonce",
-        null,
-        null,
-      );
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("decrypt_mail_envelope_with_fallback", () => {
-    it("should try current key first", async () => {
-      const data = { message: "test" };
-      const encoded = array_to_base64(
-        new TextEncoder().encode(JSON.stringify(data)),
-      );
-
-      const result = await decrypt_mail_envelope_with_fallback<typeof data>(
-        encoded,
-        "",
-        null,
-        null,
-      );
-
-      expect(result.data).toEqual(data);
-      expect(result.used_key_index).toBe(0);
-    });
-
-    it("should return used_key_index -1 on failure", async () => {
-      const result = await decrypt_mail_envelope_with_fallback(
-        "invalid",
-        "nonce",
-        null,
-        null,
-      );
-
-      expect(result.data).toBeNull();
-      expect(result.used_key_index).toBe(-1);
     });
   });
 });

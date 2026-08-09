@@ -18,16 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedEnvelope } from "@/types/email";
-
 import * as openpgp from "openpgp";
 
 import {
-  decrypt_envelope_with_bytes,
-  base64_to_array,
-} from "@/services/crypto/envelope";
-import {
-  get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
   wait_for_keys_ready,
@@ -36,82 +29,14 @@ import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   decrypt_message,
-  decrypt_message_with_any_key,
   encrypt_message_multi,
 } from "@/services/crypto/key_manager";
 import {
   discover_external_keys_batch,
   type ExternalKeyInfo,
 } from "@/services/api/keys";
-
-export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
-  encrypted_envelope: string,
-  envelope_nonce: string,
-): Promise<T | null> {
-  const nonce_bytes = envelope_nonce
-    ? base64_to_array(envelope_nonce)
-    : new Uint8Array(0);
-
-  if (nonce_bytes.length === 0) {
-    try {
-      const encrypted_bytes = base64_to_array(encrypted_envelope);
-      const text = new TextDecoder().decode(encrypted_bytes);
-
-      if (!text.startsWith("-----BEGIN PGP")) {
-        return JSON.parse(text) as T;
-      }
-
-      let vault = get_vault_from_memory();
-      let pass = get_passphrase_from_memory();
-
-      if (!vault || !pass) {
-        await wait_for_keys_ready();
-        vault = get_vault_from_memory();
-        pass = get_passphrase_from_memory();
-      }
-
-      if (vault?.identity_key && pass) {
-        const decrypted = await decrypt_message_with_any_key(
-          text,
-          [vault.identity_key, ...(vault.previous_keys ?? [])],
-          pass,
-        );
-
-        return JSON.parse(decrypted) as T;
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
-  }
-
-  if (!get_passphrase_from_memory()) {
-    await wait_for_keys_ready();
-  }
-
-  const passphrase_bytes = get_passphrase_bytes();
-
-  if (!passphrase_bytes) return null;
-
-  try {
-    const result = await decrypt_envelope_with_bytes<T>(
-      encrypted_envelope,
-      passphrase_bytes,
-    );
-
-    zero_uint8_array(passphrase_bytes);
-
-    return result;
-  } catch {
-    zero_uint8_array(passphrase_bytes);
-
-    return null;
-  }
-}
 
 export const RATCHET_UNDECRYPTABLE_SENTINEL =
   "\x00ASTER_RATCHET_UNDECRYPTABLE\x00";
@@ -195,13 +120,13 @@ function find_header_body_split(
 const CHARSET_ALIASES: Record<string, string> = {
   "us-ascii": "utf-8",
   ascii: "utf-8",
-  "utf8": "utf-8",
+  utf8: "utf-8",
   "utf-8": "utf-8",
   "unicode-1-1-utf-8": "utf-8",
   latin1: "windows-1252",
   "iso-8859-1": "windows-1252",
   "iso8859-1": "windows-1252",
-  "cp1252": "windows-1252",
+  cp1252: "windows-1252",
 };
 
 function get_charset(headers: string): string {
@@ -283,7 +208,8 @@ function decode_transfer_encoding(body: string, headers: string): string {
   const encoding_match = headers.match(
     /content-transfer-encoding\s*:\s*(\S+)/i,
   );
-  const encoding = encoding_match?.[1]?.toLowerCase().replace(/;$/, "") ?? "7bit";
+  const encoding =
+    encoding_match?.[1]?.toLowerCase().replace(/;$/, "") ?? "7bit";
   const charset = get_charset(headers);
 
   if (encoding === "base64") {
@@ -441,7 +367,9 @@ export function split_pgp_block(text: string): PgpBlockSplit | null {
   return { block: match[0], rest: visible.length > 0 ? remainder.trim() : "" };
 }
 
-export async function is_password_encrypted_pgp(armored: string): Promise<boolean> {
+export async function is_password_encrypted_pgp(
+  armored: string,
+): Promise<boolean> {
   try {
     const message = await openpgp.readMessage({ armoredMessage: armored });
 
@@ -458,7 +386,9 @@ export function encode_password_protected_body(
   return PGP_PASSWORD_PROTECTED_SENTINEL + JSON.stringify({ block, rest });
 }
 
-export function is_password_protected_body(body: string | undefined | null): boolean {
+export function is_password_protected_body(
+  body: string | undefined | null,
+): boolean {
   return !!body && body.startsWith(PGP_PASSWORD_PROTECTED_SENTINEL);
 }
 
@@ -504,7 +434,10 @@ export async function resolve_inbound_pgp_body(
   const rest = split?.rest ?? "";
 
   if (await is_password_encrypted_pgp(block)) {
-    return { body: encode_password_protected_body(block, rest), decrypted: false };
+    return {
+      body: encode_password_protected_body(block, rest),
+      decrypted: false,
+    };
   }
 
   const unavailable = rest || PGP_UNDECRYPTABLE_SENTINEL;
@@ -552,11 +485,12 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
 
 export const ASTER_SUBJECT_BUNDLE_MARKER = "ASTER_BUNDLE_V2";
 
-
 const BUNDLE_MARKER_DELIMITER = "";
 
 export const ASTER_SUBJECT_BUNDLE_PREFIX =
-  BUNDLE_MARKER_DELIMITER + ASTER_SUBJECT_BUNDLE_MARKER + BUNDLE_MARKER_DELIMITER;
+  BUNDLE_MARKER_DELIMITER +
+  ASTER_SUBJECT_BUNDLE_MARKER +
+  BUNDLE_MARKER_DELIMITER;
 
 export interface SubjectBundle {
   subject: string | null;
@@ -714,9 +648,10 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
   return { subject: subject ?? "", body };
 }
 
-export function unwrap_bundle_html(
-  html: string | undefined,
-): { html: string | undefined; subject: string | null } {
+export function unwrap_bundle_html(html: string | undefined): {
+  html: string | undefined;
+  subject: string | null;
+} {
   if (!html || !html.includes(ASTER_SUBJECT_BUNDLE_MARKER)) {
     return { html, subject: null };
   }
@@ -866,7 +801,9 @@ export async function derive_own_public_key(): Promise<string | null> {
   const vault = get_vault_from_memory();
 
   if (!vault?.identity_key) return null;
-  if (!vault.identity_key.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY")) {
+  if (
+    !vault.identity_key.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY")
+  ) {
     return null;
   }
 
