@@ -287,14 +287,16 @@ export function QuickSettingsPanel({
         <h2 className="flex-1 truncate text-[16px] font-medium text-txt-primary">
           {t("settings.quick_settings")}
         </h2>
-        <button
-          className="quick_settings_link flex-shrink-0 text-[13px]"
+        <Button
+          className="flex-shrink-0 whitespace-nowrap"
+          size="md"
           style={{ color: "var(--quick-link, #3b82f6)" }}
           type="button"
+          variant="ghost"
           onClick={() => on_open_full_settings()}
         >
           {t("settings.see_all_settings")}
-        </button>
+        </Button>
         <Button
           aria-label={t("common.close")}
           className="h-7 w-7 text-[var(--icon-muted)]"

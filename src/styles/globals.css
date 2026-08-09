@@ -70,6 +70,14 @@
   --accent-mix-b85: #326fd1;
   --accent-alpha-75: rgba(59, 130, 246, 0.75);
   --accent-color-hover: #2563eb;
+  --plan-ring-gradient: conic-gradient(
+    from 135deg,
+    var(--accent-mix-w70, #76a8f9) 0deg,
+    var(--accent-color, #3b82f6) 90deg,
+    var(--accent-mix-b80, #2f68c5) 200deg,
+    var(--accent-color, #3b82f6) 280deg,
+    var(--accent-mix-w70, #76a8f9) 360deg
+  );
   --accent-blue: #3b82f6;
   --accent-blue-hover: #2563eb;
   --avatar-bg: #e5e7eb;
@@ -1962,11 +1970,33 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 }
 
 .plan_ring {
+  position: relative;
   display: inline-flex;
   vertical-align: middle;
   line-height: 0;
   border-radius: 9999px;
-  box-shadow: 0 0 0 2px var(--accent-color, #3b82f6);
+  isolation: isolate;
+}
+
+.plan_ring::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  box-sizing: border-box;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  transform: translate(-50%, -50%);
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background:
+    linear-gradient(
+        var(--plan-ring-gap-color, var(--bg-primary, #ffffff)) 0 0
+      )
+      padding-box,
+    var(--plan-ring-gradient) border-box;
+  pointer-events: none;
 }
 
 .list_scrolling > * {
@@ -2581,6 +2611,11 @@ input:-webkit-autofill:active {
 }
 
 .account_menu_card {
+  --plan-ring-gap-color: color-mix(
+    in srgb,
+    var(--text-primary) 9%,
+    var(--dropdown-bg)
+  );
   background-color: color-mix(
     in srgb,
     var(--text-primary) 9%,
@@ -2608,6 +2643,11 @@ input:-webkit-autofill:active {
 }
 
 .account_menu_row {
+  --plan-ring-gap-color: color-mix(
+    in srgb,
+    var(--text-primary) 9%,
+    var(--dropdown-bg)
+  );
   background-color: color-mix(
     in srgb,
     var(--text-primary) 9%,
@@ -2617,6 +2657,11 @@ input:-webkit-autofill:active {
 }
 
 .account_menu_row:hover {
+  --plan-ring-gap-color: color-mix(
+    in srgb,
+    var(--text-primary) 11%,
+    var(--dropdown-bg)
+  );
   background-color: color-mix(
     in srgb,
     var(--text-primary) 11%,
@@ -2689,6 +2734,7 @@ input:-webkit-autofill:active {
 }
 
 .account_avatar_ring {
+  --plan-ring-gap-color: var(--bg-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2715,8 +2761,8 @@ input:-webkit-autofill:active {
 .account_avatar_button:hover .account_avatar_ring.plan_ring,
 .account_avatar_button[data-state="open"] .account_avatar_ring.plan_ring {
   box-shadow:
-    0 0 0 2px var(--accent-color),
-    0 0 0 5px var(--bg-hover);
+    0 0 0 3px var(--plan-ring-gap-color, var(--bg-secondary)),
+    0 0 0 8px var(--bg-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {
