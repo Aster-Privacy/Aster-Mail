@@ -79,6 +79,7 @@ export const es = {
     send_feedback: "Enviar comentarios",
     send_feedback_to_aster: "Enviar comentarios a Aster",
     folders: "Carpetas",
+    add_to_folders: "Añadir a carpetas",
     more: "Más",
     mail: "Correo",
     labels: "Etiquetas",
@@ -3219,6 +3220,7 @@ export const es = {
       "Un código corto creado a partir de tu clave de cifrado. Si la persona con la que te escribes compara este código con el suyo y coincide, ambos pueden estar seguros de que sus mensajes son privados y no han sido manipulados.",
     copy_fingerprint: "Copiar código de verificación",
     copy_public_key: "Copiar clave pública",
+    view_public_key: "Ver clave pública",
     failed_download_codes:
       "No se pudieron descargar los códigos de recuperación. Inténtalo de nuevo.",
     export_keys: "Exportar claves y códigos de recuperación",

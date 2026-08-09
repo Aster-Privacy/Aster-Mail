@@ -79,6 +79,7 @@ export const en: Translations = {
     send_feedback: "Send feedback",
     send_feedback_to_aster: "Send feedback to Aster",
     folders: "Folders",
+    add_to_folders: "Add to folders",
     more: "More",
     mail: "Mail",
     labels: "Labels",
@@ -2133,6 +2134,7 @@ export const en: Translations = {
       "A short code created from your encryption key. If someone you email compares it with the code on their end and it matches, you can both be sure your messages are private and haven't been tampered with.",
     copy_fingerprint: "Copy verification code",
     copy_public_key: "Copy public key",
+    view_public_key: "View public key",
     failed_download_codes:
       "Could not download recovery codes. Please try again.",
     export_keys: "Export Keys & Recovery Codes",

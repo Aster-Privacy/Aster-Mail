@@ -79,6 +79,7 @@ export const ja = {
     send_feedback: "フィードバックを送信",
     send_feedback_to_aster: "Aster にフィードバックを送信",
     folders: "フォルダ",
+    add_to_folders: "フォルダに追加",
     more: "その他",
     mail: "メール",
     labels: "ラベル",
@@ -3222,6 +3223,7 @@ export const ja = {
       "暗号化キーから作成された短いコードです。メールをやり取りする相手がこのコードを自分側のコードと照合して一致すれば、お互いのメッセージが非公開で改ざんされていないことを確認できます。",
     copy_fingerprint: "確認コードをコピー",
     copy_public_key: "公開鍵をコピー",
+    view_public_key: "公開鍵を表示",
     failed_download_codes:
       "リカバリーコードをダウンロードできませんでした。もう一度お試しください。",
     export_keys: "キーとリカバリーコードのエクスポート",

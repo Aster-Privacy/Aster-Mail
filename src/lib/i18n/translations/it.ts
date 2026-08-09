@@ -81,6 +81,7 @@ export const it = {
     send_feedback: "Invia feedback",
     send_feedback_to_aster: "Invia un feedback ad Aster",
     folders: "Cartelle",
+    add_to_folders: "Aggiungi alle cartelle",
     more: "Altro",
     mail: "Posta",
     labels: "Etichette",
@@ -3262,6 +3263,7 @@ export const it = {
       "Un breve codice creato dalla tua chiave di crittografia. Se la persona con cui scrivi confronta questo codice con il proprio e corrisponde, entrambi potete essere certi che i vostri messaggi sono privati e non sono stati alterati.",
     copy_fingerprint: "Copia codice di verifica",
     copy_public_key: "Copia chiave pubblica",
+    view_public_key: "Visualizza chiave pubblica",
     failed_download_codes:
       "Impossibile scaricare i codici di recupero. Riprova.",
     export_keys: "Esporta chiavi e codici di recupero",

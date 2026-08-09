@@ -538,6 +538,7 @@ export interface CommonTranslations {
   send_feedback: string;
   send_feedback_to_aster: string;
   folders: string;
+  add_to_folders: string;
   more: string;
   mail: string;
   labels: string;
@@ -2227,6 +2228,7 @@ export interface SettingsTranslations {
   info_fingerprint_description: string;
   copy_fingerprint: string;
   copy_public_key: string;
+  view_public_key: string;
   failed_download_codes: string;
   export_keys: string;
   recovery_codes: string;

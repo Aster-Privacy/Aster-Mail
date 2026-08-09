@@ -370,9 +370,17 @@ export function ContactList({
                 <div className="flex-1 min-w-0">
                   {name ? (
                     <>
-                      <p className="text-[14px] font-medium truncate text-txt-primary">
-                        {name}
-                      </p>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <p className="text-[14px] font-medium truncate text-txt-primary">
+                          {name}
+                        </p>
+                        {contact.is_favorite && (
+                          <StarIconSolid
+                            aria-label={t("common.favorite")}
+                            className="w-3.5 h-3.5 text-amber-400 flex-shrink-0"
+                          />
+                        )}
+                      </div>
                       {primary_email && (
                         <p className="text-[12px] truncate text-txt-muted">
                           {primary_email}
@@ -380,9 +388,17 @@ export function ContactList({
                       )}
                     </>
                   ) : (
-                    <p className="text-[14px] font-medium truncate text-txt-primary">
-                      {primary_email || t("common.unnamed")}
-                    </p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="text-[14px] font-medium truncate text-txt-primary">
+                        {primary_email || t("common.unnamed")}
+                      </p>
+                      {contact.is_favorite && (
+                        <StarIconSolid
+                          aria-label={t("common.favorite")}
+                          className="w-3.5 h-3.5 text-amber-400 flex-shrink-0"
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               </button>

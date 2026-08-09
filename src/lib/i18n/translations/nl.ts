@@ -79,6 +79,7 @@ export const nl = {
     send_feedback: "Feedback verzenden",
     send_feedback_to_aster: "Feedback naar Aster sturen",
     folders: "Mappen",
+    add_to_folders: "Aan mappen toevoegen",
     more: "Meer",
     mail: "E-mail",
     labels: "Labels",
@@ -3217,6 +3218,7 @@ export const nl = {
       "Een korte code die is gemaakt op basis van je versleutelingssleutel. Als iemand met wie je mailt deze code vergelijkt met die van hen en ze komen overeen, kunnen jullie er beiden zeker van zijn dat jullie berichten privé zijn en niet zijn gemanipuleerd.",
     copy_fingerprint: "Verificatiecode kopiëren",
     copy_public_key: "Openbare sleutel kopiëren",
+    view_public_key: "Openbare sleutel weergeven",
     failed_download_codes:
       "Herstelcodes konden niet worden gedownload. Probeer het opnieuw.",
     export_keys: "Sleutels & herstelcodes exporteren",

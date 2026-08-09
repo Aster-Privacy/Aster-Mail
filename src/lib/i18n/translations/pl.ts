@@ -79,6 +79,7 @@ export const pl = {
     send_feedback: "Wyślij opinię",
     send_feedback_to_aster: "Wyślij opinię do Aster",
     folders: "Foldery",
+    add_to_folders: "Dodaj do folderów",
     more: "Więcej",
     mail: "Poczta",
     labels: "Etykiety",
@@ -3241,6 +3242,7 @@ export const pl = {
       "Krótki kod utworzony na podstawie Twojego klucza szyfrującego. Jeśli osoba, z którą korespondujesz, porówna ten kod ze swoim i się zgadza, oboje możecie mieć pewność, że Wasze wiadomości są prywatne i nie zostały zmienione.",
     copy_fingerprint: "Kopiuj kod weryfikacyjny",
     copy_public_key: "Kopiuj klucz publiczny",
+    view_public_key: "Pokaż klucz publiczny",
     failed_download_codes:
       "Nie udało się pobrać kodów odzyskiwania. Spróbuj ponownie.",
     export_keys: "Eksportuj klucze i kody odzyskiwania",

@@ -79,6 +79,7 @@ export const fr = {
     send_feedback: "Envoyer un commentaire",
     send_feedback_to_aster: "Envoyer un commentaire à Aster",
     folders: "Dossiers",
+    add_to_folders: "Ajouter aux dossiers",
     more: "Plus",
     mail: "Courrier",
     labels: "Libellés",
@@ -3246,6 +3247,7 @@ export const fr = {
       "Un court code créé à partir de votre clé de chiffrement. Si la personne avec qui vous correspondez compare ce code avec le sien et qu'ils correspondent, vous pouvez tous les deux être sûrs que vos messages sont privés et n'ont pas été modifiés.",
     copy_fingerprint: "Copier le code de vérification",
     copy_public_key: "Copier la clé publique",
+    view_public_key: "Afficher la clé publique",
     failed_download_codes:
       "Impossible de télécharger les codes de récupération. Veuillez réessayer.",
     export_keys: "Exporter les clés et codes de récupération",

@@ -79,6 +79,7 @@ export const ko = {
     send_feedback: "피드백 보내기",
     send_feedback_to_aster: "Aster에 의견 보내기",
     folders: "폴더",
+    add_to_folders: "폴더에 추가",
     more: "더 보기",
     mail: "메일",
     labels: "라벨",
@@ -3220,6 +3221,7 @@ export const ko = {
       "암호화 키로 만들어진 짧은 코드입니다. 메일을 주고받는 상대방이 이 코드를 자신의 코드와 비교했을 때 일치하면, 두 사람 모두 메시지가 비공개이며 조작되지 않았음을 확신할 수 있습니다.",
     copy_fingerprint: "확인 코드 복사",
     copy_public_key: "공개 키 복사",
+    view_public_key: "공개 키 보기",
     failed_download_codes:
       "복구 코드를 다운로드할 수 없습니다. 다시 시도해 주세요.",
     export_keys: "키 및 복구 코드 내보내기",

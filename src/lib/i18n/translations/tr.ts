@@ -79,6 +79,7 @@ export const tr = {
     send_feedback: "Geri bildirim gönder",
     send_feedback_to_aster: "Aster'a geri bildirim gönder",
     folders: "Klasörler",
+    add_to_folders: "Klasörlere ekle",
     more: "Daha fazla",
     mail: "E-posta",
     labels: "Etiketler",
@@ -3210,6 +3211,7 @@ export const tr = {
       "Şifreleme anahtarınızdan oluşturulan kısa bir kod. Yazıştığınız kişi bu kodu kendi tarafındaki kodla karşılaştırır ve eşleşirse, mesajlarınızın gizli olduğundan ve değiştirilmediğinden ikiniz de emin olabilirsiniz.",
     copy_fingerprint: "Doğrulama kodunu kopyala",
     copy_public_key: "Genel anahtarı kopyala",
+    view_public_key: "Genel anahtarı görüntüle",
     failed_download_codes:
       "Kurtarma kodları indirilemedi. Lütfen tekrar deneyin.",
     export_keys: "Anahtarları ve Kurtarma Kodlarını Dışa Aktar",

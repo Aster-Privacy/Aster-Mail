@@ -45,6 +45,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown_menu";
@@ -224,9 +225,10 @@ export function SelectionActionIsland({
 
             {!is_native && folders.length > 0 && on_folder_toggle && (
               <DropdownMenu>
-                <Tooltip tip={t("common.folders")}>
+                <Tooltip tip={t("common.add_to_folders")}>
                   <DropdownMenuTrigger asChild>
                     <motion.button
+                      aria-label={t("common.add_to_folders")}
                       className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)]"
                     >
                       <FolderIcon className="w-[18px] h-[18px] text-[var(--icon-active)]" />
@@ -239,6 +241,9 @@ export function SelectionActionIsland({
                   side="top"
                   sideOffset={8}
                 >
+                  <DropdownMenuLabel>
+                    {t("common.add_to_folders")}
+                  </DropdownMenuLabel>
                   {folders.map((folder) => (
                     <DropdownMenuItem
                       key={folder.folder_token}

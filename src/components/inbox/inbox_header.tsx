@@ -629,10 +629,10 @@ export function InboxHeader({
                 folders.length > 0 &&
                 on_folder_toggle && (
                   <DropdownMenu>
-                    <Tooltip tip={t("common.folders")}>
+                    <Tooltip tip={t("common.add_to_folders")}>
                       <DropdownMenuTrigger asChild>
                         <button
-                          aria-label={t("common.folders")}
+                          aria-label={t("common.add_to_folders")}
                           className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                         >
                           <FolderIcon className="w-[18px] h-[18px]" />
@@ -644,6 +644,9 @@ export function InboxHeader({
                       className="max-h-64 overflow-y-auto"
                       sideOffset={8}
                     >
+                      <DropdownMenuLabel>
+                        {t("common.add_to_folders")}
+                      </DropdownMenuLabel>
                       {folders.map((folder) => (
                         <DropdownMenuItem
                           key={folder.folder_token}
@@ -792,7 +795,7 @@ export function InboxHeader({
                         <>
                           <DropdownMenuSeparator />
                           <DropdownMenuLabel>
-                            {t("common.folders")}
+                            {t("common.add_to_folders")}
                           </DropdownMenuLabel>
                           {folders.slice(0, 8).map((folder) => (
                             <DropdownMenuItem

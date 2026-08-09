@@ -79,6 +79,7 @@ export const pt = {
     send_feedback: "Enviar feedback",
     send_feedback_to_aster: "Enviar comentários para a Aster",
     folders: "Pastas",
+    add_to_folders: "Adicionar a pastas",
     more: "Mais",
     mail: "E-mail",
     labels: "Etiquetas",
@@ -3237,6 +3238,7 @@ export const pt = {
       "Um código curto gerado a partir da sua chave de criptografia. Se a pessoa com quem você troca e-mails comparar este código com o dela e eles coincidirem, ambos podem ter certeza de que as mensagens são privadas e não foram alteradas.",
     copy_fingerprint: "Copiar código de verificação",
     copy_public_key: "Copiar chave pública",
+    view_public_key: "Ver chave pública",
     failed_download_codes:
       "Não foi possível baixar os códigos de recuperação. Tente novamente.",
     export_keys: "Exportar Chaves e Códigos de Recuperação",

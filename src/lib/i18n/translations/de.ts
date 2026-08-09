@@ -79,6 +79,7 @@ export const de = {
     send_feedback: "Feedback senden",
     send_feedback_to_aster: "Feedback an Aster senden",
     folders: "Ordner",
+    add_to_folders: "Zu Ordnern hinzufügen",
     more: "Mehr",
     mail: "E-Mail",
     labels: "Labels",
@@ -3285,6 +3286,7 @@ export const de = {
       "Ein kurzer Code, der aus deinem Verschlüsselungsschlüssel erstellt wird. Wenn die Person, mit der du schreibst, diesen Code mit ihrem eigenen vergleicht und er übereinstimmt, könnt ihr beide sicher sein, dass eure Nachrichten privat sind und nicht verändert wurden.",
     copy_fingerprint: "Bestätigungscode kopieren",
     copy_public_key: "Öffentlichen Schlüssel kopieren",
+    view_public_key: "Öffentlichen Schlüssel anzeigen",
     failed_download_codes:
       "Wiederherstellungscodes konnten nicht heruntergeladen werden. Bitte erneut versuchen.",
     export_keys: "Schlüssel & Wiederherstellungscodes exportieren",
