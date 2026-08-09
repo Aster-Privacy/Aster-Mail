@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const renderer_source = readFileSync(
-  resolve(here, "sandboxed_email_renderer.tsx"),
+  resolve(here, "sandboxed_email_renderer/renderer.tsx"),
   "utf8",
 );
 const secure_view_source = readFileSync(
