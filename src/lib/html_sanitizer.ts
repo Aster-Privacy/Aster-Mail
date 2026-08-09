@@ -30,7 +30,6 @@ import {
   block_remote_fonts,
   strip_css_urls,
   escape_style_terminator,
-  is_transparent_color_value,
 } from "./html_sanitizer_css";
 
 export { is_transparent_color_value } from "./html_sanitizer_css";
@@ -40,7 +39,15 @@ import {
   strip_mso_conditionals,
   sanitize_attribute,
 } from "./html_sanitizer_utils";
-import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
+export {
+  is_html_content,
+  strip_quoted_sections,
+  has_rich_html,
+  plain_text_to_html,
+  html_to_readable_plain_text,
+  strip_html_tags,
+} from "./html_text";
+export type { ReadablePlainTextOptions } from "./html_text";
 
 export {
   sanitize_compose_paste,
@@ -899,233 +906,4 @@ function sanitize_html_impl(
     external_content,
     body_background,
   };
-}
-
-export function is_html_content(content: string): boolean {
-  if (!content || typeof content !== "string") {
-    return false;
-  }
-
-  const html_patterns = [
-    /<[a-z][\s\S]*>/i,
-    /<\/[a-z]+>/i,
-    /<br\s*\/?>/i,
-    /&[a-z]+;/i,
-    /&#\d+;/i,
-  ];
-
-  return html_patterns.some((pattern) => pattern.test(content));
-}
-
-const QUOTE_CONTAINER_START_RE =
-  /<(?:div|blockquote)[^>]*(?:class=["'][^"']*(?:aster_quote|gmail_quote|yahoo_quoted|protonmail_quote|moz-cite-prefix)[^"']*["']|type=["']cite["'])/i;
-
-export function strip_quoted_sections(content: string): string {
-  const idx = content.search(QUOTE_CONTAINER_START_RE);
-
-  if (idx < 0) return content;
-  const own_content = content.slice(0, idx);
-
-  return strip_html_tags(own_content).trim() ? own_content : content;
-}
-
-function has_designed_background_style(content: string): boolean {
-  const declarations = content.match(
-    /style\s*=\s*["'][^"']*background(?:-color)?\s*:\s*[^;"']+/gi,
-  );
-
-  if (!declarations) return false;
-
-  return declarations.some((declaration) => {
-    const value_match = declaration.match(
-      /background(?:-color)?\s*:\s*([^;"']+)$/i,
-    );
-    const value = value_match ? value_match[1].trim() : "";
-
-    return value.length > 0 && !is_transparent_color_value(value);
-  });
-}
-
-export function has_rich_html(content: string): boolean {
-  if (!content || typeof content !== "string") return false;
-
-  const stripped = strip_quoted_sections(
-    content
-      .replace(/<span[^>]*>Secured by\s*<a[^>]*>Aster Mail<\/a><\/span>/gi, "")
-      .replace(
-        /<a[^>]*href=["']https?:\/\/astermail\.org["'][^>]*>Aster Mail<\/a>/gi,
-        "",
-      ),
-  );
-
-  if (/<(table|td|th|tr)\b/i.test(stripped)) return true;
-  if (/<style[\s>]/i.test(stripped)) return true;
-  if (has_designed_background_style(stripped)) return true;
-  if (/style\s*=\s*["'][^"']*\bwidth\s*:/i.test(stripped)) return true;
-  if (/<img\b[^>]*src\s*=/i.test(stripped)) return true;
-  if (/<(center|font)\b/i.test(stripped)) return true;
-
-  return false;
-}
-
-export function plain_text_to_html(text: string): string {
-  if (!text) return "";
-
-  const url_regex = /(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/g;
-  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  const reflowed = looks_format_flowed(normalized)
-    ? unflow_format_flowed(normalized)
-    : normalized;
-  const paragraphs = reflowed.split(/\n\n+/);
-
-  return paragraphs
-    .map((para) => {
-      let escaped = para
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-
-      escaped = escaped.replace(url_regex, (url) => {
-        const href_url = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-        return `<a href="${href_url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-      });
-
-      escaped = escaped.replace(/\n/g, "<br>");
-      return `<p>${escaped}</p>`;
-    })
-    .join("\n");
-}
-
-export interface ReadablePlainTextOptions {
-  keep_link_urls?: boolean;
-}
-
-function append_link_urls(doc: Document) {
-  const anchors = Array.from(
-    doc.querySelectorAll<HTMLAnchorElement>("a[href]"),
-  );
-  const labelled = new Set<string>();
-
-  anchors.forEach((el) => {
-    const href = (el.getAttribute("href") ?? "").trim();
-
-    if (href && (el.textContent ?? "").trim()) labelled.add(href);
-  });
-
-  let previous_href = "";
-
-  anchors.forEach((el) => {
-    const href = (el.getAttribute("href") ?? "").trim();
-
-    if (!/^https?:\/\//i.test(href)) return;
-
-    const label = (el.textContent ?? "").replace(/\s+/g, "");
-
-    if (!label && labelled.has(href)) return;
-    if (href === previous_href) return;
-
-    previous_href = href;
-
-    if (label.includes(href)) return;
-
-    el.append(doc.createTextNode(` ${href} `));
-  });
-}
-
-export function html_to_readable_plain_text(
-  html: string,
-  options: ReadablePlainTextOptions = {},
-): string {
-  if (!html || typeof html !== "string") return "";
-  if (typeof DOMParser === "undefined") return strip_html_tags(html);
-
-  let doc: Document;
-
-  try {
-    doc = new DOMParser().parseFromString(html, "text/html");
-  } catch {
-    return strip_html_tags(html);
-  }
-
-  doc
-    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
-    .forEach((el) => el.remove());
-
-  doc.querySelectorAll<HTMLElement>("*").forEach((el) => {
-    const s = el.getAttribute("style") ?? "";
-    if (
-      /display\s*:\s*none/i.test(s) ||
-      /visibility\s*:\s*hidden/i.test(s) ||
-      /max-height\s*:\s*0(?![.0-9])/i.test(s) ||
-      /font-size\s*:\s*0(?![.0-9])/i.test(s) ||
-      /opacity\s*:\s*0(?![.0-9])/i.test(s)
-    ) {
-      el.remove();
-    }
-  });
-
-  if (options.keep_link_urls) append_link_urls(doc);
-
-  doc.querySelectorAll("br").forEach((el) => el.replaceWith(doc.createTextNode("\n")));
-
-  doc
-    .querySelectorAll("p, div, section, article, header, footer, h1, h2, h3, h4, h5, h6, li, blockquote")
-    .forEach((el) => {
-      el.prepend(doc.createTextNode("\n"));
-      el.append(doc.createTextNode("\n"));
-    });
-
-  doc.querySelectorAll("td, th").forEach((el) => el.append(doc.createTextNode(" ")));
-  doc.querySelectorAll("tr").forEach((el) => el.append(doc.createTextNode("\n")));
-
-  doc
-    .querySelectorAll("img[width='1'], img[height='1'], img[width='0'], img[height='0']")
-    .forEach((el) => el.remove());
-
-  const text = doc.body?.textContent ?? "";
-
-  return text
-    .replace(/ /g, " ")
-    .replace(/[​‌‍﻿]/g, "")
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n[ \t]+/g, "\n")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-export function strip_html_tags(html: string): string {
-  if (!html || typeof html !== "string") return "";
-
-  if (typeof DOMParser === "undefined") return "";
-
-  let doc: Document;
-
-  try {
-    doc = new DOMParser().parseFromString(html, "text/html");
-  } catch {
-    return "";
-  }
-
-  doc
-    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
-    .forEach((el) => el.remove());
-
-  doc.querySelectorAll("br").forEach((el) => {
-    el.replaceWith(doc.createTextNode(" "));
-  });
-
-  doc.querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6").forEach((el) => {
-    el.append(doc.createTextNode(" "));
-  });
-
-  const text = doc.body?.textContent || "";
-
-  return text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/\s+/g, " ")
-    .trim();
 }
