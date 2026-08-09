@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
+import { base64_to_array } from "./base64";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import {
@@ -30,10 +32,17 @@ import { load_pq_secret } from "./pq_prekey_store";
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
 
-const HASH_ALG = ["SHA", "256"].join("-");
 const X3DH_INFO_CLASSICAL = new TextEncoder().encode("Aster Mail_X3DH_v1");
 const X3DH_INFO_PQ = new TextEncoder().encode("Aster Mail_PQXDH_v1");
+const X3DH_INFO_PQ_IDENTITY = new TextEncoder().encode(
+  "Aster Mail_PQXDH_identity_v1",
+);
 const X3DH_SALT = new Uint8Array(32);
+
+export const PQ_IDENTITY_KEY_ID = -1;
+export const ML_KEM_768_EK_LEN = 1184;
+
+export type PqBootstrapMode = "onetime" | "identity" | "none";
 
 interface PqPrekey {
   key_id: number;
@@ -45,6 +54,7 @@ interface X3dhSenderResult {
   ephemeral_public_key: Uint8Array;
   pq_ciphertext?: Uint8Array;
   pq_key_id?: number;
+  pq_mode: PqBootstrapMode;
 }
 
 interface PrekeyBundle {
@@ -61,16 +71,6 @@ interface PqReceiverInput {
   pq_key_id: number;
 }
 
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
 
 async function generate_ephemeral_keypair(): Promise<{
   public_key: CryptoKey;
@@ -137,6 +137,45 @@ async function kdf_x3dh(
   return new Uint8Array(derived);
 }
 
+function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
+  public_key: Uint8Array;
+  key_id: number;
+  info: Uint8Array;
+  mode: Exclude<PqBootstrapMode, "none">;
+} | null {
+  if (recipient_bundle.pq_prekey) {
+    const onetime = base64_to_array(recipient_bundle.pq_prekey.public_key);
+
+    if (onetime.length === ML_KEM_768_EK_LEN) {
+      return {
+        public_key: onetime,
+        key_id: recipient_bundle.pq_prekey.key_id,
+        info: X3DH_INFO_PQ,
+        mode: "onetime",
+      };
+    }
+  }
+
+  if (recipient_bundle.pq_kem_public_key) {
+    const identity = base64_to_array(recipient_bundle.pq_kem_public_key);
+
+    if (identity.length === ML_KEM_768_EK_LEN) {
+      return {
+        public_key: identity,
+        key_id: PQ_IDENTITY_KEY_ID,
+        info: X3DH_INFO_PQ_IDENTITY,
+        mode: "identity",
+      };
+    }
+  }
+
+  return null;
+}
+
+export function bundle_supports_pq(recipient_bundle: PrekeyBundle): boolean {
+  return select_pq_encapsulation_target(recipient_bundle) !== null;
+}
+
 export async function perform_x3dh_sender(
   sender_identity_jwk: JsonWebKey,
   recipient_bundle: PrekeyBundle,
@@ -179,25 +218,20 @@ export async function perform_x3dh_sender(
   let pq_ciphertext: Uint8Array | undefined;
   let pq_key_id: number | undefined;
 
-  if (!recipient_bundle.pq_prekey && recipient_bundle.pq_kem_public_key) {
-    console.warn(
-      "x3dh sender: PQ-capable peer has no available pq_prekey, falling back to classical bootstrap",
-    );
-  }
+  const pq_target = select_pq_encapsulation_target(recipient_bundle);
 
-  if (recipient_bundle.pq_prekey) {
-    const pq_pub = base64_to_array(recipient_bundle.pq_prekey.public_key);
-    const encap = ml_kem768.encapsulate(pq_pub);
+  if (pq_target) {
+    const encap = ml_kem768.encapsulate(pq_target.public_key);
     const pq_ss = encap.sharedSecret;
 
     try {
-      shared_secret = await kdf_x3dh([dh1, dh2, dh3, pq_ss], X3DH_INFO_PQ);
+      shared_secret = await kdf_x3dh([dh1, dh2, dh3, pq_ss], pq_target.info);
     } finally {
       pq_ss.fill(0);
     }
 
     pq_ciphertext = encap.cipherText;
-    pq_key_id = recipient_bundle.pq_prekey.key_id;
+    pq_key_id = pq_target.key_id;
   } else {
     shared_secret = await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
   }
@@ -209,6 +243,7 @@ export async function perform_x3dh_sender(
   const result: X3dhSenderResult = {
     shared_secret,
     ephemeral_public_key: ephemeral.public_key_raw,
+    pq_mode: pq_target ? pq_target.mode : "none",
   };
 
   if (pq_ciphertext !== undefined && pq_key_id !== undefined) {
@@ -225,6 +260,7 @@ export async function perform_x3dh_receiver(
   sender_identity_raw: Uint8Array,
   sender_ephemeral_raw: Uint8Array,
   pq_input?: PqReceiverInput | null,
+  pq_identity_secret_base64?: string | null,
 ): Promise<Uint8Array> {
   const receiver_identity_private = await import_ke_private_key(
     receiver_identity_jwk,
@@ -256,12 +292,23 @@ export async function perform_x3dh_receiver(
   let shared_secret: Uint8Array;
 
   if (pq_input) {
-    const pq_sk = await load_pq_secret(pq_input.pq_key_id);
+    const from_identity = pq_input.pq_key_id === PQ_IDENTITY_KEY_ID;
+
+    const pq_sk = from_identity
+      ? pq_identity_secret_base64
+        ? base64_to_array(pq_identity_secret_base64)
+        : null
+      : await load_pq_secret(pq_input.pq_key_id);
 
     if (!pq_sk) {
       dh1.fill(0);
       dh2.fill(0);
       dh3.fill(0);
+
+      if (from_identity) {
+        throw new Error("Missing PQ identity secret for the PQ bootstrap");
+      }
+
       import("./pq_secret_reconciler")
         .then((m) => m.handle_missing_pq_secret())
         .catch(() => {});
@@ -277,7 +324,10 @@ export async function perform_x3dh_receiver(
     }
 
     try {
-      shared_secret = await kdf_x3dh([dh1, dh2, dh3, pq_ss], X3DH_INFO_PQ);
+      shared_secret = await kdf_x3dh(
+        [dh1, dh2, dh3, pq_ss],
+        from_identity ? X3DH_INFO_PQ_IDENTITY : X3DH_INFO_PQ,
+      );
     } finally {
       pq_ss.fill(0);
     }

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { array_to_base64, base64_to_array } from "./base64";
 import {
   encrypted_get,
   encrypted_set,
@@ -42,26 +43,7 @@ interface StoredPqSecret {
   secret_key_b64: string;
 }
 
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
 
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
-}
-
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
-}
 
 function secure_zero(buffer: Uint8Array): void {
   crypto.getRandomValues(buffer);

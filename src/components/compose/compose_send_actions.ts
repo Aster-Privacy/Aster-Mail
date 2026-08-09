@@ -120,6 +120,7 @@ export async function execute_internal_send(
     sender_email?: string;
     expires_at?: string;
     attachments?: Attachment[];
+    allow_non_post_quantum?: boolean;
   },
 ) {
   const { delay_ms, delay_seconds } = compute_delay(ctx);

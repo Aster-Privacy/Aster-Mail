@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { array_to_base64 } from "./base64";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import { api_client } from "../api/client";
@@ -47,16 +48,6 @@ interface PrekeyData {
 interface UploadPrekeysRequest {
   one_time_prekeys: PrekeyData[];
   pq_prekeys?: PrekeyData[];
-}
-
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
-
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
 }
 
 function random_key_id(): number {
@@ -354,12 +345,3 @@ export async function check_and_replenish_prekeys(): Promise<void> {
   }
 }
 
-export async function wipe_published_pq_prekeys(): Promise<boolean> {
-  try {
-    const response = await api_client.delete("/crypto/v1/keys/pq-prekeys/all");
-
-    return !response.error;
-  } catch {
-    return false;
-  }
-}

@@ -59,6 +59,7 @@ import {
   execute_external_account_email_send,
   type SendActionContext,
 } from "@/components/compose/compose_send_actions";
+import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
 
 export interface UseComposeSendOptions {
   recipients: RecipientsState;
@@ -442,7 +443,17 @@ export function use_compose_send({
         return;
       }
 
-      await execute_internal_send(ctx, email_data);
+      const consent = await ensure_post_quantum_consent(
+        all_recipients,
+        email_data.sender_email || user?.email,
+      );
+
+      if (!consent.proceed) return;
+
+      await execute_internal_send(ctx, {
+        ...email_data,
+        allow_non_post_quantum: consent.allow_non_post_quantum,
+      });
       await confirm_draft_deleted();
     } catch (error) {
       show_toast(
