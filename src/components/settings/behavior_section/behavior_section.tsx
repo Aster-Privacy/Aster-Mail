@@ -34,11 +34,11 @@ import {
   ShieldCheckIcon,
   ViewColumnsIcon,
   LanguageIcon,
-  XMarkIcon,
-  PlusIcon,
+  
+  
 } from "@heroicons/react/24/outline";
 
-import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
+import { SettingsSaveIndicatorInline } from "../settings_save_indicator";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -54,13 +54,6 @@ import {
 } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -76,11 +69,11 @@ import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_register_search_items } from "@/components/settings/search_context";
 import {
-  SUPPORTED_LANGUAGES,
+  
   type LanguageCode,
 } from "@/services/translation/engine_types";
 import {
-  language_display_name,
+  
   derive_accepted_languages,
 } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -90,207 +83,7 @@ import {
 } from "@/lib/inbox_page_size";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-
-interface ToggleSettingProps {
-  title: string;
-  description: string;
-  enabled: boolean;
-  on_toggle: () => void;
-  info?: { title: string; description: string };
-}
-
-function is_redundant_info(
-  info: { title: string; description: string } | undefined,
-  title: string,
-  description: string,
-): boolean {
-  if (!info) return true;
-
-  return info.title === title && info.description === description;
-}
-
-function ToggleSetting({
-  title,
-  description,
-  enabled,
-  on_toggle,
-  info,
-}: ToggleSettingProps) {
-  return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
-        <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-          {title}
-          {!is_redundant_info(info, title, description) && info && (
-            <InfoPopover description={info.description} title={info.title} />
-          )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <Switch size="lg" checked={enabled} onCheckedChange={on_toggle} />
-    </div>
-  );
-}
-
-interface SelectSettingProps {
-  title: string;
-  description: string;
-  value: string;
-  options: { value: string; label: string }[];
-  on_change: (value: string) => void;
-  info?: { title: string; description: string };
-  disabled?: boolean;
-  disabled_note?: string;
-}
-
-function SelectSetting({
-  title,
-  description,
-  value,
-  options,
-  on_change,
-  info,
-  disabled,
-  disabled_note,
-}: SelectSettingProps) {
-  return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-          {title}
-          {!is_redundant_info(info, title, description) && info && (
-            <InfoPopover description={info.description} title={info.title} />
-          )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-        {disabled && disabled_note && (
-          <p className="text-xs mt-1 text-amber-500 dark:text-amber-400 flex items-center gap-1">
-            <LockClosedIcon className="w-3 h-3 flex-shrink-0" />
-            {disabled_note}
-          </p>
-        )}
-      </div>
-      <Select disabled={disabled} value={value} onValueChange={on_change}>
-        <SelectTrigger className="w-[200px]">
-          <SelectValue>
-            {disabled && disabled_note ? disabled_note : undefined}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
-interface LanguagePickerProps {
-  title: string;
-  description: string;
-  selected: readonly string[];
-  is_auto: boolean;
-  ui_locale: string;
-  add_label: string;
-  auto_label: string;
-  on_add: (code: string) => void;
-  on_remove: (code: string) => void;
-}
-
-function LanguagePicker({
-  title,
-  description,
-  selected,
-  is_auto,
-  ui_locale,
-  add_label,
-  auto_label,
-  on_add,
-  on_remove,
-}: LanguagePickerProps) {
-  const available = SUPPORTED_LANGUAGES.filter(
-    (code) => !selected.includes(code),
-  );
-  const display = (code: string) =>
-    language_display_name(code as LanguageCode, ui_locale);
-
-  return (
-    <div className="py-4">
-      <p className="text-sm font-medium text-txt-primary">{title}</p>
-      <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {selected.map((code) => (
-          <span
-            key={code}
-            className="inline-flex items-center gap-1.5 rounded-full border border-edge-primary bg-surf-tertiary pl-3 pr-1.5 py-1 text-sm font-medium text-txt-primary"
-          >
-            {display(code)}
-            <button
-              type="button"
-              onClick={() => on_remove(code)}
-              className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
-              aria-label={display(code)}
-            >
-              <XMarkIcon className="w-3.5 h-3.5" />
-            </button>
-          </span>
-        ))}
-
-        {available.length > 0 && (
-          <Select value="" onValueChange={(v) => v && on_add(v)}>
-            <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-dashed bg-transparent px-3 py-1 text-txt-secondary hover:text-txt-primary">
-              <span className="inline-flex items-center gap-1.5">
-                <PlusIcon className="w-3.5 h-3.5" />
-                {add_label}
-              </span>
-            </SelectTrigger>
-            <SelectContent>
-              {available.map((code) => (
-                <SelectItem key={code} value={code}>
-                  {display(code)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {is_auto && selected.length > 0 && (
-          <span className="text-xs text-txt-muted">{auto_label}</span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-const UNDO_PRESET_SECONDS = [3, 5, 10, 15, 30] as const;
-const UNDO_MIN_SECONDS = 1;
-const UNDO_MAX_SECONDS = 30;
-const UNDO_DEFAULT_SECONDS = 10;
-
-const SIDEBAR_MIN_WIDTH = 200;
-const SIDEBAR_MAX_WIDTH = 360;
-const SIDEBAR_DEFAULT_WIDTH = 256;
-const SIDEBAR_PRESET_WIDTHS = [200, 256, 320] as const;
-
-function clamp_sidebar_width(value: number): number {
-  if (!Number.isFinite(value)) return SIDEBAR_DEFAULT_WIDTH;
-
-  return Math.min(
-    SIDEBAR_MAX_WIDTH,
-    Math.max(SIDEBAR_MIN_WIDTH, Math.round(value)),
-  );
-}
-
-function clamp_undo_seconds(value: number): number {
-  if (!Number.isFinite(value) || value < UNDO_MIN_SECONDS) {
-    return UNDO_DEFAULT_SECONDS;
-  }
-
-  return Math.min(value, UNDO_MAX_SECONDS);
-}
+import { LanguagePicker, SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_PRESET_WIDTHS, SelectSetting, ToggleSetting, UNDO_DEFAULT_SECONDS, UNDO_MAX_SECONDS, UNDO_MIN_SECONDS, UNDO_PRESET_SECONDS, clamp_sidebar_width, clamp_undo_seconds } from "./shared";
 
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
