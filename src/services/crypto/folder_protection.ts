@@ -1,4 +1,7 @@
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { array_to_base64, base64_to_array } from "./base64";
 //
 // Aster Communications Inc.
 //
@@ -19,7 +22,6 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const HASH_ALG = ["SHA", "256"].join("-");
 const PBKDF2_ITERATIONS_LEGACY = 100000;
 const PBKDF2_ITERATIONS = 310000;
 const SALT_BYTES_LEGACY = 16;
@@ -27,31 +29,7 @@ const SALT_BYTES = 32;
 const AUTH_KEY_CONTEXT = "astermail-folder-auth-v1";
 const ENCRYPT_KEY_CONTEXT = "astermail-folder-encrypt-v1";
 
-function array_to_base64(array: Uint8Array): string {
-  let binary = "";
 
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
-}
-
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const array = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    array[i] = binary.charCodeAt(i);
-  }
-
-  return array;
-}
-
-function secure_zero_memory(buffer: Uint8Array): void {
-  crypto.getRandomValues(buffer);
-  buffer.fill(0);
-}
 
 async function hkdf_expand(
   ikm: Uint8Array,
@@ -132,7 +110,7 @@ export async function derive_password_keys(
     32,
   );
 
-  secure_zero_memory(password_derived_key);
+  zero_uint8_array(password_derived_key);
 
   return { auth_key, encryption_key, salt };
 }
@@ -210,7 +188,7 @@ export async function prepare_set_password(
     encryption_key,
   );
 
-  secure_zero_memory(encryption_key);
+  zero_uint8_array(encryption_key);
 
   return {
     data: {
@@ -221,32 +199,6 @@ export async function prepare_set_password(
     },
     folder_key,
   };
-}
-
-export async function verify_and_get_folder_key(
-  password: string,
-  salt_base64: string,
-  encrypted_folder_key_base64: string,
-  folder_key_nonce_base64: string,
-): Promise<{ auth_key: Uint8Array; folder_key: Uint8Array }> {
-  const salt = base64_to_array(salt_base64);
-  const { auth_key, encryption_key } = await derive_password_keys(
-    password,
-    salt,
-  );
-
-  const encrypted_folder_key = base64_to_array(encrypted_folder_key_base64);
-  const folder_key_nonce = base64_to_array(folder_key_nonce_base64);
-
-  const folder_key = await decrypt_folder_key(
-    encrypted_folder_key,
-    folder_key_nonce,
-    encryption_key,
-  );
-
-  secure_zero_memory(encryption_key);
-
-  return { auth_key, folder_key };
 }
 
 export interface ChangePasswordData {
@@ -278,7 +230,7 @@ export async function prepare_change_password(
   const { encrypted: new_encrypted, nonce: new_nonce } =
     await encrypt_folder_key(existing_folder_key, new_encryption_key);
 
-  secure_zero_memory(new_encryption_key);
+  zero_uint8_array(new_encryption_key);
 
   return {
     old_password_hash: array_to_base64(old_auth_key),
@@ -289,14 +241,4 @@ export async function prepare_change_password(
   };
 }
 
-export async function prepare_verify_password(
-  password: string,
-  salt_base64: string,
-): Promise<string> {
-  const salt = base64_to_array(salt_base64);
-  const { auth_key } = await derive_password_keys(password, salt);
-
-  return array_to_base64(auth_key);
-}
-
-export { array_to_base64, base64_to_array, secure_zero_memory };
+export { array_to_base64, base64_to_array };

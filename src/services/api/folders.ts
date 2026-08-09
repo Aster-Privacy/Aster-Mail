@@ -281,10 +281,25 @@ export async function update_folder(
   );
 }
 
+export interface DeleteFolderRequest {
+  password_hash?: string;
+  totp_code?: string;
+  purge_contents?: boolean;
+}
+
+export interface DeleteFolderResponse {
+  status: string;
+  purged_items?: number;
+}
+
 export async function delete_folder(
   folder_id: string,
-): Promise<ApiResponse<{ status: string }>> {
-  return api_client.delete<{ status: string }>(`/mail/v1/labels/${folder_id}`);
+  data?: DeleteFolderRequest,
+): Promise<ApiResponse<DeleteFolderResponse>> {
+  return api_client.delete<DeleteFolderResponse>(
+    `/mail/v1/labels/${folder_id}`,
+    data ? { data } : undefined,
+  );
 }
 
 export async function bulk_delete_folders(
@@ -357,6 +372,17 @@ export interface VerifyFolderPasswordResponse {
   verified: boolean;
   encrypted_folder_key?: string;
   folder_key_nonce?: string;
+  unlock_token?: string;
+  unlock_expires_at?: string;
+}
+
+export interface LockFolderRequest {
+  unlock_token: string | null;
+  all_sessions: boolean;
+}
+
+export interface LockFolderResponse {
+  status?: string;
 }
 
 export interface ChangeFolderPasswordRequest {
@@ -395,6 +421,16 @@ export async function verify_folder_password(
 ): Promise<ApiResponse<VerifyFolderPasswordResponse>> {
   return api_client.post<VerifyFolderPasswordResponse>(
     `/mail/v1/labels/${folder_id}/password/verify`,
+    data,
+  );
+}
+
+export async function lock_folder_session(
+  folder_id: string,
+  data: LockFolderRequest,
+): Promise<ApiResponse<LockFolderResponse>> {
+  return api_client.post<LockFolderResponse>(
+    `/mail/v1/labels/${folder_id}/lock`,
     data,
   );
 }

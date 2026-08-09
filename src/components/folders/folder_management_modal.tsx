@@ -24,8 +24,6 @@ import {
   PencilIcon,
   FolderIcon,
   InboxIcon,
-  TrashIcon,
-  ExclamationTriangleIcon,
   ShieldCheckIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
@@ -44,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
 import { use_folders } from "@/hooks/use_folders";
 import { use_i18n } from "@/lib/i18n/context";
+import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
 
 const MAX_FOLDER_NAME_LENGTH = 100;
 
@@ -73,7 +72,6 @@ export function FolderManagementModal({
   const { t } = use_i18n();
   const {
     update_existing_folder,
-    delete_existing_folder,
     toggle_folder_lock,
     state: folders_state,
   } = use_folders();
@@ -183,22 +181,6 @@ export function FolderManagementModal({
       on_close();
     } else {
       set_error(t("common.failed_to_change_folder_color"));
-    }
-  };
-
-  const handle_delete = async () => {
-    set_is_loading(true);
-    set_error("");
-
-    const success = await delete_existing_folder(folder_id);
-
-    set_is_loading(false);
-
-    if (success) {
-      on_deleted?.();
-      on_close();
-    } else {
-      set_error(t("common.failed_to_delete_folder"));
     }
   };
 
@@ -465,72 +447,6 @@ export function FolderManagementModal({
           </>
         );
 
-      case "delete":
-        return (
-          <>
-            <ModalHeader>
-              <div className="flex items-center gap-3">
-                <TrashIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.delete_folder")}</ModalTitle>
-                  <ModalDescription>{folder_name}</ModalDescription>
-                </div>
-              </div>
-            </ModalHeader>
-
-            <ModalBody>
-              <div
-                className="rounded-lg p-4 mb-4 bg-red-600 dark:bg-red-700"
-              >
-                <div className="flex items-start gap-3">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[13px] font-medium text-white mb-1">
-                      {t("common.action_cannot_be_undone")}
-                    </p>
-                    <p className="text-[12px] text-red-100">
-                      {t("common.delete_folder_warning")}
-                      {hasChildren && t("common.delete_folder_subfolders")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-[14px] text-txt-secondary">
-                {t("common.delete_folder_confirm")}{" "}
-                <strong>&quot;{folder_name}&quot;</strong>?
-              </p>
-
-              {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
-              )}
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                className="flex-1"
-                disabled={is_loading}
-                size="xl"
-                variant="outline"
-                onClick={on_close}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                className="flex-1"
-                disabled={is_loading}
-                size="xl"
-                variant="destructive"
-                onClick={handle_delete}
-              >
-                {is_loading
-                  ? t("common.deleting")
-                  : `${t("common.delete")} ${t("mail.folder")}`}
-              </Button>
-            </ModalFooter>
-          </>
-        );
-
       case "move":
         return (
           <>
@@ -621,6 +537,19 @@ export function FolderManagementModal({
         return null;
     }
   };
+
+  if (action === "delete") {
+    return (
+      <FolderDeleteDialog
+        folder_id={folder_id}
+        folder_name={folder_name}
+        has_children={hasChildren}
+        is_open={is_open}
+        on_close={on_close}
+        on_deleted={on_deleted}
+      />
+    );
+  }
 
   return (
     <Modal is_open={is_open} on_close={on_close} size="md">

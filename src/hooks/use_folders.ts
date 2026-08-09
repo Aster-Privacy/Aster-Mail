@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { HASH_ALG } from "@/services/crypto/constants";
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
@@ -32,6 +33,7 @@ import {
   type CreateFolderRequest,
   type UpdateFolderRequest,
   type ListFoldersParams,
+  type DeleteFolderRequest,
 } from "@/services/api/folders";
 import {
   add_mail_item_folder,
@@ -51,7 +53,6 @@ import {
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 
-const HASH_ALG = ["SHA", "256"].join("-");
 
 export interface DecryptedFolder {
   id: string;
@@ -334,6 +335,12 @@ export function has_protected_folder_label(
   return labels.some((l) => tokens.has(l.token));
 }
 
+export interface DeleteFolderOutcome {
+  success: boolean;
+  purged_items?: number;
+  error?: string;
+}
+
 interface UseFoldersReturn {
   state: FoldersState;
   counts: FolderCounts;
@@ -359,7 +366,10 @@ interface UseFoldersReturn {
   reorder_folders: (
     entries: { id: string; sort_order: number }[],
   ) => Promise<boolean>;
-  delete_existing_folder: (folder_id: string) => Promise<boolean>;
+  delete_existing_folder: (
+    folder_id: string,
+    options?: DeleteFolderRequest,
+  ) => Promise<DeleteFolderOutcome>;
   toggle_folder_lock: (
     folder_id: string,
     is_locked: boolean,
@@ -909,12 +919,15 @@ export function use_folders(): UseFoldersReturn {
   );
 
   const delete_existing_folder = useCallback(
-    async (folder_id: string): Promise<boolean> => {
+    async (
+      folder_id: string,
+      options?: DeleteFolderRequest,
+    ): Promise<DeleteFolderOutcome> => {
       try {
-        const response = await delete_folder(folder_id);
+        const response = await delete_folder(folder_id, options);
 
         if (response.error && response.code !== "NOT_FOUND") {
-          return false;
+          return { success: false, error: response.error };
         }
 
         set_state((prev) => {
@@ -935,9 +948,12 @@ export function use_folders(): UseFoldersReturn {
         emit_folders_changed();
         broadcast_folders_changed();
 
-        return true;
+        return {
+          success: true,
+          purged_items: response.data?.purged_items ?? 0,
+        };
       } catch {
-        return false;
+        return { success: false };
       }
     },
     [],

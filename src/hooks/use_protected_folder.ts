@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { useState, useCallback, useEffect } from "react";
 
 import {
@@ -25,7 +26,17 @@ import {
   verify_folder_password,
   change_folder_password,
   remove_folder_password,
+  lock_folder_session,
 } from "@/services/api/folders";
+import {
+  clear_all_folder_unlock_records,
+  clear_folder_unlock_record,
+  get_unlock_token as get_unlock_token_for_folder_label,
+  is_folder_unlock_live,
+  parse_unlock_expiry,
+  set_folder_unlock_record,
+} from "@/services/folder_unlock_store";
+import { purge_locked_folder_local_caches } from "@/services/locked_folders";
 import { api_client } from "@/services/api/client";
 import {
   prepare_set_password,
@@ -34,7 +45,6 @@ import {
   decrypt_folder_key,
   array_to_base64,
   base64_to_array,
-  secure_zero_memory,
 } from "@/services/crypto/folder_protection";
 import { use_folders } from "@/hooks/use_folders";
 import { emit_folders_changed } from "@/hooks/mail_events";
@@ -42,15 +52,41 @@ import { use_i18n } from "@/lib/i18n/context";
 
 interface UnlockedFolder {
   folder_id: string;
+  folder_token: string;
   folder_key: Uint8Array;
   unlocked_at: number;
   password_salt: string;
+  unlock_token: string | null;
+  unlock_expires_at: number | null;
   timeout_id: ReturnType<typeof setTimeout> | null;
 }
 
 const unlocked_folders = new Map<string, UnlockedFolder>();
 
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+function register_unlock(record: UnlockedFolder): void {
+  unlocked_folders.set(record.folder_id, record);
+  set_folder_unlock_record({
+    folder_id: record.folder_id,
+    folder_token: record.folder_token,
+    unlock_token: record.unlock_token,
+    unlock_expires_at: record.unlock_expires_at,
+  });
+}
+
+function revoke_unlock_session(record: UnlockedFolder): void {
+  void lock_folder_session(record.folder_id, {
+    unlock_token: record.unlock_token,
+    all_sessions: false,
+  }).catch(() => undefined);
+}
+
+function forget_unlock(folder_id: string): void {
+  unlocked_folders.delete(folder_id);
+  clear_folder_unlock_record(folder_id);
+  void purge_locked_folder_local_caches().catch(() => undefined);
+}
 
 function clear_folder_timeout(folder_id: string): void {
   const unlocked = unlocked_folders.get(folder_id);
@@ -71,8 +107,9 @@ function set_folder_timeout(folder_id: string): void {
     const current = unlocked_folders.get(folder_id);
 
     if (current) {
-      secure_zero_memory(current.folder_key);
-      unlocked_folders.delete(folder_id);
+      zero_uint8_array(current.folder_key);
+      revoke_unlock_session(current);
+      forget_unlock(folder_id);
       window.dispatchEvent(
         new CustomEvent("astermail:folder-locked", { detail: { folder_id } }),
       );
@@ -172,7 +209,7 @@ export function use_protected_folder(
         });
 
         if (!verify_response.data?.verified) {
-          secure_zero_memory(encryption_key);
+          zero_uint8_array(encryption_key);
           set_error(t("errors.wrong_folder_password"));
 
           return false;
@@ -182,7 +219,7 @@ export function use_protected_folder(
           !verify_response.data.encrypted_folder_key ||
           !verify_response.data.folder_key_nonce
         ) {
-          secure_zero_memory(encryption_key);
+          zero_uint8_array(encryption_key);
           set_error(t("common.failed_to_unlock_folder"));
 
           return false;
@@ -201,13 +238,18 @@ export function use_protected_folder(
           encryption_key,
         );
 
-        secure_zero_memory(encryption_key);
+        zero_uint8_array(encryption_key);
 
-        unlocked_folders.set(folder_id, {
+        register_unlock({
           folder_id,
+          folder_token: folder.folder_token,
           folder_key,
           unlocked_at: Date.now(),
           password_salt,
+          unlock_token: verify_response.data.unlock_token ?? null,
+          unlock_expires_at: parse_unlock_expiry(
+            verify_response.data.unlock_expires_at,
+          ),
           timeout_id: null,
         });
 
@@ -247,17 +289,21 @@ export function use_protected_folder(
           throw new Error(response.error);
         }
 
-        unlocked_folders.set(folder_id, {
+        register_unlock({
           folder_id,
+          folder_token: folder?.folder_token ?? "",
           folder_key,
           unlocked_at: Date.now(),
           password_salt: data.password_salt,
+          unlock_token: null,
+          unlock_expires_at: null,
           timeout_id: null,
         });
 
         set_is_unlocked(true);
         reset_timeout();
         emit_folders_changed();
+        void purge_locked_folder_local_caches().catch(() => undefined);
 
         return true;
       } catch (err) {
@@ -353,8 +399,8 @@ export function use_protected_folder(
         }
 
         clear_folder_timeout(folder_id);
-        secure_zero_memory(unlocked.folder_key);
-        unlocked_folders.delete(folder_id);
+        zero_uint8_array(unlocked.folder_key);
+        forget_unlock(folder_id);
         set_is_unlocked(false);
 
         emit_folders_changed();
@@ -378,10 +424,14 @@ export function use_protected_folder(
     const unlocked = unlocked_folders.get(folder_id);
 
     if (unlocked) {
-      secure_zero_memory(unlocked.folder_key);
-      unlocked_folders.delete(folder_id);
+      revoke_unlock_session(unlocked);
+      zero_uint8_array(unlocked.folder_key);
+      forget_unlock(folder_id);
     }
     set_is_unlocked(false);
+    window.dispatchEvent(
+      new CustomEvent("astermail:folder-locked", { detail: { folder_id } }),
+    );
   }, [folder_id]);
 
   const get_folder_key = useCallback((): Uint8Array | null => {
@@ -414,14 +464,34 @@ export function lock_all_folders(): void {
     if (unlocked.timeout_id) {
       clearTimeout(unlocked.timeout_id);
     }
-    secure_zero_memory(unlocked.folder_key);
+    revoke_unlock_session(unlocked);
+    zero_uint8_array(unlocked.folder_key);
     window.dispatchEvent(
       new CustomEvent("astermail:folder-locked", { detail: { folder_id } }),
     );
   }
   unlocked_folders.clear();
+  clear_all_folder_unlock_records();
+  void purge_locked_folder_local_caches().catch(() => undefined);
 }
 
 export function is_folder_unlocked(folder_id: string): boolean {
-  return unlocked_folders.has(folder_id);
+  if (!unlocked_folders.has(folder_id)) return false;
+
+  if (!is_folder_unlock_live(folder_id)) {
+    const unlocked = unlocked_folders.get(folder_id);
+
+    if (unlocked) {
+      zero_uint8_array(unlocked.folder_key);
+      unlocked_folders.delete(folder_id);
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
+export function get_unlock_token(label_token: string): string | null {
+  return get_unlock_token_for_folder_label(label_token);
 }

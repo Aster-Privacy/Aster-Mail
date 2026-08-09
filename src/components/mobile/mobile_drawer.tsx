@@ -71,6 +71,7 @@ import {
   LogoutConfirmWrapper,
 } from "@/components/mobile/mobile_drawer_sheets";
 import { DrawerNavContent } from "@/components/mobile/mobile_drawer_nav";
+import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
 interface MobileDrawerProps {
@@ -151,6 +152,8 @@ export const MobileDrawer = memo(function MobileDrawer({
   const [editing_folder, set_editing_folder] = useState<DecryptedFolder | null>(
     null,
   );
+  const [deleting_folder, set_deleting_folder] =
+    useState<DecryptedFolder | null>(null);
   const [editing_tag, set_editing_tag] = useState<DecryptedTag | null>(null);
   const [edit_folder_name, set_edit_folder_name] = useState("");
   const [edit_folder_color, set_edit_folder_color] = useState("");
@@ -191,6 +194,9 @@ export const MobileDrawer = memo(function MobileDrawer({
       if (show_logout_confirm) {
         e.preventDefault();
         set_show_logout_confirm(false);
+      } else if (deleting_folder) {
+        e.preventDefault();
+        set_deleting_folder(null);
       } else if (editing_folder) {
         e.preventDefault();
         set_editing_folder(null);
@@ -229,6 +235,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     show_create_label,
     show_create_alias,
     editing_folder,
+    deleting_folder,
     editing_tag,
     password_modal_folder,
     show_logout_confirm,
@@ -250,6 +257,7 @@ export const MobileDrawer = memo(function MobileDrawer({
       set_alias_error("");
       set_captcha_token(null);
       set_editing_folder(null);
+      set_deleting_folder(null);
       set_editing_tag(null);
       set_password_modal_folder(null);
     }
@@ -466,6 +474,14 @@ export const MobileDrawer = memo(function MobileDrawer({
 
   const handle_delete_folder = useCallback(async () => {
     if (!editing_folder) return;
+
+    if (editing_folder.is_password_protected && editing_folder.password_set) {
+      set_deleting_folder(editing_folder);
+      set_editing_folder(null);
+
+      return;
+    }
+
     await delete_existing_folder(editing_folder.id);
     set_editing_folder(null);
   }, [editing_folder, delete_existing_folder]);
@@ -718,6 +734,20 @@ export const MobileDrawer = memo(function MobileDrawer({
         on_close={() => set_editing_folder(null)}
         set_edit_color={set_edit_folder_color}
         set_edit_name={set_edit_folder_name}
+      />
+
+      <FolderDeleteDialog
+        folder_id={deleting_folder?.id ?? ""}
+        folder_name={deleting_folder?.name ?? ""}
+        has_children={
+          !!deleting_folder &&
+          folders_state.folders.some(
+            (f) => f.parent_token === deleting_folder.folder_token,
+          )
+        }
+        is_open={!!deleting_folder}
+        on_close={() => set_deleting_folder(null)}
+        variant="sheet"
       />
 
       <EditTagSheet
