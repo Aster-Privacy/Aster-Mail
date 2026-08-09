@@ -1455,6 +1455,7 @@ export async function get_alias_run(
 ): Promise<ApiResponse<AliasRunStatusResponse>> {
   return api_client.get<AliasRunStatusResponse>(
     `/addresses/v1/aliases/${alias_id}/run`,
+    { skip_cache: true },
   );
 }
 
