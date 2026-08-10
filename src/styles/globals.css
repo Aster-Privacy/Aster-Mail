@@ -1972,6 +1972,9 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .plan_ring {
   position: relative;
   display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
   vertical-align: middle;
   line-height: 0;
   border-radius: 9999px;
@@ -1981,13 +1984,9 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .plan_ring::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: -5px;
   z-index: -1;
   box-sizing: border-box;
-  width: calc(100% + 10px);
-  height: calc(100% + 10px);
-  transform: translate(-50%, -50%);
   border: 2px solid transparent;
   border-radius: 9999px;
   background:
