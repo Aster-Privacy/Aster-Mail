@@ -190,6 +190,17 @@ export async function bulk_remove_tag(
 
 const TAG_BATCH_CHUNK_SIZE = 100;
 
+export interface BatchedTagOptions {
+  signal?: AbortSignal;
+  on_progress?: (completed: number, total: number) => void;
+}
+
+export interface BatchedTagResult {
+  error?: string;
+  affected: number;
+  failed_ids: string[];
+}
+
 async function run_batched_tag_operation(
   ids: string[],
   tag_token: string,
@@ -197,12 +208,16 @@ async function run_batched_tag_operation(
     batch: string[],
     tag_token: string,
   ) => Promise<ApiResponse<{ status: string; affected: number }>>,
-): Promise<{ error?: string; affected: number; failed_ids: string[] }> {
+  options?: BatchedTagOptions,
+): Promise<BatchedTagResult> {
   let affected = 0;
+  let processed = 0;
   const failed_ids: string[] = [];
   let last_error: string | undefined;
 
   for (let i = 0; i < ids.length; i += TAG_BATCH_CHUNK_SIZE) {
+    if (options?.signal?.aborted) break;
+
     const batch = ids.slice(i, i + TAG_BATCH_CHUNK_SIZE);
     const result = await api_call(batch, tag_token).catch(() => null);
 
@@ -212,6 +227,9 @@ async function run_batched_tag_operation(
     } else {
       affected += result.data?.affected ?? batch.length;
     }
+
+    processed += batch.length;
+    options?.on_progress?.(processed, ids.length);
   }
 
   return { error: last_error, affected, failed_ids };
@@ -220,13 +238,15 @@ async function run_batched_tag_operation(
 export async function batched_bulk_add_tag(
   ids: string[],
   tag_token: string,
-): Promise<{ error?: string; affected: number; failed_ids: string[] }> {
-  return run_batched_tag_operation(ids, tag_token, bulk_add_tag);
+  options?: BatchedTagOptions,
+): Promise<BatchedTagResult> {
+  return run_batched_tag_operation(ids, tag_token, bulk_add_tag, options);
 }
 
 export async function batched_bulk_remove_tag(
   ids: string[],
   tag_token: string,
-): Promise<{ error?: string; affected: number; failed_ids: string[] }> {
-  return run_batched_tag_operation(ids, tag_token, bulk_remove_tag);
+  options?: BatchedTagOptions,
+): Promise<BatchedTagResult> {
+  return run_batched_tag_operation(ids, tag_token, bulk_remove_tag, options);
 }

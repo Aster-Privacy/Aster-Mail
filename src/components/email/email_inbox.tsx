@@ -130,6 +130,8 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_mark_unread_wrapped,
     handle_toggle_star_wrapped,
     handle_restore_wrapped,
+    handle_folder_toggle_wrapped,
+    handle_tag_toggle_wrapped,
     selection_menu,
     nav,
     is_split_view,
@@ -298,7 +300,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             on_empty_trash={toolbar.handle_empty_trash}
             on_filter_change={handle_filter_change}
             on_folder_toggle={(folder_token) => {
-              toolbar.handle_toolbar_toggle_folder(
+              handle_folder_toggle_wrapped(
                 folder_token,
                 selection.get_folder_status_for_selection(folder_token) ===
                   "all",
@@ -331,7 +333,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             on_snooze={toolbar.handle_toolbar_snooze}
             on_spam={handle_spam_wrapped}
             on_tag_toggle={(tag_token) => {
-              toolbar.handle_toolbar_toggle_tag(
+              handle_tag_toggle_wrapped(
                 tag_token,
                 selection.get_tag_status_for_selection(tag_token) === "all",
               );

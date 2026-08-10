@@ -41,7 +41,6 @@ import {
 } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
-import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import {
   filter_locked_mail_items,
   is_folder_token_locked,
@@ -54,7 +53,7 @@ import { decrypt_envelope } from "./decrypt";
 import { should_keep_email_in_view } from "./display";
 import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
 import { mail_to_email_safe } from "./mapping";
-import { DEFAULT_PAGE_SIZE, MAX_PAGE_TOP_UP_ROUNDS, MailView, UNKNOWN_TOTAL, VIEW_PARAMS } from "./views";
+import { build_view_list_params, DEFAULT_PAGE_SIZE, MAX_PAGE_TOP_UP_ROUNDS, UNKNOWN_TOTAL } from "./views";
 
 export async function fetch_mail_from_api(
   view: string,
@@ -81,33 +80,15 @@ export async function fetch_mail_from_api(
   const index_generation = category_index_module?.get_index_generation();
 
   const params: ListMailItemsParams = {
+    ...build_view_list_params(view),
     limit,
     order,
-    ...VIEW_PARAMS[view as MailView],
     ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
     ...(offset !== undefined ? { group_by_thread: should_group } : {}),
     ...((offset !== undefined && offset > 0) || cursor
       ? { skip_total: true }
       : {}),
   };
-
-  if (view.startsWith("folder-")) {
-    params.label_token = view.replace("folder-", "");
-    delete params.item_type;
-  } else if (view.startsWith("tag-")) {
-    params.tag_token = view.replace("tag-", "");
-    delete params.item_type;
-  } else if (view.startsWith("alias-")) {
-    const alias_address = view.replace("alias-", "");
-    const alias_hash = get_alias_hash_by_address(alias_address);
-
-    if (alias_hash) {
-      params.routing_token = alias_hash;
-    }
-    delete params.item_type;
-  } else if (!VIEW_PARAMS[view as MailView]) {
-    params.item_type = "received";
-  }
 
   const response = await list_mail_items(params);
 

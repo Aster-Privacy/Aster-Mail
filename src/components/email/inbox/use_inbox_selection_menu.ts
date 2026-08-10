@@ -58,6 +58,8 @@ export function use_inbox_selection_menu({
     handle_mark_unread_wrapped,
     handle_restore_wrapped,
     handle_not_spam_wrapped,
+    handle_folder_toggle_wrapped,
+    handle_tag_toggle_wrapped,
   } = bulk_actions;
 
   const selected_emails = useMemo(
@@ -91,13 +93,13 @@ export function use_inbox_selection_menu({
       on_snooze: toolbar.handle_toolbar_snooze,
       on_custom_snooze: () => set_show_toolbar_custom_snooze(true),
       on_folder_toggle: (folder_token: string) => {
-        toolbar.handle_toolbar_toggle_folder(
+        handle_folder_toggle_wrapped(
           folder_token,
           selection.get_folder_status_for_selection(folder_token) === "all",
         );
       },
       on_tag_toggle: (tag_token: string) => {
-        toolbar.handle_toolbar_toggle_tag(
+        handle_tag_toggle_wrapped(
           tag_token,
           selection.get_tag_status_for_selection(tag_token) === "all",
         );
@@ -126,6 +128,8 @@ export function use_inbox_selection_menu({
     handle_restore_wrapped,
     handle_not_spam_wrapped,
     handle_unarchive_wrapped,
+    handle_folder_toggle_wrapped,
+    handle_tag_toggle_wrapped,
   ]);
 
   return selection_menu;

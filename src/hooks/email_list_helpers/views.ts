@@ -22,6 +22,7 @@
 import {
   type ListMailItemsParams,
 } from "@/services/api/mail";
+import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 
 
 
@@ -58,6 +59,29 @@ export const VIEW_PARAMS: Record<MailView, Partial<ListMailItemsParams>> = {
   snoozed: { is_snoozed: true, is_trashed: false, is_spam: false },
   all: { item_type: "all", include_spam: false, include_trash: false },
 };
+
+export function build_view_list_params(view: string): ListMailItemsParams {
+  const params: ListMailItemsParams = { ...VIEW_PARAMS[view as MailView] };
+
+  if (view.startsWith("folder-")) {
+    params.label_token = view.replace("folder-", "");
+    delete params.item_type;
+  } else if (view.startsWith("tag-")) {
+    params.tag_token = view.replace("tag-", "");
+    delete params.item_type;
+  } else if (view.startsWith("alias-")) {
+    const alias_hash = get_alias_hash_by_address(view.replace("alias-", ""));
+
+    if (alias_hash) {
+      params.routing_token = alias_hash;
+    }
+    delete params.item_type;
+  } else if (!VIEW_PARAMS[view as MailView]) {
+    params.item_type = "received";
+  }
+
+  return params;
+}
 
 export const VIEWS_EXCLUDING_TRASHED_SPAM = new Set<string>([
   "inbox",

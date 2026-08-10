@@ -504,6 +504,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     current_view,
     page_size,
     scope_for_view,
+    folders_lookup,
+    tags_lookup,
     fetch_page,
     set_current_page,
     t,
@@ -520,6 +522,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     handle_mark_unread_wrapped,
     handle_toggle_star_wrapped,
     handle_restore_wrapped,
+    handle_folder_toggle_wrapped,
+    handle_tag_toggle_wrapped,
   } = bulk_actions;
 
   const selection_menu = use_inbox_selection_menu({
@@ -661,6 +665,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     handle_mark_unread_wrapped,
     handle_toggle_star_wrapped,
     handle_restore_wrapped,
+    handle_folder_toggle_wrapped,
+    handle_tag_toggle_wrapped,
     selection_menu,
     nav,
     is_split_view,

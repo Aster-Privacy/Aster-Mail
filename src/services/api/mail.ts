@@ -130,6 +130,7 @@ export interface ListMailItemsParams {
   group_by_thread?: boolean;
   order?: "asc" | "desc";
   skip_total?: boolean;
+  include_envelope?: boolean;
   folder_unlock_token?: string;
 }
 
@@ -273,6 +274,8 @@ export async function list_mail_items(
     query_params.set("group_by_thread", params.group_by_thread.toString());
   if (params.order) query_params.set("order", params.order);
   if (params.skip_total) query_params.set("skip_total", "true");
+  if (params.include_envelope === false)
+    query_params.set("include_envelope", "false");
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;

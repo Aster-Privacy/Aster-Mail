@@ -38,6 +38,15 @@ import {
   run_category_scope_action,
   supports_category_scope,
 } from "@/components/email/inbox/category_bulk_actions";
+import { collect_scope_ids } from "@/components/email/inbox/collect_scope_ids";
+import {
+  batched_bulk_add_folder,
+  batched_bulk_remove_folder,
+} from "@/services/api/mail";
+import {
+  batched_bulk_add_tag,
+  batched_bulk_remove_tag,
+} from "@/services/api/tags";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
 import {
@@ -103,6 +112,8 @@ export type InboxBulkActionsParams = {
   current_view: string;
   page_size: number;
   scope_for_view: BulkScopeFilter | null;
+  folders_lookup: Map<string, { name: string; color?: string }>;
+  tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
   fetch_page: (page: number, size: number) => unknown;
   set_current_page: (page: number) => void;
   t: ReturnType<typeof use_i18n>["t"];
@@ -115,6 +126,8 @@ export function use_inbox_bulk_actions({
   current_view,
   page_size,
   scope_for_view,
+  folders_lookup,
+  tags_lookup,
   fetch_page,
   set_current_page,
   t,
@@ -300,6 +313,163 @@ export function use_inbox_bulk_actions({
     ],
   );
 
+  const run_scope_label_action = useCallback(
+    async (
+      kind: "folder" | "tag",
+      token: string,
+      should_remove: boolean,
+    ): Promise<void> => {
+      const name =
+        kind === "folder"
+          ? folders_lookup.get(token)?.name || "folder"
+          : tags_lookup.get(token)?.name || "label";
+
+      let progress_toast_shown = false;
+      let applied = 0;
+
+      const report = (completed: number, total: number) => {
+        if (total < PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS) return;
+        if (!progress_toast_shown) {
+          progress_toast_shown = true;
+          show_action_toast({
+            message: t("common.processing_count", {
+              completed: String(completed),
+              total: String(total),
+            }),
+            action_type: "progress",
+            email_ids: [],
+            progress: { completed, total },
+          });
+
+          return;
+        }
+        update_progress_toast(completed, total, t);
+      };
+
+      try {
+        const { ids, capped } = await collect_scope_ids({
+          view: current_view,
+          exclude_ids: selection.excluded_ids,
+          on_progress: (collected) => report(0, collected),
+        });
+
+        if (ids.length === 0) return;
+
+        const apply =
+          kind === "folder"
+            ? should_remove
+              ? batched_bulk_remove_folder
+              : batched_bulk_add_folder
+            : should_remove
+              ? batched_bulk_remove_tag
+              : batched_bulk_add_tag;
+        const result = await apply(ids, token, {
+          on_progress: (completed) => {
+            applied = completed;
+            report(completed, ids.length);
+          },
+        });
+
+        const failed = new Set(result.failed_ids);
+        const succeeded = ids.length - failed.size;
+
+        selection.exit_select_all_mode();
+        selection.handle_clear_selection();
+        set_current_page(0);
+        fetch_page(0, page_size);
+        mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+
+        if (failed.size > 0) {
+          show_toast(
+            t("common.bulk_action_partially_applied", {
+              count: succeeded,
+              total: ids.length,
+            }),
+            "error",
+          );
+
+          return;
+        }
+
+        show_action_toast({
+          message:
+            kind === "folder"
+              ? should_remove
+                ? t("common.conversations_removed_from_folder", {
+                    count: succeeded,
+                    folder: name,
+                  })
+                : t("common.conversations_moved_to_folder", {
+                    count: succeeded,
+                    folder: name,
+                  })
+              : should_remove
+                ? t("common.conversations_removed_label", {
+                    count: succeeded,
+                    label: name,
+                  })
+                : t("common.conversations_added_label", {
+                    count: succeeded,
+                    label: name,
+                  }),
+          action_type: "folder",
+          email_ids: [],
+        });
+
+        if (capped) {
+          show_toast(t("mail.bulk_action_index_capped"), "info");
+        }
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+        if (applied > 0) {
+          fetch_page(0, page_size);
+          mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+        }
+        show_toast(t("common.something_went_wrong"), "error");
+      } finally {
+        if (progress_toast_shown) hide_action_toast();
+      }
+    },
+    [
+      current_view,
+      folders_lookup,
+      tags_lookup,
+      selection,
+      fetch_page,
+      set_current_page,
+      page_size,
+      t,
+    ],
+  );
+
+  const handle_folder_toggle_wrapped = useCallback(
+    (folder_token: string, should_remove: boolean) => {
+      if (selection.select_all_mode) {
+        queue_select_all_action(() => {
+          void run_scope_label_action("folder", folder_token, should_remove);
+        });
+
+        return;
+      }
+      void toolbar.handle_toolbar_toggle_folder(folder_token, should_remove);
+    },
+    [selection, toolbar, run_scope_label_action, queue_select_all_action],
+  );
+
+  const handle_tag_toggle_wrapped = useCallback(
+    (tag_token: string, should_remove: boolean) => {
+      if (selection.select_all_mode) {
+        queue_select_all_action(() => {
+          void run_scope_label_action("tag", tag_token, should_remove);
+        });
+
+        return;
+      }
+      void toolbar.handle_toolbar_toggle_tag(tag_token, should_remove);
+    },
+    [selection, toolbar, run_scope_label_action, queue_select_all_action],
+  );
+
   const handle_delete_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
       queue_select_all_action(() => {
@@ -440,5 +610,7 @@ export function use_inbox_bulk_actions({
     handle_toggle_star_wrapped,
     handle_restore_wrapped,
     handle_not_spam_wrapped,
+    handle_folder_toggle_wrapped,
+    handle_tag_toggle_wrapped,
   };
 }
