@@ -60,7 +60,9 @@ function break_unwrap_key(error_name: string): void {
   };
 }
 
-async function generate_key(email: string): Promise<openpgp.SerializedKeyPair<string>> {
+async function generate_key(
+  email: string,
+): Promise<{ privateKey: string; publicKey: string }> {
   return openpgp.generateKey({
     type: "ecc",
     curve: "ed25519Legacy",

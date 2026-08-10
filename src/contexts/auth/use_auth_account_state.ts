@@ -264,12 +264,7 @@ export function use_auth_account_state() {
         api_client.set_expected_user_id(current.user.id);
 
         if ("__TAURI_INTERNALS__" in window) {
-          const logout_flag = sessionStorage.getItem("aster_tauri_logout");
-          if (logout_flag) {
-            sessionStorage.removeItem("aster_tauri_logout");
-          } else {
-            await init_desktop_device_auth();
-          }
+          await init_desktop_device_auth();
         }
 
         let verify_timed_out = false;
