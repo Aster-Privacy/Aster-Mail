@@ -37,24 +37,36 @@ export const page_transition = {
   ease: "easeOut",
 };
 
-export function get_safe_next_path(): string {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("next");
+let remembered_next_path: string | null = null;
 
-    if (!raw) return "/";
+function read_next_path_from_url(): string | null {
+  try {
+    const raw = new URLSearchParams(window.location.search).get("next");
+
+    if (!raw) return null;
+
     const decoded = decodeURIComponent(raw);
 
-    if (!decoded.startsWith("/")) return "/";
+    if (!decoded.startsWith("/")) return null;
     if (decoded.length > 1 && (decoded[1] === "/" || decoded[1] === "\\"))
-      return "/";
-    if (decoded.startsWith("/sign-in") || decoded.startsWith("/register"))
-      return "/";
+      return null;
 
-    return strip_account_prefix(decoded);
+    const path = strip_account_prefix(decoded);
+
+    if (path.startsWith("/sign-in") || path.startsWith("/register")) return null;
+
+    return path;
   } catch {
-    return "/";
+    return null;
   }
+}
+
+export function get_safe_next_path(): string {
+  const from_url = read_next_path_from_url();
+
+  if (from_url) remembered_next_path = from_url;
+
+  return remembered_next_path ?? "/";
 }
 
 export async function decrypt_with_prf(
