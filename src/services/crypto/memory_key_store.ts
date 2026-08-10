@@ -247,6 +247,7 @@ export async function store_vault_in_memory(
       zero_uint8_array(derived_encryption_key);
       derived_encryption_key = null;
     }
+    keys_ready_seen = false;
     clear_crypto_key_cache();
   });
 
@@ -439,7 +440,7 @@ export function wait_for_keys_ready(
 }
 
 function notify_keys_ready(): void {
-  keys_ready_seen = true;
+  keys_ready_seen = false;
   keys_ready_listeners.forEach((callback) => {
     try {
       callback();
