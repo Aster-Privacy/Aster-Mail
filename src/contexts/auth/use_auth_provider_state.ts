@@ -21,6 +21,7 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { useEffect, useMemo, useCallback, useRef } from "react";
+import { useLocation } from "react-router-dom";
 
 import {
   get_stored_encrypted_vault,
@@ -73,6 +74,14 @@ import {
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
+import {
+  account_index_routing_enabled,
+  app_pathname,
+  get_active_account_index,
+  is_public_entry_path,
+  redirect_to_account_index,
+  take_url_account_request,
+} from "@/lib/account_index_url";
 import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
 import {
   delete_category_index_for_account,
@@ -105,6 +114,7 @@ export function use_auth_provider_state() {
     remove_account_handler,
   } = use_auth_account_state();
 
+  const location = useLocation();
   const switch_in_flight = useRef(false);
   const session_expired_muted_until = useRef(0);
 
@@ -431,7 +441,7 @@ export function use_auth_provider_state() {
       message_key: TranslationKey,
       reason?: string,
     ) => {
-      const path = window.location.pathname;
+      const path = app_pathname();
       const current_id = state.current_account_id;
       const all_accounts = await get_all_accounts();
       const target = all_accounts.find((a) => a.id === current_id);
@@ -672,6 +682,46 @@ export function use_auth_provider_state() {
       safe_log_error(e);
     });
   }, [state.is_authenticated, state.current_account_id, switch_to_account]);
+
+  useEffect(() => {
+    if (!account_index_routing_enabled()) return;
+    if (!state.is_authenticated || !state.has_keys) return;
+    if (is_public_entry_path(location.pathname)) return;
+
+    const current_index = state.accounts.findIndex(
+      (a) => a.id === state.current_account_id,
+    );
+
+    if (current_index === -1) return;
+
+    const url_index = get_active_account_index();
+
+    if (url_index === null) return;
+
+    const requested_index = take_url_account_request();
+
+    if (current_index === url_index) return;
+
+    const target =
+      requested_index === null ? null : state.accounts[requested_index];
+
+    if (target && target.id !== state.current_account_id) {
+      switch_to_account(target.id).catch((e) => {
+        safe_log_error(e);
+      });
+
+      return;
+    }
+
+    redirect_to_account_index(current_index);
+  }, [
+    state.is_authenticated,
+    state.has_keys,
+    state.accounts,
+    state.current_account_id,
+    location.pathname,
+    switch_to_account,
+  ]);
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {

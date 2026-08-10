@@ -48,6 +48,10 @@ import { apply_desktop_content_protection } from "@/native/desktop_content_prote
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_mobile_experience } from "@/hooks/use_mobile_experience";
+import {
+  app_pathname,
+  resolve_account_basename,
+} from "@/lib/account_index_url";
 import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
@@ -277,6 +281,7 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 const browser_supported = typeof window.crypto?.subtle === "object";
 
 const Router = is_tauri_runtime ? HashRouter : BrowserRouter;
+const router_basename = resolve_account_basename();
 
 function RootShell(): JSX.Element {
   const use_mobile = use_mobile_experience();
@@ -320,7 +325,7 @@ async function maybe_block_on_version_check(): Promise<void> {
 
 function mount_app(): void {
   ReactDOM.createRoot(document.getElementById("root")!).render(
-    <Router>
+    <Router basename={router_basename}>
       <Provider>
         <RootShell />
       </Provider>
@@ -363,7 +368,7 @@ const dismiss_once = () => {
 window.addEventListener("astermail:app-ready", dismiss_once, { once: true });
 
 window.addEventListener("astermail:auth-loaded", () => {
-  const path = window.location.pathname;
+  const path = app_pathname();
   if (path.startsWith("/sign-in") || path.startsWith("/register")) {
     dismiss_once();
   }

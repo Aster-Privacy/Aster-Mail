@@ -21,6 +21,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { app_pathname } from "@/lib/account_index_url";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_aliases_changed } from "@/hooks/mail_events";
@@ -582,7 +583,7 @@ export function use_aliases() {
 
         if (
           deleted_alias?.full_address &&
-          window.location.pathname ===
+          app_pathname() ===
             `/alias/${encodeURIComponent(deleted_alias.full_address)}`
         ) {
           window.dispatchEvent(

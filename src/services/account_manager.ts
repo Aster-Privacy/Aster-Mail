@@ -23,6 +23,7 @@ import {
   device_retrieve_strict,
 } from "@/services/crypto/secure_storage";
 import { api_client } from "@/services/api/client";
+import { write_account_index_hint } from "@/lib/account_index_url";
 import { en } from "@/lib/i18n/translations/en";
 
 async function clear_offline_email_cache(): Promise<void> {
@@ -127,6 +128,12 @@ async function get_accounts_data_async(): Promise<AccountsData> {
       cached_data = data;
       last_load_failed = false;
 
+      const current_index = data.accounts.findIndex(
+        (a) => a.id === data.current_account_id,
+      );
+
+      if (current_index !== -1) write_account_index_hint(current_index);
+
       return data;
     }
 
@@ -163,6 +170,13 @@ async function save_accounts_data(data: AccountsData): Promise<void> {
 
   cached_data = data;
   last_load_failed = false;
+
+  const current_index = data.accounts.findIndex(
+    (a) => a.id === data.current_account_id,
+  );
+
+  write_account_index_hint(current_index === -1 ? 0 : current_index);
+
   await device_store(ACCOUNTS_KEY, data);
 }
 

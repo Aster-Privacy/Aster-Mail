@@ -86,6 +86,7 @@ import {
 } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
+import { app_pathname } from "@/lib/account_index_url";
 import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
 import {
   delete_category_index_for_account,
@@ -402,7 +403,7 @@ export function use_auth_account_state() {
             const uses_hash = "__TAURI_INTERNALS__" in window;
             const path = uses_hash
               ? window.location.hash.slice(1).split("?")[0] || "/"
-              : window.location.pathname;
+              : app_pathname();
             if (path !== "/sign-in" && path !== "/register") {
               navigate(`/sign-in?u=${encodeURIComponent(local)}`);
             }
@@ -487,7 +488,7 @@ export function use_auth_account_state() {
           const uses_hash = "__TAURI_INTERNALS__" in window;
           const path = uses_hash
             ? window.location.hash.slice(1).split("?")[0] || "/"
-            : window.location.pathname;
+            : app_pathname();
           if (path !== "/sign-in" && path !== "/register") {
             navigate(
               `/sign-in?u=${encodeURIComponent(prefill_local)}&reason=session_expired`,
