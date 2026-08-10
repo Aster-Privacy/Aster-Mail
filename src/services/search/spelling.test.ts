@@ -194,9 +194,9 @@ describe("suggest_query_correction", () => {
   });
 
   it("releases the deletion index after a successful correction", () => {
-    expect(suggest_query_correction("recieve", ["recieve"])?.corrected_term).toBe(
-      "receive",
-    );
+    expect(
+      suggest_query_correction("recieve", ["recieve"])?.corrected_term,
+    ).toBe("receive");
     expect(deletion_index_size()).toBe(0);
   });
 
@@ -212,8 +212,8 @@ describe("suggest_query_correction", () => {
     clear_never_correct_terms();
 
     expect(load_never_correct_terms().size).toBe(0);
-    expect(suggest_query_correction("recieve", ["recieve"])?.corrected_term).toBe(
-      "receive",
-    );
+    expect(
+      suggest_query_correction("recieve", ["recieve"])?.corrected_term,
+    ).toBe("receive");
   });
 });
