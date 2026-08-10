@@ -39,6 +39,7 @@ export const MODEL_VERSION = "v1";
 
 const WORKER_URL = "/bergamot/translator-worker.js";
 const DEFAULT_MODEL_BASE = "/bergamot/models/v1";
+const MODEL_REGISTRY_REVISION = "2";
 
 function model_base(): string {
   const configured =
@@ -76,7 +77,7 @@ class SelfHostedBacking extends TranslatorBacking {
 
   constructor(base: string) {
     super({
-      registryUrl: `${base}/registry.json`,
+      registryUrl: `${base}/registry.json?r=${MODEL_REGISTRY_REVISION}`,
       pivotLanguage: PIVOT_LANGUAGE,
       cacheSize: 16384,
     });
