@@ -74,6 +74,7 @@ import {
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
+import { clear_device_session } from "@/native/desktop_device_auth";
 import {
   account_index_routing_enabled,
   app_pathname,
@@ -349,6 +350,8 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
+      await with_timeout(clear_device_session(), 2000).catch(() => {});
+
       await with_timeout(
         api_client.post("/core/v1/auth/logout", {}),
         3000,
@@ -418,6 +421,8 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
+      await with_timeout(clear_device_session(), 2000).catch(() => {});
+
       await with_timeout(
         api_client.post("/core/v1/auth/logout-all", {}),
         3000,
@@ -441,6 +446,8 @@ export function use_auth_provider_state() {
       message_key: TranslationKey,
       reason?: string,
     ) => {
+      await clear_device_session().catch(() => {});
+
       const path = app_pathname();
       const current_id = state.current_account_id;
       const all_accounts = await get_all_accounts();

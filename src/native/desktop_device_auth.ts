@@ -279,7 +279,17 @@ export async function init_desktop_device_auth(): Promise<void> {
   }
 }
 
-export async function clear_device_session(): Promise<void> {
+async function reset_device_auth(command: string): Promise<void> {
   if (!is_tauri()) return;
-  await invoke("device_clear_session");
+  desktop_device_auth_initialized = false;
+  pending_device_login = null;
+  await invoke(command);
+}
+
+export async function clear_device_session(): Promise<void> {
+  await reset_device_auth("device_clear_session");
+}
+
+export async function clear_device_identity(): Promise<void> {
+  await reset_device_auth("device_clear_identity");
 }

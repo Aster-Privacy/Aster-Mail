@@ -29,6 +29,7 @@ import {
   poll_device_code_status,
   complete_device_pairing,
   consume_pending_device_login,
+  clear_device_identity,
   clear_device_session,
   attempt_device_relogin,
 } from "@/native/desktop_device_auth";
@@ -404,7 +405,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 }
               }
             } else {
-              await clear_device_session();
+              await clear_device_identity();
               const fresh_pk =
                 await core.invoke<DevicePubkeys>("device_get_pubkeys");
 
