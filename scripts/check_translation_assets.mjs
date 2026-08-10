@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,9 +11,14 @@ function warn(message) {
   console.warn(`\x1b[33mtranslation assets: ${message}\x1b[0m`);
 }
 
+function fail(message) {
+  console.error(`\x1b[31mtranslation assets: ${message}\x1b[0m`);
+  process.exit(1);
+}
+
 if (!existsSync(registry_path)) {
   warn(
-    "dist/bergamot/models/v1/registry.json is missing. On-device translation will 404 and every message will report as untranslatable. public/bergamot/models/ is gitignored, so a fresh clone does not have it.",
+    "dist/bergamot/models/v1/registry.json is missing. On-device translation will 404 and every message will report as untranslatable. public/bergamot/models/ is gitignored, so a fresh clone does not have it. Run: node scripts/fetch_translation_models.mjs",
   );
   process.exit(0);
 }
@@ -27,13 +33,38 @@ try {
 }
 
 const missing = [];
+const unhashed = [];
+const corrupt = [];
+let total_bytes = 0;
 
 for (const [pair, files] of Object.entries(registry)) {
   for (const entry of Object.values(files ?? {})) {
     const name = entry?.name;
 
     if (typeof name !== "string") continue;
-    if (!existsSync(join(model_root, name))) missing.push(`${pair}/${name}`);
+
+    const path = join(model_root, name);
+
+    if (!existsSync(path)) {
+      missing.push(name);
+      continue;
+    }
+
+    total_bytes += statSync(path).size;
+
+    if (typeof entry.expectedSha256Hash !== "string") {
+      unhashed.push(name);
+      continue;
+    }
+
+    const bytes = readFileSync(path);
+    const actual = createHash("sha256").update(bytes).digest("hex");
+
+    if (actual !== entry.expectedSha256Hash) {
+      corrupt.push(name);
+    } else if (typeof entry.size === "number" && entry.size !== bytes.length) {
+      corrupt.push(`${name} (size)`);
+    }
   }
 }
 
@@ -44,6 +75,18 @@ if (missing.length > 0) {
   process.exit(0);
 }
 
+if (corrupt.length > 0) {
+  fail(
+    `${corrupt.length} model file(s) do not match the checksum in registry.json: ${corrupt.slice(0, 6).join(", ")}. The runtime enforces these hashes with subresource integrity, so translation would fail for every user. Re-run: node scripts/fetch_translation_models.mjs`,
+  );
+}
+
+if (unhashed.length > 0) {
+  fail(
+    `${unhashed.length} model file(s) have no expectedSha256Hash in registry.json: ${unhashed.slice(0, 6).join(", ")}. Regenerate it with: node scripts/fetch_translation_models.mjs`,
+  );
+}
+
 console.log(
-  `translation assets: ${Object.keys(registry).length} model pair(s) present in dist`,
+  `translation assets: ${Object.keys(registry).length} model pair(s) present in dist, ${(total_bytes / 1e6).toFixed(1)} MB, all checksums verified`,
 );
