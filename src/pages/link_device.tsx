@@ -35,6 +35,7 @@ import {
   base64url_decode,
 } from "@/lib/crypto/device_envelope";
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
+import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
 import { PlanUpgradeSelection } from "@/components/settings/billing/plan_upgrade_selection";
@@ -111,7 +112,7 @@ export default function LinkDevice() {
     if (auth_loading) return;
     if (!is_authenticated) {
       const next = encodeURIComponent(
-        window.location.pathname + window.location.search,
+        app_pathname() + window.location.search,
       );
 
       navigate(`/sign-in?next=${next}`, { replace: true });

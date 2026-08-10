@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { use_should_reduce_motion } from "@/provider";
 import { get_app_query_param } from "@/lib/hard_redirect";
+import { strip_account_prefix } from "@/lib/account_index_url";
 
 
 export const page_variants = {
@@ -50,7 +51,7 @@ export function get_safe_next_path(): string {
     if (decoded.startsWith("/sign-in") || decoded.startsWith("/register"))
       return "/";
 
-    return decoded;
+    return strip_account_prefix(decoded);
   } catch {
     return "/";
   }

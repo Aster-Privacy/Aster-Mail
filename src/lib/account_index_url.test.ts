@@ -57,6 +57,7 @@ describe("account_index_url", () => {
     expect(strip_account_prefix("/u/1")).toBe("/");
     expect(strip_account_prefix("/all")).toBe("/all");
     expect(strip_account_prefix("/u/1/email/abc")).toBe("/email/abc");
+    expect(strip_account_prefix("/u/99/all")).toBe("/all");
   });
 
   it("builds a prefixed path from any path", () => {
@@ -119,6 +120,15 @@ describe("account_index_url", () => {
     set_location("/u/1/sign-in");
 
     expect(app_pathname()).toBe("/sign-in");
+  });
+
+  it("replaces an out-of-range url index instead of nesting it", () => {
+    write_account_index_hint(1);
+    set_location("/u/99/all");
+
+    expect(resolve_account_basename()).toBe("/u/1");
+    expect(window.location.pathname).toBe("/u/1/all");
+    expect(take_url_account_request()).toBe(null);
   });
 
   it("ignores an out-of-range stored index", () => {

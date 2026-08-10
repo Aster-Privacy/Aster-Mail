@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const ACCOUNT_PREFIX_PATTERN = /^\/u\/(\d{1,2})(?=\/|$)/;
+const ACCOUNT_PREFIX_PATTERN = /^\/u\/(\d{1,9})(?=\/|$)/;
 const ACCOUNT_INDEX_HINT_KEY = "aster_account_index";
 const MAX_ACCOUNT_INDEX = 31;
 
