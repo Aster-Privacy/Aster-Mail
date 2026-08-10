@@ -62,6 +62,7 @@ function complete_server_blob(
     migration_haptic_v1_done: true,
     migration_tracker_blocking_v2_done: true,
     migration_toast_position_v1_done: true,
+    migration_viewer_toolbar_v1_done: true,
     ...overrides,
   };
 }
@@ -164,5 +165,34 @@ describe("get_preferences end-to-end with a stale-stripped server blob", () => {
     await get_preferences(vault);
 
     expect(api_client.put).not.toHaveBeenCalled();
+  });
+
+  it("moves an existing account to the advanced viewer toolbar exactly once", async () => {
+    const blob = complete_server_blob({
+      viewer_toolbar_mode: "simple",
+      migration_viewer_toolbar_v1_done: false,
+    });
+
+    server_returns(blob);
+
+    const first = await get_preferences(vault);
+
+    expect(first.data.viewer_toolbar_mode).toBe("advanced");
+    expect(first.data.migration_viewer_toolbar_v1_done).toBe(true);
+    expect(api_client.put).toHaveBeenCalled();
+
+    vi.clearAllMocks();
+    clear_preferences_cache();
+    server_returns(
+      complete_server_blob({
+        viewer_toolbar_mode: "simple",
+        migration_viewer_toolbar_v1_done: false,
+      }),
+    );
+
+    const second = await get_preferences(vault);
+
+    expect(second.data.viewer_toolbar_mode).toBe("simple");
+    expect(second.data.migration_viewer_toolbar_v1_done).toBe(true);
   });
 });
