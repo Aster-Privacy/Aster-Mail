@@ -38,6 +38,7 @@ use zeroize::{Zeroize, Zeroizing, ZeroizeOnDrop};
 
 const KEYRING_SERVICE: &str = "com.astermail.mail";
 const KEYRING_WRAP_USER: &str = "device-identity-wrap-v1";
+const KEYRING_IDENTITY_USER: &str = "device_identity";
 const MAGIC_ID: &[u8; 8] = b"ASTERID\x01";
 const MAGIC_PP: &[u8; 8] = b"ASTERPP\x01";
 
@@ -204,18 +205,21 @@ fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
     Ok(key)
 }
 
-fn wrap_key_delete() -> Result<(), String> {
-    wrap_key_file_delete();
-
-    let entry = match Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER) {
+fn keyring_delete(user: &str) -> Result<(), String> {
+    let entry = match Entry::new(KEYRING_SERVICE, user) {
         Ok(entry) => entry,
         Err(_) => return Ok(()),
     };
     match entry.delete_credential() {
         Ok(()) => Ok(()),
         Err(keyring::Error::NoEntry) => Ok(()),
-        Err(e) => Err(format!("keyring delete wrap: {}", e)),
+        Err(e) => Err(format!("keyring delete {}: {}", user, e)),
     }
+}
+
+fn wrap_key_delete() -> Result<(), String> {
+    wrap_key_file_delete();
+    keyring_delete(KEYRING_WRAP_USER)
 }
 
 fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
@@ -234,7 +238,7 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
     let path = identity_file_path()?;
 
     if !path.exists() {
-        let entry = Entry::new(KEYRING_SERVICE, "device_identity").ok();
+        let entry = Entry::new(KEYRING_SERVICE, KEYRING_IDENTITY_USER).ok();
         if let Some(entry) = entry {
             if let Ok(s) = entry.get_password() {
                 if let Ok(bytes) = URL_SAFE_NO_PAD.decode(s.as_bytes()).map(Zeroizing::new) {
@@ -484,12 +488,12 @@ pub fn device_get_stored_passphrase() -> Result<Option<String>, String> {
 
 #[tauri::command]
 pub fn device_clear_session() -> Result<(), String> {
+    if let Ok(path) = passphrase_file_path() {
+        let _ = std::fs::remove_file(path);
+    }
     if let Some(mut stored) = load_stored()? {
         stored.device_id = None;
         save_stored(&stored)?;
-    }
-    if let Ok(path) = passphrase_file_path() {
-        let _ = std::fs::remove_file(path);
     }
     Ok(())
 }
@@ -502,6 +506,7 @@ pub fn device_clear_identity() -> Result<(), String> {
     if let Ok(path) = passphrase_file_path() {
         let _ = std::fs::remove_file(path);
     }
+    let _ = keyring_delete(KEYRING_IDENTITY_USER);
     let _ = wrap_key_delete();
     Ok(())
 }
