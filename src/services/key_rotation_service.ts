@@ -52,6 +52,7 @@ import {
   prepend_kek_to_list,
   serialize_kek_for_vault,
 } from "@/services/crypto/legacy_keks";
+import { with_aes_kw_fallback } from "@/services/crypto/webcrypto_aes_kw";
 
 
 export interface RotationCheckResult {
@@ -420,14 +421,14 @@ export async function get_decryption_key_for_message(
         passphrase,
       });
 
-      const message = await openpgp.readMessage({
-        armoredMessage: encrypted_message,
-      });
-
-      await openpgp.decrypt({
-        message,
-        decryptionKeys: decrypted_key,
-      });
+      await with_aes_kw_fallback(async () =>
+        openpgp.decrypt({
+          message: await openpgp.readMessage({
+            armoredMessage: encrypted_message,
+          }),
+          decryptionKeys: decrypted_key,
+        }),
+      );
 
       return private_key_armored;
     } catch {
@@ -475,13 +476,14 @@ export async function decrypt_with_key_fallback(
         passphrase,
       });
 
-      const message = await openpgp.readMessage({
-        armoredMessage: encrypted_message,
-      });
-      const { data } = await openpgp.decrypt({
-        message,
-        decryptionKeys: decrypted_key,
-      });
+      const { data } = await with_aes_kw_fallback(async () =>
+        openpgp.decrypt({
+          message: await openpgp.readMessage({
+            armoredMessage: encrypted_message,
+          }),
+          decryptionKeys: decrypted_key,
+        }),
+      );
 
       return { decrypted: data.toString(), used_key_index: i };
     } catch {

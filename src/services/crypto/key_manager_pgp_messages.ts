@@ -22,6 +22,7 @@ import * as openpgp from "openpgp";
 import { type EncryptedKeyHandle } from "./key_manager_core";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 import { with_decrypted_key } from "./key_manager_pgp_usage";
+import { with_aes_kw_fallback } from "./webcrypto_aes_kw";
 
 export type sender_verification_status =
   | "verified"
@@ -182,14 +183,15 @@ export async function encrypt_message(
     armoredKey: recipient_public_key,
   });
 
-  const message = await openpgp.createMessage({ text: plaintext });
   const signing_keys = await parse_signing_keys(signing_key);
-  const encrypted = await openpgp.encrypt({
-    message,
-    encryptionKeys: public_key,
-    signingKeys: signing_keys,
-    format: "armored",
-  });
+  const encrypted = await with_aes_kw_fallback(async () =>
+    openpgp.encrypt({
+      message: await openpgp.createMessage({ text: plaintext }),
+      encryptionKeys: public_key,
+      signingKeys: signing_keys,
+      format: "armored",
+    }),
+  );
 
   return typeof encrypted === "string" ? encrypted : encrypted.toString();
 }
@@ -219,14 +221,15 @@ export async function encrypt_message_multi(
     throw new Error("No valid PGP keys found among provided recipient keys");
   }
 
-  const message = await openpgp.createMessage({ text: plaintext });
   const signing_keys = await parse_signing_keys(signing_key);
-  const encrypted = await openpgp.encrypt({
-    message,
-    encryptionKeys: valid_keys,
-    signingKeys: signing_keys,
-    format: "armored",
-  });
+  const encrypted = await with_aes_kw_fallback(async () =>
+    openpgp.encrypt({
+      message: await openpgp.createMessage({ text: plaintext }),
+      encryptionKeys: valid_keys,
+      signingKeys: signing_keys,
+      format: "armored",
+    }),
+  );
 
   return typeof encrypted === "string" ? encrypted : encrypted.toString();
 }
@@ -239,14 +242,17 @@ export async function decrypt_message_verified(
 ): Promise<decrypted_message_result> {
   const secret_key_obj = await unlock_private_key(secret_key, passphrase);
 
-  const message = await openpgp.readMessage({ armoredMessage: ciphertext });
   const parsed_verification_keys = await parse_verification_keys(verification_keys);
-  const result = await openpgp.decrypt({
-    message,
-    decryptionKeys: secret_key_obj,
-    verificationKeys:
-      parsed_verification_keys.length > 0 ? parsed_verification_keys : undefined,
-  });
+  const result = await with_aes_kw_fallback(async () =>
+    openpgp.decrypt({
+      message: await openpgp.readMessage({ armoredMessage: ciphertext }),
+      decryptionKeys: secret_key_obj,
+      verificationKeys:
+        parsed_verification_keys.length > 0
+          ? parsed_verification_keys
+          : undefined,
+    }),
+  );
 
   const evaluated = await evaluate_signatures(
     result.signatures as { verified: Promise<boolean> }[] | undefined,
