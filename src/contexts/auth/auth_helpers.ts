@@ -40,6 +40,7 @@ import {
   clear_preferred_sender_local,
 } from "@/lib/preferred_sender";
 import { clear_search_index } from "@/hooks/use_search";
+import { clear_never_correct_terms } from "@/services/search/spelling";
 import { clear_undo_send_state } from "@/hooks/use_undo_send";
 import { clear_sender_aliases_cache } from "@/hooks/use_sender_aliases";
 import {
@@ -66,6 +67,7 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_aliases_cache();
   clear_plan_cache();
   clear_search_index();
+  clear_never_correct_terms();
   clear_recovery_email_cache();
   clear_preferred_sender_local();
   clear_preferences_cache();

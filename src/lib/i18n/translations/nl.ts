@@ -3239,6 +3239,7 @@ export const nl = {
     updates_current_version: "Current version: {{version}}",
     updates_install_and_restart: "Install and restart",
     updates_installing: "Downloading update... {{percent}}%",
+    updates_downloading: "Update downloaden...",
     updates_last_checked: "Last checked {{when}}",
     updates_never_checked: "Never checked",
     updates_auto_label: "Install updates automatically",
@@ -7002,6 +7003,8 @@ export const nl = {
     try_adjusting_filters:
       "Probeer je filters aan te passen of op iets anders te zoeken",
     no_emails_match_query: "Geen e-mails komen overeen met “{{query}}”",
+    showing_results_for: "Resultaten voor “{{corrected}}”",
+    search_instead_for: "Zoek in plaats daarvan naar “{{original}}”",
     more_folders_count: "+{{count}} meer mappen",
     folder_item_count: "{{count}} items",
     folder_item_count_singular: "{{count}} item",

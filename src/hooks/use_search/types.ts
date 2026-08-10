@@ -88,10 +88,18 @@ export interface AutocompleteSuggestion {
   type: string;
 }
 
+export interface AppliedCorrection {
+  original_query: string;
+  corrected_query: string;
+  original_term: string;
+  corrected_term: string;
+}
+
 export interface SearchState {
   query: string;
   results: SearchResultItem[];
   results_query: string;
+  correction: AppliedCorrection | null;
   is_loading: boolean;
   is_searching: boolean;
   is_loading_more: boolean;

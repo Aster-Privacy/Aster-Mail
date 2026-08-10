@@ -2155,6 +2155,7 @@ export const en: Translations = {
     updates_current_version: "Current version: {{version}}",
     updates_install_and_restart: "Install and restart",
     updates_installing: "Downloading update... {{percent}}%",
+    updates_downloading: "Downloading update...",
     updates_last_checked: "Last checked {{when}}",
     updates_never_checked: "Never checked",
     updates_auto_label: "Install updates automatically",
@@ -6975,6 +6976,8 @@ export const en: Translations = {
     try_adjusting_filters:
       "Try adjusting your filters or search for something else",
     no_emails_match_query: "No emails match \u201c{{query}}\u201d",
+    showing_results_for: "Showing results for \u201c{{corrected}}\u201d",
+    search_instead_for: "Search instead for \u201c{{original}}\u201d",
     more_folders_count: "+{{count}} more folders",
     folder_item_count: "{{count}} items",
     folder_item_count_singular: "{{count}} item",

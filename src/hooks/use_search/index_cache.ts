@@ -19,8 +19,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import {
+  DEEP_SEGMENT_ITEMS,
+  DEEP_SEGMENT_PAUSE_MS,
+  INDEX_TTL_MS,
+  MAX_INDEX_ITEMS,
+  MAX_RAM_INDEX_ITEMS,
+} from "./constants";
+import { run_index_pipeline } from "./pipeline";
+import {
+  emit_index_refreshed,
+  emit_indexing,
+  indexing_progress,
+} from "./progress";
+import { CachedIndex, DecryptedIndexEntry } from "./types";
 
-
+import {
+  add_vocabulary_entry,
+  reset_vocabulary,
+} from "@/services/search/vocabulary";
 import {
   clear_search_snapshots,
   has_index_storage_headroom,
@@ -35,16 +52,14 @@ import {
   record_index_download_checkpoint,
   reset_index_download_state,
 } from "@/services/search/index_download_control";
-
-import { DEEP_SEGMENT_ITEMS, DEEP_SEGMENT_PAUSE_MS, INDEX_TTL_MS, MAX_INDEX_ITEMS, MAX_RAM_INDEX_ITEMS } from "./constants";
-import { run_index_pipeline } from "./pipeline";
-import { emit_index_refreshed, emit_indexing, indexing_progress } from "./progress";
-import { CachedIndex, DecryptedIndexEntry } from "./types";
 export let cached_index: CachedIndex | null = null;
 export let index_build_promise: Promise<CachedIndex> | null = null;
 export let build_generation = 0;
 export let deep_index_active = false;
-export function empty_index(user_email: string, include_body: boolean): CachedIndex {
+export function empty_index(
+  user_email: string,
+  include_body: boolean,
+): CachedIndex {
   return {
     items: [],
     decrypted: new Map(),
@@ -94,6 +109,7 @@ export async function build_index_full(
   const index = empty_index(user_email, include_body);
 
   emit_indexing({ building: true, current: 0, total: 0 });
+  reset_vocabulary();
 
   const writer = await open_snapshot_writer(user_email);
 
@@ -354,12 +370,14 @@ export function reset_index_cache(): void {
   cached_index = null;
   build_generation++;
   index_build_promise = null;
+  reset_vocabulary();
 }
 
 export function clear_search_index(): void {
   cached_index = null;
   build_generation++;
   index_build_promise = null;
+  reset_vocabulary();
   reset_index_download_state();
   emit_indexing({ building: false, current: 0, total: 0 });
   void clear_search_snapshots();
@@ -477,6 +495,8 @@ export async function build_search_index(
   const index = empty_index(user_email, meta.include_body);
   let consumed = 0;
 
+  reset_vocabulary();
+
   for (const chunk_id of meta.chunk_ids) {
     if (index.items.length >= MAX_RAM_INDEX_ITEMS) break;
 
@@ -505,6 +525,7 @@ export async function build_search_index(
         meta_fp: entry.meta_fp,
         has_body: entry.has_body,
       });
+      add_vocabulary_entry(entry.envelope, entry.search_body_text);
     }
   }
 
@@ -532,4 +553,3 @@ export async function build_search_index(
 
   return index;
 }
-

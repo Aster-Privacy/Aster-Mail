@@ -20,13 +20,7 @@
 //
 import type { SearchModalProps } from "@/components/search/search_modal_types";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 
@@ -50,6 +44,7 @@ import {
 } from "@/components/search/search_result_item";
 import { SearchModalFilterPanel } from "@/components/search/search_modal_filter_panel";
 import { SearchContentBanner } from "@/components/search/search_content_banner";
+import { CorrectionNotice } from "@/components/search/correction_notice";
 import { use_search_modal } from "@/components/search/use_search_modal";
 
 export { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
@@ -180,6 +175,7 @@ export function SearchModal({
     handle_clear_data,
     set_query,
     set_show_filters,
+    dismiss_correction,
     clear_results,
     load_more,
     build_advanced_query,
@@ -375,6 +371,10 @@ export function SearchModal({
               opacity: state.results_query !== state.query ? 0.55 : 1,
             }}
           >
+            <CorrectionNotice
+              correction={state.correction}
+              on_dismiss={dismiss_correction}
+            />
             {filtered_folders.length > 0 && (
               <div className="px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
                 {t("mail.emails")}

@@ -34,6 +34,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
+import {
+  MIN_LIST_WIDTH,
+  SearchResultSkeleton,
+  SearchResultsPageProps,
+  SortOption,
+  extract_snippet,
+} from "./helpers";
+import { use_search_results_page } from "./use_search_results_page";
+
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { InboxHeader } from "@/components/inbox/inbox_header";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
@@ -56,16 +65,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  compute_highlight_ranges,
-  apply_highlights,
-} from "@/hooks/use_search";
+import { compute_highlight_ranges, apply_highlights } from "@/hooks/use_search";
 import { HighlightedText } from "@/components/search/search_result_item";
 import { SearchChipRow } from "@/components/search/search_chip_row";
+import { CorrectionNotice } from "@/components/search/correction_notice";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { resolve_list_density } from "@/lib/list_density";
-import { MIN_LIST_WIDTH, SearchResultSkeleton, SearchResultsPageProps, SortOption, extract_snippet } from "./helpers";
-import { use_search_results_page } from "./use_search_results_page";
 
 export function SearchResultsPage(props: SearchResultsPageProps) {
   const {
@@ -83,6 +88,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     preferences,
     search_page_size,
     state,
+    dismiss_correction,
     clear_index,
     email_actions,
     is_slow,
@@ -344,6 +350,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
         </div>
       ) : (
         <>
+          <CorrectionNotice
+            className="border-b border-edge-secondary"
+            correction={state.correction}
+            on_dismiss={dismiss_correction}
+          />
           {paged_results.map((email) => {
             const snippet = extract_snippet(email.preview, search_terms);
             const snippet_highlights = snippet
@@ -363,9 +374,6 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 is_active={email.id === split_email_id}
                 on_email_click={handle_email_click}
                 on_toggle_select={handle_toggle_select}
-                onContextMenu={() =>
-                  handle_row_context_menu(email as InboxEmail)
-                }
                 search_preview_node={
                   snippet_highlights.length > 0 ? (
                     <HighlightedText
@@ -378,6 +386,9 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 show_message_size={preferences.show_message_size}
                 show_profile_pictures={preferences.show_profile_pictures}
                 show_thread_count={preferences.conversation_grouping !== false}
+                onContextMenu={() =>
+                  handle_row_context_menu(email as InboxEmail)
+                }
               />
             );
           })}
@@ -487,7 +498,6 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               </Tooltip>
             }
             leading_toolbar_slot={sort_dropdown}
-            overflow_menu_slot={overflow_menu}
             on_archive={handle_bulk_archive}
             on_delete={handle_bulk_delete}
             on_filter_change={handle_inbox_filter_change}
@@ -512,6 +522,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               paged_results.length > 0 ? handle_select_all_visible : undefined
             }
             on_toggle_star={handle_bulk_toggle_star}
+            overflow_menu_slot={overflow_menu}
             page_size={search_page_size}
             search_context={query}
             selected_count={selected_ids.size}

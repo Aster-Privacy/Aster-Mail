@@ -2247,6 +2247,7 @@ export interface SettingsTranslations {
   updates_current_version: string;
   updates_install_and_restart: string;
   updates_installing: string;
+  updates_downloading: string;
   updates_last_checked: string;
   updates_never_checked: string;
   updates_auto_label: string;
@@ -6228,6 +6229,8 @@ export interface MailTranslations {
   no_results_found: string;
   try_adjusting_filters: string;
   no_emails_match_query: string;
+  showing_results_for: string;
+  search_instead_for: string;
   more_folders_count: string;
   folder_item_count: string;
   folder_item_count_singular: string;

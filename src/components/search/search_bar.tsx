@@ -18,6 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { SearchResultItem } from "@/hooks/use_search";
+import type { FormatOptions } from "@/utils/date_format";
+
 import {
   memo,
   useCallback,
@@ -39,13 +43,10 @@ import {
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
-import type { TranslationKey } from "@/lib/i18n/types";
-import type { SearchResultItem } from "@/hooks/use_search";
-import type { FormatOptions } from "@/utils/date_format";
-
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { SearchResultSkeleton } from "@/components/search/search_results_list";
+import { CorrectionNotice } from "@/components/search/correction_notice";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
   format_date_short,
@@ -127,6 +128,7 @@ export function SearchBar({
   const {
     state: search_state,
     search,
+    dismiss_correction,
     clear_results,
     clear_index,
     start_index_build,
@@ -240,7 +242,7 @@ export function SearchBar({
 
         return;
       }
-      submit_full(query);
+      submit_full(preview_query || query);
     }
   };
 
@@ -360,9 +362,17 @@ export function SearchBar({
   ]);
 
   const preview_results = search_state.results.slice(0, PREVIEW_LIMIT);
+  const active_correction =
+    search_state.correction &&
+    search_state.correction.original_query === preview_query
+      ? search_state.correction
+      : null;
+  const effective_query = active_correction
+    ? active_correction.corrected_query
+    : preview_query;
   const preview_terms = useMemo(
-    () => extract_query_terms(preview_query),
-    [preview_query],
+    () => extract_query_terms(effective_query),
+    [effective_query],
   );
   const date_options: FormatOptions = useMemo(
     () => ({
@@ -374,7 +384,7 @@ export function SearchBar({
     [preferences.date_format, preferences.time_format],
   );
   const is_preview_stale =
-    preview_enabled && search_state.results_query !== preview_query;
+    preview_enabled && search_state.results_query !== effective_query;
   const is_preview_loading =
     preview_enabled &&
     (is_preview_stale ||
@@ -614,25 +624,29 @@ export function SearchBar({
                 className="border-t border-[var(--border-secondary)] transition-opacity duration-150 motion-reduce:transition-none"
                 style={{ opacity: is_preview_stale ? 0.55 : 1 }}
               >
+                <CorrectionNotice
+                  correction={active_correction}
+                  on_dismiss={dismiss_correction}
+                />
                 <div className="py-1 max-h-[420px] overflow-y-auto">
                   {preview_results.map((result) => (
                     <PreviewRow
                       key={result.id}
                       date_options={date_options}
-                      terms={preview_terms}
                       on_click={get_preview_click_handler(result.id)}
                       result={result}
+                      terms={preview_terms}
                     />
                   ))}
                 </div>
                 <button
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[13px] border-t border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors"
                   type="button"
-                  onClick={() => submit_full(query)}
+                  onClick={() => submit_full(preview_query)}
                 >
                   <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0 text-[var(--icon-secondary)]" />
                   <span className="flex-1 min-w-0 truncate">
-                    {t("mail.view_all_results", { query: preview_query })}
+                    {t("mail.view_all_results", { query: effective_query })}
                   </span>
                   <span className="flex-shrink-0 text-[11px] text-[var(--text-muted)]">
                     {t("common.press_enter_to_view_all")}

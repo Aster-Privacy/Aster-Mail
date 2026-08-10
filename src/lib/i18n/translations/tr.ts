@@ -3232,6 +3232,7 @@ export const tr = {
     updates_current_version: "Current version: {{version}}",
     updates_install_and_restart: "Install and restart",
     updates_installing: "Downloading update... {{percent}}%",
+    updates_downloading: "Guncelleme indiriliyor...",
     updates_last_checked: "Last checked {{when}}",
     updates_never_checked: "Never checked",
     updates_auto_label: "Install updates automatically",
@@ -6955,6 +6956,8 @@ export const tr = {
     try_adjusting_filters:
       "Filtrelerinizi ayarlamayı veya başka bir şey aramayı deneyin",
     no_emails_match_query: '"{{query}}" ile eşleşen e-posta yok',
+    showing_results_for: '"{{corrected}}" için sonuçlar gösteriliyor',
+    search_instead_for: 'Bunun yerine "{{original}}" ara',
     more_folders_count: "+{{count}} daha fazla klasör",
     folder_item_count: "{{count}} öğe",
     folder_item_count_singular: "{{count}} öğe",

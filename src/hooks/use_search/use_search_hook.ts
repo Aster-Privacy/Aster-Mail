@@ -19,39 +19,62 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useState, useCallback, useEffect, useRef } from "react";
 
 import {
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+  INDEX_TTL_MS,
+  INDEX_TTL_MS_LOW_NETWORK,
+  MAX_SEARCH_RESULTS,
+} from "./constants";
+import {
+  build_search_index,
+  mark_search_index_stale,
+  reset_index_cache,
+} from "./index_cache";
+import {
+  matches_query,
+  query_requires_body,
+  to_search_result,
+} from "./matching";
+import { emit_indexing, subscribe_index_refresh } from "./progress";
+import { scan_search_index } from "./scan";
+import {
+  PROGRESS_FLUSH_MS,
+  can_refine_scan,
+  candidates_are_cacheable,
+  excluded_by_mailbox_scope,
+  options_signature,
+  passes_search_filters,
+  resolve_mailbox_scope,
+} from "./scan_cache";
+import {
+  AppliedCorrection,
+  AutocompleteState,
+  DecryptedIndexEntry,
+  ScanCacheEntry,
+  ScanCandidate,
+  SearchOptions,
+  SearchResultItem,
+  SearchState,
+} from "./types";
 
-import {
-  type MailItem,
-} from "@/services/api/mail";
-import {
-  parse_search_query,
-} from "@/utils/search_operators";
+import { type MailItem } from "@/services/api/mail";
+import { parse_search_query } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-import {
-  build_chunk_skip_plan,
-} from "@/services/search_chunk_filter";
+import { build_chunk_skip_plan } from "@/services/search_chunk_filter";
 import {
   reset_index_download_state,
   set_index_download_paused,
 } from "@/services/search/index_download_control";
+import {
+  MIN_CORRECTED_RESULTS,
+  remember_never_correct_term,
+  suggest_query_correction,
+} from "@/services/search/spelling";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
-import { INDEX_TTL_MS, INDEX_TTL_MS_LOW_NETWORK, MAX_SEARCH_RESULTS } from "./constants";
-import { build_search_index, mark_search_index_stale, reset_index_cache } from "./index_cache";
-import { matches_query, query_requires_body, to_search_result } from "./matching";
-import { emit_indexing, subscribe_index_refresh } from "./progress";
-import { scan_search_index } from "./scan";
-import { PROGRESS_FLUSH_MS, can_refine_scan, candidates_are_cacheable, excluded_by_mailbox_scope, options_signature, passes_search_filters, resolve_mailbox_scope } from "./scan_cache";
-import { AutocompleteState, DecryptedIndexEntry, ScanCacheEntry, ScanCandidate, SearchOptions, SearchResultItem, SearchState } from "./types";
 export function use_search() {
   const { user } = use_auth();
   const { t } = use_i18n();
@@ -64,6 +87,7 @@ export function use_search() {
     query: "",
     results: [],
     results_query: "",
+    correction: null,
     is_loading: false,
     is_searching: false,
     is_loading_more: false,
@@ -77,6 +101,13 @@ export function use_search() {
 
   const abort_ref = useRef<AbortController | null>(null);
   const search_seq_ref = useRef(0);
+  const search_ref = useRef<
+    (
+      query: string,
+      options?: SearchOptions,
+      applied_correction?: AppliedCorrection,
+    ) => Promise<void>
+  >(async () => {});
   const last_scan_ref = useRef<ScanCacheEntry | null>(null);
   const last_search_ref = useRef<{
     query: string;
@@ -126,7 +157,11 @@ export function use_search() {
   }, []);
 
   const search = useCallback(
-    async (query: string, options?: SearchOptions) => {
+    async (
+      query: string,
+      options?: SearchOptions,
+      applied_correction?: AppliedCorrection,
+    ) => {
       const my_seq = ++search_seq_ref.current;
 
       set_state((prev) => ({
@@ -145,6 +180,7 @@ export function use_search() {
           ...prev,
           results: [],
           results_query: query,
+          correction: null,
           is_searching: false,
           total_results: 0,
           search_time_ms: 0,
@@ -154,7 +190,9 @@ export function use_search() {
         return;
       }
 
-      last_search_ref.current = { query, options };
+      if (!applied_correction) {
+        last_search_ref.current = { query, options };
+      }
       abort_ref.current?.abort();
 
       const controller = new AbortController();
@@ -178,6 +216,7 @@ export function use_search() {
             ...prev,
             results: [],
             results_query: query,
+            correction: null,
             is_searching: false,
             total_results: 0,
             search_time_ms: Date.now() - start,
@@ -331,6 +370,32 @@ export function use_search() {
           results.length = MAX_SEARCH_RESULTS;
         }
 
+        if (
+          !applied_correction &&
+          total_results === 0 &&
+          terms.length > 0 &&
+          index.complete
+        ) {
+          const correction = suggest_query_correction(query, terms);
+
+          if (correction) {
+            last_scan_ref.current = null;
+            void search_ref.current(correction.corrected_query, options, {
+              original_query: query,
+              corrected_query: correction.corrected_query,
+              original_term: correction.original_term,
+              corrected_term: correction.corrected_term,
+            });
+
+            return;
+          }
+        }
+
+        const correction_held =
+          applied_correction && total_results >= MIN_CORRECTED_RESULTS
+            ? applied_correction
+            : null;
+
         last_scan_ref.current =
           stopped || !candidates_are_cacheable(candidates)
             ? null
@@ -346,10 +411,26 @@ export function use_search() {
         set_state((prev) => {
           if (my_seq !== search_seq_ref.current) return prev;
 
+          if (applied_correction && !correction_held) {
+            return {
+              ...prev,
+              query: applied_correction.original_query,
+              results: [],
+              results_query: applied_correction.original_query,
+              correction: null,
+              is_searching: false,
+              total_results: 0,
+              search_time_ms: Date.now() - start,
+              has_more: false,
+              hidden_spam_trash: 0,
+            };
+          }
+
           return {
             ...prev,
             results,
             results_query: query,
+            correction: correction_held,
             is_searching: false,
             total_results,
             search_time_ms: Date.now() - start,
@@ -388,6 +469,25 @@ export function use_search() {
     [user?.email, ttl, t],
   );
 
+  search_ref.current = search;
+
+  const correction_ref = useRef<AppliedCorrection | null>(null);
+
+  correction_ref.current = state.correction;
+
+  const dismiss_correction = useCallback(() => {
+    const correction = correction_ref.current;
+
+    if (!correction) return;
+
+    remember_never_correct_term(correction.original_term);
+    set_state((prev) => ({ ...prev, correction: null }));
+    void search_ref.current(
+      correction.original_query,
+      last_search_ref.current?.options,
+    );
+  }, []);
+
   useEffect(() => {
     return subscribe_index_refresh(() => {
       const last = last_search_ref.current;
@@ -403,6 +503,7 @@ export function use_search() {
       query: "",
       results: [],
       results_query: "",
+      correction: null,
       is_loading: false,
       is_searching: false,
       is_loading_more: false,
@@ -428,6 +529,7 @@ export function use_search() {
         is_searching: cleared ? prev.is_searching : true,
         results: cleared ? [] : prev.results,
         results_query: cleared ? "" : prev.results_query,
+        correction: cleared ? null : prev.correction,
         total_results: cleared ? 0 : prev.total_results,
       };
     });
@@ -447,6 +549,7 @@ export function use_search() {
     state,
     autocomplete_state,
     search,
+    dismiss_correction,
     clear_results,
     clear_index,
     start_index_build,
@@ -458,4 +561,3 @@ export function use_search() {
     clear_autocomplete: () => {},
   };
 }
-

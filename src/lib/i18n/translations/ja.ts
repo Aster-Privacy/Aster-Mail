@@ -3244,6 +3244,7 @@ export const ja = {
     updates_current_version: "Current version: {{version}}",
     updates_install_and_restart: "Install and restart",
     updates_installing: "Downloading update... {{percent}}%",
+    updates_downloading: "アップデートをダウンロード中...",
     updates_last_checked: "Last checked {{when}}",
     updates_never_checked: "Never checked",
     updates_auto_label: "Install updates automatically",
@@ -7013,6 +7014,8 @@ export const ja = {
     try_adjusting_filters:
       "フィルターを調整するか別のキーワードで検索してください",
     no_emails_match_query: "“{{query}}” に一致するメールはありません",
+    showing_results_for: "“{{corrected}}” の検索結果を表示しています",
+    search_instead_for: "代わりに “{{original}}” を検索",
     more_folders_count: "+{{count}} 件のフォルダ",
     folder_item_count: "{{count}} 件",
     folder_item_count_singular: "{{count}} 件",

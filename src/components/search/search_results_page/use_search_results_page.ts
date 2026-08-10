@@ -23,14 +23,17 @@ import type { MailItem } from "@/services/api/mail";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
+import {
+  SLOW_SEARCH_MS,
+  SearchFiltersState,
+  SearchResultsPageProps,
+} from "./helpers";
+
 import { list_mail_items } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
-import {
-  use_search,
-  extract_query_terms,
-} from "@/hooks/use_search";
+import { use_search, extract_query_terms } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_i18n } from "@/lib/i18n/context";
@@ -38,16 +41,9 @@ import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
-import { SLOW_SEARCH_MS, SearchFiltersState, SearchResultsPageProps } from "./helpers";
-
 
 export function use_search_results_page(props: SearchResultsPageProps) {
-  const {
-    query,
-    on_result_click,
-    split_email_id,
-    on_split_close,
-  } = props;
+  const { query, on_result_click, split_email_id, on_split_close } = props;
 
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
@@ -56,8 +52,15 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     preferences.low_network_mode,
   );
   const { format_email_list } = use_date_format();
-  const { state, search, load_more, set_query, clear_results, clear_index } =
-    use_search();
+  const {
+    state,
+    search,
+    dismiss_correction,
+    load_more,
+    set_query,
+    clear_results,
+    clear_index,
+  } = use_search();
   const email_actions = use_email_actions();
   const [bulk_busy, set_bulk_busy] = useState(false);
   const [is_slow, set_is_slow] = useState(false);
@@ -655,6 +658,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     search_page_size,
     state,
     search,
+    dismiss_correction,
     clear_index,
     email_actions,
     is_slow,

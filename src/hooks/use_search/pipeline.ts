@@ -19,8 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import type {  MailItemMetadata } from "@/types/email";
+import type { MailItemMetadata } from "@/types/email";
 
+import {
+  ENVELOPE_FETCH_CHUNK,
+  ENVELOPE_PAGE_LIMIT,
+  INDEX_PAGE_LIMIT,
+  MAX_RAM_INDEX_ITEMS,
+} from "./constants";
+import { decrypt_envelope_for_search } from "./envelope";
+import { build_generation } from "./index_cache";
+import { searchable_body_source } from "./matching";
+import { emit_indexing } from "./progress";
+import { CachedIndex, DecryptedIndexEntry } from "./types";
 
 import {
   list_encrypted_mail_items,
@@ -33,9 +44,7 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { strip_html_tags } from "@/lib/html_sanitizer";
-import {
-  decrypt_body_text_with_bundle,
-} from "@/utils/email_crypto";
+import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import {
   bound_index_body,
   metadata_fingerprint,
@@ -47,13 +56,8 @@ import {
   is_index_download_paused,
   record_index_download_checkpoint,
 } from "@/services/search/index_download_control";
+import { add_vocabulary_entry } from "@/services/search/vocabulary";
 
-import { ENVELOPE_FETCH_CHUNK, ENVELOPE_PAGE_LIMIT, INDEX_PAGE_LIMIT, MAX_RAM_INDEX_ITEMS } from "./constants";
-import { decrypt_envelope_for_search } from "./envelope";
-import { build_generation } from "./index_cache";
-import { searchable_body_source } from "./matching";
-import { emit_indexing } from "./progress";
-import { CachedIndex, DecryptedIndexEntry } from "./types";
 export interface PipelineOptions {
   user_email: string;
   include_body: boolean;
@@ -295,6 +299,10 @@ export async function run_index_pipeline(
         if (result.status === "fulfilled") {
           if (result.value.fresh) fresh_count++;
           page_entries.set(result.value.id, result.value.entry);
+          add_vocabulary_entry(
+            result.value.entry.envelope,
+            result.value.entry.search_body_text,
+          );
         }
       }
 
@@ -430,4 +438,3 @@ export async function run_index_pipeline(
     paused: false,
   };
 }
-

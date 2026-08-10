@@ -41,6 +41,7 @@ import { clear_drafts_cache } from "@/hooks/use_drafts_list";
 import { clear_scheduled_cache } from "@/hooks/use_scheduled_emails";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_search_index } from "@/hooks/use_search";
+import { clear_never_correct_terms } from "@/services/search/spelling";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
 import { clear_all_app_lock_data } from "@/services/app_lock_store";
@@ -99,6 +100,7 @@ export async function purge_all_local_data(): Promise<void> {
   clear_scheduled_cache();
   clear_recovery_email_cache();
   clear_search_index();
+  clear_never_correct_terms();
   clear_session();
   clear_all_switch_tokens();
   clear_attachment_keys();
