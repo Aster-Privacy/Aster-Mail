@@ -219,9 +219,15 @@ describe("compose-time post-quantum preflight", () => {
     ).resolves.toEqual([]);
   });
 
-  it("skips the check for mixed internal and external recipients", async () => {
+  it("still reports the internal recipient when the send is mixed", async () => {
     h.supports_pq = false;
 
+    await expect(
+      check_post_quantum_coverage([recipient, "someone@example.com"], sender),
+    ).resolves.toEqual([recipient]);
+  });
+
+  it("reports no gap on a mixed send when the internal recipient is covered", async () => {
     await expect(
       check_post_quantum_coverage([recipient, "someone@example.com"], sender),
     ).resolves.toEqual([]);

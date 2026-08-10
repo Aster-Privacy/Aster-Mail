@@ -135,6 +135,7 @@ export interface MailEnvelope {
 export interface EncryptionResult {
   encrypted_body: string;
   is_encrypted: boolean;
+  internal_encrypted_body?: string;
 }
 
 export interface EnvelopeData {

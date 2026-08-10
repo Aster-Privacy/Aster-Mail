@@ -78,15 +78,17 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     body_for_recipient,
   );
 
-  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
-    bundled_body_for_recipient,
-    all_recipients,
-    sender_email,
-    email.allow_non_post_quantum === true,
-  );
+  const { encrypted_body, is_encrypted, internal_encrypted_body } =
+    await encrypt_for_recipients(
+      bundled_body_for_recipient,
+      all_recipients,
+      sender_email,
+      email.allow_non_post_quantum === true,
+    );
 
   const final_recipient_body = is_encrypted ? encrypted_body : body_for_recipient;
   const final_subject = is_encrypted ? "" : email.subject;
+  const internal_copy_is_encrypted = is_encrypted || !!internal_encrypted_body;
 
   const envelope_data = await create_sent_envelope(email, sender_email);
 
@@ -104,7 +106,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     const recipient_public_keys =
       await fetch_internal_public_keys(all_recipients);
 
-    if (is_encrypted && recipient_public_keys.length === 0) {
+    if (internal_copy_is_encrypted && recipient_public_keys.length === 0) {
       throw create_error(
         "encryption_failed",
         en.errors.cannot_send_no_recipient_keys,
@@ -114,7 +116,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     encrypted_attachments = await encrypt_attachments_for_send(
       all_attachments,
       recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
-      is_encrypted,
+      internal_copy_is_encrypted,
     );
   }
 
@@ -125,6 +127,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     subject: final_subject,
     body: final_recipient_body,
     is_e2e_encrypted: is_encrypted,
+    internal_encrypted_body,
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
     folder_token: envelope_data.folder_token,

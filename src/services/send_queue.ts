@@ -444,12 +444,15 @@ async function prepare_email_for_server_queue(
     body_for_encryption,
   );
 
-  const { encrypted_body, is_encrypted } = await encrypt_for_recipients(
-    bundled_body_for_recipient,
-    all_recipients,
-    sender_email,
-    email.allow_non_post_quantum === true,
-  );
+  const { encrypted_body, is_encrypted, internal_encrypted_body } =
+    await encrypt_for_recipients(
+      bundled_body_for_recipient,
+      all_recipients,
+      sender_email,
+      email.allow_non_post_quantum === true,
+    );
+
+  const internal_copy_is_encrypted = is_encrypted || !!internal_encrypted_body;
 
   const internal_email: QueuedEmailInternal = {
     id: crypto.randomUUID(),
@@ -490,7 +493,7 @@ async function prepare_email_for_server_queue(
     const recipient_public_keys =
       await fetch_internal_public_keys(all_recipients);
 
-    if (is_encrypted && recipient_public_keys.length === 0) {
+    if (internal_copy_is_encrypted && recipient_public_keys.length === 0) {
       throw create_error(
         "encryption_failed",
         en.errors.cannot_send_no_recipient_keys,
@@ -500,7 +503,7 @@ async function prepare_email_for_server_queue(
     encrypted_attachments = await encrypt_attachments_for_send(
       all_attachments,
       recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
-      is_encrypted,
+      internal_copy_is_encrypted,
     );
   }
 
@@ -511,6 +514,7 @@ async function prepare_email_for_server_queue(
     subject: is_encrypted ? "" : email.subject,
     body: is_encrypted ? encrypted_body : body_for_encryption,
     is_e2e_encrypted: is_encrypted,
+    internal_encrypted_body,
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
     folder_token: envelope_data.folder_token,

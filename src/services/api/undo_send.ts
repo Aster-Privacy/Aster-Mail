@@ -35,6 +35,7 @@ export interface QueueEmailRequest {
   body: string;
   delay_seconds?: number;
   is_e2e_encrypted?: boolean;
+  internal_encrypted_body?: string;
   encrypted_envelope?: string;
   envelope_nonce?: string;
   folder_token?: string;

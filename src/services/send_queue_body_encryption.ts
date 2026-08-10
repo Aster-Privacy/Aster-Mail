@@ -73,7 +73,6 @@ export async function check_post_quantum_coverage(
   const internal_recipients = recipients.filter(is_internal_email);
 
   if (internal_recipients.length === 0) return [];
-  if (recipients.some((r) => !is_internal_email(r))) return [];
 
   const missing: string[] = [];
 
@@ -113,11 +112,16 @@ export async function encrypt_for_recipients(
     return { encrypted_body: body, is_encrypted: false };
   }
 
-  const external_recipients = recipients.filter((r) => !is_internal_email(r));
+  const has_external_recipients = recipients.some((r) => !is_internal_email(r));
 
-  if (external_recipients.length > 0) {
-    return { encrypted_body: body, is_encrypted: false };
-  }
+  const as_result = (ciphertext: string): EncryptionResult =>
+    has_external_recipients
+      ? {
+          encrypted_body: body,
+          is_encrypted: false,
+          internal_encrypted_body: ciphertext,
+        }
+      : { encrypted_body: ciphertext, is_encrypted: true };
 
   let vault = get_vault_from_memory();
 
@@ -231,7 +235,7 @@ export async function encrypt_for_recipients(
         >,
       );
 
-      return { encrypted_body: envelope, is_encrypted: true };
+      return as_result(envelope);
     }
   }
 
@@ -291,7 +295,7 @@ export async function encrypt_for_recipients(
 
     const encrypted = await encrypt_message_multi(body, public_keys, signing_key);
 
-    return { encrypted_body: encrypted, is_encrypted: true };
+    return as_result(encrypted);
   } catch (err) {
     throw create_error(
       "encryption_failed",
