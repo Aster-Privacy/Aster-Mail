@@ -28,7 +28,9 @@ import {
   mark_version_notified,
   check_for_update,
   download_and_install_update,
+  update_progress_percent,
   type DesktopUpdateInfo,
+  type UpdateProgress,
 } from "@/services/updates/updater";
 
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -38,6 +40,7 @@ export function UpdateBanner() {
   const [info, set_info] = useState<DesktopUpdateInfo | null>(null);
   const [dismissed, set_dismissed] = useState(false);
   const [installing, set_installing] = useState(false);
+  const [progress, set_progress] = useState<UpdateProgress | null>(null);
 
   useEffect(() => {
     if (!is_desktop_runtime()) return;
@@ -62,13 +65,17 @@ export function UpdateBanner() {
 
   if (!info || dismissed) return null;
 
+  const percent = update_progress_percent(progress);
+
   const handle_install = async () => {
     if (installing) return;
     set_installing(true);
+    set_progress({ downloaded: 0, total: null });
     try {
-      await download_and_install_update();
+      await download_and_install_update(set_progress);
     } catch {
       set_installing(false);
+      set_progress(null);
     }
   };
 
@@ -98,9 +105,13 @@ export function UpdateBanner() {
               disabled={installing}
               onClick={handle_install}
             >
-              {installing
-                ? t("settings.updates_installing", { percent: "" })
-                : t("settings.updates_banner_action")}
+              {!installing
+                ? t("settings.updates_banner_action")
+                : percent === null
+                  ? t("settings.updates_downloading")
+                  : t("settings.updates_installing", {
+                      percent: String(percent),
+                    })}
             </button>
             <button
               className="h-7 px-3 rounded-lg border border-edge-secondary bg-surf-tertiary text-xs font-medium text-txt-primary transition-colors hover:opacity-80"
@@ -109,6 +120,22 @@ export function UpdateBanner() {
               {t("settings.updates_dismiss")}
             </button>
           </div>
+          {installing && (
+            <div
+              aria-valuemax={100}
+              aria-valuemin={0}
+              aria-valuenow={percent ?? undefined}
+              className="mt-2 h-1 w-full overflow-hidden rounded-full bg-surf-tertiary"
+              role="progressbar"
+            >
+              <div
+                className={`h-full rounded-full bg-indigo-600 ${
+                  percent === null ? "w-1/3 animate-pulse" : "transition-[width]"
+                }`}
+                style={percent === null ? undefined : { width: `${percent}%` }}
+              />
+            </div>
+          )}
         </div>
         <button
           aria-label="dismiss"

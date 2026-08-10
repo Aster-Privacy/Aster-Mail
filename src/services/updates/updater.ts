@@ -31,6 +31,17 @@ export interface UpdateProgress {
   total: number | null;
 }
 
+export function update_progress_percent(
+  progress: UpdateProgress | null,
+): number | null {
+  if (!progress || !progress.total || progress.total <= 0) return null;
+
+  return Math.max(
+    0,
+    Math.min(100, Math.round((progress.downloaded / progress.total) * 100)),
+  );
+}
+
 const AUTO_UPDATE_KEY = "aster_desktop_auto_update";
 const LAST_CHECK_KEY = "aster_desktop_last_check";
 const LAST_NOTIFIED_VERSION_KEY = "aster_desktop_last_notified_version";

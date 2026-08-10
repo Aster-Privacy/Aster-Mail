@@ -30,6 +30,7 @@ import {
   get_last_check_iso,
   check_for_update,
   download_and_install_update,
+  update_progress_percent,
   type DesktopUpdateInfo,
 } from "@/services/updates/updater";
 
@@ -96,9 +97,7 @@ export function UpdatesSection() {
     set_progress(0);
     try {
       await download_and_install_update((p) => {
-        if (p.total && p.total > 0) {
-          set_progress(Math.min(100, Math.round((p.downloaded / p.total) * 100)));
-        }
+        set_progress(update_progress_percent(p));
       });
     } catch (err) {
       set_status_msg(String((err as Error)?.message ?? err));
@@ -183,12 +182,34 @@ export function UpdatesSection() {
               disabled={installing}
               onClick={handle_install}
             >
-              {installing
-                ? t("settings.updates_installing", {
-                    percent: String(progress ?? 0),
-                  })
-                : t("settings.updates_install_and_restart")}
+              {!installing
+                ? t("settings.updates_install_and_restart")
+                : progress === null
+                  ? t("settings.updates_downloading")
+                  : t("settings.updates_installing", {
+                      percent: String(progress),
+                    })}
             </Button>
+            {installing && (
+              <div
+                aria-valuemax={100}
+                aria-valuemin={0}
+                aria-valuenow={progress ?? undefined}
+                className="h-1 w-full overflow-hidden rounded-full bg-surf-tertiary"
+                role="progressbar"
+              >
+                <div
+                  className={`h-full rounded-full bg-indigo-600 ${
+                    progress === null
+                      ? "w-1/3 animate-pulse"
+                      : "transition-[width]"
+                  }`}
+                  style={
+                    progress === null ? undefined : { width: `${progress}%` }
+                  }
+                />
+              </div>
+            )}
           </div>
         )}
 
