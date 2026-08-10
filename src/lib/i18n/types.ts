@@ -7105,6 +7105,7 @@ export interface SurveyTranslations {
   q_source: string;
   source_reddit: string;
   source_youtube: string;
+  source_tiktok_instagram: string;
   source_friend: string;
   source_twitter: string;
   source_privacy_directory: string;

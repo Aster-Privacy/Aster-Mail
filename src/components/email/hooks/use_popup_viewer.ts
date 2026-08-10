@@ -82,6 +82,7 @@ import {
 } from "@/components/email/hooks/popup_viewer_types";
 import { use_popup_viewer_actions } from "@/components/email/hooks/popup_viewer_actions";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
+import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 
 export type {
   EmailRecipient,
@@ -98,7 +99,7 @@ export {
 
 export function use_popup_viewer({
   email_id,
-  local_email,
+  local_email: incoming_local_email,
   on_close,
   on_reply,
   on_forward,
@@ -114,6 +115,8 @@ export function use_popup_viewer({
   | "snoozed_until"
   | "grouped_email_ids"
 >) {
+  const local_email =
+    email_id === UNDO_SEND_PREVIEW_ID ? incoming_local_email : undefined;
   const { user } = use_auth();
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -640,7 +643,7 @@ export function use_popup_viewer({
       const now_str = format_email_detail(new Date());
 
       const decrypted: DecryptedEmail = {
-        id: "undo-send-preview",
+        id: UNDO_SEND_PREVIEW_ID,
         sender: s_name,
         sender_email: s_email,
         subject: local_email.subject || t("mail.no_subject"),
@@ -659,7 +662,7 @@ export function use_popup_viewer({
       set_error(null);
 
       const msg: DecryptedThreadMessage = {
-        id: "undo-send-preview",
+        id: UNDO_SEND_PREVIEW_ID,
         item_type: "sent",
         sender_name: s_name,
         sender_email: s_email,

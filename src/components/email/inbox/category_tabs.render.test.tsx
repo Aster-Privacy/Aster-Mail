@@ -212,7 +212,9 @@ describe("CategoryTabs", () => {
 
     expect(with_preview.querySelector("span.h-\\[13px\\]")).toBeTruthy();
     expect(without_preview.querySelector("span.h-\\[13px\\]")).toBeNull();
-    expect(with_preview.querySelector("span.w-\\[124px\\]")).toBeTruthy();
-    expect(without_preview.querySelector("span.w-\\[124px\\]")).toBeNull();
+    for (const tab of [with_preview, without_preview]) {
+      expect(classes_of(tab)).toContain("overflow-hidden");
+      expect(tab.querySelector("span.w-\\[124px\\]")).toBeNull();
+    }
   });
 });

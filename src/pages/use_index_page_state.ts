@@ -472,6 +472,7 @@ export function use_index_page_state() {
 
   const handle_navigate_to = useCallback(
     (id: string) => {
+      set_preview_local_email(null);
       if (use_popup_mode) {
         set_popup_email_id(id);
       } else {
@@ -512,6 +513,7 @@ export function use_index_page_state() {
       set_edit_draft(null);
       set_popup_scheduled(null);
       set_split_scheduled_data(null);
+      set_preview_local_email(null);
       const index = visible_email_ids.indexOf(id);
 
       if (index !== -1) {
@@ -599,19 +601,8 @@ export function use_index_page_state() {
       window.removeEventListener("astermail:undo-send-preview", handler);
   }, [use_popup_mode]);
 
-  const handle_popup_reply = useCallback((data: ReplyData) => {
-    if (!is_mobile && location.hash.startsWith('#')) {
-      close_hash_entry();
-    }
-    set_popup_email_id(null);
-    set_popup_scheduled(null);
-    set_split_scheduled_data(null);
-    set_reply_data(data);
-    set_is_reply_open(true);
-  }, [is_mobile, location.hash, close_hash_entry]);
-
-  const handle_popup_forward = useCallback((data: ForwardData) => {
-    if (!is_mobile && location.hash.startsWith('#')) {
+  const handle_forward = useCallback((data: ForwardData) => {
+    if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
       close_hash_entry();
     }
     set_forward_mail_id(data.original_mail_id);
@@ -1417,8 +1408,7 @@ export function use_index_page_state() {
     handle_email_click,
     handle_split_close,
     handle_popup_close,
-    handle_popup_reply,
-    handle_popup_forward,
+    handle_forward,
     handle_scheduled_click,
     handle_scheduled_popup_close,
     handle_split_scheduled_close,

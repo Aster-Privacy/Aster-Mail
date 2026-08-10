@@ -8293,6 +8293,7 @@ export const ru = {
     q_source: "Где вы впервые услышали об Aster Mail?",
     source_reddit: "Reddit",
     source_youtube: "YouTube или блогер",
+    source_tiktok_instagram: "TikTok или Instagram",
     source_friend: "Друг или сарафанное радио",
     source_twitter: "X / Twitter",
     source_privacy_directory:

@@ -204,6 +204,14 @@ export function SplitEmailViewer({
   const [content_ready, set_content_ready] = useState(
     () => !!get_cached_iframe_height(email_id),
   );
+  const content_ready_email_ref = useRef(email_id);
+
+  if (content_ready_email_ref.current !== email_id) {
+    content_ready_email_ref.current = email_id;
+    const cached_now = !!get_cached_iframe_height(email_id);
+
+    if (cached_now !== content_ready) set_content_ready(cached_now);
+  }
 
   useEffect(() => {
     const already_cached = !!get_cached_iframe_height(email_id);
@@ -211,13 +219,18 @@ export function SplitEmailViewer({
     set_content_ready(already_cached);
     if (already_cached) return;
 
-    const handler = () => {
-      set_content_ready(true);
+    const mark_ready = () => set_content_ready(true);
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+
+      if (detail && detail !== email_id) return;
+
+      mark_ready();
     };
 
     window.addEventListener("astermail:iframe-ready", handler);
     const fallback_timer = window.setTimeout(
-      handler,
+      mark_ready,
       CONTENT_READY_FALLBACK_MS,
     );
 
@@ -435,9 +448,10 @@ export function SplitEmailViewer({
   const email = viewer.email!;
 
   const show_content_skeleton =
-    ((!viewer.was_preloaded && !content_ready) ||
+    (!content_ready ||
       viewer.is_loading ||
-      !viewer.email) &&
+      !viewer.email ||
+      !viewer.is_content_current) &&
     !viewer.error;
 
   return (

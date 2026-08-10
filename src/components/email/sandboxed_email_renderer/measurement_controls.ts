@@ -64,6 +64,13 @@ export function build_measurement_controls(ctx: measurement_context) {
   } = ctx;
 
   const MAX_IFRAME_HEIGHT = 12000;
+  const FAST_HEIGHT_SETTLE_MS = 700;
+  const FAST_HEIGHT_MIN_DELTA_PX = 24;
+
+  const now_ms = () =>
+    typeof performance !== "undefined" ? performance.now() : 0;
+
+  let first_apply_at = 0;
 
   const schedule_ready = () => {
     if (has_fired_ready_ref.current || !email_id) return;
@@ -222,6 +229,7 @@ export function build_measurement_controls(ctx: measurement_context) {
 
     if (Math.abs(height - last_height) < 2) return;
     last_height = height;
+    if (first_apply_at === 0) first_apply_at = now_ms();
 
     set_iframe_height(`${height}px`);
     set_height_ready(true);
@@ -255,6 +263,7 @@ export function build_measurement_controls(ctx: measurement_context) {
 
       sync_clip_overflow(content_doc, immediate_height + 8 > MAX_IFRAME_HEIGHT);
       last_height = clamped;
+      if (first_apply_at === 0) first_apply_at = now_ms();
       set_iframe_height(`${clamped}px`);
       set_height_ready(true);
       if (email_id) {
@@ -293,6 +302,9 @@ export function build_measurement_controls(ctx: measurement_context) {
 
     if (Math.abs(candidate - last_height) < 2) return;
     if (last_height > 0 && candidate > last_height) return;
+    if (first_apply_at === 0) return;
+    if (now_ms() - first_apply_at < FAST_HEIGHT_SETTLE_MS) return;
+    if (last_height - candidate < FAST_HEIGHT_MIN_DELTA_PX) return;
 
     last_height = candidate;
     set_iframe_height(`${candidate}px`);

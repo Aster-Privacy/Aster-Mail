@@ -8290,6 +8290,7 @@ export const pl = {
     q_source: "Gdzie po raz pierwszy usłyszałeś o Aster Mail?",
     source_reddit: "Reddit",
     source_youtube: "YouTube lub twórca treści",
+    source_tiktok_instagram: "TikTok lub Instagram",
     source_friend: "Znajomy lub polecenie",
     source_twitter: "X / Twitter",
     source_privacy_directory:

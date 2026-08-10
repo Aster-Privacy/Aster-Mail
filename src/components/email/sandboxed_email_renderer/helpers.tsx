@@ -295,6 +295,14 @@ export const CONTENT_READY_FALLBACK_MS = 1500;
 
 export const SETTLE_REMEASURE_DELAYS_MS = [250, 700, 1400];
 
+export const SKELETON_DELAY_MS = 180;
+
+export const SKELETON_DELAY_MEASURED_MS = 90;
+
+export function needs_settle_remeasure(body: HTMLElement): boolean {
+  return body.querySelector("img,video,canvas,svg,iframe,object,embed") !== null;
+}
+
 export function dispatch_iframe_ready(email_id: string): void {
   window.dispatchEvent(
     new CustomEvent("astermail:iframe-ready", { detail: email_id }),

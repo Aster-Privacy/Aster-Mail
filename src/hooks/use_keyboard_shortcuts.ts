@@ -230,6 +230,17 @@ export function use_keyboard_shortcuts(
       return;
     }
 
+    const is_question_mark =
+      key === "?" ||
+      (key === "/" && has_shift) ||
+      (code === "Slash" && has_shift);
+
+    if (is_question_mark && !has_cmd) {
+      handle(h.on_show_shortcuts);
+
+      return;
+    }
+
     if (is_any_modal_open) return;
 
     if (
@@ -279,17 +290,6 @@ export function use_keyboard_shortcuts(
 
     if (key === "u" && !has_cmd && !has_shift) {
       handle(h.on_close_viewer);
-
-      return;
-    }
-
-    const is_question_mark =
-      key === "?" ||
-      (key === "/" && has_shift) ||
-      (code === "Slash" && has_shift);
-
-    if (is_question_mark) {
-      handle(h.on_show_shortcuts);
 
       return;
     }

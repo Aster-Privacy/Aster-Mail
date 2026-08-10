@@ -8004,6 +8004,7 @@ export const ko = {
     q_source: "Aster Mail을 처음 어디에서 알게 되셨나요?",
     source_reddit: "Reddit",
     source_youtube: "YouTube 또는 콘텐츠 크리에이터",
+    source_tiktok_instagram: "TikTok 또는 Instagram",
     source_friend: "친구 또는 입소문",
     source_twitter: "X / Twitter",
     source_privacy_directory:

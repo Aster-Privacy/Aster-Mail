@@ -8175,6 +8175,7 @@ export const es = {
     q_source: "¿Dónde escuchaste por primera vez sobre Aster Mail?",
     source_reddit: "Reddit",
     source_youtube: "YouTube o un creador de contenido",
+    source_tiktok_instagram: "TikTok o Instagram",
     source_friend: "Un amigo o el boca a boca",
     source_twitter: "X / Twitter",
     source_privacy_directory:

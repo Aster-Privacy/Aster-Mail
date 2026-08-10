@@ -8249,6 +8249,7 @@ export const ja = {
     q_source: "Aster Mail を最初にどこで知りましたか?",
     source_reddit: "Reddit",
     source_youtube: "YouTube やコンテンツクリエイター",
+    source_tiktok_instagram: "TikTok または Instagram",
     source_friend: "友人や口コミ",
     source_twitter: "X / Twitter",
     source_privacy_directory:

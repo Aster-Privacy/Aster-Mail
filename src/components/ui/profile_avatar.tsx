@@ -38,6 +38,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { is_aster_email } from "@/services/api/profiles";
+import { GHOST_DOMAIN } from "@/services/api/ghost_aliases";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
 import { Skeleton } from "./skeleton";
@@ -156,6 +157,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   }
 
   const is_aster_domain = ASTER_DOMAINS.has(domain);
+  const is_ghost_domain = domain === GHOST_DOMAIN;
 
   const cached_favicon_src = use_favicon_src(domain);
 
@@ -166,6 +168,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       !domain ||
       is_aster_mail ||
       is_aster_domain ||
+      is_ghost_domain ||
       ddg_logo_error ||
       is_icon_failed(domain)
     )
@@ -178,6 +181,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     domain,
     is_aster_mail,
     is_aster_domain,
+    is_ghost_domain,
     ddg_logo_error,
     cached_favicon_src,
   ]);

@@ -246,15 +246,16 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
               &lt;{show_sender_email}&gt;
             </span>
             {is_ghost_sender && (
-              <EmailTag
-                className="flex-shrink-0"
-                icon="eye-slash"
-                label={t("common.ghost_label")}
-                muted={is_read}
-                size="sm"
-                title={t("common.ghost_mode_tooltip")}
-                variant="purple"
-              />
+              <Tooltip tip={t("common.ghost_mode_tooltip")}>
+                <EmailTag
+                  className="flex-shrink-0"
+                  icon="eye-slash"
+                  label={t("common.ghost_label")}
+                  muted={is_read}
+                  size="sm"
+                  variant="purple"
+                />
+              </Tooltip>
             )}
             {on_unsubscribe && unsub_state === "idle" && (
               <button

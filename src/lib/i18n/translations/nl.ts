@@ -8240,6 +8240,7 @@ export const nl = {
     q_source: "Waar hoorde je voor het eerst over Aster Mail?",
     source_reddit: "Reddit",
     source_youtube: "YouTube of een contentmaker",
+    source_tiktok_instagram: "TikTok of Instagram",
     source_friend: "Een vriend of mond-tot-mond",
     source_twitter: "X / Twitter",
     source_privacy_directory:

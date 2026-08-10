@@ -295,16 +295,6 @@ export function QuickSettingsPanel({
           {t("settings.quick_settings")}
         </h2>
         <Button
-          className="flex-shrink-0 whitespace-nowrap"
-          size="md"
-          style={{ color: "var(--quick-link, #3b82f6)" }}
-          type="button"
-          variant="ghost"
-          onClick={() => on_open_full_settings()}
-        >
-          {t("settings.see_all_settings")}
-        </Button>
-        <Button
           aria-label={t("common.close")}
           className="h-7 w-7 text-[var(--icon-muted)]"
           size="icon"
@@ -316,6 +306,18 @@ export function QuickSettingsPanel({
       </div>
 
       <div className="aster_scrollbar_thin flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        <div className="px-4 pb-3.5">
+          <Button
+            className="w-full"
+            size="lg"
+            type="button"
+            variant="outline"
+            onClick={() => on_open_full_settings()}
+          >
+            {t("settings.see_all_settings")}
+          </Button>
+        </div>
+
         <QuickSection
           on_change={(v) =>
             update_preference(

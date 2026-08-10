@@ -345,7 +345,7 @@ export default function IndexPage() {
                   on_draft_click={state.handle_draft_click}
                   on_email_click={state.handle_email_click}
                   on_email_list_change={state.handle_email_list_change}
-                  on_forward={state.handle_popup_forward}
+                  on_forward={state.handle_forward}
                   on_navigate_next={state.handle_navigate_next}
                   on_navigate_prev={state.handle_navigate_prev}
                   on_navigate_to={state.handle_navigate_to}
@@ -480,8 +480,8 @@ export default function IndexPage() {
             }
             local_email={state.preview_local_email ?? undefined}
             on_close={state.handle_popup_close}
-            on_forward={state.handle_popup_forward}
-            on_reply={state.handle_popup_reply}
+            on_forward={state.handle_forward}
+            on_reply={state.handle_reply}
             snoozed_until={
               state.popup_email_id
                 ? state.email_snooze_map[state.popup_email_id]

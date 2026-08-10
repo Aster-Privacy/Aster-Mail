@@ -21,6 +21,8 @@
 import type { UnsubscribeInfo, SenderVerificationStatus } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
+export const UNDO_SEND_PREVIEW_ID = "undo-send-preview";
+
 export interface EmailRecipient {
   name: string;
   email: string;

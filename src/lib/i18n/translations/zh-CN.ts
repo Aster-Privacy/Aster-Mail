@@ -7497,6 +7497,7 @@ export const zh_CN = {
     q_source: "您最初是在哪里听说 Aster Mail 的?",
     source_reddit: "Reddit",
     source_youtube: "YouTube 或内容创作者",
+    source_tiktok_instagram: "TikTok 或 Instagram",
     source_friend: "朋友或口碑推荐",
     source_twitter: "X / Twitter",
     source_privacy_directory:

@@ -115,6 +115,10 @@ export function SurveyModal({
         options: [
           { value: "reddit", label: t("survey.source_reddit") },
           { value: "youtube", label: t("survey.source_youtube") },
+          {
+            value: "tiktok_instagram",
+            label: t("survey.source_tiktok_instagram"),
+          },
           { value: "friend", label: t("survey.source_friend") },
           { value: "twitter", label: t("survey.source_twitter") },
           {

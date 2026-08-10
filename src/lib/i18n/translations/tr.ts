@@ -8258,6 +8258,7 @@ export const tr = {
     q_source: "Aster Mail'i ilk nereden duydunuz?",
     source_reddit: "Reddit",
     source_youtube: "YouTube veya bir içerik üreticisi",
+    source_tiktok_instagram: "TikTok veya Instagram",
     source_friend: "Arkadaş veya kulaktan kulağa",
     source_twitter: "X / Twitter",
     source_privacy_directory:

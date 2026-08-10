@@ -19,8 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
 import {
   StarIcon,
   EyeIcon,
@@ -30,6 +28,8 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+
+import { Tooltip } from "@aster/ui";
 
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -106,15 +106,16 @@ export function render_collapsed_thread_message(
             {name}
           </span>
           {is_ghost_sender && (
-            <EmailTag
-              className="flex-shrink-0"
-              icon="eye-slash"
-              label={t("common.ghost_label")}
-              muted={is_read}
-              size="sm"
-              title={t("common.ghost_mode_tooltip")}
-              variant="purple"
-            />
+            <Tooltip tip={t("common.ghost_mode_tooltip")}>
+              <EmailTag
+                className="flex-shrink-0"
+                icon="eye-slash"
+                label={t("common.ghost_label")}
+                muted={is_read}
+                size="sm"
+                variant="purple"
+              />
+            </Tooltip>
           )}
         </div>
         {collapsed_preview && (

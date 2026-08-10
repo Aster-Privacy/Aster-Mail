@@ -331,6 +331,7 @@ export function use_category_inbox(
   }, [set_state]);
 
   const last_signature_ref = useRef<string>("");
+  const keys_ready_account_ref = useRef<string | null>(null);
   const abort_ref = useRef<AbortController | null>(null);
   const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
   const fetch_retry_ref = useRef<{ sig: string; attempts: number }>({
@@ -393,9 +394,15 @@ export function use_category_inbox(
     if (!has_keys) return;
     if (!user?.email) return;
 
+    const account = user.email;
+
     const run = () => {
-      page_cache.current.clear();
-      last_signature_ref.current = "";
+      if (keys_ready_account_ref.current !== account) {
+        keys_ready_account_ref.current = account;
+        page_cache.current.clear();
+        last_signature_ref.current = "";
+      }
+
       void init_category_index();
     };
 

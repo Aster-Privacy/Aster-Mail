@@ -177,7 +177,7 @@ export function CategoryTabs({
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex h-12 min-w-[104px] max-w-[176px] flex-1 basis-[176px] items-center justify-start gap-2 whitespace-nowrap px-2.5 text-[13px] font-medium outline-none transition-colors duration-150 sm:px-3 ${
+            className={`group relative flex h-12 min-w-[104px] max-w-[248px] flex-1 basis-auto items-center justify-start gap-2 overflow-hidden whitespace-nowrap px-2.5 text-[13px] font-medium outline-none transition-colors duration-150 sm:px-3 ${
               is_active
                 ? "text-brand"
                 : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
@@ -213,7 +213,7 @@ export function CategoryTabs({
             onDrop={drop_enabled ? (e) => handle_drop(e, key) : undefined}
             onMouseDown={(e) => e.preventDefault()}
           >
-            <span className="flex min-w-0 items-center gap-2.5">
+            <span className="flex min-w-0 flex-1 items-center gap-2.5">
               <Icon
                 className={`h-4 w-4 shrink-0 ${
                   is_active
@@ -222,21 +222,21 @@ export function CategoryTabs({
                 }`}
               />
               <span
-                className={`relative flex flex-col items-start ${
-                  preview ? "min-w-[124px]" : "min-w-0"
-                } ${drop_enabled && !preview ? "-translate-y-2" : ""}`}
+                className={`relative flex min-w-0 flex-1 flex-col items-start ${
+                  drop_enabled && !preview ? "-translate-y-2" : ""
+                }`}
               >
-                <span className="flex h-5 min-w-0 items-center gap-2">
+                <span className="flex h-5 w-full min-w-0 items-center gap-2">
                   <span className="truncate">{label}</span>
                   {show_new ? (
-                    <span className="aster_cat_badge">
+                    <span className="aster_cat_badge shrink-0">
                       {format_count(new_count)} {t("mail.tab_new_count")}
                     </span>
                   ) : null}
                 </span>
                 {preview ? (
                   <span
-                    className={`mt-[3px] block h-[13px] w-[124px] max-w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted ${
+                    className={`mt-[3px] block h-[13px] w-0 min-w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted ${
                       drop_enabled ? "invisible" : ""
                     }`}
                   >
@@ -246,7 +246,7 @@ export function CategoryTabs({
                   </span>
                 ) : null}
                 {drop_enabled ? (
-                  <span className="pointer-events-none absolute left-0 top-[23px] block h-[13px] w-[124px] truncate text-start text-[11.5px] font-normal leading-[13px] text-brand">
+                  <span className="pointer-events-none absolute left-0 top-[23px] block h-[13px] w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-brand">
                     {t("mail.drop_to_move_here")}
                   </span>
                 ) : null}

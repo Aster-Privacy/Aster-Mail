@@ -8509,6 +8509,7 @@ export const en: Translations = {
     q_source: "Where did you first hear about Aster Mail?",
     source_reddit: "Reddit",
     source_youtube: "YouTube or a content creator",
+    source_tiktok_instagram: "TikTok or Instagram",
     source_friend: "Friend or word of mouth",
     source_twitter: "X / Twitter",
     source_privacy_directory:

@@ -23,6 +23,7 @@ import type {
   DecryptedEmail,
   UseEmailViewerOptions,
 } from "@/components/email/email_viewer_types";
+import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
@@ -69,6 +70,8 @@ import {
 import {
   await_preloaded_email,
   delete_preloaded_email,
+  get_preloaded_email,
+  type PreloadedEmail,
   type PreloadedSanitizedContent,
 } from "@/components/email/hooks/preload_cache";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
@@ -118,6 +121,49 @@ function reconcile_thread_messages(
   return [...server, ...survivors];
 }
 
+function build_preloaded_email(preloaded: PreloadedEmail): DecryptedEmail {
+  const pe = preloaded.email;
+
+  return {
+    id: pe.id,
+    sender: pe.sender,
+    sender_email: pe.sender_email,
+    display_sender_name: pe.display_sender_name,
+    display_sender_email: pe.display_sender_email,
+    forwarding_service: pe.forwarding_service,
+    subject: pe.subject,
+    preview: pe.preview,
+    timestamp: preloaded.mail_item.created_at,
+    is_read: pe.is_read,
+    is_starred: pe.is_starred,
+    is_trashed: false,
+    is_archived: false,
+    body: pe.html_content || pe.body,
+    html_content: pe.html_content,
+    unsubscribe_info: pe.unsubscribe_info,
+    thread_token: preloaded.mail_item.thread_token,
+    raw_headers: pe.raw_headers,
+    reply_to: pe.reply_to
+      ? { name: pe.reply_to.name ?? "", email: pe.reply_to.email }
+      : undefined,
+    to: pe.to?.map((r) => ({ name: r.name || "", email: r.email })) || [],
+    cc: pe.cc?.map((r) => ({ name: r.name || "", email: r.email || "" })) || [],
+    bcc:
+      pe.bcc?.map((r) => ({ name: r.name || "", email: r.email || "" })) || [],
+    expires_at: preloaded.mail_item.expires_at,
+  };
+}
+
+function usable_preloaded(
+  preloaded: PreloadedEmail | null,
+  conversation_grouping: boolean,
+): PreloadedEmail | null {
+  if (!preloaded || preloaded.is_stale) return null;
+  if (preloaded.conversation_grouping !== conversation_grouping) return null;
+
+  return preloaded;
+}
+
 interface LocalDecryptedEnvelope {
   subject: string;
   body_text: string;
@@ -137,7 +183,7 @@ interface LocalDecryptedEnvelope {
 
 export function use_email_viewer({
   email_id,
-  local_email,
+  local_email: incoming_local_email,
   on_dismiss,
   on_reply,
   on_forward,
@@ -145,6 +191,8 @@ export function use_email_viewer({
   use_refresh_listener = false,
   grouped_email_ids,
 }: UseEmailViewerOptions) {
+  const local_email =
+    email_id === UNDO_SEND_PREVIEW_ID ? incoming_local_email : undefined;
   const { t } = use_i18n();
   const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
@@ -184,6 +232,9 @@ export function use_email_viewer({
     string | undefined
   >();
   const [refresh_key, set_refresh_key] = useState(0);
+  const [committed_email_id, set_committed_email_id] = useState<string | null>(
+    null,
+  );
   const mark_as_read_timeout = useRef<number | null>(null);
 
   useEffect(() => {
@@ -221,7 +272,10 @@ export function use_email_viewer({
 
       if (sender === primary) continue;
 
-      if (is_ghost_email(sender) || looks_like_unregistered_ghost_email(sender)) {
+      if (
+        is_ghost_email(sender) ||
+        looks_like_unregistered_ghost_email(sender)
+      ) {
         set_thread_ghost_email(sender);
 
         return;
@@ -274,7 +328,7 @@ export function use_email_viewer({
     const now_str = format_email_detail(new Date());
 
     set_email({
-      id: "undo-send-preview",
+      id: UNDO_SEND_PREVIEW_ID,
       sender: s_name,
       sender_email: s_email,
       subject: local_email.subject || t("mail.no_subject"),
@@ -292,7 +346,7 @@ export function use_email_viewer({
     });
 
     const msg: DecryptedThreadMessage = {
-      id: "undo-send-preview",
+      id: UNDO_SEND_PREVIEW_ID,
       item_type: "sent",
       sender_name: s_name,
       sender_email: s_email,
@@ -306,14 +360,21 @@ export function use_email_viewer({
       is_external: false,
       is_sending: true,
       to_recipients: local_email.to.map((e) => ({ name: "", email: e })),
-      cc_recipients: (local_email.cc || []).map((e) => ({ name: "", email: e })),
-      bcc_recipients: (local_email.bcc || []).map((e) => ({ name: "", email: e })),
+      cc_recipients: (local_email.cc || []).map((e) => ({
+        name: "",
+        email: e,
+      })),
+      bcc_recipients: (local_email.bcc || []).map((e) => ({
+        name: "",
+        email: e,
+      })),
     };
 
     set_thread_messages([msg]);
     set_current_user_email(s_email);
     set_current_user_name(s_name);
     set_is_loading(false);
+    set_committed_email_id(UNDO_SEND_PREVIEW_ID);
     set_error(null);
   }, [local_email, user, format_email_detail, t]);
 
@@ -321,75 +382,64 @@ export function use_email_viewer({
     if (local_email) return;
     let cancelled = false;
 
-    async function load_email() {
-      set_is_loading(true);
+    const commit_preloaded = (preloaded: PreloadedEmail) => {
+      set_email(build_preloaded_email(preloaded));
+      set_is_external(preloaded.mail_item.is_external);
+      set_has_recipient_key(!!preloaded.mail_item.has_recipient_key);
+      set_has_pq_protection(!!preloaded.mail_item.ephemeral_pq_key);
+      set_mail_item(preloaded.mail_item);
+      set_is_read(preloaded.email.is_read);
+      set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
+      set_thread_messages(preloaded.thread_messages);
+      set_thread_draft(preloaded.thread_draft);
+      set_current_user_email(preloaded.current_user_email);
+      if (preloaded.current_user_name) {
+        set_current_user_name(preloaded.current_user_name);
+      }
       set_error(null);
-      set_thread_messages([]);
-      set_thread_draft(null);
       set_sending_message(null);
-      was_preloaded_ref.current = false;
-      thread_sanitized_ref.current = new Map();
+      thread_sanitized_ref.current = preloaded.thread_sanitized;
+      was_preloaded_ref.current = true;
+      set_is_loading(false);
+      set_committed_email_id(preloaded.email.id);
+      loaded_email_id_ref.current = preloaded.email.id;
+    };
 
-      const preloaded = await await_preloaded_email(
-        email_id,
+    async function load_email() {
+      const cached = usable_preloaded(
+        get_preloaded_email(email_id),
         preferences.conversation_grouping !== false,
       );
+
+      if (cached) {
+        commit_preloaded(cached);
+      } else {
+        set_is_loading(true);
+        set_error(null);
+        set_email(null);
+        set_mail_item(null);
+        set_thread_messages([]);
+        set_thread_draft(null);
+        set_sending_message(null);
+        set_committed_email_id(null);
+        was_preloaded_ref.current = false;
+        thread_sanitized_ref.current = new Map();
+      }
+
+      const preloaded =
+        cached ??
+        (await await_preloaded_email(
+          email_id,
+          preferences.conversation_grouping !== false,
+        ));
 
       if (preloaded) {
         const pe = preloaded.email;
 
         if (!cancelled) {
-          set_email({
-            id: pe.id,
-            sender: pe.sender,
-            sender_email: pe.sender_email,
-            display_sender_name: pe.display_sender_name,
-            display_sender_email: pe.display_sender_email,
-            forwarding_service: pe.forwarding_service,
-            subject: pe.subject,
-            preview: pe.preview,
-            timestamp: preloaded.mail_item.created_at,
-            is_read: pe.is_read,
-            is_starred: pe.is_starred,
-            is_trashed: false,
-            is_archived: false,
-            body: pe.html_content || pe.body,
-            html_content: pe.html_content,
-            unsubscribe_info: pe.unsubscribe_info,
-            thread_token: preloaded.mail_item.thread_token,
-            raw_headers: pe.raw_headers,
-            reply_to: pe.reply_to
-              ? { name: pe.reply_to.name ?? "", email: pe.reply_to.email }
-              : undefined,
-            to:
-              pe.to?.map((r) => ({ name: r.name || "", email: r.email })) ||
-              [],
-            cc:
-              pe.cc?.map((r) => ({
-                name: r.name || "",
-                email: r.email || "",
-              })) || [],
-            bcc:
-              pe.bcc?.map((r) => ({
-                name: r.name || "",
-                email: r.email || "",
-              })) || [],
-            expires_at: preloaded.mail_item.expires_at,
-          });
-          set_is_external(preloaded.mail_item.is_external);
-          set_has_recipient_key(!!preloaded.mail_item.has_recipient_key);
-          set_has_pq_protection(!!preloaded.mail_item.ephemeral_pq_key);
-          set_mail_item(preloaded.mail_item);
-          set_is_read(pe.is_read);
-          set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
-          set_thread_messages(preloaded.thread_messages);
-          set_thread_draft(preloaded.thread_draft);
-          set_current_user_email(preloaded.current_user_email);
-          thread_sanitized_ref.current = preloaded.thread_sanitized;
+          if (!cached) commit_preloaded(preloaded);
 
-          if (preloaded.current_user_name) {
-            set_current_user_name(preloaded.current_user_name);
-          } else {
+          if (!preloaded.current_user_name) {
             try {
               const { get_current_account } = await import(
                 "@/services/account_manager"
@@ -406,10 +456,6 @@ export function use_email_viewer({
               if (import.meta.env.DEV) console.error(e);
             }
           }
-
-          was_preloaded_ref.current = true;
-          set_is_loading(false);
-          loaded_email_id_ref.current = email_id;
         }
 
         if (!pe.is_read && preferences.mark_as_read_delay !== "never") {
@@ -592,10 +638,8 @@ export function use_email_viewer({
             get_email_username(envelope.from.email) ||
             t("common.unknown"),
           sender_email: envelope.from.email || "",
-          ...(resolve_forwarding_display(
-            envelope.from,
-            envelope.raw_headers,
-          ) ?? {}),
+          ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
+            {}),
           subject: envelope.subject || t("mail.no_subject"),
           preview: build_preview_text(body_text, safe_html),
           timestamp: item.created_at,
@@ -758,6 +802,7 @@ export function use_email_viewer({
 
       if (!cancelled) {
         set_is_loading(false);
+        set_committed_email_id(email_id);
         loaded_email_id_ref.current = email_id;
       }
 
@@ -782,7 +827,6 @@ export function use_email_viewer({
           }
         }
       }
-
     }
 
     if (loaded_email_id_ref.current !== email_id || refresh_key > 0) {
@@ -1016,7 +1060,10 @@ export function use_email_viewer({
           thread_result = await fetch_and_decrypt_thread_messages(
             detail.thread_token,
             current_user_email || undefined,
-            { is_trashed: !!mail_item?.is_trashed, is_spam: !!mail_item?.is_spam },
+            {
+              is_trashed: !!mail_item?.is_trashed,
+              is_spam: !!mail_item?.is_spam,
+            },
           );
         } finally {
           thread_fetch_in_flight_ref.current = false;
@@ -1168,7 +1215,8 @@ export function use_email_viewer({
   useEffect(() => {
     const update_state = () => {
       if (!thread_list_ref.current) return;
-      const { all_expanded, all_collapsed, has_unread } = thread_list_ref.current;
+      const { all_expanded, all_collapsed, has_unread } =
+        thread_list_ref.current;
       set_thread_expand_state((prev) => {
         if (
           prev.all_expanded === all_expanded &&
@@ -1222,6 +1270,7 @@ export function use_email_viewer({
     is_pin_loading,
     thread_messages,
     set_thread_messages,
+    is_content_current: committed_email_id === email_id,
     was_preloaded: was_preloaded_ref.current,
     thread_sanitized: thread_sanitized_ref.current,
     current_user_email,

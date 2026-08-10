@@ -64,7 +64,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { reveal_on_fonts_ready } from "@/components/email/reveal_on_fonts_ready";
-import { BODY_PADDING, CONTENT_READY_FALLBACK_MS, SETTLE_REMEASURE_DELAYS_MS, get_cached_iframe_height, link_hover_ink_for, link_ink_for, resolve_native_images, safe_hex } from "./helpers";
+import { BODY_PADDING, CONTENT_READY_FALLBACK_MS, SETTLE_REMEASURE_DELAYS_MS, SKELETON_DELAY_MEASURED_MS, SKELETON_DELAY_MS, get_cached_iframe_height, link_hover_ink_for, link_ink_for, needs_settle_remeasure, resolve_native_images, safe_hex } from "./helpers";
 
 export interface SandboxedEmailRendererProps {
   sanitized_html: string;
@@ -558,12 +558,14 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     const doc_for_settle = iframe.contentDocument;
 
     settle_timers_ref.current.forEach(clearTimeout);
-    settle_timers_ref.current = SETTLE_REMEASURE_DELAYS_MS.map((delay) =>
-      setTimeout(() => {
-        if (iframe.contentDocument !== doc_for_settle) return;
-        measure_and_apply();
-      }, delay),
-    );
+    settle_timers_ref.current = needs_settle_remeasure(doc_body)
+      ? SETTLE_REMEASURE_DELAYS_MS.map((delay) =>
+          setTimeout(() => {
+            if (iframe.contentDocument !== doc_for_settle) return;
+            measure_and_apply();
+          }, delay),
+        )
+      : [];
 
     const doc_at_load = iframe.contentDocument;
     const doc_fonts = doc_at_load.fonts;
@@ -687,7 +689,23 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     return () => clearTimeout(timer);
   }, [contrast_ready, srcdoc_html]);
 
-  const show_skeleton = !height_ready || !contrast_ready;
+  const is_settling = !height_ready || !contrast_ready;
+  const [show_skeleton, set_show_skeleton] = useState(false);
+
+  useEffect(() => {
+    if (!is_settling) {
+      set_show_skeleton(false);
+
+      return;
+    }
+
+    const timer = setTimeout(
+      () => set_show_skeleton(true),
+      height_ready ? SKELETON_DELAY_MEASURED_MS : SKELETON_DELAY_MS,
+    );
+
+    return () => clearTimeout(timer);
+  }, [height_ready, is_settling, srcdoc_html]);
 
   return (
     <>
@@ -752,11 +770,15 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       style={{
         backgroundColor: effective_bg,
         position: "relative",
+        overflow: "hidden",
       }}
     >
       {show_skeleton && (
         <div
           style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
             padding: "20px",
             display: "flex",
             flexDirection: "column",
@@ -824,6 +846,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           overflow: "hidden",
           display: "block",
           opacity: height_ready && contrast_ready ? 1 : 0,
+          transition: "opacity 110ms ease-out",
           backgroundColor: effective_bg,
           touchAction: "pan-y",
         }}

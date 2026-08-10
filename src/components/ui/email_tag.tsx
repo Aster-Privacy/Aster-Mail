@@ -246,84 +246,96 @@ export interface EmailTagProps
   muted?: boolean;
 }
 
-function EmailTag({
-  className,
-  variant,
-  size,
-  icon,
-  label,
-  custom_color,
-  show_icon = true,
-  muted = false,
-  style,
-  ...props
-}: EmailTagProps) {
-  const default_icons: Partial<
-    Record<NonNullable<typeof variant>, TagIconName>
-  > = {
-    scheduled: "clock",
-    sent: "send",
-    draft: "draft",
-    archived: "archive",
-    trashed: "trash",
-    spam: "shield",
-    snoozed: "clock",
-    starred: "star",
-    important: "flag",
-    unread: "envelope",
-    encrypted: "lock",
-  };
+const EmailTag = React.forwardRef<HTMLSpanElement, EmailTagProps>(
+  function EmailTag(
+    {
+      className,
+      variant,
+      size,
+      icon,
+      label,
+      custom_color,
+      show_icon = true,
+      muted = false,
+      style,
+      ...props
+    },
+    ref,
+  ) {
+    const default_icons: Partial<
+      Record<NonNullable<typeof variant>, TagIconName>
+    > = {
+      scheduled: "clock",
+      sent: "send",
+      draft: "draft",
+      archived: "archive",
+      trashed: "trash",
+      spam: "shield",
+      snoozed: "clock",
+      starred: "star",
+      important: "flag",
+      unread: "envelope",
+      encrypted: "lock",
+    };
 
-  const resolved_icon =
-    icon ??
-    (variant && variant in default_icons
-      ? default_icons[variant as keyof typeof default_icons]
-      : undefined);
+    const resolved_icon =
+      icon ??
+      (variant && variant in default_icons
+        ? default_icons[variant as keyof typeof default_icons]
+        : undefined);
 
-  const IconComponent =
-    typeof resolved_icon === "string" ? tag_icon_map[resolved_icon] : null;
+    const IconComponent =
+      typeof resolved_icon === "string" ? tag_icon_map[resolved_icon] : null;
 
-  const icon_sizes: Record<NonNullable<typeof size>, string> = {
-    xs: "w-2.5 h-2.5",
-    sm: "w-3 h-3",
-    default: "w-3.5 h-3.5",
-    lg: "w-4 h-4",
-  };
+    const icon_sizes: Record<NonNullable<typeof size>, string> = {
+      xs: "w-2.5 h-2.5",
+      sm: "w-3 h-3",
+      default: "w-3.5 h-3.5",
+      lg: "w-4 h-4",
+    };
 
-  const custom_styles =
-    variant === "custom" && custom_color
-      ? get_custom_color_styles(custom_color)
-      : {};
+    const custom_styles =
+      variant === "custom" && custom_color
+        ? get_custom_color_styles(custom_color)
+        : {};
 
-  return (
-    <span
-      className={cn(
-        email_tag_variants({ variant, size }),
-        muted && "opacity-70",
-        className,
-      )}
-      style={{ ...custom_styles, ...style }}
-      {...props}
-    >
-      {show_icon && resolved_icon && (
-        <>
-          {IconComponent ? (
-            <IconComponent
-              className={cn(icon_sizes[size || "sm"], "flex-shrink-0 -ml-0.5")}
-            />
-          ) : (
-            <span
-              className={cn(icon_sizes[size || "sm"], "flex-shrink-0 -ml-0.5")}
-            >
-              {resolved_icon}
-            </span>
-          )}
-        </>
-      )}
-      <span className="truncate">{label}</span>
-    </span>
-  );
-}
+    return (
+      <span
+        className={cn(
+          email_tag_variants({ variant, size }),
+          muted && "opacity-70",
+          className,
+        )}
+        ref={ref}
+        style={{ ...custom_styles, ...style }}
+        {...props}
+      >
+        {show_icon && resolved_icon && (
+          <>
+            {IconComponent ? (
+              <IconComponent
+                className={cn(
+                  icon_sizes[size || "sm"],
+                  "flex-shrink-0 -ml-0.5",
+                )}
+              />
+            ) : (
+              <span
+                className={cn(
+                  icon_sizes[size || "sm"],
+                  "flex-shrink-0 -ml-0.5",
+                )}
+              >
+                {resolved_icon}
+              </span>
+            )}
+          </>
+        )}
+        <span className="truncate">{label}</span>
+      </span>
+    );
+  },
+);
 
 function get_custom_color_styles(color: string): React.CSSProperties {
   const hex_to_rgb = (
