@@ -18,29 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRightIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
 
-import { use_auth } from "@/contexts/auth_context";
-import { api_client } from "@/services/api/client";
-import { use_i18n } from "@/lib/i18n/context";
-import { useTheme } from "@/contexts/theme_context";
-import { use_platform } from "@/hooks/use_platform";
-import {
-  hash_email,
-  derive_password_hash,
-  decrypt_vault,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
-import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
-import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
-import {
-  sanitize_username,
-  timing_safe_delay,
-  clamp_password,
-} from "@/services/sanitize";
+import { build_mobile_sign_in_handlers } from "./mobile_sign_in_handlers";
+import { use_mobile_sign_in } from "./use_mobile_sign_in";
+
+import { sanitize_username, clamp_password } from "@/services/sanitize";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -49,25 +34,13 @@ import {
 } from "@/components/auth/auth_styles";
 import {
   TurnstileWidget,
-  type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import { use_should_reduce_motion } from "@/provider";
 import { TotpVerification } from "@/components/auth/totp_verification";
 import { BackupCodeInput } from "@/components/auth/backup_code_input";
 import { WebauthnVerification } from "@/components/auth/webauthn_verification";
-import {
-  get_totp_status,
-  is_totp_required_response,
-  TotpVerifyResponse,
-} from "@/services/api/totp";
-import { show_toast } from "@/components/toast/simple_toast";
-import { is_webauthn_supported } from "@/services/api/webauthn";
-import { emit_auth_ready } from "@/hooks/mail_events";
-import { get_current_account_id } from "@/services/account_manager";
-import { get_app_query_param } from "@/lib/hard_redirect";
 import {
   stagger_container,
   fade_up_item,
@@ -83,567 +56,90 @@ import {
   INPUT_ICON_CLASS,
 } from "@/components/auth/mobile_auth_motion";
 
-type SignInDomain = "astermail.org" | "aster.cx";
-
-function parse_prefill_identity(): {
-  local: string;
-  domain: SignInDomain | null;
-} {
-  const raw = get_app_query_param("u") || "";
-  const at_index = raw.indexOf("@");
-
-  if (at_index === -1) return { local: raw, domain: null };
-
-  const domain = raw.slice(at_index + 1).toLowerCase();
-
-  return {
-    local: raw.slice(0, at_index),
-    domain:
-      domain === "aster.cx" || domain === "astermail.org" ? domain : null,
-  };
-}
-
 export default function MobileSignInPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { safe_area_insets } = use_platform();
   const {
+    navigate,
+    location,
+    safe_area_insets,
     login,
     add_account,
     switch_to_account,
     is_adding_account,
     set_is_adding_account,
     is_authenticated,
-    is_loading: auth_loading,
-    current_account_id,
-    accounts,
-  } = use_auth();
-  const { theme } = useTheme();
-  const { t } = use_i18n();
-  const reduce_motion = use_should_reduce_motion();
-  const is_dark = theme === "dark";
-
-  const [reauth_account_id] = useState(() => get_app_query_param("reauth"));
-  const [previous_account_id] = useState(() => get_app_query_param("from"));
-
-  const has_existing_session =
-    !auth_loading &&
-    is_authenticated &&
-    !!current_account_id &&
-    !is_adding_account &&
-    !reauth_account_id &&
-    !location.state?.from;
-
-  const preloaded = useRef(false);
-
-  useEffect(() => {
-    if (!reauth_account_id || auth_loading || is_adding_account) return;
-    set_is_adding_account(true);
-  }, [reauth_account_id, auth_loading, is_adding_account, set_is_adding_account]);
-
-  useEffect(() => {
-    document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
-    if (!preloaded.current) {
-      preloaded.current = true;
-      import("@/pages/mobile/mobile_register").catch(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
-    if (has_existing_session) {
-      navigate("/", { replace: true });
-    } else if (!auth_loading && !current_account_id && !is_adding_account) {
-      api_client.clear_session_cookies();
-    }
-  }, [
-    has_existing_session,
     auth_loading,
-    current_account_id,
-    is_adding_account,
-    navigate,
-  ]);
-
-  const [is_password_visible, set_is_password_visible] = useState(false);
-  const [username, set_username] = useState(
-    () => parse_prefill_identity().local,
-  );
-  const [password, set_password] = useState("");
-  const [email_domain, set_email_domain] = useState<SignInDomain>(
-    () => parse_prefill_identity().domain ?? "astermail.org",
-  );
-  const [remember_me, set_remember_me] = useState(true);
-  const [is_loading, set_is_loading] = useState(false);
-  const [error, set_error] = useState(() =>
-    new URLSearchParams(window.location.search).get("reason") ===
-    "session_expired"
-      ? t("common.session_expired_sign_in")
-      : "",
-  );
-  const [status, set_status] = useState("");
-
-  const [captcha_token, set_captcha_token] = useState("");
-  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
-
-  const [totp_required, set_totp_required] = useState(false);
-  const [pending_login_token, set_pending_login_token] = useState("");
-  const [available_2fa_methods, set_available_2fa_methods] = useState<string[]>(
-    [],
-  );
-  const [active_2fa_method, set_active_2fa_method] = useState<
-    "totp" | "webauthn" | "backup" | "choose"
-  >("totp");
-
-  const handle_totp_success = useCallback(
-    async (totp_response: TotpVerifyResponse) => {
-      set_is_loading(true);
-      set_status(t("auth.decrypting_vault"));
-
-      try {
-        if (totp_response.is_suspended) {
-          sessionStorage.setItem("aster_suspended", "true");
-          set_error(t("common.account_suspended"));
-          set_is_loading(false);
-          set_totp_required(false);
-          set_pending_login_token("");
-          set_available_2fa_methods([]);
-          set_active_2fa_method("totp");
-
-          return;
-        }
-
-        const vault = await decrypt_vault(
-          totp_response.encrypted_vault,
-          totp_response.vault_nonce,
-          password,
-        );
-
-        set_status(t("auth.getting_user_info"));
-        let user_info_response: Awaited<
-          ReturnType<typeof get_user_info>
-        > | null = null;
-
-        try {
-          user_info_response = await Promise.race([
-            get_user_info(),
-            new Promise<null>((resolve) =>
-              setTimeout(() => resolve(null), 10_000),
-            ),
-          ]);
-        } catch {}
-
-        const user_data = user_info_response?.data
-          ? {
-              id: totp_response.user_id,
-              username: totp_response.username,
-              email: totp_response.email,
-              display_name: user_info_response.data.display_name || undefined,
-              profile_color: user_info_response.data.profile_color || undefined,
-              profile_picture:
-                user_info_response.data.profile_picture || undefined,
-            }
-          : {
-              id: totp_response.user_id,
-              username: totp_response.username,
-              email: totp_response.email,
-            };
-
-        set_status(t("auth.signing_in"));
-
-        const login_timeout = <T,>(promise: Promise<T>): Promise<T> =>
-          Promise.race([
-            promise,
-            new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error("login_timeout")), 15_000),
-            ),
-          ]);
-
-        if (is_adding_account) {
-          const add_result = await login_timeout(
-            add_account(
-              user_data,
-              vault,
-              password,
-              totp_response.encrypted_vault,
-              totp_response.vault_nonce,
-            ),
-          );
-
-          if (!add_result.success) {
-            set_error(add_result.error || t("errors.login_failed"));
-            set_is_loading(false);
-            set_totp_required(false);
-            set_pending_login_token("");
-            set_available_2fa_methods([]);
-            set_active_2fa_method("totp");
-
-            return;
-          }
-        } else {
-          await login_timeout(
-            login(
-              user_data,
-              vault,
-              password,
-              totp_response.encrypted_vault,
-              totp_response.vault_nonce,
-            ),
-          );
-        }
-
-        if (totp_response.needs_prekey_replenishment) {
-          check_and_replenish_prekeys();
-        }
-
-        if (active_2fa_method === "backup") {
-          get_totp_status()
-            .then((status_response) => {
-              if (status_response.data) {
-                show_toast(
-                  t("auth.backup_codes_remaining_after_login", {
-                    count: status_response.data.backup_codes_remaining,
-                  }),
-                  status_response.data.backup_codes_remaining <= 3
-                    ? "error"
-                    : "success",
-                  5000,
-                );
-              }
-            })
-            .catch(() => {});
-        }
-
-        set_totp_required(false);
-        set_pending_login_token("");
-        set_available_2fa_methods([]);
-        set_active_2fa_method("totp");
-        navigate("/");
-        setTimeout(() => emit_auth_ready(), 50);
-      } catch (err) {
-        if (err instanceof Error && err.message === "login_timeout") {
-          set_totp_required(false);
-          set_pending_login_token("");
-          set_available_2fa_methods([]);
-          set_active_2fa_method("totp");
-          navigate("/");
-          setTimeout(() => emit_auth_ready(), 50);
-
-          return;
-        }
-        if (err instanceof Error && err.message.includes("decrypt")) {
-          set_error(t("errors.wrong_vault_password"));
-        } else {
-          set_error(
-            err instanceof Error ? err.message : t("errors.login_failed"),
-          );
-        }
-        set_is_loading(false);
-        set_totp_required(false);
-        set_pending_login_token("");
-        set_available_2fa_methods([]);
-        set_active_2fa_method("totp");
-      }
-    },
-    [password, is_adding_account, add_account, login, navigate, t, active_2fa_method],
-  );
+    accounts,
+    t,
+    reduce_motion,
+    is_dark,
+    reauth_account_id,
+    previous_account_id,
+    has_existing_session,
+    is_password_visible,
+    set_is_password_visible,
+    username,
+    set_username,
+    password,
+    set_password,
+    email_domain,
+    set_email_domain,
+    remember_me,
+    set_remember_me,
+    is_loading,
+    set_is_loading,
+    error,
+    set_error,
+    status,
+    set_status,
+    captcha_token,
+    set_captcha_token,
+    turnstile_ref,
+    totp_required,
+    set_totp_required,
+    pending_login_token,
+    set_pending_login_token,
+    available_2fa_methods,
+    set_available_2fa_methods,
+    active_2fa_method,
+    set_active_2fa_method,
+    handle_totp_success,
+  } = use_mobile_sign_in();
 
   if (auth_loading || has_existing_session) {
     return null;
   }
 
-  const handle_cancel_add_account = async () => {
-    set_is_adding_account(false);
-
-    if (!is_authenticated && previous_account_id) {
-      try {
-        await switch_to_account(previous_account_id);
-
-        return;
-      } catch (e) {
-        if (import.meta.env.DEV) console.error(e);
-      }
-    }
-
-    navigate("/");
-  };
-
-  const handle_totp_cancel = () => {
-    set_totp_required(false);
-    set_pending_login_token("");
-    set_available_2fa_methods([]);
-    set_active_2fa_method("totp");
-    set_password("");
-  };
-
-  const handle_login = async () => {
-    set_error("");
-
-    const raw_local = username.includes("@")
-      ? username.substring(0, username.indexOf("@"))
-      : username;
-    const typed_domain = username.includes("@")
-      ? username.substring(username.indexOf("@") + 1).toLowerCase()
-      : "";
-    const clean_username = sanitize_username(raw_local);
-    const final_domain =
-      typed_domain === "astermail.org" || typed_domain === "aster.cx"
-        ? typed_domain
-        : email_domain;
-
-    if (
-      !clean_username ||
-      clean_username.length < 3 ||
-      clean_username.length > 40
-    ) {
-      await timing_safe_delay();
-      set_error(t("errors.invalid_username"));
-
-      return;
-    }
-
-    if (!password || password.length < 1) {
-      await timing_safe_delay();
-      set_error(t("errors.enter_password"));
-
-      return;
-    }
-
-    const email = `${clean_username}@${final_domain}`;
-
-    if (is_adding_account) {
-      const normalized = email.toLowerCase();
-      const existing = accounts.find(
-        (a) => a.user.email.toLowerCase() === normalized,
-      );
-
-      if (
-        existing &&
-        existing.id !== reauth_account_id &&
-        existing.id !== (await get_current_account_id())
-      ) {
-        await timing_safe_delay();
-        set_error(t("errors.account_already_added"));
-
-        return;
-      }
-    }
-
-    set_is_loading(true);
-    set_status(t("auth.authenticating"));
-
-    const start_time = Date.now();
-
-    try {
-      const user_hash = await hash_email(email);
-
-      set_status(t("auth.fetching_auth_data"));
-      const salt_response = await get_user_salt({ user_hash });
-
-      if (salt_response.error || !salt_response.data) {
-        const elapsed = Date.now() - start_time;
-        const min_time = 500;
-
-        if (elapsed < min_time) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, min_time - elapsed),
-          );
-        }
-        set_error(salt_response.error || t("errors.account_not_found"));
-        set_is_loading(false);
-        set_captcha_token("");
-        turnstile_ref.current?.reset();
-
-        return;
-      }
-
-      const salt = base64_to_array(salt_response.data.salt);
-      const { hash: password_hash } = await derive_password_hash(
-        password,
-        salt,
-      );
-
-      set_status(t("auth.verifying_credentials"));
-      const response = await login_user({
-        user_hash,
-        password_hash,
-        remember_me,
-        captcha_token: captcha_token || undefined,
-        is_adding_account,
-      });
-
-      if (response.error) {
-        const elapsed = Date.now() - start_time;
-        const min_time = 1000;
-
-        if (elapsed < min_time) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, min_time - elapsed),
-          );
-        }
-        if (response.code === "RATE_LIMIT_EXCEEDED" && response.resets_at) {
-          const reset_time = new Date(response.resets_at).getTime();
-          const minutes = Math.ceil((reset_time - Date.now()) / 60000);
-          const time_str = minutes > 0 ? `${minutes}m` : t("errors.try_again");
-
-          set_error(t("errors.ip_blocked", { time: time_str }));
-        } else {
-          set_error(response.error);
-        }
-        set_is_loading(false);
-        set_captcha_token("");
-        turnstile_ref.current?.reset();
-
-        return;
-      }
-
-      if (!response.data) {
-        await timing_safe_delay();
-        set_error(t("errors.login_failed"));
-        set_is_loading(false);
-        set_captcha_token("");
-        turnstile_ref.current?.reset();
-
-        return;
-      }
-
-      if (is_totp_required_response(response.data)) {
-        set_pending_login_token(response.data.pending_login_token);
-        const methods = response.data.available_methods || ["totp"];
-
-        set_available_2fa_methods(methods);
-        if (methods.length === 1) {
-          set_active_2fa_method(
-            methods[0] === "webauthn" && is_webauthn_supported()
-              ? "webauthn"
-              : "totp",
-          );
-        } else if (methods.includes("webauthn") && is_webauthn_supported()) {
-          set_active_2fa_method("webauthn");
-        } else {
-          set_active_2fa_method("totp");
-        }
-        set_totp_required(true);
-        set_is_loading(false);
-
-        return;
-      }
-
-      if (response.data.is_suspended) {
-        sessionStorage.setItem("aster_suspended", "true");
-        await timing_safe_delay();
-        set_error(t("common.account_suspended"));
-        set_is_loading(false);
-        set_captcha_token("");
-        turnstile_ref.current?.reset();
-
-        return;
-      }
-
-      set_status(t("auth.decrypting_vault"));
-      const vault = await decrypt_vault(
-        response.data.encrypted_vault,
-        response.data.vault_nonce,
-        password,
-      );
-
-      set_status(t("auth.getting_user_info"));
-      let user_info_response: Awaited<ReturnType<typeof get_user_info>> | null =
-        null;
-
-      try {
-        user_info_response = await Promise.race([
-          get_user_info(),
-          new Promise<null>((resolve) =>
-            setTimeout(() => resolve(null), 10_000),
-          ),
-        ]);
-      } catch {}
-
-      const login_user_data = user_info_response?.data
-        ? {
-            id: response.data.user_id,
-            username: response.data.username,
-            email: response.data.email,
-            display_name: user_info_response.data.display_name || undefined,
-            profile_color: user_info_response.data.profile_color || undefined,
-            profile_picture:
-              user_info_response.data.profile_picture || undefined,
-          }
-        : {
-            id: response.data.user_id,
-            username: response.data.username,
-            email: response.data.email,
-          };
-
-      set_status(t("auth.signing_in"));
-
-      const login_timeout = <T,>(promise: Promise<T>): Promise<T> =>
-        Promise.race([
-          promise,
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("login_timeout")), 15_000),
-          ),
-        ]);
-
-      if (is_adding_account) {
-        const add_result = await login_timeout(
-          add_account(
-            login_user_data,
-            vault,
-            password,
-            response.data.encrypted_vault,
-            response.data.vault_nonce,
-          ),
-        );
-
-        if (!add_result.success) {
-          set_error(add_result.error || t("errors.login_failed"));
-          set_is_loading(false);
-
-          return;
-        }
-      } else {
-        await login_timeout(
-          login(
-            login_user_data,
-            vault,
-            password,
-            response.data.encrypted_vault,
-            response.data.vault_nonce,
-          ),
-        );
-      }
-
-      if (response.data.needs_prekey_replenishment) {
-        check_and_replenish_prekeys();
-      }
-
-      navigate("/");
-      setTimeout(() => emit_auth_ready(), 50);
-    } catch (err) {
-      if (err instanceof Error && err.message === "login_timeout") {
-        navigate("/");
-        setTimeout(() => emit_auth_ready(), 50);
-
-        return;
-      }
-      const elapsed = Date.now() - start_time;
-      const min_time = 1000;
-
-      if (elapsed < min_time) {
-        await new Promise((resolve) => setTimeout(resolve, min_time - elapsed));
-      }
-      if (err instanceof Error && err.message.includes("decrypt")) {
-        set_error(t("errors.wrong_vault_password"));
-      } else {
-        set_error(
-          err instanceof Error ? err.message : t("errors.login_failed"),
-        );
-      }
-      set_is_loading(false);
-      set_captcha_token("");
-      turnstile_ref.current?.reset();
-    }
-  };
+  const { handle_cancel_add_account, handle_totp_cancel, handle_login } =
+    build_mobile_sign_in_handlers({
+      navigate,
+      login,
+      add_account,
+      switch_to_account,
+      is_adding_account,
+      set_is_adding_account,
+      is_authenticated,
+      accounts,
+      t,
+      reauth_account_id,
+      previous_account_id,
+      username,
+      password,
+      set_password,
+      email_domain,
+      remember_me,
+      set_is_loading,
+      error,
+      set_error,
+      set_status,
+      captcha_token,
+      set_captcha_token,
+      turnstile_ref,
+      set_totp_required,
+      pending_login_token,
+      set_pending_login_token,
+      set_available_2fa_methods,
+      set_active_2fa_method,
+    });
 
   if (totp_required) {
     return (
@@ -680,7 +176,10 @@ export default function MobileSignInPage() {
           <AnimatePresence mode="wait">
             {is_loading ? (
               <div className="flex flex-col items-center gap-4 text-center">
-                <Spinner className="h-8 w-8 text-[var(--mobile-accent)]" size="lg" />
+                <Spinner
+                  className="h-8 w-8 text-[var(--mobile-accent)]"
+                  size="lg"
+                />
                 <p className="text-sm text-[var(--text-secondary)]">{status}</p>
               </div>
             ) : active_2fa_method === "backup" ? (
@@ -749,7 +248,10 @@ export default function MobileSignInPage() {
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Spinner className="h-8 w-8 text-[var(--mobile-accent)]" size="lg" />
+            <Spinner
+              className="h-8 w-8 text-[var(--mobile-accent)]"
+              size="lg"
+            />
             <p className="text-sm text-[var(--text-secondary)]">{status}</p>
           </motion.div>
         )}
