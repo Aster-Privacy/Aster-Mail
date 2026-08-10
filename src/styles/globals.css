@@ -1977,6 +1977,7 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
   justify-content: center;
   vertical-align: middle;
   line-height: 0;
+  aspect-ratio: 1 / 1;
   border-radius: 9999px;
   isolation: isolate;
 }
@@ -1984,7 +1985,11 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .plan_ring::before {
   content: "";
   position: absolute;
-  inset: -5px;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  transform: translate(-50%, -50%);
   z-index: -1;
   box-sizing: border-box;
   border: 2px solid transparent;
