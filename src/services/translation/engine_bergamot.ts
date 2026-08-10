@@ -100,8 +100,9 @@ class SelfHostedBacking extends TranslatorBacking {
 }
 
 const TRANSLATE_TIMEOUT_MS = 30000;
-const COLD_TRANSLATE_TIMEOUT_MS = 120000;
-const MAX_LOADED_MODELS = 4;
+const COLD_TRANSLATE_BASE_MS = 90000;
+const COLD_TRANSLATE_MS_PER_MB = 1500;
+const MODEL_MEMORY_BUDGET_BYTES = 130_000_000;
 
 function with_deadline<T>(
   work: Promise<T>,
@@ -156,6 +157,17 @@ function with_deadline<T>(
 
 interface AvailabilityMap {
   pairs: Set<string>;
+  bytes: Map<string, number>;
+}
+
+function entry_bytes(entry: BergamotModelEntry): number {
+  let total = 0;
+
+  for (const file of Object.values(entry.files)) {
+    if (file && typeof file.size === "number") total += file.size;
+  }
+
+  return total;
 }
 
 function pair_key(from: string, to: string): string {
@@ -169,7 +181,6 @@ class BergamotEngine implements TranslationEngine {
   private backing: SelfHostedBacking | null = null;
   private translator: BatchTranslator | null = null;
   private availability: Promise<AvailabilityMap> | null = null;
-  private warmed = false;
   private loaded_pairs = new Set<string>();
 
   private get_backing(): SelfHostedBacking {
@@ -198,6 +209,12 @@ class BergamotEngine implements TranslationEngine {
         .loadModelRegistery()
         .then((entries) => ({
           pairs: new Set(entries.map((entry) => pair_key(entry.from, entry.to))),
+          bytes: new Map(
+            entries.map((entry) => [
+              pair_key(entry.from, entry.to),
+              entry_bytes(entry),
+            ]),
+          ),
         }))
         .catch((error: unknown) => {
           this.availability = null;
@@ -225,8 +242,13 @@ class BergamotEngine implements TranslationEngine {
     return this.route_supported(await this.load_availability(), from, to);
   }
 
-  async requires_download(): Promise<number> {
-    return 0;
+  async requires_download(from: LanguageCode, to: LanguageCode): Promise<number> {
+    const map = await this.load_availability();
+    const hops = pivot_route(from, to)
+      .map((hop) => pair_key(hop.from, hop.to))
+      .filter((hop) => !this.loaded_pairs.has(hop));
+
+    return this.bytes_for(map, hops);
   }
 
   async prepare(from: LanguageCode, to: LanguageCode): Promise<void> {
@@ -237,18 +259,33 @@ class BergamotEngine implements TranslationEngine {
     }
   }
 
-  private reserve_models(from: LanguageCode, to: LanguageCode): void {
+  private bytes_for(map: AvailabilityMap, hops: Iterable<string>): number {
+    let total = 0;
+
+    for (const hop of hops) total += map.bytes.get(hop) ?? 0;
+
+    return total;
+  }
+
+  private reserve_models(
+    map: AvailabilityMap,
+    from: LanguageCode,
+    to: LanguageCode,
+  ): { bytes: number; cold: boolean } {
     const hops = pivot_route(from, to).map((hop) => pair_key(hop.from, hop.to));
     const missing = hops.filter((hop) => !this.loaded_pairs.has(hop));
 
     if (
       missing.length > 0 &&
-      this.loaded_pairs.size + missing.length > MAX_LOADED_MODELS
+      this.bytes_for(map, this.loaded_pairs) + this.bytes_for(map, missing) >
+        MODEL_MEMORY_BUDGET_BYTES
     ) {
       this.reset_translator();
     }
 
     for (const hop of hops) this.loaded_pairs.add(hop);
+
+    return { bytes: this.bytes_for(map, hops), cold: missing.length > 0 };
   }
 
   async translate(
@@ -261,17 +298,23 @@ class BergamotEngine implements TranslationEngine {
     if (from === to) return segments.slice();
     if (signal.aborted) throw new EngineUnavailableError("aborted");
 
-    this.reserve_models(from, to);
+    const map = await this.load_availability();
+    const reserved = this.reserve_models(map, from, to);
 
     try {
-      return await this.run_translate(segments, from, to, signal);
+      return await this.run_translate(segments, from, to, signal, reserved);
     } catch (error) {
       if (signal.aborted) throw error;
 
       this.reset_translator();
-      this.reserve_models(from, to);
 
-      return await this.run_translate(segments, from, to, signal);
+      return await this.run_translate(
+        segments,
+        from,
+        to,
+        signal,
+        this.reserve_models(map, from, to),
+      );
     }
   }
 
@@ -280,11 +323,13 @@ class BergamotEngine implements TranslationEngine {
     from: LanguageCode,
     to: LanguageCode,
     signal: AbortSignal,
+    reserved: { bytes: number; cold: boolean },
   ): Promise<string[]> {
     const translator = this.get_translator();
-    const timeout = this.warmed
-      ? TRANSLATE_TIMEOUT_MS
-      : COLD_TRANSLATE_TIMEOUT_MS;
+    const timeout = reserved.cold
+      ? COLD_TRANSLATE_BASE_MS +
+        Math.round((reserved.bytes / 1e6) * COLD_TRANSLATE_MS_PER_MB)
+      : TRANSLATE_TIMEOUT_MS;
 
     let settled: PromiseSettledResult<string>[];
 
@@ -329,8 +374,6 @@ class BergamotEngine implements TranslationEngine {
       results.push(outcome.value);
     }
 
-    this.warmed = true;
-
     return results;
   }
 
@@ -340,7 +383,6 @@ class BergamotEngine implements TranslationEngine {
     } catch {}
 
     this.translator = null;
-    this.warmed = false;
     this.loaded_pairs.clear();
   }
 

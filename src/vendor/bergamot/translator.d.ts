@@ -30,7 +30,10 @@ declare module "@/vendor/bergamot/translator.js" {
   export interface BergamotModelEntry {
     from: string;
     to: string;
-    files: Record<string, { name: string; expectedSha256Hash?: string } | null>;
+    files: Record<
+      string,
+      { name: string; size?: number; expectedSha256Hash?: string } | null
+    >;
   }
 
   export class TranslatorBacking {

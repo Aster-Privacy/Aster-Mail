@@ -177,27 +177,49 @@ function get_segmenter_constructor(): SentenceSegmenterConstructor | null {
 }
 
 let sentence_segmenter: SentenceSegmenter | null | undefined;
+const segmenters_by_locale = new Map<LanguageCode, SentenceSegmenter | null>();
+
+function get_fallback_segmenter(
+  constructor: SentenceSegmenterConstructor,
+): SentenceSegmenter | null {
+  if (sentence_segmenter === undefined) {
+    try {
+      sentence_segmenter = new constructor(undefined, {
+        granularity: "sentence",
+      });
+    } catch {
+      sentence_segmenter = null;
+    }
+  }
+
+  return sentence_segmenter;
+}
 
 function get_sentence_segmenter(locale: LanguageCode): SentenceSegmenter | null {
   const constructor = get_segmenter_constructor();
 
   if (!constructor) return null;
 
-  try {
-    return new constructor(locale, { granularity: "sentence" });
-  } catch {
-    if (sentence_segmenter === undefined) {
-      try {
-        sentence_segmenter = new constructor(undefined, {
-          granularity: "sentence",
-        });
-      } catch {
-        sentence_segmenter = null;
-      }
-    }
+  const cached = segmenters_by_locale.get(locale);
 
-    return sentence_segmenter;
+  if (cached !== undefined) return cached;
+
+  let segmenter: SentenceSegmenter | null;
+
+  try {
+    segmenter = new constructor(locale, { granularity: "sentence" });
+  } catch {
+    segmenter = get_fallback_segmenter(constructor);
   }
+
+  segmenters_by_locale.set(locale, segmenter);
+
+  return segmenter;
+}
+
+export function reset_sentence_segmenters(): void {
+  segmenters_by_locale.clear();
+  sentence_segmenter = undefined;
 }
 
 export function segment_sentences(text: string, locale: LanguageCode): string[] {
