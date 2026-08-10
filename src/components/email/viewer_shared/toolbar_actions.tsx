@@ -295,6 +295,7 @@ export function ViewerToolbarActions({
       {show_pin && (
         <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
           <Button
+            aria-label={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
             className={`${btn_common} ${is_pinned ? "!text-[var(--accent-color)] bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]" : "hover:!text-[var(--accent-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)]"}`}
             disabled={is_pin_loading}
             size="icon"
@@ -340,6 +341,37 @@ export function ViewerToolbarActions({
         </Tooltip>
       )}
 
+      {is_advanced &&
+        (is_spam && on_not_spam ? (
+          <Tooltip tip={t("mail.not_spam")}>
+            <Button
+              aria-label={t("mail.not_spam")}
+              className={btn_base}
+              disabled={is_spam_loading}
+              size="icon"
+              style={muted_style}
+              variant="ghost"
+              onClick={on_not_spam}
+            >
+              <NoSymbolIcon className={icon_size} />
+            </Button>
+          </Tooltip>
+        ) : (
+          <Tooltip tip={t("mail.report_spam")}>
+            <Button
+              aria-label={t("mail.report_spam")}
+              className={btn_spam}
+              disabled={is_spam_loading}
+              size="icon"
+              style={muted_style}
+              variant="ghost"
+              onClick={on_spam}
+            >
+              <NoSymbolIcon className={icon_size} />
+            </Button>
+          </Tooltip>
+        ))}
+
       <Tooltip tip={t("mail.move_to_trash")}>
         <Button
           aria-label={t("mail.move_to_trash")}
@@ -379,34 +411,6 @@ export function ViewerToolbarActions({
 
       {is_advanced && (
         <>
-          {is_spam && on_not_spam ? (
-            <Tooltip tip={t("mail.not_spam")}>
-              <Button
-                className={btn_base}
-                disabled={is_spam_loading}
-                size="icon"
-                style={muted_style}
-                variant="ghost"
-                onClick={on_not_spam}
-              >
-                <NoSymbolIcon className={icon_size} />
-              </Button>
-            </Tooltip>
-          ) : (
-            <Tooltip tip={t("mail.report_spam")}>
-              <Button
-                className={btn_spam}
-                disabled={is_spam_loading}
-                size="icon"
-                style={muted_style}
-                variant="ghost"
-                onClick={on_spam}
-              >
-                <NoSymbolIcon className={icon_size} />
-              </Button>
-            </Tooltip>
-          )}
-
           {on_snooze && (
             <Tooltip tip={t("mail.snooze")}>
               <Button
@@ -425,6 +429,7 @@ export function ViewerToolbarActions({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  aria-label={t("mail.move_to_folder")}
                   className={btn_base}
                   size="icon"
                   style={muted_style}
