@@ -835,6 +835,8 @@ export type {
   ThreadsListResponse,
   ListThreadsParams,
   CreateThreadRequest,
+  RethreadItem,
+  RethreadResponse,
 } from "./mail_threads";
 export {
   list_threads,
@@ -844,6 +846,7 @@ export {
   trash_thread,
   create_thread,
   link_mail_to_thread,
+  rethread_items,
   report_spam_sender,
   remove_spam_sender,
   submit_receipt_feedback,

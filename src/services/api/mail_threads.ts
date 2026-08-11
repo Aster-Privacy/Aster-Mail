@@ -191,6 +191,26 @@ export async function link_mail_to_thread(
   );
 }
 
+export interface RethreadItem {
+  item_id: string;
+  thread_token: string;
+  msgid_hashes?: string[];
+}
+
+export interface RethreadResponse {
+  success: boolean;
+  updated: number;
+  skipped: number;
+}
+
+export async function rethread_items(
+  items: RethreadItem[],
+): Promise<ApiResponse<RethreadResponse>> {
+  return api_client.post<RethreadResponse>("/mail/v1/messages/threads/rethread", {
+    items,
+  });
+}
+
 async function sha256_hex(value: string): Promise<string> {
   const hash_buffer = await crypto.subtle.digest(
     "SHA-256",

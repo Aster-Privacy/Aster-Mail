@@ -18,81 +18,125 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import {
   list_mail_items,
-  link_mail_to_thread,
+  rethread_items,
   type MailItem,
+  type RethreadItem,
 } from "@/services/api/mail";
+import { api_client } from "@/services/api/client";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   get_passphrase_bytes,
   get_vault_from_memory,
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import {
+  hash_message_id,
+  is_usable_msgid,
+  normalize_subject,
+  strip_angle_brackets,
+  thread_token_from_root,
+} from "@/services/threading/threading_rules";
 
 const FETCH_LIMIT = 50;
+const MAX_PAGES = 20;
 const COOLDOWN_MS = 10_000;
+const SUBMIT_BATCH_SIZE = 200;
 
 let last_run_at = 0;
 let running = false;
 
-const NO_SUBJECT_SENTINELS = new Set(["(no subject)", "no subject"]);
-
-function normalize_subject(subject: string): string {
-  const normalized = subject
-    .replace(/^(\s*(re|fwd?|aw|sv|vs|ref|rif|r)\s*:\s*)+/i, "")
-    .trim()
-    .toLowerCase();
-
-  if (NO_SUBJECT_SENTINELS.has(normalized)) return "";
-
-  return normalized;
+interface HeaderEntry {
+  name: string;
+  value: string;
 }
 
-function uint8_to_base64(array: Uint8Array): string {
-  let binary = "";
+interface RepairEnvelope {
+  subject?: string;
+  sent_at?: string;
+  raw_headers?: HeaderEntry[];
+}
 
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
+interface RepairRecord {
+  id: string;
+  ts: number;
+  thread_token: string | null;
+  message_id: string | null;
+  ref_ids: string[];
+  normalized_subject: string;
+}
+
+function read_header(
+  headers: HeaderEntry[] | undefined,
+  name: string,
+): string | null {
+  if (!headers) return null;
+
+  const lowered = name.toLowerCase();
+
+  for (const header of headers) {
+    if (header.name?.toLowerCase() === lowered) {
+      const value = header.value?.trim();
+
+      if (value) return value;
+    }
   }
 
-  return btoa(binary);
+  return null;
 }
 
-async function generate_thread_token(root_id: string): Promise<string> {
-  const material = new TextEncoder().encode("astermail-thread:" + root_id);
-  const hash = await crypto.subtle.digest(HASH_ALG, material);
+function extract_reference_ids(headers: HeaderEntry[] | undefined): string[] {
+  const raw = [
+    ...(read_header(headers, "references")?.match(/<[^<>]+>/g) ?? []),
+    ...(read_header(headers, "in-reply-to")?.match(/<[^<>]+>/g) ?? []).slice(0, 1),
+  ];
+  const seen = new Set<string>();
+  const ids: string[] = [];
 
-  return uint8_to_base64(new Uint8Array(hash));
+  for (const id of raw) {
+    if (!is_usable_msgid(id)) continue;
+
+    const key = strip_angle_brackets(id).toLowerCase();
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+    ids.push(id);
+  }
+
+  return ids;
 }
 
-interface DecryptedItem {
-  id: string;
-  subject: string;
-  date: string;
-  thread_token: string | null;
-}
-
-async function decrypt_subject_from_item(
-  item: MailItem,
-): Promise<string | null> {
+async function build_record(item: MailItem): Promise<RepairRecord | null> {
   if (!item.encrypted_envelope) return null;
 
-  const envelope = await decrypt_mail_envelope<{ subject?: string }>(
+  const envelope = await decrypt_mail_envelope<RepairEnvelope>(
     item.encrypted_envelope,
     item.envelope_nonce,
     item.id,
   );
 
-  return envelope?.subject || null;
+  if (!envelope) return null;
+
+  const headers = envelope.raw_headers;
+  const message_id = read_header(headers, "message-id");
+  const parsed = Date.parse(envelope.sent_at ?? item.created_at);
+
+  return {
+    id: item.id,
+    ts: Number.isNaN(parsed) ? 0 : parsed,
+    thread_token: item.thread_token ?? null,
+    message_id: is_usable_msgid(message_id) ? message_id : null,
+    ref_ids: extract_reference_ids(headers),
+    normalized_subject: normalize_subject(envelope.subject ?? ""),
+  };
 }
 
 async function fetch_all_items(): Promise<MailItem[]> {
   const all_items: MailItem[] = [];
   let cursor: string | undefined;
 
-  for (let page = 0; page < 20; page++) {
+  for (let page = 0; page < MAX_PAGES; page++) {
     const response = await list_mail_items({
       item_type: "received",
       limit: FETCH_LIMIT,
@@ -114,6 +158,10 @@ export async function thread_imported_emails(): Promise<number> {
   if (running) return 0;
   if (Date.now() - last_run_at < COOLDOWN_MS) return 0;
 
+  const user_id = api_client.get_cached_user_info()?.user_id;
+
+  if (!user_id) return 0;
+
   const passphrase_bytes = get_passphrase_bytes();
 
   if (!passphrase_bytes) return 0;
@@ -128,81 +176,76 @@ export async function thread_imported_emails(): Promise<number> {
 
   try {
     const all_items = await fetch_all_items();
-    const unthreaded = all_items.filter((item) => !item.thread_token);
 
-    if (unthreaded.length === 0) return 0;
+    if (!all_items.some((item) => !item.thread_token)) return 0;
 
-    const threaded = all_items.filter((item) => item.thread_token);
+    const records: RepairRecord[] = [];
 
-    const decrypted_all: DecryptedItem[] = [];
+    for (const item of all_items) {
+      const record = await build_record(item);
 
-    for (const item of threaded) {
-      const subject = await decrypt_subject_from_item(item);
-
-      if (subject) {
-        decrypted_all.push({
-          id: item.id,
-          subject,
-          date: item.created_at,
-          thread_token: item.thread_token ?? null,
-        });
-      }
+      if (record) records.push(record);
     }
 
-    for (const item of unthreaded) {
-      const subject = await decrypt_subject_from_item(item);
+    records.sort((a, b) => a.ts - b.ts || (a.id < b.id ? -1 : 1));
 
-      if (subject) {
-        decrypted_all.push({
-          id: item.id,
-          subject,
-          date: item.created_at,
-          thread_token: null,
-        });
-      }
+    const known = new Map<string, { token: string; subject: string }>();
+
+    for (const record of records) {
+      if (!record.thread_token || !record.message_id) continue;
+
+      known.set(strip_angle_brackets(record.message_id).toLowerCase(), {
+        token: record.thread_token,
+        subject: record.normalized_subject,
+      });
     }
 
-    const subject_groups = new Map<string, DecryptedItem[]>();
+    const updates: RethreadItem[] = [];
 
-    for (const email of decrypted_all) {
-      const norm = normalize_subject(email.subject);
+    for (const record of records) {
+      if (record.thread_token) continue;
 
-      if (!norm) continue;
+      let token: string | null = null;
 
-      const existing = subject_groups.get(norm);
+      for (const ref of record.ref_ids) {
+        const parent = known.get(strip_angle_brackets(ref).toLowerCase());
 
-      if (existing) {
-        existing.push(email);
-      } else {
-        subject_groups.set(norm, [email]);
+        if (!parent) continue;
+        if (parent.subject === record.normalized_subject) token = parent.token;
+        break;
+      }
+
+      if (!token && record.message_id) {
+        token = thread_token_from_root(user_id, record.message_id);
+      }
+
+      if (!token) continue;
+
+      updates.push({
+        item_id: record.id,
+        thread_token: token,
+        msgid_hashes: record.message_id
+          ? [hash_message_id(user_id, record.message_id)]
+          : [],
+      });
+
+      if (record.message_id) {
+        known.set(strip_angle_brackets(record.message_id).toLowerCase(), {
+          token,
+          subject: record.normalized_subject,
+        });
       }
     }
 
     let linked_count = 0;
 
-    for (const [, group] of subject_groups) {
-      const needs_linking = group.filter((e) => !e.thread_token);
+    for (let index = 0; index < updates.length; index += SUBMIT_BATCH_SIZE) {
+      const batch = updates.slice(index, index + SUBMIT_BATCH_SIZE);
+      const response = await rethread_items(batch);
 
-      if (needs_linking.length === 0) continue;
+      if (response.error || !response.data) break;
 
-      const existing_token = group.find((e) => e.thread_token)?.thread_token;
-
-      if (!existing_token && group.length < 2) continue;
-
-      group.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      );
-
-      const token =
-        existing_token ?? (await generate_thread_token(group[0].id));
-
-      for (const email of needs_linking) {
-        const result = await link_mail_to_thread(email.id, token);
-
-        if (!result.error) {
-          linked_count++;
-        }
-      }
+      linked_count += response.data.updated;
     }
 
     return linked_count;
