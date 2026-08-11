@@ -400,8 +400,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         />
 
         {(current_view === "trash" || current_view === "spam") &&
-          !selection.some_selected &&
-          !selection.all_selected &&
           (() => {
             const is_trash = current_view === "trash";
             const family_enforced = !!family_policy?.enforce_on_members;

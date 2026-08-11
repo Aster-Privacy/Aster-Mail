@@ -37,7 +37,7 @@ export function TrashBanner({ retention_days = 30, view = "trash", family_enforc
 
   return (
     <div
-      className="mx-3 mt-2 px-4 py-2.5 rounded-lg flex items-center gap-3"
+      className="mx-3 mt-2 mb-2 px-4 py-2.5 rounded-lg flex items-center gap-3"
       style={{
         backgroundColor: "var(--bg-tertiary)",
         color: "var(--text-muted)",
