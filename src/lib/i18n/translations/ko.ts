@@ -6113,6 +6113,7 @@ export const ko = {
     moved_to_category: "카테고리로 이동됨",
     drop_to_move_here: "여기에 놓아 이동",
     tab_new_count: "신규",
+    tab_unread_count: "읽지 않음 {{count}}개",
     category_empty_primary_title: "기본에 아무것도 없습니다",
     category_empty_primary_desc: "개인 메시지와 대화가 여기에 표시됩니다.",
     category_empty_promotions_title: "할인 없음",
@@ -7712,7 +7713,11 @@ export const ko = {
     apply_to_existing_progress_total:
       "적용 중: {{total}}개 중 {{scanned}}개 확인, {{applied}}개 업데이트",
     apply_to_existing_done: "완료: {{scanned}}개 확인, {{applied}}개 업데이트",
+    apply_to_existing_done_encrypted:
+      "완료: {{scanned}}개 확인, {{applied}}개 업데이트. 암호화된 {{encrypted}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
     apply_to_existing_canceled: "중지됨: {{applied}}개 업데이트",
+    apply_to_existing_canceled_encrypted:
+      "중지됨: {{applied}}개 업데이트. 암호화된 {{encrypted}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
     apply_to_existing_error:
       "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
     empty_title: "아직 규칙이 없습니다",

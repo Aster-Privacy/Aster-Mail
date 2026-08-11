@@ -5707,6 +5707,7 @@ export const zh_CN = {
     moved_to_category: "已移至分类",
     drop_to_move_here: "拖放到此处以移动",
     tab_new_count: "新",
+    tab_unread_count: "{{count}} 封未读",
     category_empty_primary_title: "“主要”中没有内容",
     category_empty_primary_desc: "你的个人消息和对话将显示在这里。",
     category_empty_promotions_title: "没有促销",
@@ -7226,7 +7227,11 @@ export const zh_CN = {
       "正在应用：已扫描 {{scanned}}/{{total}} 封，已更新 {{applied}} 封",
     apply_to_existing_done:
       "完成：已扫描 {{scanned}} 封，已更新 {{applied}} 封",
+    apply_to_existing_done_encrypted:
+      "完成：已扫描 {{scanned}} 封，已更新 {{applied}} 封。此规则跳过了 {{encrypted}} 封加密邮件，因为只有你的设备才能读取它们。",
     apply_to_existing_canceled: "已停止：已更新 {{applied}} 封",
+    apply_to_existing_canceled_encrypted:
+      "已停止：已更新 {{applied}} 封。此规则跳过了 {{encrypted}} 封加密邮件，因为只有你的设备才能读取它们。",
     apply_to_existing_error: "应用到现有邮件失败。请重试。",
     empty_title: "暂无规则",
     empty_description: "创建您的第一条规则以自动整理收件邮件。",

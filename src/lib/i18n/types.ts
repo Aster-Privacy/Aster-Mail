@@ -309,7 +309,11 @@ export interface MailRulesTranslations {
 
   apply_to_existing_done: string;
 
+  apply_to_existing_done_encrypted: string;
+
   apply_to_existing_canceled: string;
+
+  apply_to_existing_canceled_encrypted: string;
 
   apply_to_existing_error: string;
   empty_title: string;
@@ -2477,6 +2481,15 @@ export interface SettingsTranslations {
   reply_to_all: string;
   conversation_grouping: string;
   conversation_grouping_description: string;
+  rebuild_conversations: string;
+  rebuild_conversations_description: string;
+  rebuild_conversations_action: string;
+  rebuild_conversations_running: string;
+  rebuild_conversations_progress: string;
+  rebuild_conversations_done: string;
+  rebuild_conversations_none: string;
+  rebuild_conversations_locked: string;
+  rebuild_conversations_failed: string;
   inbox_categories: string;
   inbox_categories_short: string;
   inbox_categories_description: string;
@@ -5745,6 +5758,8 @@ export interface MailTranslations {
   drafts: string;
   starred: string;
   archive: string;
+  archive_conversation_count: string;
+  move_conversation_to_trash_count: string;
   spam: string;
   trash: string;
   scheduled: string;
@@ -6079,6 +6094,7 @@ export interface MailTranslations {
   moved_to_category: string;
   drop_to_move_here: string;
   tab_new_count: string;
+  tab_unread_count: string;
   category_empty_primary_title: string;
   category_empty_primary_desc: string;
   category_empty_promotions_title: string;

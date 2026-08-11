@@ -6274,6 +6274,7 @@ export const es = {
     moved_to_category: "Movido a la categoría",
     drop_to_move_here: "Suelta aquí para mover",
     tab_new_count: "nuevos",
+    tab_unread_count: "{{count}} sin leer",
     category_empty_primary_title: "No hay nada en Principal",
     category_empty_primary_desc:
       "Tus mensajes personales y conversaciones aparecerán aquí.",
@@ -7879,7 +7880,11 @@ export const es = {
       "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
     apply_to_existing_done:
       "Listo: {{scanned}} revisados, {{applied}} actualizados",
+    apply_to_existing_done_encrypted:
+      "Listo: {{scanned}} analizados, {{applied}} actualizados. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_canceled: "Detenido: {{applied}} actualizados",
+    apply_to_existing_canceled_encrypted:
+      "Detenido: {{applied}} actualizados. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_error:
       "No se pudo aplicar al correo existente. Intentalo de nuevo.",
     at_limit_upgrade:

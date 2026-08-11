@@ -6378,6 +6378,7 @@ export const it = {
     moved_to_category: "Spostato nella categoria",
     drop_to_move_here: "Rilascia qui per spostare",
     tab_new_count: "nuovi",
+    tab_unread_count: "{{count}} non letti",
     category_empty_primary_title: "Niente in Principale",
     category_empty_primary_desc:
       "I tuoi messaggi personali e le conversazioni appariranno qui.",
@@ -8067,7 +8068,11 @@ export const it = {
       "Applicazione: {{scanned}} di {{total}} esaminati, {{applied}} aggiornati",
     apply_to_existing_done:
       "Completato: {{scanned}} esaminati, {{applied}} aggiornati",
+    apply_to_existing_done_encrypted:
+      "Fatto: {{scanned}} analizzati, {{applied}} aggiornati. Questa regola ha ignorato {{encrypted}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_canceled: "Interrotto: {{applied}} aggiornati",
+    apply_to_existing_canceled_encrypted:
+      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{encrypted}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_error:
       "Applicazione alla posta esistente non riuscita. Riprova.",
     empty_title: "Nessuna regola ancora",

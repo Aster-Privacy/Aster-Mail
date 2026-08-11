@@ -6309,6 +6309,7 @@ export const tr = {
     moved_to_category: "Kategoriye taşındı",
     drop_to_move_here: "Taşımak için buraya bırakın",
     tab_new_count: "yeni",
+    tab_unread_count: "{{count}} okunmamış",
     category_empty_primary_title: "Birincil'de hiçbir şey yok",
     category_empty_primary_desc:
       "Kişisel mesajlarınız ve sohbetleriniz burada görünecek.",
@@ -7968,7 +7969,11 @@ export const tr = {
       "Uygulanıyor: {{total}} içinden {{scanned}} tarandı, {{applied}} güncellendi",
     apply_to_existing_done:
       "Tamamlandı: {{scanned}} tarandı, {{applied}} güncellendi",
+    apply_to_existing_done_encrypted:
+      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{encrypted}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_canceled: "Durduruldu: {{applied}} güncellendi",
+    apply_to_existing_canceled_encrypted:
+      "Durduruldu: {{applied}} güncellendi. Bu kural {{encrypted}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_error:
       "Mevcut postaya uygulama basarisiz oldu. Tekrar deneyin.",
     empty_title: "Henüz kural yok",

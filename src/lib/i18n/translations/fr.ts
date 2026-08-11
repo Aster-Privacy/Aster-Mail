@@ -6346,6 +6346,7 @@ export const fr = {
     moved_to_category: "Déplacé vers la catégorie",
     drop_to_move_here: "Déposez ici pour déplacer",
     tab_new_count: "nouveau(x)",
+    tab_unread_count: "{{count}} non lus",
     category_empty_primary_title: "Rien dans Principal",
     category_empty_primary_desc:
       "Vos messages personnels et vos conversations apparaîtront ici.",
@@ -7984,7 +7985,11 @@ export const fr = {
       "Application : {{scanned}} sur {{total}} analysés, {{applied}} mis à jour",
     apply_to_existing_done:
       "Terminé : {{scanned}} analysés, {{applied}} mis à jour",
+    apply_to_existing_done_encrypted:
+      "Terminé : {{scanned}} analysés, {{applied}} mis à jour. Cette règle a ignoré {{encrypted}} messages chiffrés, car seul votre appareil peut les lire.",
     apply_to_existing_canceled: "Arrêté : {{applied}} mis à jour",
+    apply_to_existing_canceled_encrypted:
+      "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{encrypted}} messages chiffrés, car seul votre appareil peut les lire.",
     apply_to_existing_error:
       "L'application au courrier existant a echoue. Reessayez.",
     at_limit_upgrade:

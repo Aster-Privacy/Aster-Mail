@@ -6270,6 +6270,7 @@ export const nl = {
     moved_to_category: "Naar categorie verplaatst",
     drop_to_move_here: "Sleep hierheen om te verplaatsen",
     tab_new_count: "nieuw",
+    tab_unread_count: "{{count}} ongelezen",
     category_empty_primary_title: "Niets in Primair",
     category_empty_primary_desc:
       "Je persoonlijke berichten en gesprekken verschijnen hier.",
@@ -7942,7 +7943,11 @@ export const nl = {
       "Toepassen: {{scanned}} van {{total}} gescand, {{applied}} bijgewerkt",
     apply_to_existing_done:
       "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt",
+    apply_to_existing_done_encrypted:
+      "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt. Deze regel heeft {{encrypted}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
     apply_to_existing_canceled: "Gestopt: {{applied}} bijgewerkt",
+    apply_to_existing_canceled_encrypted:
+      "Gestopt: {{applied}} bijgewerkt. Deze regel heeft {{encrypted}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
     apply_to_existing_error:
       "Toepassen op bestaande mail is mislukt. Probeer het opnieuw.",
     empty_title: "Nog geen regels",

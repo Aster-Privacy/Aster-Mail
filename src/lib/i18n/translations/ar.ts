@@ -6079,6 +6079,7 @@ export const ar = {
     moved_to_category: "تم النقل إلى الفئة",
     drop_to_move_here: "أفلِت هنا للنقل",
     tab_new_count: "جديد",
+    tab_unread_count: "{{count}} غير مقروءة",
     category_empty_primary_title: "لا شيء في الأساسي",
     category_empty_primary_desc: "ستظهر هنا رسائلك ومحادثاتك الشخصية.",
     category_empty_promotions_title: "لا توجد صفقات",
@@ -7684,7 +7685,11 @@ export const ar = {
     apply_to_existing_progress_total:
       "جارٍ التطبيق: تم فحص {{scanned}} من {{total}}، وتحديث {{applied}}",
     apply_to_existing_done: "تم: تم فحص {{scanned}}، وتحديث {{applied}}",
+    apply_to_existing_done_encrypted:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{encrypted}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
     apply_to_existing_canceled: "تم الإيقاف: تم تحديث {{applied}}",
+    apply_to_existing_canceled_encrypted:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{encrypted}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
     apply_to_existing_error:
       "فشل تطبيق القاعدة على البريد الموجود. حاول مرة أخرى.",
     empty_title: "لا توجد قواعد بعد",

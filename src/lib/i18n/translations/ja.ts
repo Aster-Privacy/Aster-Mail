@@ -6291,6 +6291,7 @@ export const ja = {
     moved_to_category: "カテゴリに移動しました",
     drop_to_move_here: "ここにドロップして移動",
     tab_new_count: "新着",
+    tab_unread_count: "未読 {{count}} 件",
     category_empty_primary_title: "メインには何もありません",
     category_empty_primary_desc:
       "個人的なメッセージや会話がここに表示されます。",
@@ -7951,7 +7952,11 @@ export const ja = {
     apply_to_existing_progress_total:
       "適用中: {{total}} 件中 {{scanned}} 件確認、{{applied}} 件更新",
     apply_to_existing_done: "完了: {{scanned}} 件確認、{{applied}} 件更新",
+    apply_to_existing_done_encrypted:
+      "完了: {{scanned}} 件確認、{{applied}} 件更新。暗号化された {{encrypted}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
     apply_to_existing_canceled: "停止しました: {{applied}} 件更新",
+    apply_to_existing_canceled_encrypted:
+      "停止しました: {{applied}} 件更新。暗号化された {{encrypted}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
     apply_to_existing_error:
       "既存のメールへの適用に失敗しました。もう一度お試しください。",
     empty_title: "ルールはまだありません",

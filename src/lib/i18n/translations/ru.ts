@@ -6333,6 +6333,7 @@ export const ru = {
     moved_to_category: "Перемещено в категорию",
     drop_to_move_here: "Перетащите сюда, чтобы переместить",
     tab_new_count: "новых",
+    tab_unread_count: "{{count}} непрочитанных",
     category_empty_primary_title: "В «Основных» пусто",
     category_empty_primary_desc:
       "Здесь будут отображаться ваши личные сообщения и переписки.",
@@ -8000,7 +8001,11 @@ export const ru = {
       "Применение: проверено {{scanned}} из {{total}}, обновлено {{applied}}",
     apply_to_existing_done:
       "Готово: проверено {{scanned}}, обновлено {{applied}}",
+    apply_to_existing_done_encrypted:
+      "Готово: проверено {{scanned}}, обновлено {{applied}}. Правило пропустило {{encrypted}} зашифрованных писем, так как их может прочитать только ваше устройство.",
     apply_to_existing_canceled: "Остановлено: обновлено {{applied}}",
+    apply_to_existing_canceled_encrypted:
+      "Остановлено: обновлено {{applied}}. Правило пропустило {{encrypted}} зашифрованных писем, так как их может прочитать только ваше устройство.",
     apply_to_existing_error:
       "Не удалось применить к существующей почте. Попробуйте снова.",
     at_limit_upgrade:

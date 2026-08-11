@@ -6431,6 +6431,7 @@ export const de = {
     moved_to_category: "In Kategorie verschoben",
     drop_to_move_here: "Zum Verschieben hier ablegen",
     tab_new_count: "neu",
+    tab_unread_count: "{{count}} ungelesen",
     category_empty_primary_title: "Nichts in Primär",
     category_empty_primary_desc:
       "Deine persönlichen Nachrichten und Unterhaltungen werden hier angezeigt.",
@@ -8146,7 +8147,11 @@ export const de = {
       "Wird angewendet: {{scanned}} von {{total}} geprüft, {{applied}} aktualisiert",
     apply_to_existing_done:
       "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert",
+    apply_to_existing_done_encrypted:
+      "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert. Diese Regel hat {{encrypted}} verschlüsselte Nachrichten übersprungen, weil nur dein Gerät sie lesen kann.",
     apply_to_existing_canceled: "Gestoppt: {{applied}} aktualisiert",
+    apply_to_existing_canceled_encrypted:
+      "Gestoppt: {{applied}} aktualisiert. Diese Regel hat {{encrypted}} verschlüsselte Nachrichten übersprungen, weil nur dein Gerät sie lesen kann.",
     apply_to_existing_error:
       "Anwenden auf vorhandene Mail fehlgeschlagen. Bitte erneut versuchen.",
     at_limit_upgrade:

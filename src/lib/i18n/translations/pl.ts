@@ -6338,6 +6338,7 @@ export const pl = {
     moved_to_category: "Przeniesiono do kategorii",
     drop_to_move_here: "Upuść tutaj, aby przenieść",
     tab_new_count: "nowe",
+    tab_unread_count: "{{count}} nieprzeczytanych",
     category_empty_primary_title: "Nic w Głównych",
     category_empty_primary_desc:
       "Twoje osobiste wiadomości i rozmowy pojawią się tutaj.",
@@ -7994,7 +7995,11 @@ export const pl = {
       "Stosowanie: przeskanowano {{scanned}} z {{total}}, zaktualizowano {{applied}}",
     apply_to_existing_done:
       "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
+    apply_to_existing_done_encrypted:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{encrypted}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_canceled: "Zatrzymano: zaktualizowano {{applied}}",
+    apply_to_existing_canceled_encrypted:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{encrypted}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_error:
       "Zastosowanie do istniejacej poczty nie udalo sie. Spróbuj ponownie.",
     empty_title: "Brak reguł",

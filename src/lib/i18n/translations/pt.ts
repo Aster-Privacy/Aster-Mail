@@ -6343,6 +6343,7 @@ export const pt = {
     moved_to_category: "Movido para a categoria",
     drop_to_move_here: "Solte aqui para mover",
     tab_new_count: "novo(s)",
+    tab_unread_count: "{{count}} não lidas",
     category_empty_primary_title: "Nada em Principal",
     category_empty_primary_desc:
       "Suas mensagens pessoais e conversas aparecerão aqui.",
@@ -8024,7 +8025,11 @@ export const pt = {
       "Aplicando: {{scanned}} de {{total}} verificados, {{applied}} atualizados",
     apply_to_existing_done:
       "Concluído: {{scanned}} verificados, {{applied}} atualizados",
+    apply_to_existing_done_encrypted:
+      "Concluído: {{scanned}} verificados, {{applied}} atualizados. Esta regra ignorou {{encrypted}} mensagens criptografadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_canceled: "Parado: {{applied}} atualizados",
+    apply_to_existing_canceled_encrypted:
+      "Parado: {{applied}} atualizados. Esta regra ignorou {{encrypted}} mensagens criptografadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_error:
       "Falha ao aplicar ao correio existente. Tente novamente.",
     empty_title: "Nenhuma regra ainda",
