@@ -68,12 +68,14 @@ export let legacy_migration_inflight = 0;
 export const LEGACY_MIGRATION_MAX_INFLIGHT = 4;
 export const legacy_migration_queue: Array<() => void> = [];
 export let legacy_migration_disabled = true;
+let legacy_migration_succeeded = false;
 
 export function reset_legacy_migration_state(): void {
   legacy_migration_attempted.clear();
   legacy_migration_queue.length = 0;
   legacy_migration_inflight = 0;
   legacy_migration_disabled = false;
+  legacy_migration_succeeded = false;
 }
 
 export function schedule_legacy_envelope_migration(
@@ -118,14 +120,13 @@ export function schedule_legacy_envelope_migration(
         envelope_nonce: nonce,
       });
 
-      if (!response.data) {
-        legacy_migration_disabled = true;
-        legacy_migration_queue.length = 0;
-      }
+      if (response.data) legacy_migration_succeeded = true;
+      else if (!legacy_migration_succeeded) legacy_migration_disabled = true;
     } catch {
-      legacy_migration_disabled = true;
-      legacy_migration_queue.length = 0;
+      if (!legacy_migration_succeeded) legacy_migration_disabled = true;
     } finally {
+      if (legacy_migration_disabled) legacy_migration_queue.length = 0;
+
       legacy_migration_inflight--;
       const next = legacy_migration_queue.shift();
 

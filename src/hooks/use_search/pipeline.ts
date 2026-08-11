@@ -27,7 +27,10 @@ import {
   INDEX_PAGE_LIMIT,
   MAX_RAM_INDEX_ITEMS,
 } from "./constants";
-import { decrypt_envelope_for_search } from "./envelope";
+import {
+  decrypt_envelope_for_search,
+  reset_legacy_migration_state,
+} from "./envelope";
 import { build_generation } from "./index_cache";
 import { searchable_body_source } from "./matching";
 import { emit_indexing } from "./progress";
@@ -94,6 +97,8 @@ export async function run_index_pipeline(
   let fresh_count = 0;
   let known_total = 0;
   let reached_boundary = false;
+
+  if (!incremental) reset_legacy_migration_state();
 
   const cancel = (): never => {
     throw new Error("search_index_cancelled");

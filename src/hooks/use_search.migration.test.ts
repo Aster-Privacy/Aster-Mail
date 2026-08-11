@@ -132,4 +132,35 @@ describe("schedule_legacy_envelope_migration", () => {
 
     expect(reencrypt_mail_item_envelope).not.toHaveBeenCalled();
   });
+
+  it("stops for the session when the very first migration is refused", async () => {
+    reencrypt_mail_item_envelope.mockResolvedValueOnce(
+      {} as { data: { success: boolean } },
+    );
+
+    schedule_legacy_envelope_migration("gate-1", "received", make_envelope());
+    await flush();
+
+    schedule_legacy_envelope_migration("gate-2", "received", make_envelope());
+    await flush();
+
+    expect(reencrypt_mail_item_envelope).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps migrating the rest after a single item is refused", async () => {
+    schedule_legacy_envelope_migration("ok-1", "received", make_envelope());
+    await flush();
+
+    reencrypt_mail_item_envelope.mockResolvedValueOnce(
+      {} as { data: { success: boolean } },
+    );
+
+    schedule_legacy_envelope_migration("gone-1", "received", make_envelope());
+    await flush();
+
+    schedule_legacy_envelope_migration("ok-2", "received", make_envelope());
+    await flush();
+
+    expect(reencrypt_mail_item_envelope).toHaveBeenCalledTimes(3);
+  });
 });
