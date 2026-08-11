@@ -15,9 +15,11 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     client_id: string;
     max_envelope_marker: number;
     platform: string;
+    identity_fingerprint: string | null;
   }> = [];
 
   let clock = 1_000;
+  let fingerprint: string | null = "fixed-fingerprint";
 
   const deps: EnvelopeCapabilityDeps = {
     now: () => clock,
@@ -26,16 +28,28 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     write: (key, value) => {
       store.set(key, value);
     },
-    post: async (client_id, max_envelope_marker, platform) => {
-      posts.push({ client_id, max_envelope_marker, platform });
+    post: async (
+      client_id,
+      max_envelope_marker,
+      platform,
+      identity_fingerprint,
+    ) => {
+      posts.push({
+        client_id,
+        max_envelope_marker,
+        platform,
+        identity_fingerprint,
+      });
 
       return {
         success: true,
         min_supported_marker: 4,
         pq_hybrid_enabled: true,
+        identity_verified: true,
       } satisfies EnvelopeCapabilityResult;
     },
     platform: () => "web",
+    identity_fingerprint: async () => fingerprint,
     ...overrides,
   };
 
@@ -45,6 +59,9 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     store,
     set_clock: (value: number) => {
       clock = value;
+    },
+    set_fingerprint: (value: string | null) => {
+      fingerprint = value;
     },
   };
 }
@@ -119,6 +136,7 @@ describe("report_envelope_capability_if_due", () => {
         success: false,
         min_supported_marker: null,
         pq_hybrid_enabled: false,
+        identity_verified: false,
       }),
     });
 
@@ -169,6 +187,46 @@ describe("report_envelope_capability_if_due", () => {
     await report_envelope_capability_if_due(user_id, false, helper.deps);
 
     expect(helper.posts).toHaveLength(1);
+  });
+
+  it("proves key possession by reporting the identity fingerprint", async () => {
+    const { deps, posts } = make_deps();
+
+    await report_envelope_capability_if_due(user_id, false, deps);
+
+    expect(posts[0].identity_fingerprint).toBe("fixed-fingerprint");
+  });
+
+  it("reports a null fingerprint when no identity key is loaded", async () => {
+    const { deps, posts } = make_deps({ identity_fingerprint: async () => null });
+
+    await report_envelope_capability_if_due(user_id, false, deps);
+
+    expect(posts[0].identity_fingerprint).toBeNull();
+  });
+
+  it("re-reports immediately when the identity key rotates", async () => {
+    const helper = make_deps();
+
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+    helper.set_fingerprint("rotated-fingerprint");
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(2);
+    expect(helper.posts[1].identity_fingerprint).toBe("rotated-fingerprint");
+  });
+
+  it("keeps reporting when the fingerprint lookup throws", async () => {
+    const { deps, posts } = make_deps({
+      identity_fingerprint: async () => {
+        throw new Error("locked vault");
+      },
+    });
+
+    await report_envelope_capability_if_due(user_id, false, deps);
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].identity_fingerprint).toBeNull();
   });
 
   it("marks the platform as desktop inside the tauri shell", async () => {

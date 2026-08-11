@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "../api/client";
+import { array_to_base64, base64_to_array } from "./base64";
+import { get_vault_from_memory } from "./memory_key_store";
 
 export const ENVELOPE_CAPABILITY_MAX_MARKER = 4;
 export const ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -30,6 +32,7 @@ export interface EnvelopeCapabilityResult {
   success: boolean;
   min_supported_marker: number | null;
   pq_hybrid_enabled: boolean;
+  identity_verified: boolean;
 }
 
 export interface EnvelopeCapabilityDeps {
@@ -41,8 +44,10 @@ export interface EnvelopeCapabilityDeps {
     client_id: string,
     max_envelope_marker: number,
     platform: string,
+    identity_fingerprint: string | null,
   ) => Promise<EnvelopeCapabilityResult | null>;
   platform: () => string;
+  identity_fingerprint: () => Promise<string | null>;
 }
 
 function browser_read(key: string): string | null {
@@ -83,15 +88,34 @@ async function post_capability(
   client_id: string,
   max_envelope_marker: number,
   platform: string,
+  identity_fingerprint: string | null,
 ): Promise<EnvelopeCapabilityResult | null> {
   const response = await api_client.post<EnvelopeCapabilityResult>(
     "/crypto/v1/ratchet/envelope-capability",
-    { client_id, max_envelope_marker, platform },
+    { client_id, max_envelope_marker, platform, identity_fingerprint },
   );
 
   if (response.error || !response.data) return null;
 
   return response.data;
+}
+
+async function current_identity_fingerprint(): Promise<string | null> {
+  try {
+    const identity_public = get_vault_from_memory()?.ratchet_identity_public;
+
+    if (!identity_public) return null;
+
+    const point = base64_to_array(identity_public);
+
+    if (point.length !== 65 || point[0] !== 0x04) return null;
+
+    const digest = await crypto.subtle.digest("SHA-256", point);
+
+    return array_to_base64(new Uint8Array(digest));
+  } catch {
+    return null;
+  }
 }
 
 const default_deps: EnvelopeCapabilityDeps = {
@@ -101,6 +125,7 @@ const default_deps: EnvelopeCapabilityDeps = {
   write: browser_write,
   post: post_capability,
   platform: current_platform,
+  identity_fingerprint: current_identity_fingerprint,
 };
 
 export async function report_envelope_capability_if_due(
@@ -119,11 +144,16 @@ export async function report_envelope_capability_if_due(
   };
 
   const now = deps.now();
-  const last = Number(deps.read(LAST_REPORTED_PREFIX + user_id) ?? "0");
+  const fingerprint = (await deps.identity_fingerprint().catch(() => null)) ?? "";
+  const [last_at, last_fingerprint = ""] = (
+    deps.read(LAST_REPORTED_PREFIX + user_id) ?? ""
+  ).split("|");
+  const last = Number(last_at);
   const elapsed = now - last;
 
   if (
     !force &&
+    fingerprint === last_fingerprint &&
     Number.isFinite(last) &&
     last > 0 &&
     elapsed >= 0 &&
@@ -140,11 +170,16 @@ export async function report_envelope_capability_if_due(
   }
 
   const result = await deps
-    .post(client_id, ENVELOPE_CAPABILITY_MAX_MARKER, deps.platform())
+    .post(
+      client_id,
+      ENVELOPE_CAPABILITY_MAX_MARKER,
+      deps.platform(),
+      fingerprint || null,
+    )
     .catch(() => null);
 
   if (result?.success) {
-    write(LAST_REPORTED_PREFIX + user_id, String(now));
+    write(LAST_REPORTED_PREFIX + user_id, `${now}|${fingerprint}`);
   }
 
   return result;
