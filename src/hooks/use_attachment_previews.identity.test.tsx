@@ -25,29 +25,45 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 vi.mock("@/services/api/attachments", () => ({
-  batch_attachment_meta: async (ids: string[]) => ({
-    data: {
-      items: Object.fromEntries(
-        ids.map((id) => [
-          id,
-          [
-            {
-              id: `att-${id}`,
-              encrypted_meta: id,
-              meta_nonce: "n",
-              size_bytes: 10,
-            },
-          ],
-        ]),
-      ),
-    },
-  }),
+  batch_attachment_meta: async (ids: string[]) => {
+    state.fetches += 1;
+
+    return {
+      data: {
+        items: Object.fromEntries(
+          ids.map((id) => [
+            id,
+            [
+              {
+                id: `att-${id}`,
+                encrypted_meta: id,
+                meta_nonce: "n",
+                size_bytes: 10,
+              },
+            ],
+          ]),
+        ),
+      },
+    };
+  },
 }));
 
+const state = vi.hoisted(() => ({ placeholder: false, fetches: 0 }));
+
 vi.mock("@/services/crypto/attachment_crypto", () => ({
-  decrypt_attachment_meta: async (encrypted: string) => ({
-    filename: `${encrypted}.pdf`,
-    content_type: "application/pdf",
+  DEFAULT_ATTACHMENT_CONTENT_TYPE: "application/octet-stream",
+  resolve_attachment_meta: async ({
+    encrypted_meta,
+    size_bytes,
+  }: {
+    encrypted_meta: string;
+    size_bytes: number;
+  }) => ({
+    filename: state.placeholder ? null : `${encrypted_meta}.pdf`,
+    content_type: state.placeholder ? null : "application/pdf",
+    session_key: "",
+    size_bytes,
+    is_placeholder: state.placeholder,
   }),
 }));
 
@@ -85,6 +101,8 @@ async function render(emails: InboxEmail[]): Promise<void> {
 
 beforeEach(() => {
   clear_attachment_preview_cache();
+  state.placeholder = false;
+  state.fetches = 0;
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -124,5 +142,36 @@ describe("use_attachment_previews entry identity", () => {
 
     expect(previews.get("a")).not.toBe(first);
     expect(previews.get("a")?.attachments.map((x) => x.id)).toEqual(["att-a"]);
+  });
+});
+
+describe("use_attachment_previews unresolved keys", () => {
+  it("still shows a chip when the session key is unavailable", async () => {
+    state.placeholder = true;
+
+    await render([grouped_email("a", ["a"])]);
+
+    const entry = previews.get("a");
+
+    expect(entry?.state).toBe("loaded");
+    expect(entry?.attachments).toHaveLength(1);
+    expect(entry?.attachments[0].filename).toBeTruthy();
+  });
+
+  it("refetches an unresolved row instead of caching the placeholder", async () => {
+    state.placeholder = true;
+
+    await render([grouped_email("a", ["a"])]);
+
+    act(() => {
+      root?.unmount();
+    });
+    root = createRoot(container!);
+    state.placeholder = false;
+
+    await render([grouped_email("a", ["a"])]);
+
+    expect(state.fetches).toBe(2);
+    expect(previews.get("a")?.attachments[0].filename).toBe("a.pdf");
   });
 });

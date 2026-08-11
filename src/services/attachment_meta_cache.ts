@@ -56,6 +56,8 @@ function store_cached_meta(
   mail_item_id: string,
   items: CachedAttachmentMeta[],
 ): void {
+  if (items.some((item) => item.filename === null)) return;
+
   if (!meta_cache.has(mail_item_id) && meta_cache.size >= MAX_CACHED_MAIL_ITEMS) {
     const oldest = meta_cache.keys().next();
 

@@ -22,8 +22,12 @@ import type { InboxEmail } from "@/types/email";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
 import { batch_attachment_meta } from "@/services/api/attachments";
-import { decrypt_attachment_meta } from "@/services/crypto/attachment_crypto";
+import {
+  resolve_attachment_meta,
+  DEFAULT_ATTACHMENT_CONTENT_TYPE,
+} from "@/services/crypto/attachment_crypto";
 import { get_type_label, get_type_color } from "@/lib/attachment_utils";
 
 export interface AttachmentPreviewInfo {
@@ -144,6 +148,7 @@ export function use_attachment_previews(
   }, [group_map]);
 
   const ids_key = useMemo(() => all_ids.join(","), [all_ids]);
+  const { t } = use_i18n();
 
   const [raw_previews, set_raw_previews] = useState<
     Map<string, AttachmentPreviewEntry>
@@ -192,6 +197,7 @@ export function use_attachment_previews(
       }
 
       const results = new Map<string, AttachmentPreviewEntry>();
+      const unresolved = new Set<string>();
 
       const decrypt_promises = ids_to_fetch.map(async (mail_id) => {
         const items = response.data!.items[mail_id] || [];
@@ -202,37 +208,41 @@ export function use_attachment_previews(
           return;
         }
 
-        const settlement = await Promise.allSettled(
+        const resolved = await Promise.all(
           items.map(async (item) => {
-            const meta = await decrypt_attachment_meta(
-              item.encrypted_meta,
-              item.meta_nonce,
-              item.mail_item_id,
-              item.seq_num,
-            );
+            const meta = await resolve_attachment_meta({
+              encrypted_meta: item.encrypted_meta,
+              meta_nonce: item.meta_nonce,
+              mail_item_id: item.mail_item_id,
+              seq_num: item.seq_num,
+              size_bytes: item.size_bytes,
+            });
+
+            const filename = meta.filename ?? t("common.encrypted_attachment");
+            const content_type =
+              meta.content_type ?? DEFAULT_ATTACHMENT_CONTENT_TYPE;
 
             return {
-              id: item.id,
-              filename: meta.filename,
-              content_type: meta.content_type,
-              size_bytes: item.size_bytes,
-              type_label: get_type_label(meta.content_type, meta.filename),
-              type_color: get_type_color(meta.content_type),
-            } as AttachmentPreviewInfo;
+              is_placeholder: meta.is_placeholder,
+              info: {
+                id: item.id,
+                filename,
+                content_type,
+                size_bytes: meta.size_bytes || item.size_bytes,
+                type_label: get_type_label(content_type, filename),
+                type_color: get_type_color(content_type),
+              } as AttachmentPreviewInfo,
+            };
           }),
         );
 
-        const attachments: AttachmentPreviewInfo[] = [];
-
-        for (const result of settlement) {
-          if (result.status === "fulfilled") {
-            attachments.push(result.value);
-          }
+        if (resolved.some((entry) => entry.is_placeholder)) {
+          unresolved.add(mail_id);
         }
 
         results.set(mail_id, {
-          state: attachments.length > 0 ? "loaded" : "error",
-          attachments,
+          state: "loaded",
+          attachments: resolved.map((entry) => entry.info),
         });
       });
 
@@ -247,7 +257,11 @@ export function use_attachment_previews(
 
         for (const [mail_id, entry] of results) {
           next.set(mail_id, entry);
-          preview_cache.set(mail_id, { entry, timestamp: now });
+
+          if (!unresolved.has(mail_id)) {
+            preview_cache.set(mail_id, { entry, timestamp: now });
+          }
+
           fetching_ref.current.delete(mail_id);
         }
 
@@ -272,7 +286,7 @@ export function use_attachment_previews(
         return next;
       });
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!enabled) return;
