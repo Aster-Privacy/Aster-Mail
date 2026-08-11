@@ -200,9 +200,9 @@ export function BillingSection({
                             preferred_currency,
                           )}
                           <span className="text-[11px] font-normal text-[var(--text-muted)]">
-                            /
-                            {subscription.plan.billing_period ||
-                              t("settings.per_month_short")}
+                            {subscription.plan.billing_period?.startsWith("year")
+                              ? t("settings.per_year_short")
+                              : t("settings.per_month_short")}
                           </span>
                         </span>
                         {is_crypto_sub ? (
