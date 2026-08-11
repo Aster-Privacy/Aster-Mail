@@ -196,6 +196,7 @@ export interface RuleRun {
   matched: number;
   applied: number;
   skipped: number;
+  skipped_encrypted: number;
   total_estimate: number | null;
   created_at: string;
   started_at: string | null;
@@ -334,6 +335,7 @@ interface WireRuleRun {
   matched: number;
   applied: number;
   skipped: number;
+  skipped_encrypted?: number;
   total_estimate?: number;
   created_at: string;
   started_at?: string;
@@ -366,6 +368,7 @@ function rule_run_from_wire(w: WireRuleRun): RuleRun {
     matched: w.matched,
     applied: w.applied,
     skipped: w.skipped,
+    skipped_encrypted: w.skipped_encrypted ?? 0,
     total_estimate: w.total_estimate ?? null,
     created_at: w.created_at,
     started_at: w.started_at ?? null,

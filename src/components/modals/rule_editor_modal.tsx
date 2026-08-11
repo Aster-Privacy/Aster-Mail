@@ -494,16 +494,29 @@ export function RuleEditorModal({
             applied: active_run.applied,
           });
     }
+    const encrypted = active_run.skipped_encrypted;
+
     if (active_run.status === "completed") {
-      return t("mail_rules.apply_to_existing_done", {
-        scanned: active_run.scanned,
-        applied: active_run.applied,
-      });
+      return encrypted > 0
+        ? t("mail_rules.apply_to_existing_done_encrypted", {
+            scanned: active_run.scanned,
+            applied: active_run.applied,
+            encrypted,
+          })
+        : t("mail_rules.apply_to_existing_done", {
+            scanned: active_run.scanned,
+            applied: active_run.applied,
+          });
     }
     if (active_run.status === "canceled") {
-      return t("mail_rules.apply_to_existing_canceled", {
-        applied: active_run.applied,
-      });
+      return encrypted > 0
+        ? t("mail_rules.apply_to_existing_canceled_encrypted", {
+            applied: active_run.applied,
+            encrypted,
+          })
+        : t("mail_rules.apply_to_existing_canceled", {
+            applied: active_run.applied,
+          });
     }
     return t("mail_rules.apply_to_existing_error");
   };
