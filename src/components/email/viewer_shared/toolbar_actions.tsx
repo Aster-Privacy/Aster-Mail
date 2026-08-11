@@ -184,6 +184,17 @@ export function ViewerToolbarActions({
   const btn_base = `${btn_common} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`;
   const btn_trash = btn_base;
   const btn_spam = btn_base;
+  const thread_message_count = thread_messages.length;
+  const archive_label =
+    thread_message_count > 1
+      ? t("mail.archive_conversation_count", { count: thread_message_count })
+      : t("mail.archive");
+  const trash_label =
+    thread_message_count > 1
+      ? t("mail.move_conversation_to_trash_count", {
+          count: thread_message_count,
+        })
+      : t("mail.move_to_trash");
 
   const collapse_expand_button =
     thread_messages.length > 1 ? (
@@ -326,9 +337,9 @@ export function ViewerToolbarActions({
           </Button>
         </Tooltip>
       ) : (
-        <Tooltip tip={t("mail.archive")}>
+        <Tooltip tip={archive_label}>
           <Button
-            aria-label={t("mail.archive")}
+            aria-label={archive_label}
             className={btn_base}
             disabled={is_archive_loading}
             size="icon"
@@ -372,9 +383,9 @@ export function ViewerToolbarActions({
           </Tooltip>
         ))}
 
-      <Tooltip tip={t("mail.move_to_trash")}>
+      <Tooltip tip={trash_label}>
         <Button
-          aria-label={t("mail.move_to_trash")}
+          aria-label={trash_label}
           className={btn_trash}
           disabled={is_trash_loading}
           size="icon"

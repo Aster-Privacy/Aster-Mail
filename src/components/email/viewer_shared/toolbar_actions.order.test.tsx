@@ -40,7 +40,10 @@ vi.mock("@aster/ui", () => ({
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (key: string) => key }),
+  use_i18n: () => ({
+    t: (key: string, params?: Record<string, string | number>) =>
+      params ? `${key}:${JSON.stringify(params)}` : key,
+  }),
 }));
 
 vi.mock("@/contexts/preferences_context", () => ({
@@ -126,6 +129,23 @@ describe("ViewerToolbarActions button order", () => {
       "mail.move_to_folder",
       "common.more",
     ]);
+  });
+
+  it("names the message count on a multi message conversation", async () => {
+    toolbar_mode = "advanced";
+    await act(async () => {
+      root.render(
+        <ViewerToolbarActions
+          {...props}
+          thread_messages={[{}, {}, {}] as never}
+        />,
+      );
+    });
+
+    expect(labels()).toContain('mail.archive_conversation_count:{"count":3}');
+    expect(labels()).toContain(
+      'mail.move_conversation_to_trash_count:{"count":3}',
+    );
   });
 
   it("keeps the reduced set when the account opts back into simple mode", async () => {
