@@ -165,7 +165,7 @@ describe("CategoryTabs", () => {
     expect(tab_of(el, "category_social").textContent).not.toContain("Paybis");
   });
 
-  it("hides the preview and the new badge on the tab you are viewing", () => {
+  it("hides the preview and the new wording on the tab you are viewing", () => {
     const el = render(
       <CategoryTabs
         active_category="promotions"
@@ -175,11 +175,11 @@ describe("CategoryTabs", () => {
     );
     const promotions = tab_of(el, "category_promotions");
 
-    expect(promotions.querySelector(".aster_cat_badge")).toBeNull();
+    expect(promotions.textContent).not.toContain("mail.tab_new_count");
     expect(promotions.textContent).not.toContain("Paybis Team");
   });
 
-  it("shows no badge on a tab whose unread mail has already been seen", () => {
+  it("still counts the unread mail on the tab you are viewing", () => {
     const el = render(
       <CategoryTabs
         active_category="promotions"
@@ -187,10 +187,81 @@ describe("CategoryTabs", () => {
         on_change={() => {}}
       />,
     );
-    const primary = tab_of(el, "category_primary");
+    const badge = tab_of(el, "category_promotions").querySelector(
+      ".aster_cat_badge_muted",
+    );
 
-    expect(primary.querySelector(".aster_cat_badge")).toBeNull();
-    expect(primary.textContent).not.toContain("1");
+    expect(badge?.textContent).toBe("42");
+  });
+
+  it("counts unread mail on a tab whose new mail has already been seen", () => {
+    const el = render(
+      <CategoryTabs
+        active_category="promotions"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+    const badge = tab_of(el, "category_primary").querySelector(
+      ".aster_cat_badge_muted",
+    );
+
+    expect(badge?.textContent).toBe("1");
+    expect(badge?.getAttribute("aria-label")).toBe("mail.tab_unread_count");
+  });
+
+  it("shows no badge on a tab with nothing unread", () => {
+    const el = render(
+      <CategoryTabs
+        active_category="primary"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+
+    expect(
+      tab_of(el, "category_social").querySelector(".aster_cat_badge"),
+    ).toBeNull();
+  });
+
+  it("prefers the new wording over the plain count when mail is unseen", () => {
+    const el = render(
+      <CategoryTabs
+        active_category="primary"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+    const promotions = tab_of(el, "category_promotions");
+
+    expect(promotions.textContent).toContain("mail.tab_new_count");
+    expect(promotions.querySelector(".aster_cat_badge_muted")).toBeNull();
+  });
+
+  it("indicates unread mail the reporter had never opened", () => {
+    const reported = {
+      primary: { total: 4, unread: 1, new_count: 0 },
+      promotions: { total: 9, unread: 1, new_count: 0 },
+      social: { total: 3, unread: 1, new_count: 0 },
+    } as unknown as CategoryCounts;
+    const el = render(
+      <CategoryTabs
+        active_category="primary"
+        counts={reported}
+        on_change={() => {}}
+      />,
+    );
+
+    for (const label of [
+      "category_primary",
+      "category_promotions",
+      "category_social",
+    ]) {
+      expect(
+        tab_of(el, label).querySelector(".aster_cat_badge_muted")?.textContent,
+        `no unread badge on ${label}`,
+      ).toBe("1");
+    }
   });
 
   it("keeps every tab the same height whether or not it has a preview", () => {

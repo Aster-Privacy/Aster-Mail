@@ -168,8 +168,10 @@ export function CategoryTabs({
         const { key, label, Icon, color_style } = tab;
         const is_active = key === active_category;
         const bucket = counts[key];
+        const unread_count = bucket?.unread ?? 0;
         const new_count = is_active ? 0 : (bucket?.new_count ?? 0);
         const show_new = new_count > 0;
+        const show_unread = !show_new && unread_count > 0;
         const preview = show_new ? previews[key] : undefined;
         const is_drop_target = drop_enabled && drop_target === key;
 
@@ -231,6 +233,16 @@ export function CategoryTabs({
                   {show_new ? (
                     <span className="aster_cat_badge shrink-0">
                       {format_count(new_count)} {t("mail.tab_new_count")}
+                    </span>
+                  ) : null}
+                  {show_unread ? (
+                    <span
+                      aria-label={t("mail.tab_unread_count", {
+                        count: unread_count,
+                      })}
+                      className="aster_cat_badge aster_cat_badge_muted shrink-0"
+                    >
+                      {format_count(unread_count)}
                     </span>
                   ) : null}
                 </span>

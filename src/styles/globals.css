@@ -1485,6 +1485,12 @@
   background: var(--cat-soft);
 }
 
+.aster_cat_badge_muted {
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
 .aster_cat_swatch {
   border: 1px solid var(--cat-border);
   background: var(--cat-soft);
