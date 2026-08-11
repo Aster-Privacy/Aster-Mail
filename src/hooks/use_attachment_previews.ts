@@ -23,6 +23,7 @@ import type { InboxEmail } from "@/types/email";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import { batch_attachment_meta } from "@/services/api/attachments";
 import {
   resolve_attachment_meta,
@@ -149,6 +150,7 @@ export function use_attachment_previews(
 
   const ids_key = useMemo(() => all_ids.join(","), [all_ids]);
   const { t } = use_i18n();
+  const attachment_keys_version = use_attachment_keys_version();
 
   const [raw_previews, set_raw_previews] = useState<
     Map<string, AttachmentPreviewEntry>
@@ -178,16 +180,7 @@ export function use_attachment_previews(
           const next = new Map(prev);
 
           for (const id of ids_to_fetch) {
-            const error_entry: AttachmentPreviewEntry = {
-              state: "error",
-              attachments: [],
-            };
-
-            next.set(id, error_entry);
-            preview_cache.set(id, {
-              entry: error_entry,
-              timestamp: Date.now(),
-            });
+            next.set(id, { state: "error", attachments: [] });
           }
 
           return next;
@@ -329,7 +322,7 @@ export function use_attachment_previews(
 
       fetch_previews(uncached_ids);
     }
-  }, [ids_key, fetch_previews, enabled]);
+  }, [ids_key, fetch_previews, enabled, attachment_keys_version]);
 
   useEffect(() => {
     return () => {

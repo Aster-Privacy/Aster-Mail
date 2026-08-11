@@ -982,6 +982,8 @@ export const nl = {
     emoji: "Emoji",
     recipients: "Ontvangers",
     encrypted_attachment: "Versleutelde bijlage",
+    forward_attachments_locked:
+      "Sommige bijlagen kunnen nog niet worden meegestuurd. Open de e-mail en stuur deze opnieuw door.",
     image: "Afbeelding",
     system: "Systeem",
     failed_to_permanently_delete:

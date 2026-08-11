@@ -1394,6 +1394,7 @@ export interface CommonTranslations {
   emoji: string;
   recipients: string;
   encrypted_attachment: string;
+  forward_attachments_locked: string;
   image: string;
   system: string;
   beta: string;

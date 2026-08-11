@@ -1008,6 +1008,8 @@ export const es = {
     emoji: "Emoji",
     recipients: "Destinatarios",
     encrypted_attachment: "Adjunto cifrado",
+    forward_attachments_locked:
+      "Algunos archivos adjuntos aún no se pueden incluir. Abre el correo y reenvíalo de nuevo.",
     image: "Imagen",
     system: "Sistema",
     failed_to_permanently_delete:

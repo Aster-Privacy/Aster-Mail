@@ -46,6 +46,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 export interface CidResolutionResult {
   html: string;
   blob_urls: string[];
+  unresolved: number;
 }
 
 export type CidUrlMode = "blob" | "data";
@@ -151,13 +152,17 @@ export async function resolve_cid_references(
   const cid_refs = extract_cid_references(html);
 
   if (cid_refs.length === 0) {
-    return { html, blob_urls: [] };
+    return { html, blob_urls: [], unresolved: 0 };
   }
 
   const records = await fetch_attachment_records(mail_item_id);
 
   if (records.length === 0) {
-    return { html: strip_unresolved_cid_references(html), blob_urls: [] };
+    return {
+      html: strip_unresolved_cid_references(html),
+      blob_urls: [],
+      unresolved: cid_refs.length,
+    };
   }
 
   const normalize = (s: string): string =>
@@ -169,6 +174,7 @@ export async function resolve_cid_references(
     unresolved_cids.set(normalize(ref), ref);
   }
 
+  const distinct_ref_count = unresolved_cids.size;
   const blob_urls: string[] = [];
   let resolved_html = html;
 
@@ -183,9 +189,13 @@ export async function resolve_cid_references(
     ),
   );
 
-  const decrypted_attachments = meta_results
-    .flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))
-    .filter(({ meta }) => ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase()));
+  const decrypted_metas = meta_results.flatMap((r) =>
+    r.status === "fulfilled" ? [r.value] : [],
+  );
+  const decrypted_attachments = decrypted_metas.filter(({ meta }) =>
+    ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase()),
+  );
+  const meta_incomplete = decrypted_metas.length < meta_results.length;
 
   const match_strategies: ((meta: AttachmentMeta) => string | undefined)[] = [
     (meta) => meta.content_id ? normalize(meta.content_id) : undefined,
@@ -257,6 +267,8 @@ export async function resolve_cid_references(
     }),
   );
 
+  let replaced = 0;
+
   for (const result of data_results) {
     if (result.status !== "fulfilled") continue;
 
@@ -264,12 +276,20 @@ export async function resolve_cid_references(
 
     if (is_blob) blob_urls.push(url);
 
+    replaced += 1;
     resolved_html = replace_cid_reference(resolved_html, original_cid, url);
   }
 
   resolved_html = strip_unresolved_cid_references(resolved_html);
 
-  return { html: resolved_html, blob_urls };
+  return {
+    html: resolved_html,
+    blob_urls,
+    unresolved:
+      meta_incomplete || data_results.some((r) => r.status === "rejected")
+        ? Math.max(distinct_ref_count - replaced, 0)
+        : 0,
+  };
 }
 
 export function revoke_cid_blob_urls(blob_urls: string[]): void {

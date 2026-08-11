@@ -1006,6 +1006,8 @@ export const tr = {
     emoji: "Emoji",
     recipients: "Alıcılar",
     encrypted_attachment: "Şifreli ek",
+    forward_attachments_locked:
+      "Bazı ekler henüz eklenemiyor. E-postayı açın, sonra yeniden iletin.",
     image: "Görsel",
     system: "Sistem",
     failed_to_permanently_delete:

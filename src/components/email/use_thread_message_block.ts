@@ -72,6 +72,7 @@ import {
   use_alias_delivery,
 } from "@/hooks/use_alias_delivery";
 import { use_auth_safe } from "@/contexts/auth_context";
+import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 
 export interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -456,6 +457,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
 
   const cid_blob_urls_ref = useRef<string[]>([]);
   const cid_preload_consumed_ref = useRef(false);
+  const attachment_keys_version = use_attachment_keys_version(message.id);
 
   const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(
     () => {
@@ -523,6 +525,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     message.id,
     is_expanded,
     preferences.low_network_mode,
+    attachment_keys_version,
   ]);
 
   useEffect(() => {

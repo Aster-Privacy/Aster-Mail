@@ -1138,6 +1138,8 @@ export const en: Translations = {
     emoji: "Emoji",
     recipients: "Recipients",
     encrypted_attachment: "Encrypted attachment",
+    forward_attachments_locked:
+      "Some attachments can’t be included yet. Open the email, then forward it again.",
     image: "Image",
     system: "System",
     beta: "Beta",

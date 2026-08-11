@@ -376,10 +376,9 @@ export function use_forward_modal({
           return;
         }
 
-        original_has_attachments_ref.current = true;
-
         const loaded: Attachment[] = [];
         let total_size = 0;
+        let dropped = 0;
 
         for (const att of response.data.attachments) {
           if (cancelled) return;
@@ -419,14 +418,21 @@ export function use_forward_modal({
               content_id: meta.content_id,
             });
           } catch {
-            continue;
+            dropped += 1;
           }
         }
 
         if (!cancelled) {
+          original_has_attachments_ref.current = true;
+
           if (loaded.length > 0) {
             set_attachments(loaded);
           }
+
+          if (dropped > 0) {
+            set_attachment_error(t("common.forward_attachments_locked"));
+          }
+
           set_is_loading_attachments(false);
         }
       } catch {

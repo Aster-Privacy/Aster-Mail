@@ -39,6 +39,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import {
   normalize_envelope_from,
 } from "@/services/crypto/envelope_normalize";
@@ -142,6 +143,24 @@ export function schedule_legacy_envelope_migration(
 }
 
 export async function decrypt_envelope_for_search(
+  encrypted: string,
+  nonce: string,
+  item_id: string,
+  item_type: string,
+): Promise<DecryptedEnvelope | null> {
+  const envelope = await open_search_envelope(
+    encrypted,
+    nonce,
+    item_id,
+    item_type,
+  );
+
+  register_envelope_attachment_keys(item_id, envelope);
+
+  return envelope;
+}
+
+async function open_search_envelope(
   encrypted: string,
   nonce: string,
   item_id: string,

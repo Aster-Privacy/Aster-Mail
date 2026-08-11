@@ -1006,6 +1006,8 @@ export const pl = {
     emoji: "Emotikony",
     recipients: "Odbiorcy",
     encrypted_attachment: "Zaszyfrowany załącznik",
+    forward_attachments_locked:
+      "Niektórych załączników nie można jeszcze dołączyć. Otwórz wiadomość, a następnie prześlij ją dalej ponownie.",
     image: "Obraz",
     system: "Systemowy",
     failed_to_permanently_delete:

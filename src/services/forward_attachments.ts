@@ -41,6 +41,7 @@ export interface LoadForwardAttachmentsOptions {
   body_html?: string;
   existing_bytes?: number;
   is_cancelled?: () => boolean;
+  on_dropped?: (count: number) => void;
 }
 
 function normalize_reference(value: string): string {
@@ -80,7 +81,12 @@ export async function load_forward_attachments(
   mail_item_id: string,
   options: LoadForwardAttachmentsOptions = {},
 ): Promise<Attachment[]> {
-  const { body_html = "", existing_bytes = 0, is_cancelled } = options;
+  const {
+    body_html = "",
+    existing_bytes = 0,
+    is_cancelled,
+    on_dropped,
+  } = options;
 
   if (!mail_item_id) return [];
 
@@ -120,10 +126,15 @@ export async function load_forward_attachments(
 
   const carried: Attachment[] = [];
   let running_total = existing_bytes;
+  let dropped = 0;
 
   for (const result of meta_results) {
     if (is_cancelled?.()) return carried;
-    if (result.status !== "fulfilled") continue;
+
+    if (result.status !== "fulfilled") {
+      dropped += 1;
+      continue;
+    }
 
     const { item, meta } = result.value;
 
@@ -156,9 +167,12 @@ export async function load_forward_attachments(
         content_id: meta.content_id,
       });
     } catch {
+      dropped += 1;
       continue;
     }
   }
+
+  if (dropped > 0) on_dropped?.(dropped);
 
   return carried;
 }

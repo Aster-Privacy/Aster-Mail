@@ -903,6 +903,8 @@ export const pt = {
     emoji: "Emoticon",
     recipients: "Destinatários",
     encrypted_attachment: "Anexo criptografado",
+    forward_attachments_locked:
+      "Alguns anexos ainda não podem ser incluídos. Abra o e-mail e encaminhe-o novamente.",
     image: "Imagem",
     system: "Sistema",
     failed_to_permanently_delete:

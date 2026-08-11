@@ -39,6 +39,7 @@ import {
   resolve_attachment_meta,
   decrypt_attachment_meta,
   is_sealed_meta_nonce,
+  clear_unreadable_attachment_rows,
   DEFAULT_ATTACHMENT_CONTENT_TYPE,
 } from "./attachment_crypto";
 import { array_to_base64, base64_to_array } from "./envelope";
@@ -48,6 +49,7 @@ import {
   get_attachment_entry,
 } from "./inbound_attachment_keys";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import sealed_meta_vector from "./__fixtures__/sealed_attachment_meta_vector.json";
 
 const MAIL_ITEM_ID = "mail-item-sealed";
 
@@ -291,9 +293,64 @@ describe("sealed attachment metadata", () => {
   });
 });
 
+describe("client authored attachment metadata", () => {
+  beforeEach(() => {
+    clear_attachment_keys();
+    clear_unreadable_attachment_rows();
+  });
+
+  it("reads a sender row that carries a random nonce and no envelope entry", async () => {
+    const encrypted_meta = plaintext_row({
+      filename: "sent_report.pdf",
+      content_type: "application/pdf",
+      session_key: array_to_base64(new Uint8Array(32).fill(7)),
+    });
+
+    const meta = await resolve_attachment_meta({
+      encrypted_meta,
+      meta_nonce: array_to_base64(new Uint8Array(12).fill(9)),
+      mail_item_id: MAIL_ITEM_ID,
+      seq_num: 3,
+    });
+
+    expect(meta.is_placeholder).toBe(false);
+    expect(meta.filename).toBe("sent_report.pdf");
+    expect(meta.session_key).toBe(array_to_base64(new Uint8Array(32).fill(7)));
+  });
+});
+
+describe("server written sealed metadata vector", () => {
+  beforeEach(() => {
+    clear_attachment_keys();
+    clear_unreadable_attachment_rows();
+  });
+
+  it("opens the vector the backend emits", async () => {
+    expect(is_sealed_meta_nonce(sealed_meta_vector.meta_nonce_b64)).toBe(true);
+
+    register_attachment_entry(MAIL_ITEM_ID, 0, {
+      key: sealed_meta_vector.session_key_b64,
+    });
+
+    const meta = await resolve_attachment_meta({
+      encrypted_meta: sealed_meta_vector.sealed_meta_b64,
+      meta_nonce: sealed_meta_vector.meta_nonce_b64,
+      mail_item_id: MAIL_ITEM_ID,
+      seq_num: 0,
+    });
+
+    expect(meta.is_placeholder).toBe(false);
+    expect(meta.filename).toBe("quarterly report.pdf");
+    expect(meta.content_type).toBe("application/pdf");
+    expect(meta.content_id).toBe("cid-7");
+    expect(meta.session_key).toBe(sealed_meta_vector.session_key_b64);
+  });
+});
+
 describe("legacy attachment metadata", () => {
   beforeEach(() => {
     clear_attachment_keys();
+    clear_unreadable_attachment_rows();
   });
 
   it("reads a plaintext row with an all-zero nonce", async () => {

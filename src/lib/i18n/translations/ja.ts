@@ -1001,6 +1001,8 @@ export const ja = {
     emoji: "絵文字",
     recipients: "宛先",
     encrypted_attachment: "暗号化された添付ファイル",
+    forward_attachments_locked:
+      "一部の添付ファイルはまだ含められません。メールを開いてから、もう一度転送してください。",
     image: "画像",
     system: "システム",
     failed_to_permanently_delete:

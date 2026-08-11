@@ -1006,6 +1006,8 @@ export const ru = {
     emoji: "Эмодзи",
     recipients: "Получатели",
     encrypted_attachment: "Зашифрованное вложение",
+    forward_attachments_locked:
+      "Некоторые вложения пока нельзя включить. Откройте письмо, затем перешлите его снова.",
     image: "Изображение",
     system: "Система",
     failed_to_permanently_delete:

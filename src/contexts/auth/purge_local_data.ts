@@ -49,6 +49,7 @@ import { clear_category_index } from "@/services/category_index";
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
+import { clear_unreadable_attachment_rows } from "@/services/crypto/attachment_crypto";
 import { clear_plaintext_cache } from "@/services/crypto/ratchet_plaintext_cache";
 import { clear_escrow_miss_cache } from "@/services/crypto/message_escrow";
 import { clear_translation_cache } from "@/services/translation/translation_cache";
@@ -104,6 +105,7 @@ export async function purge_all_local_data(): Promise<void> {
   clear_session();
   clear_all_switch_tokens();
   clear_attachment_keys();
+  clear_unreadable_attachment_rows();
   clear_attachment_preview_cache();
   clear_translation_cache();
   clear_detection_cache();

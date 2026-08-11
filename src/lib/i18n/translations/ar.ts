@@ -970,6 +970,8 @@ export const ar = {
     emoji: "رمز تعبيري",
     recipients: "المستلمون",
     encrypted_attachment: "مرفق مشفر",
+    forward_attachments_locked:
+      "تعذر إرفاق بعض المرفقات حتى الآن. افتح البريد الإلكتروني، ثم أعد توجيهه مرة أخرى.",
     image: "صورة",
     system: "النظام",
     failed_to_permanently_delete:

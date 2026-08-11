@@ -941,6 +941,8 @@ export const de = {
     emoji: "Emoji",
     recipients: "Empfänger",
     encrypted_attachment: "Verschlüsselter Anhang",
+    forward_attachments_locked:
+      "Einige Anhänge können noch nicht mitgesendet werden. Öffne die E-Mail und leite sie dann erneut weiter.",
     image: "Bild",
     system: "System",
     failed_to_permanently_delete:

@@ -539,7 +539,6 @@ export async function preload_email_detail(
       if (response.error || !response.data) return;
 
       const item = response.data;
-      const attachment_meta_ready = prefetch_attachment_meta([target_id]);
       let decrypted_metadata = item.metadata ?? null;
 
       if (
@@ -561,6 +560,8 @@ export async function preload_email_detail(
       );
 
       if (!envelope) return;
+
+      const attachment_meta_ready = prefetch_attachment_meta([target_id]);
 
       let resolved_html = envelope.body_html ?? envelope.html_body ?? undefined;
 
@@ -787,6 +788,11 @@ export async function preload_email_detail(
           if (extract_cid_references(sanitized.html).length === 0) return;
           try {
             const result = await resolve_cid_references(sanitized.html, msg.id);
+            if (result.unresolved > 0) {
+              revoke_cid_blob_urls(result.blob_urls);
+
+              return;
+            }
             if (result.blob_urls.length > 0) {
               thread_cid_resolved.set(msg.id, { html: result.html, blob_urls: result.blob_urls });
               if (msg.id === target_id) {

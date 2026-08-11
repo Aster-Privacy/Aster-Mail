@@ -102,6 +102,29 @@ describe("resolve_cid_references url_mode", () => {
     create_object_url.mockRestore();
   });
 
+  it("reports unresolved references when the meta cannot be opened", async () => {
+    vi.mocked(decrypt_attachment_meta).mockRejectedValue(new Error("sealed"));
+
+    const result = await resolve_cid_references(
+      '<img src="cid:logo@example.com">',
+      "mail_1",
+      "data",
+    );
+
+    expect(result.unresolved).toBe(1);
+    expect(result.blob_urls).toEqual([]);
+  });
+
+  it("reports zero unresolved references on a full resolve", async () => {
+    const result = await resolve_cid_references(
+      '<img src="cid:logo@example.com">',
+      "mail_1",
+      "data",
+    );
+
+    expect(result.unresolved).toBe(0);
+  });
+
   it("leaves html untouched when no cid references exist", async () => {
     const html = '<img src="https://example.com/a.png">';
     const result = await resolve_cid_references(html, "mail_1", "data");

@@ -1019,6 +1019,8 @@ export const it = {
     emoji: "Emoji",
     recipients: "Destinatari",
     encrypted_attachment: "Allegato crittografato",
+    forward_attachments_locked:
+      "Alcuni allegati non possono ancora essere inclusi. Apri l’email, poi inoltrala di nuovo.",
     image: "Immagine",
     system: "Sistema",
     failed_to_permanently_delete:

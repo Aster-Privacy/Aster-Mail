@@ -38,6 +38,7 @@ import {
   normalize_envelope_from,
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string,
@@ -60,6 +61,18 @@ export async function try_decrypt_with_identity_key(
 }
 
 export async function decrypt_envelope(
+  encrypted: string,
+  nonce: string,
+  mail_item_id?: string,
+): Promise<DecryptedEnvelope | null> {
+  const envelope = await open_envelope(encrypted, nonce, mail_item_id);
+
+  register_envelope_attachment_keys(mail_item_id, envelope);
+
+  return envelope;
+}
+
+async function open_envelope(
   encrypted: string,
   nonce: string,
   mail_item_id?: string,

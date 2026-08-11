@@ -35,6 +35,7 @@ import { clear_tags_cache } from "@/hooks/use_tags";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
+import { clear_unreadable_attachment_rows } from "@/services/crypto/attachment_crypto";
 import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
 import {
   clear_preferred_sender_local,
@@ -79,6 +80,7 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_scheduled_cache();
   clear_attachment_preview_cache();
   clear_attachment_keys();
+  clear_unreadable_attachment_rows();
   request_cache.clear();
   await clear_all_ratchet_states();
 }

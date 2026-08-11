@@ -21,6 +21,7 @@
 import type { Attachment } from "@/components/compose/compose_shared";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
+  attachment_keys_version,
   get_attachment_key,
   get_attachment_entry,
   type InboundAttachmentEntry,
@@ -232,6 +233,14 @@ export function prepare_external_attachments(
   }));
 }
 
+function first_non_empty(...values: (string | undefined)[]): string | null {
+  for (const value of values) {
+    if (typeof value === "string" && value.length > 0) return value;
+  }
+
+  return null;
+}
+
 export function is_sealed_meta_nonce(meta_nonce?: string): boolean {
   if (!meta_nonce) return false;
 
@@ -293,28 +302,49 @@ async function decrypt_sealed_attachment_meta(
   };
 }
 
+const VAULT_UNAVAILABLE = "vault unavailable for attachment metadata";
+
+const unreadable_rows = new Map<string, number>();
+
+export function clear_unreadable_attachment_rows(): void {
+  unreadable_rows.clear();
+}
+
 async function read_row_attachment_meta(
   encrypted_meta: string,
   meta_nonce: string | undefined,
   entry: InboundAttachmentEntry | null,
+  row_key: string | null,
+  mail_item_id: string | undefined,
 ): Promise<AttachmentMeta | null> {
   if (!encrypted_meta) return null;
 
   if (is_sealed_meta_nonce(meta_nonce) && entry?.key) {
-    try {
-      return await decrypt_sealed_attachment_meta(
-        encrypted_meta,
-        meta_nonce as string,
-        entry.key,
-      );
-    } catch {
-      return null;
-    }
+    const sealed = await decrypt_sealed_attachment_meta(
+      encrypted_meta,
+      meta_nonce as string,
+      entry.key,
+    ).catch(() => null);
+
+    if (sealed) return sealed;
+  }
+
+  const keys_version = attachment_keys_version(mail_item_id);
+
+  if (row_key !== null && unreadable_rows.get(row_key) === keys_version) {
+    return null;
   }
 
   try {
     return await decrypt_client_authored_meta(encrypted_meta);
-  } catch {
+  } catch (error) {
+    const transient =
+      error instanceof Error && error.message === VAULT_UNAVAILABLE;
+
+    if (row_key !== null && !transient) {
+      unreadable_rows.set(row_key, keys_version);
+    }
+
     return null;
   }
 }
@@ -327,13 +357,20 @@ export async function resolve_attachment_meta(
       ? get_attachment_entry(input.mail_item_id, input.seq_num)
       : null;
 
+  const row_key =
+    input.mail_item_id !== undefined && input.seq_num !== undefined
+      ? `${input.mail_item_id}:${input.seq_num}`
+      : null;
+
   const row_meta = await read_row_attachment_meta(
     input.encrypted_meta,
     input.meta_nonce,
     entry,
+    row_key,
+    input.mail_item_id,
   );
 
-  const filename = entry?.filename ?? row_meta?.filename ?? null;
+  const filename = first_non_empty(entry?.filename, row_meta?.filename);
   const resolved_content_type = entry?.content_type ?? row_meta?.content_type;
   const content_type =
     resolved_content_type && resolved_content_type.length > 0
@@ -406,7 +443,7 @@ async function decrypt_client_authored_meta(
     const passphrase_bytes = get_passphrase_bytes();
 
     if (!vault?.identity_key || !passphrase_bytes) {
-      throw new Error("Vault not available for decryption");
+      throw new Error(VAULT_UNAVAILABLE);
     }
 
     try {
@@ -426,7 +463,7 @@ async function decrypt_client_authored_meta(
   const passphrase_bytes = get_passphrase_bytes();
 
   if (!passphrase_bytes) {
-    throw new Error("Passphrase not available");
+    throw new Error(VAULT_UNAVAILABLE);
   }
 
   try {

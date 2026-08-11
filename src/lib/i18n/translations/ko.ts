@@ -977,6 +977,8 @@ export const ko = {
     emoji: "이모지",
     recipients: "수신자",
     encrypted_attachment: "암호화된 첨부 파일",
+    forward_attachments_locked:
+      "일부 첨부 파일을 아직 포함할 수 없습니다. 이메일을 연 다음 다시 전달하세요.",
     image: "이미지",
     system: "시스템",
     failed_to_permanently_delete:

@@ -609,10 +609,6 @@ export function use_email_detail_load() {
 
       set_mail_item(response.data);
 
-      const attachment_meta_ready = prefetch_attachment_meta([email_id]);
-
-      void prefetch_attachment_previews(email_id);
-
       let decrypted_metadata = response.data.metadata ?? null;
 
       if (
@@ -708,6 +704,10 @@ export function use_email_detail_load() {
               response.data.id,
             )
           : null;
+
+      const attachment_meta_ready = prefetch_attachment_meta([email_id]);
+
+      void prefetch_attachment_previews(email_id);
 
       if (envelope) {
         const { body_text, safe_html, unsubscribe_info } =

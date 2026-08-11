@@ -1016,6 +1016,8 @@ export const fr = {
     emoji: "Émoji",
     recipients: "Destinataires",
     encrypted_attachment: "Pièce jointe chiffrée",
+    forward_attachments_locked:
+      "Certaines pièces jointes ne peuvent pas encore être incluses. Ouvre l’e-mail, puis transfère-le à nouveau.",
     image: "Image",
     system: "Système",
     failed_to_permanently_delete:

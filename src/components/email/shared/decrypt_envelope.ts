@@ -20,7 +20,7 @@
 //
 import type { DecryptedEnvelope } from "@/types/email";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
-import { register_attachment_entry } from "@/services/crypto/inbound_attachment_keys";
+import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { derive_pq_identity_from_seed } from "@/services/crypto/ratchet_manager";
 
 import {
@@ -185,32 +185,6 @@ export async function decrypt_inbound_pq_hybrid(
     return decompress_zlib(new Uint8Array(decrypted));
   } catch {
     return null;
-  }
-}
-
-function register_envelope_attachment_keys(
-  mail_item_id: string | undefined,
-  parsed_obj: unknown,
-): void {
-  if (!mail_item_id || typeof parsed_obj !== "object" || parsed_obj === null) {
-    return;
-  }
-
-  const keys = (parsed_obj as { attachment_keys?: unknown }).attachment_keys;
-
-  if (!Array.isArray(keys)) return;
-
-  for (const k of keys) {
-    if (typeof k?.seq !== "number" || typeof k?.key !== "string") continue;
-
-    register_attachment_entry(mail_item_id, k.seq, {
-      key: k.key,
-      filename: typeof k.filename === "string" ? k.filename : undefined,
-      content_type:
-        typeof k.content_type === "string" ? k.content_type : undefined,
-      content_id: typeof k.content_id === "string" ? k.content_id : undefined,
-      size: typeof k.size === "number" ? k.size : undefined,
-    });
   }
 }
 

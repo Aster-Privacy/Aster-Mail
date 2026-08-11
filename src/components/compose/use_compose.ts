@@ -553,6 +553,13 @@ export function use_compose({
           body_html: edit_draft.message,
           is_cancelled: () =>
             inject_token_ref.current !== attachments_token,
+          on_dropped: () => {
+            if (inject_token_ref.current !== attachments_token) return;
+
+            attachment_hook.set_attachment_error(
+              t("common.forward_attachments_locked"),
+            );
+          },
         })
           .then((carried) => {
             if (inject_token_ref.current !== attachments_token) return;

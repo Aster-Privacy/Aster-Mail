@@ -824,6 +824,8 @@ export const zh_CN = {
     emoji: "表情",
     recipients: "收件人",
     encrypted_attachment: "加密附件",
+    forward_attachments_locked:
+      "部分附件暂时无法包含。请先打开邮件，然后再次转发。",
     image: "图片",
     system: "系统",
     failed_to_permanently_delete: "这些条目未能移除，再试一次应该可以。",

@@ -58,6 +58,7 @@ import {
   revoke_cid_blob_urls,
   strip_unresolved_cid_references,
 } from "@/lib/cid_resolver";
+import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences, FONT_SIZE_DEFAULT, normalize_font_size_scale } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -137,6 +138,7 @@ export function SandboxedEmailRenderer({
     null,
   );
   const internal_cid_blob_urls_ref = useRef<string[]>([]);
+  const attachment_keys_version = use_attachment_keys_version(email_id);
   const stable_cid_html_ref = useRef<string | null>(null);
   const pending_revoke_ref = useRef<string[]>([]);
   const prev_email_id_ref = useRef(email_id);
@@ -178,6 +180,7 @@ export function SandboxedEmailRenderer({
 
           return;
         }
+        revoke_cid_blob_urls(pending_revoke_ref.current);
         pending_revoke_ref.current = internal_cid_blob_urls_ref.current;
         internal_cid_blob_urls_ref.current = result.blob_urls;
         stable_cid_html_ref.current = result.html;
@@ -188,7 +191,7 @@ export function SandboxedEmailRenderer({
     return () => {
       cancelled = true;
     };
-  }, [sanitized_html, email_id]);
+  }, [sanitized_html, email_id, attachment_keys_version]);
 
   useEffect(() => {
     return () => {

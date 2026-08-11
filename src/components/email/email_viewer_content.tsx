@@ -63,6 +63,7 @@ import {
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_latched_by_id } from "@/hooks/use_latched_by_id";
+import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -268,6 +269,7 @@ export function EmailViewerContent({
 
   const cid_blob_urls_ref = useRef<string[]>([]);
   const cid_preload_consumed_ref = useRef(false);
+  const attachment_keys_version = use_attachment_keys_version(email.id);
 
   const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(() => {
     if (effective_content_mode === "always") return null;
@@ -320,7 +322,12 @@ export function EmailViewerContent({
     return () => {
       cancelled = true;
     };
-  }, [sanitize_result.html, email.id, preferences.low_network_mode]);
+  }, [
+    sanitize_result.html,
+    email.id,
+    preferences.low_network_mode,
+    attachment_keys_version,
+  ]);
 
   useEffect(() => {
     return () => {
