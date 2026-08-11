@@ -252,6 +252,10 @@ export function use_attachment_previews(
 
       const now = Date.now();
 
+      for (const id of ids_to_fetch) {
+        fetching_ref.current.delete(id);
+      }
+
       set_raw_previews((prev) => {
         const next = new Map(prev);
 
@@ -261,8 +265,6 @@ export function use_attachment_previews(
           if (!unresolved.has(mail_id)) {
             preview_cache.set(mail_id, { entry, timestamp: now });
           }
-
-          fetching_ref.current.delete(mail_id);
         }
 
         return next;
