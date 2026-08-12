@@ -56,7 +56,7 @@ function sample_entity(): string {
 beforeAll(async () => {
   const key = await openpgp.generateKey({
     type: "ecc",
-    curve: "curve25519",
+    curve: "ed25519Legacy",
     userIDs: [{ name: "Sender", email: "sender@astermail.org" }],
     passphrase: PASSPHRASE,
     format: "armored",
