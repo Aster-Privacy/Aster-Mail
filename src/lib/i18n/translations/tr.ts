@@ -4209,6 +4209,7 @@ export const tr = {
     submit: "Gönder",
     enter_strong_password: "Güçlü bir parola girin",
     re_enter_password: "Parolanızı tekrar girin",
+    keep_saved_password: "Kayıtlı parolayı korumak için boş bırakın",
     enter_your_password: "Parolanızı girin",
     enter_current_password_folder: "Mevcut parolayı girin",
     enter_new_password_folder: "Yeni parolayı girin",

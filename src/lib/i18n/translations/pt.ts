@@ -4246,6 +4246,7 @@ export const pt = {
     submit: "Enviar",
     enter_strong_password: "Digite uma senha forte",
     re_enter_password: "Digite sua senha novamente",
+    keep_saved_password: "Deixe em branco para manter a senha salva",
     enter_your_password: "Digite sua senha",
     enter_current_password_folder: "Digite a senha atual",
     enter_new_password_folder: "Digite a nova senha",

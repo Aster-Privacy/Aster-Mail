@@ -4238,6 +4238,7 @@ export const pl = {
     submit: "Wyślij",
     enter_strong_password: "Wprowadź silne hasło",
     re_enter_password: "Wprowadź ponownie hasło",
+    keep_saved_password: "Pozostaw puste, aby zachować zapisane hasło",
     enter_your_password: "Wprowadź hasło",
     enter_current_password_folder: "Wprowadź aktualne hasło",
     enter_new_password_folder: "Wprowadź nowe hasło",

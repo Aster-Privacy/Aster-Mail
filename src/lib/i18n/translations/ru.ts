@@ -4234,6 +4234,7 @@ export const ru = {
     submit: "Отправить",
     enter_strong_password: "Введите надёжный пароль",
     re_enter_password: "Введите пароль повторно",
+    keep_saved_password: "Оставьте пустым, чтобы сохранить текущий пароль",
     enter_your_password: "Введите ваш пароль",
     enter_current_password_folder: "Введите текущий пароль",
     enter_new_password_folder: "Введите новый пароль",

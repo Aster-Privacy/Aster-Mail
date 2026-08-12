@@ -141,6 +141,18 @@ export interface ExternalAccountAdvancedSettings {
   delete_after_fetch: boolean;
 }
 
+export interface ExternalAccountConnectionSettings {
+  host: string;
+  port: number;
+  username: string;
+  use_tls: boolean;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  has_password: boolean;
+  has_smtp_password: boolean;
+}
+
 export interface TestConnectionResult {
   success: boolean;
   message: string;

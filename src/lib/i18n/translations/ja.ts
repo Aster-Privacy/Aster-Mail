@@ -4215,6 +4215,7 @@ export const ja = {
     submit: "送信",
     enter_strong_password: "強力なパスワードを入力",
     re_enter_password: "パスワードを再入力",
+    keep_saved_password: "空欄のままにすると保存されたパスワードを使用します",
     enter_your_password: "パスワードを入力してください",
     enter_current_password_folder: "現在のパスワードを入力",
     enter_new_password_folder: "新しいパスワードを入力",

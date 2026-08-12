@@ -94,6 +94,8 @@ export function ExternalAccountsSection() {
           form_use_tls={state.form_use_tls}
           form_username={state.form_username}
           form_visible={state.form_visible}
+          has_stored_password={state.has_stored_password}
+          has_stored_smtp_password={state.has_stored_smtp_password}
           handle_connection_timeout_change={
             state.handle_connection_timeout_change
           }

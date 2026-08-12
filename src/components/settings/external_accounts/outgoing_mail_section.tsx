@@ -36,6 +36,7 @@ interface OutgoingMailSectionProps {
   form_smtp_port: number;
   form_smtp_username: string;
   form_smtp_password: string;
+  has_stored_smtp_password: boolean;
   show_smtp_password: boolean;
   set_show_smtp_password: (value: boolean) => void;
   form_smtp_use_tls: boolean;
@@ -55,6 +56,7 @@ export function OutgoingMailSection({
   form_smtp_port,
   form_smtp_username,
   form_smtp_password,
+  has_stored_smtp_password,
   show_smtp_password,
   set_show_smtp_password,
   form_smtp_use_tls,
@@ -157,7 +159,11 @@ export function OutgoingMailSection({
                   className="w-full pr-10"
                   id="ext-account-smtp-password"
                   placeholder={
-                    editing_account ? t("settings.re_enter_password") : ""
+                    has_stored_smtp_password
+                      ? t("settings.keep_saved_password")
+                      : editing_account
+                        ? t("settings.re_enter_password")
+                        : ""
                   }
                   type={show_smtp_password ? "text" : "password"}
                   value={form_smtp_password}

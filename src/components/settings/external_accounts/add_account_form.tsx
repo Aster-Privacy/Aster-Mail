@@ -45,6 +45,8 @@ export function AddAccountForm({
   form_port,
   form_username,
   form_password,
+  has_stored_password,
+  has_stored_smtp_password,
   form_use_tls,
   set_form_use_tls,
   form_label_name,
@@ -112,6 +114,7 @@ export function AddAccountForm({
       is_open={form_visible}
       on_close={close_form}
       show_close_button={false}
+      close_on_overlay={false}
       size="xl"
     >
       <div className="sticky top-0 z-10 px-6 pt-6 pb-4 border-b rounded-t-xl bg-modal-bg border-edge-primary">
@@ -144,6 +147,7 @@ export function AddAccountForm({
           form_protocol={form_protocol}
           form_use_tls={form_use_tls}
           form_username={form_username}
+          has_stored_password={has_stored_password}
           handle_host_change={handle_host_change}
           handle_password_change={handle_password_change}
           handle_port_change={handle_port_change}
@@ -162,6 +166,7 @@ export function AddAccountForm({
           form_smtp_port={form_smtp_port}
           form_smtp_use_tls={form_smtp_use_tls}
           form_smtp_username={form_smtp_username}
+          has_stored_smtp_password={has_stored_smtp_password}
           handle_smtp_host_change={handle_smtp_host_change}
           handle_smtp_password_change={handle_smtp_password_change}
           handle_smtp_port_change={handle_smtp_port_change}

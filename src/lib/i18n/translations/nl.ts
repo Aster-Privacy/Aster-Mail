@@ -4176,6 +4176,7 @@ export const nl = {
     submit: "Indienen",
     enter_strong_password: "Voer een sterk wachtwoord in",
     re_enter_password: "Voer je wachtwoord opnieuw in",
+    keep_saved_password: "Laat leeg om het opgeslagen wachtwoord te behouden",
     enter_your_password: "Voer je wachtwoord in",
     enter_current_password_folder: "Voer huidig wachtwoord in",
     enter_new_password_folder: "Voer nieuw wachtwoord in",

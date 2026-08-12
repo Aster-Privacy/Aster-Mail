@@ -4273,6 +4273,7 @@ export const fr = {
     submit: "Soumettre",
     enter_strong_password: "Saisir un mot de passe fort",
     re_enter_password: "Ressaisir votre mot de passe",
+    keep_saved_password: "Laissez vide pour conserver le mot de passe enregistré",
     enter_your_password: "Saisir votre mot de passe",
     enter_current_password_folder: "Saisir le mot de passe actuel",
     enter_new_password_folder: "Saisir le nouveau mot de passe",

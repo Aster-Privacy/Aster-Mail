@@ -4233,6 +4233,7 @@ export const es = {
     submit: "Enviar",
     enter_strong_password: "Ingresa una contraseña segura",
     re_enter_password: "Vuelve a ingresar tu contraseña",
+    keep_saved_password: "Déjalo en blanco para conservar la contraseña guardada",
     enter_your_password: "Ingresa tu contraseña",
     enter_current_password_folder: "Ingresa la contraseña actual",
     enter_new_password_folder: "Ingresa la nueva contraseña",

@@ -4292,6 +4292,7 @@ export interface SettingsTranslations {
   submit: string;
   enter_strong_password: string;
   re_enter_password: string;
+  keep_saved_password: string;
   enter_your_password: string;
   enter_current_password_folder: string;
   enter_new_password_folder: string;

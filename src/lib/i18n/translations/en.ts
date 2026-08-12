@@ -4882,6 +4882,7 @@ export const en: Translations = {
     submit: "Submit",
     enter_strong_password: "Enter a strong password",
     re_enter_password: "Re-enter your password",
+    keep_saved_password: "Leave blank to keep the saved password",
     enter_your_password: "Enter your password",
     enter_current_password_folder: "Enter current password",
     enter_new_password_folder: "Enter new password",

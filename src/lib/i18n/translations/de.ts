@@ -4215,6 +4215,7 @@ export const de = {
     submit: "Absenden",
     enter_strong_password: "Geben Sie ein sicheres Passwort ein",
     re_enter_password: "Passwort erneut eingeben",
+    keep_saved_password: "Leer lassen, um das gespeicherte Passwort zu behalten",
     enter_your_password: "Geben Sie Ihr Passwort ein",
     enter_current_password_folder: "Aktuelles Passwort eingeben",
     enter_new_password_folder: "Neues Passwort eingeben",

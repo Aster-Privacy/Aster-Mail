@@ -4988,6 +4988,7 @@ export const it = {
     submit: "Invia",
     enter_strong_password: "Inserisci una password forte",
     re_enter_password: "Reinserisci la tua password",
+    keep_saved_password: "Lascia vuoto per mantenere la password salvata",
     enter_your_password: "Inserisci la tua password",
     enter_current_password_folder: "Inserisci la password attuale",
     enter_new_password_folder: "Inserisci la nuova password",

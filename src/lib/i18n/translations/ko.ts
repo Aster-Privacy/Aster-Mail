@@ -4177,6 +4177,7 @@ export const ko = {
     submit: "제출",
     enter_strong_password: "강력한 비밀번호를 입력하세요",
     re_enter_password: "비밀번호를 다시 입력하세요",
+    keep_saved_password: "비워 두면 저장된 비밀번호가 유지됩니다",
     enter_your_password: "비밀번호를 입력하세요",
     enter_current_password_folder: "현재 비밀번호 입력",
     enter_new_password_folder: "새 비밀번호 입력",

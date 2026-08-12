@@ -54,6 +54,8 @@ interface FormFields {
   smtp_same_as_incoming: boolean;
   form_label_color: string;
   form_connection_timeout: number;
+  has_stored_password: boolean;
+  has_stored_smtp_password: boolean;
 }
 
 interface SmtpEffective {
@@ -171,7 +173,7 @@ export function use_external_accounts_test(
       errors.push(t("settings.username_required"));
     }
 
-    if (!fields.form_password.trim()) {
+    if (!fields.form_password.trim() && !fields.has_stored_password) {
       errors.push(t("settings.password_required"));
     }
 
@@ -192,7 +194,10 @@ export function use_external_accounts_test(
       if (!fields.form_smtp_username.trim()) {
         errors.push(t("settings.smtp_username_required"));
       }
-      if (!fields.form_smtp_password.trim()) {
+      if (
+        !fields.form_smtp_password.trim() &&
+        !fields.has_stored_smtp_password
+      ) {
         errors.push(t("settings.smtp_password_required"));
       }
     }
@@ -231,6 +236,8 @@ export function use_external_accounts_test(
     fields.form_smtp_password,
     fields.form_label_color,
     fields.form_connection_timeout,
+    fields.has_stored_password,
+    fields.has_stored_smtp_password,
     t,
   ]);
 

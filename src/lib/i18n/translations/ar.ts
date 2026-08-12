@@ -4131,6 +4131,7 @@ export const ar = {
     submit: "إرسال",
     enter_strong_password: "أدخل كلمة مرور قوية",
     re_enter_password: "أعد إدخال كلمة المرور",
+    keep_saved_password: "اتركه فارغًا للاحتفاظ بكلمة المرور المحفوظة",
     enter_your_password: "أدخل كلمة المرور",
     enter_current_password_folder: "أدخل كلمة المرور الحالية",
     enter_new_password_folder: "أدخل كلمة المرور الجديدة",

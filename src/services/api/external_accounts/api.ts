@@ -28,6 +28,7 @@ import type {
   ExternalAccountHealthStatus,
   SyncProgressEvent,
   ExternalAccountAdvancedSettings,
+  ExternalAccountConnectionSettings,
 } from "./types";
 
 import { api_client, type ApiResponse } from "../client";
@@ -747,6 +748,33 @@ export async function get_advanced_settings(
     return {
       error:
         err instanceof Error ? err.message : "Failed to get advanced settings",
+    };
+  }
+}
+
+export async function get_connection_settings(
+  account_token: string,
+): Promise<ApiResponse<ExternalAccountConnectionSettings>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) {
+    return { error: token_error };
+  }
+
+  try {
+    const response = await api_client.get<ExternalAccountConnectionSettings>(
+      `/mail/v1/external_accounts/connection_settings?account_token=${encodeURIComponent(account_token)}`,
+    );
+
+    if (response.error || !response.data) {
+      return { error: response.error || "Failed to get connection settings" };
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error ? err.message : "Failed to get connection settings",
     };
   }
 }

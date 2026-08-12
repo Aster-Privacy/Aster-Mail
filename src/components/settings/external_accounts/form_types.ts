@@ -40,6 +40,8 @@ export interface AddAccountFormProps {
   form_port: number;
   form_username: string;
   form_password: string;
+  has_stored_password: boolean;
+  has_stored_smtp_password: boolean;
   form_use_tls: boolean;
   set_form_use_tls: (value: boolean) => void;
   form_label_name: string;

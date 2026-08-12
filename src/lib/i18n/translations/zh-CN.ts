@@ -3849,6 +3849,7 @@ export const zh_CN = {
     submit: "提交",
     enter_strong_password: "输入一个强密码",
     re_enter_password: "重新输入密码",
+    keep_saved_password: "留空以保留已保存的密码",
     enter_your_password: "输入您的密码",
     enter_current_password_folder: "输入当前密码",
     enter_new_password_folder: "输入新密码",

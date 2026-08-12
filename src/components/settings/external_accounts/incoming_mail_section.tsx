@@ -38,6 +38,7 @@ interface IncomingMailSectionProps {
   form_port: number;
   form_username: string;
   form_password: string;
+  has_stored_password: boolean;
   form_use_tls: boolean;
   set_form_use_tls: (value: boolean) => void;
   show_password: boolean;
@@ -57,6 +58,7 @@ export function IncomingMailSection({
   form_port,
   form_username,
   form_password,
+  has_stored_password,
   form_use_tls,
   set_form_use_tls,
   show_password,
@@ -171,7 +173,11 @@ export function IncomingMailSection({
               className="w-full pr-10"
               id="ext-account-password"
               placeholder={
-                editing_account ? t("settings.re_enter_password") : ""
+                has_stored_password
+                  ? t("settings.keep_saved_password")
+                  : editing_account
+                    ? t("settings.re_enter_password")
+                    : ""
               }
               type={show_password ? "text" : "password"}
               value={form_password}
