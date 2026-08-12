@@ -38,7 +38,7 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
 
     expect(out).toContain("The actual forwarded text that must stay visible.");
     expect(out).not.toContain("aster-quote-toggle");
-    expect(out).not.toContain("display:none");
+    expect(out).not.toMatch(/display:\s*none/);
     expect(out).toMatch(/class="gmail_quote"[^>]*style="display:\s*block;?"/);
   });
 
@@ -49,7 +49,7 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
 
     expect(out).toContain("In-app forwarded body that must stay visible.");
     expect(out).not.toContain("aster-quote-toggle");
-    expect(out).not.toContain("display:none");
+    expect(out).not.toMatch(/display:\s*none/);
   });
 
   it("auto-expands a plain-text forward that is the entire message", () => {
@@ -78,7 +78,7 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     const out = pre_process_email_html(html, options);
 
     expect(out).toContain("The entire prior conversation lives here.");
-    expect(out).not.toContain('style="display:none"');
+    expect(out).not.toMatch(/display:\s*none/);
   });
 
   it("does not leave the moz-cite-prefix attribution hidden when it is the entire message", () => {
@@ -97,7 +97,7 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
 
     expect(out).toContain("Thanks, that works for me.");
     expect(out).toContain("aster-quote-toggle");
-    expect(out).toContain('style="display:none"');
+    expect(out).toMatch(/display:\s*none/);
   });
 
   it("does not blank the body when a yahoo_quoted forward is the entire message", () => {

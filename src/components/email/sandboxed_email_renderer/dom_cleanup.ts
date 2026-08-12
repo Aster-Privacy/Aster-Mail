@@ -26,18 +26,45 @@ import { IMAGE_PROXY_URL } from "./helpers";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
 
+const HIDDEN_QUOTE_SELECTOR =
+  ".aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix";
+
+function has_text_outside(doc: Document, body: Element, nodes: Node[]): boolean {
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const is_inside = nodes.some(
+      (n) =>
+        n === node ||
+        (n.nodeType === Node.ELEMENT_NODE && (n as Element).contains(node)),
+    );
+
+    if (is_inside) continue;
+    if ((node.textContent || "").trim().length > 0) return true;
+  }
+
+  return false;
+}
+
+function reveal_hidden_quote_blocks(el: Element): void {
+  if (el.matches(HIDDEN_QUOTE_SELECTOR)) {
+    (el as HTMLElement).style.display = "block";
+  }
+  el.querySelectorAll(HIDDEN_QUOTE_SELECTOR).forEach((child) => {
+    (child as HTMLElement).style.display = "block";
+  });
+}
+
 export function collapse_forwarded_content(doc: Document, t: translate_fn): void {
   const body = doc.body;
 
   if (!body) return;
+  if (body.querySelector("details.aster-forwarded-collapse")) return;
 
   const proton_wrapper = body.querySelector("div.protonmail_quote");
 
   if (proton_wrapper) {
-    const content_bq = proton_wrapper.querySelector(":scope > blockquote");
-
-    if (!content_bq) return;
-
     const metadata_nodes: Node[] = [];
     let prev: Node | null = proton_wrapper.previousSibling;
 
@@ -56,13 +83,13 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
       }
     }
 
-    const parent = proton_wrapper.parentNode!;
-
-    while (content_bq.firstChild) {
-      parent.insertBefore(content_bq.firstChild, proton_wrapper);
-    }
-
     metadata_nodes.push(proton_wrapper);
+
+    if (!has_text_outside(doc, body, metadata_nodes)) {
+      reveal_hidden_quote_blocks(proton_wrapper);
+
+      return;
+    }
 
     const details = doc.createElement("details");
 
@@ -190,18 +217,13 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
   })();
 
   const to_collapse: Node[] = [marker_block];
-  let sib = marker_block.nextSibling;
-  const meta_re = /^\s*(From|Date|Subject|To|Cc|Bcc)\s*:/i;
+  let sib: Node | null = marker_block.nextSibling;
 
   while (sib) {
-    const text = sib.textContent?.trim() || "";
+    const next: Node | null = sib.nextSibling;
 
-    if (!text || meta_re.test(text)) {
-      to_collapse.push(sib);
-      sib = sib.nextSibling;
-    } else {
-      break;
-    }
+    to_collapse.push(sib);
+    sib = next;
   }
 
   const details = doc.createElement("details");
@@ -209,6 +231,11 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
   details.className = "aster-forwarded-collapse";
   if (!has_content_before_marker) {
     details.setAttribute("open", "");
+    for (const node of to_collapse) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        reveal_hidden_quote_blocks(node as Element);
+      }
+    }
   }
   const summary = doc.createElement("summary");
 
