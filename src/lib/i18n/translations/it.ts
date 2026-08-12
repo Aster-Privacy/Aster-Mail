@@ -1361,7 +1361,7 @@ export const it = {
     estimated_delivery: "Consegna stimata",
     delivery_address: "Indirizzo di consegna",
     extracted_locally_message:
-      "Estratto localmente dalla tua email. Nulla viene inviato ai nostri server.",
+      "Estratto localmente dalla tua email, e nulla viene inviato ai nostri server.",
     view_blocked_content_details: "Visualizza dettagli contenuto bloccato",
     n_images: "{{ count }} immagini",
     n_items: "{{ count }} elementi",
@@ -6936,7 +6936,7 @@ export const it = {
     confirmation_label: "Conferma: {{number}}",
     transaction_label: "Transazione: {{id}}",
     purchase_extraction_privacy:
-      "Estratto localmente dalla tua email. Nulla viene inviato ai nostri server.",
+      "Estratto localmente dalla tua email, e nulla viene inviato ai nostri server.",
     ordered_from: "Ordinato da {{merchant}}",
     receipt_is_this_correct: "È corretto?",
     receipt_feedback_correct: "Sì, è corretto",

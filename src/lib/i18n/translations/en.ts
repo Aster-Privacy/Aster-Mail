@@ -1463,7 +1463,7 @@ export const en: Translations = {
     estimated_delivery: "Estimated Delivery",
     delivery_address: "Delivery Address",
     extracted_locally_message:
-      "Extracted locally from your email. Nothing is sent to our servers.",
+      "Extracted locally from your email, so nothing is sent to our servers.",
     view_blocked_content_details: "View blocked content details",
     n_images: "{{ count }} images",
     n_items: "{{ count }} items",
@@ -7160,7 +7160,7 @@ export const en: Translations = {
     confirmation_label: "Confirmation: {{number}}",
     transaction_label: "Transaction: {{id}}",
     purchase_extraction_privacy:
-      "Extracted locally from your email. Nothing is sent to our servers.",
+      "Extracted locally from your email, so nothing is sent to our servers.",
     ordered_from: "Ordered from {{merchant}}",
     receipt_is_this_correct: "Is this correct?",
     receipt_feedback_correct: "Yes, this is correct",

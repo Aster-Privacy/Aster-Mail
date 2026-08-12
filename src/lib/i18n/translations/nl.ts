@@ -1355,7 +1355,7 @@ export const nl = {
     estimated_delivery: "Verwachte levering",
     delivery_address: "Bezorgadres",
     extracted_locally_message:
-      "Lokaal uit je e-mail gehaald. Er wordt niets naar onze servers verzonden.",
+      "Lokaal uit je e-mail gehaald, en er wordt niets naar onze servers verzonden.",
     view_blocked_content_details: "Details van geblokkeerde inhoud bekijken",
     n_images: "{{ count }} afbeeldingen",
     n_items: "{{ count }} items",
@@ -6819,7 +6819,7 @@ export const nl = {
     confirmation_label: "Bevestiging: {{number}}",
     transaction_label: "Transactie: {{id}}",
     purchase_extraction_privacy:
-      "Lokaal uit je e-mail geëxtraheerd. Er wordt niets naar onze servers verzonden.",
+      "Lokaal uit je e-mail geëxtraheerd, en er wordt niets naar onze servers verzonden.",
     ordered_from: "Besteld bij {{merchant}}",
     receipt_is_this_correct: "Klopt dit?",
     receipt_feedback_correct: "Ja, dit klopt",

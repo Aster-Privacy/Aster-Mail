@@ -1358,7 +1358,7 @@ export const ru = {
     estimated_delivery: "Ожидаемая доставка",
     delivery_address: "Адрес доставки",
     extracted_locally_message:
-      "Извлечено локально из вашей почты. На наши серверы ничего не отправляется.",
+      "Извлечено локально из вашей почты, и на наши серверы ничего не отправляется.",
     view_blocked_content_details:
       "Просмотреть детали заблокированного содержимого",
     n_images: "{{ count }} изображений",
@@ -6878,7 +6878,7 @@ export const ru = {
     confirmation_label: "Подтверждение: {{number}}",
     transaction_label: "Транзакция: {{id}}",
     purchase_extraction_privacy:
-      "Извлечено локально из вашего письма. Ничего не отправляется на наши серверы.",
+      "Извлечено локально из вашего письма, и ничего не отправляется на наши серверы.",
     ordered_from: "Заказ в {{merchant}}",
     receipt_is_this_correct: "Всё верно?",
     receipt_feedback_correct: "Да, всё верно",

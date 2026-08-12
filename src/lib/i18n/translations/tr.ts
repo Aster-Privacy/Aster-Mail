@@ -1355,7 +1355,7 @@ export const tr = {
     estimated_delivery: "Tahmini teslimat",
     delivery_address: "Teslimat adresi",
     extracted_locally_message:
-      "Extracted locally from your email. Nothing is sent to our servers.",
+      "E-postanızdan yerel olarak çıkarılır, sunucularımıza hiçbir şey gönderilmez.",
     view_blocked_content_details: "Engellenen içerik ayrıntılarını görüntüle",
     n_images: "{{ count }} görsel",
     n_items: "{{ count }} öğe",
@@ -6850,7 +6850,7 @@ export const tr = {
     confirmation_label: "Onay: {{number}}",
     transaction_label: "İşlem: {{id}}",
     purchase_extraction_privacy:
-      "E-postanızdan yerel olarak çıkarılmıştır. Sunucularımıza hiçbir şey gönderilmez.",
+      "E-postanızdan yerel olarak çıkarılır, sunucularımıza hiçbir şey gönderilmez.",
     ordered_from: "{{merchant}} üzerinden sipariş",
     receipt_is_this_correct: "Bu doğru mu?",
     receipt_feedback_correct: "Evet, doğru",

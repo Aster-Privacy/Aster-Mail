@@ -1248,7 +1248,7 @@ export const pt = {
     signal_urgency_language:
       "Este e-mail usa linguagem urgente ou intimidatória, comum em fraudes. Desacelerar antes de agir é a opção mais segura.",
     extracted_locally_message:
-      "Extraído localmente do seu e-mail. Nada é enviado aos nossos servidores.",
+      "Extraído localmente do seu e-mail, e nada é enviado aos nossos servidores.",
     account_suspended_default_reason:
       "Sua conta está suspensa por violação dos Termos de Serviço. hello@astermail.org pode ajudar com um recurso ou mais detalhes.",
     settings_disabled_suspended:
@@ -6859,7 +6859,7 @@ export const pt = {
     confirmation_label: "Confirmação: {{number}}",
     transaction_label: "Transação: {{id}}",
     purchase_extraction_privacy:
-      "Extraído localmente do seu e-mail. Nada é enviado aos nossos servidores.",
+      "Extraído localmente do seu e-mail, e nada é enviado aos nossos servidores.",
     ordered_from: "Pedido em {{merchant}}",
     receipt_is_this_correct: "Isto está correto?",
     receipt_feedback_correct: "Sim, está correto",

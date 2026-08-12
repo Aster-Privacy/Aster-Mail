@@ -1361,7 +1361,7 @@ export const pl = {
     estimated_delivery: "Przewidywana dostawa",
     delivery_address: "Adres dostawy",
     extracted_locally_message:
-      "Wyodrębniono lokalnie z Twojego e-maila. Nic nie jest wysyłane do naszych serwerów.",
+      "Wyodrębniono lokalnie z Twojego e-maila, a nic nie jest wysyłane do naszych serwerów.",
     view_blocked_content_details: "Zobacz szczegóły zablokowanej zawartości",
     n_images: "{{ count }} obrazów",
     n_items: "{{ count }} elementów",
@@ -6893,7 +6893,7 @@ export const pl = {
     confirmation_label: "Potwierdzenie: {{number}}",
     transaction_label: "Transakcja: {{id}}",
     purchase_extraction_privacy:
-      "Wyodrębnione lokalnie z Twojego e-maila. Nic nie jest wysyłane na nasze serwery.",
+      "Wyodrębnione lokalnie z Twojego e-maila, a nic nie jest wysyłane na nasze serwery.",
     ordered_from: "Zamówiono w {{merchant}}",
     receipt_is_this_correct: "Czy to się zgadza?",
     receipt_feedback_correct: "Tak, zgadza się",

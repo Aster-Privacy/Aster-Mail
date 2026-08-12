@@ -6211,7 +6211,7 @@ export const zh_CN = {
     card_ending_in: "尾号{{last_four}}的卡",
     confirmation_label: "确认号：{{number}}",
     transaction_label: "交易号：{{id}}",
-    purchase_extraction_privacy: "在本地从邮件中提取。不会发送到我们的服务器。",
+    purchase_extraction_privacy: "在本地从邮件中提取，不会发送到我们的服务器。",
     ordered_from: "从 {{merchant}} 订购",
     receipt_is_this_correct: "信息是否正确？",
     receipt_feedback_correct: "是，正确",

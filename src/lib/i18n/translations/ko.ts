@@ -1326,7 +1326,7 @@ export const ko = {
     estimated_delivery: "예상 배송일",
     delivery_address: "배송 주소",
     extracted_locally_message:
-      "이메일에서 로컬로 추출되었습니다. 서버에는 아무것도 전송되지 않습니다.",
+      "이메일에서 로컬로 추출되며, 서버에는 아무것도 전송되지 않습니다.",
     view_blocked_content_details: "차단된 콘텐츠 세부정보 보기",
     n_images: "이미지 {{ count }}개",
     n_items: "{{ count }}개",
@@ -6647,7 +6647,7 @@ export const ko = {
     confirmation_label: "확인: {{number}}",
     transaction_label: "거래: {{id}}",
     purchase_extraction_privacy:
-      "이메일에서 로컬로 추출되었습니다. 서버로 전송되는 것은 없습니다.",
+      "이메일에서 로컬로 추출되며, 서버로 전송되는 것은 없습니다.",
     ordered_from: "{{merchant}}에서 주문",
     receipt_is_this_correct: "이 내용이 정확한가요?",
     receipt_feedback_correct: "네, 정확해요",

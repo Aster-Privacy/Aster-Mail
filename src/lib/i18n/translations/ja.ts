@@ -1355,7 +1355,7 @@ export const ja = {
     estimated_delivery: "配達予定日",
     delivery_address: "配達先住所",
     extracted_locally_message:
-      "メールからローカルで抽出しています。サーバーには何も送信されません。",
+      "メールからローカルで抽出しており、サーバーには何も送信されません。",
     view_blocked_content_details: "ブロックされたコンテンツの詳細を表示",
     n_images: "{{ count }} 件の画像",
     n_items: "{{ count }} 件のアイテム",
@@ -6834,7 +6834,7 @@ export const ja = {
     confirmation_label: "確認番号：{{number}}",
     transaction_label: "取引番号：{{id}}",
     purchase_extraction_privacy:
-      "メールからローカルで抽出されました。サーバーには何も送信されていません。",
+      "メールからローカルで抽出されており、サーバーには何も送信されていません。",
     ordered_from: "{{merchant}}での注文",
     receipt_is_this_correct: "この内容は正しいですか？",
     receipt_feedback_correct: "はい、正しいです",

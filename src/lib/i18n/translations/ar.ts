@@ -1314,7 +1314,7 @@ export const ar = {
     estimated_delivery: "موعد التسليم التقديري",
     delivery_address: "عنوان التسليم",
     extracted_locally_message:
-      "تم الاستخراج محليًا من بريدك. لا يُرسَل أي شيء إلى خوادمنا.",
+      "تم الاستخراج محليًا من بريدك، ولا يُرسَل أي شيء إلى خوادمنا.",
     view_blocked_content_details: "عرض تفاصيل المحتوى المحظور",
     n_images: "{{ count }} صور",
     n_items: "{{ count }} عناصر",
@@ -6606,7 +6606,7 @@ export const ar = {
     confirmation_label: "التأكيد: {{number}}",
     transaction_label: "المعاملة: {{id}}",
     purchase_extraction_privacy:
-      "تم الاستخراج محليًا من بريدك. لا يتم إرسال أي شيء إلى خوادمنا.",
+      "تم الاستخراج محليًا من بريدك، ولا يتم إرسال أي شيء إلى خوادمنا.",
     ordered_from: "تم الطلب من {{merchant}}",
     receipt_is_this_correct: "هل هذا صحيح؟",
     receipt_feedback_correct: "نعم، هذا صحيح",

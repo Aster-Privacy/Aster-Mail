@@ -1338,7 +1338,7 @@ export const fr = {
     n_images: "{{ count }} images",
     view_blocked_content_details: "Voir les détails du contenu bloqué",
     extracted_locally_message:
-      "Extracted locally from your email. Nothing is sent to our servers.",
+      "Extrait localement depuis votre e-mail, et rien n'est envoyé à nos serveurs.",
     delivery_address: "Adresse de livraison",
     estimated_delivery: "Livraison estimée",
     tracking_number: "Numéro de suivi",
@@ -6901,7 +6901,7 @@ export const fr = {
     confirmation_label: "Confirmation : {{number}}",
     transaction_label: "Transaction : {{id}}",
     purchase_extraction_privacy:
-      "Extrait localement depuis votre e-mail. Rien n'est envoyé à nos serveurs.",
+      "Extrait localement depuis votre e-mail, et rien n'est envoyé à nos serveurs.",
     ordered_from: "Commandé chez {{merchant}}",
     receipt_is_this_correct: "Est-ce correct ?",
     receipt_feedback_correct: "Oui, c'est correct",
