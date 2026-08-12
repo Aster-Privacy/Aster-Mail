@@ -1414,6 +1414,10 @@ export const ar = {
     pending_deletion_days:
       "سيتم حذف حسابك خلال {{days}} يومًا. يوجد في الشريط أدناه خيار للإلغاء إن غيّرت رأيك.",
     pending_deletion_cancel_prompt: "هل تود إلغاء الحذف والاحتفاظ بحسابك؟",
+    pending_deletion_body:
+      "حسابك مقرر حذفه. ألغِ الحذف للاحتفاظ بحسابك واستعادة الوصول إلى بريدك.",
+    pending_deletion_sign_out: "تسجيل الخروج",
+    pending_deletion_error: "تعذّرت استعادة حسابك. حاول مرة أخرى.",
     pending_deletion_keep: "الاحتفاظ بحسابي",
     pending_deletion_dismiss: "لا، المتابعة في الحذف",
     pending_deletion_cancelling: "جارٍ الإلغاء...",

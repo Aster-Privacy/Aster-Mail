@@ -1597,6 +1597,11 @@ export const fr = {
     pending_deletion_cancelling: "Annulation en cours...",
     pending_deletion_days: "Suppression dans {{days}} jour(s)",
     pending_deletion_dismiss: "Ignorer",
+    pending_deletion_body:
+      "Votre compte est programmé pour la suppression. Annulez la suppression pour conserver votre compte et retrouver l'accès à votre courrier.",
+    pending_deletion_sign_out: "Se déconnecter",
+    pending_deletion_error:
+      "Impossible de restaurer votre compte. Réessayez.",
     pending_deletion_keep: "Conserver le compte",
     pending_deletion_title: "Suppression du compte en attente",
     permission_denied: "Permission refusée",

@@ -1597,6 +1597,11 @@ export const it = {
       "Il suo account verrà eliminato tra {{days}} giorni. Il banner qui sotto ha l'opzione per annullare se cambia idea.",
     pending_deletion_cancel_prompt:
       "Desidera annullare l'eliminazione e mantenere il suo account?",
+    pending_deletion_body:
+      "Il tuo account è programmato per l'eliminazione. Annulla l'eliminazione per mantenere l'account e ripristinare l'accesso alla posta.",
+    pending_deletion_sign_out: "Esci",
+    pending_deletion_error:
+      "Non è stato possibile ripristinare il tuo account. Riprova.",
     pending_deletion_keep: "Mantieni il mio account",
     pending_deletion_dismiss: "No, continua con l'eliminazione",
     pending_deletion_cancelling: "Annullamento...",

@@ -1615,6 +1615,11 @@ export const ja = {
     pending_deletion_days:
       "アカウントは{{days}}日後に削除される予定です。気が変わった場合は、下のバナーからキャンセルできます。",
     pending_deletion_dismiss: "いいえ、削除を続行する",
+    pending_deletion_body:
+      "お使いのアカウントは削除が予定されています。削除をキャンセルすると、アカウントを保持してメールへのアクセスを回復できます。",
+    pending_deletion_sign_out: "サインアウト",
+    pending_deletion_error:
+      "アカウントを復元できませんでした。もう一度お試しください。",
     pending_deletion_keep: "アカウントを保持する",
     pending_deletion_title: "アカウントの削除が予定されています",
     permission_denied:

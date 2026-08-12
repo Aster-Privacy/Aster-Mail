@@ -1715,7 +1715,10 @@ export interface CommonTranslations {
   submit_an_appeal: string;
   settings_disabled_suspended: string;
   pending_deletion_title: string;
+  pending_deletion_body: string;
   pending_deletion_days: string;
+  pending_deletion_sign_out: string;
+  pending_deletion_error: string;
   pending_deletion_cancel_prompt: string;
   pending_deletion_keep: string;
   pending_deletion_dismiss: string;

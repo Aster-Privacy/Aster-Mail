@@ -1580,6 +1580,11 @@ export const nl = {
     pending_deletion_cancelling: "Verwijdering annuleren...",
     pending_deletion_days: "Uw account wordt over {{days}} dag(en) verwijderd",
     pending_deletion_dismiss: "Sluiten",
+    pending_deletion_body:
+      "Uw account staat gepland voor verwijdering. Annuleer de verwijdering om uw account te behouden en weer toegang tot uw e-mail te krijgen.",
+    pending_deletion_sign_out: "Afmelden",
+    pending_deletion_error:
+      "Uw account kon niet worden hersteld. Probeer het opnieuw.",
     pending_deletion_keep: "Account behouden",
     pending_deletion_title: "Account staat gepland voor verwijdering",
     permission_denied: "Toegang geweigerd",

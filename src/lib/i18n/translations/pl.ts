@@ -1584,6 +1584,10 @@ export const pl = {
       "Twoje konto zostanie usunięte za {{days}} dni. Baner poniżej zawiera opcję anulowania, jeśli zmienisz zdanie.",
     pending_deletion_cancel_prompt:
       "Czy chcesz anulować usunięcie i zachować swoje konto?",
+    pending_deletion_body:
+      "Twoje konto jest zaplanowane do usunięcia. Anuluj usuwanie, aby zachować konto i odzyskać dostęp do poczty.",
+    pending_deletion_sign_out: "Wyloguj się",
+    pending_deletion_error: "Nie udało się przywrócić konta. Spróbuj ponownie.",
     pending_deletion_keep: "Zachowaj moje konto",
     pending_deletion_dismiss: "Nie, kontynuuj usuwanie",
     pending_deletion_cancelling: "Anulowanie...",

@@ -1580,6 +1580,10 @@ export const tr = {
       "Hesabınız {{days}} gün içinde silinecek. Fikrinizi değiştirirseniz aşağıdaki bannerda iptal seçeneği bulunuyor.",
     pending_deletion_cancel_prompt:
       "Silme işlemini iptal edip hesabınızı korumak ister misiniz?",
+    pending_deletion_body:
+      "Hesabınız silinmek üzere zamanlandı. Hesabınızı korumak ve postanıza yeniden erişmek için silme işlemini iptal edin.",
+    pending_deletion_sign_out: "Oturumu kapat",
+    pending_deletion_error: "Hesabınız geri yüklenemedi. Tekrar deneyin.",
     pending_deletion_keep: "Hesabımı Koru",
     pending_deletion_dismiss: "Hayır, Silmeye Devam Et",
     pending_deletion_cancelling: "İptal ediliyor...",

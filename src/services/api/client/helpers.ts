@@ -20,9 +20,6 @@
 //
 import { Capacitor } from "@capacitor/core";
 
-
-
-
 export const NATIVE_API_URL = "https://app.astermail.org/api";
 export const API_BASE_URL =
   Capacitor.isNativePlatform() || is_tauri_env()
@@ -68,13 +65,17 @@ export function detect_client_platform(): string {
   if (typeof window === "undefined") return "web";
   if (is_tauri_env()) return "tauri-desktop";
   try {
-    const cap = (window as unknown as {
-      Capacitor?: { getPlatform?: () => string };
-    }).Capacitor;
+    const cap = (
+      window as unknown as {
+        Capacitor?: { getPlatform?: () => string };
+      }
+    ).Capacitor;
     const platform = cap?.getPlatform?.();
+
     if (platform === "ios") return "capacitor-ios";
     if (platform === "android") return "capacitor-android";
   } catch {}
+
   return "web";
 }
 
@@ -83,6 +84,7 @@ export const CLIENT_PLATFORM_HEADER = detect_client_platform();
 export function is_local_hostname(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location?.hostname || "";
+
   return (
     host === "localhost" ||
     host === "127.0.0.1" ||
@@ -95,8 +97,10 @@ export function is_local_hostname(): boolean {
 export function read_last_auth_ms(): number {
   try {
     const raw = localStorage.getItem(LAST_AUTH_MS_KEY);
+
     if (!raw) return 0;
     const n = parseInt(raw, 10);
+
     return Number.isFinite(n) ? n : 0;
   } catch {
     return 0;
@@ -118,7 +122,9 @@ export function clear_last_auth_ms(): void {
 export function is_offline_tombstoned(): boolean {
   if (typeof navigator !== "undefined" && navigator.onLine) return false;
   const last = read_last_auth_ms();
+
   if (!last) return false;
+
   return Date.now() - last > OFFLINE_TOMBSTONE_MS;
 }
 
@@ -165,6 +171,18 @@ export function is_api_error<T>(
   response: ApiResponse<T>,
 ): response is ApiResponse<T> & { error: string } {
   return response.error !== undefined;
+}
+
+export const PENDING_DELETION_SERVER_CODE = "ACCOUNT_PENDING_DELETION";
+export const PENDING_DELETION_EVENT = "aster:account-pending-deletion";
+
+export function is_pending_deletion_error(
+  server_code: string | undefined,
+  message: string | undefined,
+): boolean {
+  if (server_code === PENDING_DELETION_SERVER_CODE) return true;
+
+  return /scheduled\s+for\s+deletion/i.test(message || "");
 }
 
 export function get_error_code_from_status(status: number): ApiErrorCode {
@@ -246,4 +264,3 @@ export interface PendingTokenWrite {
   access_token: string | null;
   refresh_token?: string | null;
 }
-

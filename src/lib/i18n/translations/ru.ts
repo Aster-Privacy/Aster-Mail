@@ -1598,6 +1598,11 @@ export const ru = {
     pending_deletion_days:
       "Ваш аккаунт будет удалён через {{days}} дней. В баннере ниже есть возможность отмены, если вы передумаете.",
     pending_deletion_dismiss: "Нет, продолжить удаление",
+    pending_deletion_body:
+      "Ваш аккаунт запланирован к удалению. Отмените удаление, чтобы сохранить аккаунт и восстановить доступ к почте.",
+    pending_deletion_sign_out: "Выйти",
+    pending_deletion_error:
+      "Не удалось восстановить аккаунт. Попробуйте снова.",
     pending_deletion_keep: "Сохранить мой аккаунт",
     pending_deletion_title: "Аккаунт запланирован к удалению",
     permission_denied:

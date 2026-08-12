@@ -1426,6 +1426,10 @@ export const ko = {
     pending_deletion_days:
       "계정이 {{days}}일 후 삭제될 예정입니다. 마음이 바뀌었다면 아래 배너에서 취소 옵션을 사용하세요.",
     pending_deletion_cancel_prompt: "삭제를 취소하고 계정을 유지하시겠습니까?",
+    pending_deletion_body:
+      "계정 삭제가 예약되어 있습니다. 삭제를 취소하면 계정을 유지하고 메일에 다시 접근할 수 있습니다.",
+    pending_deletion_sign_out: "로그아웃",
+    pending_deletion_error: "계정을 복원하지 못했습니다. 다시 시도하세요.",
     pending_deletion_keep: "계정 유지",
     pending_deletion_dismiss: "아니오, 삭제 계속",
     pending_deletion_cancelling: "취소 중...",

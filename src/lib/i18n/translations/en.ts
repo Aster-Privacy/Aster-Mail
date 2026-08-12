@@ -1496,8 +1496,12 @@ export const en: Translations = {
       "Your account is suspended for a Terms of Service violation. hello@astermail.org can help with an appeal or more detail.",
     submit_an_appeal: "Submit an appeal",
     pending_deletion_title: "Account scheduled for deletion",
+    pending_deletion_body:
+      "Your account is scheduled for deletion. Cancel the deletion to keep your account and restore access to your mail.",
     pending_deletion_days:
-      "Your account is set to be deleted in {{days}} days. The banner below has the option to cancel if you change your mind.",
+      "Your account is scheduled for deletion in {{days}} days. Cancel the deletion to keep your account and restore access to your mail.",
+    pending_deletion_sign_out: "Sign Out",
+    pending_deletion_error: "Your account could not be restored. Try again.",
     pending_deletion_cancel_prompt:
       "Would you like to cancel the deletion and keep your account?",
     pending_deletion_keep: "Keep My Account",

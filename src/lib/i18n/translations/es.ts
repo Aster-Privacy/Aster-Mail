@@ -1587,6 +1587,11 @@ export const es = {
     pending_deletion_cancelling: "Cancelando...",
     pending_deletion_days: "Eliminación en {{days}} día(s)",
     pending_deletion_dismiss: "Ignorar",
+    pending_deletion_body:
+      "Tu cuenta está programada para eliminarse. Cancela la eliminación para conservar tu cuenta y recuperar el acceso a tu correo.",
+    pending_deletion_sign_out: "Cerrar sesión",
+    pending_deletion_error:
+      "No se pudo restaurar tu cuenta. Inténtalo de nuevo.",
     pending_deletion_keep: "Conservar la cuenta",
     pending_deletion_title: "Eliminación de cuenta pendiente",
     permission_denied: "Permiso denegado",

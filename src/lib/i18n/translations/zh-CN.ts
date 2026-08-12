@@ -1564,6 +1564,10 @@ export const zh_CN = {
     pending_deletion_days:
       "您的账户将在 {{days}} 天后删除。如果您改变主意，下方横幅有取消选项。",
     pending_deletion_cancel_prompt: "您想取消删除并保留账户吗？",
+    pending_deletion_body:
+      "您的账户已计划删除。取消删除即可保留账户并恢复对邮件的访问。",
+    pending_deletion_sign_out: "退出登录",
+    pending_deletion_error: "无法恢复您的账户。请重试。",
     pending_deletion_keep: "保留我的账户",
     pending_deletion_dismiss: "不，继续删除",
     pending_deletion_cancelling: "取消中...",

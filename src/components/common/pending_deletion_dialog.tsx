@@ -18,11 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { api_client } from "@/services/api/client";
+import {
+  PENDING_DELETION_EVENT,
+  PENDING_DELETION_SERVER_CODE,
+} from "@/services/api/client/helpers";
 
 interface AccountStatus {
   status: string;
@@ -32,59 +36,104 @@ interface AccountStatus {
 
 export function PendingDeletionDialog() {
   const { t } = use_i18n();
-  const { is_authenticated } = use_auth();
+  const { is_authenticated, logout } = use_auth();
   const was_authenticated = useRef(false);
   const [is_visible, set_is_visible] = useState(false);
-  const [days_remaining, set_days_remaining] = useState<number>(30);
-  const [is_cancelling, set_is_cancelling] = useState(false);
+  const [days_remaining, set_days_remaining] = useState<number | null>(null);
+  const [is_busy, set_is_busy] = useState(false);
+  const [has_error, set_has_error] = useState(false);
+
+  const is_signing_out = useRef(false);
+
+  const handle_pending_signal = useCallback(() => {
+    if (is_signing_out.current) return;
+    set_is_visible(true);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener(PENDING_DELETION_EVENT, handle_pending_signal);
+
+    return () => {
+      window.removeEventListener(PENDING_DELETION_EVENT, handle_pending_signal);
+    };
+  }, [handle_pending_signal]);
 
   useEffect(() => {
     if (!is_authenticated) {
       if (was_authenticated.current) {
         set_is_visible(false);
-        sessionStorage.removeItem("aster_deletion_dismissed");
+        set_days_remaining(null);
+        set_has_error(false);
       }
       was_authenticated.current = false;
+
       return;
     }
 
     was_authenticated.current = true;
+    is_signing_out.current = false;
+
+    let cancelled = false;
 
     const check_status = async () => {
-      const already_dismissed = sessionStorage.getItem("aster_deletion_dismissed");
-      if (already_dismissed === "true") return;
+      const response = await api_client.get<AccountStatus>(
+        "/core/v1/account/status",
+        { skip_cache: true },
+      );
 
-      const response = await api_client.get<AccountStatus>("/core/v1/account/status");
-      if (
-        response.data?.status === "pending_deletion" &&
-        response.data.days_until_deletion !== null
-      ) {
-        set_days_remaining(response.data.days_until_deletion ?? 30);
+      if (cancelled) return;
+
+      if (response.server_code === PENDING_DELETION_SERVER_CODE) {
+        set_is_visible(true);
+
+        return;
+      }
+
+      if (response.data?.status === "pending_deletion") {
+        if (response.data.days_until_deletion !== null) {
+          set_days_remaining(response.data.days_until_deletion);
+        }
         set_is_visible(true);
       }
     };
 
     check_status();
+
+    return () => {
+      cancelled = true;
+    };
   }, [is_authenticated]);
 
   const handle_keep = async () => {
-    set_is_cancelling(true);
+    set_is_busy(true);
+    set_has_error(false);
+
     const response = await api_client.post<{ success: boolean }>(
       "/core/v1/account/cancel-deletion",
-      {}
+      {},
     );
 
     if (response.data?.success) {
-      set_is_visible(false);
-      sessionStorage.removeItem("aster_deletion_dismissed");
+      window.location.reload();
+
+      return;
     }
 
-    set_is_cancelling(false);
+    set_has_error(true);
+    set_is_busy(false);
   };
 
-  const handle_dismiss = () => {
-    sessionStorage.setItem("aster_deletion_dismissed", "true");
+  const handle_sign_out = async () => {
+    set_is_busy(true);
+    set_has_error(false);
+    is_signing_out.current = true;
+
+    try {
+      await logout();
+    } catch {}
+
     set_is_visible(false);
+    set_is_busy(false);
   };
 
   if (!is_visible) {
@@ -93,13 +142,16 @@ export function PendingDeletionDialog() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      aria-labelledby="pending_deletion_title"
+      aria-modal="true"
+      className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
+      role="dialog"
+      style={{ backgroundColor: "var(--bg-primary)" }}
     >
       <div
         className="w-full max-w-md rounded-xl p-6 shadow-xl"
         style={{
-          backgroundColor: "var(--bg-primary)",
+          backgroundColor: "var(--bg-secondary, var(--bg-primary))",
           border: "1px solid var(--border-primary)",
         }}
       >
@@ -117,55 +169,54 @@ export function PendingDeletionDialog() {
               fillRule="evenodd"
             />
           </svg>
-          <div>
-            <p
-              className="font-semibold text-base"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {t("common.pending_deletion_title")}
-            </p>
-          </div>
+          <p
+            className="font-semibold text-base"
+            id="pending_deletion_title"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {t("common.pending_deletion_title")}
+          </p>
         </div>
 
-        <p
-          className="text-sm mb-2"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          {t("common.pending_deletion_days", { days: String(days_remaining) })}
+        <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+          {days_remaining === null
+            ? t("common.pending_deletion_body")
+            : t("common.pending_deletion_days", {
+                days: String(days_remaining),
+              })}
         </p>
 
-        <p
-          className="text-sm mb-6"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          {t("common.pending_deletion_cancel_prompt")}
-        </p>
+        {has_error ? (
+          <p className="text-sm mb-4" style={{ color: "#ef4444" }}>
+            {t("common.pending_deletion_error")}
+          </p>
+        ) : null}
 
         <div className="flex flex-col gap-2">
           <button
             className="w-full rounded-[14px] px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-            disabled={is_cancelling}
+            disabled={is_busy}
             style={{
               backgroundColor: "var(--accent-color)",
               color: "var(--accent-fg, #ffffff)",
             }}
             onClick={handle_keep}
           >
-            {is_cancelling
+            {is_busy
               ? t("common.pending_deletion_cancelling")
               : t("common.pending_deletion_keep")}
           </button>
           <button
-            className="w-full rounded-[14px] px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
-            disabled={is_cancelling}
+            className="w-full rounded-[14px] px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+            disabled={is_busy}
             style={{
               backgroundColor: "transparent",
               color: "var(--text-muted)",
               border: "1px solid var(--border-secondary)",
             }}
-            onClick={handle_dismiss}
+            onClick={handle_sign_out}
           >
-            {t("common.pending_deletion_dismiss")}
+            {t("common.pending_deletion_sign_out")}
           </button>
         </div>
       </div>

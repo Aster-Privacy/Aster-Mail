@@ -1495,6 +1495,11 @@ export const pt = {
     pending_deletion_days:
       "Sua conta está programada para ser excluída em {{days}} dias. O banner abaixo tem a opção de cancelar se você mudar de ideia.",
     pending_deletion_dismiss: "Não, continuar com a exclusão",
+    pending_deletion_body:
+      "Sua conta está agendada para exclusão. Cancele a exclusão para manter sua conta e recuperar o acesso ao seu e-mail.",
+    pending_deletion_sign_out: "Sair",
+    pending_deletion_error:
+      "Não foi possível restaurar sua conta. Tente novamente.",
     pending_deletion_keep: "Manter minha conta",
     pending_deletion_title: "Conta agendada para exclusão",
     permission_denied:

@@ -1614,6 +1614,11 @@ export const de = {
     pending_deletion_days:
       "Ihr Konto wird in {{days}} Tagen gelöscht. Das Banner unten bietet die Option zum Abbrechen, falls Sie Ihre Meinung ändern.",
     pending_deletion_dismiss: "Nein, mit Löschung fortfahren",
+    pending_deletion_body:
+      "Ihr Konto ist zur Löschung vorgemerkt. Brechen Sie die Löschung ab, um Ihr Konto zu behalten und wieder auf Ihre E-Mails zuzugreifen.",
+    pending_deletion_sign_out: "Abmelden",
+    pending_deletion_error:
+      "Ihr Konto konnte nicht wiederhergestellt werden. Versuchen Sie es erneut.",
     pending_deletion_keep: "Mein Konto behalten",
     pending_deletion_title: "Konto zur Löschung vorgemerkt",
     permission_denied:

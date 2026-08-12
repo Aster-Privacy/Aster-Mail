@@ -20,7 +20,6 @@
 //
 import { Capacitor } from "@capacitor/core";
 
-import { en } from "@/lib/i18n/translations/en";
 import {
   get_csrf_token_from_cookie,
   set_csrf_token,
@@ -33,6 +32,44 @@ import {
   is_endpoint_allowed_while_locked,
 } from "../../app_lock_network_gate";
 
+import {
+  ACCOUNTS_ROSTER_KEY,
+  API_BASE_URL,
+  ApiErrorCode,
+  ApiResponse,
+  CLIENT_PLATFORM_HEADER,
+  CachedUserInfo,
+  DEFAULT_RETRY_COUNT,
+  DEFAULT_RETRY_DELAY,
+  DEFAULT_TIMEOUT,
+  DEV_TOKEN_KEY,
+  FOLDER_UNLOCK_HEADER,
+  IDENTITY_CHECK_MIN_INTERVAL_MS,
+  NATIVE_CSRF_KEY,
+  NATIVE_REFRESH_TOKEN_KEY,
+  NATIVE_TOKEN_KEY,
+  PENDING_DELETION_EVENT,
+  PENDING_DELETION_SERVER_CODE,
+  PROACTIVE_REFRESH_THRESHOLD_MINUTES,
+  PendingTokenWrite,
+  REFRESH_INTERVAL_MINUTES,
+  RequestConfig,
+  SessionReestablishResult,
+  TAURI_CSRF_KEY,
+  TAURI_TOKEN_KEY,
+  clear_last_auth_ms,
+  get_error_code_from_status,
+  is_identity_establishing_endpoint,
+  is_local_hostname,
+  is_offline_tombstoned,
+  is_pending_deletion_error,
+  is_tauri_env,
+  is_write_dead_streak,
+  unlock_token_cache_suffix,
+  write_last_auth_ms,
+} from "./helpers";
+
+import { en } from "@/lib/i18n/translations/en";
 import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { get_device_id } from "@/services/device_id";
@@ -43,7 +80,6 @@ import {
   get_effective_retry_count,
   get_effective_retry_delay,
 } from "@/services/routing/routing_provider";
-import { ACCOUNTS_ROSTER_KEY, API_BASE_URL, ApiErrorCode, ApiResponse, CLIENT_PLATFORM_HEADER, CachedUserInfo, DEFAULT_RETRY_COUNT, DEFAULT_RETRY_DELAY, DEFAULT_TIMEOUT, DEV_TOKEN_KEY, FOLDER_UNLOCK_HEADER, IDENTITY_CHECK_MIN_INTERVAL_MS, NATIVE_CSRF_KEY, NATIVE_REFRESH_TOKEN_KEY, NATIVE_TOKEN_KEY, PROACTIVE_REFRESH_THRESHOLD_MINUTES, PendingTokenWrite, REFRESH_INTERVAL_MINUTES, RequestConfig, SessionReestablishResult, TAURI_CSRF_KEY, TAURI_TOKEN_KEY, clear_last_auth_ms, get_error_code_from_status, is_identity_establishing_endpoint, is_local_hostname, is_offline_tombstoned, is_tauri_env, is_write_dead_streak, unlock_token_cache_suffix, write_last_auth_ms } from "./helpers";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -496,6 +532,7 @@ export class ApiClient {
       .then(async ({ get_current_account_id, update_account_tokens }) => {
         if (this.intentional_logout) return;
         const id = await get_current_account_id();
+
         if (!id) return;
         if (this.intentional_logout) return;
         await update_account_tokens(id, access_token, refresh_token);
@@ -505,9 +542,7 @@ export class ApiClient {
 
   async load_tokens_for_account(account_id: string): Promise<boolean> {
     try {
-      const { get_account_tokens } = await import(
-        "@/services/account_manager"
-      );
+      const { get_account_tokens } = await import("@/services/account_manager");
       const tokens = await get_account_tokens(account_id);
 
       this.active_refresh_token = tokens.refresh_token;
@@ -644,6 +679,7 @@ export class ApiClient {
       : (this.expected_user_id ?? undefined);
 
     let stored_refresh_token: string | null = this.active_refresh_token;
+
     if (Capacitor.isNativePlatform()) {
       stored_refresh_token =
         (await this.load_native_refresh_token()) ?? stored_refresh_token;
@@ -715,7 +751,11 @@ export class ApiClient {
           try {
             me_response = await this.get<{ user_id: string }>(
               "/core/v1/auth/me",
-              { skip_cache: true, skip_session_refresh: true, skip_dedup: true },
+              {
+                skip_cache: true,
+                skip_session_refresh: true,
+                skip_dedup: true,
+              },
             );
           } catch (e) {
             if (import.meta.env.DEV) console.error(e);
@@ -1167,6 +1207,7 @@ export class ApiClient {
   async clear_session_cookies(): Promise<boolean> {
     try {
       const response = await this.post("/core/v1/auth/clear-session", {});
+
       clear_csrf_cache();
 
       return !response.error;
@@ -1264,7 +1305,10 @@ export class ApiClient {
     endpoint: string,
     config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
-    if (is_app_network_locked() && !is_endpoint_allowed_while_locked(endpoint)) {
+    if (
+      is_app_network_locked() &&
+      !is_endpoint_allowed_while_locked(endpoint)
+    ) {
       return { error: "App is locked", code: "APP_LOCKED" };
     }
 
@@ -1418,6 +1462,20 @@ export class ApiClient {
 
           if (
             response.status === 403 &&
+            is_pending_deletion_error(error_data.code, error_data.error)
+          ) {
+            window.dispatchEvent(new Event(PENDING_DELETION_EVENT));
+
+            return {
+              error:
+                error_data.error || "This account is scheduled for deletion",
+              code: "FORBIDDEN",
+              server_code: PENDING_DELETION_SERVER_CODE,
+            };
+          }
+
+          if (
+            response.status === 403 &&
             error_data.code === "ACCOUNT_SUSPENDED"
           ) {
             window.dispatchEvent(
@@ -1504,14 +1562,14 @@ export class ApiClient {
             window.dispatchEvent(
               new CustomEvent("aster:already-signed-in", {
                 detail: {
-                  message: error_data.error || "Already signed in on this device",
+                  message:
+                    error_data.error || "Already signed in on this device",
                 },
               }),
             );
 
             return {
-              error:
-                error_data.error || "Already signed in on this device",
+              error: error_data.error || "Already signed in on this device",
               code: "CONFLICT",
               server_code: "ALREADY_SIGNED_IN_ON_DEVICE",
             };
@@ -1621,6 +1679,7 @@ export class ApiClient {
           data = undefined as T;
         } else {
           const raw = await response.text().catch(() => null);
+
           if (raw === null) {
             last_error = {
               error: this.get_generic_error_message("NETWORK_ERROR"),
