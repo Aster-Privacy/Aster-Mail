@@ -37,6 +37,8 @@ import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_subscriptions() {
   const { vault } = use_auth();
   const { t } = use_i18n();
@@ -281,7 +283,9 @@ export function use_subscriptions() {
                 list_unsubscribe_header: sub.list_unsubscribe_header,
                 list_unsubscribe_post: sub.list_unsubscribe_post,
               });
-            } catch {}
+            } catch (caught) {
+              ignore_error("hooks/use_subscriptions:reverted", caught);
+            }
           }),
         );
       }

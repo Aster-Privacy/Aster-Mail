@@ -28,6 +28,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { format_record_host, type DnsProvider } from "@/data/dns_providers";
 import type { DnsRecord } from "@/services/api/domains";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const CAVEAT_KEYS: Record<string, TranslationKey> = {
   mx_replaces_existing: "common.dns_caveat_mx_replaces_existing",
   spf_single_record_other_senders:
@@ -58,7 +60,9 @@ export function DnsRecordCard({
       try {
         await navigator.clipboard.writeText(text);
         show_toast(t("common.copied"), "success");
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/settings/aliases/dns_record_card:DnsRecordCard", caught);
+      }
     },
     [t],
   );

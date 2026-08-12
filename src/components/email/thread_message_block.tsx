@@ -79,6 +79,8 @@ import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_pro
 
 import { use_thread_message_block } from "./use_thread_message_block";
 import type { ThreadMessageBlockProps } from "./use_thread_message_block";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactElement {
   const {
     message,
@@ -398,7 +400,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                           .then(() =>
                             show_toast(t("common.email_copied"), "success"),
                           )
-                          .catch(() => {});
+                          .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
                       }}
                     >
                       &lt;{show_sender_email}&gt;
@@ -443,7 +445,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                                     "success",
                                   ),
                                 )
-                                .catch(() => {});
+                                .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
                             }}
                           >
                             {r.name || r.email}
@@ -484,7 +486,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                                     "success",
                                   ),
                                 )
-                                .catch(() => {});
+                                .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
                             }}
                           >
                             {r.name || r.email}
@@ -526,7 +528,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                                       "success",
                                     ),
                                   )
-                                  .catch(() => {});
+                                  .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
                               }}
                             >
                               {r.name || r.email}
@@ -828,7 +830,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     .then(() => {
                       show_toast(t("common.message_id_copied"), "success");
                     })
-                    .catch(() => {});
+                    .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
                 }}
               >
                 <ClipboardDocumentIcon className="w-4 h-4 mr-2" />

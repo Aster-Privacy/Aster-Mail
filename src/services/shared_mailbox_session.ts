@@ -54,6 +54,8 @@ import {
   merge_recovered_keys_into_vault,
 } from "@/services/crypto/vault_key_recovery";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   upsert_shared_account,
   remove_stale_shared_accounts,
@@ -104,7 +106,7 @@ export async function sync_shared_mailbox_grants(): Promise<
       );
 
       if (recovered.length) {
-        await merge_recovered_keys_into_vault(recovered).catch(() => {});
+        await merge_recovered_keys_into_vault(recovered).catch((caught) => ignore_error("services/shared_mailbox_session:recover_lost_keys_once", caught));
       }
 
       return recovered;
@@ -237,7 +239,7 @@ export async function sync_shared_mailbox_grants(): Promise<
   const removed = await remove_stale_shared_accounts(granted);
 
   for (const account_id of removed) {
-    await clear_session_passphrase(account_id).catch(() => {});
+    await clear_session_passphrase(account_id).catch((caught) => ignore_error("services/shared_mailbox_session:recover_lost_keys_once", caught));
     localStorage.removeItem(GRANT_EPOCH_KEY_PREFIX + account_id);
   }
 
@@ -355,6 +357,6 @@ export async function perform_shared_mailbox_login(
 export async function clear_shared_mailbox_session(
   account_id: string,
 ): Promise<void> {
-  await clear_session_passphrase(account_id).catch(() => {});
+  await clear_session_passphrase(account_id).catch((caught) => ignore_error("services/shared_mailbox_session:clear_shared_mailbox_session", caught));
   localStorage.removeItem(GRANT_EPOCH_KEY_PREFIX + account_id);
 }

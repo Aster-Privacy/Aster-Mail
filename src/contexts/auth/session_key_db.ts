@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ignore_error } from "@/lib/ignore_error";
+
 const SESSION_KEY_DB_NAME = "astermail_session_keys";
 const SESSION_KEY_STORE = "keys";
 const SESSION_KEY_ID = "session_encryption_key";
@@ -73,7 +75,12 @@ async function store_session_key_in_db(key: CryptoKey): Promise<void> {
     const timeout_id = setTimeout(() => {
       try {
         db.close();
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "contexts/auth/session_key_db:store_session_key_in_db",
+          caught,
+        );
+      }
       reject(new Error("IndexedDB store transaction timed out"));
     }, IDB_TX_TIMEOUT_MS);
 
@@ -124,7 +131,12 @@ async function get_session_key_from_db(): Promise<CryptoKey | null> {
       const timeout_id = setTimeout(() => {
         try {
           db.close();
-        } catch {}
+        } catch (caught) {
+          ignore_error(
+            "contexts/auth/session_key_db:get_session_key_from_db",
+            caught,
+          );
+        }
         resolve(null);
       }, IDB_TX_TIMEOUT_MS);
 

@@ -37,6 +37,8 @@ import {
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { get_current_account } from "@/services/account_manager";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const PREVIOUS_KEYS_LIMIT = 10;
 
 let rekey_in_progress = false;
@@ -174,10 +176,11 @@ export async function rekey_pgp_if_needed(
           "@/services/crypto/ratchet_manager"
         );
 
-        await upload_prekey_bundle(result.new_vault).catch(() => {});
+        await upload_prekey_bundle(result.new_vault).catch((caught) => ignore_error("services/pgp_rekey_service:rekey_pgp_if_needed", caught));
       }
     });
-  } catch {
+  } catch (caught) {
+    ignore_error("services/pgp_rekey_service:rekey_pgp_if_needed", caught);
   } finally {
     rekey_in_progress = false;
   }

@@ -65,6 +65,8 @@ import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
 import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface FolderOption {
   folder_token: string;
   name: string;
@@ -254,7 +256,9 @@ export function InboxHeader({
         "astermail:advanced_toolbar",
         advanced_toolbar ? "1" : "0",
       );
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/inbox/inbox_header:InboxHeader", caught);
+    }
   }, [advanced_toolbar]);
 
   const {

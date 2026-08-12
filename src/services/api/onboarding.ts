@@ -25,6 +25,8 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client } from "./client";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface OnboardingState {
   current_step: number;
   completed_steps: number[];
@@ -187,7 +189,9 @@ export async function fetch_onboarding_checklist(): Promise<ChecklistFetchResult
 export async function dismiss_onboarding_checklist(): Promise<void> {
   try {
     await api_client.post<void>("/core/v1/onboarding/checklist/dismiss", {});
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/onboarding:dismiss_onboarding_checklist", caught);
+  }
 }
 
 export async function update_onboarding_state(

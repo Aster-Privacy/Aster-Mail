@@ -20,6 +20,8 @@
 //
 import { api_client } from "@/services/api/client";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const IDB_STORE = "phishing_blocklist";
 const IDB_KEY = "bloom_data";
 const UPDATE_INTERVAL = 60 * 60 * 1000;
@@ -74,7 +76,9 @@ async function save_to_idb(data: BlocklistData): Promise<void> {
     const store = tx.objectStore(IDB_STORE);
 
     store.put(data, IDB_KEY);
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/phishing_blocklist:save_to_idb", caught);
+  }
 }
 
 async function fetch_blocklist(): Promise<BlocklistData | null> {
@@ -203,7 +207,9 @@ export async function verify_url_with_server(
         prefix_map.set(prefix, []);
       }
       prefix_map.get(prefix)!.push(url);
-    } catch {}
+    } catch (caught) {
+      ignore_error("lib/phishing_blocklist:verify_url_with_server", caught);
+    }
   }
 
   try {
@@ -222,7 +228,9 @@ export async function verify_url_with_server(
         }
       }
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/phishing_blocklist:verify_url_with_server", caught);
+  }
 
   return matched;
 }

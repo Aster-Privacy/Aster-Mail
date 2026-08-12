@@ -83,6 +83,8 @@ import { EMAIL_REGEX } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_plans } from "@/components/register/register_step_plan_selection";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export async function build_registration_ratchet_fields(): Promise<
   Partial<EncryptedVault>
 > {
@@ -649,14 +651,24 @@ export function use_registration(options?: RegistrationClaimOptions) {
     try {
       await navigator.clipboard.writeText(codes_text);
       show_toast(t("auth.recovery_codes_copied"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/register/hooks/use_registration:handle_copy_codes",
+        caught,
+      );
+    }
   };
 
   const handle_copy_single_code = async (code: string) => {
     try {
       await navigator.clipboard.writeText(code);
       show_toast(t("auth.recovery_code_copied"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/register/hooks/use_registration:handle_copy_single_code",
+        caught,
+      );
+    }
   };
 
   const handle_download_key = async () => {
@@ -681,7 +693,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
     try {
       await navigator.clipboard.writeText(recovery_phrase);
       show_toast(t("auth.recovery_phrase_copied"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/register/hooks/use_registration:handle_copy_phrase",
+        caught,
+      );
+    }
   };
 
   const handle_download_phrase_pdf = async () => {

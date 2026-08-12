@@ -23,6 +23,8 @@ import { Share, type ShareResult } from "@capacitor/share";
 
 import { is_native_platform } from "./capacitor_bridge";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface SharedContent {
   title?: string;
   text?: string;
@@ -118,7 +120,9 @@ async function check_launch_share(): Promise<void> {
         setTimeout(() => notify_share_listeners(content), 500);
       }
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("native/share_receiver:check_launch_share", caught);
+  }
 }
 
 const SHARE_SUBJECT_MAX = 998;

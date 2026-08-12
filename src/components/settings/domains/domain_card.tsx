@@ -38,6 +38,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { DomainHealthPanel } from "@/components/settings/domains/domain_health_panel";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_dns_records,
   get_status_color,
@@ -57,7 +59,9 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
     try {
       await navigator.clipboard.writeText(record.value);
       show_toast(t("settings.copied_to_clipboard"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/settings/domains/domain_card:copy_value", caught);
+    }
   };
 
   return (

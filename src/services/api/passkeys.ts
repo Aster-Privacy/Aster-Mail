@@ -27,6 +27,8 @@ import {
 } from "./webauthn";
 import type { HardwareKeyRegistrationCompleteResponse } from "./webauthn";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 async function get_prf_eval(): Promise<ArrayBuffer> {
   return crypto.subtle.digest(
     "SHA-256",
@@ -292,7 +294,7 @@ export async function register_platform_passkey(
   if (reg_result.data?.success && vault_passphrase && is_platform_authenticator) {
     const key_id = reg_result.data.key_id;
     const raw_credential_id = array_buffer_to_base64url(credential.rawId);
-    setup_prf_passphrase(key_id, raw_credential_id, options.rp.id, vault_passphrase).catch(() => {});
+    setup_prf_passphrase(key_id, raw_credential_id, options.rp.id, vault_passphrase).catch((caught) => ignore_error("services/api/passkeys:register_platform_passkey", caught));
   }
 
   return reg_result;

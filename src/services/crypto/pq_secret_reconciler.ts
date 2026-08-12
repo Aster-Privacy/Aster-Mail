@@ -26,6 +26,8 @@ import {
 } from "@/services/crypto/pq_prekey_store";
 import { has_vault_in_memory } from "@/services/crypto/memory_key_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const RECONCILER_DISABLED_FLAG = "astermail_pq_reconciler_disabled";
 const RECONCILER_RAN_AT_PREFIX = "astermail_pq_reconciler_at_";
 const RECONCILER_LOCK_FLAG = "astermail_pq_reconciler_lock";
@@ -158,7 +160,7 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
   if (!try_acquire_lock()) return;
 
   try {
-    backfill_pq_secrets_to_server().catch(() => {});
+    backfill_pq_secrets_to_server().catch((caught) => ignore_error("services/crypto/pq_secret_reconciler:reconcile_pq_secrets_with_server", caught));
 
     const server_count = await fetch_server_pq_count();
 

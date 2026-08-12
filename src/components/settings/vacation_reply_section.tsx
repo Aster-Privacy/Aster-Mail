@@ -57,6 +57,8 @@ import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
 
@@ -237,7 +239,8 @@ export function VacationReplySection() {
       if (result.data) {
         set_vacation(result.data);
       }
-    } catch {
+    } catch (caught) {
+      ignore_error("components/settings/vacation_reply_section:VacationReplySection", caught);
     } finally {
       set_is_loading(false);
     }

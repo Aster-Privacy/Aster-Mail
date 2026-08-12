@@ -52,6 +52,8 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   SignInDomain,
   decrypt_checkout_password,
@@ -216,7 +218,7 @@ export function use_sign_in_page() {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
     if (!preloaded.current) {
       preloaded.current = true;
-      import("@/pages/register").catch(() => {});
+      import("@/pages/register").catch((caught) => ignore_error("pages/use_sign_in_page:handle_login_success", caught));
     }
   }, []);
 
@@ -355,7 +357,9 @@ export function use_sign_in_page() {
               setTimeout(() => resolve(null), 10_000),
             ),
           ]);
-        } catch {}
+        } catch (caught) {
+          ignore_error("pages/use_sign_in_page:handle_login_success", caught);
+        }
 
         const checkout_user_data = user_info_response?.data
           ? {
@@ -539,7 +543,9 @@ export function use_sign_in_page() {
               setTimeout(() => resolve(null), 10_000),
             ),
           ]);
-        } catch {}
+        } catch (caught) {
+          ignore_error("pages/use_sign_in_page:handle_login_success", caught);
+        }
 
         const user_data = user_info_response?.data
           ? {
@@ -619,7 +625,7 @@ export function use_sign_in_page() {
                 );
               }
             })
-            .catch(() => {});
+            .catch((caught) => ignore_error("pages/use_sign_in_page:login_timeout", caught));
         }
 
         set_is_loading(false);

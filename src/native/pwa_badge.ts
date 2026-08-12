@@ -18,12 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ignore_error } from "@/lib/ignore_error";
+
 export function update_pwa_badge(unread_count: number): void {
   if (!("setAppBadge" in navigator)) return;
 
   if (unread_count > 0) {
-    navigator.setAppBadge(unread_count).catch(() => {});
+    navigator
+      .setAppBadge(unread_count)
+      .catch((caught) =>
+        ignore_error("native/pwa_badge:update_pwa_badge", caught),
+      );
   } else {
-    navigator.clearAppBadge().catch(() => {});
+    navigator
+      .clearAppBadge()
+      .catch((caught) =>
+        ignore_error("native/pwa_badge:update_pwa_badge", caught),
+      );
   }
 }

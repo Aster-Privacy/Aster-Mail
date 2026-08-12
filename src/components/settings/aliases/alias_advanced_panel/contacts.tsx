@@ -50,6 +50,8 @@ import {
 } from "@/services/api/alias_contacts";
 
 import { INPUT_CLASS } from "./shared";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function ContactsPanel({
   alias_id,
   domain_address_id,
@@ -76,7 +78,7 @@ export function ContactsPanel({
       .then((r) => {
         if (r.data?.readable_reverse_aliases) set_readable_reverse(true);
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/settings/aliases/alias_advanced_panel/contacts:ContactsPanel", caught));
   }, [locked]);
 
   const load = useCallback(async () => {

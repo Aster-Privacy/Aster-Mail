@@ -20,6 +20,8 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export type DeviceAuthErrorCode =
   | "challenge_failed"
   | "login_failed"
@@ -229,7 +231,7 @@ export async function complete_device_pairing(
     }
   } catch (err) {
     error = err instanceof Error ? err.message : String(err);
-    await clear_device_session().catch(() => {});
+    await clear_device_session().catch((caught) => ignore_error("native/desktop_device_auth:complete_device_pairing", caught));
   }
 
   window.dispatchEvent(new CustomEvent("astermail:device-paired"));

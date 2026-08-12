@@ -37,6 +37,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface ShareModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -70,7 +72,9 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
     }
     navigator.clipboard
       .writeText("https://astermail.org/invite")
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error("components/modals/share_modal:handle_copy_link", caught),
+      );
     set_copy_success(true);
     copy_timeout_ref.current = setTimeout(() => {
       set_copy_success(false);

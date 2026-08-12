@@ -30,6 +30,8 @@ import {
 } from "@/services/api/mail";
 import { encrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const BATCH_SIZE = 50;
 
 export interface MigrationProgress {
@@ -56,7 +58,9 @@ export function record_migration_failure(): number {
 
   try {
     localStorage.setItem(STALL_COUNT_KEY, String(next));
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/metadata_migration:record_migration_failure", caught);
+  }
 
   return next;
 }
@@ -64,7 +68,9 @@ export function record_migration_failure(): number {
 export function clear_migration_stall(): void {
   try {
     localStorage.removeItem(STALL_COUNT_KEY);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/metadata_migration:clear_migration_stall", caught);
+  }
 }
 
 export function is_migration_stalled(): boolean {

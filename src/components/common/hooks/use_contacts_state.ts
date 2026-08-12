@@ -31,6 +31,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
 import { use_contacts_data } from "./use_contacts_data";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export { contact_to_form_data };
 export type { FilterOption, SortOption, ViewMode } from "./contacts_state_helpers";
 
@@ -589,7 +591,7 @@ export function use_contacts_state() {
     const emails = selected_contacts.flatMap((c) => c.emails).filter((e) => e);
 
     if (emails.length > 0) {
-      navigator.clipboard.writeText(emails.join(", ")).catch(() => {});
+      navigator.clipboard.writeText(emails.join(", ")).catch((caught) => ignore_error("components/common/hooks/use_contacts_state:use_contacts_state", caught));
       set_copied_field("bulk-emails");
       if (copy_timeout_ref.current) {
         clearTimeout(copy_timeout_ref.current);

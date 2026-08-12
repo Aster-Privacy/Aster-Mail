@@ -71,6 +71,8 @@ import { validate_image_magic_bytes } from "@/hooks/editor_utils";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { fetch_my_badges } from "@/services/api/user";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function escape_html(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -203,7 +205,8 @@ export function SignaturesSection({
         if (!cancelled && res.data) {
           set_signatures(res.data.signatures);
         }
-      } catch {
+      } catch (caught) {
+        ignore_error("pages/mobile/settings/signatures_section:load", caught);
       } finally {
         if (!cancelled) set_is_loading(false);
       }

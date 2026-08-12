@@ -74,6 +74,8 @@ import {
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { set_forward_mail_id } from "@/services/forward_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface EmailDetailActionsDeps {
   email_id: string | undefined;
   mail_item: MailItem | null;
@@ -452,7 +454,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
       if (result.success) {
         if (msg.sender_email) {
-          report_spam_sender(msg.sender_email).catch(() => {});
+          report_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/email_detail_actions:use_email_detail_actions", caught));
         }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.reported_as_phishing"), "success");
@@ -475,7 +477,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
       if (result.success) {
         if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch(() => {});
+          remove_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/email_detail_actions:use_email_detail_actions", caught));
         }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.marked_as_not_spam"), "success");
@@ -559,7 +561,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       .then(() => {
         show_toast(deps.t("common.copied_item", { label }), "success");
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/email/hooks/email_detail_actions:handle_copy_text", caught));
   };
 
   return {

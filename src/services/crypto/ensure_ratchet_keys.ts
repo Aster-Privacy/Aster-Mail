@@ -42,6 +42,8 @@ import { with_vault_write_lock } from "./vault_write_lock";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function get_stored_account_vault(
   user_id: string,
 ): { encrypted_vault: string; vault_nonce: string } | null {
@@ -550,7 +552,9 @@ async function run_locked(): Promise<boolean> {
 
     try {
       localStorage.setItem(FORCED_REGEN_KEY, "1");
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/crypto/ensure_ratchet_keys:run_locked", caught);
+    }
 
     return true;
   } catch {

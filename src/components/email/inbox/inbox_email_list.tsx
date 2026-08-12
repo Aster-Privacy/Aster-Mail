@@ -50,6 +50,8 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   is_compact_density,
   list_row_intrinsic_height,
@@ -337,7 +339,12 @@ export function EmailList({
             user?.email,
             false,
             preferences.conversation_grouping !== false,
-          ).catch(() => {});
+          ).catch((caught) =>
+            ignore_error(
+              "components/email/inbox/inbox_email_list:start",
+              caught,
+            ),
+          );
         }, HOVER_PRELOAD_DELAY_MS);
       };
 

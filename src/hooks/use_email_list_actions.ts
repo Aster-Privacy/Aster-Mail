@@ -64,6 +64,8 @@ import {
 } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface UseEmailListActionsParams {
   state: EmailListState;
   set_state: React.Dispatch<React.SetStateAction<EmailListState>>;
@@ -325,9 +327,7 @@ export function use_email_list_actions({
       const result = await api_batch_archive({ ids: all_ids, tier: "hot" });
 
       if (result.data?.success) {
-        void bulk_update_metadata_by_ids(all_ids, { is_archived: true }).catch(
-          () => {},
-        );
+        void bulk_update_metadata_by_ids(all_ids, { is_archived: true }).catch((caught) => ignore_error("hooks/use_email_list_actions:use_email_list_actions", caught));
       }
 
       if (!result.data?.success) {
@@ -435,7 +435,7 @@ export function use_email_list_actions({
 
       if (result.success) {
         if (email?.sender_email) {
-          report_spam_sender(email.sender_email).catch(() => {});
+          report_spam_sender(email.sender_email).catch((caught) => ignore_error("hooks/use_email_list_actions:use_email_list_actions", caught));
         }
       } else {
         reindex_ids(all_ids);

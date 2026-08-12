@@ -22,6 +22,8 @@ import { useEffect, useState } from "react";
 import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   is_desktop_runtime,
   get_last_notified_version,
@@ -52,7 +54,8 @@ export function UpdateBanner() {
         if (result && get_last_notified_version() !== result.version) {
           set_info(result);
         }
-      } catch {
+      } catch (caught) {
+        ignore_error("components/updates/update_banner:run", caught);
       }
     };
     run();

@@ -36,6 +36,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import type { } from "@/lib/i18n/types";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
   const { t } = use_i18n();
   const [domains, set_domains] = useState<FamilyDomain[]>([]);
@@ -71,7 +73,9 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
   };
 
   const nav_aliases = () => {
-    try { sessionStorage.setItem("alias_tab", "domains"); } catch {}
+    try { sessionStorage.setItem("alias_tab", "domains"); } catch (caught) {
+      ignore_error("components/settings/billing/family_section/domains:nav_aliases", caught);
+    }
     window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "aliases" }));
   };
 

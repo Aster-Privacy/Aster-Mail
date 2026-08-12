@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 /// <reference lib="webworker" />
+import { ignore_error } from "@/lib/ignore_error";
+
 export {};
 
 declare let self: ServiceWorkerGlobalScope;
@@ -37,10 +39,14 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
 
           await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("sw", caught);
+      }
       try {
         await self.clients.claim();
-      } catch {}
+      } catch (caught) {
+        ignore_error("sw", caught);
+      }
     })(),
   );
 });
@@ -66,7 +72,9 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
               keys.map((k) => caches.delete(k).catch(() => false)),
             );
           }
-        } catch {}
+        } catch (caught) {
+          ignore_error("sw", caught);
+        }
         logout_purge_in_progress = false;
       })(),
     );

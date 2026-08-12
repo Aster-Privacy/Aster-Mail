@@ -38,6 +38,8 @@ import {
   category_color_style,
 } from "@/data/category_colors";
 import { use_category_previews } from "@/hooks/use_category_previews";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   EMAIL_DRAG_MIME,
   end_category_drag,
@@ -145,7 +147,12 @@ export function CategoryTabs({
         if (Array.isArray(ids) && ids.length > 0) {
           on_category_drop(category, ids as string[]);
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "components/email/inbox/category_tabs:CategoryTabs",
+          caught,
+        );
+      }
     },
     [on_category_drop],
   );

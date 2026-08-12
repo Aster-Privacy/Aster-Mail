@@ -22,6 +22,8 @@ import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 
 import { is_native_platform } from "./capacitor_bridge";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 let _haptic_enabled = true;
 
 export function sync_haptic_state(enabled: boolean): void {
@@ -42,7 +44,9 @@ export async function haptic_impact(
 
   try {
     await Haptics.impact({ style: impact_style });
-  } catch {}
+  } catch (caught) {
+    ignore_error("native/haptic_feedback:haptic_impact", caught);
+  }
 }
 
 export async function haptic_notification(
@@ -59,7 +63,9 @@ export async function haptic_notification(
 
   try {
     await Haptics.notification({ type: notification_type });
-  } catch {}
+  } catch (caught) {
+    ignore_error("native/haptic_feedback:haptic_notification", caught);
+  }
 }
 
 export async function haptic_selection(): Promise<void> {
@@ -68,7 +74,9 @@ export async function haptic_selection(): Promise<void> {
   try {
     await Haptics.selectionStart();
     await Haptics.selectionEnd();
-  } catch {}
+  } catch (caught) {
+    ignore_error("native/haptic_feedback:haptic_selection", caught);
+  }
 }
 
 export async function haptic_selection_changed(): Promise<void> {
@@ -76,7 +84,9 @@ export async function haptic_selection_changed(): Promise<void> {
 
   try {
     await Haptics.selectionChanged();
-  } catch {}
+  } catch (caught) {
+    ignore_error("native/haptic_feedback:haptic_selection_changed", caught);
+  }
 }
 
 export async function haptic_vibrate(duration: number = 300): Promise<void> {
@@ -84,7 +94,9 @@ export async function haptic_vibrate(duration: number = 300): Promise<void> {
 
   try {
     await Haptics.vibrate({ duration });
-  } catch {}
+  } catch (caught) {
+    ignore_error("native/haptic_feedback:haptic_vibrate", caught);
+  }
 }
 
 export async function haptic_swipe_threshold(): Promise<void> {

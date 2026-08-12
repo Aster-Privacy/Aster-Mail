@@ -44,6 +44,8 @@ import {
   save_spam_settings,
 } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   SWIPE_ACTION_OPTIONS,
   get_swipe_action,
@@ -103,7 +105,12 @@ export function BehaviorSection({
       .then((result) => {
         if (result.data) set_family_policy(result.data);
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error(
+          "pages/mobile/settings/behavior_section:handle_mailto_toggle",
+          caught,
+        ),
+      );
   }, []);
 
   const update_spam_settings = (patch: Partial<SpamSettings>) => {

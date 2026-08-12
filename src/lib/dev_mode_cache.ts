@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ignore_error } from "@/lib/ignore_error";
+
 const STORAGE_PREFIX = "aster_dev_mode";
 
 function storage_key(account_id: string | null | undefined): string | null {
@@ -53,5 +55,7 @@ export function write_dev_mode_cache(
 
   try {
     localStorage.setItem(key, enabled ? "1" : "0");
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/dev_mode_cache:write_dev_mode_cache", caught);
+  }
 }

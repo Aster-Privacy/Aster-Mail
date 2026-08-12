@@ -51,6 +51,8 @@ import {
 } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_mobile_mail_detail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -632,7 +634,12 @@ export function use_mobile_mail_detail() {
         .then(() => {
           show_toast(detail.t("common.message_id_copied"), "success");
         })
-        .catch(() => {});
+        .catch((caught) =>
+          ignore_error(
+            "pages/mobile/use_mobile_mail_detail:handle_back",
+            caught,
+          ),
+        );
     }
     set_menu_message(null);
   }, [detail, menu_message]);

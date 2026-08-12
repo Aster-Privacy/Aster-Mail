@@ -71,6 +71,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function MobileActionMenuSheet({
   menu_message,
   menu_source,
@@ -447,7 +449,7 @@ export function MobileViewSourceSheet({
                   .then(() => {
                     show_toast(t("common.copied"), "success");
                   })
-                  .catch(() => {});
+                  .catch((caught) => ignore_error("pages/mobile/mobile_detail_sheets:MobileViewSourceSheet", caught));
               }
             }}
           >
@@ -700,7 +702,7 @@ export function MobileMessageDetailsSheet({
       .then(() => {
         show_toast(t("mail.headers_copied"), "success");
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("pages/mobile/mobile_detail_sheets:handle_copy_headers", caught));
   };
 
   const handle_download_headers = () => {

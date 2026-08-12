@@ -97,6 +97,8 @@ import {
 
 import { use_auth_account_state } from "./use_auth_account_state";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_auth_provider_state() {
   const {
     t,
@@ -339,7 +341,9 @@ export function use_auth_provider_state() {
       try {
         if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect(nav_target);
-      } catch {}
+      } catch (caught) {
+        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+      }
     }, 6000);
 
     try {
@@ -350,7 +354,7 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch(() => {});
+      await with_timeout(clear_device_session(), 2000).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught));
 
       await with_timeout(
         api_client.post("/core/v1/auth/logout", {}),
@@ -401,7 +405,9 @@ export function use_auth_provider_state() {
         if (!("__TAURI_INTERNALS__" in window)) {
           navigate(nav_target);
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+      }
     }
   }, [clear_local_auth_data, navigate, state.accounts, state.current_account_id]);
 
@@ -410,7 +416,9 @@ export function use_auth_provider_state() {
       try {
         if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect("/sign-in");
-      } catch {}
+      } catch (caught) {
+        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+      }
     }, 6000);
 
     try {
@@ -421,7 +429,7 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch(() => {});
+      await with_timeout(clear_device_session(), 2000).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught));
 
       await with_timeout(
         api_client.post("/core/v1/auth/logout-all", {}),
@@ -437,7 +445,9 @@ export function use_auth_provider_state() {
         if (!("__TAURI_INTERNALS__" in window)) {
           navigate("/sign-in");
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+      }
     }
   }, [clear_local_auth_data, navigate]);
 
@@ -446,7 +456,7 @@ export function use_auth_provider_state() {
       message_key: TranslationKey,
       reason?: string,
     ) => {
-      await clear_device_session().catch(() => {});
+      await clear_device_session().catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
 
       const path = app_pathname();
       const current_id = state.current_account_id;
@@ -461,7 +471,7 @@ export function use_auth_provider_state() {
         if (path === "/sign-in") return;
 
         show_toast(t(message_key), "info");
-        await api_client.clear_session_cookies().catch(() => {});
+        await api_client.clear_session_cookies().catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
         navigate("/sign-in");
 
         return;
@@ -473,7 +483,7 @@ export function use_auth_provider_state() {
       if (current_id) {
         clear_session_timeout_data(current_id);
         clear_session_unlock(current_id);
-        await clear_session_passphrase(current_id).catch(() => {});
+        await clear_session_passphrase(current_id).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
       }
 
       set_is_adding_account(true);

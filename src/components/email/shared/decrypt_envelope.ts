@@ -45,6 +45,8 @@ import {
 import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const INBOUND_ECIES_MARKER = 0x02;
 const INBOUND_ECIES_COMPRESSED_MARKER = 0x03;
 const INBOUND_PQ_HYBRID_MARKER = 0x04;
@@ -60,8 +62,8 @@ async function decompress_zlib(compressed: Uint8Array): Promise<Uint8Array> {
   const writer = ds.writable.getWriter();
   const reader = ds.readable.getReader();
 
-  void writer.write(compressed).catch(() => {});
-  void writer.close().catch(() => {});
+  void writer.write(compressed).catch((caught) => ignore_error("components/email/shared/decrypt_envelope:decompress_zlib", caught));
+  void writer.close().catch((caught) => ignore_error("components/email/shared/decrypt_envelope:decompress_zlib", caught));
 
   const chunks: Uint8Array[] = [];
   let total = 0;

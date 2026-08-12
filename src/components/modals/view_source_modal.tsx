@@ -31,6 +31,8 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface ViewSourceModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -225,7 +227,12 @@ export function ViewSourceModal({
     try {
       await navigator.clipboard.writeText(html_body);
       show_toast(t("common.source_copied_to_clipboard"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/modals/view_source_modal:ViewSourceModal",
+        caught,
+      );
+    }
   }, [html_body, t]);
 
   const lines = useMemo(() => html_body.split("\n"), [html_body]);

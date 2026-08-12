@@ -23,6 +23,8 @@ import { array_to_base64 } from "./base64";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { derive_ratchet_encryption_key } from "./ratchet_sync";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export async function derive_conversation_id(
   email_a: string,
   email_b: string,
@@ -46,7 +48,12 @@ export async function run_serialized_for_conversation<T>(
 
   conversation_queues.set(
     conversation_id,
-    current.catch(() => {}),
+    current.catch((caught) =>
+      ignore_error(
+        "services/crypto/ratchet_conversation:run_serialized_for_conversation",
+        caught,
+      ),
+    ),
   );
 
   return current;

@@ -39,6 +39,8 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { resolve_received_on_address } from "@/utils/delivered_to";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface MessageDetailsModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -74,7 +76,12 @@ export function MessageDetailsModal({
       .then(() => {
         show_toast(t("mail.headers_copied"), "success");
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error(
+          "components/email/message_details_modal:handle_copy_headers",
+          caught,
+        ),
+      );
   };
 
   const handle_download_headers = () => {

@@ -39,6 +39,8 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences } from "@/contexts/preferences_context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function MobileUnsubscribeBanner({
   email,
   t,
@@ -87,7 +89,7 @@ export function MobileUnsubscribeBanner({
       sender_name: email.sender,
       unsubscribe_link: info.unsubscribe_link,
       list_unsubscribe_header: info.list_unsubscribe_header,
-    }).catch(() => {});
+    }).catch((caught) => ignore_error("pages/mobile/mobile_detail_banners:handle_unsubscribe", caught));
 
     show_action_toast({
       message: t("mail.successfully_unsubscribed"),

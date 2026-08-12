@@ -65,6 +65,8 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type ResetStep =
   | "consent"
   | "password"
@@ -410,7 +412,9 @@ export default function ResetPasswordPage() {
       await navigator.clipboard.writeText(codes_text);
       set_copy_success(true);
       setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/reset_password:handle_copy_codes", caught);
+    }
   };
 
   const handle_download_pdf = async () => {

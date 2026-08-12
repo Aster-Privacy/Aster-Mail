@@ -42,6 +42,8 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { update_alias, toggle_alias_pin } from "@/services/api/aliases";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface AliasContextMenuProps {
   children: React.ReactNode;
   alias: DecryptedEmailAlias;
@@ -62,7 +64,12 @@ export function AliasContextMenu({
     try {
       await navigator.clipboard.writeText(alias.full_address);
       show_toast(t("settings.alias_copied"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/layout/sidebar/alias_context_menu:copy_address",
+        caught,
+      );
+    }
   };
 
   const toggle_pin = async () => {

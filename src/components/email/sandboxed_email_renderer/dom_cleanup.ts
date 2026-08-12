@@ -24,6 +24,8 @@ import { connection_store } from "@/services/routing/connection_store";
 
 import { IMAGE_PROXY_URL } from "./helpers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type translate_fn = ReturnType<typeof use_i18n>["t"];
 
 const HIDDEN_QUOTE_SELECTOR =
@@ -555,7 +557,9 @@ export function unblock_remote_content(doc: Document): void {
         if (safe_url.protocol === "https:" || safe_url.protocol === "http:") {
           el.setAttribute("src", safe_url.href);
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/email/sandboxed_email_renderer/dom_cleanup:unblock_remote_content", caught);
+      }
     }
     el.removeAttribute("data-blocked");
     el.classList.remove("blocked-remote-image");

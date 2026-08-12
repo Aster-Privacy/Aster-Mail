@@ -34,6 +34,8 @@ import {
 } from "./progress";
 import { CachedIndex, DecryptedIndexEntry } from "./types";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   add_vocabulary_entry,
   reset_vocabulary,
@@ -433,7 +435,12 @@ export function start_background_rebuild(
     });
 
   index_build_promise = promise;
-  promise.catch(() => {});
+  promise.catch((caught) =>
+    ignore_error(
+      "hooks/use_search/index_cache:start_background_rebuild",
+      caught,
+    ),
+  );
 
   return promise;
 }

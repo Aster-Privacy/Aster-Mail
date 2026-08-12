@@ -20,6 +20,8 @@
 //
 import { Capacitor } from "@capacitor/core";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export const NATIVE_API_URL = "https://app.astermail.org/api";
 export const API_BASE_URL =
   Capacitor.isNativePlatform() || is_tauri_env()
@@ -74,7 +76,9 @@ export function detect_client_platform(): string {
 
     if (platform === "ios") return "capacitor-ios";
     if (platform === "android") return "capacitor-android";
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/client/helpers:detect_client_platform", caught);
+  }
 
   return "web";
 }
@@ -110,13 +114,17 @@ export function read_last_auth_ms(): number {
 export function write_last_auth_ms(ms: number): void {
   try {
     localStorage.setItem(LAST_AUTH_MS_KEY, String(ms));
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/client/helpers:write_last_auth_ms", caught);
+  }
 }
 
 export function clear_last_auth_ms(): void {
   try {
     localStorage.removeItem(LAST_AUTH_MS_KEY);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/client/helpers:clear_last_auth_ms", caught);
+  }
 }
 
 export function is_offline_tombstoned(): boolean {

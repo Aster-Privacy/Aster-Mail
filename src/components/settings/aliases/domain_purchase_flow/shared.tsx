@@ -36,6 +36,8 @@ import {
 import type { ApiErrorCode } from "@/services/api/client";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export type PurchaseView = "search" | "confirm" | "progress";
 
 export const TERMINAL_ORDER_STATUSES = new Set([
@@ -273,7 +275,9 @@ export function write_checkout_draft(draft: checkout_draft | null) {
   try {
     if (!draft) sessionStorage.removeItem(CHECKOUT_KEY);
     else sessionStorage.setItem(CHECKOUT_KEY, JSON.stringify(draft));
-  } catch {}
+  } catch (caught) {
+    ignore_error("components/settings/aliases/domain_purchase_flow/shared:write_checkout_draft", caught);
+  }
 }
 
 
@@ -288,7 +292,9 @@ export function read_intro_seen() {
 export function mark_intro_seen() {
   try {
     localStorage.setItem(INTRO_SEEN_KEY, "1");
-  } catch {}
+  } catch (caught) {
+    ignore_error("components/settings/aliases/domain_purchase_flow/shared:mark_intro_seen", caught);
+  }
 }
 
 export function SkeletonRows() {

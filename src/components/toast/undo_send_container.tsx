@@ -28,6 +28,8 @@ import { use_auth } from "@/contexts/auth_context";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { dispatch_undo_send_preview } from "@/components/toast/undo_send_preview_modal";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface UndoSendContainerProps {
   position?: string;
   max_visible?: number;
@@ -48,7 +50,14 @@ export function UndoSendContainer({
 
   useEffect(() => {
     if (is_authenticated) {
-      server_undo_manager.sync_with_server().catch(() => {});
+      server_undo_manager
+        .sync_with_server()
+        .catch((caught) =>
+          ignore_error(
+            "components/toast/undo_send_container:UndoSendContainer",
+            caught,
+          ),
+        );
 
       return () => {
         server_undo_manager.stop_polling();

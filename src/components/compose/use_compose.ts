@@ -91,6 +91,8 @@ import { use_compose_send } from "@/components/compose/use_compose_send";
 import { use_compose_drafts } from "@/components/compose/use_compose_drafts";
 import { use_compose_editor } from "@/components/compose/use_compose_editor";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface UseComposeOptions {
   on_close: () => void;
   edit_draft?: EditDraftData | null;
@@ -578,7 +580,7 @@ export function use_compose({
               ];
             });
           })
-          .catch(() => {})
+          .catch((caught) => ignore_error("components/compose/use_compose:load_recent_recipients_fn", caught))
           .finally(() => {
             if (inject_token_ref.current === attachments_token) {
               set_is_loading_forward_attachments(false);

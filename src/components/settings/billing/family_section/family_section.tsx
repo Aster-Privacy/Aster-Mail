@@ -102,6 +102,8 @@ import { FamilySectionProps, FamilyTab, invite_sent_relative, storage_pct } from
 import { MemberGroupsContent, MemberRow } from "./member_row";
 import { RetentionContent } from "./retention";
 import { MemberSecurityView, SecurityContent } from "./security";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const { t } = use_i18n();
   const { preferences, update_preference, has_loaded_from_server } = use_preferences();
@@ -140,13 +142,17 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   const dismiss_checklist = () => {
-    if (group?.id) { try { localStorage.setItem(`aster_family_checklist_dismissed_${group.id}`, "1"); } catch {} }
+    if (group?.id) { try { localStorage.setItem(`aster_family_checklist_dismissed_${group.id}`, "1"); } catch (caught) {
+      ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught);
+    } }
     set_checklist_dismissed(true);
   };
 
   useEffect(() => {
     if (!group?.id) return;
-    try { set_checklist_dismissed(localStorage.getItem(`aster_family_checklist_dismissed_${group.id}`) === "1"); } catch {}
+    try { set_checklist_dismissed(localStorage.getItem(`aster_family_checklist_dismissed_${group.id}`) === "1"); } catch (caught) {
+      ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught);
+    }
   }, [group?.id]);
 
   useEffect(() => {
@@ -160,14 +166,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           set_compliance_map(map);
         }
       })
-      .catch(() => {})
+      .catch((caught) => ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught))
       .finally(() => set_compliance_loaded(true));
   }, [group?.id, group?.viewer_role]);
 
   const cache_invite_url = useCallback((group_id: string, invite_id: string, join_url: string) => {
     set_invite_urls(prev => {
       const next = { ...prev, [invite_id]: join_url };
-      try { localStorage.setItem(`aster_family_invite_urls_${group_id}`, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(`aster_family_invite_urls_${group_id}`, JSON.stringify(next)); } catch (caught) {
+        ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught);
+      }
       return next;
     });
   }, []);
@@ -179,10 +187,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         set_group(res.data);
         if (res.data.viewer_role === "owner") {
           void Promise.all([
-            list_org_filters().then(r => { if (r.data) set_preloaded_filters(r.data); }).catch(() => {}),
-            get_security_policy().then(r => { if (r.data) set_preloaded_security(r.data); }).catch(() => {}),
-            get_data_retention().then(r => { if (r.data) set_preloaded_retention(r.data); }).catch(() => {}),
-            get_member_compliance().then(r => { if (r.data) set_preloaded_compliance(r.data); }).catch(() => {}),
+            list_org_filters().then(r => { if (r.data) set_preloaded_filters(r.data); }).catch((caught) => ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught)),
+            get_security_policy().then(r => { if (r.data) set_preloaded_security(r.data); }).catch((caught) => ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught)),
+            get_data_retention().then(r => { if (r.data) set_preloaded_retention(r.data); }).catch((caught) => ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught)),
+            get_member_compliance().then(r => { if (r.data) set_preloaded_compliance(r.data); }).catch((caught) => ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught)),
           ]);
         }
         const remaining_seats = Math.max(1, family_seat_usage(res.data).seats_remaining);
@@ -200,7 +208,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           const pruned = Object.fromEntries(Object.entries(stored).filter(([id]) => live_ids.has(id)));
           localStorage.setItem(`aster_family_invite_urls_${res.data.id}`, JSON.stringify(pruned));
           set_invite_urls(pruned);
-        } catch {}
+        } catch (caught) {
+          ignore_error("components/settings/billing/family_section/family_section:dismiss_checklist", caught);
+        }
         if (
           res.data.viewer_role === "owner" &&
           res.data.members.filter(m => m.status === "active").length === 1
@@ -274,7 +284,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const close_wizard = () => {
     try {
       if (group) localStorage.setItem(`aster_family_setup_${group.id}`, "1");
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/settings/billing/family_section/family_section:close_wizard", caught);
+    }
     update_preference("family_setup_wizard_dismissed", true, true);
     set_wizard_eligible_group_id(null);
     set_wizard_open(false);

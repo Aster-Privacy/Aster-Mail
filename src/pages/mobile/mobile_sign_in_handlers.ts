@@ -35,6 +35,8 @@ import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type MobileSignInHandlerParams = Pick<
   ReturnType<typeof use_mobile_sign_in>,
   | "navigate"
@@ -305,7 +307,12 @@ export function build_mobile_sign_in_handlers(
             setTimeout(() => resolve(null), 10_000),
           ),
         ]);
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "pages/mobile/mobile_sign_in_handlers:handle_login",
+          caught,
+        );
+      }
 
       const login_user_data = user_info_response?.data
         ? {

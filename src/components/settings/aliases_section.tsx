@@ -65,6 +65,8 @@ import { AliasExportModal } from "@/components/settings/aliases/alias_export_mod
 import { AliasPreferencesPanel } from "@/components/settings/aliases/alias_preferences_panel";
 import { is_https_payment_url } from "@/lib/payment_url";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
 type AliasTab = "aliases" | "domains" | "directories" | "ghost" | "preferences";
@@ -84,7 +86,12 @@ function read_initial_tab(): AliasTab {
     ) {
       return stored;
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error(
+      "components/settings/aliases_section:read_initial_tab",
+      caught,
+    );
+  }
 
   return "aliases";
 }
@@ -111,7 +118,12 @@ export function AliasesSection() {
       } else {
         sessionStorage.removeItem("alias_domains_purchase_open");
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/settings/aliases_section:set_purchase_open",
+        caught,
+      );
+    }
   };
   const [purchase_order_id, set_purchase_order_id] = useState<string | null>(
     null,
@@ -127,7 +139,12 @@ export function AliasesSection() {
         url.searchParams.delete("domain_order");
         window.history.replaceState({}, "", url.toString());
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/settings/aliases_section:clear_purchase_url_param",
+        caught,
+      );
+    }
   };
   const close_purchase = () => {
     set_purchase_open(false);
@@ -175,7 +192,12 @@ export function AliasesSection() {
           set_default_alias_domain(r.data.alias_default_domain);
         }
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/aliases_section:close_purchase",
+          caught,
+        ),
+      );
   }, []);
 
   useEffect(() => {
@@ -193,7 +215,12 @@ export function AliasesSection() {
           );
         }
       })
-      .catch(() => {})
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/aliases_section:close_purchase",
+          caught,
+        ),
+      )
       .finally(() => set_purchased_loading(false));
   }, [active_tab, purchase_open]);
 
@@ -207,7 +234,12 @@ export function AliasesSection() {
       if (stashed_order_id) {
         sessionStorage.removeItem("aster_pending_domain_order");
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/settings/aliases_section:close_purchase",
+        caught,
+      );
+    }
 
     if (params.get("cancelled") === "1") {
       const cancelled_id = url_order_id ?? stashed_order_id;
@@ -218,10 +250,20 @@ export function AliasesSection() {
         url.searchParams.delete("domain_order");
         url.searchParams.delete("cancelled");
         window.history.replaceState({}, "", url.toString());
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "components/settings/aliases_section:close_purchase",
+          caught,
+        );
+      }
 
       if (cancelled_id) {
-        cancel_domain_order(cancelled_id).catch(() => {});
+        cancel_domain_order(cancelled_id).catch((caught) =>
+          ignore_error(
+            "components/settings/aliases_section:close_purchase",
+            caught,
+          ),
+        );
         set_active_tab("domains");
       }
 
@@ -237,7 +279,12 @@ export function AliasesSection() {
 
         url.searchParams.set("domain_order", order_id);
         window.history.replaceState({}, "", url.toString());
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "components/settings/aliases_section:close_purchase",
+          caught,
+        );
+      }
     }
     set_active_tab("domains");
     set_purchase_order_id(order_id);
@@ -280,7 +327,11 @@ export function AliasesSection() {
           prev.filter((order) => order.id !== order_id),
         );
       }
-    } catch {
+    } catch (caught) {
+      ignore_error(
+        "components/settings/aliases_section:handle_cancel_order",
+        caught,
+      );
     } finally {
       set_cancelling_order_id(null);
     }
@@ -334,7 +385,9 @@ export function AliasesSection() {
     set_active_tab(tab);
     try {
       sessionStorage.setItem(SESSION_TAB_KEY, tab);
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/settings/aliases_section:handle_tab", caught);
+    }
   };
 
   useEffect(() => {
@@ -584,7 +637,12 @@ export function AliasesSection() {
                             "aster_domain_promo_banner_dismissed",
                             "1",
                           );
-                        } catch {}
+                        } catch (caught) {
+                          ignore_error(
+                            "components/settings/aliases_section:close_editor",
+                            caught,
+                          );
+                        }
                       }}
                     >
                       {t("settings.account_security_dont_show_again")}

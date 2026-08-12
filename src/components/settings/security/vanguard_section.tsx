@@ -61,6 +61,8 @@ import { enable_lockdown, disable_lockdown } from "@/services/api/lockdown";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function LockdownSection({ account_id }: { account_id: string }) {
   const { t } = use_i18n();
 
@@ -94,7 +96,12 @@ function LockdownSection({ account_id }: { account_id: string }) {
       set_totp_loading(true);
       fetch_step_up_requirements()
         .then((requirements) => set_totp_required(requirements.totp_required))
-        .catch(() => {})
+        .catch((caught) =>
+          ignore_error(
+            "components/settings/security/vanguard_section:handle_toggle",
+            caught,
+          ),
+        )
         .finally(() => set_totp_loading(false));
       set_show_disable_modal(true);
     }

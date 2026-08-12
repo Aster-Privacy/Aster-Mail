@@ -30,6 +30,8 @@ import {
 } from "@/lib/favicon_cache_db";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function resolve_initial_src(domain: string): string {
   return peek_favicon_object_url(domain) || get_favicon_url(domain);
 }
@@ -99,5 +101,7 @@ export function store_favicon_if_api_url(
       if (!blob || blob.size > MAX_FAVICON_BYTES) return;
       cache_favicon_blob(domain, blob);
     })
-    .catch(() => {});
+    .catch((caught) =>
+      ignore_error("hooks/use_favicon_src:store_favicon_if_api_url", caught),
+    );
 }

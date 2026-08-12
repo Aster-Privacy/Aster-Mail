@@ -39,6 +39,8 @@ import { sync_widget_data } from "@/native/widget_bridge";
 import { update_pwa_badge } from "@/native/pwa_badge";
 import { update_tray_badge } from "@/native/tauri_tray";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface MailStats {
   total_items: number;
   total_items_collapsed: number;
@@ -217,7 +219,9 @@ class MailStatsStore {
     if (key) {
       try {
         localStorage.removeItem(key);
-      } catch {}
+      } catch (caught) {
+        ignore_error("hooks/use_mail_stats:set_user_id", caught);
+      }
     }
 
     this.active_request = null;

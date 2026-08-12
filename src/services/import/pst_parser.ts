@@ -31,6 +31,8 @@ import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
   const message_id =
     msg.internetMessageId ||
@@ -98,7 +100,9 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
             size: att.attachSize ?? 0,
           });
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/import/pst_parser:convert_pst_message", caught);
+      }
     }
   }
 

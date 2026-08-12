@@ -30,6 +30,8 @@ import {
 } from "@/services/category_index";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const THREAD_READ_CONCURRENCY = 10;
 
 //
@@ -172,5 +174,10 @@ export function mark_conversation_read(
         invalidate_mail_stats();
       }
     })
-    .catch(() => {});
+    .catch((caught) =>
+      ignore_error(
+        "hooks/mark_conversation_read:mark_conversation_read",
+        caught,
+      ),
+    );
 }

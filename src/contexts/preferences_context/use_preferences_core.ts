@@ -55,6 +55,8 @@ import { get_font_stack, get_email_font_stack } from "@/lib/font_options";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { FONT_SIZE_DEFAULT, SaveStatus, apply_color_theme_class, label_to_language_code, normalize_font_size_scale, normalize_preferences } from "./helpers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_preferences_core() {
   const { vault, is_completing_registration } = use_auth();
   const { theme, set_theme_preference } = useTheme();
@@ -226,7 +228,7 @@ export function use_preferences_core() {
       const v = vault_ref.current;
 
       if (v) {
-        load_notification_preferences(v).catch(() => {});
+        load_notification_preferences(v).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_core:use_preferences_core", caught));
       }
     } else {
       set_save_status("error");

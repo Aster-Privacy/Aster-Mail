@@ -45,11 +45,11 @@
     "tauri:build": "tauri build",
     "tauri:dev:mac": "tauri dev",
     "tauri:build:mac": "tauri build --target aarch64-apple-darwin",
-    "sync-ui": "cd ../aster-ui && npm run build && cd ../Aster-Mail && npm install",
+    "sync-ui": "cd ../aster-ui && npm run build && cd ../Aster-Mail && npm install --no-save ../aster-ui",
     "tauri:build:universal": "tauri build --target universal-apple-darwin"
   },
   "dependencies": {
-    "@aster/ui": "file:../aster-ui",
+    "@aster/ui": "npm:@aster-privacy/ui@0.1.2",
     "@capacitor-community/contacts": "^6.1.1",
     "@capacitor/app": "^6.0.0",
     "@capacitor/browser": "^6.0.0",

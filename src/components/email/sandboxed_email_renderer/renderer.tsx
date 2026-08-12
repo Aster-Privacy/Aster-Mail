@@ -67,6 +67,8 @@ import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { reveal_on_fonts_ready } from "@/components/email/reveal_on_fonts_ready";
 import { BODY_PADDING, CONTENT_READY_FALLBACK_MS, SETTLE_REMEASURE_DELAYS_MS, SKELETON_DELAY_MEASURED_MS, SKELETON_DELAY_MS, get_cached_iframe_height, link_hover_ink_for, link_ink_for, needs_settle_remeasure, resolve_native_images, safe_hex } from "./helpers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface SandboxedEmailRendererProps {
   sanitized_html: string;
   class_name?: string;
@@ -186,7 +188,7 @@ export function SandboxedEmailRenderer({
         stable_cid_html_ref.current = result.html;
         set_internal_cid_html(result.html);
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/email/sandboxed_email_renderer/renderer:email_zoom", caught));
 
     return () => {
       cancelled = true;
@@ -521,7 +523,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           surface: contrast_repair_ref.current.surface,
           view: iframe.contentWindow,
         });
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/email/sandboxed_email_renderer/renderer:tor_csp", caught);
+      }
     }
     set_contrast_ready(true);
 
@@ -580,7 +584,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
       Promise.resolve(doc_fonts.ready)
         .then(remeasure_if_current_doc)
-        .catch(() => {});
+        .catch((caught) => ignore_error("components/email/sandboxed_email_renderer/renderer:remeasure_if_current_doc", caught));
       doc_fonts.addEventListener?.("loadingdone", remeasure_if_current_doc);
     }
 

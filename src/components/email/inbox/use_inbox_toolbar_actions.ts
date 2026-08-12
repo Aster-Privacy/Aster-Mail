@@ -63,6 +63,8 @@ import {
 } from "@/services/api/mail";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 import { expand_email_ids } from "@/hooks/email_list_helpers";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   collect_conversation_thread_tokens,
   mark_conversation_threads_read,
@@ -341,7 +343,7 @@ export function use_inbox_toolbar_actions({
         }
       }
       if (sender) {
-        report_spam_sender(sender).catch(() => {});
+        report_spam_sender(sender).catch((caught) => ignore_error("components/email/inbox/use_inbox_toolbar_actions:use_inbox_toolbar_actions", caught));
       }
       show_action_toast({
         message: t("common.conversation_marked_as_spam"),
@@ -360,7 +362,7 @@ export function use_inbox_toolbar_actions({
             Array.from(new Set([...combined_ids, ...removed_thread_ids])),
           );
           if (sender) {
-            remove_spam_sender(sender).catch(() => {});
+            remove_spam_sender(sender).catch((caught) => ignore_error("components/email/inbox/use_inbox_toolbar_actions:use_inbox_toolbar_actions", caught));
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
@@ -733,7 +735,7 @@ export function use_inbox_toolbar_actions({
     );
 
     for (const sender of unique_senders) {
-      report_spam_sender(sender).catch(() => {});
+      report_spam_sender(sender).catch((caught) => ignore_error("components/email/inbox/use_inbox_toolbar_actions:message_ids_of", caught));
     }
     for (const email of succeeded_emails) {
       remove_email(email.id);
@@ -761,7 +763,7 @@ export function use_inbox_toolbar_actions({
         });
         reindex_ids(succeeded_message_ids);
         for (const sender of unique_senders) {
-          remove_spam_sender(sender).catch(() => {});
+          remove_spam_sender(sender).catch((caught) => ignore_error("components/email/inbox/use_inbox_toolbar_actions:message_ids_of", caught));
         }
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       },
@@ -853,7 +855,7 @@ export function use_inbox_toolbar_actions({
       );
 
       for (const sender of unique_senders) {
-        remove_spam_sender(sender).catch(() => {});
+        remove_spam_sender(sender).catch((caught) => ignore_error("components/email/inbox/use_inbox_toolbar_actions:message_ids_of", caught));
       }
     }
     for (const email of selected) {
@@ -882,7 +884,7 @@ export function use_inbox_toolbar_actions({
           );
 
           for (const sender of unique_senders) {
-            report_spam_sender(sender).catch(() => {});
+            report_spam_sender(sender).catch((caught) => ignore_error("components/email/inbox/use_inbox_toolbar_actions:message_ids_of", caught));
           }
         }
         const undo_update = is_spam_restore

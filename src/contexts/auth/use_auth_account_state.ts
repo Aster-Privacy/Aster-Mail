@@ -93,6 +93,8 @@ import {
 } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   AUTH_VERIFY_TIMEOUT_MS,
   clear_account_scoped_caches,
@@ -280,8 +282,8 @@ export function use_auth_account_state() {
 
         if (is_auth_valid || verify_timed_out) {
           api_client.set_authenticated(true);
-          connection_store.sync_from_server().catch(() => {});
-          load_preferred_sender_from_server().catch(() => {});
+          connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+          load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
           sync_client.connect().catch((e) => {
             safe_log_error(e);
           });
@@ -339,12 +341,16 @@ export function use_auth_account_state() {
                     );
                     if (recovered !== null) {
                       has_keys = true;
-                      store_session_passphrase(current.id, native_passphrase).catch(() => {});
+                      store_session_passphrase(current.id, native_passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
                     }
-                  } catch {}
+                  } catch (caught) {
+                    ignore_error("contexts/auth/use_auth_account_state:init", caught);
+                  }
                 }
               }
-            } catch {}
+            } catch (caught) {
+              ignore_error("contexts/auth/use_auth_account_state:init", caught);
+            }
           }
 
           if (!has_keys) {
@@ -353,7 +359,7 @@ export function use_auth_account_state() {
 
             const current_kind = await get_account_kind(current.id);
             if (current_kind === "shared") {
-              await clear_shared_mailbox_session(current.id).catch(() => {});
+              await clear_shared_mailbox_session(current.id).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
               const remaining = await get_all_accounts();
               const fallback = remaining.find((a) => a.kind !== "shared");
 
@@ -455,7 +461,7 @@ export function use_auth_account_state() {
 
               set_state((prev) => ({ ...prev, accounts: refreshed }));
             })
-            .catch(() => {});
+            .catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
         } else {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
@@ -553,7 +559,9 @@ export function use_auth_account_state() {
             }
           : prev,
       );
-    } catch {}
+    } catch (caught) {
+      ignore_error("contexts/auth/use_auth_account_state:use_auth_account_state", caught);
+    }
   }, []);
 
   const login = useCallback(
@@ -577,7 +585,9 @@ export function use_auth_account_state() {
             ),
           ),
         ]);
-      } catch {}
+      } catch (caught) {
+        ignore_error("contexts/auth/use_auth_account_state:init", caught);
+      }
 
       try {
         if (encrypted_vault && vault_nonce) {
@@ -606,11 +616,11 @@ export function use_auth_account_state() {
         }
       }
 
-      check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
-      ensure_ratchet_keys().catch(() => {});
+      check_and_run_recovery_reencryption(vault, passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+      ensure_ratchet_keys().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
       ensure_default_labels(vault, t).catch(console.error);
-      connection_store.sync_from_server().catch(() => {});
-      load_preferred_sender_from_server().catch(() => {});
+      connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+      load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
       sync_client.connect().catch((e) => {
         safe_log_error(e);
       });
@@ -645,7 +655,7 @@ export function use_auth_account_state() {
               : prev,
           );
         })
-        .catch(() => {});
+        .catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
     },
     [t, backfill_user_profile],
   );
@@ -671,7 +681,9 @@ export function use_auth_account_state() {
             ),
           ),
         ]);
-      } catch {}
+      } catch (caught) {
+        ignore_error("contexts/auth/use_auth_account_state:init", caught);
+      }
 
       if (encrypted_vault && vault_nonce) {
         store_encrypted_vault(user.id, encrypted_vault, vault_nonce);
@@ -716,11 +728,11 @@ export function use_auth_account_state() {
           );
         }
         api_client.set_authenticated(true);
-        check_and_run_recovery_reencryption(vault, passphrase).catch(() => {});
-        ensure_ratchet_keys().catch(() => {});
+        check_and_run_recovery_reencryption(vault, passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
+        ensure_ratchet_keys().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
         ensure_default_labels(vault, t).catch(console.error);
-        connection_store.sync_from_server().catch(() => {});
-        load_preferred_sender_from_server().catch(() => {});
+        connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
+        load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
         sync_client.connect().catch((e) => {
           safe_log_error(e);
         });

@@ -37,6 +37,8 @@ import { cn } from "@/lib/utils";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
 import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_app_lock_config,
   has_duress_pin,
@@ -179,7 +181,7 @@ function SetupDuressPinModal({ account_id, is_open, on_close, on_success }: {
     set_totp_loading(true);
     fetch_step_up_requirements()
       .then((requirements) => set_totp_required(requirements.totp_required))
-      .catch(() => {})
+      .catch((caught) => ignore_error("components/settings/security/duress_pin_section:SetupDuressPinModal", caught))
       .finally(() => {
         set_totp_loading(false);
         setTimeout(() => password_ref.current?.focus(), 150);

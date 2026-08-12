@@ -59,6 +59,8 @@ import {
 import { use_online_status } from "@/hooks/use_online_status";
 import { request_cache } from "@/services/api/request_cache";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export type { UseEmailListReturn } from "./email_list_types";
 export {
   invalidate_mail_cache,
@@ -341,7 +343,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         });
 
         if (Capacitor.isNativePlatform() && result.emails.length > 0) {
-          cache_email_list(current_view, result.emails).catch(() => {});
+          cache_email_list(current_view, result.emails).catch((caught) => ignore_error("hooks/use_email_list:use_email_list", caught));
         }
       } catch {
         if (!signal.aborted && committed_view_ref.current === fetch_view) {
@@ -442,7 +444,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           has_initial_load: true,
         };
       });
-    } catch {}
+    } catch (caught) {
+      ignore_error("hooks/use_email_list:use_email_list", caught);
+    }
   }, [
     current_view,
     is_mail_view,

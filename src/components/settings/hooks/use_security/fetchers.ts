@@ -39,6 +39,8 @@ import {
   type SecurityStatusResponse,
 } from "@/services/api/account";
 import { compute_password_strength_tier } from "@/services/password_strength_score";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -164,7 +166,9 @@ const fetch_recovery_email_status = useCallback(async () => {
       fetched_at: Date.now(),
       is_loading: false,
     });
-  } catch {}
+  } catch (caught) {
+    ignore_error("components/settings/hooks/use_security/fetchers:use_security_fetchers", caught);
+  }
 }, [cache]);
 
 const fetch_security_status = useCallback(async () => {
@@ -182,7 +186,7 @@ const fetch_security_status = useCallback(async () => {
         const tier = compute_password_strength_tier(passphrase);
 
         status = { ...status, password_strength_tier: tier };
-        backfill_password_strength_tier(tier).catch(() => {});
+        backfill_password_strength_tier(tier).catch((caught) => ignore_error("components/settings/hooks/use_security/fetchers:use_security_fetchers", caught));
       }
     }
 

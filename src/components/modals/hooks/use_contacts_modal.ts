@@ -35,6 +35,8 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const BATCH_SIZE = 10;
 
 export function use_contacts_modal({
@@ -632,7 +634,14 @@ export function use_contacts_modal({
     const emails = selected_contacts.flatMap((c) => c.emails).filter((e) => e);
 
     if (emails.length > 0) {
-      navigator.clipboard.writeText(emails.join(", ")).catch(() => {});
+      navigator.clipboard
+        .writeText(emails.join(", "))
+        .catch((caught) =>
+          ignore_error(
+            "components/modals/hooks/use_contacts_modal:handle_keydown",
+            caught,
+          ),
+        );
       set_copied_field("bulk-emails");
       if (copy_timeout_ref.current) {
         clearTimeout(copy_timeout_ref.current);

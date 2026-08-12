@@ -28,6 +28,8 @@ import type { StepUpCredentials } from "./step_up";
 import { hash_recovery_email } from "@/services/crypto/key_manager";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface GetRecoveryEmailApiResponse {
   encrypted_email: string | null;
   email_nonce: string | null;
@@ -145,7 +147,7 @@ export async function get_recovery_email(
             email_hash,
           }),
         )
-        .catch(() => {});
+        .catch((caught) => ignore_error("services/api/recovery_email:get_recovery_email", caught));
     }
 
     return { data: cached_recovery_data };

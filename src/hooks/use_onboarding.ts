@@ -28,6 +28,8 @@ import {
 } from "@/services/api/onboarding";
 import { use_auth } from "@/contexts/auth_context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface UseOnboardingReturn {
   state: OnboardingState | null;
   is_completed: boolean;
@@ -69,7 +71,8 @@ export function use_onboarding(): UseOnboardingReturn {
       set_state(response.data);
       set_is_completed(response.is_completed);
       set_is_skipped(response.is_skipped);
-    } catch {
+    } catch (caught) {
+      ignore_error("hooks/use_onboarding:use_onboarding", caught);
     } finally {
       set_is_loading(false);
       set_has_initialized(true);
@@ -102,7 +105,8 @@ export function use_onboarding(): UseOnboardingReturn {
             is_completed,
             is_skipped,
           );
-        } catch {
+        } catch (caught) {
+          ignore_error("hooks/use_onboarding:use_onboarding", caught);
         } finally {
           is_updating_ref.current = false;
         }

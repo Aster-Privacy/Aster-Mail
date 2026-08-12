@@ -51,6 +51,8 @@ import {
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 let repair_attempted = false;
 
 async function attempt_alias_repair(
@@ -103,7 +105,9 @@ async function attempt_alias_repair(
           });
           break;
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("hooks/use_sidebar_aliases:attempt_alias_repair", caught);
+      }
     }
   }
 }
@@ -414,7 +418,9 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         for (const group of per_domain) {
           merged.push(...group);
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("hooks/use_sidebar_aliases:use_sidebar_aliases", caught);
+      }
 
       try {
         const groups_response = await list_my_groups();
@@ -436,7 +442,9 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
             updated_at: new Date(0).toISOString(),
           });
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("hooks/use_sidebar_aliases:use_sidebar_aliases", caught);
+      }
 
       cached_aliases.data = merged;
       rebuild_alias_index();

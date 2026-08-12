@@ -72,6 +72,8 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { RecoveryMethod, RecoveryStep } from "./shared";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_forgot_password() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -223,7 +225,12 @@ export function use_forgot_password() {
 
     try {
       await forgot_password_email(clean_username, email_domain);
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "pages/forgot_password/use_forgot_password:handle_email_reset_link",
+        caught,
+      );
+    }
 
     await timing_safe_delay();
 
@@ -606,7 +613,12 @@ export function use_forgot_password() {
       await navigator.clipboard.writeText(codes_text);
       set_copy_success(true);
       setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "pages/forgot_password/use_forgot_password:handle_copy_codes",
+        caught,
+      );
+    }
   };
 
   const handle_download_pdf = async () => {

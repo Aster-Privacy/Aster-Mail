@@ -66,6 +66,8 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function build_core_context_menu_actions(
   params: UseContextMenuActionsParams,
 ) {
@@ -322,7 +324,12 @@ export function build_core_context_menu_actions(
         emit_mail_item_updated({ id, is_spam: true });
       }
       if (sender) {
-        report_spam_sender(sender).catch(() => {});
+        report_spam_sender(sender).catch((caught) =>
+          ignore_error(
+            "components/email/inbox/inbox_context_menu_actions_core:handle_spam",
+            caught,
+          ),
+        );
       }
       show_action_toast({
         message: t("common.conversation_marked_as_spam"),
@@ -341,7 +348,12 @@ export function build_core_context_menu_actions(
             emit_mail_item_updated({ id, is_spam: false });
           }
           if (sender) {
-            remove_spam_sender(sender).catch(() => {});
+            remove_spam_sender(sender).catch((caught) =>
+              ignore_error(
+                "components/email/inbox/inbox_context_menu_actions_core:handle_spam",
+                caught,
+              ),
+            );
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },

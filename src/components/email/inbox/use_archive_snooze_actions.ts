@@ -41,6 +41,8 @@ import {
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { get_thread_messages } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
@@ -224,7 +226,7 @@ export function use_archive_snooze_actions({
     if (result.data?.success) {
       void bulk_update_metadata_by_ids(archive_ids, {
         is_archived: true,
-      }).catch(() => {});
+      }).catch((caught) => ignore_error("components/email/inbox/use_archive_snooze_actions:use_archive_snooze_actions", caught));
       for (const id of archive_ids) {
         emit_mail_item_updated({ id, is_archived: true });
       }

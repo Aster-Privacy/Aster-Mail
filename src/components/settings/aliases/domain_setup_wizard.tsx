@@ -57,6 +57,8 @@ import { detect_dns_provider } from "@/data/dns_providers";
 import { DnsChecklist, type StepStatus, type ChecklistStep } from "./dns_checklist";
 import { DnsStepContent } from "./dns_step_content";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const AUTO_CHECK_INTERVAL_MS = 15000;
 
 function get_wizard_steps(
@@ -286,7 +288,9 @@ export function DomainSetupWizard({
             return outcome === "pass" ? "verified" : "failed";
           }),
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/settings/aliases/domain_setup_wizard:poll", caught);
+      }
     };
 
     poll();

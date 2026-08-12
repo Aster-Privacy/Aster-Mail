@@ -45,6 +45,8 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface StepUpModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -89,7 +91,9 @@ export function StepUpModal({
       .then((requirements) => {
         set_totp_required(requirements.totp_required);
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error("components/settings/step_up_modal:StepUpModal", caught),
+      );
 
     list_hardware_keys()
       .then((res) => {
@@ -97,7 +101,9 @@ export function StepUpModal({
           set_has_hardware_keys(true);
         }
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error("components/settings/step_up_modal:StepUpModal", caught),
+      );
   }, [is_open]);
 
   const can_submit =

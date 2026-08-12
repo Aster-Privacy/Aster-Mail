@@ -30,6 +30,8 @@ import {
 import { update_status_bar_theme } from "@/native/capacitor_bridge";
 import { is_dark_appearance_active, set_theme_is_dark } from "@/lib/dark_mode";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export type Theme = "light" | "dark";
 export type ThemePreference = "light" | "dark" | "system";
 
@@ -60,7 +62,9 @@ function get_initial_preference(): ThemePreference {
     if (stored === "dark" || stored === "light" || stored === "system") {
       return stored;
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("contexts/theme_context:get_initial_preference", caught);
+  }
 
   if (
     typeof document !== "undefined" &&
@@ -104,7 +108,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme_preference);
-    } catch {}
+    } catch (caught) {
+      ignore_error("contexts/theme_context:ThemeProvider", caught);
+    }
 
     set_theme_state(resolve_theme(theme_preference));
   }, [theme_preference]);

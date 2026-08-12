@@ -35,6 +35,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   list_deleted_aliases,
   restore_alias,
@@ -119,7 +121,12 @@ export function RecentlyDeletedAliasesSection({
               row.encrypted_display_name,
               row.display_name_nonce,
             );
-          } catch {}
+          } catch (caught) {
+            ignore_error(
+              "components/settings/aliases/recently_deleted_aliases_section:decrypt_row",
+              caught,
+            );
+          }
         }
 
         return {

@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   count_inactive_key_sets,
   restore_inactive_key_sets,
@@ -52,7 +54,7 @@ export function RecoverOlderDataSection() {
       .then((count) => {
         if (!cancelled) set_pending(count);
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/settings/security/recover_older_data_section:RecoverOlderDataSection", caught));
 
     return () => {
       cancelled = true;

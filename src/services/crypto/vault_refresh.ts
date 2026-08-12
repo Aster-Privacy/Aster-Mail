@@ -28,6 +28,8 @@ import {
 } from "./memory_key_store";
 import { with_vault_write_lock } from "./vault_write_lock";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const REFRESH_COOLDOWN_MS = 5 * 60 * 1000;
 const FAILURE_RETRY_MS = 30 * 1000;
 
@@ -176,7 +178,9 @@ export async function adopt_refreshed_vault(
           `astermail_vault_nonce_${refreshed.user_id}`,
           refreshed.vault_nonce,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/crypto/vault_refresh:adopt_refreshed_vault", caught);
+      }
 
       adopted_encrypted_vault = refreshed.encrypted_vault;
 

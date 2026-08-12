@@ -44,6 +44,8 @@ import { set_forward_mail_id } from "@/services/forward_store";
 
 import type { EmailViewerActionsDeps } from "./email_viewer_actions";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_message_actions(
   deps: EmailViewerActionsDeps,
   build_reply_data: (
@@ -192,7 +194,12 @@ export function use_message_actions(
       if (result.success) {
         emit_mail_items_removed({ ids: [msg.id] });
         if (msg.sender_email) {
-          report_spam_sender(msg.sender_email).catch(() => {});
+          report_spam_sender(msg.sender_email).catch((caught) =>
+            ignore_error(
+              "components/email/email_viewer_message_actions:use_message_actions",
+              caught,
+            ),
+          );
         }
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_toast(deps.t("common.reported_as_phishing"), "success");
@@ -215,7 +222,12 @@ export function use_message_actions(
 
       if (result.success) {
         if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch(() => {});
+          remove_spam_sender(msg.sender_email).catch((caught) =>
+            ignore_error(
+              "components/email/email_viewer_message_actions:use_message_actions",
+              caught,
+            ),
+          );
         }
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_toast(deps.t("common.marked_as_not_spam"), "success");

@@ -51,6 +51,8 @@ import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes, is_official_sender } from "@/lib/utils";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface WorkspaceSwitcherProps {
   align?: "start" | "center" | "end";
   trigger: React.ReactNode;
@@ -141,7 +143,12 @@ export function WorkspaceSwitcher({
           flags[acc.id] = acc.user.is_paid_plan === true;
         set_plan_flags(flags);
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error(
+          "components/layout/workspace_switcher:WorkspaceSwitcher",
+          caught,
+        ),
+      );
 
     return () => {
       cancelled = true;

@@ -20,6 +20,8 @@
 //
 import { useState, useEffect, useCallback } from "react";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   cancel_send as cancel_queue_send,
   send_now as send_queue_now,
@@ -221,7 +223,9 @@ export function use_undo_send(): UseUndoSendReturn {
     undo_send_manager.remove(id);
 
     if (pending.is_server_queued && pending.server_queue_id) {
-      cancel_server_queued_email(pending.server_queue_id).catch(() => {});
+      cancel_server_queued_email(pending.server_queue_id).catch((caught) =>
+        ignore_error("hooks/use_undo_send:use_undo_send", caught),
+      );
     } else {
       cancel_queue_send(id);
     }
@@ -239,7 +243,9 @@ export function use_undo_send(): UseUndoSendReturn {
     undo_send_manager.remove(id);
 
     if (pending.is_server_queued && pending.server_queue_id) {
-      send_server_queued_immediately(pending.server_queue_id).catch(() => {});
+      send_server_queued_immediately(pending.server_queue_id).catch((caught) =>
+        ignore_error("hooks/use_undo_send:use_undo_send", caught),
+      );
     } else if (pending.on_send_immediately) {
       pending.on_send_immediately();
     } else {

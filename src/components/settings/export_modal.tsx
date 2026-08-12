@@ -80,6 +80,8 @@ import { create_account_message_source } from "@/services/export/message_source"
 import { emit_export_event } from "@/services/export/audit";
 import { build_account_data_files } from "@/services/export/account_data";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type ExportStep =
   | "reauth"
   | "verify"
@@ -187,7 +189,9 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       .then((requirements) => {
         set_verify_totp_required(requirements.totp_required);
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error("components/settings/export_modal:ExportModal", caught),
+      );
     setTimeout(() => verify_input_ref.current?.focus(), 100);
   }, [step]);
 

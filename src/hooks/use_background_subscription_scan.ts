@@ -42,6 +42,8 @@ import {
 } from "@/utils/unsubscribe_detector";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface ScanEnvelope {
   from?: { name?: string; email?: string };
   list_unsubscribe?: string;
@@ -470,7 +472,12 @@ export function use_background_subscription_scan(): void {
       set_scan_in_flight(true);
 
       run_background_scan(vault)
-        .catch(() => {})
+        .catch((caught) =>
+          ignore_error(
+            "hooks/use_background_subscription_scan:use_background_subscription_scan",
+            caught,
+          ),
+        )
         .finally(() => {
           is_scanning_ref.current = false;
           set_scan_in_flight(false);

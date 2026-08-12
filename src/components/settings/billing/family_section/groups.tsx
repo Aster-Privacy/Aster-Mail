@@ -56,6 +56,8 @@ import {
 } from "@/components/ui/alert_dialog";
 
 import { SkeletonRows } from "./shared";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
   const { t } = use_i18n();
   const [groups, set_groups] = useState<OrgGroup[]>([]);
@@ -89,7 +91,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
         .map(d => d.domain_name)
         .filter(n => n !== "astermail.org" && n !== "aster.cx");
       set_domains(["astermail.org", "aster.cx", ...active_custom]);
-    }).catch(() => {});
+    }).catch((caught) => ignore_error("components/settings/billing/family_section/groups:GroupsContent", caught));
   }, [load_groups]);
 
   const handle_expand = async (gid: string) => {

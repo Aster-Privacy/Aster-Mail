@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { get_cached_folders } from "@/hooks/use_folders";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_unlock_token,
   is_folder_unlock_live,
@@ -214,19 +216,25 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
     );
 
     tasks.push(clear_search_snapshots());
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_search_index } = await import("@/hooks/use_search");
 
     clear_search_index();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_mail_cache } = await import("@/hooks/email_list_cache");
 
     clear_mail_cache();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_email_cache } = await import(
@@ -234,7 +242,9 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
     );
 
     tasks.push(clear_email_cache());
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_category_index, clear_entry_previews } = await import(
@@ -243,7 +253,9 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     clear_entry_previews();
     tasks.push(clear_category_index());
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_category_preview_cache } = await import(
@@ -251,7 +263,9 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
     );
 
     clear_category_preview_cache();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_attachment_meta_cache } = await import(
@@ -259,7 +273,9 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
     );
 
     clear_attachment_meta_cache();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_attachment_preview_cache } = await import(
@@ -267,19 +283,25 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
     );
 
     clear_attachment_preview_cache();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { request_cache } = await import("@/services/api/request_cache");
 
     request_cache.invalidate("GET:/mail/v1/messages");
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   try {
     const { clear_folder_context } = await import("@/services/folder_context");
 
     clear_folder_context();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+  }
 
   await Promise.allSettled(tasks);
 }

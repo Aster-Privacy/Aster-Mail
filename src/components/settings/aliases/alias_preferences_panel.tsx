@@ -35,6 +35,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_alias_preferences,
   update_alias_preferences,
@@ -104,7 +106,12 @@ export function AliasPreferencesPanel({
       const merged = pending_patch.current;
 
       pending_patch.current = {};
-      update_alias_preferences(merged).catch(() => {});
+      update_alias_preferences(merged).catch((caught) =>
+        ignore_error(
+          "components/settings/aliases/alias_preferences_panel:AliasPreferencesPanel",
+          caught,
+        ),
+      );
     }, 500);
   }, []);
 

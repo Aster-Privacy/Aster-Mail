@@ -54,6 +54,8 @@ import { fetch_my_badges, type Badge } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { Spinner } from "@/components/ui/spinner";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
 interface InlineReplySectionProps {
@@ -455,7 +457,7 @@ export const InlineReplySection = forwardRef<
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        delete_draft(captured_draft_id).catch(() => {});
+        delete_draft(captured_draft_id).catch((caught) => ignore_error("components/email/inline_reply_section", caught));
       }
     } else if (!result.success) {
       is_sending_ref.current = false;

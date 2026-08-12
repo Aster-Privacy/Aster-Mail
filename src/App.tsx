@@ -128,6 +128,8 @@ import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { AppLock } from "@/components/mobile";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface FamilyWelcomeState {
   plan_name: string;
   max_members: number;
@@ -175,7 +177,9 @@ function BillingSuccessHandler() {
         BILLING_RETURN_KEY,
         billing === "success" ? "success" : "cancelled",
       );
-    } catch {}
+    } catch (caught) {
+      ignore_error("App:BillingSuccessHandler", caught);
+    }
     params.delete("billing");
     const query = params.toString();
 
@@ -193,7 +197,9 @@ function BillingSuccessHandler() {
 
     try {
       billing = sessionStorage.getItem(BILLING_RETURN_KEY);
-    } catch {}
+    } catch (caught) {
+      ignore_error("App:BillingSuccessHandler", caught);
+    }
 
     if (!billing) return;
 
@@ -201,7 +207,9 @@ function BillingSuccessHandler() {
 
     try {
       sessionStorage.removeItem(BILLING_RETURN_KEY);
-    } catch {}
+    } catch (caught) {
+      ignore_error("App:BillingSuccessHandler", caught);
+    }
 
     if (billing === "cancelled") {
       show_toast(t("settings.billing_checkout_cancelled"), "info");
@@ -295,7 +303,9 @@ function App() {
       if (order_id && params.get("cancelled") !== "1") {
         sessionStorage.setItem("aster_pending_domain_order", order_id);
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("App:App", caught);
+    }
   }, []);
 
   return (

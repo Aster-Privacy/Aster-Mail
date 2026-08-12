@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ignore_error } from "@/lib/ignore_error";
+
 const STORAGE_KEY = "aster_icon_cache_v10";
 const OK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const FAIL_TTL_MS = 6 * 60 * 60 * 1000;
@@ -53,7 +55,9 @@ function load_from_storage(): void {
     if (pruned) {
       schedule_flush();
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/icon_cache:load_from_storage", caught);
+  }
 }
 
 let flush_timer: ReturnType<typeof setTimeout> | null = null;
@@ -71,7 +75,9 @@ function schedule_flush(): void {
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-    } catch {}
+    } catch (caught) {
+      ignore_error("lib/icon_cache:schedule_flush", caught);
+    }
   }, 1000);
 }
 

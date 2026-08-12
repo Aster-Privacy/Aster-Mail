@@ -31,6 +31,8 @@ import { format_created_at, format_relative_time } from "../alias_stats_format";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_alias_stats,
   type AliasStats,
@@ -77,7 +79,7 @@ export function StatsPanel({
         if (active && envelope?.from?.email)
           set_last_sender(envelope.from.email);
       })
-      .catch(() => {})
+      .catch((caught) => ignore_error("components/settings/aliases/alias_advanced_panel/stats:StatsPanel", caught))
       .finally(() => {
         if (active) set_loading(false);
       });

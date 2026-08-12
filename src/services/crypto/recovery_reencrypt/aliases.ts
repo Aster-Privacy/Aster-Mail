@@ -44,6 +44,8 @@ import {
 
 
 import { derive_hmac_key, import_aes_key, re_encrypt_field } from "./key_helpers";
+import { ignore_error } from "@/lib/ignore_error";
+
 export async function re_encrypt_aliases_contacts(
   old_raw: Uint8Array,
   new_raw: Uint8Array,
@@ -208,7 +210,7 @@ export async function re_encrypt_aliases_contacts(
     await rekey_user_data({
       re_encrypted_aliases,
       re_encrypted_contacts,
-    }).catch(() => {});
+    }).catch((caught) => ignore_error("services/crypto/recovery_reencrypt/aliases:re_encrypt_aliases_contacts", caught));
   }
 }
 
@@ -415,7 +417,7 @@ export async function re_encrypt_alias_sub_items_recovery(
   if (re_encrypted_domain_addresses.length > 0) payload.re_encrypted_domain_addresses = re_encrypted_domain_addresses;
 
   if (Object.keys(payload).length > 0) {
-    await rekey_user_data(payload).catch(() => {});
+    await rekey_user_data(payload).catch((caught) => ignore_error("services/crypto/recovery_reencrypt/aliases:re_encrypt_alias_sub_items_recovery", caught));
   }
 }
 

@@ -29,6 +29,8 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface ThreadMessageBodyProps {
   clean_body: string;
   viewing_source: boolean;
@@ -105,7 +107,12 @@ export function ThreadMessageBody({
                       "success",
                     );
                   })
-                  .catch(() => {});
+                  .catch((caught) =>
+                    ignore_error(
+                      "components/email/thread_message_body:ThreadMessageBody",
+                      caught,
+                    ),
+                  );
               }}
             >
               {t("common.copy_source")}

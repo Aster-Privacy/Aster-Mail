@@ -75,6 +75,8 @@ import {
 } from "./reply_modal_types";
 
 import { use_reply_modal_state } from "./use_reply_modal_state";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_reply_modal(props: UseReplyModalProps) {
   const {
     is_open,
@@ -328,7 +330,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch(() => {});
+        await delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
       }
 
       on_close();
@@ -492,7 +494,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        delete_draft(captured_draft_id).catch(() => {});
+        delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
       }
 
       if (delay_seconds > 0) {
@@ -628,7 +630,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch(() => {});
+        await delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
       }
 
       on_close();

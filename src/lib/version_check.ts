@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { ignore_error } from "@/lib/ignore_error";
+
 declare const __BUILD_HASH__: string;
 declare const __APP_VERSION__: string;
 
@@ -66,7 +68,9 @@ function is_billing_active(): boolean {
     }
     if ((window as unknown as { Stripe?: unknown }).Stripe) return true;
     if (document.querySelector('iframe[src*="stripe"]')) return true;
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:is_billing_active", caught);
+  }
   return false;
 }
 
@@ -76,7 +80,9 @@ function can_auto_reload(): boolean {
     const last = Number(sessionStorage.getItem(AUTO_RELOAD_MARKER) || "0");
 
     if (Date.now() - last < AUTO_RELOAD_COOLDOWN_MS) return false;
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:can_auto_reload", caught);
+  }
 
   if (is_billing_active()) return false;
 
@@ -86,7 +92,9 @@ function can_auto_reload(): boolean {
 function mark_auto_reload(): void {
   try {
     sessionStorage.setItem(AUTO_RELOAD_MARKER, String(Date.now()));
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:mark_auto_reload", caught);
+  }
 }
 
 async function fetch_manifest(): Promise<VersionManifest | null> {
@@ -124,7 +132,9 @@ export async function hard_flush_and_reload(): Promise<void> {
 
     sessionStorage.setItem("aster:intended_route_at", String(Date.now()));
     sessionStorage.setItem("aster:intended_route", route);
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:hard_flush_and_reload", caught);
+  }
 
   try {
     if ("serviceWorker" in navigator) {
@@ -134,7 +144,9 @@ export async function hard_flush_and_reload(): Promise<void> {
         registrations.map((r) => r.unregister().catch(() => false)),
       );
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:hard_flush_and_reload", caught);
+  }
 
   try {
     if ("caches" in window) {
@@ -142,7 +154,9 @@ export async function hard_flush_and_reload(): Promise<void> {
 
       await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:hard_flush_and_reload", caught);
+  }
 
   window.location.reload();
 }
@@ -179,7 +193,9 @@ async function check_once(is_boot = false): Promise<void> {
       const last = Number(sessionStorage.getItem(AUTO_RELOAD_MARKER) || "0");
 
       if (Date.now() - last < AUTO_RELOAD_COOLDOWN_MS) return;
-    } catch {}
+    } catch (caught) {
+      ignore_error("lib/version_check:check_once", caught);
+    }
     mark_auto_reload();
     void hard_flush_and_reload();
 
@@ -201,7 +217,9 @@ export async function version_check_blocking(timeout_ms: number): Promise<void> 
     const last = Number(sessionStorage.getItem(AUTO_RELOAD_MARKER) || "0");
 
     if (Date.now() - last < AUTO_RELOAD_COOLDOWN_MS) return;
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:version_check_blocking", caught);
+  }
 
   const manifest_promise = fetch_manifest();
   const timeout_promise = new Promise<null>((resolve) => {
@@ -234,7 +252,9 @@ export function start_version_check(): void {
         current.pathname + current.search + current.hash,
       );
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/version_check:start_version_check", caught);
+  }
 
   (window as unknown as { __aster_version?: unknown }).__aster_version = {
     version: loaded_version,

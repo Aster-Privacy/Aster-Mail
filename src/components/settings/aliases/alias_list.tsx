@@ -53,6 +53,8 @@ import { update_alias, delete_alias } from "@/services/api/aliases";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type FilterMode = "all" | "enabled" | "disabled";
 
 const ALIASES_PER_PAGE = 50;
@@ -256,7 +258,12 @@ export function AliasList({
       set_selected_ids(new Set());
       set_show_bulk_delete_confirm(false);
       on_aliases_changed?.();
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/settings/aliases/alias_list:handle_bulk_delete_confirm",
+        caught,
+      );
+    }
   };
 
   const exit_bulk_mode = () => {

@@ -59,6 +59,8 @@ import {
 } from "@/components/ui/alert_dialog";
 
 import { TFn } from "./helpers";
+import { ignore_error } from "@/lib/ignore_error";
+
 export const FILTER_FIELD_COLORS: Record<string, string> = {
   from: "#6366f1",
   domain: "#8b5cf6",
@@ -226,7 +228,7 @@ export function MemberConsentPanel() {
   useEffect(() => {
     list_member_consent_requests()
       .then(r => { if (r.data) set_requests(r.data.filter(req => !req.responded)); })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/settings/billing/family_section/filters:MemberConsentPanel", caught));
   }, []);
 
   const respond = async (id: string, accepted: boolean) => {

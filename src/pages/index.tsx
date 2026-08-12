@@ -83,6 +83,8 @@ import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export default function IndexPage() {
   const state = use_index_page_state();
   const { t } = use_i18n();
@@ -163,7 +165,9 @@ export default function IndexPage() {
       if (sessionStorage.getItem("aster_pending_domain_order")) {
         state.open_settings("aliases" as SettingsSection);
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/index:toggle_quick_settings", caught);
+    }
 
     window.addEventListener("navigate-settings", handle_navigate);
     window.addEventListener("astermail:navigate-to-sent", handle_navigate_sent);

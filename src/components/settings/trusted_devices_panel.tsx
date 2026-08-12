@@ -34,6 +34,8 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   clear_plan_cache,
   get_current_plan_code,
@@ -127,7 +129,12 @@ export function TrustedDevicesPanel() {
         const { open } = await import("@tauri-apps/plugin-shell");
         await open(url);
         return;
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "components/settings/trusted_devices_panel:open_provision",
+          caught,
+        );
+      }
     }
     window.location.href = url;
   };

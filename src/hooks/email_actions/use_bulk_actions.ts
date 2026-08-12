@@ -69,6 +69,8 @@ import {
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const ARCHIVE_BATCH_CHUNK_SIZE = 100;
 
 async function run_archive_batch(
@@ -735,7 +737,7 @@ export function use_bulk_actions(
         );
 
         for (const sender of unique_senders) {
-          report_spam_sender(sender).catch(() => {});
+          report_spam_sender(sender).catch((caught) => ignore_error("hooks/email_actions/use_bulk_actions:use_bulk_actions", caught));
         }
       }
 

@@ -25,6 +25,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_vacation_reply,
   upsert_vacation_reply,
@@ -68,7 +70,8 @@ export function VacationReplyTab() {
           );
           set_vacation_external_only(result.data.external_only);
         }
-      } catch {
+      } catch (caught) {
+        ignore_error("pages/mobile/settings/vacation_reply_tab:load_vacation", caught);
       } finally {
         if (!cancelled) set_vacation_loading(false);
       }

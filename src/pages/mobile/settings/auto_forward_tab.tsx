@@ -42,6 +42,8 @@ import {
 } from "@/services/api/auto_forward";
 import { ForwardingRuleBuilder } from "@/components/settings/forwarding_rule_builder";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function AutoForwardTab() {
   const { t } = use_i18n();
   const [rules, set_rules] = useState<ForwardingRuleResponse[]>([]);
@@ -147,7 +149,11 @@ export function AutoForwardTab() {
 
         if (cancelled) return;
         if (result.data) set_rules(result.data);
-      } catch {
+      } catch (caught) {
+        ignore_error(
+          "pages/mobile/settings/auto_forward_tab:load_rules",
+          caught,
+        );
       } finally {
         if (!cancelled) set_rules_loading(false);
       }

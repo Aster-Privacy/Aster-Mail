@@ -26,6 +26,8 @@ import type { } from "@/services/api/blocked_senders";
 import type { } from "@/services/api/allowed_senders";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export const PENDING_KEY = "aster_pending_reencryption";
 
 export interface PendingReencryptData {
@@ -38,13 +40,17 @@ export async function store_pending_reencryption(
 ): Promise<void> {
   try {
     await device_store(PENDING_KEY, data);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/recovery_reencrypt/pending:store_pending_reencryption", caught);
+  }
 }
 
 export function clear_pending_reencryption(): void {
   try {
     localStorage.removeItem(PENDING_KEY);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/recovery_reencrypt/pending:clear_pending_reencryption", caught);
+  }
 }
 
 export async function get_pending(): Promise<PendingReencryptData | null> {

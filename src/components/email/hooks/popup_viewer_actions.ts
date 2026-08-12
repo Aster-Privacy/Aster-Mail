@@ -55,6 +55,8 @@ import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface PopupActionsDeps {
   email_id: string | null;
   email: DecryptedEmail | null;
@@ -208,7 +210,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       const sender = deps.email?.sender_email;
 
       if (sender) {
-        report_spam_sender(sender).catch(() => {});
+        report_spam_sender(sender).catch((caught) => ignore_error("components/email/hooks/popup_viewer_actions:use_popup_viewer_actions", caught));
       }
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
@@ -225,7 +227,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             { is_spam: false, is_trashed: prev_is_trashed },
           );
           if (sender) {
-            remove_spam_sender(sender).catch(() => {});
+            remove_spam_sender(sender).catch((caught) => ignore_error("components/email/hooks/popup_viewer_actions:use_popup_viewer_actions", caught));
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
@@ -696,7 +698,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       if (result.success) {
         emit_mail_items_removed({ ids: [msg.id] });
         if (msg.sender_email) {
-          report_spam_sender(msg.sender_email).catch(() => {});
+          report_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/popup_viewer_actions:use_popup_viewer_actions", caught));
         }
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.on_close();
@@ -721,7 +723,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       if (result.success) {
         reindex_ids([msg.id]);
         if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch(() => {});
+          remove_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/popup_viewer_actions:use_popup_viewer_actions", caught));
         }
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.on_close();

@@ -54,6 +54,8 @@ import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS, CROSS_DEVICE_REFRESH_POLL_MS, FONT_SIZE_DEFAULT, apply_color_theme_class, apply_pending_preferences, normalize_font_size_scale, normalize_preferences, reconcile_low_network_mode } from "./helpers";
 import { use_preferences_core } from "./use_preferences_core";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_preferences_provider() {
   const {
     vault,
@@ -117,7 +119,7 @@ export function use_preferences_provider() {
       if (reconciled !== merged) {
         merged = reconciled;
         cache_preferences_locally(merged);
-        do_save(merged).catch(() => {});
+        do_save(merged).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:use_preferences_provider", caught));
       }
 
       const url_low_bandwidth = new URLSearchParams(window.location.search).get(
@@ -138,7 +140,7 @@ export function use_preferences_provider() {
             low_network_mode_user_set: true,
           };
           cache_preferences_locally(merged);
-          do_save(merged).catch(() => {});
+          do_save(merged).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:use_preferences_provider", caught));
         }
       }
 
@@ -542,7 +544,7 @@ export function use_preferences_provider() {
       in_flight = true;
 
       reload_preferences(true)
-        .catch(() => {})
+        .catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:refresh_from_other_devices", caught))
         .finally(() => {
           in_flight = false;
         });
@@ -607,7 +609,7 @@ export function use_preferences_provider() {
           encrypted_preferences: beacon_payload_ref.current.encrypted,
           preferences_nonce: beacon_payload_ref.current.nonce,
         }),
-      }).catch(() => {});
+      }).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:flush_via_beacon", caught));
 
       beacon_payload_ref.current = null;
       latest_prefs_ref.current = null;

@@ -35,6 +35,8 @@ import { type RatchetEnvelope, type RatchetRecipientData } from "./ratchet_types
 import { adopt_refreshed_vault, fetch_refreshed_vault } from "./vault_refresh";
 import { perform_x3dh_receiver } from "./x3dh";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function resolve_recipient_data(
   our_email: string,
   envelope: RatchetEnvelope,
@@ -121,7 +123,7 @@ async function attempt_ratchet_decrypt(
 
       if (dedupe_key) {
         await set_cached_ratchet_plaintext(dedupe_key, plaintext);
-        void upload_to_escrow(dedupe_key, plaintext).catch(() => {});
+        void upload_to_escrow(dedupe_key, plaintext).catch((caught) => ignore_error("services/crypto/ratchet_decrypt:attempt_ratchet_decrypt", caught));
       }
 
       return { plaintext, error: null };
@@ -516,7 +518,9 @@ async function decrypt_ratchet_for_recipient(
             ratchet = candidate;
             await adopt_refreshed_vault(refreshed);
             break;
-          } catch {}
+          } catch (caught) {
+            ignore_error("services/crypto/ratchet_decrypt:decrypt_ratchet_for_recipient", caught);
+          }
         }
       }
     }

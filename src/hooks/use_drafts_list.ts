@@ -47,6 +47,8 @@ import { build_list_preview } from "@/utils/preview_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_action_toast } from "@/components/toast/action_toast";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const DRAFT_FETCH_LIMIT = 50;
 const FETCH_TIMEOUT_MS = 15_000;
 const UNDO_WINDOW_MS = 6_000;
@@ -71,13 +73,17 @@ function write_persisted_deletes(entries: PersistedDelete[]) {
   try {
     if (entries.length === 0) localStorage.removeItem(PENDING_DELETES_KEY);
     else localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(entries));
-  } catch {}
+  } catch (caught) {
+    ignore_error("hooks/use_drafts_list:write_persisted_deletes", caught);
+  }
 }
 
 export function clear_persisted_draft_deletes(): void {
   try {
     localStorage.removeItem(PENDING_DELETES_KEY);
-  } catch {}
+  } catch (caught) {
+    ignore_error("hooks/use_drafts_list:clear_persisted_draft_deletes", caught);
+  }
 }
 
 function add_to_persisted_deletes(ids: string[], scheduled_at: number) {
@@ -349,7 +355,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
               invalidate_mail_stats();
             }
           })
-          .catch(() => {});
+          .catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
       }, UNDO_WINDOW_MS);
 
       pending_deletes.current.set(draft.id, { timer, draft, position });
@@ -417,7 +423,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
 
     if (expired_ids.length > 0) {
       for (const id of expired_ids) {
-        delete_draft(id).catch(() => {});
+        delete_draft(id).catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
       }
       remove_from_persisted_deletes(expired_ids);
       invalidate_mail_stats();
@@ -446,7 +452,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
             .then((result) => {
               if (result.data?.success) invalidate_mail_stats();
             })
-            .catch(() => {});
+            .catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
         }, remaining_ms);
 
         pending_deletes.current.set(id, {

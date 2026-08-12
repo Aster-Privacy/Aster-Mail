@@ -31,6 +31,8 @@ import {
 } from "@/services/offline_email_cache";
 import { request_cache } from "@/services/api/request_cache";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface ViewCacheEntry {
   state: EmailListState;
   time: number;
@@ -59,17 +61,17 @@ export function set_view_cache(view: string, entry: ViewCacheEntry): void {
 export function invalidate_mail_cache(view?: string): void {
   if (view) {
     view_cache.delete(view);
-    clear_view_cache(view).catch(() => {});
+    clear_view_cache(view).catch((caught) => ignore_error("hooks/email_list_cache:invalidate_mail_cache", caught));
   } else {
     view_cache.clear();
-    clear_email_cache().catch(() => {});
+    clear_email_cache().catch((caught) => ignore_error("hooks/email_list_cache:invalidate_mail_cache", caught));
   }
   request_cache.invalidate("GET:/mail/v1/messages");
 }
 
 export function clear_mail_cache(): void {
   view_cache.clear();
-  clear_email_cache().catch(() => {});
+  clear_email_cache().catch((caught) => ignore_error("hooks/email_list_cache:clear_mail_cache", caught));
 }
 
 export function stale_all_view_caches(): void {

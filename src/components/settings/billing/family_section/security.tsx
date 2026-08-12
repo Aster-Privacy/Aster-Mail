@@ -40,6 +40,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import type { } from "@/lib/i18n/types";
 
 import { ConsentGateDialog } from "./filters";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function MemberSecurityView() {
   const { t } = use_i18n();
   const [policy, set_policy] = useState<SecurityPolicy | null>(null);
@@ -47,7 +49,7 @@ export function MemberSecurityView() {
   useEffect(() => {
     get_security_policy()
       .then(r => { if (r.data) set_policy(r.data); })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/settings/billing/family_section/security:MemberSecurityView", caught));
   }, []);
 
   if (!policy) return null;
@@ -99,7 +101,9 @@ export function SecurityContent({ other_member_count, initial_security, initial_
   });
 
   const dismiss_banner = () => {
-    try { localStorage.setItem("aster_family_2fa_banner_dismissed", "1"); } catch {}
+    try { localStorage.setItem("aster_family_2fa_banner_dismissed", "1"); } catch (caught) {
+      ignore_error("components/settings/billing/family_section/security:dismiss_banner", caught);
+    }
     set_banner_dismissed(true);
   };
 
@@ -119,7 +123,7 @@ export function SecurityContent({ other_member_count, initial_security, initial_
     if (!initial_compliance) {
       get_member_compliance()
         .then(r => { if (r.data) set_compliance(r.data); })
-        .catch(() => {});
+        .catch((caught) => ignore_error("components/settings/billing/family_section/security:apply_security_fallback", caught));
     }
   }, []);
 

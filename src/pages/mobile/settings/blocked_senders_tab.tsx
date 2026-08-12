@@ -27,6 +27,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   list_blocked_senders,
   unblock_sender_by_token,
@@ -51,7 +53,8 @@ export function BlockedSendersTab() {
 
         if (cancelled) return;
         if (result.data) set_blocked(result.data);
-      } catch {
+      } catch (caught) {
+        ignore_error("pages/mobile/settings/blocked_senders_tab:load", caught);
       } finally {
         if (!cancelled) set_is_loading(false);
       }

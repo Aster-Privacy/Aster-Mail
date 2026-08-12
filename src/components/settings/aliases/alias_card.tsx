@@ -54,6 +54,8 @@ import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const AVATAR_MAX_SIZE = 256;
 
 function compress_avatar(file: File): Promise<string> {
@@ -354,7 +356,12 @@ export function AliasItem({
     try {
       await navigator.clipboard.writeText(alias.full_address);
       show_toast(t("settings.alias_copied"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/settings/aliases/alias_card:copy_address",
+        caught,
+      );
+    }
   };
 
   return (
@@ -658,7 +665,12 @@ export function DomainAddressItem({
     try {
       await navigator.clipboard.writeText(full_address);
       show_toast(t("settings.address_copied"), "success");
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/settings/aliases/alias_card:copy_address",
+        caught,
+      );
+    }
   };
 
   return (

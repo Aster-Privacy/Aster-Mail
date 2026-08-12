@@ -29,6 +29,8 @@ import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { use_preferences } from "@/contexts/preferences_context";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface ComposeHandle {
   message_textarea_ref: React.RefObject<HTMLDivElement | null>;
   handle_editor_input: () => void;
@@ -139,7 +141,7 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
             };
             reader.readAsDataURL(blob);
           })
-          .catch(() => {});
+          .catch((caught) => ignore_error("pages/mobile/use_mobile_compose_images:use_mobile_compose_images", caught));
 
         return;
       }

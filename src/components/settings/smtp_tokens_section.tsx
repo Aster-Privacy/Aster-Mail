@@ -42,6 +42,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function format_date_short(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
     month: "short",
@@ -183,7 +185,12 @@ export function SmtpTokensSection() {
             onClick={() => {
               try {
                 sessionStorage.setItem("alias_tab", "domains");
-              } catch {}
+              } catch (caught) {
+                ignore_error(
+                  "components/settings/smtp_tokens_section:header",
+                  caught,
+                );
+              }
               window.dispatchEvent(
                 new CustomEvent("navigate-settings", { detail: "aliases" }),
               );

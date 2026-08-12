@@ -78,6 +78,8 @@ import {
 } from "@/components/email/sandboxed_email_renderer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -799,7 +801,9 @@ export async function preload_email_detail(
                 cid_resolved = { html: result.html, blob_urls: result.blob_urls };
               }
             }
-          } catch {}
+          } catch (caught) {
+            ignore_error("components/email/hooks/preload_cache:task", caught);
+          }
         }),
       );
 
@@ -811,7 +815,9 @@ export async function preload_email_detail(
         if (account) {
           current_user_name = account.user.display_name || account.user.email;
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/email/hooks/preload_cache:task", caught);
+      }
 
       const old_entry = preload_cache.get(target_id);
       if (old_entry?.cid_resolved) revoke_cid_blob_urls(old_entry.cid_resolved.blob_urls);
@@ -846,7 +852,8 @@ export async function preload_email_detail(
         is_stale: false,
         conversation_grouping: conversation_grouping !== false,
       });
-    } catch {
+    } catch (caught) {
+      ignore_error("components/email/hooks/preload_cache:task", caught);
     } finally {
       preload_in_flight.delete(target_id);
     }

@@ -20,6 +20,8 @@
 //
 import { api_client } from "@/services/api/client";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const STORAGE_KEY = "aster_preferred_sender_id";
 
 type Listener = (id: string | null) => void;
@@ -65,7 +67,9 @@ export function set_preferred_sender_id(id: string | null): void {
 
   write_local(id);
   if (current !== id) notify(id);
-  sync_preferred_sender_to_server(id).catch(() => {});
+  sync_preferred_sender_to_server(id).catch((caught) =>
+    ignore_error("lib/preferred_sender:set_preferred_sender_id", caught),
+  );
 }
 
 export function clear_preferred_sender_local(): void {
@@ -91,7 +95,12 @@ async function sync_preferred_sender_to_server(
 
 if (typeof window !== "undefined") {
   window.addEventListener("astermail:authenticated", () => {
-    load_preferred_sender_from_server().catch(() => {});
+    load_preferred_sender_from_server().catch((caught) =>
+      ignore_error(
+        "lib/preferred_sender:sync_preferred_sender_to_server",
+        caught,
+      ),
+    );
   });
 }
 
@@ -113,7 +122,12 @@ export async function load_preferred_sender_from_server(): Promise<void> {
     }
 
     if (local_id !== null) {
-      await sync_preferred_sender_to_server(local_id).catch(() => {});
+      await sync_preferred_sender_to_server(local_id).catch((caught) =>
+        ignore_error(
+          "lib/preferred_sender:load_preferred_sender_from_server",
+          caught,
+        ),
+      );
     }
   } catch {
     /* ignore */

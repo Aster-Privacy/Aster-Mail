@@ -20,6 +20,8 @@
 //
 import { useCallback, useState, useRef, useMemo } from "react";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   type HeadingLevel,
   type TextAlignment,
@@ -201,7 +203,9 @@ export function use_editor_format(
           document.queryCommandValue("backColor") ||
           "";
         font_size = document.queryCommandValue("fontSize") || "";
-      } catch {}
+      } catch (caught) {
+        ignore_error("hooks/use_editor_format:use_editor_format", caught);
+      }
 
       set_format_state({
         active_formats: formats,

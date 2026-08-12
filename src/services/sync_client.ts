@@ -43,6 +43,8 @@ import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type ServerMessageType =
   | "auth_success"
   | "auth_error"
@@ -309,7 +311,7 @@ class SyncClient {
     }
 
     this.reconnect_attempt = 0;
-    this.connect().catch(() => {});
+    this.connect().catch((caught) => ignore_error("services/sync_client:reconnect_now", caught));
   }
 
   private schedule_reconnect(): void {

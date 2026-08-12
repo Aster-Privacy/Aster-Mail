@@ -29,6 +29,8 @@ import {
 } from "./key_manager";
 import { load_pq_secret } from "./pq_prekey_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
 
@@ -311,7 +313,7 @@ export async function perform_x3dh_receiver(
 
       import("./pq_secret_reconciler")
         .then((m) => m.handle_missing_pq_secret())
-        .catch(() => {});
+        .catch((caught) => ignore_error("services/crypto/x3dh:perform_x3dh_receiver", caught));
       throw new Error("Missing PQ prekey secret for the supplied key id");
     }
 

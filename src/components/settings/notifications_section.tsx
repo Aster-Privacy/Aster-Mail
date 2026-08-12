@@ -35,6 +35,8 @@ import {
 } from "@/services/push_subscription";
 import { show_notification } from "@/services/notification_service";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -214,7 +216,7 @@ export function NotificationsSection() {
           set_permission_state(granted ? "granted" : "denied");
         }),
       )
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/settings/notifications_section:NotificationsSection", caught));
   }, []);
 
   const handle_desktop_toggle = async () => {

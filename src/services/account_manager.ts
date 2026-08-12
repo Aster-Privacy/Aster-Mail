@@ -26,6 +26,8 @@ import { api_client } from "@/services/api/client";
 import { write_account_index_hint } from "@/lib/account_index_url";
 import { en } from "@/lib/i18n/translations/en";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 async function clear_offline_email_cache(): Promise<void> {
   try {
     const { clear_email_cache } = await import(
@@ -549,14 +551,18 @@ export async function logout_all(): Promise<void> {
   localStorage.removeItem("astermail_accounts_v4");
   try {
     sessionStorage.clear();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/account_manager:logout_all", caught);
+  }
   try {
     if (typeof caches !== "undefined") {
       const keys = await caches.keys();
 
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/account_manager:logout_all", caught);
+  }
 }
 
 export async function get_other_accounts(): Promise<StoredAccount[]> {

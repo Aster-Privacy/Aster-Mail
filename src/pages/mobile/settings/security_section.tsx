@@ -88,6 +88,8 @@ import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { useNavigate } from "react-router-dom";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
@@ -318,10 +320,14 @@ export function SecuritySection({
                   `astermail_vault_nonce_${user.id}`,
                   server_vault_response.data.vault_nonce,
                 );
-              } catch {}
+              } catch (caught) {
+                ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught);
+              }
             }
           }
-        } catch {}
+        } catch (caught) {
+          ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught);
+        }
 
         if (!healed_from_server && is_master_key_vault(memory_vault)) {
           vault.data_kek = memory_vault?.data_kek;
@@ -490,7 +496,9 @@ export function SecuritySection({
           `astermail_vault_nonce_${user.id}`,
           new_v_nonce,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught);
+      }
 
       reset_vault_refresh_state();
       await store_vault_in_memory(vault, new_password);
@@ -503,11 +511,11 @@ export function SecuritySection({
       }
 
       if (master_key_mode) {
-        reencrypt_all_sent_mail(current_password, new_password).catch(() => {});
+        reencrypt_all_sent_mail(current_password, new_password).catch((caught) => ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught));
         reencrypt_identity_scoped_password_change(
           old_identity_key,
           vault.identity_key,
-        ).catch(() => {});
+        ).catch((caught) => ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught));
       }
 
       if (unreadable_item_count > 0) {

@@ -42,6 +42,8 @@ import type { } from "@/lib/i18n/types";
 import { format_bytes } from "@/lib/utils";
 
 import { SkeletonRows, StorageBar } from "./shared";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function MemberRow({ member, is_owner_view, compliance, pool_remaining_bytes, on_remove, on_transfer, on_reload }: {
   member: FamilyMemberInfo;
   is_owner_view: boolean;
@@ -178,7 +180,7 @@ export function MemberGroupsContent() {
   useEffect(() => {
     import("@/services/api/family_org").then(m => m.list_my_groups()).then(r => {
       if (r.data) set_my_groups(r.data);
-    }).catch(() => {}).finally(() => set_loading(false));
+    }).catch((caught) => ignore_error("components/settings/billing/family_section/member_row:MemberGroupsContent", caught)).finally(() => set_loading(false));
   }, []);
 
   if (loading) return <SkeletonRows count={2} has_icon={false} />;

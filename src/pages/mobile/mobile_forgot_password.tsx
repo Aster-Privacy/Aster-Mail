@@ -85,6 +85,8 @@ import {
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export default function MobileForgotPasswordPage() {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -158,7 +160,9 @@ export default function MobileForgotPasswordPage() {
 
     try {
       await forgot_password_email(clean_username, email_domain);
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/mobile/mobile_forgot_password:handle_email_reset_link", caught);
+    }
 
     await timing_safe_delay();
 
@@ -616,7 +620,9 @@ export default function MobileForgotPasswordPage() {
       await navigator.clipboard.writeText(codes_text);
       set_copy_success(true);
       setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/mobile/mobile_forgot_password:handle_copy_codes", caught);
+    }
   };
 
   const handle_download_pdf = async () => {

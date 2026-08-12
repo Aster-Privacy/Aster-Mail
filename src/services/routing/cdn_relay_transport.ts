@@ -21,6 +21,8 @@
 import { connection_store } from "./connection_store";
 import { is_tauri_env, tauri_proxy_fetch } from "./tauri_proxy_transport";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const RELAY_ALLOWED_SUFFIXES = [".astermail.org", ".astermail.com"];
 const RELAY_ALLOWED_EXACT = ["astermail.org", "astermail.com"];
 const CONNECTION_INFO_PATH = "/core/v1/connection-info";
@@ -58,7 +60,14 @@ export async function cdn_relay_fetch(
         : fetch(url, options);
     }
 
-    await connection_store.fetch_connection_info().catch(() => {});
+    await connection_store
+      .fetch_connection_info()
+      .catch((caught) =>
+        ignore_error(
+          "services/routing/cdn_relay_transport:cdn_relay_fetch",
+          caught,
+        ),
+      );
     relay_url = connection_store.get_cdn_relay_url();
 
     if (!relay_url || !is_relay_host_allowed(relay_url)) {

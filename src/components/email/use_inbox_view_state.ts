@@ -86,6 +86,8 @@ import { set_forward_mail_id } from "@/services/forward_store";
 import { prewarm_search_index } from "@/hooks/use_search";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export type {
   ReplyData,
   ForwardData,
@@ -169,7 +171,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           set_family_policy(result.data);
         }
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/email/use_inbox_view_state:use_inbox_view_state", caught));
   }, []);
 
   useEffect(() => {
@@ -214,7 +216,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
       .then((result) => {
         if (result.data) set_family_policy(result.data);
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/email/use_inbox_view_state:run", caught));
   }, [current_view]);
 
   useEffect(() => {

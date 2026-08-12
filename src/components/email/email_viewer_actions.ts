@@ -83,6 +83,8 @@ import { same_address_ignoring_dots } from "@/utils/address_dots";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
 import { use_message_actions } from "./email_viewer_message_actions";
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface EmailViewerActionsDeps {
   email_id: string;
   email: DecryptedEmail | null;
@@ -566,7 +568,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const sender = deps.email?.sender_email;
 
       if (sender) {
-        report_spam_sender(sender).catch(() => {});
+        report_spam_sender(sender).catch((caught) =>
+          ignore_error(
+            "components/email/email_viewer_actions:clear_clipboard_after_timeout",
+            caught,
+          ),
+        );
       }
       emit_mail_items_removed({ ids: [deps.email_id] });
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
@@ -588,7 +595,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             { is_spam: false, is_trashed: prev_is_trashed },
           );
           if (sender) {
-            remove_spam_sender(sender).catch(() => {});
+            remove_spam_sender(sender).catch((caught) =>
+              ignore_error(
+                "components/email/email_viewer_actions:clear_clipboard_after_timeout",
+                caught,
+              ),
+            );
           }
           window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
         },
@@ -628,7 +640,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const sender = deps.email?.sender_email;
 
       if (sender) {
-        remove_spam_sender(sender).catch(() => {});
+        remove_spam_sender(sender).catch((caught) =>
+          ignore_error(
+            "components/email/email_viewer_actions:clear_clipboard_after_timeout",
+            caught,
+          ),
+        );
       }
       reindex_ids([deps.email_id]);
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));

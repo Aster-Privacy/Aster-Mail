@@ -55,6 +55,8 @@ import {
 } from "./memory_key_store";
 import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const RUN = process.env.ASTER_LOCAL_E2E === "1";
 const BASE = process.env.ASTER_E2E_BASE ?? "http://localhost:3000/api";
 
@@ -88,7 +90,9 @@ async function api(
 
   try {
     json = await response.json();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/local_stack_recovery.e2e.test:api", caught);
+  }
 
   return { status: response.status, json };
 }

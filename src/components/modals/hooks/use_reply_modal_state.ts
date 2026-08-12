@@ -85,6 +85,8 @@ import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   UseReplyModalProps,
 } from "./reply_modal_types";
@@ -416,7 +418,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
         if (!cancelled) set_contacts(decrypted);
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/modals/hooks/use_reply_modal_state:apply", caught));
 
     return () => {
       cancelled = true;

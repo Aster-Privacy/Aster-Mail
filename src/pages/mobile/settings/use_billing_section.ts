@@ -52,6 +52,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_subscription,
   get_billing_history,
@@ -362,7 +364,8 @@ export function use_billing_section() {
       if (ref_hist_res.data)
         set_referral_history_list(ref_hist_res.data.referrals);
       if (credits_res.data) set_credit_balance(credits_res.data);
-    } catch {
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/use_billing_section:handle_password_continue", caught);
     } finally {
       set_is_loading(false);
     }

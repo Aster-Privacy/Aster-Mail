@@ -33,6 +33,8 @@ import {
 
 import { SurveyModal } from "./survey_modal";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const DONE_CACHE_KEY = "aster_survey_done";
 
 function get_cached_done(): boolean {
@@ -46,7 +48,9 @@ function get_cached_done(): boolean {
 function cache_done() {
   try {
     localStorage.setItem(DONE_CACHE_KEY, "true");
-  } catch {}
+  } catch (caught) {
+    ignore_error("components/survey/survey_banner:cache_done", caught);
+  }
 }
 
 export function SurveyBanner() {

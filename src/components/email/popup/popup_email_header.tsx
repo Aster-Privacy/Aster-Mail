@@ -49,6 +49,8 @@ import { is_system_email } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { get_label_hints } from "@/stores/label_hints_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface PopupEmailHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   email: DecryptedEmail;
@@ -216,7 +218,7 @@ export function PopupEmailHeader({
                           .then(() => {
                             show_toast(t("common.email_copied"), "success");
                           })
-                          .catch(() => {});
+                          .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
                       }}
                     >
                       &lt;{show_sender_email}&gt;
@@ -247,7 +249,7 @@ export function PopupEmailHeader({
                                 navigator.clipboard
                                   .writeText(r.email)
                                   .then(() => show_toast(t("common.email_copied"), "success"))
-                                  .catch(() => {});
+                                  .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
                               }}
                             >
                               {r.name || r.email || t("common.unknown")}
@@ -282,7 +284,7 @@ export function PopupEmailHeader({
                               navigator.clipboard
                                 .writeText(r.email)
                                 .then(() => show_toast(t("common.email_copied"), "success"))
-                                .catch(() => {});
+                                .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
                             }}
                           >
                             {r.name || r.email || t("common.unknown")}
@@ -317,7 +319,7 @@ export function PopupEmailHeader({
                               navigator.clipboard
                                 .writeText(r.email)
                                 .then(() => show_toast(t("common.email_copied"), "success"))
-                                .catch(() => {});
+                                .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
                             }}
                           >
                             {r.name || r.email || t("common.unknown")}

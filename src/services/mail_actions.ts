@@ -33,6 +33,8 @@ import { ensure_post_quantum_consent } from "./post_quantum_consent";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { en } from "@/lib/i18n/translations/en";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   build_reply_subject as build_reply_subject_value,
   strip_reply_prefix,
@@ -439,13 +441,13 @@ export function cancel_mail_action(queued_id: string): boolean {
     return true;
   }
 
-  cancel_server_queued_email(queued_id).catch(() => {});
+  cancel_server_queued_email(queued_id).catch((caught) => ignore_error("services/mail_actions:cancel_mail_action", caught));
 
   return true;
 }
 
 export function send_mail_now(queued_id: string): void {
   send_now(queued_id).catch(() => {
-    send_server_queued_immediately(queued_id).catch(() => {});
+    send_server_queued_immediately(queued_id).catch((caught) => ignore_error("services/mail_actions:send_mail_now", caught));
   });
 }

@@ -80,6 +80,8 @@ import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const EMPTY_STATE: EmailListState = {
   emails: [],
   is_loading: true,
@@ -880,7 +882,12 @@ export function use_category_inbox(
         if (result.data?.success) {
           void bulk_update_metadata_by_ids(sibling_ids, {
             is_archived: true,
-          }).catch(() => {});
+          }).catch((caught) =>
+            ignore_error(
+              "hooks/use_category_inbox:handle_refresh_requested",
+              caught,
+            ),
+          );
         }
 
         return !!result.data?.success;
@@ -936,7 +943,12 @@ export function use_category_inbox(
           if (sibling_result.data?.success) {
             void bulk_update_metadata_by_ids(sibling_ids, {
               is_archived: true,
-            }).catch(() => {});
+            }).catch((caught) =>
+              ignore_error(
+                "hooks/use_category_inbox:handle_refresh_requested",
+                caught,
+              ),
+            );
           }
 
           return !!sibling_result.data?.success;

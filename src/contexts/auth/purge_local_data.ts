@@ -56,6 +56,8 @@ import { clear_translation_cache } from "@/services/translation/translation_cach
 import { clear_detection_cache } from "@/services/translation/language_detect";
 import { release_engines } from "@/services/translation/engine_registry";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export async function purge_all_local_data(): Promise<void> {
   const errors: Error[] = [];
 
@@ -69,7 +71,9 @@ export async function purge_all_local_data(): Promise<void> {
   api_client.begin_intentional_logout();
   try {
     await logout_user();
-  } catch {}
+  } catch (caught) {
+    ignore_error("contexts/auth/purge_local_data:purge_all_local_data", caught);
+  }
 
   try {
     await storage_logout_all();

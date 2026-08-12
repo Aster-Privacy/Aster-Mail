@@ -63,6 +63,8 @@ import {
 } from "@/services/api/user";
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_recovery_email,
   save_recovery_email,
@@ -351,7 +353,9 @@ export function AccountSection({
           ...user,
           display_name: r.data.user.display_name || undefined,
         });
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/account_section:handle_resend", caught);
+    }
     set_saving_name(false);
   }, [display_name, user, update_user]);
 

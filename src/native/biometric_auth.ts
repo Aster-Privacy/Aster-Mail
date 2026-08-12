@@ -22,6 +22,8 @@ import { NativeBiometric, type BiometryType } from "capacitor-native-biometric";
 
 import { is_native_platform } from "./capacitor_bridge";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface BiometricAvailability {
   is_available: boolean;
   biometry_type: BiometryType;
@@ -145,7 +147,9 @@ export async function delete_biometric_credentials(): Promise<void> {
     await NativeBiometric.deleteCredentials({
       server: "com.astermail.app",
     });
-  } catch {}
+  } catch (caught) {
+    ignore_error("native/biometric_auth:delete_biometric_credentials", caught);
+  }
 }
 
 export function get_biometry_type_name(type: BiometryType): string {

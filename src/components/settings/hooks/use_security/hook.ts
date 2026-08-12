@@ -91,6 +91,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
 import { use_security_fetchers } from "./fetchers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_security() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
@@ -378,7 +380,9 @@ export function use_security() {
                   `astermail_vault_nonce_${user.id}`,
                   server_vault_response.data.vault_nonce,
                 );
-              } catch {}
+              } catch (caught) {
+                ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+              }
             }
           }
         } catch (error) {
@@ -575,14 +579,18 @@ export function use_security() {
 
       try {
         store_encrypted_vault(user.id, new_encrypted_vault, new_vault_nonce);
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+      }
 
       reset_vault_refresh_state();
       await store_vault_in_memory(vault, new_password);
 
       try {
         await store_session_passphrase(user.id, new_password);
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+      }
 
       if (response.data?.csrf_token) {
         api_client.set_csrf(response.data.csrf_token);
@@ -600,7 +608,9 @@ export function use_security() {
         ) {
           await save_preferences(preferences, vault);
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+      }
 
       try {
         const dev_mode_result = await get_dev_mode(vault);
@@ -608,22 +618,24 @@ export function use_security() {
         if (dev_mode_result.data !== null) {
           await save_dev_mode(dev_mode_result.data, vault);
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+      }
 
-      reencrypt_all_sent_mail(current_password, new_password).catch(() => {});
+      reencrypt_all_sent_mail(current_password, new_password).catch((caught) => ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught));
 
       if (master_key_mode) {
         reencrypt_identity_scoped_password_change(
           old_identity_key,
           vault.identity_key,
-        ).catch(() => {});
+        ).catch((caught) => ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught));
       } else {
         reencrypt_settings_password_change(
           current_password,
           new_password,
           old_identity_key,
           vault.identity_key,
-        ).catch(() => {});
+        ).catch((caught) => ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught));
       }
 
       set_security_status((prev) => ({

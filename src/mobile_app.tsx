@@ -50,6 +50,8 @@ import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function is_chunk_load_error(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   const msg = error.message.toLowerCase();
@@ -127,9 +129,15 @@ const RegisterPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_register"),
 );
 
-import("@/pages/mobile/mobile_sign_in").catch(() => {});
-import("@/pages/mobile/mobile_register").catch(() => {});
-import("@/pages/mobile/mobile_welcome").catch(() => {});
+import("@/pages/mobile/mobile_sign_in").catch((caught) =>
+  ignore_error("mobile_app", caught),
+);
+import("@/pages/mobile/mobile_register").catch((caught) =>
+  ignore_error("mobile_app", caught),
+);
+import("@/pages/mobile/mobile_welcome").catch((caught) =>
+  ignore_error("mobile_app", caught),
+);
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_forgot_password"),
 );

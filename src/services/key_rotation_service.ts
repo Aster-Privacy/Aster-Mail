@@ -55,6 +55,8 @@ import {
 import { with_aes_kw_fallback } from "@/services/crypto/webcrypto_aes_kw";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface RotationCheckResult {
   needs_rotation: boolean;
   key_age_hours: number | null;
@@ -385,9 +387,11 @@ export async function perform_key_rotation(
       if (!bundle_published) {
         bundle_published = await upload_prekey_bundle(new_vault);
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/key_rotation_service:perform_key_rotation", caught);
+    }
 
-    await clear_all_ratchet_states().catch(() => {});
+    await clear_all_ratchet_states().catch((caught) => ignore_error("services/key_rotation_service:perform_key_rotation", caught));
 
     return {
       success: true,

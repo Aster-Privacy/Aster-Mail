@@ -52,6 +52,8 @@ import {
 } from "@/services/crypto/secure_storage";
 import { on_keys_ready } from "@/services/crypto/memory_key_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function compute_active_tabs(
   preferences: UserPreferences,
   category_limit: number,
@@ -92,7 +94,12 @@ function read_categories_enabled_flag(): boolean | null {
 
     if (value === "1") return true;
     if (value === "0") return false;
-  } catch {}
+  } catch (caught) {
+    ignore_error(
+      "hooks/use_inbox_categories:read_categories_enabled_flag",
+      caught,
+    );
+  }
 
   return null;
 }
@@ -100,7 +107,12 @@ function read_categories_enabled_flag(): boolean | null {
 function write_categories_enabled_flag(enabled: boolean): void {
   try {
     localStorage.setItem(CATEGORIES_ENABLED_FLAG, enabled ? "1" : "0");
-  } catch {}
+  } catch (caught) {
+    ignore_error(
+      "hooks/use_inbox_categories:write_categories_enabled_flag",
+      caught,
+    );
+  }
 }
 
 // Loosely validates a persisted tab id. The real gatekeeping (whether this
@@ -249,7 +261,9 @@ export function use_inbox_categories(
     session_active_category = category;
     set_active_category_state(category);
     setTimeout(() => {
-      void secure_store(ACTIVE_CATEGORY_KEY, category).catch(() => {});
+      void secure_store(ACTIVE_CATEGORY_KEY, category).catch((caught) =>
+        ignore_error("hooks/use_inbox_categories:use_inbox_categories", caught),
+      );
     }, 0);
   }, []);
 

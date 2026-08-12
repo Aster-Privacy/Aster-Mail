@@ -74,6 +74,8 @@ import {
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
   is_own_message: boolean;
@@ -311,7 +313,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       .then((result) => {
         if (!cancelled) set_phishing_level(result.level);
       })
-      .catch(() => {})
+      .catch((caught) => ignore_error("components/email/use_thread_message_block:update", caught))
       .finally(() => {
         if (!cancelled) set_phishing_checked(true);
       });
@@ -515,7 +517,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
         cid_blob_urls_ref.current = result.blob_urls;
         set_cid_resolved_html(result.html);
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/email/use_thread_message_block:update", caught));
 
     return () => {
       cancelled = true;

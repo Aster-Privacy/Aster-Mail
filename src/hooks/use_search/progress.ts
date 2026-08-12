@@ -33,6 +33,8 @@ import {
 
 import { build_search_index, cached_index, schedule_deep_index } from "./index_cache";
 import { IndexingProgress } from "./types";
+import { ignore_error } from "@/lib/ignore_error";
+
 export let indexing_progress: IndexingProgress = {
   building: false,
   current: 0,
@@ -98,7 +100,7 @@ export function resume_index_download(
     return;
   }
 
-  void build_search_index(user_email, include_body).catch(() => {});
+  void build_search_index(user_email, include_body).catch((caught) => ignore_error("hooks/use_search/progress:resume_index_download", caught));
 }
 
 export const index_refresh_listeners = new Set<() => void>();

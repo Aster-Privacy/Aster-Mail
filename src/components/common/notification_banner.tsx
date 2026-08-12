@@ -28,6 +28,8 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const DISMISSED_CACHE_KEY = "aster_notification_banner_dismissed";
 
 function get_cached_dismissed(): boolean {
@@ -41,7 +43,12 @@ function get_cached_dismissed(): boolean {
 function cache_dismissed() {
   try {
     localStorage.setItem(DISMISSED_CACHE_KEY, "true");
-  } catch {}
+  } catch (caught) {
+    ignore_error(
+      "components/common/notification_banner:cache_dismissed",
+      caught,
+    );
+  }
 }
 
 export function NotificationBanner() {

@@ -41,6 +41,8 @@ import { clear_notification_state } from "@/services/notification_service";
 import { clear_external_key_cache } from "@/services/api/keys";
 import { clear_csrf_cache } from "@/services/api/csrf";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const CURRENT_VERSION = 1;
 const STORAGE_SALT_KEY = "aster_storage_salt";
 const DEVICE_ID_KEY = "aster_device_id";
@@ -547,7 +549,9 @@ export async function wipe_all_storage(): Promise<void> {
 
       await Preferences.clear();
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/secure_storage:wipe_all_storage", caught);
+  }
 
   try {
     await encrypted_clear_all();

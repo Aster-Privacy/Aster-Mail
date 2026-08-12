@@ -20,6 +20,8 @@
 //
 import type { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   collapse_empty_block_runs,
   collapse_forwarded_content,
@@ -49,7 +51,9 @@ function unblock_remote_content(doc: Document): void {
         if (safe_url.protocol === "https:" || safe_url.protocol === "http:") {
           el.setAttribute("src", safe_url.href);
         }
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/email/email_pre_process:unblock_remote_content", caught);
+      }
     }
     el.removeAttribute("data-blocked");
     el.classList.remove("blocked-remote-image");

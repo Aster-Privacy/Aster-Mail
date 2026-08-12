@@ -73,6 +73,8 @@ import {
 } from "@/services/shared_mailbox_session";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const DEFAULT_ALLOCATION_BYTES = 10 * 1024 ** 3;
 
 interface SharedMailboxesTabProps {
@@ -253,7 +255,7 @@ export function SharedMailboxesTab({
         response.data.mailbox_user_id,
         material.login_secret,
         response.data.credential_epoch,
-      ).catch(() => {});
+      ).catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
 
       const owner_grant = await seal_grant(
         {
@@ -288,7 +290,7 @@ export function SharedMailboxesTab({
         return;
       }
 
-      await sync_shared_mailbox_grants().catch(() => {});
+      await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
       set_new_prefix("");
       set_address_available(null);
       show_toast(t("shared_mailboxes.created"), "success");
@@ -381,7 +383,7 @@ export function SharedMailboxesTab({
         }
 
         await clear_shared_mailbox_session(mailbox.mailbox_user_id);
-        await sync_shared_mailbox_grants().catch(() => {});
+        await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
         show_toast(t("shared_mailboxes.rotated"), "success");
         await load();
 
@@ -469,7 +471,7 @@ export function SharedMailboxesTab({
         return;
       }
       await clear_shared_mailbox_session(mailbox.mailbox_user_id);
-      await sync_shared_mailbox_grants().catch(() => {});
+      await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
       show_toast(t("shared_mailboxes.deleted"), "success");
       await load();
     } catch {
@@ -481,7 +483,7 @@ export function SharedMailboxesTab({
 
   const handle_open = useCallback(
     async (mailbox: SharedMailboxInfo) => {
-      await sync_shared_mailbox_grants().catch(() => {});
+      await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
       await switch_to_account(mailbox.mailbox_user_id);
     },
     [switch_to_account],

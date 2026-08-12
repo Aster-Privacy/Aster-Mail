@@ -113,6 +113,8 @@ import {
 } from "@/lib/dev_mode_cache";
 import { refresh_family_plan_flag } from "@/services/api/family";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function MobileSettingsPage() {
   const navigate = useNavigate();
   const { t } = use_i18n();
@@ -238,7 +240,9 @@ function MobileSettingsPage() {
     set_show_logout_confirm(false);
     try {
       await logout();
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/mobile/mobile_settings_page:MobileSettingsPage", caught);
+    }
   }, [logout]);
 
   const handle_logout = useCallback(() => {

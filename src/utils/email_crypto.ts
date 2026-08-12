@@ -20,6 +20,8 @@
 //
 import * as openpgp from "openpgp";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -646,7 +648,9 @@ function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
     ) {
       return { subject: parsed.s, body: parsed.b };
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("utils/email_crypto:unwrap_subject_bundle_layer", caught);
+  }
 
   return scan_bundle_payload(payload);
 }
@@ -709,7 +713,9 @@ export async function decrypt_body_text(
   if (/^content-type\s*:/im.test(result)) {
     try {
       result = extract_mime_body(result);
-    } catch {}
+    } catch (caught) {
+      ignore_error("utils/email_crypto:decrypt_body_text", caught);
+    }
   }
 
   return result;

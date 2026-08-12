@@ -30,6 +30,8 @@ import { available_source_languages } from "@/services/translation/translate_doc
 import type { LanguageCode } from "@/services/translation/engine_types";
 import type { TranslationStatus } from "@/components/email/hooks/use_email_translation";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface TranslationBannerProps {
   status: TranslationStatus;
   source_language: LanguageCode | null;
@@ -69,7 +71,12 @@ export function TranslationBanner({
             .join(", "),
         );
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error(
+          "components/email/banners/translation_banner:TranslationBanner",
+          caught,
+        ),
+      );
 
     return () => {
       active = false;

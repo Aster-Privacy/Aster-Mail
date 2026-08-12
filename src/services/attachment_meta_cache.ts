@@ -24,6 +24,8 @@ import {
 } from "@/services/api/attachments";
 import { resolve_attachment_meta } from "@/services/crypto/attachment_crypto";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface CachedAttachmentMeta {
   id: string;
   mail_item_id: string;
@@ -130,7 +132,8 @@ export function prefetch_attachment_meta(
 
           store_cached_meta(mail_item_id, cached);
         }
-      } catch {
+      } catch (caught) {
+        ignore_error("services/attachment_meta_cache:task", caught);
       } finally {
         for (const mail_item_id of to_fetch) {
           meta_in_flight.delete(mail_item_id);

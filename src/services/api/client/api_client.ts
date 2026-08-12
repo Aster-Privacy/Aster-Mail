@@ -73,6 +73,8 @@ import { en } from "@/lib/i18n/translations/en";
 import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { get_device_id } from "@/services/device_id";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   routed_fetch,
   get_effective_base_url,
@@ -196,7 +198,9 @@ export class ApiClient {
 
         if (token) this.dev_access_token = token;
         if (csrf) set_csrf_token(csrf);
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/client/api_client:verify_identity", caught);
+      }
 
       return;
     }
@@ -214,7 +218,9 @@ export class ApiClient {
       const { Preferences } = await import("@capacitor/preferences");
 
       await Preferences.set({ key: NATIVE_TOKEN_KEY, value: token });
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:verify_identity", caught);
+    }
   }
 
   private async clear_native_token(): Promise<void> {
@@ -222,7 +228,9 @@ export class ApiClient {
       const { Preferences } = await import("@capacitor/preferences");
 
       await Preferences.remove({ key: NATIVE_TOKEN_KEY });
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:verify_identity", caught);
+    }
   }
 
   private async persist_native_refresh_token(token: string): Promise<void> {
@@ -230,7 +238,9 @@ export class ApiClient {
       const { Preferences } = await import("@capacitor/preferences");
 
       await Preferences.set({ key: NATIVE_REFRESH_TOKEN_KEY, value: token });
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:verify_identity", caught);
+    }
   }
 
   private async load_native_refresh_token(): Promise<string | null> {
@@ -249,7 +259,9 @@ export class ApiClient {
       const { Preferences } = await import("@capacitor/preferences");
 
       await Preferences.remove({ key: NATIVE_REFRESH_TOKEN_KEY });
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:verify_identity", caught);
+    }
   }
 
   private async load_native_token(): Promise<string | null> {
@@ -268,7 +280,9 @@ export class ApiClient {
       const { Preferences } = await import("@capacitor/preferences");
 
       await Preferences.set({ key: NATIVE_CSRF_KEY, value: token });
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:verify_identity", caught);
+    }
   }
 
   private async load_native_csrf(): Promise<string | null> {
@@ -287,7 +301,9 @@ export class ApiClient {
       const { Preferences } = await import("@capacitor/preferences");
 
       await Preferences.remove({ key: NATIVE_CSRF_KEY });
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:verify_identity", caught);
+    }
   }
 
   private async recover_session_from_refresh_cookie(): Promise<boolean> {
@@ -404,7 +420,12 @@ export class ApiClient {
       if (!Capacitor.isNativePlatform() && !is_tauri_env()) {
         try {
           await this.clear_session_cookies();
-        } catch {}
+        } catch (caught) {
+          ignore_error(
+            "services/api/client/api_client:verify_initial_auth",
+            caught,
+          );
+        }
       }
     }
 
@@ -432,7 +453,12 @@ export class ApiClient {
     if (is_tauri_env()) {
       try {
         localStorage.setItem(TAURI_TOKEN_KEY, token);
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "services/api/client/api_client:verify_initial_auth",
+          caught,
+        );
+      }
     }
     this.persist_to_active_account(token, refresh_token, owner_account_id);
   }
@@ -479,7 +505,12 @@ export class ApiClient {
       if (this.intentional_logout) return;
 
       await update_account_tokens(account_id, access_token, refresh_token);
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:resume_account_persist",
+        caught,
+      );
+    }
   }
 
   private async flush_pending_account_token_writes(): Promise<void> {
@@ -537,7 +568,12 @@ export class ApiClient {
         if (this.intentional_logout) return;
         await update_account_tokens(id, access_token, refresh_token);
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error(
+          "services/api/client/api_client:resume_account_persist",
+          caught,
+        ),
+      );
   }
 
   async load_tokens_for_account(account_id: string): Promise<boolean> {
@@ -558,7 +594,12 @@ export class ApiClient {
         if (is_tauri_env()) {
           try {
             localStorage.setItem(TAURI_TOKEN_KEY, tokens.access_token);
-          } catch {}
+          } catch (caught) {
+            ignore_error(
+              "services/api/client/api_client:load_tokens_for_account",
+              caught,
+            );
+          }
         }
         if (import.meta.env.DEV) {
           sessionStorage.setItem(DEV_TOKEN_KEY, tokens.access_token);
@@ -570,7 +611,12 @@ export class ApiClient {
       if (tokens.refresh_token) {
         return true;
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:load_tokens_for_account",
+        caught,
+      );
+    }
 
     return false;
   }
@@ -591,7 +637,9 @@ export class ApiClient {
     if (is_tauri_env()) {
       try {
         localStorage.setItem(TAURI_CSRF_KEY, token);
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/client/api_client:set_csrf", caught);
+      }
     }
   }
 
@@ -612,7 +660,9 @@ export class ApiClient {
       try {
         localStorage.removeItem(TAURI_TOKEN_KEY);
         localStorage.removeItem(TAURI_CSRF_KEY);
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/client/api_client:clear_dev_token", caught);
+      }
     }
   }
 
@@ -947,7 +997,12 @@ export class ApiClient {
     this.is_authenticated_flag = false;
     try {
       await this.refresh_promise;
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:prepare_for_account_switch",
+        caught,
+      );
+    }
   }
 
   async reestablish_session_for_account(
@@ -983,7 +1038,12 @@ export class ApiClient {
         );
 
         await update_account_tokens(account_id, null, null);
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "services/api/client/api_client:clear_dead_tokens",
+          caught,
+        );
+      }
     };
 
     try {
@@ -1042,7 +1102,12 @@ export class ApiClient {
         if (this.refresh_promise) {
           try {
             await this.refresh_promise;
-          } catch {}
+          } catch (caught) {
+            ignore_error(
+              "services/api/client/api_client:reissue_cookies",
+              caught,
+            );
+          }
         }
 
         const result = reissue_cookies_impl();
@@ -1113,7 +1178,9 @@ export class ApiClient {
       if (me_response.data.user_id !== account_id) {
         try {
           await this.clear_session_cookies();
-        } catch {}
+        } catch (caught) {
+          ignore_error("services/api/client/api_client:me_denied", caught);
+        }
 
         return fail("expired");
       }
@@ -1139,7 +1206,12 @@ export class ApiClient {
           this.dev_access_token,
           this.active_refresh_token,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "services/api/client/api_client:clear_dead_tokens",
+          caught,
+        );
+      }
 
       this.schedule_token_refresh();
 
@@ -1274,7 +1346,12 @@ export class ApiClient {
     if (minutes_since_refresh >= PROACTIVE_REFRESH_THRESHOLD_MINUTES) {
       try {
         await this.refresh_session();
-      } catch {}
+      } catch (caught) {
+        ignore_error(
+          "services/api/client/api_client:clear_session_cookies",
+          caught,
+        );
+      }
     }
   }
 
@@ -1296,7 +1373,12 @@ export class ApiClient {
 
     try {
       await this.refresh_session();
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:clear_session_cookies",
+        caught,
+      );
+    }
 
     return get_csrf_token_from_cookie();
   }
@@ -1655,7 +1737,12 @@ export class ApiClient {
                 headers["X-CSRF-Token"] = fresh_csrf;
                 continue;
               }
-            } catch {}
+            } catch (caught) {
+              ignore_error(
+                "services/api/client/api_client:apply_folder_unlock_header",
+                caught,
+              );
+            }
           }
 
           if (

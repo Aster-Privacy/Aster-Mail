@@ -25,6 +25,8 @@ import { motion } from "framer-motion";
 import { use_platform } from "@/hooks/use_platform";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   stagger_container,
   fade_up_item,
@@ -45,8 +47,12 @@ export default function MobileWelcomePage() {
   useEffect(() => {
     if (!preloaded.current) {
       preloaded.current = true;
-      import("@/pages/mobile/mobile_sign_in").catch(() => {});
-      import("@/pages/mobile/mobile_register").catch(() => {});
+      import("@/pages/mobile/mobile_sign_in").catch((caught) =>
+        ignore_error("pages/mobile/mobile_welcome:MobileWelcomePage", caught),
+      );
+      import("@/pages/mobile/mobile_register").catch((caught) =>
+        ignore_error("pages/mobile/mobile_welcome:MobileWelcomePage", caught),
+      );
     }
   }, []);
 

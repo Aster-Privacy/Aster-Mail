@@ -74,6 +74,8 @@ import { DrawerNavContent } from "@/components/mobile/mobile_drawer_nav";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 interface MobileDrawerProps {
   is_open: boolean;
   on_close: () => void;
@@ -181,7 +183,9 @@ export const MobileDrawer = memo(function MobileDrawer({
       .then((response) => {
         if (response.data) set_can_create_alias(response.data.can_create);
       })
-      .catch(() => {});
+      .catch((caught) =>
+        ignore_error("components/mobile/mobile_drawer", caught),
+      );
   }, []);
 
   const { dialog_ref, handle_backdrop_pointer_down } =
@@ -431,7 +435,9 @@ export const MobileDrawer = memo(function MobileDrawer({
           .then((r) => {
             if (r.data) set_can_create_alias(r.data.can_create);
           })
-          .catch(() => {});
+          .catch((caught) =>
+            ignore_error("components/mobile/mobile_drawer:overscroll", caught),
+          );
       } else if (is_alias_limit_error(result)) {
         set_alias_error("");
         set_captcha_token(null);

@@ -25,6 +25,8 @@ import {
   type PlanLimitsResponse,
 } from "@/services/api/billing";
 import { api_client } from "@/services/api/client";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_current_account_id,
   repair_stale_plan_flags,
@@ -57,7 +59,9 @@ export function use_plan_limits() {
 
     const now = Date.now();
 
-    await repair_stale_plan_flags().catch(() => {});
+    await repair_stale_plan_flags().catch((caught) =>
+      ignore_error("hooks/use_plan_limits:use_plan_limits", caught),
+    );
 
     const account_id = await get_current_account_id();
 
@@ -93,7 +97,9 @@ export function use_plan_limits() {
         set_account_plan_flag(
           account_id,
           response.data.plan_code !== "free",
-        ).catch(() => {});
+        ).catch((caught) =>
+          ignore_error("hooks/use_plan_limits:use_plan_limits", caught),
+        );
       }
     } finally {
       set_is_loading(false);

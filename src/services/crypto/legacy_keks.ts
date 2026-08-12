@@ -24,6 +24,8 @@ import type { LegacyDerivedKek } from "./key_manager_core";
 
 import { zero_uint8_array } from "./secure_memory";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const DERIVED_KEY_LENGTH = 32;
 const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
@@ -138,7 +140,9 @@ async function remember_legacy_raw(raw: Uint8Array): Promise<void> {
 
   try {
     legacy_hkdf_keys.push(await import_raw_as_hkdf_key(raw));
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/legacy_keks:remember_legacy_raw", caught);
+  }
 }
 
 export async function load_legacy_keks_into_memory(
@@ -218,7 +222,9 @@ export async function append_legacy_key_raw_bytes(
 ): Promise<void> {
   try {
     await remember_legacy_raw(raw);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/legacy_keks:append_legacy_key_raw_bytes", caught);
+  }
 }
 
 export async function decrypt_aes_gcm_with_fallback(

@@ -23,6 +23,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { api_client } from "@/services/api/client";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   PENDING_DELETION_EVENT,
   PENDING_DELETION_SERVER_CODE,
@@ -130,7 +132,12 @@ export function PendingDeletionDialog() {
 
     try {
       await logout();
-    } catch {}
+    } catch (caught) {
+      ignore_error(
+        "components/common/pending_deletion_dialog:handle_sign_out",
+        caught,
+      );
+    }
 
     set_is_visible(false);
     set_is_busy(false);

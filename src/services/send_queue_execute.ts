@@ -36,6 +36,8 @@ import { fetch_internal_public_keys } from "./send_queue_recipients";
 import { build_signed_mime_payload, should_attach_signed_mime } from "./send_queue_signed_mime";
 import { SendError, create_error, format_time_remaining, type EmailParams, type QueuedEmailInternal } from "./send_queue_types";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export async function execute_send(email: QueuedEmailInternal): Promise<void> {
   const readiness = check_send_readiness_internal();
 
@@ -159,7 +161,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
   }
 
   if (effective_thread_id) {
-    mark_thread_read(effective_thread_id).catch(() => {});
+    mark_thread_read(effective_thread_id).catch((caught) => ignore_error("services/send_queue_execute:execute_send", caught));
   }
 }
 
@@ -433,6 +435,6 @@ export async function execute_external_send(
   }
 
   if (effective_thread_id) {
-    mark_thread_read(effective_thread_id).catch(() => {});
+    mark_thread_read(effective_thread_id).catch((caught) => ignore_error("services/send_queue_execute:execute_external_send", caught));
   }
 }

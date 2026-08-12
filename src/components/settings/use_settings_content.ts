@@ -59,6 +59,8 @@ import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_
 import { list_devices } from "@/services/api/devices";
 import { prefetch_family_group, refresh_family_plan_flag } from "@/services/api/family";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_nav_items,
   get_persisted_section,
@@ -200,7 +202,7 @@ export function use_settings_content(props: SettingsContentProps) {
   }, [navigate]);
 
   useEffect(() => {
-    void import("@/components/settings/billing_section").catch(() => {});
+    void import("@/components/settings/billing_section").catch((caught) => ignore_error("components/settings/use_settings_content:use_settings_content", caught));
   }, []);
 
   useLayoutEffect(() => {

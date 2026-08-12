@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ignore_error } from "@/lib/ignore_error";
+
 const ACCOUNT_PREFIX_PATTERN = /^\/u\/(\d{1,9})(?=\/|$)/;
 const ACCOUNT_INDEX_HINT_KEY = "aster_account_index";
 const MAX_ACCOUNT_INDEX = 31;
@@ -101,7 +103,9 @@ export function write_account_index_hint(index: number): void {
 
   try {
     localStorage.setItem(ACCOUNT_INDEX_HINT_KEY, String(index));
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/account_index_url:write_account_index_hint", caught);
+  }
 }
 
 export function get_active_account_index(): number | null {

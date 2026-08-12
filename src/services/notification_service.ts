@@ -23,6 +23,8 @@ import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
 import { en } from "@/lib/i18n/translations/en";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export type NotificationType = "new_email" | "reply" | "mention";
 
 interface NotificationOptions {
@@ -196,7 +198,7 @@ export function play_notification_sound(): void {
   const sound = get_notification_sound();
 
   sound.currentTime = 0;
-  sound.play().catch(() => {});
+  sound.play().catch((caught) => ignore_error("services/notification_service:play_notification_sound", caught));
 }
 
 export async function request_notification_permission(): Promise<NotificationPermission> {

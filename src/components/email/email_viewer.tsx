@@ -45,6 +45,8 @@ import { emit_mail_changed, emit_mail_soft_refresh } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function EmailViewer({
   email,
   on_close,
@@ -156,7 +158,9 @@ export function EmailViewer({
       const sender = email.sender?.email;
 
       if (sender) {
-        report_spam_sender(sender).catch(() => {});
+        report_spam_sender(sender).catch((caught) =>
+          ignore_error("components/email/email_viewer:EmailViewer", caught),
+        );
       }
       emit_mail_changed();
       show_action_toast({
@@ -174,7 +178,9 @@ export function EmailViewer({
             throw new Error(t("common.failed_to_undo_spam"));
           }
           if (sender) {
-            remove_spam_sender(sender).catch(() => {});
+            remove_spam_sender(sender).catch((caught) =>
+              ignore_error("components/email/email_viewer:EmailViewer", caught),
+            );
           }
           emit_mail_soft_refresh();
         },

@@ -35,6 +35,8 @@ import { connection_store } from "@/services/routing/connection_store";
 import { translated_language } from "@/services/translation/dom_translate";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export const IMAGE_PROXY_URL = get_image_proxy_url();
 
 export function sniff_image_type(bytes: Uint8Array): string | null {
@@ -57,7 +59,9 @@ export function sniff_image_type(bytes: Uint8Array): string | null {
     const trimmed = prefix.trimStart().replace(/^﻿/, "");
     if (trimmed.startsWith("<svg") || trimmed.startsWith("<?xml"))
       return "image/svg+xml";
-  } catch {}
+  } catch (caught) {
+    ignore_error("components/email/sandboxed_email_renderer/helpers:sniff_image_type", caught);
+  }
   return null;
 }
 

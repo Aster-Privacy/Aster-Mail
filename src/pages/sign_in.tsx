@@ -63,6 +63,8 @@ import {
 } from "./sign_in_helpers";
 
 import { use_sign_in_page } from "./use_sign_in_page";
+import { ignore_error } from "@/lib/ignore_error";
+
 export default function SignInPage() {
   const {
     navigate,
@@ -364,7 +366,9 @@ export default function SignInPage() {
             setTimeout(() => resolve(null), 10_000),
           ),
         ]);
-      } catch {}
+      } catch (caught) {
+        ignore_error("pages/sign_in:handle_login", caught);
+      }
 
       const login_user_data = user_info_response?.data
         ? {

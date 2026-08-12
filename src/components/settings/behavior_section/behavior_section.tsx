@@ -83,6 +83,8 @@ import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { LanguagePicker, SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_PRESET_WIDTHS, SelectSetting, ToggleSetting, UNDO_DEFAULT_SECONDS, UNDO_MAX_SECONDS, UNDO_MIN_SECONDS, UNDO_PRESET_SECONDS, clamp_sidebar_width, clamp_undo_seconds } from "./shared";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
@@ -227,7 +229,7 @@ export function BehaviorSection() {
           set_family_policy(result.data);
         }
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/settings/behavior_section/behavior_section:remove_never_language", caught));
   }, [current_account_id]);
 
   const handle_dev_mode_toggle = async () => {

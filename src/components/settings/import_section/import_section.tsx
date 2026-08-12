@@ -79,6 +79,8 @@ import { ConnectedAccountCard } from "./connected_account";
 import { ImportJobCard } from "./job_card";
 import { OAUTH_PROVIDERS, PROVIDERS, PROVIDER_TO_OAUTH } from "./providers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function ImportSection() {
   const { t } = use_i18n();
   const { state: folders_state } = use_folders();
@@ -133,7 +135,9 @@ export function ImportSection() {
     set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
     try {
       await delete_import_job(id);
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/settings/import_section/import_section:ImportSection", caught);
+    }
   }, []);
 
   const load_connected_accounts = useCallback(async () => {
@@ -147,7 +151,8 @@ export function ImportSection() {
 
         set_connected_accounts(oauth_accounts);
       }
-    } catch {
+    } catch (caught) {
+      ignore_error("components/settings/import_section/import_section:ImportSection", caught);
     } finally {
       set_is_loading_accounts(false);
     }
@@ -324,7 +329,7 @@ export function ImportSection() {
         if (oauth_cancelled_ref.current) return;
         show_toast(t("settings.oauth_folders_error"), "error");
 
-        await trigger_sync(account_token).catch(() => {});
+        await trigger_sync(account_token).catch((caught) => ignore_error("components/settings/import_section/import_section:ImportSection", caught));
       }
 
       load_connected_accounts();
@@ -345,7 +350,9 @@ export function ImportSection() {
       } else {
         show_toast(t("settings.sync_stopped"), "success");
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/settings/import_section/import_section:ImportSection", caught);
+    }
     load_connected_accounts();
   }, [load_connected_accounts, t]);
 
@@ -551,7 +558,9 @@ export function ImportSection() {
         set_connected_accounts((prev) =>
           prev.filter((a) => a.account_token !== token),
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("components/settings/import_section/import_section:ImportSection", caught);
+      }
     }
   }, [oauth_setup_token]);
 
@@ -626,7 +635,7 @@ export function ImportSection() {
       for (const a of oauth_accounts) {
         if (snapshot_error_tokens.has(a.account_token)) {
           set_syncing_accounts((prev) => new Set(prev).add(a.account_token));
-          trigger_sync(a.account_token).catch(() => {});
+          trigger_sync(a.account_token).catch((caught) => ignore_error("components/settings/import_section/import_section:poll_for_new_account", caught));
           kicked = true;
         }
       }

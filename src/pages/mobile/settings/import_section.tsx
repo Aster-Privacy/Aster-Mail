@@ -42,6 +42,8 @@ import {
   delete_import_job,
 } from "@/services/api/email_import";
 import { ImportModal } from "@/components/settings/import_modal";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,7 +123,8 @@ export function ImportSection({
       const res = await list_import_jobs();
 
       if (res.data?.jobs) set_jobs(res.data.jobs);
-    } catch {
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/import_section:ImportSection", caught);
     } finally {
       if (!silent) set_is_loading(false);
     }
@@ -155,7 +158,9 @@ export function ImportSection({
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
       window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/import_section:ImportSection", caught);
+    }
   }, []);
 
   const status_color = (status: string) => {

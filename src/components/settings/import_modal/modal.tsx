@@ -63,6 +63,8 @@ import {
 
 import { ImportModalProps, ImportStep, PICKER_REOPEN_DELAY_MS, build_thread_map, derive_manual_import_source, detect_item_type, extract_source_folders, folder_for_email } from "./helpers";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
   const { vault, user } = use_auth();
@@ -436,7 +438,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 emit_mail_changed();
               }
             })
-            .catch(() => {});
+            .catch((caught) => ignore_error("components/settings/import_modal/modal:on_key", caught));
         }
       } catch (err) {
         if (job_id) {

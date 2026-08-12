@@ -74,6 +74,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { read_last_settings_section } from "@/lib/settings_section_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface ForwardData {
   sender_name: string;
   sender_email: string;
@@ -210,7 +212,7 @@ export function use_index_page_state() {
         if (data.plan) {
           set_checkout_success(data);
           import("@/services/api/billing").then(({ activate_subscription }) => {
-            activate_subscription().catch(() => {});
+            activate_subscription().catch((caught) => ignore_error("pages/use_index_page_state:from", caught));
           });
         }
       } catch {
@@ -790,7 +792,7 @@ export function use_index_page_state() {
           archived = true;
           void bulk_update_metadata_by_ids(moved_ids, {
             is_archived: true,
-          }).catch(() => {});
+          }).catch((caught) => ignore_error("pages/use_index_page_state:get_current_view", caught));
           adjust_stats_inbox(-moved_ids.length);
           adjust_stats_archived(moved_ids.length);
           stale_all_view_caches();
@@ -828,7 +830,7 @@ export function use_index_page_state() {
             if (unarchive_result.success) {
               void bulk_update_metadata_by_ids(moved_ids, {
                 is_archived: false,
-              }).catch(() => {});
+              }).catch((caught) => ignore_error("pages/use_index_page_state:get_current_view", caught));
               adjust_stats_inbox(moved_ids.length);
               adjust_stats_archived(-moved_ids.length);
               stale_all_view_caches();

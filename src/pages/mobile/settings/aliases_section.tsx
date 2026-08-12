@@ -64,6 +64,8 @@ import { update_alias } from "@/services/api/aliases";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const ALIASES_PER_PAGE = 50;
 
 export function AliasesSection({
@@ -99,7 +101,8 @@ export function AliasesSection({
           prev.filter((order) => order.id !== order_id),
         );
       }
-    } catch {
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/aliases_section:handle_cancel_order", caught);
     } finally {
       set_cancelling_order_id(null);
     }
@@ -120,7 +123,7 @@ export function AliasesSection({
           );
         }
       })
-      .catch(() => {})
+      .catch((caught) => ignore_error("pages/mobile/settings/aliases_section:handle_cancel_order", caught))
       .finally(() => set_purchased_loading(false));
   }, [purchase_open]);
 
@@ -146,7 +149,9 @@ export function AliasesSection({
       if (stashed) {
         sessionStorage.removeItem("aster_pending_domain_order");
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/aliases_section:handle_cancel_order", caught);
+    }
 
     if (params.get("cancelled") === "1") {
       const cancelled_id = url_order_id ?? stashed;
@@ -157,10 +162,12 @@ export function AliasesSection({
         url.searchParams.delete("domain_order");
         url.searchParams.delete("cancelled");
         window.history.replaceState({}, "", url.toString());
-      } catch {}
+      } catch (caught) {
+        ignore_error("pages/mobile/settings/aliases_section:open_purchase", caught);
+      }
 
       if (cancelled_id) {
-        cancel_domain_order(cancelled_id).catch(() => {});
+        cancel_domain_order(cancelled_id).catch((caught) => ignore_error("pages/mobile/settings/aliases_section:open_purchase", caught));
       }
 
       return;
@@ -175,7 +182,9 @@ export function AliasesSection({
 
           url.searchParams.set("domain_order", order_id);
           window.history.replaceState({}, "", url.toString());
-        } catch {}
+        } catch (caught) {
+          ignore_error("pages/mobile/settings/aliases_section:open_purchase", caught);
+        }
       }
       set_purchase_order_id(order_id);
       set_purchase_open(true);
@@ -250,7 +259,7 @@ export function AliasesSection({
         .then(() => {
           show_toast(t("settings.copied_to_clipboard"), "success");
         })
-        .catch(() => {});
+        .catch((caught) => ignore_error("pages/mobile/settings/aliases_section:handle_page_change", caught));
     },
     [t],
   );
@@ -974,7 +983,9 @@ export function AliasesSection({
               url.searchParams.delete("domain_order");
               window.history.replaceState({}, "", url.toString());
             }
-          } catch {}
+          } catch (caught) {
+            ignore_error("pages/mobile/settings/aliases_section:handle_page_change", caught);
+          }
         }}
         on_create_address={() => {
           set_purchase_open(false);

@@ -56,6 +56,8 @@ import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const MobileApp = lazy(() => import("@/mobile_app"));
 
 start_input_modality_tracking();
@@ -65,7 +67,7 @@ initialize_capacitor().catch((e) => {
 });
 
 if (!is_native_platform()) {
-  recover_fallback_sends().catch(() => {});
+  recover_fallback_sends().catch((caught) => ignore_error("main", caught));
 }
 
 const cached_prefs_raw = localStorage.getItem("aster_preferences_cache");
@@ -75,7 +77,9 @@ try {
     const cached_prefs = JSON.parse(cached_prefs_raw);
     low_network_on_startup = cached_prefs.low_network_mode === true;
   }
-} catch {}
+} catch (caught) {
+  ignore_error("main", caught);
+}
 if (!low_network_on_startup) {
   start_version_check();
 }
@@ -88,7 +92,7 @@ if (low_network_on_startup) {
 }
 show_self_xss_warning();
 
-connection_store.initialize().catch(() => {});
+connection_store.initialize().catch((caught) => ignore_error("main", caught));
 
 const is_tauri_runtime =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -103,11 +107,11 @@ if (is_tauri_runtime) {
 
       if (Number.isFinite(cached) && cached > 0) {
         void invoke("set_unread_badge", { count: Math.floor(cached) }).catch(
-          () => {},
+          (caught) => ignore_error("main", caught),
         );
       }
     })
-    .catch(() => {});
+    .catch((caught) => ignore_error("main", caught));
   void apply_desktop_content_protection(is_any_lockdown_active());
   void start_desktop_link_bridge();
 }
@@ -194,7 +198,9 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 
       try {
         already_reset = localStorage.getItem("aster_sw_reset_v1") === "1";
-      } catch {}
+      } catch (caught) {
+        ignore_error("main:legacy_sw_reset", caught);
+      }
 
       if (already_reset) return true;
 
@@ -205,7 +211,9 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 
       try {
         localStorage.setItem("aster_sw_reset_v1", "1");
-      } catch {}
+      } catch (caught) {
+        ignore_error("main:legacy_sw_reset", caught);
+      }
 
       if (!has_legacy_state) return true;
 
@@ -219,13 +227,17 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
       try {
         already_reloaded =
           sessionStorage.getItem("aster_sw_reset_reloaded") === "1";
-      } catch {}
+      } catch (caught) {
+        ignore_error("main:legacy_sw_reset", caught);
+      }
 
       if (already_reloaded) return true;
 
       try {
         sessionStorage.setItem("aster_sw_reset_reloaded", "1");
-      } catch {}
+      } catch (caught) {
+        ignore_error("main:legacy_sw_reset", caught);
+      }
 
       window.location.reload();
 
@@ -270,11 +282,15 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 
       setInterval(
         () => {
-          registration.update().catch(() => {});
+          registration
+            .update()
+            .catch((caught) => ignore_error("main:activate_waiting", caught));
         },
         60 * 60 * 1000,
       );
-    } catch {}
+    } catch (caught) {
+      ignore_error("main:legacy_sw_reset", caught);
+    }
   });
 }
 
@@ -313,14 +329,20 @@ async function maybe_block_on_version_check(): Promise<void> {
     );
 
     if (last && Date.now() - last < BOOT_VERSION_CHECK_TTL_MS) return;
-  } catch {}
+  } catch (caught) {
+    ignore_error("main:maybe_block_on_version_check", caught);
+  }
   try {
     sessionStorage.setItem(BOOT_VERSION_CHECK_MARKER, String(Date.now()));
-  } catch {}
+  } catch (caught) {
+    ignore_error("main:maybe_block_on_version_check", caught);
+  }
 
   try {
     await version_check_blocking(1500);
-  } catch {}
+  } catch (caught) {
+    ignore_error("main:maybe_block_on_version_check", caught);
+  }
 }
 
 function mount_app(): void {
@@ -336,11 +358,15 @@ function mount_app(): void {
 void maybe_block_on_version_check().then(mount_app);
 
 setTimeout(() => {
-  evict_stale_favicons().catch(() => {});
+  evict_stale_favicons().catch((caught) =>
+    ignore_error("main:mount_app", caught),
+  );
 }, 3000);
 
 function dismiss_initial_loader() {
-  hide_splash().catch(() => {});
+  hide_splash().catch((caught) =>
+    ignore_error("main:dismiss_initial_loader", caught),
+  );
   const loader = document.getElementById("initial-loader");
 
   if (!loader) return;

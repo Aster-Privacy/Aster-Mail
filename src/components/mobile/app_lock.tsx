@@ -54,6 +54,8 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { set_app_network_locked } from "@/services/app_lock_network_gate";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
 function PinDots({ digits, filled, shake_key }: { digits: number; filled: number; shake_key: number }) {
@@ -447,7 +449,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     } else if (was_locked_ref.current) {
       was_locked_ref.current = false;
       set_app_network_locked(false);
-      sync_client.connect().catch(() => {});
+      sync_client.connect().catch((caught) => ignore_error("components/mobile/app_lock:stored_id", caught));
       invalidate_mail_stats();
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
     }

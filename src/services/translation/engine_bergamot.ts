@@ -26,6 +26,8 @@ import {
 } from "@/vendor/bergamot/translator.js";
 
 import { register_engine } from "./engine_registry";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   EngineUnavailableError,
   type LanguageCode,
@@ -381,7 +383,9 @@ class BergamotEngine implements TranslationEngine {
   private reset_translator(): void {
     try {
       this.translator?.delete();
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/translation/engine_bergamot:prepare", caught);
+    }
 
     this.translator = null;
     this.loaded_pairs.clear();

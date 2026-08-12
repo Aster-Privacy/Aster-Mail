@@ -39,6 +39,8 @@ import {
 import { recover_fallback_sends } from "@/services/send_queue";
 import { css_color_to_hex } from "@/lib/avatar_color";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 let is_initialized = false;
 
 export function is_native_platform(): boolean {
@@ -66,7 +68,9 @@ export async function initialize_capacitor(): Promise<void> {
     initialize_offline_queue(),
   ]);
 
-  await recover_fallback_sends().catch(() => {});
+  await recover_fallback_sends().catch((caught) =>
+    ignore_error("native/capacitor_bridge:initialize_capacitor", caught),
+  );
 
   App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
     handle_deep_link(event.url);

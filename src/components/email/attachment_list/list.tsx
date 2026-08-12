@@ -61,6 +61,8 @@ import { AttachmentCardSkeleton } from "./icons";
 import { ImagePreviewModal } from "./preview_modal";
 import { AttachmentListProps, DecryptedAttachmentInfo, PREVIEW_READY_TIMEOUT_MS, build_cards_from_cached_meta, is_inline_attachment } from "./types";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 function attachment_error_key(error: unknown): TranslationKey {
   return error instanceof AttachmentKeyUnavailableError
     ? "common.attachment_locked"
@@ -238,7 +240,7 @@ export function AttachmentList({
             .then((late_url) => {
               if (timed_out || is_cancelled()) URL.revokeObjectURL(late_url);
             })
-            .catch(() => {});
+            .catch((caught) => ignore_error("components/email/attachment_list/list:AttachmentList", caught));
 
           const raw_url = await Promise.race([
             thumbnail_promise,

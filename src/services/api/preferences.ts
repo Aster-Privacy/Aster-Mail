@@ -34,6 +34,8 @@ import {
 import { api_client } from "./client";
 
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export interface UserPreferences {
   theme: "light" | "dark" | "system";
   language: string;
@@ -338,19 +340,25 @@ function write_local_migration_flag(flag: MigrationFlag): void {
 
     state[flag] = true;
     localStorage.setItem(MIGRATION_FLAGS_KEY, JSON.stringify(state));
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/preferences:write_local_migration_flag", caught);
+  }
 }
 
 export function cache_preferences_locally(prefs: UserPreferences): void {
   try {
     localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/preferences:cache_preferences_locally", caught);
+  }
 }
 
 export function clear_preferences_cache(): void {
   try {
     localStorage.removeItem(PREFS_CACHE_KEY);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/preferences:clear_preferences_cache", caught);
+  }
 }
 
 export function get_cached_preferences(): UserPreferences | null {
@@ -362,7 +370,9 @@ export function get_cached_preferences(): UserPreferences | null {
 
       return build_merged_preferences(parsed, null);
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/preferences:get_cached_preferences", caught);
+  }
 
   return null;
 }
@@ -378,7 +388,9 @@ export function get_cached_sidebar_state(key: string): boolean {
 
       if (typeof parsed[key] === "boolean") return parsed[key];
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/preferences:get_cached_sidebar_state", caught);
+  }
 
   return false;
 }
@@ -390,7 +402,9 @@ export function cache_sidebar_state(key: string, value: boolean): void {
 
     state[key] = value;
     localStorage.setItem(SIDEBAR_CACHE_KEY, JSON.stringify(state));
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/api/preferences:cache_sidebar_state", caught);
+  }
 }
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -810,7 +824,7 @@ export async function get_preferences(
       );
 
       if (!ok) {
-        save_preferences_via_http(merged, vault).catch(() => {});
+        save_preferences_via_http(merged, vault).catch((caught) => ignore_error("services/api/preferences:get_preferences", caught));
       }
     }
 

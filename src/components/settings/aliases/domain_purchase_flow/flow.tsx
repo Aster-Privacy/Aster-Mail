@@ -64,6 +64,8 @@ import type { } from "@/services/api/client";
 import { is_https_payment_url } from "@/lib/payment_url";
 import { BenefitList, DomainPurchaseFlowProps, INTRO_TLDS, PurchaseView, ResultRow, SkeletonRows, TERMINAL_ORDER_STATUSES, TermsSentence, checkout_error_key, mark_intro_seen, read_checkout_draft, read_intro_seen, write_checkout_draft } from "./shared";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function DomainPurchaseFlow({
   initial_order_id,
   initial_query,
@@ -92,7 +94,9 @@ export function DomainPurchaseFlow({
     set_query_state(q);
     try {
       sessionStorage.setItem("alias_domains_purchase_query", q);
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/settings/aliases/domain_purchase_flow/flow:set_query", caught);
+    }
   };
   const [show_intro, set_show_intro] = useState(() => {
     if (initial_order_id || initial_query) return false;
@@ -301,7 +305,9 @@ export function DomainPurchaseFlow({
             response.data.order_id,
           );
           sessionStorage.removeItem("alias_domains_purchase_query");
-        } catch {}
+        } catch (caught) {
+          ignore_error("components/settings/aliases/domain_purchase_flow/flow:handle_buy", caught);
+        }
         window.location.href = response.data.checkout_url;
       } else {
         set_error(t(checkout_error_key(response.code, response.server_code)));
@@ -387,7 +393,8 @@ export function DomainPurchaseFlow({
         set_suggest_pages(response.data.next_suggest_page ?? suggest_pages + 1);
         set_has_more_suggestions(response.data.has_more_suggestions ?? false);
       }
-    } catch {
+    } catch (caught) {
+      ignore_error("components/settings/aliases/domain_purchase_flow/flow:load_more_suggestions", caught);
     } finally {
       set_loading_more_suggestions(false);
     }

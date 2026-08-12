@@ -47,6 +47,8 @@ import {
   adjust_stats_unread,
 } from "@/hooks/use_mail_stats";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   compute_untrash_deltas,
   apply_stat_deltas,
@@ -107,14 +109,24 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
               if (is_unread) adjust_stats_unread(1);
             }
             await update_with_metadata(email, original_state);
-            remove_spam_sender(email.sender_email).catch(() => {});
+            remove_spam_sender(email.sender_email).catch((caught) =>
+              ignore_error(
+                "hooks/email_actions/use_single_actions_folders:use_single_actions_folders",
+                caught,
+              ),
+            );
             emit_mail_soft_refresh();
           },
         },
       );
 
       if (success) {
-        report_spam_sender(email.sender_email).catch(() => {});
+        report_spam_sender(email.sender_email).catch((caught) =>
+          ignore_error(
+            "hooks/email_actions/use_single_actions_folders:use_single_actions_folders",
+            caught,
+          ),
+        );
       } else if (is_received) {
         adjust_stats_spam(-1);
         if (is_unread) adjust_stats_unread(1);
@@ -142,14 +154,24 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
           on_undo: async () => {
             adjust_stats_spam(1);
             await update_with_metadata(email, { is_spam: true });
-            report_spam_sender(email.sender_email).catch(() => {});
+            report_spam_sender(email.sender_email).catch((caught) =>
+              ignore_error(
+                "hooks/email_actions/use_single_actions_folders:use_single_actions_folders",
+                caught,
+              ),
+            );
             emit_mail_soft_refresh();
           },
         },
       );
 
       if (success) {
-        remove_spam_sender(email.sender_email).catch(() => {});
+        remove_spam_sender(email.sender_email).catch((caught) =>
+          ignore_error(
+            "hooks/email_actions/use_single_actions_folders:use_single_actions_folders",
+            caught,
+          ),
+        );
       } else {
         adjust_stats_spam(1);
       }

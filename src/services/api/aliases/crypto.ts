@@ -32,6 +32,8 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { DecryptedEmailAlias, EmailAlias } from "./types";
 import { parse_websites_payload } from "./website";
+import { ignore_error } from "@/lib/ignore_error";
+
 export function array_to_base64(array: Uint8Array): string {
   let binary = "";
 
@@ -169,7 +171,9 @@ export async function decrypt_alias(
           alias.encrypted_display_name,
           alias.display_name_nonce,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/aliases/crypto:decrypt_alias", caught);
+      }
     }
 
     let note: string | undefined;
@@ -180,7 +184,9 @@ export async function decrypt_alias(
           alias.encrypted_note,
           alias.note_nonce,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/aliases/crypto:decrypt_alias", caught);
+      }
     }
 
     let websites: string[] | undefined;
@@ -194,7 +200,9 @@ export async function decrypt_alias(
         const parsed = parse_websites_payload(payload);
 
         if (parsed.length > 0) websites = parsed;
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/aliases/crypto:decrypt_alias", caught);
+      }
     }
 
     return {
@@ -233,7 +241,9 @@ export async function decrypt_alias(
           alias.encrypted_display_name,
           alias.display_name_nonce,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/aliases/crypto:decrypt_alias", caught);
+      }
     }
 
     let note: string | undefined;
@@ -244,7 +254,9 @@ export async function decrypt_alias(
           alias.encrypted_note,
           alias.note_nonce,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/aliases/crypto:decrypt_alias", caught);
+      }
     }
 
     let websites: string[] | undefined;
@@ -258,7 +270,9 @@ export async function decrypt_alias(
         const parsed = parse_websites_payload(payload);
 
         if (parsed.length > 0) websites = parsed;
-      } catch {}
+      } catch (caught) {
+        ignore_error("services/api/aliases/crypto:decrypt_alias", caught);
+      }
     }
 
     return {

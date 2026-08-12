@@ -84,6 +84,8 @@ import { use_email_detail_actions } from "@/components/email/hooks/email_detail_
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_email_detail_load() {
   const { t } = use_i18n();
   const { email_id } = useParams();
@@ -145,7 +147,9 @@ export function use_email_detail_load() {
 
         return parsed.email_ids || [];
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/email/hooks/use_email_detail_load:use_email_detail_load", caught);
+    }
 
     return [];
   });
@@ -158,7 +162,9 @@ export function use_email_detail_load() {
 
         return parsed.grouped_email_ids;
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("components/email/hooks/use_email_detail_load:use_email_detail_load", caught);
+    }
 
     return undefined;
   });
@@ -484,7 +490,7 @@ export function use_email_detail_load() {
               set_thread_draft(fresh.thread_draft);
             }
           })
-          .catch(() => {});
+          .catch((caught) => ignore_error("components/email/hooks/use_email_detail_load:mark_read", caught));
       }
 
       return;

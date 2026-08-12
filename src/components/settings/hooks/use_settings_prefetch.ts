@@ -45,6 +45,8 @@ import { get_security_status } from "@/services/api/account";
 import { list_hardware_keys } from "@/services/api/webauthn";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 type Fetcher = () => Promise<unknown>;
 
 const PANEL_FETCHERS: Record<SettingsPanelName, Fetcher> = {
@@ -203,7 +205,12 @@ export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
 
   useEffect(() => {
     if (cache.is_fresh(panel)) return;
-    void revalidate().catch(() => {});
+    void revalidate().catch((caught) =>
+      ignore_error(
+        "components/settings/hooks/use_settings_prefetch:use_settings_panel_data",
+        caught,
+      ),
+    );
   }, [cache, panel, revalidate]);
 
   return {

@@ -29,6 +29,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function FeedbackSection({
   on_back,
   on_close,
@@ -51,7 +53,11 @@ export function FeedbackSection({
       );
       set_sent(true);
       set_message("");
-    } catch {
+    } catch (caught) {
+      ignore_error(
+        "pages/mobile/settings/feedback_section:FeedbackSection",
+        caught,
+      );
     } finally {
       set_is_sending(false);
     }

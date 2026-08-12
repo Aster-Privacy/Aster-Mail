@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ignore_error } from "@/lib/ignore_error";
+
 const DB_NAME = "astermail_favicon_cache";
 const STORE = "favicons";
 const TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -77,7 +79,9 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
     const timeout_id = setTimeout(() => {
       try {
         db.close();
-      } catch {}
+      } catch (caught) {
+        ignore_error("lib/favicon_cache_db:read_entry", caught);
+      }
       resolve(null);
     }, IDB_TX_TIMEOUT_MS);
 
@@ -155,7 +159,9 @@ export async function cache_favicon_blob(
     const timeout_id = setTimeout(() => {
       try {
         db.close();
-      } catch {}
+      } catch (caught) {
+        ignore_error("lib/favicon_cache_db:cache_favicon_blob", caught);
+      }
       resolve();
     }, IDB_TX_TIMEOUT_MS);
 
@@ -189,7 +195,9 @@ export async function evict_stale_favicons(): Promise<void> {
     const timeout_id = setTimeout(() => {
       try {
         db.close();
-      } catch {}
+      } catch (caught) {
+        ignore_error("lib/favicon_cache_db:evict_stale_favicons", caught);
+      }
       resolve();
     }, IDB_TX_TIMEOUT_MS);
 
@@ -212,7 +220,9 @@ export async function evict_stale_favicons(): Promise<void> {
       if (now - entry.ts > TTL_MS) {
         const stale_url = live_urls.get(entry.domain);
         if (stale_url) {
-          try { URL.revokeObjectURL(stale_url); } catch {}
+          try { URL.revokeObjectURL(stale_url); } catch (caught) {
+            ignore_error("lib/favicon_cache_db:evict_stale_favicons", caught);
+          }
           live_urls.delete(entry.domain);
         }
         cursor.delete();
@@ -232,7 +242,9 @@ export async function purge_favicon_cache(): Promise<void> {
   for (const url of live_urls.values()) {
     try {
       URL.revokeObjectURL(url);
-    } catch {}
+    } catch (caught) {
+      ignore_error("lib/favicon_cache_db:purge_favicon_cache", caught);
+    }
   }
 
   live_urls.clear();
@@ -250,7 +262,9 @@ export async function purge_favicon_cache(): Promise<void> {
     const timeout_id = setTimeout(() => {
       try {
         db.close();
-      } catch {}
+      } catch (caught) {
+        ignore_error("lib/favicon_cache_db:purge_favicon_cache", caught);
+      }
       resolve();
     }, IDB_TX_TIMEOUT_MS);
 

@@ -23,6 +23,8 @@ import { array_to_base64, base64_to_array } from "./base64";
 import { api_client } from "@/services/api/client";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
@@ -73,7 +75,9 @@ function flush_escrow_misses(): void {
         ESCROW_MISS_STORAGE_KEY,
         JSON.stringify(Object.fromEntries(escrow_misses)),
       );
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/crypto/message_escrow:flush_escrow_misses", caught);
+    }
   }, 2000);
 }
 
@@ -123,7 +127,9 @@ export function clear_escrow_miss_cache(): void {
 
   try {
     localStorage.removeItem(ESCROW_MISS_STORAGE_KEY);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/message_escrow:clear_escrow_miss_cache", caught);
+  }
 }
 
 interface EscrowEntry {

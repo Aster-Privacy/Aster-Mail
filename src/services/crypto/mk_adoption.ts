@@ -36,6 +36,8 @@ import { array_to_base64 } from "./key_manager_core";
 import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { zero_uint8_array } from "./secure_memory";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 let adoption_in_flight: Promise<boolean> | null = null;
 
 export async function adopt_master_key_if_needed(
@@ -130,7 +132,9 @@ async function run_adoption(
       encrypted_vault,
     );
     localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/crypto/mk_adoption:run_adoption", caught);
+  }
 
   await store_vault_in_memory(upgraded, passphrase);
 

@@ -37,6 +37,8 @@ import {
   normalize_envelope_recipients,
 } from "@/services/crypto/envelope_normalize";
 import { get_current_account_id } from "@/services/account_manager";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   normalize_chunk_summary,
   parse_gram_filter,
@@ -566,10 +568,10 @@ export async function open_snapshot_writer(
       written_summaries.delete(chunk_id);
 
       await secure_overwrite_and_delete(chunk_record_key(key, chunk_id)).catch(
-        () => {},
+        (caught) => ignore_error("services/search_index_store:flush", caught),
       );
       await secure_overwrite_and_delete(gram_record_key(key, chunk_id)).catch(
-        () => {},
+        (caught) => ignore_error("services/search_index_store:flush", caught),
       );
     } finally {
       drop_buffer();

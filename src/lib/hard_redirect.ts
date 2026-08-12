@@ -23,6 +23,8 @@
 // path-based location change to "/sign-in" resolves to a missing asset and
 // paints nothing over the dark window background. Routes there live in the
 // fragment, so the path must be moved into the hash before reloading.
+import { ignore_error } from "@/lib/ignore_error";
+
 function uses_hash_router(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
@@ -31,7 +33,9 @@ function safe_internal_url(path: string): URL {
   try {
     const url = new URL(path, window.location.origin);
     if (url.origin === window.location.origin) return url;
-  } catch {}
+  } catch (caught) {
+    ignore_error("lib/hard_redirect:safe_internal_url", caught);
+  }
   return new URL("/", window.location.origin);
 }
 

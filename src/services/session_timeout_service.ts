@@ -20,6 +20,8 @@
 //
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const SESSION_TIMEOUT_KEY = "astermail_session_timeout_config";
 const LAST_ACTIVITY_KEY_PREFIX = "astermail_last_activity_";
 
@@ -96,7 +98,9 @@ function read_last_activity(): number | null {
         return timestamp;
       }
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/session_timeout_service:read_last_activity", caught);
+  }
 
   return null;
 }
@@ -104,7 +108,9 @@ function read_last_activity(): number | null {
 function write_last_activity(timestamp: number): void {
   try {
     localStorage.setItem(get_last_activity_key(), timestamp.toString());
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/session_timeout_service:write_last_activity", caught);
+  }
 }
 
 function clear_timer(): void {
@@ -208,7 +214,9 @@ function broadcast_activity(timestamp: number): void {
       };
 
       broadcast_channel.postMessage(message);
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/session_timeout_service:broadcast_activity", caught);
+    }
   }
 }
 
@@ -221,7 +229,9 @@ function broadcast_config(config: SessionTimeoutConfig): void {
       };
 
       broadcast_channel.postMessage(message);
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/session_timeout_service:broadcast_config", caught);
+    }
   }
 }
 
@@ -286,7 +296,9 @@ function detach_broadcast_channel(): void {
   try {
     broadcast_channel.removeEventListener("message", handle_broadcast_message);
     broadcast_channel.close();
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/session_timeout_service:detach_broadcast_channel", caught);
+  }
   broadcast_channel = null;
 }
 
@@ -340,7 +352,9 @@ function handle_storage_event(event: StorageEvent): void {
       } else if (!current_config.enabled) {
         clear_timer();
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("services/session_timeout_service:handle_storage_event", caught);
+    }
   }
 }
 
@@ -411,7 +425,9 @@ function load_config_from_storage(): void {
         );
       }
     }
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/session_timeout_service:load_config_from_storage", caught);
+  }
 }
 
 export function configure_session_timeout(
@@ -430,7 +446,9 @@ export function configure_session_timeout(
 
   try {
     localStorage.setItem(SESSION_TIMEOUT_KEY, JSON.stringify(current_config));
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/session_timeout_service:configure_session_timeout", caught);
+  }
 
   if (enabled && current_account_id) {
     attach_activity_listeners();
@@ -520,7 +538,9 @@ export function get_session_timeout_config(): SessionTimeoutConfig {
 export function clear_session_timeout_data(account_id: string): void {
   try {
     localStorage.removeItem(LAST_ACTIVITY_KEY_PREFIX + account_id);
-  } catch {}
+  } catch (caught) {
+    ignore_error("services/session_timeout_service:clear_session_timeout_data", caught);
+  }
 }
 
 export function refresh_session_activity(): void {

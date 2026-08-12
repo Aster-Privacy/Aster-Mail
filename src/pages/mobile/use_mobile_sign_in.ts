@@ -40,6 +40,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_app_query_param } from "@/lib/hard_redirect";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 export function use_mobile_sign_in() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -87,7 +89,12 @@ export function use_mobile_sign_in() {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
     if (!preloaded.current) {
       preloaded.current = true;
-      import("@/pages/mobile/mobile_register").catch(() => {});
+      import("@/pages/mobile/mobile_register").catch((caught) =>
+        ignore_error(
+          "pages/mobile/use_mobile_sign_in:use_mobile_sign_in",
+          caught,
+        ),
+      );
     }
   }, []);
 
@@ -171,7 +178,12 @@ export function use_mobile_sign_in() {
               setTimeout(() => resolve(null), 10_000),
             ),
           ]);
-        } catch {}
+        } catch (caught) {
+          ignore_error(
+            "pages/mobile/use_mobile_sign_in:use_mobile_sign_in",
+            caught,
+          );
+        }
 
         const user_data = user_info_response?.data
           ? {
@@ -251,7 +263,12 @@ export function use_mobile_sign_in() {
                 );
               }
             })
-            .catch(() => {});
+            .catch((caught) =>
+              ignore_error(
+                "pages/mobile/use_mobile_sign_in:login_timeout",
+                caught,
+              ),
+            );
         }
 
         set_totp_required(false);

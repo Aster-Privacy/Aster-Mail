@@ -64,6 +64,8 @@ import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_pro
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -317,7 +319,7 @@ export function EmailViewerContent({
         cid_blob_urls_ref.current = result.blob_urls;
         set_cid_resolved_html(result.html);
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/email/email_viewer_content:update", caught));
 
     return () => {
       cancelled = true;
@@ -357,7 +359,7 @@ export function EmailViewerContent({
       .then((result) => {
         if (!cancelled) set_phishing_level(result.level);
       })
-      .catch(() => {})
+      .catch((caught) => ignore_error("components/email/email_viewer_content:update", caught))
       .finally(() => {
         if (!cancelled) set_phishing_checked(true);
       });

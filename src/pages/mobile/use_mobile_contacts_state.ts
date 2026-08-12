@@ -36,6 +36,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { show_toast } from "@/components/toast/simple_toast";
 
+import { ignore_error } from "@/lib/ignore_error";
+
 const INITIAL_FORM: ContactFormData = {
   first_name: "",
   last_name: "",
@@ -114,7 +116,8 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         if (!cancelled) {
           set_contacts(decrypted);
         }
-      } catch {
+      } catch (caught) {
+        ignore_error("pages/mobile/use_mobile_contacts_state:load", caught);
       } finally {
         if (!cancelled) set_is_loading(false);
       }
@@ -160,7 +163,9 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
         set_contacts(decrypted);
       }
-    } catch {}
+    } catch (caught) {
+      ignore_error("pages/mobile/use_mobile_contacts_state:use_mobile_contacts_state", caught);
+    }
   }, []);
 
   const handle_sync_contacts = useCallback(async () => {
@@ -349,7 +354,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         .then(() => {
           show_toast(t("common.copied_to_clipboard"), "success");
         })
-        .catch(() => {});
+        .catch((caught) => ignore_error("pages/mobile/use_mobile_contacts_state:letter", caught));
     },
     [t],
   );
@@ -371,7 +376,9 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
             ? { ...prev, is_favorite: !prev.is_favorite }
             : prev,
         );
-      } catch {}
+      } catch (caught) {
+        ignore_error("pages/mobile/use_mobile_contacts_state:handle_back", caught);
+      }
     },
     [],
   );
@@ -383,7 +390,9 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         set_contacts((prev) => prev.filter((c) => c.id !== contact.id));
         set_selected_contact(null);
         show_toast(t("common.delete") + " \u2713", "success");
-      } catch {}
+      } catch (caught) {
+        ignore_error("pages/mobile/use_mobile_contacts_state:handle_back", caught);
+      }
     },
     [t],
   );
@@ -478,7 +487,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
       .then(() => {
         show_toast(t("common.copied_to_clipboard"), "success");
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("pages/mobile/use_mobile_contacts_state:handle_back", caught));
     exit_select_mode();
   }, [contacts, selected_ids, t, exit_select_mode]);
 
@@ -621,7 +630,8 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
       }
       set_show_create(false);
       set_selected_contact(null);
-    } catch {
+    } catch (caught) {
+      ignore_error("pages/mobile/use_mobile_contacts_state:use_mobile_contacts_state", caught);
     } finally {
       set_is_saving(false);
     }

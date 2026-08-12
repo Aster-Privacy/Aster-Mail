@@ -42,6 +42,8 @@ import { use_folders } from "@/hooks/use_folders";
 import { use_online_status } from "@/hooks/use_online_status";
 import { format_bytes } from "@/lib/utils";
 import { get_identity_key_status } from "@/services/api/key_rotation";
+import { ignore_error } from "@/lib/ignore_error";
+
 import {
   get_wkd_publication_status,
   get_keyserver_publication_status,
@@ -317,7 +319,7 @@ export function DeveloperSection() {
       .then(() => {
         show_toast(t("common.copied_to_clipboard"));
       })
-      .catch(() => {});
+      .catch((caught) => ignore_error("components/settings/developer_section:copy_to_clipboard", caught));
   };
 
   const handle_clear_cache = async () => {
