@@ -4791,6 +4791,8 @@ export const de = {
     select_currency: "Währung auswählen",
     prices_in_usd_note:
       "Preise in USD angegeben. Der endgültige Betrag wird an der Kasse ermittelt.",
+    prices_converted_note:
+      "Die Preise werden aus US-Dollar umgerechnet und sind ungefähre Angaben. Den genauen Betrag inklusive Umrechnungsgebühr sehen Sie beim Bezahlvorgang.",
     switch_to_yearly: "Zu jährlich wechseln",
     switch_to_monthly: "Zu monatlich wechseln",
     switch_billing_confirm: "Abrechnungszeitraum wechseln",

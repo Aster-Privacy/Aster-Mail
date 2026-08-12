@@ -1165,7 +1165,7 @@ export const it = {
     unsubscribed_count: "Disiscritti ({{count}})",
     one_click_unsubscribe: "Disiscrizione con un clic supportata",
     no_unsubscribed_senders: "Nessun mittente disiscritto",
-    total: "totale",
+    total: "Totale",
     ghost_label: "Ghost",
     ghost_mode_tooltip:
       "Inviato tramite modalità Ghost. Il tuo vero indirizzo è stato nascosto.",
@@ -3704,6 +3704,8 @@ export const it = {
     select_currency: "Seleziona valuta",
     prices_in_usd_note:
       "Prezzi mostrati in USD. L'importo finale viene determinato al checkout.",
+    prices_converted_note:
+      "I prezzi sono convertiti dal dollaro statunitense e sono approssimativi. Vedi l'importo esatto, commissione di conversione inclusa, al momento del pagamento.",
     switch_to_yearly: "Passa ad annuale",
     switch_to_monthly: "Passa a mensile",
     switch_billing_confirm: "Cambia ciclo di fatturazione",

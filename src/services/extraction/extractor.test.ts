@@ -23,7 +23,175 @@ import { describe, it, expect } from "vitest";
 import {
   extract_purchase_details,
   extract_shipping_details,
+  is_purchase_email,
 } from "./extractor";
+
+describe("purchase order id accuracy", () => {
+  it("does not read a plain word after order as an order number", () => {
+    const result = extract_purchase_details(
+      "Your Aster Privacy receipt",
+      "Thanks for your order Download your invoice below. Total: $86.99.",
+      "receipts@astermail.org",
+      "Aster Privacy",
+    );
+
+    expect(result.order_id).toBeNull();
+  });
+
+  it("still reads a real order number", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Order #INV-90210 was placed. Total: $12.00.",
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(result.order_id).toBe("INV-90210");
+  });
+
+  it("reads a marketplace order number", () => {
+    const result = extract_purchase_details(
+      "Your order",
+      "Order 112-1234567-1234567 confirmed. Total: $12.00.",
+      "orders@store.com",
+      "Store",
+    );
+
+    expect(result.order_id).toBe("112-1234567-1234567");
+  });
+
+  it("does not read a word after confirmation as a confirmation number", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Confirmation pending. Order #A1234 placed. Total: $12.00.",
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(result.confirmation_number).toBeNull();
+  });
+});
+
+describe("purchase amount accuracy", () => {
+  it("does not read the subtotal as the total", () => {
+    const result = extract_purchase_details(
+      "Purchase receipt",
+      "Subtotal: $86.99\nDiscount: -$1.00\nTotal: $85.99",
+      "receipts@astermail.org",
+      "Aster Privacy",
+    );
+
+    expect(result.subtotal?.value).toBe(86.99);
+    expect(result.discount?.value).toBe(1);
+    expect(result.total?.value).toBe(85.99);
+  });
+
+  it("drops a discount that the total does not reflect", () => {
+    const result = extract_purchase_details(
+      "Purchase receipt",
+      "Subtotal: $86.99\nMember savings: $1.00\nOrder total: $86.99",
+      "receipts@astermail.org",
+      "Aster Privacy",
+    );
+
+    expect(result.total?.value).toBe(86.99);
+    expect(result.discount).toBeNull();
+  });
+
+  it("drops a breakdown whose parts exceed the total", () => {
+    const result = extract_purchase_details(
+      "Purchase receipt",
+      "Subtotal: $500.00\nTax: $40.00\nTotal: $12.00",
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(result.total?.value).toBe(12);
+    expect(result.subtotal).toBeNull();
+    expect(result.tax).toBeNull();
+  });
+
+  it("keeps a breakdown that adds up", () => {
+    const result = extract_purchase_details(
+      "Purchase receipt",
+      "Subtotal: $100.00\nShipping: $5.00\nTax: $8.00\nTotal: $113.00",
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(result.subtotal?.value).toBe(100);
+    expect(result.shipping_cost?.value).toBe(5);
+    expect(result.tax?.value).toBe(8);
+    expect(result.total?.value).toBe(113);
+  });
+
+  it("reads a rupee total without turning it into dollars", () => {
+    const result = extract_purchase_details(
+      "Your subscription receipt",
+      "Order #AS-4471\nTotal: ₹8,629.00",
+      "receipts@astermail.org",
+      "Aster Privacy",
+    );
+
+    expect(result.total?.currency).toBe("INR");
+    expect(result.total?.value).toBe(8629);
+    expect(result.total?.formatted).toBe("₹8,629.00");
+  });
+
+  it("keeps lakh grouping intact", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Order #AS-4471\nTotal: ₹1,00,000.00",
+      "receipts@store.in",
+      "Store",
+    );
+
+    expect(result.total?.value).toBe(100000);
+  });
+
+  it("uses the email currency for an amount written without a symbol", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Order #AS-4471\nSubtotal: ₹500.00\nTax: 90.00\nTotal: ₹590.00",
+      "receipts@store.in",
+      "Store",
+    );
+
+    expect(result.tax?.currency).toBe("INR");
+  });
+
+  it("reads a trailing currency code", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Order #AS-4471\nTotal: 42.00 EUR",
+      "receipts@store.eu",
+      "Store",
+    );
+
+    expect(result.total?.currency).toBe("EUR");
+    expect(result.total?.value).toBe(42);
+  });
+});
+
+describe("is_purchase_email precision", () => {
+  it("ignores prose that merely mentions an order", () => {
+    expect(
+      is_purchase_email(
+        "In order to continue",
+        "In order to download the report, sign in. You purchased nothing.",
+      ),
+    ).toBe(false);
+  });
+
+  it("still detects a real receipt", () => {
+    expect(
+      is_purchase_email(
+        "Your receipt from Aster Privacy",
+        "Thank you for your order. Order #AS-4471. Total: $86.99.",
+      ),
+    ).toBe(true);
+  });
+});
 
 describe("extract_shipping_details tracking accuracy", () => {
   it("reads a UPS 1Z tracking number regardless of surrounding numbers", () => {

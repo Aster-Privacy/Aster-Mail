@@ -49,6 +49,7 @@ import {
   min_plan_for_feature,
   type PlanTier,
 } from "@/components/settings/billing/billing_constants";
+import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanCard, Segmented } from "@/components/settings/billing/plan_card";
 import {
   close_upgrade_modal,
@@ -156,6 +157,8 @@ export function UpgradeModal() {
   const [interval, set_interval] = useState<"month" | "year">("year");
   const [selected_id, set_selected_id] = useState<string | null>(null);
   const [is_starting, set_is_starting] = useState(false);
+
+  use_currency_rates();
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
@@ -513,6 +516,12 @@ export function UpgradeModal() {
                 );
               })}
             </div>
+
+            {currency !== "usd" && (
+              <p className="pt-3 text-xs text-txt-muted text-center">
+                {t("settings.prices_converted_note")}
+              </p>
+            )}
           </>
         )}
 

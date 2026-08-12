@@ -1017,7 +1017,7 @@ export const pt = {
     offline_queue: "Fila Offline",
     pending_actions: "Ações Pendentes",
     create_new_label: "Criar nova etiqueta",
-    subtotal: "Subtotal parcial",
+    subtotal: "Subtotal",
     shipping: "Frete",
     tax: "Imposto",
     discount: "Desconto",
@@ -1048,7 +1048,7 @@ export const pt = {
     unsubscribed_count: "Cancelados ({{count}})",
     one_click_unsubscribe: "Cancelamento de inscrição com um clique disponível",
     no_unsubscribed_senders: "Nenhum remetente cancelado",
-    total: "total de",
+    total: "Total",
     learn_more: "Saiba mais",
     buy_more_storage: "Comprar mais armazenamento",
     save_failed:
@@ -5237,6 +5237,8 @@ export const pt = {
       "A última cobrança no seu método de pagamento não passou. Atualizá-lo em Configurações, Faturamento manterá seu plano ativo. Seu correio não é afetado.",
     prices_in_usd_note:
       "Preços exibidos em USD. O valor final é determinado no checkout.",
+    prices_converted_note:
+      "Os preços são convertidos de dólares americanos e são aproximados. Você vê o valor exato, incluindo a taxa de conversão, na finalização da compra.",
     switch_billing_description:
       "Seu ciclo de cobrança será alterado imediatamente. Um crédito ou cobrança proporcional será aplicado à sua próxima fatura.",
     switch_billing_savings:

@@ -1123,7 +1123,7 @@ export const nl = {
     unsubscribed_count: "Uitgeschreven ({{count}})",
     one_click_unsubscribe: "Uitschrijven met één klik ondersteund",
     no_unsubscribed_senders: "Geen uitgeschreven afzenders",
-    total: "totaal",
+    total: "Totaal",
     learn_more: "Meer informatie",
     buy_more_storage: "Meer opslag kopen",
     save_failed:
@@ -4731,6 +4731,8 @@ export const nl = {
     select_currency: "Selecteer valuta",
     prices_in_usd_note:
       "Prijzen weergegeven in USD. Het definitieve bedrag wordt bepaald bij het afrekenen.",
+    prices_converted_note:
+      "Prijzen zijn omgerekend vanuit Amerikaanse dollars en zijn bij benadering. Je ziet het exacte bedrag, inclusief omrekeningskosten, bij het afrekenen.",
     switch_to_yearly: "Overschakelen naar jaarlijks",
     switch_to_monthly: "Overschakelen naar maandelijks",
     switch_billing_confirm: "Factureringscyclus wijzigen",

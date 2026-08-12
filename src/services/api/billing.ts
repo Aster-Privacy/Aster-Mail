@@ -178,6 +178,19 @@ export async function get_available_plans() {
   return api_client.get<AvailablePlansResponse>("/payments/v1/plans");
 }
 
+export interface CurrencyRatesResponse {
+  base: string;
+  rates: Record<string, number>;
+  as_of: string;
+  is_live: boolean;
+}
+
+export async function get_currency_rates() {
+  return api_client.get<CurrencyRatesResponse>(
+    "/public/v1/billing/currency-rates"
+  );
+}
+
 export function billing_return_origin(): string {
   if (typeof window === "undefined") return "https://app.astermail.org";
   if ("__TAURI_INTERNALS__" in window) return "https://app.astermail.org";

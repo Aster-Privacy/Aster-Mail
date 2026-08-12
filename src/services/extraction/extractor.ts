@@ -81,6 +81,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   "₹": "INR",
   C$: "CAD",
   A$: "AUD",
+  R$: "BRL",
 };
 
 const CURRENCY_TO_SYMBOL: Record<string, string> = {
@@ -91,27 +92,63 @@ const CURRENCY_TO_SYMBOL: Record<string, string> = {
   INR: "₹",
   CAD: "C$",
   AUD: "A$",
+  BRL: "R$",
 };
 
 function currency_symbol(currency: string): string {
   return CURRENCY_TO_SYMBOL[currency] ?? currency;
 }
 
+function format_amount(value: number, currency: string): string {
+  const digits = value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return `${currency_symbol(currency)}${digits}`;
+}
+
 function escape_regex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const ID_MARKER = "(?:#|no\\.?|num(?:ber)?|id)";
+const ID_VALUE = "([A-Za-z0-9][\\w-]{4,29})";
+
+function labelled_id(label: string, marker = ID_MARKER): RegExp {
+  return new RegExp(`\\b${label}\\s*${marker}\\s*[:#]?\\s*${ID_VALUE}`, "i");
+}
+
 const ORDER_ID_PATTERNS = [
-  /order\s*(?:#|number|id)?[:\s]*([A-Z0-9][\w-]{5,30})/i,
-  /order[:\s]+([0-9]{3}-[0-9]{7}-[0-9]{7})/i,
-  /confirmation\s*(?:#|number)?[:\s]*([A-Z0-9][\w-]{5,20})/i,
-  /invoice\s*(?:#|number)?[:\s]*([A-Z0-9][\w-]{5,20})/i,
-  /receipt\s*(?:#|number)?[:\s]*([A-Z0-9][\w-]{5,20})/i,
-  /transaction\s*(?:#|id)?[:\s]*([A-Z0-9][\w-]{8,30})/i,
+  /\border[:\s]+([0-9]{3}-[0-9]{7}-[0-9]{7})\b/i,
+  labelled_id("order"),
+  new RegExp(`\\border\\s*[:#]\\s*${ID_VALUE}`, "i"),
+  labelled_id("confirmation", "(?:#|no\\.?|num(?:ber)?|code)"),
+  labelled_id("invoice"),
+  labelled_id("receipt"),
+  labelled_id("transaction"),
 ];
 
-const AMOUNT_PATTERN =
-  /([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?\s*([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)\s*([\$€£¥₹]|USD|EUR|GBP|CAD|AUD)?/;
+const CONFIRMATION_NUMBER_PATTERN = labelled_id(
+  "confirmation",
+  "(?:#|no\\.?|num(?:ber)?|code)",
+);
+
+const TRANSACTION_ID_PATTERN = labelled_id("transaction");
+
+const CURRENCY_TOKEN = "C\\$|A\\$|R\\$|[$€£¥₹]|USD|EUR|GBP|JPY|INR|CAD|AUD|CHF";
+
+const NUMBER_TOKEN = "[0-9][0-9,]*(?:\\.[0-9]{1,2})?(?![0-9])";
+
+const MONEY_TOKEN = `(?:(?:${CURRENCY_TOKEN})\\s*)?(?:${NUMBER_TOKEN})(?:\\s*(?:${CURRENCY_TOKEN}))?`;
+
+const AMOUNT_PATTERN = new RegExp(
+  `(${CURRENCY_TOKEN})?\\s*(${NUMBER_TOKEN})\\s*(${CURRENCY_TOKEN})?`,
+);
+
+function money_after(label: string): RegExp {
+  return new RegExp(`${label}\\s*[:=-]?\\s*-?\\s*(${MONEY_TOKEN})`, "i");
+}
 
 const STRONG_TRACKING_PATTERNS: {
   carrier: ShippingCarrier;
@@ -166,14 +203,19 @@ const CARRIER_NAME_MAP: Record<string, ShippingCarrier> = {
   lasership: "lasership",
 };
 
-function parse_amount(text: string): ExtractedAmount | null {
+function parse_amount(
+  text: string,
+  fallback_currency = "USD",
+): ExtractedAmount | null {
   const match = text.match(AMOUNT_PATTERN);
 
   if (!match) return null;
 
   const [, prefix_symbol, value_str, suffix_symbol] = match;
-  const symbol = prefix_symbol || suffix_symbol || "$";
-  const currency = CURRENCY_SYMBOLS[symbol] || symbol;
+  const symbol = (prefix_symbol || suffix_symbol || "").toUpperCase();
+  const currency = symbol
+    ? (CURRENCY_SYMBOLS[symbol] ?? symbol)
+    : fallback_currency;
   const value = parseFloat(value_str.replace(/,/g, ""));
 
   if (isNaN(value)) return null;
@@ -181,13 +223,92 @@ function parse_amount(text: string): ExtractedAmount | null {
   return {
     value,
     currency,
-    formatted: `${currency_symbol(currency)}${value.toFixed(2)}`,
+    formatted: format_amount(value, currency),
   };
+}
+
+function clean_identifier(value: string | undefined): string | null {
+  const cleaned = clean_text_field(value);
+
+  if (!cleaned) return null;
+
+  const trimmed = cleaned.replace(/[.,;:]+$/, "");
+
+  if (!/[0-9]/.test(trimmed)) return null;
+
+  return trimmed || null;
+}
+
+interface PurchaseAmounts {
+  subtotal: ExtractedAmount | null;
+  tax: ExtractedAmount | null;
+  shipping_cost: ExtractedAmount | null;
+  discount: ExtractedAmount | null;
+  total: ExtractedAmount | null;
+}
+
+function reconcile_amounts(amounts: PurchaseAmounts): PurchaseAmounts {
+  const { subtotal, tax, shipping_cost, discount, total } = amounts;
+
+  if (!total || !subtotal) return amounts;
+
+  const tolerance = Math.max(0.02, total.value * 0.005);
+  const charges = subtotal.value + (tax?.value ?? 0) + (shipping_cost?.value ?? 0);
+
+  if (discount) {
+    if (Math.abs(charges - discount.value - total.value) <= tolerance) {
+      return amounts;
+    }
+
+    if (Math.abs(charges - total.value) <= tolerance) {
+      return { ...amounts, discount: null };
+    }
+  }
+
+  if (charges - (discount?.value ?? 0) > total.value + tolerance) {
+    return {
+      subtotal: null,
+      tax: null,
+      shipping_cost: null,
+      discount: null,
+      total,
+    };
+  }
+
+  return amounts;
+}
+
+function detect_dominant_currency(text: string): string {
+  const matches = text.match(new RegExp(CURRENCY_TOKEN, "gi"));
+
+  if (!matches) return "USD";
+
+  const counts = new Map<string, number>();
+
+  for (const raw of matches) {
+    const symbol = raw.toUpperCase();
+    const currency = CURRENCY_SYMBOLS[symbol] ?? symbol;
+
+    counts.set(currency, (counts.get(currency) ?? 0) + 1);
+  }
+
+  let winner = "USD";
+  let best = 0;
+
+  for (const [currency, count] of counts) {
+    if (count > best) {
+      winner = currency;
+      best = count;
+    }
+  }
+
+  return winner;
 }
 
 function extract_amount_from_line(
   text: string,
   patterns: RegExp[],
+  fallback_currency = "USD",
 ): ExtractedAmount | null {
   for (const pattern of patterns) {
     const match = text.match(pattern);
@@ -195,7 +316,7 @@ function extract_amount_from_line(
     if (match) {
       const amount_str = match[1] || match[0];
 
-      return parse_amount(amount_str);
+      return parse_amount(amount_str, fallback_currency);
     }
   }
 
@@ -421,7 +542,10 @@ function extract_date(text: string, patterns: RegExp[]): string | null {
   return null;
 }
 
-function extract_items_from_body(body: string): ExtractedItem[] {
+function extract_items_from_body(
+  body: string,
+  fallback_currency = "USD",
+): ExtractedItem[] {
   const items: ExtractedItem[] = [];
 
   const item_patterns = [
@@ -443,7 +567,7 @@ function extract_items_from_body(body: string): ExtractedItem[] {
       const quantity = is_qty_first
         ? parseInt(qty_or_name, 10)
         : parseInt(name_or_qty ?? "", 10) || 1;
-      const unit_price = parse_amount(price_str);
+      const unit_price = parse_amount(price_str, fallback_currency);
 
       if (item_name && item_name.length > 2 && item_name.length < 200) {
         items.push({
@@ -454,7 +578,10 @@ function extract_items_from_body(body: string): ExtractedItem[] {
             ? {
                 ...unit_price,
                 value: unit_price.value * quantity,
-                formatted: `${currency_symbol(unit_price.currency)}${(unit_price.value * quantity).toFixed(2)}`,
+                formatted: format_amount(
+                  unit_price.value * quantity,
+                  unit_price.currency,
+                ),
               }
             : null,
         });
@@ -505,47 +632,75 @@ export function extract_purchase_details(
 
   for (const pattern of ORDER_ID_PATTERNS) {
     const match = combined.match(pattern);
+    const candidate = clean_identifier(match?.[1]);
 
-    if (match) {
-      order_id = clean_text_field(match[1]);
-
-      if (order_id) {
-        signals.push(`order_id:${order_id}`);
-        break;
-      }
+    if (candidate) {
+      order_id = candidate;
+      signals.push(`order_id:${order_id}`);
+      break;
     }
   }
 
-  const total = extract_amount_from_line(combined, [
-    /(?:order\s+)?total[:\s]*\$?([\d,.]+)/i,
-    /grand\s+total[:\s]*\$?([\d,.]+)/i,
-    /amount\s+(?:paid|charged)[:\s]*\$?([\d,.]+)/i,
-    /total\s+charged[:\s]*\$?([\d,.]+)/i,
-    /purchase\s+total[:\s]*\$?([\d,.]+)/i,
-  ]);
+  const currency = detect_dominant_currency(combined);
+
+  const total = extract_amount_from_line(
+    combined,
+    [
+      money_after("grand\\s+total"),
+      money_after("order\\s+total"),
+      money_after("purchase\\s+total"),
+      money_after("total\\s+charged"),
+      money_after("amount\\s+(?:paid|charged|due)"),
+      money_after("\\btotals?\\b"),
+    ],
+    currency,
+  );
 
   if (total) signals.push(`total:${total.formatted}`);
 
-  const subtotal = extract_amount_from_line(combined, [
-    /subtotal[:\s]*\$?([\d,.]+)/i,
-    /items?\s+total[:\s]*\$?([\d,.]+)/i,
-  ]);
+  const subtotal = extract_amount_from_line(
+    combined,
+    [money_after("\\bsub\\s?total\\b"), money_after("\\bitems?\\s+total\\b")],
+    currency,
+  );
 
-  const tax = extract_amount_from_line(combined, [
-    /(?:sales\s+)?tax[:\s]*\$?([\d,.]+)/i,
-    /vat[:\s]*\$?([\d,.]+)/i,
-  ]);
+  const tax = extract_amount_from_line(
+    combined,
+    [
+      money_after("\\b(?:sales\\s+)?tax\\b"),
+      money_after("\\bvat\\b"),
+      money_after("\\bgst\\b"),
+    ],
+    currency,
+  );
 
-  const shipping_cost = extract_amount_from_line(combined, [
-    /shipping(?:\s+&\s+handling)?[:\s]*\$?([\d,.]+)/i,
-    /delivery\s+fee[:\s]*\$?([\d,.]+)/i,
-  ]);
+  const shipping_cost = extract_amount_from_line(
+    combined,
+    [
+      money_after("\\bshipping(?:\\s*(?:&|and)\\s*handling)?\\b"),
+      money_after("\\bdelivery\\s+fee\\b"),
+    ],
+    currency,
+  );
 
-  const discount = extract_amount_from_line(combined, [
-    /discount[:\s]*-?\$?([\d,.]+)/i,
-    /savings?[:\s]*-?\$?([\d,.]+)/i,
-    /promo(?:tion)?\s+(?:code\s+)?(?:applied)?[:\s]*-?\$?([\d,.]+)/i,
-  ]);
+  const discount = extract_amount_from_line(
+    combined,
+    [
+      money_after("\\bdiscounts?\\b"),
+      money_after("\\bsavings?\\b"),
+      money_after("\\bcoupon\\b"),
+      money_after("\\bpromo(?:tion)?\\s*(?:code)?\\s*(?:applied)?"),
+    ],
+    currency,
+  );
+
+  const amounts = reconcile_amounts({
+    subtotal,
+    tax,
+    shipping_cost,
+    discount,
+    total,
+  });
 
   const card_match = combined.match(
     /(?:card\s+)?ending\s+(?:in\s+)?[\*x]?(\d{4})/i,
@@ -566,7 +721,7 @@ export function extract_purchase_details(
   ];
   const order_date = clean_text_field(extract_date(combined, date_patterns));
 
-  const items = extract_items_from_body(clean_body);
+  const items = extract_items_from_body(clean_body, currency);
 
   if (items.length > 0) signals.push(`items:${items.length}`);
 
@@ -574,26 +729,24 @@ export function extract_purchase_details(
     extract_merchant_name(from_email, from_name),
   );
 
-  const confirmation_match = combined.match(
-    /confirmation\s*(?:#|number|code)?[:\s]*([A-Z0-9][\w-]{5,20})/i,
+  const confirmation_number = clean_identifier(
+    combined.match(CONFIRMATION_NUMBER_PATTERN)?.[1],
   );
-  const confirmation_number = clean_text_field(confirmation_match?.[1]);
 
-  const transaction_match = combined.match(
-    /transaction\s*(?:#|id)?[:\s]*([A-Z0-9][\w-]{8,30})/i,
+  const transaction_id = clean_identifier(
+    combined.match(TRANSACTION_ID_PATTERN)?.[1],
   );
-  const transaction_id = clean_text_field(transaction_match?.[1]);
 
   return {
     order_id,
     order_date,
     merchant_name,
     items,
-    subtotal,
-    tax,
-    shipping_cost,
-    discount,
-    total,
+    subtotal: amounts.subtotal,
+    tax: amounts.tax,
+    shipping_cost: amounts.shipping_cost,
+    discount: amounts.discount,
+    total: amounts.total,
     payment_method,
     card_last_four,
     billing_address: null,
@@ -703,7 +856,7 @@ export function is_purchase_email(subject: string, body: string): boolean {
   const combined = `${subject} ${body}`.toLowerCase();
 
   const purchase_indicators = [
-    /order\s*(?:#|number|id)?[:\s]*[A-Z0-9]/i,
+    /\border\s*(?:#|no\.?|num(?:ber)?|id)\s*[:#]?\s*[A-Za-z0-9]*[0-9]/i,
     /purchase\s+(?:confirmation|complete|receipt)/i,
     /thank\s+you\s+for\s+(?:your\s+)?(?:order|purchase)/i,
     /receipt\s+(?:for|from)/i,
@@ -711,8 +864,8 @@ export function is_purchase_email(subject: string, body: string): boolean {
     /transaction\s+(?:receipt|complete)/i,
     /you\s+(?:bought|purchased|paid)/i,
     /order\s+(?:placed|confirmed)/i,
-    /total[:\s]*[\$€£¥₹][\d,.]+/i,
-    /amount\s+(?:paid|charged)[:\s]*[\$€£¥₹][\d,.]+/i,
+    money_after("\\btotals?\\b"),
+    money_after("\\bamount\\s+(?:paid|charged|due)\\b"),
   ];
 
   let matches = 0;

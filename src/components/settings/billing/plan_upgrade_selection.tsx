@@ -49,6 +49,7 @@ import {
   SUPPORTED_CURRENCIES,
   CURRENCY_STORAGE_KEY,
 } from "@/components/settings/billing/billing_constants";
+import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 
 type TFunc = (
   key: TranslationKey,
@@ -215,6 +216,8 @@ export function PlanUpgradeSelection({
     useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] =
     useState<FamilyPlanTier | null>(null);
+
+  use_currency_rates();
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
@@ -418,9 +421,11 @@ export function PlanUpgradeSelection({
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mt-3">
-          <p className="text-xs text-txt-muted">
-            {t("settings.prices_in_usd_note")}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+          <p className="text-xs text-txt-muted text-center max-w-md">
+            {currency === "usd"
+              ? t("settings.prices_in_usd_note")
+              : t("settings.prices_converted_note")}
           </p>
           <select
             className="text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1 text-txt-secondary cursor-pointer outline-none focus:border-blue-500 transition-colors"

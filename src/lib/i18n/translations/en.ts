@@ -1270,7 +1270,7 @@ export const en: Translations = {
     unsubscribed_count: "Unsubscribed ({{count}})",
     one_click_unsubscribe: "One-click unsubscribe supported",
     no_unsubscribed_senders: "No unsubscribed senders yet",
-    total: "total",
+    total: "Total",
     ghost_label: "Ghost",
     ghost_mode_tooltip: "Sent via Ghost Mode. Your real address was hidden.",
     bounced_label: "Bounced",
@@ -2936,6 +2936,8 @@ export const en: Translations = {
     select_currency: "Select currency",
     prices_in_usd_note:
       "Prices shown in USD. Final amount determined at checkout.",
+    prices_converted_note:
+      "Prices are converted from US dollars and are approximate. You see the exact amount, including the conversion fee, at checkout.",
     switch_to_yearly: "Switch to Yearly",
     switch_to_monthly: "Switch to Monthly",
     switch_billing_confirm: "Switch Billing Cycle",

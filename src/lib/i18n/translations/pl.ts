@@ -1150,7 +1150,7 @@ export const pl = {
     unsubscribed_count: "Wypisane ({{count}})",
     one_click_unsubscribe: "Obsługiwane wypisanie jednym kliknięciem",
     no_unsubscribed_senders: "Brak wypisanych nadawców",
-    total: "łącznie",
+    total: "Razem",
     learn_more: "Dowiedz się więcej",
     buy_more_storage: "Kup więcej miejsca",
     save_failed:
@@ -4796,6 +4796,8 @@ export const pl = {
     select_currency: "Wybierz walutę",
     prices_in_usd_note:
       "Ceny podane w USD. Ostateczna kwota ustalana przy kasie.",
+    prices_converted_note:
+      "Ceny są przeliczane z dolarów amerykańskich i są orientacyjne. Dokładną kwotę, wraz z opłatą za przewalutowanie, zobaczysz przy płatności.",
     switch_to_yearly: "Przełącz na roczny",
     switch_to_monthly: "Przełącz na miesięczny",
     switch_billing_confirm: "Zmień cykl rozliczeniowy",

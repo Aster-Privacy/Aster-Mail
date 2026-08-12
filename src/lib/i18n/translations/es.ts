@@ -1154,7 +1154,7 @@ export const es = {
     unsubscribed_count: "Desuscritos ({{count}})",
     one_click_unsubscribe: "Cancelación con un clic compatible",
     no_unsubscribed_senders: "No unsubscribed senders",
-    total: "total",
+    total: "Total",
     learn_more: "Más información",
     buy_more_storage: "Comprar más almacenamiento",
     save_failed:
@@ -5250,6 +5250,8 @@ export const es = {
       "El último cobro a tu método de pago no se realizó. Actualizarlo en Ajustes, Facturación mantendrá tu plan en marcha. Tu correo no se ve afectado.",
     prices_in_usd_note:
       "Precios mostrados en USD. El monto final se determina al pagar.",
+    prices_converted_note:
+      "Los precios se convierten desde dólares estadounidenses y son aproximados. Verás el importe exacto, incluida la comisión de conversión, al finalizar la compra.",
     switch_billing_description:
       "Tu ciclo de facturación se cambiará inmediatamente. Se aplicará un crédito o cargo prorrateado en tu próxima factura.",
     switch_billing_savings:

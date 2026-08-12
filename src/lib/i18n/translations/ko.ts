@@ -4718,6 +4718,8 @@ export const ko = {
     select_currency: "통화 선택",
     prices_in_usd_note:
       "가격은 USD로 표시됩니다. 최종 금액은 결제 시 결정됩니다.",
+    prices_converted_note:
+      "가격은 미국 달러에서 환산한 대략적인 금액입니다. 환전 수수료를 포함한 정확한 금액은 결제 시 표시됩니다.",
     switch_to_yearly: "연간 결제로 전환",
     switch_to_monthly: "월간 결제로 전환",
     switch_billing_confirm: "결제 주기 전환",

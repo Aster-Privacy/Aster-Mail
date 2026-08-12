@@ -1162,7 +1162,7 @@ export const fr = {
     unsubscribed_count: "Désabonnés ({{count}})",
     one_click_unsubscribe: "Désabonnement en un clic pris en charge",
     no_unsubscribed_senders: "Aucun expéditeur désabonné",
-    total: "total",
+    total: "Total",
     learn_more: "En savoir plus",
     buy_more_storage: "Acheter plus de stockage",
     save_failed:
@@ -5304,6 +5304,8 @@ export const fr = {
       "Le dernier débit sur votre moyen de paiement n'est pas passé. Le mettre à jour dans Paramètres, Facturation gardera votre plan actif. Votre courrier n'est pas affecté.",
     prices_in_usd_note:
       "Prix affichés en USD. Le montant final est déterminé lors du paiement.",
+    prices_converted_note:
+      "Les prix sont convertis depuis le dollar américain et sont approximatifs. Vous voyez le montant exact, frais de conversion inclus, au moment du paiement.",
     switch_billing_description:
       "Votre cycle de facturation sera modifié immédiatement. Un crédit ou un montant au prorata sera appliqué à votre prochaine facture.",
     switch_billing_savings:

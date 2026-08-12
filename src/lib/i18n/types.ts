@@ -4867,6 +4867,7 @@ export interface SettingsTranslations {
   currency: string;
   select_currency: string;
   prices_in_usd_note: string;
+  prices_converted_note: string;
   promo_code: string;
   promo_code_placeholder: string;
   apply_promo: string;

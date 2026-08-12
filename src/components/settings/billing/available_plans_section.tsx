@@ -41,6 +41,7 @@ import {
   is_crypto_provider,
   type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
+import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { create_family_group } from "@/services/api/family";
@@ -105,6 +106,9 @@ export function AvailablePlansSection({
   current_billing_interval,
 }: AvailablePlansSectionProps) {
   const { t } = use_i18n();
+
+  use_currency_rates();
+
   const [plan_type, set_plan_type] = useState<"individual" | "family">("individual");
   const [family_loading, set_family_loading] = useState(false);
   const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
@@ -199,8 +203,12 @@ export function AvailablePlansSection({
         />
       </div>
 
-      <div className="flex items-center justify-center gap-2 mb-5">
-        <p className="text-xs text-txt-muted">{t("settings.prices_in_usd_note")}</p>
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
+        <p className="text-xs text-txt-muted text-center max-w-md">
+          {preferred_currency === "usd"
+            ? t("settings.prices_in_usd_note")
+            : t("settings.prices_converted_note")}
+        </p>
         <select
           className="text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1 text-txt-secondary cursor-pointer outline-none focus:border-blue-500 transition-colors"
           value={preferred_currency}

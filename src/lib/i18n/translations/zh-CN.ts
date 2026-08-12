@@ -4337,6 +4337,8 @@ export const zh_CN = {
     currency: "货币",
     select_currency: "选择货币",
     prices_in_usd_note: "价格以美元显示。最终金额在结账时确定。",
+    prices_converted_note:
+      "价格由美元换算而来，仅供参考。结算时会显示包含换算手续费的确切金额。",
     switch_to_yearly: "切换为年付",
     switch_to_monthly: "切换为月付",
     switch_billing_confirm: "切换计费周期",

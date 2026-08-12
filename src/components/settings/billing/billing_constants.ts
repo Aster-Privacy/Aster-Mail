@@ -231,27 +231,70 @@ export interface SupportedCurrency {
   label: string;
 }
 
-export const CURRENCY_RATES: Record<string, number> = {
+export const FALLBACK_CURRENCY_RATES: Record<string, number> = {
   usd: 1,
-  eur: 0.92,
-  gbp: 0.79,
-  cad: 1.36,
-  aud: 1.52,
-  jpy: 151,
-  chf: 0.88,
-  sek: 10.4,
-  nok: 10.7,
-  dkk: 6.85,
-  pln: 3.95,
-  brl: 5.05,
-  mxn: 17.1,
-  inr: 83.3,
+  eur: 0.8577,
+  gbp: 0.7457,
+  cad: 1.3745,
+  aud: 1.5142,
+  jpy: 152.86,
+  chf: 0.8009,
+  sek: 9.4374,
+  nok: 10.0421,
+  dkk: 6.4014,
+  pln: 3.6338,
+  brl: 5.3877,
+  mxn: 18.4319,
+  inr: 95.4223,
 };
 
-export function convert_cents(usd_cents: number, currency: string): number {
-  const rate = CURRENCY_RATES[currency.toLowerCase()] ?? 1;
+export const CURRENCY_CONVERSION_MARGIN = 0.04;
 
-  return Math.round(usd_cents * rate);
+export const CURRENCY_RATES: Record<string, number> = {
+  ...FALLBACK_CURRENCY_RATES,
+};
+
+const currency_rate_listeners = new Set<() => void>();
+
+export function subscribe_currency_rates(listener: () => void): () => void {
+  currency_rate_listeners.add(listener);
+
+  return () => {
+    currency_rate_listeners.delete(listener);
+  };
+}
+
+export function set_currency_rates(rates: Record<string, number>): void {
+  let changed = false;
+
+  for (const [code, rate] of Object.entries(rates)) {
+    if (typeof rate !== "number" || !Number.isFinite(rate) || rate <= 0) {
+      continue;
+    }
+
+    const key = code.toLowerCase();
+
+    if (CURRENCY_RATES[key] !== rate) {
+      CURRENCY_RATES[key] = rate;
+      changed = true;
+    }
+  }
+
+  if (!changed) return;
+
+  for (const listener of currency_rate_listeners) {
+    listener();
+  }
+}
+
+export function convert_cents(usd_cents: number, currency: string): number {
+  const code = currency.toLowerCase();
+
+  if (code === "usd") return Math.round(usd_cents);
+
+  const rate = CURRENCY_RATES[code] ?? 1;
+
+  return Math.round(usd_cents * rate * (1 + CURRENCY_CONVERSION_MARGIN));
 }
 
 export const SUPPORTED_CURRENCIES: SupportedCurrency[] = [

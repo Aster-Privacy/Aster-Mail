@@ -35,6 +35,7 @@ import {
   PLAN_TIERS,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
+import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 
 import { Spinner } from "@/components/ui/spinner";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
@@ -56,6 +57,8 @@ export function BillingSection({
   on_back: () => void;
   on_close: () => void;
 }) {
+  use_currency_rates();
+
   const state = use_billing_section();
   const {
     t,
@@ -587,6 +590,12 @@ export function BillingSection({
                       );
                     })}
                   </div>
+
+                  {preferred_currency !== "usd" && (
+                    <p className="mt-3 text-[11px] text-center text-[var(--text-muted)]">
+                      {t("settings.prices_converted_note")}
+                    </p>
+                  )}
                 </div>
               </SettingsGroup>
             </div>

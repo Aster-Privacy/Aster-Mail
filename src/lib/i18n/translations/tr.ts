@@ -1151,7 +1151,7 @@ export const tr = {
     unsubscribed_count: "Aboneliksiz ({{count}})",
     one_click_unsubscribe: "Tek tıkla abonelik iptali destekleniyor",
     no_unsubscribed_senders: "Aboneliksiz gönderen yok",
-    total: "toplam",
+    total: "Toplam",
     learn_more: "Daha fazla bilgi",
     buy_more_storage: "Daha Fazla Depolama Satın Al",
     save_failed:
@@ -5398,6 +5398,8 @@ export const tr = {
       "Ödeme yönteminizden son tahsilat geçmedi. Ayarlar, Faturalandırma'dan güncellemek planınızı çalışır durumda tutar. E-postanız etkilenmez.",
     prices_in_usd_note:
       "Fiyatlar USD olarak gösterilmektedir. Son tutar ödeme sırasında belirlenir.",
+    prices_converted_note:
+      "Fiyatlar ABD dolarından çevrilir ve yaklaşıktır. Dönüşüm ücreti dahil kesin tutarı ödeme adımında görürsünüz.",
     quiet_hours_locked:
       "Odaklanmak için belirli saatlerde bildirimleri sessize alın",
     quiet_hours_schedule_description:
