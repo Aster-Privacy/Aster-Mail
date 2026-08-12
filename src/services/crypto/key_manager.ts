@@ -73,6 +73,7 @@ export {
   normalize_vault_fields,
   encrypt_message,
   encrypt_message_multi,
+  sign_detached,
   decrypt_message,
   decrypt_message_verified,
   decrypt_message_with_any_key,

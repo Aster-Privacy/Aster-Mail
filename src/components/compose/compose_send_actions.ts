@@ -230,17 +230,19 @@ export async function execute_external_email_send(
   },
   pgp_enabled = false,
   pgp_override: boolean | null = null,
+  require_encryption = false,
 ) {
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   const use_pgp = pgp_enabled && !email_data.secure_external;
+  const needs_encryption = require_encryption && !email_data.secure_external;
 
   const external_email_data = {
     ...email_data,
     encryption_options: {
-      auto_discover_keys: use_pgp,
+      auto_discover_keys: use_pgp || needs_encryption,
       encrypt_emails: use_pgp,
-      require_encryption: false,
+      require_encryption: needs_encryption,
     },
     ...(pgp_override !== null && !email_data.secure_external
       ? { force_pgp: pgp_override }

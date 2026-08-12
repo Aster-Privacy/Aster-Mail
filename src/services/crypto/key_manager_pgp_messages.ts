@@ -68,6 +68,61 @@ async function parse_signing_keys(
   return parsed.length > 0 ? parsed : undefined;
 }
 
+export interface detached_signature_result {
+  signature: string;
+  micalg: string;
+}
+
+const HASH_ALGORITHM_MICALG: Record<number, string> = {
+  1: "pgp-md5",
+  2: "pgp-sha1",
+  3: "pgp-ripemd160",
+  8: "pgp-sha256",
+  9: "pgp-sha384",
+  10: "pgp-sha512",
+  11: "pgp-sha224",
+  12: "pgp-sha3-256",
+  14: "pgp-sha3-512",
+};
+
+export async function sign_detached(
+  data: Uint8Array,
+  signing_key: sender_signing_key | sender_signing_key[],
+): Promise<detached_signature_result | null> {
+  const signing_keys = await parse_signing_keys(signing_key);
+
+  if (!signing_keys) return null;
+
+  try {
+    const signature = await openpgp.sign({
+      message: await openpgp.createMessage({ binary: data }),
+      signingKeys: signing_keys,
+      detached: true,
+      format: "armored",
+    });
+
+    const armored =
+      typeof signature === "string" ? signature : signature.toString();
+    let micalg = "pgp-sha512";
+
+    try {
+      const parsed = await openpgp.readSignature({ armoredSignature: armored });
+      const packet = parsed.packets[0];
+      const hash_algorithm = packet?.hashAlgorithm;
+
+      if (typeof hash_algorithm === "number") {
+        micalg = HASH_ALGORITHM_MICALG[hash_algorithm] ?? micalg;
+      }
+    } catch {
+      micalg = "pgp-sha512";
+    }
+
+    return { signature: armored, micalg };
+  } catch {
+    return null;
+  }
+}
+
 export async function has_usable_signing_key(
   signing_key: sender_signing_key | sender_signing_key[],
 ): Promise<boolean> {

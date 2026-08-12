@@ -33,6 +33,7 @@ import { check_send_readiness_internal, encrypt_for_recipients } from "./send_qu
 import { create_sent_envelope } from "./send_queue_envelope";
 import { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
 import { fetch_internal_public_keys } from "./send_queue_recipients";
+import { build_signed_mime_payload, should_attach_signed_mime } from "./send_queue_signed_mime";
 import { SendError, create_error, format_time_remaining, type EmailParams, type QueuedEmailInternal } from "./send_queue_types";
 
 export async function execute_send(email: QueuedEmailInternal): Promise<void> {
@@ -355,6 +356,32 @@ export async function execute_external_send(
     secure_message,
     force_pgp: is_secure_external ? undefined : email.force_pgp,
   };
+
+  if (
+    should_attach_signed_mime({
+      recipients: all_recipients,
+      encrypt_emails: encryption_opts?.encrypt_emails,
+      require_encryption: encryption_opts?.require_encryption,
+      attachments: smtp_attachments,
+      secure_external: is_secure_external,
+    })
+  ) {
+    const signed = await build_signed_mime_payload({
+      subject: email.subject || "",
+      body: body_to_send,
+      from: sender_email,
+      to: email.to,
+      cc: email.cc ?? [],
+      bcc: email.bcc ?? [],
+      attachments: smtp_attachments,
+    });
+
+    if (signed) {
+      external_request.signed_mime = signed.signed_mime;
+      external_request.signed_mime_signature = signed.signed_mime_signature;
+      external_request.signed_mime_micalg = signed.signed_mime_micalg;
+    }
+  }
 
   let effective_thread_id = email.thread_id;
 

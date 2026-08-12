@@ -126,6 +126,9 @@ interface ExternalSendRequest {
   attachments?: ExternalAttachmentPayload[];
   secure_message?: SecureMessagePayload;
   force_pgp?: boolean;
+  signed_mime?: string;
+  signed_mime_signature?: string;
+  signed_mime_micalg?: string;
 }
 
 export async function send_simple_email(

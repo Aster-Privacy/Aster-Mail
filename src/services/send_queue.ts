@@ -48,6 +48,10 @@ import {
   fetch_internal_public_keys,
 } from "./send_queue_encryption";
 import { encrypt_attachments_for_send } from "./crypto/attachment_crypto";
+import {
+  build_signed_mime_payload,
+  should_attach_signed_mime,
+} from "./send_queue_signed_mime";
 import { get_current_account } from "./account_manager";
 
 import {
@@ -530,6 +534,32 @@ async function prepare_email_for_server_queue(
     expires_at: email.expires_at,
     force_pgp: email.force_pgp,
   };
+
+  if (
+    should_attach_signed_mime({
+      recipients: all_recipients,
+      encrypt_emails: email.encryption_options?.encrypt_emails,
+      require_encryption: email.encryption_options?.require_encryption,
+      attachments: all_attachments,
+      secure_external: email.secure_external,
+    })
+  ) {
+    const signed = await build_signed_mime_payload({
+      subject: email.subject || "",
+      body: body_for_encryption,
+      from: sender_email,
+      to: email.to,
+      cc: email.cc ?? [],
+      bcc: email.bcc ?? [],
+      attachments: all_attachments,
+    });
+
+    if (signed) {
+      request.signed_mime = signed.signed_mime;
+      request.signed_mime_signature = signed.signed_mime_signature;
+      request.signed_mime_micalg = signed.signed_mime_micalg;
+    }
+  }
 
   return { request, is_encrypted };
 }

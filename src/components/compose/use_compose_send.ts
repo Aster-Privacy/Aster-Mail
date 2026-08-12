@@ -437,6 +437,7 @@ export function use_compose_send({
           email_data,
           pgp_enabled,
           pgp_override,
+          preferences.require_encryption === true,
         );
         await confirm_draft_deleted();
 
