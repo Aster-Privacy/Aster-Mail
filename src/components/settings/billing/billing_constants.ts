@@ -233,19 +233,19 @@ export interface SupportedCurrency {
 
 export const FALLBACK_CURRENCY_RATES: Record<string, number> = {
   usd: 1,
-  eur: 0.8577,
-  gbp: 0.7457,
-  cad: 1.3745,
-  aud: 1.5142,
-  jpy: 152.86,
-  chf: 0.8009,
-  sek: 9.4374,
-  nok: 10.0421,
-  dkk: 6.4014,
-  pln: 3.6338,
-  brl: 5.3877,
-  mxn: 18.4319,
-  inr: 95.4223,
+  eur: 0.86618,
+  gbp: 0.73935,
+  cad: 1.39255,
+  aud: 1.41421,
+  jpy: 159.09052,
+  chf: 0.81126,
+  sek: 9.5249,
+  nok: 9.4725,
+  dkk: 6.47536,
+  pln: 3.72828,
+  brl: 5.15574,
+  mxn: 17.06141,
+  inr: 95.33911,
 };
 
 export const CURRENCY_CONVERSION_MARGIN = 0.04;
