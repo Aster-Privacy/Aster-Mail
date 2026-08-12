@@ -1796,7 +1796,7 @@ export const pl = {
     resurrection_old_password: "Stare hasło",
     resurrection_old_password_prompt: "Wprowadź hasło używane przed resetem",
     resurrection_success:
-      "Starsze dane zostały odblokowane. Poczta i etykiety zakończą ponowne szyfrowanie w tle.",
+      "Starsze dane zostały odblokowane. Wcześniejsze wiadomości znów otwierają się normalnie.",
     resurrection_failed:
       "To nie odblokowało starszych danych. Sprawdź hasło lub frazę i spróbuj ponownie.",
     phrase_wrap_save_failed:

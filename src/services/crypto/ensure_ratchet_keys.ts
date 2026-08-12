@@ -35,6 +35,7 @@ import {
   derive_pq_identity_from_seed,
   upload_prekey_bundle,
 } from "./ratchet_manager";
+import { merge_previous_ratchet_keys } from "./key_manager_core";
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
@@ -82,7 +83,7 @@ async function passphrase_matches_account(
   }
 }
 
-async function verify_vault_roundtrip(
+export async function verify_vault_roundtrip(
   encrypted_vault: string,
   vault_nonce: string,
   passphrase: string,
@@ -101,7 +102,7 @@ async function verify_vault_roundtrip(
   }
 }
 
-async function push_vault_to_server(
+export async function push_vault_to_server(
   encrypted_vault: string,
   vault_nonce: string,
   expected_user_id: string,
@@ -491,16 +492,10 @@ async function run_locked(): Promise<boolean> {
           ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
           ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
         };
-        const previous = vault.ratchet_previous_keys ?? [];
-        const merged = [old_set, ...previous];
-        const seen = new Set<string>();
-        next_vault.ratchet_previous_keys = merged
-          .filter((set) => {
-            if (seen.has(set.ratchet_identity_public)) return false;
-            seen.add(set.ratchet_identity_public);
-            return true;
-          })
-          .slice(0, RATCHET_PREVIOUS_KEY_RETENTION);
+        next_vault.ratchet_previous_keys = merge_previous_ratchet_keys(
+          [old_set],
+          vault.ratchet_previous_keys,
+        );
       }
 
       next_vault.ratchet_identity_key = ratchet_keys.identity_jwk;

@@ -63,6 +63,22 @@ export interface RatchetKeySet {
 
 export const RATCHET_PREVIOUS_KEYS_LIMIT = 32;
 
+export function merge_previous_ratchet_keys(
+  ...groups: Array<RatchetKeySet[] | undefined>
+): RatchetKeySet[] {
+  const seen = new Set<string>();
+
+  return groups
+    .flatMap((group) => group ?? [])
+    .filter((set) => {
+      if (!set.ratchet_identity_public) return false;
+      if (seen.has(set.ratchet_identity_public)) return false;
+      seen.add(set.ratchet_identity_public);
+      return true;
+    })
+    .slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+}
+
 export function retain_previous_ratchet_keys(
   vault: EncryptedVault,
 ): RatchetKeySet[] {

@@ -1773,7 +1773,7 @@ export const es = {
     resurrection_old_password_prompt:
       "Ingresa la contraseña que usabas antes del restablecimiento",
     resurrection_success:
-      "Datos anteriores desbloqueados. Tu correo y tus etiquetas terminarán de recifrarse en segundo plano.",
+      "Tus datos anteriores están desbloqueados. Los mensajes antiguos vuelven a abrirse con normalidad.",
     resurrection_failed:
       "Eso no desbloqueó los datos anteriores. Verifica la contraseña o la frase e inténtalo de nuevo.",
     phrase_wrap_save_failed:

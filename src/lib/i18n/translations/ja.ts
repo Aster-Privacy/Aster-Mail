@@ -1783,7 +1783,7 @@ export const ja = {
     resurrection_old_password_prompt:
       "リセット前に使用していたパスワードを入力してください",
     resurrection_success:
-      "以前のデータのロックを解除しました。メールとラベルの再暗号化はバックグラウンドで完了します。",
+      "以前のデータのロックを解除しました。過去のメールを再び通常どおり開けます。",
     resurrection_failed:
       "以前のデータのロックを解除できませんでした。パスワードまたはフレーズを確認して、もう一度お試しください。",
     phrase_wrap_save_failed:

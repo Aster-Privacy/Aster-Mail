@@ -1783,7 +1783,7 @@ export const fr = {
     resurrection_old_password_prompt:
       "Saisissez le mot de passe que vous utilisiez avant la réinitialisation",
     resurrection_success:
-      "Données antérieures déverrouillées. Vos messages et libellés finiront d'être rechiffrés en arrière-plan.",
+      "Vos données antérieures sont déverrouillées. Les anciens messages s'ouvrent de nouveau normalement.",
     resurrection_failed:
       "Cela n'a pas déverrouillé les données antérieures. Vérifiez le mot de passe ou la phrase et réessayez.",
     phrase_wrap_save_failed:

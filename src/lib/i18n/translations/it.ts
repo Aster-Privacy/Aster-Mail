@@ -1805,7 +1805,7 @@ export const it = {
     resurrection_old_password_prompt:
       "Inserisca la password che usava prima del ripristino",
     resurrection_success:
-      "Dati precedenti sbloccati. La sua posta e le etichette finiranno di essere ricrittografate in background.",
+      "I suoi dati precedenti sono sbloccati. I messaggi meno recenti si aprono di nuovo normalmente.",
     resurrection_failed:
       "Non è stato possibile sbloccare i dati precedenti. Verifichi la password o la frase e riprovi.",
     phrase_wrap_save_failed:

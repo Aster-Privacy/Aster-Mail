@@ -47,6 +47,7 @@ import { BasicsSection } from "@/components/settings/security/basics_section";
 import { VanguardSection } from "@/components/settings/security/vanguard_section";
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
+import { RecoverOlderDataSection } from "@/components/settings/security/recover_older_data_section";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
 import { use_i18n } from "@/lib/i18n/context";
@@ -262,6 +263,8 @@ export function SecuritySection({
         }
         on_rotate_keys_now={security.show_manual_rotation_modal}
       />
+
+      <RecoverOlderDataSection />
 
       <div id="sec-tracking">
         <div className="mb-4">

@@ -1796,7 +1796,7 @@ export const pt = {
     resurrection_old_password_prompt:
       "Digite a senha que você usava antes da redefinição",
     resurrection_success:
-      "Dados antigos desbloqueados. Seus e-mails e etiquetas terminarão de ser recriptografados em segundo plano.",
+      "Seus dados antigos estão desbloqueados. As mensagens antigas voltam a abrir normalmente.",
     resurrection_failed:
       "Isso não desbloqueou os dados antigos. Verifique a senha ou a frase e tente novamente.",
     phrase_wrap_save_failed:
