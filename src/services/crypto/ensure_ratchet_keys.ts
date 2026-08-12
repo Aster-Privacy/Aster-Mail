@@ -131,7 +131,13 @@ async function report_capability(): Promise<void> {
 
     if (!user_id) return;
 
-    await report_envelope_capability_if_due(user_id);
+    const result = await report_envelope_capability_if_due(user_id);
+
+    if (!result || result.identity_verified) return;
+
+    const vault = get_vault_from_memory();
+
+    if (vault) await upload_prekey_bundle_with_retry(vault);
   } catch {
     return;
   }

@@ -189,7 +189,7 @@ describe("report_envelope_capability_if_due", () => {
     expect(helper.posts).toHaveLength(1);
   });
 
-  it("proves key possession by reporting the identity fingerprint", async () => {
+  it("reports the fingerprint of the identity key it holds", async () => {
     const { deps, posts } = make_deps();
 
     await report_envelope_capability_if_due(user_id, false, deps);
