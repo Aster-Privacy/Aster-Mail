@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { AnimatePresence, } from "framer-motion";
@@ -40,6 +40,7 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
   download_decrypted_attachment,
+  AttachmentKeyUnavailableError,
 } from "@/services/crypto/attachment_crypto";
 import {
   get_cached_attachment_meta,
@@ -59,6 +60,12 @@ import { AttachmentCard } from "./card";
 import { AttachmentCardSkeleton } from "./icons";
 import { ImagePreviewModal } from "./preview_modal";
 import { AttachmentListProps, DecryptedAttachmentInfo, PREVIEW_READY_TIMEOUT_MS, build_cards_from_cached_meta, is_inline_attachment } from "./types";
+
+function attachment_error_key(error: unknown): TranslationKey {
+  return error instanceof AttachmentKeyUnavailableError
+    ? "common.attachment_locked"
+    : "common.download_failed";
+}
 
 export function AttachmentList({
   mail_item_id,
@@ -566,7 +573,7 @@ export function AttachmentList({
         download_decrypted_attachment(data, meta.filename, meta.content_type);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
-        show_toast(t("common.download_failed"), "error");
+        show_toast(t(attachment_error_key(error)), "error");
       } finally {
         set_downloading(null);
       }
@@ -619,8 +626,8 @@ export function AttachmentList({
               att: { ...hydrated, preview_url: url },
             });
           })
-          .catch(() => {
-            show_toast(t("common.download_failed"), "error");
+          .catch((error) => {
+            show_toast(t(attachment_error_key(error)), "error");
           });
       } else if (is_previewable_pdf(att.content_type)) {
         ensure_attachment_bytes(att)
@@ -632,8 +639,8 @@ export function AttachmentList({
               att: hydrated,
             });
           })
-          .catch(() => {
-            show_toast(t("common.download_failed"), "error");
+          .catch((error) => {
+            show_toast(t(attachment_error_key(error)), "error");
           });
       } else {
         handle_download(att);

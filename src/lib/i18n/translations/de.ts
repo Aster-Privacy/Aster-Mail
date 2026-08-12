@@ -702,6 +702,8 @@ export const de = {
       "Dieses Element wurde nicht entfernt. Ein erneuter Versuch genügt meist.",
     download_failed:
       "Dieser Download wurde nicht abgeschlossen. Ein erneuter Versuch genügt meist.",
+    attachment_locked:
+      "Dieser Anhang kann nicht geöffnet werden, weil sein Verschlüsselungsschlüssel auf diesem Gerät nicht verfügbar ist.",
     scheduled_no_attachments:
       "Geplante E-Mails können noch keine Anhänge enthalten. Sende jetzt oder entferne die Dateien, um zu planen.",
     failed_to_merge_contacts:
@@ -942,7 +944,7 @@ export const de = {
     recipients: "Empfänger",
     encrypted_attachment: "Verschlüsselter Anhang",
     forward_attachments_locked:
-      "Einige Anhänge können noch nicht mitgesendet werden. Öffne die E-Mail und leite sie dann erneut weiter.",
+      "Bei einigen Anhängen fehlt der Verschlüsselungsschlüssel, deshalb sind sie nicht in dieser Nachricht enthalten.",
     image: "Bild",
     system: "System",
     failed_to_permanently_delete:

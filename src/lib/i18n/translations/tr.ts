@@ -724,6 +724,8 @@ export const tr = {
       "Bu öğe kaldırılmadı. Bir kez daha denemek genellikle yeterli olur.",
     download_failed:
       "Bu indirme tamamlanmadı. Bir kez daha denemek genellikle yeterli olur.",
+    attachment_locked:
+      "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
     scheduled_no_attachments:
       "Zamanlanmış e-postalar henüz ek içeremez. Şimdi gönderin veya zamanlamak için dosyaları kaldırın.",
     failed_to_merge_contacts:
@@ -1007,7 +1009,7 @@ export const tr = {
     recipients: "Alıcılar",
     encrypted_attachment: "Şifreli ek",
     forward_attachments_locked:
-      "Bazı ekler henüz eklenemiyor. E-postayı açın, sonra yeniden iletin.",
+      "Bazı eklerin şifreleme anahtarı bulunmadığı için bu mesaja eklenmedi.",
     image: "Görsel",
     system: "Sistem",
     failed_to_permanently_delete:

@@ -201,7 +201,7 @@ export function use_attachment_previews(
           return;
         }
 
-        const resolved = await Promise.all(
+        const attachments: AttachmentPreviewInfo[] = await Promise.all(
           items.map(async (item) => {
             const meta = await resolve_attachment_meta({
               encrypted_meta: item.encrypted_meta,
@@ -211,32 +211,24 @@ export function use_attachment_previews(
               size_bytes: item.size_bytes,
             });
 
+            if (meta.is_placeholder) unresolved.add(mail_id);
+
             const filename = meta.filename ?? t("common.encrypted_attachment");
             const content_type =
               meta.content_type ?? DEFAULT_ATTACHMENT_CONTENT_TYPE;
 
             return {
-              is_placeholder: meta.is_placeholder,
-              info: {
-                id: item.id,
-                filename,
-                content_type,
-                size_bytes: meta.size_bytes || item.size_bytes,
-                type_label: get_type_label(content_type, filename),
-                type_color: get_type_color(content_type),
-              } as AttachmentPreviewInfo,
+              id: item.id,
+              filename,
+              content_type,
+              size_bytes: meta.size_bytes || item.size_bytes,
+              type_label: get_type_label(content_type, filename),
+              type_color: get_type_color(content_type),
             };
           }),
         );
 
-        if (resolved.some((entry) => entry.is_placeholder)) {
-          unresolved.add(mail_id);
-        }
-
-        results.set(mail_id, {
-          state: "loaded",
-          attachments: resolved.map((entry) => entry.info),
-        });
+        results.set(mail_id, { state: "loaded", attachments });
       });
 
       await Promise.allSettled(decrypt_promises);

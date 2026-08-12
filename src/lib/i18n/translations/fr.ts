@@ -730,6 +730,8 @@ export const fr = {
       "Cet élément n'a pas été retiré. Un autre essai devrait suffire.",
     download_failed:
       "Ce téléchargement ne s'est pas terminé. Un autre essai devrait suffire.",
+    attachment_locked:
+      "Cette pièce jointe ne peut pas être ouverte, car sa clé de chiffrement n'est pas disponible sur cet appareil.",
     scheduled_no_attachments:
       "Les e-mails programmés ne peuvent pas encore inclure de pièces jointes. Envoyez maintenant, ou retirez les fichiers pour programmer.",
     failed_to_merge_contacts:
@@ -1017,7 +1019,7 @@ export const fr = {
     recipients: "Destinataires",
     encrypted_attachment: "Pièce jointe chiffrée",
     forward_attachments_locked:
-      "Certaines pièces jointes ne peuvent pas encore être incluses. Ouvre l’e-mail, puis transfère-le à nouveau.",
+      "La clé de chiffrement de certaines pièces jointes est manquante, elles ne sont donc pas incluses dans ce message.",
     image: "Image",
     system: "Système",
     failed_to_permanently_delete:

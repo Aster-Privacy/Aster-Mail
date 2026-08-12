@@ -707,6 +707,8 @@ export const ko = {
     upload_failed: "업로드가 완료되지 않았습니다. 다시 시도하면 됩니다.",
     delete_failed: "이 항목이 제거되지 않았습니다. 다시 시도하면 됩니다.",
     download_failed: "이 다운로드가 완료되지 않았습니다. 다시 시도하면 됩니다.",
+    attachment_locked:
+      "이 첨부 파일의 암호화 키를 이 기기에서 사용할 수 없어 열 수 없습니다.",
     scheduled_no_attachments:
       "예약 메일에는 아직 첨부 파일을 포함할 수 없습니다. 지금 보내거나 파일을 제거한 후 예약하세요.",
     failed_to_merge_contacts:
@@ -978,7 +980,7 @@ export const ko = {
     recipients: "수신자",
     encrypted_attachment: "암호화된 첨부 파일",
     forward_attachments_locked:
-      "일부 첨부 파일을 아직 포함할 수 없습니다. 이메일을 연 다음 다시 전달하세요.",
+      "일부 첨부 파일은 암호화 키가 없어 이 메시지에 포함되지 않습니다.",
     image: "이미지",
     system: "시스템",
     failed_to_permanently_delete:

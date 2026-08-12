@@ -735,6 +735,8 @@ export const it = {
       "Questo elemento non è stato rimosso. Un altro tentativo dovrebbe bastare.",
     download_failed:
       "Questo download non si è completato. Un altro tentativo dovrebbe bastare.",
+    attachment_locked:
+      "Questo allegato non può essere aperto perché la sua chiave di crittografia non è disponibile su questo dispositivo.",
     scheduled_no_attachments:
       "Le email programmate non possono ancora includere allegati. Invia ora oppure rimuovi i file per programmarla.",
     failed_to_merge_contacts:
@@ -1020,7 +1022,7 @@ export const it = {
     recipients: "Destinatari",
     encrypted_attachment: "Allegato crittografato",
     forward_attachments_locked:
-      "Alcuni allegati non possono ancora essere inclusi. Apri l’email, poi inoltrala di nuovo.",
+      "Ad alcuni allegati manca la chiave di crittografia, quindi non sono inclusi in questo messaggio.",
     image: "Immagine",
     system: "Sistema",
     failed_to_permanently_delete:

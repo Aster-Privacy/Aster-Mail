@@ -624,6 +624,8 @@ export const pt = {
       "Este item não foi removido. Outra tentativa deve funcionar.",
     download_failed:
       "Este download não terminou. Outra tentativa deve funcionar.",
+    attachment_locked:
+      "Este anexo não pode ser aberto porque a sua chave de criptografia não está disponível neste dispositivo.",
     scheduled_no_attachments:
       "E-mails agendados ainda não podem incluir anexos. Envie agora ou remova os arquivos para agendar.",
     failed_to_merge_contacts:
@@ -904,7 +906,7 @@ export const pt = {
     recipients: "Destinatários",
     encrypted_attachment: "Anexo criptografado",
     forward_attachments_locked:
-      "Alguns anexos ainda não podem ser incluídos. Abra o e-mail e encaminhe-o novamente.",
+      "Alguns anexos estão sem a chave de criptografia, por isso não foram incluídos nesta mensagem.",
     image: "Imagem",
     system: "Sistema",
     failed_to_permanently_delete:

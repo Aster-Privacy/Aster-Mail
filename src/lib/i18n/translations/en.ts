@@ -820,6 +820,8 @@ export const en: Translations = {
     delete_failed: "This item was not removed. Another attempt should do it.",
     download_failed:
       "This download did not finish. Another attempt should do it.",
+    attachment_locked:
+      "This attachment can't be opened because its encryption key isn't available on this device.",
     scheduled_no_attachments:
       "Scheduled emails can't include attachments yet. Send now, or remove the files to schedule it.",
     failed_to_merge_contacts:
@@ -1139,7 +1141,7 @@ export const en: Translations = {
     recipients: "Recipients",
     encrypted_attachment: "Encrypted attachment",
     forward_attachments_locked:
-      "Some attachments can’t be included yet. Open the email, then forward it again.",
+      "Some attachments are missing their encryption keys, so they aren't included in this message.",
     image: "Image",
     system: "System",
     beta: "Beta",

@@ -724,6 +724,8 @@ export const pl = {
       "Ten element nie został usunięty. Kolejna próba powinna to załatwić.",
     download_failed:
       "Pobieranie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+    attachment_locked:
+      "Nie można otworzyć tego załącznika, ponieważ jego klucz szyfrowania nie jest dostępny na tym urządzeniu.",
     scheduled_no_attachments:
       "Zaplanowane wiadomości nie mogą jeszcze zawierać załączników. Wyślij teraz lub usuń pliki, aby zaplanować.",
     failed_to_merge_contacts:
@@ -1007,7 +1009,7 @@ export const pl = {
     recipients: "Odbiorcy",
     encrypted_attachment: "Zaszyfrowany załącznik",
     forward_attachments_locked:
-      "Niektórych załączników nie można jeszcze dołączyć. Otwórz wiadomość, a następnie prześlij ją dalej ponownie.",
+      "Brakuje kluczy szyfrowania niektórych załączników, więc nie zostały dołączone do tej wiadomości.",
     image: "Obraz",
     system: "Systemowy",
     failed_to_permanently_delete:

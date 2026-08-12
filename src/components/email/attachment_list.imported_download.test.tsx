@@ -214,7 +214,7 @@ describe("AttachmentList download of an imported unencrypted attachment", () => 
     expect(bytes).toEqual(PDF_BYTES);
   });
 
-  it("still shows the failure toast when the data really is undecryptable ciphertext", async () => {
+  it("shows the locked toast when the data really is undecryptable ciphertext", async () => {
     const payload = imported_attachment_payload();
 
     payload.data.attachments[0].data_nonce = array_to_base64(
@@ -239,7 +239,7 @@ describe("AttachmentList download of an imported unencrypted attachment", () => 
     await flush();
 
     expect(show_toast_mock).toHaveBeenCalledWith(
-      "common.download_failed",
+      "common.attachment_locked",
       "error",
     );
     expect(captured.blob).toBeNull();

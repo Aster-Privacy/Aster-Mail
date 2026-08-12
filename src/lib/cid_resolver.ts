@@ -189,13 +189,9 @@ export async function resolve_cid_references(
     ),
   );
 
-  const decrypted_metas = meta_results.flatMap((r) =>
-    r.status === "fulfilled" ? [r.value] : [],
-  );
-  const decrypted_attachments = decrypted_metas.filter(({ meta }) =>
-    ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase()),
-  );
-  const meta_incomplete = decrypted_metas.length < meta_results.length;
+  const decrypted_attachments = meta_results
+    .flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))
+    .filter(({ meta }) => ALLOWED_IMAGE_TYPES.has(meta.content_type.toLowerCase()));
 
   const match_strategies: ((meta: AttachmentMeta) => string | undefined)[] = [
     (meta) => meta.content_id ? normalize(meta.content_id) : undefined,
@@ -282,13 +278,14 @@ export async function resolve_cid_references(
 
   resolved_html = strip_unresolved_cid_references(resolved_html);
 
+  const failed = [...meta_results, ...data_results].some(
+    (r) => r.status === "rejected",
+  );
+
   return {
     html: resolved_html,
     blob_urls,
-    unresolved:
-      meta_incomplete || data_results.some((r) => r.status === "rejected")
-        ? Math.max(distinct_ref_count - replaced, 0)
-        : 0,
+    unresolved: failed ? Math.max(distinct_ref_count - replaced, 0) : 0,
   };
 }
 

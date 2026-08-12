@@ -1181,6 +1181,7 @@ export interface CommonTranslations {
   upload_failed: string;
   delete_failed: string;
   download_failed: string;
+  attachment_locked: string;
   scheduled_no_attachments: string;
   failed_to_merge_contacts: string;
   merge_failed: string;

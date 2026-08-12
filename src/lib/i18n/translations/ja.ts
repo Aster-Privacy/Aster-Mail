@@ -718,6 +718,8 @@ export const ja = {
       "この項目は削除されませんでした。もう一度試すと通ることが多いです。",
     download_failed:
       "このダウンロードは完了しませんでした。もう一度試すと通ることが多いです。",
+    attachment_locked:
+      "この添付ファイルは、暗号化キーがこのデバイスで利用できないため開けません。",
     scheduled_no_attachments:
       "予約送信のメールにはまだ添付ファイルを含められません。今すぐ送信するか、ファイルを削除して予約してください。",
     failed_to_merge_contacts:
@@ -1002,7 +1004,7 @@ export const ja = {
     recipients: "宛先",
     encrypted_attachment: "暗号化された添付ファイル",
     forward_attachments_locked:
-      "一部の添付ファイルはまだ含められません。メールを開いてから、もう一度転送してください。",
+      "一部の添付ファイルは暗号化キーがないため、このメッセージには含まれていません。",
     image: "画像",
     system: "システム",
     failed_to_permanently_delete:

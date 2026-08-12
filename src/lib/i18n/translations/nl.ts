@@ -710,6 +710,8 @@ export const nl = {
     delete_failed: "Dit item is niet verwijderd. Een nieuwe poging zou werken.",
     download_failed:
       "Deze download is niet voltooid. Een nieuwe poging zou werken.",
+    attachment_locked:
+      "Deze bijlage kan niet worden geopend omdat de versleutelingssleutel niet beschikbaar is op dit apparaat.",
     scheduled_no_attachments:
       "Geplande e-mails kunnen nog geen bijlagen bevatten. Verstuur nu of verwijder de bestanden om te plannen.",
     failed_to_merge_contacts:
@@ -983,7 +985,7 @@ export const nl = {
     recipients: "Ontvangers",
     encrypted_attachment: "Versleutelde bijlage",
     forward_attachments_locked:
-      "Sommige bijlagen kunnen nog niet worden meegestuurd. Open de e-mail en stuur deze opnieuw door.",
+      "Bij sommige bijlagen ontbreekt de versleutelingssleutel, daarom zijn ze niet opgenomen in dit bericht.",
     image: "Afbeelding",
     system: "Systeem",
     failed_to_permanently_delete:

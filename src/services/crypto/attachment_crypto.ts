@@ -233,13 +233,7 @@ export function prepare_external_attachments(
   }));
 }
 
-function first_non_empty(...values: (string | undefined)[]): string | null {
-  for (const value of values) {
-    if (typeof value === "string" && value.length > 0) return value;
-  }
-
-  return null;
-}
+export class AttachmentKeyUnavailableError extends Error {}
 
 export function is_sealed_meta_nonce(meta_nonce?: string): boolean {
   if (!meta_nonce) return false;
@@ -255,6 +249,8 @@ export function is_sealed_meta_nonce(meta_nonce?: string): boolean {
   return nonce.length > 0 && nonce.some((byte) => byte !== 0);
 }
 
+const SESSION_KEY_LENGTH = 32;
+
 async function decrypt_sealed_attachment_meta(
   encrypted_meta: string,
   meta_nonce: string,
@@ -263,6 +259,11 @@ async function decrypt_sealed_attachment_meta(
   const key_bytes = base64_to_array(session_key_b64);
   const nonce = base64_to_array(meta_nonce);
   const ciphertext = base64_to_array(encrypted_meta);
+
+  if (key_bytes.length !== SESSION_KEY_LENGTH || nonce.length !== NONCE_LENGTH) {
+    zero_uint8_array(key_bytes);
+    throw new Error("sealed attachment metadata has malformed key material");
+  }
 
   const session_key = await crypto.subtle.importKey(
     "raw",
@@ -304,7 +305,16 @@ async function decrypt_sealed_attachment_meta(
 
 const VAULT_UNAVAILABLE = "vault unavailable for attachment metadata";
 
-const unreadable_rows = new Map<string, number>();
+const UNREADABLE_ROW_TTL_MS = 60_000;
+const UNREADABLE_ROW_LIMIT = 2000;
+
+const unreadable_rows = new Map<string, { version: number; at: number }>();
+
+function monotonic_now(): number {
+  return typeof performance !== "undefined" && typeof performance.now === "function"
+    ? performance.now()
+    : Date.now();
+}
 
 export function clear_unreadable_attachment_rows(): void {
   unreadable_rows.clear();
@@ -330,9 +340,17 @@ async function read_row_attachment_meta(
   }
 
   const keys_version = attachment_keys_version(mail_item_id);
+  const cached = row_key ? unreadable_rows.get(row_key) : undefined;
 
-  if (row_key !== null && unreadable_rows.get(row_key) === keys_version) {
-    return null;
+  if (row_key && cached) {
+    if (
+      cached.version === keys_version &&
+      monotonic_now() - cached.at < UNREADABLE_ROW_TTL_MS
+    ) {
+      return null;
+    }
+
+    unreadable_rows.delete(row_key);
   }
 
   try {
@@ -341,8 +359,10 @@ async function read_row_attachment_meta(
     const transient =
       error instanceof Error && error.message === VAULT_UNAVAILABLE;
 
-    if (row_key !== null && !transient) {
-      unreadable_rows.set(row_key, keys_version);
+    if (row_key && !transient) {
+      if (unreadable_rows.size >= UNREADABLE_ROW_LIMIT) unreadable_rows.clear();
+
+      unreadable_rows.set(row_key, { version: keys_version, at: monotonic_now() });
     }
 
     return null;
@@ -352,25 +372,20 @@ async function read_row_attachment_meta(
 export async function resolve_attachment_meta(
   input: ResolveAttachmentMetaInput,
 ): Promise<ResolvedAttachmentMeta> {
-  const entry =
-    input.mail_item_id !== undefined && input.seq_num !== undefined
-      ? get_attachment_entry(input.mail_item_id, input.seq_num)
-      : null;
-
-  const row_key =
-    input.mail_item_id !== undefined && input.seq_num !== undefined
-      ? `${input.mail_item_id}:${input.seq_num}`
-      : null;
+  const { mail_item_id, seq_num } = input;
+  const keyed = mail_item_id !== undefined && seq_num !== undefined;
+  const entry = keyed ? get_attachment_entry(mail_item_id, seq_num) : null;
+  const row_key = keyed ? `${mail_item_id}:${seq_num}` : null;
 
   const row_meta = await read_row_attachment_meta(
     input.encrypted_meta,
     input.meta_nonce,
     entry,
     row_key,
-    input.mail_item_id,
+    mail_item_id,
   );
 
-  const filename = first_non_empty(entry?.filename, row_meta?.filename);
+  const filename = entry?.filename || row_meta?.filename || null;
   const resolved_content_type = entry?.content_type ?? row_meta?.content_type;
   const content_type =
     resolved_content_type && resolved_content_type.length > 0
@@ -404,7 +419,7 @@ export async function decrypt_attachment_meta(
   });
 
   if (resolved.filename === null || resolved.content_type === null) {
-    throw new Error("attachment metadata unavailable");
+    throw new AttachmentKeyUnavailableError("attachment metadata unavailable");
   }
 
   return {
@@ -526,7 +541,7 @@ export async function decrypt_attachment_data(
       ) as ArrayBuffer;
     }
 
-    throw new Error(
+    throw new AttachmentKeyUnavailableError(
       "attachment decryption key unavailable; refusing to return ciphertext",
     );
   }

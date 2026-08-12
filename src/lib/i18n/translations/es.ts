@@ -729,6 +729,8 @@ export const es = {
       "Este elemento no se eliminó. Otro intento debería resolverlo.",
     download_failed:
       "Esta descarga no se completó. Otro intento debería resolverlo.",
+    attachment_locked:
+      "Este archivo adjunto no se puede abrir porque su clave de cifrado no está disponible en este dispositivo.",
     scheduled_no_attachments:
       "Los correos programados aún no pueden incluir archivos adjuntos. Envíalo ahora o quita los archivos para programarlo.",
     failed_to_merge_contacts:
@@ -1009,7 +1011,7 @@ export const es = {
     recipients: "Destinatarios",
     encrypted_attachment: "Adjunto cifrado",
     forward_attachments_locked:
-      "Algunos archivos adjuntos aún no se pueden incluir. Abre el correo y reenvíalo de nuevo.",
+      "A algunos archivos adjuntos les falta su clave de cifrado, por lo que no se incluyen en este mensaje.",
     image: "Imagen",
     system: "Sistema",
     failed_to_permanently_delete:

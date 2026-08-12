@@ -579,6 +579,8 @@ export const zh_CN = {
     upload_failed: "上传未能完成，再试一次应该可以。",
     delete_failed: "这个条目未能移除，再试一次应该可以。",
     download_failed: "这次下载未能完成，再试一次应该可以。",
+    attachment_locked:
+      "此附件的加密密钥在此设备上不可用，因此无法打开。",
     scheduled_no_attachments:
       "定时邮件暂时无法包含附件。请立即发送，或移除文件后再定时。",
     failed_to_merge_contacts:
@@ -825,7 +827,7 @@ export const zh_CN = {
     recipients: "收件人",
     encrypted_attachment: "加密附件",
     forward_attachments_locked:
-      "部分附件暂时无法包含。请先打开邮件，然后再次转发。",
+      "部分附件缺少加密密钥，因此未包含在此邮件中。",
     image: "图片",
     system: "系统",
     failed_to_permanently_delete: "这些条目未能移除，再试一次应该可以。",
