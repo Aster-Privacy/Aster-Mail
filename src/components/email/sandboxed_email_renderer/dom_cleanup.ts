@@ -29,8 +29,27 @@ type translate_fn = ReturnType<typeof use_i18n>["t"];
 const HIDDEN_QUOTE_SELECTOR =
   ".aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix";
 
-function has_text_outside(doc: Document, body: Element, nodes: Node[]): boolean {
-  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+const VISIBLE_MEDIA_TAGS = ["IMG", "VIDEO", "PICTURE"];
+const VISIBLE_MEDIA_SELECTOR = "img, video, picture";
+
+function contains_media(node: Node): boolean {
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+  const el = node as Element;
+
+  if (VISIBLE_MEDIA_TAGS.includes(el.tagName.toUpperCase())) return true;
+
+  return !!el.querySelector(VISIBLE_MEDIA_SELECTOR);
+}
+
+function has_content_outside(
+  doc: Document,
+  body: Element,
+  nodes: Node[],
+): boolean {
+  const walker = doc.createTreeWalker(
+    body,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+  );
 
   while (walker.nextNode()) {
     const node = walker.currentNode;
@@ -41,7 +60,13 @@ function has_text_outside(doc: Document, body: Element, nodes: Node[]): boolean 
     );
 
     if (is_inside) continue;
-    if ((node.textContent || "").trim().length > 0) return true;
+    if (node.nodeType === Node.TEXT_NODE) {
+      if ((node.textContent || "").trim().length > 0) return true;
+      continue;
+    }
+    if (VISIBLE_MEDIA_TAGS.includes((node as Element).tagName.toUpperCase())) {
+      return true;
+    }
   }
 
   return false;
@@ -73,7 +98,7 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
         prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
       const text = prev.textContent?.trim() || "";
       const is_sig = el?.classList?.contains("protonmail_signature_block");
-      const is_spacer = !text;
+      const is_spacer = !text && !contains_media(prev);
 
       if (is_sig || is_spacer) {
         metadata_nodes.unshift(prev);
@@ -85,7 +110,7 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
 
     metadata_nodes.push(proton_wrapper);
 
-    if (!has_text_outside(doc, body, metadata_nodes)) {
+    if (!has_content_outside(doc, body, metadata_nodes)) {
       reveal_hidden_quote_blocks(proton_wrapper);
 
       return;
@@ -116,20 +141,7 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
     body.querySelector("div.yahoo_quoted");
 
   if (gmail_wrapper) {
-    const has_content_outside = (() => {
-      const text_walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-
-      while (text_walker.nextNode()) {
-        const node = text_walker.currentNode;
-
-        if (gmail_wrapper.contains(node)) continue;
-        if ((node.textContent || "").trim().length > 0) return true;
-      }
-
-      return false;
-    })();
-
-    if (!has_content_outside) {
+    if (!has_content_outside(doc, body, [gmail_wrapper])) {
       (gmail_wrapper as HTMLElement).style.display = "block";
 
       return;
