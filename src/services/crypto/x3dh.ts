@@ -31,8 +31,8 @@ import { load_pq_secret } from "./pq_prekey_store";
 
 import { ignore_error } from "@/lib/ignore_error";
 
-const _KE = ["EC", "DH"].join("");
-const _KC = ["P", "256"].join("-");
+const ECDH_ALGORITHM = "ECDH";
+const ECDH_CURVE = "P-256";
 
 const X3DH_INFO_CLASSICAL = new TextEncoder().encode("Aster Mail_X3DH_v1");
 const X3DH_INFO_PQ = new TextEncoder().encode("Aster Mail_PQXDH_v1");
@@ -80,7 +80,7 @@ async function generate_ephemeral_keypair(): Promise<{
   public_key_raw: Uint8Array;
 }> {
   const keypair = await crypto.subtle.generateKey(
-    { name: _KE, namedCurve: _KC },
+    { name: ECDH_ALGORITHM, namedCurve: ECDH_CURVE },
     true,
     ["deriveBits"],
   );

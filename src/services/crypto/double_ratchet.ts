@@ -23,8 +23,8 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64, base64_to_array } from "./base64";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
-const _KE = ["EC", "DH"].join("");
-const _KC = ["P", "256"].join("-");
+const ECDH_ALGORITHM = "ECDH";
+const ECDH_CURVE = "P-256";
 
 const KDF_INFO_ROOT = new TextEncoder().encode("Aster Mail_Root_KDF");
 const KDF_INFO_CHAIN = new TextEncoder().encode("Aster Mail_Chain_KDF");
@@ -139,7 +139,7 @@ function clone_state(state: RatchetState): RatchetState {
 
 async function generate_dh_keypair(): Promise<RatchetKeyPair> {
   const keypair = await crypto.subtle.generateKey(
-    { name: _KE, namedCurve: _KC },
+    { name: ECDH_ALGORITHM, namedCurve: ECDH_CURVE },
     true,
     ["deriveBits"],
   );
@@ -166,7 +166,7 @@ async function import_public_key(public_key: Uint8Array): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
     public_key,
-    { name: _KE, namedCurve: _KC },
+    { name: ECDH_ALGORITHM, namedCurve: ECDH_CURVE },
     true,
     [],
   );
@@ -200,7 +200,7 @@ async function import_secret_key(
   const { x, y } = split_raw_public_key(public_key);
   const jwk: JsonWebKey = {
     kty: "EC",
-    crv: _KC,
+    crv: ECDH_CURVE,
     d: to_base64url(secret_key),
     x: to_base64url(x),
     y: to_base64url(y),
@@ -209,7 +209,7 @@ async function import_secret_key(
   return crypto.subtle.importKey(
     "jwk",
     jwk,
-    { name: _KE, namedCurve: _KC },
+    { name: ECDH_ALGORITHM, namedCurve: ECDH_CURVE },
     true,
     ["deriveBits"],
   );
@@ -220,7 +220,7 @@ async function dh(
   public_key: CryptoKey,
 ): Promise<Uint8Array> {
   const shared_bits = await crypto.subtle.deriveBits(
-    { name: _KE, public: public_key },
+    { name: ECDH_ALGORITHM, public: public_key },
     secret_key,
     256,
   );

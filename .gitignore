@@ -80,8 +80,8 @@ tsconfig.node.tsbuildinfo
 _tmp/
 .deploy_tag
 *.wip
-src/lib/device_context.ts
-src/lib/registration_guard.ts
+src/lib/*_context.ts
+src/lib/*_guard.ts
 
 Aster-Authenticator/
 _emu_*.png
