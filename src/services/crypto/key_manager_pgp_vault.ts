@@ -199,7 +199,7 @@ export async function decrypt_vault_to_handles(
   pin_fingerprint(identity_handle.key_id, identity_fingerprint, "identity");
   pin_fingerprint(prekey_handle.key_id, prekey_fingerprint, "signed_prekey");
 
-  const recovery_codes_string = vault.recovery_codes.join(",");
+  const recovery_codes_string = (vault.recovery_codes ?? []).join(",");
   const recovery_codes_bytes = encoder.encode(recovery_codes_string);
   const recovery_codes_hash = await compute_hash(recovery_codes_bytes);
 
