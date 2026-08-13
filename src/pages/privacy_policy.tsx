@@ -29,7 +29,7 @@ import {
   BACK_BUTTON_STYLE,
 } from "@/components/auth/mobile_auth_motion";
 
-const LAST_UPDATED = "February 17, 2026";
+const LAST_UPDATED = "August 13, 2026";
 
 const SECTIONS = [
   {
@@ -42,11 +42,11 @@ const SECTIONS = [
   },
   {
     heading: "End-to-End Encryption and Zero-Access Architecture",
-    body: "Aster Mail is built on a zero-access architecture. This is a core design principle, not an optional feature:\n\n\u2022 All email content is encrypted on your device before being transmitted to our servers\n\u2022 Your encryption keys are derived from your password and never leave your device in plaintext form\n\u2022 We cannot read, scan, or analyze your emails, contacts, calendar entries, or settings\n\u2022 Messages between Aster users are protected with the Signal protocol, providing forward secrecy\n\u2022 Messages to external recipients use PGP encryption when the recipient supports it\n\u2022 Your private key is encrypted with AES-256-GCM using a key derived via BLAKE3\n\u2022 We cannot comply with requests to produce the plaintext content of your communications because we do not possess the ability to decrypt them\n\nThis means that even in the event of a server breach, a legal order, or a rogue employee, your data remains protected because we simply cannot access it.",
+    body: "Aster Mail is built on a zero-access architecture. This is a core design principle, not an optional feature:\n\n\u2022 All email content is encrypted on your device before being transmitted to our servers\n\u2022 Your encryption keys are derived from your password and never leave your device in plaintext form\n\u2022 We cannot read, scan, or analyze your emails, contacts, or settings\n\u2022 Messages between Aster users are protected with the Signal protocol, providing forward secrecy\n\u2022 Messages to external recipients use PGP encryption when the recipient supports it\n\u2022 Your private key is encrypted with AES-256-GCM using a key derived via BLAKE3\n\u2022 We cannot comply with requests to produce the plaintext content of your communications because we do not possess the ability to decrypt them\n\nThis means that even in the event of a server breach, a legal order, or a rogue employee, your data remains protected because we simply cannot access it.",
   },
   {
     heading: "Data Storage and Security",
-    body: "Your encrypted data is stored on servers located in the European Union, subject to GDPR protections. We implement comprehensive security measures including:\n\n\u2022 Full disk encryption on all servers\n\u2022 Strict access controls and audit logging for all infrastructure\n\u2022 Regular independent security assessments and penetration testing\n\u2022 No logging of email content or metadata beyond what is strictly necessary for message delivery\n\u2022 Network-level isolation between services\n\nSensitive cryptographic material is zeroized from memory after use and is never written to persistent storage in plaintext. Our server infrastructure is designed so that no single employee has access to all systems simultaneously.",
+    body: "Your encrypted data is stored on servers located in the European Union, subject to GDPR protections. We implement comprehensive security measures including:\n\n\u2022 Full disk encryption on all servers\n\u2022 Strict access controls and audit logging for all infrastructure\n\u2022 Regular internal security audits and penetration testing carried out by our own security team\n\u2022 No logging of email content or metadata beyond what is strictly necessary for message delivery\n\u2022 Network-level isolation between services\n\nSensitive cryptographic material is zeroized from memory after use and is never written to persistent storage in plaintext. Our server infrastructure is designed so that no single employee has access to all systems simultaneously.\n\nOur audits are internal today. We are in talks with independent security firms to arrange a third-party audit, and we will publish the results once that audit is complete.",
   },
   {
     heading: "Third-Party Services",
@@ -58,7 +58,7 @@ const SECTIONS = [
   },
   {
     heading: "Data Retention",
-    body: "We retain your encrypted data only for as long as your account is active. When you delete your account:\n\n\u2022 A 30-day grace period allows you to cancel the deletion and export your data\n\u2022 After the grace period, all data is permanently and irreversibly deleted from our primary systems\n\u2022 This includes emails, contacts, calendar entries, settings, encryption keys, and all associated metadata\n\u2022 Backups containing your data are purged within 30 days of account deletion\n\nYou can export all your data at any time through your Aster Portal settings before deletion. We provide exports in standard formats (MBOX for emails, vCard for contacts, JSON for settings) to ensure portability.",
+    body: "We retain your encrypted data only for as long as your account is active. When you delete your account:\n\n\u2022 A 30-day grace period allows you to cancel the deletion and export your data\n\u2022 After the grace period, all data is permanently and irreversibly deleted from our primary systems\n\u2022 This includes emails, contacts, settings, encryption keys, and all associated metadata\n\u2022 Backups containing your data are purged within 30 days of account deletion\n\nYou can export all your data at any time through your Aster Portal settings before deletion. We provide exports in standard formats (MBOX for emails, vCard for contacts, JSON for settings) to ensure portability.",
   },
   {
     heading: "Your Rights",

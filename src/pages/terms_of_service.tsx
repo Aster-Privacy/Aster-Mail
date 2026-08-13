@@ -38,7 +38,7 @@ const SECTIONS = [
   },
   {
     heading: "Description of Service",
-    body: 'Aster Mail is an end-to-end encrypted email service operated by Aster Communications Inc. ("Aster", "we", "us"). The Service includes the Aster Mail web application, Aster Portal, and any associated desktop and mobile applications. We provide encrypted email, contacts, calendar, and file storage built on a zero-access architecture where your content is encrypted on your device before reaching our servers.',
+    body: 'Aster Mail is an end-to-end encrypted email service operated by Aster Communications Inc. ("Aster", "we", "us"). The Service includes the Aster Mail web application, Aster Portal, and any associated desktop and mobile applications. We provide encrypted email, contacts, and file storage built on a zero-access architecture where your content is encrypted on your device before reaching our servers.',
   },
   {
     heading: "Account Registration and Security",
