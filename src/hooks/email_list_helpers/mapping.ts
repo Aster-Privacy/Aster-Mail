@@ -29,7 +29,7 @@ import {
   PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
-import { build_body_preview } from "@/utils/preview_text";
+import { build_body_preview_cached } from "@/utils/preview_text";
 import {
   classify,
 } from "@/services/mail_categorizer";
@@ -152,7 +152,11 @@ export function mail_to_email(
     (!resolved_text && is_ratchet_envelope(raw_html));
   const preview_text = is_undecryptable_body
     ? RATCHET_UNDECRYPTABLE_SENTINEL
-    : build_body_preview(resolved_text, resolved_html);
+    : build_body_preview_cached(
+        `${item.id}:${resolved_text.length}:${resolved_html.length}`,
+        resolved_text,
+        resolved_html,
+      );
   const raw_ts =
     envelope.sent_at ||
     (envelope as unknown as Record<string, string>).date ||

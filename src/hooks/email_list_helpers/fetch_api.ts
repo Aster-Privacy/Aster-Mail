@@ -49,11 +49,14 @@ import {
 import {
   resolve_sender_profiles,
 } from "@/services/api/sender_profiles";
+import { map_sync_in_chunks } from "@/lib/scheduling";
 import { decrypt_envelope } from "./decrypt";
 import { should_keep_email_in_view } from "./display";
 import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
 import { mail_to_email_safe } from "./mapping";
 import { build_view_list_params, DEFAULT_PAGE_SIZE, MAX_PAGE_TOP_UP_ROUNDS, UNKNOWN_TOTAL } from "./views";
+
+const MAP_CHUNK_SIZE = 25;
 
 export async function fetch_mail_from_api(
   view: string,
@@ -185,11 +188,19 @@ export async function fetch_mail_from_api(
       await resolve_sender_profiles(sender_emails);
     }
 
-    let emails = successful
-      .map(({ item, envelope, metadata }) =>
+    const mapped = await map_sync_in_chunks(
+      successful,
+      ({ item, envelope, metadata }) =>
         mail_to_email_safe(item, envelope, metadata, format_options),
-      )
-      .filter((email): email is InboxEmail => email !== null);
+      MAP_CHUNK_SIZE,
+      signal,
+    );
+
+    if (signal.aborted) return null;
+
+    let emails = mapped.filter(
+      (email): email is InboxEmail => email !== null,
+    );
 
     if (view === "inbox" && category_index_module) {
       const index_entries = successful

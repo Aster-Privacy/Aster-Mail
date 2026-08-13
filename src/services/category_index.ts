@@ -70,6 +70,7 @@ const MAX_ENTRIES = 60000;
 const CAP_TARGET = 50000;
 const PERSIST_DEBOUNCE_MS = 1500;
 const NOTIFY_THROTTLE_MS = 350;
+const BUILD_NOTIFY_THROTTLE_MS = 2500;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
 const DELETE_SYNC_TOKEN_PREFIX = "aster_delete_sync_token_";
@@ -320,12 +321,16 @@ function notify(): void {
 }
 
 function notify_soon(): void {
+  const delay = build_in_progress
+    ? BUILD_NOTIFY_THROTTLE_MS
+    : NOTIFY_THROTTLE_MS;
+
   if (notify_timer) clearTimeout(notify_timer);
 
   notify_timer = setTimeout(() => {
     notify_timer = null;
     notify();
-  }, NOTIFY_THROTTLE_MS);
+  }, delay);
 }
 
 function schedule_persist(): void {

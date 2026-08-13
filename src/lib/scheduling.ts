@@ -35,6 +35,33 @@ export function yield_to_browser(): Promise<void> {
 
 export const DEFAULT_MAP_CHUNK = 32;
 
+export async function map_sync_in_chunks<T, R>(
+  items: readonly T[],
+  handler: (item: T, index: number) => R,
+  chunk_size: number = DEFAULT_MAP_CHUNK,
+  signal?: AbortSignal,
+): Promise<R[]> {
+  if (items.length <= chunk_size) {
+    return items.map((item, index) => handler(item, index));
+  }
+
+  const results: R[] = [];
+
+  for (let start = 0; start < items.length; start += chunk_size) {
+    if (signal?.aborted) break;
+
+    if (start > 0) await yield_to_browser();
+
+    const end = Math.min(start + chunk_size, items.length);
+
+    for (let index = start; index < end; index += 1) {
+      results.push(handler(items[index], index));
+    }
+  }
+
+  return results;
+}
+
 export async function map_in_chunks<T, R>(
   items: readonly T[],
   handler: (item: T, index: number) => Promise<R>,

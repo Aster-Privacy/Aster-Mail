@@ -46,6 +46,7 @@ export {
   plain_text_to_html,
   html_to_readable_plain_text,
   strip_html_tags,
+  strip_html_tags_bounded,
 } from "./html_text";
 export type { ReadablePlainTextOptions } from "./html_text";
 

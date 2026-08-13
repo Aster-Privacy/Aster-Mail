@@ -217,6 +217,62 @@ export function html_to_readable_plain_text(
     .trim();
 }
 
+const BOUNDED_STRIP_STEPS = [16384, 65536, 262144];
+
+const BOUNDED_STRIP_MARGIN = 64;
+
+function last_tag_boundary(html: string, limit: number): number {
+  let boundary = -1;
+  let quote = "";
+  let in_tag = false;
+
+  for (let index = 0; index < limit; index += 1) {
+    const char = html[index];
+
+    if (!in_tag) {
+      if (char === "<") {
+        in_tag = true;
+        quote = "";
+      }
+
+      continue;
+    }
+
+    if (quote) {
+      if (char === quote) quote = "";
+    } else if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === ">") {
+      in_tag = false;
+      boundary = index + 1;
+    }
+  }
+
+  return boundary;
+}
+
+export function strip_html_tags_bounded(
+  html: string,
+  min_chars: number,
+): string {
+  if (!html || typeof html !== "string") return "";
+  if (html.length <= BOUNDED_STRIP_STEPS[0]) return strip_html_tags(html);
+
+  for (const step of BOUNDED_STRIP_STEPS) {
+    if (step * 2 >= html.length) break;
+
+    const boundary = last_tag_boundary(html, step);
+
+    if (boundary <= 0) continue;
+
+    const text = strip_html_tags(html.slice(0, boundary));
+
+    if (text.length >= min_chars + BOUNDED_STRIP_MARGIN) return text;
+  }
+
+  return strip_html_tags(html);
+}
+
 export function strip_html_tags(html: string): string {
   if (!html || typeof html !== "string") return "";
 

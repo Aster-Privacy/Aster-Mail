@@ -30,6 +30,7 @@ import {
   decrypt_envelope_with_identity_key,
   encrypt_envelope_with_identity_key,
   base64_to_array,
+  first_base64_byte,
 } from "@/services/crypto/envelope";
 import {
   get_passphrase_bytes,
@@ -45,13 +46,13 @@ import {
 } from "@/services/crypto/envelope_normalize";
 
 export async function try_decrypt_with_identity_key(
-  encrypted: string,
+  encrypted: string | Uint8Array,
   nonce_bytes: Uint8Array,
   identity_key: string,
 ): Promise<DecryptedEnvelope | null> {
   return decrypt_envelope_with_identity_key(
     identity_key,
-    base64_to_array(encrypted),
+    typeof encrypted === "string" ? base64_to_array(encrypted) : encrypted,
     nonce_bytes,
     (plaintext) => {
       const parsed = JSON.parse(new TextDecoder().decode(plaintext));
@@ -224,7 +225,7 @@ async function open_search_envelope(
 
     zero_uint8_array(passphrase);
 
-    const first_byte = base64_to_array(encrypted)[0];
+    const first_byte = first_base64_byte(encrypted);
 
     if (
       nonce_bytes.length === 12 &&
@@ -251,8 +252,10 @@ async function open_search_envelope(
 
     if (!vault?.identity_key) return null;
 
+    const encrypted_bytes = base64_to_array(encrypted);
+
     const result = await try_decrypt_with_identity_key(
-      encrypted,
+      encrypted_bytes,
       nonce_bytes,
       vault.identity_key,
     );
@@ -262,7 +265,7 @@ async function open_search_envelope(
     if (vault.previous_keys && vault.previous_keys.length > 0) {
       for (const prev_key of vault.previous_keys) {
         const prev_result = await try_decrypt_with_identity_key(
-          encrypted,
+          encrypted_bytes,
           nonce_bytes,
           prev_key,
         );

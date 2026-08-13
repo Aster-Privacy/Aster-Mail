@@ -30,7 +30,11 @@ import {
 } from "./envelope_normalize";
 
 export { normalize_envelope_from, normalize_envelope_recipients };
-export { array_to_base64, base64_to_array } from "./base64";
+export {
+  array_to_base64,
+  base64_to_array,
+  first_base64_byte,
+} from "./base64";
 
 export function normalize_parsed_envelope<T>(parsed: T): T {
   if (!parsed || typeof parsed !== "object") return parsed;
@@ -223,6 +227,24 @@ export async function decrypt_envelope<T>(
 
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 
+async function import_identity_envelope_key(
+  identity_key: string,
+  version: string,
+): Promise<CryptoKey> {
+  const key_hash = await crypto.subtle.digest(
+    HASH_ALG,
+    new TextEncoder().encode(identity_key + version),
+  );
+
+  return crypto.subtle.importKey(
+    "raw",
+    key_hash,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+}
+
 export async function decrypt_envelope_with_identity_key<T>(
   identity_key: string,
   encrypted_bytes: Uint8Array,
@@ -231,16 +253,9 @@ export async function decrypt_envelope_with_identity_key<T>(
 ): Promise<T | null> {
   for (const version of ENVELOPE_KEY_VERSIONS) {
     try {
-      const key_hash = await crypto.subtle.digest(
-        HASH_ALG,
-        new TextEncoder().encode(identity_key + version),
-      );
-      const crypto_key = await crypto.subtle.importKey(
-        "raw",
-        key_hash,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
+      const crypto_key = await with_cached_envelope_key(
+        `identity:${version}:${identity_key}`,
+        () => import_identity_envelope_key(identity_key, version),
       );
       const decrypted = await decrypt_aes_gcm_with_fallback(
         crypto_key,
