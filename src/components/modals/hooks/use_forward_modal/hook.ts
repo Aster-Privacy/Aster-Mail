@@ -865,14 +865,13 @@ export function use_forward_modal({
 
           set_attachment_error(rejection.message);
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(rejection.message);
           continue;
         }
 
         if (running_total + file.size > get_max_total_attachments_size()) {
-          set_attachment_error(
-            describe_would_exceed_total(t, file.name),
-          );
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 
@@ -931,14 +930,13 @@ export function use_forward_modal({
 
           set_attachment_error(rejection.message);
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(rejection.message);
           continue;
         }
 
         if (running_total + file.size > get_max_total_attachments_size()) {
-          set_attachment_error(
-            describe_would_exceed_total(t, file.name),
-          );
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 

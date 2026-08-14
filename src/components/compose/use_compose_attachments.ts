@@ -176,7 +176,8 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           set_attachment_error(message);
           show_toast(message, "error");
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(rejection.message);
           continue;
         }
 
@@ -271,7 +272,8 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           set_attachment_error(message);
           show_toast(message, "error");
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(rejection.message);
           continue;
         }
 
