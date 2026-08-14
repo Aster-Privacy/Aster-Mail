@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { writeFileSync } from "node:fs";
 import * as openpgp from "openpgp";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { sign_detached } from "./crypto/key_manager";
@@ -363,6 +364,50 @@ describe("build_signed_mime_payload", () => {
 
     expect(await verified.signatures[0].verified).toBe(true);
   });
+
+  it("writes the interop fixture the backend end-to-end test consumes", async () => {
+    const destination = process.env.ASTER_SIGNED_MIME_FIXTURE_OUT;
+
+    if (!destination) return;
+
+    memory_identity_key = sender_private;
+    memory_passphrase = PASSPHRASE;
+
+    const recipient = await openpgp.generateKey({
+      type: "ecc",
+      curve: "ed25519Legacy",
+      userIDs: [{ name: "External", email: "external@example.org" }],
+      format: "armored",
+    });
+
+    const payload = await build_signed_mime_payload({
+      subject: "Test",
+      body: "Test test&nbsp;",
+      from: "sender@astermail.org",
+      to: ["external@example.org"],
+      cc: [],
+    });
+
+    expect(payload).toBeDefined();
+
+    writeFileSync(
+      destination,
+      JSON.stringify(
+        {
+          mime_base64: payload!.signed_mime,
+          signature: payload!.signed_mime_signature,
+          micalg: payload!.signed_mime_micalg,
+          sender_public_key: sender_public,
+          recipient_public_key: recipient.publicKey,
+          recipient_private_key: recipient.privateKey,
+          expected_subject: "Test",
+          expected_html: "Test test&nbsp;",
+        },
+        null,
+        2,
+      ),
+    );
+  }, 60000);
 
   it("reports why a message goes out unsigned", async () => {
     memory_identity_key = undefined;
