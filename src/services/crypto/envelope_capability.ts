@@ -23,6 +23,7 @@ import { array_to_base64, base64_to_array } from "./base64";
 import { get_vault_from_memory } from "./memory_key_store";
 
 export const ENVELOPE_CAPABILITY_MAX_MARKER = 4;
+export const ENVELOPE_CAPABILITY_X3DH_MAX_VERSION = 2;
 export const ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const CLIENT_ID_KEY = "astermail_envelope_client_id";
@@ -45,6 +46,7 @@ export interface EnvelopeCapabilityDeps {
     max_envelope_marker: number,
     platform: string,
     identity_fingerprint: string | null,
+    x3dh_max_version: number,
   ) => Promise<EnvelopeCapabilityResult | null>;
   platform: () => string;
   identity_fingerprint: () => Promise<string | null>;
@@ -89,10 +91,17 @@ async function post_capability(
   max_envelope_marker: number,
   platform: string,
   identity_fingerprint: string | null,
+  x3dh_max_version: number,
 ): Promise<EnvelopeCapabilityResult | null> {
   const response = await api_client.post<EnvelopeCapabilityResult>(
     "/crypto/v1/ratchet/envelope-capability",
-    { client_id, max_envelope_marker, platform, identity_fingerprint },
+    {
+      client_id,
+      max_envelope_marker,
+      platform,
+      identity_fingerprint,
+      x3dh_max_version,
+    },
   );
 
   if (response.error || !response.data) return null;
@@ -175,6 +184,7 @@ export async function report_envelope_capability_if_due(
       ENVELOPE_CAPABILITY_MAX_MARKER,
       deps.platform(),
       fingerprint || null,
+      ENVELOPE_CAPABILITY_X3DH_MAX_VERSION,
     )
     .catch(() => null);
 

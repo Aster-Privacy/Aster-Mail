@@ -76,6 +76,7 @@ interface PrekeyBundle {
   one_time_prekey?: string | null;
   pq_prekey?: PqPrekey | null;
   pq_kem_public_key?: string | null;
+  x3dh_max_version?: number | null;
 }
 
 interface PqReceiverInput {
@@ -240,6 +241,18 @@ export function bundle_supports_pq(recipient_bundle: PrekeyBundle): boolean {
   return select_pq_encapsulation_target(recipient_bundle) !== null;
 }
 
+export function bundle_supports_transcript_binding(
+  recipient_bundle: PrekeyBundle,
+): boolean {
+  const advertised = recipient_bundle.x3dh_max_version;
+
+  return (
+    typeof advertised === "number" &&
+    Number.isFinite(advertised) &&
+    advertised >= X3DH_VERSION_TRANSCRIPT_BOUND
+  );
+}
+
 export async function perform_x3dh_sender(
   sender_identity_jwk: JsonWebKey,
   recipient_bundle: PrekeyBundle,
@@ -287,7 +300,9 @@ export async function perform_x3dh_sender(
   const sender_identity_raw = jwk_to_raw_public(sender_identity_jwk);
 
   const transcript_bound =
-    is_pqxdh_transcript_binding_enabled() && sender_identity_raw !== null;
+    is_pqxdh_transcript_binding_enabled() &&
+    bundle_supports_transcript_binding(recipient_bundle) &&
+    sender_identity_raw !== null;
 
   if (pq_target) {
     const encap = ml_kem768.encapsulate(pq_target.public_key);
