@@ -28,6 +28,9 @@ export const API_BASE_URL =
     ? NATIVE_API_URL
     : import.meta.env.VITE_API_URL || "/api";
 
+export const TAURI_AUTH_SLOT_ACCESS = "access_token";
+export const TAURI_AUTH_SLOT_CSRF = "csrf";
+
 export const ACCOUNTS_ROSTER_KEY = "astermail_accounts_v6";
 export const REFRESH_INTERVAL_MINUTES = 10;
 export const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;

@@ -55,6 +55,8 @@ import {
   REFRESH_INTERVAL_MINUTES,
   RequestConfig,
   SessionReestablishResult,
+  TAURI_AUTH_SLOT_ACCESS,
+  TAURI_AUTH_SLOT_CSRF,
   TAURI_CSRF_KEY,
   TAURI_TOKEN_KEY,
   clear_last_auth_ms,
@@ -105,9 +107,14 @@ export class ApiClient {
   private last_identity_check_timestamp: number = 0;
   private pending_account_token_writes: Map<string, PendingTokenWrite> =
     new Map();
+  private tauri_auth_hydration: Promise<void> | null = null;
+  private tauri_auth_written_since_boot: boolean = false;
 
   constructor() {
     this.load_stored_tokens();
+    if (is_tauri_env()) {
+      this.tauri_auth_hydration = this.hydrate_tauri_auth();
+    }
     this.setup_visibility_refresh();
   }
 
@@ -191,25 +198,84 @@ export class ApiClient {
   }
 
   private load_stored_tokens(): void {
-    if (is_tauri_env()) {
-      try {
-        const token = localStorage.getItem(TAURI_TOKEN_KEY);
-        const csrf = localStorage.getItem(TAURI_CSRF_KEY);
-
-        if (token) this.dev_access_token = token;
-        if (csrf) set_csrf_token(csrf);
-      } catch (caught) {
-        ignore_error("services/api/client/api_client:verify_identity", caught);
-      }
-
-      return;
-    }
+    if (is_tauri_env()) return;
     if (!import.meta.env.DEV) return;
     if (!is_local_hostname()) return;
     const stored_token = sessionStorage.getItem(DEV_TOKEN_KEY);
 
     if (stored_token) {
       this.dev_access_token = stored_token;
+    }
+  }
+
+  private async auth_store_set(slot: string, value: string): Promise<void> {
+    if (!value) return;
+    this.tauri_auth_written_since_boot = true;
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+
+      await invoke("device_auth_store_set", { slot, value });
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:auth_store_set", caught);
+    }
+  }
+
+  private async auth_store_get(slot: string): Promise<string | null> {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const value = await invoke<string | null>("device_auth_store_get", {
+        slot,
+      });
+
+      return value ?? null;
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:auth_store_get", caught);
+
+      return null;
+    }
+  }
+
+  private async auth_store_clear(): Promise<void> {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+
+      await invoke("device_auth_store_clear");
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:auth_store_clear", caught);
+    }
+  }
+
+  private async hydrate_tauri_auth(): Promise<void> {
+    const superseded = (): boolean => this.tauri_auth_written_since_boot;
+
+    let token = await this.auth_store_get(TAURI_AUTH_SLOT_ACCESS);
+    let csrf = await this.auth_store_get(TAURI_AUTH_SLOT_CSRF);
+
+    if (superseded()) return;
+
+    try {
+      const legacy_token = localStorage.getItem(TAURI_TOKEN_KEY);
+      const legacy_csrf = localStorage.getItem(TAURI_CSRF_KEY);
+
+      if (!token && legacy_token) {
+        token = legacy_token;
+        await this.auth_store_set(TAURI_AUTH_SLOT_ACCESS, legacy_token);
+      }
+      if (!csrf && legacy_csrf) {
+        csrf = legacy_csrf;
+        await this.auth_store_set(TAURI_AUTH_SLOT_CSRF, legacy_csrf);
+      }
+      if (legacy_token) localStorage.removeItem(TAURI_TOKEN_KEY);
+      if (legacy_csrf) localStorage.removeItem(TAURI_CSRF_KEY);
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:hydrate_tauri_auth", caught);
+    }
+
+    if (token && !this.dev_access_token) {
+      this.dev_access_token = token;
+    }
+    if (csrf) {
+      set_csrf_token(csrf);
     }
   }
 
@@ -358,6 +424,11 @@ export class ApiClient {
       return this.is_authenticated_flag;
     }
 
+    if (this.tauri_auth_hydration) {
+      await this.tauri_auth_hydration;
+      this.tauri_auth_hydration = null;
+    }
+
     if (Capacitor.isNativePlatform() && !this.dev_access_token) {
       const persisted = await this.load_native_token();
 
@@ -451,14 +522,7 @@ export class ApiClient {
       }
     }
     if (is_tauri_env()) {
-      try {
-        localStorage.setItem(TAURI_TOKEN_KEY, token);
-      } catch (caught) {
-        ignore_error(
-          "services/api/client/api_client:verify_initial_auth",
-          caught,
-        );
-      }
+      void this.auth_store_set(TAURI_AUTH_SLOT_ACCESS, token);
     }
     this.persist_to_active_account(token, refresh_token, owner_account_id);
   }
@@ -592,14 +656,10 @@ export class ApiClient {
           }
         }
         if (is_tauri_env()) {
-          try {
-            localStorage.setItem(TAURI_TOKEN_KEY, tokens.access_token);
-          } catch (caught) {
-            ignore_error(
-              "services/api/client/api_client:load_tokens_for_account",
-              caught,
-            );
-          }
+          await this.auth_store_set(
+            TAURI_AUTH_SLOT_ACCESS,
+            tokens.access_token,
+          );
         }
         if (import.meta.env.DEV) {
           sessionStorage.setItem(DEV_TOKEN_KEY, tokens.access_token);
@@ -635,11 +695,7 @@ export class ApiClient {
       this.persist_native_csrf(token);
     }
     if (is_tauri_env()) {
-      try {
-        localStorage.setItem(TAURI_CSRF_KEY, token);
-      } catch (caught) {
-        ignore_error("services/api/client/api_client:set_csrf", caught);
-      }
+      void this.auth_store_set(TAURI_AUTH_SLOT_CSRF, token);
     }
   }
 
@@ -657,6 +713,8 @@ export class ApiClient {
       this.clear_native_refresh_token();
     }
     if (is_tauri_env()) {
+      this.tauri_auth_written_since_boot = true;
+      void this.auth_store_clear();
       try {
         localStorage.removeItem(TAURI_TOKEN_KEY);
         localStorage.removeItem(TAURI_CSRF_KEY);

@@ -41,6 +41,12 @@ const KEYRING_WRAP_USER: &str = "device-identity-wrap-v1";
 const KEYRING_IDENTITY_USER: &str = "device_identity";
 const MAGIC_ID: &[u8; 8] = b"ASTERID\x01";
 const MAGIC_PP: &[u8; 8] = b"ASTERPP\x01";
+const MAGIC_AUTH: &[u8; 8] = b"ASTERAU\x01";
+const KEYRING_AUTH_ACCESS_USER: &str = "auth-access-token-v1";
+const KEYRING_AUTH_CSRF_USER: &str = "auth-csrf-v1";
+const AUTH_SLOT_ACCESS: &str = "access_token";
+const AUTH_SLOT_CSRF: &str = "csrf";
+const AUTH_VALUE_MAX_BYTES: usize = 8192;
 
 type MlKemDecapKey = <MlKem768 as KemCore>::DecapsulationKey;
 type MlKemEncapKey = <MlKem768 as KemCore>::EncapsulationKey;
@@ -252,6 +258,82 @@ fn keyring_delete(user: &str) -> Result<(), String> {
 fn wrap_key_delete() -> Result<(), String> {
     wrap_key_file_delete();
     keyring_delete(KEYRING_WRAP_USER)
+}
+
+fn auth_slot_ids(slot: &str) -> Result<(&'static str, &'static str), String> {
+    match slot {
+        AUTH_SLOT_ACCESS => Ok((KEYRING_AUTH_ACCESS_USER, "auth_access.bin")),
+        AUTH_SLOT_CSRF => Ok((KEYRING_AUTH_CSRF_USER, "auth_csrf.bin")),
+        _ => Err("unknown auth slot".to_string()),
+    }
+}
+
+fn auth_file_path(file_name: &str) -> Result<std::path::PathBuf, String> {
+    let data_dir = dirs::data_local_dir()
+        .ok_or_else(|| "cannot resolve local data directory".to_string())?;
+    let app_dir = data_dir.join("com.astermail.mail");
+
+    std::fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+    Ok(app_dir.join(file_name))
+}
+
+fn auth_store_write(slot: &str, value: &str) -> Result<(), String> {
+    let (keyring_user, file_name) = auth_slot_ids(slot)?;
+
+    if let Ok(entry) = Entry::new(KEYRING_SERVICE, keyring_user) {
+        if entry.set_password(value).is_ok() {
+            if let Ok(path) = auth_file_path(file_name) {
+                secure_delete_file(&path);
+            }
+
+            return Ok(());
+        }
+    }
+
+    let wrap_key = wrap_key_load_or_create()?;
+    let blob = aead_seal(&wrap_key, MAGIC_AUTH, value.as_bytes())?;
+    let path = auth_file_path(file_name)?;
+
+    atomic_write(&path, &blob)
+}
+
+fn auth_store_read(slot: &str) -> Result<Option<String>, String> {
+    let (keyring_user, file_name) = auth_slot_ids(slot)?;
+
+    if let Ok(entry) = Entry::new(KEYRING_SERVICE, keyring_user) {
+        if let Ok(value) = entry.get_password() {
+            return Ok(Some(value));
+        }
+    }
+
+    let path = auth_file_path(file_name)?;
+
+    if !path.exists() {
+        return Ok(None);
+    }
+    let blob = std::fs::read(&path).map_err(|e| e.to_string())?;
+    let wrap_key = match wrap_key_load()? {
+        Some(key) => key,
+        None => return Ok(None),
+    };
+    let plaintext = Zeroizing::new(aead_open(&wrap_key, MAGIC_AUTH, &blob)?);
+
+    match std::str::from_utf8(&plaintext) {
+        Ok(value) => Ok(Some(value.to_string())),
+        Err(_) => Ok(None),
+    }
+}
+
+fn auth_store_clear_all() {
+    for slot in [AUTH_SLOT_ACCESS, AUTH_SLOT_CSRF] {
+        if let Ok((keyring_user, file_name)) = auth_slot_ids(slot) {
+            let _ = keyring_delete(keyring_user);
+
+            if let Ok(path) = auth_file_path(file_name) {
+                secure_delete_file(&path);
+            }
+        }
+    }
 }
 
 const MAX_SECURE_OVERWRITE_BYTES: u64 = 1024 * 1024;
@@ -622,7 +704,40 @@ pub fn device_get_stored_passphrase(
 }
 
 #[tauri::command]
+pub fn device_auth_store_set(
+    window: tauri::WebviewWindow,
+    slot: String,
+    value: String,
+) -> Result<(), String> {
+    require_primary_webview(&window)?;
+
+    if value.is_empty() || value.len() > AUTH_VALUE_MAX_BYTES {
+        return Err("invalid auth value".to_string());
+    }
+
+    auth_store_write(&slot, &value)
+}
+
+#[tauri::command]
+pub fn device_auth_store_get(
+    window: tauri::WebviewWindow,
+    slot: String,
+) -> Result<Option<String>, String> {
+    require_primary_webview(&window)?;
+    auth_store_read(&slot)
+}
+
+#[tauri::command]
+pub fn device_auth_store_clear(window: tauri::WebviewWindow) -> Result<(), String> {
+    require_primary_webview(&window)?;
+    auth_store_clear_all();
+    Ok(())
+}
+
+#[tauri::command]
 pub fn device_clear_session() -> Result<(), String> {
+    auth_store_clear_all();
+
     if let Ok(path) = passphrase_file_path() {
         secure_delete_file(&path);
     }
@@ -635,6 +750,8 @@ pub fn device_clear_session() -> Result<(), String> {
 
 #[tauri::command]
 pub fn device_clear_identity() -> Result<(), String> {
+    auth_store_clear_all();
+
     if let Ok(path) = identity_file_path() {
         secure_delete_file(&path);
     }
@@ -1057,5 +1174,40 @@ mod tests {
         assert_ne!(identity, passphrase);
         assert_ne!(identity, wrap);
         assert_ne!(passphrase, wrap);
+    }
+
+    #[test]
+    fn auth_slots_map_to_distinct_storage_ids() {
+        let (access_user, access_file) = auth_slot_ids(AUTH_SLOT_ACCESS).unwrap();
+        let (csrf_user, csrf_file) = auth_slot_ids(AUTH_SLOT_CSRF).unwrap();
+
+        assert_ne!(access_user, csrf_user);
+        assert_ne!(access_file, csrf_file);
+        assert!(auth_slot_ids("refresh_token").is_err());
+    }
+
+    #[test]
+    fn auth_slot_files_are_distinct_from_the_device_secret_files() {
+        let access = auth_file_path(auth_slot_ids(AUTH_SLOT_ACCESS).unwrap().1).unwrap();
+        let csrf = auth_file_path(auth_slot_ids(AUTH_SLOT_CSRF).unwrap().1).unwrap();
+
+        assert_ne!(access, csrf);
+        assert_ne!(access, identity_file_path().unwrap());
+        assert_ne!(access, passphrase_file_path().unwrap());
+        assert_ne!(access, wrap_key_file_path().unwrap());
+        assert_ne!(csrf, wrap_key_file_path().unwrap());
+    }
+
+    #[test]
+    fn auth_blobs_do_not_open_under_another_domain() {
+        let key = test_key(9);
+        let sealed = aead_seal(&key, MAGIC_AUTH, b"header.payload.signature").unwrap();
+
+        assert_eq!(
+            aead_open(&key, MAGIC_AUTH, &sealed).unwrap(),
+            b"header.payload.signature"
+        );
+        assert!(aead_open(&key, MAGIC_ID, &sealed).is_err());
+        assert!(aead_open(&key, MAGIC_PP, &sealed).is_err());
     }
 }
