@@ -25,7 +25,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, UpgradeBtn } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
@@ -823,16 +823,15 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     <p className="text-xs text-amber-500">
                       {t("settings.storage_quota_reached")}
                     </p>
-                    <Button
+                    <UpgradeBtn
                       size="sm"
-                      variant="depth"
                       onClick={() => {
                         handle_close();
                         show_storage_full_upgrade({});
                       }}
                     >
                       {t("common.upgrade")}
-                    </Button>
+                    </UpgradeBtn>
                   </div>
                 )}
                 {import_result.imported > 0 && (

@@ -784,7 +784,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
           set_attachment_error(rejection.message);
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade();
+          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
           continue;
         }
 
@@ -850,7 +850,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
           set_attachment_error(rejection.message);
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade();
+          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
           continue;
         }
 

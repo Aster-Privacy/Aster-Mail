@@ -69,6 +69,9 @@ export function describe_would_exceed_total(
   });
 }
 
-export function prompt_attachment_upgrade(): void {
-  show_plan_limit_upgrade({ resource: "attachments" });
+export function prompt_attachment_upgrade(message?: string): void {
+  show_plan_limit_upgrade({
+    resource: "attachments",
+    message: message ?? null,
+  });
 }

@@ -865,7 +865,7 @@ export function use_forward_modal({
 
           set_attachment_error(rejection.message);
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade();
+          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
           continue;
         }
 
@@ -931,7 +931,7 @@ export function use_forward_modal({
 
           set_attachment_error(rejection.message);
 
-          if (rejection.can_upgrade) prompt_attachment_upgrade();
+          if (rejection.can_upgrade) prompt_attachment_upgrade(rejection.message);
           continue;
         }
 

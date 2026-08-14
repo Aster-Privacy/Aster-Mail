@@ -122,7 +122,7 @@ export function StorageBanner({
           </p>
         </div>
         <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-txt-primary bg-white hover:bg-white/90 transition-colors flex-shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-[color:var(--accent-color)] bg-white hover:bg-white/90 transition-colors flex-shrink-0"
           onClick={() => show_storage_full_upgrade({})}
         >
           <ArrowUpCircleIcon className="w-3.5 h-3.5" />
