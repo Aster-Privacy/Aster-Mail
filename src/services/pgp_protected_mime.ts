@@ -347,14 +347,3 @@ export function build_protected_mime_entity(input: ProtectedMimeInput): string {
 
   return mime;
 }
-
-export function body_looks_like_html(body: string): boolean {
-  return (
-    body.includes("<br") ||
-    body.includes("<a ") ||
-    body.includes("<p>") ||
-    body.includes("<div") ||
-    body.includes("<html") ||
-    body.includes("</")
-  );
-}
