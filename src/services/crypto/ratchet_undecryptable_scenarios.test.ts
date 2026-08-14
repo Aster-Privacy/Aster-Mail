@@ -88,6 +88,7 @@ import {
 
 const SENDER = "sender@astermail.org";
 const RECIPIENT = "recipient@astermail.org";
+const ALIAS = "support@astermail.org";
 
 type Keys = NonNullable<Awaited<ReturnType<typeof generate_ratchet_keys>>>;
 
@@ -408,5 +409,121 @@ describe("undecryptable-message failure modes", () => {
 
     expect(large_lane).toBe(small_lane);
     expect(large.length).toBeLessThan(100_000 * 1.4 + 4_000);
+  });
+
+  it("decrypts a message addressed to one of the recipient's aliases", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+    h.vault = sender_vault;
+
+    const data = await encrypt_for_ratchet_recipient(
+      SENDER,
+      ALIAS,
+      "recipient",
+      "sent to the alias",
+      sender_vault,
+    );
+
+    expect(data).not.toBeNull();
+
+    const envelope = build_ratchet_envelope(
+      sender_vault.ratchet_identity_public!,
+      { [ALIAS]: data! },
+    );
+
+    h.vault = receiver_vault;
+    h.store.clear();
+
+    const parsed = parse_ratchet_envelope(envelope)!;
+
+    expect(
+      await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed,
+        receiver_vault,
+        "alias1",
+      ),
+    ).toBe("sent to the alias");
+  });
+
+  it("keeps a reply on the alias conversation decryptable after the first message", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const bodies = ["alias one", "alias two"];
+    const envelopes: string[] = [];
+
+    for (const body of bodies) {
+      h.vault = sender_vault;
+
+      const data = await encrypt_for_ratchet_recipient(
+        SENDER,
+        ALIAS,
+        "recipient",
+        body,
+        sender_vault,
+      );
+
+      envelopes.push(
+        build_ratchet_envelope(sender_vault.ratchet_identity_public!, {
+          [ALIAS]: data!,
+        }),
+      );
+    }
+
+    h.vault = receiver_vault;
+    h.store.clear();
+
+    for (const [index, body] of bodies.entries()) {
+      expect(
+        await decrypt_ratchet_message(
+          RECIPIENT,
+          SENDER,
+          parse_ratchet_envelope(envelopes[index])!,
+          receiver_vault,
+          `alias_seq_${index}`,
+        ),
+      ).toBe(body);
+    }
+  });
+
+  it("returns null when the envelope holds no entry the recipient can open", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+    const stranger_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(stranger_vault);
+    h.vault = sender_vault;
+
+    const data = await encrypt_for_ratchet_recipient(
+      SENDER,
+      "stranger@astermail.org",
+      "stranger",
+      "not for you",
+      sender_vault,
+    );
+
+    const envelope = build_ratchet_envelope(
+      sender_vault.ratchet_identity_public!,
+      { "stranger@astermail.org": data! },
+    );
+
+    h.vault = receiver_vault;
+    h.store.clear();
+
+    expect(
+      await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parse_ratchet_envelope(envelope)!,
+        receiver_vault,
+        "stranger1",
+      ),
+    ).toBeNull();
   });
 });

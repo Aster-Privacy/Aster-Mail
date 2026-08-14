@@ -60,6 +60,25 @@ function resolve_recipient_data(
   return null;
 }
 
+const MAX_ALIAS_RECIPIENT_ATTEMPTS = 8;
+
+function alias_recipient_candidates(
+  our_email: string,
+  sender_email: string,
+  envelope: RatchetEnvelope,
+): string[] {
+  const our_lower = our_email.toLowerCase();
+  const sender_lower = sender_email.toLowerCase();
+
+  return Object.keys(envelope.recipients)
+    .filter((key) => {
+      const lower = key.toLowerCase();
+
+      return lower !== our_lower && lower !== sender_lower;
+    })
+    .slice(0, MAX_ALIAS_RECIPIENT_ATTEMPTS);
+}
+
 function build_dedupe_key(
   message_id: string,
   data: RatchetRecipientData | null,
@@ -186,6 +205,36 @@ export async function decrypt_ratchet_message(
       );
 
       if (fallback.plaintext !== null) return fallback.plaintext;
+    }
+  }
+
+  if (!our_data) {
+    for (const address of alias_recipient_candidates(
+      our_email,
+      sender_email,
+      envelope,
+    )) {
+      const alias_data = envelope.recipients[address];
+
+      if (!alias_data) continue;
+
+      try {
+        const alias_attempt = await attempt_ratchet_decrypt(
+          address,
+          sender_email,
+          envelope,
+          vault,
+          alias_data,
+          message_id,
+        );
+
+        if (alias_attempt.plaintext !== null) return alias_attempt.plaintext;
+      } catch (caught) {
+        ignore_error(
+          "services/crypto/ratchet_decrypt:decrypt_ratchet_message",
+          caught,
+        );
+      }
     }
   }
 
