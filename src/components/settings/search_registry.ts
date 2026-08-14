@@ -85,6 +85,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Recovery codes",       section: "encryption", breadcrumb: "Encryption > Recovery", keywords: ["regenerate codes", "backup codes"] },
   { label: "Storage format",       section: "encryption", breadcrumb: "Encryption > Storage" },
   { label: "Key algorithm",        section: "encryption", breadcrumb: "Encryption > Keys", keywords: ["ecc", "curve25519", "rsa", "algorithm"] },
+  { label: "Hide subject on encrypted mail", section: "encryption", breadcrumb: "Encryption > Control", keywords: ["obscure subject", "protected headers", "encrypted subject", "hide subject"] },
 
   // ── Trusted Devices ───────────────────────────────────────────────────────
   { label: "Trusted devices",      section: "trusted_devices", breadcrumb: "Trusted Devices" },

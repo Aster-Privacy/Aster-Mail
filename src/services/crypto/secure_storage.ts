@@ -33,6 +33,11 @@ import {
 } from "./encrypted_storage";
 import { zero_uint8_array } from "./secure_memory";
 import { clear_key_manager_state } from "./key_manager";
+import {
+  get_device_wrap_key,
+  clear_device_wrap_key_cache,
+  delete_device_wrap_key,
+} from "./device_key_store";
 
 import { stop_session_timeout } from "@/services/session_timeout_service";
 import { sync_client } from "@/services/sync_client";
@@ -44,6 +49,8 @@ import { clear_csrf_cache } from "@/services/api/csrf";
 import { ignore_error } from "@/lib/ignore_error";
 
 const CURRENT_VERSION = 1;
+const DEVICE_LEGACY_VERSION = 1;
+const DEVICE_WRAPPED_VERSION = 2;
 const STORAGE_SALT_KEY = "aster_storage_salt";
 const DEVICE_ID_KEY = "aster_device_id";
 
@@ -566,6 +573,12 @@ export async function wipe_all_storage(): Promise<void> {
   }
 
   try {
+    await delete_device_wrap_key();
+  } catch (error) {
+    if (import.meta.env.DEV) console.error(error);
+  }
+
+  try {
     await new Promise<void>((resolve) => {
       const request = indexedDB.deleteDatabase("astermail_offline_cache");
 
@@ -582,11 +595,11 @@ export async function wipe_all_storage(): Promise<void> {
   secure_clear_local_storage();
 }
 
-let device_encryption_key: CryptoKey | null = null;
+let legacy_device_encryption_key: CryptoKey | null = null;
 
-async function get_device_encryption_key(): Promise<CryptoKey> {
-  if (device_encryption_key) {
-    return device_encryption_key;
+async function get_legacy_device_encryption_key(): Promise<CryptoKey> {
+  if (legacy_device_encryption_key) {
+    return legacy_device_encryption_key;
   }
 
   const device_id = get_or_create_device_id();
@@ -601,7 +614,7 @@ async function get_device_encryption_key(): Promise<CryptoKey> {
     ["deriveBits", "deriveKey"],
   );
 
-  device_encryption_key = await crypto.subtle.deriveKey(
+  legacy_device_encryption_key = await crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
       salt: salt,
@@ -614,11 +627,41 @@ async function get_device_encryption_key(): Promise<CryptoKey> {
     ["encrypt", "decrypt"],
   );
 
-  return device_encryption_key;
+  return legacy_device_encryption_key;
+}
+
+async function get_device_write_key(): Promise<{
+  key: CryptoKey;
+  version: number;
+}> {
+  const wrap_key = await get_device_wrap_key();
+
+  if (wrap_key) {
+    return { key: wrap_key, version: DEVICE_WRAPPED_VERSION };
+  }
+
+  return {
+    key: await get_legacy_device_encryption_key(),
+    version: DEVICE_LEGACY_VERSION,
+  };
+}
+
+async function get_device_read_key(version: number): Promise<CryptoKey> {
+  if (version >= DEVICE_WRAPPED_VERSION) {
+    const wrap_key = await get_device_wrap_key();
+
+    if (!wrap_key) {
+      throw new SecureStorageError("missing_key");
+    }
+
+    return wrap_key;
+  }
+
+  return get_legacy_device_encryption_key();
 }
 
 export async function device_encrypt(data: string): Promise<string> {
-  const key = await get_device_encryption_key();
+  const { key, version } = await get_device_write_key();
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(data);
   const nonce = generate_random_bytes(12);
@@ -632,7 +675,7 @@ export async function device_encrypt(data: string): Promise<string> {
   const ciphertext = new Uint8Array(ciphertext_buffer);
 
   const payload = {
-    v: CURRENT_VERSION,
+    v: version,
     n: array_to_base64(nonce),
     c: array_to_base64(ciphertext),
   };
@@ -640,14 +683,32 @@ export async function device_encrypt(data: string): Promise<string> {
   return JSON.stringify(payload);
 }
 
-export async function device_decrypt(encrypted_data: string): Promise<string> {
-  const key = await get_device_encryption_key();
+function parse_device_payload(encrypted_data: string): {
+  version: number;
+  nonce: Uint8Array;
+  ciphertext: Uint8Array;
+} {
   const payload = JSON.parse(encrypted_data);
 
-  const nonce = base64_to_array(payload.n);
-  const ciphertext = base64_to_array(payload.c);
+  return {
+    version: typeof payload.v === "number" ? payload.v : DEVICE_LEGACY_VERSION,
+    nonce: base64_to_array(payload.n),
+    ciphertext: base64_to_array(payload.c),
+  };
+}
 
-  const plaintext_buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
+export async function device_decrypt(encrypted_data: string): Promise<string> {
+  const { version, nonce, ciphertext } = parse_device_payload(encrypted_data);
+  const key = await get_device_read_key(version);
+
+  const plaintext_buffer =
+    version >= DEVICE_WRAPPED_VERSION
+      ? await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: nonce },
+          key,
+          ciphertext,
+        )
+      : await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
 
   const decoder = new TextDecoder();
 
@@ -659,6 +720,37 @@ export async function device_store(key: string, value: unknown): Promise<void> {
   const encrypted = await device_encrypt(serialized);
 
   localStorage.setItem(key, encrypted);
+}
+
+async function rewrap_legacy_device_entry(
+  key: string,
+  stored: string,
+  plaintext: string,
+): Promise<void> {
+  try {
+    const wrap_key = await get_device_wrap_key();
+
+    if (!wrap_key) {
+      return;
+    }
+
+    if (localStorage.getItem(key) !== stored) {
+      return;
+    }
+
+    const rewrapped = await device_encrypt(plaintext);
+
+    if (localStorage.getItem(key) !== stored) {
+      return;
+    }
+
+    localStorage.setItem(key, rewrapped);
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/secure_storage:rewrap_legacy_device_entry",
+      caught,
+    );
+  }
 }
 
 export async function device_retrieve<T>(key: string): Promise<T | null> {
@@ -679,12 +771,26 @@ export async function device_retrieve_strict<T>(
   }
 
   const decrypted = await device_decrypt(encrypted);
+  const parsed = JSON.parse(decrypted) as T;
 
-  return JSON.parse(decrypted) as T;
+  if (is_legacy_device_payload(encrypted)) {
+    await rewrap_legacy_device_entry(key, encrypted, decrypted);
+  }
+
+  return parsed;
+}
+
+function is_legacy_device_payload(encrypted: string): boolean {
+  try {
+    return parse_device_payload(encrypted).version < DEVICE_WRAPPED_VERSION;
+  } catch {
+    return false;
+  }
 }
 
 export function clear_device_encryption_cache(): void {
-  device_encryption_key = null;
+  legacy_device_encryption_key = null;
+  clear_device_wrap_key_cache();
 }
 
 export type { EncryptedPayload };

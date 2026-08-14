@@ -73,6 +73,7 @@ export interface EncryptionOptions {
   auto_discover_keys: boolean;
   encrypt_emails: boolean;
   require_encryption: boolean;
+  obscure_subject?: boolean;
 }
 
 export interface EmailParams {

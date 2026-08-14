@@ -108,6 +108,49 @@ export async function fetch_prekey_bundle(
   return response.data;
 }
 
+interface RatchetIdentityHistoryEntry {
+  kem_identity_key: string;
+  first_published_at: string;
+  last_published_at: string;
+}
+
+interface RatchetIdentityHistoryResponse {
+  user_id: string;
+  entries: RatchetIdentityHistoryEntry[];
+  history_complete: boolean;
+}
+
+export interface PublishedIdentityHistory {
+  identity_keys: string[];
+  history_complete: boolean;
+}
+
+export async function fetch_published_identity_history(
+  username: string,
+  email?: string,
+): Promise<PublishedIdentityHistory | null> {
+  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}/history${params}`;
+
+  const response =
+    await api_client.get<RatchetIdentityHistoryResponse>(path);
+
+  if (response.error || !response.data) {
+    return null;
+  }
+
+  const entries = Array.isArray(response.data.entries)
+    ? response.data.entries
+    : [];
+
+  return {
+    identity_keys: entries
+      .map((entry) => entry?.kem_identity_key)
+      .filter((key): key is string => typeof key === "string" && key.length > 0),
+    history_complete: response.data.history_complete === true,
+  };
+}
+
 async function legacy_prekey_signature(
   identity_public: string,
   signed_prekey_public: string,
@@ -169,6 +212,7 @@ export async function upload_prekey_bundle(
         passphrase,
         vault.ratchet_identity_public,
         vault.ratchet_signed_prekey_public,
+        vault.ratchet_pq_identity_public ?? null,
       );
     } catch {
       signature = await legacy_prekey_signature(

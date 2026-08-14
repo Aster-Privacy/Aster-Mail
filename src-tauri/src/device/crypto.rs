@@ -169,39 +169,71 @@ fn wrap_key_file_load() -> Result<Option<[u8; 32]>, String> {
     Ok(Some(key))
 }
 
-fn wrap_key_file_store(key: &[u8; 32]) -> Result<(), String> {
-    let path = wrap_key_file_path()?;
-    atomic_write(&path, key)?;
-    set_file_permissions_restrictive(&path)?;
-    Ok(())
-}
-
 fn wrap_key_file_delete() {
     if let Ok(path) = wrap_key_file_path() {
-        let _ = std::fs::remove_file(path);
+        secure_delete_file(&path);
     }
+}
+
+fn wrap_key_file_adopt() -> Option<[u8; 32]> {
+    let path = wrap_key_file_path().ok()?;
+
+    if !path.exists() {
+        return None;
+    }
+
+    let key = wrap_key_file_load().ok().flatten()?;
+
+    match keyring_wrap_key_store(&key) {
+        Ok(()) => secure_delete_file(&path),
+        Err(e) => tracing::warn!(
+            "device wrap key remains on disk because the system keychain is unavailable: {}",
+            e
+        ),
+    }
+
+    Some(key)
 }
 
 fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
-    if let Ok(Some(key)) = keyring_wrap_key_load() {
-        return Ok(Some(key));
+    match keyring_wrap_key_load() {
+        Ok(Some(key)) => return Ok(Some(key)),
+        Ok(None) => {}
+        Err(e) => tracing::warn!("system keychain read failed: {}", e),
     }
-    wrap_key_file_load()
+    Ok(wrap_key_file_adopt())
 }
 
 fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
-    if let Some(key) = wrap_key_load()? {
-        return Ok(key);
+    match keyring_wrap_key_load() {
+        Ok(Some(key)) => return Ok(key),
+        Ok(None) => {
+            if let Some(key) = wrap_key_file_adopt() {
+                return Ok(key);
+            }
+        }
+        Err(e) => {
+            if let Some(key) = wrap_key_file_adopt() {
+                return Ok(key);
+            }
+            return Err(format!(
+                "the system keychain could not be read, so this device's keys cannot be unlocked: {}. Your existing keys were left untouched. Unlock the system keychain and try again.",
+                e
+            ));
+        }
     }
+
     let mut key = [0u8; 32];
     OsRng.fill_bytes(&mut key);
 
-    if keyring_wrap_key_store(&key).is_ok() {
-        wrap_key_file_delete();
-        return Ok(key);
+    if let Err(e) = keyring_wrap_key_store(&key) {
+        key.zeroize();
+        return Err(format!(
+            "secure key storage is unavailable, so Aster Mail cannot protect this device's keys: {}. Turn on your system keychain (Credential Manager on Windows, Keychain on macOS, or a Secret Service provider such as GNOME Keyring or KeePassXC on Linux), then try again.",
+            e
+        ));
     }
 
-    wrap_key_file_store(&key)?;
     Ok(key)
 }
 
@@ -222,14 +254,55 @@ fn wrap_key_delete() -> Result<(), String> {
     keyring_delete(KEYRING_WRAP_USER)
 }
 
+const MAX_SECURE_OVERWRITE_BYTES: u64 = 1024 * 1024;
+
+fn secure_overwrite_file(path: &std::path::Path) {
+    use std::io::{Seek, SeekFrom, Write as _};
+
+    let Ok(meta) = std::fs::metadata(path) else {
+        return;
+    };
+    let len = meta.len();
+
+    if len == 0 || len > MAX_SECURE_OVERWRITE_BYTES {
+        return;
+    }
+
+    let Ok(mut f) = std::fs::OpenOptions::new().write(true).open(path) else {
+        return;
+    };
+    let mut buf = Zeroizing::new(vec![0u8; len as usize]);
+
+    for pass in 0..2 {
+        if pass == 0 {
+            OsRng.fill_bytes(buf.as_mut_slice());
+        } else {
+            buf.iter_mut().for_each(|b| *b = 0);
+        }
+        if f.seek(SeekFrom::Start(0)).is_err() || f.write_all(&buf).is_err() {
+            return;
+        }
+        let _ = f.flush();
+    }
+
+    let _ = f.sync_all();
+}
+
+fn secure_delete_file(path: &std::path::Path) {
+    secure_overwrite_file(path);
+    let _ = std::fs::remove_file(path);
+}
+
 fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
     use std::io::Write as _;
     let tmp = path.with_extension("tmp");
     {
         let mut f = std::fs::File::create(&tmp).map_err(|e| e.to_string())?;
+        set_file_permissions_restrictive(&tmp)?;
         f.write_all(data).map_err(|e| e.to_string())?;
         f.sync_all().map_err(|e| e.to_string())?;
     }
+    secure_overwrite_file(path);
     std::fs::rename(&tmp, path).map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -258,7 +331,9 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
     if data.len() >= 8 && &data[..8] == MAGIC_ID {
         match wrap_key_load()? {
             None => {
-                let _ = std::fs::remove_file(&path);
+                tracing::warn!(
+                    "device identity is unreadable: the wrap key is absent from the system keychain"
+                );
                 return Ok(None);
             }
             Some(wrap_key) => {
@@ -286,6 +361,35 @@ fn set_file_permissions_restrictive(path: &std::path::Path) -> Result<(), String
         let perms = std::fs::Permissions::from_mode(0o600);
         std::fs::set_permissions(path, perms).map_err(|e| e.to_string())?;
     }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let user = whoami::fallible::username()
+            .unwrap_or_else(|_| std::env::var("USERNAME").unwrap_or_default());
+        if !user.is_empty() {
+            let target = path.to_string_lossy().into_owned();
+            let grant = format!("{}:(F)", user);
+            match std::process::Command::new("icacls")
+                .args([
+                    target.as_str(),
+                    "/inheritance:r",
+                    "/grant:r",
+                    grant.as_str(),
+                ])
+                .creation_flags(CREATE_NO_WINDOW)
+                .output()
+            {
+                Ok(out) if !out.status.success() => tracing::warn!(
+                    "icacls failed to restrict {}: {}",
+                    path.display(),
+                    String::from_utf8_lossy(&out.stderr).trim()
+                ),
+                Err(e) => tracing::warn!("icacls invocation failed for {}: {}", path.display(), e),
+                _ => {}
+            }
+        }
+    }
     let _ = path;
     Ok(())
 }
@@ -296,7 +400,6 @@ fn save_stored(stored: &StoredIdentity) -> Result<(), String> {
     let wrap_key = wrap_key_load_or_create()?;
     let blob = aead_seal(&wrap_key, MAGIC_ID, &json)?;
     atomic_write(&path, &blob)?;
-    set_file_permissions_restrictive(&path)?;
     Ok(())
 }
 
@@ -396,8 +499,19 @@ pub fn device_sign_challenge(nonce_b64: String) -> Result<String, String> {
     Ok(b64url(&sig.to_bytes()))
 }
 
+fn require_primary_webview(window: &tauri::WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("command not available in this window".to_string());
+    }
+    Ok(())
+}
+
 #[tauri::command]
-pub fn device_unseal_vault_envelope(envelope_b64: String) -> Result<String, String> {
+pub fn device_unseal_vault_envelope(
+    window: tauri::WebviewWindow,
+    envelope_b64: String,
+) -> Result<String, String> {
+    require_primary_webview(&window)?;
     let data = b64url_decode(&envelope_b64)?;
     if data.len() < 32 + 1088 + 24 + 16 {
         return Err("envelope too short".to_string());
@@ -449,13 +563,35 @@ pub fn device_unseal_vault_envelope(envelope_b64: String) -> Result<String, Stri
     let wrap_key = wrap_key_load_or_create()?;
     let blob = aead_seal(&wrap_key, MAGIC_PP, &plaintext)?;
     atomic_write(&path, &blob)?;
-    set_file_permissions_restrictive(&path)?;
 
     Ok(encoded)
 }
 
+fn reseal_legacy_passphrase(path: &std::path::Path, raw: &[u8]) {
+    let wrap_key = match wrap_key_load_or_create() {
+        Ok(key) => key,
+        Err(e) => {
+            tracing::warn!("stored passphrase stays unencrypted on disk: {}", e);
+            return;
+        }
+    };
+    let blob = match aead_seal(&wrap_key, MAGIC_PP, raw) {
+        Ok(blob) => blob,
+        Err(e) => {
+            tracing::warn!("stored passphrase could not be sealed: {}", e);
+            return;
+        }
+    };
+    if let Err(e) = atomic_write(path, &blob) {
+        tracing::warn!("stored passphrase could not be rewritten: {}", e);
+    }
+}
+
 #[tauri::command]
-pub fn device_get_stored_passphrase() -> Result<Option<String>, String> {
+pub fn device_get_stored_passphrase(
+    window: tauri::WebviewWindow,
+) -> Result<Option<String>, String> {
+    require_primary_webview(&window)?;
     let path = passphrase_file_path()?;
 
     if !path.exists() {
@@ -467,7 +603,9 @@ pub fn device_get_stored_passphrase() -> Result<Option<String>, String> {
     if data.len() >= 8 && &data[..8] == MAGIC_PP {
         match wrap_key_load()? {
             None => {
-                let _ = std::fs::remove_file(&path);
+                tracing::warn!(
+                    "stored passphrase is unreadable: the wrap key is absent from the system keychain"
+                );
                 return Ok(None);
             }
             Some(wrap_key) => {
@@ -478,18 +616,15 @@ pub fn device_get_stored_passphrase() -> Result<Option<String>, String> {
     }
 
     let s = std::str::from_utf8(&data).map_err(|e| e.to_string())?.to_string();
-    let raw = b64url_decode(&s)?;
-    let wrap_key = wrap_key_load_or_create()?;
-    let blob = aead_seal(&wrap_key, MAGIC_PP, &raw)?;
-    atomic_write(&path, &blob)?;
-    set_file_permissions_restrictive(&path)?;
+    let raw = Zeroizing::new(b64url_decode(&s)?);
+    reseal_legacy_passphrase(&path, &raw);
     Ok(Some(s))
 }
 
 #[tauri::command]
 pub fn device_clear_session() -> Result<(), String> {
     if let Ok(path) = passphrase_file_path() {
-        let _ = std::fs::remove_file(path);
+        secure_delete_file(&path);
     }
     if let Some(mut stored) = load_stored()? {
         stored.device_id = None;
@@ -501,10 +636,10 @@ pub fn device_clear_session() -> Result<(), String> {
 #[tauri::command]
 pub fn device_clear_identity() -> Result<(), String> {
     if let Ok(path) = identity_file_path() {
-        let _ = std::fs::remove_file(path);
+        secure_delete_file(&path);
     }
     if let Ok(path) = passphrase_file_path() {
-        let _ = std::fs::remove_file(path);
+        secure_delete_file(&path);
     }
     let _ = keyring_delete(KEYRING_IDENTITY_USER);
     let _ = wrap_key_delete();
@@ -762,4 +897,165 @@ pub fn crypto_hmac_sign(
         KeyInit::new_from_slice(&key).map_err(|e| e.to_string())?;
     mac.update(&data);
     Ok(mac.finalize().into_bytes().to_vec())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_key(seed: u8) -> [u8; 32] {
+        [seed; 32]
+    }
+
+    fn scratch_path(name: &str) -> std::path::PathBuf {
+        let mut path = std::env::temp_dir();
+        path.push(format!("aster_device_crypto_test_{}_{}", std::process::id(), name));
+        let _ = std::fs::remove_file(&path);
+        path
+    }
+
+    #[test]
+    fn aead_round_trips_under_the_same_key_and_magic() {
+        let key = test_key(7);
+        let sealed = aead_seal(&key, MAGIC_PP, b"correct horse battery staple").unwrap();
+
+        assert_eq!(&sealed[..8], MAGIC_PP);
+        assert_eq!(
+            aead_open(&key, MAGIC_PP, &sealed).unwrap(),
+            b"correct horse battery staple"
+        );
+    }
+
+    #[test]
+    fn aead_seal_is_randomized_per_call() {
+        let key = test_key(7);
+        let first = aead_seal(&key, MAGIC_ID, b"same plaintext").unwrap();
+        let second = aead_seal(&key, MAGIC_ID, b"same plaintext").unwrap();
+
+        assert_ne!(first, second);
+    }
+
+    #[test]
+    fn aead_open_rejects_the_wrong_key() {
+        let sealed = aead_seal(&test_key(1), MAGIC_PP, b"secret").unwrap();
+
+        assert!(aead_open(&test_key(2), MAGIC_PP, &sealed).is_err());
+    }
+
+    #[test]
+    fn aead_open_rejects_a_mismatched_magic() {
+        let key = test_key(3);
+        let sealed = aead_seal(&key, MAGIC_ID, b"secret").unwrap();
+
+        assert!(aead_open(&key, MAGIC_PP, &sealed).is_err());
+    }
+
+    #[test]
+    fn aead_open_rejects_tampered_ciphertext() {
+        let key = test_key(4);
+        let mut sealed = aead_seal(&key, MAGIC_PP, b"secret").unwrap();
+        let last = sealed.len() - 1;
+        sealed[last] ^= 0xff;
+
+        assert!(aead_open(&key, MAGIC_PP, &sealed).is_err());
+    }
+
+    #[test]
+    fn aead_open_rejects_a_truncated_blob() {
+        let key = test_key(5);
+        let sealed = aead_seal(&key, MAGIC_PP, b"secret").unwrap();
+
+        assert!(aead_open(&key, MAGIC_PP, &sealed[..30]).is_err());
+    }
+
+    #[test]
+    fn legacy_plaintext_passphrase_is_distinguishable_from_a_sealed_blob() {
+        let sealed = aead_seal(&test_key(6), MAGIC_PP, b"secret").unwrap();
+        let legacy = b64url(b"secret").into_bytes();
+
+        assert!(sealed.len() >= 8 && &sealed[..8] == MAGIC_PP);
+        assert!(legacy.len() < 8 || &legacy[..8] != MAGIC_PP);
+    }
+
+    #[test]
+    fn b64url_round_trips_without_padding() {
+        let raw = [0u8, 1, 2, 250, 251, 252, 253];
+        let encoded = b64url(&raw);
+
+        assert!(!encoded.contains('='));
+        assert!(!encoded.contains('+'));
+        assert!(!encoded.contains('/'));
+        assert_eq!(b64url_decode(&encoded).unwrap(), raw);
+    }
+
+    #[test]
+    fn atomic_write_replaces_content_without_leaving_the_old_bytes() {
+        let path = scratch_path("atomic");
+        let old = vec![0xABu8; 512];
+        let new = vec![0xCDu8; 512];
+
+        atomic_write(&path, &old).unwrap();
+        assert_eq!(std::fs::read(&path).unwrap(), old);
+
+        atomic_write(&path, &new).unwrap();
+        let after = std::fs::read(&path).unwrap();
+
+        assert_eq!(after, new);
+        assert!(!after.windows(8).any(|w| w == [0xAB; 8]));
+        assert!(!path.with_extension("tmp").exists());
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn secure_delete_file_removes_the_file() {
+        let path = scratch_path("delete");
+        std::fs::write(&path, vec![0x42u8; 256]).unwrap();
+
+        secure_delete_file(&path);
+
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn secure_overwrite_file_clears_the_original_bytes_in_place() {
+        let path = scratch_path("overwrite");
+        std::fs::write(&path, vec![0x42u8; 256]).unwrap();
+
+        secure_overwrite_file(&path);
+        let after = std::fs::read(&path).unwrap();
+
+        assert_eq!(after.len(), 256);
+        assert!(after.iter().all(|b| *b == 0));
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn secure_overwrite_file_is_a_no_op_on_a_missing_file() {
+        secure_overwrite_file(&scratch_path("absent"));
+    }
+
+    #[test]
+    fn set_file_permissions_restrictive_succeeds_on_a_real_file() {
+        let path = scratch_path("perms");
+        std::fs::write(&path, b"x").unwrap();
+
+        set_file_permissions_restrictive(&path).unwrap();
+
+        assert_eq!(std::fs::read(&path).unwrap(), b"x");
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn the_three_device_secrets_use_distinct_file_names() {
+        let identity = identity_file_path().unwrap();
+        let passphrase = passphrase_file_path().unwrap();
+        let wrap = wrap_key_file_path().unwrap();
+
+        assert_ne!(identity, passphrase);
+        assert_ne!(identity, wrap);
+        assert_ne!(passphrase, wrap);
+    }
 }

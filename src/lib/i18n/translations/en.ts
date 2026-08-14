@@ -4477,6 +4477,9 @@ export const en: Translations = {
     require_encryption_title: "Require encryption",
     require_encryption_description:
       "Prevent sending unencrypted to recipients with known keys",
+    obscure_subject_title: "Hide subject on encrypted mail",
+    obscure_subject_description:
+      "Replace the visible subject with three dots when a message is encrypted, and carry the real subject inside the encrypted part",
     show_encryption_indicators_title: "Show encryption indicators",
     show_encryption_indicators_description:
       "Display lock icons on encrypted messages",
@@ -4528,6 +4531,9 @@ export const en: Translations = {
     info_require_encryption_title: "Require Encryption",
     info_require_encryption_description:
       "Only send emails that can be encrypted end-to-end. If a recipient doesn't have a PGP key, the message won't send. Only turn this on if you never email people outside of PGP.",
+    info_obscure_subject_title: "Hide Subject on Encrypted Mail",
+    info_obscure_subject_description:
+      "Email subjects normally travel unencrypted, so anyone handling the message can read them. When this is on, an encrypted message leaves with three dots in place of the subject, and the real subject is protected inside the encrypted part. Recipients whose mail app supports protected headers see the real subject. Everyone else sees three dots in their inbox list and finds the subject at the top of the message, so turn this on only if you accept that trade-off.",
     info_storage_format_title: "About Storage Format",
     info_storage_format_description:
       "Aster Server keeps your encrypted emails on Aster's servers, fast and reliable. IPFS spreads your data across a peer-to-peer network so it's not tied to one place. Either way, only your keys can decrypt it.",

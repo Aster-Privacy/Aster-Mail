@@ -33,6 +33,12 @@ import { load_ratchet_state, save_ratchet_state } from "./ratchet_state_store";
 import { load_ratchet_from_server, sync_ratchet_to_server } from "./ratchet_sync";
 import { type RatchetEnvelope, type RatchetRecipientData } from "./ratchet_types";
 import { adopt_refreshed_vault, fetch_refreshed_vault } from "./vault_refresh";
+import { is_authenticated_ratchet_enforced } from "./crypto_enforcement_policy";
+import {
+  authenticate_sender_identity,
+  note_message_sender_identity,
+  SenderIdentityUnverifiedError,
+} from "./sender_identity_authentication";
 import { perform_x3dh_receiver } from "./x3dh";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -101,6 +107,11 @@ async function attempt_ratchet_decrypt(
     let plaintext: string | null = null;
     let decrypt_error: unknown = null;
 
+    await authenticate_sender_identity(
+      sender_email,
+      envelope.sender_identity_key,
+    ).catch(() => "unverified" as const);
+
     if (data) {
       try {
         plaintext = await decrypt_ratchet_for_recipient(
@@ -120,6 +131,8 @@ async function attempt_ratchet_decrypt(
         sender_email.toLowerCase(),
         envelope.sender_identity_key,
       );
+
+      note_message_sender_identity(message_id ?? dedupe_key ?? "", sender_email);
 
       if (dedupe_key) {
         await set_cached_ratchet_plaintext(dedupe_key, plaintext);
@@ -379,6 +392,7 @@ async function init_receiver_from_bootstrap(
       keys.ratchet_pq_identity_key,
       keys.ratchet_pq_identity_seed,
     ),
+    data.x3dh_v,
   );
 
   const own_keypair = await jwk_to_ratchet_keypair(
@@ -435,6 +449,15 @@ async function decrypt_ratchet_for_recipient(
   }
 
   if (plaintext === null) {
+    const identity_status = await authenticate_sender_identity(
+      sender_email,
+      sender_identity_key,
+    );
+
+    if (is_authenticated_ratchet_enforced() && identity_status === "mismatch") {
+      throw new SenderIdentityUnverifiedError(sender_email, identity_status);
+    }
+
     let last_error: unknown = null;
 
     for (const keys of key_sets) {

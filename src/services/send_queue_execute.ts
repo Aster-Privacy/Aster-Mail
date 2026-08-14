@@ -33,7 +33,8 @@ import { check_send_readiness_internal, encrypt_for_recipients } from "./send_qu
 import { create_sent_envelope } from "./send_queue_envelope";
 import { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
 import { fetch_internal_public_keys } from "./send_queue_recipients";
-import { build_signed_mime_payload, should_attach_signed_mime } from "./send_queue_signed_mime";
+import { OBSCURED_SUBJECT_PLACEHOLDER } from "./pgp_protected_mime";
+import { build_signed_mime_payload, should_attach_signed_mime, should_obscure_outer_subject } from "./send_queue_signed_mime";
 import { SendError, create_error, format_time_remaining, type EmailParams, type QueuedEmailInternal } from "./send_queue_types";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -203,6 +204,8 @@ export async function execute_external_send(
 
   const encryption_opts = email.encryption_options;
 
+  let every_recipient_has_a_key = false;
+
   if (encryption_opts) {
     try {
       let recipient_keys = email.recipient_keys;
@@ -217,14 +220,16 @@ export async function execute_external_send(
       }
 
       if (recipient_keys && recipient_keys.length > 0) {
-        if (encryption_opts.require_encryption) {
-          const recipients_with_keys = new Set(
-            recipient_keys.map((r) => r.email.toLowerCase()),
-          );
-          const recipients_without_keys = all_recipients.filter(
-            (r) => !recipients_with_keys.has(r.toLowerCase()),
-          );
+        const recipients_with_keys = new Set(
+          recipient_keys.map((r) => r.email.toLowerCase()),
+        );
+        const recipients_without_keys = all_recipients.filter(
+          (r) => !recipients_with_keys.has(r.toLowerCase()),
+        );
 
+        every_recipient_has_a_key = recipients_without_keys.length === 0;
+
+        if (encryption_opts.require_encryption) {
           if (recipients_without_keys.length > 0) {
             throw create_error(
               "encryption_failed",
@@ -247,6 +252,7 @@ export async function execute_external_send(
         throw enc_err;
       }
       if (!encryption_opts.require_encryption) {
+        every_recipient_has_a_key = false;
         body_to_send = inline_images.length > 0 ? smtp_body : email.body;
       } else {
         throw enc_err;
@@ -289,9 +295,32 @@ export async function execute_external_send(
     };
   }
 
+  const signed_mime_attached = should_attach_signed_mime({
+    recipients: all_recipients,
+    encrypt_emails: encryption_opts?.encrypt_emails,
+    require_encryption: encryption_opts?.require_encryption,
+    attachments: smtp_attachments,
+    secure_external: is_secure_external,
+  });
+
+  const encryption_active =
+    every_recipient_has_a_key &&
+    (encryption_opts?.encrypt_emails === true ||
+      encryption_opts?.require_encryption === true ||
+      email.force_pgp === true);
+
+  const obscure_outer_subject = should_obscure_outer_subject({
+    obscure_subject_preference: encryption_opts?.obscure_subject,
+    encryption_active,
+    signed_mime_attached,
+    secure_external: is_secure_external,
+  });
+
   const ephemeral_subject = is_secure_external
     ? "[secure message]"
-    : email.subject;
+    : obscure_outer_subject
+      ? OBSCURED_SUBJECT_PLACEHOLDER
+      : email.subject;
   const ephemeral_body = is_secure_external ? "[secure message]" : body_to_send;
 
   const encrypted = await encrypt_with_ephemeral_key(
@@ -359,15 +388,7 @@ export async function execute_external_send(
     force_pgp: is_secure_external ? undefined : email.force_pgp,
   };
 
-  if (
-    should_attach_signed_mime({
-      recipients: all_recipients,
-      encrypt_emails: encryption_opts?.encrypt_emails,
-      require_encryption: encryption_opts?.require_encryption,
-      attachments: smtp_attachments,
-      secure_external: is_secure_external,
-    })
-  ) {
+  if (signed_mime_attached) {
     const signed = await build_signed_mime_payload({
       subject: email.subject || "",
       body: body_to_send,
@@ -376,6 +397,7 @@ export async function execute_external_send(
       cc: email.cc ?? [],
       bcc: email.bcc ?? [],
       attachments: smtp_attachments,
+      obscure_subject: obscure_outer_subject,
     });
 
     if (signed) {

@@ -49,6 +49,7 @@ export interface BootstrapData {
   sender_identity_key?: string;
   recipient_identity_key?: string;
   recipient_pq_identity_key?: string;
+  x3dh_version?: number;
 }
 
 export interface RatchetState {

@@ -128,6 +128,7 @@ export async function sign_ratchet_prekey_bundle(
   passphrase: string,
   kem_identity_key: string,
   signed_prekey: string,
+  pq_identity_key?: string | null,
 ): Promise<string> {
   const identity_key = await openpgp.decryptKey({
     ["privateKey" as const]: await openpgp.readPrivateKey({
@@ -136,7 +137,13 @@ export async function sign_ratchet_prekey_bundle(
     passphrase,
   });
 
-  const text = build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
+  const text = pq_identity_key
+    ? build_ratchet_prekey_canonical_v2(
+        kem_identity_key,
+        signed_prekey,
+        pq_identity_key,
+      )
+    : build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
   const message = await openpgp.createCleartextMessage({ text });
   const signed = await openpgp.sign({
     message,
@@ -155,14 +162,119 @@ export type RatchetPrekeyVerdict =
   | "legacy"
   | "unknown";
 
-/*
- * Verify a fetched ratchet prekey bundle's signature against the bundle owner's
- * PGP identity public key. Returns "tampered" ONLY when the field is a genuine
- * PGP signature that fails to verify for the supplied keys - the single case in
- * which the caller refuses the ratchet bootstrap. Every other outcome (a legacy
- * hash, an unreadable field, a missing owner key, or any error) returns a
- * non-rejecting verdict so legitimate mail is never blocked.
- */
+export type RatchetPrekeySignatureFormat = "v2" | "v1" | "hash" | "unreadable";
+
+export interface RatchetPrekeyVerification {
+  verdict: RatchetPrekeyVerdict;
+  format: RatchetPrekeySignatureFormat;
+  strict: boolean;
+}
+
+function classify_signed_text(
+  signed_text: string,
+): Exclude<RatchetPrekeySignatureFormat, "hash"> {
+  if (signed_text.startsWith(RATCHET_PREKEY_SIG_PREFIX_V2)) return "v2";
+
+  if (signed_text.startsWith(RATCHET_PREKEY_SIG_PREFIX)) return "v1";
+
+  return "unreadable";
+}
+
+export async function read_ratchet_prekey_signature_format(
+  signature_field: string,
+): Promise<RatchetPrekeySignatureFormat> {
+  let armored: string;
+
+  try {
+    armored = new TextDecoder().decode(base64_to_array(signature_field));
+  } catch {
+    return "unreadable";
+  }
+
+  if (!armored.startsWith(PGP_CLEARTEXT_HEADER)) {
+    return "hash";
+  }
+
+  try {
+    const cleartext = await openpgp.readCleartextMessage({
+      cleartextMessage: armored,
+    });
+
+    return classify_signed_text(cleartext.getText());
+  } catch {
+    return "unreadable";
+  }
+}
+
+export async function verify_ratchet_prekey_bundle_detailed(
+  signature_field: string,
+  kem_identity_key: string,
+  signed_prekey: string,
+  owner_pgp_public_key: string | null,
+  pq_identity_key?: string | null,
+): Promise<RatchetPrekeyVerification> {
+  let armored: string;
+
+  try {
+    armored = new TextDecoder().decode(base64_to_array(signature_field));
+  } catch {
+    return { verdict: "unknown", format: "unreadable", strict: false };
+  }
+
+  if (!armored.startsWith(PGP_CLEARTEXT_HEADER)) {
+    return { verdict: "legacy", format: "hash", strict: false };
+  }
+
+  let signed_text: string;
+
+  try {
+    const cleartext = await openpgp.readCleartextMessage({
+      cleartextMessage: armored,
+    });
+
+    signed_text = cleartext.getText();
+  } catch {
+    return { verdict: "tampered", format: "unreadable", strict: false };
+  }
+
+  const format = classify_signed_text(signed_text);
+
+  if (format === "unreadable") {
+    return { verdict: "tampered", format, strict: false };
+  }
+
+  if (!owner_pgp_public_key) {
+    return { verdict: "unknown", format, strict: false };
+  }
+
+  const expected_text =
+    format === "v2"
+      ? build_ratchet_prekey_canonical_v2(
+          kem_identity_key,
+          signed_prekey,
+          pq_identity_key ?? "",
+        )
+      : build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
+
+  let signature_valid = false;
+
+  try {
+    signature_valid = await verify_prekey_signature(
+      expected_text,
+      armored,
+      owner_pgp_public_key,
+    );
+  } catch {
+    return { verdict: "tampered", format, strict: false };
+  }
+
+  if (!signature_valid) {
+    return { verdict: "tampered", format, strict: false };
+  }
+
+  return { verdict: "verified", format, strict: format === "v2" };
+}
+
 export async function verify_ratchet_prekey_bundle(
   signature_field: string,
   kem_identity_key: string,
@@ -170,43 +282,13 @@ export async function verify_ratchet_prekey_bundle(
   owner_pgp_public_key: string | null,
   pq_identity_key?: string | null,
 ): Promise<RatchetPrekeyVerdict> {
-  let armored: string;
+  const verification = await verify_ratchet_prekey_bundle_detailed(
+    signature_field,
+    kem_identity_key,
+    signed_prekey,
+    owner_pgp_public_key,
+    pq_identity_key,
+  );
 
-  try {
-    armored = new TextDecoder().decode(base64_to_array(signature_field));
-  } catch {
-    return "unknown";
-  }
-
-  if (!armored.startsWith(PGP_CLEARTEXT_HEADER)) {
-    return "legacy";
-  }
-
-  if (!owner_pgp_public_key) {
-    return "unknown";
-  }
-
-  const v1_text = build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
-
-  try {
-    if (await verify_prekey_signature(v1_text, armored, owner_pgp_public_key)) {
-      return "verified";
-    }
-
-    if (pq_identity_key) {
-      const v2_text = build_ratchet_prekey_canonical_v2(
-        kem_identity_key,
-        signed_prekey,
-        pq_identity_key,
-      );
-
-      if (await verify_prekey_signature(v2_text, armored, owner_pgp_public_key)) {
-        return "verified";
-      }
-    }
-
-    return "tampered";
-  } catch {
-    return "unknown";
-  }
+  return verification.verdict;
 }

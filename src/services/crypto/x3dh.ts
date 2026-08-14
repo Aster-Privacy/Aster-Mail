@@ -28,6 +28,7 @@ import {
   compute_agreement_bits,
 } from "./key_manager";
 import { load_pq_secret } from "./pq_prekey_store";
+import { is_pqxdh_transcript_binding_enabled } from "./crypto_enforcement_policy";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -39,7 +40,15 @@ const X3DH_INFO_PQ = new TextEncoder().encode("Aster Mail_PQXDH_v1");
 const X3DH_INFO_PQ_IDENTITY = new TextEncoder().encode(
   "Aster Mail_PQXDH_identity_v1",
 );
+const X3DH_INFO_CLASSICAL_V2 = new TextEncoder().encode("Aster Mail_X3DH_v2");
+const X3DH_INFO_PQ_V2 = new TextEncoder().encode("Aster Mail_PQXDH_v2");
+const X3DH_INFO_PQ_IDENTITY_V2 = new TextEncoder().encode(
+  "Aster Mail_PQXDH_identity_v2",
+);
 const X3DH_SALT = new Uint8Array(32);
+
+export const X3DH_VERSION_LEGACY = 1;
+export const X3DH_VERSION_TRANSCRIPT_BOUND = 2;
 
 export const PQ_IDENTITY_KEY_ID = -1;
 export const ML_KEM_768_EK_LEN = 1184;
@@ -57,6 +66,7 @@ interface X3dhSenderResult {
   pq_ciphertext?: Uint8Array;
   pq_key_id?: number;
   pq_mode: PqBootstrapMode;
+  x3dh_version: number;
 }
 
 interface PrekeyBundle {
@@ -139,10 +149,60 @@ async function kdf_x3dh(
   return new Uint8Array(derived);
 }
 
+function base64url_to_bytes(value: string): Uint8Array {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(
+    normalized.length + ((4 - (normalized.length % 4)) % 4),
+    "=",
+  );
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+function jwk_to_raw_public(jwk: JsonWebKey): Uint8Array | null {
+  if (!jwk.x || !jwk.y) return null;
+
+  const x = base64url_to_bytes(jwk.x);
+  const y = base64url_to_bytes(jwk.y);
+
+  if (x.length !== 32 || y.length !== 32) return null;
+
+  const raw = new Uint8Array(65);
+
+  raw[0] = 0x04;
+  raw.set(x, 1);
+  raw.set(y, 33);
+
+  return raw;
+}
+
+function transcript_inputs(
+  initiator_identity: Uint8Array | null,
+  responder_identity: Uint8Array | null,
+  kem_ciphertext: Uint8Array | null,
+): Uint8Array[] {
+  const inputs: Uint8Array[] = [];
+
+  if (initiator_identity) inputs.push(initiator_identity);
+
+  if (responder_identity) inputs.push(responder_identity);
+
+  if (kem_ciphertext) inputs.push(kem_ciphertext);
+
+  return inputs;
+}
+
 function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
   public_key: Uint8Array;
   key_id: number;
   info: Uint8Array;
+  info_v2: Uint8Array;
   mode: Exclude<PqBootstrapMode, "none">;
 } | null {
   if (recipient_bundle.pq_prekey) {
@@ -153,6 +213,7 @@ function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
         public_key: onetime,
         key_id: recipient_bundle.pq_prekey.key_id,
         info: X3DH_INFO_PQ,
+        info_v2: X3DH_INFO_PQ_V2,
         mode: "onetime",
       };
     }
@@ -166,6 +227,7 @@ function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
         public_key: identity,
         key_id: PQ_IDENTITY_KEY_ID,
         info: X3DH_INFO_PQ_IDENTITY,
+        info_v2: X3DH_INFO_PQ_IDENTITY_V2,
         mode: "identity",
       };
     }
@@ -222,12 +284,32 @@ export async function perform_x3dh_sender(
 
   const pq_target = select_pq_encapsulation_target(recipient_bundle);
 
+  const sender_identity_raw = jwk_to_raw_public(sender_identity_jwk);
+
+  const transcript_bound =
+    is_pqxdh_transcript_binding_enabled() && sender_identity_raw !== null;
+
   if (pq_target) {
     const encap = ml_kem768.encapsulate(pq_target.public_key);
     const pq_ss = encap.sharedSecret;
 
     try {
-      shared_secret = await kdf_x3dh([dh1, dh2, dh3, pq_ss], pq_target.info);
+      shared_secret = transcript_bound
+        ? await kdf_x3dh(
+            [
+              dh1,
+              dh2,
+              dh3,
+              pq_ss,
+              ...transcript_inputs(
+                sender_identity_raw,
+                recipient_identity_raw,
+                encap.cipherText,
+              ),
+            ],
+            pq_target.info_v2,
+          )
+        : await kdf_x3dh([dh1, dh2, dh3, pq_ss], pq_target.info);
     } finally {
       pq_ss.fill(0);
     }
@@ -235,7 +317,21 @@ export async function perform_x3dh_sender(
     pq_ciphertext = encap.cipherText;
     pq_key_id = pq_target.key_id;
   } else {
-    shared_secret = await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
+    shared_secret = transcript_bound
+      ? await kdf_x3dh(
+          [
+            dh1,
+            dh2,
+            dh3,
+            ...transcript_inputs(
+              sender_identity_raw,
+              recipient_identity_raw,
+              null,
+            ),
+          ],
+          X3DH_INFO_CLASSICAL_V2,
+        )
+      : await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
   }
 
   dh1.fill(0);
@@ -246,6 +342,9 @@ export async function perform_x3dh_sender(
     shared_secret,
     ephemeral_public_key: ephemeral.public_key_raw,
     pq_mode: pq_target ? pq_target.mode : "none",
+    x3dh_version: transcript_bound
+      ? X3DH_VERSION_TRANSCRIPT_BOUND
+      : X3DH_VERSION_LEGACY,
   };
 
   if (pq_ciphertext !== undefined && pq_key_id !== undefined) {
@@ -263,7 +362,14 @@ export async function perform_x3dh_receiver(
   sender_ephemeral_raw: Uint8Array,
   pq_input?: PqReceiverInput | null,
   pq_identity_secret_base64?: string | null,
+  x3dh_version?: number,
 ): Promise<Uint8Array> {
+  const receiver_identity_raw = jwk_to_raw_public(receiver_identity_jwk);
+
+  const transcript_bound =
+    x3dh_version === X3DH_VERSION_TRANSCRIPT_BOUND &&
+    receiver_identity_raw !== null;
+
   const receiver_identity_private = await import_ke_private_key(
     receiver_identity_jwk,
   );
@@ -326,22 +432,44 @@ export async function perform_x3dh_receiver(
     }
 
     try {
-      shared_secret = await kdf_x3dh(
-        [dh1, dh2, dh3, pq_ss],
-        from_identity ? X3DH_INFO_PQ_IDENTITY : X3DH_INFO_PQ,
-      );
+      shared_secret = transcript_bound
+        ? await kdf_x3dh(
+            [
+              dh1,
+              dh2,
+              dh3,
+              pq_ss,
+              ...transcript_inputs(
+                sender_identity_raw,
+                receiver_identity_raw,
+                pq_input.pq_ciphertext,
+              ),
+            ],
+            from_identity ? X3DH_INFO_PQ_IDENTITY_V2 : X3DH_INFO_PQ_V2,
+          )
+        : await kdf_x3dh(
+            [dh1, dh2, dh3, pq_ss],
+            from_identity ? X3DH_INFO_PQ_IDENTITY : X3DH_INFO_PQ,
+          );
     } finally {
       pq_ss.fill(0);
     }
-
-    // The one-time prekey is already marked used server-side on hand-out, so it
-    // is never re-issued. We intentionally retain the recipient's own secret
-    // (local + encrypted server backup) so the message stays decryptable on
-    // re-render and on other signed-in devices instead of failing once the
-    // bootstrap secret would otherwise be destroyed. Stale secrets are pruned
-    // by retention, not eagerly here.
   } else {
-    shared_secret = await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
+    shared_secret = transcript_bound
+      ? await kdf_x3dh(
+          [
+            dh1,
+            dh2,
+            dh3,
+            ...transcript_inputs(
+              sender_identity_raw,
+              receiver_identity_raw,
+              null,
+            ),
+          ],
+          X3DH_INFO_CLASSICAL_V2,
+        )
+      : await kdf_x3dh([dh1, dh2, dh3], X3DH_INFO_CLASSICAL);
   }
 
   dh1.fill(0);

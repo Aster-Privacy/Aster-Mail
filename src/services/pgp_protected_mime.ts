@@ -35,7 +35,10 @@ export interface ProtectedMimeInput {
   cc: string[];
   attachments: ProtectedMimeAttachment[];
   date?: Date;
+  obscure_subject?: boolean;
 }
+
+export const OBSCURED_SUBJECT_PLACEHOLDER = "...";
 
 const ENCODED_WORD_PAYLOAD_BYTES = 45;
 
@@ -300,8 +303,20 @@ export function build_protected_mime_entity(input: ProtectedMimeInput): string {
     `Content-Type: multipart/mixed; boundary="${boundary}"; protected-headers="v1"\r\n\r\n` +
     `--${boundary}\r\n` +
     `${protected_headers}\r\n` +
-    `--${boundary}\r\n` +
-    body_part;
+    `--${boundary}\r\n`;
+
+  if (input.obscure_subject === true) {
+    const legacy_display_subject = sanitize_header_value(input.subject);
+
+    mime +=
+      'Content-Type: text/plain; charset=utf-8; protected-headers="v1"\r\n' +
+      "Content-Transfer-Encoding: base64\r\n" +
+      "Content-Disposition: inline\r\n\r\n" +
+      base64_body(`Subject: ${legacy_display_subject}\r\n`) +
+      `--${boundary}\r\n`;
+  }
+
+  mime += body_part;
 
   for (const att of input.attachments) {
     const filename = sanitize_filename(att.filename);

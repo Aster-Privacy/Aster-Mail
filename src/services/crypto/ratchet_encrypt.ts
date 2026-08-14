@@ -23,7 +23,9 @@ import { get_recipient_public_key } from "../api/keys";
 import { array_to_base64, base64_to_array } from "./base64";
 import { DoubleRatchet, type BootstrapData } from "./double_ratchet";
 import { type EncryptedVault } from "./key_manager";
-import { verify_ratchet_prekey_bundle } from "./key_manager_pgp";
+import { verify_ratchet_prekey_bundle_detailed } from "./key_manager_pgp";
+import { is_strict_recipient_bundle_enforced } from "./crypto_enforcement_policy";
+import { record_bundle_verification } from "./ratchet_verification_status";
 import { derive_conversation_id, get_sync_encryption_key, run_serialized_for_conversation } from "./ratchet_conversation";
 import { check_and_pin_identity } from "./ratchet_identity_pin";
 import { detect_identity_pin_drift, fetch_prekey_bundle, fetch_ratchet_identity } from "./ratchet_prekey_bundle";
@@ -32,7 +34,7 @@ import { merge_ratchet_states } from "./ratchet_state_merge";
 import { load_ratchet_state, save_ratchet_state } from "./ratchet_state_store";
 import { load_ratchet_from_server, sync_ratchet_to_server } from "./ratchet_sync";
 import { RecoveryLaneUnavailableError, type RatchetRecipientData } from "./ratchet_types";
-import { bundle_supports_pq, perform_x3dh_sender, type PrekeyBundle } from "./x3dh";
+import { bundle_supports_pq, perform_x3dh_sender, X3DH_VERSION_LEGACY, type PrekeyBundle } from "./x3dh";
 
 async function adopt_server_state_before_send(
   conversation_id: string,
@@ -120,6 +122,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
     let ephemeral_key_base64 = "";
     let pq_ciphertext_base64: string | undefined;
     let pq_key_id_value: number | undefined;
+    let x3dh_version_value: number | undefined;
 
     let bundle: PrekeyBundle | null = null;
 
@@ -180,7 +183,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         recipient_username,
         recipient_email,
       );
-      const bundle_verdict = await verify_ratchet_prekey_bundle(
+      const bundle_verification = await verify_ratchet_prekey_bundle_detailed(
         bundle.signed_prekey_signature,
         bundle.kem_identity_key,
         bundle.signed_prekey,
@@ -188,10 +191,18 @@ async function encrypt_for_ratchet_recipient_unlocked(
         bundle.pq_kem_public_key ?? null,
       );
 
-      if (bundle_verdict === "tampered") {
+      const bundle_peer = (recipient_email ?? recipient_username).toLowerCase();
+
+      record_bundle_verification(bundle_peer, bundle_verification);
+
+      const bundle_rejected =
+        bundle_verification.verdict === "tampered" ||
+        (is_strict_recipient_bundle_enforced() && !bundle_verification.strict);
+
+      if (bundle_rejected) {
         if (import.meta.env.DEV) {
           console.warn(
-            "ratchet prekey bundle signature failed verification; routing via PGP",
+            "ratchet prekey bundle failed verification; routing via PGP",
           );
         }
 
@@ -199,9 +210,9 @@ async function encrypt_for_ratchet_recipient_unlocked(
       }
 
       const identity_pin_status = await check_and_pin_identity(
-        (recipient_email ?? recipient_username).toLowerCase(),
+        bundle_peer,
         bundle.kem_identity_key,
-        bundle_verdict === "verified",
+        bundle_verification.verdict === "verified",
       );
 
       if (identity_pin_status === "drift") {
@@ -243,6 +254,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
           pq_key_id_value = x3dh_result.pq_key_id;
         }
 
+        x3dh_version_value =
+          x3dh_result.x3dh_version > X3DH_VERSION_LEGACY
+            ? x3dh_result.x3dh_version
+            : undefined;
+
         ratchet.set_bootstrap({
           ephemeral_key: ephemeral_key_base64,
           pq_ciphertext: pq_ciphertext_base64,
@@ -250,6 +266,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
           sender_identity_key: vault.ratchet_identity_public,
           recipient_identity_key: bundle.kem_identity_key,
           recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
+          x3dh_version: x3dh_version_value,
         });
       } finally {
         x3dh_result.shared_secret.fill(0);
@@ -261,6 +278,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         ephemeral_key_base64 = bootstrap.ephemeral_key;
         pq_ciphertext_base64 = bootstrap.pq_ciphertext;
         pq_key_id_value = bootstrap.pq_key_id;
+        x3dh_version_value = bootstrap.x3dh_version;
       }
     }
 
@@ -320,6 +338,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
     if (pq_ciphertext_base64 && pq_key_id_value !== undefined) {
       recipient_data.pq_ciphertext = pq_ciphertext_base64;
       recipient_data.pq_key_id = pq_key_id_value;
+    }
+
+    if (x3dh_version_value !== undefined) {
+      recipient_data.x3dh_v = x3dh_version_value;
     }
 
     return recipient_data;

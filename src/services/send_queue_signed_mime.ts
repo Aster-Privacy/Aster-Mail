@@ -46,6 +46,22 @@ export interface SignedMimeParams {
   cc: string[];
   bcc?: string[];
   attachments?: Attachment[];
+  obscure_subject?: boolean;
+}
+
+export function should_obscure_outer_subject(params: {
+  obscure_subject_preference?: boolean;
+  encryption_active: boolean;
+  signed_mime_attached: boolean;
+  secure_external?: boolean;
+}): boolean {
+  if (params.obscure_subject_preference !== true) return false;
+
+  if (params.secure_external === true) return false;
+
+  if (!params.encryption_active) return false;
+
+  return params.signed_mime_attached;
 }
 
 const text_encoder = new TextEncoder();
@@ -116,6 +132,7 @@ export async function build_signed_mime_payload(
     to: params.to,
     cc: params.cc,
     attachments,
+    obscure_subject: params.obscure_subject === true,
   });
 
   const mime_bytes = text_encoder.encode(mime);

@@ -70,6 +70,7 @@ interface EncryptionSettingsFormProps {
     auto_discover_keys: boolean;
     encrypt_emails: boolean;
     require_encryption: boolean;
+    obscure_subject_when_encrypted: boolean;
     show_encryption_indicators: boolean;
     publish_to_wkd: boolean;
   };
@@ -166,6 +167,19 @@ export function EncryptionSettingsForm({
         on_toggle={handle_encrypt_emails_toggle}
         info={{ title: t("settings.info_encrypt_by_default_title"), description: t("settings.info_encrypt_by_default_description") }}
         title={t("settings.encrypt_by_default_title")}
+      />
+      <ToggleSetting
+        description={t("settings.obscure_subject_description")}
+        enabled={preferences.obscure_subject_when_encrypted}
+        info={{ title: t("settings.info_obscure_subject_title"), description: t("settings.info_obscure_subject_description") }}
+        on_toggle={() =>
+          update_preference(
+            "obscure_subject_when_encrypted",
+            !preferences.obscure_subject_when_encrypted,
+            true,
+          )
+        }
+        title={t("settings.obscure_subject_title")}
       />
       <ToggleSetting
         description={t("settings.require_encryption_description")}

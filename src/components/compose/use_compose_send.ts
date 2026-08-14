@@ -438,6 +438,7 @@ export function use_compose_send({
           pgp_enabled,
           pgp_override,
           preferences.require_encryption === true,
+          preferences.obscure_subject_when_encrypted === true,
         );
         await confirm_draft_deleted();
 
@@ -488,6 +489,8 @@ export function use_compose_send({
     selected_sender,
     attachments,
     preferences.auto_save_recent_recipients,
+    preferences.require_encryption,
+    preferences.obscure_subject_when_encrypted,
     pgp_enabled,
     pgp_override,
     t,

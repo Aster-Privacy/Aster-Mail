@@ -124,6 +124,7 @@ export interface EncryptedVault {
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
   vault_format?: number;
+  kdf_version?: number;
   mk_created_at?: string;
 }
 

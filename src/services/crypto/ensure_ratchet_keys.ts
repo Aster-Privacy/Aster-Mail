@@ -307,7 +307,25 @@ function derive_public_b64_from_jwk(jwk_string: string): string | null {
 interface PublishedBundleView {
   kem_identity_key?: string;
   signed_prekey?: string;
+  signed_prekey_signature?: string;
   pq_kem_public_key?: string | null;
+}
+
+async function published_signature_is_current(
+  vault: EncryptedVault,
+  signature_field: string | undefined,
+): Promise<boolean> {
+  if (!vault.ratchet_pq_identity_public) return true;
+
+  if (!vault.identity_key || !get_passphrase_from_memory()) return true;
+
+  if (!signature_field) return false;
+
+  const { read_ratchet_prekey_signature_format } = await import(
+    "./key_manager_pgp"
+  );
+
+  return (await read_ratchet_prekey_signature_format(signature_field)) === "v2";
 }
 
 async function published_bundle_matches_vault(
@@ -328,11 +346,17 @@ async function published_bundle_matches_vault(
 
     if (response.error || !response.data) return null;
 
-    return (
+    const keys_match =
       response.data.kem_identity_key === vault.ratchet_identity_public &&
       response.data.signed_prekey === vault.ratchet_signed_prekey_public &&
       (response.data.pq_kem_public_key ?? null) ===
-        (vault.ratchet_pq_identity_public ?? null)
+        (vault.ratchet_pq_identity_public ?? null);
+
+    if (!keys_match) return false;
+
+    return await published_signature_is_current(
+      vault,
+      response.data.signed_prekey_signature,
     );
   } catch {
     return null;

@@ -22,10 +22,14 @@ import * as openpgp from "openpgp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { sign_detached } from "./crypto/key_manager";
 import {
+  OBSCURED_SUBJECT_PLACEHOLDER,
   body_looks_like_html,
   build_protected_mime_entity,
 } from "./pgp_protected_mime";
-import { should_attach_signed_mime } from "./send_queue_signed_mime";
+import {
+  should_attach_signed_mime,
+  should_obscure_outer_subject,
+} from "./send_queue_signed_mime";
 
 const PASSPHRASE = "signed-mime-test";
 
@@ -34,8 +38,18 @@ let sender_private: string;
 
 const encoder = new TextEncoder();
 
-function sample_entity(): string {
+function decode_base64_utf8(value: string): string {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+
+  return new TextDecoder().decode(bytes);
+}
+
+function sample_entity(obscure_subject = false): string {
   return build_protected_mime_entity({
+    obscure_subject,
     subject: "Signed and encrypted ✓",
     body: "<p>Hello there</p><div>second line</div>",
     is_html: true,
@@ -90,6 +104,96 @@ describe("build_protected_mime_entity", () => {
   it("detects html bodies the backend would also treat as html", () => {
     expect(body_looks_like_html("<p>hi</p>")).toBe(true);
     expect(body_looks_like_html("plain text")).toBe(false);
+  });
+
+  it("omits the legacy display part unless obscuring is requested", () => {
+    const mime = sample_entity();
+
+    expect(mime).not.toContain('text/plain; charset=utf-8; protected-headers="v1"');
+    expect(mime.match(/protected-headers="v1"/g)).toHaveLength(2);
+  });
+
+  it("adds a legacy display part carrying the real subject when obscuring", () => {
+    const mime = sample_entity(true);
+    const legacy_header =
+      'Content-Type: text/plain; charset=utf-8; protected-headers="v1"\r\n' +
+      "Content-Transfer-Encoding: base64\r\n" +
+      "Content-Disposition: inline\r\n\r\n";
+
+    expect(mime).toContain(legacy_header);
+
+    const payload = mime
+      .slice(mime.indexOf(legacy_header) + legacy_header.length)
+      .split("\r\n")[0];
+
+    expect(decode_base64_utf8(payload)).toBe(
+      "Subject: Signed and encrypted ✓\r\n",
+    );
+  });
+
+  it("still protects the real subject inside the entity when obscuring", () => {
+    const mime = sample_entity(true);
+
+    expect(mime).not.toContain("Signed and encrypted ✓");
+    expect(mime).toContain("Subject: =?UTF-8?B?");
+  });
+
+  it("places the legacy display part before the message body", () => {
+    const mime = sample_entity(true);
+
+    expect(mime.indexOf("Content-Disposition: inline\r\n\r\n")).toBeLessThan(
+      mime.indexOf("multipart/alternative"),
+    );
+  });
+
+  it("keeps the entity free of bare newlines when obscuring", () => {
+    expect(sample_entity(true)).not.toContain("\n\n");
+  });
+});
+
+describe("should_obscure_outer_subject", () => {
+  const enabled = {
+    obscure_subject_preference: true,
+    encryption_active: true,
+    signed_mime_attached: true,
+  };
+
+  it("obscures only when the user opted in", () => {
+    expect(should_obscure_outer_subject(enabled)).toBe(true);
+    expect(
+      should_obscure_outer_subject({
+        ...enabled,
+        obscure_subject_preference: false,
+      }),
+    ).toBe(false);
+    expect(
+      should_obscure_outer_subject({
+        ...enabled,
+        obscure_subject_preference: undefined,
+      }),
+    ).toBe(false);
+  });
+
+  it("never obscures a subject that ships unencrypted", () => {
+    expect(
+      should_obscure_outer_subject({ ...enabled, encryption_active: false }),
+    ).toBe(false);
+  });
+
+  it("never obscures without protected headers to carry the subject", () => {
+    expect(
+      should_obscure_outer_subject({ ...enabled, signed_mime_attached: false }),
+    ).toBe(false);
+  });
+
+  it("never obscures secure external sends", () => {
+    expect(
+      should_obscure_outer_subject({ ...enabled, secure_external: true }),
+    ).toBe(false);
+  });
+
+  it("uses three full stops as the placeholder", () => {
+    expect(OBSCURED_SUBJECT_PLACEHOLDER).toBe("...");
   });
 });
 

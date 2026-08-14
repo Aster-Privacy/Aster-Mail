@@ -3856,6 +3856,8 @@ export interface SettingsTranslations {
   encrypt_by_default_description: string;
   require_encryption_title: string;
   require_encryption_description: string;
+  obscure_subject_title: string;
+  obscure_subject_description: string;
   show_encryption_indicators_title: string;
   show_encryption_indicators_description: string;
   publish_keys_wkd_title: string;
@@ -3894,6 +3896,8 @@ export interface SettingsTranslations {
   keyserver_add_custom_label: string;
   info_require_encryption_title: string;
   info_require_encryption_description: string;
+  info_obscure_subject_title: string;
+  info_obscure_subject_description: string;
   info_storage_format_title: string;
   info_storage_format_description: string;
   info_block_fonts_title: string;
