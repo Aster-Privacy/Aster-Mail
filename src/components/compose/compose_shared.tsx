@@ -121,8 +121,10 @@ export interface DraftRefData {
   message: string;
 }
 
-export const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
-export const MAX_TOTAL_ATTACHMENTS_SIZE = 50 * 1024 * 1024;
+export {
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
 export const EVENT_DISPATCH_DELAY_MS = 100;
 export const INITIAL_CONTENT_DELAY_MS = 0;
 export const get_aster_footer = (

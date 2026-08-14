@@ -1459,7 +1459,7 @@ export const nl = {
     action_undone: "Actie ongedaan gemaakt",
     add_display_name_placeholder: "Weergavenaam toevoegen",
     adding_file_would_exceed_limit:
-      'Het toevoegen van "{{name}}" zou uw bijlagen boven de limiet van 50 MB brengen. Verwijder eerst een bestand of stuur het in een apart e-mailbericht.',
+      'Het toevoegen van "{{name}}" zou uw bijlagen boven de limiet van {{size}} brengen. Verwijder eerst een bestand of stuur het in een apart e-mailbericht.',
     advanced_toolbar: "Geavanceerd",
     alias_avatar_removed: "Alias-avatar verwijderd",
     alias_avatar_updated: "Alias-avatar bijgewerkt",
@@ -1537,7 +1537,9 @@ export const nl = {
     metadata_not_removed:
       "Verborgen metagegevens konden niet uit {{names}} worden verwijderd. Het bestand is ongewijzigd bijgevoegd.",
     file_exceeds_max_size:
-      '"{{name}}" overschrijdt de limiet van 25 MB per bestand. Een kleinere versie of een gedeelde link werkt wel.',
+      '"{{name}}" overschrijdt de limiet van {{size}} per bestand. Een kleinere versie of een gedeelde link werkt wel.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" overschrijdt de limiet van {{size}} per bestand in je abonnement. Upgraden verhoogt dit naar {{max_size}}.',
     folder_fallback: "Map",
     found_n_contacts: "{{count}} contacten gevonden",
     found_one_contact: "1 contact gevonden",
@@ -1680,7 +1682,7 @@ export const nl = {
     time_seconds_short: "s",
     to_recipient: "Aan",
     total_attachments_exceed_limit:
-      "Totale grootte van bijlagen overschrijdt de limiet van 50 MB",
+      "Totale grootte van bijlagen overschrijdt de limiet van {{size}}",
     trash_empty_failed: "Prullenbak kon niet worden geleegd",
     uncategorized: "Ongecategoriseerd",
     unknown_merchant: "Onbekende handelaar",

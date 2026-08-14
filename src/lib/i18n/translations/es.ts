@@ -1545,7 +1545,9 @@ export const es = {
     metadata_not_removed:
       "No se pudieron eliminar los metadatos ocultos de {{names}}. El archivo se adjuntó sin cambios.",
     file_exceeds_max_size:
-      '"{{name}}" supera el límite de 25 MB por archivo. Una versión más pequeña, o un enlace compartido, llegará sin problemas.',
+      '"{{name}}" supera el límite de {{size}} por archivo. Una versión más pequeña, o un enlace compartido, llegará sin problemas.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" supera el límite de {{size}} por archivo de tu plan. Al mejorar tu plan sube a {{max_size}}.',
     folder_fallback: "Carpeta",
     found_n_contacts: "Se encontraron {{count}} contactos",
     found_one_contact: "1 contacto encontrado",

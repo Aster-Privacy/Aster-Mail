@@ -1527,7 +1527,7 @@ export const ja = {
     account_suspended: "アカウントが停止されています。",
     action_undone: "操作を取り消しました",
     adding_file_would_exceed_limit:
-      '"{{name}}" を追加すると添付ファイルが 50 MB の上限を超えます。別のファイルを削除するか、別のメールで送信してください。',
+      '"{{name}}" を追加すると添付ファイルが {{size}} の上限を超えます。別のファイルを削除するか、別のメールで送信してください。',
     advanced_toolbar: "詳細",
     all_short: "すべて",
     and_n_more: "他{{count}}件...",
@@ -1577,7 +1577,9 @@ export const ja = {
     metadata_not_removed:
       "{{names}} から隠しメタデータを削除できませんでした。ファイルはそのまま添付されました。",
     file_exceeds_max_size:
-      '"{{name}}" は 25 MB の上限を超えています。より小さいバージョン、または共有リンクでしたら送れます。',
+      '"{{name}}" は {{size}} の上限を超えています。より小さいバージョン、または共有リンクでしたら送れます。',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" は現在のプランの上限 {{size}} を超えています。プランをアップグレードすると {{max_size}} まで送れます。',
     folder_fallback: "フォルダ",
     found_n_contacts: "{{count}}件の連絡先が見つかりました",
     found_one_contact: "1件の連絡先が見つかりました",
@@ -1696,7 +1698,7 @@ export const ja = {
     time_seconds_short: "秒",
     to_recipient: "宛先",
     total_attachments_exceed_limit:
-      "添付ファイルの合計が 50 MB の上限を超えています。ファイルを削除するか、リンクで共有することで残りを送れます。",
+      "添付ファイルの合計が {{size}} の上限を超えています。ファイルを削除するか、リンクで共有することで残りを送れます。",
     trash_empty_failed:
       "ゴミ箱を空にできませんでした。しばらくしてからもう一度試すと、解決することが多いです。何も削除されていません。",
     uncategorized: "未分類",

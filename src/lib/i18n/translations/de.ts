@@ -1478,7 +1478,7 @@ export const de = {
     action_undone: "Aktion rückgängig gemacht",
     add_display_name_placeholder: "Anzeigenamen hinzufügen",
     adding_file_would_exceed_limit:
-      'Das Hinzufügen von "{{name}}" würde die 50-MB-Grenze für Anhänge überschreiten. Entfernen Sie zuerst eine Datei oder senden Sie sie in einer separaten E-Mail.',
+      'Das Hinzufügen von "{{name}}" würde die {{size}}-Grenze für Anhänge überschreiten. Entfernen Sie zuerst eine Datei oder senden Sie sie in einer separaten E-Mail.',
     advanced_toolbar: "Erweitert",
     alias_avatar_removed: "Alias-Avatar entfernt",
     alias_avatar_updated: "Alias-Avatar aktualisiert",
@@ -1566,7 +1566,9 @@ export const de = {
     metadata_not_removed:
       "Verborgene Metadaten konnten aus {{names}} nicht entfernt werden. Die Datei wurde unverändert angehängt.",
     file_exceeds_max_size:
-      '"{{name}}" überschreitet das 25-MB-Limit pro Datei. Eine kleinere Version oder ein geteilter Link funktioniert.',
+      '"{{name}}" überschreitet das {{size}}-Limit pro Datei. Eine kleinere Version oder ein geteilter Link funktioniert.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" überschreitet das Limit von {{size}} pro Datei in deinem Tarif. Ein Upgrade erhöht es auf {{max_size}}.',
     folder_fallback: "Ordner",
     found_n_contacts: "{{count}} Kontakte gefunden",
     found_one_contact: "1 Kontakt gefunden",
@@ -1717,7 +1719,7 @@ export const de = {
     time_seconds_short: "Sek",
     to_recipient: "an",
     total_attachments_exceed_limit:
-      "Ihre Anhänge überschreiten das 50-MB-Gesamtlimit. Das Entfernen einer Datei oder das Teilen über einen Link bringt den Rest durch.",
+      "Ihre Anhänge überschreiten das {{size}}-Gesamtlimit. Das Entfernen einer Datei oder das Teilen über einen Link bringt den Rest durch.",
     trash_empty_failed:
       "Wir konnten den Papierkorb nicht leeren. Ein erneuter Versuch in einem Moment löst das Problem in der Regel. Nichts wurde entfernt.",
     uncategorized: "Nicht kategorisiert",

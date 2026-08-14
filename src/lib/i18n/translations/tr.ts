@@ -1591,11 +1591,13 @@ export const tr = {
     unpin_preferred_sender: "Tercih edilen göndereni kaldır",
     n_more_recipients: "+{{count}} daha fazla",
     file_exceeds_max_size:
-      '"{{name}}" 25 MB tek dosya sınırını aşıyor. Daha küçük bir sürüm veya paylaşılan bir bağlantı kullanın.',
+      '"{{name}}" {{size}} tek dosya sınırını aşıyor. Daha küçük bir sürüm veya paylaşılan bir bağlantı kullanın.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" planınızdaki {{size}} tek dosya sınırını aşıyor. Yükseltme bu sınırı {{max_size}} değerine çıkarır.',
     total_attachments_exceed_limit:
-      "Ekleriniz 50 MB toplam sınırını aşıyor. Bir dosyayı kaldırmak veya bağlantı üzerinden paylaşmak sorunu çözer.",
+      "Ekleriniz {{size}} toplam sınırını aşıyor. Bir dosyayı kaldırmak veya bağlantı üzerinden paylaşmak sorunu çözer.",
     adding_file_would_exceed_limit:
-      '"{{name}}" eklemek eklerinizi 50 MB sınırının üzerine çıkaracak. Önce bir dosyayı kaldırın veya ayrı bir e-postayla gönderin.',
+      '"{{name}}" eklemek eklerinizi {{size}} sınırının üzerine çıkaracak. Önce bir dosyayı kaldırın veya ayrı bir e-postayla gönderin.',
     unsupported_file_type:
       '"{{name}}" ekleyebileceğimiz bir dosya türü değil. Farklı bir formatta kaydedin veya bağlantı üzerinden paylaşın.',
     file_already_attached:

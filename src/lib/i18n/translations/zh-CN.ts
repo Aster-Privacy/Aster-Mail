@@ -1434,11 +1434,13 @@ export const zh_CN = {
     metadata_not_removed:
       "无法从 {{names}} 中移除隐藏的元数据。文件已按原样添加。",
     file_exceeds_max_size:
-      '"{{name}}"超过了 25 MB 的单文件限制，较小的版本或共享链接都可以发送。',
+      '"{{name}}"超过了 {{size}} 的单文件限制，较小的版本或共享链接都可以发送。',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}"超过了您当前套餐 {{size}} 的单文件限制，升级后可达 {{max_size}}。',
     total_attachments_exceed_limit:
-      "您的附件超过了 50 MB 的总限制，移除一个文件或通过链接分享一个就可以发送其余的。",
+      "您的附件超过了 {{size}} 的总限制，移除一个文件或通过链接分享一个就可以发送其余的。",
     adding_file_would_exceed_limit:
-      '添加"{{name}}"会让您的附件超过 50 MB 的限制，先移除一个文件，或在单独的邮件中发送，就可以。',
+      '添加"{{name}}"会让您的附件超过 {{size}} 的限制，先移除一个文件，或在单独的邮件中发送，就可以。',
     unsupported_file_type:
       '"{{name}}"不是我们可以附加的文件类型，以其他格式保存或通过链接分享就可以发送。',
     unknown_error: "事情没有按预期进行，再试一次应该可以。我们无法确定原因。",

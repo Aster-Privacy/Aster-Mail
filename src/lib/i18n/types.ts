@@ -1777,6 +1777,7 @@ export interface CommonTranslations {
   n_files_plural: string;
   n_more_recipients: string;
   file_exceeds_max_size: string;
+  file_exceeds_max_size_upgradable: string;
   total_attachments_exceed_limit: string;
   adding_file_would_exceed_limit: string;
   unsupported_file_type: string;

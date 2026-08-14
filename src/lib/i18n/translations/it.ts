@@ -1607,11 +1607,13 @@ export const it = {
     pending_deletion_cancelling: "Annullamento...",
     n_more_recipients: "+{{count}} altri",
     file_exceeds_max_size:
-      '"{{name}}" supera il limite di 25 MB per singolo file. Una versione più piccola, o un link condiviso, passerà.',
+      '"{{name}}" supera il limite di {{size}} per singolo file. Una versione più piccola, o un link condiviso, passerà.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" supera il limite di {{size}} per file del tuo piano. Passando a un piano superiore sale a {{max_size}}.',
     total_attachments_exceed_limit:
-      "I suoi allegati superano il limite totale di 50 MB. Rimuovere un file, o condividerne uno tramite un link, farà passare il resto.",
+      "I suoi allegati superano il limite totale di {{size}}. Rimuovere un file, o condividerne uno tramite un link, farà passare il resto.",
     adding_file_would_exceed_limit:
-      'Aggiungere "{{name}}" porterebbe i suoi allegati oltre il limite di 50 MB. Rimuovere prima un file, o inviarlo in un\'email separata, funzionerà.',
+      'Aggiungere "{{name}}" porterebbe i suoi allegati oltre il limite di {{size}}. Rimuovere prima un file, o inviarlo in un\'email separata, funzionerà.',
     unsupported_file_type:
       '"{{name}}" non è un tipo di file che possiamo allegare. Salvarlo in un altro formato, o condividerlo tramite un link, lo farà passare.',
     file_already_attached:

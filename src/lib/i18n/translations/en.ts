@@ -1574,11 +1574,13 @@ export const en: Translations = {
     n_files_plural: "{{count}} files",
     n_more_recipients: "+{{count}} more",
     file_exceeds_max_size:
-      '"{{name}}" is over the 25 MB single-file limit. A smaller version, or a shared link, will go through.',
+      '"{{name}}" is over the {{size}} single-file limit. A smaller version, or a shared link, will go through.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" is over the {{size}} single-file limit on your plan. Upgrading raises it to {{max_size}}.',
     total_attachments_exceed_limit:
-      "Your attachments are over the 50 MB total limit. Removing a file, or sharing one through a link, will get the rest through.",
+      "Your attachments are over the {{size}} total limit. Removing a file, or sharing one through a link, will get the rest through.",
     adding_file_would_exceed_limit:
-      'Adding "{{name}}" would push your attachments past the 50 MB limit. Removing a file first, or sending it in a separate email, will work.',
+      'Adding "{{name}}" would push your attachments past the {{size}} limit. Removing a file first, or sending it in a separate email, will work.',
     unsupported_file_type:
       '"{{name}}" is not a file type we can attach. Saving it in another format, or sharing it through a link, will get it through.',
     file_already_attached:

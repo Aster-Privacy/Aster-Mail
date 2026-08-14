@@ -64,6 +64,7 @@ import {
 import { ImportModalProps, ImportStep, PICKER_REOPEN_DELAY_MS, build_thread_map, derive_manual_import_source, detect_item_type, extract_source_folders, folder_for_email } from "./helpers";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { show_storage_full_upgrade } from "@/stores/upgrade_store";
 
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
@@ -818,9 +819,21 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                   </p>
                 )}
                 {import_result.quota_exceeded && (
-                  <p className="text-xs text-amber-500 mt-2">
-                    {t("settings.storage_quota_reached")}
-                  </p>
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <p className="text-xs text-amber-500">
+                      {t("settings.storage_quota_reached")}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="depth"
+                      onClick={() => {
+                        handle_close();
+                        show_storage_full_upgrade({});
+                      }}
+                    >
+                      {t("common.upgrade")}
+                    </Button>
+                  </div>
                 )}
                 {import_result.imported > 0 && (
                   <p className="text-xs text-txt-muted mt-2">

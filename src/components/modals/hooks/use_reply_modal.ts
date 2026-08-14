@@ -61,10 +61,17 @@ import {
 import {
   type Attachment,
   generate_attachment_id,
-  MAX_ATTACHMENT_SIZE,
-  MAX_TOTAL_ATTACHMENTS_SIZE,
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
+import {
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
+import {
+  describe_oversized_file,
+  describe_would_exceed_total,
+  prompt_attachment_upgrade,
+} from "@/services/attachment_rejection";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
@@ -772,16 +779,18 @@ export function use_reply_modal(props: UseReplyModalProps) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade) prompt_attachment_upgrade();
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
+        if (running_total + file.size > get_max_total_attachments_size()) {
           set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
+            describe_would_exceed_total(t, file.name),
           );
           continue;
         }
@@ -836,16 +845,18 @@ export function use_reply_modal(props: UseReplyModalProps) {
       let running_total = current_total;
 
       for (const file of files) {
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade) prompt_attachment_upgrade();
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
+        if (running_total + file.size > get_max_total_attachments_size()) {
           set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
+            describe_would_exceed_total(t, file.name),
           );
           continue;
         }

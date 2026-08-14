@@ -30,11 +30,11 @@ import {
   extract_cid_references,
   extract_cid_inline_filenames,
 } from "@/lib/cid_resolver";
+import { generate_attachment_id } from "@/components/compose/compose_shared";
 import {
-  generate_attachment_id,
-  MAX_ATTACHMENT_SIZE,
-  MAX_TOTAL_ATTACHMENTS_SIZE,
-} from "@/components/compose/compose_shared";
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
 import { format_bytes } from "@/lib/utils";
 
 export interface LoadForwardAttachmentsOptions {
@@ -151,8 +151,8 @@ export async function load_forward_attachments(
         item.seq_num,
       );
 
-      if (data.byteLength > MAX_ATTACHMENT_SIZE) continue;
-      if (running_total + data.byteLength > MAX_TOTAL_ATTACHMENTS_SIZE)
+      if (data.byteLength > get_max_attachment_size()) continue;
+      if (running_total + data.byteLength > get_max_total_attachments_size())
         continue;
 
       running_total += data.byteLength;

@@ -1281,7 +1281,7 @@ export const pt = {
     action_undone: "Ação desfeita",
     add_display_name_placeholder: "Adicionar nome de exibição",
     adding_file_would_exceed_limit:
-      'Adicionar "{{name}}" ultrapassaria o limite de 50 MB de anexos. Remover um arquivo primeiro, ou enviar em um e-mail separado, vai funcionar.',
+      'Adicionar "{{name}}" ultrapassaria o limite de {{size}} de anexos. Remover um arquivo primeiro, ou enviar em um e-mail separado, vai funcionar.',
     address_section: "Endereço",
     advanced_toolbar: "Avançado",
     alias_avatar_removed: "Avatar do alias removido",
@@ -1408,7 +1408,9 @@ export const pt = {
     metadata_not_removed:
       "Não foi possível remover os metadados ocultos de {{names}}. O ficheiro foi anexado sem alterações.",
     file_exceeds_max_size:
-      '"{{name}}" ultrapassa o limite de 25 MB por arquivo. Uma versão menor, ou um link compartilhado, vai passar.',
+      '"{{name}}" ultrapassa o limite de {{size}} por arquivo. Uma versão menor, ou um link compartilhado, vai passar.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" ultrapassa o limite de {{size}} por arquivo do seu plano. Fazer upgrade aumenta para {{max_size}}.',
     first_contact_colon: "Primeiro contato:",
     folder_fallback: "pasta",
     folder_preview: "Visualização da pasta",
@@ -1685,7 +1687,7 @@ export const pt = {
     today_at_time: "Hoje às {{time}}",
     tomorrow_at_time: "Amanhã às {{time}}",
     total_attachments_exceed_limit:
-      "Seus anexos ultrapassaram o limite total de 50 MB. Remover um arquivo, ou compartilhá-lo por link, vai enviar o restante.",
+      "Seus anexos ultrapassaram o limite total de {{size}}. Remover um arquivo, ou compartilhá-lo por link, vai enviar o restante.",
     track_package: "Rastrear encomenda",
     tracking_number: "Número de rastreamento",
     trash_empty_failed:

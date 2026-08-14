@@ -1595,11 +1595,13 @@ export const pl = {
     unpin_preferred_sender: "Odepnij preferowanego nadawcę",
     n_more_recipients: "+{{count}} więcej",
     file_exceeds_max_size:
-      '"{{name}}" przekracza limit 25 MB dla pojedynczego pliku. Użyj mniejszej wersji lub udostępnij przez link.',
+      '"{{name}}" przekracza limit {{size}} dla pojedynczego pliku. Użyj mniejszej wersji lub udostępnij przez link.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" przekracza limit {{size}} na plik w Twoim planie. Wyższy plan zwiększa go do {{max_size}}.',
     total_attachments_exceed_limit:
-      "Twoje załączniki przekraczają łączny limit 50 MB. Usuń plik lub udostępnij go przez link.",
+      "Twoje załączniki przekraczają łączny limit {{size}}. Usuń plik lub udostępnij go przez link.",
     adding_file_would_exceed_limit:
-      'Dodanie "{{name}}" spowoduje przekroczenie limitu 50 MB dla załączników. Najpierw usuń plik lub wyślij go w oddzielnej wiadomości.',
+      'Dodanie "{{name}}" spowoduje przekroczenie limitu {{size}} dla załączników. Najpierw usuń plik lub wyślij go w oddzielnej wiadomości.',
     unsupported_file_type:
       '"{{name}}" jest nieobsługiwanym typem pliku. Zapisz w innym formacie lub udostępnij przez link.',
     file_already_attached:

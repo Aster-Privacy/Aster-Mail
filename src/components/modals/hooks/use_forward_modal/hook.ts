@@ -68,10 +68,17 @@ import {
   recipients_reducer,
   generate_attachment_id,
   get_aster_footer,
-  MAX_ATTACHMENT_SIZE,
-  MAX_TOTAL_ATTACHMENTS_SIZE,
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
+import {
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
+import {
+  describe_oversized_file,
+  describe_would_exceed_total,
+  prompt_attachment_upgrade,
+} from "@/services/attachment_rejection";
 import {
   use_sender_aliases,
   type SenderOption,
@@ -401,7 +408,7 @@ export function use_forward_modal({
 
             if (
               total_size + decrypted_data.byteLength >
-              MAX_TOTAL_ATTACHMENTS_SIZE
+              get_max_total_attachments_size()
             ) {
               break;
             }
@@ -853,16 +860,18 @@ export function use_forward_modal({
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade) prompt_attachment_upgrade();
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
+        if (running_total + file.size > get_max_total_attachments_size()) {
           set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
+            describe_would_exceed_total(t, file.name),
           );
           continue;
         }
@@ -917,16 +926,18 @@ export function use_forward_modal({
       let running_total = current_total;
 
       for (const file of files) {
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade) prompt_attachment_upgrade();
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
+        if (running_total + file.size > get_max_total_attachments_size()) {
           set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
+            describe_would_exceed_total(t, file.name),
           );
           continue;
         }

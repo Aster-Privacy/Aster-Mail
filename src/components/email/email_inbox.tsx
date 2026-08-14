@@ -394,7 +394,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           )}
 
         <StorageBanner
-          on_settings_click={on_settings_click}
           storage_total_bytes={mail_stats.storage_total_bytes}
           storage_used_bytes={mail_stats.storage_used_bytes}
         />

@@ -28,9 +28,16 @@ import { strip_metadata } from "@/lib/strip_image_metadata";
 import {
   type Attachment,
   generate_attachment_id,
-  MAX_ATTACHMENT_SIZE,
-  MAX_TOTAL_ATTACHMENTS_SIZE,
 } from "@/components/compose/compose_shared";
+import {
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
+import {
+  describe_oversized_file,
+  describe_would_exceed_total,
+  prompt_attachment_upgrade,
+} from "@/services/attachment_rejection";
 
 const EXTENSION_MIME_MAP: Record<string, string> = {
   pdf: "application/pdf",
@@ -162,18 +169,19 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          const message = t("common.file_exceeds_max_size", {
-            name: file.name,
-          });
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name);
+          const message = rejection.message;
 
           set_attachment_error(message);
           show_toast(message, "error");
+
+          if (rejection.can_upgrade) prompt_attachment_upgrade();
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          const message = t("common.total_attachments_exceed_limit");
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          const message = describe_would_exceed_total(t, file.name);
 
           set_attachment_error(message);
           show_toast(message, "error");
@@ -256,18 +264,19 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       let running_total = current_total;
 
       for (const file of files) {
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          const message = t("common.file_exceeds_max_size", {
-            name: file.name,
-          });
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name);
+          const message = rejection.message;
 
           set_attachment_error(message);
           show_toast(message, "error");
+
+          if (rejection.can_upgrade) prompt_attachment_upgrade();
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          const message = t("common.total_attachments_exceed_limit");
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          const message = describe_would_exceed_total(t, file.name);
 
           set_attachment_error(message);
           show_toast(message, "error");

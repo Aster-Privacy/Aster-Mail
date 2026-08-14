@@ -26,6 +26,7 @@ import {
 } from "@/services/api/billing";
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
+import { refresh_attachment_limits } from "@/services/attachment_limits";
 
 import {
   get_current_account_id,
@@ -92,6 +93,10 @@ export function use_plan_limits() {
       cached_account_id = account_id;
       cache_timestamp = Date.now();
       set_limits(response.data);
+
+      refresh_attachment_limits(force).catch((caught) =>
+        ignore_error("hooks/use_plan_limits:refresh_attachment_limits", caught),
+      );
 
       if (account_id) {
         set_account_plan_flag(

@@ -25,17 +25,16 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { show_storage_full_upgrade } from "@/stores/upgrade_store";
 
 interface StorageBannerProps {
   storage_used_bytes: number;
   storage_total_bytes: number;
-  on_settings_click: () => void;
 }
 
 export function StorageBanner({
   storage_used_bytes,
   storage_total_bytes,
-  on_settings_click,
 }: StorageBannerProps) {
   const { t } = use_i18n();
   const storage_pct =
@@ -66,7 +65,7 @@ export function StorageBanner({
         </div>
         <button
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-red-700 bg-white hover:bg-white/90 transition-colors flex-shrink-0"
-          onClick={on_settings_click}
+          onClick={() => show_storage_full_upgrade({})}
         >
           <ArrowUpCircleIcon className="w-3.5 h-3.5" />
           {t("common.upgrade")}
@@ -95,7 +94,7 @@ export function StorageBanner({
         </div>
         <button
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-amber-700 bg-white hover:bg-white/90 transition-colors flex-shrink-0"
-          onClick={on_settings_click}
+          onClick={() => show_storage_full_upgrade({})}
         >
           <ArrowUpCircleIcon className="w-3.5 h-3.5" />
           {t("common.upgrade")}
@@ -122,6 +121,13 @@ export function StorageBanner({
             {t("settings.storage_approaching_description")}
           </p>
         </div>
+        <button
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-txt-primary bg-white hover:bg-white/90 transition-colors flex-shrink-0"
+          onClick={() => show_storage_full_upgrade({})}
+        >
+          <ArrowUpCircleIcon className="w-3.5 h-3.5" />
+          {t("common.upgrade")}
+        </button>
       </div>
     );
   }

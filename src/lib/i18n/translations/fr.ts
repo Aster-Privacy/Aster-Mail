@@ -1553,7 +1553,9 @@ export const fr = {
     metadata_not_removed:
       "Impossible de supprimer les métadonnées masquées de {{names}}. Le fichier a été joint tel quel.",
     file_exceeds_max_size:
-      '"{{name}}" dépasse la limite de 25 Mo par fichier. Une version plus petite, ou un lien partagé, passera.',
+      '"{{name}}" dépasse la limite de {{size}} par fichier. Une version plus petite, ou un lien partagé, passera.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" dépasse la limite de {{size}} par fichier de votre offre. Une offre supérieure la porte à {{max_size}}.',
     folder_fallback: "Dossier",
     found_n_contacts: "{{count}} contacts trouvés",
     found_one_contact: "1 contact trouvé",
