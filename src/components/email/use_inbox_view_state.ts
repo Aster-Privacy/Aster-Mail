@@ -64,6 +64,7 @@ import {
   MAIL_EVENTS,
   mail_event_bus,
   on_mail_event,
+  emit_mail_item_updated,
 } from "@/hooks/mail_events";
 import { REFRESH_STATE_MS } from "@/constants/timings";
 import {
@@ -400,7 +401,17 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     async (email_id: string, snooze_until: Date) => {
       try {
         await snooze_email_action(email_id, snooze_until);
-        update_email(email_id, { snoozed_until: snooze_until.toISOString() });
+        const snoozed_until_iso = snooze_until.toISOString();
+
+        if (is_snoozed_view) {
+          update_email(email_id, { snoozed_until: snoozed_until_iso });
+        } else {
+          remove_email(email_id);
+        }
+        emit_mail_item_updated({
+          id: email_id,
+          snoozed_until: snoozed_until_iso,
+        });
         if (categories.enabled) {
           remove_category_index_ids([email_id]);
         }
@@ -414,7 +425,14 @@ export function use_inbox_view_state(props: EmailInboxProps) {
         show_toast(t("common.failed_to_snooze"), "error");
       }
     },
-    [snooze_email_action, update_email, categories.enabled, t],
+    [
+      snooze_email_action,
+      is_snoozed_view,
+      update_email,
+      remove_email,
+      categories.enabled,
+      t,
+    ],
   );
 
   const handle_unsnooze = useCallback(
@@ -426,6 +444,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           await unsnooze_mail(email_id);
           update_email(email_id, { snoozed_until: undefined });
         }
+        emit_mail_item_updated({ id: email_id, snoozed_until: null });
         reindex_category_ids([email_id]);
         show_action_toast({
           message: t("common.email_unsnoozed"),

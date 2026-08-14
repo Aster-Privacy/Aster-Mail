@@ -70,7 +70,16 @@ export function apply_item_update_to_rows(
   let needs_refetch = false;
 
   const next = emails.map((e) => {
-    if (e.id === detail.id) return { ...e, ...detail };
+    if (e.id === detail.id) {
+      return {
+        ...e,
+        ...detail,
+        snoozed_until:
+          detail.snoozed_until === undefined
+            ? e.snoozed_until
+            : (detail.snoozed_until ?? undefined),
+      };
+    }
 
     if (!e.grouped_email_ids?.includes(detail.id)) return e;
 

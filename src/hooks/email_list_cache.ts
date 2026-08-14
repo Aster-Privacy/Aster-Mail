@@ -108,6 +108,9 @@ function build_row_patch(
   if (detail.is_archived !== undefined) patch.is_archived = detail.is_archived;
   if (detail.is_trashed !== undefined) patch.is_trashed = detail.is_trashed;
   if (detail.is_spam !== undefined) patch.is_spam = detail.is_spam;
+  if (detail.snoozed_until !== undefined) {
+    patch.snoozed_until = detail.snoozed_until ?? undefined;
+  }
   if (detail.folders !== undefined) patch.folders = detail.folders;
   if (detail.tags !== undefined) patch.tags = detail.tags;
   if (detail.encrypted_metadata !== undefined) {

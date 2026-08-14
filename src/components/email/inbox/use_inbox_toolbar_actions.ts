@@ -253,6 +253,7 @@ export function use_inbox_toolbar_actions({
 
   const archive_snooze_actions = use_archive_snooze_actions({
     t,
+    current_view,
     email_state,
     get_selected_ids,
     update_email,

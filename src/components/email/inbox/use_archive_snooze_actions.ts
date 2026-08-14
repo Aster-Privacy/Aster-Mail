@@ -51,6 +51,7 @@ import {
 
 interface UseArchiveSnoozeActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  current_view: string;
   email_state: {
     emails: InboxEmail[];
     total_messages: number;
@@ -88,6 +89,7 @@ interface UseArchiveSnoozeActionsOptions {
 
 export function use_archive_snooze_actions({
   t,
+  current_view,
   email_state,
   get_selected_ids,
   update_email,
@@ -305,6 +307,14 @@ export function use_archive_snooze_actions({
       }
       try {
         await bulk_snooze_action(ids, snooze_until);
+        if (current_view !== "snoozed") {
+          for (const id of ids) {
+            remove_email(id);
+          }
+        }
+        for (const id of ids) {
+          emit_mail_item_updated({ id, snoozed_until: snooze_iso });
+        }
         remove_index_ids(ids);
         show_action_toast({
           message: t("common.conversations_snoozed_bulk", {
@@ -324,7 +334,13 @@ export function use_archive_snooze_actions({
         show_toast(t("common.failed_to_snooze_conversations"), "error");
       }
     },
-    [email_state.emails, bulk_snooze_action, update_email],
+    [
+      email_state.emails,
+      current_view,
+      bulk_snooze_action,
+      update_email,
+      remove_email,
+    ],
   );
 
   return {

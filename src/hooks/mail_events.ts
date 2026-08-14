@@ -120,6 +120,7 @@ export interface MailItemUpdatedEventDetail {
   is_archived?: boolean;
   is_trashed?: boolean;
   is_spam?: boolean;
+  snoozed_until?: string | null;
   folders?: { folder_token: string; name: string; color?: string }[];
   tags?: { id: string; name: string; color?: string; icon?: string }[];
   encrypted_metadata?: string;

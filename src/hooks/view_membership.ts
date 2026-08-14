@@ -20,6 +20,14 @@
 //
 import type { MailItemUpdatedEventDetail } from "./mail_events";
 
+function is_future_snooze(value: string | null | undefined): boolean {
+  if (!value) return false;
+
+  const wake_ms = new Date(value).getTime();
+
+  return Number.isFinite(wake_ms) && wake_ms > Date.now();
+}
+
 export function compute_should_remove_from_view(
   detail: MailItemUpdatedEventDetail,
   current_view: string,
@@ -45,6 +53,16 @@ export function compute_should_remove_from_view(
     detail.is_archived === true
   ) {
     return true;
+  }
+
+  if (detail.snoozed_until !== undefined) {
+    const snoozed = is_future_snooze(detail.snoozed_until);
+
+    if (current_view === "snoozed") return !snoozed;
+
+    if (snoozed && (current_view === "inbox" || current_view === "")) {
+      return true;
+    }
   }
 
   switch (current_view) {
@@ -96,6 +114,13 @@ export function destination_views_for_update(
     detail.is_archived === false
   ) {
     views.push("inbox", "", "all");
+  }
+  if (detail.snoozed_until !== undefined) {
+    if (is_future_snooze(detail.snoozed_until)) {
+      views.push("snoozed");
+    } else {
+      views.push("inbox", "", "all");
+    }
   }
   if (detail.folders !== undefined) {
     for (const folder of detail.folders) {
