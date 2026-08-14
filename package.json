@@ -18,7 +18,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "postinstall": "npx --yes patch-package@8.0.1",
+    "postinstall": "patch-package",
     "dev": "vite",
     "build": "tsc && vite build && node scripts/check_translation_assets.mjs",
     "lint": "eslint --fix",
@@ -144,6 +144,7 @@
     "globals": "16.0.0",
     "happy-dom": "^20.4.0",
     "jsdom": "^29.1.1",
+    "patch-package": "8.0.1",
     "postcss": "^8.5.14",
     "prettier": "3.5.3",
     "tailwindcss": "4.1.11",

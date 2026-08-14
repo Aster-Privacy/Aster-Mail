@@ -54,11 +54,11 @@ jobs:
         run: |
           git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
           cd ../aster-ui
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm run build
 
       - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund --force
+        run: npm ci --no-audit --no-fund
 
       - name: Build ARM AppImage
         env:

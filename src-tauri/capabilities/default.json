@@ -8,13 +8,10 @@
     "core:tray:default",
     "core:menu:default",
     "shell:allow-open",
-    "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-write-text",
     "notification:default",
     "core:event:default",
     "updater:default",
-    "process:default",
-    "process:allow-restart",
-    "dialog:default"
+    "process:allow-restart"
   ]
 }
