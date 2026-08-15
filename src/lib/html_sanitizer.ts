@@ -37,6 +37,7 @@ import {
   is_tracking_pixel,
   strip_tracking_params,
   strip_mso_conditionals,
+  neutralize_unterminated_comments,
   sanitize_attribute,
 } from "./html_sanitizer_utils";
 export {
@@ -351,7 +352,9 @@ function sanitize_html_impl(
     }
   }
 
-  const preprocessed = strip_mso_conditionals(html);
+  const preprocessed = neutralize_unterminated_comments(
+    strip_mso_conditionals(html),
+  );
 
   const head_styles: string[] = [];
   const head_match = sandbox_mode

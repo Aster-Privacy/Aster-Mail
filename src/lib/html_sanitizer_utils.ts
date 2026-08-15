@@ -187,8 +187,8 @@ export function strip_mso_conditionals(html: string): string {
       const comment_end = html.indexOf("-->", after_open);
 
       if (comment_end === -1) {
-        result += match[0];
         cursor = after_open;
+        CONDITIONAL_OPEN_REGEX.lastIndex = cursor;
         continue;
       }
 
@@ -201,6 +201,45 @@ export function strip_mso_conditionals(html: string): string {
   result += html.slice(cursor);
 
   return result.replace(LEFTOVER_ENDIF_REGEX, "");
+}
+
+const COMMENT_END_REGEX = /--!?>/;
+const ABRUPT_COMMENT_END_REGEX = /^-?>/;
+
+export function neutralize_unterminated_comments(html: string): string {
+  if (html.indexOf("<!--") === -1) return html;
+
+  let result = "";
+  let cursor = 0;
+
+  for (;;) {
+    const open = html.indexOf("<!--", cursor);
+
+    if (open === -1) break;
+
+    const rest = html.slice(open + 4);
+    const abrupt = ABRUPT_COMMENT_END_REGEX.exec(rest);
+    const end = abrupt ?? COMMENT_END_REGEX.exec(rest);
+
+    if (!end) {
+      result += html.slice(cursor, open);
+      cursor = open + 4;
+      break;
+    }
+
+    if (abrupt) {
+      result += html.slice(cursor, open);
+      cursor = open + 4 + abrupt[0].length;
+      continue;
+    }
+
+    const close = open + 4 + end.index + end[0].length;
+
+    result += html.slice(cursor, close);
+    cursor = close;
+  }
+
+  return result + html.slice(cursor);
 }
 
 function strip_attribute_markup(value: string): string {

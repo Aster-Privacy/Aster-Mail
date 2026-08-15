@@ -139,7 +139,7 @@ fn open_in_default_handler(app: &tauri::AppHandle, url: String) {
 }
 
 #[tauri::command]
-fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<(), String> {
+async fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<(), String> {
     if url.chars().any(|c| c.is_control() || c.is_whitespace()) {
         return Err("url contains invalid characters".into());
     }
@@ -156,29 +156,23 @@ fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<
     }
 
     #[cfg(target_os = "macos")]
-    open_in_default_handler(&app, url);
+    {
+        open_in_default_handler(&app, url);
+
+        Ok(())
+    }
 
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = &app;
-        std::thread::spawn(move || {
-            #[cfg(windows)]
-            {
-                use std::os::windows::process::CommandExt;
-                const CREATE_NO_WINDOW: u32 = 0x08000000;
-                let _ = std::process::Command::new("rundll32")
-                    .args(["url.dll,FileProtocolHandler", &url])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn();
-            }
-            #[cfg(all(unix, not(target_os = "macos")))]
-            {
-                let _ = std::process::Command::new("xdg-open").arg(&url).spawn();
-            }
-        });
-    }
+        tauri::async_runtime::spawn_blocking(move || {
+            use tauri_plugin_shell::ShellExt;
 
-    Ok(())
+            #[allow(deprecated)]
+            app.shell().open(&url, None).map_err(|e| e.to_string())
+        })
+        .await
+        .map_err(|e| e.to_string())?
+    }
 }
 
 #[cfg(all(unix, not(target_os = "macos")))]

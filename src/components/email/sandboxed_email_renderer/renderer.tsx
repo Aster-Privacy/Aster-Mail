@@ -421,7 +421,7 @@ ${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>${link_hover_css}</style>
-<style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; }</style>
+<style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; } a img[data-blocked='true'] { cursor: pointer !important; pointer-events: auto !important; }</style>
 </head>
 <body style="${is_html_email ? html_body_style : plain_body_style}">${strip_unresolved_cid_references(resolved_html)}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
 </html>`;
