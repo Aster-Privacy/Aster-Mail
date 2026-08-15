@@ -1553,6 +1553,7 @@ export const ko = {
     remove_recovery_email_confirm:
       "복구 이메일을 제거하시겠습니까? 이 이메일로 더 이상 계정을 복구할 수 없습니다.",
     recovery_email_removed: "복구 이메일이 제거되었습니다",
+    recovery_email_hidden: "이 계정에 저장됨",
     failed_remove_recovery_email:
       "복구 이메일을 제거할 수 없었습니다. 다시 시도하면 됩니다. 복구 설정은 그대로입니다.",
     failed_save_profile_color:

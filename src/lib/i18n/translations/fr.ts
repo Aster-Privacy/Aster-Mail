@@ -1622,6 +1622,7 @@ export const fr = {
     profile: "Profil",
     profile_photo: "Photo de profil",
     recovery_email_removed: "E-mail de récupération supprimé",
+    recovery_email_hidden: "Enregistré sur ce compte",
     recovery_pdf_account: "Compte",
     recovery_pdf_code_used_once:
       "Chaque code ne peut être utilisé qu'une seule fois.",

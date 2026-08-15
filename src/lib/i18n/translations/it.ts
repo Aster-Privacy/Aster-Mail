@@ -1486,6 +1486,7 @@ export const it = {
     remove_recovery_email_confirm:
       "Sei sicuro di voler rimuovere la tua email di recupero? Non potrai più recuperare il tuo account usando questa email.",
     recovery_email_removed: "Email di recupero rimossa",
+    recovery_email_hidden: "Salvato in questo account",
     failed_remove_recovery_email:
       "Non siamo riusciti a rimuovere la sua email di recupero. Un altro tentativo dovrebbe bastare. La sua configurazione di recupero è invariata.",
     failed_save_profile_color:

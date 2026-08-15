@@ -1568,6 +1568,7 @@ export const ar = {
     remove_recovery_email_confirm:
       "هل أنت متأكد أنك تريد إزالة بريد الاسترداد؟ لن تتمكن بعد الآن من استرداد حسابك باستخدام هذا البريد.",
     recovery_email_removed: "تمت إزالة بريد الاسترداد",
+    recovery_email_hidden: "محفوظ في هذا الحساب",
     failed_remove_recovery_email:
       "تعذّرت إزالة بريد الاسترداد. محاولة أخرى ينبغي أن تنجح. إعداد الاسترداد لم يتغير.",
     failed_save_profile_color:

@@ -1625,6 +1625,7 @@ export const ru = {
     profile: "Профиль",
     profile_photo: "Фото профиля",
     recovery_email_removed: "Резервный адрес удалён.",
+    recovery_email_hidden: "Сохранён в этом аккаунте",
     recovery_pdf_account: "Аккаунт:",
     recovery_pdf_code_used_once:
       "Каждый код восстановления можно использовать только ОДИН РАЗ",

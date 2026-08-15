@@ -1474,6 +1474,7 @@ export const tr = {
     remove_recovery_email_confirm:
       "Kurtarma e-postanızı kaldırmak istediğinizden emin misiniz? Bu e-postayı kullanarak artık hesabınızı kurtaramazsınız.",
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
+    recovery_email_hidden: "Bu hesapta kayıtlı",
     failed_remove_recovery_email:
       "Kurtarma e-postanız kaldırılamadı. Bir kez daha denemek genellikle yeterli olur. Kurtarma ayarlarınız değişmedi.",
     failed_save_profile_color:

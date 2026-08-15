@@ -1527,6 +1527,7 @@ export const pt = {
     profile_photo: "Foto de perfil",
     recovery_email_label: "E-mail de recuperação",
     recovery_email_removed: "E-mail de recuperação removido",
+    recovery_email_hidden: "Salvo nesta conta",
     recovery_pdf_account: "Conta:",
     recovery_pdf_code_used_once:
       "Cada código de recuperação só pode ser usado UMA VEZ",

@@ -1641,6 +1641,7 @@ export const de = {
     profile: "Profil",
     profile_photo: "Profilfoto",
     recovery_email_removed: "Wiederherstellungs-E-Mail entfernt.",
+    recovery_email_hidden: "In diesem Konto gespeichert",
     recovery_pdf_account: "Konto:",
     recovery_pdf_code_used_once:
       "Jeder Wiederherstellungscode kann nur EINMAL verwendet werden",

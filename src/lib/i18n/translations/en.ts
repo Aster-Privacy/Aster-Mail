@@ -164,6 +164,7 @@ export const en: Translations = {
     remove_recovery_email_confirm:
       "Are you sure you want to remove your recovery email? You will no longer be able to recover your account using this email.",
     recovery_email_removed: "Recovery email removed",
+    recovery_email_hidden: "Saved on this account",
     failed_remove_recovery_email:
       "We could not remove your recovery email. Another attempt should do it. Your recovery setup is unchanged.",
     profile_picture_updated: "Profile picture updated",

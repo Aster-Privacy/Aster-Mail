@@ -1386,6 +1386,7 @@ export const zh_CN = {
     remove_recovery_email_confirm:
       "确定要移除恢复邮箱吗？之后您将无法使用此邮箱恢复账户。",
     recovery_email_removed: "恢复邮箱已移除",
+    recovery_email_hidden: "已保存在此账户",
     failed_remove_recovery_email:
       "我们无法移除您的恢复邮箱，再试一次应该可以。您的恢复设置没有变化。",
     failed_save_profile_color: "您的颜色选择未能保存，再试一次应该可以。",

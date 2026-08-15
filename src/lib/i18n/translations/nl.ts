@@ -1606,6 +1606,7 @@ export const nl = {
     profile: "Profiel",
     profile_photo: "Profielfoto",
     recovery_email_removed: "Herstele-mailadres verwijderd",
+    recovery_email_hidden: "Opgeslagen in dit account",
     recovery_pdf_account: "Account:",
     recovery_pdf_code_used_once: "Elke code kan maar een keer worden gebruikt",
     recovery_pdf_footer: "Aster Privacy - Versleuteld e-mail",

@@ -1612,6 +1612,7 @@ export const es = {
     profile: "Perfil",
     profile_photo: "Foto de perfil",
     recovery_email_removed: "Correo de recuperación eliminado",
+    recovery_email_hidden: "Guardado en esta cuenta",
     recovery_pdf_account: "Cuenta",
     recovery_pdf_code_used_once: "Cada código solo puede usarse una vez.",
     recovery_pdf_footer: "Aster Mail - Códigos de recuperación",

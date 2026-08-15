@@ -984,7 +984,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
       const result = await save_recovery_email(recovery_email.trim(), vault);
 
       if (result.code === "CONFLICT") {
-        set_recovery_email_error(t("auth.recovery_email_conflict"));
+        set_recovery_email_error(
+          result.error || t("auth.recovery_email_conflict"),
+        );
         set_is_saving_recovery_email(false);
         saving_recovery_email_ref.current = false;
         set_step("recovery_email");
@@ -993,9 +995,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
       }
 
       if (!result.data.success) {
-        set_recovery_email_error(t("auth.failed_save_recovery_email"));
+        set_recovery_email_error(
+          result.error || t("auth.failed_save_recovery_email"),
+        );
         set_is_saving_recovery_email(false);
         saving_recovery_email_ref.current = false;
+        set_step("recovery_email");
 
         return;
       }
@@ -1003,6 +1008,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       set_recovery_email_error(t("auth.failed_save_recovery_email"));
       set_is_saving_recovery_email(false);
       saving_recovery_email_ref.current = false;
+      set_step("recovery_email");
 
       return;
     }

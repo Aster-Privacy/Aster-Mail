@@ -600,6 +600,7 @@ export interface CommonTranslations {
   step_up_security_key_hint: string;
   remove_recovery_email_confirm: string;
   recovery_email_removed: string;
+  recovery_email_hidden: string;
   failed_remove_recovery_email: string;
   profile_picture_updated: string;
   profile_picture_removed: string;

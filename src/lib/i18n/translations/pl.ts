@@ -1480,6 +1480,7 @@ export const pl = {
     remove_recovery_email_confirm:
       "Czy na pewno chcesz usunąć adres e-mail odzyskiwania? Nie będziesz już móc odzyskać konta przy użyciu tego adresu.",
     recovery_email_removed: "E-mail odzyskiwania został usunięty",
+    recovery_email_hidden: "Zapisano na tym koncie",
     failed_remove_recovery_email:
       "Nie udało się usunąć adresu e-mail odzyskiwania. Spróbuj jeszcze raz. Ustawienia odzyskiwania nie zostały zmienione.",
     failed_save_profile_color:

@@ -77,7 +77,10 @@ import {
   save_recovery_email,
   resend_recovery_verification,
   remove_recovery_email,
+  normalize_recovery_email,
+  EMPTY_RECOVERY_EMAIL,
 } from "@/services/api/recovery_email";
+import type { RecoveryEmailData } from "@/services/api/recovery_email";
 import {
   Select,
   SelectContent,
@@ -260,10 +263,8 @@ export function AccountSection() {
   const [name, set_name] = useState(user?.display_name || user?.username || "");
   const [saving_name, set_saving_name] = useState(false);
   const [avatar_hovered, set_avatar_hovered] = useState(false);
-  const [recovery, set_recovery] = useState<{
-    email: string | null;
-    verified: boolean;
-  }>({ email: null, verified: false });
+  const [recovery, set_recovery] =
+    useState<RecoveryEmailData>(EMPTY_RECOVERY_EMAIL);
   const [show_modal, set_show_modal] = useState(false);
   const [pending, set_pending] = useState(false);
   const [resending, set_resending] = useState(false);
@@ -306,9 +307,9 @@ export function AccountSection() {
             fetch_badge_preferences(),
             vault
               ? get_recovery_email(vault).catch(() => ({
-                  data: { email: null, verified: false },
+                  data: EMPTY_RECOVERY_EMAIL,
                 }))
-              : Promise.resolve({ data: { email: null, verified: false } }),
+              : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
             get_inactivity_settings(),
           ]);
 
@@ -389,27 +390,43 @@ export function AccountSection() {
   };
 
 
+  const request_recovery_step_up = (email: string) => {
+    set_pending_recovery_email(email);
+    set_step_up_mode("change");
+    set_show_step_up(true);
+  };
+
   const save_recovery = async (email: string) => {
     if (!vault) return;
 
-    if (recovery.email) {
-      set_pending_recovery_email(email);
-      set_step_up_mode("change");
-      set_show_step_up(true);
+    const normalized = normalize_recovery_email(email);
+
+    if (recovery.step_up_required) {
+      request_recovery_step_up(normalized);
 
       return;
     }
 
-    const r = await save_recovery_email(email, vault);
+    const r = await save_recovery_email(normalized, vault);
 
+    if (r.code === "STEP_UP_REQUIRED" || r.code === "TOTP_REQUIRED") {
+      request_recovery_step_up(normalized);
+
+      return;
+    }
     if (r.code === "CONFLICT") {
-      throw new Error(t("common.recovery_conflict"));
+      throw new Error(r.error || t("common.recovery_conflict"));
     }
     if (!r.data.success) {
       throw new Error(r.error || t("common.failed_to_save"));
     }
 
-    set_recovery({ email, verified: false });
+    set_recovery({
+      email: normalized,
+      verified: false,
+      exists: true,
+      step_up_required: false,
+    });
     set_pending(true);
   };
 
@@ -447,13 +464,18 @@ export function AccountSection() {
       );
 
       if (r.code === "CONFLICT") {
-        throw new Error(t("common.recovery_conflict"));
+        throw new Error(r.error || t("common.recovery_conflict"));
       }
       if (!r.data.success) {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
-      set_recovery({ email: pending_recovery_email, verified: false });
+      set_recovery({
+        email: pending_recovery_email,
+        verified: false,
+        exists: true,
+        step_up_required: false,
+      });
       set_pending(true);
       set_show_step_up(false);
     } else {
@@ -463,7 +485,7 @@ export function AccountSection() {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
-      set_recovery({ email: null, verified: false });
+      set_recovery(EMPTY_RECOVERY_EMAIL);
       set_pending(false);
       set_show_step_up(false);
       show_toast(t("common.recovery_email_removed"), "success");
@@ -480,7 +502,7 @@ export function AccountSection() {
         set_pending(true);
         show_toast(t("common.verification_email_sent"), "success");
       } else {
-        show_toast(t("common.failed_verification_email"), "error");
+        show_toast(r.error || t("common.failed_verification_email"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -797,10 +819,12 @@ export function AccountSection() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {recovery.email && (
+            {recovery.exists && (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-txt-secondary">
-                  {mask_email(recovery.email)}
+                  {recovery.email
+                    ? mask_email(recovery.email)
+                    : t("common.recovery_email_hidden")}
                 </span>
                 {recovery.verified ? (
                   <span className="flex items-center gap-1 text-xs text-green-500">
@@ -816,9 +840,9 @@ export function AccountSection() {
               </div>
             )}
             <Button variant="secondary" onClick={() => set_show_modal(true)}>
-              {recovery.email ? t("common.update") : t("common.add")}
+              {recovery.exists ? t("common.update") : t("common.add")}
             </Button>
-            {recovery.email && !recovery.verified && (
+            {recovery.exists && !recovery.verified && (
               <Button
                 disabled={resending}
                 variant="ghost"
@@ -827,7 +851,7 @@ export function AccountSection() {
                 {resending ? <Spinner size="md" /> : t("common.resend")}
               </Button>
             )}
-            {recovery.email && (
+            {recovery.exists && (
               <Button
                 variant="ghost"
                 onClick={() => {

@@ -1476,6 +1476,7 @@ export const ja = {
     remove_recovery_email_confirm:
       "復旧用メールアドレスを削除してもよろしいですか？このメールでアカウントを復旧できなくなります。",
     recovery_email_removed: "復旧用メールアドレスを削除しました",
+    recovery_email_hidden: "このアカウントに保存済み",
     failed_remove_recovery_email:
       "復旧用メールアドレスを削除できませんでした。もう一度試すと通ることが多いです。リカバリー設定には変更ありません。",
     failed_save_profile_color:
