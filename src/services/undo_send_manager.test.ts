@@ -41,6 +41,10 @@ describe("undo_send_manager conditional polling", () => {
       data: { emails: [] },
       error: null,
     } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sent" },
+      error: null,
+    } as never);
   });
 
   afterEach(() => {
@@ -130,5 +134,92 @@ describe("undo_send_manager conditional polling", () => {
 
     await vi.advanceTimersByTimeAsync(5_100);
     expect(mocked_api.get_pending).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("undo_send_manager send finalization", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mocked_api.get_pending.mockResolvedValue({
+      data: { emails: [] },
+      error: null,
+    } as never);
+  });
+
+  afterEach(() => {
+    undo_send_manager.destroy();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  async function queue_one(options: {
+    on_sent?: () => void;
+    on_error?: (error: string) => void;
+  }) {
+    const scheduled = new Date(Date.now() + 1_000);
+    const deadline = new Date(Date.now() + 900);
+
+    mocked_api.queue_email.mockResolvedValue({
+      data: {
+        queue_id: "q1",
+        scheduled_send_time: scheduled.toISOString(),
+        can_cancel_until: deadline.toISOString(),
+        delay_seconds: 1,
+      },
+      error: null,
+    } as never);
+
+    await undo_send_manager.queue_email(
+      {
+        to: ["ghost@realiased.me"],
+        cc: [],
+        bcc: [],
+        subject: "hi",
+        body: "b",
+        delay_seconds: 1,
+      } as never,
+      options,
+    );
+  }
+
+  it("waits for a terminal status instead of assuming the send succeeded", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status
+      .mockResolvedValueOnce({
+        data: { status: "sending" },
+        error: null,
+      } as never)
+      .mockResolvedValue({
+        data: { status: "failed", error_message: "encryption required" },
+        error: null,
+      } as never);
+
+    await queue_one({ on_sent, on_error });
+
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("encryption required");
+    expect(undo_send_manager.get_send("q1")).toBeUndefined();
+  });
+
+  it("reports a failure when the server drops the send from the pending list", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "failed", error_message: "delivery rejected" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent, on_error });
+    await undo_send_manager.sync_with_server();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("delivery rejected");
   });
 });

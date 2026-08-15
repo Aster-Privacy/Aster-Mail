@@ -21,6 +21,7 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
+import { GHOST_DOMAIN } from "./ghost_aliases";
 
 interface PublicKeyResponse {
   username: string;
@@ -238,7 +239,12 @@ export function extract_username_from_email(email: string): string | null {
   return parts[0];
 }
 
-const INTERNAL_DOMAINS = ["astermail.org", "aster.cx", "gs-cloud.space"];
+const INTERNAL_DOMAINS = [
+  "astermail.org",
+  "aster.cx",
+  "gs-cloud.space",
+  GHOST_DOMAIN,
+];
 
 export function is_internal_email(email: string): boolean {
   const lower_email = email.toLowerCase();
