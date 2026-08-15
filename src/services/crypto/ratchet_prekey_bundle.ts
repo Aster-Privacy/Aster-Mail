@@ -20,11 +20,11 @@
 //
 import { HASH_ALG } from "@/services/crypto/constants";
 import { api_client } from "../api/client";
-import { get_recipient_public_key } from "../api/keys";
 import { array_to_base64 } from "./base64";
 import { type EncryptedVault } from "./key_manager";
 import { PINNED_FINGERPRINTS, base64_to_array as core_base64_to_array, compute_hash, pin_fingerprint, verify_pinned_fingerprint } from "./key_manager_core";
-import { select_private_key_matching_public, sign_ratchet_prekey_bundle } from "./key_manager_pgp";
+import { sign_ratchet_prekey_bundle } from "./key_manager_pgp";
+import { select_published_signing_key } from "./published_signing_key";
 import { get_passphrase_from_memory } from "./memory_key_store";
 import { type PrekeyBundle } from "./x3dh";
 
@@ -166,33 +166,7 @@ async function legacy_prekey_signature(
 async function select_bundle_signing_key(
   vault: EncryptedVault,
 ): Promise<string> {
-  const candidates = [vault.identity_key, ...(vault.previous_keys ?? [])];
-
-  if (candidates.filter(Boolean).length <= 1) return vault.identity_key;
-
-  try {
-    const { get_current_account } = await import(
-      "@/services/account_manager"
-    );
-    const account = await get_current_account();
-    const email = account?.user?.email;
-
-    if (!email) return vault.identity_key;
-
-    const username = email.split("@")[0];
-    const response = await get_recipient_public_key(username, email);
-
-    if (!response.data?.public_key) return vault.identity_key;
-
-    const matching = await select_private_key_matching_public(
-      candidates,
-      response.data.public_key,
-    );
-
-    return matching ?? vault.identity_key;
-  } catch {
-    return vault.identity_key;
-  }
+  return select_published_signing_key(vault);
 }
 
 export async function upload_prekey_bundle(

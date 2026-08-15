@@ -30,6 +30,7 @@ import {
   build_protected_mime_entity,
   type ProtectedMimeAttachment,
 } from "./pgp_protected_mime";
+import { select_published_signing_key } from "./crypto/published_signing_key";
 
 export interface SignedMimePayload {
   signed_mime: string;
@@ -157,8 +158,9 @@ export async function build_signed_mime_payload(
   });
 
   const mime_bytes = text_encoder.encode(mime);
+  const armored_secret_key = await select_published_signing_key(vault);
   const signed = await sign_detached(mime_bytes, {
-    armored_secret_key: vault.identity_key,
+    armored_secret_key,
     passphrase,
   });
 
