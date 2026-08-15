@@ -66,6 +66,15 @@ let new_secret_key: string;
 let published_public_key: string;
 let rekeyed_vault: EncryptedVault;
 
+function vault_with(identity_key: string): EncryptedVault {
+  return {
+    identity_key,
+    signed_prekey: "",
+    signed_prekey_private: "",
+    recovery_codes: [],
+  };
+}
+
 async function signature_verifies(
   armored_secret_key: string,
   armored_public_key: string,
@@ -104,7 +113,7 @@ beforeAll(async () => {
 
   old_secret_key = original.secret_key;
 
-  const vault: EncryptedVault = { identity_key: old_secret_key };
+  const vault = vault_with(old_secret_key);
   const { new_vault } = await build_pgp_rekey(
     vault,
     password,
@@ -190,7 +199,7 @@ describe("select_published_signing_key after a pgp rekey", () => {
   });
 
   it("never looks up the server for a vault that has one key", async () => {
-    const untouched: EncryptedVault = { identity_key: old_secret_key };
+    const untouched = vault_with(old_secret_key);
 
     await expect(select_published_signing_key(untouched)).resolves.toBe(
       old_secret_key,
