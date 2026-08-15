@@ -20,7 +20,12 @@
 //
 import { useLayoutEffect, useEffect, useRef } from "react";
 
-import { use_mail_stats, type MailStats } from "./use_mail_stats";
+import {
+  use_mail_stats,
+  get_mail_stats_snapshot,
+  subscribe_mail_stats,
+  type MailStats,
+} from "./use_mail_stats";
 import { use_folders, type DecryptedFolder } from "./use_folders";
 
 import { use_auth_safe } from "@/contexts/auth_context";
@@ -82,39 +87,42 @@ const PRIORITY_OVERLAY = 10;
 // detail unmounting) immediately and reliably falls back to the base title.
 //
 interface TitleEntry {
-  title: string;
+  signature: string;
+  render: () => string;
   priority: number;
   seq: number;
 }
+
+const COUNT_PREFIX_PATTERN = /^\(\d[\d.,\s]*\)\s+/;
+const HEARTBEAT_MS = 30_000;
 
 class DocumentTitleController {
   private entries = new Map<string, TitleEntry>();
   private last_written: string | null = null;
   private seq_counter = 0;
 
-  set(id: string, title: string, priority: number): void {
-    const trimmed = title.trim();
-
-    if (!trimmed) {
-      this.remove(id);
-
-      return;
-    }
-
+  set(
+    id: string,
+    signature: string,
+    render: () => string,
+    priority: number,
+  ): void {
     const existing = this.entries.get(id);
 
     if (
       existing &&
-      existing.title === trimmed &&
+      existing.signature === signature &&
       existing.priority === priority
     ) {
+      existing.render = render;
       this.apply();
 
       return;
     }
 
     this.entries.set(id, {
-      title: trimmed,
+      signature,
+      render,
       priority,
       seq: ++this.seq_counter,
     });
@@ -132,7 +140,7 @@ class DocumentTitleController {
     this.apply();
   }
 
-  private apply(): void {
+  apply(): void {
     if (typeof document === "undefined") return;
 
     let best: TitleEntry | null = null;
@@ -147,9 +155,15 @@ class DocumentTitleController {
       }
     }
 
-    if (!best) return;
+    if (!best) {
+      this.drop_orphan_count();
 
-    const next = best.title;
+      return;
+    }
+
+    const next = best.render().trim();
+
+    if (!next) return;
 
     if (this.last_written === next && document.title === next) {
       return;
@@ -161,9 +175,32 @@ class DocumentTitleController {
       document.title = next;
     }
   }
+
+  private drop_orphan_count(): void {
+    const stripped = document.title.replace(COUNT_PREFIX_PATTERN, "");
+
+    if (stripped === document.title) return;
+
+    this.last_written = stripped;
+    document.title = stripped;
+  }
 }
 
 const title_controller = new DocumentTitleController();
+
+if (typeof window !== "undefined") {
+  subscribe_mail_stats(() => {
+    title_controller.apply();
+  });
+
+  window.addEventListener("focus", () => {
+    title_controller.reassert();
+  });
+
+  setInterval(() => {
+    title_controller.apply();
+  }, HEARTBEAT_MS);
+}
 
 if (typeof document !== "undefined") {
   document.addEventListener("visibilitychange", () => {
@@ -212,18 +249,8 @@ function build_view_title(
   view: string,
   counts: MailStats,
   workspace: string,
-  folders: DecryptedFolder[],
-  view_labels: Record<string, string>,
-  folder_fallback: string,
-  inbox_fallback: string,
+  label: string,
 ): string {
-  const label = get_view_label(
-    view,
-    folders,
-    view_labels,
-    folder_fallback,
-    inbox_fallback,
-  );
   const count_key = VIEW_COUNT_KEYS[view];
   const count = count_key ? (counts[count_key] ?? 0) : 0;
 
@@ -235,7 +262,7 @@ function build_view_title(
 export function use_document_title(options: DocumentTitleOptions = {}): void {
   const { view = "inbox", email_subject, custom_title } = options;
   const { t } = use_i18n();
-  const { stats: counts } = use_mail_stats();
+  use_mail_stats();
   const auth = use_auth_safe();
   const user = auth?.user ?? null;
   const { state: folder_state } = use_folders();
@@ -269,39 +296,54 @@ export function use_document_title(options: DocumentTitleOptions = {}): void {
   const user_name = user?.display_name || user?.username || "";
   const workspace = format_workspace_name(user_name, t);
 
-  let contribution: string;
+  const label = get_view_label(
+    view,
+    folder_state.folders,
+    view_labels,
+    t("common.folder_label"),
+    t("mail.inbox"),
+  );
+
+  let signature: string;
 
   if (is_overlay) {
     if (custom_title) {
-      contribution = `${custom_title} | ${workspace}`;
+      signature = `custom:${custom_title}|${workspace}`;
     } else if (email_subject) {
-      contribution = `${truncate_subject(email_subject)} | ${workspace}`;
+      signature = `subject:${truncate_subject(email_subject)}|${workspace}`;
     } else {
       // Overlay with nothing to show yet: contribute nothing so the base
       // inbox title is what the user sees.
-      contribution = "";
+      signature = "";
     }
   } else {
-    contribution = build_view_title(
-      view,
-      counts,
-      workspace,
-      folder_state.folders,
-      view_labels,
-      t("common.folder_label"),
-      t("mail.inbox"),
-    );
+    signature = `view:${view}|${label}|${workspace}`;
   }
+
+  const render_ref = useRef<() => string>(() => "");
+
+  render_ref.current = () => {
+    if (is_overlay) {
+      if (custom_title) return `${custom_title} | ${workspace}`;
+      if (email_subject) {
+        return `${truncate_subject(email_subject)} | ${workspace}`;
+      }
+
+      return "";
+    }
+
+    return build_view_title(view, get_mail_stats_snapshot(), workspace, label);
+  };
 
   useLayoutEffect(() => {
     const id = id_ref.current as string;
 
-    if (contribution) {
-      title_controller.set(id, contribution, priority);
+    if (signature) {
+      title_controller.set(id, signature, () => render_ref.current(), priority);
     } else {
       title_controller.remove(id);
     }
-  }, [contribution, priority]);
+  }, [signature, priority]);
 
   useEffect(() => {
     const id = id_ref.current as string;

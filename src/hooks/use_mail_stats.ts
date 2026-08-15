@@ -832,6 +832,10 @@ export function get_mail_stats_snapshot(): MailStats {
   return stats_store.get_cache().data;
 }
 
+export function subscribe_mail_stats(callback: () => void): () => void {
+  return stats_store.subscribe(callback);
+}
+
 export function adjust_stats_inbox(delta: number): void {
   stats_store.adjust("inbox", delta);
 }
