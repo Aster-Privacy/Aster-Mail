@@ -169,11 +169,23 @@ async function select_bundle_signing_key(
   return select_published_signing_key(vault);
 }
 
+export interface UploadPrekeyBundleResult {
+  ok: boolean;
+  code?: string;
+  error_message?: string;
+}
+
 export async function upload_prekey_bundle(
   vault: EncryptedVault,
 ): Promise<boolean> {
+  return (await upload_prekey_bundle_result(vault)).ok;
+}
+
+export async function upload_prekey_bundle_result(
+  vault: EncryptedVault,
+): Promise<UploadPrekeyBundleResult> {
   if (!vault.ratchet_identity_public || !vault.ratchet_signed_prekey_public) {
-    return false;
+    return { ok: false };
   }
 
   const passphrase = get_passphrase_from_memory();
@@ -209,5 +221,9 @@ export async function upload_prekey_bundle(
     pq_kem_public_key: vault.ratchet_pq_identity_public ?? null,
   });
 
-  return !response.error;
+  return {
+    ok: !response.error,
+    code: response.code,
+    error_message: response.error,
+  };
 }

@@ -33,8 +33,8 @@ import {
   generate_ratchet_keys,
   generate_pq_identity_keys,
   derive_pq_identity_from_seed,
-  upload_prekey_bundle,
 } from "./ratchet_manager";
+import { upload_prekey_bundle_result } from "./ratchet_prekey_bundle";
 import { merge_previous_ratchet_keys } from "./key_manager_core";
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
@@ -138,7 +138,14 @@ async function report_capability(): Promise<void> {
 
     if (!result || result.identity_verified) return;
 
-    const vault = get_vault_from_memory();
+    const freshness = await sync_vault_with_server();
+
+    if (freshness.status === "unverified") return;
+
+    const vault =
+      freshness.status === "adopted"
+        ? freshness.vault
+        : get_vault_from_memory();
 
     if (vault) await upload_prekey_bundle_with_retry(vault);
   } catch {
@@ -363,13 +370,156 @@ async function published_bundle_matches_vault(
   }
 }
 
+const IDENTITY_CONTINUITY_MARKER = "identity_continuity_required";
+
+interface ServerVaultView {
+  encrypted_vault?: string;
+  vault_nonce?: string;
+  vault_format?: number;
+}
+
+type VaultFreshness =
+  | { status: "current" }
+  | { status: "adopted"; vault: EncryptedVault }
+  | { status: "unverified" };
+
+type ServerVaultFetch =
+  | { kind: "ok"; encrypted_vault: string; vault_nonce: string }
+  | { kind: "missing" }
+  | { kind: "error" };
+
+async function fetch_server_vault(): Promise<ServerVaultFetch> {
+  try {
+    const response = await api_client.get<ServerVaultView>(
+      "/crypto/v1/keys/vault",
+    );
+
+    if (response.code === "NOT_FOUND" || response.code === "UNKNOWN_ERROR") {
+      return { kind: "missing" };
+    }
+
+    if (
+      response.error ||
+      !response.data?.encrypted_vault ||
+      !response.data.vault_nonce
+    ) {
+      return { kind: "error" };
+    }
+
+    return {
+      kind: "ok",
+      encrypted_vault: response.data.encrypted_vault,
+      vault_nonce: response.data.vault_nonce,
+    };
+  } catch {
+    return { kind: "error" };
+  }
+}
+
+async function sync_vault_with_server(): Promise<VaultFreshness> {
+  const account = await get_current_account();
+  const user_id = account?.user?.id;
+
+  if (!user_id) return { status: "unverified" };
+
+  const server_vault = await fetch_server_vault();
+
+  if (server_vault.kind === "missing") return { status: "current" };
+
+  if (server_vault.kind === "error") return { status: "unverified" };
+
+  const stored = get_stored_account_vault(user_id);
+
+  if (
+    stored &&
+    stored.encrypted_vault === server_vault.encrypted_vault &&
+    stored.vault_nonce === server_vault.vault_nonce
+  ) {
+    return { status: "current" };
+  }
+
+  const passphrase = get_passphrase_from_memory();
+
+  if (!passphrase) return { status: "unverified" };
+
+  let adopted: EncryptedVault;
+
+  try {
+    adopted = await decrypt_vault(
+      server_vault.encrypted_vault,
+      server_vault.vault_nonce,
+      passphrase,
+    );
+  } catch {
+    return { status: "unverified" };
+  }
+
+  await store_vault_in_memory(adopted, passphrase, user_id);
+
+  try {
+    localStorage.setItem(
+      `astermail_encrypted_vault_${user_id}`,
+      server_vault.encrypted_vault,
+    );
+    localStorage.setItem(
+      `astermail_vault_nonce_${user_id}`,
+      server_vault.vault_nonce,
+    );
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/ensure_ratchet_keys:sync_vault_with_server",
+      caught,
+    );
+  }
+
+  return { status: "adopted", vault: adopted };
+}
+
+async function refresh_vault_write_stamp(): Promise<boolean> {
+  const account = await get_current_account();
+  const user_id = account?.user?.id;
+
+  if (!user_id) return false;
+
+  const stored = get_stored_account_vault(user_id);
+
+  if (!stored) return false;
+
+  const server_vault = await fetch_server_vault();
+
+  if (
+    server_vault.kind !== "ok" ||
+    server_vault.encrypted_vault !== stored.encrypted_vault ||
+    server_vault.vault_nonce !== stored.vault_nonce
+  ) {
+    return false;
+  }
+
+  const vault = get_vault_from_memory();
+
+  return push_vault_to_server(
+    stored.encrypted_vault,
+    stored.vault_nonce,
+    user_id,
+    vault?.vault_format,
+  );
+}
+
 async function upload_prekey_bundle_with_retry(
   vault: EncryptedVault,
 ): Promise<boolean> {
   try {
-    if (await upload_prekey_bundle(vault)) return true;
+    const first = await upload_prekey_bundle_result(vault);
 
-    return await upload_prekey_bundle(vault);
+    if (first.ok) return true;
+
+    if (first.error_message?.includes(IDENTITY_CONTINUITY_MARKER)) {
+      if (!(await refresh_vault_write_stamp())) return false;
+
+      return (await upload_prekey_bundle_result(vault)).ok;
+    }
+
+    return (await upload_prekey_bundle_result(vault)).ok;
   } catch {
     return false;
   }
@@ -380,8 +530,15 @@ function run(): Promise<boolean> {
 }
 
 async function run_locked(): Promise<boolean> {
+  return run_locked_with_vault(get_vault_from_memory(), true);
+}
+
+async function run_locked_with_vault(
+  initial_vault: EncryptedVault | null,
+  allow_adoption: boolean,
+): Promise<boolean> {
   try {
-    const vault = get_vault_from_memory();
+    const vault = initial_vault;
 
     if (!vault) return false;
 
@@ -423,6 +580,16 @@ async function run_locked(): Promise<boolean> {
       const bundle_matches = await published_bundle_matches_vault(vault);
 
       if (bundle_matches !== true) {
+        const freshness = await sync_vault_with_server();
+
+        if (freshness.status === "unverified") return true;
+
+        if (freshness.status === "adopted") {
+          return allow_adoption
+            ? run_locked_with_vault(freshness.vault, false)
+            : true;
+        }
+
         await upload_prekey_bundle_with_retry(vault);
       }
 
@@ -445,6 +612,16 @@ async function run_locked(): Promise<boolean> {
     );
 
     if (!passphrase_ok) return false;
+
+    const freshness = await sync_vault_with_server();
+
+    if (freshness.status === "unverified") return false;
+
+    if (freshness.status === "adopted") {
+      return allow_adoption
+        ? run_locked_with_vault(freshness.vault, false)
+        : false;
+    }
 
     const next_vault: EncryptedVault = {
       ...vault,

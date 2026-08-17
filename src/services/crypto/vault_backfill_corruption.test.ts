@@ -59,6 +59,10 @@ vi.mock("../account_manager", () => ({
   get_current_account: async () => ({ user: { id: h.state.account_id } }),
 }));
 
+vi.mock("./ratchet_prekey_bundle", () => ({
+  upload_prekey_bundle_result: async () => ({ ok: true }),
+}));
+
 vi.mock("../api/client", () => ({
   api_client: {
     put: async (
@@ -71,6 +75,23 @@ vi.mock("../api/client", () => ({
       });
 
       return {};
+    },
+    get: async () => {
+      const last = h.put_calls.length
+        ? h.put_calls[h.put_calls.length - 1]
+        : null;
+      const encrypted_vault =
+        last?.encrypted_vault ??
+        localStorage.getItem(`astermail_encrypted_vault_${h.state.account_id}`);
+      const vault_nonce =
+        last?.vault_nonce ??
+        localStorage.getItem(`astermail_vault_nonce_${h.state.account_id}`);
+
+      if (!encrypted_vault || !vault_nonce) {
+        return { error: "Resource not found", code: "NOT_FOUND" };
+      }
+
+      return { data: { encrypted_vault, vault_nonce } };
     },
   },
 }));
@@ -145,6 +166,33 @@ describe("ratchet backfill vault corruption", () => {
     );
 
     expect(decrypted.identity_key).toBe("identity-A");
+    expect(decrypted.ratchet_identity_key).toBeTruthy();
+  });
+
+  it("adopts a newer server vault instead of overwriting it from a stale client", async () => {
+    const newer_vault: EncryptedVault = {
+      ...base_vault(),
+      recovery_codes: ["newer-code"],
+    };
+    const newer = await encrypt_vault(newer_vault, REAL_PASSWORD);
+
+    h.put_calls.push({
+      encrypted_vault: newer.encrypted_vault,
+      vault_nonce: newer.vault_nonce,
+    });
+    h.state.vault = base_vault();
+    h.state.passphrase = REAL_PASSWORD;
+
+    await ensure_ratchet_keys();
+
+    const server = authoritative_server_vault();
+    const decrypted = await decrypt_vault(
+      server.encrypted_vault,
+      server.vault_nonce,
+      REAL_PASSWORD,
+    );
+
+    expect(decrypted.recovery_codes).toEqual(["newer-code"]);
     expect(decrypted.ratchet_identity_key).toBeTruthy();
   });
 });
