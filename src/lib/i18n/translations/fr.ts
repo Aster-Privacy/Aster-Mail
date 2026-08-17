@@ -21,16 +21,25 @@
 export const fr = {
   common: {
     delete_folder_account_password: "Mot de passe du compte",
-    delete_folder_step_up_hint: "Ce dossier est protégé par un mot de passe. Saisissez le mot de passe de votre compte pour le supprimer.",
+    delete_folder_step_up_hint:
+      "Ce dossier est protégé par un mot de passe. Saisissez le mot de passe de votre compte pour le supprimer.",
     delete_folder_totp_code: "Code d'authentification à deux facteurs",
-    delete_folder_purge_option: "Détruire définitivement les messages qu'il contient",
-    delete_folder_purge_warning: "Les messages purgés sont détruits sur tous les appareils et ne peuvent pas être récupérés.",
-    delete_folder_purge_acknowledge: "Je comprends que ces messages ne pourront pas être récupérés.",
-    delete_folder_purged_items: "Dossier supprimé et {count} messages détruits définitivement.",
-    delete_folder_deleted_no_purge: "Dossier supprimé. Les messages qu'il contenait restent dans votre compte.",
-    delete_folder_password_required: "Saisissez le mot de passe de votre compte.",
-    delete_folder_totp_required: "Saisissez votre code d'authentification à deux facteurs.",
-    delete_folder_verification_failed: "Vérifiez votre mot de passe et votre code, puis réessayez.",
+    delete_folder_purge_option:
+      "Détruire définitivement les messages qu'il contient",
+    delete_folder_purge_warning:
+      "Les messages purgés sont détruits sur tous les appareils et ne peuvent pas être récupérés.",
+    delete_folder_purge_acknowledge:
+      "Je comprends que ces messages ne pourront pas être récupérés.",
+    delete_folder_purged_items:
+      "Dossier supprimé et {count} messages détruits définitivement.",
+    delete_folder_deleted_no_purge:
+      "Dossier supprimé. Les messages qu'il contenait restent dans votre compte.",
+    delete_folder_password_required:
+      "Saisissez le mot de passe de votre compte.",
+    delete_folder_totp_required:
+      "Saisissez votre code d'authentification à deux facteurs.",
+    delete_folder_verification_failed:
+      "Vérifiez votre mot de passe et votre code, puis réessayez.",
     qr_code: "Code QR",
     profile_picture_removed: "Photo de profil supprimée",
     failed_remove_profile_picture:
@@ -1602,8 +1611,7 @@ export const fr = {
     pending_deletion_body:
       "Votre compte est programmé pour la suppression. Annulez la suppression pour conserver votre compte et retrouver l'accès à votre courrier.",
     pending_deletion_sign_out: "Se déconnecter",
-    pending_deletion_error:
-      "Impossible de restaurer votre compte. Réessayez.",
+    pending_deletion_error: "Impossible de restaurer votre compte. Réessayez.",
     pending_deletion_keep: "Conserver le compte",
     pending_deletion_title: "Suppression du compte en attente",
     permission_denied: "Permission refusée",
@@ -1716,7 +1724,8 @@ export const fr = {
   },
   settings: {
     purge_locked_folder_on_delete: "Purger le contenu des dossiers protégés",
-    purge_locked_folder_on_delete_description: "Présélectionne la destruction définitive des messages lorsque vous supprimez un dossier protégé par mot de passe",
+    purge_locked_folder_on_delete_description:
+      "Présélectionne la destruction définitive des messages lorsque vous supprimez un dossier protégé par mot de passe",
     settings_view_mode: "Affichage des paramètres",
     settings_view_mode_description:
       "Ouvrir les paramètres en pleine page ou en fenêtre contextuelle",
@@ -1766,21 +1775,25 @@ export const fr = {
     recovery_status_at_risk:
       "À risque : aucune méthode de récupération hors ligne",
     recovery_status_at_risk_desc:
-      "Sans phrase ou codes de récupération, oublier votre mot de passe verrouille définitivement vos e-mails chiffrés.",
-    recovery_phrase_row: "Phrase de récupération",
-    recovery_phrase_row_desc:
-      "Une phrase de 12 mots qui restaure votre compte et toutes vos données chiffrées.",
-    recovery_phrase_generate: "Générer la phrase",
-    recovery_phrase_regenerate: "Régénérer la phrase",
-    recovery_phrase_regenerate_warning:
-      "La régénération crée une nouvelle phrase et invalide définitivement l'ancienne.",
-    recovery_phrase_active: "Active",
-    recovery_phrase_not_set: "Non définie",
-    recovery_phrase_saved_confirm:
-      "Enregistrez la nouvelle phrase avant de fermer. Elle n'est affichée qu'une seule fois.",
-    legacy_codes_row: "Codes de récupération (anciens)",
-    legacy_codes_row_desc:
-      "Vos codes de récupération ASTER existants restent valides. Les nouveaux comptes utilisent désormais la phrase de récupération.",
+      "Sans codes de récupération, oublier votre mot de passe verrouille définitivement vos e-mails chiffrés.",
+    recovery_codes_row: "Codes de récupération",
+    recovery_codes_row_desc:
+      "Six codes à usage unique qui restaurent votre compte et toutes vos données chiffrées.",
+    recovery_codes_generate: "Générer les codes",
+    recovery_codes_regenerate: "Régénérer les codes",
+    recovery_codes_regenerate_warning:
+      "La régénération crée de nouveaux codes et invalide définitivement les anciens.",
+    recovery_method_active: "Actif",
+    recovery_method_not_set: "Non défini",
+    recovery_codes_saved_confirm:
+      "Enregistrez les nouveaux codes avant de fermer. Ils ne sont affichés qu'une seule fois.",
+    recovery_codes_saved_checkbox:
+      "J'ai enregistré mes codes de récupération en lieu sûr.",
+    recovery_codes_save_failed:
+      "Vos codes de récupération n'ont pas pu être enregistrés sur le serveur. Réessayez.",
+    legacy_phrase_row: "Phrase de récupération (ancienne)",
+    legacy_phrase_row_desc:
+      "Votre phrase de récupération existante reste valide. Les codes de récupération la remplacent désormais.",
     recovery_email_row_moved_hint:
       "Les paramètres de l'e-mail de récupération ont été déplacés vers Sécurité > Récupération du compte",
     recover_older_data_title: "Récupérer les données antérieures",
@@ -2449,20 +2462,29 @@ export const fr = {
     alias_delivery_label_none: "Aucune étiquette",
     alias_delivery_label_missing: "Étiquette supprimée",
     alias_apply_existing: "Appliquer aux e-mails existants",
-    alias_apply_existing_desc: "Classez les e-mails déjà reçus par cet alias dans le dossier et l'étiquette que vous avez choisis.",
-    alias_apply_existing_info: "Cette action applique le dossier de distribution et l'étiquette ci-dessus aux e-mails déjà présents dans votre compte. Elle s'exécute en arrière-plan, et vos règles de messagerie ne sont pas réexécutées.",
+    alias_apply_existing_desc:
+      "Classez les e-mails déjà reçus par cet alias dans le dossier et l'étiquette que vous avez choisis.",
+    alias_apply_existing_info:
+      "Cette action applique le dossier de distribution et l'étiquette ci-dessus aux e-mails déjà présents dans votre compte. Elle s'exécute en arrière-plan, et vos règles de messagerie ne sont pas réexécutées.",
     alias_apply_existing_action: "Appliquer",
     alias_apply_existing_cancel: "Arrêter",
-    alias_apply_existing_started: "Application de vos paramètres de distribution aux e-mails existants. L'opération s'exécute en arrière-plan.",
-    alias_apply_existing_failed: "Impossible de lancer l'application de ces paramètres.",
+    alias_apply_existing_started:
+      "Application de vos paramètres de distribution aux e-mails existants. L'opération s'exécute en arrière-plan.",
+    alias_apply_existing_failed:
+      "Impossible de lancer l'application de ces paramètres.",
     alias_apply_existing_cancel_failed: "Impossible d'arrêter cette opération.",
     alias_apply_existing_queued: "En file d'attente...",
-    alias_apply_existing_progress: "Application : {{scanned}} analysés, {{applied}} mis à jour",
-    alias_apply_existing_progress_total: "Application : {{scanned}} sur {{total}} analysés, {{applied}} mis à jour",
-    alias_apply_existing_done: "Terminé : {{scanned}} analysés, {{applied}} mis à jour",
+    alias_apply_existing_progress:
+      "Application : {{scanned}} analysés, {{applied}} mis à jour",
+    alias_apply_existing_progress_total:
+      "Application : {{scanned}} sur {{total}} analysés, {{applied}} mis à jour",
+    alias_apply_existing_done:
+      "Terminé : {{scanned}} analysés, {{applied}} mis à jour",
     alias_apply_existing_canceled: "Arrêté : {{applied}} mis à jour",
-    alias_apply_existing_error: "L'application aux e-mails existants a échoué. Réessayez.",
-    alias_apply_existing_unavailable: "Les e-mails déjà présents dans votre compte ne peuvent pas être déplacés vers Spam.",
+    alias_apply_existing_error:
+      "L'application aux e-mails existants a échoué. Réessayez.",
+    alias_apply_existing_unavailable:
+      "Les e-mails déjà présents dans votre compte ne peuvent pas être déplacés vers Spam.",
     alias_delivery_label_error: "Ce réglage n'a pas été enregistré. Réessayez.",
     alias_delivery_rule_note:
       'La règle "{{ rule }}" déplace déjà les messages de cet alias vers {{ target }}.',
@@ -4276,7 +4298,8 @@ export const fr = {
     submit: "Soumettre",
     enter_strong_password: "Saisir un mot de passe fort",
     re_enter_password: "Ressaisir votre mot de passe",
-    keep_saved_password: "Laissez vide pour conserver le mot de passe enregistré",
+    keep_saved_password:
+      "Laissez vide pour conserver le mot de passe enregistré",
     enter_your_password: "Saisir votre mot de passe",
     enter_current_password_folder: "Saisir le mot de passe actuel",
     enter_new_password_folder: "Saisir le nouveau mot de passe",

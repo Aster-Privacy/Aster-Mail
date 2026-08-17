@@ -22,16 +22,23 @@
 export const it = {
   common: {
     delete_folder_account_password: "Password dell'account",
-    delete_folder_step_up_hint: "Questa cartella è protetta da password. Inserisca la password del suo account per eliminarla.",
+    delete_folder_step_up_hint:
+      "Questa cartella è protetta da password. Inserisca la password del suo account per eliminarla.",
     delete_folder_totp_code: "Codice di autenticazione a due fattori",
     delete_folder_purge_option: "Distruggi definitivamente la posta contenuta",
-    delete_folder_purge_warning: "La posta eliminata definitivamente viene distrutta su ogni dispositivo e non può essere recuperata.",
-    delete_folder_purge_acknowledge: "Capisco che questa posta non può essere recuperata.",
-    delete_folder_purged_items: "Cartella eliminata e {count} messaggi distrutti definitivamente.",
-    delete_folder_deleted_no_purge: "Cartella eliminata. La posta al suo interno resta nel suo account.",
+    delete_folder_purge_warning:
+      "La posta eliminata definitivamente viene distrutta su ogni dispositivo e non può essere recuperata.",
+    delete_folder_purge_acknowledge:
+      "Capisco che questa posta non può essere recuperata.",
+    delete_folder_purged_items:
+      "Cartella eliminata e {count} messaggi distrutti definitivamente.",
+    delete_folder_deleted_no_purge:
+      "Cartella eliminata. La posta al suo interno resta nel suo account.",
     delete_folder_password_required: "Inserisca la password del suo account.",
-    delete_folder_totp_required: "Inserisca il codice di autenticazione a due fattori.",
-    delete_folder_verification_failed: "Controlli password e codice, poi riprovi.",
+    delete_folder_totp_required:
+      "Inserisca il codice di autenticazione a due fattori.",
+    delete_folder_verification_failed:
+      "Controlli password e codice, poi riprovi.",
     qr_code: "Codice QR",
     profile_picture_removed: "Immagine del profilo rimossa",
     failed_remove_profile_picture:
@@ -1738,8 +1745,10 @@ export const it = {
     or: "or",
   },
   settings: {
-    purge_locked_folder_on_delete: "Elimina il contenuto delle cartelle protette",
-    purge_locked_folder_on_delete_description: "Preseleziona la distruzione definitiva della posta contenuta quando elimina una cartella protetta da password",
+    purge_locked_folder_on_delete:
+      "Elimina il contenuto delle cartelle protette",
+    purge_locked_folder_on_delete_description:
+      "Preseleziona la distruzione definitiva della posta contenuta quando elimina una cartella protetta da password",
     settings_view_mode: "Vista impostazioni",
     settings_view_mode_description:
       "Apri le impostazioni a pagina intera o in una finestra popup",
@@ -1788,21 +1797,25 @@ export const it = {
       "Ha un metodo di recupero dei dati. Se dimentica la password, la sua posta crittografata non andrà persa.",
     recovery_status_at_risk: "A rischio: nessun metodo di recupero offline",
     recovery_status_at_risk_desc:
-      "Senza una frase di recupero o dei codici di recupero, dimenticare la password blocca per sempre la sua posta crittografata.",
-    recovery_phrase_row: "Frase di recupero",
-    recovery_phrase_row_desc:
-      "Una frase di 12 parole che ripristina il suo account e tutti i dati crittografati.",
-    recovery_phrase_generate: "Genera frase",
-    recovery_phrase_regenerate: "Rigenera frase",
-    recovery_phrase_regenerate_warning:
-      "La rigenerazione crea una nuova frase e invalida definitivamente quella precedente.",
-    recovery_phrase_active: "Attiva",
-    recovery_phrase_not_set: "Non impostata",
-    recovery_phrase_saved_confirm:
-      "Salvi la nuova frase prima di chiudere. Viene mostrata una sola volta.",
-    legacy_codes_row: "Codici di recupero (precedenti)",
-    legacy_codes_row_desc:
-      "I suoi codici di recupero ASTER esistenti restano validi. I nuovi account usano invece la frase di recupero.",
+      "Senza codici di recupero, dimenticare la password blocca per sempre la sua posta crittografata.",
+    recovery_codes_row: "Codici di recupero",
+    recovery_codes_row_desc:
+      "Sei codici monouso che ripristinano il suo account e tutti i dati crittografati.",
+    recovery_codes_generate: "Genera codici",
+    recovery_codes_regenerate: "Rigenera codici",
+    recovery_codes_regenerate_warning:
+      "La rigenerazione crea nuovi codici e invalida definitivamente quelli precedenti.",
+    recovery_method_active: "Attivo",
+    recovery_method_not_set: "Non impostato",
+    recovery_codes_saved_confirm:
+      "Salvi i nuovi codici prima di chiudere. Vengono mostrati una sola volta.",
+    recovery_codes_saved_checkbox:
+      "Ho salvato i miei codici di recupero in un luogo sicuro.",
+    recovery_codes_save_failed:
+      "Non è stato possibile salvare i suoi codici di recupero sul server. Riprovi.",
+    legacy_phrase_row: "Frase di recupero (precedente)",
+    legacy_phrase_row_desc:
+      "La sua frase di recupero esistente resta valida. D'ora in poi si usano i codici di recupero.",
     recovery_email_row_moved_hint:
       "Le impostazioni dell'email di recupero sono state spostate in Sicurezza > Recupero account",
     recover_older_data_title: "Recupera i dati precedenti",
@@ -2462,20 +2475,30 @@ export const it = {
     alias_delivery_label_none: "Nessuna etichetta",
     alias_delivery_label_missing: "Etichetta eliminata",
     alias_apply_existing: "Applica alla posta esistente",
-    alias_apply_existing_desc: "Sposta la posta già ricevuta da questo alias nella cartella e nell'etichetta che hai scelto.",
-    alias_apply_existing_info: "Questa azione applica la cartella di consegna e l'etichetta qui sopra alla posta già presente nel tuo account. Viene eseguita in background e le tue regole di posta non vengono rieseguite.",
+    alias_apply_existing_desc:
+      "Sposta la posta già ricevuta da questo alias nella cartella e nell'etichetta che hai scelto.",
+    alias_apply_existing_info:
+      "Questa azione applica la cartella di consegna e l'etichetta qui sopra alla posta già presente nel tuo account. Viene eseguita in background e le tue regole di posta non vengono rieseguite.",
     alias_apply_existing_action: "Applica ora",
     alias_apply_existing_cancel: "Interrompi",
-    alias_apply_existing_started: "Applicazione delle impostazioni di consegna alla posta esistente. L'operazione viene eseguita in background.",
-    alias_apply_existing_failed: "Impossibile avviare l'applicazione di queste impostazioni.",
-    alias_apply_existing_cancel_failed: "Impossibile interrompere questa operazione.",
+    alias_apply_existing_started:
+      "Applicazione delle impostazioni di consegna alla posta esistente. L'operazione viene eseguita in background.",
+    alias_apply_existing_failed:
+      "Impossibile avviare l'applicazione di queste impostazioni.",
+    alias_apply_existing_cancel_failed:
+      "Impossibile interrompere questa operazione.",
     alias_apply_existing_queued: "In coda...",
-    alias_apply_existing_progress: "Applicazione: {{scanned}} analizzati, {{applied}} aggiornati",
-    alias_apply_existing_progress_total: "Applicazione: {{scanned}} di {{total}} analizzati, {{applied}} aggiornati",
-    alias_apply_existing_done: "Fatto: {{scanned}} analizzati, {{applied}} aggiornati",
+    alias_apply_existing_progress:
+      "Applicazione: {{scanned}} analizzati, {{applied}} aggiornati",
+    alias_apply_existing_progress_total:
+      "Applicazione: {{scanned}} di {{total}} analizzati, {{applied}} aggiornati",
+    alias_apply_existing_done:
+      "Fatto: {{scanned}} analizzati, {{applied}} aggiornati",
     alias_apply_existing_canceled: "Interrotto: {{applied}} aggiornati",
-    alias_apply_existing_error: "Applicazione alla posta esistente non riuscita. Riprova.",
-    alias_apply_existing_unavailable: "La posta già presente nel tuo account non può essere spostata in Spam.",
+    alias_apply_existing_error:
+      "Applicazione alla posta esistente non riuscita. Riprova.",
+    alias_apply_existing_unavailable:
+      "La posta già presente nel tuo account non può essere spostata in Spam.",
     alias_delivery_label_error: "L'impostazione non è stata salvata. Riprova.",
     alias_delivery_rule_note:
       'La regola "{{ rule }}" sposta già la posta di questo alias in {{ target }}.',

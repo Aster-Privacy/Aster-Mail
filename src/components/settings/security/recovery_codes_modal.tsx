@@ -41,16 +41,21 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { api_client } from "@/services/api/client";
 import { base64_to_array } from "@/services/crypto/base64";
-import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
+import {
+  derive_password_hash,
+  generate_recovery_codes,
+} from "@/services/crypto/key_manager_pgp";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
-  generate_recovery_phrase,
-  wrap_vault_with_phrase,
-} from "@/services/crypto/recovery_phrase";
-import { save_phrase_wrap } from "@/services/api/recovery";
+  generate_recovery_key,
+  encrypt_vault_backup,
+  generate_all_recovery_shares,
+  clear_recovery_key,
+} from "@/services/crypto/recovery_key";
+import { save_recovery_backup } from "@/services/api/recovery";
 import {
-  generate_recovery_phrase_pdf,
-  download_recovery_phrase_text,
+  generate_recovery_pdf,
+  download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 
 interface SaltResponse {
@@ -62,19 +67,19 @@ interface VerifyPasswordResponse {
   verified: boolean;
 }
 
-interface RecoveryPhraseModalProps {
-  has_phrase: boolean;
+interface RecoveryCodesModalProps {
+  has_codes: boolean;
   is_open: boolean;
   on_close: () => void;
   on_saved: () => void;
 }
 
-export function RecoveryPhraseModal({
-  has_phrase,
+export function RecoveryCodesModal({
+  has_codes,
   is_open,
   on_close,
   on_saved,
-}: RecoveryPhraseModalProps) {
+}: RecoveryCodesModalProps) {
   const { t } = use_i18n();
   const { user } = use_auth();
   const [step, set_step] = useState<"verify" | "show">("verify");
@@ -83,8 +88,8 @@ export function RecoveryPhraseModal({
   const [totp_required, set_totp_required] = useState(false);
   const [error, set_error] = useState("");
   const [is_working, set_is_working] = useState(false);
-  const [phrase, set_phrase] = useState("");
-  const [is_phrase_visible, set_is_phrase_visible] = useState(false);
+  const [codes, set_codes] = useState<string[]>([]);
+  const [are_codes_visible, set_are_codes_visible] = useState(false);
   const [saved_checkbox, set_saved_checkbox] = useState(false);
   const working_ref = useRef(false);
   const input_ref = useRef<HTMLInputElement>(null);
@@ -97,12 +102,12 @@ export function RecoveryPhraseModal({
       set_totp_required(false);
       set_error("");
       set_is_working(false);
-      set_phrase("");
-      set_is_phrase_visible(false);
+      set_codes([]);
+      set_are_codes_visible(false);
       set_saved_checkbox(false);
       setTimeout(() => input_ref.current?.focus(), 100);
     } else {
-      set_phrase("");
+      set_codes([]);
       set_password("");
     }
   }, [is_open]);
@@ -181,32 +186,40 @@ export function RecoveryPhraseModal({
         return;
       }
 
-      const new_phrase = generate_recovery_phrase();
-      const wrap = await wrap_vault_with_phrase(
-        JSON.stringify(vault),
-        new_phrase,
-      );
+      const new_codes = generate_recovery_codes(6);
+      const recovery_key = generate_recovery_key();
 
-      const save_response = await save_phrase_wrap(
-        hash,
-        wrap.verifier_hash,
-        wrap.wrapped_vault,
-        wrap.wrap_nonce,
-        wrap.wrap_salt,
-      );
+      try {
+        const new_backup = await encrypt_vault_backup(vault, recovery_key);
+        const new_shares = await generate_all_recovery_shares(
+          new_codes,
+          recovery_key,
+        );
 
-      if (save_response.error || !save_response.data?.success) {
-        set_error(save_response.error || t("settings.phrase_wrap_save_failed"));
+        const save_response = await save_recovery_backup(
+          new_backup.encrypted_data,
+          new_backup.nonce,
+          new_backup.salt,
+          new_shares,
+        );
 
-        return;
+        if (save_response.error || !save_response.data?.success) {
+          set_error(
+            save_response.error || t("settings.recovery_codes_save_failed"),
+          );
+
+          return;
+        }
+      } finally {
+        clear_recovery_key(recovery_key);
       }
 
-      set_phrase(new_phrase);
+      set_codes(new_codes);
       set_step("show");
       on_saved();
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-      set_error(t("settings.phrase_wrap_save_failed"));
+      set_error(t("settings.recovery_codes_save_failed"));
     } finally {
       working_ref.current = false;
       set_is_working(false);
@@ -214,15 +227,9 @@ export function RecoveryPhraseModal({
   };
 
   const handle_copy = async () => {
-    if (!is_phrase_visible) {
-      show_toast(t("auth.recovery_phrase_reveal"), "info");
-
-      return;
-    }
-
     try {
-      await navigator.clipboard.writeText(phrase);
-      show_toast(t("auth.recovery_phrase_copied"), "success");
+      await navigator.clipboard.writeText(codes.join("\n"));
+      show_toast(t("auth.recovery_codes_copied"), "success");
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
     }
@@ -230,7 +237,7 @@ export function RecoveryPhraseModal({
 
   const handle_download_pdf = async () => {
     try {
-      await generate_recovery_phrase_pdf(user?.email ?? "", phrase, t);
+      await generate_recovery_pdf(user?.email ?? "", codes, t);
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
     }
@@ -238,7 +245,7 @@ export function RecoveryPhraseModal({
 
   const handle_download_text = async () => {
     try {
-      await download_recovery_phrase_text(user?.email ?? "", phrase, t);
+      await download_recovery_text(user?.email ?? "", codes, t);
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
     }
@@ -248,8 +255,6 @@ export function RecoveryPhraseModal({
     if (working_ref.current) return;
     on_close();
   }, [on_close]);
-
-  const words = phrase ? phrase.split(" ") : [];
 
   return (
     <Modal
@@ -262,14 +267,14 @@ export function RecoveryPhraseModal({
         <>
           <ModalHeader>
             <ModalTitle>
-              {has_phrase
-                ? t("settings.recovery_phrase_regenerate")
-                : t("settings.recovery_phrase_generate")}
+              {has_codes
+                ? t("settings.recovery_codes_regenerate")
+                : t("settings.recovery_codes_generate")}
             </ModalTitle>
             <ModalDescription>
-              {has_phrase
-                ? t("settings.recovery_phrase_regenerate_warning")
-                : t("settings.recovery_phrase_row_desc")}
+              {has_codes
+                ? t("settings.recovery_codes_regenerate_warning")
+                : t("settings.recovery_codes_row_desc")}
             </ModalDescription>
           </ModalHeader>
           <ModalBody>
@@ -277,7 +282,7 @@ export function RecoveryPhraseModal({
               <div>
                 <label
                   className="text-sm font-medium block mb-2 text-txt-primary"
-                  htmlFor="phrase-current-password"
+                  htmlFor="codes-current-password"
                 >
                   {t("settings.current_password")}
                 </label>
@@ -285,7 +290,7 @@ export function RecoveryPhraseModal({
                   ref={input_ref}
                   autoComplete="current-password"
                   disabled={is_working}
-                  id="phrase-current-password"
+                  id="codes-current-password"
                   status={error ? "error" : "default"}
                   type="password"
                   value={password}
@@ -300,7 +305,7 @@ export function RecoveryPhraseModal({
                 <div>
                   <label
                     className="text-sm font-medium block mb-2 text-txt-primary"
-                    htmlFor="phrase-totp-code"
+                    htmlFor="codes-totp-code"
                   >
                     {t("settings.authenticator_code")}
                   </label>
@@ -308,7 +313,7 @@ export function RecoveryPhraseModal({
                     autoComplete="one-time-code"
                     className="text-center text-2xl font-semibold tracking-[0.5em]"
                     disabled={is_working}
-                    id="phrase-totp-code"
+                    id="codes-totp-code"
                     inputMode="numeric"
                     maxLength={6}
                     placeholder="000000"
@@ -343,18 +348,18 @@ export function RecoveryPhraseModal({
             >
               {is_working
                 ? t("common.verifying")
-                : has_phrase
-                  ? t("settings.recovery_phrase_regenerate")
-                  : t("settings.recovery_phrase_generate")}
+                : has_codes
+                  ? t("settings.recovery_codes_regenerate")
+                  : t("settings.recovery_codes_generate")}
             </Button>
           </ModalFooter>
         </>
       ) : (
         <>
           <ModalHeader>
-            <ModalTitle>{t("auth.recovery_phrase_title")}</ModalTitle>
+            <ModalTitle>{t("auth.save_recovery_codes")}</ModalTitle>
             <ModalDescription>
-              {t("settings.recovery_phrase_saved_confirm")}
+              {t("settings.recovery_codes_saved_confirm")}
             </ModalDescription>
           </ModalHeader>
           <ModalBody>
@@ -364,9 +369,9 @@ export function RecoveryPhraseModal({
                   <button
                     className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
                     type="button"
-                    onClick={() => set_is_phrase_visible(!is_phrase_visible)}
+                    onClick={() => set_are_codes_visible(!are_codes_visible)}
                   >
-                    {is_phrase_visible ? (
+                    {are_codes_visible ? (
                       <EyeSlashIcon className="w-4 h-4" />
                     ) : (
                       <EyeIcon className="w-4 h-4" />
@@ -382,7 +387,7 @@ export function RecoveryPhraseModal({
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {words.map((word, index) => (
+                {codes.map((code, index) => (
                   <div
                     key={index}
                     className="rounded-lg px-3 py-2.5 border flex items-center gap-2 bg-surf-tertiary border-edge-secondary"
@@ -393,12 +398,12 @@ export function RecoveryPhraseModal({
                     <span
                       className="text-xs font-mono text-txt-primary break-all"
                       style={{
-                        filter: is_phrase_visible ? "none" : "blur(4px)",
+                        filter: are_codes_visible ? "none" : "blur(4px)",
                         transition: "filter 0.2s ease",
-                        userSelect: is_phrase_visible ? "text" : "none",
+                        userSelect: are_codes_visible ? "text" : "none",
                       }}
                     >
-                      {word}
+                      {code}
                     </span>
                   </div>
                 ))}
@@ -406,7 +411,7 @@ export function RecoveryPhraseModal({
               <div className="flex justify-center gap-2">
                 <Button variant="secondary" onClick={handle_download_pdf}>
                   <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-                  {t("auth.download_key")}
+                  {t("settings.download_pdf")}
                 </Button>
                 <Button variant="secondary" onClick={handle_download_text}>
                   <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
@@ -421,7 +426,7 @@ export function RecoveryPhraseModal({
                   onChange={(e) => set_saved_checkbox(e.target.checked)}
                 />
                 <span className="text-sm leading-relaxed">
-                  {t("auth.recovery_phrase_saved_checkbox")}
+                  {t("settings.recovery_codes_saved_checkbox")}
                 </span>
               </label>
             </div>

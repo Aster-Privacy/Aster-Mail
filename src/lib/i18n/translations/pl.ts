@@ -21,16 +21,22 @@
 export const pl = {
   common: {
     delete_folder_account_password: "Hasło konta",
-    delete_folder_step_up_hint: "Ten folder jest chroniony hasłem. Wpisz hasło konta, aby go usunąć.",
+    delete_folder_step_up_hint:
+      "Ten folder jest chroniony hasłem. Wpisz hasło konta, aby go usunąć.",
     delete_folder_totp_code: "Kod uwierzytelniania dwuskładnikowego",
     delete_folder_purge_option: "Trwale usuń wiadomości w środku",
-    delete_folder_purge_warning: "Trwale usunięte wiadomości znikają na każdym urządzeniu i nie da się ich odzyskać.",
-    delete_folder_purge_acknowledge: "Rozumiem, że tych wiadomości nie da się odzyskać.",
-    delete_folder_purged_items: "Folder usunięty, a {count} wiadomości trwale skasowanych.",
-    delete_folder_deleted_no_purge: "Folder usunięty. Wiadomości w środku pozostają na koncie.",
+    delete_folder_purge_warning:
+      "Trwale usunięte wiadomości znikają na każdym urządzeniu i nie da się ich odzyskać.",
+    delete_folder_purge_acknowledge:
+      "Rozumiem, że tych wiadomości nie da się odzyskać.",
+    delete_folder_purged_items:
+      "Folder usunięty, a {count} wiadomości trwale skasowanych.",
+    delete_folder_deleted_no_purge:
+      "Folder usunięty. Wiadomości w środku pozostają na koncie.",
     delete_folder_password_required: "Wpisz hasło konta.",
     delete_folder_totp_required: "Wpisz kod uwierzytelniania dwuskładnikowego.",
-    delete_folder_verification_failed: "Sprawdź hasło i kod, a potem spróbuj ponownie.",
+    delete_folder_verification_failed:
+      "Sprawdź hasło i kod, a potem spróbuj ponownie.",
     qr_code: "Kod QR",
     profile_picture_removed: "Zdjęcie profilowe usunięte",
     failed_remove_profile_picture:
@@ -1730,7 +1736,8 @@ export const pl = {
   },
   settings: {
     purge_locked_folder_on_delete: "Usuwanie zawartości chronionych folderów",
-    purge_locked_folder_on_delete_description: "Zaznacza z góry trwałe usunięcie wiadomości przy kasowaniu folderu chronionego hasłem",
+    purge_locked_folder_on_delete_description:
+      "Zaznacza z góry trwałe usunięcie wiadomości przy kasowaniu folderu chronionego hasłem",
     settings_view_mode: "Widok ustawień",
     settings_view_mode_description:
       "Otwieraj ustawienia jako pełną stronę lub okno podręczne",
@@ -1779,21 +1786,25 @@ export const pl = {
       "Masz metodę odzyskiwania danych. Zapomnienie hasła nie spowoduje utraty zaszyfrowanej poczty.",
     recovery_status_at_risk: "Zagrożenie: brak metody odzyskiwania offline",
     recovery_status_at_risk_desc:
-      "Bez frazy odzyskiwania lub kodów zapomnienie hasła trwale zablokuje dostęp do zaszyfrowanej poczty.",
-    recovery_phrase_row: "Fraza odzyskiwania",
-    recovery_phrase_row_desc:
-      "Fraza złożona z 12 słów, która przywraca konto i wszystkie zaszyfrowane dane.",
-    recovery_phrase_generate: "Wygeneruj frazę",
-    recovery_phrase_regenerate: "Wygeneruj frazę ponownie",
-    recovery_phrase_regenerate_warning:
-      "Ponowne wygenerowanie tworzy nową frazę i trwale unieważnia starą.",
-    recovery_phrase_active: "Aktywna",
-    recovery_phrase_not_set: "Nie ustawiono",
-    recovery_phrase_saved_confirm:
-      "Zapisz nową frazę przed zamknięciem. Jest wyświetlana tylko raz.",
-    legacy_codes_row: "Kody odzyskiwania (starsze)",
-    legacy_codes_row_desc:
-      "Twoje dotychczasowe kody odzyskiwania ASTER pozostają ważne. Nowe konta korzystają zamiast tego z frazy odzyskiwania.",
+      "Bez kodów odzyskiwania zapomnienie hasła trwale zablokuje dostęp do zaszyfrowanej poczty.",
+    recovery_codes_row: "Kody odzyskiwania",
+    recovery_codes_row_desc:
+      "Sześć jednorazowych kodów, które przywracają konto i wszystkie zaszyfrowane dane.",
+    recovery_codes_generate: "Wygeneruj kody",
+    recovery_codes_regenerate: "Wygeneruj kody ponownie",
+    recovery_codes_regenerate_warning:
+      "Ponowne wygenerowanie tworzy nowe kody i trwale unieważnia stare.",
+    recovery_method_active: "Aktywne",
+    recovery_method_not_set: "Nie ustawiono",
+    recovery_codes_saved_confirm:
+      "Zapisz nowe kody przed zamknięciem. Są wyświetlane tylko raz.",
+    recovery_codes_saved_checkbox:
+      "Moje kody odzyskiwania są zapisane w bezpiecznym miejscu.",
+    recovery_codes_save_failed:
+      "Nie udało się zapisać kodów odzyskiwania na serwerze. Spróbuj ponownie.",
+    legacy_phrase_row: "Fraza odzyskiwania (starsza)",
+    legacy_phrase_row_desc:
+      "Twoja dotychczasowa fraza odzyskiwania pozostaje ważna. Od teraz używane są kody odzyskiwania.",
     recovery_email_row_moved_hint:
       "Ustawienia e-maila odzyskiwania przeniesiono do Bezpieczeństwo > Odzyskiwanie konta",
     recover_older_data_title: "Odzyskaj starsze dane",
@@ -2458,20 +2469,29 @@ export const pl = {
     alias_delivery_label_none: "Brak etykiety",
     alias_delivery_label_missing: "Usunięta etykieta",
     alias_apply_existing: "Zastosuj do istniejącej poczty",
-    alias_apply_existing_desc: "Przenieś pocztę już odebraną przez ten alias do wybranego folderu i etykiety.",
-    alias_apply_existing_info: "Ta opcja stosuje folder dostarczania i etykietę powyżej do poczty, która już jest na Twoim koncie. Działa w tle, a reguły poczty nie są uruchamiane ponownie.",
+    alias_apply_existing_desc:
+      "Przenieś pocztę już odebraną przez ten alias do wybranego folderu i etykiety.",
+    alias_apply_existing_info:
+      "Ta opcja stosuje folder dostarczania i etykietę powyżej do poczty, która już jest na Twoim koncie. Działa w tle, a reguły poczty nie są uruchamiane ponownie.",
     alias_apply_existing_action: "Zastosuj teraz",
     alias_apply_existing_cancel: "Zatrzymaj",
-    alias_apply_existing_started: "Trwa stosowanie ustawień dostarczania do istniejącej poczty. Działa w tle.",
-    alias_apply_existing_failed: "Nie udało się rozpocząć stosowania tych ustawień.",
+    alias_apply_existing_started:
+      "Trwa stosowanie ustawień dostarczania do istniejącej poczty. Działa w tle.",
+    alias_apply_existing_failed:
+      "Nie udało się rozpocząć stosowania tych ustawień.",
     alias_apply_existing_cancel_failed: "Nie udało się zatrzymać tej operacji.",
     alias_apply_existing_queued: "W kolejce...",
-    alias_apply_existing_progress: "Stosowanie: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
-    alias_apply_existing_progress_total: "Stosowanie: przeskanowano {{scanned}} z {{total}}, zaktualizowano {{applied}}",
-    alias_apply_existing_done: "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
+    alias_apply_existing_progress:
+      "Stosowanie: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
+    alias_apply_existing_progress_total:
+      "Stosowanie: przeskanowano {{scanned}} z {{total}}, zaktualizowano {{applied}}",
+    alias_apply_existing_done:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
     alias_apply_existing_canceled: "Zatrzymano: zaktualizowano {{applied}}",
-    alias_apply_existing_error: "Zastosowanie do istniejącej poczty nie powiodło się. Spróbuj ponownie.",
-    alias_apply_existing_unavailable: "Poczty, która już jest na Twoim koncie, nie można przenieść do folderu Spam.",
+    alias_apply_existing_error:
+      "Zastosowanie do istniejącej poczty nie powiodło się. Spróbuj ponownie.",
+    alias_apply_existing_unavailable:
+      "Poczty, która już jest na Twoim koncie, nie można przenieść do folderu Spam.",
     alias_delivery_label_error:
       "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
     alias_delivery_rule_note:

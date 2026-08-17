@@ -21,16 +21,22 @@
 export const ru = {
   common: {
     delete_folder_account_password: "Пароль учётной записи",
-    delete_folder_step_up_hint: "Эта папка защищена паролем. Введите пароль учётной записи, чтобы удалить её.",
+    delete_folder_step_up_hint:
+      "Эта папка защищена паролем. Введите пароль учётной записи, чтобы удалить её.",
     delete_folder_totp_code: "Код двухфакторной аутентификации",
     delete_folder_purge_option: "Безвозвратно уничтожить письма внутри",
-    delete_folder_purge_warning: "Уничтоженные письма удаляются на всех устройствах, восстановить их нельзя.",
-    delete_folder_purge_acknowledge: "Я понимаю, что эти письма восстановить нельзя.",
-    delete_folder_purged_items: "Папка удалена, безвозвратно уничтожено писем: {count}.",
-    delete_folder_deleted_no_purge: "Папка удалена. Письма внутри остаются в учётной записи.",
+    delete_folder_purge_warning:
+      "Уничтоженные письма удаляются на всех устройствах, восстановить их нельзя.",
+    delete_folder_purge_acknowledge:
+      "Я понимаю, что эти письма восстановить нельзя.",
+    delete_folder_purged_items:
+      "Папка удалена, безвозвратно уничтожено писем: {count}.",
+    delete_folder_deleted_no_purge:
+      "Папка удалена. Письма внутри остаются в учётной записи.",
     delete_folder_password_required: "Введите пароль учётной записи.",
     delete_folder_totp_required: "Введите код двухфакторной аутентификации.",
-    delete_folder_verification_failed: "Проверьте пароль и код, затем повторите попытку.",
+    delete_folder_verification_failed:
+      "Проверьте пароль и код, затем повторите попытку.",
     qr_code: "QR-код",
     profile_picture_removed: "Фото профиля удалено",
     failed_remove_profile_picture:
@@ -1553,7 +1559,7 @@ export const ru = {
     file_exceeds_max_size:
       "«{{name}}» превышает лимит в {{size}} на один файл. Подойдёт меньший файл или ссылка для общего доступа.",
     file_exceeds_max_size_upgradable:
-      '«{{name}}» превышает лимит {{size}} на файл в вашем тарифе. Переход на более высокий тариф увеличит его до {{max_size}}.',
+      "«{{name}}» превышает лимит {{size}} на файл в вашем тарифе. Переход на более высокий тариф увеличит его до {{max_size}}.",
     folder_fallback: "папка",
     found_n_contacts: "Найдено {{count}} контактов",
     found_one_contact: "Найден 1 контакт",
@@ -1727,7 +1733,8 @@ export const ru = {
   },
   settings: {
     purge_locked_folder_on_delete: "Уничтожать содержимое защищённых папок",
-    purge_locked_folder_on_delete_description: "Заранее отмечает безвозвратное уничтожение писем при удалении папки, защищённой паролем",
+    purge_locked_folder_on_delete_description:
+      "Заранее отмечает безвозвратное уничтожение писем при удалении папки, защищённой паролем",
     settings_view_mode: "Вид настроек",
     settings_view_mode_description:
       "Открывать настройки на всю страницу или во всплывающем окне",
@@ -1775,21 +1782,25 @@ export const ru = {
       "У вас есть способ восстановления данных. Если вы забудете пароль, ваша зашифрованная почта не будет потеряна.",
     recovery_status_at_risk: "Есть риск: нет офлайн-способа восстановления",
     recovery_status_at_risk_desc:
-      "Без фразы восстановления или кодов забытый пароль навсегда заблокирует вашу зашифрованную почту.",
-    recovery_phrase_row: "Фраза восстановления",
-    recovery_phrase_row_desc:
-      "Фраза из 12 слов, которая восстанавливает ваш аккаунт и все зашифрованные данные.",
-    recovery_phrase_generate: "Создать фразу",
-    recovery_phrase_regenerate: "Создать фразу заново",
-    recovery_phrase_regenerate_warning:
-      "При повторном создании появится новая фраза, а старая навсегда перестанет действовать.",
-    recovery_phrase_active: "Активна",
-    recovery_phrase_not_set: "Не задана",
-    recovery_phrase_saved_confirm:
-      "Сохраните новую фразу до закрытия окна. Она показывается только один раз.",
-    legacy_codes_row: "Коды восстановления (устаревшие)",
-    legacy_codes_row_desc:
-      "Ваши существующие коды восстановления ASTER продолжают действовать. Новые аккаунты вместо них используют фразу восстановления.",
+      "Без кодов восстановления забытый пароль навсегда заблокирует вашу зашифрованную почту.",
+    recovery_codes_row: "Коды восстановления",
+    recovery_codes_row_desc:
+      "Шесть одноразовых кодов, которые восстанавливают ваш аккаунт и все зашифрованные данные.",
+    recovery_codes_generate: "Создать коды",
+    recovery_codes_regenerate: "Создать коды заново",
+    recovery_codes_regenerate_warning:
+      "При повторном создании появятся новые коды, а старые навсегда перестанут действовать.",
+    recovery_method_active: "Активно",
+    recovery_method_not_set: "Не задано",
+    recovery_codes_saved_confirm:
+      "Сохраните новые коды до закрытия окна. Они показываются только один раз.",
+    recovery_codes_saved_checkbox:
+      "Коды восстановления сохранены в надёжном месте.",
+    recovery_codes_save_failed:
+      "Не удалось сохранить коды восстановления на сервере. Попробуйте ещё раз.",
+    legacy_phrase_row: "Фраза восстановления (устаревшая)",
+    legacy_phrase_row_desc:
+      "Ваша существующая фраза восстановления продолжает действовать. Теперь вместо неё используются коды восстановления.",
     recovery_email_row_moved_hint:
       "Настройки резервного адреса перенесены в раздел Безопасность > Восстановление аккаунта",
     recover_older_data_title: "Восстановить старые данные",
@@ -2450,20 +2461,28 @@ export const ru = {
     alias_delivery_label_none: "Без метки",
     alias_delivery_label_missing: "Удалённая метка",
     alias_apply_existing: "Применить к имеющейся почте",
-    alias_apply_existing_desc: "Переместите письма, которые этот алиас уже получил, в выбранную папку и присвойте им выбранную метку.",
-    alias_apply_existing_info: "Папка доставки и метка, указанные выше, будут применены к письмам, которые уже есть в вашем аккаунте. Операция выполняется в фоне, правила почты повторно не применяются.",
+    alias_apply_existing_desc:
+      "Переместите письма, которые этот алиас уже получил, в выбранную папку и присвойте им выбранную метку.",
+    alias_apply_existing_info:
+      "Папка доставки и метка, указанные выше, будут применены к письмам, которые уже есть в вашем аккаунте. Операция выполняется в фоне, правила почты повторно не применяются.",
     alias_apply_existing_action: "Применить",
     alias_apply_existing_cancel: "Остановить",
-    alias_apply_existing_started: "Настройки доставки применяются к имеющейся почте. Операция выполняется в фоне.",
+    alias_apply_existing_started:
+      "Настройки доставки применяются к имеющейся почте. Операция выполняется в фоне.",
     alias_apply_existing_failed: "Не удалось применить эти настройки.",
     alias_apply_existing_cancel_failed: "Не удалось остановить эту операцию.",
     alias_apply_existing_queued: "В очереди...",
-    alias_apply_existing_progress: "Применение: проверено {{scanned}}, обновлено {{applied}}",
-    alias_apply_existing_progress_total: "Применение: проверено {{scanned}} из {{total}}, обновлено {{applied}}",
-    alias_apply_existing_done: "Готово: проверено {{scanned}}, обновлено {{applied}}",
+    alias_apply_existing_progress:
+      "Применение: проверено {{scanned}}, обновлено {{applied}}",
+    alias_apply_existing_progress_total:
+      "Применение: проверено {{scanned}} из {{total}}, обновлено {{applied}}",
+    alias_apply_existing_done:
+      "Готово: проверено {{scanned}}, обновлено {{applied}}",
     alias_apply_existing_canceled: "Остановлено: обновлено {{applied}}",
-    alias_apply_existing_error: "Не удалось применить к имеющейся почте. Повторите попытку.",
-    alias_apply_existing_unavailable: "Письма, которые уже есть в вашем аккаунте, нельзя переместить в спам.",
+    alias_apply_existing_error:
+      "Не удалось применить к имеющейся почте. Повторите попытку.",
+    alias_apply_existing_unavailable:
+      "Письма, которые уже есть в вашем аккаунте, нельзя переместить в спам.",
     alias_delivery_label_error: "Настройка не сохранилась. Попробуйте ещё раз.",
     alias_delivery_rule_note:
       'Правило "{{ rule }}" уже перемещает почту этого алиаса в {{ target }}.',

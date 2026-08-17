@@ -21,16 +21,24 @@
 export const es = {
   common: {
     delete_folder_account_password: "Contraseña de la cuenta",
-    delete_folder_step_up_hint: "Esta carpeta está protegida con contraseña. Introduce la contraseña de tu cuenta para eliminarla.",
+    delete_folder_step_up_hint:
+      "Esta carpeta está protegida con contraseña. Introduce la contraseña de tu cuenta para eliminarla.",
     delete_folder_totp_code: "Código de verificación en dos pasos",
-    delete_folder_purge_option: "Destruir de forma permanente el correo que contiene",
-    delete_folder_purge_warning: "El correo purgado se destruye en todos los dispositivos y no se puede recuperar.",
-    delete_folder_purge_acknowledge: "Entiendo que este correo no se puede recuperar.",
-    delete_folder_purged_items: "Carpeta eliminada y {count} mensajes destruidos de forma permanente.",
-    delete_folder_deleted_no_purge: "Carpeta eliminada. El correo que contenía permanece en tu cuenta.",
+    delete_folder_purge_option:
+      "Destruir de forma permanente el correo que contiene",
+    delete_folder_purge_warning:
+      "El correo purgado se destruye en todos los dispositivos y no se puede recuperar.",
+    delete_folder_purge_acknowledge:
+      "Entiendo que este correo no se puede recuperar.",
+    delete_folder_purged_items:
+      "Carpeta eliminada y {count} mensajes destruidos de forma permanente.",
+    delete_folder_deleted_no_purge:
+      "Carpeta eliminada. El correo que contenía permanece en tu cuenta.",
     delete_folder_password_required: "Introduce la contraseña de tu cuenta.",
-    delete_folder_totp_required: "Introduce el código de verificación en dos pasos.",
-    delete_folder_verification_failed: "Comprueba tu contraseña y el código, y vuelve a intentarlo.",
+    delete_folder_totp_required:
+      "Introduce el código de verificación en dos pasos.",
+    delete_folder_verification_failed:
+      "Comprueba tu contraseña y el código, y vuelve a intentarlo.",
     qr_code: "Código QR",
     profile_picture_removed: "Foto de perfil eliminada",
     failed_remove_profile_picture:
@@ -1706,7 +1714,8 @@ export const es = {
   },
   settings: {
     purge_locked_folder_on_delete: "Purgar contenido de carpetas protegidas",
-    purge_locked_folder_on_delete_description: "Preselecciona la destrucción permanente del correo cuando eliminas una carpeta protegida con contraseña",
+    purge_locked_folder_on_delete_description:
+      "Preselecciona la destrucción permanente del correo cuando eliminas una carpeta protegida con contraseña",
     settings_view_mode: "Vista de configuración",
     settings_view_mode_description:
       "Abrir la configuración como página completa o ventana emergente",
@@ -1756,21 +1765,25 @@ export const es = {
     recovery_status_at_risk:
       "En riesgo: sin método de recuperación sin conexión",
     recovery_status_at_risk_desc:
-      "Sin una frase o códigos de recuperación, olvidar tu contraseña bloquea tu correo cifrado de forma permanente.",
-    recovery_phrase_row: "Frase de recuperación",
-    recovery_phrase_row_desc:
-      "Una frase de 12 palabras que restaura tu cuenta y todos tus datos cifrados.",
-    recovery_phrase_generate: "Generar frase",
-    recovery_phrase_regenerate: "Regenerar frase",
-    recovery_phrase_regenerate_warning:
-      "Al regenerar se crea una frase nueva y la anterior queda invalidada de forma permanente.",
-    recovery_phrase_active: "Activa",
-    recovery_phrase_not_set: "No configurada",
-    recovery_phrase_saved_confirm:
-      "Guarda la nueva frase antes de cerrar. Solo se muestra una vez.",
-    legacy_codes_row: "Códigos de recuperación (antiguos)",
-    legacy_codes_row_desc:
-      "Tus códigos de recuperación ASTER existentes siguen siendo válidos. Las cuentas nuevas usan la frase de recuperación en su lugar.",
+      "Sin códigos de recuperación, olvidar tu contraseña bloquea tu correo cifrado de forma permanente.",
+    recovery_codes_row: "Códigos de recuperación",
+    recovery_codes_row_desc:
+      "Seis códigos de un solo uso que restauran tu cuenta y todos tus datos cifrados.",
+    recovery_codes_generate: "Generar códigos",
+    recovery_codes_regenerate: "Regenerar códigos",
+    recovery_codes_regenerate_warning:
+      "Al regenerar se crean códigos nuevos y los anteriores quedan invalidados de forma permanente.",
+    recovery_method_active: "Activo",
+    recovery_method_not_set: "Sin configurar",
+    recovery_codes_saved_confirm:
+      "Guarda los nuevos códigos antes de cerrar. Solo se muestran una vez.",
+    recovery_codes_saved_checkbox:
+      "He guardado mis códigos de recuperación en un lugar seguro.",
+    recovery_codes_save_failed:
+      "No se pudieron guardar tus códigos de recuperación en el servidor. Inténtalo de nuevo.",
+    legacy_phrase_row: "Frase de recuperación (antigua)",
+    legacy_phrase_row_desc:
+      "Tu frase de recuperación existente sigue siendo válida. En adelante se usan códigos de recuperación.",
     recovery_email_row_moved_hint:
       "La configuración del correo de recuperación se movió a Seguridad > Recuperación de cuenta",
     recover_older_data_title: "Recuperar datos anteriores",
@@ -2434,20 +2447,29 @@ export const es = {
     alias_delivery_label_none: "Sin etiqueta",
     alias_delivery_label_missing: "Etiqueta eliminada",
     alias_apply_existing: "Aplicar al correo existente",
-    alias_apply_existing_desc: "Organiza el correo que este alias ya recibió en la carpeta y la etiqueta que elegiste.",
-    alias_apply_existing_info: "Esto aplica la carpeta de entrega y la etiqueta de arriba al correo que ya está en tu cuenta. Se ejecuta en segundo plano y tus reglas de correo no se vuelven a ejecutar.",
+    alias_apply_existing_desc:
+      "Organiza el correo que este alias ya recibió en la carpeta y la etiqueta que elegiste.",
+    alias_apply_existing_info:
+      "Esto aplica la carpeta de entrega y la etiqueta de arriba al correo que ya está en tu cuenta. Se ejecuta en segundo plano y tus reglas de correo no se vuelven a ejecutar.",
     alias_apply_existing_action: "Aplicar ahora",
     alias_apply_existing_cancel: "Detener",
-    alias_apply_existing_started: "Aplicando tu configuración de entrega al correo existente. Se ejecuta en segundo plano.",
-    alias_apply_existing_failed: "No se pudo empezar a aplicar esta configuración.",
+    alias_apply_existing_started:
+      "Aplicando tu configuración de entrega al correo existente. Se ejecuta en segundo plano.",
+    alias_apply_existing_failed:
+      "No se pudo empezar a aplicar esta configuración.",
     alias_apply_existing_cancel_failed: "No se pudo detener esta ejecución.",
     alias_apply_existing_queued: "En cola...",
-    alias_apply_existing_progress: "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
-    alias_apply_existing_progress_total: "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
-    alias_apply_existing_done: "Listo: {{scanned}} revisados, {{applied}} actualizados",
+    alias_apply_existing_progress:
+      "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
+    alias_apply_existing_progress_total:
+      "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
+    alias_apply_existing_done:
+      "Listo: {{scanned}} revisados, {{applied}} actualizados",
     alias_apply_existing_canceled: "Detenido: {{applied}} actualizados",
-    alias_apply_existing_error: "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
-    alias_apply_existing_unavailable: "El correo que ya está en tu cuenta no se puede mover a Spam.",
+    alias_apply_existing_error:
+      "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
+    alias_apply_existing_unavailable:
+      "El correo que ya está en tu cuenta no se puede mover a Spam.",
     alias_delivery_label_error: "El ajuste no se guardó. Inténtalo de nuevo.",
     alias_delivery_rule_note:
       'La regla "{{ rule }}" ya mueve el correo de este alias a {{ target }}.',
@@ -4236,7 +4258,8 @@ export const es = {
     submit: "Enviar",
     enter_strong_password: "Ingresa una contraseña segura",
     re_enter_password: "Vuelve a ingresar tu contraseña",
-    keep_saved_password: "Déjalo en blanco para conservar la contraseña guardada",
+    keep_saved_password:
+      "Déjalo en blanco para conservar la contraseña guardada",
     enter_your_password: "Ingresa tu contraseña",
     enter_current_password_folder: "Ingresa la contraseña actual",
     enter_new_password_folder: "Ingresa la nueva contraseña",

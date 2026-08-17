@@ -27,7 +27,8 @@ export const zh_CN = {
     delete_folder_purge_warning: "被销毁的邮件会在所有设备上删除，且无法恢复。",
     delete_folder_purge_acknowledge: "我明白这些邮件无法恢复。",
     delete_folder_purged_items: "已删除文件夹，并永久销毁 {count} 封邮件。",
-    delete_folder_deleted_no_purge: "已删除文件夹。其中的邮件仍保留在您的账户里。",
+    delete_folder_deleted_no_purge:
+      "已删除文件夹。其中的邮件仍保留在您的账户里。",
     delete_folder_password_required: "请输入账户密码。",
     delete_folder_totp_required: "请输入双重验证码。",
     delete_folder_verification_failed: "请检查密码和验证码，然后重试。",
@@ -579,8 +580,7 @@ export const zh_CN = {
     upload_failed: "上传未能完成，再试一次应该可以。",
     delete_failed: "这个条目未能移除，再试一次应该可以。",
     download_failed: "这次下载未能完成，再试一次应该可以。",
-    attachment_locked:
-      "此附件的加密密钥在此设备上不可用，因此无法打开。",
+    attachment_locked: "此附件的加密密钥在此设备上不可用，因此无法打开。",
     scheduled_no_attachments:
       "定时邮件暂时无法包含附件。请立即发送，或移除文件后再定时。",
     failed_to_merge_contacts:
@@ -826,8 +826,7 @@ export const zh_CN = {
     emoji: "表情",
     recipients: "收件人",
     encrypted_attachment: "加密附件",
-    forward_attachments_locked:
-      "部分附件缺少加密密钥，因此未包含在此邮件中。",
+    forward_attachments_locked: "部分附件缺少加密密钥，因此未包含在此邮件中。",
     image: "图片",
     system: "系统",
     failed_to_permanently_delete: "这些条目未能移除，再试一次应该可以。",
@@ -1578,7 +1577,8 @@ export const zh_CN = {
   },
   settings: {
     purge_locked_folder_on_delete: "清除受保护文件夹的内容",
-    purge_locked_folder_on_delete_description: "删除受密码保护的文件夹时，预先选中永久销毁其中的邮件",
+    purge_locked_folder_on_delete_description:
+      "删除受密码保护的文件夹时，预先选中永久销毁其中的邮件",
     settings_view_mode: "设置视图",
     settings_view_mode_description: "以整页或弹窗方式打开设置",
     quick_settings: "设置",
@@ -1617,20 +1617,20 @@ export const zh_CN = {
       "您已设置数据恢复方式。即使忘记密码，您的加密邮件也不会丢失。",
     recovery_status_at_risk: "有风险：没有离线恢复方式",
     recovery_status_at_risk_desc:
-      "如果没有恢复短语或恢复代码，一旦忘记密码，您的加密邮件将被永久锁定。",
-    recovery_phrase_row: "恢复短语",
-    recovery_phrase_row_desc:
-      "一组 12 个单词的短语，可以恢复您的账户和全部加密数据。",
-    recovery_phrase_generate: "生成短语",
-    recovery_phrase_regenerate: "重新生成短语",
-    recovery_phrase_regenerate_warning:
-      "重新生成会创建一个新短语，旧短语将永久失效。",
-    recovery_phrase_active: "已启用",
-    recovery_phrase_not_set: "未设置",
-    recovery_phrase_saved_confirm: "关闭前请先保存新短语，它只会显示这一次。",
-    legacy_codes_row: "恢复代码（旧版）",
-    legacy_codes_row_desc:
-      "您现有的 ASTER 恢复代码仍然有效。新账户将改用恢复短语。",
+      "如果没有恢复代码，一旦忘记密码，您的加密邮件将被永久锁定。",
+    recovery_codes_row: "恢复代码",
+    recovery_codes_row_desc: "六个一次性代码，可以恢复您的账户和全部加密数据。",
+    recovery_codes_generate: "生成代码",
+    recovery_codes_regenerate: "重新生成代码",
+    recovery_codes_regenerate_warning:
+      "重新生成会创建新代码，旧代码将永久失效。",
+    recovery_method_active: "已启用",
+    recovery_method_not_set: "未设置",
+    recovery_codes_saved_confirm: "关闭前请先保存新代码，它们只会显示这一次。",
+    recovery_codes_saved_checkbox: "我已将恢复代码保存在安全的地方。",
+    recovery_codes_save_failed: "无法将恢复代码保存到服务器，请重试。",
+    legacy_phrase_row: "恢复短语（旧版）",
+    legacy_phrase_row_desc: "您现有的恢复短语仍然有效。今后将改用恢复代码。",
     recovery_email_row_moved_hint: "恢复邮箱设置已移至 安全 > 账户恢复",
     recover_older_data_title: "恢复较早的数据",
     recover_older_data_desc:
@@ -1638,8 +1638,7 @@ export const zh_CN = {
     recover_older_data_button: "解锁较早的数据",
     resurrection_old_password: "旧密码",
     resurrection_old_password_prompt: "输入您在重置前使用的密码",
-    resurrection_success:
-      "较早的数据已解锁。您之前的邮件可以再次正常打开。",
+    resurrection_success: "较早的数据已解锁。您之前的邮件可以再次正常打开。",
     resurrection_failed: "未能解锁较早的数据。请检查密码或短语后再试一次。",
     phrase_wrap_save_failed: "您的恢复短语未能保存到服务器，再试一次应该可以。",
     smtp_tokens: "SMTP 令牌",
@@ -2225,17 +2224,23 @@ export const zh_CN = {
     alias_delivery_label_none: "不加标签",
     alias_delivery_label_missing: "已删除的标签",
     alias_apply_existing: "应用于现有邮件",
-    alias_apply_existing_desc: "将此别名已收到的邮件整理到你选择的文件夹和标签中。",
-    alias_apply_existing_info: "此操作会将上方的投递文件夹和标签应用于账户中已有的邮件。它在后台运行，邮件规则不会再次运行。",
+    alias_apply_existing_desc:
+      "将此别名已收到的邮件整理到你选择的文件夹和标签中。",
+    alias_apply_existing_info:
+      "此操作会将上方的投递文件夹和标签应用于账户中已有的邮件。它在后台运行，邮件规则不会再次运行。",
     alias_apply_existing_action: "立即应用",
     alias_apply_existing_cancel: "停止",
-    alias_apply_existing_started: "正在将投递设置应用于现有邮件。此操作在后台运行。",
+    alias_apply_existing_started:
+      "正在将投递设置应用于现有邮件。此操作在后台运行。",
     alias_apply_existing_failed: "无法开始应用这些设置。",
     alias_apply_existing_cancel_failed: "无法停止此操作。",
     alias_apply_existing_queued: "排队中...",
-    alias_apply_existing_progress: "正在应用：已扫描 {{scanned}} 封，已更新 {{applied}} 封",
-    alias_apply_existing_progress_total: "正在应用：已扫描 {{scanned}}/{{total}} 封，已更新 {{applied}} 封",
-    alias_apply_existing_done: "完成：已扫描 {{scanned}} 封，已更新 {{applied}} 封",
+    alias_apply_existing_progress:
+      "正在应用：已扫描 {{scanned}} 封，已更新 {{applied}} 封",
+    alias_apply_existing_progress_total:
+      "正在应用：已扫描 {{scanned}}/{{total}} 封，已更新 {{applied}} 封",
+    alias_apply_existing_done:
+      "完成：已扫描 {{scanned}} 封，已更新 {{applied}} 封",
     alias_apply_existing_canceled: "已停止：已更新 {{applied}} 封",
     alias_apply_existing_error: "应用于现有邮件失败。请重试。",
     alias_apply_existing_unavailable: "账户中已有的邮件无法移动到垃圾邮件。",

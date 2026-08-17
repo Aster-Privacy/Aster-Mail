@@ -21,16 +21,23 @@
 export const de = {
   common: {
     delete_folder_account_password: "Kontopasswort",
-    delete_folder_step_up_hint: "Dieser Ordner ist passwortgeschützt. Geben Sie Ihr Kontopasswort ein, um ihn zu löschen.",
+    delete_folder_step_up_hint:
+      "Dieser Ordner ist passwortgeschützt. Geben Sie Ihr Kontopasswort ein, um ihn zu löschen.",
     delete_folder_totp_code: "Code der Zwei-Faktor-Authentifizierung",
     delete_folder_purge_option: "Die enthaltenen E-Mails endgültig vernichten",
-    delete_folder_purge_warning: "Vernichtete E-Mails werden auf allen Geräten zerstört und lassen sich nicht wiederherstellen.",
-    delete_folder_purge_acknowledge: "Mir ist klar, dass sich diese E-Mails nicht wiederherstellen lassen.",
-    delete_folder_purged_items: "Ordner gelöscht und {count} Nachrichten endgültig vernichtet.",
-    delete_folder_deleted_no_purge: "Ordner gelöscht. Die enthaltenen E-Mails bleiben in Ihrem Konto.",
+    delete_folder_purge_warning:
+      "Vernichtete E-Mails werden auf allen Geräten zerstört und lassen sich nicht wiederherstellen.",
+    delete_folder_purge_acknowledge:
+      "Mir ist klar, dass sich diese E-Mails nicht wiederherstellen lassen.",
+    delete_folder_purged_items:
+      "Ordner gelöscht und {count} Nachrichten endgültig vernichtet.",
+    delete_folder_deleted_no_purge:
+      "Ordner gelöscht. Die enthaltenen E-Mails bleiben in Ihrem Konto.",
     delete_folder_password_required: "Geben Sie Ihr Kontopasswort ein.",
-    delete_folder_totp_required: "Geben Sie Ihren Code der Zwei-Faktor-Authentifizierung ein.",
-    delete_folder_verification_failed: "Prüfen Sie Passwort und Code und versuchen Sie es erneut.",
+    delete_folder_totp_required:
+      "Geben Sie Ihren Code der Zwei-Faktor-Authentifizierung ein.",
+    delete_folder_verification_failed:
+      "Prüfen Sie Passwort und Code und versuchen Sie es erneut.",
     qr_code: "QR-Code",
     profile_picture_removed: "Profilbild entfernt",
     failed_remove_profile_picture:
@@ -1744,7 +1751,8 @@ export const de = {
   },
   settings: {
     purge_locked_folder_on_delete: "Inhalt geschützter Ordner vernichten",
-    purge_locked_folder_on_delete_description: "Wählt beim Löschen eines passwortgeschützten Ordners die endgültige Vernichtung der enthaltenen E-Mails vor",
+    purge_locked_folder_on_delete_description:
+      "Wählt beim Löschen eines passwortgeschützten Ordners die endgültige Vernichtung der enthaltenen E-Mails vor",
     settings_view_mode: "Einstellungsansicht",
     settings_view_mode_description:
       "Einstellungen als ganze Seite oder Popup-Fenster öffnen",
@@ -1793,21 +1801,25 @@ export const de = {
     recovery_status_at_risk:
       "Gefährdet: keine Offline-Wiederherstellungsmethode",
     recovery_status_at_risk_desc:
-      "Ohne Wiederherstellungsphrase oder -codes sperrt ein vergessenes Passwort Ihre verschlüsselten E-Mails dauerhaft.",
-    recovery_phrase_row: "Wiederherstellungsphrase",
-    recovery_phrase_row_desc:
-      "Eine Phrase aus 12 Wörtern, die Ihr Konto und alle verschlüsselten Daten wiederherstellt.",
-    recovery_phrase_generate: "Phrase generieren",
-    recovery_phrase_regenerate: "Phrase neu generieren",
-    recovery_phrase_regenerate_warning:
-      "Beim Neugenerieren wird eine neue Phrase erstellt und die alte dauerhaft ungültig.",
-    recovery_phrase_active: "Aktiv",
-    recovery_phrase_not_set: "Nicht eingerichtet",
-    recovery_phrase_saved_confirm:
-      "Speichern Sie die neue Phrase vor dem Schließen. Sie wird nur einmal angezeigt.",
-    legacy_codes_row: "Wiederherstellungscodes (älteres Verfahren)",
-    legacy_codes_row_desc:
-      "Ihre bestehenden ASTER-Wiederherstellungscodes bleiben gültig. Neue Konten verwenden stattdessen die Wiederherstellungsphrase.",
+      "Ohne Wiederherstellungscodes sperrt ein vergessenes Passwort Ihre verschlüsselten E-Mails dauerhaft.",
+    recovery_codes_row: "Wiederherstellungscodes",
+    recovery_codes_row_desc:
+      "Sechs Einmalcodes, die Ihr Konto und alle verschlüsselten Daten wiederherstellen.",
+    recovery_codes_generate: "Codes generieren",
+    recovery_codes_regenerate: "Codes neu generieren",
+    recovery_codes_regenerate_warning:
+      "Beim Neugenerieren werden neue Codes erstellt und die alten dauerhaft ungültig.",
+    recovery_method_active: "Aktiv",
+    recovery_method_not_set: "Nicht eingerichtet",
+    recovery_codes_saved_confirm:
+      "Speichern Sie die neuen Codes vor dem Schließen. Sie werden nur einmal angezeigt.",
+    recovery_codes_saved_checkbox:
+      "Ich habe meine Wiederherstellungscodes an einem sicheren Ort gespeichert.",
+    recovery_codes_save_failed:
+      "Ihre Wiederherstellungscodes konnten nicht auf dem Server gespeichert werden. Versuchen Sie es erneut.",
+    legacy_phrase_row: "Wiederherstellungsphrase (älteres Verfahren)",
+    legacy_phrase_row_desc:
+      "Ihre bestehende Wiederherstellungsphrase bleibt gültig. Künftig werden stattdessen Wiederherstellungscodes verwendet.",
     recovery_email_row_moved_hint:
       "Die Einstellungen zur Wiederherstellungs-E-Mail befinden sich jetzt unter Sicherheit > Kontowiederherstellung",
     recover_older_data_title: "Ältere Daten wiederherstellen",
@@ -2486,20 +2498,30 @@ export const de = {
     alias_delivery_label_none: "Kein Label",
     alias_delivery_label_missing: "Gelöschtes Label",
     alias_apply_existing: "Auf vorhandene E-Mails anwenden",
-    alias_apply_existing_desc: "Sortieren Sie E-Mails, die dieser Alias bereits erhalten hat, in den gewählten Ordner und das gewählte Label ein.",
-    alias_apply_existing_info: "Damit werden der oben gewählte Zustellordner und das Label auf E-Mails angewendet, die bereits in Ihrem Konto liegen. Der Vorgang läuft im Hintergrund, und Ihre E-Mail-Regeln werden nicht erneut ausgeführt.",
+    alias_apply_existing_desc:
+      "Sortieren Sie E-Mails, die dieser Alias bereits erhalten hat, in den gewählten Ordner und das gewählte Label ein.",
+    alias_apply_existing_info:
+      "Damit werden der oben gewählte Zustellordner und das Label auf E-Mails angewendet, die bereits in Ihrem Konto liegen. Der Vorgang läuft im Hintergrund, und Ihre E-Mail-Regeln werden nicht erneut ausgeführt.",
     alias_apply_existing_action: "Jetzt anwenden",
     alias_apply_existing_cancel: "Stoppen",
-    alias_apply_existing_started: "Ihre Zustelleinstellungen werden auf vorhandene E-Mails angewendet. Der Vorgang läuft im Hintergrund.",
-    alias_apply_existing_failed: "Diese Einstellungen konnten nicht angewendet werden.",
-    alias_apply_existing_cancel_failed: "Dieser Vorgang konnte nicht gestoppt werden.",
+    alias_apply_existing_started:
+      "Ihre Zustelleinstellungen werden auf vorhandene E-Mails angewendet. Der Vorgang läuft im Hintergrund.",
+    alias_apply_existing_failed:
+      "Diese Einstellungen konnten nicht angewendet werden.",
+    alias_apply_existing_cancel_failed:
+      "Dieser Vorgang konnte nicht gestoppt werden.",
     alias_apply_existing_queued: "In Warteschlange ...",
-    alias_apply_existing_progress: "Wird angewendet: {{scanned}} geprüft, {{applied}} aktualisiert",
-    alias_apply_existing_progress_total: "Wird angewendet: {{scanned}} von {{total}} geprüft, {{applied}} aktualisiert",
-    alias_apply_existing_done: "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert",
+    alias_apply_existing_progress:
+      "Wird angewendet: {{scanned}} geprüft, {{applied}} aktualisiert",
+    alias_apply_existing_progress_total:
+      "Wird angewendet: {{scanned}} von {{total}} geprüft, {{applied}} aktualisiert",
+    alias_apply_existing_done:
+      "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert",
     alias_apply_existing_canceled: "Gestoppt: {{applied}} aktualisiert",
-    alias_apply_existing_error: "Das Anwenden auf vorhandene E-Mails ist fehlgeschlagen. Versuchen Sie es erneut.",
-    alias_apply_existing_unavailable: "E-Mails, die bereits in Ihrem Konto sind, können nicht in den Spam-Ordner verschoben werden.",
+    alias_apply_existing_error:
+      "Das Anwenden auf vorhandene E-Mails ist fehlgeschlagen. Versuchen Sie es erneut.",
+    alias_apply_existing_unavailable:
+      "E-Mails, die bereits in Ihrem Konto sind, können nicht in den Spam-Ordner verschoben werden.",
     alias_delivery_label_error:
       "Die Einstellung wurde nicht gespeichert. Bitte erneut versuchen.",
     alias_delivery_rule_note:
@@ -4218,7 +4240,8 @@ export const de = {
     submit: "Absenden",
     enter_strong_password: "Geben Sie ein sicheres Passwort ein",
     re_enter_password: "Passwort erneut eingeben",
-    keep_saved_password: "Leer lassen, um das gespeicherte Passwort zu behalten",
+    keep_saved_password:
+      "Leer lassen, um das gespeicherte Passwort zu behalten",
     enter_your_password: "Geben Sie Ihr Passwort ein",
     enter_current_password_folder: "Aktuelles Passwort eingeben",
     enter_new_password_folder: "Neues Passwort eingeben",

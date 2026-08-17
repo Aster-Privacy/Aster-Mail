@@ -21,16 +21,22 @@
 export const nl = {
   common: {
     delete_folder_account_password: "Accountwachtwoord",
-    delete_folder_step_up_hint: "Deze map is beveiligd met een wachtwoord. Voer uw accountwachtwoord in om de map te verwijderen.",
+    delete_folder_step_up_hint:
+      "Deze map is beveiligd met een wachtwoord. Voer uw accountwachtwoord in om de map te verwijderen.",
     delete_folder_totp_code: "Tweestapsverificatiecode",
     delete_folder_purge_option: "De e-mails erin definitief vernietigen",
-    delete_folder_purge_warning: "Vernietigde e-mails worden op elk apparaat verwijderd en kunnen niet worden hersteld.",
-    delete_folder_purge_acknowledge: "Ik begrijp dat deze e-mails niet kunnen worden hersteld.",
-    delete_folder_purged_items: "Map verwijderd en {count} berichten definitief vernietigd.",
-    delete_folder_deleted_no_purge: "Map verwijderd. De e-mails erin blijven in uw account.",
+    delete_folder_purge_warning:
+      "Vernietigde e-mails worden op elk apparaat verwijderd en kunnen niet worden hersteld.",
+    delete_folder_purge_acknowledge:
+      "Ik begrijp dat deze e-mails niet kunnen worden hersteld.",
+    delete_folder_purged_items:
+      "Map verwijderd en {count} berichten definitief vernietigd.",
+    delete_folder_deleted_no_purge:
+      "Map verwijderd. De e-mails erin blijven in uw account.",
     delete_folder_password_required: "Voer uw accountwachtwoord in.",
     delete_folder_totp_required: "Voer uw tweestapsverificatiecode in.",
-    delete_folder_verification_failed: "Controleer uw wachtwoord en code en probeer het opnieuw.",
+    delete_folder_verification_failed:
+      "Controleer uw wachtwoord en code en probeer het opnieuw.",
     qr_code: "QR-code",
     profile_picture_removed: "Profielfoto verwijderd",
     failed_remove_profile_picture:
@@ -1707,7 +1713,8 @@ export const nl = {
   },
   settings: {
     purge_locked_folder_on_delete: "Inhoud van beveiligde mappen vernietigen",
-    purge_locked_folder_on_delete_description: "Selecteert vooraf het definitief vernietigen van de e-mails wanneer u een met een wachtwoord beveiligde map verwijdert",
+    purge_locked_folder_on_delete_description:
+      "Selecteert vooraf het definitief vernietigen van de e-mails wanneer u een met een wachtwoord beveiligde map verwijdert",
     settings_view_mode: "Instellingenweergave",
     settings_view_mode_description:
       "Instellingen openen als volledige pagina of pop-upvenster",
@@ -2392,20 +2399,30 @@ export const nl = {
     alias_delivery_label_none: "Geen label",
     alias_delivery_label_missing: "Verwijderd label",
     alias_apply_existing: "Toepassen op bestaande e-mail",
-    alias_apply_existing_desc: "Verplaats e-mail die dit alias al heeft ontvangen naar de map en het label die je hebt gekozen.",
-    alias_apply_existing_info: "Hiermee pas je de bezorgmap en het label hierboven toe op e-mail die al in je account staat. Dit gebeurt op de achtergrond, en je e-mailregels worden niet opnieuw uitgevoerd.",
+    alias_apply_existing_desc:
+      "Verplaats e-mail die dit alias al heeft ontvangen naar de map en het label die je hebt gekozen.",
+    alias_apply_existing_info:
+      "Hiermee pas je de bezorgmap en het label hierboven toe op e-mail die al in je account staat. Dit gebeurt op de achtergrond, en je e-mailregels worden niet opnieuw uitgevoerd.",
     alias_apply_existing_action: "Nu toepassen",
     alias_apply_existing_cancel: "Stoppen",
-    alias_apply_existing_started: "Je bezorginstellingen worden toegepast op bestaande e-mail. Dit gebeurt op de achtergrond.",
-    alias_apply_existing_failed: "Deze instellingen konden niet worden toegepast.",
-    alias_apply_existing_cancel_failed: "Deze bewerking kon niet worden gestopt.",
+    alias_apply_existing_started:
+      "Je bezorginstellingen worden toegepast op bestaande e-mail. Dit gebeurt op de achtergrond.",
+    alias_apply_existing_failed:
+      "Deze instellingen konden niet worden toegepast.",
+    alias_apply_existing_cancel_failed:
+      "Deze bewerking kon niet worden gestopt.",
     alias_apply_existing_queued: "In wachtrij...",
-    alias_apply_existing_progress: "Bezig: {{scanned}} gescand, {{applied}} bijgewerkt",
-    alias_apply_existing_progress_total: "Bezig: {{scanned}} van {{total}} gescand, {{applied}} bijgewerkt",
-    alias_apply_existing_done: "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt",
+    alias_apply_existing_progress:
+      "Bezig: {{scanned}} gescand, {{applied}} bijgewerkt",
+    alias_apply_existing_progress_total:
+      "Bezig: {{scanned}} van {{total}} gescand, {{applied}} bijgewerkt",
+    alias_apply_existing_done:
+      "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt",
     alias_apply_existing_canceled: "Gestopt: {{applied}} bijgewerkt",
-    alias_apply_existing_error: "Toepassen op bestaande e-mail is mislukt. Probeer het opnieuw.",
-    alias_apply_existing_unavailable: "E-mail die al in je account staat, kan niet naar Spam worden verplaatst.",
+    alias_apply_existing_error:
+      "Toepassen op bestaande e-mail is mislukt. Probeer het opnieuw.",
+    alias_apply_existing_unavailable:
+      "E-mail die al in je account staat, kan niet naar Spam worden verplaatst.",
     alias_delivery_label_error:
       "Deze instelling is niet opgeslagen. Probeer het opnieuw.",
     alias_delivery_rule_note:
@@ -3095,21 +3112,25 @@ export const nl = {
       "U heeft een methode voor gegevensherstel. Als u uw wachtwoord vergeet, verliest u uw versleutelde e-mail niet.",
     recovery_status_at_risk: "Risico: geen offline herstelmethode",
     recovery_status_at_risk_desc:
-      "Zonder herstelzin of herstelcodes wordt uw versleutelde e-mail permanent vergrendeld als u uw wachtwoord vergeet.",
-    recovery_phrase_row: "Herstelzin",
-    recovery_phrase_row_desc:
-      "Een zin van 12 woorden die uw account en alle versleutelde gegevens herstelt.",
-    recovery_phrase_generate: "Zin genereren",
-    recovery_phrase_regenerate: "Zin opnieuw genereren",
-    recovery_phrase_regenerate_warning:
-      "Opnieuw genereren maakt een nieuwe zin aan en maakt de oude permanent ongeldig.",
-    recovery_phrase_active: "Actief",
-    recovery_phrase_not_set: "Niet ingesteld",
-    recovery_phrase_saved_confirm:
-      "Sla de nieuwe zin op voordat u dit venster sluit. Deze wordt maar één keer getoond.",
-    legacy_codes_row: "Herstelcodes (verouderd)",
-    legacy_codes_row_desc:
-      "Uw bestaande ASTER-herstelcodes blijven geldig. Nieuwe accounts gebruiken in plaats daarvan de herstelzin.",
+      "Zonder herstelcodes wordt uw versleutelde e-mail permanent vergrendeld als u uw wachtwoord vergeet.",
+    recovery_codes_row: "Herstelcodes",
+    recovery_codes_row_desc:
+      "Zes eenmalige codes die uw account en alle versleutelde gegevens herstellen.",
+    recovery_codes_generate: "Codes genereren",
+    recovery_codes_regenerate: "Codes opnieuw genereren",
+    recovery_codes_regenerate_warning:
+      "Opnieuw genereren maakt nieuwe codes aan en maakt de oude permanent ongeldig.",
+    recovery_method_active: "Actief",
+    recovery_method_not_set: "Niet ingesteld",
+    recovery_codes_saved_confirm:
+      "Sla de nieuwe codes op voordat u dit venster sluit. Ze worden maar één keer getoond.",
+    recovery_codes_saved_checkbox:
+      "Ik heb mijn herstelcodes op een veilige plek opgeslagen.",
+    recovery_codes_save_failed:
+      "Uw herstelcodes konden niet op de server worden opgeslagen. Probeer het opnieuw.",
+    legacy_phrase_row: "Herstelzin (verouderd)",
+    legacy_phrase_row_desc:
+      "Uw bestaande herstelzin blijft geldig. Voortaan worden herstelcodes gebruikt.",
     recovery_email_row_moved_hint:
       "De instellingen voor het herstel-e-mailadres zijn verplaatst naar Beveiliging > Accountherstel",
     recover_older_data_title: "Oudere gegevens herstellen",

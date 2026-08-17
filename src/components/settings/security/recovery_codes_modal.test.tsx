@@ -22,14 +22,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { RecoveryPhraseModal } from "./recovery_phrase_modal";
+import { RecoveryCodesModal } from "./recovery_codes_modal";
 import { api_client } from "@/services/api/client";
-import { save_phrase_wrap } from "@/services/api/recovery";
+import { save_recovery_backup } from "@/services/api/recovery";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
-  is_valid_recovery_phrase,
-  unwrap_vault_with_phrase,
-} from "@/services/crypto/recovery_phrase";
+  hash_recovery_code,
+  decrypt_recovery_key_with_code,
+  decrypt_vault_backup,
+} from "@/services/crypto/recovery_key";
 
 vi.mock("@/services/api/client", () => ({
   api_client: {
@@ -39,7 +40,7 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 vi.mock("@/services/api/recovery", () => ({
-  save_phrase_wrap: vi.fn(),
+  save_recovery_backup: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -47,8 +48,8 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
 }));
 
 vi.mock("@/services/crypto/recovery_pdf", () => ({
-  generate_recovery_phrase_pdf: vi.fn(),
-  download_recovery_phrase_text: vi.fn(),
+  generate_recovery_pdf: vi.fn(),
+  download_recovery_text: vi.fn(),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -106,7 +107,7 @@ vi.mock("@aster/ui", () => ({
 
 const mocked_get = vi.mocked(api_client.get);
 const mocked_post = vi.mocked(api_client.post);
-const mocked_save = vi.mocked(save_phrase_wrap);
+const mocked_save = vi.mocked(save_recovery_backup);
 const mocked_vault = vi.mocked(get_vault_from_memory);
 
 const vault_fixture = {
@@ -121,11 +122,11 @@ const vault_fixture = {
 let container: HTMLDivElement;
 let root: Root;
 
-function render_modal(props: { has_phrase?: boolean } = {}) {
+function render_modal(props: { has_codes?: boolean } = {}) {
   act(() => {
     root.render(
-      <RecoveryPhraseModal
-        has_phrase={props.has_phrase ?? false}
+      <RecoveryCodesModal
+        has_codes={props.has_codes ?? false}
         is_open
         on_close={() => {}}
         on_saved={() => {}}
@@ -170,7 +171,7 @@ function find_button(label: string): HTMLButtonElement {
   return match;
 }
 
-describe("RecoveryPhraseModal", () => {
+describe("RecoveryCodesModal", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     container = document.createElement("div");
@@ -194,42 +195,40 @@ describe("RecoveryPhraseModal", () => {
     vi.useRealTimers();
   });
 
-  it("shows the generate title when no phrase exists", () => {
-    render_modal({ has_phrase: false });
-    expect(container.textContent).toContain(
-      "settings.recovery_phrase_generate",
-    );
+  it("shows the generate title when no codes exist", () => {
+    render_modal({ has_codes: false });
+    expect(container.textContent).toContain("settings.recovery_codes_generate");
     expect(container.textContent).not.toContain(
-      "settings.recovery_phrase_regenerate_warning",
+      "settings.recovery_codes_regenerate_warning",
     );
   });
 
-  it("shows the regenerate warning when a phrase already exists", () => {
-    render_modal({ has_phrase: true });
+  it("shows the regenerate warning when codes already exist", () => {
+    render_modal({ has_codes: true });
     expect(container.textContent).toContain(
-      "settings.recovery_phrase_regenerate_warning",
+      "settings.recovery_codes_regenerate_warning",
     );
   });
 
-  it("generates a valid phrase whose server wrap unwraps to the exact vault", async () => {
+  it("generates codes whose saved shares and backup restore the exact vault", async () => {
     vi.useRealTimers();
     render_modal();
 
     const password_input = container.querySelector(
-      "#phrase-current-password",
+      "#codes-current-password",
     ) as HTMLInputElement;
 
     expect(password_input).toBeTruthy();
     set_input(password_input, "correct horse battery staple");
 
-    const generate_button = find_button("settings.recovery_phrase_generate");
+    const generate_button = find_button("settings.recovery_codes_generate");
 
     await act(async () => {
       generate_button.click();
     });
     await wait_until(() => mocked_save.mock.calls.length === 1);
     await wait_until(
-      () => container.querySelectorAll(".font-mono").length === 12,
+      () => container.querySelectorAll(".font-mono").length === 6,
     );
 
     expect(mocked_post).toHaveBeenCalledWith(
@@ -238,31 +237,48 @@ describe("RecoveryPhraseModal", () => {
     );
     expect(mocked_save).toHaveBeenCalledTimes(1);
 
-    const [hash, verifier_hash, wrapped_vault, wrap_nonce, wrap_salt] =
+    const [encrypted_backup, backup_nonce, backup_salt, shares] =
       mocked_save.mock.calls[0];
 
-    expect(hash).toBeTruthy();
-    expect(verifier_hash).toBeTruthy();
+    expect(shares).toHaveLength(6);
 
-    const shown_words = Array.from(
+    const shown_codes = Array.from(
       container.querySelectorAll(".font-mono"),
     ).map((el) => el.textContent?.trim() ?? "");
 
-    expect(shown_words).toHaveLength(12);
+    expect(shown_codes).toHaveLength(6);
 
-    const phrase = shown_words.join(" ");
+    for (const code of shown_codes) {
+      expect(code).toMatch(/^ASTER-/);
+    }
 
-    expect(is_valid_recovery_phrase(phrase)).toBe(true);
-
-    const unwrapped = await unwrap_vault_with_phrase(
-      phrase,
-      wrapped_vault,
-      wrap_nonce,
-      wrap_salt,
+    const first_code = shown_codes[0];
+    const first_hash = await hash_recovery_code(first_code);
+    const matching_share = shares.find(
+      (share) => share.code_hash === first_hash,
     );
 
-    expect(unwrapped).not.toBeNull();
-    expect(JSON.parse(unwrapped as string)).toEqual(vault_fixture);
+    expect(matching_share).toBeTruthy();
+
+    const recovery_key = await decrypt_recovery_key_with_code(
+      {
+        encrypted_key: matching_share!.encrypted_recovery_key,
+        nonce: matching_share!.recovery_key_nonce,
+        salt: matching_share!.code_salt,
+      },
+      first_code,
+    );
+
+    const restored_vault = await decrypt_vault_backup(
+      {
+        encrypted_data: encrypted_backup,
+        nonce: backup_nonce,
+        salt: backup_salt,
+      },
+      recovery_key,
+    );
+
+    expect(restored_vault).toMatchObject(vault_fixture);
   });
 
   it("does not save when password verification fails", async () => {
@@ -271,13 +287,13 @@ describe("RecoveryPhraseModal", () => {
     render_modal();
 
     const password_input = container.querySelector(
-      "#phrase-current-password",
+      "#codes-current-password",
     ) as HTMLInputElement;
 
     set_input(password_input, "wrong password");
 
     await act(async () => {
-      find_button("settings.recovery_phrase_generate").click();
+      find_button("settings.recovery_codes_generate").click();
     });
     await wait_until(() =>
       (container.textContent ?? "").includes(
@@ -296,28 +312,26 @@ describe("RecoveryPhraseModal", () => {
     render_modal();
 
     const password_input = container.querySelector(
-      "#phrase-current-password",
+      "#codes-current-password",
     ) as HTMLInputElement;
 
     set_input(password_input, "correct horse battery staple");
 
     await act(async () => {
-      find_button("settings.recovery_phrase_generate").click();
+      find_button("settings.recovery_codes_generate").click();
     });
-    await wait_until(
-      () => container.querySelector("#phrase-totp-code") !== null,
-    );
+    await wait_until(() => container.querySelector("#codes-totp-code") !== null);
 
     expect(mocked_save).not.toHaveBeenCalled();
 
     const totp_input = container.querySelector(
-      "#phrase-totp-code",
+      "#codes-totp-code",
     ) as HTMLInputElement;
 
     set_input(totp_input, "123456");
 
     await act(async () => {
-      find_button("settings.recovery_phrase_generate").click();
+      find_button("settings.recovery_codes_generate").click();
     });
     await wait_until(() => mocked_save.mock.calls.length === 1);
 

@@ -21,16 +21,23 @@
 export const pt = {
   common: {
     delete_folder_account_password: "Senha da conta",
-    delete_folder_step_up_hint: "Esta pasta é protegida por senha. Digite a senha da sua conta para excluí-la.",
+    delete_folder_step_up_hint:
+      "Esta pasta é protegida por senha. Digite a senha da sua conta para excluí-la.",
     delete_folder_totp_code: "Código de autenticação em duas etapas",
     delete_folder_purge_option: "Destruir permanentemente os e-mails de dentro",
-    delete_folder_purge_warning: "E-mails destruídos são apagados em todos os dispositivos e não podem ser recuperados.",
-    delete_folder_purge_acknowledge: "Entendo que estes e-mails não podem ser recuperados.",
-    delete_folder_purged_items: "Pasta excluída e {count} mensagens destruídas permanentemente.",
-    delete_folder_deleted_no_purge: "Pasta excluída. Os e-mails de dentro permanecem na sua conta.",
+    delete_folder_purge_warning:
+      "E-mails destruídos são apagados em todos os dispositivos e não podem ser recuperados.",
+    delete_folder_purge_acknowledge:
+      "Entendo que estes e-mails não podem ser recuperados.",
+    delete_folder_purged_items:
+      "Pasta excluída e {count} mensagens destruídas permanentemente.",
+    delete_folder_deleted_no_purge:
+      "Pasta excluída. Os e-mails de dentro permanecem na sua conta.",
     delete_folder_password_required: "Digite a senha da sua conta.",
-    delete_folder_totp_required: "Digite o código de autenticação em duas etapas.",
-    delete_folder_verification_failed: "Confira sua senha e o código e tente novamente.",
+    delete_folder_totp_required:
+      "Digite o código de autenticação em duas etapas.",
+    delete_folder_verification_failed:
+      "Confira sua senha e o código e tente novamente.",
     qr_code: "Código QR",
     profile_picture_removed: "Foto de perfil removida",
     failed_remove_profile_picture:
@@ -1730,7 +1737,8 @@ export const pt = {
   },
   settings: {
     purge_locked_folder_on_delete: "Destruir conteúdo de pastas protegidas",
-    purge_locked_folder_on_delete_description: "Pré-seleciona a destruição permanente dos e-mails ao excluir uma pasta protegida por senha",
+    purge_locked_folder_on_delete_description:
+      "Pré-seleciona a destruição permanente dos e-mails ao excluir uma pasta protegida por senha",
     settings_view_mode: "Visualização das configurações",
     settings_view_mode_description:
       "Abrir as configurações em página inteira ou janela popup",
@@ -1779,21 +1787,25 @@ export const pt = {
       "Você tem um método de recuperação de dados. Esquecer sua senha não fará você perder seus e-mails criptografados.",
     recovery_status_at_risk: "Em risco: nenhum método de recuperação offline",
     recovery_status_at_risk_desc:
-      "Sem uma frase ou códigos de recuperação, esquecer sua senha bloqueia permanentemente seus e-mails criptografados.",
-    recovery_phrase_row: "Frase de recuperação",
-    recovery_phrase_row_desc:
-      "Uma frase de 12 palavras que restaura sua conta e todos os dados criptografados.",
-    recovery_phrase_generate: "Gerar frase",
-    recovery_phrase_regenerate: "Gerar frase novamente",
-    recovery_phrase_regenerate_warning:
-      "Gerar novamente cria uma nova frase e invalida permanentemente a antiga.",
-    recovery_phrase_active: "Ativa",
-    recovery_phrase_not_set: "Não definida",
-    recovery_phrase_saved_confirm:
-      "Salve a nova frase antes de fechar. Ela é exibida apenas uma vez.",
-    legacy_codes_row: "Códigos de recuperação (legado)",
-    legacy_codes_row_desc:
-      "Seus códigos de recuperação ASTER existentes continuam válidos. Contas novas usam a frase de recuperação em vez deles.",
+      "Sem códigos de recuperação, esquecer sua senha bloqueia permanentemente seus e-mails criptografados.",
+    recovery_codes_row: "Códigos de recuperação",
+    recovery_codes_row_desc:
+      "Seis códigos de uso único que restauram sua conta e todos os dados criptografados.",
+    recovery_codes_generate: "Gerar códigos",
+    recovery_codes_regenerate: "Gerar códigos novamente",
+    recovery_codes_regenerate_warning:
+      "Gerar novamente cria códigos novos e invalida permanentemente os antigos.",
+    recovery_method_active: "Ativo",
+    recovery_method_not_set: "Não definido",
+    recovery_codes_saved_confirm:
+      "Salve os novos códigos antes de fechar. Eles são exibidos apenas uma vez.",
+    recovery_codes_saved_checkbox:
+      "Salvei meus códigos de recuperação em um lugar seguro.",
+    recovery_codes_save_failed:
+      "Não foi possível salvar seus códigos de recuperação no servidor. Tente novamente.",
+    legacy_phrase_row: "Frase de recuperação (legado)",
+    legacy_phrase_row_desc:
+      "Sua frase de recuperação existente continua válida. Daqui em diante são usados códigos de recuperação.",
     recovery_email_row_moved_hint:
       "As configurações de e-mail de recuperação foram movidas para Segurança > Recuperação de Conta",
     recover_older_data_title: "Recuperar dados antigos",
@@ -2455,20 +2467,29 @@ export const pt = {
     alias_delivery_label_none: "Sem etiqueta",
     alias_delivery_label_missing: "Etiqueta eliminada",
     alias_apply_existing: "Aplicar ao correio existente",
-    alias_apply_existing_desc: "Organize o correio que este alias já recebeu na pasta e na etiqueta escolhidas.",
-    alias_apply_existing_info: "Isto aplica a pasta de entrega e a etiqueta acima ao correio que já está na sua conta. É executado em segundo plano e as suas regras de correio não voltam a ser executadas.",
+    alias_apply_existing_desc:
+      "Organize o correio que este alias já recebeu na pasta e na etiqueta escolhidas.",
+    alias_apply_existing_info:
+      "Isto aplica a pasta de entrega e a etiqueta acima ao correio que já está na sua conta. É executado em segundo plano e as suas regras de correio não voltam a ser executadas.",
     alias_apply_existing_action: "Aplicar agora",
     alias_apply_existing_cancel: "Parar",
-    alias_apply_existing_started: "A aplicar as suas definições de entrega ao correio existente. É executado em segundo plano.",
-    alias_apply_existing_failed: "Não foi possível começar a aplicar estas definições.",
+    alias_apply_existing_started:
+      "A aplicar as suas definições de entrega ao correio existente. É executado em segundo plano.",
+    alias_apply_existing_failed:
+      "Não foi possível começar a aplicar estas definições.",
     alias_apply_existing_cancel_failed: "Não foi possível parar esta execução.",
     alias_apply_existing_queued: "Em fila...",
-    alias_apply_existing_progress: "A aplicar: {{scanned}} analisados, {{applied}} atualizados",
-    alias_apply_existing_progress_total: "A aplicar: {{scanned}} de {{total}} analisados, {{applied}} atualizados",
-    alias_apply_existing_done: "Concluído: {{scanned}} analisados, {{applied}} atualizados",
+    alias_apply_existing_progress:
+      "A aplicar: {{scanned}} analisados, {{applied}} atualizados",
+    alias_apply_existing_progress_total:
+      "A aplicar: {{scanned}} de {{total}} analisados, {{applied}} atualizados",
+    alias_apply_existing_done:
+      "Concluído: {{scanned}} analisados, {{applied}} atualizados",
     alias_apply_existing_canceled: "Parado: {{applied}} atualizados",
-    alias_apply_existing_error: "Não foi possível aplicar ao correio existente. Tente novamente.",
-    alias_apply_existing_unavailable: "O correio que já está na sua conta não pode ser movido para Spam.",
+    alias_apply_existing_error:
+      "Não foi possível aplicar ao correio existente. Tente novamente.",
+    alias_apply_existing_unavailable:
+      "O correio que já está na sua conta não pode ser movido para Spam.",
     alias_delivery_label_error:
       "A definição não foi guardada. Tente novamente.",
     alias_delivery_rule_note:

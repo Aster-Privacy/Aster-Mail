@@ -21,16 +21,23 @@
 export const ja = {
   common: {
     delete_folder_account_password: "アカウントのパスワード",
-    delete_folder_step_up_hint: "このフォルダはパスワードで保護されています。削除するにはアカウントのパスワードを入力してください。",
+    delete_folder_step_up_hint:
+      "このフォルダはパスワードで保護されています。削除するにはアカウントのパスワードを入力してください。",
     delete_folder_totp_code: "2ファクタ認証コード",
     delete_folder_purge_option: "中のメールを完全に削除する",
-    delete_folder_purge_warning: "完全に削除したメールはすべてのデバイスから消え、復元できません。",
-    delete_folder_purge_acknowledge: "このメールを復元できないことを理解しました。",
-    delete_folder_purged_items: "フォルダを削除し、{count} 件のメッセージを完全に削除しました。",
-    delete_folder_deleted_no_purge: "フォルダを削除しました。中のメールはアカウントに残ります。",
-    delete_folder_password_required: "アカウントのパスワードを入力してください。",
+    delete_folder_purge_warning:
+      "完全に削除したメールはすべてのデバイスから消え、復元できません。",
+    delete_folder_purge_acknowledge:
+      "このメールを復元できないことを理解しました。",
+    delete_folder_purged_items:
+      "フォルダを削除し、{count} 件のメッセージを完全に削除しました。",
+    delete_folder_deleted_no_purge:
+      "フォルダを削除しました。中のメールはアカウントに残ります。",
+    delete_folder_password_required:
+      "アカウントのパスワードを入力してください。",
     delete_folder_totp_required: "2ファクタ認証コードを入力してください。",
-    delete_folder_verification_failed: "パスワードとコードを確認して、もう一度お試しください。",
+    delete_folder_verification_failed:
+      "パスワードとコードを確認して、もう一度お試しください。",
     qr_code: "QRコード",
     profile_picture_removed: "プロフィール写真を削除しました",
     failed_remove_profile_picture:
@@ -1723,7 +1730,8 @@ export const ja = {
   },
   settings: {
     purge_locked_folder_on_delete: "保護フォルダの中身を完全に削除",
-    purge_locked_folder_on_delete_description: "パスワード保護されたフォルダを削除するとき、中のメールの完全削除をあらかじめ選択します",
+    purge_locked_folder_on_delete_description:
+      "パスワード保護されたフォルダを削除するとき、中のメールの完全削除をあらかじめ選択します",
     settings_view_mode: "設定の表示",
     settings_view_mode_description: "設定を全画面またはポップアップで開く",
     quick_settings: "設定",
@@ -1766,21 +1774,25 @@ export const ja = {
       "データ復旧の手段が設定されています。パスワードを忘れても、暗号化されたメールが失われることはありません。",
     recovery_status_at_risk: "リスクあり：オフラインの復旧手段がありません",
     recovery_status_at_risk_desc:
-      "リカバリーフレーズまたはリカバリーコードがない状態でパスワードを忘れると、暗号化されたメールは永久にロックされます。",
-    recovery_phrase_row: "リカバリーフレーズ",
-    recovery_phrase_row_desc:
-      "アカウントとすべての暗号化されたデータを復元できる12単語のフレーズです。",
-    recovery_phrase_generate: "フレーズを生成",
-    recovery_phrase_regenerate: "フレーズを再生成",
-    recovery_phrase_regenerate_warning:
-      "再生成すると新しいフレーズが作成され、以前のフレーズは永久に無効になります。",
-    recovery_phrase_active: "有効",
-    recovery_phrase_not_set: "未設定",
-    recovery_phrase_saved_confirm:
-      "閉じる前に新しいフレーズを保存してください。表示されるのは一度だけです。",
-    legacy_codes_row: "リカバリーコード（旧方式）",
-    legacy_codes_row_desc:
-      "既存の ASTER リカバリーコードは引き続き有効です。新しいアカウントでは代わりにリカバリーフレーズを使用します。",
+      "リカバリーコードがない状態でパスワードを忘れると、暗号化されたメールは永久にロックされます。",
+    recovery_codes_row: "リカバリーコード",
+    recovery_codes_row_desc:
+      "アカウントとすべての暗号化されたデータを復元できる6個の使い切りコードです。",
+    recovery_codes_generate: "コードを生成",
+    recovery_codes_regenerate: "コードを再生成",
+    recovery_codes_regenerate_warning:
+      "再生成すると新しいコードが作成され、以前のコードは永久に無効になります。",
+    recovery_method_active: "有効",
+    recovery_method_not_set: "未設定",
+    recovery_codes_saved_confirm:
+      "閉じる前に新しいコードを保存してください。表示されるのは一度だけです。",
+    recovery_codes_saved_checkbox:
+      "リカバリーコードを安全な場所に保存しました。",
+    recovery_codes_save_failed:
+      "リカバリーコードをサーバーに保存できませんでした。もう一度お試しください。",
+    legacy_phrase_row: "リカバリーフレーズ（旧方式）",
+    legacy_phrase_row_desc:
+      "既存のリカバリーフレーズは引き続き有効です。今後はリカバリーコードを使用します。",
     recovery_email_row_moved_hint:
       "リカバリーメールの設定は「セキュリティ > アカウントの復旧」に移動しました",
     recover_older_data_title: "以前のデータを復旧",
@@ -2438,20 +2450,28 @@ export const ja = {
     alias_delivery_label_none: "ラベルなし",
     alias_delivery_label_missing: "削除されたラベル",
     alias_apply_existing: "既存のメールに適用",
-    alias_apply_existing_desc: "このエイリアスがすでに受信したメールを、選択したフォルダとラベルに整理します。",
-    alias_apply_existing_info: "上で選択した配信先フォルダとラベルを、アカウント内にあるメールに適用します。処理はバックグラウンドで実行され、メールルールは再実行されません。",
+    alias_apply_existing_desc:
+      "このエイリアスがすでに受信したメールを、選択したフォルダとラベルに整理します。",
+    alias_apply_existing_info:
+      "上で選択した配信先フォルダとラベルを、アカウント内にあるメールに適用します。処理はバックグラウンドで実行され、メールルールは再実行されません。",
     alias_apply_existing_action: "今すぐ適用",
     alias_apply_existing_cancel: "停止",
-    alias_apply_existing_started: "配信設定を既存のメールに適用しています。処理はバックグラウンドで実行されます。",
+    alias_apply_existing_started:
+      "配信設定を既存のメールに適用しています。処理はバックグラウンドで実行されます。",
     alias_apply_existing_failed: "この設定の適用を開始できませんでした。",
     alias_apply_existing_cancel_failed: "この処理を停止できませんでした。",
     alias_apply_existing_queued: "待機中...",
-    alias_apply_existing_progress: "適用中: {{scanned}} 件をスキャン、{{applied}} 件を更新",
-    alias_apply_existing_progress_total: "適用中: {{total}} 件中 {{scanned}} 件をスキャン、{{applied}} 件を更新",
-    alias_apply_existing_done: "完了: {{scanned}} 件をスキャン、{{applied}} 件を更新",
+    alias_apply_existing_progress:
+      "適用中: {{scanned}} 件をスキャン、{{applied}} 件を更新",
+    alias_apply_existing_progress_total:
+      "適用中: {{total}} 件中 {{scanned}} 件をスキャン、{{applied}} 件を更新",
+    alias_apply_existing_done:
+      "完了: {{scanned}} 件をスキャン、{{applied}} 件を更新",
     alias_apply_existing_canceled: "停止しました: {{applied}} 件を更新",
-    alias_apply_existing_error: "既存のメールへの適用に失敗しました。もう一度お試しください。",
-    alias_apply_existing_unavailable: "アカウント内にあるメールは迷惑メールに移動できません。",
+    alias_apply_existing_error:
+      "既存のメールへの適用に失敗しました。もう一度お試しください。",
+    alias_apply_existing_unavailable:
+      "アカウント内にあるメールは迷惑メールに移動できません。",
     alias_delivery_label_error:
       "設定を保存できませんでした。もう一度お試しください。",
     alias_delivery_rule_note:

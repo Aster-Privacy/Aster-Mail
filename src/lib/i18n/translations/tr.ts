@@ -21,16 +21,22 @@
 export const tr = {
   common: {
     delete_folder_account_password: "Hesap parolası",
-    delete_folder_step_up_hint: "Bu klasör parola korumalı. Silmek için hesap parolanızı girin.",
+    delete_folder_step_up_hint:
+      "Bu klasör parola korumalı. Silmek için hesap parolanızı girin.",
     delete_folder_totp_code: "İki adımlı doğrulama kodu",
     delete_folder_purge_option: "İçindeki postayı kalıcı olarak yok et",
-    delete_folder_purge_warning: "Yok edilen posta her cihazda silinir ve geri getirilemez.",
-    delete_folder_purge_acknowledge: "Bu postanın geri getirilemeyeceğini anlıyorum.",
-    delete_folder_purged_items: "Klasör silindi ve {count} ileti kalıcı olarak yok edildi.",
-    delete_folder_deleted_no_purge: "Klasör silindi. İçindeki posta hesabınızda kalır.",
+    delete_folder_purge_warning:
+      "Yok edilen posta her cihazda silinir ve geri getirilemez.",
+    delete_folder_purge_acknowledge:
+      "Bu postanın geri getirilemeyeceğini anlıyorum.",
+    delete_folder_purged_items:
+      "Klasör silindi ve {count} ileti kalıcı olarak yok edildi.",
+    delete_folder_deleted_no_purge:
+      "Klasör silindi. İçindeki posta hesabınızda kalır.",
     delete_folder_password_required: "Hesap parolanızı girin.",
     delete_folder_totp_required: "İki adımlı doğrulama kodunuzu girin.",
-    delete_folder_verification_failed: "Parolanızı ve kodunuzu kontrol edip yeniden deneyin.",
+    delete_folder_verification_failed:
+      "Parolanızı ve kodunuzu kontrol edip yeniden deneyin.",
     qr_code: "QR kodu",
     profile_picture_removed: "Profil fotoğrafı kaldırıldı",
     failed_remove_profile_picture:
@@ -1724,7 +1730,8 @@ export const tr = {
   },
   settings: {
     purge_locked_folder_on_delete: "Korumalı klasör içeriğini yok et",
-    purge_locked_folder_on_delete_description: "Parola korumalı bir klasörü sildiğinizde içindeki postanın kalıcı olarak yok edilmesini önceden seçer",
+    purge_locked_folder_on_delete_description:
+      "Parola korumalı bir klasörü sildiğinizde içindeki postanın kalıcı olarak yok edilmesini önceden seçer",
     settings_view_mode: "Ayarlar görünümü",
     settings_view_mode_description:
       "Ayarları tam sayfa veya açılır pencere olarak aç",
@@ -1770,21 +1777,25 @@ export const tr = {
       "Bir veri kurtarma yönteminiz var. Parolanızı unutsanız bile şifreli postalarınız kaybolmaz.",
     recovery_status_at_risk: "Risk altında: çevrimdışı kurtarma yöntemi yok",
     recovery_status_at_risk_desc:
-      "Kurtarma ifadeniz veya kodlarınız yoksa, parolanızı unutmanız şifreli postalarınızı kalıcı olarak kilitler.",
-    recovery_phrase_row: "Kurtarma ifadesi",
-    recovery_phrase_row_desc:
-      "Hesabınızı ve tüm şifreli verilerinizi geri yükleyen 12 kelimelik bir ifade.",
-    recovery_phrase_generate: "İfade oluştur",
-    recovery_phrase_regenerate: "İfadeyi yeniden oluştur",
-    recovery_phrase_regenerate_warning:
-      "Yeniden oluşturmak yeni bir ifade üretir ve eskisini kalıcı olarak geçersiz kılar.",
-    recovery_phrase_active: "Etkin",
-    recovery_phrase_not_set: "Ayarlanmadı",
-    recovery_phrase_saved_confirm:
-      "Kapatmadan önce yeni ifadeyi kaydedin. Yalnızca bir kez gösterilir.",
-    legacy_codes_row: "Kurtarma kodları (eski)",
-    legacy_codes_row_desc:
-      "Mevcut ASTER kurtarma kodlarınız geçerli olmaya devam eder. Yeni hesaplar bunun yerine kurtarma ifadesini kullanır.",
+      "Kurtarma kodlarınız yoksa, parolanızı unutmanız şifreli postalarınızı kalıcı olarak kilitler.",
+    recovery_codes_row: "Kurtarma kodları",
+    recovery_codes_row_desc:
+      "Hesabınızı ve tüm şifreli verilerinizi geri yükleyen altı tek kullanımlık kod.",
+    recovery_codes_generate: "Kodları oluştur",
+    recovery_codes_regenerate: "Kodları yeniden oluştur",
+    recovery_codes_regenerate_warning:
+      "Yeniden oluşturmak yeni kodlar üretir ve eskilerini kalıcı olarak geçersiz kılar.",
+    recovery_method_active: "Etkin",
+    recovery_method_not_set: "Ayarlanmadı",
+    recovery_codes_saved_confirm:
+      "Kapatmadan önce yeni kodları kaydedin. Yalnızca bir kez gösterilir.",
+    recovery_codes_saved_checkbox:
+      "Kurtarma kodlarımı güvenli bir yere kaydettim.",
+    recovery_codes_save_failed:
+      "Kurtarma kodlarınız sunucuya kaydedilemedi. Yeniden deneyin.",
+    legacy_phrase_row: "Kurtarma ifadesi (eski)",
+    legacy_phrase_row_desc:
+      "Mevcut kurtarma ifadeniz geçerli olmaya devam eder. Bundan sonra kurtarma kodları kullanılır.",
     recovery_email_row_moved_hint:
       "Kurtarma e-postası ayarları Güvenlik > Hesap kurtarma bölümüne taşındı",
     recover_older_data_title: "Eski verileri kurtar",
@@ -2434,20 +2445,28 @@ export const tr = {
     alias_delivery_label_none: "Etiket yok",
     alias_delivery_label_missing: "Silinmiş etiket",
     alias_apply_existing: "Mevcut postaya uygula",
-    alias_apply_existing_desc: "Bu takma adın daha önce aldığı postaları seçtiğiniz klasöre ve etikete taşıyın.",
-    alias_apply_existing_info: "Bu işlem, yukarıdaki teslim klasörünü ve etiketi hesabınızda zaten bulunan postalara uygular. Arka planda çalışır ve posta kurallarınız yeniden çalıştırılmaz.",
+    alias_apply_existing_desc:
+      "Bu takma adın daha önce aldığı postaları seçtiğiniz klasöre ve etikete taşıyın.",
+    alias_apply_existing_info:
+      "Bu işlem, yukarıdaki teslim klasörünü ve etiketi hesabınızda zaten bulunan postalara uygular. Arka planda çalışır ve posta kurallarınız yeniden çalıştırılmaz.",
     alias_apply_existing_action: "Şimdi uygula",
     alias_apply_existing_cancel: "Durdur",
-    alias_apply_existing_started: "Teslim ayarlarınız mevcut postalara uygulanıyor. İşlem arka planda çalışır.",
+    alias_apply_existing_started:
+      "Teslim ayarlarınız mevcut postalara uygulanıyor. İşlem arka planda çalışır.",
     alias_apply_existing_failed: "Bu ayarlar uygulanmaya başlanamadı.",
     alias_apply_existing_cancel_failed: "Bu işlem durdurulamadı.",
     alias_apply_existing_queued: "Sırada...",
-    alias_apply_existing_progress: "Uygulanıyor: {{scanned}} tarandı, {{applied}} güncellendi",
-    alias_apply_existing_progress_total: "Uygulanıyor: {{total}} içinden {{scanned}} tarandı, {{applied}} güncellendi",
-    alias_apply_existing_done: "Tamamlandı: {{scanned}} tarandı, {{applied}} güncellendi",
+    alias_apply_existing_progress:
+      "Uygulanıyor: {{scanned}} tarandı, {{applied}} güncellendi",
+    alias_apply_existing_progress_total:
+      "Uygulanıyor: {{total}} içinden {{scanned}} tarandı, {{applied}} güncellendi",
+    alias_apply_existing_done:
+      "Tamamlandı: {{scanned}} tarandı, {{applied}} güncellendi",
     alias_apply_existing_canceled: "Durduruldu: {{applied}} güncellendi",
-    alias_apply_existing_error: "Mevcut postaya uygulama başarısız oldu. Yeniden deneyin.",
-    alias_apply_existing_unavailable: "Hesabınızda zaten bulunan postalar Spam klasörüne taşınamaz.",
+    alias_apply_existing_error:
+      "Mevcut postaya uygulama başarısız oldu. Yeniden deneyin.",
+    alias_apply_existing_unavailable:
+      "Hesabınızda zaten bulunan postalar Spam klasörüne taşınamaz.",
     alias_delivery_label_error: "Ayar kaydedilmedi. Tekrar deneyin.",
     alias_delivery_rule_note:
       '"{{ rule }}" kuralı bu takma adın postasını zaten {{ target }} klasörüne taşıyor.',

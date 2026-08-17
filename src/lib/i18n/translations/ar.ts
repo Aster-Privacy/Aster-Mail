@@ -21,16 +21,20 @@
 export const ar = {
   common: {
     delete_folder_account_password: "كلمة سر الحساب",
-    delete_folder_step_up_hint: "هذا المجلد محمي بكلمة سر. أدخل كلمة سر حسابك لحذفه.",
+    delete_folder_step_up_hint:
+      "هذا المجلد محمي بكلمة سر. أدخل كلمة سر حسابك لحذفه.",
     delete_folder_totp_code: "رمز المصادقة بخطوتين",
     delete_folder_purge_option: "إتلاف الرسائل بداخله نهائيًا",
-    delete_folder_purge_warning: "الرسائل المتلَفة تُحذف من كل جهاز ولا يمكن استرجاعها.",
+    delete_folder_purge_warning:
+      "الرسائل المتلَفة تُحذف من كل جهاز ولا يمكن استرجاعها.",
     delete_folder_purge_acknowledge: "أفهم أن هذه الرسائل لا يمكن استرجاعها.",
     delete_folder_purged_items: "تم حذف المجلد وإتلاف {count} رسالة نهائيًا.",
-    delete_folder_deleted_no_purge: "تم حذف المجلد. الرسائل بداخله تبقى في حسابك.",
+    delete_folder_deleted_no_purge:
+      "تم حذف المجلد. الرسائل بداخله تبقى في حسابك.",
     delete_folder_password_required: "أدخل كلمة سر حسابك.",
     delete_folder_totp_required: "أدخل رمز المصادقة بخطوتين.",
-    delete_folder_verification_failed: "تحقق من كلمة السر والرمز ثم أعد المحاولة.",
+    delete_folder_verification_failed:
+      "تحقق من كلمة السر والرمز ثم أعد المحاولة.",
     qr_code: "رمز QR",
     profile_picture_removed: "تمت إزالة صورة الملف الشخصي",
     failed_remove_profile_picture:
@@ -1664,7 +1668,8 @@ export const ar = {
   },
   settings: {
     purge_locked_folder_on_delete: "إتلاف محتوى المجلدات المحمية",
-    purge_locked_folder_on_delete_description: "يحدّد مسبقًا الإتلاف النهائي للرسائل عند حذف مجلد محمي بكلمة سر",
+    purge_locked_folder_on_delete_description:
+      "يحدّد مسبقًا الإتلاف النهائي للرسائل عند حذف مجلد محمي بكلمة سر",
     settings_view_mode: "عرض الإعدادات",
     settings_view_mode_description: "فتح الإعدادات كصفحة كاملة أو نافذة منبثقة",
     quick_settings: "الإعدادات",
@@ -1704,21 +1709,24 @@ export const ar = {
       "لديك طريقة لاسترداد البيانات. نسيان كلمة المرور لن يُفقدك بريدك المشفر.",
     recovery_status_at_risk: "في خطر: لا توجد طريقة استرداد دون اتصال",
     recovery_status_at_risk_desc:
-      "بدون عبارة استرداد أو رموز استرداد، نسيان كلمة المرور يقفل بريدك المشفر نهائيًا.",
-    recovery_phrase_row: "عبارة الاسترداد",
-    recovery_phrase_row_desc:
-      "عبارة من 12 كلمة تستعيد حسابك وجميع بياناتك المشفرة.",
-    recovery_phrase_generate: "إنشاء العبارة",
-    recovery_phrase_regenerate: "إعادة إنشاء العبارة",
-    recovery_phrase_regenerate_warning:
-      "إعادة الإنشاء تنشئ عبارة جديدة وتبطل العبارة القديمة نهائيًا.",
-    recovery_phrase_active: "نشطة",
-    recovery_phrase_not_set: "غير معيّنة",
-    recovery_phrase_saved_confirm:
-      "احفظ العبارة الجديدة قبل الإغلاق. تُعرض مرة واحدة فقط.",
-    legacy_codes_row: "رموز الاسترداد (القديمة)",
-    legacy_codes_row_desc:
-      "رموز استرداد ASTER الحالية لديك تبقى صالحة. الحسابات الجديدة تستخدم عبارة الاسترداد بدلًا منها.",
+      "بدون رموز استرداد، نسيان كلمة المرور يقفل بريدك المشفر نهائيًا.",
+    recovery_codes_row: "رموز الاسترداد",
+    recovery_codes_row_desc:
+      "ستة رموز تُستخدم مرة واحدة وتستعيد حسابك وجميع بياناتك المشفرة.",
+    recovery_codes_generate: "إنشاء الرموز",
+    recovery_codes_regenerate: "إعادة إنشاء الرموز",
+    recovery_codes_regenerate_warning:
+      "إعادة الإنشاء تنشئ رموزًا جديدة وتبطل الرموز القديمة نهائيًا.",
+    recovery_method_active: "نشطة",
+    recovery_method_not_set: "غير معيّنة",
+    recovery_codes_saved_confirm:
+      "احفظ الرموز الجديدة قبل الإغلاق. تُعرض مرة واحدة فقط.",
+    recovery_codes_saved_checkbox: "لقد حفظت رموز الاسترداد في مكان آمن.",
+    recovery_codes_save_failed:
+      "تعذر حفظ رموز الاسترداد على الخادم. حاول مرة أخرى.",
+    legacy_phrase_row: "عبارة الاسترداد (القديمة)",
+    legacy_phrase_row_desc:
+      "عبارة الاسترداد الحالية لديك تبقى صالحة. رموز الاسترداد تحل محلها من الآن فصاعدًا.",
     recovery_email_row_moved_hint:
       "انتقلت إعدادات بريد الاسترداد إلى الأمان > استرداد الحساب",
     recover_older_data_title: "استرداد البيانات الأقدم",
@@ -2354,20 +2362,26 @@ export const ar = {
     alias_delivery_label_none: "بدون تسمية",
     alias_delivery_label_missing: "تسمية محذوفة",
     alias_apply_existing: "تطبيق على البريد الحالي",
-    alias_apply_existing_desc: "انقل البريد الذي استلمه هذا الاسم المستعار مسبقًا إلى المجلد والتسمية اللذين اخترتهما.",
-    alias_apply_existing_info: "يطبّق هذا الإجراء مجلد التسليم والتسمية أعلاه على البريد الموجود في حسابك بالفعل. يعمل في الخلفية، ولا تُشغَّل قواعد البريد مرة أخرى.",
+    alias_apply_existing_desc:
+      "انقل البريد الذي استلمه هذا الاسم المستعار مسبقًا إلى المجلد والتسمية اللذين اخترتهما.",
+    alias_apply_existing_info:
+      "يطبّق هذا الإجراء مجلد التسليم والتسمية أعلاه على البريد الموجود في حسابك بالفعل. يعمل في الخلفية، ولا تُشغَّل قواعد البريد مرة أخرى.",
     alias_apply_existing_action: "تطبيق الآن",
     alias_apply_existing_cancel: "إيقاف",
-    alias_apply_existing_started: "يجري تطبيق إعدادات التسليم على البريد الحالي. تعمل العملية في الخلفية.",
+    alias_apply_existing_started:
+      "يجري تطبيق إعدادات التسليم على البريد الحالي. تعمل العملية في الخلفية.",
     alias_apply_existing_failed: "تعذّر بدء تطبيق هذه الإعدادات.",
     alias_apply_existing_cancel_failed: "تعذّر إيقاف هذه العملية.",
     alias_apply_existing_queued: "في قائمة الانتظار...",
-    alias_apply_existing_progress: "جارٍ التطبيق: تم فحص {{scanned}}، وتحديث {{applied}}",
-    alias_apply_existing_progress_total: "جارٍ التطبيق: تم فحص {{scanned}} من {{total}}، وتحديث {{applied}}",
+    alias_apply_existing_progress:
+      "جارٍ التطبيق: تم فحص {{scanned}}، وتحديث {{applied}}",
+    alias_apply_existing_progress_total:
+      "جارٍ التطبيق: تم فحص {{scanned}} من {{total}}، وتحديث {{applied}}",
     alias_apply_existing_done: "تم: فحص {{scanned}}، وتحديث {{applied}}",
     alias_apply_existing_canceled: "تم الإيقاف: تحديث {{applied}}",
     alias_apply_existing_error: "فشل التطبيق على البريد الحالي. حاول مرة أخرى.",
-    alias_apply_existing_unavailable: "لا يمكن نقل البريد الموجود في حسابك بالفعل إلى البريد العشوائي.",
+    alias_apply_existing_unavailable:
+      "لا يمكن نقل البريد الموجود في حسابك بالفعل إلى البريد العشوائي.",
     alias_delivery_label_error: "لم يتم حفظ الإعداد. حاول مرة أخرى.",
     alias_delivery_rule_note:
       'القاعدة "{{ rule }}" تنقل بريد هذا الاسم المستعار بالفعل إلى {{ target }}.',

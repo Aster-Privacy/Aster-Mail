@@ -31,12 +31,12 @@ import {
   get_recovery_methods,
   RecoveryMethods,
 } from "@/services/api/recovery";
-import { RecoveryPhraseModal } from "@/components/settings/security/recovery_phrase_modal";
+import { RecoveryCodesModal } from "@/components/settings/security/recovery_codes_modal";
 
 export function AccountRecoverySection() {
   const { t } = use_i18n();
   const [methods, set_methods] = useState<RecoveryMethods | null>(null);
-  const [show_phrase_modal, set_show_phrase_modal] = useState(false);
+  const [show_codes_modal, set_show_codes_modal] = useState(false);
 
   const fetch_methods = useCallback(async () => {
     const response = await get_recovery_methods();
@@ -48,8 +48,8 @@ export function AccountRecoverySection() {
     fetch_methods();
   }, [fetch_methods]);
 
-  const has_phrase = methods?.has_phrase ?? false;
-  const has_offline_method = has_phrase || (methods?.has_codes ?? false);
+  const has_codes = methods?.has_codes ?? false;
+  const has_offline_method = has_codes || (methods?.has_phrase ?? false);
 
   return (
     <div id="sec-recovery">
@@ -89,52 +89,52 @@ export function AccountRecoverySection() {
       <div className="flex items-center justify-between py-4">
         <div className="flex-1 pr-4">
           <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
-            {t("settings.recovery_phrase_row")}
+            {t("settings.recovery_codes_row")}
             {methods &&
-              (has_phrase ? (
+              (has_codes ? (
                 <Badge color="green">
-                  {t("settings.recovery_phrase_active")}
+                  {t("settings.recovery_method_active")}
                 </Badge>
               ) : (
                 <Badge color="gray">
-                  {t("settings.recovery_phrase_not_set")}
+                  {t("settings.recovery_method_not_set")}
                 </Badge>
               ))}
           </p>
           <p className="text-sm mt-0.5 text-txt-muted">
-            {t("settings.recovery_phrase_row_desc")}
+            {t("settings.recovery_codes_row_desc")}
           </p>
         </div>
         <Button
-          variant={has_phrase ? "secondary" : "depth"}
-          onClick={() => set_show_phrase_modal(true)}
+          variant={has_codes ? "secondary" : "depth"}
+          onClick={() => set_show_codes_modal(true)}
         >
-          {has_phrase
-            ? t("settings.recovery_phrase_regenerate")
-            : t("settings.recovery_phrase_generate")}
+          {has_codes
+            ? t("settings.recovery_codes_regenerate")
+            : t("settings.recovery_codes_generate")}
         </Button>
       </div>
 
-      {methods?.has_codes && (
+      {methods?.has_phrase && (
         <div className="flex items-center justify-between py-4">
           <div className="flex-1 pr-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
-              {t("settings.legacy_codes_row")}
+              {t("settings.legacy_phrase_row")}
               <Badge color="green">
-                {t("settings.recovery_phrase_active")}
+                {t("settings.recovery_method_active")}
               </Badge>
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.legacy_codes_row_desc")}
+              {t("settings.legacy_phrase_row_desc")}
             </p>
           </div>
         </div>
       )}
 
-      <RecoveryPhraseModal
-        has_phrase={has_phrase}
-        is_open={show_phrase_modal}
-        on_close={() => set_show_phrase_modal(false)}
+      <RecoveryCodesModal
+        has_codes={has_codes}
+        is_open={show_codes_modal}
+        on_close={() => set_show_codes_modal(false)}
         on_saved={fetch_methods}
       />
     </div>

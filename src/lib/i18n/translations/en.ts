@@ -23,16 +23,22 @@ import type { Translations } from "../types";
 export const en: Translations = {
   common: {
     delete_folder_account_password: "Account password",
-    delete_folder_step_up_hint: "This folder is password protected. Enter your account password to delete it.",
+    delete_folder_step_up_hint:
+      "This folder is password protected. Enter your account password to delete it.",
     delete_folder_totp_code: "Two-factor authentication code",
     delete_folder_purge_option: "Permanently destroy the mail inside",
-    delete_folder_purge_warning: "Purged mail is destroyed on every device and cannot be recovered.",
-    delete_folder_purge_acknowledge: "I understand that this mail cannot be recovered.",
-    delete_folder_purged_items: "Deleted the folder and permanently destroyed {count} messages.",
-    delete_folder_deleted_no_purge: "Deleted the folder. The mail inside stays in your account.",
+    delete_folder_purge_warning:
+      "Purged mail is destroyed on every device and cannot be recovered.",
+    delete_folder_purge_acknowledge:
+      "I understand that this mail cannot be recovered.",
+    delete_folder_purged_items:
+      "Deleted the folder and permanently destroyed {count} messages.",
+    delete_folder_deleted_no_purge:
+      "Deleted the folder. The mail inside stays in your account.",
     delete_folder_password_required: "Enter your account password.",
     delete_folder_totp_required: "Enter your two-factor authentication code.",
-    delete_folder_verification_failed: "Check your password and code, then try again.",
+    delete_folder_verification_failed:
+      "Check your password and code, then try again.",
     qr_code: "QR code",
     app_name: "Aster Mail",
     loading: "Loading...",
@@ -1722,7 +1728,8 @@ export const en: Translations = {
   },
   settings: {
     purge_locked_folder_on_delete: "Purge Protected Folder Contents",
-    purge_locked_folder_on_delete_description: "Preselect permanent destruction of the mail inside when you delete a password-protected folder",
+    purge_locked_folder_on_delete_description:
+      "Preselect permanent destruction of the mail inside when you delete a password-protected folder",
     settings_view_mode: "Settings view",
     settings_view_mode_description:
       "Open settings as a full page or a popup window",
@@ -1768,21 +1775,24 @@ export const en: Translations = {
       "You have a data recovery method. Forgetting your password will not lose your encrypted mail.",
     recovery_status_at_risk: "At risk: no offline recovery method",
     recovery_status_at_risk_desc:
-      "Without a recovery phrase or codes, forgetting your password permanently locks your encrypted mail.",
-    recovery_phrase_row: "Recovery phrase",
-    recovery_phrase_row_desc:
-      "A 12-word phrase that restores your account and all encrypted data.",
-    recovery_phrase_generate: "Generate phrase",
-    recovery_phrase_regenerate: "Regenerate phrase",
-    recovery_phrase_regenerate_warning:
-      "Regenerating creates a new phrase and permanently invalidates the old one.",
-    recovery_phrase_active: "Active",
-    recovery_phrase_not_set: "Not set",
-    recovery_phrase_saved_confirm:
-      "Save the new phrase before closing. It is shown only once.",
-    legacy_codes_row: "Recovery codes (legacy)",
-    legacy_codes_row_desc:
-      "Your existing ASTER recovery codes remain valid. New accounts use the recovery phrase instead.",
+      "Without recovery codes, forgetting your password permanently locks your encrypted mail.",
+    recovery_codes_row: "Recovery codes",
+    recovery_codes_row_desc:
+      "Six one-time codes that restore your account and all encrypted data.",
+    recovery_codes_generate: "Generate codes",
+    recovery_codes_regenerate: "Regenerate codes",
+    recovery_codes_regenerate_warning:
+      "Regenerating creates new codes and permanently invalidates the old ones.",
+    recovery_method_active: "Active",
+    recovery_method_not_set: "Not set",
+    recovery_codes_saved_confirm:
+      "Save the new codes before closing. They are shown only once.",
+    recovery_codes_saved_checkbox: "I saved my recovery codes in a safe place.",
+    recovery_codes_save_failed:
+      "Your recovery codes could not be saved to the server. Try again.",
+    legacy_phrase_row: "Recovery phrase (legacy)",
+    legacy_phrase_row_desc:
+      "Your existing recovery phrase remains valid. Recovery codes replace it going forward.",
     recovery_email_row_moved_hint:
       "Recovery email settings moved to Security > Account Recovery",
     recover_older_data_title: "Recover older data",
@@ -2443,8 +2453,7 @@ export const en: Translations = {
     rebuild_conversations_done:
       "Separated {{split}} conversations and moved {{moved}} messages.",
     rebuild_conversations_none: "Your conversations already match the rules.",
-    rebuild_conversations_locked:
-      "Unlock your mailbox and try again.",
+    rebuild_conversations_locked: "Unlock your mailbox and try again.",
     rebuild_conversations_failed:
       "The rebuild stopped early. Try again in a few minutes.",
     inbox_categories: "Inbox Categories",
@@ -6067,20 +6076,26 @@ export const en: Translations = {
     alias_delivery_label_none: "No label",
     alias_delivery_label_missing: "Deleted label",
     alias_apply_existing: "Apply to existing mail",
-    alias_apply_existing_desc: "Sort mail this alias already received into the folder and label you chose.",
-    alias_apply_existing_info: "This applies the delivery folder and label above to mail already in your account. It runs in the background, and your mail rules don't run again.",
+    alias_apply_existing_desc:
+      "Sort mail this alias already received into the folder and label you chose.",
+    alias_apply_existing_info:
+      "This applies the delivery folder and label above to mail already in your account. It runs in the background, and your mail rules don't run again.",
     alias_apply_existing_action: "Apply now",
     alias_apply_existing_cancel: "Stop",
-    alias_apply_existing_started: "Applying your delivery settings to existing mail. This runs in the background.",
+    alias_apply_existing_started:
+      "Applying your delivery settings to existing mail. This runs in the background.",
     alias_apply_existing_failed: "Could not start applying these settings.",
     alias_apply_existing_cancel_failed: "Could not stop this run.",
     alias_apply_existing_queued: "Queued...",
-    alias_apply_existing_progress: "Applying: {{scanned}} scanned, {{applied}} updated",
-    alias_apply_existing_progress_total: "Applying: {{scanned}} of {{total}} scanned, {{applied}} updated",
+    alias_apply_existing_progress:
+      "Applying: {{scanned}} scanned, {{applied}} updated",
+    alias_apply_existing_progress_total:
+      "Applying: {{scanned}} of {{total}} scanned, {{applied}} updated",
     alias_apply_existing_done: "Done: {{scanned}} scanned, {{applied}} updated",
     alias_apply_existing_canceled: "Stopped: {{applied}} updated",
     alias_apply_existing_error: "Applying to existing mail failed. Try again.",
-    alias_apply_existing_unavailable: "Mail already in your account can't be moved to Spam.",
+    alias_apply_existing_unavailable:
+      "Mail already in your account can't be moved to Spam.",
     alias_delivery_label_error:
       "That setting did not save. Another attempt should do it.",
     alias_delivery_rule_note:

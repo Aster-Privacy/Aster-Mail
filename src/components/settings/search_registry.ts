@@ -70,7 +70,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   { label: "Hardware security keys", section: "security", breadcrumb: "Security > Hardware Keys", keywords: ["yubikey", "fido2", "security key", "usb key"] },
   { label: "Backup codes",         section: "security", breadcrumb: "Security > Recovery", keywords: ["recovery codes", "one-time codes"] },
   { label: "Account recovery",     section: "security", breadcrumb: "Security > Account Recovery", keywords: ["restore account", "forgot password", "recovery methods"] },
-  { label: "Recovery phrase",      section: "security", breadcrumb: "Security > Account Recovery", keywords: ["12 words", "seed phrase", "mnemonic", "master key"] },
+  { label: "Recovery codes",       section: "security", breadcrumb: "Security > Account Recovery", keywords: ["regenerate codes", "backup codes", "recovery phrase", "one-time codes"] },
   { label: "Recover older data",   section: "security", breadcrumb: "Security > Account Recovery", keywords: ["old password", "unlock older data", "restore old mail", "resurrection"] },
   { label: "Active sessions",      section: "security", breadcrumb: "Security > Sessions", keywords: ["sign out all devices", "logout everywhere", "login history"] },
   { label: "Security checkup",     section: "security", breadcrumb: "Security > Checkup" },
