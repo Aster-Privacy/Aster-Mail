@@ -719,7 +719,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
               is_loading_more: false,
               total_messages: 0,
               has_more: false,
-              has_initial_load: false,
+              has_initial_load: true,
+              has_load_error: true,
             });
           });
       } else {
@@ -766,7 +767,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
             is_loading_more: false,
             total_messages: 0,
             has_more: false,
-            has_initial_load: false,
+            has_initial_load: true,
+            has_load_error: true,
           });
         });
     } else if (has_keys && !has_passphrase_in_memory()) {

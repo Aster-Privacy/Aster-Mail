@@ -69,6 +69,7 @@ export function GhostAliasesSection() {
   );
   const [aliases, set_aliases] = useState<DecryptedGhostAlias[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [action_loading, set_action_loading] = useState<string | null>(null);
   const [too_new_info, set_too_new_info] = useState<{
     is_open: boolean;
@@ -81,6 +82,7 @@ export function GhostAliasesSection() {
 
   const load_aliases = useCallback(async () => {
     set_loading(true);
+    set_load_error(false);
     try {
       const response = await list_ghost_aliases();
 
@@ -89,9 +91,11 @@ export function GhostAliasesSection() {
 
         decrypted.forEach((a) => register_ghost_email(a.full_address));
         set_aliases(decrypted);
+      } else if (response.error) {
+        set_load_error(true);
       }
     } catch {
-      set_aliases([]);
+      set_load_error(true);
     } finally {
       set_loading(false);
     }
@@ -240,7 +244,16 @@ export function GhostAliasesSection() {
         </p>
       </div>
 
-      {aliases.length === 0 ? (
+      {load_error ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+          <p className="text-xs text-txt-muted">
+            {t("settings.aliases_load_failed")}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => load_aliases()}>
+            {t("common.retry")}
+          </Button>
+        </div>
+      ) : aliases.length === 0 ? (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <EyeSlashIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
           <p className="text-sm mb-4 text-txt-muted">

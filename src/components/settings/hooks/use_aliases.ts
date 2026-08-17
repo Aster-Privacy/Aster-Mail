@@ -113,6 +113,7 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
 
   ensure_loaded_promise = (async () => {
     try {
+      const domains_promise = list_domains();
       const { aliases: raw, max_aliases, error } = await list_all_aliases();
 
       if (token !== aliases_cache_token) return;
@@ -132,7 +133,7 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
         };
       }
 
-      const domains_response = await list_domains();
+      const domains_response = await domains_promise;
 
       if (token !== aliases_cache_token) return;
 
@@ -157,27 +158,25 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
 
       if (token !== aliases_cache_token) return;
 
-      const all_addresses: (DecryptedDomainAddress & {
-        domain_name: string;
-      })[] = [];
-
-      for (let i = 0; i < active.length; i++) {
-        const response = responses[i];
-
-        if (response.data) {
+      const decrypted_per_domain = await Promise.all(
+        responses.map(async (response, i) => {
+          if (!response.data) return [];
           const decrypted = await decrypt_domain_addresses(
             response.data.addresses,
           );
 
-          if (token !== aliases_cache_token) return;
-
-          for (const addr of decrypted) {
-            all_addresses.push({ ...addr, domain_name: active[i].domain_name });
-          }
-        }
-      }
+          return decrypted.map((addr) => ({
+            ...addr,
+            domain_name: active[i].domain_name,
+          }));
+        }),
+      );
 
       if (token !== aliases_cache_token) return;
+
+      const all_addresses: (DecryptedDomainAddress & {
+        domain_name: string;
+      })[] = decrypted_per_domain.flat();
 
       aliases_cache.domain_addresses = all_addresses;
     } catch (error) {
@@ -397,30 +396,25 @@ export function use_aliases() {
 
         if (token !== aliases_cache_token) return;
 
-        const all_addresses: (DecryptedDomainAddress & {
-          domain_name: string;
-        })[] = [];
-
-        for (let i = 0; i < active.length; i++) {
-          const response = responses[i];
-
-          if (response.data) {
+        const decrypted_per_domain = await Promise.all(
+          responses.map(async (response, i) => {
+            if (!response.data) return [];
             const decrypted = await decrypt_domain_addresses(
               response.data.addresses,
             );
 
-            if (token !== aliases_cache_token) return;
-
-            for (const addr of decrypted) {
-              all_addresses.push({
-                ...addr,
-                domain_name: active[i].domain_name,
-              });
-            }
-          }
-        }
+            return decrypted.map((addr) => ({
+              ...addr,
+              domain_name: active[i].domain_name,
+            }));
+          }),
+        );
 
         if (token !== aliases_cache_token) return;
+
+        const all_addresses: (DecryptedDomainAddress & {
+          domain_name: string;
+        })[] = decrypted_per_domain.flat();
 
         set_domain_addresses(all_addresses);
         aliases_cache.domain_addresses = all_addresses;

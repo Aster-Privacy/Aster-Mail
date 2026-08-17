@@ -65,6 +65,7 @@ import {
   SettingsHeader,
   SettingsAnimatedSection,
 } from "./settings/shared";
+import { FullPageLoader } from "@/components/common/full_page_loader";
 import { AccountSection } from "./settings/account_section";
 import { AppearanceSection } from "./settings/appearance_section";
 import { AccessibilitySection } from "./settings/accessibility_section";
@@ -306,7 +307,7 @@ function MobileSettingsPage() {
       <DeveloperSection on_back={close_section} on_close={handle_back} />
     ),
     billing: (
-      <Suspense fallback={null}>
+      <Suspense fallback={<FullPageLoader />}>
         <BillingSection on_back={close_section} on_close={handle_back} />
       </Suspense>
     ),

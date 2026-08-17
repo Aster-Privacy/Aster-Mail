@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 import {
   SETTINGS_CACHE_FRESHNESS_WINDOW_MS,
@@ -92,6 +92,8 @@ const PREFETCH_PANELS: SettingsPanelName[] = [
   "passkey_list",
 ];
 
+const PREFETCH_CONCURRENCY = 4;
+
 export function use_settings_prefetch(is_active: boolean) {
   const cache = use_settings_cache();
   const last_run_ref = useRef<number>(0);
@@ -108,59 +110,82 @@ export function use_settings_prefetch(is_active: boolean) {
       }
       last_run_ref.current = now;
 
-      await Promise.all(
-        PREFETCH_PANELS.map(async (panel) => {
-          const existing = cache.get_entry(panel);
+      const fetch_panel = async (panel: SettingsPanelName) => {
+        const existing = cache.get_entry(panel);
 
-          if (
-            !force &&
-            existing &&
-            !existing.error &&
-            now - existing.fetched_at < SETTINGS_CACHE_FRESHNESS_WINDOW_MS
-          ) {
-            return;
-          }
+        if (existing?.is_loading) return;
+
+        if (
+          !force &&
+          existing &&
+          !existing.error &&
+          Date.now() - existing.fetched_at < SETTINGS_CACHE_FRESHNESS_WINDOW_MS
+        ) {
+          return;
+        }
+
+        cache.set_entry(panel, {
+          data: existing?.data ?? null,
+          error: null,
+          fetched_at: existing?.fetched_at ?? 0,
+          is_loading: true,
+        });
+
+        try {
+          const data = await PANEL_FETCHERS[panel]();
 
           cache.set_entry(panel, {
-            data: existing?.data ?? null,
+            data,
             error: null,
+            fetched_at: Date.now(),
+            is_loading: false,
+          });
+        } catch (error) {
+          cache.set_entry(panel, {
+            data: existing?.data ?? null,
+            error,
             fetched_at: existing?.fetched_at ?? 0,
-            is_loading: true,
+            is_loading: false,
           });
 
-          try {
-            const data = await PANEL_FETCHERS[panel]();
-
-            cache.set_entry(panel, {
-              data,
-              error: null,
-              fetched_at: Date.now(),
-              is_loading: false,
-            });
-          } catch (error) {
-            cache.set_entry(panel, {
-              data: existing?.data ?? null,
+          if (typeof console !== "undefined") {
+            console.error(
+              `[settings_prefetch] failed for panel "${panel}"`,
               error,
-              fetched_at: existing?.fetched_at ?? 0,
-              is_loading: false,
-            });
-
-            if (typeof console !== "undefined") {
-              console.error(
-                `[settings_prefetch] failed for panel "${panel}"`,
-                error,
-              );
-            }
+            );
           }
-        }),
-      );
+        }
+      };
+
+      for (
+        let index = 0;
+        index < PREFETCH_PANELS.length;
+        index += PREFETCH_CONCURRENCY
+      ) {
+        await Promise.all(
+          PREFETCH_PANELS.slice(index, index + PREFETCH_CONCURRENCY).map(
+            fetch_panel,
+          ),
+        );
+      }
     },
     [cache],
   );
 
   useEffect(() => {
     if (!is_active) return;
-    void run_prefetch(false);
+
+    if (typeof requestIdleCallback === "function") {
+      const idle_id = requestIdleCallback(() => void run_prefetch(false), {
+        timeout: 1000,
+      });
+
+      return () => cancelIdleCallback(idle_id);
+    }
+
+    const timeout_id = setTimeout(() => void run_prefetch(false), 200);
+
+    return () => clearTimeout(timeout_id);
   }, [is_active, run_prefetch]);
 
   return { run_prefetch };
@@ -168,7 +193,9 @@ export function use_settings_prefetch(is_active: boolean) {
 
 export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
   const cache = use_settings_cache();
-  const entry = cache.get_entry<T>(panel);
+  const entry = useSyncExternalStore(cache.subscribe, () =>
+    cache.get_entry<T>(panel),
+  );
 
   const revalidate = useCallback(async () => {
     const fetcher = PANEL_FETCHERS[panel];
@@ -205,6 +232,7 @@ export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
 
   useEffect(() => {
     if (cache.is_fresh(panel)) return;
+    if (cache.get_entry(panel)?.is_loading) return;
     void revalidate().catch((caught) =>
       ignore_error(
         "components/settings/hooks/use_settings_prefetch:use_settings_panel_data",

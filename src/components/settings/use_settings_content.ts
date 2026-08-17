@@ -202,22 +202,37 @@ export function use_settings_content(props: SettingsContentProps) {
   }, [navigate]);
 
   useEffect(() => {
-    void import("@/components/settings/billing_section").catch((caught) => ignore_error("components/settings/use_settings_content:use_settings_content", caught));
-  }, []);
-
-  useLayoutEffect(() => {
     refresh_family_plan_flag(set_is_family_plan);
-    get_available_plans();
-    get_billing_history(1, 10);
-    get_plan_limits();
-    get_storage_addons();
-    get_credits();
     list_devices().then((res) => {
       const has_any = (res.data?.devices?.length ?? 0) > 0;
 
       localStorage.setItem("aster_has_devices", has_any ? "1" : "0");
       set_has_devices(has_any);
     });
+
+    const warm_billing = () => {
+      void import("@/components/settings/billing_section").catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:use_settings_content",
+          caught,
+        ),
+      );
+      get_available_plans();
+      get_billing_history(1, 10);
+      get_plan_limits();
+      get_storage_addons();
+      get_credits();
+    };
+
+    if (typeof requestIdleCallback === "function") {
+      const idle_id = requestIdleCallback(warm_billing, { timeout: 2000 });
+
+      return () => cancelIdleCallback(idle_id);
+    }
+
+    const timeout_id = setTimeout(warm_billing, 400);
+
+    return () => clearTimeout(timeout_id);
   }, []);
 
   useEffect(() => {

@@ -34,6 +34,7 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { CountBadge } from "@/components/common/count_badge";
+import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
@@ -253,6 +254,10 @@ export const SidebarAliases = memo(function SidebarAliases({
             </span>
           </button>
         )}
+        {aliases.length === 0 &&
+          is_loading &&
+          !is_collapsed &&
+          !section_collapsed && <NavSectionSkeleton rows={2} />}
         {aliases.length === 0 &&
           !is_loading &&
           !is_collapsed &&

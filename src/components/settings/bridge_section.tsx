@@ -40,6 +40,7 @@ import {
 } from "@/services/api/devices";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
@@ -154,7 +155,7 @@ export function BridgeSection() {
     load_devices();
   }, [load_devices]);
 
-  if (plan_loading && !limits) return null;
+  if (plan_loading && !limits) return <SettingsSkeleton variant="list" />;
   const is_locked = !!limits && limits.plan_code === "free";
 
   const handle_revoke = async (id: string) => {

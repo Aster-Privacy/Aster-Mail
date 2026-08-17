@@ -228,6 +228,33 @@ export function use_preferences_provider() {
       try {
         let response = await get_preferences(v);
         let attempt = 0;
+        let cached_applied = false;
+
+        const apply_cached_fallback = () => {
+          if (cached_applied) return;
+
+          const cached = get_cached_preferences();
+
+          if (!cached) return;
+
+          const applied = apply_pending_preferences(
+            cached,
+            preferences_ref.current,
+            pending_keys_ref.current,
+          );
+
+          preferences_ref.current = applied;
+          set_preferences(applied);
+          apply_visual_preferences(applied);
+          has_loaded_ref.current = true;
+          fallback_base_ref.current = applied;
+          cached_applied = true;
+          set_is_loading(false);
+        };
+
+        if (!response.loaded_from_server) {
+          apply_cached_fallback();
+        }
 
         while (!response.loaded_from_server && attempt < 6) {
           if (cancelled) return;
@@ -241,21 +268,13 @@ export function use_preferences_provider() {
         if (cancelled) return;
 
         if (!response.loaded_from_server) {
-          const cached = get_cached_preferences();
+          apply_cached_fallback();
 
-          if (cached) {
-            const applied = apply_pending_preferences(
-              cached,
-              preferences_ref.current,
-              pending_keys_ref.current,
-            );
-
-            response = { data: applied, loaded_from_server: false };
-            preferences_ref.current = applied;
-            set_preferences(applied);
-            apply_visual_preferences(applied);
-            has_loaded_ref.current = true;
-            fallback_base_ref.current = applied;
+          if (cached_applied) {
+            response = {
+              data: preferences_ref.current,
+              loaded_from_server: false,
+            };
           }
         }
 

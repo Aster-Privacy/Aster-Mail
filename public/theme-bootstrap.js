@@ -27,21 +27,21 @@
       black: { bg: "#000000", border: "#262626", text: "#a3a3a3" },
     };
 
+    var cached = localStorage.getItem("aster_preferences_cache");
+    var color_theme = null;
+
+    if (cached) {
+      color_theme = JSON.parse(cached).color_theme;
+    }
+
+    if (color_theme && THEME_COLORS[color_theme]) {
+      document.documentElement.classList.add("theme-" + color_theme);
+    }
+
     if (is_dark) {
       document.documentElement.classList.add("dark");
 
-      var cached = localStorage.getItem("aster_preferences_cache");
-      var color_theme = null;
-
-      if (cached) {
-        color_theme = JSON.parse(cached).color_theme;
-      }
-
       var colors = (color_theme && THEME_COLORS[color_theme]) || DARK_DEFAULT;
-
-      if (color_theme && THEME_COLORS[color_theme]) {
-        document.documentElement.classList.add("theme-" + color_theme);
-      }
 
       var root_style = document.documentElement.style;
       root_style.setProperty("--bg-secondary", colors.bg);

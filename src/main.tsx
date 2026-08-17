@@ -26,6 +26,7 @@ import App from "@/App";
 import { evict_stale_favicons } from "@/lib/favicon_cache_db";
 import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
+import { FullPageLoader } from "@/components/common/full_page_loader";
 import {
   initialize_capacitor,
   hide_splash,
@@ -306,9 +307,7 @@ function RootShell(): JSX.Element {
 
   if (use_mobile) {
     return (
-      <Suspense
-        fallback={<div className="h-screen w-screen bg-[var(--bg-primary)]" />}
-      >
+      <Suspense fallback={<FullPageLoader />}>
         <MobileApp />
       </Suspense>
     );
@@ -320,7 +319,7 @@ function RootShell(): JSX.Element {
 const BOOT_VERSION_CHECK_MARKER = "aster:boot_version_checked_at";
 const BOOT_VERSION_CHECK_TTL_MS = 60_000;
 
-async function maybe_block_on_version_check(): Promise<void> {
+async function run_boot_version_check(): Promise<void> {
   if (!import.meta.env.PROD) return;
   if (is_tauri_runtime) return;
   try {
@@ -330,18 +329,18 @@ async function maybe_block_on_version_check(): Promise<void> {
 
     if (last && Date.now() - last < BOOT_VERSION_CHECK_TTL_MS) return;
   } catch (caught) {
-    ignore_error("main:maybe_block_on_version_check", caught);
+    ignore_error("main:run_boot_version_check", caught);
   }
   try {
     sessionStorage.setItem(BOOT_VERSION_CHECK_MARKER, String(Date.now()));
   } catch (caught) {
-    ignore_error("main:maybe_block_on_version_check", caught);
+    ignore_error("main:run_boot_version_check", caught);
   }
 
   try {
     await version_check_blocking(1500);
   } catch (caught) {
-    ignore_error("main:maybe_block_on_version_check", caught);
+    ignore_error("main:run_boot_version_check", caught);
   }
 }
 
@@ -355,7 +354,8 @@ function mount_app(): void {
   );
 }
 
-void maybe_block_on_version_check().then(mount_app);
+mount_app();
+void run_boot_version_check();
 
 setTimeout(() => {
   evict_stale_favicons().catch((caught) =>

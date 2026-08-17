@@ -64,6 +64,7 @@ import { ReferralTab } from "@/components/settings/referral_tab";
 import { BridgeSection } from "@/components/settings/bridge_section";
 import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 import { TrustedDevicesPanel } from "@/components/settings/trusted_devices_panel";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { SettingsSaveIndicator } from "@/components/settings/settings_save_indicator";
 import { SettingsCacheProvider } from "@/contexts/settings_cache_context";
 import { is_onion_host } from "@/lib/onion_host";
@@ -154,12 +155,19 @@ function SettingsContentInner(props: SettingsContentProps) {
           return null;
         }
         return (
-          <Suspense fallback={null}>
+          <Suspense fallback={<SettingsSkeleton variant="billing" />}>
             <BillingSection />
           </Suspense>
         );
       case "family":
-        return null;
+        if (!is_family_plan) {
+          return null;
+        }
+        return (
+          <Suspense fallback={<SettingsSkeleton />}>
+            <FamilySection is_family_plan={is_family_plan} />
+          </Suspense>
+        );
       case "referral":
         return <ReferralTab />;
       case "import":
@@ -194,7 +202,7 @@ function SettingsContentInner(props: SettingsContentProps) {
       default:
         return null;
     }
-  }, [section, handle_account_deleted, show_inline_totp_setup]);
+  }, [section, handle_account_deleted, show_inline_totp_setup, is_family_plan]);
 
   const handle_desktop_nav_click = useCallback((item_id: Section) => {
     if (item_id === section_ref.current) {
@@ -609,13 +617,6 @@ function SettingsContentInner(props: SettingsContentProps) {
               </h1>
             )}
             {active_section_element}
-            {is_family_plan && (
-              <div className={section !== "family" ? "hidden" : undefined}>
-                <Suspense fallback={null}>
-                  <FamilySection is_family_plan={is_family_plan} />
-                </Suspense>
-              </div>
-            )}
           </div>
         </div>
       </div>

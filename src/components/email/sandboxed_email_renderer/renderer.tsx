@@ -675,7 +675,13 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
         return;
       }
-      if (body && body.childNodes.length > 0) handle_load();
+      if (body && body.childNodes.length > 0) {
+        handle_load();
+
+        return;
+      }
+      set_iframe_height((height) => (height === "0px" ? "480px" : height));
+      set_height_ready(true);
     };
 
     poll();

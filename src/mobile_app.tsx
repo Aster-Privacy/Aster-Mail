@@ -49,6 +49,7 @@ import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
+import { FullPageLoader } from "@/components/common/full_page_loader";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -798,7 +799,7 @@ function MobileApp() {
 
         <AnimatePresence>
           {is_compose_open && (
-            <Suspense fallback={null}>
+            <Suspense fallback={<FullPageLoader />}>
               <MobileComposePage
                 edit_draft={edit_draft_ref.current}
                 on_close={handle_compose_close}

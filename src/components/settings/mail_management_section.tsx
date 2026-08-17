@@ -40,6 +40,31 @@ type FilterTab =
 export function MailManagementSection() {
   const { t } = use_i18n();
   const [active_tab, set_active_tab] = useState<FilterTab>("external_accounts");
+  const [visited_tabs, set_visited_tabs] = useState<Set<FilterTab>>(
+    () => new Set<FilterTab>(["external_accounts"]),
+  );
+
+  const handle_tab_change = (tab: FilterTab) => {
+    set_active_tab(tab);
+    set_visited_tabs((previous) => {
+      if (previous.has(tab)) return previous;
+      const next = new Set(previous);
+
+      next.add(tab);
+
+      return next;
+    });
+  };
+
+  const render_tab = (tab: FilterTab, content: React.ReactNode) => {
+    if (!visited_tabs.has(tab)) return null;
+
+    return (
+      <div style={{ display: active_tab === tab ? "block" : "none" }}>
+        {content}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -54,39 +79,15 @@ export function MailManagementSection() {
           { key: "vacation_reply", label: t("settings.vacation_reply_tab_label") },
           { key: "export", label: t("settings.export_title") },
         ]}
-        on_change={set_active_tab}
+        on_change={handle_tab_change}
       />
 
-      <div
-        style={{
-          display: active_tab === "external_accounts" ? "block" : "none",
-        }}
-      >
-        <ExternalAccountsSection />
-      </div>
-      <div style={{ display: active_tab === "blocked" ? "block" : "none" }}>
-        <BlockedSection />
-      </div>
-      <div style={{ display: active_tab === "allowlist" ? "block" : "none" }}>
-        <AllowlistSection />
-      </div>
-      <div
-        style={{
-          display: active_tab === "auto_forward" ? "block" : "none",
-        }}
-      >
-        <AutoForwardSection />
-      </div>
-      <div
-        style={{
-          display: active_tab === "vacation_reply" ? "block" : "none",
-        }}
-      >
-        <VacationReplySection />
-      </div>
-      <div style={{ display: active_tab === "export" ? "block" : "none" }}>
-        <ExportSection />
-      </div>
+      {render_tab("external_accounts", <ExternalAccountsSection />)}
+      {render_tab("blocked", <BlockedSection />)}
+      {render_tab("allowlist", <AllowlistSection />)}
+      {render_tab("auto_forward", <AutoForwardSection />)}
+      {render_tab("vacation_reply", <VacationReplySection />)}
+      {render_tab("export", <ExportSection />)}
     </div>
   );
 }

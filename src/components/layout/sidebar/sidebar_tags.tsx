@@ -30,6 +30,7 @@ import {
   TagIcon,
 } from "@heroicons/react/24/outline";
 
+import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { TagContextMenu } from "@/components/tags/tag_context_menu";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
@@ -279,6 +280,10 @@ export const SidebarTags = memo(function SidebarTags({
             </span>
           </button>
         )}
+        {all_tags.length === 0 &&
+          is_loading &&
+          !is_collapsed &&
+          !section_collapsed && <NavSectionSkeleton rows={2} />}
         {all_tags.length === 0 &&
           !is_loading &&
           !is_collapsed &&
