@@ -35,7 +35,13 @@ import {
   import_ke_private_key,
   compute_agreement_bits,
   derive_aes_key_from_bytes,
+  type EncryptedVault,
 } from "@/services/crypto/key_manager";
+import {
+  adopt_refreshed_vault,
+  fetch_refreshed_vault,
+  type RefreshedVault,
+} from "@/services/crypto/vault_refresh";
 import {
   decrypt_envelope_with_bytes,
   decrypt_envelope_with_identity_key,
@@ -190,6 +196,97 @@ export async function decrypt_inbound_pq_hybrid(
   }
 }
 
+interface InboundRatchetKeySet {
+  ecdh: string;
+  pq?: string;
+}
+
+function resolve_inbound_pq(
+  secret?: string,
+  seed?: string,
+): string | undefined {
+  if (secret) return secret;
+  if (!seed) return undefined;
+  return derive_pq_identity_from_seed(seed)?.pq_identity_secret;
+}
+
+function collect_inbound_ratchet_key_sets(
+  vault: EncryptedVault,
+): InboundRatchetKeySet[] {
+  const key_sets: InboundRatchetKeySet[] = [];
+  if (vault.ratchet_identity_key) {
+    key_sets.push({
+      ecdh: vault.ratchet_identity_key,
+      pq: resolve_inbound_pq(
+        vault.ratchet_pq_identity_key,
+        vault.ratchet_pq_identity_seed,
+      ),
+    });
+  }
+  for (const prev of vault.ratchet_previous_keys ?? []) {
+    if (prev.ratchet_identity_key) {
+      key_sets.push({
+        ecdh: prev.ratchet_identity_key,
+        pq: resolve_inbound_pq(
+          prev.ratchet_pq_identity_key,
+          prev.ratchet_pq_identity_seed,
+        ),
+      });
+    }
+  }
+  return key_sets;
+}
+
+function inbound_key_set_fingerprint(key_set: InboundRatchetKeySet): string {
+  return `${key_set.ecdh}|${key_set.pq ?? ""}`;
+}
+
+async function decrypt_inbound_with_key_sets(
+  key_sets: InboundRatchetKeySet[],
+  marker: number,
+  enc_bytes: Uint8Array,
+  nonce_bytes: Uint8Array,
+): Promise<Uint8Array | null> {
+  for (const key_set of key_sets) {
+    let plain: Uint8Array | null = null;
+
+    if (marker === INBOUND_PQ_HYBRID_MARKER && key_set.pq) {
+      plain = await decrypt_inbound_pq_hybrid(
+        enc_bytes,
+        nonce_bytes,
+        key_set.ecdh,
+        key_set.pq,
+      );
+    } else if (marker === INBOUND_ECIES_COMPRESSED_MARKER) {
+      plain = await decrypt_inbound_ecies(
+        enc_bytes,
+        nonce_bytes,
+        key_set.ecdh,
+        true,
+      );
+    } else if (marker === INBOUND_ECIES_MARKER) {
+      plain = await decrypt_inbound_ecies(
+        enc_bytes,
+        nonce_bytes,
+        key_set.ecdh,
+        false,
+      );
+    }
+
+    if (plain) return plain;
+  }
+  return null;
+}
+
+function collect_envelope_identity_keys(vault: EncryptedVault): string[] {
+  const keys: string[] = [];
+  if (vault.identity_key) keys.push(vault.identity_key);
+  for (const previous_key of vault.previous_keys ?? []) {
+    if (previous_key) keys.push(previous_key);
+  }
+  return keys;
+}
+
 export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   encrypted_envelope: string,
   envelope_nonce: string,
@@ -222,43 +319,69 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       }
 
       if (vault?.identity_key && pass) {
-        const envelope_keys = [
-          vault.identity_key,
-          ...(vault.previous_keys ?? []),
-        ];
-        const first_pass = await decrypt_message_verified_with_any_key(
-          text,
-          envelope_keys,
-          pass,
-        );
-        const parsed = normalize_parsed_envelope(
-          JSON.parse(first_pass.plaintext),
-        ) as T & { from?: { email?: string }; sender_verification?: string };
-
-        if (first_pass.has_signature && parsed?.from?.email) {
-          const sender_keys = await resolve_sender_verification_keys(
-            parsed.from.email,
+        const passphrase = pass;
+        const decrypt_pgp_envelope = async (
+          envelope_keys: string[],
+        ): Promise<T> => {
+          const first_pass = await decrypt_message_verified_with_any_key(
+            text,
+            envelope_keys,
+            passphrase,
           );
+          const parsed = normalize_parsed_envelope(
+            JSON.parse(first_pass.plaintext),
+          ) as T & { from?: { email?: string }; sender_verification?: string };
 
-          if (sender_keys.length > 0) {
-            const verified_pass = await decrypt_message_verified_with_any_key(
-              text,
-              envelope_keys,
-              pass,
-              sender_keys,
+          if (first_pass.has_signature && parsed?.from?.email) {
+            const sender_keys = await resolve_sender_verification_keys(
+              parsed.from.email,
             );
 
-            parsed.sender_verification = verified_pass.verification;
-          } else {
-            parsed.sender_verification = "no_keys";
-          }
-        } else {
-          parsed.sender_verification = first_pass.has_signature
-            ? "no_keys"
-            : "unsigned";
-        }
+            if (sender_keys.length > 0) {
+              const verified_pass = await decrypt_message_verified_with_any_key(
+                text,
+                envelope_keys,
+                passphrase,
+                sender_keys,
+              );
 
-        return parsed as T;
+              parsed.sender_verification = verified_pass.verification;
+            } else {
+              parsed.sender_verification = "no_keys";
+            }
+          } else {
+            parsed.sender_verification = first_pass.has_signature
+              ? "no_keys"
+              : "unsigned";
+          }
+
+          return parsed as T;
+        };
+
+        const envelope_keys = collect_envelope_identity_keys(vault);
+
+        try {
+          return await decrypt_pgp_envelope(envelope_keys);
+        } catch (pgp_error) {
+          const refreshed = await fetch_refreshed_vault();
+
+          if (refreshed) {
+            const tried = new Set(envelope_keys);
+            const refreshed_keys = collect_envelope_identity_keys(
+              refreshed.vault,
+            ).filter((key) => !tried.has(key));
+
+            if (refreshed_keys.length > 0) {
+              const healed = await decrypt_pgp_envelope(refreshed_keys);
+
+              await adopt_refreshed_vault(refreshed);
+
+              return healed;
+            }
+          }
+
+          throw pgp_error;
+        }
       }
 
       return null;
@@ -291,9 +414,21 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
     zero_uint8_array(passphrase_bytes);
 
-    const vault = get_vault_from_memory();
+    let vault = get_vault_from_memory();
+    let recovered_vault_source: RefreshedVault | null = null;
+
+    if (!vault) {
+      recovered_vault_source = await fetch_refreshed_vault();
+      vault = recovered_vault_source?.vault ?? null;
+    }
 
     if (!vault) return null;
+
+    const adopt_recovered_vault_source = async () => {
+      if (recovered_vault_source) {
+        await adopt_refreshed_vault(recovered_vault_source);
+      }
+    };
 
     const enc_bytes = base64_to_array(encrypted_envelope);
 
@@ -308,72 +443,50 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         : 1 + INBOUND_ECIES_EPH_KEY_LEN;
 
     if (is_ecies_marker && enc_bytes.length > minimum_marker_length) {
-      const ratchet_key_sets: Array<{
-        ecdh: string;
-        pq?: string;
-      }> = [];
-      const resolve_pq = (secret?: string, seed?: string): string | undefined => {
-        if (secret) return secret;
-        if (!seed) return undefined;
-        return derive_pq_identity_from_seed(seed)?.pq_identity_secret;
-      };
-      if (vault.ratchet_identity_key) {
-        ratchet_key_sets.push({
-          ecdh: vault.ratchet_identity_key,
-          pq: resolve_pq(
-            vault.ratchet_pq_identity_key,
-            vault.ratchet_pq_identity_seed,
-          ),
-        });
-      }
-      for (const prev of vault.ratchet_previous_keys ?? []) {
-        if (prev.ratchet_identity_key) {
-          ratchet_key_sets.push({
-            ecdh: prev.ratchet_identity_key,
-            pq: resolve_pq(
-              prev.ratchet_pq_identity_key,
-              prev.ratchet_pq_identity_seed,
-            ),
-          });
+      const ratchet_key_sets = collect_inbound_ratchet_key_sets(vault);
+      let plain = await decrypt_inbound_with_key_sets(
+        ratchet_key_sets,
+        marker,
+        enc_bytes,
+        nonce_bytes,
+      );
+
+      if (!plain) {
+        const refreshed = await fetch_refreshed_vault();
+
+        if (refreshed) {
+          const tried = new Set(
+            ratchet_key_sets.map(inbound_key_set_fingerprint),
+          );
+          const refreshed_key_sets = collect_inbound_ratchet_key_sets(
+            refreshed.vault,
+          ).filter(
+            (key_set) => !tried.has(inbound_key_set_fingerprint(key_set)),
+          );
+
+          if (refreshed_key_sets.length > 0) {
+            plain = await decrypt_inbound_with_key_sets(
+              refreshed_key_sets,
+              marker,
+              enc_bytes,
+              nonce_bytes,
+            );
+
+            if (plain) await adopt_refreshed_vault(refreshed);
+          }
         }
       }
-      for (const key_set of ratchet_key_sets) {
-        let plain: Uint8Array | null = null;
 
-        if (marker === INBOUND_PQ_HYBRID_MARKER && key_set.pq) {
-          plain = await decrypt_inbound_pq_hybrid(
-            enc_bytes,
-            nonce_bytes,
-            key_set.ecdh,
-            key_set.pq,
-          );
-        } else if (marker === INBOUND_ECIES_COMPRESSED_MARKER) {
-          plain = await decrypt_inbound_ecies(
-            enc_bytes,
-            nonce_bytes,
-            key_set.ecdh,
-            true,
-          );
-        } else if (marker === INBOUND_ECIES_MARKER) {
-          plain = await decrypt_inbound_ecies(
-            enc_bytes,
-            nonce_bytes,
-            key_set.ecdh,
-            false,
-          );
-        }
+      if (plain) {
+        await adopt_recovered_vault_source();
 
-        if (plain) {
-          const parsed_obj = JSON.parse(new TextDecoder().decode(plain));
+        const parsed_obj = JSON.parse(new TextDecoder().decode(plain));
 
-          register_envelope_attachment_keys(mail_item_id, parsed_obj);
+        register_envelope_attachment_keys(mail_item_id, parsed_obj);
 
-          return normalize_parsed_envelope(parsed_obj) as T;
-        }
+        return normalize_parsed_envelope(parsed_obj) as T;
       }
     }
-
-    if (!vault.identity_key) return null;
 
     const finalize_envelope = (plaintext: ArrayBuffer): T => {
       const parsed = JSON.parse(new TextDecoder().decode(plaintext));
@@ -383,24 +496,49 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       return normalize_parsed_envelope(parsed) as T;
     };
 
-    const from_identity = await decrypt_envelope_with_identity_key(
-      vault.identity_key,
-      enc_bytes,
-      nonce_bytes,
-      finalize_envelope,
-    );
+    const try_identity_keys = async (
+      identity_keys: string[],
+    ): Promise<T | null> => {
+      for (const identity_key of identity_keys) {
+        const decrypted = await decrypt_envelope_with_identity_key(
+          identity_key,
+          enc_bytes,
+          nonce_bytes,
+          finalize_envelope,
+        );
 
-    if (from_identity) return from_identity;
+        if (decrypted) return decrypted;
+      }
+      return null;
+    };
 
-    for (const previous_key of vault.previous_keys || []) {
-      const from_previous = await decrypt_envelope_with_identity_key(
-        previous_key,
-        enc_bytes,
-        nonce_bytes,
-        finalize_envelope,
-      );
+    const identity_keys = collect_envelope_identity_keys(vault);
+    const from_identity =
+      identity_keys.length > 0 ? await try_identity_keys(identity_keys) : null;
 
-      if (from_previous) return from_previous;
+    if (from_identity) {
+      await adopt_recovered_vault_source();
+
+      return from_identity;
+    }
+
+    const refreshed = await fetch_refreshed_vault();
+
+    if (refreshed) {
+      const tried = new Set(identity_keys);
+      const refreshed_identity_keys = collect_envelope_identity_keys(
+        refreshed.vault,
+      ).filter((key) => !tried.has(key));
+
+      if (refreshed_identity_keys.length > 0) {
+        const healed = await try_identity_keys(refreshed_identity_keys);
+
+        if (healed) {
+          await adopt_refreshed_vault(refreshed);
+
+          return healed;
+        }
+      }
     }
 
     return null;

@@ -39,6 +39,10 @@ import {
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
+import {
+  adopt_refreshed_vault,
+  fetch_refreshed_vault,
+} from "@/services/crypto/vault_refresh";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import {
@@ -182,23 +186,55 @@ async function open_search_envelope(
         return parsed;
       }
 
-      const vault = get_vault_from_memory();
-      const pass = get_passphrase_from_memory();
+      let vault = get_vault_from_memory();
+      let pass = get_passphrase_from_memory();
 
-      if (vault?.identity_key && pass) {
+      if (!vault?.identity_key || !pass) {
+        await wait_for_keys_ready();
+        vault = get_vault_from_memory();
+        pass = get_passphrase_from_memory();
+      }
+
+      if (!vault?.identity_key || !pass) return null;
+
+      const passphrase = pass;
+      const decrypt_pgp_with_keys = async (keys: string[]) => {
         const decrypted = await decrypt_pgp_message_parallel(
           text,
-          [vault.identity_key, ...(vault.previous_keys ?? [])],
-          pass,
+          keys,
+          passphrase,
         );
         const parsed = JSON.parse(decrypted) as DecryptedEnvelope;
 
         schedule_legacy_envelope_migration(item_id, item_type, parsed);
 
         return parsed;
-      }
+      };
+      const pgp_keys = [vault.identity_key, ...(vault.previous_keys ?? [])];
 
-      return null;
+      try {
+        return await decrypt_pgp_with_keys(pgp_keys);
+      } catch (pgp_error) {
+        const refreshed = await fetch_refreshed_vault();
+
+        if (refreshed?.vault.identity_key) {
+          const tried = new Set(pgp_keys);
+          const refreshed_keys = [
+            refreshed.vault.identity_key,
+            ...(refreshed.vault.previous_keys ?? []),
+          ].filter((key) => !tried.has(key));
+
+          if (refreshed_keys.length > 0) {
+            const healed = await decrypt_pgp_with_keys(refreshed_keys);
+
+            await adopt_refreshed_vault(refreshed);
+
+            return healed;
+          }
+        }
+
+        throw pgp_error;
+      }
     } catch {
       return null;
     }
@@ -250,27 +286,46 @@ async function open_search_envelope(
       vault = get_vault_from_memory();
     }
 
-    if (!vault?.identity_key) return null;
-
     const encrypted_bytes = base64_to_array(encrypted);
 
-    const result = await try_decrypt_with_identity_key(
-      encrypted_bytes,
-      nonce_bytes,
-      vault.identity_key,
-    );
+    const try_identity_keys = async (identity_keys: string[]) => {
+      for (const identity_key of identity_keys) {
+        const decrypted = await try_decrypt_with_identity_key(
+          encrypted_bytes,
+          nonce_bytes,
+          identity_key,
+        );
+
+        if (decrypted) return decrypted;
+      }
+
+      return null;
+    };
+
+    const identity_keys = vault?.identity_key
+      ? [vault.identity_key, ...(vault.previous_keys ?? [])]
+      : [];
+    const result = await try_identity_keys(identity_keys);
 
     if (result) return result;
 
-    if (vault.previous_keys && vault.previous_keys.length > 0) {
-      for (const prev_key of vault.previous_keys) {
-        const prev_result = await try_decrypt_with_identity_key(
-          encrypted_bytes,
-          nonce_bytes,
-          prev_key,
-        );
+    const refreshed = await fetch_refreshed_vault();
 
-        if (prev_result) return prev_result;
+    if (refreshed) {
+      const tried = new Set(identity_keys);
+      const refreshed_keys = [
+        ...(refreshed.vault.identity_key ? [refreshed.vault.identity_key] : []),
+        ...(refreshed.vault.previous_keys ?? []),
+      ].filter((key) => !tried.has(key));
+
+      if (refreshed_keys.length > 0) {
+        const healed = await try_identity_keys(refreshed_keys);
+
+        if (healed) {
+          await adopt_refreshed_vault(refreshed);
+
+          return healed;
+        }
       }
     }
 

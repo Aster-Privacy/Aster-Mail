@@ -32,6 +32,10 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager";
 import {
+  adopt_refreshed_vault,
+  fetch_refreshed_vault,
+} from "@/services/crypto/vault_refresh";
+import {
   decrypt_envelope_with_bytes,
   decrypt_envelope_with_identity_key,
   base64_to_array,
@@ -89,20 +93,52 @@ async function open_envelope(
         return JSON.parse(text) as DecryptedEnvelope;
       }
 
-      const vault = get_vault_from_memory();
-      const pass = get_passphrase_from_memory();
+      let vault = get_vault_from_memory();
+      let pass = get_passphrase_from_memory();
 
-      if (vault?.identity_key && pass) {
+      if (!vault?.identity_key || !pass) {
+        await wait_for_keys_ready();
+        vault = get_vault_from_memory();
+        pass = get_passphrase_from_memory();
+      }
+
+      if (!vault?.identity_key || !pass) return null;
+
+      const passphrase = pass;
+      const decrypt_pgp_with_keys = async (keys: string[]) => {
         const decrypted = await decrypt_message_with_any_key(
           text,
-          [vault.identity_key, ...(vault.previous_keys ?? [])],
-          pass,
+          keys,
+          passphrase,
         );
 
         return JSON.parse(decrypted) as DecryptedEnvelope;
-      }
+      };
+      const pgp_keys = [vault.identity_key, ...(vault.previous_keys ?? [])];
 
-      return null;
+      try {
+        return await decrypt_pgp_with_keys(pgp_keys);
+      } catch (pgp_error) {
+        const refreshed = await fetch_refreshed_vault();
+
+        if (refreshed?.vault.identity_key) {
+          const tried = new Set(pgp_keys);
+          const refreshed_keys = [
+            refreshed.vault.identity_key,
+            ...(refreshed.vault.previous_keys ?? []),
+          ].filter((key) => !tried.has(key));
+
+          if (refreshed_keys.length > 0) {
+            const healed = await decrypt_pgp_with_keys(refreshed_keys);
+
+            await adopt_refreshed_vault(refreshed);
+
+            return healed;
+          }
+        }
+
+        throw pgp_error;
+      }
     } catch {
       return null;
     }
@@ -150,27 +186,46 @@ async function open_envelope(
       vault = get_vault_from_memory();
     }
 
-    if (!vault?.identity_key) return null;
-
     const encrypted_bytes = base64_to_array(encrypted);
 
-    const result = await try_decrypt_with_identity_key(
-      encrypted_bytes,
-      nonce_bytes,
-      vault.identity_key,
-    );
+    const try_identity_keys = async (identity_keys: string[]) => {
+      for (const identity_key of identity_keys) {
+        const decrypted = await try_decrypt_with_identity_key(
+          encrypted_bytes,
+          nonce_bytes,
+          identity_key,
+        );
+
+        if (decrypted) return decrypted;
+      }
+
+      return null;
+    };
+
+    const identity_keys = vault?.identity_key
+      ? [vault.identity_key, ...(vault.previous_keys ?? [])]
+      : [];
+    const result = await try_identity_keys(identity_keys);
 
     if (result) return result;
 
-    if (vault.previous_keys && vault.previous_keys.length > 0) {
-      for (const prev_key of vault.previous_keys) {
-        const prev_result = await try_decrypt_with_identity_key(
-          encrypted_bytes,
-          nonce_bytes,
-          prev_key,
-        );
+    const refreshed = await fetch_refreshed_vault();
 
-        if (prev_result) return prev_result;
+    if (refreshed) {
+      const tried = new Set(identity_keys);
+      const refreshed_keys = [
+        ...(refreshed.vault.identity_key ? [refreshed.vault.identity_key] : []),
+        ...(refreshed.vault.previous_keys ?? []),
+      ].filter((key) => !tried.has(key));
+
+      if (refreshed_keys.length > 0) {
+        const healed = await try_identity_keys(refreshed_keys);
+
+        if (healed) {
+          await adopt_refreshed_vault(refreshed);
+
+          return healed;
+        }
       }
     }
 
