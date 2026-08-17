@@ -32,6 +32,7 @@ interface ContextMenuActions {
 interface ExtraKeyboardActions {
   handle_open_snooze?: (email: InboxEmail) => void;
   handle_select?: (id: string) => void;
+  handle_select_all?: () => void;
 }
 
 export function use_inbox_keyboard(
@@ -84,6 +85,9 @@ export function use_inbox_keyboard(
 
       extra_actions.handle_select?.(detail.id);
     };
+    const handle_select_all = () => {
+      extra_actions.handle_select_all?.();
+    };
 
     window.addEventListener("astermail:keyboard-archive", handle_archive);
     window.addEventListener("astermail:keyboard-delete", handle_delete);
@@ -95,6 +99,10 @@ export function use_inbox_keyboard(
     );
     window.addEventListener("astermail:keyboard-snooze", handle_snooze);
     window.addEventListener("astermail:keyboard-select", handle_select);
+    window.addEventListener(
+      "astermail:keyboard-select-all",
+      handle_select_all,
+    );
 
     return () => {
       window.removeEventListener("astermail:keyboard-archive", handle_archive);
@@ -110,6 +118,10 @@ export function use_inbox_keyboard(
       );
       window.removeEventListener("astermail:keyboard-snooze", handle_snooze);
       window.removeEventListener("astermail:keyboard-select", handle_select);
+      window.removeEventListener(
+        "astermail:keyboard-select-all",
+        handle_select_all,
+      );
     };
   }, [emails, context_menu_actions, extra_actions]);
 }

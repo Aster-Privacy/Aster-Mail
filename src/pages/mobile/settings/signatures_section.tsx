@@ -767,6 +767,8 @@ export function SignaturesSection({
                       : escape_html(sig.content).replace(/\n/g, "<br>"),
                   }}
                   className="mt-2 line-clamp-3 text-[13px] text-[var(--text-muted)] [&_img]:max-h-16 [&_img]:rounded"
+                  data-selectable-region
+                  tabIndex={-1}
                 />
                 <div className="mt-3 flex items-center gap-2">
                   <button

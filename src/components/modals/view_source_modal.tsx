@@ -258,6 +258,8 @@ export function ViewSourceModal({
 
         <div
           className="rounded-lg overflow-auto"
+          data-selectable-region
+          tabIndex={-1}
           style={{
             maxHeight: "65vh",
             backgroundColor: "var(--bg-tertiary)",

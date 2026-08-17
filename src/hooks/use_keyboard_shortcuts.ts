@@ -102,6 +102,36 @@ function is_typing(): boolean {
   return false;
 }
 
+function get_select_all_region(): HTMLElement | null {
+  const active = get_active_element();
+  const region_from_focus = active?.closest?.("[data-selectable-region]");
+
+  if (region_from_focus instanceof HTMLElement) return region_from_focus;
+
+  const anchor = window.getSelection()?.anchorNode;
+  const anchor_element =
+    anchor instanceof HTMLElement ? anchor : anchor?.parentElement;
+  const region_from_selection = anchor_element?.closest(
+    "[data-selectable-region]",
+  );
+
+  return region_from_selection instanceof HTMLElement
+    ? region_from_selection
+    : null;
+}
+
+function select_region_contents(region: HTMLElement): void {
+  const selection = window.getSelection();
+
+  if (!selection) return;
+
+  const range = document.createRange();
+
+  range.selectNodeContents(region);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 function is_touch_device(): boolean {
   if (typeof window === "undefined") return false;
 
@@ -210,6 +240,29 @@ export function use_keyboard_shortcuts(
 
     if (has_cmd && has_shift && key === "p") {
       handle(h.on_command_palette);
+
+      return;
+    }
+
+    if (has_cmd && key === "a" && !has_shift) {
+      if (is_typing()) return;
+
+      const region = get_select_all_region();
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.repeat) return;
+
+      if (region) {
+        select_region_contents(region);
+
+        return;
+      }
+
+      if (is_any_modal_open) return;
+
+      window.dispatchEvent(new CustomEvent("astermail:keyboard-select-all"));
 
       return;
     }

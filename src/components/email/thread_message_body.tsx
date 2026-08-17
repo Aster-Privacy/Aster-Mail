@@ -118,7 +118,11 @@ export function ThreadMessageBody({
               {t("common.copy_source")}
             </Button>
           </div>
-          <div className="rounded-lg overflow-auto max-h-[65vh] bg-surf-tertiary border border-edge-secondary">
+          <div
+            className="rounded-lg overflow-auto max-h-[65vh] bg-surf-tertiary border border-edge-secondary"
+            data-selectable-region
+            tabIndex={-1}
+          >
             <table
               className="w-full border-collapse"
               style={{

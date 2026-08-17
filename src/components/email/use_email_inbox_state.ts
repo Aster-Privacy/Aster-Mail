@@ -556,8 +556,9 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     () => ({
       handle_open_snooze: (email: InboxEmail) => set_custom_snooze_email(email),
       handle_select: selection.handle_toggle_select,
+      handle_select_all: selection.handle_toggle_select_all,
     }),
-    [selection.handle_toggle_select],
+    [selection.handle_toggle_select, selection.handle_toggle_select_all],
   );
 
   use_inbox_keyboard(

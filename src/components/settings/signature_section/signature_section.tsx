@@ -670,6 +670,8 @@ export function SignatureSection() {
                             ),
                       }}
                       className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary border border-edge-primary [&_img]:max-w-full"
+                      data-selectable-region
+                      tabIndex={-1}
                     />
                   </motion.div>
                 ))}

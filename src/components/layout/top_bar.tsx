@@ -215,7 +215,7 @@ export function TopBar({
 
   return (
     <header
-      className="flex items-center h-14 pr-2 sm:pr-3 flex-shrink-0"
+      className="flex items-center h-14 pr-2 sm:pr-3 flex-shrink-0 select-none"
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
       <div

@@ -77,7 +77,9 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
       ref={container_ref}
       dangerouslySetInnerHTML={{ __html: sanitized_html }}
       className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
+      data-selectable-region
       style={{ wordBreak: "break-word" }}
+      tabIndex={-1}
     />
   );
 }
