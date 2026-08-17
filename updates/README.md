@@ -14,22 +14,19 @@ This URL always resolves to the asset of the latest published GitHub Release. Th
    - `package.json` -> `version`
    - `src-tauri/tauri.conf.json` -> `version`
    - `src-tauri/Cargo.toml` -> `[package].version`
-   - `CLAUDE.md` -> the `> **Version: X.Y.Z**` header
 2. Build per-platform bundles on the target OS:
    - macOS (universal): `npm run tauri:build:universal`
    - Windows: `npm run tauri:build`
    - Linux: `npm run tauri:build`
 3. Sign the bundles. The signing key is **not** in this repo. Set the env var before building:
    ```
-   export TAURI_SIGNING_PRIVATE_KEY="$(cat /path/to/tauri_updater_priv.key)"
+   export TAURI_SIGNING_PRIVATE_KEY="$(cat <path to your updater private key>)"
    export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
    ```
 4. Tauri emits each bundle plus a matching `.sig` file under `src-tauri/target/release/bundle/`.
 5. Create a GitHub Release tagged `v<version>` and upload:
-   - `Aster_Mail_<version>_universal.app.tar.gz` + `.sig` (macOS)
-   - `Aster_Mail_<version>_x64_en-US.msi` + `.sig` (Windows)
-   - `aster-mail_<version>_amd64.AppImage` + `.sig` (Linux x86_64)
-   - `Aster.Mail_<version>_aarch64.AppImage` + `.sig` (Linux ARM64, optional)
+   - The versioned Tauri bundles with their `.sig` files (for example `Aster.Mail_<version>_x64-setup.exe`, `Aster.Mail_<version>_x64_en-US.msi`, `Aster.Mail_<version>_amd64.AppImage`, `Aster.Mail_<version>_universal.dmg`, `Aster.Mail_universal.app.tar.gz`)
+   - Fixed-name copies that the website download links depend on: `Aster-Mail-x64-setup.exe`, `Aster-Mail-x64.msi`, `Aster-Mail-x64.AppImage`, `Aster-Mail-amd64.deb`, `Aster-Mail-x86_64.rpm`, `Aster-Mail-universal.dmg`, `Aster-Mail.apk`, each with its `.sig` where one exists
    - `latest.json` (see template below)
 6. Start the release body with the standard alert, then the release notes:
    ```
@@ -49,20 +46,24 @@ The `signature` field is the literal contents of the matching `.sig` file. The `
   "pub_date": "2026-05-20T12:00:00Z",
   "platforms": {
     "darwin-x86_64": {
-      "signature": "<contents of Aster_Mail_1.4.0_universal.app.tar.gz.sig>",
-      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster_Mail_1.4.0_universal.app.tar.gz"
+      "signature": "<contents of Aster.Mail_universal.app.tar.gz.sig>",
+      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster.Mail_universal.app.tar.gz"
     },
     "darwin-aarch64": {
       "signature": "<same as darwin-x86_64 for universal builds>",
-      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster_Mail_1.4.0_universal.app.tar.gz"
+      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster.Mail_universal.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "<contents of Aster_Mail_1.4.0_x64_en-US.msi.zip.sig>",
-      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster_Mail_1.4.0_x64_en-US.msi.zip"
+      "signature": "<contents of Aster-Mail-x64-setup.exe.sig>",
+      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster-Mail-x64-setup.exe"
+    },
+    "windows-x86_64-msi": {
+      "signature": "<contents of Aster-Mail-x64.msi.sig>",
+      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster-Mail-x64.msi"
     },
     "linux-x86_64": {
-      "signature": "<contents of aster-mail_1.4.0_amd64.AppImage.sig>",
-      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/aster-mail_1.4.0_amd64.AppImage"
+      "signature": "<contents of Aster-Mail-x64.AppImage.sig>",
+      "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v1.4.0/Aster-Mail-x64.AppImage"
     }
   }
 }
