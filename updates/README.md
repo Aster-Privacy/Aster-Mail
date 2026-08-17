@@ -31,7 +31,12 @@ This URL always resolves to the asset of the latest published GitHub Release. Th
    - `aster-mail_<version>_amd64.AppImage` + `.sig` (Linux x86_64)
    - `Aster.Mail_<version>_aarch64.AppImage` + `.sig` (Linux ARM64, optional)
    - `latest.json` (see template below)
-6. Mark the release as **Latest**. The desktop clients will pick it up on next check (every 6 hours, or manually via Settings -> Updates).
+6. Start the release body with the standard alert, then the release notes:
+   ```
+   > [!NOTE]
+   > These files are for new installations. If Aster Mail is already installed, it updates automatically.
+   ```
+7. Mark the release as **Latest**. The desktop clients will pick it up on next check (every 6 hours, or manually via Settings -> Updates).
 
 ## latest.json template
 
