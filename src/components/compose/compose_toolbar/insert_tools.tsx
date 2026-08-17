@@ -39,6 +39,34 @@ import EmojiPicker from "@/components/compose/emoji_picker";
 import { LinkPopover } from "./link_popover";
 import { ToolbarButton, use_anchored_layer, use_frozen_selection } from "./shared";
 
+const EMOJI_PICKER_WIDTH = 296;
+const EMOJI_PICKER_MAX_HEIGHT = 332;
+const VIEWPORT_MARGIN = 8;
+
+function clamp_emoji_picker_position(rect: DOMRect) {
+  const min_right = VIEWPORT_MARGIN;
+  const max_right = Math.max(
+    min_right,
+    window.innerWidth - EMOJI_PICKER_WIDTH - VIEWPORT_MARGIN,
+  );
+  const min_bottom = VIEWPORT_MARGIN;
+  const max_bottom = Math.max(
+    min_bottom,
+    window.innerHeight - EMOJI_PICKER_MAX_HEIGHT - VIEWPORT_MARGIN,
+  );
+
+  return {
+    right: Math.min(
+      Math.max(window.innerWidth - rect.right, min_right),
+      max_right,
+    ),
+    bottom: Math.min(
+      Math.max(window.innerHeight - rect.top + 8, min_bottom),
+      max_bottom,
+    ),
+  };
+}
+
 export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   const { t } = use_i18n();
   const editor = compose.editor;
@@ -49,7 +77,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   const [selected_text_for_link, set_selected_text_for_link] = useState("");
   const link_btn_ref = useRef<HTMLButtonElement>(null);
   const [show_emoji, set_show_emoji] = useState(false);
-  const [emoji_pos, set_emoji_pos] = useState({ top: 0, right: 0 });
+  const [emoji_pos, set_emoji_pos] = useState({ bottom: 0, right: 0 });
   const emoji_btn_ref = useRef<HTMLButtonElement>(null);
   const emoji_picker_ref = useRef<HTMLDivElement>(null);
   const emoji_panel_id = useId();
@@ -78,11 +106,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   use_anchored_layer(
     show_emoji,
     emoji_btn_ref,
-    (rect) =>
-      set_emoji_pos({
-        top: rect.top,
-        right: window.innerWidth - rect.right,
-      }),
+    (rect) => set_emoji_pos(clamp_emoji_picker_position(rect)),
     close_emoji,
   );
 
@@ -158,7 +182,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
                   style={{
                     zIndex: 9999,
                     right: emoji_pos.right,
-                    bottom: window.innerHeight - emoji_pos.top + 8,
+                    bottom: emoji_pos.bottom,
                   }}
                 >
                   <EmojiPicker

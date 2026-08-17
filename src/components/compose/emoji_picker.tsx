@@ -137,7 +137,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
   return (
     <div
-      className="rounded-2xl shadow-xl border w-[296px] bg-modal-bg border-edge-primary"
+      className="rounded-2xl shadow-xl border w-[296px] max-w-[calc(100vw-16px)] bg-modal-bg border-edge-primary"
       onMouseDown={(e) => e.preventDefault()}
     >
       <div className="p-2.5 pb-2 flex items-center gap-1.5">
