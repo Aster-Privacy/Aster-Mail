@@ -63,7 +63,7 @@ Found a vulnerability? Please email [security@astermail.org](mailto:security@ast
 
 Any bug reports, feature requests, or pull requests are welcome and recommended at [GitHub Issues](https://github.com/Aster-Privacy/Aster-Mail/issues). For anything else, say hi to us at [hello@astermail.org](mailto:hello@astermail.org), or join our community here:
 
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/EvZGep3Uqh)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/R4XqRUfgWZ)
 [![X](https://img.shields.io/badge/X-Follow-000000?logo=x&logoColor=white)](https://x.com/AsterPrivacy)
 [![Reddit](https://img.shields.io/badge/Reddit-Join-FF4500?logo=reddit&logoColor=white)](https://reddit.com/r/AsterPrivacy)
 
