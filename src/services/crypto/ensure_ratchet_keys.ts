@@ -378,7 +378,7 @@ interface ServerVaultView {
   vault_format?: number;
 }
 
-type VaultFreshness =
+export type VaultFreshness =
   | { status: "current" }
   | { status: "adopted"; vault: EncryptedVault }
   | { status: "unverified" };
@@ -416,7 +416,7 @@ async function fetch_server_vault(): Promise<ServerVaultFetch> {
   }
 }
 
-async function sync_vault_with_server(): Promise<VaultFreshness> {
+export async function sync_vault_with_server(): Promise<VaultFreshness> {
   const account = await get_current_account();
   const user_id = account?.user?.id;
 

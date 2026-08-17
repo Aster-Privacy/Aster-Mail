@@ -157,7 +157,17 @@ export async function rekey_pgp_if_needed(
 
   try {
     await with_vault_write_lock(async () => {
-      const vault = get_vault_from_memory();
+      const { sync_vault_with_server } = await import(
+        "@/services/crypto/ensure_ratchet_keys"
+      );
+      const freshness = await sync_vault_with_server();
+
+      if (freshness.status === "unverified") return;
+
+      const vault =
+        freshness.status === "adopted"
+          ? freshness.vault
+          : get_vault_from_memory();
       const passphrase = get_passphrase_from_memory();
 
       if (!vault || !passphrase) return;

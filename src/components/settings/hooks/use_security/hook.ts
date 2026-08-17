@@ -83,6 +83,7 @@ import {
   upload_prekey_bundle,
 } from "@/services/crypto/ratchet_manager";
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
+import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
@@ -693,9 +694,18 @@ export function use_security() {
 
     if (enabling) {
       try {
-        const vault = get_vault_from_memory();
+        const memory_vault = get_vault_from_memory();
 
-        if (!vault || vault.ratchet_identity_key) return;
+        if (!memory_vault || memory_vault.ratchet_identity_key) return;
+
+        const freshness = await sync_vault_with_server();
+
+        if (freshness.status === "unverified") return;
+
+        const vault =
+          freshness.status === "adopted" ? freshness.vault : memory_vault;
+
+        if (vault.ratchet_identity_key) return;
 
         const ratchet_keys = await generate_ratchet_keys();
 
