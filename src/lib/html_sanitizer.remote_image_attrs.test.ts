@@ -139,6 +139,46 @@ describe("remote image attribute leaks (srcset / background)", () => {
     expect(html).not.toContain("srcset");
   });
 
+  it("treats a backslash-prefixed schemeless img url as remote and blocks it", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="\\\\tracker.example.com/leak.png" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.external_content.has_remote_images).toBe(true);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("treats a mixed slash-backslash schemeless img url as remote and blocks it", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="/\\tracker.example.com/leak.png" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.external_content.has_remote_images).toBe(true);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("treats a whitespace-obfuscated remote scheme as remote and blocks it", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="h\tt\ntp://tracker.example.com/leak.png" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.external_content.has_remote_images).toBe(true);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("treats a backslash-prefixed srcset entry as remote and drops it", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="cid:local" srcset="\\\\tracker.example.com/leak.png 2x" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.html.toLowerCase()).not.toContain("srcset");
+    expect(result.external_content.has_remote_images).toBe(true);
+  });
+
   it("preserves an inline data: background", () => {
     const data_bg =
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";

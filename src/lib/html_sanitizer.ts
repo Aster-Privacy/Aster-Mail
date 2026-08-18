@@ -56,6 +56,27 @@ export {
   sanitize_outgoing_html,
 } from "./html_sanitizer_compose";
 
+const REMOTE_URL_SCHEME = /^\s*https?:/i;
+
+function is_remote_url_value(value: string): boolean {
+  const normalized = value.replace(/[\t\n\r]/g, "").toLowerCase().trim();
+
+  return (
+    REMOTE_URL_SCHEME.test(normalized) ||
+    normalized.startsWith("//") ||
+    normalized.startsWith("\\\\") ||
+    normalized.startsWith("/\\") ||
+    normalized.startsWith("\\/")
+  );
+}
+
+function srcset_has_remote(value: string): boolean {
+  return value
+    .split(",")
+    .map((part) => part.trim().split(/\s+/)[0] || "")
+    .some((url) => is_remote_url_value(url));
+}
+
 export interface BlockedItem {
   url: string;
   type: "image" | "font" | "css" | "tracking_pixel";
@@ -622,7 +643,7 @@ function sanitize_html_impl(
         ) {
           sanitized_value = strip_css_urls(sanitized_value);
         } else if (attr_lower === "srcset") {
-          if (!lockdown_mode && /(?:https?:)?\/\//i.test(sanitized_value)) {
+          if (!lockdown_mode && srcset_has_remote(sanitized_value)) {
             external_content.has_remote_images = true;
             if (block_images) {
               external_content.blocked_count++;
@@ -637,7 +658,7 @@ function sanitize_html_impl(
           if (lockdown_mode) {
             continue;
           }
-          if (/(?:https?:)?\/\//i.test(sanitized_value)) {
+          if (is_remote_url_value(sanitized_value)) {
             external_content.has_remote_images = true;
             if (block_images) {
               external_content.blocked_count++;
@@ -692,10 +713,7 @@ function sanitize_html_impl(
     if (tag_name === "img") {
       let src = new_element.getAttribute("src") || "";
       const lower_src = src.toLowerCase().trim();
-      const is_remote =
-        lower_src.startsWith("http://") ||
-        lower_src.startsWith("https://") ||
-        lower_src.startsWith("//");
+      const is_remote = is_remote_url_value(src);
       const is_data_url = lower_src.startsWith("data:");
       const is_pixel = is_tracking_pixel(new_element as HTMLImageElement);
 
