@@ -838,7 +838,7 @@ export class ApiClient {
             );
           }
           this.schedule_token_refresh();
-          this.verify_identity(true);
+          await this.verify_identity(true);
 
           return;
         }
