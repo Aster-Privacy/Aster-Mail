@@ -30,6 +30,19 @@ const cached_unsubscribed = new Set<string>();
 let cache_loaded = false;
 
 export const UNSUBSCRIBE_EVENT = "aster:sender-unsubscribed";
+export const RESUBSCRIBE_EVENT = "aster:sender-resubscribed";
+
+export function clear_unsubscribed_senders_cache(): void {
+  cached_unsubscribed.clear();
+  cache_loaded = false;
+}
+
+export function remove_unsubscribed_sender(sender_email: string): void {
+  cached_unsubscribed.delete(sender_email);
+  window.dispatchEvent(
+    new CustomEvent(RESUBSCRIBE_EVENT, { detail: { sender_email } }),
+  );
+}
 
 export async function persist_unsubscribe(
   sender_email: string,
@@ -91,9 +104,17 @@ export function use_unsubscribed_senders() {
         set_unsubscribed(new Set(cached_unsubscribed));
       }
     };
+    const handle_resubscribe = (e: Event) => {
+      const sender_email = (e as CustomEvent).detail?.sender_email;
+      if (sender_email) {
+        set_unsubscribed(new Set(cached_unsubscribed));
+      }
+    };
     window.addEventListener(UNSUBSCRIBE_EVENT, handle_event);
+    window.addEventListener(RESUBSCRIBE_EVENT, handle_resubscribe);
     return () => {
       window.removeEventListener(UNSUBSCRIBE_EVENT, handle_event);
+      window.removeEventListener(RESUBSCRIBE_EVENT, handle_resubscribe);
     };
   }, []);
 

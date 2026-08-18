@@ -51,7 +51,7 @@ import {
   check_alias_availability,
   get_alias_limit,
 } from "@/services/api/aliases";
-import { emit_aliases_changed } from "@/hooks/mail_events";
+import { emit_aliases_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   is_alias_limit_error,
   prompt_alias_limit_upgrade,
@@ -179,13 +179,33 @@ export const MobileDrawer = memo(function MobileDrawer({
   const is_bouncing = useRef(false);
 
   useEffect(() => {
-    get_alias_limit()
-      .then((response) => {
-        if (response.data) set_can_create_alias(response.data.can_create);
-      })
-      .catch((caught) =>
-        ignore_error("components/mobile/mobile_drawer", caught),
+    const fetch_alias_limit = () => {
+      get_alias_limit()
+        .then((response) => {
+          if (response.data) set_can_create_alias(response.data.can_create);
+        })
+        .catch((caught) =>
+          ignore_error("components/mobile/mobile_drawer", caught),
+        );
+    };
+
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") {
+        fetch_alias_limit();
+      }
+    };
+
+    fetch_alias_limit();
+    window.addEventListener(MAIL_EVENTS.ALIASES_CHANGED, fetch_alias_limit);
+    document.addEventListener("visibilitychange", handle_visibility);
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.ALIASES_CHANGED,
+        fetch_alias_limit,
       );
+      document.removeEventListener("visibilitychange", handle_visibility);
+    };
   }, []);
 
   const { dialog_ref, handle_backdrop_pointer_down } =

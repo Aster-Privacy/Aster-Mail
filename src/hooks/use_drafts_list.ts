@@ -317,6 +317,23 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     Map<string, { timer: number; draft: DraftListItem; position: number }>
   >(new Map());
 
+  const restore_failed_delete = useCallback(
+    (draft: DraftListItem, position: number) => {
+      set_drafts((prev) => {
+        if (prev.some((d) => d.id === draft.id)) return prev;
+
+        const next = [...prev];
+
+        next.splice(Math.min(position, next.length), 0, draft);
+
+        return next;
+      });
+      adjust_stats_drafts(1);
+      invalidate_mail_stats();
+    },
+    [],
+  );
+
   const schedule_delete_drafts = useCallback((ids: string[]): (() => void) => {
     if (ids.length === 0) return () => {};
 
@@ -353,9 +370,14 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
           .then((result) => {
             if (result.data?.success) {
               invalidate_mail_stats();
+            } else {
+              restore_failed_delete(draft, position);
             }
           })
-          .catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
+          .catch((caught) => {
+            ignore_error("hooks/use_drafts_list:is_current", caught);
+            restore_failed_delete(draft, position);
+          });
       }, UNDO_WINDOW_MS);
 
       pending_deletes.current.set(draft.id, { timer, draft, position });
@@ -401,7 +423,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       });
       adjust_stats_drafts(restored.length);
     };
-  }, []);
+  }, [restore_failed_delete]);
 
   useEffect(() => {
     const persisted = read_persisted_deletes();
@@ -450,9 +472,18 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
           });
           delete_draft(id)
             .then((result) => {
-              if (result.data?.success) invalidate_mail_stats();
+              if (result.data?.success) {
+                invalidate_mail_stats();
+              } else {
+                adjust_stats_drafts(1);
+                invalidate_mail_stats();
+              }
             })
-            .catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
+            .catch((caught) => {
+              ignore_error("hooks/use_drafts_list:is_current", caught);
+              adjust_stats_drafts(1);
+              invalidate_mail_stats();
+            });
         }, remaining_ms);
 
         pending_deletes.current.set(id, {
@@ -607,8 +638,16 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       },
     );
 
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") {
+        handle_change();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
+    window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
+    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       if (debounced_refresh_ref.current) {
@@ -618,6 +657,8 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       unsub_draft_updated();
       window.removeEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
+      window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
+      document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, [is_active, has_keys, refresh, update_draft_in_list]);
 

@@ -28,6 +28,7 @@ import {
   delete_contact as api_delete_contact,
 } from "@/services/api/contacts";
 import { show_toast } from "@/components/toast/simple_toast";
+import { emit_contacts_changed } from "@/hooks/mail_events";
 import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
 import { use_contacts_data } from "./use_contacts_data";
 
@@ -134,6 +135,7 @@ export function use_contacts_state() {
         set_contacts((prev) => [...prev, new_contact]);
         set_is_creating_new(false);
         set_selected_contact(new_contact);
+        emit_contacts_changed();
         show_toast(t("common.contact_created"), "success");
       } catch (err) {
         set_error(
@@ -181,6 +183,7 @@ export function use_contacts_state() {
       if (selected_contact?.id === contact_to_delete.id) {
         set_selected_contact(null);
       }
+      emit_contacts_changed();
       show_toast(t("common.contact_deleted"), "success");
     } catch (err) {
       set_error(
@@ -250,6 +253,7 @@ export function use_contacts_state() {
 
         set_is_form_open(false);
         set_editing_contact(null);
+        emit_contacts_changed();
       } catch (err) {
         set_error(
           err instanceof Error
@@ -290,6 +294,7 @@ export function use_contacts_state() {
         if (selected_contact?.id === contact.id) {
           set_selected_contact(updated_contact);
         }
+        emit_contacts_changed();
         show_toast(t("common.contact_saved"), "success");
       } catch (err) {
         set_error(
@@ -431,6 +436,7 @@ export function use_contacts_state() {
 
         await Promise.allSettled(batch.map((id) => api_delete_contact(id)));
       }
+      emit_contacts_changed();
       show_toast(
         t("common.contacts_deleted", { count: delete_count }),
         "success",

@@ -435,11 +435,21 @@ export function use_scheduled_emails(
       },
     );
 
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") {
+        handle_change();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
+    window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
+    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       unsub_scheduled();
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
+      window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
+      document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, [is_active, has_keys, refresh]);
 

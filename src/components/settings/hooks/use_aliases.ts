@@ -24,7 +24,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { app_pathname } from "@/lib/account_index_url";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
-import { emit_aliases_changed } from "@/hooks/mail_events";
+import { emit_aliases_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   list_all_aliases,
   update_alias,
@@ -434,6 +434,25 @@ export function use_aliases() {
     load_domains();
     load_alias_counts();
   }, [load_aliases, load_domains, load_alias_counts]);
+
+  useEffect(() => {
+    const handle_aliases_changed = () => {
+      load_aliases();
+      load_alias_counts();
+    };
+
+    window.addEventListener(
+      MAIL_EVENTS.ALIASES_CHANGED,
+      handle_aliases_changed,
+    );
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.ALIASES_CHANGED,
+        handle_aliases_changed,
+      );
+    };
+  }, [load_aliases, load_alias_counts]);
 
   useEffect(() => {
     if (domains.length > 0) {
