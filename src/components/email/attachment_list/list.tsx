@@ -53,6 +53,7 @@ import {
 import {
   is_previewable_image,
   is_previewable_pdf,
+  build_previewable_image_blob,
 } from "@/lib/attachment_utils";
 import { PdfPreviewModal } from "@/components/email/pdf_preview_modal";
 
@@ -157,7 +158,7 @@ export function AttachmentList({
               info.mail_item_id,
               info.seq_num,
             );
-            const blob = new Blob([data], { type: info.content_type });
+            const blob = build_previewable_image_blob(data, info.content_type);
             const url = set_cached_preview_url(
               info.id,
               URL.createObjectURL(blob),
@@ -608,7 +609,10 @@ export function AttachmentList({
               hydrated.mail_item_id,
               hydrated.seq_num,
             );
-            const blob = new Blob([data], { type: hydrated.content_type });
+            const blob = build_previewable_image_blob(
+              data,
+              hydrated.content_type,
+            );
             const url = set_cached_preview_url(
               att.id,
               URL.createObjectURL(blob),

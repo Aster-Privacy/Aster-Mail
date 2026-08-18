@@ -26,7 +26,10 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
-import { is_previewable_image } from "@/lib/attachment_utils";
+import {
+  is_previewable_image,
+  build_previewable_image_blob,
+} from "@/lib/attachment_utils";
 
 export interface AttachmentBytes {
   encrypted_data: string;
@@ -179,7 +182,9 @@ export async function prefetch_attachment_previews(
 
         set_cached_preview_url(
           att.id,
-          URL.createObjectURL(new Blob([data], { type: meta.content_type })),
+          URL.createObjectURL(
+            build_previewable_image_blob(data, meta.content_type),
+          ),
         );
       } catch {
         return;

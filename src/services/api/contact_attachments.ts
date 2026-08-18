@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { sanitize_download_filename } from "@/lib/attachment_utils";
 import type {
   ContactAttachment,
   ContactAttachmentMeta,
@@ -193,7 +194,7 @@ export function download_attachment(
   const a = document.createElement("a");
 
   a.href = url;
-  a.download = meta.filename;
+  a.download = sanitize_download_filename(meta.filename);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

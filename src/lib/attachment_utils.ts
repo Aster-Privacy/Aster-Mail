@@ -18,6 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import DOMPurify from "dompurify";
+
+export function build_previewable_image_blob(
+  data: BufferSource,
+  content_type: string,
+): Blob {
+  if (content_type.toLowerCase() === "image/svg+xml") {
+    const svg_text = new TextDecoder().decode(data);
+    const safe_svg = DOMPurify.sanitize(svg_text, {
+      USE_PROFILES: { svg: true, svgFilters: true },
+    });
+
+    return new Blob([safe_svg], { type: content_type });
+  }
+
+  return new Blob([data], { type: content_type });
+}
+
 const TYPE_LABEL_MAP: Record<string, string> = {
   "application/pdf": "PDF",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
