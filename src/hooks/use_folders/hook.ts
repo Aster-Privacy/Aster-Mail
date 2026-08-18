@@ -71,6 +71,7 @@ export function use_folders(): UseFoldersReturn {
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_generation_ref = useRef(0);
   const counts_generation_ref = useRef(0);
+  const counts_adjusted_at_ref = useRef(0);
 
   const fetch_folders = useCallback(
     async (params: ListFoldersParams = {}): Promise<void> => {
@@ -166,12 +167,24 @@ export function use_folders(): UseFoldersReturn {
   const fetch_counts = useCallback(async (): Promise<void> => {
     const this_generation = ++counts_generation_ref.current;
 
-    try {
-      const response = await get_folder_counts();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const fetch_started_at = Date.now();
 
-      if (this_generation !== counts_generation_ref.current) return;
+      try {
+        const response = await get_folder_counts();
 
-      if (response.data) {
+        if (this_generation !== counts_generation_ref.current) return;
+
+        if (!response.data) return;
+
+        if (counts_adjusted_at_ref.current > fetch_started_at) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
+
+          if (this_generation !== counts_generation_ref.current) return;
+
+          continue;
+        }
+
         const new_counts: FolderCounts = {};
         const new_unread_counts: FolderCounts = {};
 
@@ -186,9 +199,11 @@ export function use_folders(): UseFoldersReturn {
         }
         set_counts(new_counts);
         set_unread_counts(new_unread_counts);
+
+        return;
+      } catch {
+        return;
       }
-    } catch {
-      return;
     }
   }, []);
 
@@ -481,6 +496,7 @@ export function use_folders(): UseFoldersReturn {
 
   const add_folder_to_email = useCallback(
     async (email_id: string, folder_token: string): Promise<boolean> => {
+      counts_adjusted_at_ref.current = Date.now();
       set_counts((prev) => ({
         ...prev,
         [folder_token]: (prev[folder_token] || 0) + 1,
@@ -490,6 +506,7 @@ export function use_folders(): UseFoldersReturn {
         const response = await add_mail_item_folder(email_id, { folder_token });
 
         if (response.error) {
+          counts_adjusted_at_ref.current = Date.now();
           set_counts((prev) => ({
             ...prev,
             [folder_token]: Math.max(0, (prev[folder_token] || 1) - 1),
@@ -497,6 +514,8 @@ export function use_folders(): UseFoldersReturn {
 
           return false;
         }
+
+        counts_adjusted_at_ref.current = Date.now();
 
         const target_folder = cached_folders.data.find(
           (f) => f.folder_token === folder_token,
@@ -511,6 +530,7 @@ export function use_folders(): UseFoldersReturn {
 
         return true;
       } catch {
+        counts_adjusted_at_ref.current = Date.now();
         set_counts((prev) => ({
           ...prev,
           [folder_token]: Math.max(0, (prev[folder_token] || 1) - 1),
@@ -524,6 +544,7 @@ export function use_folders(): UseFoldersReturn {
 
   const remove_folder_from_email = useCallback(
     async (email_id: string, folder_token: string): Promise<boolean> => {
+      counts_adjusted_at_ref.current = Date.now();
       set_counts((prev) => ({
         ...prev,
         [folder_token]: Math.max(0, (prev[folder_token] || 0) - 1),
@@ -533,6 +554,7 @@ export function use_folders(): UseFoldersReturn {
         const response = await remove_mail_item_folder(email_id, folder_token);
 
         if (response.error) {
+          counts_adjusted_at_ref.current = Date.now();
           set_counts((prev) => ({
             ...prev,
             [folder_token]: (prev[folder_token] || 0) + 1,
@@ -541,8 +563,11 @@ export function use_folders(): UseFoldersReturn {
           return false;
         }
 
+        counts_adjusted_at_ref.current = Date.now();
+
         return true;
       } catch {
+        counts_adjusted_at_ref.current = Date.now();
         set_counts((prev) => ({
           ...prev,
           [folder_token]: (prev[folder_token] || 0) + 1,

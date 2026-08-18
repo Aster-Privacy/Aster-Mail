@@ -251,6 +251,7 @@ export function use_tags(): UseTagsReturn {
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_generation_ref = useRef(0);
   const counts_generation_ref = useRef(0);
+  const counts_adjusted_at_ref = useRef(0);
 
   const fetch_tags = useCallback(
     async (params: ListTagsParams = {}): Promise<void> => {
@@ -337,21 +338,35 @@ export function use_tags(): UseTagsReturn {
   const fetch_counts = useCallback(async (): Promise<void> => {
     const this_generation = ++counts_generation_ref.current;
 
-    try {
-      const response = await get_tag_counts();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const fetch_started_at = Date.now();
 
-      if (this_generation !== counts_generation_ref.current) return;
+      try {
+        const response = await get_tag_counts();
 
-      if (response.data) {
+        if (this_generation !== counts_generation_ref.current) return;
+
+        if (!response.data) return;
+
+        if (counts_adjusted_at_ref.current > fetch_started_at) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
+
+          if (this_generation !== counts_generation_ref.current) return;
+
+          continue;
+        }
+
         const new_counts: TagCounts = {};
 
         for (const item of response.data.counts) {
           new_counts[item.tag_token] = item.count;
         }
         set_counts(new_counts);
+
+        return;
+      } catch {
+        return;
       }
-    } catch {
-      return;
     }
   }, []);
 
@@ -574,6 +589,7 @@ export function use_tags(): UseTagsReturn {
 
   const add_tag_to_email = useCallback(
     async (email_id: string, tag_token: string): Promise<boolean> => {
+      counts_adjusted_at_ref.current = Date.now();
       set_counts((prev) => ({
         ...prev,
         [tag_token]: (prev[tag_token] || 0) + 1,
@@ -583,6 +599,7 @@ export function use_tags(): UseTagsReturn {
         const response = await add_tag_to_item(email_id, { tag_token });
 
         if (response.error) {
+          counts_adjusted_at_ref.current = Date.now();
           set_counts((prev) => ({
             ...prev,
             [tag_token]: Math.max(0, (prev[tag_token] || 1) - 1),
@@ -591,8 +608,11 @@ export function use_tags(): UseTagsReturn {
           return false;
         }
 
+        counts_adjusted_at_ref.current = Date.now();
+
         return true;
       } catch {
+        counts_adjusted_at_ref.current = Date.now();
         set_counts((prev) => ({
           ...prev,
           [tag_token]: Math.max(0, (prev[tag_token] || 1) - 1),
@@ -606,6 +626,7 @@ export function use_tags(): UseTagsReturn {
 
   const remove_tag_from_email = useCallback(
     async (email_id: string, tag_token: string): Promise<boolean> => {
+      counts_adjusted_at_ref.current = Date.now();
       set_counts((prev) => ({
         ...prev,
         [tag_token]: Math.max(0, (prev[tag_token] || 0) - 1),
@@ -615,6 +636,7 @@ export function use_tags(): UseTagsReturn {
         const response = await remove_tag_from_item(email_id, tag_token);
 
         if (response.error) {
+          counts_adjusted_at_ref.current = Date.now();
           set_counts((prev) => ({
             ...prev,
             [tag_token]: (prev[tag_token] || 0) + 1,
@@ -623,8 +645,11 @@ export function use_tags(): UseTagsReturn {
           return false;
         }
 
+        counts_adjusted_at_ref.current = Date.now();
+
         return true;
       } catch {
+        counts_adjusted_at_ref.current = Date.now();
         set_counts((prev) => ({
           ...prev,
           [tag_token]: (prev[tag_token] || 0) + 1,

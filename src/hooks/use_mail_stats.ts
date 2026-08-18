@@ -351,8 +351,8 @@ class MailStatsStore {
       const [stats_response, contacts_response, snoozed_response] =
         await Promise.allSettled([
           get_mail_stats(has_unconfirmed_adjustments),
-          get_contacts_count(),
-          list_snoozed_emails(),
+          get_contacts_count(has_unconfirmed_adjustments),
+          list_snoozed_emails(has_unconfirmed_adjustments),
         ]);
 
       const server_stats =

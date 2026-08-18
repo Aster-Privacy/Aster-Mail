@@ -515,6 +515,12 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       }, 500);
     };
 
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") {
+        fetch_unread_ref.current?.();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
     window.addEventListener(
       MAIL_EVENTS.ALIASES_CHANGED,
@@ -524,6 +530,9 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_mail_changed);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_mail_changed);
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_ACTION, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_mail_changed);
+    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       if (unread_debounce) clearTimeout(unread_debounce);
@@ -545,6 +554,12 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         handle_mail_changed,
       );
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
+      window.removeEventListener(MAIL_EVENTS.MAIL_ACTION, handle_mail_changed);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_STATS_STALE,
+        handle_mail_changed,
+      );
+      document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, []);
 

@@ -641,10 +641,11 @@ export async function reencrypt_all_contacts(): Promise<void> {
   }
 }
 
-export async function get_contacts_count(): Promise<
-  ApiResponse<{ count: number }>
-> {
+export async function get_contacts_count(
+  fresh = false,
+): Promise<ApiResponse<{ count: number }>> {
   return api_client.get<{ count: number }>("/contacts/v1/count", {
     cache_ttl: 60_000,
+    skip_cache: fresh,
   });
 }
