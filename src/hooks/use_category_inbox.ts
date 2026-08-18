@@ -462,7 +462,11 @@ export function use_category_inbox(
   );
 
   const fetch_page = useCallback(
-    async (target_page: number, limit: number): Promise<void> => {
+    async (
+      target_page: number,
+      limit: number,
+      silent = false,
+    ): Promise<void> => {
       if (!enabled) return;
       if (!has_passphrase_in_memory()) {
         last_signature_ref.current = "";
@@ -527,7 +531,9 @@ export function use_category_inbox(
         return;
       }
 
-      set_state((prev) => ({ ...prev, is_loading: true }));
+      if (!silent) {
+        set_state((prev) => ({ ...prev, is_loading: true }));
+      }
       fetch_in_flight_ref.current = true;
 
       try {
@@ -699,13 +705,21 @@ export function use_category_inbox(
       })();
     };
 
+    const handle_email_sent = () => {
+      if (!has_passphrase_in_memory()) return;
+      page_cache.current.clear();
+      void fetch_page(page, page_size, true);
+    };
+
     window.addEventListener(
       MAIL_EVENTS.REFRESH_REQUESTED,
       handle_refresh_requested,
     );
+    window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_email_sent);
 
     return () => {
       cancelled = true;
+      window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_email_sent);
       window.removeEventListener(
         MAIL_EVENTS.REFRESH_REQUESTED,
         handle_refresh_requested,

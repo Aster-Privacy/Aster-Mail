@@ -382,6 +382,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     if (!is_mail_view) return;
     if (!has_passphrase_in_memory()) return;
 
+    page_cache_ref.current.clear();
+
     const controller = new AbortController();
     const { signal } = controller;
     const active_page = page_ref.current;
