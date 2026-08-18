@@ -26,31 +26,16 @@ export function set_csrf_token(token: string): void {
   cached_csrf_token = token;
 }
 
-function parse_csrf_token_timestamp(token: string): number {
-  const dot_index = token.lastIndexOf(".");
-
-  if (dot_index <= 0) return 0;
-
-  const payload = token.substring(0, dot_index);
-  const colon_index = payload.lastIndexOf(":");
-
-  if (colon_index <= 0) return 0;
-
-  const timestamp = Number(payload.substring(colon_index + 1));
-
-  return Number.isFinite(timestamp) ? timestamp : 0;
-}
-
 export function get_csrf_token_from_cookie(): string | null {
+  if (cached_csrf_token) {
+    return cached_csrf_token;
+  }
+
   if (typeof document === "undefined") {
     return cached_csrf_token;
   }
 
   const cookies = document.cookie.split(";");
-  let newest_token: string | null = cached_csrf_token;
-  let newest_timestamp = cached_csrf_token
-    ? parse_csrf_token_timestamp(cached_csrf_token)
-    : -1;
 
   for (const cookie of cookies) {
     const trimmed = cookie.trim();
@@ -62,18 +47,10 @@ export function get_csrf_token_from_cookie(): string | null {
     const value = trimmed.substring(eq_index + 1);
 
     if (name === CSRF_COOKIE_NAME && value) {
-      const decoded = decodeURIComponent(value);
-      const timestamp = parse_csrf_token_timestamp(decoded);
+      cached_csrf_token = decodeURIComponent(value);
 
-      if (timestamp > newest_timestamp) {
-        newest_token = decoded;
-        newest_timestamp = timestamp;
-      }
+      return cached_csrf_token;
     }
-  }
-
-  if (newest_token) {
-    cached_csrf_token = newest_token;
   }
 
   return cached_csrf_token;
