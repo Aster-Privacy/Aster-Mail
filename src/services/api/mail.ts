@@ -210,10 +210,12 @@ export interface MailUserStatsResponse {
   storage_total_bytes: number;
 }
 
-export async function get_mail_stats(): Promise<
-  ApiResponse<MailUserStatsResponse>
-> {
-  return api_client.get<MailUserStatsResponse>("/mail/v1/messages/stats");
+export async function get_mail_stats(
+  fresh = false,
+): Promise<ApiResponse<MailUserStatsResponse>> {
+  return api_client.get<MailUserStatsResponse>(
+    fresh ? "/mail/v1/messages/stats?fresh=1" : "/mail/v1/messages/stats",
+  );
 }
 
 export async function list_mail_items(

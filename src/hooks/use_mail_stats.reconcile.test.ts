@@ -52,6 +52,7 @@ import {
   prefetch_mail_stats,
   clear_mail_stats,
   get_mail_stats_snapshot,
+  invalidate_mail_stats,
 } from "./use_mail_stats";
 
 function server_stats(unread: number) {
@@ -179,6 +180,29 @@ describe("use_mail_stats optimistic reconcile", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     await flush();
     expect(get_mail_stats_snapshot().unread).toBe(0);
+  });
+
+  it("requests an uncached recount while an adjustment is unconfirmed", async () => {
+    mock_get_mail_stats.mockResolvedValue(server_stats(1));
+
+    prefetch_mail_stats();
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenLastCalledWith(false);
+
+    mock_get_mail_stats.mockResolvedValue(server_stats(0));
+    adjust_stats_unread(-1);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenLastCalledWith(true);
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await flush();
+    expect(get_mail_stats_snapshot().unread).toBe(0);
+
+    invalidate_mail_stats();
+    await flush();
+    expect(mock_get_mail_stats).toHaveBeenLastCalledWith(false);
   });
 
   it("coalesces the follow-up reconcile across a burst of adjustments", async () => {

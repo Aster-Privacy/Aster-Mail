@@ -344,11 +344,13 @@ class MailStatsStore {
 
     this.in_flight_deltas = {};
     const query_started_at = Date.now();
+    const has_unconfirmed_adjustments =
+      Object.keys(this.last_adjust_at).length > 0;
 
     try {
       const [stats_response, contacts_response, snoozed_response] =
         await Promise.allSettled([
-          get_mail_stats(),
+          get_mail_stats(has_unconfirmed_adjustments),
           get_contacts_count(),
           list_snoozed_emails(),
         ]);
