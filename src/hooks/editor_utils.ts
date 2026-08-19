@@ -30,6 +30,60 @@ export const FONT_SIZE_MAP: Record<FontSizeLabel, string> = {
   huge: "24px",
 };
 
+export const FONT_SIZE_INDEX_MAP: Record<FontSizeLabel, string> = {
+  small: "2",
+  normal: "3",
+  large: "5",
+  huge: "7",
+};
+
+const FONT_ATTRIBUTES_HANDLED = new Set(["size", "color", "face", "style"]);
+
+export function font_size_label_from_px(px: string): FontSizeLabel | null {
+  const labels = Object.keys(FONT_SIZE_MAP) as FontSizeLabel[];
+
+  return labels.find((label) => FONT_SIZE_MAP[label] === px) ?? null;
+}
+
+export function replace_font_element(
+  font: HTMLElement,
+  px: string,
+): HTMLSpanElement {
+  const span = document.createElement("span");
+
+  if (font.style.cssText) {
+    span.style.cssText = font.style.cssText;
+  }
+
+  Array.from(font.attributes).forEach((attribute) => {
+    if (FONT_ATTRIBUTES_HANDLED.has(attribute.name)) return;
+
+    span.setAttribute(attribute.name, attribute.value);
+  });
+
+  const color = font.getAttribute("color");
+
+  if (color && !span.style.color) {
+    span.style.color = color;
+  }
+
+  const face = font.getAttribute("face");
+
+  if (face && !span.style.fontFamily) {
+    span.style.fontFamily = face;
+  }
+
+  span.style.fontSize = px;
+
+  while (font.firstChild) {
+    span.appendChild(font.firstChild);
+  }
+
+  font.replaceWith(span);
+
+  return span;
+}
+
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{3,8}$/;
 
 export function validate_hex_color(color: string): boolean {
@@ -174,7 +228,7 @@ export interface ImageResizeState {
 export interface UseEditorReturn {
   format_state: EditorFormatState;
 
-  exec_format: (command: string, value?: string) => void;
+  exec_format: (command: string, value?: string, use_css?: boolean) => void;
   toggle_bold: () => void;
   toggle_italic: () => void;
   toggle_underline: () => void;

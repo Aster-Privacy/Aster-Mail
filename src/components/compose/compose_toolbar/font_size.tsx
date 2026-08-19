@@ -18,30 +18,27 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-import type {  FontSizeLabel } from "@/hooks/use_editor";
-import type { } from "@/components/compose/compose_shared";
+import type {} from "@/lib/i18n/types";
+import type { FontSizeLabel } from "@/hooks/use_editor";
+import type {} from "@/components/compose/compose_shared";
 
-import {
-  useId,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+
+import { FONT_SIZE_OPTIONS, use_anchored_layer } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-
-import { FONT_SIZE_OPTIONS, use_anchored_layer } from "./shared";
+import { font_size_label_from_px } from "@/hooks/editor_utils";
 
 export function FontSizeSelect({
   on_change,
   on_before_open,
+  font_size,
 }: {
   on_change: (size: FontSizeLabel) => void;
   on_before_open?: () => void;
+  font_size?: string;
 }) {
   const { t } = use_i18n();
   const [open, set_open] = useState(false);
@@ -53,6 +50,14 @@ export function FontSizeSelect({
   const current_option = FONT_SIZE_OPTIONS.find(
     (o) => o.value === current_size,
   );
+
+  useEffect(() => {
+    if (open || !font_size) return;
+
+    const label = font_size_label_from_px(font_size);
+
+    if (label) set_current_size(label);
+  }, [font_size, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -146,4 +151,3 @@ export function FontSizeSelect({
     </div>
   );
 }
-

@@ -18,16 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
-
-
-import { use_i18n } from "@/lib/i18n/context";
 
 import { AlignmentGroup } from "./alignment";
 import { ColorPickerPopover } from "./color_picker";
 import { FontSizeSelect } from "./font_size";
 import { Divider, ToolbarButton, use_frozen_selection } from "./shared";
+
+import { use_i18n } from "@/lib/i18n/context";
 
 export function FormatTools({ compose }: { compose: ComposeToolbarState }) {
   const { t } = use_i18n();
@@ -41,6 +40,7 @@ export function FormatTools({ compose }: { compose: ComposeToolbarState }) {
       {editor && (
         <>
           <FontSizeSelect
+            font_size={editor.format_state.current_font_size}
             on_before_open={freeze_selection}
             on_change={(size) =>
               apply_with_frozen_selection(() => editor.set_font_size(size))
@@ -147,4 +147,3 @@ export function FormatTools({ compose }: { compose: ComposeToolbarState }) {
     </>
   );
 }
-
