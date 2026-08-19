@@ -3596,6 +3596,18 @@ export const pl = {
     compose_mode_default: "Domyślnie - pływające okno",
     compose_mode_fullscreen: "Zawsze pełny ekran",
     compose_mode_minimized: "Zacznij zminimalizowany",
+    compose_defaults_title: "Domyślne formatowanie",
+    compose_defaults_description:
+      "Wybierz, jak wyglądają nowe wiadomości, gdy zaczynasz pisać. Odpowiedzi i przekazane wiadomości zachowują oryginalne formatowanie.",
+    compose_default_font_size: "Domyślny rozmiar czcionki",
+    compose_default_font_size_description:
+      "Nowe wiadomości zaczynają się od tego rozmiaru. Rozmiar możesz zmienić także podczas pisania.",
+    compose_default_font_color: "Domyślny kolor tekstu",
+    compose_default_font_color_description:
+      "Nowe wiadomości zaczynają się od tego koloru. Wybierz ustawienie domyślne motywu, aby dopasować kolor do motywu aplikacji.",
+    compose_default_font_color_picker_label: "Wybierz domyślny kolor tekstu",
+    compose_default_font_color_theme: "Domyślne dla motywu",
+    compose_default_font_color_reset: "Użyj ustawienia domyślnego motywu",
     build_info: "Informacje o kompilacji",
     release: "Wydanie",
     build: "Kompilacja",

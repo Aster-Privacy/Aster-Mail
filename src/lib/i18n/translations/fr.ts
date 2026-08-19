@@ -3617,6 +3617,19 @@ export const fr = {
     compose_mode_default: "Par défaut - popup flottante",
     compose_mode_fullscreen: "Toujours en plein écran",
     compose_mode_minimized: "Démarrer réduit",
+    compose_defaults_title: "Mise en forme par défaut",
+    compose_defaults_description:
+      "Choisissez l'apparence des nouveaux messages au moment où vous commencez à écrire. Les réponses et les messages transférés conservent leur mise en forme d'origine.",
+    compose_default_font_size: "Taille de police par défaut",
+    compose_default_font_size_description:
+      "Les nouveaux messages commencent avec cette taille. Vous pouvez toujours modifier la taille pendant que vous écrivez.",
+    compose_default_font_color: "Couleur du texte par défaut",
+    compose_default_font_color_description:
+      "Les nouveaux messages commencent avec cette couleur. Choisissez la couleur par défaut du thème pour suivre le thème de l'application.",
+    compose_default_font_color_picker_label:
+      "Choisissez une couleur de texte par défaut",
+    compose_default_font_color_theme: "Valeur par défaut du thème",
+    compose_default_font_color_reset: "Utiliser la valeur par défaut du thème",
     build_info: "Informations de build",
     release: "Version",
     build: "Version",

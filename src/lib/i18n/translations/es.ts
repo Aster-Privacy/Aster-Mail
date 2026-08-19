@@ -3583,6 +3583,19 @@ export const es = {
     compose_mode_default: "Predeterminado - ventana emergente flotante",
     compose_mode_fullscreen: "Siempre a pantalla completa",
     compose_mode_minimized: "Iniciar minimizado",
+    compose_defaults_title: "Formato predeterminado",
+    compose_defaults_description:
+      "Elige el aspecto de los mensajes nuevos cuando empiezas a escribir. Las respuestas y los mensajes reenviados conservan su formato original.",
+    compose_default_font_size: "Tamaño de fuente predeterminado",
+    compose_default_font_size_description:
+      "Los mensajes nuevos empiezan con este tamaño. Puedes cambiar el tamaño mientras escribes.",
+    compose_default_font_color: "Color de texto predeterminado",
+    compose_default_font_color_description:
+      "Los mensajes nuevos empiezan con este color. Elige el valor predeterminado del tema para seguir el tema de la app.",
+    compose_default_font_color_picker_label:
+      "Elige un color de texto predeterminado",
+    compose_default_font_color_theme: "Predeterminado del tema",
+    compose_default_font_color_reset: "Usar el predeterminado del tema",
     build_info: "Información de compilación",
     release: "Versión",
     build: "Compilación",

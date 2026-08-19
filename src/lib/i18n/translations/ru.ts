@@ -3589,6 +3589,19 @@ export const ru = {
     compose_mode_default: "По умолчанию - плавающее окно",
     compose_mode_fullscreen: "Всегда полноэкранный",
     compose_mode_minimized: "Открывать свёрнутым",
+    compose_defaults_title: "Форматирование по умолчанию",
+    compose_defaults_description:
+      "Выберите, как выглядят новые письма, когда вы начинаете их писать. Ответы и пересылаемые письма сохраняют исходное форматирование.",
+    compose_default_font_size: "Размер шрифта по умолчанию",
+    compose_default_font_size_description:
+      "Новые письма начинаются с этого размера. Вы можете изменить размер во время написания.",
+    compose_default_font_color: "Цвет текста по умолчанию",
+    compose_default_font_color_description:
+      "Новые письма начинаются с этого цвета. Выберите цвет темы, чтобы следовать теме приложения.",
+    compose_default_font_color_picker_label:
+      "Выберите цвет текста по умолчанию",
+    compose_default_font_color_theme: "Цвет темы",
+    compose_default_font_color_reset: "Использовать цвет темы",
     build_info: "Информация о сборке",
     release: "Релиз",
     build: "Сборка",

@@ -3509,6 +3509,18 @@ export const ar = {
     compose_mode_default: "افتراضي - نافذة منبثقة عائمة",
     compose_mode_fullscreen: "ملء الشاشة دائماً",
     compose_mode_minimized: "بدء مصغراً",
+    compose_defaults_title: "التنسيق الافتراضي",
+    compose_defaults_description:
+      "اختر شكل الرسائل الجديدة عند بدء الكتابة. تحتفظ الردود والرسائل المُعاد توجيهها بتنسيقها الأصلي.",
+    compose_default_font_size: "حجم الخط الافتراضي",
+    compose_default_font_size_description:
+      "تبدأ الرسائل الجديدة بهذا الحجم. ويمكنك تغيير الحجم أثناء الكتابة.",
+    compose_default_font_color: "لون النص الافتراضي",
+    compose_default_font_color_description:
+      "تبدأ الرسائل الجديدة بهذا اللون. اختر الافتراضي من السمة لمتابعة سمة التطبيق.",
+    compose_default_font_color_picker_label: "اختر لون نص افتراضياً",
+    compose_default_font_color_theme: "افتراضي السمة",
+    compose_default_font_color_reset: "استخدام افتراضي السمة",
     build_info: "معلومات البناء",
     release: "الإصدار",
     build: "البناء",

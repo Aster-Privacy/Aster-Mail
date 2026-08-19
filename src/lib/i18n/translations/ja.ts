@@ -3573,6 +3573,18 @@ export const ja = {
     compose_mode_default: "デフォルト - フローティングポップアップ",
     compose_mode_fullscreen: "常にフルスクリーン",
     compose_mode_minimized: "最小化して開始",
+    compose_defaults_title: "デフォルトの書式",
+    compose_defaults_description:
+      "新規メッセージを書き始めるときの見た目を選択します。返信と転送メッセージは元の書式を保持します。",
+    compose_default_font_size: "デフォルトの文字サイズ",
+    compose_default_font_size_description:
+      "新規メッセージはこのサイズで始まります。作成中にサイズを変更することもできます。",
+    compose_default_font_color: "デフォルトの文字色",
+    compose_default_font_color_description:
+      "新規メッセージはこの色で始まります。アプリのテーマに合わせるには、テーマのデフォルトを選択します。",
+    compose_default_font_color_picker_label: "デフォルトの文字色を選択",
+    compose_default_font_color_theme: "テーマのデフォルト",
+    compose_default_font_color_reset: "テーマのデフォルトを使用",
     build_info: "ビルド情報",
     release: "リリース",
     build: "ビルド",

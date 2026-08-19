@@ -4806,6 +4806,19 @@ export const de = {
     compose_mode_default: "Standard - schwebendes Popup",
     compose_mode_fullscreen: "Immer Vollbild",
     compose_mode_minimized: "Minimiert starten",
+    compose_defaults_title: "Standardformatierung",
+    compose_defaults_description:
+      "Legen Sie fest, wie neue Nachrichten aussehen, wenn Sie mit dem Schreiben beginnen. Antworten und weitergeleitete Nachrichten behalten ihre ursprüngliche Formatierung.",
+    compose_default_font_size: "Standardschriftgröße",
+    compose_default_font_size_description:
+      "Neue Nachrichten beginnen mit dieser Größe. Sie können die Größe beim Schreiben jederzeit ändern.",
+    compose_default_font_color: "Standardtextfarbe",
+    compose_default_font_color_description:
+      "Neue Nachrichten beginnen in dieser Farbe. Wählen Sie den Designstandard, um dem Design der App zu folgen.",
+    compose_default_font_color_picker_label:
+      "Wählen Sie eine Standardtextfarbe",
+    compose_default_font_color_theme: "Designstandard",
+    compose_default_font_color_reset: "Designstandard verwenden",
     change_plan: "Tarif wechseln",
     change_plan_description:
       "Upgrade oder Downgrade Ihres Abonnements über das Abrechnungsportal",

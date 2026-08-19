@@ -3554,6 +3554,18 @@ export const ko = {
     compose_mode_default: "기본 - 플로팅 팝업",
     compose_mode_fullscreen: "항상 전체 화면",
     compose_mode_minimized: "최소화로 시작",
+    compose_defaults_title: "기본 서식",
+    compose_defaults_description:
+      "새 메시지를 쓰기 시작할 때의 모양을 선택하세요. 답장과 전달한 메시지는 원래 서식을 유지합니다.",
+    compose_default_font_size: "기본 글자 크기",
+    compose_default_font_size_description:
+      "새 메시지가 이 크기로 시작합니다. 작성하는 중에도 크기를 변경할 수 있습니다.",
+    compose_default_font_color: "기본 글자 색",
+    compose_default_font_color_description:
+      "새 메시지가 이 색으로 시작합니다. 앱 테마를 따르려면 테마 기본값을 선택하세요.",
+    compose_default_font_color_picker_label: "기본 글자 색 선택",
+    compose_default_font_color_theme: "테마 기본값",
+    compose_default_font_color_reset: "테마 기본값 사용",
     build_info: "빌드 정보",
     release: "릴리스",
     build: "빌드",

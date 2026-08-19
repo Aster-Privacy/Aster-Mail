@@ -4742,6 +4742,18 @@ export const nl = {
     compose_mode_default: "Standaard - zwevend pop-up",
     compose_mode_fullscreen: "Altijd volledig scherm",
     compose_mode_minimized: "Geminimaliseerd starten",
+    compose_defaults_title: "Standaardopmaak",
+    compose_defaults_description:
+      "Kies hoe nieuwe berichten eruitzien wanneer je begint te schrijven. Antwoorden en doorgestuurde berichten behouden hun oorspronkelijke opmaak.",
+    compose_default_font_size: "Standaardlettergrootte",
+    compose_default_font_size_description:
+      "Nieuwe berichten beginnen met deze grootte. Je kunt de grootte tijdens het schrijven nog aanpassen.",
+    compose_default_font_color: "Standaardtekstkleur",
+    compose_default_font_color_description:
+      "Nieuwe berichten beginnen in deze kleur. Kies de standaard van het thema om het thema van de app te volgen.",
+    compose_default_font_color_picker_label: "Kies een standaardtekstkleur",
+    compose_default_font_color_theme: "Standaard van thema",
+    compose_default_font_color_reset: "Standaard van thema gebruiken",
     change_plan: "Abonnement wijzigen",
     change_plan_description:
       "Upgrade of downgrade je abonnement via het factureringsportaal",

@@ -3254,6 +3254,18 @@ export const zh_CN = {
     compose_mode_default: "默认 - 浮动弹窗",
     compose_mode_fullscreen: "始终全屏",
     compose_mode_minimized: "以最小化启动",
+    compose_defaults_title: "默认格式",
+    compose_defaults_description:
+      "选择开始撰写新邮件时的外观。回复和转发的邮件会保留原有格式。",
+    compose_default_font_size: "默认字号",
+    compose_default_font_size_description:
+      "新邮件以此字号开始。撰写时仍可更改字号。",
+    compose_default_font_color: "默认文字颜色",
+    compose_default_font_color_description:
+      "新邮件以此颜色开始。选择主题默认值可跟随应用主题。",
+    compose_default_font_color_picker_label: "选择默认文字颜色",
+    compose_default_font_color_theme: "主题默认值",
+    compose_default_font_color_reset: "使用主题默认值",
     build_info: "构建信息",
     release: "版本",
     build: "构建",

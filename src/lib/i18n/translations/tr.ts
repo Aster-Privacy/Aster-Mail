@@ -3565,6 +3565,18 @@ export const tr = {
     compose_mode_default: "Varsayılan - yüzen açılır pencere",
     compose_mode_fullscreen: "Her zaman tam ekran",
     compose_mode_minimized: "Küçültülmüş başlat",
+    compose_defaults_title: "Varsayılan biçimlendirme",
+    compose_defaults_description:
+      "Yeni iletilerin, yazmaya başladığınızda nasıl görüneceğini seçin. Yanıtlar ve iletilen iletiler özgün biçimlendirmesini korur.",
+    compose_default_font_size: "Varsayılan yazı tipi boyutu",
+    compose_default_font_size_description:
+      "Yeni iletiler bu boyutta başlar. Yazarken boyutu yine de değiştirebilirsiniz.",
+    compose_default_font_color: "Varsayılan metin rengi",
+    compose_default_font_color_description:
+      "Yeni iletiler bu renkte başlar. Uygulama temanızı izlemesi için tema varsayılanını seçin.",
+    compose_default_font_color_picker_label: "Varsayılan bir metin rengi seçin",
+    compose_default_font_color_theme: "Tema varsayılanı",
+    compose_default_font_color_reset: "Tema varsayılanını kullan",
     build_info: "Yapı Bilgisi",
     release: "Sürüm",
     build: "Yapı",

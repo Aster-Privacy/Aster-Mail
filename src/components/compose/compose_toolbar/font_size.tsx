@@ -30,6 +30,8 @@ import { FONT_SIZE_OPTIONS, use_anchored_layer } from "./shared";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { font_size_label_from_px } from "@/hooks/editor_utils";
+import { use_preferences } from "@/contexts/preferences_context";
+import { normalize_compose_font_size } from "@/lib/compose_defaults";
 
 export function FontSizeSelect({
   on_change,
@@ -41,8 +43,13 @@ export function FontSizeSelect({
   font_size?: string;
 }) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
+  const default_size = normalize_compose_font_size(
+    preferences.compose_font_size,
+  );
   const [open, set_open] = useState(false);
-  const [current_size, set_current_size] = useState<FontSizeLabel>("normal");
+  const [current_size, set_current_size] =
+    useState<FontSizeLabel>(default_size);
   const [pos, set_pos] = useState({ top: 0, left: 0 });
   const button_ref = useRef<HTMLButtonElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
@@ -52,12 +59,18 @@ export function FontSizeSelect({
   );
 
   useEffect(() => {
-    if (open || !font_size) return;
+    if (open) return;
+
+    if (!font_size) {
+      set_current_size(default_size);
+
+      return;
+    }
 
     const label = font_size_label_from_px(font_size);
 
     if (label) set_current_size(label);
-  }, [font_size, open]);
+  }, [default_size, font_size, open]);
 
   useEffect(() => {
     if (!open) return;
