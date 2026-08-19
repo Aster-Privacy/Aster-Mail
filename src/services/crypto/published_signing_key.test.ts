@@ -29,6 +29,7 @@ import {
 } from "./key_manager_pgp";
 import { build_pgp_rekey } from "@/services/pgp_rekey_service";
 import {
+  reset_published_key_heal_attempts,
   reset_published_signing_key_cache,
   select_published_signing_key,
   signing_key_candidates,
@@ -39,6 +40,9 @@ const state = vi.hoisted(() => ({
   published_key: undefined as string | undefined,
   fetch_calls: 0,
   throw_on_fetch: false,
+  passphrase: "rekey-drift-passphrase" as string | null,
+  republish_calls: 0,
+  republish_result: true,
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -53,6 +57,19 @@ vi.mock("@/services/api/keys", () => ({
 
     return { data: { public_key: state.published_key } };
   },
+}));
+
+vi.mock("./ensure_pgp_key_published", () => ({
+  republish_identity_key: async () => {
+    state.republish_calls += 1;
+
+    return state.republish_result;
+  },
+}));
+
+vi.mock("./memory_key_store", async (import_original) => ({
+  ...(await import_original<typeof import("./memory_key_store")>()),
+  get_passphrase_from_memory: () => state.passphrase,
 }));
 
 const password = "rekey-drift-passphrase";
@@ -130,10 +147,14 @@ beforeAll(async () => {
 
 beforeEach(() => {
   reset_published_signing_key_cache();
+  reset_published_key_heal_attempts();
   state.email = owner_email;
   state.published_key = published_public_key;
   state.fetch_calls = 0;
   state.throw_on_fetch = false;
+  state.passphrase = password;
+  state.republish_calls = 0;
+  state.republish_result = true;
 });
 
 describe("select_published_signing_key after a pgp rekey", () => {
@@ -157,7 +178,7 @@ describe("select_published_signing_key after a pgp rekey", () => {
     const selected = await select_published_signing_key(rekeyed_vault);
 
     await expect(
-      signature_verifies(selected, published_public_key),
+      signature_verifies(selected as string, published_public_key),
     ).resolves.toBe(true);
   });
 
@@ -198,12 +219,63 @@ describe("select_published_signing_key after a pgp rekey", () => {
     );
   });
 
-  it("never looks up the server for a vault that has one key", async () => {
-    const untouched = vault_with(old_secret_key);
+  it("checks the published key even for a single-key vault", async () => {
+    const drifted = vault_with(old_secret_key);
 
-    await expect(select_published_signing_key(untouched)).resolves.toBe(
+    await select_published_signing_key(drifted);
+
+    expect(state.fetch_calls).toBe(1);
+  });
+});
+
+describe("select_published_signing_key with a drifted vault", () => {
+  it("republishes identity_key and signs with it when nothing matches", async () => {
+    const drifted = vault_with(old_secret_key);
+
+    await expect(select_published_signing_key(drifted)).resolves.toBe(
       old_secret_key,
     );
-    expect(state.fetch_calls).toBe(0);
+    expect(state.republish_calls).toBe(1);
+  });
+
+  it("skips signing when the republish fails", async () => {
+    state.republish_result = false;
+    const drifted = vault_with(old_secret_key);
+
+    await expect(select_published_signing_key(drifted)).resolves.toBeNull();
+  });
+
+  it("attempts the republish once per account per session", async () => {
+    state.republish_result = false;
+    const drifted = vault_with(old_secret_key);
+
+    await select_published_signing_key(drifted);
+    await select_published_signing_key(drifted);
+
+    expect(state.republish_calls).toBe(1);
+  });
+
+  it("skips signing without republishing when no passphrase is in memory", async () => {
+    state.passphrase = null;
+    const drifted = vault_with(old_secret_key);
+
+    await expect(select_published_signing_key(drifted)).resolves.toBeNull();
+    expect(state.republish_calls).toBe(0);
+  });
+
+  it("selects the matching key again after a heal refreshes the cache", async () => {
+    const drifted = vault_with(old_secret_key);
+
+    await select_published_signing_key(drifted);
+
+    state.published_key = (
+      await derive_public_keys_from_private([old_secret_key])
+    )[0];
+
+    await expect(select_published_signing_key(drifted)).resolves.toBe(
+      old_secret_key,
+    );
+    expect(state.republish_calls).toBe(1);
+    expect(state.fetch_calls).toBe(2);
   });
 });

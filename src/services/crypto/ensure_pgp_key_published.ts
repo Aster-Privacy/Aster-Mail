@@ -71,16 +71,31 @@ export async function ensure_pgp_key_published(
   if (existing.data) return "already_published";
   if (existing.code !== "NOT_FOUND") return "skipped";
 
+  const healed = await republish_identity_key(vault.identity_key, passphrase);
+
+  if (healed) {
+    attempted_account_ids.add(account_id);
+
+    return "healed";
+  }
+
+  return "failed";
+}
+
+export async function republish_identity_key(
+  armored_identity_key: string,
+  passphrase: string,
+): Promise<boolean> {
   try {
     const private_key = await openpgp.readPrivateKey({
-      armoredKey: vault.identity_key,
+      armoredKey: armored_identity_key,
     });
     const public_key_armored = private_key.toPublic().armor();
 
     const pgp_key_data = await prepare_pgp_key_data(
       {
         public_key: public_key_armored,
-        secret_key: vault.identity_key,
+        secret_key: armored_identity_key,
         fingerprint: private_key.getFingerprint().toUpperCase(),
       },
       passphrase,
@@ -90,14 +105,8 @@ export async function ensure_pgp_key_published(
       pgp_key_data as unknown as Record<string, unknown>,
     );
 
-    if (result.data?.success) {
-      attempted_account_ids.add(account_id);
-
-      return "healed";
-    }
-
-    return "failed";
+    return result.data?.success === true;
   } catch {
-    return "failed";
+    return false;
   }
 }

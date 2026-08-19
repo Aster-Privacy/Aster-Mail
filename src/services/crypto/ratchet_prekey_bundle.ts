@@ -166,7 +166,7 @@ async function legacy_prekey_signature(
 async function select_bundle_signing_key(
   vault: EncryptedVault,
 ): Promise<string> {
-  return select_published_signing_key(vault);
+  return (await select_published_signing_key(vault)) ?? vault.identity_key;
 }
 
 export interface UploadPrekeyBundleResult {

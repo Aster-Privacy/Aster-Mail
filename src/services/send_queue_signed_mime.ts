@@ -69,6 +69,7 @@ const text_encoder = new TextEncoder();
 export type SigningSkipReason =
   | "vault_identity_key_unavailable"
   | "vault_passphrase_unavailable"
+  | "published_key_mismatch_unhealed"
   | "detached_signature_failed";
 
 let last_signing_skip_reason: SigningSkipReason | undefined;
@@ -159,6 +160,13 @@ export async function build_signed_mime_payload(
 
   const mime_bytes = text_encoder.encode(mime);
   const armored_secret_key = await select_published_signing_key(vault);
+
+  if (!armored_secret_key) {
+    report_signing_skipped("published_key_mismatch_unhealed");
+
+    return undefined;
+  }
+
   const signed = await sign_detached(mime_bytes, {
     armored_secret_key,
     passphrase,

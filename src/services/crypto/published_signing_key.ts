@@ -22,6 +22,9 @@ import type { EncryptedVault } from "./key_manager_core";
 import { select_private_key_matching_public } from "./key_manager_pgp";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
+
+const heal_attempted_account_ids = new Set<string>();
 
 interface CacheEntry {
   public_key: string;
@@ -34,6 +37,17 @@ export function reset_published_signing_key_cache(): void {
   cache = null;
 }
 
+export function reset_published_key_heal_attempts(): void {
+  heal_attempted_account_ids.clear();
+}
+
+async function current_account_email(): Promise<string | null> {
+  const { get_current_account } = await import("@/services/account_manager");
+  const account = await get_current_account().catch(() => null);
+
+  return account?.user?.email ?? null;
+}
+
 async function fetch_published_public_key(): Promise<string | null> {
   const now = Date.now();
 
@@ -41,9 +55,7 @@ async function fetch_published_public_key(): Promise<string | null> {
     return cache.public_key;
   }
 
-  const { get_current_account } = await import("@/services/account_manager");
-  const account = await get_current_account();
-  const email = account?.user?.email;
+  const email = await current_account_email();
 
   if (!email) return null;
 
@@ -66,23 +78,59 @@ export function signing_key_candidates(vault: EncryptedVault): string[] {
 
 export async function select_published_signing_key(
   vault: EncryptedVault,
-): Promise<string> {
+): Promise<string | null> {
   const candidates = signing_key_candidates(vault);
 
-  if (candidates.length <= 1) return vault.identity_key;
+  if (candidates.length === 0) return vault.identity_key;
+
+  let published: string | null;
 
   try {
-    const published = await fetch_published_public_key();
+    published = await fetch_published_public_key();
+  } catch {
+    return vault.identity_key;
+  }
 
-    if (!published) return vault.identity_key;
+  if (!published) return vault.identity_key;
 
+  try {
     const matching = await select_private_key_matching_public(
       candidates,
       published,
     );
 
-    return matching ?? vault.identity_key;
+    if (matching) return matching;
   } catch {
     return vault.identity_key;
   }
+
+  const healed = await heal_published_key_mismatch(vault);
+
+  return healed ? vault.identity_key : null;
+}
+
+async function heal_published_key_mismatch(
+  vault: EncryptedVault,
+): Promise<boolean> {
+  if (!vault.identity_key.trimStart().startsWith(PGP_PRIVATE_KEY_HEADER)) {
+    return false;
+  }
+
+  const email = await current_account_email();
+
+  if (!email || heal_attempted_account_ids.has(email)) return false;
+
+  const { get_passphrase_from_memory } = await import("./memory_key_store");
+  const passphrase = get_passphrase_from_memory();
+
+  if (!passphrase) return false;
+
+  heal_attempted_account_ids.add(email);
+
+  const { republish_identity_key } = await import("./ensure_pgp_key_published");
+  const healed = await republish_identity_key(vault.identity_key, passphrase);
+
+  if (healed) reset_published_signing_key_cache();
+
+  return healed;
 }
