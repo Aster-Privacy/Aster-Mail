@@ -58,6 +58,7 @@ const SETTINGS_SECTIONS = new Set([
   "referral",
   "import",
   "notifications",
+  "compose",
   "signature",
   "templates",
   "behavior",

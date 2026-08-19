@@ -2704,6 +2704,18 @@ export const en: Translations = {
     compose_mode_default: "Default - floating popup",
     compose_mode_fullscreen: "Always full screen",
     compose_mode_minimized: "Start minimized",
+    compose_defaults_title: "Default formatting",
+    compose_defaults_description:
+      "Choose how new messages look when you start writing. Replies and forwarded messages keep their original formatting.",
+    compose_default_font_size: "Default font size",
+    compose_default_font_size_description:
+      "New messages start at this size. You can still change the size while you write.",
+    compose_default_font_color: "Default text color",
+    compose_default_font_color_description:
+      "New messages start in this color. Choose the theme default to follow your app theme.",
+    compose_default_font_color_picker_label: "Choose a default text color",
+    compose_default_font_color_theme: "Theme default",
+    compose_default_font_color_reset: "Use theme default",
     build_info: "Build Info",
     release: "Release",
     build: "Build",

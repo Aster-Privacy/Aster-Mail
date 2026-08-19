@@ -60,6 +60,7 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { is_internal_email } from "@/services/api/keys";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -675,6 +676,10 @@ export function use_compose({
         content = signature_block + edit_draft.message;
       } else {
         content =
+          build_compose_default_block(
+            preferences.compose_font_size,
+            preferences.compose_font_color,
+          ) +
           signature_block +
           get_aster_footer(t, preferences.show_aster_branding);
       }
@@ -709,6 +714,8 @@ export function use_compose({
     active_badge,
     preferences.show_aster_branding,
     preferences.signature_mode,
+    preferences.compose_font_size,
+    preferences.compose_font_color,
     default_signature,
     get_formatted_signature,
     resolve_signature,

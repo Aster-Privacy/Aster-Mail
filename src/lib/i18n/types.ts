@@ -2694,6 +2694,15 @@ export interface SettingsTranslations {
   compose_mode_default: string;
   compose_mode_fullscreen: string;
   compose_mode_minimized: string;
+  compose_defaults_title: string;
+  compose_defaults_description: string;
+  compose_default_font_size: string;
+  compose_default_font_size_description: string;
+  compose_default_font_color: string;
+  compose_default_font_color_description: string;
+  compose_default_font_color_picker_label: string;
+  compose_default_font_color_theme: string;
+  compose_default_font_color_reset: string;
   build_info: string;
   release: string;
   build: string;

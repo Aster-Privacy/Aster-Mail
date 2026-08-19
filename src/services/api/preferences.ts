@@ -173,6 +173,8 @@ export interface UserPreferences {
   biometric_settings_enabled: boolean;
   haptic_enabled: boolean;
   compose_mode: "rich_text" | "plain_text";
+  compose_font_size: "small" | "normal" | "large" | "huge";
+  compose_font_color: string;
   protected_folder_lock_mode: "session" | "on_leave";
   mobile_toolbar_actions: string[];
   swipe_left_action: string;
@@ -509,6 +511,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   biometric_settings_enabled: false,
   haptic_enabled: true,
   compose_mode: "rich_text",
+  compose_font_size: "normal",
+  compose_font_color: "",
   protected_folder_lock_mode: "session",
   mobile_toolbar_actions: ["trash", "star"],
   swipe_left_action: "archive",

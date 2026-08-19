@@ -47,6 +47,7 @@ import { AccessibilitySection } from "@/components/settings/accessibility_sectio
 import { SecuritySection } from "@/components/settings/security_section";
 import { ImportSection } from "@/components/settings/import_section";
 import { NotificationsSection } from "@/components/settings/notifications_section";
+import { ComposeSection } from "@/components/settings/compose_section";
 import { SignatureSection } from "@/components/settings/signature_section";
 import { BehaviorSection } from "@/components/settings/behavior_section";
 import { AliasesSection } from "@/components/settings/aliases_section";
@@ -177,6 +178,8 @@ function SettingsContentInner(props: SettingsContentProps) {
         return <ImportSection />;
       case "notifications":
         return <NotificationsSection />;
+      case "compose":
+        return <ComposeSection />;
       case "signature":
         return <SignatureSection />;
       case "templates":

@@ -28,6 +28,7 @@ import {
   ShieldCheckIcon,
   ArrowDownTrayIcon,
   BellIcon,
+  PaintBrushIcon,
   PencilSquareIcon,
   AdjustmentsHorizontalIcon,
   AtSymbolIcon,
@@ -63,6 +64,7 @@ export type SettingsSection =
   | "referral"
   | "import"
   | "notifications"
+  | "compose"
   | "signature"
   | "templates"
   | "behavior"
@@ -90,6 +92,7 @@ export const SETTINGS_SECTION_IDS: SettingsSection[] = [
   "referral",
   "import",
   "notifications",
+  "compose",
   "signature",
   "templates",
   "behavior",
@@ -169,6 +172,7 @@ export function get_nav_items(
       ...(!on_onion ? [{ id: "import" as Section, label: t("common.import"), icon: ArrowDownTrayIcon, description: "Migrate your email from Gmail, Outlook, Proton, or any IMAP provider", keywords: ["import email", "migrate email", "gmail import", "google import", "outlook import", "yahoo import", "proton import", "imap import", "pop3 import", "migrate from", "thunderbird", "transfer email"] }] : []),
       { id: "bridge" as Section, label: t("settings.bridge"), icon: ArrowsRightLeftIcon, description: "Use Thunderbird, Apple Mail, or any IMAP/SMTP client with your Aster account", keywords: ["bridge", "aster bridge", "thunderbird", "apple mail", "smtp settings", "imap settings", "smtp port", "imap port", "mail client", "desktop client", "external client", "third party app", "connect app", "server settings"] },
       { id: "notifications", label: t("settings.notifications"), icon: BellIcon, description: "Push alerts, notification sounds, badge counts, and email summaries", keywords: ["notifications", "push notifications", "desktop notifications", "notification sound", "badge count", "unread badge", "email alerts", "new mail notification", "notify me", "alert"] },
+      { id: "compose", label: t("settings.compose"), icon: PaintBrushIcon, description: "Default font size and text color for new messages", keywords: ["compose", "default font", "font size", "text size", "font color", "text color", "formatting", "new message"] },
       { id: "signature", label: t("settings.signature"), icon: PencilSquareIcon, description: "Create HTML or plain-text signatures appended to outgoing messages", keywords: ["signature", "email signature", "html signature", "plain text signature", "sign off", "closing", "footer text", "add signature"] },
       { id: "templates", label: t("settings.templates"), icon: DocumentTextIcon, description: "Save reusable message templates for faster email composition", keywords: ["templates", "email templates", "canned responses", "quick reply", "saved replies", "draft template", "message template", "reusable email"] },
       { id: "behavior", label: t("settings.behavior"), icon: AdjustmentsHorizontalIcon, description: "Reading pane, message threading, undo send, and compose behavior", keywords: ["reading pane", "preview pane", "thread view", "conversation view", "group by thread", "undo send", "delay send", "send delay", "auto archive", "mark as read", "read receipts", "swipe action", "keyboard shortcuts"] },
