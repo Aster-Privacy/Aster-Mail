@@ -80,6 +80,7 @@ import {
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
+import { prime_server_recovery_email } from "@/services/api/recovery_email";
 import { connection_store } from "@/services/routing/connection_store";
 import {
   load_preferred_sender_from_server,
@@ -454,6 +455,7 @@ export function use_auth_account_state() {
 
           backfill_user_profile(synced_user);
           ensure_default_labels(get_vault_from_memory(), t).catch(console.error);
+          prime_server_recovery_email(get_vault_from_memory()).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
 
           sync_shared_mailbox_grants()
             .then(async () => {
@@ -619,6 +621,7 @@ export function use_auth_account_state() {
       check_and_run_recovery_reencryption(vault, passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
       ensure_ratchet_keys().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
       ensure_default_labels(vault, t).catch(console.error);
+      prime_server_recovery_email(vault).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
       connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
       load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
       sync_client.connect().catch((e) => {
@@ -731,6 +734,7 @@ export function use_auth_account_state() {
         check_and_run_recovery_reencryption(vault, passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
         ensure_ratchet_keys().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
         ensure_default_labels(vault, t).catch(console.error);
+        prime_server_recovery_email(vault).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
         connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
         load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
         sync_client.connect().catch((e) => {

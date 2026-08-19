@@ -317,6 +317,10 @@ export async function check_recovery_email_verified(): Promise<boolean> {
   }
 }
 
+export async function prime_server_recovery_email(vault: EncryptedVault | null): Promise<void> {
+  await get_recovery_email(vault);
+}
+
 export function clear_recovery_email_cache(): void {
   cached_recovery_data = null;
 }
