@@ -1748,6 +1748,9 @@ export const pl = {
     quick_more_appearance: "Więcej motywów",
     quick_preview_text: "Tekst podglądu",
     quick_sender_pictures: "Zdjęcia nadawców",
+    sender_pictures: "Zdjęcia nadawców",
+    sender_pictures_description:
+      "Pokazuje zdjęcie lub inicjały nadawcy obok każdej wiadomości w skrzynce odbiorczej.",
     fam_welcome_step1_title: "Witaj w planie rodzinnym",
     fam_welcome_step1_desc:
       "Każda osoba w Twojej rodzinie ma własną prywatną, szyfrowaną skrzynkę - całkowicie oddzieloną od Twojej.",

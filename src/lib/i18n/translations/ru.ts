@@ -1745,6 +1745,9 @@ export const ru = {
     quick_more_appearance: "Другие темы",
     quick_preview_text: "Текст предпросмотра",
     quick_sender_pictures: "Аватары отправителей",
+    sender_pictures: "Аватары отправителей",
+    sender_pictures_description:
+      "Показывает фото или инициалы отправителя рядом с каждым письмом во входящих.",
     fam_welcome_step1_title: "Добро пожаловать в семейный план",
     fam_welcome_step1_desc:
       "Каждый член вашей семьи получает собственный приватный зашифрованный ящик - полностью отдельный от вашего.",

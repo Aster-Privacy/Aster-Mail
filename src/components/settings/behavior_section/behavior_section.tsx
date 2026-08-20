@@ -105,6 +105,11 @@ export function BehaviorSection() {
       ],
     },
     {
+      label: t("settings.sender_pictures"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
+      keywords: ["avatar", "picture", "photo", "sender", "profile"],
+    },
+    {
       label: t("settings.show_alias_indicators"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
       keywords: ["alias", "indicator", "badge", "delivered to"],
@@ -463,6 +468,23 @@ export function BehaviorSection() {
             )
           }
           title={t("settings.show_alias_indicators")}
+        />
+
+        <ToggleSetting
+          description={t("settings.sender_pictures_description")}
+          enabled={preferences.show_profile_pictures !== false}
+          info={{
+            title: t("settings.sender_pictures"),
+            description: t("settings.sender_pictures_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "show_profile_pictures",
+              preferences.show_profile_pictures === false,
+              true,
+            )
+          }
+          title={t("settings.sender_pictures")}
         />
 
         <ToggleSetting

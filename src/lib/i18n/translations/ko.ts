@@ -1700,6 +1700,9 @@ export const ko = {
     quick_more_appearance: "테마 더보기",
     quick_preview_text: "미리보기 텍스트",
     quick_sender_pictures: "보낸사람 사진",
+    sender_pictures: "보낸사람 사진",
+    sender_pictures_description:
+      "받은편지함의 각 메시지 옆에 보낸사람의 사진 또는 이니셜을 표시합니다.",
     fam_welcome_step1_title: "가족 요금제에 오신 것을 환영합니다",
     fam_welcome_step1_desc:
       "가족 구성원 모두가 내 것과 완전히 분리된 자신만의 비공개 암호화 받은편지함을 갖게 됩니다.",

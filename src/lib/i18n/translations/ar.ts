@@ -1679,6 +1679,9 @@ export const ar = {
     quick_more_appearance: "المزيد من السمات",
     quick_preview_text: "نص المعاينة",
     quick_sender_pictures: "صور المرسلين",
+    sender_pictures: "صور المرسلين",
+    sender_pictures_description:
+      "يعرض صورة المرسل أو الأحرف الأولى من اسمه بجوار كل رسالة في البريد الوارد.",
     fam_welcome_step1_title: "مرحباً بك في خطة العائلة",
     fam_welcome_step1_desc:
       "يحصل كل فرد في عائلتك على صندوق وارد خاص ومشفّر - منفصل تماماً عن صندوقك.",

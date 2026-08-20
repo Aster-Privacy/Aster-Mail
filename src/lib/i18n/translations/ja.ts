@@ -1741,6 +1741,9 @@ export const ja = {
     quick_more_appearance: "その他のテーマ",
     quick_preview_text: "プレビューテキスト",
     quick_sender_pictures: "送信者の画像",
+    sender_pictures: "送信者の画像",
+    sender_pictures_description:
+      "受信トレイの各メッセージの横に送信者の写真またはイニシャルを表示します。",
     fam_welcome_step1_title: "ファミリープランへようこそ",
     fam_welcome_step1_desc:
       "家族一人ひとりが、あなたのものとは完全に分離された、プライベートで暗号化された受信トレイを持てます。",

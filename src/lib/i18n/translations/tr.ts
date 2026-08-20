@@ -1742,6 +1742,9 @@ export const tr = {
     quick_more_appearance: "Daha fazla tema",
     quick_preview_text: "Önizleme metni",
     quick_sender_pictures: "Gönderen resimleri",
+    sender_pictures: "Gönderen resimleri",
+    sender_pictures_description:
+      "Gelen kutunuzdaki her iletinin yanında gönderenin fotoğrafını veya baş harflerini gösterir.",
     fam_welcome_step1_title: "Aile planınıza hoş geldiniz",
     fam_welcome_step1_desc:
       "Ailenizdeki herkes kendi özel, şifreli gelen kutusuna sahip olur - sizinkinden tamamen ayrı.",

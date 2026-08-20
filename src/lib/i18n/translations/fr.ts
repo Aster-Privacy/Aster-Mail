@@ -1736,6 +1736,9 @@ export const fr = {
     quick_more_appearance: "Plus de thèmes",
     quick_preview_text: "Texte d'aperçu",
     quick_sender_pictures: "Photos des expéditeurs",
+    sender_pictures: "Photos des expéditeurs",
+    sender_pictures_description:
+      "Affiche la photo ou les initiales de l'expéditeur à côté de chaque message de votre boîte de réception.",
     fam_welcome_step1_title: "Bienvenue dans votre forfait famille",
     fam_welcome_step1_desc:
       "Chaque personne de votre famille dispose de sa propre boîte privée et chiffrée, complètement séparée de la vôtre.",

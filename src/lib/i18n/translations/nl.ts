@@ -1725,6 +1725,9 @@ export const nl = {
     quick_more_appearance: "Meer thema's",
     quick_preview_text: "Voorbeeldtekst",
     quick_sender_pictures: "Afzenderafbeeldingen",
+    sender_pictures: "Afzenderafbeeldingen",
+    sender_pictures_description:
+      "Toont de foto of initialen van de afzender naast elk bericht in je Postvak IN.",
     fam_welcome_step1_title: "Welkom bij uw familieabonnement",
     fam_welcome_step1_desc:
       "Iedereen in uw familie krijgt een eigen privé, versleutelde inbox - volledig gescheiden van de uwe.",

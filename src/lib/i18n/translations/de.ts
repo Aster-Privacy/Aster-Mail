@@ -1763,6 +1763,9 @@ export const de = {
     quick_more_appearance: "Weitere Designs",
     quick_preview_text: "Vorschautext",
     quick_sender_pictures: "Absenderbilder",
+    sender_pictures: "Absenderbilder",
+    sender_pictures_description:
+      "Zeigt das Foto oder die Initialen des Absenders neben jeder Nachricht im Posteingang an.",
     fam_welcome_step1_title: "Willkommen bei Ihrem Familientarif",
     fam_welcome_step1_desc:
       "Jedes Familienmitglied erhält ein eigenes privates, verschlüsseltes Postfach - vollständig getrennt von Ihrem.",

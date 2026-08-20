@@ -264,6 +264,17 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
+            label={t("settings.sender_pictures")}
+            trailing={
+              <Switch
+                checked={preferences.show_profile_pictures !== false}
+                onCheckedChange={(v) =>
+                  update_preference("show_profile_pictures", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             label={t("settings.show_alias_indicators")}
             trailing={
               <Switch

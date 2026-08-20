@@ -1749,6 +1749,9 @@ export const pt = {
     quick_more_appearance: "Mais temas",
     quick_preview_text: "Texto de pré-visualização",
     quick_sender_pictures: "Fotos do remetente",
+    sender_pictures: "Fotos do remetente",
+    sender_pictures_description:
+      "Mostra a foto ou as iniciais do remetente ao lado de cada mensagem na sua caixa de entrada.",
     fam_welcome_step1_title: "Bem-vindo ao seu plano familiar",
     fam_welcome_step1_desc:
       "Cada pessoa da sua família tem a sua própria caixa privada e cifrada - completamente separada da sua.",

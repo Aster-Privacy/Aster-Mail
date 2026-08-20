@@ -1588,6 +1588,9 @@ export const zh_CN = {
     quick_more_appearance: "更多主题",
     quick_preview_text: "预览文字",
     quick_sender_pictures: "发件人头像",
+    sender_pictures: "发件人头像",
+    sender_pictures_description:
+      "在收件箱中每封邮件旁显示发件人的头像或姓名首字母。",
     fam_welcome_step1_title: "欢迎使用家庭套餐",
     fam_welcome_step1_desc:
       "家庭中的每个人都拥有自己私密、加密的收件箱，与您的完全分离。",

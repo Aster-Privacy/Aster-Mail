@@ -1759,6 +1759,9 @@ export const it = {
     quick_more_appearance: "Altri temi",
     quick_preview_text: "Testo di anteprima",
     quick_sender_pictures: "Immagini mittente",
+    sender_pictures: "Immagini mittente",
+    sender_pictures_description:
+      "Mostra la foto o le iniziali del mittente accanto a ogni messaggio nella posta in arrivo.",
     fam_welcome_step1_title: "Benvenuto nel suo piano famiglia",
     fam_welcome_step1_desc:
       "Ogni persona della famiglia ha la propria casella privata e cifrata - completamente separata dalla sua.",

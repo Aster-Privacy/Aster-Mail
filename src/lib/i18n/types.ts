@@ -1895,6 +1895,8 @@ export interface SettingsTranslations {
   settings_view_mode_description: string;
   see_all_settings: string;
   quick_sender_pictures: string;
+  sender_pictures: string;
+  sender_pictures_description: string;
   quick_preview_text: string;
   quick_more_appearance: string;
   quick_layout: string;

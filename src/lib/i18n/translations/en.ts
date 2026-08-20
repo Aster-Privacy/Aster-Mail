@@ -1740,6 +1740,9 @@ export const en: Translations = {
     quick_more_appearance: "More themes",
     quick_preview_text: "Preview text",
     quick_sender_pictures: "Sender pictures",
+    sender_pictures: "Sender pictures",
+    sender_pictures_description:
+      "Show the sender's photo or initials next to each message in your inbox.",
     fam_welcome_step1_title: "Welcome to your family plan",
     fam_welcome_step1_desc:
       "Everyone in your family gets their own private, encrypted inbox - completely separate from yours.",
