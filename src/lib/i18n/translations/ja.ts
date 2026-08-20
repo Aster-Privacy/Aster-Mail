@@ -2259,6 +2259,9 @@ export const ja = {
     alias_decrypt_failed_title: "このエイリアスを復号できませんでした",
     alias_decrypt_failed_hint:
       "このデバイスでは詳細を利用できません。再度サインインするか、キーを復元すると通常は解決します。",
+    alias_orphaned_title: "このエイリアスは引き続きメールを受信します",
+    alias_orphaned_hint:
+      "ラベルは以前のパスワードで暗号化されているため復元できません。このアドレス宛てのメールは引き続き届き、届いたメッセージのヘッダーで完全なアドレスを確認できます。",
     recently_deleted_load_failed:
       "最近削除したエイリアスを読み込めませんでした。もう一度お試しください。",
     ghost_aliases_info:

@@ -2283,6 +2283,9 @@ export const pt = {
     alias_decrypt_failed_title: "Não foi possível descriptografar este alias",
     alias_decrypt_failed_hint:
       "Os detalhes não estão disponíveis neste dispositivo. Entrar novamente ou restaurar suas chaves geralmente resolve.",
+    alias_orphaned_title: "Este alias continua recebendo e-mails",
+    alias_orphaned_hint:
+      "O rótulo foi criptografado com sua senha anterior, então não é possível recuperá-lo. As mensagens enviadas para este endereço continuam chegando, e você vê o endereço completo no cabeçalho de qualquer mensagem entregue.",
     recently_deleted_load_failed:
       "Não foi possível carregar seus aliases excluídos recentemente. Tente novamente.",
     ghost_aliases_info:

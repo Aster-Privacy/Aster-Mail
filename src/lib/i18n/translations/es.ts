@@ -2264,6 +2264,9 @@ export const es = {
     alias_decrypt_failed_title: "No se pudo descifrar este alias",
     alias_decrypt_failed_hint:
       "Sus detalles no están disponibles en este dispositivo. Normalmente se resuelve volviendo a iniciar sesión o restaurando tus claves.",
+    alias_orphaned_title: "Este alias sigue recibiendo correo",
+    alias_orphaned_hint:
+      "Su etiqueta se cifró con tu contraseña anterior, así que no se puede recuperar. El correo enviado a esta dirección sigue llegando y puedes ver la dirección completa en el encabezado de cualquier mensaje que entregue.",
     recently_deleted_load_failed:
       "No pudimos cargar tus alias eliminados recientemente. Inténtalo de nuevo.",
     ghost_aliases_info:

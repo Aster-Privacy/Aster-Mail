@@ -2304,6 +2304,9 @@ export const de = {
       "Dieser Alias konnte nicht entschlüsselt werden",
     alias_decrypt_failed_hint:
       "Die Details sind auf diesem Gerät nicht verfügbar. Eine erneute Anmeldung oder das Wiederherstellen deiner Schlüssel behebt dies meistens.",
+    alias_orphaned_title: "Dieser Alias empfängt weiterhin E-Mails",
+    alias_orphaned_hint:
+      "Seine Bezeichnung wurde mit deinem vorherigen Passwort verschlüsselt und lässt sich nicht wiederherstellen. E-Mails an diese Adresse kommen weiterhin an, und die vollständige Adresse steht in der Kopfzeile jeder Nachricht, die darüber zugestellt wird.",
     recently_deleted_load_failed:
       "Wir konnten deine kürzlich gelöschten Aliase nicht laden. Ein weiterer Versuch sollte klappen.",
     ghost_aliases_info:

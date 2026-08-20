@@ -4685,6 +4685,9 @@ export const en: Translations = {
     alias_decrypt_failed_title: "This alias could not be decrypted",
     alias_decrypt_failed_hint:
       "Its details are unavailable on this device. Signing in again or restoring your keys usually resolves it.",
+    alias_orphaned_title: "This alias still receives mail",
+    alias_orphaned_hint:
+      "Its label was encrypted with your previous password, so it can't be recovered. Mail sent to this address still arrives, and you can see the full address in the header of any message it delivers.",
     recently_deleted_load_failed:
       "We could not load your recently deleted aliases. Another attempt should do it.",
     invalid_address:

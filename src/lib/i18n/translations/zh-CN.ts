@@ -2058,6 +2058,9 @@ export const zh_CN = {
     alias_decrypt_failed_title: "无法解密此别名",
     alias_decrypt_failed_hint:
       "其详细信息在此设备上不可用。重新登录或恢复你的密钥通常即可解决。",
+    alias_orphaned_title: "此别名仍在接收邮件",
+    alias_orphaned_hint:
+      "它的标签使用你之前的密码加密，因此无法恢复。发送到该地址的邮件仍会送达，你可以在收到的邮件标头中看到完整地址。",
     recently_deleted_load_failed: "无法加载你最近删除的别名。请再试一次。",
     ghost_aliases_info:
       "幽灵别名是临时的，会自动过期。可用于一次性注册或任何你不想留下永久地址的场景。它们会自行消失，无需清理。",

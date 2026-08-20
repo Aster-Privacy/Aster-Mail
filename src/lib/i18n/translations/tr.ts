@@ -2267,6 +2267,9 @@ export const tr = {
     alias_decrypt_failed_title: "Bu rumuzun şifresi çözülemedi",
     alias_decrypt_failed_hint:
       "Ayrıntıları bu cihazda kullanılamıyor. Tekrar giriş yapmak veya anahtarlarınızı geri yüklemek genellikle bu sorunu çözer.",
+    alias_orphaned_title: "Bu rumuz posta almaya devam ediyor",
+    alias_orphaned_hint:
+      "Etiketi önceki parolanızla şifrelendiği için geri getirilemiyor. Bu adrese gönderilen postalar gelmeye devam eder ve tam adresi gelen her iletinin başlığında görebilirsiniz.",
     recently_deleted_load_failed:
       "Son silinen rumuzlarınızı yükleyemedik. Tekrar denemeniz yeterli olacaktır.",
     ghost_aliases_info:

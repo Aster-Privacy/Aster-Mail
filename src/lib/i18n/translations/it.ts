@@ -2295,6 +2295,9 @@ export const it = {
       "Non è stato possibile decrittografare questo alias",
     alias_decrypt_failed_hint:
       "I suoi dettagli non sono disponibili su questo dispositivo. Di solito si risolve accedendo di nuovo o ripristinando le tue chiavi.",
+    alias_orphaned_title: "Questo alias riceve ancora la posta",
+    alias_orphaned_hint:
+      "La sua etichetta è stata cifrata con la tua password precedente, quindi non è recuperabile. La posta inviata a questo indirizzo continua ad arrivare e puoi vedere l'indirizzo completo nell'intestazione di ogni messaggio che consegna.",
     recently_deleted_load_failed:
       "Non è stato possibile caricare gli alias eliminati di recente. Riprova.",
     ghost_aliases_info:

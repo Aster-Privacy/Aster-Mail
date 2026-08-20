@@ -309,6 +309,7 @@ export async function decrypt_alias(
       delivery_folder_token: alias.delivery_folder_token ?? null,
       delivery_label_token: alias.delivery_label_token ?? null,
       decryption_failed: true,
+      orphaned_by_key_rotation: alias.orphaned_by_key_rotation ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,

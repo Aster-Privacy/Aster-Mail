@@ -2167,6 +2167,9 @@ export const ko = {
     alias_decrypt_failed_title: "이 별칭을 복호화할 수 없습니다",
     alias_decrypt_failed_hint:
       "이 기기에서는 세부 정보를 사용할 수 없습니다. 다시 로그인하거나 키를 복원하면 보통 해결됩니다.",
+    alias_orphaned_title: "이 별칭은 계속 메일을 받습니다",
+    alias_orphaned_hint:
+      "라벨이 이전 비밀번호로 암호화되어 있어 복구할 수 없습니다. 이 주소로 보낸 메일은 계속 도착하며, 도착한 메시지의 헤더에서 전체 주소를 확인할 수 있습니다.",
     recently_deleted_load_failed:
       "최근에 삭제된 별칭을 불러오지 못했습니다. 다시 시도하면 해결될 수 있습니다.",
     ghost_aliases_info:

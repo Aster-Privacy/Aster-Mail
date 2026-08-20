@@ -38,6 +38,7 @@ export interface EmailAlias {
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
   delivery_label_token?: string | null;
+  orphaned_by_key_rotation?: boolean;
   profile_picture?: string;
   encrypted_note?: string;
   note_nonce?: string;
@@ -64,6 +65,7 @@ export interface DecryptedEmailAlias {
   delivery_folder_token?: string | null;
   delivery_label_token?: string | null;
   decryption_failed?: boolean;
+  orphaned_by_key_rotation?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
   created_at: string;

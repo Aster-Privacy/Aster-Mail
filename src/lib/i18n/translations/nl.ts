@@ -2210,6 +2210,9 @@ export const nl = {
     alias_decrypt_failed_title: "Deze alias kon niet worden ontsleuteld",
     alias_decrypt_failed_hint:
       "De details zijn niet beschikbaar op dit apparaat. Opnieuw inloggen of je sleutels herstellen lost dit meestal op.",
+    alias_orphaned_title: "Deze alias ontvangt nog steeds e-mail",
+    alias_orphaned_hint:
+      "Het label is versleuteld met je vorige wachtwoord en kan niet worden hersteld. E-mail naar dit adres komt nog steeds aan en je ziet het volledige adres in de header van elk bericht dat via de alias binnenkomt.",
     recently_deleted_load_failed:
       "We konden je onlangs verwijderde aliassen niet laden. Een nieuwe poging zou moeten lukken.",
     ghost_aliases_info:

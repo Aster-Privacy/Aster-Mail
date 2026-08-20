@@ -2285,6 +2285,9 @@ export const pl = {
     alias_decrypt_failed_title: "Nie udało się odszyfrować tego aliasu",
     alias_decrypt_failed_hint:
       "Jego szczegóły są niedostępne na tym urządzeniu. Ponowne zalogowanie się lub przywrócenie kluczy zwykle rozwiązuje problem.",
+    alias_orphaned_title: "Ten alias nadal odbiera pocztę",
+    alias_orphaned_hint:
+      "Jego etykieta została zaszyfrowana poprzednim hasłem, więc nie da się jej odzyskać. Poczta wysłana na ten adres nadal przychodzi, a pełny adres znajdziesz w nagłówku każdej dostarczonej wiadomości.",
     recently_deleted_load_failed:
       "Nie udało się załadować ostatnio usuniętych aliasów. Spróbuj ponownie.",
     ghost_aliases_info:

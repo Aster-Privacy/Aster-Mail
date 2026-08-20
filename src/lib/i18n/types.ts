@@ -4124,6 +4124,8 @@ export interface SettingsTranslations {
   alias_availability_on_save: string;
   alias_decrypt_failed_title: string;
   alias_decrypt_failed_hint: string;
+  alias_orphaned_title: string;
+  alias_orphaned_hint: string;
   recently_deleted_load_failed: string;
   invalid_address: string;
   alias_already_taken: string;

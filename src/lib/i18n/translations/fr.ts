@@ -2276,6 +2276,9 @@ export const fr = {
     alias_decrypt_failed_title: "Cet alias n'a pas pu être déchiffré",
     alias_decrypt_failed_hint:
       "Ses détails sont indisponibles sur cet appareil. Une reconnexion ou la restauration de vos clés résout généralement le problème.",
+    alias_orphaned_title: "Cet alias reçoit toujours du courrier",
+    alias_orphaned_hint:
+      "Son libellé a été chiffré avec votre mot de passe précédent, il est donc irrécupérable. Le courrier envoyé à cette adresse arrive toujours, et l'adresse complète figure dans l'en-tête de chaque message qu'il distribue.",
     recently_deleted_load_failed:
       "Nous n'avons pas pu charger vos alias récemment supprimés. Une nouvelle tentative devrait fonctionner.",
     ghost_aliases_info:

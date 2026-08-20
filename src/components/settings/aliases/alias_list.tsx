@@ -25,6 +25,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import {
   AtSymbolIcon,
   ExclamationTriangleIcon,
+  InformationCircleIcon,
   TrashIcon,
   MagnifyingGlassIcon,
   CheckCircleIcon,
@@ -90,22 +91,43 @@ function UndecryptableAliasCard({
   on_delete: (id: string) => void;
 }) {
   const { t } = use_i18n();
+  const orphaned = alias.orphaned_by_key_rotation === true;
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-surf-secondary border border-amber-500/30">
-      <div className="flex w-10 h-10 items-center justify-center rounded-full flex-shrink-0 bg-amber-500/10">
-        <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />
+    <div
+      className={`flex items-center gap-3 p-3 rounded-xl bg-surf-secondary border ${
+        orphaned ? "border-edge-primary" : "border-amber-500/30"
+      }`}
+    >
+      <div
+        className={`flex w-10 h-10 items-center justify-center rounded-full flex-shrink-0 ${
+          orphaned ? "bg-accent-primary/10" : "bg-amber-500/10"
+        }`}
+      >
+        {orphaned ? (
+          <InformationCircleIcon className="w-5 h-5 text-accent-primary" />
+        ) : (
+          <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-txt-primary">
-          {t("settings.alias_decrypt_failed_title")}
+          {orphaned
+            ? t("settings.alias_orphaned_title")
+            : t("settings.alias_decrypt_failed_title")}
         </p>
         <p className="text-xs mt-0.5 text-txt-muted">
-          {t("settings.alias_decrypt_failed_hint")}
+          {orphaned
+            ? t("settings.alias_orphaned_hint")
+            : t("settings.alias_decrypt_failed_hint")}
         </p>
       </div>
       <Button
-        className="h-8 w-8 flex-shrink-0 text-red-500 hover:text-red-500 hover:bg-red-500/10"
+        className={`h-8 w-8 flex-shrink-0 ${
+          orphaned
+            ? "text-txt-muted hover:text-red-500 hover:bg-red-500/10"
+            : "text-red-500 hover:text-red-500 hover:bg-red-500/10"
+        }`}
         disabled={deleting}
         size="icon"
         title={t("common.delete")}
