@@ -7624,6 +7624,11 @@ export const ko = {
     no_authenticated_account: "인증된 계정이 없습니다. 다시 로그인하면 됩니다.",
     daily_limit_reached:
       "일일 발송 한도에 도달했습니다. {{time}} 후에 다시 시도하면 됩니다. 임시 저장 메일은 보관됩니다.",
+    that_provider: "이 사업자",
+    too_many_recipients:
+      "이 메일의 받는 사람이 한 통으로 보낼 수 있는 수를 넘었습니다. 이 계정은 한 번에 {{max}}명까지 보낼 수 있으며, 이 한도는 첫 주 동안 올라갑니다. 여러 번에 나눠 보내면 전송됩니다. 임시보관함에 저장되었습니다.",
+    recipient_concentration:
+      "{{domain}}의 주소로 한 시간에 허용되는 만큼 이미 보냈습니다. 한 번에 한 사업자에게 이렇게 많이 보내면 메일 서버가 차단됩니다. {{time}} 후에 다시 시도하면 전송됩니다. 임시보관함에 저장되었습니다.",
     failed_send_email: "이메일 발송에 실패했습니다. 다시 시도하면 됩니다.",
     cannot_send_no_keys:
       "{{recipients}}에게 보낼 수 없습니다 - 암호화 키를 찾을 수 없습니다.",

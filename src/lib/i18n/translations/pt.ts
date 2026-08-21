@@ -7917,6 +7917,11 @@ export const pt = {
       "Não foi possível alcançar o servidor. Verificar sua conexão e tentar novamente geralmente resolve.",
     daily_limit_reached:
       "Você atingiu seu limite diário de envio. Outra tentativa em {{time}} vai funcionar. Seu rascunho está salvo.",
+    that_provider: "um único provedor",
+    too_many_recipients:
+      "Esta mensagem tem mais destinatários do que uma mensagem pode alcançar. Sua conta pode enviar para {{max}} de cada vez, e esse limite aumenta ao longo da primeira semana. Enviar em grupos menores vai funcionar. Seu rascunho está salvo.",
+    recipient_concentration:
+      "Você enviou para tantos endereços de {{domain}} quanto permitimos em uma hora. Enviar tantos de uma vez para um único provedor faz nossos servidores de e-mail serem bloqueados. Uma tentativa em {{time}} vai funcionar. Seu rascunho está salvo.",
     domain_empty: "Um nome de domínio é necessário aqui.",
     domain_invalid_chars:
       "Este domínio tem caracteres que não podemos usar. Verificar a escrita geralmente resolve.",

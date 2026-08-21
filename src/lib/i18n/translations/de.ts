@@ -8038,6 +8038,11 @@ export const de = {
       "Wir konnten den Server nicht erreichen. Eine Verbindungsprüfung und ein erneuter Versuch lösen das Problem in der Regel.",
     daily_limit_reached:
       "Sie haben Ihr tägliches Sendelimit erreicht. Ein Versuch in {{time}} funktioniert. Ihr Entwurf ist gespeichert.",
+    that_provider: "diesem Anbieter",
+    too_many_recipients:
+      "Diese Nachricht hat mehr Empfänger, als eine Nachricht erreichen kann. Ihr Konto kann an {{max}} gleichzeitig senden, und dieses Limit steigt im Lauf Ihrer ersten Woche. Ein Versand in kleineren Gruppen funktioniert. Ihr Entwurf ist gespeichert.",
+    recipient_concentration:
+      "Sie haben an so viele Adressen bei {{domain}} gesendet, wie wir pro Stunde zulassen. So viele auf einmal an einen einzelnen Anbieter zu senden, führt zur Sperrung unserer Mailserver. Ein Versuch in {{time}} funktioniert. Ihr Entwurf ist gespeichert.",
     domain_empty: "Ein Domain-Name wird hier benötigt.",
     domain_invalid_chars:
       "Diese Domain enthält Zeichen, die wir nicht verwenden können. Eine Schreibprüfung löst das Problem in der Regel.",

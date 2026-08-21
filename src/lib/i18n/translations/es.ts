@@ -7820,6 +7820,11 @@ export const es = {
     connection_failed: "Error de conexión",
     daily_limit_reached:
       "Has alcanzado tu límite diario de envíos. Otro intento en {{time}} funcionará. Tu borrador está guardado.",
+    that_provider: "ese proveedor",
+    too_many_recipients:
+      "Este mensaje tiene más destinatarios de los que un mensaje puede alcanzar. Tu cuenta puede enviar a {{max}} a la vez, y ese límite aumenta durante tu primera semana. Enviarlo en grupos más pequeños funcionará. Tu borrador está guardado.",
+    recipient_concentration:
+      "Has enviado a tantas direcciones de {{domain}} como permitimos en una hora. Enviar tantas a la vez a un solo proveedor hace que bloqueen nuestros servidores de correo. Un intento en {{time}} funcionará. Tu borrador está guardado.",
     domain_empty: "El dominio no puede estar vacío",
     domain_invalid_chars: "El dominio contiene caracteres inválidos",
     domain_invalid_format: "Formato de dominio inválido",

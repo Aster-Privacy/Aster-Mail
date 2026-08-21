@@ -7896,6 +7896,11 @@ export const pl = {
       "Nie znaleźliśmy zalogowanego konta na tym urządzeniu. Zalogowanie rozwiąże problem.",
     daily_limit_reached:
       "Osiągnięto dzienny limit wysyłania. Spróbuj ponownie za {{time}}. Wersja robocza jest zapisana.",
+    that_provider: "tej domenie",
+    too_many_recipients:
+      "Ta wiadomość ma więcej odbiorców, niż jedna wiadomość może objąć. Twoje konto może wysyłać do {{max}} odbiorców naraz, a ten limit rośnie w ciągu pierwszego tygodnia. Wysłanie w mniejszych partiach zadziała. Wersja robocza jest zapisana.",
+    recipient_concentration:
+      "Wysłano wiadomości do tylu adresów w {{domain}}, ile dopuszczamy w ciągu godziny. Wysyłanie tylu naraz do jednego dostawcy powoduje blokadę naszych serwerów pocztowych. Próba za {{time}} się powiedzie. Wersja robocza jest zapisana.",
     failed_send_email:
       "Ta wiadomość nie została wysłana. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
     cannot_send_no_keys:

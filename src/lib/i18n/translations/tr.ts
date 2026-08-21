@@ -7869,6 +7869,11 @@ export const tr = {
       "Bu cihazda oturum açmış bir hesap bulamadık. Oturum açmak sorunu çözer.",
     daily_limit_reached:
       "Günlük gönderim sınırınıza ulaştınız. {{time}} sonra tekrar deneyin. Taslağınız kaydedildi.",
+    that_provider: "bu sağlayıcının",
+    too_many_recipients:
+      "Bu iletide tek bir iletinin ulaşabileceğinden daha fazla alıcı var. Hesabınız bir seferde {{max}} alıcıya gönderebilir ve bu sınır ilk haftanız boyunca yükselir. Daha küçük gruplar halinde göndermek işe yarar. Taslağınız kaydedildi.",
+    recipient_concentration:
+      "{{domain}} adreslerine bir saat içinde izin verdiğimiz kadar gönderim yaptınız. Tek bir sağlayıcıya bir anda bu kadar çok göndermek posta sunucularımızın engellenmesine yol açar. {{time}} sonra yapılacak bir deneme işe yarar. Taslağınız kaydedildi.",
     failed_send_email:
       "Bu e-posta gönderilemedi. Bir kez daha denemek genellikle yeterli olur. Taslağınız kaydedildi.",
     cannot_send_no_keys:

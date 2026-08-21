@@ -7847,6 +7847,11 @@ export const nl = {
       "We konden geen aangemeld account op dit apparaat vinden. Aanmelden brengt u erdoor.",
     daily_limit_reached:
       "U hebt uw dagelijkse verzendlimiet bereikt. Een nieuwe poging over {{time}} werkt. Uw concept is opgeslagen.",
+    that_provider: "die provider",
+    too_many_recipients:
+      "Dit bericht heeft meer ontvangers dan één bericht kan bereiken. Je account kan naar {{max}} ontvangers tegelijk sturen, en die limiet loopt in je eerste week op. Verzenden in kleinere groepen werkt wel. Je concept is opgeslagen.",
+    recipient_concentration:
+      "Je hebt naar zoveel adressen bij {{domain}} gestuurd als we per uur toestaan. Zoveel tegelijk naar één provider sturen zorgt ervoor dat onze mailservers geblokkeerd raken. Een poging over {{time}} werkt wel. Je concept is opgeslagen.",
     failed_send_email:
       "Deze e-mail is niet verzonden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
     cannot_send_no_keys:

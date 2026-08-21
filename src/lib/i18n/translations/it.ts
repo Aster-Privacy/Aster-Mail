@@ -7964,6 +7964,11 @@ export const it = {
       "Non siamo riusciti a raggiungere il server. Controllare la connessione e riprovare di solito risolve.",
     daily_limit_reached:
       "Ha raggiunto il suo limite di invio giornaliero. Un altro tentativo tra {{time}} funzionerà. La sua bozza è salvata.",
+    that_provider: "quel provider",
+    too_many_recipients:
+      "Questo messaggio ha più destinatari di quanti un singolo messaggio possa raggiungerne. Il tuo account può inviare a {{max}} destinatari alla volta e questo limite aumenta nella prima settimana. Inviarlo in gruppi più piccoli funzionerà. La bozza è salvata.",
+    recipient_concentration:
+      "Hai inviato a tanti indirizzi di {{domain}} quanti ne consentiamo in un'ora. Inviarne così tanti in una volta a un solo provider fa bloccare i nostri server di posta. Un tentativo tra {{time}} funzionerà. La bozza è salvata.",
     domain_empty: "Un nome di dominio è necessario qui.",
     domain_invalid_chars:
       "Questo dominio ha caratteri che non possiamo usare. Controllare la scrittura di solito risolve.",

@@ -7924,6 +7924,11 @@ export const fr = {
     connection_failed: "Échec de la connexion",
     daily_limit_reached:
       "Vous avez atteint votre limite d'envoi quotidienne. Une nouvelle tentative dans {{time}} devrait fonctionner. Votre brouillon est enregistré.",
+    that_provider: "ce fournisseur",
+    too_many_recipients:
+      "Ce message compte plus de destinataires qu'un seul message ne peut en atteindre. Votre compte peut envoyer à {{max}} destinataires à la fois, et cette limite augmente au cours de votre première semaine. L'envoi par plus petits groupes fonctionnera. Votre brouillon est enregistré.",
+    recipient_concentration:
+      "Vous avez écrit à autant d'adresses chez {{domain}} que nous l'autorisons en une heure. Envoyer autant de messages d'un coup à un seul fournisseur fait bloquer nos serveurs de messagerie. Un nouvel essai dans {{time}} fonctionnera. Votre brouillon est enregistré.",
     domain_empty: "Le domaine ne peut pas être vide",
     domain_invalid_chars: "Le domaine contient des caractères invalides",
     domain_invalid_format: "Format de domaine invalide",
