@@ -94,6 +94,8 @@ export async function reencrypt_all_aliases(): Promise<void> {
     try {
       const decrypted = await decrypt_alias(alias);
 
+      if (decrypted.decryption_failed || !decrypted.local_part) continue;
+
       await reencrypt_alias_local_part(alias.id, decrypted.local_part);
 
       if (alias.encrypted_display_name && alias.display_name_nonce) {

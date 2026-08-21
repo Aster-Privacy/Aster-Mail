@@ -21,6 +21,7 @@
 import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64, base64_to_array } from "./base64";
 import {
+  STORAGE_KDF_VERSION_LEGACY,
   derive_encryption_key_from_passphrase,
   get_or_create_derived_encryption_crypto_key,
 } from "./memory_key_store";
@@ -49,6 +50,7 @@ import {
 export interface OldKeyMaterial {
   data_kek?: string;
   legacy_keks?: { k: string }[];
+  kdf_version?: number;
 }
 
 export interface ReEncryptSkipReport {
@@ -58,9 +60,15 @@ export interface ReEncryptSkipReport {
   unreadable_field_count: number;
 }
 
-async function derive_aes_key(passphrase: string): Promise<CryptoKey> {
+async function derive_aes_key(
+  passphrase: string,
+  kdf_version: number,
+): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
 
   return crypto.subtle.importKey(
     "raw",
@@ -71,9 +79,15 @@ async function derive_aes_key(passphrase: string): Promise<CryptoKey> {
   );
 }
 
-async function derive_alias_hmac_key(passphrase: string): Promise<CryptoKey> {
+async function derive_alias_hmac_key(
+  passphrase: string,
+  kdf_version: number,
+): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
   const info = new TextEncoder().encode("astermail-alias-hmac-v1");
   const combined = new Uint8Array(raw.byteLength + info.length);
 
@@ -91,9 +105,15 @@ async function derive_alias_hmac_key(passphrase: string): Promise<CryptoKey> {
   );
 }
 
-async function derive_contacts_hmac_key(passphrase: string): Promise<CryptoKey> {
+async function derive_contacts_hmac_key(
+  passphrase: string,
+  kdf_version: number,
+): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
   const info = new TextEncoder().encode("contacts-hmac-v2");
   const combined = new Uint8Array(raw.byteLength + info.length);
 
@@ -113,9 +133,13 @@ async function derive_contacts_hmac_key(passphrase: string): Promise<CryptoKey> 
 
 async function derive_domain_address_hmac_key(
   passphrase: string,
+  kdf_version: number,
 ): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
   const info = new TextEncoder().encode("astermail-domain-address-hmac-v1");
   const combined = new Uint8Array(raw.byteLength + info.length);
 
@@ -145,6 +169,7 @@ async function import_aes_decryption_key(raw: Uint8Array): Promise<CryptoKey> {
 
 async function build_old_key_candidates(
   old_passphrase: string,
+  kdf_version: number,
   material?: OldKeyMaterial,
 ): Promise<CryptoKey[]> {
   const candidates: CryptoKey[] = [];
@@ -159,8 +184,18 @@ async function build_old_key_candidates(
   raw_candidates.push(
     await derive_encryption_key_from_passphrase(
       new TextEncoder().encode(old_passphrase),
+      kdf_version,
     ),
   );
+
+  if (kdf_version !== STORAGE_KDF_VERSION_LEGACY) {
+    raw_candidates.push(
+      await derive_encryption_key_from_passphrase(
+        new TextEncoder().encode(old_passphrase),
+        STORAGE_KDF_VERSION_LEGACY,
+      ),
+    );
+  }
 
   const encoded_material = [
     ...(material?.data_kek ? [material.data_kek] : []),
@@ -259,6 +294,9 @@ export async function re_encrypt_user_data(
   re_encrypted_domain_addresses: ReEncryptedDomainAddress[];
   skipped: ReEncryptSkipReport;
 }> {
+  const kdf_version =
+    old_key_material?.kdf_version ?? STORAGE_KDF_VERSION_LEGACY;
+
   const [
     old_keys,
     new_aes,
@@ -266,11 +304,11 @@ export async function re_encrypt_user_data(
     new_contacts_hmac,
     new_domain_hmac,
   ] = await Promise.all([
-    build_old_key_candidates(old_passphrase, old_key_material),
-    derive_aes_key(new_passphrase),
-    derive_alias_hmac_key(new_passphrase),
-    derive_contacts_hmac_key(new_passphrase),
-    derive_domain_address_hmac_key(new_passphrase),
+    build_old_key_candidates(old_passphrase, kdf_version, old_key_material),
+    derive_aes_key(new_passphrase, kdf_version),
+    derive_alias_hmac_key(new_passphrase, kdf_version),
+    derive_contacts_hmac_key(new_passphrase, kdf_version),
+    derive_domain_address_hmac_key(new_passphrase, kdf_version),
   ]);
 
   const skipped: ReEncryptSkipReport = {

@@ -45,6 +45,7 @@ function key_material(passphrase: string): Uint8Array {
 }
 
 vi.mock("./memory_key_store", () => ({
+  STORAGE_KDF_VERSION_LEGACY: 1,
   derive_encryption_key_from_passphrase: async (passphrase: Uint8Array) =>
     key_material(new TextDecoder().decode(passphrase)),
   get_or_create_derived_encryption_crypto_key: async () => session_crypto_key,

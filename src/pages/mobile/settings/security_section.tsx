@@ -57,7 +57,9 @@ import {
   get_vault_from_memory,
   is_master_key_vault,
   MASTER_KEY_VAULT_FORMAT,
+  get_storage_kdf_version,
 } from "@/services/crypto/memory_key_store";
+import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
 import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import {
@@ -339,6 +341,8 @@ export function SecuritySection({
         }
       }
 
+      await upgrade_vault_to_master_key(vault, current_password);
+
       const master_key_mode = is_master_key_vault(vault);
       const old_identity_key = vault.identity_key;
 
@@ -456,6 +460,7 @@ export function SecuritySection({
         } = await re_encrypt_user_data(current_password, new_password, {
           data_kek: vault.data_kek,
           legacy_keks: vault.legacy_keks,
+          kdf_version: get_storage_kdf_version(vault),
         });
 
         unreadable_item_count =

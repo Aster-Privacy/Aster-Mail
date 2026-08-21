@@ -73,7 +73,9 @@ import {
   get_passphrase_from_memory,
   is_master_key_vault,
   MASTER_KEY_VAULT_FORMAT,
+  get_storage_kdf_version,
 } from "@/services/crypto/memory_key_store";
+import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
 import {
   store_encrypted_vault,
   store_session_passphrase,
@@ -420,6 +422,8 @@ export function use_security() {
           memory_vault.ratchet_regen_v4_done ?? vault.ratchet_regen_v4_done;
       }
 
+      await upgrade_vault_to_master_key(vault, current_password);
+
       const master_key_mode = is_master_key_vault(vault);
 
       const old_identity_key = vault.identity_key;
@@ -546,6 +550,7 @@ export function use_security() {
         } = await re_encrypt_user_data(current_password, new_password, {
           data_kek: vault.data_kek,
           legacy_keks: vault.legacy_keks,
+          kdf_version: get_storage_kdf_version(vault),
         });
 
         unreadable_item_count =
