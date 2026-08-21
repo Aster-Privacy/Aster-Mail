@@ -2434,6 +2434,12 @@ export interface SettingsTranslations {
   replies_description: string;
   mentions: string;
   mentions_description: string;
+  from_aster: string;
+  product_updates: string;
+  product_updates_description: string;
+  product_updates_service_note: string;
+  product_updates_turned_off: string;
+  product_updates_save_failed: string;
   toast_position: string;
   toast_position_description: string;
   toast_position_top_right: string;
@@ -6825,6 +6831,7 @@ export interface AuthTranslations {
   username_in_use: string;
   password_breach_warning: string;
   by_continuing: string;
+  product_updates_notice: string;
   copyright: string;
   display_name_optional: string;
   "10gb_secure_storage": string;

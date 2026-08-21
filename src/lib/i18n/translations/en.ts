@@ -2384,6 +2384,16 @@ export const en: Translations = {
     replies_description: "When someone replies to your email",
     mentions: "Mentions",
     mentions_description: "When someone mentions you",
+    from_aster: "From Aster",
+    product_updates: "Product updates",
+    product_updates_description:
+      "Get a message in your inbox when a notable feature ships. Aster doesn't record whether you open or click these messages.",
+    product_updates_service_note:
+      "You always receive service announcements, such as security and policy changes.",
+    product_updates_turned_off:
+      "Product updates are off. You can turn them back on here.",
+    product_updates_save_failed:
+      "Your product updates setting didn't save. Try again.",
     toast_position: "Notification Position",
     toast_position_description: "Where notification popups appear on screen",
     toast_position_top_right: "Top right",
@@ -7689,6 +7699,8 @@ export const en: Translations = {
     password_breach_warning:
       "This password has appeared in a data breach. Consider using a different one.",
     by_continuing: "By continuing, you agree to our",
+    product_updates_notice:
+      "You also get occasional product updates in your inbox, and you can turn them off in Settings.",
     copyright: "Copyright {{year}} Aster Communications Inc.",
     display_name_optional: "Display name (optional)",
     "10gb_secure_storage": "10 GB secure storage",

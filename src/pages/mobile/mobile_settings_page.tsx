@@ -189,7 +189,10 @@ function MobileSettingsPage() {
 
     if (initial_section) {
       if (path_section) {
-        navigate("/settings", { replace: true });
+        navigate(
+          { pathname: "/settings", search: window.location.search },
+          { replace: true },
+        );
       } else {
         set_search_params({}, { replace: true });
       }

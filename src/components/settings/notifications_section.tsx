@@ -19,7 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import { BellIcon, BellAlertIcon, MoonIcon } from "@heroicons/react/24/outline";
+import {
+  BellIcon,
+  BellAlertIcon,
+  MoonIcon,
+  MegaphoneIcon,
+} from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
@@ -36,6 +41,10 @@ import {
 import { show_notification } from "@/services/notification_service";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  get_product_updates_subscription,
+  set_product_updates_subscription,
+} from "@/services/api/product_updates";
 
 import {
   DropdownMenu,
@@ -206,6 +215,77 @@ export function NotificationsSection() {
     useState<PermissionState>(() =>
       is_tauri ? "default" : get_permission_state(),
     );
+  const [product_updates, set_product_updates] = useState(true);
+  const [product_updates_busy, set_product_updates_busy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const params = new URLSearchParams(window.location.search);
+    const wants_unsubscribe =
+      params.get("unsubscribe") === "product_updates";
+
+    const apply = async () => {
+      if (wants_unsubscribe) {
+        params.delete("unsubscribe");
+        const query = params.toString();
+
+        window.history.replaceState(
+          {},
+          "",
+          `${window.location.pathname}${query ? `?${query}` : ""}`,
+        );
+
+        await set_product_updates_subscription(false);
+
+        if (cancelled) return;
+
+        set_product_updates(false);
+        show_toast(t("settings.product_updates_turned_off"), "success");
+
+        return;
+      }
+
+      const subscribed = await get_product_updates_subscription();
+
+      if (cancelled) return;
+
+      set_product_updates(subscribed);
+    };
+
+    apply().catch((caught) =>
+      ignore_error(
+        "components/settings/notifications_section:product_updates",
+        caught,
+      ),
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
+
+  const handle_product_updates_toggle = async () => {
+    if (product_updates_busy) return;
+
+    const next = !product_updates;
+
+    set_product_updates_busy(true);
+    set_product_updates(next);
+
+    try {
+      await set_product_updates_subscription(next);
+    } catch (caught) {
+      set_product_updates(!next);
+      show_toast(t("settings.product_updates_save_failed"), "error");
+      ignore_error(
+        "components/settings/notifications_section:handle_product_updates_toggle",
+        caught,
+      );
+    } finally {
+      set_product_updates_busy(false);
+    }
+  };
 
   useEffect(() => {
     if (!is_tauri) return;
@@ -505,6 +585,26 @@ export function NotificationsSection() {
           }
           title={t("settings.mentions")}
         />
+      </div>
+
+      <div className="pt-3">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <MegaphoneIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.from_aster")}
+          </h3>
+          <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+
+        <ToggleSetting
+          description={t("settings.product_updates_description")}
+          enabled={product_updates}
+          on_toggle={handle_product_updates_toggle}
+          title={t("settings.product_updates")}
+        />
+        <p className="text-xs text-txt-muted pb-3">
+          {t("settings.product_updates_service_note")}
+        </p>
       </div>
 
       <div className="pt-3">

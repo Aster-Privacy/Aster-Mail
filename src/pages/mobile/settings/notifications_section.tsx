@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Switch } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
@@ -32,6 +32,11 @@ import {
   subscribe_to_push,
   unsubscribe_from_push,
 } from "@/services/push_subscription";
+import {
+  get_product_updates_subscription,
+  set_product_updates_subscription,
+} from "@/services/api/product_updates";
+import { show_toast } from "@/components/toast/simple_toast";
 
 type PermissionState = "granted" | "denied" | "default" | "unsupported";
 
@@ -55,6 +60,70 @@ export function NotificationsSection({
   const { is_feature_locked } = use_plan_limits();
   const [permission_state, set_permission_state] =
     useState<PermissionState>(get_permission_state);
+  const [product_updates, set_product_updates] = useState(true);
+  const [product_updates_busy, set_product_updates_busy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const sync_product_updates = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const wants_unsubscribe = params.get("unsubscribe") === "product_updates";
+
+      if (wants_unsubscribe) {
+        params.delete("unsubscribe");
+        const query = params.toString();
+
+        window.history.replaceState(
+          window.history.state,
+          "",
+          query
+            ? `${window.location.pathname}?${query}`
+            : window.location.pathname,
+        );
+        try {
+          await set_product_updates_subscription(false);
+          if (cancelled) return;
+          set_product_updates(false);
+          show_toast(t("settings.product_updates_turned_off"), "success");
+        } catch {
+          if (cancelled) return;
+          show_toast(t("settings.product_updates_save_failed"), "error");
+        }
+
+        return;
+      }
+      try {
+        const subscribed = await get_product_updates_subscription();
+
+        if (!cancelled) set_product_updates(subscribed);
+      } catch {
+        set_product_updates(true);
+      }
+    };
+
+    sync_product_updates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handle_product_updates_toggle = async (next: boolean) => {
+    if (product_updates_busy) return;
+    const previous = product_updates;
+
+    set_product_updates(next);
+    set_product_updates_busy(true);
+    try {
+      await set_product_updates_subscription(next);
+    } catch {
+      set_product_updates(previous);
+      show_toast(t("settings.product_updates_save_failed"), "error");
+    } finally {
+      set_product_updates_busy(false);
+    }
+  };
 
   const quiet_start = preferences.quiet_hours_start || "22:00";
   const quiet_end = preferences.quiet_hours_end || "07:00";
@@ -188,6 +257,26 @@ export function NotificationsSection({
               />
             }
           />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.from_aster")}>
+          <SettingsRow
+            label={t("settings.product_updates")}
+            trailing={
+              <Switch
+                checked={product_updates}
+                onCheckedChange={handle_product_updates_toggle}
+              />
+            }
+          />
+          <div className="px-4 pb-2">
+            <p className="text-[12px] text-[var(--text-muted)]">
+              {t("settings.product_updates_description")}
+            </p>
+            <p className="pt-1 text-[12px] text-[var(--text-muted)]">
+              {t("settings.product_updates_service_note")}
+            </p>
+          </div>
         </SettingsGroup>
 
         <UpgradeGate
