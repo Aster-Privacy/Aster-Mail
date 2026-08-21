@@ -90,9 +90,9 @@ function get_features(
     {
       name: t("settings.feature_daily_send_limit"),
       free: t("settings.feature_200_emails"),
-      star: unlimited,
-      nova: unlimited,
-      supernova: unlimited,
+      star: t("settings.feature_2000_emails"),
+      nova: t("settings.feature_2000_emails"),
+      supernova: t("settings.feature_2000_emails"),
     },
     {
       name: t("settings.feature_email_retention"),
