@@ -19,11 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import {
-  BellIcon,
-  BellAlertIcon,
-  MoonIcon,
-} from "@heroicons/react/24/outline";
+import { BellIcon, BellAlertIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";

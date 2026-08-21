@@ -107,7 +107,7 @@ export function NotificationsSection({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const handle_product_updates_toggle = async (next: boolean) => {
     if (product_updates_busy) return;
