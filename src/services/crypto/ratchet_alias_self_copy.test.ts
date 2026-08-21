@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   vault: null as unknown,
@@ -29,6 +29,7 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/services/account_manager", () => ({
+  accounts_storage_unreadable: vi.fn(() => false),
   get_current_account: vi.fn(async () => ({
     user: { id: "user-1", email: "windy@astermail.org", username: "windy" },
   })),

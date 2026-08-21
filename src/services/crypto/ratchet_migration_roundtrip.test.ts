@@ -43,14 +43,12 @@ vi.mock("./memory_key_store", () => ({
 }));
 
 vi.mock("@/services/account_manager", () => ({
+  accounts_storage_unreadable: vi.fn(() => false),
   get_current_account_id: vi.fn(async () => h.state.uid),
 }));
 
 import { save_ratchet_state, load_ratchet_state } from "./ratchet_state_store";
-import {
-  DoubleRatchet,
-  generate_keypair,
-} from "./double_ratchet";
+import { DoubleRatchet, generate_keypair } from "./double_ratchet";
 
 describe("ratchet migrate-on-read keeps existing conversations decryptable", () => {
   beforeEach(() => {
@@ -87,7 +85,9 @@ describe("ratchet migrate-on-read keeps existing conversations decryptable", () 
     const migrated = await load_ratchet_state(conversation_id);
 
     expect(migrated).not.toBeNull();
-    expect(await migrated!.decrypt(ciphertext)).toBe("message before migration");
+    expect(await migrated!.decrypt(ciphertext)).toBe(
+      "message before migration",
+    );
 
     expect(h.store.has(`ratchet_state_acct-a_${conversation_id}`)).toBe(true);
     expect(h.store.has(`ratchet_state_${conversation_id}`)).toBe(false);

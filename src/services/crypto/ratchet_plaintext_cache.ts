@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   encrypted_get,
   encrypted_set,
@@ -30,6 +29,8 @@ import {
   has_vault_in_memory,
 } from "./memory_key_store";
 
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+
 const CACHE_KEY_PREFIX = "ratchet_plaintext_";
 const REFRESH_AFTER_MS = 24 * 60 * 60 * 1000;
 const RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
@@ -39,16 +40,19 @@ interface CachedPlaintext {
   stored_at: number;
 }
 
-async function namespaced_cache_id(message_id: string): Promise<string> {
+async function namespaced_cache_id(
+  message_id: string,
+): Promise<string | null> {
   try {
-    const { get_current_account_id } = await import(
-      "@/services/account_manager"
-    );
+    const { get_current_account_id, accounts_storage_unreadable } =
+      await import("@/services/account_manager");
     const uid = await get_current_account_id();
+
+    if (uid === null && accounts_storage_unreadable()) return null;
 
     return `${CACHE_KEY_PREFIX}${uid ?? ""}_${message_id}`;
   } catch {
-    return `${CACHE_KEY_PREFIX}${message_id}`;
+    return null;
   }
 }
 
@@ -82,6 +86,9 @@ export async function get_cached_ratchet_plaintext(
     if (!key) return null;
 
     const cache_id = await namespaced_cache_id(message_id);
+
+    if (!cache_id) return null;
+
     const entry = await encrypted_get<CachedPlaintext>(cache_id, key);
 
     if (!entry) return null;
@@ -125,6 +132,8 @@ export async function set_cached_ratchet_plaintext(
     };
 
     const cache_id = await namespaced_cache_id(message_id);
+
+    if (!cache_id) return;
 
     await encrypted_set(cache_id, entry, key);
   } catch {

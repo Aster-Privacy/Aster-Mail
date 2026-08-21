@@ -30,6 +30,13 @@ function skipped_key_id(key: SkippedMessageKey): string {
   return `${key.dh_public}:${key.message_number}`;
 }
 
+export function merge_skipped_message_keys(
+  a: SkippedMessageKey[],
+  b: SkippedMessageKey[],
+): SkippedMessageKey[] {
+  return merge_skipped_keys(a, b);
+}
+
 function merge_skipped_keys(
   a: SkippedMessageKey[],
   b: SkippedMessageKey[],

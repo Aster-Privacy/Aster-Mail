@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   vault: null as unknown,
@@ -64,7 +64,9 @@ vi.mock("@/services/crypto/message_escrow", () => ({
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: vi.fn(async (url: string) =>
-      url.includes("prekey-bundle") ? { data: h.bundle } : { code: "NOT_FOUND" },
+      url.includes("prekey-bundle")
+        ? { data: h.bundle }
+        : { code: "NOT_FOUND" },
     ),
     put: vi.fn(async () => ({ data: { state_version: 1 } })),
     post: vi.fn(async () => ({ data: { state_version: 1 } })),
@@ -201,6 +203,117 @@ describe("undecryptable-message failure modes", () => {
     h.bundle = null;
     h.store.clear();
     localStorage.clear();
+  });
+
+  it("keeps the live chain readable when an old first-chain message arrives without a recovery lane", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    let sender_store = new Map<string, unknown>();
+    let receiver_store = new Map<string, unknown>();
+
+    h.bundle = bundle_for(receiver_vault);
+    restore_state(sender_store);
+
+    const first = await send("one", sender_vault);
+    const second = await send("two", sender_vault);
+
+    sender_store = snapshot_state();
+    restore_state(receiver_store);
+
+    expect(await receive(second, receiver_vault, "m2")).toBe("two");
+
+    h.bundle = bundle_for(sender_vault);
+    h.vault = receiver_vault;
+
+    const reply_data = await encrypt_for_ratchet_recipient(
+      RECIPIENT,
+      SENDER,
+      "sender",
+      "reply",
+      receiver_vault,
+    );
+
+    const reply = build_ratchet_envelope(
+      receiver_vault.ratchet_identity_public!,
+      { [SENDER]: reply_data! },
+    );
+
+    receiver_store = snapshot_state();
+    restore_state(sender_store);
+    h.vault = sender_vault;
+
+    expect(
+      await decrypt_ratchet_message(
+        SENDER,
+        RECIPIENT,
+        parse_ratchet_envelope(reply)!,
+        sender_vault,
+        "r1",
+      ),
+    ).toBe("reply");
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const third = await send("three", sender_vault);
+
+    sender_store = snapshot_state();
+    restore_state(receiver_store);
+
+    expect(await receive(third, receiver_vault, "m3")).toBe("three");
+
+    for (const [key, value] of h.store.entries()) {
+      if (!key.startsWith("ratchet_state_") || key.endsWith("_archive")) {
+        continue;
+      }
+
+      const state = value as { state?: { skipped_message_keys?: unknown[] } };
+
+      if (state.state?.skipped_message_keys) {
+        state.state.skipped_message_keys = [];
+      }
+    }
+
+    const before_old = JSON.stringify(
+      [...h.store.entries()].filter(([k]) => k.startsWith("ratchet_state_")),
+    );
+
+    expect(await receive(first, receiver_vault, "m1")).toBe("one");
+
+    const after_old = JSON.stringify(
+      [...h.store.entries()].filter(([k]) => k.startsWith("ratchet_state_")),
+    );
+
+    console.log("KEYS", JSON.stringify([...h.store.keys()]));
+    console.log("CHANGED", before_old !== after_old);
+    console.log(
+      "EPOCH_BEFORE",
+      JSON.parse(before_old).map((e: any) => [
+        e[0],
+        e[1].state?.epoch,
+        e[1].state?.dh_remote_public?.slice(0, 8),
+      ]),
+    );
+    console.log(
+      "EPOCH_AFTER",
+      JSON.parse(after_old).map((e: any) => [
+        e[0],
+        e[1].state?.epoch,
+        e[1].state?.dh_remote_public?.slice(0, 8),
+      ]),
+    );
+
+    receiver_store = snapshot_state();
+    restore_state(sender_store);
+
+    const fourth = await send("four", sender_vault);
+
+    sender_store = snapshot_state();
+    restore_state(receiver_store);
+
+    expect(
+      await receive_without_recovery_lane(fourth, receiver_vault, "m4"),
+    ).toBe("four");
   });
 
   it("recovers when a second device clobbers the shared ratchet state", async () => {
