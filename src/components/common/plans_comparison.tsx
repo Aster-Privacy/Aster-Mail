@@ -90,9 +90,9 @@ function get_features(
     {
       name: t("settings.feature_daily_send_limit"),
       free: t("settings.feature_200_emails"),
-      star: t("settings.feature_2000_emails"),
-      nova: t("settings.feature_2000_emails"),
-      supernova: t("settings.feature_2000_emails"),
+      star: t("settings.feature_1000_emails"),
+      nova: t("settings.feature_1000_emails"),
+      supernova: t("settings.feature_1000_emails"),
     },
     {
       name: t("settings.feature_email_retention"),
@@ -679,7 +679,10 @@ function MobilePlanCard({
           </div>
           {selected && (
             <div className="w-6 h-6 rounded-full bg-brand flex items-center justify-center">
-              <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" strokeWidth={2.5} />
+              <CheckIcon
+                className="w-4 h-4 text-[var(--accent-fg,#ffffff)]"
+                strokeWidth={2.5}
+              />
             </div>
           )}
         </div>

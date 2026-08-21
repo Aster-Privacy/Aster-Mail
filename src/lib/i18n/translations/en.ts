@@ -4895,7 +4895,7 @@ export const en: Translations = {
     feature_api_access: "API access",
     feature_100_emails: "100 emails",
     feature_200_emails: "200 emails",
-    feature_2000_emails: "2,000 emails",
+    feature_1000_emails: "1,000 emails",
     feature_500_emails: "500 emails",
     feature_10_seconds: "10 seconds",
     feature_30_seconds: "30 seconds",

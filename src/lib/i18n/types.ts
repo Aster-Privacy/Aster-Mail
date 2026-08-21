@@ -4280,7 +4280,7 @@ export interface SettingsTranslations {
   feature_api_access: string;
   feature_100_emails: string;
   feature_200_emails: string;
-  feature_2000_emails: string;
+  feature_1000_emails: string;
   feature_500_emails: string;
   feature_10_seconds: string;
   feature_30_seconds: string;
