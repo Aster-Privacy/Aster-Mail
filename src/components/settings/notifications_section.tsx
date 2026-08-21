@@ -23,7 +23,6 @@ import {
   BellIcon,
   BellAlertIcon,
   MoonIcon,
-  MegaphoneIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
@@ -45,7 +44,6 @@ import {
   get_product_updates_subscription,
   set_product_updates_subscription,
 } from "@/services/api/product_updates";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -179,7 +177,7 @@ function ToggleSetting({
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {action}
-        <Switch size="lg" checked={enabled} onCheckedChange={on_toggle} />
+        <Switch checked={enabled} size="lg" onCheckedChange={on_toggle} />
       </div>
     </div>
   );
@@ -211,10 +209,9 @@ export function NotificationsSection() {
   const { preferences, update_preference } = use_preferences();
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
-  const [permission_state, set_permission_state] =
-    useState<PermissionState>(() =>
-      is_tauri ? "default" : get_permission_state(),
-    );
+  const [permission_state, set_permission_state] = useState<PermissionState>(
+    () => (is_tauri ? "default" : get_permission_state()),
+  );
   const [product_updates, set_product_updates] = useState(true);
   const [product_updates_busy, set_product_updates_busy] = useState(false);
 
@@ -222,8 +219,7 @@ export function NotificationsSection() {
     let cancelled = false;
 
     const params = new URLSearchParams(window.location.search);
-    const wants_unsubscribe =
-      params.get("unsubscribe") === "product_updates";
+    const wants_unsubscribe = params.get("unsubscribe") === "product_updates";
 
     const apply = async () => {
       if (wants_unsubscribe) {
@@ -296,7 +292,12 @@ export function NotificationsSection() {
           set_permission_state(granted ? "granted" : "denied");
         }),
       )
-      .catch((caught) => ignore_error("components/settings/notifications_section:NotificationsSection", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/notifications_section:NotificationsSection",
+          caught,
+        ),
+      );
   }, []);
 
   const handle_desktop_toggle = async () => {
@@ -565,7 +566,11 @@ export function NotificationsSection() {
           description={t("settings.new_email_description")}
           enabled={preferences.notify_new_email}
           on_toggle={() =>
-            update_preference("notify_new_email", !preferences.notify_new_email, true)
+            update_preference(
+              "notify_new_email",
+              !preferences.notify_new_email,
+              true,
+            )
           }
           title={t("settings.new_emails")}
         />
@@ -573,7 +578,11 @@ export function NotificationsSection() {
           description={t("settings.replies_description")}
           enabled={preferences.notify_replies}
           on_toggle={() =>
-            update_preference("notify_replies", !preferences.notify_replies, true)
+            update_preference(
+              "notify_replies",
+              !preferences.notify_replies,
+              true,
+            )
           }
           title={t("settings.replies")}
         />
@@ -581,20 +590,14 @@ export function NotificationsSection() {
           description={t("settings.mentions_description")}
           enabled={preferences.notify_mentions}
           on_toggle={() =>
-            update_preference("notify_mentions", !preferences.notify_mentions, true)
+            update_preference(
+              "notify_mentions",
+              !preferences.notify_mentions,
+              true,
+            )
           }
           title={t("settings.mentions")}
         />
-      </div>
-
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <MegaphoneIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.from_aster")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
 
         <ToggleSetting
           description={t("settings.product_updates_description")}
@@ -602,9 +605,6 @@ export function NotificationsSection() {
           on_toggle={handle_product_updates_toggle}
           title={t("settings.product_updates")}
         />
-        <p className="text-xs text-txt-muted pb-3">
-          {t("settings.product_updates_service_note")}
-        </p>
       </div>
 
       <div className="pt-3">
@@ -649,13 +649,17 @@ export function NotificationsSection() {
                   <QuietHoursTimeSelect
                     fallback_value={DEFAULT_PREFERENCES.quiet_hours_start}
                     label={t("settings.from")}
-                    on_change={(v) => update_preference("quiet_hours_start", v, true)}
+                    on_change={(v) =>
+                      update_preference("quiet_hours_start", v, true)
+                    }
                     value={preferences.quiet_hours_start}
                   />
                   <QuietHoursTimeSelect
                     fallback_value={DEFAULT_PREFERENCES.quiet_hours_end}
                     label={t("settings.to")}
-                    on_change={(v) => update_preference("quiet_hours_end", v, true)}
+                    on_change={(v) =>
+                      update_preference("quiet_hours_end", v, true)
+                    }
                     value={preferences.quiet_hours_end}
                   />
                 </div>

@@ -2384,12 +2384,9 @@ export const en: Translations = {
     replies_description: "When someone replies to your email",
     mentions: "Mentions",
     mentions_description: "When someone mentions you",
-    from_aster: "From Aster",
     product_updates: "Product updates",
     product_updates_description:
-      "Get a message in your inbox when a notable feature ships. Aster doesn't record whether you open or click these messages.",
-    product_updates_service_note:
-      "You always receive service announcements, such as security and policy changes.",
+      "Get a message in your inbox when a notable feature ships. Security and policy announcements always arrive. Aster doesn't record whether you open or click these messages.",
     product_updates_turned_off:
       "Product updates are off. You can turn them back on here.",
     product_updates_save_failed:

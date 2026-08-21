@@ -244,7 +244,9 @@ export function NotificationsSection({
             trailing={
               <Switch
                 checked={preferences.notify_replies}
-                onCheckedChange={(v) => update_preference("notify_replies", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("notify_replies", v, true)
+                }
               />
             }
           />
@@ -253,13 +255,12 @@ export function NotificationsSection({
             trailing={
               <Switch
                 checked={preferences.notify_mentions}
-                onCheckedChange={(v) => update_preference("notify_mentions", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("notify_mentions", v, true)
+                }
               />
             }
           />
-        </SettingsGroup>
-
-        <SettingsGroup title={t("settings.from_aster")}>
           <SettingsRow
             label={t("settings.product_updates")}
             trailing={
@@ -272,9 +273,6 @@ export function NotificationsSection({
           <div className="px-4 pb-2">
             <p className="text-[12px] text-[var(--text-muted)]">
               {t("settings.product_updates_description")}
-            </p>
-            <p className="pt-1 text-[12px] text-[var(--text-muted)]">
-              {t("settings.product_updates_service_note")}
             </p>
           </div>
         </SettingsGroup>
