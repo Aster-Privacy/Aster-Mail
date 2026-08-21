@@ -267,14 +267,6 @@ export function use_keyboard_shortcuts(
       return;
     }
 
-    if (key === "escape") {
-      if (is_any_modal_open) return;
-
-      handle(h.on_close_viewer);
-
-      return;
-    }
-
     if (is_typing()) return;
 
     if (key === "c" && !has_cmd && !has_shift) {

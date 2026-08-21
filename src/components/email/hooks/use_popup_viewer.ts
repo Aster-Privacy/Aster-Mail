@@ -265,20 +265,6 @@ export function use_popup_viewer({
     set_external_content_state({ mode: cached || "blocked", report: null });
   }, [email_id]);
 
-  useEffect(() => {
-    const handle_escape = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape" && !e.defaultPrevented) {
-        e.preventDefault();
-        e.stopPropagation();
-        on_close();
-      }
-    };
-
-    document.addEventListener("keydown", handle_escape);
-
-    return () => document.removeEventListener("keydown", handle_escape);
-  }, [on_close]);
-
   const actions = use_popup_viewer_actions({
     email_id,
     email,

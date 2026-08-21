@@ -394,19 +394,11 @@ export function FullEmailViewer({
   );
 
   useEffect(() => {
-    const handle_keyboard_back = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape" && !e.defaultPrevented) {
-        on_back();
-      }
-    };
-
     window.addEventListener("astermail:keyboard-reply", handle_keyboard_reply);
     window.addEventListener(
       "astermail:keyboard-forward",
       handle_keyboard_forward,
     );
-    window.addEventListener("keydown", handle_keyboard_back);
-
     return () => {
       window.removeEventListener(
         "astermail:keyboard-reply",
@@ -416,9 +408,8 @@ export function FullEmailViewer({
         "astermail:keyboard-forward",
         handle_keyboard_forward,
       );
-      window.removeEventListener("keydown", handle_keyboard_back);
     };
-  }, [handle_keyboard_reply, handle_keyboard_forward, on_back]);
+  }, [handle_keyboard_reply, handle_keyboard_forward]);
 
   if (viewer.error || (!viewer.email && !viewer.is_loading)) {
     return (
