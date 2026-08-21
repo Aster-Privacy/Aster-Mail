@@ -573,13 +573,6 @@ function get_features(
       supernova: true,
     },
     {
-      name: t("settings.feature_caldav"),
-      free: false,
-      star: true,
-      nova: true,
-      supernova: true,
-    },
-    {
       name: t("settings.feature_api_access"),
       free: false,
       star: false,

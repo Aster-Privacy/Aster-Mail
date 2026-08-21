@@ -422,7 +422,6 @@ export const FEATURE_MIN_PLAN: Record<string, string> = {
   has_vacation_reply: "star",
   max_alias_directories: "star",
   max_custom_categories: "star",
-  has_carddav_import: "nova",
   has_contact_merge_wizard: "nova",
   has_custom_key_rotation: "nova",
   has_encrypted_export: "nova",

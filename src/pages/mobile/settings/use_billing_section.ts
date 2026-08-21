@@ -300,7 +300,6 @@ export function use_billing_section() {
         t("settings.plan_f_send_limit", { value: t("settings.unlimited") }),
         t("settings.plan_f_templates", { value: t("settings.unlimited") }),
         t("settings.plan_f_signatures", { value: t("settings.unlimited") }),
-        t("settings.plan_f_carddav_import"),
         t("settings.plan_f_contact_merge"),
         t("settings.plan_f_encrypted_export"),
         t("settings.plan_f_password_folders"),
