@@ -39,6 +39,7 @@ export interface RotateIdentityKeyRequest {
   encrypted_vault?: string;
   vault_nonce?: string;
   vault_format?: number;
+  vault_key_fingerprints?: string[];
 }
 
 export interface RotateIdentityKeyResponse {

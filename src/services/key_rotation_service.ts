@@ -38,6 +38,7 @@ import {
   upload_prekey_bundle,
 } from "@/services/crypto/ratchet_manager";
 import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
+import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import {
   get_identity_key_status,
   rotate_identity_key,
@@ -364,6 +365,13 @@ export async function perform_key_rotation(
         ? MASTER_KEY_VAULT_FORMAT
         : (new_vault.vault_format ?? 1),
     };
+
+    const vault_key_fingerprints =
+      await collect_vault_key_fingerprints(new_vault);
+
+    if (vault_key_fingerprints.length) {
+      request.vault_key_fingerprints = vault_key_fingerprints;
+    }
 
     const response = await rotate_identity_key(request);
 
