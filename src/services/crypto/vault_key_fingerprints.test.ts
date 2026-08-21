@@ -105,6 +105,40 @@ describe("collect_vault_key_fingerprints", () => {
     expect(fingerprints).toEqual([expected]);
   });
 
+  it("attests nothing when an identity key cannot be fingerprinted", async () => {
+    const fingerprints = await collect_vault_key_fingerprints({
+      ...base_vault(),
+      ratchet_identity_key: JSON.stringify({ kty: "EC", crv: "P-256", d: "x" }),
+      ratchet_pq_identity_public: btoa(
+        String.fromCharCode(...new Uint8Array(1184).fill(9)),
+      ),
+    });
+
+    expect(fingerprints).toEqual([]);
+  });
+
+  it("attests nothing when a retired identity key cannot be fingerprinted", async () => {
+    const fingerprints = await collect_vault_key_fingerprints({
+      ...base_vault(),
+      ratchet_identity_public: btoa(
+        String.fromCharCode(...new Uint8Array(65).fill(1)),
+      ),
+      ratchet_previous_keys: [
+        {
+          ratchet_identity_key: JSON.stringify({
+            kty: "EC",
+            crv: "P-256",
+            d: "x",
+          }),
+          ratchet_signed_prekey: "old_signed",
+          ratchet_signed_prekey_public: "old_public",
+        },
+      ] as unknown as EncryptedVault["ratchet_previous_keys"],
+    });
+
+    expect(fingerprints).toEqual([]);
+  });
+
   it("reports nothing when the vault holds no ratchet public keys", async () => {
     expect(await collect_vault_key_fingerprints(base_vault())).toEqual([]);
   });

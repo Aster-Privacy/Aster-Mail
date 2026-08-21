@@ -77,7 +77,9 @@ export async function collect_vault_key_fingerprints(
       ? identity_public_from_jwk(vault.ratchet_identity_key)
       : null);
 
-  if (identity_public) {
+  if (!identity_public) {
+    if (vault.ratchet_identity_key) return [];
+  } else {
     public_keys.push(identity_public);
   }
 
@@ -92,7 +94,9 @@ export async function collect_vault_key_fingerprints(
         ? identity_public_from_jwk(previous.ratchet_identity_key)
         : null);
 
-    if (previous_public) {
+    if (!previous_public) {
+      if (previous.ratchet_identity_key) return [];
+    } else {
       public_keys.push(previous_public);
     }
 
