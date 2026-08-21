@@ -38,8 +38,6 @@ import {
 
 import { SettingsSaveIndicatorInline } from "../settings_save_indicator";
 
-import { RebuildConversationsSetting } from "./rebuild_conversations_setting";
-
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
 import {
@@ -113,18 +111,6 @@ export function BehaviorSection() {
       label: t("settings.show_alias_indicators"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
       keywords: ["alias", "indicator", "badge", "delivered to"],
-    },
-    {
-      label: t("settings.rebuild_conversations"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: [
-        "thread",
-        "threading",
-        "conversation",
-        "regroup",
-        "split",
-        "rebuild",
-      ],
     },
     {
       label: t("settings.translate_incoming"),
@@ -415,8 +401,6 @@ export function BehaviorSection() {
             }
           />
         </div>
-
-        <RebuildConversationsSetting />
 
         <SelectSetting
           description={t("settings.conversation_order_description")}

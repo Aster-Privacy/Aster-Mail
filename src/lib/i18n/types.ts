@@ -2498,15 +2498,6 @@ export interface SettingsTranslations {
   reply_to_all: string;
   conversation_grouping: string;
   conversation_grouping_description: string;
-  rebuild_conversations: string;
-  rebuild_conversations_description: string;
-  rebuild_conversations_action: string;
-  rebuild_conversations_running: string;
-  rebuild_conversations_progress: string;
-  rebuild_conversations_done: string;
-  rebuild_conversations_none: string;
-  rebuild_conversations_locked: string;
-  rebuild_conversations_failed: string;
   inbox_categories: string;
   inbox_categories_short: string;
   inbox_categories_description: string;

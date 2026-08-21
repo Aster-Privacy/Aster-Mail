@@ -2456,19 +2456,6 @@ export const en: Translations = {
     conversation_grouping: "Conversation Grouping",
     conversation_grouping_description:
       "Group emails in the same conversation together",
-    rebuild_conversations: "Rebuild conversations",
-    rebuild_conversations_description:
-      "Regroup your existing mail with the current conversation rules. Messages that were grouped only because they share a subject move into separate conversations. Nothing is merged and no message is deleted.",
-    rebuild_conversations_action: "Rebuild",
-    rebuild_conversations_running: "Rebuilding",
-    rebuild_conversations_progress:
-      "Checked {{checked}} conversations, separated {{split}}.",
-    rebuild_conversations_done:
-      "Separated {{split}} conversations and moved {{moved}} messages.",
-    rebuild_conversations_none: "Your conversations already match the rules.",
-    rebuild_conversations_locked: "Unlock your mailbox and try again.",
-    rebuild_conversations_failed:
-      "The rebuild stopped early. Try again in a few minutes.",
     inbox_categories: "Inbox Categories",
     inbox_categories_short: "Sort your inbox into tabs",
     inbox_categories_description:
