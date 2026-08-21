@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import { useState, useEffect } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
@@ -732,12 +733,16 @@ export function use_security() {
           passphrase,
         );
 
+        const vault_key_fingerprints =
+          await collect_vault_key_fingerprints(vault);
+
         const push_response = await api_client.put("/crypto/v1/keys/vault", {
           encrypted_vault,
           vault_nonce,
           expected_user_id: user.id,
           vault_format: vault.vault_format ?? 1,
           preserve_pq_prekeys: true,
+          ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
         });
 
         if (push_response.error) return;

@@ -149,6 +149,8 @@ export async function merge_recovered_keys_into_vault(
       vault_nonce,
       new_vault.data_kek ? MASTER_KEY_VAULT_FORMAT : new_vault.vault_format,
       current_account?.user?.id,
+      undefined,
+      new_vault,
     );
 
     if (!saved.success) return false;

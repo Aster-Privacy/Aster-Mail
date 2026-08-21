@@ -115,6 +115,7 @@ export async function restore_inactive_key_sets(
       vault_nonce,
       user_id,
       next_vault.vault_format,
+      next_vault,
     );
 
     if (!pushed) return 0;

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import type { EncryptedVault } from "./key_manager";
 
 import { get_current_account } from "../account_manager";
@@ -116,12 +117,15 @@ async function run_adoption(
     return false;
   }
 
+  const vault_key_fingerprints = await collect_vault_key_fingerprints(upgraded);
+
   const response = await api_client.put("/crypto/v1/keys/vault", {
     encrypted_vault,
     vault_nonce,
     expected_user_id: user_id,
     vault_format: MASTER_KEY_VAULT_FORMAT,
     preserve_pq_prekeys: true,
+    ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
   });
 
   if (response.error) return false;

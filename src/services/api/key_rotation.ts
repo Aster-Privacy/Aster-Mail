@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { collect_vault_key_fingerprints } from "../crypto/vault_key_fingerprints";
+import type { EncryptedVault } from "../crypto/key_manager_core";
 import { api_client } from "./client";
 
 export interface IdentityKeyStatus {
@@ -82,7 +84,11 @@ export async function update_vault(
   vault_format?: number,
   expected_user_id?: string,
   preserve_pq_prekeys?: boolean,
+  vault?: EncryptedVault | null,
 ): Promise<{ success: boolean; error?: string }> {
+  const vault_key_fingerprints = vault
+    ? await collect_vault_key_fingerprints(vault)
+    : undefined;
   const response = await api_client.put<{ success: boolean }>(
     "/crypto/v1/keys/vault",
     {
@@ -91,6 +97,7 @@ export async function update_vault(
       vault_format: vault_format ?? 1,
       expected_user_id,
       preserve_pq_prekeys: preserve_pq_prekeys ?? false,
+      ...(vault_key_fingerprints?.length ? { vault_key_fingerprints } : {}),
     },
   );
 

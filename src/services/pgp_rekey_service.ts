@@ -111,6 +111,7 @@ export async function perform_pgp_rekey(
         : new_vault.vault_format,
       current_account?.user?.id,
       true,
+      new_vault,
     );
 
     if (!vault_saved.success) {

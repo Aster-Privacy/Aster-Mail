@@ -39,6 +39,7 @@ import { merge_previous_ratchet_keys } from "./key_manager_core";
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
+import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
@@ -109,10 +110,15 @@ export async function push_vault_to_server(
   vault_nonce: string,
   expected_user_id: string,
   vault_format?: number,
+  vault?: EncryptedVault | null,
 ): Promise<boolean> {
   const current_account = await get_current_account();
 
   if (current_account?.user?.id !== expected_user_id) return false;
+
+  const vault_key_fingerprints = vault
+    ? await collect_vault_key_fingerprints(vault)
+    : undefined;
 
   const response = await api_client.put("/crypto/v1/keys/vault", {
     encrypted_vault,
@@ -120,6 +126,7 @@ export async function push_vault_to_server(
     expected_user_id,
     vault_format: vault_format ?? 1,
     preserve_pq_prekeys: true,
+    ...(vault_key_fingerprints?.length ? { vault_key_fingerprints } : {}),
   });
 
   return !response.error;
@@ -502,6 +509,7 @@ async function refresh_vault_write_stamp(): Promise<boolean> {
     stored.vault_nonce,
     user_id,
     vault?.vault_format,
+    vault,
   );
 }
 
@@ -733,6 +741,7 @@ async function run_locked_with_vault(
       vault_nonce,
       user_id,
       next_vault.vault_format,
+      next_vault,
     );
 
     if (!pushed) return false;
