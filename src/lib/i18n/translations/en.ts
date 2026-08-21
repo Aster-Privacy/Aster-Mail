@@ -8014,6 +8014,11 @@ export const en: Translations = {
       "We could not find a signed-in account on this device. Signing in will get you through.",
     daily_limit_reached:
       "You have hit your daily sending limit. Another attempt in {{time}} will work. Your draft is saved.",
+    that_provider: "that provider",
+    too_many_recipients:
+      "This message has more recipients than one message can reach. Your account can send to {{max}} at a time, and that limit rises over your first week. Sending it in smaller batches will work. Your draft is saved.",
+    recipient_concentration:
+      "You have sent to as many addresses at {{domain}} as we allow in one hour. Sending this many at once to a single provider gets our mail servers blocked. Another attempt in {{time}} will work. Your draft is saved.",
     failed_send_email:
       "This email did not send. Another attempt should do it. Your draft is saved.",
     cannot_send_no_keys:

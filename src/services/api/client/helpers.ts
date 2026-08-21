@@ -170,6 +170,7 @@ export interface ApiResponse<T> {
   code?: ApiErrorCode;
   server_code?: string;
   resets_at?: string;
+  details?: Record<string, unknown>;
 }
 
 export function is_api_success<T>(

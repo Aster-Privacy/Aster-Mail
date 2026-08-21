@@ -1775,6 +1775,7 @@ export class ApiClient {
             code: error_code,
             server_code: error_data.code,
             resets_at: error_data.resets_at,
+            details: error_data.details,
           };
 
           if (

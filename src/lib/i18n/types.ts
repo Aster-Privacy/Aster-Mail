@@ -7015,6 +7015,9 @@ export interface ErrorTranslations {
   failed_pgp_encrypt: string;
   no_authenticated_account: string;
   daily_limit_reached: string;
+  that_provider: string;
+  too_many_recipients: string;
+  recipient_concentration: string;
   failed_send_email: string;
   cannot_send_no_keys: string;
   cannot_send_no_recipient_keys: string;

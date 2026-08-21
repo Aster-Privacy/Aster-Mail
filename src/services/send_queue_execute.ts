@@ -26,6 +26,7 @@ import { get_current_account } from "./account_manager";
 import { create_attachment } from "./api/attachments";
 import { mark_thread_read } from "./api/mail";
 import { send_external_email, send_simple_email } from "./api/send";
+import { describe_send_refusal } from "./send_refusal";
 import { encrypt_attachments_for_send, prepare_external_attachments } from "./crypto/attachment_crypto";
 import { array_to_base64 } from "./crypto/envelope";
 import { encrypt_secure_message } from "./crypto/secure_message_crypto";
@@ -35,7 +36,7 @@ import { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
 import { fetch_internal_public_keys } from "./send_queue_recipients";
 import { OBSCURED_SUBJECT_PLACEHOLDER } from "./pgp_protected_mime";
 import { build_signed_mime_payload, should_attach_signed_mime, should_obscure_outer_subject } from "./send_queue_signed_mime";
-import { SendError, create_error, format_time_remaining, type EmailParams, type QueuedEmailInternal } from "./send_queue_types";
+import { SendError, create_error, type EmailParams, type QueuedEmailInternal } from "./send_queue_types";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -150,13 +151,10 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
   const result = await send_simple_email(request);
 
   if (!result.data?.success) {
-    if (result.code === "RATE_LIMIT_EXCEEDED" && result.resets_at) {
-      const time = format_time_remaining(result.resets_at);
+    const refusal = describe_send_refusal(result);
 
-      throw create_error(
-        "rate_limited",
-        en.errors.daily_limit_reached.replace("{{time}}", time),
-      );
+    if (refusal) {
+      throw create_error(refusal.kind, refusal.message);
     }
     throw create_error("send_failed", result.error || en.errors.failed_send_email);
   }
@@ -420,13 +418,10 @@ export async function execute_external_send(
   const result = await send_external_email(external_request);
 
   if (!result.data?.success) {
-    if (result.code === "RATE_LIMIT_EXCEEDED" && result.resets_at) {
-      const time = format_time_remaining(result.resets_at);
+    const refusal = describe_send_refusal(result);
 
-      throw create_error(
-        "rate_limited",
-        en.errors.daily_limit_reached.replace("{{time}}", time),
-      );
+    if (refusal) {
+      throw create_error(refusal.kind, refusal.message);
     }
     throw create_error(
       "send_failed",
