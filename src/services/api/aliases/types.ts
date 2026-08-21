@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-
-
-
+import type {} from "@/lib/i18n/types";
 
 export interface EmailAlias {
   id: string;
@@ -56,6 +53,7 @@ export interface DecryptedEmailAlias {
   note?: string;
   websites?: string[];
   alias_address_hash: string;
+  routing_address_hash?: string;
   domain: string;
   full_address: string;
   is_enabled: boolean;
@@ -247,4 +245,3 @@ export interface AliasDeliveryLogResponse {
   events: DeliveryEvent[];
   total: number;
 }
-

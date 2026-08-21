@@ -51,9 +51,13 @@ import {
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { update_alias, delete_alias } from "@/services/api/aliases";
+import {
+  alias_is_restorable,
+  restore_orphaned_alias,
+} from "@/services/api/aliases/restore";
+import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 type FilterMode = "all" | "enabled" | "disabled";
@@ -85,13 +89,47 @@ function UndecryptableAliasCard({
   alias,
   deleting,
   on_delete,
+  on_restored,
 }: {
   alias: DecryptedEmailAlias;
   deleting: boolean;
   on_delete: (id: string) => void;
+  on_restored?: () => void;
 }) {
   const { t } = use_i18n();
   const orphaned = alias.orphaned_by_key_rotation === true;
+  const restorable = alias_is_restorable(alias);
+  const [restore_open, set_restore_open] = useState(false);
+  const [claimed_local_part, set_claimed_local_part] = useState("");
+  const [restoring, set_restoring] = useState(false);
+  const [restore_error, set_restore_error] = useState<string | null>(null);
+
+  const handle_restore = async () => {
+    set_restoring(true);
+    set_restore_error(null);
+
+    try {
+      const outcome = await restore_orphaned_alias(alias, claimed_local_part);
+
+      if (outcome.status === "restored") {
+        set_restore_open(false);
+        set_claimed_local_part("");
+        on_restored?.();
+
+        return;
+      }
+
+      set_restore_error(
+        outcome.status === "address_mismatch"
+          ? t("settings.alias_restore_mismatch")
+          : t("settings.alias_restore_failed"),
+      );
+    } catch {
+      set_restore_error(t("settings.alias_restore_failed"));
+    } finally {
+      set_restoring(false);
+    }
+  };
 
   return (
     <div
@@ -121,6 +159,58 @@ function UndecryptableAliasCard({
             ? t("settings.alias_orphaned_hint")
             : t("settings.alias_decrypt_failed_hint")}
         </p>
+        {restorable && !restore_open && (
+          <button
+            className="mt-1.5 text-xs font-medium text-accent-primary hover:underline"
+            type="button"
+            onClick={() => set_restore_open(true)}
+          >
+            {t("settings.alias_restore_action")}
+          </button>
+        )}
+        {restorable && restore_open && (
+          <div className="mt-2 space-y-1.5">
+            <p className="text-xs text-txt-secondary">
+              {t("settings.alias_restore_prompt")}
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                autoFocus
+                className="h-8 text-xs"
+                disabled={restoring}
+                placeholder={t("settings.alias_restore_placeholder")}
+                value={claimed_local_part}
+                onChange={(event) => {
+                  set_claimed_local_part(event.target.value);
+                  set_restore_error(null);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && claimed_local_part.trim()) {
+                    void handle_restore();
+                  }
+                }}
+              />
+              <span className="text-xs text-txt-muted flex-shrink-0">
+                @{alias.domain}
+              </span>
+              <Button
+                className="h-8 flex-shrink-0"
+                disabled={restoring || !claimed_local_part.trim()}
+                size="sm"
+                onClick={() => void handle_restore()}
+              >
+                {restoring ? (
+                  <Spinner size="xs" />
+                ) : (
+                  t("settings.alias_restore_confirm")
+                )}
+              </Button>
+            </div>
+            {restore_error && (
+              <p className="text-xs text-red-500">{restore_error}</p>
+            )}
+          </div>
+        )}
       </div>
       <Button
         className={`h-8 w-8 flex-shrink-0 ${
@@ -405,12 +495,12 @@ export function AliasList({
             </span>
           </button>
           <div
+            aria-hidden={selected_ids.size === 0}
             className={`flex shrink-0 items-center gap-1.5 transition-opacity ${
               selected_ids.size > 0
                 ? "opacity-100"
                 : "pointer-events-none opacity-0"
             }`}
-            aria-hidden={selected_ids.size === 0}
           >
             <Button
               disabled={selected_ids.size === 0}
@@ -452,6 +542,7 @@ export function AliasList({
               alias={alias}
               deleting={alias_deleting_id === alias.id}
               on_delete={on_alias_delete}
+              on_restored={on_aliases_changed}
             />
           ) : (
             <AliasItem

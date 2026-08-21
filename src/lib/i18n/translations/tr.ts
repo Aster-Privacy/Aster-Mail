@@ -2272,7 +2272,13 @@ export const tr = {
       "Ayrıntıları bu cihazda kullanılamıyor. Tekrar giriş yapmak veya anahtarlarınızı geri yüklemek genellikle bu sorunu çözer.",
     alias_orphaned_title: "Bu rumuz posta almaya devam ediyor",
     alias_orphaned_hint:
-      "Etiketi önceki parolanızla şifrelendiği için geri getirilemiyor. Bu adrese gönderilen postalar gelmeye devam eder ve tam adresi gelen her iletinin başlığında görebilirsiniz.",
+      "Etiketi önceki parolanızla şifrelendiği için bu cihaz etiketi okuyamıyor. Adresi hatırlıyorsanız etiketi geri getirebilirsiniz. Bu adrese gönderilen postalar gelmeye devam eder ve tam adresi gelen her iletinin başlığında görebilirsiniz.",
+    alias_restore_action: "Bu takma adı geri getir",
+    alias_restore_prompt: "Adresi yazın. Aster, etiketi geri getirmeden önce bu takma adla karşılaştırır.",
+    alias_restore_placeholder: "Adres",
+    alias_restore_confirm: "Geri getir",
+    alias_restore_mismatch: "Bu adres takma adla eşleşmiyor. Gelen bir iletinin başlığını kontrol edin.",
+    alias_restore_failed: "Takma ad geri getirilemedi. Yeniden deneyin.",
     recently_deleted_load_failed:
       "Son silinen rumuzlarınızı yükleyemedik. Tekrar denemeniz yeterli olacaktır.",
     ghost_aliases_info:
@@ -4949,6 +4955,17 @@ export const tr = {
     cancel_reason_other: "Başka bir şey",
     cancel_reason_text_placeholder:
       "Eklemek istediğiniz bir şey var mı? (isteğe bağlı)",
+    cancel_reason_placeholder_too_expensive: "Sizce hangi fiyat uygun olurdu?",
+    cancel_reason_placeholder_not_using: "Ne olsaydı bunu düzenli kullanırdınız?",
+    cancel_reason_placeholder_missing_feature: "Hangi özelliğe ihtiyacınız var?",
+    cancel_reason_placeholder_switched_provider: "Hangi hizmete geçtiniz ve sizi ne ikna etti?",
+    cancel_reason_placeholder_bugs: "En çok hangi sorun sizi etkiledi?",
+    cancel_reason_placeholder_privacy_trust: "Bu endişeye ne yol açtı?",
+    cancel_reason_placeholder_just_testing: "Neyi öğrenmek istediniz?",
+    cancel_reason_placeholder_other: "İptal kararınızın nedeni nedir?",
+    cancel_reason_detail_required: "Bir şeyler yapabilmemiz için kısa bir yanıt yazın veya bu adımı atlayın.",
+    cancel_not_cancellable: "Bu abonelik uygulamadan iptal edilemez. İptal için destek ekibiyle iletişime geçin.",
+    cancel_failed: "Planınız iptal edilmedi. Faturalandırmanız değişmedi, tekrar deneyebilirsiniz.",
     cancel_reason_skip: "Atla",
     cancel_reason_continue: "Devam",
     cancel_impact_title: "İptal ederseniz neler değişir",

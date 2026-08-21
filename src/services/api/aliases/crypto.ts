@@ -19,8 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
-import type { } from "@/lib/i18n/types";
-
+import type {} from "@/lib/i18n/types";
 
 import {
   get_or_create_derived_encryption_crypto_key,
@@ -29,9 +28,9 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
-
 import { DecryptedEmailAlias, EmailAlias } from "./types";
 import { parse_websites_payload } from "./website";
+
 import { ignore_error } from "@/lib/ignore_error";
 
 export function array_to_base64(array: Uint8Array): string {
@@ -212,6 +211,7 @@ export async function decrypt_alias(
       note,
       websites,
       alias_address_hash: alias.alias_address_hash,
+      routing_address_hash: alias.routing_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
@@ -282,6 +282,7 @@ export async function decrypt_alias(
       note,
       websites,
       alias_address_hash: alias.alias_address_hash,
+      routing_address_hash: alias.routing_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
@@ -300,6 +301,7 @@ export async function decrypt_alias(
       id: alias.id,
       local_part: "",
       alias_address_hash: alias.alias_address_hash,
+      routing_address_hash: alias.routing_address_hash,
       domain: alias.domain,
       full_address: `@${alias.domain}`,
       is_enabled: alias.is_enabled,
@@ -342,4 +344,3 @@ export async function decrypt_aliases(
 
   return decrypted;
 }
-
