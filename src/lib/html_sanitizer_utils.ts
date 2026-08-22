@@ -242,6 +242,10 @@ export function neutralize_unterminated_comments(html: string): string {
   return result + html.slice(cursor);
 }
 
+export function repair_comment_markup(html: string): string {
+  return neutralize_unterminated_comments(strip_mso_conditionals(html));
+}
+
 function strip_attribute_markup(value: string): string {
   if (value.indexOf("<") === -1) return value;
 

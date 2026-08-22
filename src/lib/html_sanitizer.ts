@@ -36,10 +36,10 @@ export { is_transparent_color_value } from "./html_sanitizer_css";
 import {
   is_tracking_pixel,
   strip_tracking_params,
-  strip_mso_conditionals,
-  neutralize_unterminated_comments,
+  repair_comment_markup,
   sanitize_attribute,
 } from "./html_sanitizer_utils";
+export { repair_comment_markup } from "./html_sanitizer_utils";
 export {
   is_html_content,
   strip_quoted_sections,
@@ -373,9 +373,7 @@ function sanitize_html_impl(
     }
   }
 
-  const preprocessed = neutralize_unterminated_comments(
-    strip_mso_conditionals(html),
-  );
+  const preprocessed = repair_comment_markup(html);
 
   const head_styles: string[] = [];
   const head_match = sandbox_mode

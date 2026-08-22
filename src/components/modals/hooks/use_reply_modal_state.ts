@@ -78,7 +78,11 @@ import {
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
-import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import {
+  sanitize_html,
+  sanitize_outgoing_html,
+  repair_comment_markup,
+} from "@/lib/html_sanitizer";
 import { inline_email_css } from "@/lib/forward_css_inliner";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { fetch_my_badges } from "@/services/api/user";
@@ -501,7 +505,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       if (for_display) {
         const plain_body = (() => {
           const doc = new DOMParser().parseFromString(
-            original_body,
+            repair_comment_markup(original_body),
             "text/html",
           );
 

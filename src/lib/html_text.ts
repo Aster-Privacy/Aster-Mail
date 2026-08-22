@@ -20,6 +20,7 @@
 //
 import { is_transparent_color_value } from "./html_sanitizer_css";
 import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
+import { repair_comment_markup } from "./html_sanitizer_utils";
 
 export function is_html_content(content: string): boolean {
   if (!content || typeof content !== "string") {
@@ -163,7 +164,10 @@ export function html_to_readable_plain_text(
   let doc: Document;
 
   try {
-    doc = new DOMParser().parseFromString(html, "text/html");
+    doc = new DOMParser().parseFromString(
+      repair_comment_markup(html),
+      "text/html",
+    );
   } catch {
     return strip_html_tags(html);
   }
@@ -281,7 +285,10 @@ export function strip_html_tags(html: string): string {
   let doc: Document;
 
   try {
-    doc = new DOMParser().parseFromString(html, "text/html");
+    doc = new DOMParser().parseFromString(
+      repair_comment_markup(html),
+      "text/html",
+    );
   } catch {
     return "";
   }

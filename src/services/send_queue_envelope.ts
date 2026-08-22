@@ -28,6 +28,7 @@ import { get_passphrase_bytes, get_vault_from_memory } from "./crypto/memory_key
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { plain_text_to_html } from "./send_queue_recipients";
 import { SendError, create_error, type EnvelopeData, type MailEnvelope, type QueuedEmailInternal } from "./send_queue_types";
+import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 
 const HTML_TAG_PROBE = /<[a-z][\s\S]*>/i;
 
@@ -62,7 +63,10 @@ export async function create_sent_envelope(
         let doc: Document;
 
         try {
-          doc = new DOMParser().parseFromString(email.body, "text/html");
+          doc = new DOMParser().parseFromString(
+            repair_comment_markup(email.body),
+            "text/html",
+          );
         } catch {
           return "";
         }

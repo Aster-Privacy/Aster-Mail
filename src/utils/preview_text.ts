@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
+import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 
 export const PREVIEW_SOURCE_CHAR_CAP = 600;
 
@@ -206,7 +207,10 @@ export function extract_preheader_text(html: string): string {
   let doc: Document;
 
   try {
-    doc = new DOMParser().parseFromString(cleaned, "text/html");
+    doc = new DOMParser().parseFromString(
+      repair_comment_markup(cleaned),
+      "text/html",
+    );
   } catch {
     return "";
   }

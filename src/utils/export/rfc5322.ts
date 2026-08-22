@@ -37,6 +37,7 @@ import {
   quoted_printable_encode,
 } from "./mime_encoders";
 import { safe_boundary_for } from "./boundary";
+import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 
 export interface ExportAttachment {
   filename: string;
@@ -79,7 +80,10 @@ function emit_text_body(text: string, encoding: "7bit" | "quoted-printable"): Ui
 }
 
 function html_to_text_fallback(html: string): string {
-  const doc = new DOMParser().parseFromString(html, "text/html");
+  const doc = new DOMParser().parseFromString(
+    repair_comment_markup(html),
+    "text/html",
+  );
   doc.querySelectorAll("script, style").forEach((el) => el.remove());
   doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
   doc.querySelectorAll("p, div, li, h1, h2, h3, h4, h5, h6").forEach((el) =>
