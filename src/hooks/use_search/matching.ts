@@ -393,6 +393,8 @@ export function to_search_result(
     is_starred: metadata?.is_starred ?? false,
     has_attachment: metadata?.has_attachments ?? false,
     item_type: item.item_type,
+    thread_token: item.thread_token,
+    thread_message_count: item.thread_message_count,
     folders: [
       ...(item.labels || []).map((l) => ({
         folder_token: l.token,

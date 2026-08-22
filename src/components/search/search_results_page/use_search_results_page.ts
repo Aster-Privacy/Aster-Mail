@@ -41,6 +41,10 @@ import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
+import {
+  group_search_results,
+  expand_thread_ids,
+} from "./thread_grouping";
 
 export function use_search_results_page(props: SearchResultsPageProps) {
   const { query, on_result_click, split_email_id, on_split_close } = props;
@@ -65,6 +69,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   const [bulk_busy, set_bulk_busy] = useState(false);
   const [is_slow, set_is_slow] = useState(false);
   const content_search_enabled = preferences.search_encrypted_content;
+  const conversation_grouping = preferences.conversation_grouping !== false;
 
   const [filters, set_filters] = useState<SearchFiltersState>({
     date_range: "any",
@@ -245,13 +250,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       });
     }
 
-    return results.map((r) => ({
+    const dated = results.map((r) => ({
       ...r,
       raw_timestamp: r.timestamp,
       timestamp: format_email_list(new Date(r.timestamp)),
-      is_selected: selected_ids.has(r.id),
     }));
+    const grouped = group_search_results(dated, conversation_grouping);
+
+    return grouped.map((r) => ({ ...r, is_selected: selected_ids.has(r.id) }));
   }, [
+    conversation_grouping,
     state.results,
     filters.read_status,
     filters.exclude_social,
@@ -307,6 +315,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   }, [query]);
 
   const shift_ref = use_shift_key_ref();
+  const filtered_results_ref = useRef(filtered_results);
+
+  filtered_results_ref.current = filtered_results;
+
+  const expand_selection = useCallback(
+    (ids: string[]): string[] =>
+      expand_thread_ids(filtered_results_ref.current, ids),
+    [],
+  );
+
   const last_selected_id_ref = useRef<string | null>(null);
   const paged_results_ref = useRef(paged_results);
 
@@ -444,7 +462,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   }, []);
 
   const handle_bulk_archive = useCallback(async () => {
-    const ids = Array.from(selected_ids);
+    const ids = expand_selection(Array.from(selected_ids));
 
     if (ids.length === 0 || bulk_busy) return;
     set_bulk_busy(true);
@@ -468,7 +486,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   ]);
 
   const handle_bulk_delete = useCallback(async () => {
-    const ids = Array.from(selected_ids);
+    const ids = expand_selection(Array.from(selected_ids));
 
     if (ids.length === 0 || bulk_busy) return;
     set_bulk_busy(true);
@@ -493,7 +511,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
   const run_bulk = useCallback(
     async (fn: (emails: InboxEmail[]) => Promise<unknown>) => {
-      const ids = Array.from(selected_ids);
+      const ids = expand_selection(Array.from(selected_ids));
 
       if (ids.length === 0 || bulk_busy) return;
       set_bulk_busy(true);

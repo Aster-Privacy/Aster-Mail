@@ -75,6 +75,9 @@ export interface SearchResultItem {
   has_attachment: boolean;
   avatar_url?: string;
   item_type?: string;
+  thread_token?: string;
+  thread_message_count?: number;
+  grouped_email_ids?: string[];
   folders?: { folder_token: string; name: string }[];
 }
 

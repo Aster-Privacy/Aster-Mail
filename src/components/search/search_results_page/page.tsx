@@ -192,7 +192,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
       if (!target) return;
 
-      const emails = await fetch_as_minimal_emails([target.id]);
+      const emails = await fetch_as_minimal_emails(
+        (target.grouped_email_ids?.length ?? 0) > 1
+          ? (target.grouped_email_ids as string[])
+          : [target.id],
+      );
 
       if (emails.length === 0) return;
 
