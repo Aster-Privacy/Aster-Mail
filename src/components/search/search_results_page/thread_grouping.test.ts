@@ -20,7 +20,11 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { group_search_results, expand_thread_ids } from "./thread_grouping";
+import {
+  group_search_results,
+  expand_thread_ids,
+  search_row_key,
+} from "./thread_grouping";
 
 interface Row {
   id: string;
@@ -115,5 +119,39 @@ describe("expand_thread_ids", () => {
       "b",
       "c",
     ]);
+  });
+});
+
+describe("keeping a search row stable while results stream in", () => {
+  const early: Row[] = [
+    { id: "b", subject: "Trip", thread_token: "t1", raw_timestamp: "2026-08-01T09:00:00Z" },
+  ];
+  const later: Row[] = [
+    { id: "b", subject: "Trip", thread_token: "t1", raw_timestamp: "2026-08-01T09:00:00Z" },
+    { id: "c", subject: "Trip", thread_token: "t1", raw_timestamp: "2026-08-01T18:00:00Z" },
+  ];
+
+  it("promotes the newest message onto the representative row", () => {
+    expect(group_search_results(early, true)[0].id).toBe("b");
+    expect(group_search_results(later, true)[0].id).toBe("c");
+  });
+
+  it("gives that row the same key before and after the promotion", () => {
+    const first = search_row_key(group_search_results(early, true)[0], true);
+    const second = search_row_key(group_search_results(later, true)[0], true);
+
+    expect(first).toBe(second);
+  });
+
+  it("keys every row by its own id when grouping is off", () => {
+    const keys = group_search_results(later, false).map((row) =>
+      search_row_key(row, false),
+    );
+
+    expect(keys).toEqual(["b", "c"]);
+  });
+
+  it("falls back to the id when a result carries no thread token", () => {
+    expect(search_row_key({ id: "solo", subject: "Solo" }, true)).toBe("solo");
   });
 });

@@ -40,6 +40,15 @@ export function group_search_results<T extends ThreadableResult>(
   ) as unknown as T[];
 }
 
+export function search_row_key<T extends ThreadableResult>(
+  result: T,
+  conversation_grouping: boolean,
+): string {
+  if (!conversation_grouping) return result.id;
+
+  return result.thread_token || result.id;
+}
+
 export function expand_thread_ids<T extends ThreadableResult>(
   results: T[],
   ids: string[],

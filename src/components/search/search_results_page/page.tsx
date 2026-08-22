@@ -42,6 +42,7 @@ import {
   extract_snippet,
 } from "./helpers";
 import { use_search_results_page } from "./use_search_results_page";
+import { search_row_key } from "./thread_grouping";
 
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { InboxHeader } from "@/components/inbox/inbox_header";
@@ -370,12 +371,19 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
             return (
               <InboxEmailListItem
-                key={email.id}
+                key={search_row_key(
+                  email,
+                  preferences.conversation_grouping !== false,
+                )}
                 className="border-b border-edge-secondary"
                 current_view="search"
                 density={resolve_list_density(preferences.mail_list_density)}
                 email={email as InboxEmail}
-                is_active={email.id === split_email_id}
+                is_active={
+                  !!split_email_id &&
+                  (email.id === split_email_id ||
+                    (email.grouped_email_ids?.includes(split_email_id) ?? false))
+                }
                 on_email_click={handle_email_click}
                 on_toggle_select={handle_toggle_select}
                 search_preview_node={
