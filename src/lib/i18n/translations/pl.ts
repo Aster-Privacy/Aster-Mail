@@ -4871,6 +4871,8 @@ export const pl = {
       "Ulepsz swój plan lub kup dodatkowe miejsce, aby chronić swoją prywatność.",
     billing_banner_cta: "Poznaj opcje",
     storage_addons: "Dodatkowe miejsce",
+    storage_addons_monthly_note:
+      "Dodatkowa przestrzeń jest rozliczana co miesiąc, nawet jeśli plan rozliczasz rocznie.",
     storage_addons_description:
       "Potrzebujesz więcej miejsca? Kup dodatkowe szyfrowane miejsce dla swojego konta.",
     per_month_short: "/mies.",
@@ -4895,6 +4897,15 @@ export const pl = {
     addon_purchase_success: "Przekierowywanie do kasy...",
     addon_checkout_opened: "Dokończ zakup w nowej karcie.",
     plan_recommended: "Rekomendowane",
+    plan_top_tier_title: "Masz najwyższy plan",
+    plan_top_tier_note:
+      "{{plan}} zawiera najwięcej miejsca ze wszystkich planów. Jeśli potrzebujesz więcej miejsca, możesz dodać dodatkową przestrzeń.",
+    plan_add_storage_link: "Dodaj więcej miejsca",
+    plan_current_title: "Masz plan {{plan}}",
+    plan_current_note:
+      "Wykorzystano {{percent}}% miejsca, więc masz go jeszcze sporo.",
+    plan_storage_tight_note:
+      "Wykorzystano {{percent}}% miejsca. {{plan}} daje więcej przestrzeni.",
     per_year_short: "/rok",
     save_yearly: "Oszczędź {{amount}}",
     billing_monthly: "Miesięcznie",

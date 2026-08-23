@@ -4844,6 +4844,8 @@ export const ja = {
     billing_banner_title: "Aster でもっと便利に",
     billing_banner_cta: "オプションを見る",
     storage_addons: "追加ストレージ",
+    storage_addons_monthly_note:
+      "追加ストレージは、プランが年払いの場合でも月ごとに請求されます。",
     storage_addons_description:
       "もっとスペースが必要ですか？アカウントに追加の暗号化ストレージを購入できます。",
     storage_purchase_coming_soon:
@@ -4868,6 +4870,15 @@ export const ja = {
     addon_purchase_success: "チェックアウトにリダイレクトしています...",
     addon_checkout_opened: "新しいタブで購入を完了してください。",
     plan_recommended: "おすすめ",
+    plan_top_tier_title: "最上位プランをご利用中です",
+    plan_top_tier_note:
+      "{{plan}}はすべてのプランの中で最大の容量を含みます。さらに容量が必要な場合は、追加ストレージを購入できます。",
+    plan_add_storage_link: "ストレージを追加",
+    plan_current_title: "{{plan}}をご利用中です",
+    plan_current_note:
+      "ストレージの{{percent}}%を使用しています。まだ十分な空きがあります。",
+    plan_storage_tight_note:
+      "ストレージの{{percent}}%を使用しています。{{plan}}ならもっと余裕があります。",
     per_year_short: "/年",
     save_yearly: "{{amount}}お得",
     billing_monthly: "月払い",

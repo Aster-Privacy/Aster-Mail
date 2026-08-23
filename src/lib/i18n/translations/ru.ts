@@ -4827,6 +4827,8 @@ export const ru = {
     billing_banner_title: "Откройте больше возможностей с Aster",
     billing_banner_cta: "Изучить варианты",
     storage_addons: "Дополнительное хранилище",
+    storage_addons_monthly_note:
+      "Дополнительное хранилище оплачивается ежемесячно, даже если тариф оплачивается ежегодно.",
     per_month_short: "/мес",
     add_storage: "Добавить хранилище",
     popular: "Популярный",
@@ -4845,6 +4847,15 @@ export const ru = {
     addon_purchase_success: "Перенаправление на оплату...",
     addon_checkout_opened: "Завершите покупку в новой вкладке.",
     plan_recommended: "Рекомендуемый",
+    plan_top_tier_title: "У вас самый высокий тарифный план",
+    plan_top_tier_note:
+      "{{plan}} включает максимальный объём хранилища среди всех тарифов. Если нужно больше места, можно добавить дополнительное хранилище.",
+    plan_add_storage_link: "Добавить хранилище",
+    plan_current_title: "У вас тариф {{plan}}",
+    plan_current_note:
+      "Использовано {{percent}}% хранилища, свободного места ещё достаточно.",
+    plan_storage_tight_note:
+      "Использовано {{percent}}% хранилища. {{plan}} даёт больше места.",
     per_year_short: "/год",
     save_yearly: "Экономия {{amount}}",
     billing_monthly: "Ежемесячно",

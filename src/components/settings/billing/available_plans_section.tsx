@@ -41,6 +41,8 @@ import {
   is_crypto_provider,
   type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
+import { compute_plan_recommendation } from "@/components/settings/billing/plan_recommendation";
+import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
@@ -48,29 +50,39 @@ import { create_family_group } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
-function Tabs<T extends string>({ value, options, on_change }: SegmentedProps<T>) {
+function Tabs<T extends string>({
+  value,
+  options,
+  on_change,
+}: SegmentedProps<T>) {
   return (
     <div className="max-w-full overflow-x-auto scrollbar-hide">
       <div className="inline-flex items-center gap-4 sm:gap-8 flex-wrap justify-center border-b border-edge-secondary">
-      {options.map((opt) => {
-        const active = value === opt.id;
-        return (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => on_change(opt.id)}
-            className={`relative shrink-0 px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
-              active ? "text-txt-primary" : "text-txt-muted hover:text-txt-secondary"
-            }`}
-          >
-            {opt.label}
-            <span
-              className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full transition-opacity"
-              style={{ backgroundColor: "var(--accent-blue)", opacity: active ? 1 : 0 }}
-            />
-          </button>
-        );
-      })}
+        {options.map((opt) => {
+          const active = value === opt.id;
+
+          return (
+            <button
+              key={opt.id}
+              className={`relative shrink-0 px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
+                active
+                  ? "text-txt-primary"
+                  : "text-txt-muted hover:text-txt-secondary"
+              }`}
+              type="button"
+              onClick={() => on_change(opt.id)}
+            >
+              {opt.label}
+              <span
+                className="absolute start-0 end-0 -bottom-px h-0.5 rounded-full transition-opacity"
+                style={{
+                  backgroundColor: "var(--accent-blue)",
+                  opacity: active ? 1 : 0,
+                }}
+              />
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -86,7 +98,10 @@ interface AvailablePlansSectionProps {
   plan_features: Record<string, { label: string; on: boolean }[]>;
   is_action_loading: boolean;
   on_upgrade: (plan: AvailablePlan) => void;
-  on_family_plan_change?: (plan_code: string, interval: "month" | "year") => void;
+  on_family_plan_change?: (
+    plan_code: string,
+    interval: "month" | "year",
+  ) => void;
   on_tauri_checkout_opened?: () => void;
   current_billing_interval: "month" | "year";
 }
@@ -109,10 +124,14 @@ export function AvailablePlansSection({
 
   use_currency_rates();
 
-  const [plan_type, set_plan_type] = useState<"individual" | "family">("individual");
+  const [plan_type, set_plan_type] = useState<"individual" | "family">(
+    "individual",
+  );
   const [family_loading, set_family_loading] = useState(false);
-  const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
-  const [crypto_family_tier, set_crypto_family_tier] = useState<FamilyPlanTier | null>(null);
+  const [pending_family_tier, set_pending_family_tier] =
+    useState<FamilyPlanTier | null>(null);
+  const [crypto_family_tier, set_crypto_family_tier] =
+    useState<FamilyPlanTier | null>(null);
 
   const handle_family_select = (tier: FamilyPlanTier) => {
     set_pending_family_tier(tier);
@@ -121,7 +140,9 @@ export function AvailablePlansSection({
   const handle_family_card = async () => {
     if (!pending_family_tier) return;
     const tier = pending_family_tier;
-    const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
+    const card_interval: "month" | "year" =
+      billing_period === "yearly" ? "year" : "month";
+
     set_pending_family_tier(null);
 
     const has_existing_sub =
@@ -132,24 +153,31 @@ export function AvailablePlansSection({
 
     if (has_existing_sub && on_family_plan_change) {
       on_family_plan_change(tier.id, card_interval);
+
       return;
     }
 
     set_family_loading(true);
     try {
-      const is_tauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-      const origin = is_tauri ? "https://app.astermail.org" : window.location.origin;
+      const is_tauri =
+        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const origin = is_tauri
+        ? "https://app.astermail.org"
+        : window.location.origin;
       const res = await create_family_group(
         tier.id,
         card_interval,
         `${origin}/?family=success`,
         `${origin}/?family=cancelled`,
       );
+
       if (res.data?.checkout_url) {
         const parsed = new URL(res.data.checkout_url);
+
         if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
         if (is_tauri) {
           const core = await import("@tauri-apps/api/core");
+
           await core.invoke("open_external_url", { url: parsed.toString() });
           on_tauri_checkout_opened?.();
         } else {
@@ -171,8 +199,27 @@ export function AvailablePlansSection({
     set_pending_family_tier(null);
   };
 
-  const card_interval: "month" | "year" = billing_period === "yearly" ? "year" : "month";
+  const card_interval: "month" | "year" =
+    billing_period === "yearly" ? "year" : "month";
   const period_label = t("settings.per_month_short");
+  const recommendation = compute_plan_recommendation({
+    current_plan_code: subscription?.plan.code,
+    storage_used_bytes: subscription?.storage?.used_bytes,
+    storage_limit_bytes: subscription?.storage?.total_limit_bytes,
+  });
+  const current_plan_name =
+    [...PLAN_TIERS, ...FAMILY_PLAN_TIERS].find(
+      (tier) => tier.id === subscription?.plan.code,
+    )?.name ??
+    subscription?.plan.name ??
+    null;
+  const recommended_tier_name =
+    [...PLAN_TIERS, ...FAMILY_PLAN_TIERS].find(
+      (tier) =>
+        tier.id ===
+        (recommendation.recommended_plan_code ??
+          recommendation.recommended_family_plan_code),
+    )?.name ?? null;
 
   return (
     <div className="pt-4" id="available-plans">
@@ -186,20 +233,20 @@ export function AvailablePlansSection({
 
       <div className="flex flex-col items-center gap-4 mb-4">
         <Tabs
-          value={plan_type}
           on_change={set_plan_type}
           options={[
             { id: "individual", label: t("settings.plan_type_individual") },
             { id: "family", label: t("settings.plan_type_family") },
           ]}
+          value={plan_type}
         />
         <Segmented
-          value={billing_period === "yearly" ? "yearly" : "monthly"}
           on_change={(v) => set_billing_period(v)}
           options={[
             { id: "monthly", label: t("settings.billing_monthly") },
             { id: "yearly", label: t("settings.billing_yearly") },
           ]}
+          value={billing_period === "yearly" ? "yearly" : "monthly"}
         />
       </div>
 
@@ -222,41 +269,119 @@ export function AvailablePlansSection({
         </select>
       </div>
 
+      {recommendation.is_paid && current_plan_name && (
+        <div className="mb-5 rounded-xl border border-edge-secondary bg-surf-tertiary px-4 py-3">
+          <div className="flex items-start gap-3">
+            <SparklesIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-txt-primary" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-txt-primary">
+                {recommendation.is_top_tier
+                  ? t("settings.plan_top_tier_title")
+                  : t("settings.plan_current_title", {
+                      plan: current_plan_name,
+                    })}
+              </p>
+              <p className="mt-1 text-xs text-txt-secondary">
+                {recommendation.is_top_tier
+                  ? t("settings.plan_top_tier_note", {
+                      plan: current_plan_name,
+                    })
+                  : recommendation.storage_is_tight && recommended_tier_name
+                    ? t("settings.plan_storage_tight_note", {
+                        percent: Math.round(recommendation.storage_percent),
+                        plan: recommended_tier_name,
+                      })
+                    : t("settings.plan_current_note", {
+                        percent: Math.round(recommendation.storage_percent),
+                      })}
+              </p>
+              <button
+                className="mt-2 text-xs font-semibold hover:underline"
+                style={{ color: "var(--accent-blue)" }}
+                type="button"
+                onClick={scroll_to_storage_addons}
+              >
+                {t("settings.plan_add_storage_link")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {plan_type === "family" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
           {FAMILY_PLAN_TIERS.map((tier) => {
             const is_same_plan = subscription?.plan.code === tier.id;
-            const is_current = is_same_plan && current_billing_interval === card_interval;
-            const is_interval_switch = is_same_plan && current_billing_interval !== card_interval;
+            const is_current =
+              is_same_plan && current_billing_interval === card_interval;
+            const is_interval_switch =
+              is_same_plan && current_billing_interval !== card_interval;
             const price_cents =
-              billing_period === "yearly" ? Math.round(tier.yearly_cents / 12) : tier.monthly_cents;
-            const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
+              billing_period === "yearly"
+                ? Math.round(tier.yearly_cents / 12)
+                : tier.monthly_cents;
+            const features =
+              tier.max_members === 2
+                ? FAMILY_PLAN_DUO_FEATURES
+                : FAMILY_PLAN_FAMILY_FEATURES;
 
             return (
               <PlanCard
                 key={tier.id}
-                name={tier.name}
-                description={tier.description}
-                price_label={format_price(convert_cents(price_cents, preferred_currency), preferred_currency)}
-                period_label={period_label}
-                anchor_label={billing_period === "yearly"
-                  ? format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)
-                  : null}
-                save_label={billing_period === "yearly"
-                  ? t("settings.save_percent", { percent: Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100) })
-                  : null}
-                billed_note={billing_period === "yearly" ? t("settings.billed_annually") : null}
-                badge={!!tier.is_recommended && !is_current ? t("settings.plan_recommended") : null}
-                featured={!!tier.is_recommended}
-                is_current={is_current}
-                cta_label={is_current
-                  ? t("settings.current_plan")
-                  : is_interval_switch
-                    ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
-                    : t("settings.get_plan", { name: tier.name })}
+                anchor_label={
+                  billing_period === "yearly"
+                    ? format_price(
+                        convert_cents(tier.monthly_cents, preferred_currency),
+                        preferred_currency,
+                      )
+                    : null
+                }
+                badge={
+                  recommendation.recommended_family_plan_code === tier.id &&
+                  !is_current
+                    ? t("settings.plan_recommended")
+                    : null
+                }
+                billed_note={
+                  billing_period === "yearly"
+                    ? t("settings.billed_annually")
+                    : null
+                }
                 cta_disabled={is_action_loading || family_loading || is_current}
-                on_cta={() => { if (!is_current) handle_family_select(tier); }}
+                cta_label={
+                  is_current
+                    ? t("settings.current_plan")
+                    : is_interval_switch
+                      ? card_interval === "year"
+                        ? t("settings.switch_to_yearly")
+                        : t("settings.switch_to_monthly")
+                      : t("settings.get_plan", { name: tier.name })
+                }
+                description={tier.description}
+                featured={
+                  recommendation.recommended_family_plan_code === tier.id
+                }
                 features={features}
+                is_current={is_current}
+                name={tier.name}
+                on_cta={() => {
+                  if (!is_current) handle_family_select(tier);
+                }}
+                period_label={period_label}
+                price_label={format_price(
+                  convert_cents(price_cents, preferred_currency),
+                  preferred_currency,
+                )}
+                save_label={
+                  billing_period === "yearly"
+                    ? t("settings.save_percent", {
+                        percent: Math.round(
+                          (1 - tier.yearly_cents / (tier.monthly_cents * 12)) *
+                            100,
+                        ),
+                      })
+                    : null
+                }
               />
             );
           })}
@@ -291,18 +416,69 @@ export function AvailablePlansSection({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3">
           {PLAN_TIERS.map((tier, tier_index) => {
             const current_plan_code = subscription?.plan.code;
-            const current_tier_index = PLAN_TIERS.findIndex((p) => p.id === current_plan_code);
+            const current_tier_index = PLAN_TIERS.findIndex(
+              (p) => p.id === current_plan_code,
+            );
             const is_same_plan = current_plan_code === tier.id;
-            const is_current = is_same_plan && current_billing_interval === card_interval;
-            const is_interval_switch = is_same_plan && current_billing_interval !== card_interval;
+            const is_current =
+              is_same_plan && current_billing_interval === card_interval;
+            const is_interval_switch =
+              is_same_plan && current_billing_interval !== card_interval;
             const is_downgrade =
-              !is_same_plan && current_tier_index > -1 && tier_index < current_tier_index;
+              !is_same_plan &&
+              current_tier_index > -1 &&
+              tier_index < current_tier_index;
 
             return (
               <PlanCard
                 key={tier.id}
-                name={tier.name}
+                anchor_label={
+                  billing_period === "yearly"
+                    ? format_price(
+                        convert_cents(tier.monthly_cents, preferred_currency),
+                        preferred_currency,
+                      )
+                    : null
+                }
+                badge={
+                  recommendation.recommended_plan_code === tier.id &&
+                  !is_current
+                    ? t("settings.plan_recommended")
+                    : null
+                }
+                billed_note={
+                  billing_period === "yearly"
+                    ? t("settings.billed_annually")
+                    : null
+                }
+                cta_disabled={is_action_loading || is_current}
+                cta_label={
+                  is_current
+                    ? t("settings.current_plan")
+                    : is_interval_switch
+                      ? card_interval === "year"
+                        ? t("settings.switch_to_yearly")
+                        : t("settings.switch_to_monthly")
+                      : is_downgrade
+                        ? t("settings.downgrade")
+                        : t("settings.get_plan", { name: tier.name })
+                }
                 description={tier.description}
+                featured={recommendation.recommended_plan_code === tier.id}
+                features={plan_features[tier.id] ?? []}
+                is_current={is_current}
+                name={tier.name}
+                on_cta={() => {
+                  if (is_current) return;
+                  const api_plan = plans.find((p) => p.code === tier.id);
+
+                  if (api_plan) {
+                    on_upgrade(api_plan);
+                  } else {
+                    show_toast(t("settings.plans_coming_soon"), "info");
+                  }
+                }}
+                period_label={period_label}
                 price_label={format_price(
                   convert_cents(
                     billing_period === "monthly"
@@ -312,33 +488,16 @@ export function AvailablePlansSection({
                   ),
                   preferred_currency,
                 )}
-                period_label={period_label}
-                anchor_label={billing_period === "yearly"
-                  ? format_price(convert_cents(tier.monthly_cents, preferred_currency), preferred_currency)
-                  : null}
-                save_label={billing_period === "yearly"
-                  ? t("settings.save_percent", { percent: Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100) })
-                  : null}
-                billed_note={billing_period === "yearly" ? t("settings.billed_annually") : null}
-                badge={!!tier.is_recommended && !is_current ? t("settings.plan_recommended") : null}
-                featured={!!tier.is_recommended}
-                is_current={is_current}
-                cta_label={is_current
-                  ? t("settings.current_plan")
-                  : is_interval_switch
-                    ? (card_interval === "year" ? t("settings.switch_to_yearly") : t("settings.switch_to_monthly"))
-                    : is_downgrade ? t("settings.downgrade") : t("settings.get_plan", { name: tier.name })}
-                cta_disabled={is_action_loading || is_current}
-                on_cta={() => {
-                  if (is_current) return;
-                  const api_plan = plans.find((p) => p.code === tier.id);
-                  if (api_plan) {
-                    on_upgrade(api_plan);
-                  } else {
-                    show_toast(t("settings.plans_coming_soon"), "info");
-                  }
-                }}
-                features={plan_features[tier.id] ?? []}
+                save_label={
+                  billing_period === "yearly"
+                    ? t("settings.save_percent", {
+                        percent: Math.round(
+                          (1 - tier.yearly_cents / (tier.monthly_cents * 12)) *
+                            100,
+                        ),
+                      })
+                    : null
+                }
               />
             );
           })}

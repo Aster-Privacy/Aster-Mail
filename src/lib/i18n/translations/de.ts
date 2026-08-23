@@ -4872,6 +4872,8 @@ export const de = {
       "Erweitern Sie Ihren Tarif oder erwerben Sie zusätzlichen Speicher, um Ihre Privatsphäre zu schützen.",
     billing_banner_cta: "Optionen erkunden",
     storage_addons: "Zusätzlicher Speicher",
+    storage_addons_monthly_note:
+      "Zusätzlicher Speicher wird monatlich abgerechnet, auch wenn dein Tarif jährlich abgerechnet wird.",
     storage_addons_description:
       "Mehr Platz benötigt? Erwerben Sie zusätzlichen verschlüsselten Speicher für Ihr Konto.",
     per_month_short: "/Mo.",
@@ -4896,6 +4898,15 @@ export const de = {
     addon_purchase_success: "Weiterleitung zur Kasse...",
     addon_checkout_opened: "Schließen Sie Ihren Kauf im neuen Tab ab.",
     plan_recommended: "Empfohlen",
+    plan_top_tier_title: "Du hast den höchsten Tarif",
+    plan_top_tier_note:
+      "{{plan}} bietet den größten Speicher aller Tarife. Wenn du mehr Platz brauchst, kannst du zusätzlichen Speicher hinzufügen.",
+    plan_add_storage_link: "Mehr Speicher hinzufügen",
+    plan_current_title: "Du nutzt {{plan}}",
+    plan_current_note:
+      "Du hast {{percent}}% deines Speichers belegt und hast noch reichlich Platz.",
+    plan_storage_tight_note:
+      "Du hast {{percent}}% deines Speichers belegt. {{plan}} bietet dir mehr Platz.",
     per_year_short: "/Jahr",
     save_yearly: "{{amount}} sparen",
     billing_monthly: "Monatlich",

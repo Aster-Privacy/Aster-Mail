@@ -61,8 +61,11 @@ export function StorageAddonsSection({
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
-      <p className="text-sm mb-3 text-txt-muted">
+      <p className="text-sm mb-1 text-txt-muted">
         {t("settings.storage_addons_description")}
+      </p>
+      <p className="text-xs mb-3 text-txt-muted">
+        {t("settings.storage_addons_monthly_note")}
       </p>
 
       {active_addons.length > 0 && (

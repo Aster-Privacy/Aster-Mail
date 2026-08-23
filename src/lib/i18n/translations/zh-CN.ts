@@ -4394,6 +4394,7 @@ export const zh_CN = {
     billing_banner_subtitle: "升级套餐或购买额外存储空间，持续保护您的隐私。",
     billing_banner_cta: "探索选项",
     storage_addons: "额外存储空间",
+    storage_addons_monthly_note: "即使你的方案按年计费，额外存储也按月计费。",
     storage_addons_description:
       "需要更多空间？为您的账户购买额外的加密存储空间。",
     per_month_short: "/月",
@@ -4417,6 +4418,14 @@ export const zh_CN = {
     addon_purchase_success: "正在跳转到结账页面...",
     addon_checkout_opened: "请在新标签页中完成购买。",
     plan_recommended: "推荐",
+    plan_top_tier_title: "你已使用最高级方案",
+    plan_top_tier_note:
+      "{{plan}} 包含所有方案中最大的存储空间。如果需要更多空间，可以添加额外存储。",
+    plan_add_storage_link: "添加更多存储",
+    plan_current_title: "你正在使用 {{plan}}",
+    plan_current_note: "你已使用 {{percent}}% 的存储空间，空间仍然充足。",
+    plan_storage_tight_note:
+      "你已使用 {{percent}}% 的存储空间。{{plan}} 可提供更多空间。",
     per_year_short: "/年",
     save_yearly: "节省{{amount}}",
     billing_monthly: "月付",

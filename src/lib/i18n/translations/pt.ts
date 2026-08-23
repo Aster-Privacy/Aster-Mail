@@ -4843,6 +4843,8 @@ export const pt = {
     billing_banner_title: "Desbloqueie mais com o Aster",
     billing_banner_cta: "Explorar opções",
     storage_addons: "Armazenamento adicional",
+    storage_addons_monthly_note:
+      "O armazenamento adicional é cobrado mensalmente, mesmo que seu plano seja cobrado anualmente.",
     per_month_short: "/mês",
     add_storage: "Adicionar armazenamento",
     popular: "Mais popular",
@@ -4861,6 +4863,15 @@ export const pt = {
     addon_purchase_success: "Redirecionando para o checkout...",
     addon_checkout_opened: "Conclua sua compra na nova aba.",
     plan_recommended: "Recomendado",
+    plan_top_tier_title: "Você está no plano mais alto",
+    plan_top_tier_note:
+      "{{plan}} inclui o maior armazenamento de todos os planos. Se precisar de mais espaço, pode adicionar armazenamento extra.",
+    plan_add_storage_link: "Adicionar mais armazenamento",
+    plan_current_title: "Você está no {{plan}}",
+    plan_current_note:
+      "Você usou {{percent}}% do seu armazenamento, então ainda tem espaço de sobra.",
+    plan_storage_tight_note:
+      "Você usou {{percent}}% do seu armazenamento. {{plan}} oferece mais espaço.",
     per_year_short: "/ano",
     save_yearly: "Economize {{amount}}",
     billing_monthly: "Mensal",

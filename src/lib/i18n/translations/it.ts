@@ -3783,6 +3783,8 @@ export const it = {
       "Aggiorna il tuo piano o acquista spazio aggiuntivo per mantenere la tua privacy protetta.",
     billing_banner_cta: "Esplora le opzioni",
     storage_addons: "Spazio aggiuntivo",
+    storage_addons_monthly_note:
+      "Lo spazio aggiuntivo viene fatturato ogni mese, anche se il tuo piano è fatturato ogni anno.",
     storage_addons_description:
       "Hai bisogno di più spazio? Acquista spazio crittografato aggiuntivo per il tuo account.",
     per_month_short: "/mese",
@@ -3807,6 +3809,15 @@ export const it = {
     addon_purchase_success: "Reindirizzamento al pagamento...",
     addon_checkout_opened: "Completa l'acquisto nella nuova scheda.",
     plan_recommended: "Consigliato",
+    plan_top_tier_title: "Hai il piano più alto",
+    plan_top_tier_note:
+      "{{plan}} include lo spazio di archiviazione più ampio tra tutti i piani. Se ti serve più spazio, puoi aggiungere spazio extra.",
+    plan_add_storage_link: "Aggiungi spazio",
+    plan_current_title: "Hai {{plan}}",
+    plan_current_note:
+      "Hai usato il {{percent}}% del tuo spazio, quindi hai ancora spazio in abbondanza.",
+    plan_storage_tight_note:
+      "Hai usato il {{percent}}% del tuo spazio. {{plan}} ti offre più spazio.",
     per_year_short: "/anno",
     save_yearly: "Risparmia {{amount}}",
     billing_monthly: "Mensile",

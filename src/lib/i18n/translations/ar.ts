@@ -4721,6 +4721,8 @@ export const ar = {
       "قم بترقية خطتك أو شراء مساحة تخزين إضافية للحفاظ على خصوصيتك محمية.",
     billing_banner_cta: "استكشاف الخيارات",
     storage_addons: "تخزين إضافي",
+    storage_addons_monthly_note:
+      "تتم فوترة التخزين الإضافي شهريًا، حتى إذا كانت خطتك تُفوتر سنويًا.",
     storage_addons_description:
       "تحتاج مساحة أكبر؟ اشترِ مساحة تخزين مشفرة إضافية لحسابك.",
     per_month_short: "/شهريًا",
@@ -4744,6 +4746,15 @@ export const ar = {
     addon_purchase_success: "جارٍ التوجيه إلى الدفع...",
     addon_checkout_opened: "أكمل عملية الشراء في علامة التبويب الجديدة.",
     plan_recommended: "موصى به",
+    plan_top_tier_title: "أنت على أعلى خطة",
+    plan_top_tier_note:
+      "تتضمن {{plan}} أكبر مساحة تخزين بين جميع الخطط. إذا كنت بحاجة إلى مساحة أكبر، يمكنك إضافة تخزين إضافي.",
+    plan_add_storage_link: "إضافة مزيد من التخزين",
+    plan_current_title: "أنت على خطة {{plan}}",
+    plan_current_note:
+      "لقد استخدمت {{percent}}% من مساحة التخزين، ولا تزال لديك مساحة وافرة.",
+    plan_storage_tight_note:
+      "لقد استخدمت {{percent}}% من مساحة التخزين. توفر لك {{plan}} مساحة أكبر.",
     per_year_short: "/سنويًا",
     save_yearly: "وفّر {{amount}}",
     billing_monthly: "شهري",

@@ -4877,6 +4877,8 @@ export const fr = {
     billing_banner_title: "Débloquez plus avec Aster",
     billing_banner_cta: "Explorer les options",
     storage_addons: "Stockage supplémentaire",
+    storage_addons_monthly_note:
+      "Le stockage supplémentaire est facturé chaque mois, même si votre forfait est facturé chaque année.",
     per_month_short: "/mois",
     add_storage: "Ajouter du stockage",
     popular: "Populaire",
@@ -4895,6 +4897,15 @@ export const fr = {
     addon_purchase_success: "Redirection vers le paiement...",
     addon_checkout_opened: "Finalisez votre achat dans le nouvel onglet.",
     plan_recommended: "Recommandé",
+    plan_top_tier_title: "Vous avez le forfait le plus élevé",
+    plan_top_tier_note:
+      "{{plan}} inclut le plus grand stockage de tous les forfaits. Si vous avez besoin de plus d'espace, vous pouvez ajouter du stockage supplémentaire.",
+    plan_add_storage_link: "Ajouter du stockage",
+    plan_current_title: "Vous utilisez {{plan}}",
+    plan_current_note:
+      "Vous avez utilisé {{percent}} % de votre stockage, il vous reste donc de la place.",
+    plan_storage_tight_note:
+      "Vous avez utilisé {{percent}} % de votre stockage. {{plan}} vous offre plus d'espace.",
     per_year_short: "/an",
     save_yearly: "Économisez {{amount}}",
     billing_monthly: "Mensuel",

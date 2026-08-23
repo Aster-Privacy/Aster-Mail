@@ -4789,6 +4789,8 @@ export const ko = {
       "플랜을 업그레이드하거나 추가 저장 공간을 구매하여 개인정보를 보호하세요.",
     billing_banner_cta: "옵션 살펴보기",
     storage_addons: "추가 저장 공간",
+    storage_addons_monthly_note:
+      "추가 저장 공간은 요금제를 연간 결제하더라도 매월 청구됩니다.",
     storage_addons_description:
       "더 많은 공간이 필요하세요? 계정에 추가 암호화된 저장 공간을 구매하세요.",
     per_month_short: "/월",
@@ -4812,6 +4814,15 @@ export const ko = {
     addon_purchase_success: "결제 페이지로 이동 중...",
     addon_checkout_opened: "새 탭에서 구매를 완료하세요.",
     plan_recommended: "추천",
+    plan_top_tier_title: "최상위 요금제를 사용 중입니다",
+    plan_top_tier_note:
+      "{{plan}}은 모든 요금제 중 가장 큰 저장 공간을 포함합니다. 공간이 더 필요하면 추가 저장 공간을 구매할 수 있습니다.",
+    plan_add_storage_link: "저장 공간 추가",
+    plan_current_title: "{{plan}} 요금제를 사용 중입니다",
+    plan_current_note:
+      "저장 공간의 {{percent}}%를 사용했으며, 아직 여유가 넉넉합니다.",
+    plan_storage_tight_note:
+      "저장 공간의 {{percent}}%를 사용했습니다. {{plan}}에서는 공간이 더 넉넉합니다.",
     per_year_short: "/년",
     save_yearly: "{{amount}} 절약",
     billing_monthly: "월간",

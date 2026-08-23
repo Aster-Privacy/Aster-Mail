@@ -3779,6 +3779,8 @@ export const en: Translations = {
       "Upgrade your plan or purchase additional storage to keep your privacy protected.",
     billing_banner_cta: "Explore Options",
     storage_addons: "Additional Storage",
+    storage_addons_monthly_note:
+      "Storage add-ons are billed monthly, even if your plan is billed yearly.",
     storage_addons_description:
       "Need more space? Purchase additional encrypted storage for your account.",
     per_month_short: "/mo",
@@ -3806,6 +3808,15 @@ export const en: Translations = {
     addon_purchase_success: "Redirecting to checkout...",
     addon_checkout_opened: "Complete your purchase in the new tab.",
     plan_recommended: "Recommended",
+    plan_top_tier_title: "You're on the top plan",
+    plan_top_tier_note:
+      "{{plan}} includes the most storage of any plan. If you ever need more room, you can add extra storage.",
+    plan_add_storage_link: "Add more storage",
+    plan_current_title: "You're on {{plan}}",
+    plan_current_note:
+      "You've used {{percent}}% of your storage, so you have room to spare.",
+    plan_storage_tight_note:
+      "You've used {{percent}}% of your storage. {{plan}} gives you more room.",
     money_back_guarantee: "30-day money-back guarantee",
     cancel_anytime: "Cancel anytime",
     billed_annually: "billed annually",

@@ -3592,6 +3592,7 @@ export interface SettingsTranslations {
   billing_banner_subtitle: string;
   billing_banner_cta: string;
   storage_addons: string;
+  storage_addons_monthly_note: string;
   storage_addons_description: string;
   per_month_short: string;
   add_storage: string;
@@ -3613,6 +3614,12 @@ export interface SettingsTranslations {
   addon_purchase_success: string;
   addon_checkout_opened: string;
   plan_recommended: string;
+  plan_top_tier_title: string;
+  plan_top_tier_note: string;
+  plan_add_storage_link: string;
+  plan_current_title: string;
+  plan_current_note: string;
+  plan_storage_tight_note: string;
   money_back_guarantee: string;
   cancel_anytime: string;
   billed_annually: string;

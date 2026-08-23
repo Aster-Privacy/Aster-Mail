@@ -4801,6 +4801,8 @@ export const tr = {
     billing_banner_title: "Aster ile Daha Fazlasını Açın",
     billing_banner_cta: "Seçenekleri Keşfet",
     storage_addons: "Ek Depolama",
+    storage_addons_monthly_note:
+      "Ek depolama, planınız yıllık faturalandırılsa bile aylık faturalandırılır.",
     per_month_short: "/ay",
     add_storage: "Depolama Ekle",
     popular: "Popüler",
@@ -4819,6 +4821,15 @@ export const tr = {
     addon_purchase_success: "Ödemeye yönlendiriliyor...",
     addon_checkout_opened: "Satın alma işleminizi yeni sekmede tamamlayın.",
     plan_recommended: "Önerilen",
+    plan_top_tier_title: "En üst plandasınız",
+    plan_top_tier_note:
+      "{{plan}}, tüm planlar arasında en fazla depolama alanını içerir. Daha fazla alana ihtiyacınız olursa ek depolama ekleyebilirsiniz.",
+    plan_add_storage_link: "Daha fazla depolama ekle",
+    plan_current_title: "{{plan}} planındasınız",
+    plan_current_note:
+      "Depolama alanınızın %{{percent}} kadarını kullandınız, bol bol yeriniz var.",
+    plan_storage_tight_note:
+      "Depolama alanınızın %{{percent}} kadarını kullandınız. {{plan}} size daha fazla alan sunar.",
     per_year_short: "/yıl",
     save_yearly: "{{amount}} tasarruf edin",
     billing_monthly: "Aylık",

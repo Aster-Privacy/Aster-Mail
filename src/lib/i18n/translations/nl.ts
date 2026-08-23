@@ -4807,6 +4807,8 @@ export const nl = {
       "Upgrade je abonnement of koop extra opslag om je privacy beschermd te houden.",
     billing_banner_cta: "Opties bekijken",
     storage_addons: "Extra opslag",
+    storage_addons_monthly_note:
+      "Extra opslag wordt maandelijks gefactureerd, ook als je abonnement jaarlijks wordt gefactureerd.",
     storage_addons_description:
       "Meer ruimte nodig? Koop extra versleutelde opslag voor je account.",
     per_month_short: "/mnd",
@@ -4831,6 +4833,15 @@ export const nl = {
     addon_purchase_success: "Doorsturen naar afrekenen...",
     addon_checkout_opened: "Voltooi je aankoop in het nieuwe tabblad.",
     plan_recommended: "Aanbevolen",
+    plan_top_tier_title: "Je hebt het hoogste abonnement",
+    plan_top_tier_note:
+      "{{plan}} bevat de meeste opslag van alle abonnementen. Als je meer ruimte nodig hebt, kun je extra opslag toevoegen.",
+    plan_add_storage_link: "Meer opslag toevoegen",
+    plan_current_title: "Je hebt {{plan}}",
+    plan_current_note:
+      "Je hebt {{percent}}% van je opslag gebruikt, dus je hebt nog ruimte over.",
+    plan_storage_tight_note:
+      "Je hebt {{percent}}% van je opslag gebruikt. {{plan}} geeft je meer ruimte.",
     per_year_short: "/jr",
     save_yearly: "Bespaar {{amount}}",
     billing_monthly: "Maandelijks",
