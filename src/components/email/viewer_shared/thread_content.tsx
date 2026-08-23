@@ -144,12 +144,17 @@ export function ViewerThreadContent({
   const is_external_thread = thread_messages.some((m) => m.is_external);
 
   useEffect(() => {
-    const handle_kb_reply = () => {
+    const handle_kb_reply = (e: Event) => {
       if (thread_messages.length === 0) return;
       const last = thread_messages[thread_messages.length - 1];
 
       if (!is_system_email(last.sender_email)) {
+        const wants_reply_all =
+          (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
+            true || preferences.default_reply_behavior === "reply_all";
+
         set_inline_reply_msg(last);
+        set_inline_mode(wants_reply_all ? "reply_all" : "reply");
       }
     };
 
@@ -157,7 +162,7 @@ export function ViewerThreadContent({
 
     return () =>
       window.removeEventListener("astermail:keyboard-reply", handle_kb_reply);
-  }, [thread_messages]);
+  }, [thread_messages, preferences.default_reply_behavior]);
 
   const memoized_draft = useMemo(
     () =>

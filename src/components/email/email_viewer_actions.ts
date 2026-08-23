@@ -156,7 +156,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     }
   }, []);
 
-  const handle_reply = useCallback(() => {
+  const handle_reply = useCallback((options?: { reply_all?: boolean }) => {
     if (
       !deps.email ||
       !deps.on_reply ||
@@ -164,6 +164,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     )
       return;
     const is_reply_all =
+      options?.reply_all === true ||
       deps.preferences_default_reply_behavior === "reply_all";
     const is_own_message =
       deps.mail_item?.item_type === "sent" ||

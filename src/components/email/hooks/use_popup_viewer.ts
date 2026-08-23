@@ -917,7 +917,11 @@ export function use_popup_viewer({
   }, [current_thread_token, email_id, preferences.conversation_grouping]);
 
   useEffect(() => {
-    const handle_keyboard_reply = () => actions.handle_reply();
+    const handle_keyboard_reply = (e: Event) =>
+      actions.handle_reply({
+        reply_all:
+          (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all === true,
+      });
     const handle_keyboard_forward = () => actions.handle_forward();
 
     const handle_keyboard_archive = (e: Event) => {

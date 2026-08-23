@@ -385,7 +385,12 @@ export function FullEmailViewer({
   }, [email_id]);
 
   const handle_keyboard_reply = useCallback(
-    () => viewer.handle_reply(),
+    (event: Event) =>
+      viewer.handle_reply({
+        reply_all:
+          (event as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
+          true,
+      }),
     [viewer.handle_reply],
   );
   const handle_keyboard_forward = useCallback(

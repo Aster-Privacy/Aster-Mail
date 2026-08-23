@@ -348,9 +348,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.t,
   ]);
 
-  const handle_reply = useCallback(() => {
+  const handle_reply = useCallback((options?: { reply_all?: boolean }) => {
     if (!deps.email || !deps.on_reply) return;
     const is_reply_all =
+      options?.reply_all === true ||
       deps.preferences_default_reply_behavior === "reply_all";
     const is_own_message = deps.mail_item?.item_type === "sent";
     const is_forwarded = !is_own_message && !!deps.email.display_sender_email;

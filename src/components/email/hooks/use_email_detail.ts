@@ -187,7 +187,7 @@ export function use_email_detail() {
   }, [vault]);
 
   useEffect(() => {
-    const handle_keyboard_reply = () => {
+    const handle_keyboard_reply = (e: Event) => {
       const last_msg =
         thread_messages.length > 0
           ? thread_messages[thread_messages.length - 1]
@@ -197,7 +197,8 @@ export function use_email_detail() {
         set_reply_modal_data(
           actions.build_reply_modal_data(
             last_msg,
-            preferences.default_reply_behavior === "reply_all",
+            (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
+              true || preferences.default_reply_behavior === "reply_all",
           ),
         );
         set_is_reply_modal_open(true);

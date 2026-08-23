@@ -1178,6 +1178,15 @@ export function use_index_page_state() {
     window.dispatchEvent(new CustomEvent("astermail:keyboard-reply"));
   }, [has_viewed_email]);
 
+  const handle_keyboard_reply_all = useCallback(() => {
+    if (!has_viewed_email) return;
+    window.dispatchEvent(
+      new CustomEvent("astermail:keyboard-reply", {
+        detail: { reply_all: true },
+      }),
+    );
+  }, [has_viewed_email]);
+
   const handle_keyboard_forward = useCallback(() => {
     if (!has_viewed_email) return;
     window.dispatchEvent(new CustomEvent("astermail:keyboard-forward"));
@@ -1283,6 +1292,7 @@ export function use_index_page_state() {
       on_close_viewer: handle_keyboard_close,
       on_compose: open_compose,
       on_reply: handle_keyboard_reply,
+      on_reply_all: handle_keyboard_reply_all,
       on_forward: handle_keyboard_forward,
       on_archive: handle_keyboard_archive,
       on_delete: handle_keyboard_delete,
