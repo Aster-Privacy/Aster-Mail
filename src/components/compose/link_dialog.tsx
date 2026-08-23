@@ -97,8 +97,9 @@ export function LinkDialog({
 
     close_with_animation(() => {
       on_insert(trimmed_url, text.trim() || undefined);
+      on_close();
     });
-  }, [url, text, validate_url, on_insert, close_with_animation]);
+  }, [url, text, validate_url, on_insert, on_close, close_with_animation]);
 
   const handle_cancel = useCallback(() => {
     close_with_animation(on_close);
