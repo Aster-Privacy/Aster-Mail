@@ -54,11 +54,9 @@ export function BillingHistorySection({ history }: BillingHistorySectionProps) {
             >
               <div>
                 <p className="text-sm text-txt-primary">
-                  {(
-                    item.description ||
+                  {item.description ||
                     item.plan_name ||
-                    t("settings.payment")
-                  ).replace(/\b\w/g, (c) => c.toUpperCase())}
+                    t("settings.payment")}
                 </p>
                 <p className="text-xs mt-0.5 text-txt-muted">
                   {format_date(item.created_at)}

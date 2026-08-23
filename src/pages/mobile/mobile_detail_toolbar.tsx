@@ -30,6 +30,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { use_i18n } from "@/lib/i18n/context";
 
 export const TOOLBAR_ACTION_MAP: Record<
@@ -132,7 +134,7 @@ export function MobileToolbar({
               aria-label={
                 action === "archive" && is_archived
                   ? t("mail.move_to_inbox")
-                  : action.replace(/_/g, " ")
+                  : t(config.label_key as TranslationKey)
               }
               className="flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)]"
               style={{ color }}
