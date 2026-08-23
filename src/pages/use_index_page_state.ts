@@ -1271,6 +1271,7 @@ export function use_index_page_state() {
   );
 
   use_keyboard_shortcuts({
+    enabled: preferences.keyboard_shortcuts_enabled !== false,
     is_any_modal_open: is_input_modal_open,
     has_focused_email:
       has_focused_email || has_viewed_email || visible_email_ids.length > 0,
