@@ -543,6 +543,20 @@ export function use_index_page_state() {
   );
 
   useEffect(() => {
+    const handle_open_email = (e: Event) => {
+      const email_id = (e as CustomEvent<{ email_id?: string }>).detail
+        ?.email_id;
+
+      if (email_id) handle_email_click(email_id);
+    };
+
+    window.addEventListener("astermail:open-email", handle_open_email);
+
+    return () =>
+      window.removeEventListener("astermail:open-email", handle_open_email);
+  }, [handle_email_click]);
+
+  useEffect(() => {
     email_is_open.current = !!(popup_email_id || split_email_id);
     popup_email_id_ref.current = popup_email_id;
   }, [popup_email_id, split_email_id]);
