@@ -194,6 +194,19 @@ export function clear_app_lock_config(account_id: string): void {
   sessionStorage.removeItem(attempts_key(account_id));
 }
 
+export function has_pending_lock_hint(): boolean {
+  try {
+    const prefix = "aster:app_lock_hint:";
+    return Object.keys(localStorage).some((key) => {
+      if (!key.startsWith(prefix)) return false;
+      if (localStorage.getItem(key) !== "1") return false;
+      return !is_session_unlocked(key.slice(prefix.length));
+    });
+  } catch {
+    return false;
+  }
+}
+
 export function get_lock_hint(account_id: string): boolean {
   if (!account_id) return false;
   return localStorage.getItem(hint_key(account_id)) === "1";

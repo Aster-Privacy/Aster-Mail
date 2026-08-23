@@ -40,7 +40,7 @@ import { Button } from "@aster/ui";
 import { use_auth_safe } from "@/contexts/auth_context";
 import {
   get_app_lock_config,
-  get_lock_hint,
+  has_pending_lock_hint,
   is_session_unlocked,
   is_locked_out,
   mark_session_unlocked,
@@ -429,8 +429,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   const [last_active, set_last_active] = useState(Date.now());
   const [is_web_locked, set_is_web_locked] = useState(() => {
     if (is_native_platform()) return false;
-    const stored_id = (() => { try { const raw = localStorage.getItem("aster:accounts"); return raw ? JSON.parse(raw).current_account_id ?? "" : ""; } catch { return ""; } })();
-    return stored_id ? get_lock_hint(stored_id) : false;
+    return has_pending_lock_hint();
   });
   const [web_pin_digits, set_web_pin_digits] = useState(4);
   const [web_pin_type, set_web_pin_type] = useState<"numeric" | "text">("numeric");
