@@ -332,7 +332,9 @@ export function use_compose({
     }
   }, [attachment_hook.set_attachments]);
 
-  const clear_all_errors = useCallback(() => {}, []);
+  const clear_all_errors = useCallback(() => {
+    attachment_hook.set_attachment_error(null);
+  }, [attachment_hook.set_attachment_error]);
 
   const draft_hook = use_compose_drafts({
     recipients,
