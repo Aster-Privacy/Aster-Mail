@@ -41,13 +41,44 @@ function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
 }
 
+let tauri_actions_bound = false;
+
+async function bind_tauri_notification_actions(notification_module: {
+  onAction: (
+    callback: (notification: { extra?: Record<string, unknown> }) => void,
+  ) => Promise<unknown>;
+}): Promise<void> {
+  if (tauri_actions_bound) return;
+  tauri_actions_bound = true;
+
+  try {
+    await notification_module.onAction((notification) => {
+      const email_id = notification.extra?.email_id;
+
+      window.focus();
+
+      if (typeof email_id === "string" && email_id !== "") {
+        window.dispatchEvent(
+          new CustomEvent("astermail:open-email", {
+            detail: { email_id },
+          }),
+        );
+      }
+    });
+  } catch {
+    tauri_actions_bound = false;
+  }
+}
+
 async function show_tauri_notification(
   title: string,
   body: string,
+  email_id?: string,
 ): Promise<void> {
   try {
+    const notification_module = await import("@tauri-apps/plugin-notification");
     const { sendNotification, isPermissionGranted, requestPermission } =
-      await import("@tauri-apps/plugin-notification");
+      notification_module;
 
     let permitted = await isPermissionGranted();
 
@@ -57,9 +88,15 @@ async function show_tauri_notification(
       permitted = result === "granted";
     }
 
-    if (permitted) {
-      sendNotification({ title, body });
-    }
+    if (!permitted) return;
+
+    await bind_tauri_notification_actions(notification_module);
+
+    sendNotification({
+      title,
+      body,
+      extra: email_id ? { email_id } : undefined,
+    });
   } catch {
     return;
   }
@@ -150,7 +187,9 @@ export async function show_notification(
     return null;
   }
 
-  const display_title = lockdown_active ? en.settings.lockdown_notification_generic : options.title;
+  const display_title = lockdown_active
+    ? en.settings.lockdown_notification_generic
+    : options.title;
   const display_body = lockdown_active ? "" : options.body;
 
   if (preferences.sound) {
@@ -158,7 +197,13 @@ export async function show_notification(
   }
 
   if (is_tauri()) {
-    await show_tauri_notification(display_title, display_body);
+    await show_tauri_notification(
+      display_title,
+      display_body,
+      typeof options.data?.email_id === "string"
+        ? options.data.email_id
+        : undefined,
+    );
 
     return null;
   }
@@ -198,7 +243,14 @@ export function play_notification_sound(): void {
   const sound = get_notification_sound();
 
   sound.currentTime = 0;
-  sound.play().catch((caught) => ignore_error("services/notification_service:play_notification_sound", caught));
+  sound
+    .play()
+    .catch((caught) =>
+      ignore_error(
+        "services/notification_service:play_notification_sound",
+        caught,
+      ),
+    );
 }
 
 export async function request_notification_permission(): Promise<NotificationPermission> {
