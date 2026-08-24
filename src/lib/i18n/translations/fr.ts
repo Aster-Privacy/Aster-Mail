@@ -549,6 +549,7 @@ export const fr = {
     email_sent: "E-mail envoyé.",
     email_sent_successfully: "E-mail envoyé avec succès",
     scheduled_email_cancelled: "E-mail programmé annulé",
+    scheduled_emails_cancelled: "{{count}} e-mail(s) programmé(s) annulé(s)",
     email_snoozed: "E-mail mis en veille",
     email_unsnoozed: "E-mail sorti de la veille",
     failed_to_snooze:

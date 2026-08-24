@@ -466,6 +466,7 @@ export const pt = {
     email_sent: "E-mail enviado.",
     email_sent_successfully: "E-mail enviado com sucesso",
     scheduled_email_cancelled: "E-mail agendado cancelado",
+    scheduled_emails_cancelled: "{{count}} e-mail(s) agendado(s) cancelado(s)",
     email_snoozed: "E-mail adiado",
     email_unsnoozed: "E-mail reativado",
     failed_to_snooze:

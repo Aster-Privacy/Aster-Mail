@@ -531,6 +531,7 @@ export const nl = {
     email_sent: "E-mail verzonden.",
     email_sent_successfully: "E-mail succesvol verzonden",
     scheduled_email_cancelled: "Geplande e-mail geannuleerd",
+    scheduled_emails_cancelled: "{{count}} geplande e-mail(s) geannuleerd",
     email_snoozed: "E-mail uitgesteld",
     email_unsnoozed: "E-mail uitstel opgeheven",
     failed_to_snooze:

@@ -228,6 +228,7 @@ export function use_inbox_toolbar_actions({
     update_preference,
     save_now,
     is_drafts_view,
+    is_scheduled_view,
     set_confirmations,
     dont_ask_delete,
     set_dont_ask_delete,

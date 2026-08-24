@@ -552,6 +552,7 @@ export const it = {
     email_sent: "Email inviata.",
     email_sent_successfully: "Email inviata con successo",
     scheduled_email_cancelled: "Email programmata annullata",
+    scheduled_emails_cancelled: "{{count}} email programmata/e annullata/e",
     email_snoozed: "Email posticipata",
     email_unsnoozed: "Posticipazione email annullata",
     failed_to_snooze:

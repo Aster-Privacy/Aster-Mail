@@ -56,6 +56,7 @@ import {
 } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { cancel_scheduled_ids } from "./scheduled_delete";
 
 interface UseDeleteActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -80,6 +81,7 @@ interface UseDeleteActionsOptions {
   ) => void;
   save_now: () => Promise<void>;
   is_drafts_view: boolean;
+  is_scheduled_view: boolean;
   set_confirmations: React.Dispatch<
     React.SetStateAction<ConfirmationDialogState>
   >;
@@ -110,6 +112,7 @@ export function use_delete_actions({
   update_preference,
   save_now,
   is_drafts_view,
+  is_scheduled_view,
   set_confirmations,
   dont_ask_delete,
   set_dont_ask_delete,
@@ -206,6 +209,38 @@ export function use_delete_actions({
     [email_state.emails, bulk_delete, t],
   );
 
+  const run_cancel_scheduled = useCallback(
+    async (ids: string[]): Promise<void> => {
+      if (ids.length === 0) return;
+
+      const restore_entries = collect_restore_entries(email_state.emails, ids);
+
+      remove_emails(ids);
+
+      const succeeded = await cancel_scheduled_ids(ids);
+
+      if (succeeded.length > 0) {
+        show_action_toast({
+          message: t("common.scheduled_emails_cancelled", {
+            count: succeeded.length,
+          }),
+          action_type: "trash",
+          email_ids: succeeded,
+        });
+      }
+
+      if (succeeded.length !== ids.length) {
+        const succeeded_set = new Set(succeeded);
+
+        restore_emails(
+          restore_entries.filter((entry) => !succeeded_set.has(entry.email.id)),
+        );
+        show_toast(t("common.failed_to_delete_emails"), "error");
+      }
+    },
+    [email_state.emails, remove_emails, restore_emails, t],
+  );
+
   const run_delete_drafts = useCallback(
     (ids: string[]): void => {
       schedule_delete_drafts(ids);
@@ -227,6 +262,8 @@ export function use_delete_actions({
 
       if (is_trash_view) {
         await run_permanent_delete(ids);
+      } else if (is_scheduled_view) {
+        await run_cancel_scheduled(ids);
       } else if (is_drafts_view) {
         run_delete_drafts(ids);
       } else {
@@ -242,7 +279,9 @@ export function use_delete_actions({
     run_permanent_delete,
     run_move_to_trash,
     run_delete_drafts,
+    run_cancel_scheduled,
     is_drafts_view,
+    is_scheduled_view,
     current_view,
     set_confirmations,
   ]);
@@ -256,6 +295,8 @@ export function use_delete_actions({
 
     if (is_trash_view) {
       await run_permanent_delete(ids);
+    } else if (is_scheduled_view) {
+      await run_cancel_scheduled(ids);
     } else if (is_drafts_view) {
       run_delete_drafts(ids);
     } else {
@@ -270,7 +311,9 @@ export function use_delete_actions({
     run_permanent_delete,
     run_move_to_trash,
     run_delete_drafts,
+    run_cancel_scheduled,
     is_drafts_view,
+    is_scheduled_view,
     current_view,
     update_preference,
     save_now,
@@ -313,6 +356,8 @@ export function use_delete_actions({
         invalidate_mail_stats();
         show_toast(t("common.failed_to_permanently_delete"), "error");
       }
+    } else if (is_scheduled_view) {
+      await run_cancel_scheduled([email.id]);
     } else if (is_drafts_view) {
       schedule_delete_drafts([email.id]);
 
@@ -388,6 +433,8 @@ export function use_delete_actions({
     remove_emails,
     restore_emails,
     is_drafts_view,
+    is_scheduled_view,
+    run_cancel_scheduled,
     schedule_delete_drafts,
     update_preference,
     save_now,

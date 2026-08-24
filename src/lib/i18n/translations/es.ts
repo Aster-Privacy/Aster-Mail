@@ -549,6 +549,7 @@ export const es = {
     email_sent: "Correo enviado.",
     email_sent_successfully: "Correo enviado exitosamente",
     scheduled_email_cancelled: "Correo programado cancelado",
+    scheduled_emails_cancelled: "{{count}} correo(s) programado(s) cancelado(s)",
     email_snoozed: "Correo pospuesto",
     email_unsnoozed: "Correo despospuesto",
     failed_to_snooze:

@@ -539,6 +539,7 @@ export const ja = {
     email_sent: "メールを送信しました。",
     email_sent_successfully: "メールの送信に成功しました",
     scheduled_email_cancelled: "予約メールをキャンセルしました",
+    scheduled_emails_cancelled: "{{count}}件の予約送信をキャンセルしました",
     email_snoozed: "メールをスヌーズしました",
     email_unsnoozed: "メールのスヌーズを解除しました",
     failed_to_snooze:

@@ -535,6 +535,7 @@ export const ko = {
     email_sent: "이메일 전송됨.",
     email_sent_successfully: "이메일이 성공적으로 전송되었습니다",
     scheduled_email_cancelled: "예약된 이메일이 취소되었습니다",
+    scheduled_emails_cancelled: "{{count}}개의 예약 메일을 취소했습니다",
     email_snoozed: "이메일 다시 알림 설정됨",
     email_unsnoozed: "이메일 다시 알림 해제됨",
     failed_to_snooze:

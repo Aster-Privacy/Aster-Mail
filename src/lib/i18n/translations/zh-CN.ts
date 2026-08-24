@@ -446,6 +446,7 @@ export const zh_CN = {
     email_sent: "邮件已发送。",
     email_sent_successfully: "邮件发送成功",
     scheduled_email_cancelled: "定时邮件已取消",
+    scheduled_emails_cancelled: "已取消 {{count}} 封定时邮件",
     email_snoozed: "邮件已暂停提醒",
     email_unsnoozed: "邮件已恢复提醒",
     failed_to_snooze:

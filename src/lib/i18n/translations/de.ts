@@ -530,6 +530,7 @@ export const de = {
     email_sent: "E-Mail gesendet.",
     email_sent_successfully: "E-Mail erfolgreich gesendet",
     scheduled_email_cancelled: "Geplante E-Mail abgebrochen",
+    scheduled_emails_cancelled: "{{count}} geplante E-Mail(s) abgebrochen",
     email_snoozed: "E-Mail zurückgestellt",
     email_unsnoozed: "E-Mail-Zurückstellung aufgehoben",
     failed_to_snooze:

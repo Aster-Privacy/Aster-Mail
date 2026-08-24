@@ -67,6 +67,7 @@ import {
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { cancel_scheduled_ids } from "./scheduled_delete";
 
 export function build_core_context_menu_actions(
   params: UseContextMenuActionsParams,
@@ -87,6 +88,27 @@ export function build_core_context_menu_actions(
   const is_trash_view = current_view === "trash";
 
   const perform_delete = async (email: InboxEmail) => {
+    if (is_scheduled_view) {
+      const restore_entries = collect_restore_entries(emails, [email.id]);
+
+      remove_email(email.id);
+
+      const succeeded = await cancel_scheduled_ids([email.id]);
+
+      if (succeeded.length === 1) {
+        show_action_toast({
+          message: t("common.scheduled_email_cancelled"),
+          action_type: "trash",
+          email_ids: [email.id],
+        });
+      } else {
+        restore_emails(restore_entries);
+        show_toast(t("common.failed_to_delete_emails"), "error");
+      }
+
+      return;
+    }
+
     if (is_drafts_view) {
       schedule_delete_drafts([email.id]);
 

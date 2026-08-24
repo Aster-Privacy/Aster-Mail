@@ -537,6 +537,7 @@ export const ar = {
     email_sent: "تم إرسال البريد.",
     email_sent_successfully: "تم إرسال البريد بنجاح",
     scheduled_email_cancelled: "تم إلغاء البريد المجدول",
+    scheduled_emails_cancelled: "تم إلغاء {{count}} رسالة مجدولة",
     email_snoozed: "تم تأجيل البريد",
     email_unsnoozed: "تم إلغاء تأجيل البريد",
     failed_to_snooze:

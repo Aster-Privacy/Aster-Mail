@@ -542,6 +542,7 @@ export const ru = {
     email_sent: "Письмо отправлено.",
     email_sent_successfully: "Письмо успешно отправлено",
     scheduled_email_cancelled: "Запланированное письмо отменено",
+    scheduled_emails_cancelled: "Отменено запланированных писем: {{count}}",
     email_snoozed: "Письмо отложено",
     email_unsnoozed: "Откладывание письма отменено",
     failed_to_snooze:

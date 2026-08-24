@@ -1011,6 +1011,7 @@ export interface CommonTranslations {
   email_sent: string;
   email_sent_successfully: string;
   scheduled_email_cancelled: string;
+  scheduled_emails_cancelled: string;
   email_snoozed: string;
   email_unsnoozed: string;
   failed_to_snooze: string;

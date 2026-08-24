@@ -540,6 +540,7 @@ export const tr = {
     email_sent: "E-posta gönderildi.",
     email_sent_successfully: "E-posta başarıyla gönderildi",
     scheduled_email_cancelled: "Zamanlanmış e-posta iptal edildi",
+    scheduled_emails_cancelled: "{{count}} zamanlanmış e-posta iptal edildi",
     email_snoozed: "E-posta ertelendi",
     email_unsnoozed: "E-posta ertelemesi kaldırıldı",
     failed_to_snooze:

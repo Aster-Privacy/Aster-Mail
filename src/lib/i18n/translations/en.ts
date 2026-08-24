@@ -615,6 +615,7 @@ export const en: Translations = {
     email_sent: "Email sent.",
     email_sent_successfully: "Email sent successfully",
     scheduled_email_cancelled: "Scheduled email cancelled",
+    scheduled_emails_cancelled: "{{count}} scheduled email(s) cancelled",
     email_snoozed: "Email snoozed",
     email_unsnoozed: "Email unsnoozed",
     failed_to_snooze:
