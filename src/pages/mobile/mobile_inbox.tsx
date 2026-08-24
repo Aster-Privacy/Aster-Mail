@@ -34,19 +34,8 @@ import {
   EnvelopeOpenIcon,
   FolderIcon,
   TagIcon,
-  BellSnoozeIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import {
-  addHours,
-  addDays,
-  setHours,
-  setMinutes,
-  nextSaturday,
-  nextMonday,
-  format,
-} from "date-fns";
-
 import { use_email_list } from "@/hooks/use_email_list";
 import { use_drafts_list, type DraftListItem } from "@/hooks/use_drafts_list";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -57,13 +46,14 @@ import {
   use_scheduled_emails,
   type ScheduledListItem,
 } from "@/hooks/use_scheduled_emails";
+import { use_snoozed_emails } from "@/hooks/use_snoozed_emails";
+import { MobileSnoozeSheet } from "@/pages/mobile/mobile_detail_sheets";
 import { SplitScheduledViewer } from "@/components/scheduled/split_scheduled_viewer";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_platform } from "@/hooks/use_platform";
 import { use_preferences } from "@/contexts/preferences_context";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailList } from "@/components/mobile/mobile_email_list";
-import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { EmptyTrashModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
@@ -146,6 +136,7 @@ function MobileInbox({
 
   const is_drafts_view = current_view === "drafts";
   const is_scheduled_view = current_view === "scheduled";
+  const is_snoozed_view = current_view === "snoozed";
 
   const {
     state: mail_state,
@@ -167,6 +158,16 @@ function MobileInbox({
     cancel_email: cancel_scheduled,
     bulk_cancel: bulk_cancel_scheduled,
   } = use_scheduled_emails(is_scheduled_view);
+
+  const {
+    state: snoozed_state,
+    fetch_snoozed,
+    unsnooze: unsnooze_snoozed,
+  } = use_snoozed_emails();
+
+  useEffect(() => {
+    if (is_snoozed_view) fetch_snoozed();
+  }, [is_snoozed_view, fetch_snoozed]);
 
   const actions = use_email_actions();
   const snooze_actions = use_snooze();
@@ -195,7 +196,9 @@ function MobileInbox({
     ? (drafts_state.drafts as InboxEmail[])
     : is_scheduled_view
       ? (scheduled_state.emails as InboxEmail[])
-      : mail_state.emails;
+      : is_snoozed_view
+        ? snoozed_state.emails
+        : mail_state.emails;
 
   const pinned_emails = useMemo(
     () => active_emails.filter((e) => e.is_pinned),
@@ -611,14 +614,50 @@ function MobileInbox({
       if (!snooze_email_target) return;
       try {
         await snooze_actions.snooze(snooze_email_target.id, snoozed_until);
-        remove_email(snooze_email_target.id);
+        if (is_snoozed_view) {
+          fetch_snoozed();
+        } else {
+          remove_email(snooze_email_target.id);
+        }
         set_snooze_email_target(null);
       } catch (err) {
         if (import.meta.env.DEV) console.error("failed to snooze email", err);
       }
     },
-    [snooze_actions, snooze_email_target, remove_email],
+    [
+      snooze_actions,
+      snooze_email_target,
+      remove_email,
+      is_snoozed_view,
+      fetch_snoozed,
+    ],
   );
+
+  const handle_unsnooze_select = useCallback(async () => {
+    if (!snooze_email_target) return;
+    const target_id = snooze_email_target.id;
+
+    set_snooze_email_target(null);
+    try {
+      if (is_snoozed_view) {
+        await unsnooze_snoozed(target_id);
+      } else {
+        await snooze_actions.unsnooze_mail(target_id);
+        update_email(target_id, { snoozed_until: undefined });
+      }
+      show_toast(t("common.email_unsnoozed"), "success");
+    } catch (err) {
+      if (import.meta.env.DEV) console.error("failed to unsnooze email", err);
+      show_toast(t("common.failed_to_unsnooze"), "error");
+    }
+  }, [
+    snooze_email_target,
+    is_snoozed_view,
+    unsnooze_snoozed,
+    snooze_actions,
+    update_email,
+    t,
+  ]);
 
   const handle_load_more = useCallback(() => {
     if (is_drafts_view) {
@@ -626,13 +665,14 @@ function MobileInbox({
 
       return;
     }
-    if (is_scheduled_view) return;
+    if (is_scheduled_view || is_snoozed_view) return;
     if (mail_state.has_more && !mail_state.is_loading_more) {
       load_more();
     }
   }, [
     is_drafts_view,
     is_scheduled_view,
+    is_snoozed_view,
     drafts_state.has_more,
     mail_state,
     load_more,
@@ -652,13 +692,20 @@ function MobileInbox({
 
       return;
     }
+    if (is_snoozed_view) {
+      fetch_snoozed();
+
+      return;
+    }
     refresh();
   }, [
     is_drafts_view,
     is_scheduled_view,
+    is_snoozed_view,
     refresh,
     refresh_drafts,
     refresh_scheduled,
+    fetch_snoozed,
   ]);
 
   const confirm_empty_trash = useCallback(async () => {
@@ -866,7 +913,7 @@ function MobileInbox({
           has_more={
             is_drafts_view
               ? drafts_state.has_more
-              : is_scheduled_view
+              : is_scheduled_view || is_snoozed_view
                 ? false
                 : mail_state.has_more
           }
@@ -875,10 +922,12 @@ function MobileInbox({
               ? drafts_state.is_loading
               : is_scheduled_view
                 ? scheduled_state.is_loading
-                : mail_state.is_loading
+                : is_snoozed_view
+                  ? snoozed_state.is_loading
+                  : mail_state.is_loading
           }
           is_loading_more={
-            is_drafts_view || is_scheduled_view
+            is_drafts_view || is_scheduled_view || is_snoozed_view
               ? false
               : mail_state.is_loading_more
           }
@@ -887,10 +936,12 @@ function MobileInbox({
               ? !drafts_state.is_loading
               : is_scheduled_view
                 ? !scheduled_state.is_loading
-                : mail_state.has_initial_load
+                : is_snoozed_view
+                  ? snoozed_state.has_loaded
+                  : mail_state.has_initial_load
           }
           has_load_error={
-            is_drafts_view || is_scheduled_view
+            is_drafts_view || is_scheduled_view || is_snoozed_view
               ? false
               : mail_state.has_load_error
           }
@@ -987,53 +1038,16 @@ function MobileInbox({
         trash_count={active_emails.length}
       />
 
-      <MobileBottomSheet
+      <MobileSnoozeSheet
         is_open={!!snooze_email_target}
         on_close={() => set_snooze_email_target(null)}
-      >
-        <div className="px-4 pb-4">
-          <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
-            {t("mail.snooze")}
-          </h3>
-          <div className="space-y-1">
-            {[
-              {
-                label: t("common.later_today"),
-                date: addHours(new Date(), 4),
-              },
-              {
-                label: t("common.tomorrow"),
-                date: setMinutes(setHours(addDays(new Date(), 1), 9), 0),
-              },
-              {
-                label: t("common.this_weekend"),
-                date: setMinutes(setHours(nextSaturday(new Date()), 9), 0),
-              },
-              {
-                label: t("common.next_week"),
-                date: setMinutes(setHours(nextMonday(new Date()), 9), 0),
-              },
-            ].map((opt) => (
-              <button
-                key={opt.label}
-                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
-                type="button"
-                onClick={() => handle_snooze_select(opt.date)}
-              >
-                <BellSnoozeIcon className="h-5 w-5 text-[var(--text-muted)]" />
-                <div className="flex-1">
-                  <p className="text-[14px] font-medium text-[var(--text-primary)]">
-                    {opt.label}
-                  </p>
-                  <p className="text-[12px] text-[var(--text-muted)]">
-                    {format(opt.date, "EEE, MMM d 'at' h:mm a")}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </MobileBottomSheet>
+        on_snooze={handle_snooze_select}
+        on_unsnooze={
+          snooze_email_target?.snoozed_until
+            ? handle_unsnooze_select
+            : undefined
+        }
+      />
 
       {scheduled_target && (
         <div className="fixed inset-0 z-50 flex flex-col bg-surf-primary">

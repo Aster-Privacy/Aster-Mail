@@ -460,10 +460,12 @@ export function MobileSnoozeSheet({
   is_open,
   on_close,
   on_snooze,
+  on_unsnooze,
 }: {
   is_open: boolean;
   on_close: () => void;
   on_snooze: (date: Date) => void;
+  on_unsnooze?: () => void;
 }) {
   const { t } = use_i18n();
 
@@ -513,6 +515,18 @@ export function MobileSnoozeSheet({
               </div>
             </button>
           ))}
+          {on_unsnooze && (
+            <button
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+              type="button"
+              onClick={on_unsnooze}
+            >
+              <BellSnoozeIcon className="h-5 w-5 text-[var(--text-muted)]" />
+              <p className="flex-1 text-[14px] font-medium text-[var(--text-primary)]">
+                {t("mail.unsnooze")}
+              </p>
+            </button>
+          )}
         </div>
       </div>
     </MobileBottomSheet>
