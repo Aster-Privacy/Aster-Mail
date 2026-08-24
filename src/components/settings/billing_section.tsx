@@ -614,6 +614,7 @@ export function BillingSection() {
 
       if (!password_hash) {
         set_cancel_password_error(t("settings.cancel_password_error"));
+        show_toast(t("settings.failed_cancel_subscription"), "error");
 
         return;
       }
@@ -634,10 +635,12 @@ export function BillingSection() {
         await load_data();
       } else {
         set_cancel_password_error(t("settings.cancel_password_error"));
+        show_toast(t("settings.failed_cancel_subscription"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_cancel_password_error(t("settings.cancel_password_error"));
+      show_toast(t("settings.failed_cancel_subscription"), "error");
     } finally {
       clear_cancel_password_cache();
       set_is_action_loading(false);
