@@ -148,18 +148,24 @@ export function SchedulePicker({
         get_date: get_next_monday_morning,
       },
     ],
-    [t],
+    [t, is_open],
   );
 
   const handle_quick_select = useCallback(
     (option: QuickOption) => {
       const date = option.get_date();
 
+      if (!is_future_instant(date)) {
+        show_toast(t("mail.schedule_time_must_be_future"), "error");
+
+        return;
+      }
+
       on_schedule(date);
       set_is_open(false);
       set_show_custom(false);
     },
-    [on_schedule],
+    [on_schedule, t],
   );
 
   const handle_custom_confirm = useCallback(() => {
