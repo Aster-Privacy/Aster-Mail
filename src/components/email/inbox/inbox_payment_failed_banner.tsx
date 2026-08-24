@@ -34,7 +34,11 @@ function days_until(iso: string | null): number | null {
   return remaining > 0 ? remaining : null;
 }
 
-export function PaymentFailedBanner() {
+interface PaymentFailedBannerProps {
+  on_action?: () => void;
+}
+
+export function PaymentFailedBanner({ on_action }: PaymentFailedBannerProps) {
   const { t } = use_i18n();
   const [failed_at, set_failed_at] = useState<string | null>(null);
   const [grace_days, set_grace_days] = useState<number | null>(null);
@@ -65,10 +69,16 @@ export function PaymentFailedBanner() {
 
   if (!failed_at) return null;
 
-  const open_billing = () =>
+  const open_billing = () => {
+    if (on_action) {
+      on_action();
+
+      return;
+    }
     window.dispatchEvent(
       new CustomEvent("navigate-settings", { detail: "billing" }),
     );
+  };
 
   return (
     <div

@@ -81,6 +81,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { set_recipient_hint } from "@/stores/recipient_hint_store";
+import { PaymentFailedBanner } from "@/components/email/inbox/inbox_payment_failed_banner";
 
 type Mailbox =
   | "inbox"
@@ -694,6 +695,8 @@ function MobileInbox({
           title={view_title}
         />
       )}
+
+      <PaymentFailedBanner on_action={() => navigate("/settings/billing")} />
 
       {folder_not_found ? (
         <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
