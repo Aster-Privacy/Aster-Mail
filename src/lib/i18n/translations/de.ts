@@ -6886,6 +6886,7 @@ export const de = {
     next_week_snooze: "Nächste Woche",
     next_month_snooze: "Nächsten Monat",
     pick_date_time: "Datum & Uhrzeit wählen",
+    schedule_time_must_be_future: "Wähle einen Zeitpunkt in der Zukunft.",
     restore: "Wiederherstellen",
     move_to_inbox: "In den Posteingang verschieben",
     report_spam: "Spam melden",

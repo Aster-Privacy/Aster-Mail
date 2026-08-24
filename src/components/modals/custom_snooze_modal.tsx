@@ -24,6 +24,7 @@ import { is_future_instant } from "@/utils/schedule_targets";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -92,6 +93,12 @@ export function CustomSnoozeModal({
       selected_minute,
     );
 
+    if (!is_future_instant(snooze_date)) {
+      show_toast(t("mail.schedule_time_must_be_future"), "error");
+
+      return;
+    }
+
     set_is_loading(true);
     try {
       await on_snooze(snooze_date);
@@ -109,6 +116,7 @@ export function CustomSnoozeModal({
     is_valid_custom_time,
     on_snooze,
     on_close,
+    t,
   ]);
 
   const handle_close = useCallback(() => {

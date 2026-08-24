@@ -6746,6 +6746,7 @@ export const tr = {
     next_week_snooze: "Gelecek hafta",
     next_month_snooze: "Gelecek ay",
     pick_date_time: "Tarih ve saat seçin",
+    schedule_time_must_be_future: "Gelecekte bir saat seçin.",
     restore: "Geri yükle",
     move_to_inbox: "Gelen kutusuna taşı",
     report_spam: "Spam bildir",

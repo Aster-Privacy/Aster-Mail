@@ -6912,6 +6912,7 @@ export const en: Translations = {
     next_week_snooze: "Next week",
     next_month_snooze: "Next month",
     pick_date_time: "Pick date & time",
+    schedule_time_must_be_future: "Choose a time in the future.",
     restore: "Restore",
     move_to_inbox: "Move to inbox",
     move_to_category: "Move to category",

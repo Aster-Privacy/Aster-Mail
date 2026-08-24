@@ -6146,6 +6146,7 @@ export interface MailTranslations {
   next_week_snooze: string;
   next_month_snooze: string;
   pick_date_time: string;
+  schedule_time_must_be_future: string;
   restore: string;
   move_to_inbox: string;
   menu_applies_to_selection: string;

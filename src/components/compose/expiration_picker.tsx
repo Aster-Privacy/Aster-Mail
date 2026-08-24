@@ -59,6 +59,7 @@ import {
   AlertDialogTitle,
   AlertDialogFooter,
 } from "@/components/ui/alert_dialog";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface ExpirationPickerProps {
@@ -170,13 +171,15 @@ export function ExpirationPicker({
     const now = startOfMinute(new Date());
 
     if (isBefore(expiry, now)) {
+      show_toast(t("mail.schedule_time_must_be_future"), "error");
+
       return;
     }
 
     on_expiration_change(expiry);
     set_is_open(false);
     set_show_custom(false);
-  }, [selected_date, selected_hour, selected_minute, on_expiration_change]);
+  }, [selected_date, selected_hour, selected_minute, on_expiration_change, t]);
 
   const handle_clear = useCallback(() => {
     on_expiration_change(null);

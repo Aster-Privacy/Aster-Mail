@@ -6101,6 +6101,7 @@ export const zh_CN = {
     this_weekend_snooze: "本周末",
     next_week_snooze: "下周",
     pick_date_time: "选择日期和时间",
+    schedule_time_must_be_future: "请选择未来的时间。",
     restore: "恢复",
     move_to_inbox: "移至收件箱",
     report_spam: "举报垃圾邮件",

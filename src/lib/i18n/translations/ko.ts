@@ -6541,6 +6541,7 @@ export const ko = {
     next_week_snooze: "다음 주",
     next_month_snooze: "다음 달",
     pick_date_time: "날짜 및 시간 선택",
+    schedule_time_must_be_future: "미래의 시간을 선택하세요.",
     restore: "복원",
     move_to_inbox: "받은 편지함으로 이동",
     report_spam: "스팸 신고",

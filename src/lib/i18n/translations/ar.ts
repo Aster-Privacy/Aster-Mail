@@ -6499,6 +6499,7 @@ export const ar = {
     next_week_snooze: "الأسبوع القادم",
     next_month_snooze: "الشهر القادم",
     pick_date_time: "اختر التاريخ والوقت",
+    schedule_time_must_be_future: "اختر وقتًا في المستقبل.",
     restore: "استعادة",
     move_to_inbox: "نقل إلى صندوق الوارد",
     report_spam: "الإبلاغ عن رسالة مزعجة",

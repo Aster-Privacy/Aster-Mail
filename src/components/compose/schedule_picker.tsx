@@ -44,6 +44,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   format_datetime_hint,
@@ -171,13 +172,15 @@ export function SchedulePicker({
     );
 
     if (!is_future_instant(scheduled)) {
+      show_toast(t("mail.schedule_time_must_be_future"), "error");
+
       return;
     }
 
     on_schedule(scheduled);
     set_is_open(false);
     set_show_custom(false);
-  }, [selected_date, selected_hour, selected_minute, on_schedule]);
+  }, [selected_date, selected_hour, selected_minute, on_schedule, t]);
 
   const handle_clear = useCallback(() => {
     on_schedule(null);
