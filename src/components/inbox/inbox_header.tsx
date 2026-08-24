@@ -596,6 +596,16 @@ export function InboxHeader({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
+                        const date = compute_snooze_target("this_weekend");
+
+                        on_snooze(date);
+                      }}
+                    >
+                      <ClockIcon className="w-4 h-4 mr-2" />
+                      {t("mail.this_weekend_snooze")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
                         const date = compute_snooze_target("next_week");
 
                         on_snooze(date);
@@ -603,6 +613,16 @@ export function InboxHeader({
                     >
                       <ClockIcon className="w-4 h-4 mr-2" />
                       {t("mail.next_week_snooze")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const date = compute_snooze_target("next_month");
+
+                        on_snooze(date);
+                      }}
+                    >
+                      <ClockIcon className="w-4 h-4 mr-2" />
+                      {t("common.next_month")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -773,6 +793,16 @@ export function InboxHeader({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
+                            const date = compute_snooze_target("this_weekend");
+
+                            on_snooze(date);
+                          }}
+                        >
+                          <ClockIcon className="w-4 h-4 mr-2" />
+                          {t("mail.this_weekend_snooze")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
                             const date = compute_snooze_target("next_week");
 
                             on_snooze(date);
@@ -780,6 +810,16 @@ export function InboxHeader({
                         >
                           <ClockIcon className="w-4 h-4 mr-2" />
                           {t("mail.next_week_snooze")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const date = compute_snooze_target("next_month");
+
+                            on_snooze(date);
+                          }}
+                        >
+                          <ClockIcon className="w-4 h-4 mr-2" />
+                          {t("common.next_month")}
                         </DropdownMenuItem>
                       </>
                     )}

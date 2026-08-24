@@ -47,16 +47,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { PinIcon } from "@/components/common/icons";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
-import {
-  addHours,
-  addDays,
-  setHours,
-  setMinutes,
-  nextSaturday,
-  nextMonday,
-  format,
-} from "date-fns";
-
 import { format_safe_date } from "./mobile_thread_message";
 import {
   TOOLBAR_ACTION_MAP,
@@ -72,6 +62,8 @@ import { format_bytes } from "@/lib/utils";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { compute_snooze_target } from "@/utils/snooze_targets";
+import { format_datetime_hint } from "@/utils/date_format";
 
 export function MobileActionMenuSheet({
   menu_message,
@@ -485,23 +477,23 @@ export function MobileSnoozeSheet({
           {[
             {
               label: t("mail.later_today_snooze"),
-              date: addHours(new Date(), 4),
+              date: compute_snooze_target("later_today"),
             },
             {
               label: t("mail.tomorrow_snooze"),
-              date: setMinutes(setHours(addDays(new Date(), 1), 9), 0),
+              date: compute_snooze_target("tomorrow"),
             },
             {
               label: t("mail.this_weekend_snooze"),
-              date: setMinutes(setHours(nextSaturday(new Date()), 9), 0),
+              date: compute_snooze_target("this_weekend"),
             },
             {
               label: t("mail.next_week_snooze"),
-              date: setMinutes(setHours(nextMonday(new Date()), 9), 0),
+              date: compute_snooze_target("next_week"),
             },
             {
               label: t("mail.next_month_snooze"),
-              date: setMinutes(setHours(addDays(new Date(), 30), 9), 0),
+              date: compute_snooze_target("next_month"),
             },
           ].map((opt) => (
             <button
@@ -516,7 +508,7 @@ export function MobileSnoozeSheet({
                   {opt.label}
                 </p>
                 <p className="text-[12px] text-[var(--text-muted)]">
-                  {format(opt.date, "EEE, MMM d 'at' h:mm a")}
+                  {format_datetime_hint(opt.date, true)}
                 </p>
               </div>
             </button>
