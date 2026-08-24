@@ -92,7 +92,12 @@ async function resolve_primary_user(): Promise<User | null> {
 
   if (account?.user?.email) return account.user;
 
-  const cached = api_client.get_cached_user_info();
+  let cached = api_client.get_cached_user_info();
+
+  if (!cached?.email) {
+    await api_client.check_auth_status();
+    cached = api_client.get_cached_user_info();
+  }
 
   if (!cached?.email) return account?.user ?? null;
 
