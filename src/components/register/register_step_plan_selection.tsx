@@ -21,7 +21,7 @@
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 import type { AvailablePlan } from "@/services/api/billing";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { AcademicCapIcon, ArrowTopRightOnSquareIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -35,6 +35,7 @@ import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal
 import {
   get_available_plans,
   format_price,
+  get_subscription,
   open_payment_url,
   start_hosted_checkout,
   get_my_referral_status,
@@ -42,6 +43,7 @@ import {
   type AvailablePlansResponse,
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
+import { request_cache } from "@/services/api/request_cache";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
@@ -76,6 +78,10 @@ let plans_promise_cache: Promise<{
   data?: AvailablePlansResponse;
   error?: string;
 }> | null = null;
+
+function is_desktop(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
 
 export function prefetch_plans(): void {
   if (plans_promise_cache) return;
@@ -232,6 +238,7 @@ export const RegisterStepPlanSelection = ({
   const [is_loading, set_is_loading] = useState(true);
   const [checkout, set_checkout] = useState<SelectedCheckout | null>(null);
   const [is_finalizing, set_is_finalizing] = useState(false);
+  const pending_desktop_checkout_ref = useRef(false);
   const [pending_tier, set_pending_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
   const [crypto_tier, set_crypto_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
   const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
@@ -349,7 +356,8 @@ export const RegisterStepPlanSelection = ({
       return;
     }
 
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    if (is_desktop()) {
+      pending_desktop_checkout_ref.current = true;
       set_is_finalizing(false);
     }
   }, [pending_tier, billing_interval, currency, t]);
@@ -370,7 +378,8 @@ export const RegisterStepPlanSelection = ({
     if (res.data?.checkout_url) {
       try {
         await open_payment_url(res.data.checkout_url);
-        if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+        if (is_desktop()) {
+          pending_desktop_checkout_ref.current = true;
           set_is_finalizing(false);
         }
       } catch {
@@ -407,6 +416,33 @@ export const RegisterStepPlanSelection = ({
       set_is_finalizing(false);
     }
   }, [reg]);
+
+  useEffect(() => {
+    if (!is_desktop()) return;
+
+    const handle_focus = async () => {
+      if (!pending_desktop_checkout_ref.current) return;
+      pending_desktop_checkout_ref.current = false;
+
+      for (let attempt = 0; attempt < 6; attempt++) {
+        request_cache.invalidate("/payments/v1");
+        const response = await get_subscription();
+
+        if (response.data && response.data.plan.code !== "free") {
+          await handle_checkout_success();
+
+          return;
+        }
+        await new Promise((resolve) =>
+          setTimeout(resolve, attempt === 0 ? 1000 : 2000),
+        );
+      }
+    };
+
+    window.addEventListener("focus", handle_focus);
+
+    return () => window.removeEventListener("focus", handle_focus);
+  }, [handle_checkout_success]);
 
   const price_display_for_checkout = useMemo(() => {
     if (!checkout) return "";
