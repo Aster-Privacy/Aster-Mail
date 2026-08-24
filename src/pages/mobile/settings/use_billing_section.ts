@@ -477,6 +477,7 @@ export function use_billing_section() {
 
       if (!password_hash) {
         set_cancel_password_error(t("settings.cancel_password_error"));
+        show_toast(t("settings.failed_cancel_subscription"), "error");
 
         return;
       }
@@ -493,12 +494,16 @@ export function use_billing_section() {
         set_show_cancel_password(false);
         set_cancel_reason(null);
         set_cancel_reason_text("");
+        request_cache.invalidate("/payments/v1");
+        request_cache.invalidate("/sync/v1");
         await load_data();
       } else {
         set_cancel_password_error(t("settings.cancel_password_error"));
+        show_toast(t("settings.failed_cancel_subscription"), "error");
       }
     } catch {
       set_cancel_password_error(t("settings.cancel_password_error"));
+      show_toast(t("settings.failed_cancel_subscription"), "error");
     } finally {
       clear_cancel_password_cache();
       set_is_action_loading(false);
@@ -513,6 +518,8 @@ export function use_billing_section() {
 
       if (response.data) {
         show_toast(t("settings.subscription_reactivated"), "success");
+        request_cache.invalidate("/payments/v1");
+        request_cache.invalidate("/sync/v1");
         await load_data();
       } else {
         show_toast(t("settings.failed_reactivate"), "error");
