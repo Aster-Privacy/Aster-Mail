@@ -82,7 +82,13 @@ export function is_signature_bindable_sender(option: SenderOption): boolean {
 }
 
 async function resolve_primary_user(): Promise<User | null> {
-  const account = await get_current_account();
+  let account: Awaited<ReturnType<typeof get_current_account>> = null;
+
+  try {
+    account = await get_current_account();
+  } catch {
+    account = null;
+  }
 
   if (account?.user?.email) return account.user;
 
@@ -136,7 +142,7 @@ export function use_sender_aliases() {
   const [user, set_user] = useState<User | null>(cached_user);
 
   const load_aliases = useCallback(async () => {
-    const primary_user = await resolve_primary_user();
+    const primary_user = await resolve_primary_user().catch(() => null);
 
     if (primary_user) {
       cached_user = primary_user;

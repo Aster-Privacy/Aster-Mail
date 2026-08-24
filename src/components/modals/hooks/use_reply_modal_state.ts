@@ -74,6 +74,7 @@ import {
 import { use_ghost_mode } from "@/hooks/use_ghost_mode";
 import {
   get_preferred_sender_id,
+  sender_id_matches,
   set_preferred_sender_id,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
@@ -290,7 +291,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
     if (preferred_sender_id) {
       const match = sender_options.find(
-        (s) => s.is_enabled && s.id === preferred_sender_id,
+        (s) => s.is_enabled && sender_id_matches(s.id, preferred_sender_id),
       );
 
       if (match) {

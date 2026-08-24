@@ -44,6 +44,7 @@ import {
 } from "@/hooks/use_sender_aliases";
 import {
   get_preferred_sender_id,
+  sender_id_matches,
   set_preferred_sender_id,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
@@ -388,7 +389,9 @@ export function use_compose({
   useEffect(() => {
     if (sender_options.length > 0 && !selected_sender) {
       const preferred = preferred_sender_id
-        ? sender_options.find((o) => o.id === preferred_sender_id)
+        ? sender_options.find((o) =>
+            sender_id_matches(o.id, preferred_sender_id),
+          )
         : null;
 
       set_selected_sender(preferred ?? sender_options[0]);

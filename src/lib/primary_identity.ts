@@ -26,6 +26,7 @@ import {
 } from "@/hooks/use_sender_aliases";
 import {
   get_preferred_sender_id,
+  sender_id_matches,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
 
@@ -54,7 +55,7 @@ export function resolve_primary_identity(
     preferred_sender_id !== null
       ? sender_options.find(
           (o) =>
-            o.id === preferred_sender_id &&
+            sender_id_matches(o.id, preferred_sender_id) &&
             o.is_enabled &&
             PRIMARY_IDENTITY_TYPES.has(o.type),
         ) ?? null

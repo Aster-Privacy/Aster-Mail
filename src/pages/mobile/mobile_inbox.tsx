@@ -53,6 +53,11 @@ import { use_email_actions } from "@/hooks/use_email_actions";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_tags } from "@/hooks/use_tags";
 import { use_folders } from "@/hooks/use_folders";
+import {
+  use_scheduled_emails,
+  type ScheduledListItem,
+} from "@/hooks/use_scheduled_emails";
+import { SplitScheduledViewer } from "@/components/scheduled/split_scheduled_viewer";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_platform } from "@/hooks/use_platform";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -140,6 +145,7 @@ function MobileInbox({
         : (mailbox ?? "inbox");
 
   const is_drafts_view = current_view === "drafts";
+  const is_scheduled_view = current_view === "scheduled";
 
   const {
     state: mail_state,
@@ -151,6 +157,12 @@ function MobileInbox({
 
   const { state: drafts_state, refresh: refresh_drafts } =
     use_drafts_list(is_drafts_view);
+
+  const {
+    state: scheduled_state,
+    refresh: refresh_scheduled,
+    cancel_email: cancel_scheduled,
+  } = use_scheduled_emails(is_scheduled_view);
 
   const actions = use_email_actions();
   const snooze_actions = use_snooze();
@@ -165,6 +177,8 @@ function MobileInbox({
     useState<InboxEmail | null>(null);
   const [show_empty_trash_dialog, set_show_empty_trash_dialog] =
     useState(false);
+  const [scheduled_target, set_scheduled_target] =
+    useState<ScheduledListItem | null>(null);
   const [is_emptying_trash, set_is_emptying_trash] = useState(false);
 
   const is_trash_view = current_view === "trash";
@@ -175,7 +189,9 @@ function MobileInbox({
 
   const active_emails = is_drafts_view
     ? (drafts_state.drafts as InboxEmail[])
-    : mail_state.emails;
+    : is_scheduled_view
+      ? (scheduled_state.emails as InboxEmail[])
+      : mail_state.emails;
 
   const pinned_emails = useMemo(
     () => active_emails.filter((e) => e.is_pinned),
@@ -318,6 +334,13 @@ function MobileInbox({
 
         return;
       }
+      if (is_scheduled_view) {
+        const scheduled = scheduled_state.emails.find((e) => e.id === id);
+
+        if (scheduled) set_scheduled_target(scheduled);
+
+        return;
+      }
       if (is_drafts_view && on_draft_click) {
         const draft = drafts_state.drafts.find((d) => d.id === id);
 
@@ -345,6 +368,8 @@ function MobileInbox({
       navigate,
       current_view,
       is_drafts_view,
+      is_scheduled_view,
+      scheduled_state.emails,
       on_draft_click,
       drafts_state.drafts,
       active_emails,
@@ -447,6 +472,13 @@ function MobileInbox({
 
   const handle_delete = useCallback(
     async (email: InboxEmail) => {
+      if (is_scheduled_view) {
+        const ok = await cancel_scheduled(email.id);
+
+        if (!ok) show_toast(t("common.something_went_wrong"), "error");
+
+        return;
+      }
       if (is_trash_view) {
         const ok = await actions.permanently_delete(email);
 
@@ -461,7 +493,14 @@ function MobileInbox({
         if (ok) remove_email(email.id);
       }
     },
-    [actions, remove_email, is_trash_view, t],
+    [
+      actions,
+      remove_email,
+      is_trash_view,
+      is_scheduled_view,
+      cancel_scheduled,
+      t,
+    ],
   );
 
   const handle_toggle_star = useCallback(
@@ -523,11 +562,13 @@ function MobileInbox({
 
       return;
     }
+    if (is_scheduled_view) return;
     if (mail_state.has_more && !mail_state.is_loading_more) {
       load_more();
     }
   }, [
     is_drafts_view,
+    is_scheduled_view,
     drafts_state.has_more,
     mail_state,
     load_more,
@@ -542,8 +583,19 @@ function MobileInbox({
 
       return;
     }
+    if (is_scheduled_view) {
+      refresh_scheduled();
+
+      return;
+    }
     refresh();
-  }, [is_drafts_view, refresh, refresh_drafts]);
+  }, [
+    is_drafts_view,
+    is_scheduled_view,
+    refresh,
+    refresh_drafts,
+    refresh_scheduled,
+  ]);
 
   const confirm_empty_trash = useCallback(async () => {
     set_is_emptying_trash(true);
@@ -748,30 +800,56 @@ function MobileInbox({
           current_view={current_view}
           emails={enriched_unpinned}
           has_more={
-            is_drafts_view ? drafts_state.has_more : mail_state.has_more
+            is_drafts_view
+              ? drafts_state.has_more
+              : is_scheduled_view
+                ? false
+                : mail_state.has_more
           }
           is_loading={
-            is_drafts_view ? drafts_state.is_loading : mail_state.is_loading
+            is_drafts_view
+              ? drafts_state.is_loading
+              : is_scheduled_view
+                ? scheduled_state.is_loading
+                : mail_state.is_loading
           }
-          is_loading_more={is_drafts_view ? false : mail_state.is_loading_more}
+          is_loading_more={
+            is_drafts_view || is_scheduled_view
+              ? false
+              : mail_state.is_loading_more
+          }
           has_initial_load={
             is_drafts_view
               ? !drafts_state.is_loading
-              : mail_state.has_initial_load
+              : is_scheduled_view
+                ? !scheduled_state.is_loading
+                : mail_state.has_initial_load
           }
-          has_load_error={is_drafts_view ? false : mail_state.has_load_error}
+          has_load_error={
+            is_drafts_view || is_scheduled_view
+              ? false
+              : mail_state.has_load_error
+          }
           is_refreshing={is_refreshing}
-          on_archive={is_drafts_view ? undefined : handle_archive}
+          on_archive={
+            is_drafts_view || is_scheduled_view ? undefined : handle_archive
+          }
           on_delete={handle_delete}
           on_drag_select={selection_mode ? handle_drag_select : undefined}
           on_email_press={handle_email_press}
           on_load_more={handle_load_more}
           on_long_press={handle_long_press}
-          on_mark_spam={is_drafts_view ? undefined : handle_mark_spam}
+          on_mark_spam={
+            is_drafts_view || is_scheduled_view ? undefined : handle_mark_spam
+          }
           on_refresh={handle_refresh}
-          on_snooze={handle_snooze}
-          on_toggle_read={is_drafts_view ? undefined : handle_toggle_read}
-          on_toggle_star={is_drafts_view ? undefined : handle_toggle_star}
+          on_snooze={is_scheduled_view ? undefined : handle_snooze}
+          on_toggle_read={
+            is_drafts_view || is_scheduled_view ? undefined : handle_toggle_read
+          }
+          on_toggle_star={
+            is_drafts_view || is_scheduled_view ? undefined : handle_toggle_star
+          }
           pinned_emails={
             enriched_pinned.length > 0 ? enriched_pinned : undefined
           }
@@ -886,6 +964,30 @@ function MobileInbox({
           </div>
         </div>
       </MobileBottomSheet>
+
+      {scheduled_target && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-surf-primary">
+          <MobileHeader
+            title={t("mail.scheduled")}
+            on_back={() => set_scheduled_target(null)}
+          />
+          <div className="flex-1 min-h-0">
+            <SplitScheduledViewer
+              on_close={() => set_scheduled_target(null)}
+              scheduled_data={{
+                id: scheduled_target.id,
+                to_recipients: scheduled_target.to_recipients,
+                cc_recipients: scheduled_target.cc_recipients,
+                bcc_recipients: scheduled_target.bcc_recipients,
+                subject: scheduled_target.subject,
+                body: scheduled_target.full_body,
+                scheduled_at: scheduled_target.scheduled_at,
+                status: scheduled_target.status,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {spam_confirm_dialog}
     </div>

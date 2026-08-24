@@ -56,6 +56,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   get_preferred_sender_id,
+  sender_id_matches,
   set_preferred_sender_id,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
@@ -467,7 +468,7 @@ export function use_forward_modal({
     if (is_external || sender_loading || selected_sender) return;
     if (!preferred_sender_id) return;
     const match = sender_options.find(
-      (s) => s.is_enabled && s.id === preferred_sender_id,
+      (s) => s.is_enabled && sender_id_matches(s.id, preferred_sender_id),
     );
 
     if (match) set_selected_sender(match);

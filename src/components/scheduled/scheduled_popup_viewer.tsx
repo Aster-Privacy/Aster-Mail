@@ -27,6 +27,7 @@ import {
   ArrowsPointingOutIcon,
   ArrowsPointingInIcon,
   ArrowTopRightOnSquareIcon,
+  ClockIcon,
   PaperAirplaneIcon,
   PencilIcon,
   TrashIcon,
@@ -44,9 +45,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { SchedulePicker } from "@/components/compose/schedule_picker";
+import {
+  emit_mail_changed,
+  emit_scheduled_changed,
+} from "@/hooks/mail_events";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   cancel_scheduled_email,
+  reschedule_email,
   send_scheduled_now,
   get_scheduled_email,
   type ScheduledEmailWithContent,
@@ -153,6 +160,10 @@ export function ScheduledPopupViewer({
   const [show_cancel_confirm, set_show_cancel_confirm] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);
   const [is_sending_now, set_is_sending_now] = useState(false);
+  const [is_rescheduling, set_is_rescheduling] = useState(false);
+  const [current_scheduled_at, set_current_scheduled_at] = useState(
+    scheduled_data.scheduled_at,
+  );
   const [is_loading_content, set_is_loading_content] = useState(false);
   const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);
   const drag_start_ref = useRef({ x: 0, y: 0, pos_x: 0, pos_y: 0 });
@@ -266,10 +277,14 @@ export function ScheduledPopupViewer({
         action_type: "trash",
         email_ids: [scheduled_data.id],
       });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_scheduled_changed({
+        action: "cancelled",
+        email_id: scheduled_data.id,
+      });
+      emit_mail_changed();
       on_close();
     }
-  }, [scheduled_data.id, on_close]);
+  }, [scheduled_data.id, on_close, t]);
 
   const handle_send_now = useCallback(async () => {
     set_is_sending_now(true);
@@ -280,10 +295,42 @@ export function ScheduledPopupViewer({
 
     if (!response.error) {
       show_toast(t("common.email_sent_successfully"), "success");
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_scheduled_changed({
+        action: "sent",
+        email_id: scheduled_data.id,
+      });
+      emit_mail_changed();
       on_close();
     }
-  }, [scheduled_data.id, on_close]);
+  }, [scheduled_data.id, on_close, t]);
+
+  const handle_reschedule = useCallback(
+    async (date: Date | null) => {
+      if (!date) return;
+
+      set_is_rescheduling(true);
+
+      const response = await reschedule_email(
+        scheduled_data.id,
+        date.toISOString(),
+      );
+
+      set_is_rescheduling(false);
+
+      if (!response.error) {
+        set_current_scheduled_at(date.toISOString());
+        show_toast(t("common.send_time_updated"), "success");
+        emit_scheduled_changed({
+          action: "updated",
+          email_id: scheduled_data.id,
+        });
+        emit_mail_changed();
+      } else {
+        show_toast(response.error || t("common.something_went_wrong"), "error");
+      }
+    },
+    [scheduled_data.id, t],
+  );
 
   const handle_edit = useCallback(async () => {
     if (!vault || !on_edit) return;
@@ -390,6 +437,24 @@ export function ScheduledPopupViewer({
         <EmailTag label={t("common.scheduled_label")} variant="scheduled" />
 
         <div className="flex-1" />
+
+        <SchedulePicker
+          force_picker
+          scheduled_time={new Date(current_scheduled_at)}
+          tooltip_key="common.reschedule"
+          trigger={
+            <Button
+              data-no-drag
+              className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+              disabled={is_rescheduling}
+              size="icon"
+              variant="ghost"
+            >
+              <ClockIcon className="w-4 h-4" />
+            </Button>
+          }
+          on_schedule={handle_reschedule}
+        />
 
         {on_edit && (
           <Button
@@ -583,7 +648,7 @@ export function ScheduledPopupViewer({
                           {t("common.send_at_label")}
                         </span>
                         <span className="text-txt-secondary">
-                          {format_full_date(scheduled_data.scheduled_at)}
+                          {format_full_date(current_scheduled_at)}
                         </span>
                       </div>
                     </div>
@@ -595,7 +660,7 @@ export function ScheduledPopupViewer({
             <div className="flex items-center gap-1 flex-shrink-0">
               <EmailTag
                 icon="clock"
-                label={format_scheduled_time(scheduled_data.scheduled_at, t)}
+                label={format_scheduled_time(current_scheduled_at, t)}
                 variant="scheduled"
               />
             </div>
