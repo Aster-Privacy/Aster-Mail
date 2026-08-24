@@ -41,9 +41,9 @@
     "start:windows": "start_windows.bat",
     "start:android": "start_android.bat",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
+    "tauri:dev": "tauri dev --no-default-features",
     "tauri:build": "tauri build",
-    "tauri:dev:mac": "tauri dev",
+    "tauri:dev:mac": "tauri dev --no-default-features",
     "tauri:build:mac": "tauri build --target aarch64-apple-darwin",
     "sync-ui": "cd ../aster-ui && npm run build && cd ../Aster-Mail && npm install --no-save ../aster-ui",
     "tauri:build:universal": "tauri build --target universal-apple-darwin"

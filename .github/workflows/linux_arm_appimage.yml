@@ -68,6 +68,25 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: '1'
         run: npm run tauri build -- --bundles appimage --verbose
 
+      - name: Unbundle host graphics libraries from the AppImage
+        # linuxdeploy copies libwayland-client.so.0 and friends into the AppDir.
+        # They shadow the host copies, Mesa's libEGL_mesa.so.0 then fails to
+        # resolve wl_fixes_interface on any distribution newer than the runner,
+        # and WebKitGTK aborts with EGL_BAD_PARAMETER before the window paints.
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y squashfs-tools
+          shopt -s nullglob
+          for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
+            bash scripts/fix_appimage_libs.sh "$img"
+            rm -f "$img.sig"
+            npm run tauri -- signer sign "$img"
+          done
+
       - name: Collect canonical names
         id: collect
         shell: bash
