@@ -4227,7 +4227,7 @@ export const pl = {
     feature_advanced_search: "Zaawansowane wyszukiwanie",
     feature_contacts: "Kontakty",
     feature_contact_groups: "Grupy kontaktów",
-    feature_two_factor: "Tor",
+    feature_two_factor: "Uwierzytelnianie dwuskładnikowe",
     feature_recovery_codes: "Kody odzyskiwania",
     feature_password_folders: "Foldery chronione hasłem",
     feature_session_management: "Zarządzanie sesjami",

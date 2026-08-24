@@ -5167,7 +5167,7 @@ export const zh_CN = {
     desktop_bridge_set_up: "设置 {{client}}",
     desktop_bridge_install_hint:
       "下载 Aster Bridge 桌面应用以获取本地 IMAP/SMTP 访问",
-    desktop_bridge_upgrade_title: "需要升级",
+    desktop_bridge_upgrade_title: "使用你喜欢的邮件客户端",
     desktop_bridge_upgrade_description:
       "通过 Aster Bridge 将 Apple Mail、Thunderbird 或 Outlook 连接到 Aster。适用于 Star 及以上套餐。",
     desktop_bridge_upgrade_cta: "升级以使用 Bridge",
@@ -5178,7 +5178,7 @@ export const zh_CN = {
       "如果您最近更改了密码，某些旧邮件可能仍使用旧密钥加密。输入旧密码以恢复对这些邮件的访问。",
     vault_recovery_old_password_label: "旧密码",
     vault_recovery_old_password_placeholder: "输入旧密码",
-    vault_recovery_enter_password: "输入密码",
+    vault_recovery_enter_password: "请输入你的旧密码",
     vault_recovery_recover_button: "恢复",
     vault_recovery_recovering: "恢复中...",
     vault_recovery_success: "密钥库恢复成功",
@@ -5442,7 +5442,7 @@ export const zh_CN = {
     upgrade_perk_storage: "更多加密存储",
     upgrade_perk_aliases: "更多邮箱别名",
     upgrade_perk_domains: "更多自定义域名",
-    upgrade_perk_features: "高级功能",
+    upgrade_perk_features: "假期回复、定时发送等更多功能",
     upgrade_buy_storage: "购买额外存储",
     usage_contacts: "联系人",
     usage_filters: "过滤器",
