@@ -931,6 +931,12 @@ export interface CommonTranslations {
   load_content: string;
   open_link: string;
   no_icon: string;
+  icon_group_essentials: string;
+  icon_group_mail: string;
+  icon_group_money: string;
+  icon_group_work: string;
+  icon_group_school: string;
+  icon_group_everyday: string;
   random: string;
   custom: string;
   standard: string;

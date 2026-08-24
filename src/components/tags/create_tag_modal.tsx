@@ -28,11 +28,10 @@ import { Input } from "@/components/ui/input";
 import {
   EmailTag,
   TAG_COLOR_PRESETS,
-  TAG_ICONS,
-  tag_icon_map,
   hex_to_variant,
   type TagIconName,
 } from "@/components/ui/email_tag";
+import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -197,53 +196,11 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
                   >
                     {t("common.icon_optional")}
                   </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    <button
-                      className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[11px] transition-colors"
-                      style={{
-                        backgroundColor: !selected_icon
-                          ? "var(--indicator-bg)"
-                          : "transparent",
-                        border: !selected_icon
-                          ? "1px solid var(--border-primary)"
-                          : "1px solid transparent",
-                        color: "var(--text-muted)",
-                      }}
-                      onClick={() => set_selected_icon(undefined)}
-                    >
-                      &mdash;
-                    </button>
-                    {TAG_ICONS.map((icon_name) => {
-                      const IconComponent = tag_icon_map[icon_name];
-
-                      return (
-                        <button
-                          key={icon_name}
-                          className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors"
-                          style={{
-                            backgroundColor:
-                              selected_icon === icon_name
-                                ? "var(--indicator-bg)"
-                                : "transparent",
-                            border:
-                              selected_icon === icon_name
-                                ? "1px solid var(--border-primary)"
-                                : "1px solid transparent",
-                            color:
-                              selected_icon === icon_name
-                                ? selected_color
-                                : "var(--text-muted)",
-                          }}
-                          title={icon_name}
-                          onClick={() => set_selected_icon(icon_name)}
-                        >
-                          {IconComponent && (
-                            <IconComponent className="w-4 h-4" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <TagIconPicker
+                    accent_color={selected_color}
+                    selected_icon={selected_icon}
+                    on_select={set_selected_icon}
+                  />
                 </div>
 
                 <div className="flex items-center gap-2.5 pt-2">

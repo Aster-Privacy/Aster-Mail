@@ -37,12 +37,8 @@ import {
 } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import {
-  TAG_COLOR_PRESETS,
-  TAG_ICONS,
-  tag_icon_map,
-  type TagIconName,
-} from "@/components/ui/email_tag";
+import { TAG_COLOR_PRESETS, type TagIconName } from "@/components/ui/email_tag";
+import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -357,48 +353,11 @@ export function TagManagementModal({
               <label className="block text-[13px] font-medium mb-3 text-txt-secondary">
                 {t("common.select_an_icon")}
               </label>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[11px] transition-colors"
-                  style={{
-                    backgroundColor: !new_icon
-                      ? "var(--indicator-bg)"
-                      : "transparent",
-                    border: !new_icon
-                      ? "1px solid var(--border-primary)"
-                      : "1px solid transparent",
-                    color: "var(--text-muted)",
-                  }}
-                  title={t("common.no_icon")}
-                  onClick={() => set_new_icon(undefined)}
-                >
-                  &mdash;
-                </button>
-                {TAG_ICONS.map((icon_name) => {
-                  const IconComponent = tag_icon_map[icon_name as TagIconName];
-                  const is_selected = new_icon === icon_name;
-
-                  return (
-                    <button
-                      key={icon_name}
-                      className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors"
-                      style={{
-                        backgroundColor: is_selected
-                          ? "var(--indicator-bg)"
-                          : "transparent",
-                        border: is_selected
-                          ? "1px solid var(--border-primary)"
-                          : "1px solid transparent",
-                        color: is_selected ? tag_color : "var(--text-muted)",
-                      }}
-                      title={icon_name}
-                      onClick={() => set_new_icon(icon_name)}
-                    >
-                      {IconComponent && <IconComponent className="w-4 h-4" />}
-                    </button>
-                  );
-                })}
-              </div>
+              <TagIconPicker
+                accent_color={tag_color}
+                selected_icon={new_icon as TagIconName | undefined}
+                on_select={set_new_icon}
+              />
 
               {error && (
                 <p className="text-[13px] text-red-500 mt-4">{error}</p>
@@ -449,9 +408,7 @@ export function TagManagementModal({
             </ModalHeader>
 
             <ModalBody>
-              <div
-                className="rounded-lg p-4 mb-4 bg-red-600 dark:bg-red-700"
-              >
+              <div className="rounded-lg p-4 mb-4 bg-red-600 dark:bg-red-700">
                 <div className="flex items-start gap-3">
                   <ExclamationTriangleIcon className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <div>

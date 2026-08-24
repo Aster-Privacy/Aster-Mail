@@ -39,8 +39,9 @@ import { format_bytes } from "@/lib/utils";
 import {
   TAG_COLOR_PRESETS,
   tag_icon_map,
-  TAG_ICONS,
+  type TagIconName,
 } from "@/components/ui/email_tag";
+import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
@@ -331,51 +332,12 @@ export function CreateLabelSheet({
         <p className="mb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
           {t("common.icon_label")}
         </p>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          <button
-            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[11px]"
-            style={{
-              backgroundColor: !label_icon
-                ? "var(--indicator-bg, var(--bg-tertiary))"
-                : "transparent",
-              border: !label_icon
-                ? "1px solid var(--border-primary)"
-                : "1px solid transparent",
-              color: "var(--text-muted)",
-            }}
-            type="button"
-            onClick={() => set_label_icon(undefined)}
-          >
-            &mdash;
-          </button>
-          {TAG_ICONS.map((icon_name) => {
-            const IconComponent = tag_icon_map[icon_name];
-
-            return (
-              <button
-                key={icon_name}
-                className="flex h-8 w-8 items-center justify-center rounded-[8px]"
-                style={{
-                  backgroundColor:
-                    label_icon === icon_name
-                      ? "var(--indicator-bg, var(--bg-tertiary))"
-                      : "transparent",
-                  border:
-                    label_icon === icon_name
-                      ? "1px solid var(--border-primary)"
-                      : "1px solid transparent",
-                  color:
-                    label_icon === icon_name
-                      ? label_color
-                      : "var(--text-muted)",
-                }}
-                type="button"
-                onClick={() => set_label_icon(icon_name)}
-              >
-                {IconComponent && <IconComponent className="h-4 w-4" />}
-              </button>
-            );
-          })}
+        <div className="mb-3">
+          <TagIconPicker
+            accent_color={label_color}
+            selected_icon={label_icon as TagIconName | undefined}
+            on_select={set_label_icon}
+          />
         </div>
         <Button
           className="mt-1 w-full rounded-[16px] py-3 text-[15px] font-medium"
@@ -471,10 +433,7 @@ export function EditFolderSheet({
           <span className="text-[15px] text-[var(--text-primary)]">
             {t("settings.notifications")}
           </span>
-          <Switch
-            checked={!is_muted}
-            onCheckedChange={toggle_notifications}
-          />
+          <Switch checked={!is_muted} onCheckedChange={toggle_notifications} />
         </div>
         <div className="flex gap-2">
           <Button
@@ -584,49 +543,12 @@ export function EditTagSheet({
         <p className="mb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
           {t("common.icon_label")}
         </p>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          <button
-            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[11px]"
-            style={{
-              backgroundColor: !edit_icon
-                ? "var(--indicator-bg, var(--bg-tertiary))"
-                : "transparent",
-              border: !edit_icon
-                ? "1px solid var(--border-primary)"
-                : "1px solid transparent",
-              color: "var(--text-muted)",
-            }}
-            type="button"
-            onClick={() => set_edit_icon(undefined)}
-          >
-            &mdash;
-          </button>
-          {TAG_ICONS.map((icon_name) => {
-            const IconComponent = tag_icon_map[icon_name];
-
-            return (
-              <button
-                key={icon_name}
-                className="flex h-8 w-8 items-center justify-center rounded-[8px]"
-                style={{
-                  backgroundColor:
-                    edit_icon === icon_name
-                      ? "var(--indicator-bg, var(--bg-tertiary))"
-                      : "transparent",
-                  border:
-                    edit_icon === icon_name
-                      ? "1px solid var(--border-primary)"
-                      : "1px solid transparent",
-                  color:
-                    edit_icon === icon_name ? edit_color : "var(--text-muted)",
-                }}
-                type="button"
-                onClick={() => set_edit_icon(icon_name)}
-              >
-                {IconComponent && <IconComponent className="h-4 w-4" />}
-              </button>
-            );
-          })}
+        <div className="mb-3">
+          <TagIconPicker
+            accent_color={edit_color}
+            selected_icon={edit_icon as TagIconName | undefined}
+            on_select={set_edit_icon}
+          />
         </div>
         <div className="flex gap-2">
           <Button
@@ -692,7 +614,9 @@ export function CreateAliasSheet({
     <MobileBottomSheet is_open={is_open} on_close={on_close}>
       <div className="px-4 pb-4">
         <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
-          {at_limit ? t("common.alias_limit_reached") : t("settings.create_alias")}
+          {at_limit
+            ? t("common.alias_limit_reached")
+            : t("settings.create_alias")}
         </p>
         {at_limit ? (
           <>

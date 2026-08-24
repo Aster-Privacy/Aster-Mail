@@ -79,6 +79,7 @@ vi.mock("@/components/ui/email_tag", () => ({
   TAG_COLOR_PRESETS: [],
   tag_icon_map: {},
   TAG_ICONS: [],
+  TAG_ICON_GROUPS: [],
 }));
 
 vi.mock("@/components/modals/confirmation_modal", () => ({
