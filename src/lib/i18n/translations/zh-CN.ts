@@ -4601,6 +4601,12 @@ export const zh_CN = {
     cancel_impact_reactivate_hint:
       "不会删除任何内容。重新订阅后，被停用的内容会在新方案的限额范围内恢复。",
     cancel_impact_continue: "继续取消",
+    cancel_offer_title: "改用更小的套餐",
+    cancel_offer_description: "你可以改用价格更低的套餐，并继续使用此账户。",
+    cancel_offer_body: "{{plan}} 每月 {{price}}。你的邮件、别名和设置都会保留。",
+    cancel_offer_switch: "改用 {{plan}}",
+    cancel_offer_hint: "超出较小套餐限制的内容会像取消订阅时一样被停用。",
+    cancel_offer_continue: "继续取消",
     cancel_final_title: "确认取消",
     cancel_final_description:
       "您的 {{plan}} 方案将被取消，并于 {{date}} 结束。在此之前您仍拥有完整权限。",

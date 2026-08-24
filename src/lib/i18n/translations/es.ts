@@ -5044,6 +5044,15 @@ export const es = {
     cancel_impact_reactivate_hint:
       "No se elimina nada. Al volver a suscribirte se restaura lo desactivado, dentro de los límites de tu nuevo plan.",
     cancel_impact_continue: "Continuar con la cancelación",
+    cancel_offer_title: "Un plan más pequeño",
+    cancel_offer_description:
+      "Puedes cambiar a un plan más barato y conservar tu cuenta.",
+    cancel_offer_body:
+      "{{plan}} cuesta {{price}} al mes. Tu correo, tus alias y tus ajustes se mantienen.",
+    cancel_offer_switch: "Cambiar a {{plan}}",
+    cancel_offer_hint:
+      "Todo lo que supere los límites del plan más pequeño se desactiva igual que al cancelar.",
+    cancel_offer_continue: "Continuar con la cancelación",
     cancel_final_title: "Confirmar cancelación",
     cancel_final_description:
       "Tu plan {{plan}} se cancelará y finaliza el {{date}}. Mantienes el acceso completo hasta entonces.",

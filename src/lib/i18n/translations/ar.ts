@@ -4937,6 +4937,15 @@ export const ar = {
     cancel_impact_reactivate_hint:
       "لا يتم حذف أي شيء. إعادة الاشتراك تستعيد ما تم تعطيله، ضمن حدود خطتك الجديدة.",
     cancel_impact_continue: "المتابعة إلى الإلغاء",
+    cancel_offer_title: "خطة أصغر بدلاً من ذلك",
+    cancel_offer_description:
+      "يمكنك الانتقال إلى خطة أقل تكلفة والاحتفاظ بحسابك.",
+    cancel_offer_body:
+      "تكلفة {{plan}} هي {{price}} شهرياً. يبقى بريدك وأسماؤك المستعارة وإعداداتك كما هي.",
+    cancel_offer_switch: "الانتقال إلى {{plan}}",
+    cancel_offer_hint:
+      "كل ما يتجاوز حدود الخطة الأصغر يتم تعطيله تماماً كما يحدث عند الإلغاء.",
+    cancel_offer_continue: "متابعة الإلغاء",
     cancel_final_title: "تأكيد الإلغاء",
     cancel_final_description:
       "سيتم إلغاء خطة {{plan}} وتنتهي في {{date}}. تحتفظ بالوصول الكامل حتى ذلك الحين.",

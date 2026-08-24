@@ -4005,6 +4005,15 @@ export const it = {
     cancel_impact_reactivate_hint:
       "Non viene eliminato nulla. Riattivando l'abbonamento si ripristina ciò che era disattivato, entro i limiti del nuovo piano.",
     cancel_impact_continue: "Continua con l'annullamento",
+    cancel_offer_title: "Un piano più piccolo",
+    cancel_offer_description:
+      "Puoi passare a un piano più economico e mantenere il tuo account.",
+    cancel_offer_body:
+      "{{plan}} costa {{price}} al mese. La tua posta, i tuoi alias e le tue impostazioni restano al loro posto.",
+    cancel_offer_switch: "Passa a {{plan}}",
+    cancel_offer_hint:
+      "Tutto ciò che supera i limiti del piano più piccolo viene disattivato come in caso di disdetta.",
+    cancel_offer_continue: "Continua con la disdetta",
     cancel_final_title: "Conferma annullamento",
     cancel_final_description:
       "Il tuo piano {{plan}} verrà annullato e termina il {{date}}. Fino ad allora mantieni l'accesso completo.",

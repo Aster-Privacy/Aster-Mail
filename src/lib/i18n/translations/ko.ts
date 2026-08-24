@@ -5006,6 +5006,12 @@ export const ko = {
     cancel_impact_reactivate_hint:
       "삭제되는 항목은 없습니다. 다시 구독하면 새 플랜 한도 내에서 비활성화된 항목이 복원됩니다.",
     cancel_impact_continue: "취소 계속하기",
+    cancel_offer_title: "대신 더 작은 요금제로 변경",
+    cancel_offer_description: "더 저렴한 요금제로 변경하고 계정을 그대로 사용할 수 있습니다.",
+    cancel_offer_body: "{{plan}}은(는) 월 {{price}}입니다. 메일, 별칭, 설정은 그대로 유지됩니다.",
+    cancel_offer_switch: "{{plan}}(으)로 변경",
+    cancel_offer_hint: "더 작은 요금제의 한도를 초과하는 항목은 해지할 때와 동일하게 사용 중지됩니다.",
+    cancel_offer_continue: "해지 계속하기",
     cancel_final_title: "취소 확인",
     cancel_final_description:
       "{{plan}} 플랜이 취소되며 {{date}}에 종료됩니다. 그때까지는 모든 기능을 계속 사용할 수 있습니다.",

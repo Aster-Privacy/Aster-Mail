@@ -5015,6 +5015,15 @@ export const tr = {
     cancel_impact_reactivate_hint:
       "Hiçbir şey silinmez. Yeniden abone olduğunuzda devre dışı bırakılanlar, yeni planınızın sınırları içinde geri gelir.",
     cancel_impact_continue: "İptale devam et",
+    cancel_offer_title: "Bunun yerine daha küçük bir plan",
+    cancel_offer_description:
+      "Daha ucuz bir plana geçebilir ve hesabınızı koruyabilirsiniz.",
+    cancel_offer_body:
+      "{{plan}} ayda {{price}}. Postanız, takma adlarınız ve ayarlarınız yerinde kalır.",
+    cancel_offer_switch: "{{plan}} planına geç",
+    cancel_offer_hint:
+      "Daha küçük planın sınırlarını aşan her şey, iptal ettiğinizdeki gibi devre dışı bırakılır.",
+    cancel_offer_continue: "İptale devam et",
     cancel_final_title: "İptali onayla",
     cancel_final_description:
       "{{plan}} planınız iptal edilecek ve {{date}} tarihinde sona erecek. O zamana kadar tam erişiminiz sürer.",

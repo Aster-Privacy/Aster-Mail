@@ -5092,6 +5092,15 @@ export const pl = {
     cancel_impact_reactivate_hint:
       "Nic nie jest usuwane. Ponowna subskrypcja przywraca wyłączone elementy, w granicach nowego planu.",
     cancel_impact_continue: "Przejdź do anulowania",
+    cancel_offer_title: "Zamiast tego mniejszy plan",
+    cancel_offer_description:
+      "Możesz przejść na tańszy plan i zachować swoje konto.",
+    cancel_offer_body:
+      "{{plan}} kosztuje {{price}} miesięcznie. Twoja poczta, aliasy i ustawienia pozostają na miejscu.",
+    cancel_offer_switch: "Przejdź na {{plan}}",
+    cancel_offer_hint:
+      "Wszystko powyżej limitów mniejszego planu zostanie wyłączone tak samo jak przy anulowaniu.",
+    cancel_offer_continue: "Kontynuuj anulowanie",
     cancel_final_title: "Potwierdź anulowanie",
     cancel_final_description:
       "Twój plan {{plan}} zostanie anulowany i kończy się {{date}}. Do tego czasu zachowujesz pełny dostęp.",

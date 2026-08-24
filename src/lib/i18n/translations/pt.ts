@@ -5055,6 +5055,15 @@ export const pt = {
     cancel_impact_reactivate_hint:
       "Nada é excluído. Ao reassinar, o que foi desativado é restaurado, dentro dos limites do novo plano.",
     cancel_impact_continue: "Continuar para cancelar",
+    cancel_offer_title: "Um plano menor",
+    cancel_offer_description:
+      "Você pode mudar para um plano mais barato e manter sua conta.",
+    cancel_offer_body:
+      "{{plan}} custa {{price}} por mês. Seus e-mails, aliases e configurações continuam onde estão.",
+    cancel_offer_switch: "Mudar para {{plan}}",
+    cancel_offer_hint:
+      "Tudo o que ultrapassar os limites do plano menor é desativado da mesma forma que no cancelamento.",
+    cancel_offer_continue: "Continuar o cancelamento",
     cancel_final_title: "Confirmar cancelamento",
     cancel_final_description:
       "Seu plano {{plan}} será cancelado e termina em {{date}}. Você mantém acesso total até lá.",

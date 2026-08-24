@@ -5029,6 +5029,15 @@ export const nl = {
     cancel_impact_reactivate_hint:
       "Er wordt niets verwijderd. Opnieuw abonneren herstelt wat is uitgeschakeld, binnen de limieten van je nieuwe abonnement.",
     cancel_impact_continue: "Doorgaan met opzeggen",
+    cancel_offer_title: "Liever een kleiner abonnement",
+    cancel_offer_description:
+      "Je kunt overstappen naar een goedkoper abonnement en je account houden.",
+    cancel_offer_body:
+      "{{plan}} kost {{price}} per maand. Je e-mail, aliassen en instellingen blijven staan.",
+    cancel_offer_switch: "Overstappen naar {{plan}}",
+    cancel_offer_hint:
+      "Alles boven de limieten van het kleinere abonnement wordt uitgeschakeld, net als bij opzeggen.",
+    cancel_offer_continue: "Doorgaan met opzeggen",
     cancel_final_title: "Opzegging bevestigen",
     cancel_final_description:
       "Je {{plan}}-abonnement wordt opgezegd en eindigt op {{date}}. Tot dan houd je volledige toegang.",

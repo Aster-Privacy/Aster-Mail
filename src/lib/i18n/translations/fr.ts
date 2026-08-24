@@ -5095,6 +5095,15 @@ export const fr = {
     cancel_impact_reactivate_hint:
       "Rien n'est supprimé. Un nouvel abonnement rétablit ce qui a été désactivé, dans les limites de votre nouvelle offre.",
     cancel_impact_continue: "Continuer vers l'annulation",
+    cancel_offer_title: "Un forfait plus petit à la place",
+    cancel_offer_description:
+      "Vous pouvez passer à un forfait moins cher et conserver votre compte.",
+    cancel_offer_body:
+      "{{plan}} coûte {{price}} par mois. Vos messages, alias et réglages restent en place.",
+    cancel_offer_switch: "Passer à {{plan}}",
+    cancel_offer_hint:
+      "Tout ce qui dépasse les limites du forfait plus petit est désactivé comme lors d'une résiliation.",
+    cancel_offer_continue: "Continuer la résiliation",
     cancel_final_title: "Confirmer l'annulation",
     cancel_final_description:
       "Votre offre {{plan}} sera annulée et prend fin le {{date}}. Vous gardez un accès complet jusque-là.",

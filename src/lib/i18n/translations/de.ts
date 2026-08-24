@@ -5095,6 +5095,15 @@ export const de = {
     cancel_impact_reactivate_hint:
       "Nichts wird gelöscht. Ein erneutes Abo stellt Deaktiviertes wieder her, im Rahmen der Limits deines neuen Plans.",
     cancel_impact_continue: "Weiter zur Kündigung",
+    cancel_offer_title: "Stattdessen ein kleinerer Tarif",
+    cancel_offer_description:
+      "Sie können zu einem günstigeren Tarif wechseln und Ihr Konto behalten.",
+    cancel_offer_body:
+      "{{plan}} kostet {{price}} pro Monat. Ihre E-Mails, Aliasse und Einstellungen bleiben erhalten.",
+    cancel_offer_switch: "Zu {{plan}} wechseln",
+    cancel_offer_hint:
+      "Alles, was über die Grenzen des kleineren Tarifs hinausgeht, wird genauso deaktiviert wie bei einer Kündigung.",
+    cancel_offer_continue: "Mit der Kündigung fortfahren",
     cancel_final_title: "Kündigung bestätigen",
     cancel_final_description:
       "Dein {{plan}}-Plan wird gekündigt und endet am {{date}}. Bis dahin hast du vollen Zugriff.",

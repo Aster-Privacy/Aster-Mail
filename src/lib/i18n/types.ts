@@ -5017,6 +5017,12 @@ export interface SettingsTranslations {
   cancel_impact_features: string;
   cancel_impact_reactivate_hint: string;
   cancel_impact_continue: string;
+  cancel_offer_title: string;
+  cancel_offer_description: string;
+  cancel_offer_body: string;
+  cancel_offer_switch: string;
+  cancel_offer_hint: string;
+  cancel_offer_continue: string;
   cancel_final_title: string;
   cancel_final_description: string;
   cancel_final_description_nodate: string;

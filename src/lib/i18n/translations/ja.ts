@@ -5067,6 +5067,12 @@ export const ja = {
     cancel_impact_reactivate_hint:
       "削除されるものはありません。再登録すると、新しいプランの上限の範囲で無効化された項目が復元されます。",
     cancel_impact_continue: "解約手続きに進む",
+    cancel_offer_title: "小さいプランに変更する",
+    cancel_offer_description: "料金の低いプランに変更して、アカウントをそのまま使えます。",
+    cancel_offer_body: "{{plan}} は月額 {{price}} です。メール、エイリアス、設定はそのまま残ります。",
+    cancel_offer_switch: "{{plan}} に変更",
+    cancel_offer_hint: "小さいプランの上限を超えているものは、解約した場合と同じように無効になります。",
+    cancel_offer_continue: "解約手続きを続ける",
     cancel_final_title: "解約の確認",
     cancel_final_description:
       "{{plan}} プランは解約され、{{date}} に終了します。それまでは引き続きすべて利用できます。",

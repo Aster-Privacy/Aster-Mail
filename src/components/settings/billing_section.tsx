@@ -967,6 +967,21 @@ export function BillingSection() {
         handle_switch_billing={handle_switch_billing}
         is_action_loading={is_action_loading}
         load_data={load_data}
+        on_switch_plan={(offer) => {
+          if (offer.is_family) {
+            handle_family_plan_change(offer.plan_code, current_billing_interval);
+
+            return;
+          }
+
+          const api_plan = plans.find((plan) => plan.code === offer.plan_code);
+
+          if (api_plan) {
+            handle_select_plan(api_plan);
+          } else {
+            show_toast(t("settings.plans_coming_soon"), "info");
+          }
+        }}
         preferred_currency={preferred_currency}
         selected_plan={selected_plan}
         set_addon_to_cancel={set_addon_to_cancel}

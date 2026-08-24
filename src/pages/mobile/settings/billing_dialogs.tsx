@@ -43,7 +43,15 @@ import {
 } from "@/components/settings/billing/cancel_reason_step";
 import {
   CancelImpactStep,
+  type CancelStep,
 } from "@/components/settings/billing/cancel_impact_step";
+import {
+  get_downgrade_offer,
+  read_billing_interval,
+} from "@/components/settings/billing/cancel_offer";
+import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
+import { is_crypto_provider } from "@/components/settings/billing/billing_constants";
+import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
@@ -109,7 +117,23 @@ export function render_billing_dialogs(
     handle_pay_with_crypto,
     handle_addon_pay_card,
     handle_addon_pay_crypto,
+    plans,
+    handle_select_plan,
   } = state;
+
+  const base_offer =
+    subscription &&
+    !subscription.cancel_at_period_end &&
+    subscription.has_stripe_subscription !== false &&
+    !is_crypto_provider(subscription.payment_provider)
+      ? get_downgrade_offer(
+          subscription.plan.code,
+          read_billing_interval(subscription.plan.billing_period),
+        )
+      : null;
+  const downgrade_offer =
+    base_offer && !base_offer.is_family ? base_offer : null;
+  const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
 
   return (
     <>
@@ -124,8 +148,10 @@ export function render_billing_dialogs(
             <AlertDialogTitle>
               {cancel_step === "reason"
                 ? t("settings.cancel_reason_title")
-                : cancel_step === "impact"
-                  ? t("settings.cancel_impact_title")
+                : cancel_step === "offer"
+                  ? t("settings.cancel_offer_title")
+                  : cancel_step === "impact"
+                    ? t("settings.cancel_impact_title")
                   : cancel_step === "confirm"
                     ? t("settings.cancel_final_title")
                     : t("settings.cancel_confirm_title")}
@@ -133,8 +159,10 @@ export function render_billing_dialogs(
             <AlertDialogDescription>
               {cancel_step === "reason"
                 ? t("settings.cancel_reason_description")
-                : cancel_step === "impact"
-                  ? cancel_effective_date
+                : cancel_step === "offer"
+                  ? t("settings.cancel_offer_description")
+                  : cancel_step === "impact"
+                    ? cancel_effective_date
                     ? t("settings.cancel_impact_description", {
                         date: cancel_effective_date,
                       })
@@ -164,12 +192,39 @@ export function render_billing_dialogs(
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_continue={() => set_cancel_step("impact")}
-              on_skip={() => set_cancel_step("impact")}
+              on_continue={() => set_cancel_step(step_after_reason)}
+              on_skip={() => set_cancel_step(step_after_reason)}
               reason={cancel_reason}
               reason_text={cancel_reason_text}
               set_reason={set_cancel_reason}
               set_reason_text={set_cancel_reason_text}
+            />
+          ) : cancel_step === "offer" && downgrade_offer ? (
+            <CancelOfferStep
+              is_busy={is_action_loading}
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              offer={downgrade_offer}
+              on_back={() => set_cancel_step("reason")}
+              on_continue={() => set_cancel_step("impact")}
+              on_switch={() => {
+                const api_plan = plans.find(
+                  (plan) => plan.code === downgrade_offer.plan_code,
+                );
+
+                if (!api_plan) {
+                  show_toast(t("settings.plans_coming_soon"), "info");
+
+                  return;
+                }
+
+                set_show_cancel_dialog(false);
+                setTimeout(() => handle_select_plan(api_plan), 200);
+              }}
+              preferred_currency={preferred_currency}
             />
           ) : cancel_step === "impact" ? (
             <CancelImpactStep
@@ -180,7 +235,7 @@ export function render_billing_dialogs(
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_back={() => set_cancel_step("reason")}
+              on_back={() => set_cancel_step(step_after_reason)}
               on_continue={() => set_cancel_step("password")}
             />
           ) : cancel_step === "confirm" ? (

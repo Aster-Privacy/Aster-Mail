@@ -4105,6 +4105,15 @@ export const en: Translations = {
     cancel_impact_reactivate_hint:
       "Nothing is deleted. Resubscribing restores what was disabled, up to your new plan's limits.",
     cancel_impact_continue: "Continue to cancel",
+    cancel_offer_title: "A smaller plan instead",
+    cancel_offer_description:
+      "You can move to a lower-priced plan and keep your account.",
+    cancel_offer_body:
+      "{{plan}} is {{price}} a month. Your mail, aliases, and settings stay where they are.",
+    cancel_offer_switch: "Switch to {{plan}}",
+    cancel_offer_hint:
+      "Anything above the smaller plan's limits is turned off the same way it would be if you canceled.",
+    cancel_offer_continue: "Continue to cancel",
     cancel_final_title: "Confirm cancellation",
     cancel_final_description:
       "Your {{plan}} plan will be cancelled and ends on {{date}}. You keep full access until then.",
