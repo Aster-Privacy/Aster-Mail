@@ -27,7 +27,6 @@ import { en } from "@/lib/i18n/translations/en";
 
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
-
 export type DraftType = "new" | "reply" | "forward";
 
 export interface DraftAttachmentData {
@@ -317,7 +316,11 @@ async function decrypt_content(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce_bytes);
+    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
+      key,
+      ciphertext,
+      nonce_bytes,
+    );
   } catch {
     throw new DraftDecryptionError(en.errors.failed_decrypt_draft);
   }
@@ -346,14 +349,21 @@ function calculate_draft_expiration(): string {
   return new Date(Date.now() + expiration_ms).toISOString();
 }
 
+const DRAFT_PAGE_LIMIT = 10;
+
 function build_list_drafts_params(
   limit: number,
   draft_type?: DraftType,
+  cursor?: string,
 ): URLSearchParams {
   const params = new URLSearchParams({ limit: limit.toString() });
 
   if (draft_type) {
     params.append("draft_type", draft_type);
+  }
+
+  if (cursor) {
+    params.append("cursor", cursor);
   }
 
   return params;
@@ -426,27 +436,37 @@ export async function list_drafts_with_content(
     has_more: boolean;
   }>
 > {
-  const params = build_list_drafts_params(limit, draft_type);
+  const drafts: DraftWithContent[] = [];
+  let cursor: string | undefined;
 
-  const response = await api_client.get<ListDraftsApiResponse>(
-    `/mail/v1/drafts?${params.toString()}`,
-  );
+  for (let page = 0; page < DRAFT_PAGE_LIMIT; page += 1) {
+    const params = build_list_drafts_params(limit, draft_type, cursor);
 
-  if (response.error || !response.data) {
-    return create_error_response(response.error, response.code);
+    const response = await api_client.get<ListDraftsApiResponse>(
+      `/mail/v1/drafts?${params.toString()}`,
+    );
+
+    if (response.error || !response.data) {
+      if (drafts.length > 0) {
+        return { data: { drafts, has_more: false } };
+      }
+
+      return create_error_response(response.error, response.code);
+    }
+
+    const page_drafts = await Promise.all(
+      response.data.items.map((item) => decrypt_list_item(item, vault)),
+    );
+
+    drafts.push(...page_drafts);
+    cursor = response.data.next_cursor;
+
+    if (!response.data.has_more || !cursor || page_drafts.length === 0) {
+      return { data: { drafts, has_more: false } };
+    }
   }
 
-  const drafts = await Promise.all(
-    response.data.items.map((item) => decrypt_list_item(item, vault)),
-  );
-
-  return {
-    data: {
-      drafts,
-      next_cursor: response.data.next_cursor,
-      has_more: response.data.has_more,
-    },
-  };
+  return { data: { drafts, next_cursor: cursor, has_more: true } };
 }
 
 export async function get_draft(

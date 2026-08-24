@@ -78,7 +78,44 @@ export interface TagCountsResponse {
   counts: { tag_token: string; count: number }[];
 }
 
+const TAG_PAGE_SIZE = 500;
+const TAG_PAGE_LIMIT = 10;
+
 export async function list_tags(
+  params: ListTagsParams = {},
+): Promise<ApiResponse<TagsListResponse>> {
+  if (params.limit !== undefined || params.offset !== undefined) {
+    return fetch_tag_page(params);
+  }
+
+  const tags: TagDefinition[] = [];
+  let total = 0;
+
+  for (let page = 0; page < TAG_PAGE_LIMIT; page += 1) {
+    const response = await fetch_tag_page({
+      ...params,
+      limit: TAG_PAGE_SIZE,
+      offset: page * TAG_PAGE_SIZE,
+    });
+
+    if (response.error || !response.data) {
+      return tags.length > 0
+        ? { data: { tags, total, has_more: false } }
+        : response;
+    }
+
+    tags.push(...response.data.tags);
+    total = response.data.total;
+
+    if (!response.data.has_more || response.data.tags.length === 0) {
+      return { data: { tags, total, has_more: false } };
+    }
+  }
+
+  return { data: { tags, total, has_more: true } };
+}
+
+async function fetch_tag_page(
   params: ListTagsParams = {},
 ): Promise<ApiResponse<TagsListResponse>> {
   const query_params = new URLSearchParams();

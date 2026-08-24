@@ -343,31 +343,47 @@ interface ScheduledListApiResponse {
   offset: number;
 }
 
+const SCHEDULED_PAGE_SIZE = 100;
+const SCHEDULED_PAGE_LIMIT = 10;
+
 export async function list_scheduled_emails(
-  limit: number = 50,
+  limit: number = SCHEDULED_PAGE_SIZE,
 ): Promise<ApiResponse<ListScheduledResult>> {
-  const response = await api_client.get<ScheduledListApiResponse>(
-    `/mail/v1/scheduled?limit=${limit}`,
-  );
+  const page_size = Math.max(1, Math.min(limit, SCHEDULED_PAGE_SIZE));
+  const emails: ListScheduledResult["emails"] = [];
+  let total = 0;
 
-  if (response.error || !response.data) {
-    return create_error_response(response.error, response.code);
-  }
+  for (let page = 0; page < SCHEDULED_PAGE_LIMIT; page += 1) {
+    const offset = page * page_size;
+    const response = await api_client.get<ScheduledListApiResponse>(
+      `/mail/v1/scheduled?limit=${page_size}&offset=${offset}`,
+    );
 
-  return {
-    data: {
-      emails: response.data.items.map((item) => ({
+    if (response.error || !response.data) {
+      if (emails.length > 0) {
+        return { data: { emails, total, has_more: false } };
+      }
+      return create_error_response(response.error, response.code);
+    }
+
+    for (const item of response.data.items) {
+      emails.push({
         id: item.id,
         scheduled_at: item.scheduled_at,
         status: item.status as ScheduledEmailStatus,
         created_at: item.created_at,
         updated_at: item.created_at,
-      })),
-      total: response.data.total,
-      has_more:
-        response.data.offset + response.data.items.length < response.data.total,
-    },
-  };
+      });
+    }
+    total = response.data.total;
+
+    const consumed = response.data.offset + response.data.items.length;
+    if (consumed >= response.data.total || response.data.items.length === 0) {
+      return { data: { emails, total, has_more: false } };
+    }
+  }
+
+  return { data: { emails, total, has_more: true } };
 }
 
 interface ScheduledEmailApiFullResponse {

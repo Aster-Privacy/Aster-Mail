@@ -145,7 +145,44 @@ interface ApiLabelsListResponse {
   has_more: boolean;
 }
 
+const FOLDER_PAGE_SIZE = 500;
+const FOLDER_PAGE_LIMIT = 10;
+
 export async function list_folders(
+  params: ListFoldersParams = {},
+): Promise<ApiResponse<FoldersListResponse>> {
+  if (params.limit !== undefined || params.offset !== undefined) {
+    return fetch_folder_page(params);
+  }
+
+  const folders: FolderDefinition[] = [];
+  let total = 0;
+
+  for (let page = 0; page < FOLDER_PAGE_LIMIT; page += 1) {
+    const response = await fetch_folder_page({
+      ...params,
+      limit: FOLDER_PAGE_SIZE,
+      offset: page * FOLDER_PAGE_SIZE,
+    });
+
+    if (response.error || !response.data) {
+      return folders.length > 0
+        ? { data: { folders, total, has_more: false } }
+        : response;
+    }
+
+    folders.push(...response.data.folders);
+    total = response.data.total;
+
+    if (!response.data.has_more || response.data.folders.length === 0) {
+      return { data: { folders, total, has_more: false } };
+    }
+  }
+
+  return { data: { folders, total, has_more: true } };
+}
+
+async function fetch_folder_page(
   params: ListFoldersParams = {},
 ): Promise<ApiResponse<FoldersListResponse>> {
   const query_params = new URLSearchParams();
