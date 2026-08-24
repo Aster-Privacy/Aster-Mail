@@ -53,6 +53,8 @@ import {
 
 const SCHEDULED_FETCH_LIMIT = 50;
 const FETCH_TIMEOUT_MS = 15_000;
+const COUNTDOWN_TICK_MS = 20_000;
+const DUE_REFRESH_INTERVAL_MS = 60_000;
 
 const SCHEDULED_CATEGORY_STYLE =
   "bg-indigo-100 text-indigo-700 border border-indigo-300 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-500";
@@ -84,18 +86,24 @@ interface UseScheduledEmailsReturn {
   bulk_cancel: (ids: string[]) => Promise<boolean>;
 }
 
-interface ScheduledTimestampLabels {
+export interface ScheduledTimestampLabels {
   sending: string;
   in_one_minute: string;
   in_x_minutes: (count: number) => string;
+}
+
+export interface ScheduledTimestampRefresh {
+  emails: ScheduledListItem[];
+  has_due: boolean;
 }
 
 function format_scheduled_timestamp(
   date: Date,
   options: FormatOptions,
   labels: ScheduledTimestampLabels,
+  now: number = Date.now(),
 ): string {
-  const hours_until = (date.getTime() - Date.now()) / 3600000;
+  const hours_until = (date.getTime() - now) / 3600000;
 
   if (hours_until < 0) {
     return labels.sending;
@@ -160,6 +168,31 @@ function transform_scheduled(
     bcc_recipients: scheduled.content.bcc_recipients,
     full_body: scheduled.content.body,
   };
+}
+
+export function refresh_scheduled_timestamps(
+  emails: ScheduledListItem[],
+  options: FormatOptions,
+  labels: ScheduledTimestampLabels,
+  now: number,
+): ScheduledTimestampRefresh {
+  let changed = false;
+  let has_due = false;
+
+  const next = emails.map((email) => {
+    const due_at = new Date(email.scheduled_at);
+
+    if (due_at.getTime() <= now) has_due = true;
+
+    const timestamp = format_scheduled_timestamp(due_at, options, labels, now);
+
+    if (timestamp === email.timestamp) return email;
+    changed = true;
+
+    return { ...email, timestamp };
+  });
+
+  return { emails: changed ? next : emails, has_due };
 }
 
 async function fetch_scheduled_from_api(
@@ -448,6 +481,48 @@ export function use_scheduled_emails(
       document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, [is_active, has_keys, refresh]);
+
+  useEffect(() => {
+    if (!is_active) return;
+
+    let last_due_refresh = 0;
+
+    const tick = () => {
+      if (document.visibilityState === "hidden") return;
+
+      const labels: ScheduledTimestampLabels = {
+        sending: t("common.sending"),
+        in_one_minute: t("common.in_one_minute"),
+        in_x_minutes: (count: number) => t("common.in_x_minutes", { count }),
+      };
+      let has_due = false;
+
+      set_emails((prev) => {
+        const result = refresh_scheduled_timestamps(
+          prev,
+          format_options,
+          labels,
+          Date.now(),
+        );
+
+        has_due = result.has_due;
+
+        return result.emails;
+      });
+
+      const can_refresh =
+        Date.now() - last_due_refresh >= DUE_REFRESH_INTERVAL_MS;
+
+      if (has_due && can_refresh && has_keys && get_vault_from_memory()) {
+        last_due_refresh = Date.now();
+        refresh();
+      }
+    };
+
+    const timer = setInterval(tick, COUNTDOWN_TICK_MS);
+
+    return () => clearInterval(timer);
+  }, [is_active, has_keys, refresh, format_options, t]);
 
   useEffect(() => {
     if (has_keys && !is_loading) {
