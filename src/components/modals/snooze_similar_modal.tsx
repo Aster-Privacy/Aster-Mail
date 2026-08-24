@@ -61,6 +61,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  compute_snooze_target,
+  type SnoozeTargetId,
+} from "@/utils/snooze_targets";
 
 interface DecryptedEnvelope {
   from: { name: string; email: string };
@@ -82,47 +86,12 @@ function get_snooze_options(
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ) {
   return [
-    { label: t("common.later_today"), hours: 4 },
-    { label: t("common.tomorrow"), hours: 24 },
-    { label: t("common.this_weekend"), days: "weekend" as const },
-    { label: t("common.next_week"), days: 7 },
-    { label: t("common.next_month"), days: 30 },
+    { label: t("common.later_today"), target: "later_today" as const },
+    { label: t("common.tomorrow"), target: "tomorrow" as const },
+    { label: t("common.this_weekend"), target: "this_weekend" as const },
+    { label: t("common.next_week"), target: "next_week" as const },
+    { label: t("common.next_month"), target: "next_month" as const },
   ];
-}
-
-function calculate_snooze_date(option: {
-  label: string;
-  hours?: number;
-  days?: number | "weekend";
-}): Date {
-  const now = new Date();
-
-  if ("hours" in option && option.hours) {
-    return new Date(now.getTime() + option.hours * 60 * 60 * 1000);
-  }
-
-  if (option.days === "weekend") {
-    const day_of_week = now.getDay();
-    const days_until_saturday =
-      day_of_week === 6 ? 7 : (6 - day_of_week + 7) % 7;
-    const saturday = new Date(now);
-
-    saturday.setDate(now.getDate() + days_until_saturday);
-    saturday.setHours(9, 0, 0, 0);
-
-    return saturday;
-  }
-
-  if (typeof option.days === "number") {
-    const target = new Date(now);
-
-    target.setDate(now.getDate() + option.days);
-    target.setHours(9, 0, 0, 0);
-
-    return target;
-  }
-
-  return now;
 }
 
 async function decrypt_envelope_local(
@@ -268,10 +237,9 @@ export function SnoozeSimilarModal({
 
   const handle_pick_preset = (option: {
     label: string;
-    hours?: number;
-    days?: number | "weekend";
+    target: SnoozeTargetId;
   }) => {
-    set_snooze_date(calculate_snooze_date(option));
+    set_snooze_date(compute_snooze_target(option.target));
     set_snooze_label(option.label);
   };
 

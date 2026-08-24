@@ -49,6 +49,7 @@ import {
 import { PinIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { category_for_tab } from "@/services/mail_categorizer";
+import { compute_snooze_target } from "@/utils/snooze_targets";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -372,9 +373,8 @@ function EmailContextMenuContentInner({
             <ContextMenuSubContent className="w-48">
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
+                  const date = compute_snooze_target("later_today");
 
-                  date.setHours(date.getHours() + 4);
                   handle_action("snooze", () => on_snooze(date));
                 }}
               >
@@ -382,10 +382,8 @@ function EmailContextMenuContentInner({
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
+                  const date = compute_snooze_target("tomorrow");
 
-                  date.setDate(date.getDate() + 1);
-                  date.setHours(9, 0, 0, 0);
                   handle_action("snooze", () => on_snooze(date));
                 }}
               >
@@ -393,12 +391,8 @@ function EmailContextMenuContentInner({
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
-                  const day = date.getDay();
-                  const days_until_saturday = day === 6 ? 7 : (6 - day + 7) % 7;
+                  const date = compute_snooze_target("this_weekend");
 
-                  date.setDate(date.getDate() + days_until_saturday);
-                  date.setHours(9, 0, 0, 0);
                   handle_action("snooze", () => on_snooze(date));
                 }}
               >
@@ -406,10 +400,8 @@ function EmailContextMenuContentInner({
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
+                  const date = compute_snooze_target("next_week");
 
-                  date.setDate(date.getDate() + 7);
-                  date.setHours(9, 0, 0, 0);
                   handle_action("snooze", () => on_snooze(date));
                 }}
               >
@@ -417,22 +409,8 @@ function EmailContextMenuContentInner({
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
-                  const target_day = date.getDate();
+                  const date = compute_snooze_target("next_month");
 
-                  date.setDate(1);
-                  date.setMonth(date.getMonth() + 1);
-                  date.setDate(
-                    Math.min(
-                      target_day,
-                      new Date(
-                        date.getFullYear(),
-                        date.getMonth() + 1,
-                        0,
-                      ).getDate(),
-                    ),
-                  );
-                  date.setHours(9, 0, 0, 0);
                   handle_action("snooze", () => on_snooze(date));
                 }}
               >

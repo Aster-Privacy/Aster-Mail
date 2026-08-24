@@ -66,6 +66,7 @@ import { HeaderPagination } from "@/components/inbox/header/header_pagination";
 import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { compute_snooze_target } from "@/utils/snooze_targets";
 
 interface FolderOption {
   folder_token: string;
@@ -575,9 +576,8 @@ export function InboxHeader({
                     </DropdownMenuLabel>
                     <DropdownMenuItem
                       onClick={() => {
-                        const date = new Date();
+                        const date = compute_snooze_target("later_today");
 
-                        date.setHours(date.getHours() + 4);
                         on_snooze(date);
                       }}
                     >
@@ -586,10 +586,8 @@ export function InboxHeader({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
-                        const date = new Date();
+                        const date = compute_snooze_target("tomorrow");
 
-                        date.setDate(date.getDate() + 1);
-                        date.setHours(9, 0, 0, 0);
                         on_snooze(date);
                       }}
                     >
@@ -598,10 +596,8 @@ export function InboxHeader({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
-                        const date = new Date();
+                        const date = compute_snooze_target("next_week");
 
-                        date.setDate(date.getDate() + 7);
-                        date.setHours(9, 0, 0, 0);
                         on_snooze(date);
                       }}
                     >
@@ -757,9 +753,8 @@ export function InboxHeader({
                         </DropdownMenuLabel>
                         <DropdownMenuItem
                           onClick={() => {
-                            const date = new Date();
+                            const date = compute_snooze_target("later_today");
 
-                            date.setHours(date.getHours() + 4);
                             on_snooze(date);
                           }}
                         >
@@ -768,10 +763,8 @@ export function InboxHeader({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
-                            const date = new Date();
+                            const date = compute_snooze_target("tomorrow");
 
-                            date.setDate(date.getDate() + 1);
-                            date.setHours(9, 0, 0, 0);
                             on_snooze(date);
                           }}
                         >
@@ -780,10 +773,8 @@ export function InboxHeader({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
-                            const date = new Date();
+                            const date = compute_snooze_target("next_week");
 
-                            date.setDate(date.getDate() + 7);
-                            date.setHours(9, 0, 0, 0);
                             on_snooze(date);
                           }}
                         >
