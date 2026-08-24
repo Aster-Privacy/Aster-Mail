@@ -618,6 +618,28 @@ async function save_preferences_via_http(
 
 const NULLABLE_PREFERENCE_KEYS = new Set<string>(["default_signature_id"]);
 
+const MOBILE_PREFERENCE_KEY_ALIASES: Record<string, string> = {
+  show_read_receipts: "send_read_receipts",
+};
+
+function adopt_mobile_preference_aliases(
+  server: Record<string, unknown>,
+  merged: UserPreferences,
+): void {
+  const target = merged as unknown as Record<string, unknown>;
+
+  for (const [web_key, mobile_key] of Object.entries(
+    MOBILE_PREFERENCE_KEY_ALIASES,
+  )) {
+    if (server[web_key] !== undefined) continue;
+    const mobile_value = server[mobile_key];
+
+    if (typeof mobile_value === typeof target[web_key]) {
+      target[web_key] = mobile_value;
+    }
+  }
+}
+
 export function build_merged_preferences(
   server: Record<string, unknown>,
   cached: UserPreferences | null,
@@ -693,6 +715,7 @@ export function build_merged_preferences(
     ? merged.muted_folder_tokens.filter((c) => typeof c === "string")
     : [];
   merged.inbox_page_size = clamp_inbox_page_size(merged.inbox_page_size);
+  adopt_mobile_preference_aliases(server, merged);
 
   return merged;
 }

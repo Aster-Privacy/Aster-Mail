@@ -162,4 +162,26 @@ describe("build_merged_preferences", () => {
 
     expect(merged.theme).toBe("system");
   });
+  it("adopts the mobile read receipt key when the web key is missing", () => {
+    const server: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
+
+    delete server.show_read_receipts;
+    server.send_read_receipts = true;
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.show_read_receipts).toBe(true);
+  });
+
+  it("keeps the web read receipt value when both keys are present", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      send_read_receipts: true,
+      show_read_receipts: false,
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.show_read_receipts).toBe(false);
+  });
 });
