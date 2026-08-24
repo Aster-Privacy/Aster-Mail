@@ -319,6 +319,11 @@ export function UpgradeModal() {
       if (!result.ok) {
         show_toast(t("settings.failed_checkout"), "error");
         set_is_starting(false);
+      } else if (
+        typeof window !== "undefined" &&
+        "__TAURI_INTERNALS__" in window
+      ) {
+        set_is_starting(false);
       }
     } catch {
       show_toast(t("settings.failed_checkout"), "error");

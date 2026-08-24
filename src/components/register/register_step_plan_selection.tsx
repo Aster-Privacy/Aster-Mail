@@ -35,6 +35,7 @@ import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal
 import {
   get_available_plans,
   format_price,
+  open_payment_url,
   start_hosted_checkout,
   get_my_referral_status,
   validate_promo_code,
@@ -344,6 +345,12 @@ export const RegisterStepPlanSelection = ({
     if (!result.ok) {
       set_is_finalizing(false);
       show_toast(t("settings.failed_checkout"), "error");
+
+      return;
+    }
+
+    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+      set_is_finalizing(false);
     }
   }, [pending_tier, billing_interval, currency, t]);
 
@@ -362,9 +369,10 @@ export const RegisterStepPlanSelection = ({
     const res = await create_family_group(tier.id, billing_interval);
     if (res.data?.checkout_url) {
       try {
-        const parsed = new URL(res.data.checkout_url);
-        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
-        window.location.href = parsed.toString();
+        await open_payment_url(res.data.checkout_url);
+        if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+          set_is_finalizing(false);
+        }
       } catch {
         set_is_finalizing(false);
         show_toast(t("settings.failed_checkout"), "error");

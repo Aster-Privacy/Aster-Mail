@@ -33,6 +33,7 @@ import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal
 import {
   get_available_plans,
   format_price,
+  open_payment_url,
   start_hosted_checkout,
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
@@ -323,10 +324,11 @@ export function PlanUpgradeSelection({
 
     if (res.data?.checkout_url) {
       try {
-        const parsed = new URL(res.data.checkout_url);
+        await open_payment_url(res.data.checkout_url);
 
-        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
-        window.location.href = parsed.toString();
+        if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+          set_is_finalizing(false);
+        }
       } catch {
         set_is_finalizing(false);
         show_toast(t("settings.failed_checkout"), "error");

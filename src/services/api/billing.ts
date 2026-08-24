@@ -272,7 +272,7 @@ export async function open_billing_portal(): Promise<{
   return { ok: true };
 }
 
-async function open_payment_url(url: string): Promise<void> {
+export async function open_payment_url(url: string): Promise<void> {
   const safe = payment_url_or_throw(url);
 
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
