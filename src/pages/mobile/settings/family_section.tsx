@@ -286,6 +286,23 @@ export function FamilySection({
           <p className="text-[15px] text-[var(--text-primary)]">
             {t("settings.family_plan_subtitle")}
           </p>
+          <button
+            className="rounded-xl px-4 py-2.5 text-[14px] font-semibold text-[var(--text-primary)]"
+            style={{
+              background: "var(--mobile-bg-card)",
+              border: "1px solid var(--border-primary)",
+            }}
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent("aster:open-settings-section", {
+                  detail: { section: "billing" },
+                }),
+              )
+            }
+          >
+            {t("common.upgrade_plan")}
+          </button>
         </div>
       </div>
     );

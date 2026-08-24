@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ChevronRightIcon,
@@ -33,6 +34,7 @@ import {
 import { SettingsGroup, SettingsHeader } from "./shared";
 import {
   PLAN_TIERS,
+  FAMILY_PLAN_TIERS,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
@@ -58,6 +60,10 @@ export function BillingSection({
   on_close: () => void;
 }) {
   use_currency_rates();
+
+  const [plan_type, set_plan_type] = useState<"individual" | "family">(
+    "individual",
+  );
 
   const state = use_billing_section();
   const {
@@ -90,6 +96,7 @@ export function BillingSection({
     handle_manage_billing,
     handle_reactivate,
     handle_select_plan,
+    handle_family_plan,
     handle_crypto_renew,
     plans_ref,
     scroll_to_plans,
@@ -395,6 +402,31 @@ export function BillingSection({
             <div ref={plans_ref}>
               <SettingsGroup title={t("settings.available_plans")}>
                 <div className="px-4 py-3">
+                  <div className="flex items-center justify-center gap-1 p-1 rounded-xl bg-[var(--mobile-bg-card-hover)] mb-3">
+                    <button
+                      className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
+                        plan_type === "individual"
+                          ? "bg-[var(--mobile-bg-card)] text-[var(--text-primary)] shadow-sm"
+                          : "text-[var(--text-muted)]"
+                      }`}
+                      type="button"
+                      onClick={() => set_plan_type("individual")}
+                    >
+                      {t("settings.plan_type_individual")}
+                    </button>
+                    <button
+                      className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
+                        plan_type === "family"
+                          ? "bg-[var(--mobile-bg-card)] text-[var(--text-primary)] shadow-sm"
+                          : "text-[var(--text-muted)]"
+                      }`}
+                      type="button"
+                      onClick={() => set_plan_type("family")}
+                    >
+                      {t("settings.plan_type_family")}
+                    </button>
+                  </div>
+
                   <div className="flex items-center justify-center gap-1 p-1 rounded-xl bg-[var(--mobile-bg-card-hover)] mb-4">
                     <button
                       className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
@@ -421,7 +453,90 @@ export function BillingSection({
                   </div>
 
                   <div className="space-y-3">
-                    {PLAN_TIERS.map((tier, tier_index) => {
+                    {plan_type === "family" &&
+                      FAMILY_PLAN_TIERS.map((tier) => {
+                        const is_current = subscription?.plan.code === tier.id;
+
+                        return (
+                          <div
+                            key={tier.id}
+                            className="rounded-2xl overflow-hidden"
+                            style={{
+                              border: `2px solid ${is_current ? "var(--mobile-accent)" : "var(--border-primary)"}`,
+                              backgroundColor: "var(--mobile-bg-card-hover)",
+                            }}
+                          >
+                            <div className="px-4 pt-4 pb-4 text-center">
+                              {is_current && (
+                                <span
+                                  className="inline-flex px-3 py-1 rounded-full text-[11px] font-medium mb-2"
+                                  style={{
+                                    backgroundColor:
+                                      "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+                                    color: "var(--color-info)",
+                                    border:
+                                      "1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)",
+                                  }}
+                                >
+                                  {t("settings.current_plan")}
+                                </span>
+                              )}
+                              <div className="flex items-center justify-center gap-1.5">
+                                <UserGroupIcon className="w-4 h-4 text-[var(--text-muted)]" />
+                                <h4 className="text-[17px] font-bold text-[var(--text-primary)]">
+                                  {tier.name}
+                                </h4>
+                              </div>
+                              <p className="text-[12px] text-[var(--text-secondary)] mt-1">
+                                {tier.id === "duo"
+                                  ? t("settings.family_duo_tagline")
+                                  : t("settings.family_plan_tagline")}
+                              </p>
+                              <div className="mt-1.5">
+                                <span className="text-[28px] font-bold text-[var(--text-primary)]">
+                                  {format_price(
+                                    convert_cents(
+                                      billing_period === "monthly"
+                                        ? tier.monthly_cents
+                                        : tier.yearly_cents,
+                                      preferred_currency,
+                                    ),
+                                    preferred_currency,
+                                  )}
+                                </span>
+                                <span className="text-[13px] text-[var(--text-muted)]">
+                                  {billing_period === "monthly"
+                                    ? t("settings.per_month_short")
+                                    : t("settings.per_year_short")}
+                                </span>
+                              </div>
+                              <motion.button
+                                className="flex w-full items-center justify-center rounded-xl py-2.5 mt-3 text-[14px] font-semibold disabled:opacity-50"
+                                disabled={is_action_loading || is_current}
+                                style={{
+                                  background: "var(--mobile-bg-card)",
+                                  color: is_current
+                                    ? "var(--text-muted)"
+                                    : "var(--text-primary)",
+                                  border: "1px solid var(--border-primary)",
+                                }}
+                                type="button"
+                                onClick={() => {
+                                  if (is_current) return;
+                                  handle_family_plan(tier.id);
+                                }}
+                              >
+                                {is_current
+                                  ? t("settings.current_plan")
+                                  : t("settings.subscribe")}
+                              </motion.button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    {plan_type === "individual" &&
+                      PLAN_TIERS.map((tier, tier_index) => {
                       const current_plan_code = subscription?.plan.code;
                       const is_current = current_plan_code === tier.id;
                       const current_tier_index = PLAN_TIERS.findIndex(
@@ -586,9 +701,9 @@ export function BillingSection({
                               ))}
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                          </div>
+                        );
+                      })}
                   </div>
 
                   {preferred_currency !== "usd" && (

@@ -71,12 +71,14 @@ import {
   build_referral_invite_url,
   get_cancel_impact,
   format_date,
+  open_payment_url,
   type ReferralInfo,
   type ReferralHistoryItem,
   type CreditBalanceResponse,
   type StorageAddonItem,
   type CancelImpactResponse,
 } from "@/services/api/billing";
+import { create_family_group } from "@/services/api/family";
 
 export function use_billing_section() {
   const { t } = use_i18n();
@@ -574,6 +576,28 @@ export function use_billing_section() {
     }
   };
 
+  const handle_family_plan = async (tier_id: string) => {
+    if (is_action_loading) return;
+    set_is_action_loading(true);
+
+    try {
+      const response = await create_family_group(
+        tier_id,
+        billing_period === "yearly" ? "year" : "month",
+      );
+
+      if (response.data?.checkout_url) {
+        await open_payment_url(response.data.checkout_url);
+      } else {
+        show_toast(t("settings.failed_checkout"), "error");
+      }
+    } catch {
+      show_toast(t("settings.failed_checkout"), "error");
+    } finally {
+      set_is_action_loading(false);
+    }
+  };
+
   const handle_confirm_plan_change = async () => {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
@@ -749,6 +773,7 @@ export function use_billing_section() {
     handle_reactivate,
     handle_select_plan,
     handle_pay_with_card,
+    handle_family_plan,
     handle_confirm_plan_change,
     crypto_term_prices_for,
     handle_pay_with_crypto,
