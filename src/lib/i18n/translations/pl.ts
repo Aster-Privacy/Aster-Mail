@@ -6788,7 +6788,7 @@ export const pl = {
     next_week_snooze: "W przyszłym tygodniu",
     next_month_snooze: "W przyszłym miesiącu",
     pick_date_time: "Wybierz datę i czas",
-    schedule_time_must_be_future: "Wybierz czas w przyszłości.",
+    schedule_time_must_be_future: "Zaplanowana godzina musi być w przyszłości",
     restore: "Przywróć",
     move_to_inbox: "Przenieś do skrzynki odbiorczej",
     report_spam: "Zgłoś spam",

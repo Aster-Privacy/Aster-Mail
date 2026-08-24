@@ -6732,7 +6732,7 @@ export const ja = {
     next_week_snooze: "来週",
     next_month_snooze: "来月",
     pick_date_time: "日時を選択",
-    schedule_time_must_be_future: "未来の時刻を選択してください。",
+    schedule_time_must_be_future: "予約時刻は未来の時刻にしてください",
     restore: "復元",
     move_to_inbox: "受信トレイに移動",
     report_spam: "スパムを報告",

@@ -6787,7 +6787,7 @@ export const pt = {
     this_weekend_snooze: "Este fim de semana",
     next_week_snooze: "Próxima semana",
     pick_date_time: "Escolher data e hora",
-    schedule_time_must_be_future: "Escolha um horário no futuro.",
+    schedule_time_must_be_future: "O horário agendado precisa estar no futuro",
     restore: "Restaurar",
     move_to_inbox: "Mover para a caixa de entrada",
     report_spam: "Reportar spam",

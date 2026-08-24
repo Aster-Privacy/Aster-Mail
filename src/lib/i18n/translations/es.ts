@@ -6722,7 +6722,7 @@ export const es = {
     next_week_snooze: "La próxima semana",
     next_month_snooze: "Próximo mes",
     pick_date_time: "Elegir fecha y hora",
-    schedule_time_must_be_future: "Elige una hora futura.",
+    schedule_time_must_be_future: "La hora programada debe ser futura",
     restore: "Restaurar",
     move_to_inbox: "Mover a la bandeja de entrada",
     report_spam: "Reportar spam",

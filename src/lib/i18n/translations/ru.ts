@@ -6773,7 +6773,7 @@ export const ru = {
     next_week_snooze: "На следующей неделе",
     next_month_snooze: "В следующем месяце",
     pick_date_time: "Выбрать дату и время",
-    schedule_time_must_be_future: "Выберите время в будущем.",
+    schedule_time_must_be_future: "Время отправки должно быть в будущем",
     restore: "Восстановить",
     move_to_inbox: "Переместить во входящие",
     report_spam: "Пожаловаться на спам",

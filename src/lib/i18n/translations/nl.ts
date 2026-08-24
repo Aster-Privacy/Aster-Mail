@@ -6723,7 +6723,7 @@ export const nl = {
     next_week_snooze: "Volgende week",
     next_month_snooze: "Volgende maand",
     pick_date_time: "Datum & tijd kiezen",
-    schedule_time_must_be_future: "Kies een tijdstip in de toekomst.",
+    schedule_time_must_be_future: "Het geplande tijdstip moet in de toekomst liggen",
     restore: "Herstellen",
     move_to_inbox: "Naar inbox verplaatsen",
     report_spam: "Spam melden",
