@@ -57,7 +57,14 @@ import {
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
-function format_hour_label(hour: number, am: string, pm: string): string {
+function format_hour_label(
+  hour: number,
+  am: string,
+  pm: string,
+  use_24h: boolean,
+): string {
+  if (use_24h) return hour.toString().padStart(2, "0");
+
   const period = hour >= 12 ? pm : am;
   const display = hour % 12 || 12;
 
@@ -95,6 +102,7 @@ function QuietHoursTimeSelect({
   on_change: (value: string) => void;
 }) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const { hour, minute } = parse_time_value(value) ??
     parse_time_value(fallback_value) ?? { hour: 0, minute: 0 };
   const am = t("common.am");
@@ -113,7 +121,7 @@ function QuietHoursTimeSelect({
               size="md"
               variant="outline"
             >
-              {format_hour_label(hour, am, pm)}
+              {format_hour_label(hour, am, pm, preferences.time_format === "24h")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="z-[70] max-h-60 overflow-y-auto">
@@ -122,7 +130,7 @@ function QuietHoursTimeSelect({
                 key={h}
                 onClick={() => on_change(build_time_value(h, minute))}
               >
-                {format_hour_label(h, am, pm)}
+                {format_hour_label(h, am, pm, preferences.time_format === "24h")}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

@@ -52,6 +52,8 @@ import { PinIcon } from "@/components/common/icons";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
+import { format_datetime_hint } from "@/utils/date_format";
 
 export function MobileSenderSheet({
   is_open,
@@ -213,24 +215,24 @@ export function MobileScheduleSheet({
     return [
       {
         label: t("common.tomorrow_morning"),
-        description: format(tomorrow_morning, "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(tomorrow_morning, true),
         date: tomorrow_morning,
         icon: <SunIcon className="h-5 w-5" />,
       },
       {
         label: t("common.tomorrow_afternoon"),
-        description: format(tomorrow_afternoon, "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(tomorrow_afternoon, true),
         date: tomorrow_afternoon,
         icon: <SunIcon className="h-5 w-5" />,
       },
       {
         label: t("common.monday_morning"),
-        description: format(monday_morning, "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(monday_morning, true),
         date: monday_morning,
         icon: <CalendarIcon className="h-5 w-5" />,
       },
     ];
-  }, [t]);
+  }, [t, is_open]);
 
   const handle_custom_confirm = useCallback(() => {
     if (!schedule_date) return;
@@ -238,10 +240,15 @@ export function MobileScheduleSheet({
     const [hour, minute] = schedule_time.split(":").map(Number);
     const date = new Date(year, month - 1, day, hour, minute);
 
-    if (isBefore(date, startOfMinute(new Date()))) return;
+    if (isBefore(date, startOfMinute(new Date()))) {
+      show_toast(t("mail.schedule_time_must_be_future"), "error");
+
+      return;
+    }
+
     on_schedule(date);
     set_show_custom(false);
-  }, [on_schedule, schedule_date, schedule_time]);
+  }, [on_schedule, schedule_date, schedule_time, t]);
 
   const handle_close = useCallback(() => {
     set_show_custom(false);
@@ -390,24 +397,24 @@ export function MobileExpirationSheet({
     return [
       {
         label: t("mail.one_hour_option"),
-        description: format(one_hour, "h:mm a"),
+        description: format_datetime_hint(one_hour, true),
         date: one_hour,
         icon: <ClockIcon className="h-5 w-5" />,
       },
       {
         label: t("mail.twenty_four_hours_option"),
-        description: format(twenty_four, "EEE, h:mm a"),
+        description: format_datetime_hint(twenty_four, true),
         date: twenty_four,
         icon: <ClockIcon className="h-5 w-5" />,
       },
       {
         label: t("mail.seven_days_option"),
-        description: format(seven_days, "EEE, MMM d"),
+        description: format_datetime_hint(seven_days, true),
         date: seven_days,
         icon: <CalendarIcon className="h-5 w-5" />,
       },
     ];
-  }, [t]);
+  }, [t, is_open]);
 
   const handle_custom_confirm = useCallback(() => {
     if (!expiration_date) return;
@@ -415,10 +422,15 @@ export function MobileExpirationSheet({
     const [hour, minute] = expiration_time.split(":").map(Number);
     const date = new Date(year, month - 1, day, hour, minute);
 
-    if (isBefore(date, startOfMinute(new Date()))) return;
+    if (isBefore(date, startOfMinute(new Date()))) {
+      show_toast(t("mail.schedule_time_must_be_future"), "error");
+
+      return;
+    }
+
     on_set_expiration(date);
     set_show_custom(false);
-  }, [on_set_expiration, expiration_date, expiration_time]);
+  }, [on_set_expiration, expiration_date, expiration_time, t]);
 
   const handle_close = useCallback(() => {
     set_show_custom(false);

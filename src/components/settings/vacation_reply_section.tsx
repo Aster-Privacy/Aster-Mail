@@ -25,6 +25,7 @@ import { Button } from "@aster/ui";
 import { CalendarIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Calendar } from "@/components/ui/calendar";
@@ -62,7 +63,9 @@ import { ignore_error } from "@/lib/ignore_error";
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
 
-function format_hour(hour: number, am: string, pm: string) {
+function format_hour(hour: number, am: string, pm: string, use_24h: boolean) {
+  if (use_24h) return hour.toString().padStart(2, "0");
+
   const period = hour >= 12 ? pm : am;
   const display = hour % 12 || 12;
 
@@ -91,6 +94,7 @@ function VacationDatePicker({
   on_clear,
 }: VacationDatePickerProps) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const [is_open, set_is_open] = useState(false);
 
   const display_text = useMemo(() => {
@@ -162,13 +166,23 @@ function VacationDatePicker({
                     size="md"
                     variant="outline"
                   >
-                    {format_hour(hour, t("common.am"), t("common.pm"))}
+                    {format_hour(
+                      hour,
+                      t("common.am"),
+                      t("common.pm"),
+                      preferences.time_format === "24h",
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="max-h-52 overflow-y-auto bg-surf-primary border-edge-primary z-[80]">
                   {HOURS.map((h) => (
                     <DropdownMenuItem key={h} onClick={() => on_hour_change(h)}>
-                      {format_hour(h, t("common.am"), t("common.pm"))}
+                      {format_hour(
+                        h,
+                        t("common.am"),
+                        t("common.pm"),
+                        preferences.time_format === "24h",
+                      )}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
