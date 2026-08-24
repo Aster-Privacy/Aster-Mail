@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   format_datetime_hint,
   zoned_calendar_day,
@@ -85,6 +86,7 @@ export function SchedulePicker({
   tooltip_key = "mail.schedule_send",
 }: SchedulePickerProps) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const [is_open, set_is_open] = useState(false);
   const [show_custom, set_show_custom] = useState(false);
   const [selected_date, set_selected_date] = useState<Date | undefined>(
@@ -203,6 +205,10 @@ export function SchedulePicker({
   );
 
   const format_hour = (hour: number) => {
+    if (preferences.time_format === "24h") {
+      return hour.toString().padStart(2, "0");
+    }
+
     const period = hour >= 12 ? t("common.pm") : t("common.am");
     const display_hour = hour % 12 || 12;
 

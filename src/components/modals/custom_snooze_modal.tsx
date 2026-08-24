@@ -26,6 +26,7 @@ import { Button } from "@aster/ui";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Modal,
@@ -56,6 +57,7 @@ export function CustomSnoozeModal({
   on_snooze,
 }: CustomSnoozeModalProps) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const [selected_date, set_selected_date] = useState<Date | undefined>(
     undefined,
   );
@@ -67,6 +69,10 @@ export function CustomSnoozeModal({
   const minutes = useMemo(() => [0, 15, 30, 45], []);
 
   const format_hour = (hour: number) => {
+    if (preferences.time_format === "24h") {
+      return hour.toString().padStart(2, "0");
+    }
+
     const period = hour >= 12 ? t("common.pm") : t("common.am");
     const display_hour = hour % 12 || 12;
 

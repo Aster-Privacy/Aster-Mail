@@ -20,7 +20,6 @@
 //
 import { useState, useMemo, useCallback, useEffect } from "react";
 import {
-  format,
   addHours,
   addDays,
   setHours,
@@ -61,6 +60,8 @@ import {
 } from "@/components/ui/alert_dialog";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
+import { format_datetime_hint } from "@/utils/date_format";
 
 interface ExpirationPickerProps {
   expires_at: Date | null;
@@ -99,6 +100,7 @@ export function ExpirationPicker({
   disabled = false,
 }: ExpirationPickerProps) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const [is_open, set_is_open] = useState(false);
   const [show_custom, set_show_custom] = useState(false);
   const [show_password_dialog, set_show_password_dialog] = useState(false);
@@ -129,24 +131,24 @@ export function ExpirationPicker({
     () => [
       {
         label: t("mail.one_hour_option"),
-        description: format(get_one_hour(), "h:mm a"),
+        description: format_datetime_hint(get_one_hour(), true),
         icon: <ClockIcon className="w-4 h-4" />,
         get_date: get_one_hour,
       },
       {
         label: t("mail.twenty_four_hours_option"),
-        description: format(get_twenty_four_hours(), "EEE, h:mm a"),
+        description: format_datetime_hint(get_twenty_four_hours(), true),
         icon: <ClockIcon className="w-4 h-4" />,
         get_date: get_twenty_four_hours,
       },
       {
         label: t("mail.seven_days_option"),
-        description: format(get_seven_days(), "EEE, MMM d"),
+        description: format_datetime_hint(get_seven_days(), true),
         icon: <CalendarIcon className="w-4 h-4" />,
         get_date: get_seven_days,
       },
     ],
-    [t],
+    [t, is_open],
   );
 
   const handle_quick_select = useCallback(
@@ -204,6 +206,10 @@ export function ExpirationPicker({
   const minutes = useMemo(() => [0, 15, 30, 45], []);
 
   const format_hour = (hour: number) => {
+    if (preferences.time_format === "24h") {
+      return hour.toString().padStart(2, "0");
+    }
+
     const period = hour >= 12 ? t("common.pm") : t("common.am");
     const display_hour = hour % 12 || 12;
 
