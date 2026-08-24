@@ -1431,6 +1431,11 @@ export const ar = {
     pending_deletion_keep: "الاحتفاظ بحسابي",
     pending_deletion_dismiss: "لا، المتابعة في الحذف",
     pending_deletion_cancelling: "جارٍ الإلغاء...",
+    family_2fa_title: "المصادقة الثنائية مطلوبة",
+    family_2fa_body:
+      "تتطلب خطة العائلة المصادقة الثنائية. فعّلها لمتابعة استخدام هذا الحساب.",
+    family_2fa_action: "تفعيل المصادقة الثنائية",
+    family_2fa_sign_out: "تسجيل الخروج",
     n_more_recipients: "+{{count}} آخرون",
     file_exceeds_max_size:
       '"{{name}}" يتجاوز حد الملف الواحد البالغ {{size}}. نسخة أصغر أو رابط مشاركة سيمر.',

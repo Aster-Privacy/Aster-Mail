@@ -1520,6 +1520,11 @@ export const en: Translations = {
     pending_deletion_keep: "Keep My Account",
     pending_deletion_dismiss: "No, Continue with Deletion",
     pending_deletion_cancelling: "Cancelling...",
+    family_2fa_title: "Two-factor authentication required",
+    family_2fa_body:
+      "Your family plan requires two-factor authentication. Turn it on to keep using this account.",
+    family_2fa_action: "Turn on two-factor authentication",
+    family_2fa_sign_out: "Sign out",
     settings_disabled_suspended:
       "Settings are turned off while your account is suspended. hello@astermail.org can help with an appeal or more detail.",
     new_email_body: "You have a new email",

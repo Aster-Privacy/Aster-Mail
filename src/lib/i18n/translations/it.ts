@@ -1619,6 +1619,11 @@ export const it = {
     pending_deletion_keep: "Mantieni il mio account",
     pending_deletion_dismiss: "No, continua con l'eliminazione",
     pending_deletion_cancelling: "Annullamento...",
+    family_2fa_title: "Autenticazione a due fattori richiesta",
+    family_2fa_body:
+      "Il tuo piano famiglia richiede l'autenticazione a due fattori. Attivala per continuare a usare questo account.",
+    family_2fa_action: "Attiva l'autenticazione a due fattori",
+    family_2fa_sign_out: "Esci",
     n_more_recipients: "+{{count}} altri",
     file_exceeds_max_size:
       '"{{name}}" supera il limite di {{size}} per singolo file. Una versione più piccola, o un link condiviso, passerà.',

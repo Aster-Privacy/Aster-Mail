@@ -1592,6 +1592,11 @@ export const nl = {
     pending_deletion_cancel_prompt:
       "Annuleer de verwijdering om uw account te behouden",
     pending_deletion_cancelling: "Verwijdering annuleren...",
+    family_2fa_title: "Tweefactorauthenticatie vereist",
+    family_2fa_body:
+      "Je gezinsabonnement vereist tweefactorauthenticatie. Schakel deze in om dit account te blijven gebruiken.",
+    family_2fa_action: "Tweefactorauthenticatie inschakelen",
+    family_2fa_sign_out: "Afmelden",
     pending_deletion_days: "Uw account wordt over {{days}} dag(en) verwijderd",
     pending_deletion_dismiss: "Sluiten",
     pending_deletion_body:

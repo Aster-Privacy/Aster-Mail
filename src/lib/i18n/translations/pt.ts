@@ -1507,6 +1507,11 @@ export const pt = {
     pending_deletion_cancel_prompt:
       "Deseja cancelar a exclusão e manter sua conta?",
     pending_deletion_cancelling: "Cancelando...",
+    family_2fa_title: "Autenticação de dois fatores necessária",
+    family_2fa_body:
+      "Seu plano familiar exige a autenticação de dois fatores. Ative-a para continuar usando esta conta.",
+    family_2fa_action: "Ativar a autenticação de dois fatores",
+    family_2fa_sign_out: "Sair",
     pending_deletion_days:
       "Sua conta está programada para ser excluída em {{days}} dias. O banner abaixo tem a opção de cancelar se você mudar de ideia.",
     pending_deletion_dismiss: "Não, continuar com a exclusão",

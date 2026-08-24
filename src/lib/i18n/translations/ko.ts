@@ -1444,6 +1444,11 @@ export const ko = {
     pending_deletion_keep: "계정 유지",
     pending_deletion_dismiss: "아니오, 삭제 계속",
     pending_deletion_cancelling: "취소 중...",
+    family_2fa_title: "이중 인증이 필요합니다",
+    family_2fa_body:
+      "가족 요금제에는 이중 인증이 필요합니다. 이 계정을 계속 사용하려면 이중 인증을 켜세요.",
+    family_2fa_action: "이중 인증 켜기",
+    family_2fa_sign_out: "로그아웃",
     n_more_recipients: "+{{count}}명 더",
     unknown_error:
       "예상치 못한 문제가 발생했습니다. 다시 시도하면 됩니다. 원인을 정확히 파악하지 못했습니다.",

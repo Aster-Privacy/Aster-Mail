@@ -1600,6 +1600,11 @@ export const tr = {
     pending_deletion_keep: "Hesabımı Koru",
     pending_deletion_dismiss: "Hayır, Silmeye Devam Et",
     pending_deletion_cancelling: "İptal ediliyor...",
+    family_2fa_title: "İki faktörlü kimlik doğrulama gerekli",
+    family_2fa_body:
+      "Aile planınız iki faktörlü kimlik doğrulama gerektiriyor. Bu hesabı kullanmaya devam etmek için açın.",
+    family_2fa_action: "İki faktörlü kimlik doğrulamayı aç",
+    family_2fa_sign_out: "Çıkış yap",
     pin_preferred_sender: "Tercih edilen gönderen olarak sabitle",
     unpin_preferred_sender: "Tercih edilen göndereni kaldır",
     n_more_recipients: "+{{count}} daha fazla",

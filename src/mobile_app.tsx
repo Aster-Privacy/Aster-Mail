@@ -48,6 +48,7 @@ import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_pr
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
+import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { FullPageLoader } from "@/components/common/full_page_loader";
@@ -809,6 +810,7 @@ function MobileApp() {
           )}
         </AnimatePresence>
         <PendingDeletionDialog />
+        <Family2faDialog />
         <SimpleToast position="top" />
         <ActionToast position="top" />
         <UndoSendContainer is_mobile max_visible={1} position="bottom-center" />

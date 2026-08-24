@@ -1626,6 +1626,11 @@ export const de = {
     pending_deletion_cancel_prompt:
       "Möchten Sie die Löschung abbrechen und Ihr Konto behalten?",
     pending_deletion_cancelling: "Wird abgebrochen...",
+    family_2fa_title: "Zwei-Faktor-Authentifizierung erforderlich",
+    family_2fa_body:
+      "Ihr Familientarif erfordert die Zwei-Faktor-Authentifizierung. Aktivieren Sie sie, um dieses Konto weiter zu nutzen.",
+    family_2fa_action: "Zwei-Faktor-Authentifizierung aktivieren",
+    family_2fa_sign_out: "Abmelden",
     pending_deletion_days:
       "Ihr Konto wird in {{days}} Tagen gelöscht. Das Banner unten bietet die Option zum Abbrechen, falls Sie Ihre Meinung ändern.",
     pending_deletion_dismiss: "Nein, mit Löschung fortfahren",

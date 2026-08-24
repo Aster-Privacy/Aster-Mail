@@ -1579,6 +1579,11 @@ export const zh_CN = {
     pending_deletion_keep: "保留我的账户",
     pending_deletion_dismiss: "不，继续删除",
     pending_deletion_cancelling: "取消中...",
+    family_2fa_title: "需要两步验证",
+    family_2fa_body:
+      "你的家庭套餐需要两步验证。请开启两步验证以继续使用此账户。",
+    family_2fa_action: "开启两步验证",
+    family_2fa_sign_out: "退出登录",
     or: "or",
   },
   settings: {

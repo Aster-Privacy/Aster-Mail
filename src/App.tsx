@@ -30,6 +30,7 @@ import { use_auth } from "@/contexts/auth_context";
 
 import { ProtectedRoute } from "@/components/common/protected_route";
 import { SuspensionBanner } from "@/components/common/suspension_overlay";
+import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 import { UpdateBanner } from "@/components/updates/update_banner";
@@ -313,6 +314,7 @@ function App() {
       <BillingSuccessHandler />
       <SuspensionBanner />
       <PendingDeletionDialog />
+      <Family2faDialog />
       <UpdateBanner />
       <ErrorBoundary>
         <DesktopPairGate>

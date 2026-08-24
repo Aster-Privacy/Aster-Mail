@@ -1601,6 +1601,11 @@ export const es = {
     one_email: "1 correo",
     pending_deletion_cancel_prompt: "Cancelar eliminación",
     pending_deletion_cancelling: "Cancelando...",
+    family_2fa_title: "Se requiere autenticación de dos factores",
+    family_2fa_body:
+      "Tu plan familiar requiere la autenticación de dos factores. Actívala para seguir usando esta cuenta.",
+    family_2fa_action: "Activar la autenticación de dos factores",
+    family_2fa_sign_out: "Cerrar sesión",
     pending_deletion_days: "Eliminación en {{days}} día(s)",
     pending_deletion_dismiss: "Ignorar",
     pending_deletion_body:

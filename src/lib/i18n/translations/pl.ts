@@ -1604,6 +1604,11 @@ export const pl = {
     pending_deletion_keep: "Zachowaj moje konto",
     pending_deletion_dismiss: "Nie, kontynuuj usuwanie",
     pending_deletion_cancelling: "Anulowanie...",
+    family_2fa_title: "Wymagane uwierzytelnianie dwuskładnikowe",
+    family_2fa_body:
+      "Twój plan rodzinny wymaga uwierzytelniania dwuskładnikowego. Włącz je, aby nadal korzystać z tego konta.",
+    family_2fa_action: "Włącz uwierzytelnianie dwuskładnikowe",
+    family_2fa_sign_out: "Wyloguj się",
     pin_preferred_sender: "Przypnij jako preferowanego nadawcę",
     unpin_preferred_sender: "Odepnij preferowanego nadawcę",
     n_more_recipients: "+{{count}} więcej",

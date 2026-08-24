@@ -185,6 +185,9 @@ export function is_api_error<T>(
   return response.error !== undefined;
 }
 
+export const FAMILY_2FA_SERVER_CODE = "FAMILY_2FA_REQUIRED";
+export const FAMILY_2FA_EVENT = "aster:family-2fa-required";
+
 export const PENDING_DELETION_SERVER_CODE = "ACCOUNT_PENDING_DELETION";
 export const PENDING_DELETION_EVENT = "aster:account-pending-deletion";
 

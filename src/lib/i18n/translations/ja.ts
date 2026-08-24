@@ -1628,6 +1628,11 @@ export const ja = {
     pending_deletion_cancel_prompt:
       "削除をキャンセルしてアカウントを保持しますか？",
     pending_deletion_cancelling: "キャンセル中...",
+    family_2fa_title: "2 要素認証が必要です",
+    family_2fa_body:
+      "ファミリープランでは 2 要素認証が必要です。このアカウントを引き続き使用するには、2 要素認証をオンにしてください。",
+    family_2fa_action: "2 要素認証をオンにする",
+    family_2fa_sign_out: "サインアウト",
     pending_deletion_days:
       "アカウントは{{days}}日後に削除される予定です。気が変わった場合は、下のバナーからキャンセルできます。",
     pending_deletion_dismiss: "いいえ、削除を続行する",

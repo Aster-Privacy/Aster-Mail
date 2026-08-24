@@ -1612,6 +1612,11 @@ export const fr = {
     one_email: "1 e-mail",
     pending_deletion_cancel_prompt: "Annuler la suppression",
     pending_deletion_cancelling: "Annulation en cours...",
+    family_2fa_title: "Authentification à deux facteurs requise",
+    family_2fa_body:
+      "Votre forfait famille exige l'authentification à deux facteurs. Activez-la pour continuer à utiliser ce compte.",
+    family_2fa_action: "Activer l'authentification à deux facteurs",
+    family_2fa_sign_out: "Se déconnecter",
     pending_deletion_days: "Suppression dans {{days}} jour(s)",
     pending_deletion_dismiss: "Ignorer",
     pending_deletion_body:

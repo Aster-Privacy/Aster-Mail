@@ -57,6 +57,8 @@ import {
   SessionReestablishResult,
   TAURI_AUTH_SLOT_ACCESS,
   TAURI_AUTH_SLOT_CSRF,
+  FAMILY_2FA_EVENT,
+  FAMILY_2FA_SERVER_CODE,
   TAURI_CSRF_KEY,
   TAURI_TOKEN_KEY,
   clear_last_auth_ms,
@@ -1611,6 +1613,21 @@ export class ApiClient {
                 error_data.error || "This account is scheduled for deletion",
               code: "FORBIDDEN",
               server_code: PENDING_DELETION_SERVER_CODE,
+            };
+          }
+
+          if (
+            response.status === 403 &&
+            error_data.code === FAMILY_2FA_SERVER_CODE
+          ) {
+            window.dispatchEvent(new Event(FAMILY_2FA_EVENT));
+
+            return {
+              error:
+                error_data.error ||
+                "Your family plan requires two-factor authentication",
+              code: "FORBIDDEN",
+              server_code: FAMILY_2FA_SERVER_CODE,
             };
           }
 
