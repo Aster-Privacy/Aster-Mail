@@ -443,6 +443,10 @@ export const ja = {
     go_back: "戻る",
     continue_anyway: "続行する",
     set_as_default: "デフォルトに設定",
+    billing_alert_body: "前回のお支払いが完了しませんでした。プランを維持するには、お支払い方法を更新してください。",
+    billing_alert_body_days:
+      "前回のお支払いが完了しませんでした。プランを維持するには、{{days}} 日以内にお支払い方法を更新してください。",
+    billing_alert_action: "支払い方法を更新",
     dismiss: "閉じる",
     load_content: "読み込む",
     open_link: "リンクを開く",

@@ -446,6 +446,11 @@ export const pl = {
     go_back: "Wróć",
     continue_anyway: "Kontynuuj mimo to",
     set_as_default: "Ustaw jako domyślne",
+    billing_alert_body:
+      "Twoja ostatnia płatność się nie powiodła. Zaktualizuj metodę płatności, aby zachować swój plan.",
+    billing_alert_body_days:
+      "Twoja ostatnia płatność się nie powiodła. Zaktualizuj metodę płatności w ciągu {{days}} dni, aby zachować swój plan.",
+    billing_alert_action: "Zaktualizuj płatność",
     dismiss: "Odrzuć",
     load_content: "Załaduj",
     open_link: "Otwórz link",

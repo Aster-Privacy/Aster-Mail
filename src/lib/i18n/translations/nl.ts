@@ -441,6 +441,11 @@ export const nl = {
     go_back: "Ga terug",
     continue_anyway: "Toch doorgaan",
     set_as_default: "Als standaard instellen",
+    billing_alert_body:
+      "Je laatste betaling is niet gelukt. Werk je betaalmethode bij om je abonnement te behouden.",
+    billing_alert_body_days:
+      "Je laatste betaling is niet gelukt. Werk je betaalmethode binnen {{days}} dagen bij om je abonnement te behouden.",
+    billing_alert_action: "Betaling bijwerken",
     dismiss: "Negeren",
     load_content: "Laden",
     open_link: "Link openen",

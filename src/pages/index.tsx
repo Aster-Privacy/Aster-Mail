@@ -76,6 +76,7 @@ import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
 import { NotificationBanner } from "@/components/common/notification_banner";
 import { SurveyBanner } from "@/components/survey/survey_banner";
+import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
 import { WifiIcon } from "@heroicons/react/24/outline";
 import { SearchResultsPage } from "@/components/search/search_results_page";
 import { CommandPalette } from "@/components/search/command_palette";
@@ -193,6 +194,7 @@ export default function IndexPage() {
       >
         <NotificationBanner />
         <SurveyBanner />
+        <BillingAlertBanner />
         <TopBar
           is_settings_view={state.is_settings_route && !settings_popup_mode}
           on_mobile_menu_toggle={state.toggle_mobile_sidebar}

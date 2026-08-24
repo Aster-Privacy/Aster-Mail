@@ -456,6 +456,11 @@ export const it = {
     go_back: "Torna indietro",
     continue_anyway: "Continua comunque",
     set_as_default: "Imposta come predefinito",
+    billing_alert_body:
+      "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento per mantenere il tuo piano.",
+    billing_alert_body_days:
+      "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento entro {{days}} giorni per mantenere il tuo piano.",
+    billing_alert_action: "Aggiorna il pagamento",
     dismiss: "Ignora",
     load_content: "Carica",
     open_link: "Apri link",

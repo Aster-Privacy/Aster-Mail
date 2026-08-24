@@ -440,6 +440,11 @@ export const de = {
     go_back: "Zurückgehen",
     continue_anyway: "Trotzdem fortfahren",
     set_as_default: "Als Standard festlegen",
+    billing_alert_body:
+      "Ihre letzte Zahlung war nicht erfolgreich. Aktualisieren Sie Ihre Zahlungsmethode, um Ihren Tarif zu behalten.",
+    billing_alert_body_days:
+      "Ihre letzte Zahlung war nicht erfolgreich. Aktualisieren Sie Ihre Zahlungsmethode innerhalb von {{days}} Tagen, um Ihren Tarif zu behalten.",
+    billing_alert_action: "Zahlung aktualisieren",
     dismiss: "Verwerfen",
     load_content: "Laden",
     open_link: "Link öffnen",

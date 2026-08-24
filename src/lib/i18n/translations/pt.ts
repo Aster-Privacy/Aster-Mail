@@ -389,6 +389,11 @@ export const pt = {
     go_back: "Voltar",
     continue_anyway: "Continuar mesmo assim",
     set_as_default: "Definir como padrão",
+    billing_alert_body:
+      "Seu último pagamento não foi concluído. Atualize sua forma de pagamento para manter seu plano.",
+    billing_alert_body_days:
+      "Seu último pagamento não foi concluído. Atualize sua forma de pagamento em {{days}} dias para manter seu plano.",
+    billing_alert_action: "Atualizar pagamento",
     dismiss: "Dispensar",
     load_content: "Carregar",
     open_link: "Abrir link",

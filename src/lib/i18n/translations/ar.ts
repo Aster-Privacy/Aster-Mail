@@ -442,6 +442,11 @@ export const ar = {
     go_back: "الرجوع",
     continue_anyway: "المتابعة على أي حال",
     set_as_default: "تعيين كافتراضي",
+    billing_alert_body:
+      "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع للاحتفاظ بخطتك.",
+    billing_alert_body_days:
+      "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع خلال {{days}} يوماً للاحتفاظ بخطتك.",
+    billing_alert_action: "تحديث الدفع",
     dismiss: "تجاهل",
     load_content: "تحميل",
     open_link: "فتح الرابط",

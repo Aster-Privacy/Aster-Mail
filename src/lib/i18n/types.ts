@@ -927,6 +927,9 @@ export interface CommonTranslations {
   go_back: string;
   continue_anyway: string;
   set_as_default: string;
+  billing_alert_body: string;
+  billing_alert_body_days: string;
+  billing_alert_action: string;
   dismiss: string;
   load_content: string;
   open_link: string;

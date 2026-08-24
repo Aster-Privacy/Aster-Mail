@@ -440,6 +440,10 @@ export const ko = {
     go_back: "뒤로 가기",
     continue_anyway: "계속 진행",
     set_as_default: "기본값으로 설정",
+    billing_alert_body: "마지막 결제가 완료되지 않았습니다. 요금제를 유지하려면 결제 수단을 업데이트하세요.",
+    billing_alert_body_days:
+      "마지막 결제가 완료되지 않았습니다. 요금제를 유지하려면 {{days}}일 이내에 결제 수단을 업데이트하세요.",
+    billing_alert_action: "결제 수단 업데이트",
     dismiss: "닫기",
     load_content: "로드",
     open_link: "링크 열기",
