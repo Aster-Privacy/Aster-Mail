@@ -155,13 +155,17 @@ function MobileInbox({
     refresh,
   } = use_email_list(current_view);
 
-  const { state: drafts_state, refresh: refresh_drafts } =
-    use_drafts_list(is_drafts_view);
+  const {
+    state: drafts_state,
+    refresh: refresh_drafts,
+    schedule_delete_drafts,
+  } = use_drafts_list(is_drafts_view);
 
   const {
     state: scheduled_state,
     refresh: refresh_scheduled,
     cancel_email: cancel_scheduled,
+    bulk_cancel: bulk_cancel_scheduled,
   } = use_scheduled_emails(is_scheduled_view);
 
   const actions = use_email_actions();
@@ -427,6 +431,55 @@ function MobileInbox({
 
     if (emails.length === 0) return;
     haptic_impact("medium");
+
+    if (is_scheduled_view) {
+      const ids = emails.map((e) => e.id);
+      const ok = await bulk_cancel_scheduled(ids);
+
+      if (ok) {
+        show_toast(
+          t("common.scheduled_emails_cancelled", { count: ids.length }),
+          "success",
+        );
+      } else {
+        show_toast(t("common.failed_to_delete_emails"), "error");
+      }
+      exit_selection_mode();
+
+      return;
+    }
+
+    if (is_drafts_view) {
+      const ids = emails.map((e) => e.id);
+
+      schedule_delete_drafts(ids);
+      show_action_toast({
+        message: t("common.drafts_deleted", { count: ids.length }),
+        action_type: "trash",
+        email_ids: ids,
+      });
+      exit_selection_mode();
+
+      return;
+    }
+
+    if (is_trash_view) {
+      const results = await Promise.all(
+        emails.map((email) => actions.permanently_delete(email)),
+      );
+
+      emails.forEach((email, index) => {
+        if (results[index]) remove_email(email.id);
+      });
+
+      if (results.some((ok) => !ok)) {
+        show_toast(t("common.failed_to_permanently_delete"), "error");
+      }
+      exit_selection_mode();
+
+      return;
+    }
+
     const ok = await actions.bulk_delete(emails);
 
     if (ok) {
@@ -437,7 +490,18 @@ function MobileInbox({
       show_toast(t("common.failed_to_delete_emails"), "error");
     }
     exit_selection_mode();
-  }, [get_selected_emails, actions, remove_email, exit_selection_mode, t]);
+  }, [
+    get_selected_emails,
+    actions,
+    remove_email,
+    exit_selection_mode,
+    is_scheduled_view,
+    is_drafts_view,
+    is_trash_view,
+    bulk_cancel_scheduled,
+    schedule_delete_drafts,
+    t,
+  ]);
 
   const handle_bulk_toggle_star = useCallback(async () => {
     const emails = get_selected_emails();
@@ -868,20 +932,22 @@ function MobileInbox({
             borderTop: "1px solid var(--border-primary)",
           }}
         >
-          <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
-            type="button"
-            onClick={handle_bulk_archive}
-          >
-            {is_archive_view ? (
-              <InboxIcon className="h-5 w-5" />
-            ) : (
-              <ArchiveBoxIcon className="h-5 w-5" />
-            )}
-            <span className="text-[11px]">
-              {is_archive_view ? t("mail.move_to_inbox") : t("mail.archive")}
-            </span>
-          </button>
+          {!is_drafts_view && !is_scheduled_view && (
+            <button
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+              type="button"
+              onClick={handle_bulk_archive}
+            >
+              {is_archive_view ? (
+                <InboxIcon className="h-5 w-5" />
+              ) : (
+                <ArchiveBoxIcon className="h-5 w-5" />
+              )}
+              <span className="text-[11px]">
+                {is_archive_view ? t("mail.move_to_inbox") : t("mail.archive")}
+              </span>
+            </button>
+          )}
           <button
             className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
             type="button"
@@ -890,22 +956,26 @@ function MobileInbox({
             <TrashIcon className="h-5 w-5" />
             <span className="text-[11px]">{t("common.delete")}</span>
           </button>
-          <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
-            type="button"
-            onClick={handle_bulk_toggle_star}
-          >
-            <StarIcon className="h-5 w-5" />
-            <span className="text-[11px]">{t("mail.star")}</span>
-          </button>
-          <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
-            type="button"
-            onClick={handle_bulk_toggle_read}
-          >
-            <EnvelopeOpenIcon className="h-5 w-5" />
-            <span className="text-[11px]">{t("mail.mark_as_read")}</span>
-          </button>
+          {!is_drafts_view && !is_scheduled_view && (
+            <>
+              <button
+                className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+                type="button"
+                onClick={handle_bulk_toggle_star}
+              >
+                <StarIcon className="h-5 w-5" />
+                <span className="text-[11px]">{t("mail.star")}</span>
+              </button>
+              <button
+                className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+                type="button"
+                onClick={handle_bulk_toggle_read}
+              >
+                <EnvelopeOpenIcon className="h-5 w-5" />
+                <span className="text-[11px]">{t("mail.mark_as_read")}</span>
+              </button>
+            </>
+          )}
         </div>
       )}
 
