@@ -69,7 +69,7 @@ interface ZonedParts {
   minutes: number;
 }
 
-function get_zoned_parts(date: Date): ZonedParts {
+export function get_zoned_parts(date: Date): ZonedParts {
   if (!display_time_zone) {
     return {
       year: date.getFullYear(),
@@ -374,4 +374,146 @@ export function format_snooze_target(
       ? t("common.date_at_time", { date: date_str, time: time_str })
       : `${date_str} at ${time_str}`;
   }
+}
+
+function zone_offset_ms(instant: number, zone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: zone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(instant));
+
+  const read = (type: string): number => {
+    const found = parts.find((part) => part.type === type);
+
+    return found ? Number(found.value) : 0;
+  };
+
+  const hour = read("hour") % 24;
+  const as_utc = Date.UTC(
+    read("year"),
+    read("month") - 1,
+    read("day"),
+    hour,
+    read("minute"),
+    read("second"),
+  );
+
+  return as_utc - instant;
+}
+
+export function date_from_zoned_parts(parts: ZonedParts): Date {
+  const zone = get_display_time_zone();
+
+  if (!zone) {
+    return new Date(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hours,
+      parts.minutes,
+      0,
+      0,
+    );
+  }
+
+  try {
+    const wall = Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hours,
+      parts.minutes,
+      0,
+      0,
+    );
+    let instant = wall - zone_offset_ms(wall, zone);
+
+    instant = wall - zone_offset_ms(instant, zone);
+
+    return new Date(instant);
+  } catch {
+    return new Date(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hours,
+      parts.minutes,
+      0,
+      0,
+    );
+  }
+}
+
+export function zoned_with_time(
+  date: Date,
+  hours: number,
+  minutes: number,
+): Date {
+  const parts = get_zoned_parts(date);
+
+  return date_from_zoned_parts({ ...parts, hours, minutes });
+}
+
+export function zoned_start_of_day(date: Date): Date {
+  return zoned_with_time(date, 0, 0);
+}
+
+export function zoned_add_days(date: Date, days: number): Date {
+  const parts = get_zoned_parts(date);
+
+  return date_from_zoned_parts({ ...parts, day: parts.day + days });
+}
+
+export function zoned_calendar_day(date: Date): Date {
+  const parts = get_zoned_parts(date);
+
+  return new Date(parts.year, parts.month - 1, parts.day, 0, 0, 0, 0);
+}
+
+export function zoned_instant_from_calendar_day(
+  day: Date,
+  hours: number,
+  minutes: number,
+): Date {
+  return date_from_zoned_parts({
+    year: day.getFullYear(),
+    month: day.getMonth() + 1,
+    day: day.getDate(),
+    hours,
+    minutes,
+  });
+}
+
+export function zoned_weekday(date: Date): number {
+  const parts = get_zoned_parts(date);
+
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay();
+}
+
+export function zoned_next_weekday(date: Date, weekday: number): Date {
+  const ahead = (weekday - zoned_weekday(date) + 7) % 7 || 7;
+
+  return zoned_add_days(zoned_start_of_day(date), ahead);
+}
+
+export function format_datetime_hint(
+  date: Date,
+  with_weekday = false,
+  with_year = false,
+): string {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: with_weekday ? "short" : undefined,
+    year: with_year ? "numeric" : undefined,
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: get_display_time_zone(),
+  }).format(date);
 }

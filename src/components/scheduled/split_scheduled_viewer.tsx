@@ -20,12 +20,13 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   XMarkIcon,
   PaperAirplaneIcon,
   PencilIcon,
   TrashIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -37,8 +38,10 @@ import {
   cancel_scheduled_email,
   send_scheduled_now,
   get_scheduled_email,
+  reschedule_email,
   type ScheduledEmailWithContent,
 } from "@/services/api/scheduled";
+import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { use_auth } from "@/contexts/auth_context";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -53,6 +56,14 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_email_username } from "@/lib/utils";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
+import {
+  emit_email_sent,
+  emit_mail_changed,
+  emit_scheduled_changed,
+} from "@/hooks/mail_events";
+import {
+  get_display_time_zone,
+} from "@/utils/date_format";
 
 interface ScheduledData {
   id: string;
@@ -62,6 +73,7 @@ interface ScheduledData {
   subject: string;
   body: string;
   scheduled_at: string;
+  status?: string;
 }
 
 interface SplitScheduledViewerProps {
@@ -91,12 +103,14 @@ function format_scheduled_time(
 
   if (diff_hours < 24) {
     return date.toLocaleTimeString([], {
+      timeZone: get_display_time_zone(),
       hour: "2-digit",
-      minute: "2-digit",
+        minute: "2-digit",
     });
   }
 
   return date.toLocaleDateString([], {
+    timeZone: get_display_time_zone(),
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -109,6 +123,7 @@ function format_full_date(iso_string: string): string {
   const date = new Date(iso_string);
 
   return date.toLocaleDateString([], {
+    timeZone: get_display_time_zone(),
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -129,23 +144,34 @@ export function SplitScheduledViewer({
   const [is_cancelling, set_is_cancelling] = useState(false);
   const [is_sending_now, set_is_sending_now] = useState(false);
   const [is_loading_content, set_is_loading_content] = useState(false);
+  const [is_rescheduling, set_is_rescheduling] = useState(false);
+  const [current_scheduled_at, set_current_scheduled_at] = useState(
+    scheduled_data.scheduled_at,
+  );
 
-  const copy_to_clipboard = useCallback(async (text: string, label: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      show_toast(t("common.item_copied", { label }), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      const textarea = document.createElement("textarea");
+  useEffect(() => {
+    set_current_scheduled_at(scheduled_data.scheduled_at);
+  }, [scheduled_data.scheduled_at]);
 
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      show_toast(t("common.item_copied", { label }), "success");
-    }
-  }, []);
+  const copy_to_clipboard = useCallback(
+    async (text: string, label: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        show_toast(t("common.item_copied", { label }), "success");
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+        const textarea = document.createElement("textarea");
+
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        show_toast(t("common.item_copied", { label }), "success");
+      }
+    },
+    [t],
+  );
 
   const handle_cancel = useCallback(async () => {
     set_is_cancelling(true);
@@ -161,10 +187,44 @@ export function SplitScheduledViewer({
         action_type: "trash",
         email_ids: [scheduled_data.id],
       });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_scheduled_changed({
+        action: "cancelled",
+        email_id: scheduled_data.id,
+      });
+      emit_mail_changed();
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, on_close]);
+  }, [scheduled_data.id, on_close, t]);
+
+  const handle_reschedule = useCallback(
+    async (date: Date | null) => {
+      if (!date) return;
+
+      set_is_rescheduling(true);
+
+      const response = await reschedule_email(
+        scheduled_data.id,
+        date.toISOString(),
+      );
+
+      set_is_rescheduling(false);
+
+      if (!response.error) {
+        set_current_scheduled_at(date.toISOString());
+        show_toast(t("common.send_time_updated"), "success");
+        emit_scheduled_changed({
+          action: "updated",
+          email_id: scheduled_data.id,
+        });
+        emit_mail_changed();
+      } else {
+        show_toast(response.error || t("common.something_went_wrong"), "error");
+      }
+    },
+    [scheduled_data.id, t],
+  );
 
   const handle_send_now = useCallback(async () => {
     set_is_sending_now(true);
@@ -175,10 +235,17 @@ export function SplitScheduledViewer({
 
     if (!response.error) {
       show_toast(t("common.email_sent_successfully"), "success");
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_scheduled_changed({
+        action: "sent",
+        email_id: scheduled_data.id,
+      });
+      emit_email_sent();
+      emit_mail_changed();
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, on_close]);
+  }, [scheduled_data.id, on_close, t]);
 
   const handle_edit = useCallback(async () => {
     if (!vault || !on_edit) return;
@@ -192,8 +259,10 @@ export function SplitScheduledViewer({
     if (!response.error && response.data) {
       on_edit(response.data);
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, vault, on_edit, on_close]);
+  }, [scheduled_data.id, vault, on_edit, on_close, t]);
 
   const primary_recipient = scheduled_data.to_recipients[0] || "";
   const recipient_name =
@@ -216,13 +285,13 @@ export function SplitScheduledViewer({
                 />
                 <EmailTag
                   icon="clock"
-                  label={format_scheduled_time(scheduled_data.scheduled_at, t)}
+                  label={format_scheduled_time(current_scheduled_at, t)}
                   size="default"
                   variant="scheduled"
                 />
               </div>
               <button
-                className="text-base @md:text-lg @2xl:text-xl font-semibold cursor-pointer hover:opacity-80 transition-opacity text-left break-words min-w-0 text-txt-primary"
+                className="text-base @md:text-lg @2xl:text-xl font-semibold cursor-pointer hover:opacity-80 transition-opacity text-start break-words min-w-0 text-txt-primary"
                 type="button"
                 onClick={() =>
                   copy_to_clipboard(
@@ -305,20 +374,29 @@ export function SplitScheduledViewer({
               )}
               <p className="text-xs mt-1 text-txt-muted">
                 {t("mail.scheduled_for")}{" "}
-                {format_full_date(scheduled_data.scheduled_at)}
+                {format_full_date(current_scheduled_at)}
               </p>
             </div>
           </div>
 
+          {scheduled_data.status === "failed" && (
+            <div className="mx-4 mb-3 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {t("mail.scheduled_send_failed")}
+            </div>
+          )}
           <SandboxedEmailRenderer
             is_plain_text={!has_rich_html(scheduled_data.body)}
             sanitized_html={
               is_html_content(scheduled_data.body)
                 ? sanitize_html(scheduled_data.body, {
-                    image_proxy_url: is_any_lockdown_active() ? undefined : get_image_proxy_url(),
+                    image_proxy_url: is_any_lockdown_active()
+                      ? undefined
+                      : get_image_proxy_url(),
                     sandbox_mode: true,
                     lockdown_mode: is_any_lockdown_active(),
-                    external_content_mode: is_any_lockdown_active() ? "never" : undefined,
+                    external_content_mode: is_any_lockdown_active()
+                      ? "never"
+                      : undefined,
                   }).html
                 : plain_text_to_html(scheduled_data.body)
             }
@@ -334,8 +412,24 @@ export function SplitScheduledViewer({
           onClick={handle_send_now}
         >
           <PaperAirplaneIcon className="w-4 h-4" />
-          {is_sending_now ? t("settings.sending") : t("common.send_now")}
+          {is_sending_now ? t("common.sending") : t("common.send_now")}
         </Button>
+        <SchedulePicker
+          force_picker
+          scheduled_time={new Date(current_scheduled_at)}
+          tooltip_key="common.reschedule"
+          trigger={
+            <button
+              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+              disabled={is_rescheduling}
+              type="button"
+            >
+              <ClockIcon className="w-4 h-4" />
+              {t("common.reschedule")}
+            </button>
+          }
+          on_schedule={handle_reschedule}
+        />
         {on_edit && (
           <button
             className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"

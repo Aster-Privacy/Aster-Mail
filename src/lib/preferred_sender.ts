@@ -19,10 +19,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "@/services/api/client";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const STORAGE_KEY = "aster_preferred_sender_id";
+
+const DOMAIN_PREFIX = "domain-";
+
+export function sender_id_matches(
+  option_id: string,
+  preferred_id: string,
+): boolean {
+  if (option_id === preferred_id) return true;
+  if (option_id === DOMAIN_PREFIX + preferred_id) return true;
+  if (preferred_id === DOMAIN_PREFIX + option_id) return true;
+
+  return false;
+}
 
 type Listener = (id: string | null) => void;
 

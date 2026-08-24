@@ -18,20 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useMemo, useCallback } from "react";
-import {
-  format,
-  addDays,
-  setHours,
-  setMinutes,
-  nextMonday,
-  isBefore,
-  startOfMinute,
-  startOfDay,
-} from "date-fns";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { isBefore } from "date-fns";
+import { is_future_instant } from "@/utils/schedule_targets";
 import {
   ClockIcon,
   CalendarIcon,
+  MoonIcon,
   SunIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -50,11 +45,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  format_datetime_hint,
+  zoned_calendar_day,
+  zoned_instant_from_calendar_day,
+  get_zoned_parts,
+} from "@/utils/date_format";
+import {
+  get_in_one_hour,
+  get_next_monday_morning,
+  get_tonight,
+  get_tomorrow_afternoon,
+  get_tomorrow_morning,
+} from "@/utils/schedule_targets";
 
 interface SchedulePickerProps {
   scheduled_time: Date | null;
   on_schedule: (date: Date | null) => void;
   disabled?: boolean;
+  force_picker?: boolean;
+  trigger?: React.ReactNode;
+  tooltip_key?: TranslationKey;
 }
 
 interface QuickOption {
@@ -64,62 +75,74 @@ interface QuickOption {
   get_date: () => Date;
 }
 
-function get_tomorrow_morning(): Date {
-  const tomorrow = addDays(new Date(), 1);
-
-  return setMinutes(setHours(tomorrow, 8), 0);
-}
-
-function get_tomorrow_afternoon(): Date {
-  const tomorrow = addDays(new Date(), 1);
-
-  return setMinutes(setHours(tomorrow, 13), 0);
-}
-
-function get_next_monday_morning(): Date {
-  const monday = nextMonday(new Date());
-
-  return setMinutes(setHours(monday, 8), 0);
-}
-
 export function SchedulePicker({
   scheduled_time,
   on_schedule,
   disabled = false,
+  force_picker = false,
+  trigger,
+  tooltip_key = "mail.schedule_send",
 }: SchedulePickerProps) {
   const { t } = use_i18n();
   const [is_open, set_is_open] = useState(false);
   const [show_custom, set_show_custom] = useState(false);
   const [selected_date, set_selected_date] = useState<Date | undefined>(
-    scheduled_time || undefined,
+    scheduled_time ? zoned_calendar_day(scheduled_time) : undefined,
   );
   const [selected_hour, set_selected_hour] = useState(
-    scheduled_time ? scheduled_time.getHours() : 9,
+    scheduled_time ? get_zoned_parts(scheduled_time).hours : 9,
   );
   const [selected_minute, set_selected_minute] = useState(
-    scheduled_time ? scheduled_time.getMinutes() : 0,
+    scheduled_time ? get_zoned_parts(scheduled_time).minutes : 0,
   );
+
+  useEffect(() => {
+    if (!is_open) return;
+
+    set_selected_date(
+      scheduled_time ? zoned_calendar_day(scheduled_time) : undefined,
+    );
+    set_selected_hour(
+      scheduled_time ? get_zoned_parts(scheduled_time).hours : 9,
+    );
+    set_selected_minute(
+      scheduled_time ? get_zoned_parts(scheduled_time).minutes : 0,
+    );
+  }, [is_open, scheduled_time]);
 
   const quick_options: QuickOption[] = useMemo(
     () => [
       {
+        label: t("common.in_one_hour"),
+        description: format_datetime_hint(get_in_one_hour(), true),
+        icon: <ClockIcon className="w-4 h-4" />,
+        get_date: get_in_one_hour,
+      },
+      ...(is_future_instant(get_tonight())
+        ? [
+            {
+              label: t("common.tonight"),
+              description: format_datetime_hint(get_tonight(), true),
+              icon: <MoonIcon className="w-4 h-4" />,
+              get_date: get_tonight,
+            },
+          ]
+        : []),
+      {
         label: t("common.tomorrow_morning"),
-        description: format(get_tomorrow_morning(), "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(get_tomorrow_morning(), true),
         icon: <SunIcon className="w-4 h-4" />,
         get_date: get_tomorrow_morning,
       },
       {
         label: t("common.tomorrow_afternoon"),
-        description: format(get_tomorrow_afternoon(), "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(get_tomorrow_afternoon(), true),
         icon: <SunIcon className="w-4 h-4" />,
         get_date: get_tomorrow_afternoon,
       },
       {
         label: t("common.monday_morning"),
-        description: format(
-          get_next_monday_morning(),
-          "EEE, MMM d 'at' h:mm a",
-        ),
+        description: format_datetime_hint(get_next_monday_morning(), true),
         icon: <CalendarIcon className="w-4 h-4" />,
         get_date: get_next_monday_morning,
       },
@@ -141,14 +164,13 @@ export function SchedulePicker({
   const handle_custom_confirm = useCallback(() => {
     if (!selected_date) return;
 
-    const scheduled = setMinutes(
-      setHours(selected_date, selected_hour),
+    const scheduled = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    const now = startOfMinute(new Date());
-
-    if (isBefore(scheduled, now)) {
+    if (!is_future_instant(scheduled)) {
       return;
     }
 
@@ -180,15 +202,16 @@ export function SchedulePicker({
 
   const is_valid_custom_time = useMemo(() => {
     if (!selected_date) return false;
-    const scheduled = setMinutes(
-      setHours(selected_date, selected_hour),
+    const scheduled = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    return !isBefore(scheduled, startOfMinute(new Date()));
+    return is_future_instant(scheduled);
   }, [selected_date, selected_hour, selected_minute]);
 
-  if (scheduled_time) {
+  if (scheduled_time && !force_picker) {
     return (
       <div className="flex items-center gap-1">
         <div
@@ -199,7 +222,7 @@ export function SchedulePicker({
           }}
         >
           <ClockIcon className="w-3.5 h-3.5" />
-          <span>{format(scheduled_time, "MMM d 'at' h:mm a")}</span>
+          <span>{format_datetime_hint(scheduled_time, false)}</span>
           <button
             className="ml-0.5 hover:bg-blue-500/20 rounded p-0.5 transition-colors"
             type="button"
@@ -214,15 +237,17 @@ export function SchedulePicker({
 
   return (
     <Popover open={is_open} onOpenChange={set_is_open}>
-      <Tooltip tip={t("mail.schedule_send")}>
+      <Tooltip tip={t(tooltip_key)}>
         <PopoverTrigger asChild>
-          <button
-            className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
-            disabled={disabled}
-            type="button"
-          >
-            <ClockIcon className="w-4 h-4" />
-          </button>
+          {trigger ?? (
+            <button
+              className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+              disabled={disabled}
+              type="button"
+            >
+              <ClockIcon className="w-4 h-4" />
+            </button>
+          )}
         </PopoverTrigger>
       </Tooltip>
       <PopoverContent
@@ -291,7 +316,9 @@ export function SchedulePicker({
             </div>
             <Calendar
               initialFocus
-              disabled={(date) => isBefore(date, startOfDay(new Date()))}
+              disabled={(date) =>
+                isBefore(date, zoned_calendar_day(new Date()))
+              }
               mode="single"
               selected={selected_date}
               onSelect={set_selected_date}

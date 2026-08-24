@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useMemo, useCallback } from "react";
-import { setHours, setMinutes, isBefore, startOfMinute } from "date-fns";
+import { isBefore } from "date-fns";
+import { is_future_instant } from "@/utils/schedule_targets";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -37,6 +38,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
+import {
+  zoned_calendar_day,
+  zoned_instant_from_calendar_day,
+} from "@/utils/date_format";
 
 interface CustomSnoozeModalProps {
   is_open: boolean;
@@ -69,19 +74,21 @@ export function CustomSnoozeModal({
 
   const is_valid_custom_time = useMemo(() => {
     if (!selected_date) return false;
-    const scheduled = setMinutes(
-      setHours(selected_date, selected_hour),
+    const scheduled = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    return !isBefore(scheduled, startOfMinute(new Date()));
+    return is_future_instant(scheduled);
   }, [selected_date, selected_hour, selected_minute]);
 
   const handle_confirm = useCallback(async () => {
     if (!selected_date || !is_valid_custom_time) return;
 
-    const snooze_date = setMinutes(
-      setHours(selected_date, selected_hour),
+    const snooze_date = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
@@ -121,7 +128,7 @@ export function CustomSnoozeModal({
       </ModalHeader>
       <ModalBody>
         <Calendar
-          disabled={(date) => isBefore(date, startOfMinute(new Date()))}
+          disabled={(date) => isBefore(date, zoned_calendar_day(new Date()))}
           mode="single"
           selected={selected_date}
           onSelect={set_selected_date}

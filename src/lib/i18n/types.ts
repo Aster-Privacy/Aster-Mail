@@ -671,6 +671,8 @@ export interface CommonTranslations {
   more_information: string;
   delete_folder: string;
   edit_reschedule: string;
+  reschedule: string;
+  send_time_updated: string;
   cancel_scheduled: string;
   unlock_folder: string;
   lock_folder: string;
@@ -775,6 +777,8 @@ export interface CommonTranslations {
   this_weekend: string;
   next_week: string;
   next_month: string;
+  in_one_hour: string;
+  tonight: string;
   tomorrow_morning: string;
   tomorrow_afternoon: string;
   monday_morning: string;
@@ -6026,6 +6030,7 @@ export interface MailTranslations {
   one_hour_option: string;
   twenty_four_hours_option: string;
   seven_days_option: string;
+  thirty_days_option: string;
   search_messages: string;
   search_by_sender: string;
   filter_by_attachments: string;
@@ -6384,6 +6389,7 @@ export interface MailTranslations {
   load_more_results: string;
   contacts: string;
   scheduled_for: string;
+  scheduled_send_failed: string;
   section_pinned: string;
   section_primary: string;
   spam_email_message: string;

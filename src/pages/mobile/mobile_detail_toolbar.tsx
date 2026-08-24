@@ -23,6 +23,7 @@ import {
   ArchiveBoxIcon,
   InboxIcon,
   TrashIcon,
+  EnvelopeIcon,
   EnvelopeOpenIcon,
   PrinterIcon,
   NoSymbolIcon,
@@ -69,7 +70,8 @@ export const TOOLBAR_ACTION_MAP: Record<
 };
 
 export const ALL_TOOLBAR_ACTION_IDS = Object.keys(TOOLBAR_ACTION_MAP);
-export const DEFAULT_TOOLBAR = ["trash", "star"];
+export const DEFAULT_TOOLBAR = ["mark_read", "trash", "archive", "star"];
+export const MAX_TOOLBAR_ACTIONS = 4;
 
 export function MobileToolbar({
   actions,
@@ -82,9 +84,13 @@ export function MobileToolbar({
   on_more,
   is_starred,
   is_archived = false,
+  is_read = false,
+  is_spam = false,
 }: {
   actions?: string[];
   is_archived?: boolean;
+  is_read?: boolean;
+  is_spam?: boolean;
   on_archive: () => void;
   on_spam: () => void;
   on_delete: () => void;
@@ -96,7 +102,11 @@ export function MobileToolbar({
 }) {
   const { t } = use_i18n();
   const raw = actions ?? DEFAULT_TOOLBAR;
-  const active = raw.filter((a) => TOOLBAR_ACTION_MAP[a]);
+  const known = raw.filter((a) => TOOLBAR_ACTION_MAP[a]);
+  const active = (known.length > 0 ? known : DEFAULT_TOOLBAR).slice(
+    0,
+    MAX_TOOLBAR_ACTIONS,
+  );
 
   const handler_map: Record<string, () => void> = {
     archive: on_archive,
@@ -121,7 +131,11 @@ export function MobileToolbar({
               ? StarSolidIcon
               : action === "archive" && is_archived
                 ? InboxIcon
-                : config.icon;
+                : action === "spam" && is_spam
+                  ? InboxIcon
+                  : action === "mark_read" && is_read
+                    ? EnvelopeIcon
+                    : config.icon;
           const color = config.is_danger
             ? "var(--color-danger,#ef4444)"
             : action === "star" && is_starred
@@ -134,7 +148,11 @@ export function MobileToolbar({
               aria-label={
                 action === "archive" && is_archived
                   ? t("mail.move_to_inbox")
-                  : t(config.label_key as TranslationKey)
+                  : action === "spam" && is_spam
+                    ? t("mail.not_spam")
+                    : action === "mark_read" && is_read
+                      ? t("mail.mark_unread")
+                      : t(config.label_key as TranslationKey)
               }
               className="flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)]"
               style={{ color }}
