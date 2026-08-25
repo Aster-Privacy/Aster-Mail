@@ -4059,6 +4059,9 @@ export const en: Translations = {
     card_added: "Payment method added",
     card_removed: "Payment method removed",
     default_updated: "Default payment method updated",
+    payment_settled: "Default payment method updated. Your outstanding balance is paid.",
+    payment_still_due:
+      "Your card is saved, but your outstanding balance was not paid. Try a different card to keep your plan.",
     no_payment_methods: "No payment methods saved",
     save_card: "Save Card",
     cancel_reason_title: "Before you go",

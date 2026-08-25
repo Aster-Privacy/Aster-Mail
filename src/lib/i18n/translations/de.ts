@@ -5048,6 +5048,9 @@ export const de = {
     card_added: "Zahlungsmethode hinzugefügt",
     card_removed: "Zahlungsmethode entfernt",
     default_updated: "Standard-Zahlungsmethode aktualisiert",
+    payment_settled: "Standard-Zahlungsmethode aktualisiert. Ihr offener Betrag ist bezahlt.",
+    payment_still_due:
+      "Ihre Karte ist gespeichert, aber Ihr offener Betrag wurde nicht bezahlt. Versuchen Sie es mit einer anderen Karte, um Ihren Tarif zu behalten.",
     no_payment_methods: "Keine Zahlungsmethoden gespeichert",
     save_card: "Karte speichern",
     cancel_reason_title: "Bevor Sie gehen",

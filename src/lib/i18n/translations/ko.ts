@@ -4959,6 +4959,9 @@ export const ko = {
     card_added: "결제 수단이 추가되었습니다",
     card_removed: "결제 수단이 제거되었습니다",
     default_updated: "기본 결제 수단이 업데이트되었습니다",
+    payment_settled: "기본 결제 수단이 업데이트되었습니다. 미결제 금액이 결제되었습니다.",
+    payment_still_due:
+      "카드가 저장되었지만 미결제 금액이 결제되지 않았습니다. 요금제를 유지하려면 다른 카드를 사용해 보세요.",
     no_payment_methods: "저장된 결제 수단이 없습니다",
     save_card: "카드 저장",
     cancel_reason_title: "떠나시기 전에",

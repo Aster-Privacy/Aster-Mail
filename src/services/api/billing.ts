@@ -751,8 +751,15 @@ export async function create_setup_intent() {
   );
 }
 
+export interface PaymentMethodActionResponse {
+  success: boolean;
+  retry_attempted?: boolean;
+  retry_succeeded?: boolean;
+  decline_code?: string | null;
+}
+
 export async function set_default_payment_method(payment_method_id: string) {
-  return api_client.post<{ success: boolean }>(
+  return api_client.post<PaymentMethodActionResponse>(
     "/payments/v1/payment-methods/default",
     { payment_method_id },
   );

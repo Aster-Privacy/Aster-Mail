@@ -4977,6 +4977,8 @@ export interface SettingsTranslations {
   card_added: string;
   card_removed: string;
   default_updated: string;
+  payment_settled: string;
+  payment_still_due: string;
   no_payment_methods: string;
   save_card: string;
   cancel_reason_title: string;

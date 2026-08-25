@@ -5008,6 +5008,9 @@ export const pt = {
     card_added: "Método de pagamento adicionado",
     card_removed: "Método de pagamento removido",
     default_updated: "Método de pagamento padrão atualizado",
+    payment_settled: "Método de pagamento padrão atualizado. O seu saldo pendente está pago.",
+    payment_still_due:
+      "O seu cartão foi salvo, mas o seu saldo pendente não foi pago. Tente outro cartão para manter o seu plano.",
     no_payment_methods: "Nenhum método de pagamento salvo",
     save_card: "Salvar cartão",
     cancel_reason_title: "Antes de sair",

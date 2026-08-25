@@ -54,6 +54,7 @@ import {
   detach_payment_method,
   get_stripe_config,
   type PaymentMethodItem,
+  type PaymentMethodActionResponse,
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import { connection_store } from "@/services/routing/connection_store";
@@ -331,12 +332,32 @@ export function PaymentMethodsModal({
     }
   }, [open, fetch_methods]);
 
+  const report_default_outcome = useCallback(
+    (result: PaymentMethodActionResponse | undefined) => {
+      if (!result?.retry_attempted) {
+        show_toast(t("settings.default_updated"), "success");
+
+        return;
+      }
+
+      if (result.retry_succeeded) {
+        show_toast(t("settings.payment_settled"), "success");
+
+        return;
+      }
+
+      show_toast(t("settings.payment_still_due"), "error");
+    },
+    [t],
+  );
+
   const handle_set_default = useCallback(
     async (id: string) => {
       set_default_loading_id(id);
       try {
-        await set_default_payment_method(id);
-        show_toast(t("settings.default_updated"), "success");
+        const response = await set_default_payment_method(id);
+
+        report_default_outcome(response.data);
         await fetch_methods();
       } catch {
         show_toast(t("settings.payment_failed"), "error");
@@ -344,7 +365,7 @@ export function PaymentMethodsModal({
         set_default_loading_id(null);
       }
     },
-    [fetch_methods, t],
+    [fetch_methods, report_default_outcome, t],
   );
 
   const handle_delete = useCallback(
@@ -414,14 +435,19 @@ export function PaymentMethodsModal({
 
     if (!has_default && updated.length > 0) {
       try {
-        await set_default_payment_method(updated[0].id);
+        const response = await set_default_payment_method(updated[0].id);
+
+        if (response.data?.retry_attempted) {
+          report_default_outcome(response.data);
+        }
+
         await fetch_methods();
       } catch (err) {
         if (import.meta.env.DEV)
           console.error("failed to set default payment method", err);
       }
     }
-  }, [fetch_methods]);
+  }, [fetch_methods, report_default_outcome]);
 
   const handle_cancel_add = useCallback(() => {
     set_show_add_form(false);

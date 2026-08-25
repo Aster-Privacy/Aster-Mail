@@ -5045,6 +5045,9 @@ export const fr = {
     card_added: "Moyen de paiement ajouté",
     card_removed: "Moyen de paiement supprimé",
     default_updated: "Moyen de paiement par défaut mis à jour",
+    payment_settled: "Moyen de paiement par défaut mis à jour. Votre solde impayé est réglé.",
+    payment_still_due:
+      "Votre carte est enregistrée, mais votre solde impayé n'a pas été réglé. Essayez une autre carte pour conserver votre offre.",
     no_payment_methods: "Aucun moyen de paiement enregistré",
     save_card: "Enregistrer la carte",
     cancel_reason_title: "Avant de partir",

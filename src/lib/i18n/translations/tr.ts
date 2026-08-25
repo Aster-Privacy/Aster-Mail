@@ -4967,6 +4967,9 @@ export const tr = {
     card_added: "Ödeme yöntemi eklendi",
     card_removed: "Ödeme yöntemi kaldırıldı",
     default_updated: "Varsayılan ödeme yöntemi güncellendi",
+    payment_settled: "Varsayılan ödeme yöntemi güncellendi. Ödenmemiş tutarınız ödendi.",
+    payment_still_due:
+      "Kartınız kaydedildi ancak ödenmemiş tutarınız ödenmedi. Planınızı korumak için başka bir kart deneyin.",
     no_payment_methods: "Kayıtlı ödeme yöntemi yok",
     save_card: "Kartı Kaydet",
     cancel_reason_title: "Gitmeden önce",

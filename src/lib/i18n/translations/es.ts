@@ -4997,6 +4997,9 @@ export const es = {
     card_added: "Método de pago añadido",
     card_removed: "Método de pago eliminado",
     default_updated: "Método de pago predeterminado actualizado",
+    payment_settled: "Método de pago predeterminado actualizado. Tu saldo pendiente está pagado.",
+    payment_still_due:
+      "Tu tarjeta está guardada, pero tu saldo pendiente no se ha pagado. Prueba con otra tarjeta para mantener tu plan.",
     no_payment_methods: "No hay métodos de pago guardados",
     save_card: "Guardar tarjeta",
     cancel_reason_title: "Antes de irte",

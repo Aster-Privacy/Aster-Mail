@@ -4981,6 +4981,9 @@ export const nl = {
     card_added: "Betaalmethode toegevoegd",
     card_removed: "Betaalmethode verwijderd",
     default_updated: "Standaard betaalmethode bijgewerkt",
+    payment_settled: "Standaard betaalmethode bijgewerkt. Je openstaande bedrag is betaald.",
+    payment_still_due:
+      "Je kaart is opgeslagen, maar je openstaande bedrag is niet betaald. Probeer een andere kaart om je abonnement te behouden.",
     no_payment_methods: "Geen betaalmethoden opgeslagen",
     save_card: "Kaart opslaan",
     cancel_reason_title: "Voordat je gaat",

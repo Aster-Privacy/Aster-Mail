@@ -3957,6 +3957,9 @@ export const it = {
     card_added: "Metodo di pagamento aggiunto",
     card_removed: "Metodo di pagamento rimosso",
     default_updated: "Metodo di pagamento predefinito aggiornato",
+    payment_settled: "Metodo di pagamento predefinito aggiornato. Il tuo saldo in sospeso è stato pagato.",
+    payment_still_due:
+      "La tua carta è stata salvata, ma il tuo saldo in sospeso non è stato pagato. Prova un'altra carta per mantenere il tuo piano.",
     no_payment_methods: "Nessun metodo di pagamento salvato",
     save_card: "Salva carta",
     cancel_reason_title: "Prima di andare",

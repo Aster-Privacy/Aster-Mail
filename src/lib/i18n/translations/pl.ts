@@ -5044,6 +5044,9 @@ export const pl = {
     card_added: "Metoda płatności dodana",
     card_removed: "Metoda płatności usunięta",
     default_updated: "Domyślna metoda płatności zaktualizowana",
+    payment_settled: "Domyślna metoda płatności zaktualizowana. Zaległa należność została opłacona.",
+    payment_still_due:
+      "Twoja karta została zapisana, ale zaległa należność nie została opłacona. Wypróbuj inną kartę, aby zachować swój plan.",
     no_payment_methods: "Brak zapisanych metod płatności",
     save_card: "Zapisz kartę",
     cancel_reason_title: "Zanim odejdziesz",

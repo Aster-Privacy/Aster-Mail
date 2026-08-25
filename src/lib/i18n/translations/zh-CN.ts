@@ -4558,6 +4558,9 @@ export const zh_CN = {
     card_added: "支付方式已添加",
     card_removed: "支付方式已移除",
     default_updated: "默认支付方式已更新",
+    payment_settled: "默认支付方式已更新。未付款项已结清。",
+    payment_still_due:
+      "您的银行卡已保存，但未付款项尚未结清。请更换其他银行卡以保留您的套餐。",
     no_payment_methods: "没有保存的支付方式",
     save_card: "保存卡片",
     cancel_reason_title: "在您离开之前",

@@ -5019,6 +5019,9 @@ export const ja = {
     card_added: "お支払い方法を追加しました",
     card_removed: "お支払い方法を削除しました",
     default_updated: "デフォルトのお支払い方法を更新しました",
+    payment_settled: "デフォルトのお支払い方法を更新しました。未払い残高のお支払いが完了しました。",
+    payment_still_due:
+      "カードを保存しましたが、未払い残高のお支払いは完了していません。プランを維持するには別のカードをお試しください。",
     no_payment_methods: "保存されたお支払い方法はありません",
     save_card: "カードを保存",
     cancel_reason_title: "ご解約の前に",
