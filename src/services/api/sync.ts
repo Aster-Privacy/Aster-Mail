@@ -85,7 +85,7 @@ export async function get_sync_changes(
   since_version: number,
 ): Promise<ApiResponse<SyncChangesResponse>> {
   return api_client.get<SyncChangesResponse>(
-    `/sync/v1/changes?since=${since_version}`,
+    `/sync/v1/changes?since_version=${since_version}`,
   );
 }
 
