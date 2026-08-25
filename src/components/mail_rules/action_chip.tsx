@@ -38,6 +38,7 @@ import { ChipPill, ChipSegment } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
+import { use_date_format } from "@/hooks/use_date_format";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { Action, CategoryValue } from "@/services/api/mail_rules";
@@ -68,6 +69,7 @@ export function ActionChip({
   read_only,
 }: ActionChipProps) {
   const { t } = use_i18n();
+  const { format_date, format_time } = use_date_format();
   const { state: folders_state } = use_folders();
   const { state: tags_state } = use_tags();
   const [open, set_open] = React.useState(false);
@@ -167,7 +169,7 @@ export function ActionChip({
       case "snooze":
         if (!action.until_iso8601) return t("mail_rules.snooze_custom");
         try {
-          return new Date(action.until_iso8601).toLocaleString();
+          return `${format_date(new Date(action.until_iso8601))} ${format_time(new Date(action.until_iso8601))}`;
         } catch {
           return action.until_iso8601;
         }

@@ -63,7 +63,14 @@ import {
   emit_mail_changed,
   emit_scheduled_changed,
 } from "@/hooks/mail_events";
-import { get_display_time_zone } from "@/utils/date_format";
+import {
+  format_date_short,
+  format_full_datetime,
+  format_time,
+  format_weekday_short,
+  type FormatOptions,
+} from "@/utils/date_format";
+import { use_date_format } from "@/hooks/use_date_format";
 
 interface ScheduledData {
   id: string;
@@ -85,6 +92,7 @@ interface SplitScheduledViewerProps {
 function format_scheduled_time(
   iso_string: string,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+  options: FormatOptions,
 ): string {
   const date = new Date(iso_string);
   const now = new Date();
@@ -102,35 +110,18 @@ function format_scheduled_time(
   }
 
   if (diff_hours < 24) {
-    return date.toLocaleTimeString([], {
-      timeZone: get_display_time_zone(),
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return format_time(date, options);
   }
 
-  return date.toLocaleDateString([], {
-    timeZone: get_display_time_zone(),
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return `${format_weekday_short(date)}, ${format_date_short(date, options)}, ${format_time(date, options)}`;
 }
 
-function format_full_date(iso_string: string): string {
-  const date = new Date(iso_string);
-
-  return date.toLocaleDateString([], {
-    timeZone: get_display_time_zone(),
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function format_full_date(
+  iso_string: string,
+  options: FormatOptions,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
+  return format_full_datetime(new Date(iso_string), options, t);
 }
 
 export function SplitScheduledViewer({
@@ -139,6 +130,7 @@ export function SplitScheduledViewer({
   on_edit,
 }: SplitScheduledViewerProps): React.ReactElement {
   const { t } = use_i18n();
+  const { options: date_format_options } = use_date_format();
   const { vault } = use_auth();
   const [show_cancel_confirm, set_show_cancel_confirm] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);
@@ -297,7 +289,7 @@ export function SplitScheduledViewer({
                 />
                 <EmailTag
                   icon="clock"
-                  label={format_scheduled_time(current_scheduled_at, t)}
+                  label={format_scheduled_time(current_scheduled_at, t, date_format_options)}
                   size="default"
                   variant="scheduled"
                 />
@@ -386,7 +378,7 @@ export function SplitScheduledViewer({
               )}
               <p className="text-xs mt-1 text-txt-muted">
                 {t("mail.scheduled_for")}{" "}
-                {format_full_date(current_scheduled_at)}
+                {format_full_date(current_scheduled_at, date_format_options, t)}
               </p>
             </div>
           </div>

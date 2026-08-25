@@ -31,6 +31,12 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { use_search } from "@/hooks/use_search";
+import { use_date_format } from "@/hooks/use_date_format";
+import {
+  format_date_short,
+  format_time,
+  type FormatOptions,
+} from "@/utils/date_format";
 
 interface ContactHistoryPanelProps {
   contact_email: string;
@@ -46,6 +52,7 @@ interface HistoryEntry {
 function format_relative_date(
   date_string: string,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+  options: FormatOptions,
 ): string {
   const date = new Date(date_string);
   const now = new Date();
@@ -53,24 +60,21 @@ function format_relative_date(
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   if (days === 0) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return format_time(date, options);
   }
   if (days === 1) return t("common.yesterday");
   if (days < 7) return t("common.x_days_ago", { count: days });
   if (days < 365)
-    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    return format_date_short(date, options);
 
-  return date.toLocaleDateString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return format_date_short(date, options, true);
 }
 
 export function ContactHistoryPanel({
   contact_email,
 }: ContactHistoryPanelProps) {
   const { t } = use_i18n();
+  const { options: date_format_options } = use_date_format();
   const navigate = useNavigate();
   const received = use_search();
   const sent = use_search();
@@ -177,7 +181,7 @@ export function ContactHistoryPanel({
                     {activity.subject || t("mail.no_subject")}
                   </span>
                   <span className="text-[11px] text-txt-muted flex-shrink-0">
-                    {format_relative_date(activity.timestamp, t)}
+                    {format_relative_date(activity.timestamp, t, date_format_options)}
                   </span>
                 </div>
                 <p className="text-[11px] text-txt-muted mt-0.5">

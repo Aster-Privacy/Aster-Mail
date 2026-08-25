@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { format_last_saved } from "@/components/compose/compose_shared";
+import { use_date_format } from "@/hooks/use_date_format";
 
 
 export function DraftStatusIndicator({
@@ -35,6 +36,7 @@ export function DraftStatusIndicator({
   reduce_motion: boolean;
 }) {
   const { t } = use_i18n();
+  const { options: date_format_options } = use_date_format();
 
   return (
     <AnimatePresence>
@@ -108,7 +110,7 @@ export function DraftStatusIndicator({
                 </svg>
                 <span>
                   {compose.last_saved_time
-                    ? format_last_saved(compose.last_saved_time, t)
+                    ? format_last_saved(compose.last_saved_time, t, date_format_options)
                     : t("mail.saved")}
                 </span>
               </motion.div>

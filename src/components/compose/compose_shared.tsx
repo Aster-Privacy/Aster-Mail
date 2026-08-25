@@ -24,6 +24,12 @@ import type {
 } from "@/services/api/multi_drafts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import {
+  format_date_short,
+  format_time,
+  type FormatOptions,
+} from "@/utils/date_format";
+
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
   is_scheduling: boolean;
@@ -314,6 +320,7 @@ export const is_valid_email = (email: string): boolean =>
 export function format_last_saved(
   saved_time: Date,
   t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
+  options?: FormatOptions,
 ): string {
   const now = new Date();
   const is_today =
@@ -321,10 +328,7 @@ export function format_last_saved(
     saved_time.getMonth() === now.getMonth() &&
     saved_time.getFullYear() === now.getFullYear();
 
-  const time_str = saved_time.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const time_str = format_time(saved_time, options);
 
   if (is_today) {
     return t
@@ -332,10 +336,7 @@ export function format_last_saved(
       : `Saved at ${time_str}`;
   }
 
-  const date_str = saved_time.toLocaleDateString([], {
-    month: "short",
-    day: "numeric",
-  });
+  const date_str = format_date_short(saved_time, options);
 
   return t
     ? t("common.saved_on_date", { date: date_str })

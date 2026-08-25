@@ -72,6 +72,14 @@ import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_email_username } from "@/lib/utils";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { DdgFavicon } from "@/components/compose/compose_shared";
+import {
+  format_date_short,
+  format_full_datetime,
+  format_time,
+  format_weekday_short,
+  type FormatOptions,
+} from "@/utils/date_format";
+import { use_date_format } from "@/hooks/use_date_format";
 
 interface ScheduledData {
   id: string;
@@ -92,6 +100,7 @@ interface ScheduledPopupViewerProps {
 function format_scheduled_time(
   iso_string: string,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+  options: FormatOptions,
 ): string {
   const date = new Date(iso_string);
   const now = new Date();
@@ -111,32 +120,18 @@ function format_scheduled_time(
   }
 
   if (diff_hours < 24) {
-    return date.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return format_time(date, options);
   }
 
-  return date.toLocaleDateString([], {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return `${format_weekday_short(date)}, ${format_date_short(date, options)}, ${format_time(date, options)}`;
 }
 
-function format_full_date(iso_string: string): string {
-  const date = new Date(iso_string);
-
-  return date.toLocaleDateString([], {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function format_full_date(
+  iso_string: string,
+  options: FormatOptions,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
+  return format_full_datetime(new Date(iso_string), options, t);
 }
 
 type PopupSize = "default" | "expanded" | "fullscreen";
@@ -150,6 +145,7 @@ export function ScheduledPopupViewer({
   on_edit,
 }: ScheduledPopupViewerProps) {
   const { t } = use_i18n();
+  const { options: date_format_options } = use_date_format();
   const { vault } = use_auth();
   const reduce_motion = use_should_reduce_motion();
   const [popup_size, set_popup_size] = useState<PopupSize>("default");
@@ -667,7 +663,7 @@ export function ScheduledPopupViewer({
                           {t("common.send_at_label")}
                         </span>
                         <span className="text-txt-secondary">
-                          {format_full_date(current_scheduled_at)}
+                          {format_full_date(current_scheduled_at, date_format_options, t)}
                         </span>
                       </div>
                     </div>
@@ -679,7 +675,7 @@ export function ScheduledPopupViewer({
             <div className="flex items-center gap-1 flex-shrink-0">
               <EmailTag
                 icon="clock"
-                label={format_scheduled_time(current_scheduled_at, t)}
+                label={format_scheduled_time(current_scheduled_at, t, date_format_options)}
                 variant="scheduled"
               />
             </div>
