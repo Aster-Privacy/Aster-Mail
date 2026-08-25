@@ -31,6 +31,8 @@ import {
   type DraftData,
 } from "@/services/crypto/encrypted_drafts";
 import { api_client } from "@/services/api/client";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_i18n } from "@/lib/i18n/context";
 import { has_csrf_token } from "@/services/api/csrf";
 import {
   type Attachment,
@@ -85,6 +87,7 @@ export function use_compose_drafts({
 }: UseComposeDraftsOptions): UseComposeDraftsReturn {
   const { vault } = use_auth();
   const { preferences } = use_preferences();
+  const { t } = use_i18n();
 
   const [auto_save_drafts, set_auto_save_drafts] = useState(
     DEFAULT_PREFERENCES.auto_save_drafts,
@@ -207,7 +210,17 @@ export function use_compose_drafts({
 
     if (draft_context_id_ref.current) {
       await draft_manager.await_pending_save(draft_context_id_ref.current);
-      await draft_manager.delete_draft(draft_context_id_ref.current);
+
+      const deleted = await draft_manager.delete_draft(
+        draft_context_id_ref.current,
+      );
+
+      if (!deleted) {
+        show_toast(t("common.failed_to_delete_draft"), "error");
+
+        return;
+      }
+
       draft_manager.clear_context(draft_context_id_ref.current);
       draft_context_id_ref.current = null;
     }
@@ -218,7 +231,7 @@ export function use_compose_drafts({
       on_draft_cleared();
     }
     on_close();
-  }, [reset_form, on_draft_cleared, on_close]);
+  }, [reset_form, on_draft_cleared, on_close, t]);
 
   const handle_close = useCallback(() => {
     const context_id = draft_context_id_ref.current;
