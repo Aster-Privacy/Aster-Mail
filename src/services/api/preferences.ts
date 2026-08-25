@@ -223,26 +223,42 @@ export interface UserPreferences {
   inbox_page_size: number;
 }
 
+const QUIET_HOURS_RETRY_DELAYS_MS = [1000, 4000];
+
 export async function sync_quiet_hours_to_server(
   enabled: boolean,
   start_time: string,
   end_time: string,
 ): Promise<void> {
-  try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    await api_client.put(
-      "/sync/v1/quiet-hours",
-      {
-        enabled,
-        start_time,
-        end_time,
-        timezone,
-      },
-      { skip_upgrade_prompt: true },
-    );
-  } catch (e) {
-    if (import.meta.env.DEV) console.error(e);
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await api_client.put(
+        "/sync/v1/quiet-hours",
+        {
+          enabled,
+          start_time,
+          end_time,
+          timezone,
+        },
+        { skip_upgrade_prompt: true },
+      );
+
+      if (!response.error) return;
+
+      throw new Error(response.error);
+    } catch (e) {
+      if (attempt >= QUIET_HOURS_RETRY_DELAYS_MS.length) {
+        if (import.meta.env.DEV) console.error(e);
+
+        return;
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, QUIET_HOURS_RETRY_DELAYS_MS[attempt]),
+      );
+    }
   }
 }
 
