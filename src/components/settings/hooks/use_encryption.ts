@@ -730,7 +730,11 @@ export function use_encryption() {
   const save_keyserver_urls = async (urls: string[], previous: string[]) => {
     set_is_saving_keyservers(true);
     try {
-      await api_client.put("/settings/v1/encryption", { keyserver_urls: urls });
+      const result = await api_client.put("/settings/v1/encryption", {
+        keyserver_urls: urls,
+      });
+
+      if (result.error) throw new Error(result.error);
       show_toast(t("settings.keyserver_saved"), "success");
     } catch {
       set_keyserver_urls(previous);
