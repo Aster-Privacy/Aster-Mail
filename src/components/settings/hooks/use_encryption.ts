@@ -727,12 +727,13 @@ export function use_encryption() {
     set_is_publishing_keyserver(false);
   };
 
-  const save_keyserver_urls = async (urls: string[]) => {
+  const save_keyserver_urls = async (urls: string[], previous: string[]) => {
     set_is_saving_keyservers(true);
     try {
       await api_client.put("/settings/v1/encryption", { keyserver_urls: urls });
       show_toast(t("settings.keyserver_saved"), "success");
     } catch {
+      set_keyserver_urls(previous);
       show_toast(t("settings.failed_publish_keyserver"), "error");
     } finally {
       set_is_saving_keyservers(false);
@@ -756,16 +757,18 @@ export function use_encryption() {
       set_keyserver_input("");
       return;
     }
+    const previous = keyserver_urls;
     const updated = [...keyserver_urls, trimmed];
     set_keyserver_urls(updated);
     set_keyserver_input("");
-    void save_keyserver_urls(updated);
+    void save_keyserver_urls(updated, previous);
   };
 
   const handle_remove_keyserver = (url: string) => {
+    const previous = keyserver_urls;
     const updated = keyserver_urls.filter((u) => u !== url);
     set_keyserver_urls(updated);
-    void save_keyserver_urls(updated);
+    void save_keyserver_urls(updated, previous);
   };
 
   const close_export_prompt = () => {
