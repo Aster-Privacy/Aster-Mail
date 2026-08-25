@@ -248,7 +248,7 @@ export function StepEmail({ reg, reduce_motion, navigate }: step_email_props) {
           >
             {reg.t("common.privacy_policy")}
           </a>
-          . {reg.t("auth.product_updates_notice")}
+          .
         </p>
       </div>
     </div>

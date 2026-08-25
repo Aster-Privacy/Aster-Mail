@@ -6852,7 +6852,6 @@ export interface AuthTranslations {
   username_in_use: string;
   password_breach_warning: string;
   by_continuing: string;
-  product_updates_notice: string;
   copyright: string;
   display_name_optional: string;
   "10gb_secure_storage": string;

@@ -7720,8 +7720,6 @@ export const en: Translations = {
     password_breach_warning:
       "This password has appeared in a data breach. Consider using a different one.",
     by_continuing: "By continuing, you agree to our",
-    product_updates_notice:
-      "You also get occasional product updates in your inbox, and you can turn them off in Settings.",
     copyright: "Copyright {{year}} Aster Communications Inc.",
     display_name_optional: "Display name (optional)",
     "10gb_secure_storage": "10 GB secure storage",
