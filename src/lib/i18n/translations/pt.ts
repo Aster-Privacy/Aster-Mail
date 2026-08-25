@@ -5599,6 +5599,8 @@ export const pt = {
     bridge_installations_description:
       "Cada entrada é um aplicativo Bridge vinculado à sua conta. Revogá-lo desconecta todos os clientes de e-mail usando essa instalação.",
     bridge_installations_empty: "Nenhuma instalação do Bridge conectada.",
+    connected_accounts_password_reauth_needed:
+      "Não foi possível entrar. Edite a conta para atualizar a senha.",
     bridge_revoke_title: "Revogar instalação?",
     bridge_revoke_message:
       "Isso desconectará {{ name }} e todos os clientes de e-mail que o usam. Você pode reconectar vinculando o Bridge novamente.",

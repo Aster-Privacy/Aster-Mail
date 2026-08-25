@@ -5806,6 +5806,8 @@ export const nl = {
     bridge_download_msi: "MSI",
     bridge_app_name: "Aster Bridge",
     bridge_windows_name: "Windows",
+    connected_accounts_password_reauth_needed:
+      "Inloggen is mislukt. Bewerk het account om het wachtwoord bij te werken.",
     bridge_windows_desc:
       "Download the installer and run Aster Bridge on your Windows machine.",
     bridge_linux_name: "Linux",

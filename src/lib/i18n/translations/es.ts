@@ -5593,6 +5593,8 @@ export const es = {
     criterion_login_alerts: "Alertas de inicio de sesión",
     criterion_forward_secrecy: "Confidencialidad hacia adelante",
     action_recommended: "Acción recomendada",
+    connected_accounts_password_reauth_needed:
+      "No se pudo iniciar sesión. Edita la cuenta para actualizar la contraseña.",
     two_step_verification_enabled_description:
       "Tu cuenta requiere un código de verificación además de tu contraseña.",
     two_step_verification_recommendation:

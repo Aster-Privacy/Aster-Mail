@@ -4953,6 +4953,8 @@ export const zh_CN = {
     connected_accounts_disconnect: "断开连接",
     connected_accounts_error:
       "这个关联账户的同步出现了一些问题，我们会自动重试。",
+    connected_accounts_password_reauth_needed:
+      "登录失败。请编辑账户以更新密码。",
     connected_accounts_reauth_needed:
       "Re-authorization required - click Reconnect to fix.",
     connected_accounts_reconnect: "Reconnect",

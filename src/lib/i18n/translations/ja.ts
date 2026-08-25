@@ -5708,6 +5708,8 @@ export const ja = {
     crypto_native_not_found: "この請求が見つかりませんでした",
     crypto_native_unavailable: "支払いを読み込めませんでした",
     crypto_native_unavailable_body:
+    connected_accounts_password_reauth_needed:
+      "サインインできませんでした。アカウントを編集してパスワードを更新してください。",
       "サーバーに接続できませんでした。接続を確認して再試行してください。お支払いには影響ありません。",
     crypto_native_pending_banner: "進行中の暗号資産の支払いがあります",
     crypto_native_pending_banner_action: "支払いを再開",

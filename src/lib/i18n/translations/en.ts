@@ -5987,6 +5987,8 @@ export const en: Translations = {
     failed_purge_directory: "This directory was not deleted. Please try again.",
     empty_directory_trash_confirm_message:
       "Permanently delete all {{ count }} directories in Recently Deleted? This cannot be undone. The directories stay reserved to your account, so no one else can claim them.",
+    connected_accounts_password_reauth_needed:
+      "Sign-in failed. Edit the account to update the password.",
     alias_stats_title: "Stats",
     alias_stats_description: "How much mail this alias has handled.",
     alias_stats_received: "{{ count }} received",

@@ -5206,6 +5206,7 @@ export interface SettingsTranslations {
   data_export: string;
   data_export_description: string;
   request_export: string;
+  connected_accounts_password_reauth_needed: string;
   requesting_export: string;
   export_requested: string;
   export_ready: string;

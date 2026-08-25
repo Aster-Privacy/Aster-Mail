@@ -5701,6 +5701,8 @@ export const ru = {
     crypto_native_open_wallet: "Открыть в кошельке",
     crypto_native_status_processing: "Обрабатывается",
     crypto_native_hint_processing:
+    connected_accounts_password_reauth_needed:
+      "Не удалось войти. Измените учётную запись, чтобы обновить пароль.",
       "Этот платёж обрабатывается. Страница обновляется сама, от вас ничего не требуется.",
     crypto_native_copy_invoice_ref: "Скопировать номер счёта",
     crypto_native_no_wallet_handler:

@@ -4815,6 +4815,8 @@ export const it = {
       "Attiva le scorciatoie da tastiera in tutta l'app",
     font_size_small: "Piccolo",
     font_size_default: "Predefinito",
+    connected_accounts_password_reauth_needed:
+      "Accesso non riuscito. Modifica l'account per aggiornare la password.",
     font_size_large: "Grande",
     font_size_extra_large: "Extra grande",
     colorblind_none: "Nessuno",

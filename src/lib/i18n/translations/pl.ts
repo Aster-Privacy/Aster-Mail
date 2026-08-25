@@ -5958,6 +5958,8 @@ export const pl = {
       "Następnie wraca do {{price}}{{interval}} po {{months}} miesiącach",
     promo_once_reverts:
       "Dotyczy tylko {{period}}, następnie wraca do {{price}}{{interval}}",
+    connected_accounts_password_reauth_needed:
+      "Logowanie nie powiodło się. Edytuj konto, aby zaktualizować hasło.",
     promo_forever: "Obowiązuje przez cały czas trwania subskrypcji",
     discount_first_year: "Pierwszy rok",
     discount_first_month: "Pierwszy miesiąc",

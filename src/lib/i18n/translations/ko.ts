@@ -5638,6 +5638,8 @@ export const ko = {
     crypto_native_stripe_option: "스테이블코인으로 결제",
     crypto_native_stripe_desc:
       "결제 대행사를 통해 USDC 등 스테이블코인으로 결제하세요",
+    connected_accounts_password_reauth_needed:
+      "로그인하지 못했습니다. 계정을 편집해 비밀번호를 업데이트하세요.",
     crypto_native_too_many_open:
       "완료되지 않은 암호화폐 인보이스가 너무 많습니다. 먼저 하나를 완료하거나 취소하세요.",
     crypto_native_daily_limit:

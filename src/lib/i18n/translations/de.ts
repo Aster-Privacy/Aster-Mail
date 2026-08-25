@@ -5908,6 +5908,8 @@ export const de = {
     bridge: "Bridge",
     bridge_description: "Connect Aster to any IMAP or SMTP mail client",
     bridge_download_windows: "Download for Windows",
+    connected_accounts_password_reauth_needed:
+      "Anmeldung fehlgeschlagen. Bearbeiten Sie das Konto, um das Passwort zu aktualisieren.",
     bridge_download_msi: "MSI",
     bridge_app_name: "Aster Bridge",
     bridge_windows_name: "Windows",

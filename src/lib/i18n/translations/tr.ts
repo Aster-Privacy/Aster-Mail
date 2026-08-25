@@ -5548,6 +5548,8 @@ export const tr = {
       "Download the universal DMG for Apple Silicon and Intel Macs.",
     bridge_macos_cta: "Download for macOS",
     bridge_coming_soon: "Coming soon",
+    connected_accounts_password_reauth_needed:
+      "Oturum açılamadı. Parolayı güncellemek için hesabı düzenleyin.",
     bridge_info_link: "Learn more",
     bridge_popover_description:
       "Masaüstünüzde çalışan hafif bir yerel proxy. Posta kutunuzu şifresini çözer ve herhangi bir e-posta istemcisinin bağlanabilmesi için standart IMAP ve SMTP üzerinden sunar.",

@@ -5647,6 +5647,8 @@ export const fr = {
     criterion_two_factor: "Authentification à deux facteurs",
     criterion_recovery_email: "E-mail de récupération vérifié",
     criterion_auto_lock: "Verrouillage automatique",
+    connected_accounts_password_reauth_needed:
+      "Échec de la connexion. Modifiez le compte pour mettre à jour le mot de passe.",
     criterion_login_alerts: "Alertes de connexion",
     criterion_forward_secrecy: "Confidentialité persistante",
     action_recommended: "Action recommandée",

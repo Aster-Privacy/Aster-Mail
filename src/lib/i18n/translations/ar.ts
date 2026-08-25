@@ -5804,6 +5804,8 @@ export const ar = {
       "لم يتم العثور على جهات اتصال. أضف بعض جهات الاتصال أولًا!",
     referral_loading_contacts: "جارٍ تحميل جهات الاتصال...",
     two_factor_auth_disabled: "تم تعطيل المصادقة الثنائية",
+    connected_accounts_password_reauth_needed:
+      "فشل تسجيل الدخول. عدّل الحساب لتحديث كلمة السر.",
     feature_tracker_protection: "حماية التتبع",
     domain_pending_hint:
       "انقر على متابعة الإعداد لتهيئة سجلات DNS والتحقق من نطاقك.",
