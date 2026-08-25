@@ -663,7 +663,7 @@ export function AliasesSection({
                               <span
                                 className={`text-[11px] px-2 py-0.5 rounded-full ${get_status_color(domain.status)}`}
                               >
-                                {get_status_label(domain.status)}
+                                {get_status_label(domain.status, t)}
                               </span>
                               {domain.status !== "active" && (
                                 <span className="text-[11px] text-[var(--text-muted)]">

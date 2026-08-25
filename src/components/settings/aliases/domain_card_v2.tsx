@@ -212,7 +212,7 @@ export function DomainCardV2({
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${get_status_color(domain.status)}`}
                   >
-                    {get_status_label(domain.status)}
+                    {get_status_label(domain.status, t)}
                   </span>
                   <span className="text-xs text-txt-muted">
                     {t("settings.verified_count", { count: verification_count })}

@@ -698,13 +698,22 @@ export function format_domain_price(
 export function validate_domain_name(domain: string): {
   valid: boolean;
   error?: string;
+  error_key?: TranslationKey;
 } {
   if (!domain || domain.length === 0) {
-    return { valid: false, error: en.errors.domain_empty };
+    return {
+      valid: false,
+      error: en.errors.domain_empty,
+      error_key: "errors.domain_empty",
+    };
   }
 
   if (domain.length > 253) {
-    return { valid: false, error: en.errors.domain_too_long };
+    return {
+      valid: false,
+      error: en.errors.domain_too_long,
+      error_key: "errors.domain_too_long",
+    };
   }
 
   const domain_lower = domain.toLowerCase();
@@ -718,24 +727,37 @@ export function validate_domain_name(domain: string): {
     return {
       valid: false,
       error: en.errors.domain_reserved,
+      error_key: "errors.domain_reserved",
     };
   }
 
   const parts = domain.split(".");
 
   if (parts.length < 2) {
-    return { valid: false, error: en.errors.domain_invalid_format };
+    return {
+      valid: false,
+      error: en.errors.domain_invalid_format,
+      error_key: "errors.domain_invalid_format",
+    };
   }
 
   const valid_label_pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;
 
   for (const part of parts) {
     if (part.length === 0 || part.length > 63) {
-      return { valid: false, error: en.errors.domain_invalid_label };
+      return {
+        valid: false,
+        error: en.errors.domain_invalid_label,
+        error_key: "errors.domain_invalid_label",
+      };
     }
 
     if (!valid_label_pattern.test(part)) {
-      return { valid: false, error: en.errors.domain_invalid_chars };
+      return {
+        valid: false,
+        error: en.errors.domain_invalid_chars,
+        error_key: "errors.domain_invalid_chars",
+      };
     }
   }
 
@@ -816,20 +838,23 @@ export function get_status_color(status: string): string {
   }
 }
 
-export function get_status_label(status: string): string {
+export function get_status_label(
+  status: string,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
   switch (status) {
     case "active":
-      return en.settings.status_active;
+      return t("settings.status_active");
     case "pending":
-      return en.settings.status_pending;
+      return t("settings.status_pending");
     case "verifying":
-      return en.settings.status_verifying;
+      return t("settings.status_verifying");
     case "dns_pending":
-      return en.settings.status_dns_pending;
+      return t("settings.status_dns_pending");
     case "suspended":
-      return en.settings.status_suspended;
+      return t("settings.status_suspended");
     case "failed":
-      return en.settings.status_failed;
+      return t("settings.status_failed");
     default:
       return status;
   }

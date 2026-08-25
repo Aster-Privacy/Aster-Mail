@@ -223,7 +223,11 @@ export function DomainSetupWizard({
     const validation = validate_domain_name(domain_input);
 
     if (!validation.valid) {
-      set_error(validation.error || t("settings.invalid_domain"));
+      set_error(
+        validation.error_key
+          ? t(validation.error_key)
+          : t("settings.invalid_domain"),
+      );
 
       return;
     }
@@ -398,7 +402,10 @@ export function DomainSetupWizard({
               />
               {domain_input && !validate_domain_name(domain_input).valid && (
                 <p className="text-xs mt-1.5 text-red-500">
-                  {validate_domain_name(domain_input).error}
+                  {t(
+                    validate_domain_name(domain_input).error_key ??
+                      "settings.invalid_domain",
+                  )}
                 </p>
               )}
               <p className="text-xs mt-2 text-txt-muted">
