@@ -20,7 +20,11 @@
 //
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import { activate_subscription, get_subscription } from "@/services/api/billing";
+import {
+  activate_subscription,
+  BILLING_TARGET_PLAN_KEY,
+  get_subscription,
+} from "@/services/api/billing";
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -213,6 +217,11 @@ function BillingSuccessHandler() {
     }
 
     if (billing === "cancelled") {
+      try {
+        sessionStorage.removeItem(BILLING_TARGET_PLAN_KEY);
+      } catch (caught) {
+        ignore_error("App:BillingSuccessHandler", caught);
+      }
       show_toast(t("settings.billing_checkout_cancelled"), "info");
 
       return;
@@ -226,11 +235,25 @@ function BillingSuccessHandler() {
       } catch {
         // best-effort; webhook is source of truth
       }
+      let target: string | null = null;
+
+      try {
+        target = sessionStorage.getItem(BILLING_TARGET_PLAN_KEY);
+        sessionStorage.removeItem(BILLING_TARGET_PLAN_KEY);
+      } catch (caught) {
+        ignore_error("App:BillingSuccessHandler", caught);
+      }
+
       for (let i = 0; i < 8; i++) {
         await new Promise((r) => setTimeout(r, i === 0 ? 800 : 1500));
         request_cache.invalidate("/payments/v1");
         const res = await get_subscription();
-        if (res.data && res.data.plan.code !== "free") {
+        const live = res.data?.plan.code;
+        const activated = target
+          ? live === target
+          : Boolean(live) && live !== "free";
+
+        if (res.data && activated) {
           invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent("aster:plan-changed"));
           const code = res.data.plan.code;
@@ -258,7 +281,10 @@ function BillingSuccessHandler() {
           return;
         }
       }
-      show_toast(t("settings.payment_success"), "success");
+      request_cache.invalidate("/payments/v1");
+      invalidate_mail_stats();
+      window.dispatchEvent(new CustomEvent("aster:plan-changed"));
+      show_toast(t("settings.payment_processing_delayed"), "info");
     })();
   }, [is_authenticated, current_account_id, t]);
 

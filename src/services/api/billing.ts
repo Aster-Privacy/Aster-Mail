@@ -298,6 +298,16 @@ export async function preview_plan_change(
   );
 }
 
+export const BILLING_TARGET_PLAN_KEY = "aster_billing_target_plan";
+
+export function remember_checkout_target(plan_code: string): void {
+  try {
+    sessionStorage.setItem(BILLING_TARGET_PLAN_KEY, plan_code);
+  } catch {
+    return;
+  }
+}
+
 export async function change_plan(
   plan_code: string,
   billing_interval: string = "month",
@@ -320,6 +330,7 @@ export async function change_plan(
   }
 
   if (response.data.checkout_url) {
+    remember_checkout_target(plan_code);
     await open_payment_url(response.data.checkout_url);
     return { ok: true, requires_checkout: true };
   }
