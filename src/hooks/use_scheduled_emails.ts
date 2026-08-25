@@ -37,6 +37,7 @@ import {
   list_scheduled_emails,
   get_scheduled_email,
   cancel_scheduled_email,
+  type ScheduledEmail,
   type ScheduledEmailWithContent,
   type ScheduledEmailStatus,
 } from "@/services/api/scheduled";
@@ -126,6 +127,45 @@ function format_scheduled_timestamp(
   return `${format_date_short(date, options)} ${format_time(date, options)}`;
 }
 
+function placeholder_scheduled(
+  scheduled: ScheduledEmail,
+  format_options: FormatOptions,
+  labels: ScheduledTimestampLabels,
+  t: (key: TranslationKey) => string,
+): ScheduledListItem {
+  return {
+    id: scheduled.id,
+    item_type: "scheduled" as MailItemType,
+    sender_name: t("common.unable_to_decrypt"),
+    sender_email: "",
+    subject: t("common.unable_to_decrypt"),
+    preview: "",
+    timestamp: format_scheduled_timestamp(
+      new Date(scheduled.scheduled_at),
+      format_options,
+      labels,
+    ),
+    is_pinned: false,
+    is_starred: false,
+    is_selected: false,
+    is_read: true,
+    is_trashed: false,
+    is_archived: false,
+    is_spam: false,
+    has_attachment: false,
+    category: t("common.scheduled_category"),
+    category_color: SCHEDULED_CATEGORY_STYLE,
+    avatar_url: "",
+    is_encrypted: true,
+    scheduled_at: scheduled.scheduled_at,
+    status: scheduled.status,
+    to_recipients: [],
+    cc_recipients: [],
+    bcc_recipients: [],
+    full_body: "",
+  };
+}
+
 function transform_scheduled(
   scheduled: ScheduledEmailWithContent,
   format_options: FormatOptions,
@@ -209,8 +249,9 @@ async function fetch_scheduled_from_api(
 
   if (signal.aborted || !response.data) return null;
 
+  const listed = response.data.emails;
   const results = await Promise.allSettled(
-    response.data.emails.map(async (email) => {
+    listed.map(async (email) => {
       if (signal.aborted) throw new Error("aborted");
       const detail = await get_scheduled_email(email.id, vault);
 
@@ -223,12 +264,11 @@ async function fetch_scheduled_from_api(
   if (signal.aborted) return null;
 
   const emails = results
-    .filter(
-      (r): r is PromiseFulfilledResult<ScheduledListItem | null> =>
-        r.status === "fulfilled",
-    )
-    .map((r) => r.value)
-    .filter((e): e is ScheduledListItem => e !== null)
+    .map((result, index) => {
+      if (result.status === "fulfilled" && result.value) return result.value;
+
+      return placeholder_scheduled(listed[index], format_options, labels, t);
+    })
     .filter((e) => e.status !== "cancelled" && e.status !== "sent")
     .sort(
       (a, b) =>
