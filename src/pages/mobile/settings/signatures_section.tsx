@@ -48,6 +48,7 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
+import { show_toast } from "@/components/toast/simple_toast";
 import { Input } from "@/components/ui/input";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
@@ -306,6 +307,8 @@ export function SignaturesSection({
         );
         reload_context_signatures();
         close_editor();
+      } else {
+        show_toast(res.error || t("common.something_went_wrong"), "error");
       }
     } else {
       const is_first = signatures.length === 0;
@@ -327,6 +330,8 @@ export function SignaturesSection({
         set_signatures((prev) => [...prev, new_sig]);
         reload_context_signatures();
         close_editor();
+      } else {
+        show_toast(res.error || t("common.something_went_wrong"), "error");
       }
     }
 
@@ -344,16 +349,23 @@ export function SignaturesSection({
 
   const handle_set_default = useCallback(
     async (id: string) => {
-      set_signatures((prev) =>
-        prev.map((s) => ({ ...s, is_default: s.id === id })),
-      );
+      let previous: DecryptedSignature[] = [];
+
+      set_signatures((prev) => {
+        previous = prev;
+
+        return prev.map((s) => ({ ...s, is_default: s.id === id }));
+      });
       const response = await set_default_signature(id);
 
       if (!response.error) {
         reload_context_signatures();
+      } else {
+        set_signatures(previous);
+        show_toast(response.error || t("common.something_went_wrong"), "error");
       }
     },
-    [reload_context_signatures],
+    [reload_context_signatures, t],
   );
 
   const request_delete = useCallback((id: string) => {
@@ -379,9 +391,11 @@ export function SignaturesSection({
         return filtered;
       });
       reload_context_signatures();
+    } else {
+      show_toast(res.error || t("common.something_went_wrong"), "error");
     }
     set_deleting_id(null);
-  }, [delete_confirm.id, reload_context_signatures]);
+  }, [delete_confirm.id, reload_context_signatures, t]);
 
   if (editor_open) {
     return (

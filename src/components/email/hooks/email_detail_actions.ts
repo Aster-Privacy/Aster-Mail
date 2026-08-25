@@ -115,7 +115,10 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             sender_email: msg.sender_email,
             first_to: msg.to_recipients?.[0],
             reply_to: parsed_reply_to
-              ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+              ? {
+                  name: parsed_reply_to.name ?? "",
+                  email: parsed_reply_to.email,
+                }
               : undefined,
             reply_alias: is_forwarded
               ? { name: msg.sender_name, email: msg.sender_email }
@@ -256,6 +259,11 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           email_ids: [deps.email_id],
         });
         deps.navigate(deps.get_next_email_destination());
+      } else {
+        show_toast(
+          result.error || deps.t("common.something_went_wrong"),
+          "error",
+        );
       }
     } else {
       const is_read = deps.mail_item.metadata?.is_read !== false;
@@ -302,6 +310,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         deps.navigate(deps.get_next_email_destination());
       } else {
         revert_stat_deltas(deltas);
+        show_toast(deps.t("common.something_went_wrong"), "error");
       }
     }
   }, [
@@ -382,6 +391,11 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             action_type: "trash",
             email_ids: [msg.id],
           });
+        } else {
+          show_toast(
+            result.error || deps.t("common.something_went_wrong"),
+            "error",
+          );
         }
       } else {
         const result = await update_item_metadata(
@@ -413,6 +427,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
               );
             },
           });
+        } else {
+          show_toast(deps.t("common.something_went_wrong"), "error");
         }
       }
     },
@@ -454,7 +470,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
       if (result.success) {
         if (msg.sender_email) {
-          report_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/email_detail_actions:use_email_detail_actions", caught));
+          report_spam_sender(msg.sender_email).catch((caught) =>
+            ignore_error(
+              "components/email/hooks/email_detail_actions:use_email_detail_actions",
+              caught,
+            ),
+          );
         }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.reported_as_phishing"), "success");
@@ -477,7 +498,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
       if (result.success) {
         if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/email_detail_actions:use_email_detail_actions", caught));
+          remove_spam_sender(msg.sender_email).catch((caught) =>
+            ignore_error(
+              "components/email/hooks/email_detail_actions:use_email_detail_actions",
+              caught,
+            ),
+          );
         }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.marked_as_not_spam"), "success");
@@ -561,7 +587,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       .then(() => {
         show_toast(deps.t("common.copied_item", { label }), "success");
       })
-      .catch((caught) => ignore_error("components/email/hooks/email_detail_actions:handle_copy_text", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/email/hooks/email_detail_actions:handle_copy_text",
+          caught,
+        ),
+      );
   };
 
   return {

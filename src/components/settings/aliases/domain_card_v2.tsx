@@ -105,9 +105,12 @@ export function DomainCardV2({
             : t("settings.catch_all_enabled_toast"),
           "success",
         );
+      } else {
+        show_toast(response.error || t("common.something_went_wrong"), "error");
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("common.something_went_wrong"), "error");
     }
   };
 
@@ -124,9 +127,12 @@ export function DomainCardV2({
           if (refreshed.data) set_dns_records(refreshed.data.records);
         }
         on_domains_changed();
+      } else {
+        show_toast(response.error || t("common.something_went_wrong"), "error");
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("common.something_went_wrong"), "error");
     } finally {
       set_dkim_rotating(false);
     }
