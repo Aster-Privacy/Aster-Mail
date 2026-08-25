@@ -61,9 +61,7 @@ import {
   emit_mail_changed,
   emit_scheduled_changed,
 } from "@/hooks/mail_events";
-import {
-  get_display_time_zone,
-} from "@/utils/date_format";
+import { get_display_time_zone } from "@/utils/date_format";
 
 interface ScheduledData {
   id: string;
@@ -105,7 +103,7 @@ function format_scheduled_time(
     return date.toLocaleTimeString([], {
       timeZone: get_display_time_zone(),
       hour: "2-digit",
-        minute: "2-digit",
+      minute: "2-digit",
     });
   }
 
@@ -195,6 +193,10 @@ export function SplitScheduledViewer({
       on_close();
     } else {
       show_toast(response.error || t("common.something_went_wrong"), "error");
+      emit_scheduled_changed({
+        action: "updated",
+        email_id: scheduled_data.id,
+      });
     }
   }, [scheduled_data.id, on_close, t]);
 
@@ -221,6 +223,10 @@ export function SplitScheduledViewer({
         emit_mail_changed();
       } else {
         show_toast(response.error || t("common.something_went_wrong"), "error");
+        emit_scheduled_changed({
+          action: "updated",
+          email_id: scheduled_data.id,
+        });
       }
     },
     [scheduled_data.id, t],
@@ -244,6 +250,10 @@ export function SplitScheduledViewer({
       on_close();
     } else {
       show_toast(response.error || t("common.something_went_wrong"), "error");
+      emit_scheduled_changed({
+        action: "updated",
+        email_id: scheduled_data.id,
+      });
     }
   }, [scheduled_data.id, on_close, t]);
 

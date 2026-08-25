@@ -46,10 +46,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
-import {
-  emit_mail_changed,
-  emit_scheduled_changed,
-} from "@/hooks/mail_events";
+import { emit_mail_changed, emit_scheduled_changed } from "@/hooks/mail_events";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   cancel_scheduled_email,
@@ -283,6 +280,12 @@ export function ScheduledPopupViewer({
       });
       emit_mail_changed();
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
+      emit_scheduled_changed({
+        action: "updated",
+        email_id: scheduled_data.id,
+      });
     }
   }, [scheduled_data.id, on_close, t]);
 
@@ -301,6 +304,12 @@ export function ScheduledPopupViewer({
       });
       emit_mail_changed();
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
+      emit_scheduled_changed({
+        action: "updated",
+        email_id: scheduled_data.id,
+      });
     }
   }, [scheduled_data.id, on_close, t]);
 
@@ -327,6 +336,10 @@ export function ScheduledPopupViewer({
         emit_mail_changed();
       } else {
         show_toast(response.error || t("common.something_went_wrong"), "error");
+        emit_scheduled_changed({
+          action: "updated",
+          email_id: scheduled_data.id,
+        });
       }
     },
     [scheduled_data.id, t],
@@ -559,7 +572,9 @@ export function ScheduledPopupViewer({
                 className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-left"
                 onClick={() => set_show_details(!show_details)}
               >
-                {show_details ? t("common.hide_details") + " ▲" : t("common.show_details") + " ▼"}
+                {show_details
+                  ? t("common.hide_details") + " ▲"
+                  : t("common.show_details") + " ▼"}
               </button>
 
               <AnimatePresence>
@@ -673,10 +688,14 @@ export function ScheduledPopupViewer({
             sanitized_html={
               is_html_content(scheduled_data.body)
                 ? sanitize_html(scheduled_data.body, {
-                    image_proxy_url: is_any_lockdown_active() ? undefined : get_image_proxy_url(),
+                    image_proxy_url: is_any_lockdown_active()
+                      ? undefined
+                      : get_image_proxy_url(),
                     sandbox_mode: true,
                     lockdown_mode: is_any_lockdown_active(),
-                    external_content_mode: is_any_lockdown_active() ? "never" : undefined,
+                    external_content_mode: is_any_lockdown_active()
+                      ? "never"
+                      : undefined,
                   }).html
                 : plain_text_to_html(scheduled_data.body)
             }
