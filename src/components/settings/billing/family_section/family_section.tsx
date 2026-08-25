@@ -46,6 +46,7 @@ import { TurnstileWidget, type TurnstileWidgetRef, TURNSTILE_SITE_KEY } from "@/
 import { Spinner } from "@/components/ui/spinner";
 import {  Button } from "@aster/ui";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { change_plan } from "@/services/api/billing";
 import {
   list_org_filters,   
@@ -256,7 +257,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       // succeeded server-side but returned a transient error).
       const res = await change_plan("family", "year");
       if (res.ok) { show_toast(t("settings.fam_org_plan_upgraded"), "success"); window.location.reload(); }
-      else { show_toast(t("settings.failed_save_setting"), "error"); }
+      else { show_toast(server_error_text(res.error, t("settings.failed_save_setting")), "error"); }
     } catch { show_toast(t("settings.failed_save_setting"), "error"); }
     finally { set_changing_plan(false); }
   };

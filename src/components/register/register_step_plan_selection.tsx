@@ -20,6 +20,7 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 import type { AvailablePlan } from "@/services/api/billing";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
@@ -351,7 +352,10 @@ export const RegisterStepPlanSelection = ({
 
     if (!result.ok) {
       set_is_finalizing(false);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        server_error_text(result.error, t("settings.failed_checkout")),
+        "error",
+      );
 
       return;
     }

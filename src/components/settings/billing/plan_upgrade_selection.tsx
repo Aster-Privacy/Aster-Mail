@@ -20,6 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n";
 import type { AvailablePlan } from "@/services/api/billing";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useEffect, useCallback } from "react";
 import { ArrowTopRightOnSquareIcon, UserGroupIcon } from "@heroicons/react/24/outline";
@@ -293,7 +294,10 @@ export function PlanUpgradeSelection({
 
     if (!result.ok) {
       set_is_finalizing(false);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        server_error_text(result.error, t("settings.failed_checkout")),
+        "error",
+      );
 
       return;
     }

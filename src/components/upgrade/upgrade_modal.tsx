@@ -42,6 +42,7 @@ import {
   format_price,
   start_hosted_checkout,
 } from "@/services/api/billing";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import {
   PLAN_TIERS,
   convert_cents,
@@ -293,7 +294,10 @@ export function UpgradeModal() {
         const result = await change_plan(tier.id, interval);
 
         if (!result.ok) {
-          show_toast(t("settings.payment_failed"), "error");
+          show_toast(
+            server_error_text(result.error, t("settings.payment_failed")),
+            "error",
+          );
           set_is_starting(false);
 
           return;
@@ -317,7 +321,10 @@ export function UpgradeModal() {
       );
 
       if (!result.ok) {
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          server_error_text(result.error, t("settings.failed_checkout")),
+          "error",
+        );
         set_is_starting(false);
       } else if (
         typeof window !== "undefined" &&

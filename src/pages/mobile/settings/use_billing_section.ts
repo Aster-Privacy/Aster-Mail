@@ -23,6 +23,7 @@ import type {
   BillingHistoryItem,
   AvailablePlan,
 } from "@/services/api/billing";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
@@ -572,7 +573,10 @@ export function use_billing_section() {
 
     if (!result.ok) {
       set_is_action_loading(false);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        server_error_text(result.error, t("settings.failed_checkout")),
+        "error",
+      );
     }
   };
 
@@ -609,7 +613,10 @@ export function use_billing_section() {
       set_is_action_loading(false);
       set_show_plan_change_confirm(false);
       set_plan_change_confirm_target(null);
-      show_toast(t("settings.payment_failed"), "error");
+      show_toast(
+        server_error_text(result.error, t("settings.payment_failed")),
+        "error",
+      );
       set_show_payment_methods(true);
 
       return;
@@ -679,7 +686,10 @@ export function use_billing_section() {
       if (url) {
         window.location.assign(url);
       } else {
-        show_toast(t("settings.addon_purchase_failed"), "error");
+        show_toast(
+          server_error_text(response.error, t("settings.addon_purchase_failed")),
+          "error",
+        );
         set_is_action_loading(false);
       }
     } catch {
