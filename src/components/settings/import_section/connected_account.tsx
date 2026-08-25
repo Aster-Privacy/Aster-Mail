@@ -67,7 +67,8 @@ export function ConnectedAccountCard({
 }) {
   const { t } = use_i18n();
   const has_error = account.last_sync_status === "error";
-  const needs_reauth = account.needs_reauth && account.protocol === "oauth_imap";
+  const needs_reauth = account.needs_reauth;
+  const can_reconnect = needs_reauth && account.protocol === "oauth_imap";
   const [progress, set_progress] = useState<SyncProgressEvent | null>(null);
   const should_poll =
     is_syncing ||
@@ -255,7 +256,9 @@ export function ConnectedAccountCard({
             {needs_reauth ? (
               <span className="flex items-center gap-1 text-amber-500 font-medium">
                 <ExclamationTriangleIcon className="w-3 h-3 flex-shrink-0" />
-                {t("settings.connected_accounts_reauth_needed")}
+                {can_reconnect
+                  ? t("settings.connected_accounts_reauth_needed")
+                  : t("settings.connected_accounts_password_reauth_needed")}
               </span>
             ) : has_error && !sync_active ? (
               <span className="flex items-center gap-1 text-red-500">
@@ -290,7 +293,7 @@ export function ConnectedAccountCard({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {needs_reauth && account.oauth_provider ? (
+          {can_reconnect && account.oauth_provider ? (
             <Button
               size="sm"
               variant="depth"
