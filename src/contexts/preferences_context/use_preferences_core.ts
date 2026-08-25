@@ -46,6 +46,7 @@ import {
   load_notification_preferences,
 } from "@/services/notification_service";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { configure_session_timeout } from "@/services/session_timeout_service";
 import {
   set_preload_email_font_px,
@@ -60,7 +61,7 @@ import { ignore_error } from "@/lib/ignore_error";
 export function use_preferences_core() {
   const { vault, is_completing_registration } = use_auth();
   const { theme, set_theme_preference } = useTheme();
-  const { set_language } = use_i18n();
+  const { set_language, t } = use_i18n();
 
   const [preferences, set_preferences] = useState<UserPreferences>(() => {
     const cached = get_cached_preferences();
@@ -94,6 +95,8 @@ export function use_preferences_core() {
   const [is_loading, set_is_loading] = useState(true);
   const [has_loaded_from_server, set_has_loaded_from_server] = useState(false);
   const [save_status, set_save_status] = useState<SaveStatus>("idle");
+  const save_failure_streak = useRef(0);
+  const save_failure_warned = useRef(false);
 
   const vault_ref = useRef(vault);
 
@@ -218,6 +221,8 @@ export function use_preferences_core() {
       }
 
       beacon_payload_ref.current = null;
+      save_failure_streak.current = 0;
+      save_failure_warned.current = false;
       set_save_status("saved");
 
       saved_indicator_timer.current = window.setTimeout(() => {
@@ -232,6 +237,12 @@ export function use_preferences_core() {
       }
     } else {
       set_save_status("error");
+      save_failure_streak.current += 1;
+
+      if (save_failure_streak.current >= 3 && !save_failure_warned.current) {
+        save_failure_warned.current = true;
+        show_toast(t("common.failed_to_save"), "error");
+      }
 
       if (!latest_prefs_ref.current) {
         latest_prefs_ref.current = prefs;
@@ -255,7 +266,7 @@ export function use_preferences_core() {
     if (latest_prefs_ref.current) {
       flush_save_ref.current();
     }
-  }, [do_save]);
+  }, [do_save, t]);
 
   const flush_save_ref = useRef(flush_save);
   flush_save_ref.current = flush_save;
