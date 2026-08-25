@@ -33,5 +33,7 @@ export async function get_product_updates_subscription(): Promise<boolean> {
 export async function set_product_updates_subscription(
   subscribed: boolean,
 ): Promise<void> {
-  await api_client.put(PRODUCT_UPDATES_PATH, { subscribed });
+  const response = await api_client.put(PRODUCT_UPDATES_PATH, { subscribed });
+
+  if (response.error) throw new Error(response.error);
 }

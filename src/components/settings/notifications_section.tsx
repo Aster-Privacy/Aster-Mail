@@ -236,12 +236,18 @@ export function NotificationsSection() {
           `${window.location.pathname}${query ? `?${query}` : ""}`,
         );
 
-        await set_product_updates_subscription(false);
+        try {
+          await set_product_updates_subscription(false);
 
-        if (cancelled) return;
+          if (cancelled) return;
 
-        set_product_updates(false);
-        show_toast(t("settings.product_updates_turned_off"), "success");
+          set_product_updates(false);
+          show_toast(t("settings.product_updates_turned_off"), "success");
+        } catch {
+          if (cancelled) return;
+
+          show_toast(t("settings.product_updates_save_failed"), "error");
+        }
 
         return;
       }
