@@ -26,7 +26,7 @@ import {
   has_vault_in_memory,
   clear_vault_from_memory,
 } from "./memory_key_store";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   delete_database as delete_encrypted_db,
   encrypted_clear_all,
@@ -227,13 +227,13 @@ async function hkdf_derive_hmac_key(
 
 async function get_derived_keys(): Promise<DerivedKeys> {
   if (!has_vault_in_memory()) {
-    throw new Error(en.errors.session_expired_login);
+    throw new Error(get_active_translations().errors.session_expired_login);
   }
 
   const encryption_key = get_derived_encryption_key();
 
   if (!encryption_key) {
-    throw new Error(en.errors.key_material_unavailable);
+    throw new Error(get_active_translations().errors.key_material_unavailable);
   }
 
   const key_fingerprint = await fingerprint_key(encryption_key);

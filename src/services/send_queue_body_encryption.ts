@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { derive_own_public_key } from "@/utils/email_crypto";
 import { get_recipient_public_key, is_internal_email } from "./api/keys";
 import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
@@ -36,7 +36,7 @@ export function check_send_readiness_internal(): SendReadinessResult {
       ready: false,
       error: create_error(
         "vault_unavailable",
-        en.errors.encryption_keys_not_loaded,
+        get_active_translations().errors.encryption_keys_not_loaded,
       ),
     };
   }
@@ -46,7 +46,7 @@ export function check_send_readiness_internal(): SendReadinessResult {
       ready: false,
       error: create_error(
         "vault_unavailable",
-        en.errors.session_expired_reenter,
+        get_active_translations().errors.session_expired_reenter,
       ),
     };
   }
@@ -56,7 +56,7 @@ export function check_send_readiness_internal(): SendReadinessResult {
 
 function post_quantum_error(recipients: string[]): PostQuantumUnavailableError {
   return new PostQuantumUnavailableError(
-    en.errors.post_quantum_unavailable.replace(
+    get_active_translations().errors.post_quantum_unavailable.replace(
       "{{recipients}}",
       recipients.join(", "),
     ),
@@ -163,7 +163,7 @@ export async function encrypt_for_recipients(
         if (err instanceof RecoveryLaneUnavailableError) {
           throw create_error(
             "encryption_failed",
-            en.errors.cannot_send_no_recovery_key,
+            get_active_translations().errors.cannot_send_no_recovery_key,
           );
         }
 
@@ -202,7 +202,7 @@ export async function encrypt_for_recipients(
             if (err instanceof RecoveryLaneUnavailableError) {
               throw create_error(
                 "encryption_failed",
-                en.errors.cannot_send_no_recovery_key,
+                get_active_translations().errors.cannot_send_no_recovery_key,
               );
             }
 
@@ -251,7 +251,7 @@ export async function encrypt_for_recipients(
     if (!username) {
       throw create_error(
         "encryption_failed",
-        en.errors.cannot_send_no_recipient_keys,
+        get_active_translations().errors.cannot_send_no_recipient_keys,
       );
     }
 
@@ -261,13 +261,13 @@ export async function encrypt_for_recipients(
       if (key_response.code && key_response.code !== "NOT_FOUND") {
         throw create_error(
           "encryption_failed",
-          en.errors.failed_encrypt_envelope,
+          get_active_translations().errors.failed_encrypt_envelope,
         );
       }
 
       throw create_error(
         "encryption_failed",
-        en.errors.cannot_send_no_recipient_keys,
+        get_active_translations().errors.cannot_send_no_recipient_keys,
       );
     }
 
@@ -277,7 +277,7 @@ export async function encrypt_for_recipients(
   if (public_keys.length === 0) {
     throw create_error(
       "encryption_failed",
-      en.errors.cannot_send_no_recipient_keys,
+      get_active_translations().errors.cannot_send_no_recipient_keys,
     );
   }
 

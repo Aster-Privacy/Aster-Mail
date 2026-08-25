@@ -21,7 +21,7 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 
 export const RESERVED_ALIAS_NAMES = new Set([
@@ -52,7 +52,7 @@ export function validate_local_part(local_part: string): {
   if (!local_part || local_part.length === 0) {
     return {
       valid: false,
-      error: en.errors.alias_empty,
+      error: get_active_translations().errors.alias_empty,
       error_key: "errors.alias_empty",
     };
   }
@@ -60,7 +60,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.length < 3) {
     return {
       valid: false,
-      error: en.errors.alias_too_short,
+      error: get_active_translations().errors.alias_too_short,
       error_key: "errors.alias_too_short",
     };
   }
@@ -68,7 +68,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.length > 64) {
     return {
       valid: false,
-      error: en.errors.alias_too_long,
+      error: get_active_translations().errors.alias_too_long,
       error_key: "errors.alias_too_long",
     };
   }
@@ -78,7 +78,7 @@ export function validate_local_part(local_part: string): {
   if (!valid_pattern.test(local_part.toLowerCase())) {
     return {
       valid: false,
-      error: en.errors.alias_invalid_chars,
+      error: get_active_translations().errors.alias_invalid_chars,
       error_key: "errors.alias_invalid_chars",
     };
   }
@@ -86,7 +86,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.includes("..")) {
     return {
       valid: false,
-      error: en.errors.alias_consecutive_dots,
+      error: get_active_translations().errors.alias_consecutive_dots,
       error_key: "errors.alias_consecutive_dots",
     };
   }
@@ -94,7 +94,7 @@ export function validate_local_part(local_part: string): {
   if (/^[0-9]+$/.test(local_part)) {
     return {
       valid: false,
-      error: en.errors.alias_numeric_only,
+      error: get_active_translations().errors.alias_numeric_only,
       error_key: "errors.alias_numeric_only",
     };
   }
@@ -102,7 +102,7 @@ export function validate_local_part(local_part: string): {
   if (RESERVED_ALIAS_NAMES.has(local_part.toLowerCase())) {
     return {
       valid: false,
-      error: en.errors.alias_not_available,
+      error: get_active_translations().errors.alias_not_available,
       error_key: "errors.alias_not_available",
     };
   }

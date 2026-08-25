@@ -39,7 +39,6 @@ import { parse_mbox_file } from "./mbox_parser";
 import { parse_eml_file } from "./eml_parser";
 import { parse_csv_file } from "./csv_parser";
 import { parse_pst_file } from "./pst_parser";
-import { en } from "@/lib/i18n/translations/en";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 const REJECTED_EXTENSIONS = new Set([
@@ -188,10 +187,10 @@ function filter_valid_emails(result: ParseResult): ParseResult {
 
   if (skipped > 0 && valid.length === 0 && result.emails.length > 0) {
     warnings.push(
-      en.errors.all_emails_rejected.replace("{{count}}", String(skipped)),
+      get_active_translations().errors.all_emails_rejected.replace("{{count}}", String(skipped)),
     );
   } else if (skipped > 0) {
-    warnings.push(en.errors.emails_skipped_invalid.replace("{{count}}", String(skipped)));
+    warnings.push(get_active_translations().errors.emails_skipped_invalid.replace("{{count}}", String(skipped)));
   }
 
   return { emails: valid, errors: result.errors, warnings };

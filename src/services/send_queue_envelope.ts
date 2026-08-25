@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { type MailItemMetadata } from "@/types/email";
 import { list_encrypted_mail_items, update_mail_item } from "./api/mail";
@@ -42,14 +42,14 @@ export async function create_sent_envelope(
   if (!vault || !vault.identity_key) {
     throw create_error(
       "vault_unavailable",
-      en.errors.encryption_keys_unavailable,
+      get_active_translations().errors.encryption_keys_unavailable,
     );
   }
 
   if (!passphrase_bytes) {
     throw create_error(
       "vault_unavailable",
-      en.errors.session_expired_send,
+      get_active_translations().errors.session_expired_send,
     );
   }
 
@@ -140,7 +140,7 @@ export async function create_sent_envelope(
     if ((err as SendError).type) {
       throw err;
     }
-    throw create_error("encryption_failed", en.errors.failed_encrypt_envelope);
+    throw create_error("encryption_failed", get_active_translations().errors.failed_encrypt_envelope);
   }
 }
 

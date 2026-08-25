@@ -50,7 +50,7 @@ import {
   append_legacy_key_raw_bytes,
 } from "./legacy_keks";
 
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 
 export const MASTER_KEY_VAULT_FORMAT = 2;
@@ -571,12 +571,12 @@ export function extend_passphrase_timeout(): void {
 
 function validate_passphrase(entered: string): string | null {
   if (!secure_passphrase || secure_passphrase.is_cleared())
-    return en.errors.session_expired_login;
+    return get_active_translations().errors.session_expired_login;
 
   const entered_bytes = new TextEncoder().encode(entered);
   const stored_bytes = secure_passphrase.get_bytes();
 
-  if (!stored_bytes) return en.errors.session_expired_login;
+  if (!stored_bytes) return get_active_translations().errors.session_expired_login;
 
   const entered_hash = sha256(entered_bytes);
   const stored_hash = sha256(stored_bytes);
@@ -592,8 +592,8 @@ function validate_passphrase(entered: string): string | null {
   zero_uint8_array(entered_hash);
   zero_uint8_array(stored_hash);
 
-  if (result !== 0) return en.errors.incorrect_password;
-  if (!vault_in_memory) return en.errors.no_keys_available;
+  if (result !== 0) return get_active_translations().errors.incorrect_password;
+  if (!vault_in_memory) return get_active_translations().errors.no_keys_available;
 
   return null;
 }

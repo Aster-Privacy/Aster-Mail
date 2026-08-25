@@ -29,7 +29,7 @@ import type {
 } from "./types";
 
 import { CARRIER_TRACKING_URLS, CARRIER_NAMES } from "./types";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   html_to_readable_plain_text,
   is_html_content,
@@ -614,7 +614,7 @@ function extract_merchant_name(from_email: string, from_name: string): string {
     }
   }
 
-  return from_name || en.common.unknown_merchant;
+  return from_name || get_active_translations().common.unknown_merchant;
 }
 
 export function extract_purchase_details(

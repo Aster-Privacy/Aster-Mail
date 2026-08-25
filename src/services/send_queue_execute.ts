@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { extract_inline_images, type Attachment } from "@/components/compose/compose_shared";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { format_bytes } from "@/lib/utils";
 import { build_subject_bundle, discover_external_recipient_keys } from "@/utils/email_crypto";
 import { get_current_account } from "./account_manager";
@@ -50,7 +50,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
   const current_account = await get_current_account();
 
   if (!current_account?.user?.email) {
-    throw new SendError(en.errors.no_authenticated_account);
+    throw new SendError(get_active_translations().errors.no_authenticated_account);
   }
   const sender_email = email.sender_email || current_account.user.email;
 
@@ -114,7 +114,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     if (internal_copy_is_encrypted && recipient_public_keys.length === 0) {
       throw create_error(
         "encryption_failed",
-        en.errors.cannot_send_no_recipient_keys,
+        get_active_translations().errors.cannot_send_no_recipient_keys,
       );
     }
 
@@ -156,7 +156,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     if (refusal) {
       throw create_error(refusal.kind, refusal.message);
     }
-    throw create_error("send_failed", result.error || en.errors.failed_send_email);
+    throw create_error("send_failed", result.error || get_active_translations().errors.failed_send_email);
   }
 
   if (effective_thread_id) {
@@ -239,7 +239,7 @@ export async function execute_external_send(
       } else if (encryption_opts.require_encryption) {
         throw create_error(
           "encryption_failed",
-          en.errors.cannot_send_no_recipient_keys,
+          get_active_translations().errors.cannot_send_no_recipient_keys,
         );
       }
     } catch (enc_err) {
@@ -330,7 +330,7 @@ export async function execute_external_send(
   const current_account = await get_current_account();
 
   if (!current_account?.user?.email) {
-    throw new SendError(en.errors.no_authenticated_account);
+    throw new SendError(get_active_translations().errors.no_authenticated_account);
   }
   const sender_email = email.sender_email || current_account.user.email;
 
@@ -425,7 +425,7 @@ export async function execute_external_send(
     }
     throw create_error(
       "send_failed",
-      result.error || en.errors.failed_send_external,
+      result.error || get_active_translations().errors.failed_send_external,
     );
   }
 

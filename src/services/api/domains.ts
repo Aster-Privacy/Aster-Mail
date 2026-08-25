@@ -22,7 +22,7 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
@@ -700,11 +700,11 @@ export function validate_domain_name(domain: string): {
   error?: string;
 } {
   if (!domain || domain.length === 0) {
-    return { valid: false, error: en.errors.domain_empty };
+    return { valid: false, error: get_active_translations().errors.domain_empty };
   }
 
   if (domain.length > 253) {
-    return { valid: false, error: en.errors.domain_too_long };
+    return { valid: false, error: get_active_translations().errors.domain_too_long };
   }
 
   const domain_lower = domain.toLowerCase();
@@ -717,25 +717,25 @@ export function validate_domain_name(domain: string): {
   ) {
     return {
       valid: false,
-      error: en.errors.domain_reserved,
+      error: get_active_translations().errors.domain_reserved,
     };
   }
 
   const parts = domain.split(".");
 
   if (parts.length < 2) {
-    return { valid: false, error: en.errors.domain_invalid_format };
+    return { valid: false, error: get_active_translations().errors.domain_invalid_format };
   }
 
   const valid_label_pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;
 
   for (const part of parts) {
     if (part.length === 0 || part.length > 63) {
-      return { valid: false, error: en.errors.domain_invalid_label };
+      return { valid: false, error: get_active_translations().errors.domain_invalid_label };
     }
 
     if (!valid_label_pattern.test(part)) {
-      return { valid: false, error: en.errors.domain_invalid_chars };
+      return { valid: false, error: get_active_translations().errors.domain_invalid_chars };
     }
   }
 
@@ -750,7 +750,7 @@ export function validate_local_part(local_part: string): {
   if (!local_part || local_part.length === 0) {
     return {
       valid: false,
-      error: en.errors.address_empty,
+      error: get_active_translations().errors.address_empty,
       error_key: "errors.address_empty",
     };
   }
@@ -758,7 +758,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.length < 1) {
     return {
       valid: false,
-      error: en.errors.address_too_short,
+      error: get_active_translations().errors.address_too_short,
       error_key: "errors.address_too_short",
     };
   }
@@ -766,7 +766,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.length > 64) {
     return {
       valid: false,
-      error: en.errors.address_too_long,
+      error: get_active_translations().errors.address_too_long,
       error_key: "errors.address_too_long",
     };
   }
@@ -776,7 +776,7 @@ export function validate_local_part(local_part: string): {
   if (!valid_pattern.test(local_part.toLowerCase())) {
     return {
       valid: false,
-      error: en.errors.address_invalid_chars,
+      error: get_active_translations().errors.address_invalid_chars,
       error_key: "errors.address_invalid_chars",
     };
   }
@@ -784,7 +784,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.includes("..")) {
     return {
       valid: false,
-      error: en.errors.address_consecutive_dots,
+      error: get_active_translations().errors.address_consecutive_dots,
       error_key: "errors.address_consecutive_dots",
     };
   }
@@ -792,7 +792,7 @@ export function validate_local_part(local_part: string): {
   if (/^[0-9]+$/.test(local_part)) {
     return {
       valid: false,
-      error: en.errors.address_numeric_only,
+      error: get_active_translations().errors.address_numeric_only,
       error_key: "errors.address_numeric_only",
     };
   }
@@ -819,17 +819,17 @@ export function get_status_color(status: string): string {
 export function get_status_label(status: string): string {
   switch (status) {
     case "active":
-      return en.settings.status_active;
+      return get_active_translations().settings.status_active;
     case "pending":
-      return en.settings.status_pending;
+      return get_active_translations().settings.status_pending;
     case "verifying":
-      return en.settings.status_verifying;
+      return get_active_translations().settings.status_verifying;
     case "dns_pending":
-      return en.settings.status_dns_pending;
+      return get_active_translations().settings.status_dns_pending;
     case "suspended":
-      return en.settings.status_suspended;
+      return get_active_translations().settings.status_suspended;
     case "failed":
-      return en.settings.status_failed;
+      return get_active_translations().settings.status_failed;
     default:
       return status;
   }

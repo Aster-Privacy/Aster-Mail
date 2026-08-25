@@ -23,7 +23,7 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
@@ -293,7 +293,7 @@ async function encrypt_content(
       plaintext,
     );
   } catch {
-    throw new DraftEncryptionError(en.errors.failed_encrypt_draft);
+    throw new DraftEncryptionError(get_active_translations().errors.failed_encrypt_draft);
   } finally {
     secure_clear_array(plaintext);
   }
@@ -322,7 +322,7 @@ async function decrypt_content(
       nonce_bytes,
     );
   } catch {
-    throw new DraftDecryptionError(en.errors.failed_decrypt_draft);
+    throw new DraftDecryptionError(get_active_translations().errors.failed_decrypt_draft);
   }
 
   const plaintext = new Uint8Array(plaintext_buffer);
@@ -502,7 +502,7 @@ export async function get_draft(
     const message =
       error instanceof DraftDecryptionError
         ? error.message
-        : en.errors.failed_decrypt_draft;
+        : get_active_translations().errors.failed_decrypt_draft;
 
     return { data: null, error: message };
   }
@@ -524,7 +524,7 @@ export async function create_draft(
     const message =
       error instanceof DraftEncryptionError
         ? error.message
-        : en.errors.failed_encrypt_draft;
+        : get_active_translations().errors.failed_encrypt_draft;
 
     return { error: message };
   }
@@ -592,7 +592,7 @@ export async function update_draft(
     const message =
       error instanceof DraftEncryptionError
         ? error.message
-        : en.errors.failed_encrypt_draft;
+        : get_active_translations().errors.failed_encrypt_draft;
 
     return { error: message };
   }
@@ -625,7 +625,7 @@ export async function update_draft(
 
     if (current_version !== undefined) {
       return {
-        error: en.errors.version_conflict,
+        error: get_active_translations().errors.version_conflict,
         code: "CONFLICT",
         data: {
           id: draft_id,
@@ -641,7 +641,7 @@ export async function update_draft(
       };
     }
 
-    return { error: en.errors.version_conflict, code: "CONFLICT" };
+    return { error: get_active_translations().errors.version_conflict, code: "CONFLICT" };
   }
 
   invalidate_mail_stats();
@@ -738,7 +738,7 @@ export async function get_draft_by_thread(
     const message =
       error instanceof DraftDecryptionError
         ? error.message
-        : en.errors.failed_decrypt_draft;
+        : get_active_translations().errors.failed_decrypt_draft;
 
     return { data: null, error: message };
   }

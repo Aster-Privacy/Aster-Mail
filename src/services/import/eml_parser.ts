@@ -21,7 +21,7 @@
 import type { ParsedEmail, ParseResult } from "./types";
 
 import { MAX_SINGLE_EMAIL_SIZE } from "./types";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   split_header_body,
   parse_headers,
@@ -111,7 +111,7 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "50"),
+        get_active_translations().errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "50"),
       ],
       warnings: [],
     };
@@ -127,7 +127,7 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_eml.replace("{{error}}", err instanceof Error ? err.message : en.errors.unknown_error),
+        get_active_translations().errors.failed_parse_eml.replace("{{error}}", err instanceof Error ? err.message : get_active_translations().errors.unknown_error),
       ],
       warnings: [],
     };

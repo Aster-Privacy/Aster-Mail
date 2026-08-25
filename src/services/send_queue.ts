@@ -71,7 +71,7 @@ import {
 } from "@/components/compose/compose_shared";
 import { format_bytes } from "@/lib/utils";
 import { build_subject_bundle } from "@/utils/email_crypto";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export type {
   SendErrorType,
@@ -130,7 +130,7 @@ class SendQueue {
       return create_error("send_failed", err.message);
     }
 
-    return create_error("send_failed", en.common.unexpected_error);
+    return create_error("send_failed", get_active_translations().common.unexpected_error);
   }
 
   private find_and_remove(id: string): QueuedEmailInternal | null {
@@ -164,7 +164,7 @@ class SendQueue {
           current_email.callbacks.on_error(error);
         }
         current_email.callbacks.on_cancel();
-        show_toast(error.message || en.common.failed_to_send_email, "error");
+        show_toast(error.message || get_active_translations().common.failed_to_send_email, "error");
       }
     });
   }
@@ -251,7 +251,7 @@ class SendQueue {
           current_email.callbacks.on_error(error);
         }
         current_email.callbacks.on_cancel();
-        show_toast(error.message || en.common.failed_to_send_email, "error");
+        show_toast(error.message || get_active_translations().common.failed_to_send_email, "error");
       }
     });
   }
@@ -439,7 +439,7 @@ async function prepare_email_for_server_queue(
   const current_account = await get_current_account();
 
   if (!current_account?.user?.email) {
-    throw new SendError(en.errors.no_authenticated_account);
+    throw new SendError(get_active_translations().errors.no_authenticated_account);
   }
   const sender_email = email.sender_email || current_account.user.email;
 
@@ -500,7 +500,7 @@ async function prepare_email_for_server_queue(
     if (internal_copy_is_encrypted && recipient_public_keys.length === 0) {
       throw create_error(
         "encryption_failed",
-        en.errors.cannot_send_no_recipient_keys,
+        get_active_translations().errors.cannot_send_no_recipient_keys,
       );
     }
 
@@ -607,7 +607,7 @@ export async function queue_email_to_server(
 
     const error = err as SendError;
 
-    callbacks.on_error?.(error.message || en.errors.failed_queue_email);
+    callbacks.on_error?.(error.message || get_active_translations().errors.failed_queue_email);
 
     return null;
   }

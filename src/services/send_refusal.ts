@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { format_time_remaining } from "./send_queue_types";
 
 export interface SendRefusalSource {
@@ -41,12 +41,12 @@ export function describe_send_refusal(
 
     return {
       kind: "rate_limited",
-      message: en.errors.recipient_concentration
+      message: get_active_translations().errors.recipient_concentration
         .replace(
           "{{domain}}",
           typeof domain === "string" && domain.length > 0
             ? domain
-            : en.errors.that_provider,
+            : get_active_translations().errors.that_provider,
         )
         .replace("{{time}}", format_time_remaining(result.resets_at)),
     };
@@ -57,7 +57,7 @@ export function describe_send_refusal(
 
     return {
       kind: "send_failed",
-      message: en.errors.too_many_recipients.replace(
+      message: get_active_translations().errors.too_many_recipients.replace(
         "{{max}}",
         typeof max_allowed === "number" ? String(max_allowed) : "",
       ),
@@ -67,7 +67,7 @@ export function describe_send_refusal(
   if (result.code === "RATE_LIMIT_EXCEEDED" && result.resets_at) {
     return {
       kind: "rate_limited",
-      message: en.errors.daily_limit_reached.replace(
+      message: get_active_translations().errors.daily_limit_reached.replace(
         "{{time}}",
         format_time_remaining(result.resets_at),
       ),

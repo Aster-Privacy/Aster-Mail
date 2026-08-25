@@ -71,7 +71,7 @@ import {
   write_last_auth_ms,
 } from "./helpers";
 
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { get_device_id } from "@/services/device_id";
@@ -1897,25 +1897,25 @@ export class ApiClient {
   private get_generic_error_message(code: ApiErrorCode): string {
     switch (code) {
       case "UNAUTHORIZED":
-        return en.errors.auth_required;
+        return get_active_translations().errors.auth_required;
       case "FORBIDDEN":
-        return en.errors.no_permission;
+        return get_active_translations().errors.no_permission;
       case "NOT_FOUND":
-        return en.errors.not_found;
+        return get_active_translations().errors.not_found;
       case "VALIDATION_ERROR":
-        return en.errors.invalid_request;
+        return get_active_translations().errors.invalid_request;
       case "CONFLICT":
-        return en.errors.conflict;
+        return get_active_translations().errors.conflict;
       case "RATE_LIMIT_EXCEEDED":
-        return en.errors.rate_limited;
+        return get_active_translations().errors.rate_limited;
       case "SERVER_ERROR":
-        return en.errors.internal_error;
+        return get_active_translations().errors.internal_error;
       case "NETWORK_ERROR":
-        return en.errors.connection_failed;
+        return get_active_translations().errors.connection_failed;
       case "TIMEOUT_ERROR":
-        return en.errors.request_timeout;
+        return get_active_translations().errors.request_timeout;
       default:
-        return en.errors.unexpected_error;
+        return get_active_translations().errors.unexpected_error;
     }
   }
 

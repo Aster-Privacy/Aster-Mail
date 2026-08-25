@@ -25,7 +25,7 @@ import type {
   ReactionSummary,
   ThreadWithMessages,
 } from "@/services/api/mail";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 
 import {
@@ -256,9 +256,9 @@ export async function fetch_and_decrypt_thread_messages(
       return {
         id: msg.id,
         item_type: msg.item_type as "received" | "sent" | "draft",
-        sender_name: en.common.unknown_sender,
+        sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: en.common.unable_to_decrypt,
+        subject: get_active_translations().common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: msg.created_at,
@@ -461,9 +461,9 @@ export async function fetch_and_decrypt_virtual_group(
       return {
         id: item.id,
         item_type: item.item_type as "received" | "sent" | "draft",
-        sender_name: en.common.unknown_sender,
+        sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: en.common.unable_to_decrypt,
+        subject: get_active_translations().common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: item.created_at,

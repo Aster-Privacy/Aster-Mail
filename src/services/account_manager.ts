@@ -24,7 +24,7 @@ import {
 } from "@/services/crypto/secure_storage";
 import { api_client } from "@/services/api/client";
 import { write_account_index_hint } from "@/lib/account_index_url";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -365,7 +365,7 @@ export async function add_account(
   if (personal_count >= DEFAULT_MAX_ACCOUNTS) {
     return {
       success: false,
-      error: en.errors.max_accounts.replace(
+      error: get_active_translations().errors.max_accounts.replace(
         "{{ max }}",
         String(DEFAULT_MAX_ACCOUNTS),
       ),

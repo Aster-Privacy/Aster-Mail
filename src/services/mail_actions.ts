@@ -32,6 +32,7 @@ import { ensure_post_quantum_consent } from "./post_quantum_consent";
 
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { en } from "@/lib/i18n/translations/en";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -175,7 +176,7 @@ export async function send_reply(
   const current_account = await get_current_account();
 
   if (!current_account) {
-    const error = en.errors.no_active_account;
+    const error = get_active_translations().errors.no_active_account;
 
     callbacks.on_error?.(error);
 
@@ -189,7 +190,7 @@ export async function send_reply(
   );
 
   if (recipients.length === 0) {
-    const error = en.errors.no_recipients;
+    const error = get_active_translations().errors.no_recipients;
 
     callbacks.on_error?.(error);
 
@@ -255,7 +256,7 @@ export async function send_reply(
     );
 
     if (!result) {
-      const error = en.errors.failed_queue_reply;
+      const error = get_active_translations().errors.failed_queue_reply;
 
       callbacks.on_error?.(error);
 
@@ -293,7 +294,7 @@ export async function send_reply(
   );
 
   if (!queued_id) {
-    const error = en.errors.failed_queue_reply;
+    const error = get_active_translations().errors.failed_queue_reply;
 
     callbacks.on_error?.(error);
 
@@ -310,7 +311,7 @@ export async function send_forward(
   show_aster_branding: boolean = true,
 ): Promise<MailActionResult> {
   if (params.recipients.length === 0) {
-    const error = en.errors.no_recipients;
+    const error = get_active_translations().errors.no_recipients;
 
     callbacks.on_error?.(error);
 
@@ -336,10 +337,10 @@ export async function send_forward(
 
   const forwarded_header = params.prebuilt_content
     ? sanitize_outgoing_html(params.prebuilt_content)
-    : `${en.common.forwarded_message_header}<br>` +
-      `${en.common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
-      `${en.common.date_label} ${params.original.timestamp}<br>` +
-      `${en.common.subject_label} ${safe_subject}<br><br>` +
+    : `${get_active_translations().common.forwarded_message_header}<br>` +
+      `${get_active_translations().common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
+      `${get_active_translations().common.date_label} ${params.original.timestamp}<br>` +
+      `${get_active_translations().common.subject_label} ${safe_subject}<br><br>` +
       sanitize_outgoing_html(params.original.body);
 
   const badge_block = params.badge_html ?? "";
@@ -391,7 +392,7 @@ export async function send_forward(
     );
 
     if (!result) {
-      const error = en.errors.failed_queue_forward;
+      const error = get_active_translations().errors.failed_queue_forward;
 
       callbacks.on_error?.(error);
 
@@ -424,7 +425,7 @@ export async function send_forward(
   );
 
   if (!queued_id) {
-    const error = en.errors.failed_queue_forward;
+    const error = get_active_translations().errors.failed_queue_forward;
 
     callbacks.on_error?.(error);
 

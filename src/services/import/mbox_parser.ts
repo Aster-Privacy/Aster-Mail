@@ -20,7 +20,7 @@
 //
 import type { ParsedEmail, ParseResult, ParseProgressCallback } from "./types";
 
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { MAX_FILE_SIZE, MAX_SINGLE_EMAIL_SIZE } from "./types";
 import { parse_eml } from "./eml_parser";
 
@@ -34,7 +34,7 @@ export async function parse_mbox_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
+        get_active_translations().errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -57,7 +57,7 @@ export async function parse_mbox_file(
     const raw_email = raw_segment.trim().replace(/^>From /gm, "From ");
 
     if (raw_email.length > MAX_SINGLE_EMAIL_SIZE) {
-      warnings.push(en.errors.email_skipped_size.replace("{{number}}", String(count)));
+      warnings.push(get_active_translations().errors.email_skipped_size.replace("{{number}}", String(count)));
 
       return;
     }
@@ -67,10 +67,10 @@ export async function parse_mbox_file(
     try {
       emails.push(parse_eml(raw_email));
     } catch (err) {
-      const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+      const error_msg = err instanceof Error ? err.message : get_active_translations().errors.unknown_error;
 
       errors.push(
-        en.errors.failed_parse_email.replace("{{number}}", String(count)).replace("{{error}}", error_msg),
+        get_active_translations().errors.failed_parse_email.replace("{{number}}", String(count)).replace("{{error}}", error_msg),
       );
     }
   };
@@ -129,7 +129,7 @@ export async function parse_mbox_file(
   if (count === 0) {
     return {
       emails: [],
-      errors: [en.errors.no_emails_in_mbox],
+      errors: [get_active_translations().errors.no_emails_in_mbox],
       warnings: [],
     };
   }

@@ -25,7 +25,7 @@ import type {
   CsvRow,
 } from "./types";
 
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
@@ -214,7 +214,7 @@ export async function parse_csv_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
+        get_active_translations().errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -228,7 +228,7 @@ export async function parse_csv_file(
     if (rows.length === 0) {
       return {
         emails: [],
-        errors: [en.errors.no_data_in_csv],
+        errors: [get_active_translations().errors.no_data_in_csv],
         warnings: [],
       };
     }
@@ -243,7 +243,7 @@ export async function parse_csv_file(
       if (email) {
         emails.push(email);
       } else {
-        warnings.push(en.errors.row_skipped.replace("{{number}}", String(i + 2)));
+        warnings.push(get_active_translations().errors.row_skipped.replace("{{number}}", String(i + 2)));
       }
 
       if (on_progress && i % 100 === 0) {
@@ -264,17 +264,17 @@ export async function parse_csv_file(
     }
 
     if (emails.length === 0) {
-      errors.push(en.errors.no_valid_emails_csv);
+      errors.push(get_active_translations().errors.no_valid_emails_csv);
     }
 
     return { emails, errors, warnings };
   } catch (err) {
-    const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+    const error_msg = err instanceof Error ? err.message : get_active_translations().errors.unknown_error;
 
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_csv.replace("{{error}}", error_msg),
+        get_active_translations().errors.failed_parse_csv.replace("{{error}}", error_msg),
       ],
       warnings: [],
     };

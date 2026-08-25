@@ -21,7 +21,7 @@
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
 import { TotpVerifyResponse } from "./totp";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface HardwareKeyInfo {
   id: string;
@@ -247,14 +247,14 @@ export async function perform_webauthn_registration(
       err instanceof Error &&
       (err.name === "NotAllowedError" || err.name === "AbortError")
     ) {
-      return { data: undefined, error: en.errors.registration_cancelled };
+      return { data: undefined, error: get_active_translations().errors.registration_cancelled };
     }
 
-    return { data: undefined, error: en.errors.registration_failed };
+    return { data: undefined, error: get_active_translations().errors.registration_failed };
   }
 
   if (!credential) {
-    return { data: undefined, error: en.errors.registration_cancelled };
+    return { data: undefined, error: get_active_translations().errors.registration_cancelled };
   }
 
   const attestation_response =
@@ -314,18 +314,18 @@ export async function perform_webauthn_assertion(
     ) {
       return {
         data: undefined,
-        error: en.errors.authentication_cancelled,
+        error: get_active_translations().errors.authentication_cancelled,
         server_code: WEBAUTHN_PROMPT_DISMISSED,
       };
     }
 
-    return { data: undefined, error: en.errors.authentication_failed_webauthn };
+    return { data: undefined, error: get_active_translations().errors.authentication_failed_webauthn };
   }
 
   if (!credential) {
     return {
       data: undefined,
-      error: en.errors.authentication_cancelled,
+      error: get_active_translations().errors.authentication_cancelled,
       server_code: WEBAUTHN_PROMPT_DISMISSED,
     };
   }
@@ -365,7 +365,7 @@ export async function perform_step_up_webauthn_assertion(): Promise<StepUpHardwa
   const options_res = await initiate_step_up_assertion();
 
   if (options_res.error || !options_res.data) {
-    throw new Error(options_res.error || en.errors.authentication_failed_webauthn);
+    throw new Error(options_res.error || get_active_translations().errors.authentication_failed_webauthn);
   }
 
   const options = options_res.data;
@@ -393,14 +393,14 @@ export async function perform_step_up_webauthn_assertion(): Promise<StepUpHardwa
       err instanceof Error &&
       (err.name === "NotAllowedError" || err.name === "AbortError")
     ) {
-      throw new Error(en.errors.authentication_cancelled);
+      throw new Error(get_active_translations().errors.authentication_cancelled);
     }
 
-    throw new Error(en.errors.authentication_failed_webauthn);
+    throw new Error(get_active_translations().errors.authentication_failed_webauthn);
   }
 
   if (!credential) {
-    throw new Error(en.errors.authentication_cancelled);
+    throw new Error(get_active_translations().errors.authentication_cancelled);
   }
 
   const assertion_response = credential.response as AuthenticatorAssertionResponse;
