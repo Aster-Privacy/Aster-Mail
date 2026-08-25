@@ -28,7 +28,7 @@ import type { } from "@/services/api/allowed_senders";
 import { array_to_base64, base64_to_array } from "../base64";
 
 
-import { import_aes_key } from "./key_helpers";
+import { import_aes_key, must_succeed } from "./key_helpers";
 export async function derive_profile_notes_hmac_key(
   raw: Uint8Array,
 ): Promise<CryptoKey> {
@@ -100,12 +100,14 @@ export async function re_encrypt_profile_notes(
       );
       const new_integrity_hash = array_to_base64(new Uint8Array(new_integrity_sig));
 
-      await api_client.put("/settings/v1/profile_notes", {
-        email_token: note.email_token,
-        encrypted_note: new_encrypted_note,
-        note_nonce: new_note_nonce,
-        integrity_hash: new_integrity_hash,
-      });
+      await must_succeed(
+        api_client.put("/settings/v1/profile_notes", {
+          email_token: note.email_token,
+          encrypted_note: new_encrypted_note,
+          note_nonce: new_note_nonce,
+          integrity_hash: new_integrity_hash,
+        }),
+      );
     } catch {
       ok = false;
       continue;

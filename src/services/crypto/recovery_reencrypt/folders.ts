@@ -27,7 +27,7 @@ import type { } from "@/services/api/blocked_senders";
 import type { } from "@/services/api/allowed_senders";
 
 
-import { re_encrypt_field } from "./key_helpers";
+import { must_succeed, re_encrypt_field } from "./key_helpers";
 export async function derive_folder_aes_key(
   identity_key: string,
   usages: KeyUsage[],
@@ -115,7 +115,9 @@ export async function re_encrypt_folders(
           updates.icon_nonce = icon.nonce;
         }
 
-        await api_client.put(`/mail/v1/labels/${folder.id}`, updates);
+        await must_succeed(
+          api_client.put(`/mail/v1/labels/${folder.id}`, updates),
+        );
       } catch {
         ok = false;
         continue;

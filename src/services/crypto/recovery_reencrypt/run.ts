@@ -71,20 +71,29 @@ export async function check_and_run_recovery_reencryption(
   zero_uint8_array(old_folder_hash);
   zero_uint8_array(old_tag_hash);
 
-  try {
-    await re_encrypt_tags(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_folders(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_preferences(
-      pending.old_identity_key,
-      vault.identity_key,
-      vault,
-    );
-    await re_encrypt_drafts(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_dev_mode(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_recovery_email(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_onboarding_state(pending.old_identity_key, vault.identity_key);
-  } catch {
-    /* silently fail */
+  const identity_scoped_steps: Array<() => Promise<unknown>> = [
+    () => re_encrypt_tags(pending.old_identity_key, vault.identity_key),
+    () => re_encrypt_folders(pending.old_identity_key, vault.identity_key),
+    () =>
+      re_encrypt_preferences(
+        pending.old_identity_key,
+        vault.identity_key,
+        vault,
+      ),
+    () => re_encrypt_drafts(pending.old_identity_key, vault.identity_key),
+    () => re_encrypt_dev_mode(pending.old_identity_key, vault.identity_key),
+    () =>
+      re_encrypt_recovery_email(pending.old_identity_key, vault.identity_key),
+    () =>
+      re_encrypt_onboarding_state(pending.old_identity_key, vault.identity_key),
+  ];
+
+  for (const step of identity_scoped_steps) {
+    try {
+      await step();
+    } catch {
+      continue;
+    }
   }
 
   if (!pending.old_data_kek) return;

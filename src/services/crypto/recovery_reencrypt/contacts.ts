@@ -29,7 +29,8 @@ import { list_contacts } from "@/services/api/contacts";
 import { array_to_base64, base64_to_array } from "../base64";
 
 
-import { re_encrypt_field } from "./key_helpers";
+import { must_succeed, re_encrypt_field } from "./key_helpers";
+
 export async function re_encrypt_contact_field_values(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
@@ -68,9 +69,11 @@ export async function re_encrypt_contact_field_values(
               old_aes,
               new_aes,
             );
-            await api_client.put(
-              `/contacts/v1/${contact.id}/fields/${fv.field_definition_id}`,
-              { encrypted_value: encrypted, value_nonce: nonce },
+            await must_succeed(
+              api_client.put(
+                `/contacts/v1/${contact.id}/fields/${fv.field_definition_id}`,
+                { encrypted_value: encrypted, value_nonce: nonce },
+              ),
             );
           } catch {
             ok = false;
@@ -124,15 +127,19 @@ export async function re_encrypt_contact_photos(
           re_encrypt_field(photo.encrypted_meta, photo.meta_nonce, old_aes, new_aes),
         ]);
 
-        await api_client.delete(`/contacts/v1/${contact.id}/photo`);
+        await must_succeed(
+          api_client.delete(`/contacts/v1/${contact.id}/photo`),
+        );
         try {
-          await api_client.post(`/contacts/v1/${contact.id}/photo`, {
-            encrypted_data: data_result.encrypted,
-            data_nonce: data_result.nonce,
-            encrypted_meta: meta_result.encrypted,
-            meta_nonce: meta_result.nonce,
-            size_bytes: photo.size_bytes,
-          });
+          await must_succeed(
+            api_client.post(`/contacts/v1/${contact.id}/photo`, {
+              encrypted_data: data_result.encrypted,
+              data_nonce: data_result.nonce,
+              encrypted_meta: meta_result.encrypted,
+              meta_nonce: meta_result.nonce,
+              size_bytes: photo.size_bytes,
+            }),
+          );
         } catch (post_err) {
           await api_client.post(`/contacts/v1/${contact.id}/photo`, {
             encrypted_data: photo.encrypted_data,
@@ -203,15 +210,21 @@ export async function re_encrypt_contact_attachments(
               re_encrypt_field(att.encrypted_meta, att.meta_nonce, old_aes, new_aes),
             ]);
 
-            await api_client.delete(`/contacts/v1/${contact.id}/attachments/${att.id}`);
+            await must_succeed(
+              api_client.delete(
+                `/contacts/v1/${contact.id}/attachments/${att.id}`,
+              ),
+            );
             try {
-              await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
-                encrypted_data: data_result.encrypted,
-                data_nonce: data_result.nonce,
-                encrypted_meta: meta_result.encrypted,
-                meta_nonce: meta_result.nonce,
-                size_bytes: att.size_bytes,
-              });
+              await must_succeed(
+                api_client.post(`/contacts/v1/${contact.id}/attachments`, {
+                  encrypted_data: data_result.encrypted,
+                  data_nonce: data_result.nonce,
+                  encrypted_meta: meta_result.encrypted,
+                  meta_nonce: meta_result.nonce,
+                  size_bytes: att.size_bytes,
+                }),
+              );
             } catch (post_err) {
               await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
                 encrypted_data: att.encrypted_data,
@@ -278,7 +291,9 @@ export async function re_encrypt_contact_sync_sources(
   if (decrypted.length === 0) return ok;
 
   for (const source of resp.data.items) {
-    await api_client.delete(`/contacts/v1/sync/sources/${source.id}`).catch(() => {
+    await must_succeed(
+      api_client.delete(`/contacts/v1/sync/sources/${source.id}`),
+    ).catch(() => {
       ok = false;
     });
   }
@@ -291,11 +306,13 @@ export async function re_encrypt_contact_sync_sources(
         new_aes,
         item.config_pt,
       );
-      await api_client.post("/contacts/v1/sync/sources", {
-        source_type: item.source_type,
-        encrypted_config: array_to_base64(new Uint8Array(new_ct)),
-        config_nonce: array_to_base64(new_iv),
-      });
+      await must_succeed(
+        api_client.post("/contacts/v1/sync/sources", {
+          source_type: item.source_type,
+          encrypted_config: array_to_base64(new Uint8Array(new_ct)),
+          config_nonce: array_to_base64(new_iv),
+        }),
+      );
     } catch {
       ok = false;
       continue;
@@ -355,15 +372,17 @@ export async function re_encrypt_drafts(
           HASH_ALG,
           new TextEncoder().encode(encrypted),
         );
-        await api_client.put(`/mail/v1/drafts/${draft.id}`, {
-          encrypted_content: encrypted,
-          content_nonce: nonce,
-          content_hash: array_to_base64(new Uint8Array(hash_buf)),
-          version: draft.version,
-          size_bytes: encrypted.length,
-          has_attachments: draft.has_attachments,
-          attachment_count: draft.attachment_count,
-        });
+        await must_succeed(
+          api_client.put(`/mail/v1/drafts/${draft.id}`, {
+            encrypted_content: encrypted,
+            content_nonce: nonce,
+            content_hash: array_to_base64(new Uint8Array(hash_buf)),
+            version: draft.version,
+            size_bytes: encrypted.length,
+            has_attachments: draft.has_attachments,
+            attachment_count: draft.attachment_count,
+          }),
+        );
       } catch {
         continue;
       }

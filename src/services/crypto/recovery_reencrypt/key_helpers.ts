@@ -75,6 +75,14 @@ export async function re_encrypt_field(
 
 export type FieldPair = [encrypted_field: string, nonce_field: string];
 
+export async function must_succeed(
+  request: Promise<{ error?: string }>,
+): Promise<void> {
+  const response = await request;
+
+  if (response.error) throw new Error(response.error);
+}
+
 export async function re_encrypt_collection<T>(
   items: T[],
   fields: FieldPair[],
@@ -181,9 +189,11 @@ export async function re_encrypt_identity_scoped_setting(
     new_key,
   );
 
-  await api_client.put(endpoint, {
-    [encrypted_field]: encrypted,
-    [nonce_field]: nonce,
-  });
+  await must_succeed(
+    api_client.put(endpoint, {
+      [encrypted_field]: encrypted,
+      [nonce_field]: nonce,
+    }),
+  );
 }
 

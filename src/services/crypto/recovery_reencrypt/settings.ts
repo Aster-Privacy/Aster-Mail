@@ -40,7 +40,7 @@ import {
 } from "@/services/api/recent_recipients";
 import { base64_to_array } from "../base64";
 
-import { re_encrypt_collection } from "./key_helpers";
+import { must_succeed, re_encrypt_collection } from "./key_helpers";
 export async function re_encrypt_signatures(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
@@ -59,7 +59,8 @@ export async function re_encrypt_signatures(
     ],
     old_aes,
     new_aes,
-    (sig, patch) => api_client.put(`/mail/v1/signatures/${sig.id}`, patch),
+    (sig, patch) =>
+      must_succeed(api_client.put(`/mail/v1/signatures/${sig.id}`, patch)),
   );
 }
 
@@ -82,7 +83,8 @@ export async function re_encrypt_templates(
     ],
     old_aes,
     new_aes,
-    (t, patch) => api_client.put(`/mail/v1/templates/${t.id}`, patch),
+    (t, patch) =>
+      must_succeed(api_client.put(`/mail/v1/templates/${t.id}`, patch)),
   );
 }
 

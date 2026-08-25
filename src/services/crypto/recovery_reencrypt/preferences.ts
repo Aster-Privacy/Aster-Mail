@@ -32,7 +32,7 @@ import {
 import { array_to_base64, base64_to_array } from "../base64";
 
 
-import { derive_hmac_key, identity_scoped_key_pair, re_encrypt_collection, re_encrypt_identity_scoped_setting } from "./key_helpers";
+import { derive_hmac_key, identity_scoped_key_pair, must_succeed, re_encrypt_collection, re_encrypt_identity_scoped_setting } from "./key_helpers";
 export async function re_encrypt_preferences(
   old_identity_key: string,
   new_identity_key: string,
@@ -102,10 +102,12 @@ export async function re_encrypt_preferences(
 
     if (!payload) return;
 
-    await api_client.put("/settings/v1/preferences", {
-      encrypted_preferences: payload.encrypted,
-      preferences_nonce: payload.nonce,
-    });
+    await must_succeed(
+      api_client.put("/settings/v1/preferences", {
+        encrypted_preferences: payload.encrypted,
+        preferences_nonce: payload.nonce,
+      }),
+    );
   } catch {
     return;
   }
@@ -144,12 +146,14 @@ export async function re_encrypt_recovery_email(
   const new_ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: new_iv }, new_key, pt);
   const email_hash = await hash_recovery_email(email_text);
 
-  await api_client.put("/core/v1/recovery/email", {
-    encrypted_email: array_to_base64(new Uint8Array(new_ct)),
-    email_nonce: array_to_base64(new_iv),
-    email_hash,
-    plaintext_email: email_text,
-  });
+  await must_succeed(
+    api_client.put("/core/v1/recovery/email", {
+      encrypted_email: array_to_base64(new Uint8Array(new_ct)),
+      email_nonce: array_to_base64(new_iv),
+      email_hash,
+      plaintext_email: email_text,
+    }),
+  );
 }
 
 export async function re_encrypt_onboarding_state(
@@ -213,12 +217,14 @@ export async function re_encrypt_external_accounts(
         new TextEncoder().encode(combined),
       );
 
-      await api_client.put("/mail/v1/external_accounts/update", {
-        account_token: account.account_token,
-        encrypted_account_data: encrypted,
-        account_data_nonce: nonce,
-        integrity_hash: array_to_base64(new Uint8Array(hash_buf)),
-      });
+      await must_succeed(
+        api_client.put("/mail/v1/external_accounts/update", {
+          account_token: account.account_token,
+          encrypted_account_data: encrypted,
+          account_data_nonce: nonce,
+          integrity_hash: array_to_base64(new Uint8Array(hash_buf)),
+        }),
+      );
     },
   );
 }
