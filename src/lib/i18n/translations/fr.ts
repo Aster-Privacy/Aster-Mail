@@ -1717,7 +1717,7 @@ export const fr = {
     time_seconds_short: "s",
     to_recipient: "À",
     total_attachments_exceed_limit:
-      "La taille totale des pièces jointes dépasse la limite",
+      "Vos pièces jointes dépassent la limite totale de {{size}}. Supprimez un fichier, ou partagez-en un par lien, pour envoyer le reste.",
     trash_empty_failed: "Échec du vidage de la corbeille",
     uncategorized: "Non catégorisé",
     unknown_error: "Erreur inconnue",

@@ -1707,7 +1707,7 @@ export const es = {
     time_seconds_short: "s",
     to_recipient: "Para",
     total_attachments_exceed_limit:
-      "El tamaño total de los archivos adjuntos supera el límite",
+      "Tus archivos adjuntos superan el límite total de {{size}}. Quita un archivo, o comparte uno mediante un enlace, para enviar el resto.",
     trash_empty_failed: "Error al vaciar la papelera",
     uncategorized: "Sin categoría",
     unknown_error: "Error desconocido",
