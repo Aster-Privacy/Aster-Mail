@@ -3495,6 +3495,7 @@ export const ar = {
     confirmations: "التأكيدات",
     confirm_actions_description: "طلب التأكيد قبل هذه الإجراءات",
     confirm_delete: "تأكيد الحذف",
+    bridge_linux_pacman_link: "Arch Linux",
     confirm_delete_description: "التأكيد قبل حذف الرسائل نهائيًا",
     confirm_archive: "تأكيد الأرشفة",
     confirm_archive_description: "التأكيد قبل أرشفة الرسائل",

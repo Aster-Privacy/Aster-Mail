@@ -2319,6 +2319,7 @@ export interface SettingsTranslations {
   storage_format_decentralized_ipfs: string;
   storage_format_ipfs_confirm_title: string;
   storage_format_ipfs_confirm_description: string;
+  bridge_linux_pacman_link: string;
   storage_format_ipfs_hint: string;
   forward_secrecy: string;
   forward_secrecy_enabled_description: string;

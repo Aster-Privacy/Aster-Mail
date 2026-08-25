@@ -5873,6 +5873,7 @@ export const tr = {
       "Ağda onaylanıyor. Bu tamamlanır tamamlanmaz planınız etkinleşir.",
     crypto_native_hint_credited: "Ödeme onaylandı. Planınız etkin.",
     crypto_native_time_remaining: "Kalan süre",
+    bridge_linux_pacman_link: "Arch Linux",
     crypto_native_expiring_soon:
       "5 dakikadan az kaldı. Ödemeniz ulaşmadan bu süre dolarsa güncel kurla yeni bir ödeme başlatabilirsiniz.",
     crypto_native_hint_underpaid:

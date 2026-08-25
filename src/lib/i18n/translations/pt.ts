@@ -5926,6 +5926,7 @@ export const pt = {
       "Envie o valor restante mostrado acima para o mesmo endereço para concluir este pagamento.",
     crypto_native_hint_manual_review:
       "Nossa equipe está analisando este pagamento. Nenhuma ação adicional é necessária da sua parte.",
+    bridge_linux_pacman_link: "Arch Linux",
     crypto_native_connection_lost:
       "Conexão perdida. Tentando novamente automaticamente.",
     crypto_native_coins_unavailable:

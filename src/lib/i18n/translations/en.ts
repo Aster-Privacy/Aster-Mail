@@ -2027,6 +2027,7 @@ export const en: Translations = {
     auto_save_drafts_description: "Automatically save drafts while composing",
     desktop_notifications: "Desktop Notifications",
     desktop_notifications_description: "Receive notifications for new emails",
+    bridge_linux_pacman_link: "Arch Linux",
     email_notifications: "Email Notifications",
     email_notifications_description: "Receive email summaries",
     sound: "Sound",

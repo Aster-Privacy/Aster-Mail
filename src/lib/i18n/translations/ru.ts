@@ -6289,6 +6289,7 @@ export const ru = {
     security_keys: "Ключи безопасности",
     security_keys_description:
       "Использовать аппаратные ключи безопасности или пароли для входа",
+    bridge_linux_pacman_link: "Arch Linux",
     select_color: "Выбрать цвет {{name}}",
     send_referral_to_contacts: "Пригласить всех контактов по email",
     show_signature_separator: "Разделитель подписи",

@@ -6236,6 +6236,7 @@ export const fr = {
     provider_gd_login: "Connectez-vous à GoDaddy",
     provider_gd_manage_dns: "Gérez votre DNS",
     provider_gd_save: "Enregistrez les modifications",
+    bridge_linux_pacman_link: "Arch Linux",
     provider_nc_add_mx: "Ajoutez l'enregistrement MX",
     provider_nc_add_record: "Ajoutez l'enregistrement DNS",
     provider_nc_add_txt: "Ajoutez l'enregistrement TXT",

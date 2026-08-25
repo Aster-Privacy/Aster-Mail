@@ -3300,6 +3300,7 @@ export const ko = {
     updates_dismiss: "나중에",
     billing: "결제",
     billing_description: "구독 및 결제 방법을 관리합니다",
+    bridge_linux_pacman_link: "Arch Linux",
     undo_send: "보내기 취소",
     undo_send_description: "취소 기능을 위한 이메일 전송 지연 설정",
     blocked: "차단됨",

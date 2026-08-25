@@ -5943,6 +5943,7 @@ export const it = {
       "Non è stato possibile caricare le opzioni di pagamento in criptovaluta.",
     crypto_native_copy_tx_hash: "Copia l'hash della transazione",
     crypto_native_expiry_progress:
+    bridge_linux_pacman_link: "Arch Linux",
       "Tempo rimanente prima della scadenza di questa fattura",
     crypto_native_confirmations_progress: "Conferme di rete",
     crypto_paid_until: "Pagato fino al {{date}} (crypto)",

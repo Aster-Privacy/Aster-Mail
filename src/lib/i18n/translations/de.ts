@@ -6272,6 +6272,7 @@ export const de = {
       "Dieser Anbieter ist noch nicht in Aster eingerichtet. hello@astermail.org kann helfen, wenn Sie es benötigen.",
     oauth_reason_token_exchange_failed:
       "Die Verbindung wurde nicht abgeschlossen. Ein erneuter Versuch sollte es beheben. Ihre anderen Konten sind unverändert.",
+    bridge_linux_pacman_link: "Arch Linux",
     oauth_reason_unknown:
       "Etwas hat nicht wie erwartet funktioniert. Ein erneuter Versuch sollte es beheben. Wir konnten die Ursache nicht feststellen.",
     oauth_setting_up_folders: "Ordner werden eingerichtet...",

@@ -6173,6 +6173,7 @@ export const es = {
     provider_gd_add_txt: "Agrega el registro TXT",
     provider_gd_login: "Inicia sesión en GoDaddy",
     provider_gd_manage_dns: "Gestiona tu DNS",
+    bridge_linux_pacman_link: "Arch Linux",
     provider_gd_save: "Guarda los cambios",
     provider_nc_add_mx: "Agrega el registro MX",
     provider_nc_add_record: "Agrega el registro DNS",

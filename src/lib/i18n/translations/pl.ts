@@ -6048,6 +6048,7 @@ export const pl = {
       "Zarabiaj procent z każdej płatności znajomego po jego subskrypcji.",
     credit_task_refer_cta: "Zaproś",
     credit_task_ios_title: "Pobierz aplikację Aster na iOS",
+    bridge_linux_pacman_link: "Arch Linux",
     credit_task_ios_hint_coming: "Wkrótce",
     credit_task_earned: "Zdobyte",
     send_referral_to_contacts: "Wyślij e-mail do wszystkich kontaktów",

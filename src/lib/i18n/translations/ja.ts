@@ -6056,6 +6056,7 @@ export const ja = {
     pdf: "PDF",
     per_two_years: "/2年",
     plan_f_alias_avatars: "カスタムエイリアスとドメインのアバター",
+    bridge_linux_pacman_link: "Arch Linux",
     plan_f_mail_rules: "{{value}}件のメールフィルターとルール",
     plan_f_signed_in_accounts: "サインイン済みアカウント",
     plan_f_tracker_protection: "トラッカー保護",

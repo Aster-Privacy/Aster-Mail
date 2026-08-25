@@ -6159,6 +6159,7 @@ export const nl = {
     provider_cf_save: "Opslaan in Cloudflare",
     provider_cf_select_domain: "Selecteer uw domein in Cloudflare",
     provider_gd_add_mx: "MX-records toevoegen in GoDaddy",
+    bridge_linux_pacman_link: "Arch Linux",
     provider_gd_add_record: "Record toevoegen in GoDaddy",
     provider_gd_add_txt: "TXT-record toevoegen in GoDaddy",
     provider_gd_login: "Aanmelden bij GoDaddy",

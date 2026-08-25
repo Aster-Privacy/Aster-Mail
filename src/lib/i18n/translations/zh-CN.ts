@@ -5326,6 +5326,7 @@ export const zh_CN = {
       "导出文件包含未加密的邮件内容。请安全存储，不要与他人共享。",
     export_warning_confirm: "我了解，继续导出",
     pdf: "PDF",
+    bridge_linux_pacman_link: "Arch Linux",
     import_source_gmail: "Gmail",
     import_source_outlook: "Outlook",
     import_source_mbox: "MBOX 文件",
