@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { CreditCardIcon, CurrencyDollarIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import {
+  CreditCardIcon,
+  CurrencyDollarIcon,
+  SparklesIcon,
+} from "@heroicons/react/24/outline";
 
 import {
   Modal,
@@ -28,6 +32,7 @@ import {
   ModalBody,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { format_price } from "@/services/api/billing";
 
 interface plan_payment_method_modal_props {
   open: boolean;
@@ -51,26 +56,28 @@ export function PlanPaymentMethodModal({
   on_choose_crypto,
 }: plan_payment_method_modal_props) {
   const { t } = use_i18n();
-  const credit_dollars =
+  const credit_amount =
     credits_apply_to_card && credit_balance_cents && credit_balance_cents > 0
-      ? (credit_balance_cents / 100).toFixed(2)
+      ? format_price(credit_balance_cents)
       : null;
 
   return (
     <Modal show_close_button is_open={open} on_close={on_close} size="md">
       <ModalHeader>
         <ModalTitle>{plan_name}</ModalTitle>
-        <ModalDescription>{t("settings.checkout_description")}</ModalDescription>
+        <ModalDescription>
+          {t("settings.checkout_description")}
+        </ModalDescription>
       </ModalHeader>
       <ModalBody>
         <div className="space-y-2">
           <button
-            className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80 disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-start transition-colors hover:opacity-80 disabled:opacity-50 disabled:pointer-events-none"
+            disabled={busy}
             style={{
               backgroundColor: "var(--bg-tertiary)",
               borderColor: "var(--border-secondary)",
             }}
-            disabled={busy}
             type="button"
             onClick={on_choose_card}
           >
@@ -85,12 +92,12 @@ export function PlanPaymentMethodModal({
               >
                 {t("settings.checkout_method_card")}
               </div>
-              {credit_dollars && (
+              {credit_amount && (
                 <div className="flex items-center gap-1.5 mt-1 text-xs text-emerald-500">
                   <SparklesIcon className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>
                     {t("settings.credits_will_be_applied", {
-                      amount: `$${credit_dollars}`,
+                      amount: credit_amount,
                     })}
                   </span>
                 </div>
@@ -99,12 +106,12 @@ export function PlanPaymentMethodModal({
           </button>
 
           <button
-            className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80 disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-start transition-colors hover:opacity-80 disabled:opacity-50 disabled:pointer-events-none"
+            disabled={busy}
             style={{
               backgroundColor: "var(--bg-tertiary)",
               borderColor: "var(--border-secondary)",
             }}
-            disabled={busy}
             type="button"
             onClick={on_choose_crypto}
           >
@@ -120,6 +127,13 @@ export function PlanPaymentMethodModal({
             </div>
           </button>
         </div>
+
+        <p
+          className="mt-3 text-[11px] leading-relaxed"
+          style={{ color: "var(--text-tertiary)" }}
+        >
+          {t("settings.autorenew_notice_short")}
+        </p>
       </ModalBody>
     </Modal>
   );

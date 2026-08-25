@@ -42,6 +42,7 @@ import {
   type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
 import { compute_plan_recommendation } from "@/components/settings/billing/plan_recommendation";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -49,6 +50,23 @@ import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal
 import { create_family_group } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+
+const TIER_DESCRIPTION_KEYS: Record<string, TranslationKey> = {
+  star: "auth.plan_star_description",
+  nova: "auth.plan_nova_description",
+  supernova: "auth.plan_supernova_description",
+  duo: "auth.plan_duo_description",
+  family: "auth.plan_family_description",
+};
+
+function tier_description(
+  tier: { id: string; description: string },
+  t: (key: TranslationKey) => string,
+): string {
+  const key = TIER_DESCRIPTION_KEYS[tier.id];
+
+  return key ? t(key) : tier.description;
+}
 
 function Tabs<T extends string>({
   value,
@@ -138,12 +156,10 @@ export function AvailablePlansSection({
   };
 
   const handle_family_card = async () => {
-    if (!pending_family_tier) return;
+    if (!pending_family_tier || family_loading) return;
     const tier = pending_family_tier;
     const card_interval: "month" | "year" =
       billing_period === "yearly" ? "year" : "month";
-
-    set_pending_family_tier(null);
 
     const has_existing_sub =
       !!subscription &&
@@ -152,6 +168,7 @@ export function AvailablePlansSection({
       subscription.has_stripe_subscription !== false;
 
     if (has_existing_sub && on_family_plan_change) {
+      set_pending_family_tier(null);
       on_family_plan_change(tier.id, card_interval);
 
       return;
@@ -190,11 +207,12 @@ export function AvailablePlansSection({
       show_toast(t("settings.failed_checkout"), "error");
     } finally {
       set_family_loading(false);
+      set_pending_family_tier(null);
     }
   };
 
   const handle_family_crypto = () => {
-    if (!pending_family_tier) return;
+    if (!pending_family_tier || family_loading) return;
     set_crypto_family_tier(pending_family_tier);
     set_pending_family_tier(null);
   };
@@ -320,10 +338,14 @@ export function AvailablePlansSection({
               billing_period === "yearly"
                 ? Math.round(tier.yearly_cents / 12)
                 : tier.monthly_cents;
-            const features =
+            const features = (
               tier.max_members === 2
                 ? FAMILY_PLAN_DUO_FEATURES
-                : FAMILY_PLAN_FAMILY_FEATURES;
+                : FAMILY_PLAN_FAMILY_FEATURES
+            ).map((feature) => ({
+              label: t(feature.label_key),
+              on: feature.on,
+            }));
 
             return (
               <PlanCard
@@ -357,7 +379,7 @@ export function AvailablePlansSection({
                         : t("settings.switch_to_monthly")
                       : t("settings.get_plan", { name: tier.name })
                 }
-                description={tier.description}
+                description={tier_description(tier, t)}
                 featured={
                   recommendation.recommended_family_plan_code === tier.id
                 }
@@ -393,7 +415,10 @@ export function AvailablePlansSection({
           busy={family_loading}
           on_choose_card={handle_family_card}
           on_choose_crypto={handle_family_crypto}
-          on_close={() => set_pending_family_tier(null)}
+          on_close={() => {
+            if (family_loading) return;
+            set_pending_family_tier(null);
+          }}
           open={!!pending_family_tier}
           plan_name={pending_family_tier.name}
         />
@@ -463,7 +488,7 @@ export function AvailablePlansSection({
                         ? t("settings.downgrade")
                         : t("settings.get_plan", { name: tier.name })
                 }
-                description={tier.description}
+                description={tier_description(tier, t)}
                 featured={recommendation.recommended_plan_code === tier.id}
                 features={plan_features[tier.id] ?? []}
                 is_current={is_current}

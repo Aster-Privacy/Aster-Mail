@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect, useCallback } from "react";
+import { trigger_download } from "@/utils/download_blob";
 import {
   ArrowDownTrayIcon,
   ClipboardDocumentIcon,
@@ -42,6 +43,7 @@ import {
   regenerate_backup_codes,
 } from "@/services/api/totp";
 import { use_i18n } from "@/lib/i18n/context";
+import { copy_text } from "@/utils/copy_text";
 
 interface RegenerateBackupCodesModalProps {
   is_open: boolean;
@@ -114,13 +116,19 @@ export function RegenerateBackupCodesModal({
   };
 
   const copy_single_code = async (single_code: string) => {
-    await navigator.clipboard.writeText(single_code);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(single_code)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_backup_codes = async () => {
-    await navigator.clipboard.writeText(backup_codes.join("\n"));
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(backup_codes.join("\n"))) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const handle_modal_close = useCallback(() => {
@@ -130,9 +138,11 @@ export function RegenerateBackupCodesModal({
 
   return (
     <Modal
+      close_on_escape={backup_codes.length === 0}
       close_on_overlay={false}
       is_open={is_open}
       on_close={handle_modal_close}
+      show_close_button={backup_codes.length === 0}
       size="md"
     >
       {backup_codes.length === 0 ? (
@@ -221,24 +231,21 @@ export function RegenerateBackupCodesModal({
               </div>
               <div className="flex justify-center gap-2">
                 <Button variant="secondary" onClick={copy_backup_codes}>
-                  <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+                  <ClipboardDocumentIcon className="w-4 h-4 me-2" />
                   {t("settings.copy_all_codes")}
                 </Button>
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    const content = backup_codes.join("\n");
-                    const blob = new Blob([content], { type: "text/plain" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-
-                    a.href = url;
-                    a.download = "aster-backup-codes.txt";
-                    a.click();
-                    URL.revokeObjectURL(url);
+                    trigger_download(
+                      new Blob([backup_codes.join("\n")], {
+                        type: "text/plain",
+                      }),
+                      "aster-backup-codes.txt",
+                    );
                   }}
                 >
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                  <ArrowDownTrayIcon className="w-4 h-4 me-2" />
                   {t("common.download")}
                 </Button>
               </div>

@@ -30,11 +30,11 @@ import {
 import { Button } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
+
 import {
   ConnectProviderModal,
   type ConnectProvider,
 } from "@/components/settings/connect_provider_modal";
-
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -43,7 +43,12 @@ import {
 } from "@/services/api/email_import";
 import { ImportModal } from "@/components/settings/import_modal";
 import { ignore_error } from "@/lib/ignore_error";
-
+import { show_toast } from "@/components/toast/simple_toast";
+import {
+  emit_folders_changed,
+  emit_mail_changed,
+  emit_refresh_requested,
+} from "@/hooks/mail_events";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,6 +70,7 @@ export function ImportSection({
   const { t } = use_i18n();
   const [jobs, set_jobs] = useState<ImportJob[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [jobs_load_failed, set_jobs_load_failed] = useState(false);
   const [selected_provider, set_selected_provider] =
     useState<ImportSource | null>(null);
   const [connect_provider, set_connect_provider] =
@@ -83,21 +89,36 @@ export function ImportSection({
     {
       id: "gmail",
       icon: (
-        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/gmail_logo.svg" />
+        <img
+          alt=""
+          aria-hidden="true"
+          className="w-5 h-5 object-contain"
+          src="/providers/gmail_logo.svg"
+        />
       ),
       label: t("settings.gmail_import"),
     },
     {
       id: "outlook",
       icon: (
-        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/outlook_logo.svg" />
+        <img
+          alt=""
+          aria-hidden="true"
+          className="w-5 h-5 object-contain"
+          src="/providers/outlook_logo.svg"
+        />
       ),
       label: t("settings.outlook_import"),
     },
     {
       id: "yahoo",
       icon: (
-        <img alt="" aria-hidden="true" className="w-5 h-5 object-contain" src="/providers/yahoo_mail_logo.svg" />
+        <img
+          alt=""
+          aria-hidden="true"
+          className="w-5 h-5 object-contain"
+          src="/providers/yahoo_mail_logo.svg"
+        />
       ),
       label: t("settings.yahoo_import"),
     },
@@ -122,9 +143,18 @@ export function ImportSection({
     try {
       const res = await list_import_jobs();
 
-      if (res.data?.jobs) set_jobs(res.data.jobs);
+      if (res.data?.jobs) {
+        set_jobs(res.data.jobs);
+        set_jobs_load_failed(false);
+      } else {
+        set_jobs_load_failed(true);
+      }
     } catch (caught) {
-      ignore_error("pages/mobile/settings/import_section:ImportSection", caught);
+      ignore_error(
+        "pages/mobile/settings/import_section:ImportSection",
+        caught,
+      );
+      set_jobs_load_failed(true);
     } finally {
       if (!silent) set_is_loading(false);
     }
@@ -143,6 +173,7 @@ export function ImportSection({
     const id = window.setInterval(() => {
       load_jobs(true);
     }, 3000);
+
     return () => window.clearInterval(id);
   }, [has_active_job, load_jobs]);
 
@@ -151,17 +182,32 @@ export function ImportSection({
     load_jobs();
   }, [load_jobs]);
 
-  const handle_delete_job = useCallback(async (id: string) => {
-    set_jobs((prev) => prev.filter((j) => j.id !== id));
-    try {
-      await delete_import_job(id);
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-      window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
-      window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
-    } catch (caught) {
-      ignore_error("pages/mobile/settings/import_section:ImportSection", caught);
-    }
-  }, []);
+  const handle_delete_job = useCallback(
+    async (id: string) => {
+      set_jobs((prev) => prev.filter((j) => j.id !== id));
+      try {
+        const res = await delete_import_job(id);
+
+        if (res.error) {
+          show_toast(t("common.delete_failed"), "error");
+          await load_jobs(true);
+
+          return;
+        }
+        emit_mail_changed();
+        emit_folders_changed();
+        emit_refresh_requested();
+      } catch (caught) {
+        ignore_error(
+          "pages/mobile/settings/import_section:handle_delete_job",
+          caught,
+        );
+        show_toast(t("common.delete_failed"), "error");
+        await load_jobs(true);
+      }
+    },
+    [load_jobs, t],
+  );
 
   const status_color = (status: string) => {
     if (status === "completed") return "text-[var(--color-success,#22c55e)]";
@@ -205,6 +251,7 @@ export function ImportSection({
                           outlook: "microsoft",
                         };
                         const mapped = PROVIDER_MAP[provider.id];
+
                         if (mapped) set_connect_provider(mapped);
                       }}
                     >
@@ -278,6 +325,21 @@ export function ImportSection({
           <div className="flex items-center justify-center py-12">
             <Spinner size="md" />
           </div>
+        ) : jobs_load_failed && jobs.length === 0 ? (
+          <SettingsGroup title={t("settings.recent_imports")}>
+            <div className="px-4 py-6 text-center">
+              <p className="text-[14px] text-[var(--mobile-text-muted)]">
+                {t("common.something_went_wrong_try_again")}
+              </p>
+              <button
+                className="mt-3 rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+                type="button"
+                onClick={() => void load_jobs()}
+              >
+                {t("common.retry")}
+              </button>
+            </div>
+          </SettingsGroup>
         ) : (
           jobs.length > 0 && (
             <SettingsGroup title={t("settings.recent_imports")}>
@@ -290,20 +352,24 @@ export function ImportSection({
                     <p className="text-[12px] text-[var(--mobile-text-muted)]">
                       {job.status === "processing" || job.status === "pending"
                         ? `${job.processed_emails}/${job.total_emails}`
-                        : t("settings.emails_count", {
-                            count: job.processed_emails,
-                          })}
+                        : job.processed_emails === 1
+                          ? t("common.one_email")
+                          : t("settings.emails_count", {
+                              count: job.processed_emails,
+                            })}
                     </p>
                   </div>
                   <span
                     className={`text-[12px] font-medium capitalize ${status_color(job.status)}`}
                   >
-                    {t(`settings.import_status_${job.status}` as TranslationKey)}
+                    {t(
+                      `settings.import_status_${job.status}` as TranslationKey,
+                    )}
                   </span>
                   {job.status !== "processing" && job.status !== "pending" && (
                     <button
-                      type="button"
                       aria-label={t("common.delete")}
+                      type="button"
                       onClick={() => set_confirm_delete_id(job.id)}
                     >
                       <TrashIcon className="h-4 w-4 text-[var(--mobile-text-muted)]" />
@@ -321,12 +387,12 @@ export function ImportSection({
         provider={selected_provider}
       />
       <ConnectProviderModal
-        provider={connect_provider}
         on_close={() => set_connect_provider(null)}
         on_oauth_success={() => {
           set_connect_provider(null);
           load_jobs();
         }}
+        provider={connect_provider}
       />
       <AlertDialog
         open={confirm_delete_id !== null}

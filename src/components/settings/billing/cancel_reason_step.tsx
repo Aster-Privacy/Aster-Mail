@@ -40,8 +40,29 @@ export type CancelReason = (typeof CANCEL_REASONS)[number];
 
 export const MAX_CANCEL_REASON_TEXT = 2000;
 
+export const CANCEL_REASONS_NEEDING_DETAIL: readonly CancelReason[] = [
+  "missing_feature",
+  "other",
+];
+
 export function clamp_cancel_reason_text(input: string): string {
   return input.slice(0, MAX_CANCEL_REASON_TEXT);
+}
+
+export function cancel_reason_needs_detail(
+  reason: CancelReason | null,
+): boolean {
+  return reason !== null && CANCEL_REASONS_NEEDING_DETAIL.includes(reason);
+}
+
+export function can_continue_cancel_reason(
+  reason: CancelReason | null,
+  reason_text: string,
+): boolean {
+  if (reason === null) return false;
+  if (!cancel_reason_needs_detail(reason)) return true;
+
+  return reason_text.trim().length > 0;
 }
 
 interface CancelReasonStepProps {
@@ -64,6 +85,9 @@ export function CancelReasonStep({
   keep_plan_slot,
 }: CancelReasonStepProps) {
   const { t } = use_i18n();
+  const needs_detail = cancel_reason_needs_detail(reason);
+  const detail_missing = needs_detail && reason_text.trim().length === 0;
+  const can_continue = can_continue_cancel_reason(reason, reason_text);
 
   return (
     <div className="py-1">
@@ -87,7 +111,11 @@ export function CancelReasonStep({
       <textarea
         className="mt-3 w-full rounded-md border border-edge-secondary bg-transparent px-3 py-2 text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-brand resize-none"
         maxLength={MAX_CANCEL_REASON_TEXT}
-        placeholder={t("settings.cancel_reason_text_placeholder")}
+        placeholder={
+          reason
+            ? t(`settings.cancel_reason_placeholder_${reason}`)
+            : t("settings.cancel_reason_text_placeholder")
+        }
         rows={3}
         value={reason_text}
         onChange={(e) =>
@@ -95,22 +123,25 @@ export function CancelReasonStep({
         }
       />
 
+      {detail_missing ? (
+        <p className="mt-2 text-xs text-txt-muted">
+          {t("settings.cancel_reason_detail_required")}
+        </p>
+      ) : null}
+
       <div className="mt-5 flex flex-row items-center gap-2">
         {keep_plan_slot}
-        <div className="ml-auto flex flex-row items-center gap-2">
+        <div className="ms-auto flex flex-row items-center gap-3">
           <button
-            className={button_variants({ variant: "ghost", size: "sm" })}
+            className="text-xs text-txt-muted underline underline-offset-2 hover:text-txt-secondary focus:outline-none focus-visible:ring-1 focus-visible:ring-brand rounded-sm"
             type="button"
-            onClick={() => {
-              set_reason(null);
-              set_reason_text("");
-              on_skip();
-            }}
+            onClick={on_skip}
           >
             {t("settings.cancel_reason_skip")}
           </button>
           <button
             className={button_variants({ variant: "primary", size: "sm" })}
+            disabled={!can_continue}
             type="button"
             onClick={on_continue}
           >

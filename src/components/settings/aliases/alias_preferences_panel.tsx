@@ -25,6 +25,7 @@ import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import { Switch, UpgradeBtn } from "@aster/ui";
 
 import { InfoHint } from "@/components/settings/aliases/info_hint";
+import { label_toggle_children_with_text } from "@/lib/labeled_control";
 import { use_i18n } from "@/lib/i18n/context";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
@@ -35,8 +36,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { show_toast } from "@/components/toast/simple_toast";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_alias_preferences,
   update_alias_preferences,
@@ -52,14 +54,16 @@ interface PrefRowProps {
 function pref_row({ label, description, info, children }: PrefRowProps) {
   return (
     <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-6">
+      <div className="flex-1 pe-6">
         <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
           {label}
           {info && <InfoHint tip={info} title={label} />}
         </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
-      <div className="flex-shrink-0">{children}</div>
+      <div className="flex-shrink-0">
+        {label_toggle_children_with_text(children, label)}
+      </div>
     </div>
   );
 }
@@ -68,15 +72,17 @@ const PrefRow = pref_row;
 
 interface AliasPreferencesPanelProps {
   available_domains: string[];
+  on_default_domain_change?: (domain: string) => void;
 }
 
 export function AliasPreferencesPanel({
   available_domains,
+  on_default_domain_change,
 }: AliasPreferencesPanelProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
 
-  const [loading, set_loading] = useState(false);
+  const [loading, set_loading] = useState(true);
   const [prefs, set_prefs] = useState<AliasPreferences>({
     alias_sender_format: "via",
     readable_reverse_aliases: false,
@@ -86,34 +92,74 @@ export function AliasPreferencesPanel({
     alias_delete_action: "trash",
   });
 
+  const [load_failed, set_load_failed] = useState(false);
+
   const debounce_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending_patch = useRef<Partial<AliasPreferences>>({});
+  const revert_snapshot = useRef<AliasPreferences | null>(null);
 
-  useEffect(() => {
+  const load_prefs = useCallback(() => {
+    set_loading(true);
+    set_load_failed(false);
     get_alias_preferences()
       .then((r) => {
-        if (r.data) set_prefs(r.data);
+        if (r.data) {
+          set_prefs(r.data);
+        } else {
+          set_load_failed(true);
+        }
         set_loading(false);
       })
-      .catch(() => set_loading(false));
-  }, []);
-
-  const save_pref = useCallback((patch: Partial<AliasPreferences>) => {
-    set_prefs((prev) => ({ ...prev, ...patch }));
-    pending_patch.current = { ...pending_patch.current, ...patch };
-    if (debounce_timer.current) clearTimeout(debounce_timer.current);
-    debounce_timer.current = setTimeout(() => {
-      const merged = pending_patch.current;
-
-      pending_patch.current = {};
-      update_alias_preferences(merged).catch((caught) =>
+      .catch((caught) => {
         ignore_error(
-          "components/settings/aliases/alias_preferences_panel:AliasPreferencesPanel",
+          "components/settings/aliases/alias_preferences_panel:load_prefs",
           caught,
-        ),
-      );
-    }, 500);
+        );
+        set_load_failed(true);
+        set_loading(false);
+      });
   }, []);
+
+  useEffect(() => {
+    load_prefs();
+  }, [load_prefs]);
+
+  const save_pref = useCallback(
+    (patch: Partial<AliasPreferences>) => {
+      if (load_failed) return;
+      set_prefs((prev) => {
+        if (!revert_snapshot.current) revert_snapshot.current = prev;
+
+        return { ...prev, ...patch };
+      });
+      pending_patch.current = { ...pending_patch.current, ...patch };
+      if (debounce_timer.current) clearTimeout(debounce_timer.current);
+      debounce_timer.current = setTimeout(async () => {
+        const merged = pending_patch.current;
+        const snapshot = revert_snapshot.current;
+
+        pending_patch.current = {};
+        revert_snapshot.current = null;
+        const fail = () => {
+          if (snapshot) set_prefs(snapshot);
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+        };
+
+        try {
+          const response = await update_alias_preferences(merged);
+
+          if (!response.data?.success) fail();
+        } catch (caught) {
+          ignore_error(
+            "components/settings/aliases/alias_preferences_panel:save_pref",
+            caught,
+          );
+          fail();
+        }
+      }, 500);
+    },
+    [load_failed, t],
+  );
 
   const readable_locked = is_feature_locked("has_advanced_aliases");
 
@@ -129,6 +175,8 @@ export function AliasPreferencesPanel({
       <div>
         {loading ? (
           <div />
+        ) : load_failed ? (
+          <LoadFailedNotice on_retry={load_prefs} />
         ) : (
           <>
             {available_domains.length > 0 && (
@@ -143,7 +191,10 @@ export function AliasPreferencesPanel({
                       ? prefs.alias_default_domain
                       : (available_domains[0] ?? "")
                   }
-                  onValueChange={(v) => save_pref({ alias_default_domain: v })}
+                  onValueChange={(v) => {
+                    save_pref({ alias_default_domain: v });
+                    on_default_domain_change?.(v);
+                  }}
                 >
                   <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
                     <SelectValue

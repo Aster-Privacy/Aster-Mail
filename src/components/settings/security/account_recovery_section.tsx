@@ -27,21 +27,24 @@ import {
 import { Badge, Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  get_recovery_methods,
-  RecoveryMethods,
-} from "@/services/api/recovery";
+import { get_recovery_methods, RecoveryMethods } from "@/services/api/recovery";
 import { RecoveryCodesModal } from "@/components/settings/security/recovery_codes_modal";
 
 export function AccountRecoverySection() {
   const { t } = use_i18n();
   const [methods, set_methods] = useState<RecoveryMethods | null>(null);
   const [show_codes_modal, set_show_codes_modal] = useState(false);
+  const [load_error, set_load_error] = useState(false);
 
   const fetch_methods = useCallback(async () => {
     const response = await get_recovery_methods();
 
-    if (response.data) set_methods(response.data);
+    if (response.data) {
+      set_methods(response.data);
+      set_load_error(false);
+    } else {
+      set_load_error(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -63,6 +66,15 @@ export function AccountRecoverySection() {
         </p>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
+
+      {load_error && !methods && (
+        <div className="flex items-start gap-3 p-3 rounded-lg border bg-surf-tertiary border-edge-secondary">
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
+          <p className="text-sm text-txt-muted">
+            {t("settings.failed_load_security_status")}
+          </p>
+        </div>
+      )}
 
       {methods && (
         <div className="flex items-start gap-3 p-3 rounded-lg border bg-surf-tertiary border-edge-secondary">
@@ -87,7 +99,7 @@ export function AccountRecoverySection() {
       )}
 
       <div className="flex items-center justify-between py-4">
-        <div className="flex-1 pr-4">
+        <div className="flex-1 pe-4">
           <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
             {t("settings.recovery_codes_row")}
             {methods &&
@@ -105,19 +117,29 @@ export function AccountRecoverySection() {
             {t("settings.recovery_codes_row_desc")}
           </p>
         </div>
-        <Button
-          variant={has_codes ? "secondary" : "depth"}
-          onClick={() => set_show_codes_modal(true)}
-        >
-          {has_codes
-            ? t("settings.recovery_codes_regenerate")
-            : t("settings.recovery_codes_generate")}
-        </Button>
+        {load_error && !methods ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => void fetch_methods()}
+          >
+            {t("settings.try_again")}
+          </Button>
+        ) : (
+          <Button
+            variant={has_codes ? "secondary" : "depth"}
+            onClick={() => set_show_codes_modal(true)}
+          >
+            {has_codes
+              ? t("settings.recovery_codes_regenerate")
+              : t("settings.recovery_codes_generate")}
+          </Button>
+        )}
       </div>
 
       {methods?.has_phrase && (
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
               {t("settings.legacy_phrase_row")}
               <Badge color="green">

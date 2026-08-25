@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   GlobeAltIcon,
   ChevronDownIcon,
@@ -30,6 +30,8 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
+
+import { DnsRecordCard } from "./dns_record_card";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -44,7 +46,6 @@ import {
   type DnsRecord,
 } from "@/services/api/domains";
 import { show_toast } from "@/components/toast/simple_toast";
-import { DnsRecordCard } from "./dns_record_card";
 
 interface DomainCardV2Props {
   domain: CustomDomain;
@@ -71,11 +72,25 @@ export function DomainCardV2({
   const [expanded, set_expanded] = useState(false);
   const [show_advanced, set_show_advanced] = useState(false);
   const [dkim_rotating, set_dkim_rotating] = useState(false);
-  const [rotated_dkim_record, set_rotated_dkim_record] = useState<DnsRecord | null>(null);
+  const [rotated_dkim_record, set_rotated_dkim_record] =
+    useState<DnsRecord | null>(null);
   const [dns_records, set_dns_records] = useState<DnsRecord[] | null>(null);
   const [dns_loading, set_dns_loading] = useState(false);
   const [show_dns, set_show_dns] = useState(false);
   const [verifying, set_verifying] = useState(false);
+
+  const [catch_all_pending, set_catch_all_pending] = useState<boolean | null>(
+    null,
+  );
+  const [catch_all_saving, set_catch_all_saving] = useState(false);
+
+  useEffect(() => {
+    if (
+      catch_all_pending !== null &&
+      domain.catch_all_enabled === catch_all_pending
+    )
+      set_catch_all_pending(null);
+  }, [domain.catch_all_enabled, catch_all_pending]);
 
   const core_pending =
     !domain.txt_verified ||
@@ -92,22 +107,36 @@ export function DomainCardV2({
   ].filter(Boolean).length;
 
   const handle_toggle_catch_all = async () => {
+    if (catch_all_saving) return;
+
+    const next_enabled = !(catch_all_pending ?? domain.catch_all_enabled);
+
+    set_catch_all_saving(true);
+    set_catch_all_pending(next_enabled);
+
     try {
       const response = await update_domain(domain.id, {
-        catch_all_enabled: !domain.catch_all_enabled,
+        catch_all_enabled: next_enabled,
       });
 
       if (!response.error) {
         on_domains_changed();
         show_toast(
-          domain.catch_all_enabled
-            ? t("settings.catch_all_disabled")
-            : t("settings.catch_all_enabled_toast"),
+          next_enabled
+            ? t("settings.catch_all_enabled_toast")
+            : t("settings.catch_all_disabled"),
           "success",
         );
+      } else {
+        set_catch_all_pending(null);
+        show_toast(t("common.something_went_wrong"), "error");
       }
     } catch (err) {
+      set_catch_all_pending(null);
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("common.something_went_wrong"), "error");
+    } finally {
+      set_catch_all_saving(false);
     }
   };
 
@@ -121,12 +150,16 @@ export function DomainCardV2({
         show_toast(t("settings.dkim_rotated"), "success");
         if (dns_records) {
           const refreshed = await get_dns_records(domain.id);
+
           if (refreshed.data) set_dns_records(refreshed.data.records);
         }
         on_domains_changed();
+      } else {
+        show_toast(t("common.something_went_wrong"), "error");
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("common.something_went_wrong"), "error");
     } finally {
       set_dkim_rotating(false);
     }
@@ -140,20 +173,24 @@ export function DomainCardV2({
       if (response.data) {
         const { txt_verified, mx_verified, spf_verified, dkim_verified } =
           response.data;
-        const all_core = txt_verified && mx_verified && spf_verified && dkim_verified;
+        const all_core =
+          txt_verified && mx_verified && spf_verified && dkim_verified;
+
         if (!all_core) {
           show_toast(t("settings.verification_failed_retry"), "error");
         }
         if (dns_records) {
           const refreshed = await get_dns_records(domain.id);
+
           if (refreshed.data) set_dns_records(refreshed.data.records);
         }
         on_domains_changed();
-      } else if (response.error) {
+      } else {
         show_toast(t("settings.verification_failed_retry"), "error");
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("settings.verification_failed_retry"), "error");
     } finally {
       set_verifying(false);
     }
@@ -162,6 +199,7 @@ export function DomainCardV2({
   const handle_view_dns = async () => {
     if (show_dns) {
       set_show_dns(false);
+
       return;
     }
 
@@ -172,9 +210,12 @@ export function DomainCardV2({
 
         if (response.data) {
           set_dns_records(response.data.records);
+        } else {
+          show_toast(t("common.something_went_wrong"), "error");
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error(err);
+        show_toast(t("common.something_went_wrong"), "error");
       } finally {
         set_dns_loading(false);
       }
@@ -196,7 +237,7 @@ export function DomainCardV2({
             {expanded ? (
               <ChevronDownIcon className="w-4 h-4 text-txt-muted" />
             ) : (
-              <ChevronRightIcon className="w-4 h-4 text-txt-muted" />
+              <ChevronRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
             )}
           </Button>
 
@@ -215,7 +256,9 @@ export function DomainCardV2({
                     {get_status_label(domain.status)}
                   </span>
                   <span className="text-xs text-txt-muted">
-                    {t("settings.verified_count", { count: verification_count })}
+                    {t("settings.verified_count", {
+                      count: verification_count,
+                    })}
                   </span>
                 </>
               )}
@@ -226,7 +269,7 @@ export function DomainCardV2({
         <div className="flex items-center gap-2">
           {domain.status !== "active" && (
             <Button size="md" variant="depth" onClick={() => on_setup(domain)}>
-              <ArrowRightIcon className="w-3.5 h-3.5" />
+              <ArrowRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
               {t("settings.continue_setup")}
             </Button>
           )}
@@ -295,13 +338,13 @@ export function DomainCardV2({
               ) : show_dns ? (
                 <ChevronDownIcon className="w-4 h-4" />
               ) : (
-                <ChevronRightIcon className="w-4 h-4" />
+                <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
               )}
               {t("settings.view_dns_records")}
             </button>
 
             {show_dns && dns_records && (
-              <div className="space-y-2 mb-4 pl-6">
+              <div className="space-y-2 mb-4 ps-6">
                 {dns_records.map((record, index) => (
                   <DnsRecordCard key={index} record={record} />
                 ))}
@@ -318,15 +361,15 @@ export function DomainCardV2({
                   {show_advanced ? (
                     <ChevronDownIcon className="w-4 h-4" />
                   ) : (
-                    <ChevronRightIcon className="w-4 h-4" />
+                    <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
                   )}
                   {t("settings.advanced_settings")}
                 </button>
 
                 {show_advanced && (
-                  <div className="space-y-4 pl-6">
+                  <div className="space-y-4 ps-6">
                     <div className="flex items-center justify-between py-4">
-                      <div className="flex-1 pr-4">
+                      <div className="flex-1 pe-4">
                         <p className="text-sm font-medium text-txt-primary">
                           {t("settings.catch_all_label")}
                         </p>
@@ -334,8 +377,11 @@ export function DomainCardV2({
                           {t("settings.catch_all_description")}
                         </p>
                       </div>
-                      <Switch size="lg"
-                        checked={domain.catch_all_enabled}
+                      <Switch
+                        aria-label={t("settings.catch_all_label")}
+                        checked={catch_all_pending ?? domain.catch_all_enabled}
+                        disabled={catch_all_saving}
+                        size="lg"
                         onCheckedChange={handle_toggle_catch_all}
                       />
                     </div>

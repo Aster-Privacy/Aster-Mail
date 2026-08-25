@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Badge, BadgePreferences } from "@/services/api/user";
+import type { StepUpCredentials } from "@/services/api/step_up";
+import type { RecoveryEmailData } from "@/services/api/recovery_email";
 
 import { useEffect, useState, useCallback } from "react";
 import {
@@ -27,6 +29,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { Button, Switch } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
@@ -46,7 +49,6 @@ import { cn } from "@/lib/utils";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { StepUpModal } from "@/components/settings/step_up_modal";
-import type { StepUpCredentials } from "@/services/api/step_up";
 import {
   Modal,
   ModalHeader,
@@ -55,7 +57,6 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Button, Switch } from "@aster/ui";
 import {
   fetch_my_badges,
   fetch_badge_preferences,
@@ -64,7 +65,6 @@ import {
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_recovery_email,
   save_recovery_email,
@@ -73,7 +73,10 @@ import {
   normalize_recovery_email,
   EMPTY_RECOVERY_EMAIL,
 } from "@/services/api/recovery_email";
-import type { RecoveryEmailData } from "@/services/api/recovery_email";
+import { app_locale } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
+import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -108,17 +111,19 @@ function RecoveryModal({
   }, [is_open, current]);
 
   const handle_save = async () => {
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const trimmed_email = email.trim();
+
+    if (!trimmed_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed_email)) {
       set_error(t("common.enter_valid_email"));
 
       return;
     }
     set_saving(true);
     try {
-      await on_save(email);
+      await on_save(trimmed_email);
       on_close();
     } catch (err) {
-      set_error(err instanceof Error ? err.message : t("common.failed_to_save"));
+      set_error(user_facing_error(err, t("common.failed_to_save")));
     } finally {
       set_saving(false);
     }
@@ -140,7 +145,9 @@ function RecoveryModal({
           type="email"
           value={email}
           onChange={(e) => set_email(e.target.value)}
-          onKeyDown={(e) => e["key"] === "Enter" && handle_save()}
+          onKeyDown={(e) =>
+            e["key"] === "Enter" && !is_composing(e) && handle_save()
+          }
         />
         {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
       </ModalBody>
@@ -152,7 +159,7 @@ function RecoveryModal({
           {saving ? (
             <>
               {t("common.saving")}
-              <Spinner className="ml-2" size="md" />
+              <Spinner className="ms-2" size="md" />
             </>
           ) : (
             t("common.save")
@@ -191,10 +198,13 @@ export function AccountSection({
   );
   const [saving_name, set_saving_name] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
-  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
+  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(
+    null,
+  );
   const [is_badge_saving, set_is_badge_saving] = useState(false);
   const [recovery, set_recovery] =
     useState<RecoveryEmailData>(EMPTY_RECOVERY_EMAIL);
+  const [recovery_load_failed, set_recovery_load_failed] = useState(false);
   const [show_recovery_modal, set_show_recovery_modal] = useState(false);
   const [resending, set_resending] = useState(false);
   const [show_step_up, set_show_step_up] = useState(false);
@@ -203,6 +213,20 @@ export function AccountSection({
   );
   const [pending_recovery_email, set_pending_recovery_email] = useState("");
   const [show_reset_confirm, set_show_reset_confirm] = useState(false);
+
+  const reload_recovery = useCallback(async () => {
+    if (!vault) return;
+    const response = await get_recovery_email(vault).catch(() => ({
+      data: null,
+    }));
+
+    if (response.data) {
+      set_recovery(response.data);
+      set_recovery_load_failed(false);
+    } else {
+      set_recovery_load_failed(true);
+    }
+  }, [vault]);
 
   useEffect(() => {
     const run = async () => {
@@ -213,7 +237,7 @@ export function AccountSection({
             fetch_badge_preferences(),
             vault
               ? get_recovery_email(vault).catch(() => ({
-                  data: EMPTY_RECOVERY_EMAIL,
+                  data: null,
                 }))
               : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
           ]);
@@ -223,7 +247,12 @@ export function AccountSection({
           set_badge_prefs(prefs_response.data);
           set_my_badge_prefs(prefs_response.data);
         }
-        if (recovery_response.data) set_recovery(recovery_response.data);
+        if (recovery_response.data) {
+          set_recovery(recovery_response.data);
+          set_recovery_load_failed(false);
+        } else {
+          set_recovery_load_failed(true);
+        }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
       }
@@ -272,7 +301,7 @@ export function AccountSection({
   };
 
   const save_recovery = async (email: string) => {
-    if (!vault) return;
+    if (!vault) throw new Error(t("common.something_went_wrong_try_again"));
 
     const normalized = normalize_recovery_email(email);
 
@@ -359,8 +388,9 @@ export function AccountSection({
     }
   };
 
-
   const handle_save_name = useCallback(async () => {
+    if (saving_name) return;
+
     const trimmed = display_name.trim();
 
     if (!trimmed || !user || trimmed === (user.display_name || user.username))
@@ -370,16 +400,23 @@ export function AccountSection({
       const { update_display_name } = await import("@/services/api/user");
       const r = await update_display_name(trimmed);
 
-      if (r.data?.user)
+      if (r.data?.user) {
         await update_user({
           ...user,
           display_name: r.data.user.display_name || undefined,
         });
+      } else {
+        show_toast(r.error || t("common.failed_to_save"), "error");
+      }
     } catch (caught) {
-      ignore_error("pages/mobile/settings/account_section:handle_resend", caught);
+      ignore_error(
+        "pages/mobile/settings/account_section:handle_save_name",
+        caught,
+      );
+      show_toast(t("common.failed_to_save"), "error");
     }
     set_saving_name(false);
-  }, [display_name, user, update_user]);
+  }, [display_name, saving_name, user, update_user, t]);
 
   return (
     <div className="flex h-full flex-col">
@@ -411,7 +448,7 @@ export function AccountSection({
                 size="xl"
               />
             </span>
-            <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]">
+            <span className="absolute bottom-0 end-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]">
               {uploading ? (
                 <Spinner size="xs" />
               ) : (
@@ -452,11 +489,12 @@ export function AccountSection({
           <div className="flex items-center gap-2 px-4 py-3">
             <Input
               className="min-w-0 flex-1 bg-transparent"
+              maxLength={MAX_DISPLAY_NAME_LENGTH}
               value={display_name}
               onBlur={handle_save_name}
               onChange={(e) => set_display_name(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handle_save_name();
+                if (e.key === "Enter" && !is_composing(e)) handle_save_name();
               }}
             />
             {saving_name && <Spinner size="xs" />}
@@ -497,6 +535,7 @@ export function AccountSection({
                         profile_color: prev || undefined,
                       });
                     }
+                    show_toast(t("common.failed_save_profile_color"), "error");
                   }
                 }}
               >
@@ -540,7 +579,7 @@ export function AccountSection({
                     <span className="truncate">{badge.display_name}</span>
                     {badge.find_order != null && (
                       <span className="tabular-nums opacity-80">
-                        #{badge.find_order.toLocaleString()}
+                        #{badge.find_order.toLocaleString(app_locale())}
                       </span>
                     )}
                   </button>
@@ -596,8 +635,21 @@ export function AccountSection({
             </div>
           )}
           <SettingsRow
-            label={recovery.exists ? t("common.update") : t("common.add")}
-            on_press={() => set_show_recovery_modal(true)}
+            label={
+              recovery_load_failed
+                ? t("common.retry")
+                : recovery.exists
+                  ? t("common.update")
+                  : t("common.add")
+            }
+            on_press={() => {
+              if (recovery_load_failed) {
+                reload_recovery();
+
+                return;
+              }
+              set_show_recovery_modal(true);
+            }}
           />
           {recovery.exists && !recovery.verified && (
             <SettingsRow

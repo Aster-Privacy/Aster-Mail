@@ -26,6 +26,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { is_composing } from "@/utils/ime";
 
 const MAX_DISPLAY_NAME_LENGTH = 128;
 
@@ -113,23 +114,26 @@ export function AliasDisplayNameEditor({
     }
 
     set_saving(true);
+
+    let saved = false;
+
     try {
       const response = await on_save(cleaned);
 
       if (response.error) {
         show_toast(t("common.failed_update_alias_display_name"), "error");
-        set_value(display_name ?? "");
       } else {
+        saved = true;
         on_saved(cleaned);
         show_toast(t("common.alias_display_name_updated"), "success");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       show_toast(t("common.failed_update_alias_display_name"), "error");
-      set_value(display_name ?? "");
     } finally {
       set_saving(false);
-      exit_edit();
+      if (saved) exit_edit();
+      else commit_lock.current = false;
     }
   };
 
@@ -140,6 +144,8 @@ export function AliasDisplayNameEditor({
   };
 
   const handle_key_down = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (is_composing(event)) return;
+
     if (event.key === "Enter") {
       event.preventDefault();
       commit_save();
@@ -196,7 +202,7 @@ export function AliasDisplayNameEditor({
     return (
       <button
         aria-label={aria_label}
-        className={`mt-1 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-left text-[13px] leading-5 ${
+        className={`mt-1 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-start text-[13px] leading-5 ${
           has_name
             ? "text-[var(--mobile-text-muted)]"
             : "text-[var(--mobile-text-muted)] opacity-70"
@@ -213,7 +219,7 @@ export function AliasDisplayNameEditor({
   return (
     <button
       aria-label={aria_label}
-      className={`mt-0.5 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-left text-xs leading-4 transition-colors hover:text-txt-secondary ${
+      className={`mt-0.5 flex w-full min-w-0 items-center gap-1.5 ${cursor_class} text-start text-xs leading-4 transition-colors hover:text-txt-secondary ${
         has_name ? "text-txt-tertiary" : "text-txt-muted"
       } focus:outline-none focus:ring-0`}
       type="button"

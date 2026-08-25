@@ -23,7 +23,12 @@
 import { useState } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 
-import { Modal, ModalHeader, ModalTitle, ModalBody } from "@/components/ui/modal";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+} from "@/components/ui/modal";
 import {
   SecurityLockIcon,
   type SecurityStatus,
@@ -35,6 +40,7 @@ function get_status(bar_pct: number): SecurityStatus {
   if (bar_pct < 35) return "weak";
   if (bar_pct < 60) return "fair";
   if (bar_pct < 90) return "partial";
+
   return "strong";
 }
 
@@ -53,13 +59,12 @@ interface AccountProtectionScoreProps {
   block_tracking_pixels: boolean;
   block_remote_images: boolean;
   strip_exif_on_compose: boolean;
-  read_receipts_off: boolean;
   security_loaded?: boolean;
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
-const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
-const MAX_SCORE = 8;
+const WEIGHTS = [1, 1, 1, 1, 1, 1, 1] as const;
+const MAX_SCORE = 7;
 
 export function AccountProtectionScore({
   totp_enabled,
@@ -69,7 +74,6 @@ export function AccountProtectionScore({
   block_tracking_pixels,
   block_remote_images,
   strip_exif_on_compose,
-  read_receipts_off,
   security_loaded = true,
   on_criterion_click,
 }: AccountProtectionScoreProps) {
@@ -86,7 +90,6 @@ export function AccountProtectionScore({
     block_tracking_pixels,
     block_remote_images,
     strip_exif_on_compose,
-    read_receipts_off,
   ];
 
   const criteria_labels = [
@@ -97,7 +100,6 @@ export function AccountProtectionScore({
     t("settings.block_spy_pixels"),
     t("settings.block_remote_images_label"),
     t("settings.strip_exif_on_compose_label"),
-    t("settings.criterion_read_receipts_off"),
   ];
 
   const score = criteria_met.reduce(
@@ -129,12 +131,17 @@ export function AccountProtectionScore({
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <SecurityLockIcon className="h-5 w-5 flex-shrink-0" status={status} />
+            <SecurityLockIcon
+              className="h-5 w-5 flex-shrink-0"
+              status={status}
+            />
             <p className="text-sm font-semibold text-txt-primary">
-              {t("settings.account_security_percent_title", { percent: bar_pct })}
+              {t("settings.account_security_percent_title", {
+                percent: bar_pct,
+              })}
             </p>
           </div>
-          <p className="text-sm text-txt-muted mt-1 ml-7">
+          <p className="text-sm text-txt-muted mt-1 ms-7">
             {t("settings.account_security_review_subtitle")}
           </p>
         </div>
@@ -158,7 +165,9 @@ export function AccountProtectionScore({
           <button
             className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
             type="button"
-            onClick={() => update_preference("account_security_banner_dismissed", true, true)}
+            onClick={() =>
+              update_preference("account_security_banner_dismissed", true, true)
+            }
           >
             {t("settings.account_security_dont_show_again")}
           </button>
@@ -168,8 +177,8 @@ export function AccountProtectionScore({
       <div className="relative z-10">
         <Modal
           is_open={popover_open}
-          size="sm"
           on_close={() => set_popover_open(false)}
+          size="sm"
         >
           <ModalHeader>
             <ModalTitle>{t("settings.protection_breakdown_title")}</ModalTitle>
@@ -183,7 +192,7 @@ export function AccountProtectionScore({
                 return (
                   <li key={label}>
                     <button
-                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors text-left ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
+                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors text-start ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
                       disabled={!is_clickable}
                       type="button"
                       onClick={() => {
@@ -196,7 +205,9 @@ export function AccountProtectionScore({
                         className="w-4 h-4 flex-shrink-0"
                         status={criteria_met[i] ? "strong" : "weak"}
                       />
-                      <span className={`text-sm flex-1 ${criteria_met[i] ? "text-txt-primary" : "text-txt-muted"}`}>
+                      <span
+                        className={`text-sm flex-1 ${criteria_met[i] ? "text-txt-primary" : "text-txt-muted"}`}
+                      >
                         {label}
                       </span>
                       {!criteria_met[i] && (
@@ -205,7 +216,7 @@ export function AccountProtectionScore({
                         </span>
                       )}
                       {is_clickable && (
-                        <ChevronRightIcon className="w-3.5 h-3.5 text-txt-muted flex-shrink-0" />
+                        <ChevronRightIcon className="w-3.5 h-3.5 text-txt-muted flex-shrink-0 rtl:-scale-x-100" />
                       )}
                     </button>
                   </li>

@@ -20,15 +20,9 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import {
-  DocumentArrowUpIcon,
-} from "@heroicons/react/24/outline";
+import { DocumentArrowUpIcon } from "@heroicons/react/24/outline";
 
-
-import {
-  type ImportSource,
-} from "@/services/api/email_import";
-
+import { type ImportSource } from "@/services/api/email_import";
 
 export type OAuthProvider = "google" | "microsoft" | "yahoo";
 
@@ -49,21 +43,36 @@ export const PROVIDERS: ProviderRow[] = [
   {
     id: "gmail",
     icon: (
-      <img alt="" aria-hidden="true" className="w-6 h-6 object-contain" src="/providers/gmail_logo.svg" />
+      <img
+        alt=""
+        aria-hidden="true"
+        className="w-6 h-6 object-contain"
+        src="/providers/gmail_logo.svg"
+      />
     ),
     label_key: "settings.gmail_import",
   },
   {
     id: "outlook",
     icon: (
-      <img alt="" aria-hidden="true" className="w-6 h-6 object-contain" src="/providers/outlook_logo.svg" />
+      <img
+        alt=""
+        aria-hidden="true"
+        className="w-6 h-6 object-contain"
+        src="/providers/outlook_logo.svg"
+      />
     ),
     label_key: "settings.outlook_import",
   },
   {
     id: "yahoo",
     icon: (
-      <img alt="" aria-hidden="true" className="w-6 h-6 object-contain" src="/providers/yahoo_mail_logo.svg" />
+      <img
+        alt=""
+        aria-hidden="true"
+        className="w-6 h-6 object-contain"
+        src="/providers/yahoo_mail_logo.svg"
+      />
     ),
     label_key: "settings.yahoo_import",
   },
@@ -73,4 +82,3 @@ export const PROVIDERS: ProviderRow[] = [
     label_key: "settings.manual_import",
   },
 ];
-

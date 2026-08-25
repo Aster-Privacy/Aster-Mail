@@ -30,6 +30,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 import {
   SettingsGroup,
@@ -41,6 +42,7 @@ import {
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { Spinner } from "@/components/ui/spinner";
@@ -88,8 +90,6 @@ import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { useNavigate } from "react-router-dom";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 function base64_to_array(base64: string): Uint8Array {
@@ -125,6 +125,8 @@ export function SecuritySection({
   const [show_regenerate_codes, set_show_regenerate_codes] = useState(false);
   const [login_alerts_enabled, set_login_alerts_enabled] = useState(false);
   const [login_alerts_loading, set_login_alerts_loading] = useState(false);
+  const [login_alerts_loaded, set_login_alerts_loaded] = useState(false);
+  const [login_alerts_failed, set_login_alerts_failed] = useState(false);
   const [show_password_change, set_show_password_change] = useState(false);
   const [current_password, set_current_password] = useState("");
   const [new_password, set_new_password] = useState("");
@@ -142,6 +144,24 @@ export function SecuritySection({
     message: string;
   } | null>(null);
 
+  const fetch_alerts = useCallback(async () => {
+    try {
+      const res = await get_login_alerts_status();
+
+      if (res.data) {
+        set_login_alerts_enabled(res.data.enabled);
+        set_login_alerts_loaded(true);
+        set_login_alerts_failed(false);
+      } else {
+        set_login_alerts_failed(true);
+      }
+    } catch (err) {
+      if (import.meta.env.DEV)
+        console.error("failed to fetch login alerts status", err);
+      set_login_alerts_failed(true);
+    }
+  }, []);
+
   useEffect(() => {
     const fetch_status = async () => {
       try {
@@ -153,28 +173,10 @@ export function SecuritySection({
           console.error("failed to fetch TOTP status", err);
       }
     };
-    const fetch_alerts = async () => {
-      try {
-        const res = await get_login_alerts_status();
-
-        if (res.data) set_login_alerts_enabled(res.data.enabled);
-      } catch (err) {
-        if (import.meta.env.DEV)
-          console.error("failed to fetch login alerts status", err);
-      }
-    };
 
     fetch_status();
     fetch_alerts();
-  }, []);
-
-  const handle_two_factor_toggle = useCallback(() => {
-    if (totp_status?.enabled) {
-      set_show_totp_disable(true);
-    } else {
-      set_show_totp_setup(true);
-    }
-  }, [totp_status]);
+  }, [fetch_alerts]);
 
   const refetch_totp_status = useCallback(async () => {
     try {
@@ -186,6 +188,20 @@ export function SecuritySection({
         console.error("failed to fetch TOTP status", err);
     }
   }, []);
+
+  const handle_two_factor_toggle = useCallback(() => {
+    if (!totp_status) {
+      show_toast(t("settings.failed_load_security_status"), "error");
+      void refetch_totp_status();
+
+      return;
+    }
+    if (totp_status.enabled) {
+      set_show_totp_disable(true);
+    } else {
+      set_show_totp_setup(true);
+    }
+  }, [totp_status, refetch_totp_status, t]);
 
   const handle_totp_setup_success = useCallback(() => {
     set_totp_status((prev) => ({
@@ -202,6 +218,7 @@ export function SecuritySection({
 
   const handle_login_alerts_toggle = useCallback(async () => {
     if (login_alerts_loading) return;
+    if (!login_alerts_loaded) return;
     set_login_alerts_loading(true);
     const new_value = !login_alerts_enabled;
 
@@ -209,13 +226,17 @@ export function SecuritySection({
     try {
       const res = await set_login_alerts(new_value);
 
-      if (res.error || !res.data?.success) set_login_alerts_enabled(!new_value);
+      if (res.error || !res.data?.success) {
+        set_login_alerts_enabled(!new_value);
+        show_toast(res.error || t("common.something_went_wrong"), "error");
+      }
     } catch {
       set_login_alerts_enabled(!new_value);
+      show_toast(t("common.something_went_wrong"), "error");
     } finally {
       set_login_alerts_loading(false);
     }
-  }, [login_alerts_enabled, login_alerts_loading]);
+  }, [login_alerts_enabled, login_alerts_loaded, login_alerts_loading, t]);
 
   const handle_change_password = useCallback(async () => {
     set_pw_error("");
@@ -323,12 +344,18 @@ export function SecuritySection({
                   server_vault_response.data.vault_nonce,
                 );
               } catch (caught) {
-                ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught);
+                ignore_error(
+                  "pages/mobile/settings/security_section:fetch_alerts",
+                  caught,
+                );
               }
             }
           }
         } catch (caught) {
-          ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught);
+          ignore_error(
+            "pages/mobile/settings/security_section:fetch_alerts",
+            caught,
+          );
         }
 
         if (!healed_from_server && is_master_key_vault(memory_vault)) {
@@ -497,12 +524,12 @@ export function SecuritySection({
           `astermail_encrypted_vault_${user.id}`,
           new_enc_vault,
         );
-        localStorage.setItem(
-          `astermail_vault_nonce_${user.id}`,
-          new_v_nonce,
-        );
+        localStorage.setItem(`astermail_vault_nonce_${user.id}`, new_v_nonce);
       } catch (caught) {
-        ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught);
+        ignore_error(
+          "pages/mobile/settings/security_section:fetch_alerts",
+          caught,
+        );
       }
 
       reset_vault_refresh_state();
@@ -516,11 +543,22 @@ export function SecuritySection({
       }
 
       if (master_key_mode) {
-        reencrypt_all_sent_mail(current_password, new_password).catch((caught) => ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught));
+        reencrypt_all_sent_mail(current_password, new_password).catch(
+          (caught) =>
+            ignore_error(
+              "pages/mobile/settings/security_section:fetch_alerts",
+              caught,
+            ),
+        );
         reencrypt_identity_scoped_password_change(
           old_identity_key,
           vault.identity_key,
-        ).catch((caught) => ignore_error("pages/mobile/settings/security_section:fetch_alerts", caught));
+        ).catch((caught) =>
+          ignore_error(
+            "pages/mobile/settings/security_section:fetch_alerts",
+            caught,
+          ),
+        );
       }
 
       if (unreadable_item_count > 0) {
@@ -533,16 +571,21 @@ export function SecuritySection({
       }
 
       set_pw_success(true);
+      show_toast(t("settings.password_changed_success"), "success");
       set_show_password_change(false);
       set_current_password("");
       set_new_password("");
       set_confirm_password("");
     } catch (err) {
-      set_pw_error(
-        err instanceof Error
-          ? err.message
-          : t("settings.failed_change_password"),
-      );
+      const msg = err instanceof Error ? err.message : "";
+
+      if (msg.startsWith("alias_reencrypt_failed:")) {
+        set_pw_error(t("settings.alias_reencrypt_failed"));
+      } else if (msg.startsWith("contact_reencrypt_failed:")) {
+        set_pw_error(t("settings.contact_reencrypt_failed"));
+      } else {
+        set_pw_error(msg || t("settings.failed_change_password"));
+      }
     } finally {
       set_pw_loading(false);
     }
@@ -563,7 +606,12 @@ export function SecuritySection({
           message: res.error || t("settings.failed_sign_out"),
         });
       } else if (res.data) {
-        set_logout_others_result({ success: true, message: res.data.message });
+        set_logout_others_result({
+          success: true,
+          message: t("settings.sign_out_everywhere_success", {
+            count: res.data.sessions_revoked ?? 0,
+          }),
+        });
       }
     } catch {
       set_logout_others_result({
@@ -623,10 +671,9 @@ export function SecuritySection({
             totp_status.backup_codes_remaining !== undefined && (
               <div className="px-4 pb-3">
                 <p className="text-[12px] text-[var(--text-muted)]">
-                  {t("settings.two_fa_enabled").replace(
-                    "{{count}}",
-                    String(totp_status.backup_codes_remaining),
-                  )}
+                  {t("settings.two_fa_enabled", {
+                    count: totp_status.backup_codes_remaining,
+                  })}
                 </p>
               </div>
             )}
@@ -648,10 +695,21 @@ export function SecuritySection({
             icon={<BellIcon className="h-4 w-4" />}
             label={t("settings.login_alerts")}
             trailing={
-              <Switch
-                checked={login_alerts_enabled}
-                onCheckedChange={handle_login_alerts_toggle}
-              />
+              login_alerts_failed && !login_alerts_loaded ? (
+                <button
+                  className="text-xs font-medium text-accent-primary hover:underline"
+                  type="button"
+                  onClick={() => void fetch_alerts()}
+                >
+                  {t("common.retry")}
+                </button>
+              ) : (
+                <Switch
+                  checked={login_alerts_enabled}
+                  disabled={!login_alerts_loaded}
+                  onCheckedChange={handle_login_alerts_toggle}
+                />
+              )
             }
           />
         </SettingsGroup>
@@ -669,6 +727,20 @@ export function SecuritySection({
                     !preferences.external_link_warning_dismissed,
                     true,
                   )
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.strip_exif_on_compose_label")}>
+          <SettingsRow
+            label={t("settings.strip_exif_on_compose_label")}
+            trailing={
+              <Switch
+                checked={preferences.strip_exif_on_compose}
+                onCheckedChange={(v) =>
+                  update_preference("strip_exif_on_compose", v, true)
                 }
               />
             }
@@ -719,7 +791,11 @@ export function SecuritySection({
                     }
                     type="button"
                     onClick={() =>
-                      update_preference("session_timeout_minutes", opt.value, true)
+                      update_preference(
+                        "session_timeout_minutes",
+                        opt.value,
+                        true,
+                      )
                     }
                   >
                     {opt.label}
@@ -812,6 +888,11 @@ export function SecuritySection({
                 label={t("settings.change_password")}
                 on_press={() => set_show_password_change(true)}
               />
+              {pw_success && (
+                <p className="px-4 pb-3 text-[13px] text-green-500">
+                  {t("settings.password_changed_success")}
+                </p>
+              )}
               {pw_unreadable_notice && (
                 <p className="px-4 pb-3 text-[13px] text-[var(--color-warning,#f59e0b)]">
                   {pw_unreadable_notice}
@@ -822,16 +903,19 @@ export function SecuritySection({
             <div className="space-y-3 px-4 py-3">
               <div className="relative">
                 <Input
+                  autoComplete="current-password"
                   className="w-full"
+                  maxLength={128}
                   placeholder={t("settings.current_password")}
                   status={pw_error ? "error" : "default"}
                   type={show_current_pw ? "text" : "password"}
                   value={current_password}
-                  maxLength={128}
-                  onChange={(e) => set_current_password(clamp_password(e.target.value))}
+                  onChange={(e) =>
+                    set_current_password(clamp_password(e.target.value))
+                  }
                 />
                 <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                   type="button"
                   onClick={() => set_show_current_pw(!show_current_pw)}
                 >
@@ -844,7 +928,9 @@ export function SecuritySection({
               </div>
               <div className="relative">
                 <Input
+                  autoComplete="new-password"
                   className="w-full"
+                  maxLength={128}
                   placeholder={t("settings.new_password")}
                   status={pw_error ? "error" : "default"}
                   type={show_new_pw ? "text" : "password"}
@@ -856,14 +942,13 @@ export function SecuritySection({
                       set_pw_breach_warning(result.is_breached);
                     }
                   }}
-                  maxLength={128}
                   onChange={(e) => {
                     set_new_password(clamp_password(e.target.value));
                     set_pw_breach_warning(false);
                   }}
                 />
                 <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                   type="button"
                   onClick={() => set_show_new_pw(!show_new_pw)}
                 >
@@ -883,13 +968,16 @@ export function SecuritySection({
                 </p>
               )}
               <Input
+                autoComplete="new-password"
                 className="w-full"
+                maxLength={128}
                 placeholder={t("settings.confirm_new_password")}
                 status={pw_error ? "error" : "default"}
                 type="password"
                 value={confirm_password}
-                maxLength={128}
-                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  set_confirm_password(clamp_password(e.target.value))
+                }
               />
               {pw_error && (
                 <p className="text-[13px] text-[var(--color-danger,#ef4444)]">
@@ -903,7 +991,8 @@ export function SecuritySection({
               )}
               <div className="flex gap-2">
                 <button
-                  className="flex-1 rounded-[16px] bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)]"
+                  className="flex-1 rounded-[16px] bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)] disabled:opacity-50"
+                  disabled={pw_loading}
                   type="button"
                   onClick={() => {
                     set_show_password_change(false);

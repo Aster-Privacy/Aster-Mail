@@ -92,7 +92,7 @@ export function FolderSelectionSection({
                 key={folder_path}
                 className="flex items-center gap-2 px-3 py-1.5 transition-colors hover:bg-surf-hover"
                 style={{
-                  paddingLeft: `${12 + depth * 16}px`,
+                  paddingInlineStart: `${12 + depth * 16}px`,
                 }}
               >
                 <Checkbox
@@ -126,7 +126,7 @@ export function FolderSelectionSection({
             <div className="px-3 py-2 text-xs text-txt-muted">
               {t("settings.showing_folders", {
                 shown: "200",
-                total: String(available_folders.length),
+                total: available_folders.length,
               })}
             </div>
           )}

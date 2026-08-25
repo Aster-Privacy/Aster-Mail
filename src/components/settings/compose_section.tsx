@@ -59,12 +59,30 @@ export function ComposeSection() {
   );
   const has_font_color = font_color !== DEFAULT_COMPOSE_FONT_COLOR;
 
+  const expand_short_hex = (value: string) => {
+    const trimmed = value.trim();
+    const short = /^#([0-9a-fA-F]{3})$/.exec(trimmed);
+
+    return short
+      ? `#${short[1]
+          .split("")
+          .map((c) => c + c)
+          .join("")}`
+      : trimmed;
+  };
+
   const commit_font_color = (value: string) => {
-    update_preference(
-      "compose_font_color",
-      normalize_compose_font_color(value),
-      true,
-    );
+    const expanded = expand_short_hex(value);
+    const normalized = normalize_compose_font_color(expanded);
+
+    if (
+      normalized === DEFAULT_COMPOSE_FONT_COLOR &&
+      expanded !== DEFAULT_COMPOSE_FONT_COLOR
+    ) {
+      return;
+    }
+
+    update_preference("compose_font_color", normalized, true);
   };
 
   return (
@@ -99,7 +117,7 @@ export function ComposeSection() {
         />
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.compose_default_font_color")}
             </p>

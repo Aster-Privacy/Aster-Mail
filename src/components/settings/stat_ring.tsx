@@ -69,7 +69,8 @@ export function StatRing({
 }: StatRingProps) {
   const radius = 16;
   const circumference = 2 * Math.PI * radius;
-  const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : value > 0 ? 1 : 0;
+  const ratio =
+    max > 0 ? Math.min(1, Math.max(0, value / max)) : value > 0 ? 1 : 0;
   const dash = circumference * ratio;
 
   return (
@@ -77,25 +78,25 @@ export function StatRing({
       <div className="relative flex-shrink-0 w-11 h-11">
         <svg className="w-11 h-11 -rotate-90" viewBox="0 0 40 40">
           <circle
+            className="text-edge-secondary"
             cx="20"
             cy="20"
-            r={radius}
             fill="none"
+            r={radius}
             stroke="currentColor"
-            className="text-edge-secondary"
             strokeWidth={4}
           />
           {dash > 0 && (
             <circle
+              className={`${color_class} transition-all duration-500`}
               cx="20"
               cy="20"
-              r={radius}
               fill="none"
+              r={radius}
               stroke="currentColor"
-              className={`${color_class} transition-all duration-500`}
-              strokeWidth={4}
-              strokeLinecap="round"
               strokeDasharray={`${dash} ${circumference}`}
+              strokeLinecap="round"
+              strokeWidth={4}
             />
           )}
         </svg>
@@ -108,7 +109,11 @@ export function StatRing({
           {display_value ?? value}
         </p>
         <p className="text-xs text-txt-muted mt-0.5 truncate">{label}</p>
-        {sublabel && <p className="text-[11px] text-txt-muted mt-0.5 truncate">{sublabel}</p>}
+        {sublabel && (
+          <p className="text-[11px] text-txt-muted mt-0.5 truncate">
+            {sublabel}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -133,27 +138,33 @@ export function SemicircleGauge({
   return (
     <div className="relative flex flex-col items-center w-full max-w-[220px]">
       <svg
+        aria-label={`${Math.round(clamped_percent)}%`}
         className="w-full h-auto"
         role="img"
-        aria-label={`${Math.round(clamped_percent)}%`}
         viewBox="0 0 200 106"
       >
         <path
+          className="text-edge-secondary"
           d={describe_semicircle_arc(center_x, center_y, radius, 0, 180)}
           fill="none"
           stroke="currentColor"
-          className="text-edge-secondary"
-          strokeWidth={stroke_width}
           strokeLinecap="round"
+          strokeWidth={stroke_width}
         />
         {clamped_percent > 0 && (
           <path
-            d={describe_semicircle_arc(center_x, center_y, radius, 0, progress_angle)}
+            className="transition-all duration-500"
+            d={describe_semicircle_arc(
+              center_x,
+              center_y,
+              radius,
+              0,
+              progress_angle,
+            )}
             fill="none"
             stroke="var(--accent-color)"
-            className="transition-all duration-500"
-            strokeWidth={stroke_width}
             strokeLinecap="round"
+            strokeWidth={stroke_width}
           />
         )}
       </svg>

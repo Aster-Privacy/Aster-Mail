@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { SettingsHeader } from "./shared";
+
 import { AliasDirectoriesSection as AliasDirectoriesContent } from "@/components/settings/alias_directories_section";
 import { use_i18n } from "@/lib/i18n/context";
 

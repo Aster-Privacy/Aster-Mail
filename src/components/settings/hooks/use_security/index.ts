@@ -19,4 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export { use_security } from "./hook";
-export { KEY_HISTORY_OPTIONS, KEY_ROTATION_OPTIONS, SESSION_TIMEOUT_OPTIONS } from "./options";
+export {
+  KEY_HISTORY_OPTIONS,
+  KEY_ROTATION_OPTIONS,
+  SESSION_TIMEOUT_OPTIONS,
+} from "./options";

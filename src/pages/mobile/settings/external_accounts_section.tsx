@@ -36,6 +36,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
+import { Checkbox } from "@aster/ui";
 import { Button } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, chip_selected_style } from "./shared";
@@ -43,6 +44,7 @@ import { SettingsGroup, SettingsHeader, chip_selected_style } from "./shared";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   use_external_accounts,
@@ -63,6 +65,7 @@ export function ExternalAccountsSection({
 }) {
   const state = use_external_accounts();
   const [show_form, set_show_form] = useState(false);
+  const [timeout_input, set_timeout_input] = useState<string | null>(null);
 
   useEffect(() => {
     if (!state.show_add_form && !state.editing_account) {
@@ -216,7 +219,10 @@ export function ExternalAccountsSection({
                   {state.t("settings.username")}
                 </label>
                 <Input
+                  autoCapitalize="none"
                   autoComplete="username"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className="w-full"
                   maxLength={254}
                   placeholder={state.t("settings.username_placeholder")}
@@ -232,7 +238,7 @@ export function ExternalAccountsSection({
                 <div className="relative">
                   <Input
                     autoComplete="current-password"
-                    className="w-full pr-10"
+                    className="w-full pe-10"
                     placeholder={
                       state.editing_account
                         ? state.t("settings.re_enter_password")
@@ -245,7 +251,7 @@ export function ExternalAccountsSection({
                     }
                   />
                   <button
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1"
+                    className="absolute end-2.5 top-1/2 -translate-y-1/2 p-1"
                     type="button"
                     onClick={() =>
                       state.set_show_password(!state.show_password)
@@ -264,6 +270,7 @@ export function ExternalAccountsSection({
                   {state.t("settings.use_tls")}
                 </span>
                 <Switch
+                  aria-label={state.t("settings.use_tls")}
                   checked={state.form_use_tls}
                   onCheckedChange={(checked) =>
                     state.set_form_use_tls(checked === true)
@@ -280,6 +287,7 @@ export function ExternalAccountsSection({
                   {state.t("settings.same_as_incoming")}
                 </span>
                 <Switch
+                  aria-label={state.t("settings.same_as_incoming")}
                   checked={state.smtp_same_as_incoming}
                   onCheckedChange={(checked) =>
                     state.handle_smtp_same_toggle(checked)
@@ -326,7 +334,10 @@ export function ExternalAccountsSection({
                       {state.t("settings.smtp_username")}
                     </label>
                     <Input
+                      autoCapitalize="none"
                       autoComplete="username"
+                      autoCorrect="off"
+                      spellCheck={false}
                       className="w-full"
                       maxLength={254}
                       placeholder={state.t("settings.username_placeholder")}
@@ -344,7 +355,7 @@ export function ExternalAccountsSection({
                     <div className="relative">
                       <Input
                         autoComplete="current-password"
-                        className="w-full pr-10"
+                        className="w-full pe-10"
                         placeholder={
                           state.editing_account
                             ? state.t("settings.re_enter_password")
@@ -357,7 +368,7 @@ export function ExternalAccountsSection({
                         }
                       />
                       <button
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1"
+                        className="absolute end-2.5 top-1/2 -translate-y-1/2 p-1"
                         type="button"
                         onClick={() =>
                           state.set_show_smtp_password(
@@ -378,6 +389,7 @@ export function ExternalAccountsSection({
                       {state.t("settings.use_tls")}
                     </span>
                     <Switch
+                      aria-label={state.t("settings.use_tls")}
                       checked={state.form_smtp_use_tls}
                       onCheckedChange={(checked) =>
                         state.set_form_smtp_use_tls(checked === true)
@@ -494,9 +506,9 @@ export function ExternalAccountsSection({
                       return (
                         <button
                           key={folder_path}
-                          className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                          className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start active:bg-[var(--mobile-bg-card-hover)]"
                           disabled={!is_selectable}
-                          style={{ paddingLeft: `${12 + depth * 16}px` }}
+                          style={{ paddingInlineStart: `${12 + depth * 16}px` }}
                           type="button"
                           onClick={() =>
                             state.handle_folder_toggle(folder_path)
@@ -540,7 +552,7 @@ export function ExternalAccountsSection({
 
           <div className="px-4 py-1.5">
             <button
-              className="flex w-full items-center gap-2 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-left"
+              className="flex w-full items-center gap-2 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-start"
               type="button"
               onClick={() => state.set_show_advanced(!state.show_advanced)}
             >
@@ -589,10 +601,14 @@ export function ExternalAccountsSection({
                       max={120}
                       min={5}
                       type="number"
-                      value={state.form_connection_timeout}
-                      onChange={(e) =>
-                        state.handle_connection_timeout_change(e.target.value)
-                      }
+                      value={timeout_input ?? state.form_connection_timeout}
+                      onBlur={(e) => {
+                        state.handle_connection_timeout_change(e.target.value);
+                        set_timeout_input(null);
+                      }}
+                      onChange={(e) => set_timeout_input(e.target.value)}
+                      onFocus={(e) => set_timeout_input(e.target.value)}
+                      onKeyDown={commit_on_enter}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -600,6 +616,7 @@ export function ExternalAccountsSection({
                       {state.t("settings.archive_sent_label")}
                     </span>
                     <Switch
+                      aria-label={state.t("settings.archive_sent_label")}
                       checked={state.form_archive_sent}
                       onCheckedChange={(checked) =>
                         state.set_form_archive_sent(checked === true)
@@ -613,6 +630,7 @@ export function ExternalAccountsSection({
                       {state.t("settings.delete_after_fetch_label")}
                     </span>
                     <Switch
+                      aria-label={state.t("settings.delete_after_fetch_label")}
                       checked={state.form_delete_after_fetch}
                       onCheckedChange={(checked) =>
                         state.set_form_delete_after_fetch(checked === true)
@@ -755,7 +773,20 @@ export function ExternalAccountsSection({
           )}
         </div>
 
-        {state.accounts.length === 0 ? (
+        {state.load_error && state.accounts.length === 0 ? (
+          <div className="px-4 py-10 text-center">
+            <p className="text-[14px] text-[var(--text-muted)]">
+              {state.t("common.something_went_wrong_try_again")}
+            </p>
+            <button
+              className="mt-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+              type="button"
+              onClick={() => state.reload_accounts()}
+            >
+              {state.t("common.retry")}
+            </button>
+          </div>
+        ) : state.accounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-8 py-16">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--bg-secondary)]">
               <ServerStackIcon className="h-7 w-7 text-[var(--text-muted)]" />
@@ -859,7 +890,7 @@ export function ExternalAccountsSection({
                         {account.email_count > 0 && (
                           <span className="text-[11px] text-[var(--text-muted)]">
                             {state.t("settings.email_count", {
-                              count: String(account.email_count),
+                              count: account.email_count,
                             })}
                           </span>
                         )}
@@ -879,6 +910,7 @@ export function ExternalAccountsSection({
                       )}
                     </div>
                     <Switch
+                      aria-label={account.email}
                       checked={account.is_enabled}
                       onCheckedChange={() => state.handle_toggle(account)}
                     />
@@ -896,7 +928,7 @@ export function ExternalAccountsSection({
                       {state.t("common.sync")}
                     </button>
                     <button
-                      className="flex flex-1 items-center justify-center gap-1.5 border-l border-[var(--border-primary)] py-2.5 text-[13px] text-[var(--text-secondary)] active:bg-[var(--mobile-bg-card-hover)]"
+                      className="flex flex-1 items-center justify-center gap-1.5 border-s border-[var(--border-primary)] py-2.5 text-[13px] text-[var(--text-secondary)] active:bg-[var(--mobile-bg-card-hover)]"
                       type="button"
                       onClick={() => start_edit(account)}
                     >
@@ -904,12 +936,12 @@ export function ExternalAccountsSection({
                       {state.t("common.edit")}
                     </button>
                     <button
-                      className="flex flex-1 items-center justify-center gap-1.5 border-l border-[var(--border-primary)] py-2.5 text-[13px] text-[var(--color-danger,#ef4444)] active:bg-[var(--mobile-bg-card-hover)]"
+                      className="flex flex-1 items-center justify-center gap-1.5 border-s border-[var(--border-primary)] py-2.5 text-[13px] text-[var(--color-danger,#ef4444)] active:bg-[var(--mobile-bg-card-hover)]"
                       type="button"
                       onClick={() => state.set_purge_target(account)}
                     >
                       <TrashIcon className="h-3.5 w-3.5" />
-                      {state.t("common.delete_mail")}
+                      {state.t("settings.connected_accounts_disconnect")}
                     </button>
                   </div>
                 </div>
@@ -923,16 +955,29 @@ export function ExternalAccountsSection({
         confirm_text={
           state.is_purging
             ? state.t("common.deleting")
-            : state.t("common.delete_mail")
+            : state.t("settings.connected_accounts_disconnect")
+        }
+        extra_content={
+          <label className="mt-4 flex items-center gap-2.5 cursor-pointer select-none">
+            <Checkbox
+              checked={state.purge_also_delete_messages}
+              onCheckedChange={(v) =>
+                state.set_purge_also_delete_messages(v === true)
+              }
+            />
+            <span className="text-[13px] leading-none text-[var(--text-secondary)]">
+              {state.t("settings.disconnect_delete_messages_label")}
+            </span>
+          </label>
         }
         is_open={!!state.purge_target}
-        message={state.t("settings.purge_confirm_message", {
-          count: String(state.purge_target?.email_count ?? 0),
-          email: state.purge_target?.email ?? state.t("settings.this_account"),
-        })}
-        on_cancel={() => state.set_purge_target(null)}
+        message={state.t("settings.disconnect_confirm")}
+        on_cancel={() => {
+          state.set_purge_target(null);
+          state.set_purge_also_delete_messages(false);
+        }}
         on_confirm={state.handle_purge_confirm}
-        title={state.t("common.delete_imported_emails")}
+        title={state.t("settings.disconnect_title")}
         variant="danger"
       />
     </div>

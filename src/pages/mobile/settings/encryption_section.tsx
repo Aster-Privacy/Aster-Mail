@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
@@ -168,12 +169,13 @@ export function EncryptionSection({
               {t("settings.enter_password_confirm")}
             </p>
             <Input
+              autoComplete="current-password"
               className="w-full"
+              maxLength={128}
               placeholder={t("auth.password")}
               status={auth_error ? "error" : "default"}
               type="password"
               value={password}
-              maxLength={128}
               onChange={(e) => set_password(clamp_password(e.target.value))}
               onKeyDown={(e) =>
                 e.key === "Enter" && !totp_required && handle_authenticate()
@@ -276,7 +278,8 @@ export function EncryptionSection({
                 </div>
                 <span className="text-[10px] font-mono text-purple-200/40 tracking-wider">
                   {enc.pgp_key
-                    ? enc.format_fingerprint(enc.pgp_key.fingerprint)
+                    ? enc
+                        .format_fingerprint(enc.pgp_key.fingerprint)
                         .split(" ")
                         .slice(0, 2)
                         .join(" ")
@@ -450,13 +453,13 @@ export function EncryptionSection({
                         type="button"
                         onClick={async () => {
                           try {
-                            await navigator.clipboard.writeText(code);
+                            await copy_text_or_throw(code);
                             show_toast(
                               t("settings.copied_to_clipboard"),
                               "success",
                             );
                           } catch {
-                            /* */
+                            show_toast(t("common.failed_to_copy"), "error");
                           }
                         }}
                       >
@@ -522,7 +525,7 @@ export function EncryptionSection({
             </p>
             <div className="flex flex-col gap-2">
               <button
-                className="rounded-[14px] border-2 overflow-hidden text-left"
+                className="rounded-[14px] border-2 overflow-hidden text-start"
                 style={{
                   borderColor:
                     enc.preferences.storage_format === "aster"
@@ -549,7 +552,7 @@ export function EncryptionSection({
                 </div>
               </button>
               <button
-                className="rounded-[14px] border-2 overflow-hidden text-left"
+                className="rounded-[14px] border-2 overflow-hidden text-start"
                 style={{
                   borderColor:
                     enc.preferences.storage_format === "ipfs"
@@ -603,9 +606,7 @@ export function EncryptionSection({
             trailing={
               <Switch
                 checked={enc.preferences.require_encryption}
-                onCheckedChange={(v) =>
-                  enc.update_preference("require_encryption", v, true)
-                }
+                onCheckedChange={() => enc.handle_require_encryption_toggle()}
               />
             }
           />
@@ -689,7 +690,11 @@ export function EncryptionSection({
                     }
                     type="button"
                     onClick={() =>
-                      enc.update_preference("key_rotation_hours", opt.value, true)
+                      enc.update_preference(
+                        "key_rotation_hours",
+                        opt.value,
+                        true,
+                      )
                     }
                   >
                     {opt.label}
@@ -722,7 +727,11 @@ export function EncryptionSection({
                     }
                     type="button"
                     onClick={() =>
-                      enc.update_preference("key_history_limit", opt.value, true)
+                      enc.update_preference(
+                        "key_history_limit",
+                        opt.value,
+                        true,
+                      )
                     }
                   >
                     {opt.label}
@@ -758,12 +767,14 @@ export function EncryptionSection({
               <Input
                 autoFocus
                 className="w-full"
+                maxLength={128}
                 placeholder={t("common.enter_password_prompt")}
                 status={enc.export_error ? "error" : "default"}
                 type="password"
                 value={enc.export_password}
-                maxLength={128}
-                onChange={(e) => enc.set_export_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  enc.set_export_password(clamp_password(e.target.value))
+                }
                 onKeyDown={(e) =>
                   e.key === "Enter" && enc.handle_export_secret_key()
                 }
@@ -867,12 +878,14 @@ export function EncryptionSection({
               />
               <Input
                 className="w-full"
+                maxLength={128}
                 placeholder={t("common.enter_password_prompt")}
                 status={enc.regenerate_error ? "error" : "default"}
                 type="password"
                 value={enc.regenerate_password}
-                maxLength={128}
-                onChange={(e) => enc.set_regenerate_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  enc.set_regenerate_password(clamp_password(e.target.value))
+                }
                 onKeyDown={(e) =>
                   e.key === "Enter" &&
                   enc.regenerate_confirm_text.toLowerCase() === "regenerate" &&

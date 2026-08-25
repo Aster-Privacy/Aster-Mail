@@ -20,6 +20,18 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 
+import {
+  EditorState,
+  IMAGE_MAGIC_BYTES,
+  MAX_IMAGE_SIZE,
+  SignatureMode,
+  escape_html,
+  has_editor_content,
+  initial_editor_state,
+  validate_image_magic_bytes,
+} from "./helpers";
+
+import { ignore_error } from "@/lib/ignore_error";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -43,8 +55,6 @@ import {
   is_signature_bindable_sender,
 } from "@/hooks/use_sender_aliases";
 
-import { EditorState, IMAGE_MAGIC_BYTES, MAX_IMAGE_SIZE, SignatureMode, escape_html, has_editor_content, initial_editor_state, validate_image_magic_bytes } from "./helpers";
-
 export function use_signature_section() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -60,11 +70,27 @@ export function use_signature_section() {
   const [has_badges, set_has_badges] = useState(false);
 
   useEffect(() => {
-    fetch_my_badges().then((r) => {
-      if (r.data && r.data.length > 0) set_has_badges(true);
-    });
+    let cancelled = false;
+
+    fetch_my_badges()
+      .then((r) => {
+        if (cancelled) return;
+        if (r.data && r.data.length > 0) set_has_badges(true);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/signature_section/use_signature_section:badges",
+          caught,
+        ),
+      );
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
   const [error, set_error] = useState<string | null>(null);
+  const [editor_error, set_editor_error] = useState<string | null>(null);
+  const [has_unreadable, set_has_unreadable] = useState(false);
   const [editor, set_editor] = useState<EditorState>(initial_editor_state);
   const [deleting_id, set_deleting_id] = useState<string | null>(null);
   const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
@@ -72,6 +98,8 @@ export function use_signature_section() {
   );
   const editor_div_ref = useRef<HTMLDivElement>(null);
   const image_input_ref = useRef<HTMLInputElement>(null);
+  const [confirm_discard_open, set_confirm_discard_open] = useState(false);
+  const editor_baseline_ref = useRef<string>("");
   const [show_link_dialog, set_show_link_dialog] = useState(false);
   const [selected_text_for_link, set_selected_text_for_link] = useState("");
 
@@ -179,6 +207,10 @@ export function use_signature_section() {
       set_error(response.error);
     } else if (response.data) {
       set_signatures(response.data.signatures);
+      set_has_unreadable(
+        typeof response.data.total === "number" &&
+          response.data.total > response.data.signatures.length,
+      );
     }
 
     set_is_loading(false);
@@ -200,6 +232,8 @@ export function use_signature_section() {
   };
 
   const open_create_editor = () => {
+    set_editor_error(null);
+    editor_baseline_ref.current = "";
     set_editor({
       is_open: true,
       editing_id: null,
@@ -210,9 +244,18 @@ export function use_signature_section() {
       placement: null,
       show_validation: false,
     });
+    requestAnimationFrame(() => {
+      editor_baseline_ref.current = JSON.stringify({
+        name: "",
+        alias_id: null,
+        placement: null,
+        content: rich_editor.get_html(),
+      });
+    });
   };
 
   const open_edit_editor = (signature: DecryptedSignature) => {
+    set_editor_error(null);
     set_editor({
       is_open: true,
       editing_id: signature.id,
@@ -223,6 +266,7 @@ export function use_signature_section() {
       placement: signature.placement,
       show_validation: false,
     });
+    editor_baseline_ref.current = "";
     requestAnimationFrame(() => {
       if (editor_div_ref.current) {
         const html = signature.is_html
@@ -231,11 +275,42 @@ export function use_signature_section() {
 
         rich_editor.set_html(html);
       }
+      editor_baseline_ref.current = JSON.stringify({
+        name: signature.name,
+        alias_id: signature.alias_id,
+        placement: signature.placement,
+        content: rich_editor.get_html(),
+      });
     });
   };
 
   const close_editor = () => {
+    set_editor_error(null);
+    editor_baseline_ref.current = "";
+    set_confirm_discard_open(false);
     set_editor(initial_editor_state);
+  };
+
+  const request_close_editor = () => {
+    if (editor.is_saving) return;
+
+    const current = JSON.stringify({
+      name: editor.name,
+      alias_id: editor.alias_id,
+      placement: editor.placement,
+      content: rich_editor.get_html(),
+    });
+
+    if (
+      editor_baseline_ref.current !== "" &&
+      current !== editor_baseline_ref.current
+    ) {
+      set_confirm_discard_open(true);
+
+      return;
+    }
+
+    close_editor();
   };
 
   const handle_save = async () => {
@@ -247,6 +322,7 @@ export function use_signature_section() {
       return;
     }
 
+    set_editor_error(null);
     set_editor((prev) => ({ ...prev, is_saving: true }));
 
     const temp = document.createElement("div");
@@ -279,7 +355,7 @@ export function use_signature_section() {
       const response = await update_signature(editor.editing_id, form_data);
 
       if (response.error) {
-        set_error(response.error);
+        set_editor_error(response.error);
         set_editor((prev) => ({ ...prev, is_saving: false }));
 
         return;
@@ -305,7 +381,7 @@ export function use_signature_section() {
       const response = await create_signature(form_data, is_first);
 
       if (response.error) {
-        set_error(response.error);
+        set_editor_error(response.error);
         set_editor((prev) => ({ ...prev, is_saving: false }));
 
         return;
@@ -316,7 +392,7 @@ export function use_signature_section() {
           id: response.data.id,
           name: form_data.name,
           content: form_data.content,
-          is_default: is_first && !form_data.alias_id,
+          is_default: is_first,
           is_html: has_rich_content,
           alias_id: form_data.alias_id ?? null,
           placement: form_data.placement ?? null,
@@ -338,19 +414,38 @@ export function use_signature_section() {
 
     if (response.error) {
       set_error(response.error);
-    } else {
-      set_signatures((prev) => {
-        const filtered = prev.filter((sig) => sig.id !== id);
+      set_deleting_id(null);
 
-        if (filtered.length > 0 && !filtered.some((s) => s.is_default)) {
-          filtered[0].is_default = true;
-        }
-
-        return filtered;
-      });
-      reload_context_signatures();
+      return;
     }
 
+    const remaining = signatures.filter((sig) => sig.id !== id);
+    const needs_promotion =
+      remaining.length > 0 && !remaining.some((sig) => sig.is_default);
+
+    if (needs_promotion) {
+      const promoted = remaining[0];
+      const promote_response = await set_default_signature(promoted.id);
+
+      if (promote_response.error) {
+        set_error(promote_response.error);
+        load_signatures();
+        set_deleting_id(null);
+
+        return;
+      }
+
+      set_signatures(
+        remaining.map((sig) => ({
+          ...sig,
+          is_default: sig.id === promoted.id,
+        })),
+      );
+    } else {
+      set_signatures(remaining);
+    }
+
+    reload_context_signatures();
     set_deleting_id(null);
   };
 
@@ -384,6 +479,8 @@ export function use_signature_section() {
     has_badges,
     error,
     set_error,
+    editor_error,
+    has_unreadable,
     editor,
     set_editor,
     deleting_id,
@@ -407,6 +504,9 @@ export function use_signature_section() {
     open_create_editor,
     open_edit_editor,
     close_editor,
+    request_close_editor,
+    confirm_discard_open,
+    set_confirm_discard_open,
     handle_save,
     handle_delete,
     handle_set_default,

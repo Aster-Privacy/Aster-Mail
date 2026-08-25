@@ -33,6 +33,7 @@ import {
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { copy_text } from "@/utils/copy_text";
 
 interface ReferralSectionProps {
   referral_info: ReferralInfo | null;
@@ -73,11 +74,16 @@ export function ReferralSection({
               <Button
                 className="h-9 px-3 text-sm"
                 variant="secondary"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    build_referral_invite_url(referral_info.referral_code),
-                  );
-                  show_toast(t("settings.link_copied"), "success");
+                onClick={async () => {
+                  if (
+                    await copy_text(
+                      build_referral_invite_url(referral_info.referral_code),
+                    )
+                  ) {
+                    show_toast(t("settings.link_copied"), "success");
+                  } else {
+                    show_toast(t("common.failed_to_copy"), "error");
+                  }
                 }}
               >
                 <ClipboardDocumentIcon className="w-4 h-4" />
@@ -91,7 +97,7 @@ export function ReferralSection({
                 </p>
                 <p className="text-xs text-txt-muted mt-1">
                   {t("settings.referral_commission_info", {
-                    percent: String(referral_info.commission_percent || 10),
+                    percent: referral_info.commission_percent || 10,
                   })}
                 </p>
               </>

@@ -66,6 +66,7 @@ import {
   build_stripe_element_style,
 } from "@/lib/stripe_appearance";
 import { stripe_locale } from "@/lib/stripe_locale";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 
 function get_pm_icon(pm_type: string) {
   switch (pm_type) {
@@ -561,7 +562,11 @@ export function PaymentMethodsModal({
 
     return (
       <div className="space-y-4">
-        {methods.length === 0 && !show_add_form && (
+        {methods.length === 0 && !show_add_form && load_failed && (
+          <LoadFailedNotice on_retry={fetch_methods} />
+        )}
+
+        {methods.length === 0 && !show_add_form && !load_failed && (
           <div
             className="rounded-lg border p-6 text-center"
             style={{
@@ -569,24 +574,13 @@ export function PaymentMethodsModal({
               borderColor: "var(--border-secondary)",
             }}
           >
-            {load_failed ? (
-              <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
-                {t("common.something_went_wrong_try_again")}
-              </p>
-            ) : (
-              <>
-                <CreditCardIcon
-                  className="w-8 h-8 mx-auto mb-2"
-                  style={{ color: "var(--text-tertiary)" }}
-                />
-                <p
-                  className="text-sm"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {t("settings.no_payment_methods")}
-                </p>
-              </>
-            )}
+            <CreditCardIcon
+              className="w-8 h-8 mx-auto mb-2"
+              style={{ color: "var(--text-tertiary)" }}
+            />
+            <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
+              {t("settings.no_payment_methods")}
+            </p>
           </div>
         )}
 

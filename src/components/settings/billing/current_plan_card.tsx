@@ -41,6 +41,7 @@ import {
   convert_cents,
   is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
+import { describe_plan } from "@/utils/billing_description";
 
 interface CurrentPlanCardProps {
   subscription: SubscriptionResponse | null;
@@ -80,6 +81,11 @@ export function CurrentPlanCard({
   const { t } = use_i18n();
   const is_paid_plan = subscription && subscription.plan.code !== "free";
   const is_crypto = is_crypto_provider(subscription?.payment_provider);
+  const plan_description = describe_plan(
+    subscription?.plan.code,
+    subscription?.plan.description,
+    t,
+  );
 
   return (
     <>
@@ -89,7 +95,7 @@ export function CurrentPlanCard({
           backgroundColor: "var(--accent-mix-b85, #326fd1)",
         }}
       >
-        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
+        <div className="absolute end-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
           <ShieldCheckIcon
             className="w-9 h-9 text-white/15"
             style={{ transform: "translateY(-18px) rotate(-12deg)" }}
@@ -127,7 +133,7 @@ export function CurrentPlanCard({
             onClick={on_scroll_to_plans}
           >
             {t("settings.billing_banner_cta")}
-            <ArrowRightIcon className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4 rtl:-scale-x-100" />
           </button>
         </div>
       </div>
@@ -141,7 +147,7 @@ export function CurrentPlanCard({
             </p>
             <p className="text-xs mt-1 text-red-100">
               {t("settings.grace_period_remaining", {
-                days: String(grace_days_remaining),
+                days: grace_days_remaining,
               })}
             </p>
             <button
@@ -203,9 +209,9 @@ export function CurrentPlanCard({
                   </span>
                 )}
               </div>
-              {is_paid_plan && subscription?.plan.description && (
+              {is_paid_plan && plan_description && (
                 <p className="text-xs mt-1 text-txt-muted">
-                  {subscription.plan.description}
+                  {plan_description}
                 </p>
               )}
               {!is_paid_plan && (
@@ -215,9 +221,15 @@ export function CurrentPlanCard({
               )}
             </div>
             {is_paid_plan && subscription.current_period_end && (
-              <div className="text-right">
+              <div className="text-end">
                 <span className="text-sm font-medium text-txt-secondary">
-                  {format_price(convert_cents(subscription.plan.price_cents, preferred_currency), preferred_currency)}
+                  {format_price(
+                    convert_cents(
+                      subscription.plan.price_cents,
+                      preferred_currency,
+                    ),
+                    preferred_currency,
+                  )}
                   <span className="text-xs font-normal text-txt-muted">
                     {subscription.plan.billing_period?.startsWith("year")
                       ? t("settings.per_year_short")
@@ -322,7 +334,7 @@ export function CurrentPlanCard({
               onClick={on_scroll_to_plans}
             >
               {t("settings.upgrade_for_more")}
-              <ArrowRightIcon className="w-4 h-4 ml-1" />
+              <ArrowRightIcon className="w-4 h-4 ms-1 rtl:-scale-x-100" />
             </Button>
           )}
         </div>

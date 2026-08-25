@@ -32,11 +32,11 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   count_inactive_key_sets,
   restore_inactive_key_sets,
 } from "@/services/crypto/restore_inactive_keys";
+import { is_composing } from "@/utils/ime";
 
 export function RecoverOlderDataSection() {
   const { t } = use_i18n();
@@ -54,7 +54,12 @@ export function RecoverOlderDataSection() {
       .then((count) => {
         if (!cancelled) set_pending(count);
       })
-      .catch((caught) => ignore_error("components/settings/security/recover_older_data_section:RecoverOlderDataSection", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/security/recover_older_data_section:RecoverOlderDataSection",
+          caught,
+        ),
+      );
 
     return () => {
       cancelled = true;
@@ -99,7 +104,7 @@ export function RecoverOlderDataSection() {
     <>
       <div className="py-4 px-1">
         <div className="flex items-center justify-between">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.recover_older_data_title")}
             </p>
@@ -128,22 +133,24 @@ export function RecoverOlderDataSection() {
             <div className="relative">
               <input
                 ref={password_ref}
-                type={show_password ? "text" : "password"}
                 autoComplete="off"
+                className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                 data-form-type="other"
-                className="w-full px-3 py-2.5 pr-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
-                value={old_password}
-                maxLength={128}
                 disabled={restoring}
-                onChange={(e) => set_old_password(clamp_password(e.target.value))}
+                maxLength={128}
+                type={show_password ? "text" : "password"}
+                value={old_password}
+                onChange={(e) =>
+                  set_old_password(clamp_password(e.target.value))
+                }
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handle_restore();
+                  if (e.key === "Enter" && !is_composing(e)) handle_restore();
                 }}
               />
               <button
-                type="button"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
                 tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
+                type="button"
                 onClick={() => set_show_password((v) => !v)}
               >
                 {show_password ? (
@@ -156,12 +163,12 @@ export function RecoverOlderDataSection() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button variant="outline" disabled={restoring} onClick={close}>
+          <Button disabled={restoring} variant="outline" onClick={close}>
             {t("common.cancel")}
           </Button>
           <Button
-            variant="depth"
             disabled={restoring || !old_password}
+            variant="depth"
             onClick={handle_restore}
           >
             {restoring ? (

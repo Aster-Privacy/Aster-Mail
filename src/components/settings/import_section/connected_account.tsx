@@ -18,29 +18,34 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
-import { useState, useEffect,  useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowPathIcon,
   ClockIcon,
   ExclamationTriangleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button, } from "@aster/ui";
+import { Button } from "@aster/ui";
 
+import { get_provider_icon } from "./provider_icon";
+import { format_relative_time } from "./status";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
+  emit_folders_changed,
+  emit_mail_changed,
+  emit_refresh_requested,
+} from "@/hooks/mail_events";
+import {
   get_sync_progress,
   type DecryptedExternalAccount,
   type SyncProgressEvent,
 } from "@/services/api/external_accounts";
-
-import { get_provider_icon } from "./provider_icon";
-import { format_relative_time } from "./status";
+import { app_locale } from "@/utils/date_format";
 
 export function ConnectedAccountCard({
   account,
@@ -120,18 +125,23 @@ export function ConnectedAccountCard({
       on_sync_finished_ref.current?.(account.account_token);
       on_refresh_ref.current();
       if (notify) {
-        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-        window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
-        window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+        emit_mail_changed();
+        emit_folders_changed();
+        emit_refresh_requested();
       }
       // Outcome toast only for a sync the user started from this card, so
       // background cron syncs observed in an open settings tab stay silent.
-      if (user_triggered && final?.status === "complete" && !final.error_message) {
+      if (
+        user_triggered &&
+        final?.status === "complete" &&
+        !final.error_message
+      ) {
         const imported = final.imported_messages ?? 0;
+
         if (imported > 0) {
           show_toast(
             t_ref.current("settings.sync_result_imported", {
-              count: imported.toLocaleString(),
+              count: imported.toLocaleString(app_locale()),
             }),
             "success",
           );
@@ -222,7 +232,9 @@ export function ConnectedAccountCard({
   // For OAuth accounts, the display_name is just the provider label ("Gmail").
   // Show the actual email address as the primary identifier instead.
   const primary_label =
-    account.protocol === "oauth_imap" && account.email && !account.email.endsWith("@import")
+    account.protocol === "oauth_imap" &&
+    account.email &&
+    !account.email.endsWith("@import")
       ? account.email
       : account.display_name;
 
@@ -242,9 +254,13 @@ export function ConnectedAccountCard({
       {/* Main row */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex-shrink-0 relative">
-          {get_provider_icon(account.protocol, account.email, account.oauth_provider)}
+          {get_provider_icon(
+            account.protocol,
+            account.email,
+            account.oauth_provider,
+          )}
           {needs_reauth && (
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-surf-secondary" />
+            <span className="absolute -top-0.5 -end-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-surf-secondary" />
           )}
         </div>
 
@@ -265,7 +281,9 @@ export function ConnectedAccountCard({
                 <ExclamationTriangleIcon className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate max-w-[220px]">
                   {account.last_sync_error
-                    ? account.last_sync_error.replace(/^IMAP authentication failed:\s*/i, "").slice(0, 70)
+                    ? account.last_sync_error
+                        .replace(/^IMAP authentication failed:\s*/i, "")
+                        .slice(0, 70)
                     : t("settings.connected_accounts_error")}
                 </span>
               </span>
@@ -284,7 +302,7 @@ export function ConnectedAccountCard({
                 <span aria-hidden="true">·</span>
                 <span>
                   {t("settings.connected_accounts_emails", {
-                    count: account.email_count.toLocaleString(),
+                    count: account.email_count.toLocaleString(app_locale()),
                   })}
                 </span>
               </>
@@ -307,9 +325,13 @@ export function ConnectedAccountCard({
             </Button>
           ) : purging_active ? null : (
             <Button
+              aria-label={
+                sync_active
+                  ? t("common.stop")
+                  : t("settings.connected_accounts_sync_now")
+              }
               size="sm"
               variant="outline"
-              aria-label={sync_active ? t("common.stop") : t("settings.connected_accounts_sync_now")}
               onClick={() => on_sync(account.account_token)}
             >
               {sync_active ? (
@@ -326,10 +348,12 @@ export function ConnectedAccountCard({
             </Button>
           )}
           <Button
+            aria-label={t("settings.connected_accounts_disconnect")}
+            disabled={
+              (is_setting_up_folders && !needs_reauth) || purging_active
+            }
             size="sm"
             variant="outline"
-            aria-label={t("settings.connected_accounts_disconnect")}
-            disabled={(is_setting_up_folders && !needs_reauth) || purging_active}
             onClick={() => on_disconnect(account.account_token)}
           >
             <TrashIcon className="w-4 h-4" />
@@ -345,8 +369,10 @@ export function ConnectedAccountCard({
             {t("settings.import_stage_setting_up_folders")}
           </div>
           <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
-            <div className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
-              style={{ width: "40%" }} />
+            <div
+              className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
+              style={{ width: "40%" }}
+            />
           </div>
         </div>
       )}
@@ -359,7 +385,9 @@ export function ConnectedAccountCard({
               </span>
               <span className="truncate text-txt-muted">
                 {t("settings.sync_progress_count", { processed, total })}
-                {progress?.current_folder ? ` · ${progress.current_folder}` : ""}
+                {progress?.current_folder
+                  ? ` · ${progress.current_folder}`
+                  : ""}
               </span>
             </span>
           </div>
@@ -381,8 +409,8 @@ export function ConnectedAccountCard({
             <span className="flex-1 truncate">
               {progress?.status === "purging" && total > 0
                 ? t("settings.purging_progress", {
-                    current: processed.toLocaleString(),
-                    total: total.toLocaleString(),
+                    current: processed.toLocaleString(app_locale()),
+                    total: total.toLocaleString(app_locale()),
                   })
                 : t("settings.purging_simple")}
             </span>
@@ -410,32 +438,34 @@ export function ConnectedAccountCard({
           </div>
         </div>
       )}
-      {!is_setting_up_folders && !purging_active && sync_active && !show_progress && (
-        <div className="px-4 pb-3">
-          <div className="flex items-center gap-2 text-xs text-txt-muted">
-            <Spinner className="text-brand flex-shrink-0" size="sm" />
-            <span className="flex-1">
-              {progress?.status === "checking"
-                ? t("settings.sync_checking_new")
-                : progress === null || progress.status === "fetching"
-                  ? t("settings.sync_progress_preparing")
-                  : t("settings.connected_accounts_syncing")}
-              {processed > 0
-                ? ` · ${t("settings.connected_accounts_emails", {
-                    count: processed.toLocaleString(),
-                  })}`
-                : ""}
-            </span>
+      {!is_setting_up_folders &&
+        !purging_active &&
+        sync_active &&
+        !show_progress && (
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-2 text-xs text-txt-muted">
+              <Spinner className="text-brand flex-shrink-0" size="sm" />
+              <span className="flex-1">
+                {progress?.status === "checking"
+                  ? t("settings.sync_checking_new")
+                  : progress === null || progress.status === "fetching"
+                    ? t("settings.sync_progress_preparing")
+                    : t("settings.connected_accounts_syncing")}
+                {processed > 0
+                  ? ` · ${t("settings.connected_accounts_emails", {
+                      count: processed.toLocaleString(app_locale()),
+                    })}`
+                  : ""}
+              </span>
+            </div>
+            <div className="mt-1.5 h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+              <div
+                className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
+                style={{ width: "40%" }}
+              />
+            </div>
           </div>
-          <div className="mt-1.5 h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
-            <div
-              className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
-              style={{ width: "40%" }}
-            />
-          </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
-

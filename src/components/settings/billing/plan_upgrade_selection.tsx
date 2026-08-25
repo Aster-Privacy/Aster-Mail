@@ -19,13 +19,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n";
+import { safe_local_set } from "@/lib/safe_storage";
 import type { AvailablePlan } from "@/services/api/billing";
 
 import { useState, useEffect, useCallback } from "react";
-import { ArrowTopRightOnSquareIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowTopRightOnSquareIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
 import { pricing_comparison_url } from "@/lib/canonical_urls";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -40,6 +45,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
+  family_yearly_savings_cents,
   FAMILY_PLAN_DUO_FEATURES,
   FAMILY_PLAN_FAMILY_FEATURES,
   type PlanTier,
@@ -84,7 +90,10 @@ function feature_list_for_tier(tier_id: string, t: TFunc): FeatureRow[] {
 
   if (tier_id === "star") {
     return [
-      { on: true, text: with_bold("50 GB", t("settings.encrypted_storage_suffix")) },
+      {
+        on: true,
+        text: with_bold("50 GB", t("settings.encrypted_storage_suffix")),
+      },
       { on: true, text: with_bold("15", t("settings.email_aliases_suffix")) },
       { on: true, text: with_bold("5", t("settings.custom_domains_suffix")) },
       { on: true, text: with_bold("50 MB", t("settings.attachments_suffix")) },
@@ -100,13 +109,18 @@ function feature_list_for_tier(tier_id: string, t: TFunc): FeatureRow[] {
       { on: false, text: t("settings.f_folder_lock") },
       { on: false, text: t("settings.plan_f_smart_folders") },
       { on: false, text: t("settings.lockdown_title") },
-      { on: false, text: t("settings.plan_f_read_receipts") },
     ];
   }
   if (tier_id === "nova") {
     return [
-      { on: true, text: with_bold("500 GB", t("settings.encrypted_storage_suffix")) },
-      { on: true, text: with_bold(unlimited, t("settings.email_aliases_suffix")) },
+      {
+        on: true,
+        text: with_bold("500 GB", t("settings.encrypted_storage_suffix")),
+      },
+      {
+        on: true,
+        text: with_bold(unlimited, t("settings.email_aliases_suffix")),
+      },
       { on: true, text: with_bold("30", t("settings.custom_domains_suffix")) },
       { on: true, text: with_bold("100 MB", t("settings.attachments_suffix")) },
       { on: true, text: with_bold(unlimited, t("settings.mail_rules_suffix")) },
@@ -121,14 +135,22 @@ function feature_list_for_tier(tier_id: string, t: TFunc): FeatureRow[] {
       { on: true, text: t("settings.f_folder_lock") },
       { on: true, text: t("settings.plan_f_smart_folders") },
       { on: true, text: t("settings.lockdown_title") },
-      { on: false, text: t("settings.plan_f_read_receipts") },
     ];
   }
 
   return [
-    { on: true, text: with_bold("5 TB", t("settings.encrypted_storage_suffix")) },
-    { on: true, text: with_bold(unlimited, t("settings.email_aliases_suffix")) },
-    { on: true, text: with_bold(unlimited, t("settings.custom_domains_suffix")) },
+    {
+      on: true,
+      text: with_bold("5 TB", t("settings.encrypted_storage_suffix")),
+    },
+    {
+      on: true,
+      text: with_bold(unlimited, t("settings.email_aliases_suffix")),
+    },
+    {
+      on: true,
+      text: with_bold(unlimited, t("settings.custom_domains_suffix")),
+    },
     { on: true, text: with_bold("250 MB", t("settings.attachments_suffix")) },
     { on: true, text: with_bold(unlimited, t("settings.mail_rules_suffix")) },
     { on: true, text: t("settings.f_e2ee") },
@@ -142,7 +164,6 @@ function feature_list_for_tier(tier_id: string, t: TFunc): FeatureRow[] {
     { on: true, text: t("settings.f_folder_lock") },
     { on: true, text: t("settings.plan_f_smart_folders") },
     { on: true, text: t("settings.lockdown_title") },
-    { on: true, text: t("settings.plan_f_read_receipts") },
   ];
 }
 
@@ -203,6 +224,7 @@ export function PlanUpgradeSelection({
   const [currency, set_currency] = useState<string>("usd");
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [is_finalizing, set_is_finalizing] = useState(false);
   const [pending_tier, set_pending_tier] = useState<{
     tier: PlanTier;
@@ -239,22 +261,24 @@ export function PlanUpgradeSelection({
     return () => window.removeEventListener("pageshow", handle_page_show);
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  const load_plans = useCallback(async () => {
+    set_is_loading(true);
+    set_plans_load_failed(false);
 
-    (async () => {
-      const res = await get_available_plans();
+    const res = await get_available_plans();
 
-      if (!cancelled) {
-        set_plans(res.data?.plans ?? []);
-        set_is_loading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    if (res.data) {
+      set_plans(res.data.plans);
+    } else {
+      set_plans([]);
+      set_plans_load_failed(true);
+    }
+    set_is_loading(false);
   }, []);
+
+  useEffect(() => {
+    void load_plans();
+  }, [load_plans]);
 
   const billing_interval: "month" | "year" =
     billing_period === "yearly" ? "year" : "month";
@@ -263,7 +287,7 @@ export function PlanUpgradeSelection({
     const next = e.target.value;
 
     set_currency(next);
-    localStorage.setItem(CURRENCY_STORAGE_KEY, next);
+    safe_local_set(CURRENCY_STORAGE_KEY, next);
   };
 
   const handle_select_tier = useCallback(
@@ -288,7 +312,7 @@ export function PlanUpgradeSelection({
       tier.plan.code,
       billing_interval,
       currency,
-    );
+    ).catch(() => ({ ok: false }));
 
     if (!result.ok) {
       set_is_finalizing(false);
@@ -319,7 +343,9 @@ export function PlanUpgradeSelection({
     set_pending_family_tier(null);
     set_is_finalizing(true);
 
-    const res = await create_family_group(tier.id, billing_interval);
+    const res = await create_family_group(tier.id, billing_interval).catch(
+      () => ({ data: undefined }),
+    );
 
     if (res.data?.checkout_url) {
       try {
@@ -397,6 +423,7 @@ export function PlanUpgradeSelection({
               return (
                 <button
                   key={p}
+                  aria-selected={active}
                   className="px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
                   role="tab"
                   style={{
@@ -406,11 +433,7 @@ export function PlanUpgradeSelection({
                     color: active ? "#ffffff" : "var(--text-tertiary)",
                   }}
                   type="button"
-                  onClick={() =>
-                    set_billing_period((prev) =>
-                      prev === "yearly" ? "monthly" : "yearly",
-                    )
-                  }
+                  onClick={() => set_billing_period(p)}
                 >
                   {p === "yearly"
                     ? t("settings.billing_yearly")
@@ -445,6 +468,10 @@ export function PlanUpgradeSelection({
             <Spinner size="md" />
             <span className="text-sm">{t("auth.plan_loading")}</span>
           </div>
+        ) : plans_load_failed ? (
+          <div className="w-full max-w-md mt-10">
+            <LoadFailedNotice on_retry={() => void load_plans()} />
+          </div>
         ) : plan_type === "family" ? (
           <div className="w-full grid gap-5 mt-10 md:grid-cols-2 max-w-3xl items-stretch">
             {FAMILY_PLAN_TIERS.map((tier) => {
@@ -452,10 +479,14 @@ export function PlanUpgradeSelection({
                 billing_period === "yearly"
                   ? tier.yearly_cents
                   : tier.monthly_cents;
-              const features =
+              const features = (
                 tier.max_members === 2
                   ? FAMILY_PLAN_DUO_FEATURES
-                  : FAMILY_PLAN_FAMILY_FEATURES;
+                  : FAMILY_PLAN_FAMILY_FEATURES
+              ).map((feature) => ({
+                label: t(feature.label_key),
+                on: feature.on,
+              }));
 
               return (
                 <div
@@ -491,10 +522,18 @@ export function PlanUpgradeSelection({
                       </span>
                       {billing_period === "yearly" && (
                         <span
-                          className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
+                          className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                           style={{ backgroundColor: "var(--accent-blue)" }}
                         >
-                          {tier.savings_label}
+                          {t("settings.save_yearly", {
+                            amount: format_price(
+                              convert_cents(
+                                family_yearly_savings_cents(tier),
+                                currency,
+                              ),
+                              currency,
+                            ),
+                          })}
                         </span>
                       )}
                     </div>
@@ -585,7 +624,7 @@ export function PlanUpgradeSelection({
                       </span>
                       {saves > 0 && (
                         <span
-                          className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
+                          className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                           style={{ backgroundColor: "var(--accent-blue)" }}
                         >
                           {t("settings.save_yearly", {

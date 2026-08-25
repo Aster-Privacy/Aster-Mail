@@ -321,6 +321,8 @@ export function DomainSetupWizard({
   const run_verification = async () => {
     if (!domain_id) return;
 
+    const previous_statuses = step_statuses;
+
     set_is_verifying(true);
     set_verification_message(null);
     set_step_statuses((prev) => prev.map(() => "checking"));
@@ -347,14 +349,14 @@ export function DomainSetupWizard({
         set_verification_message(result.message);
         on_domains_changed();
       } else {
-        set_step_statuses((prev) => prev.map(() => "pending"));
+        set_step_statuses(previous_statuses);
         set_verification_message(
           response.error || t("settings.verification_failed_retry"),
         );
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-      set_step_statuses((prev) => prev.map(() => "pending"));
+      set_step_statuses(previous_statuses);
       set_verification_message(t("settings.verification_failed_retry"));
     } finally {
       set_is_verifying(false);

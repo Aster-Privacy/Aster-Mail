@@ -22,6 +22,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
+import {
+  CRYPTO_INVOICE_CHANGED_EVENT,
+  notify_crypto_invoice_changed,
+} from "./billing_constants";
+
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { CoinIcon } from "@/components/ui/coin_icon";
 import { use_i18n } from "@/lib/i18n/context";
@@ -31,11 +36,6 @@ import {
   list_pending_crypto_invoices,
   type CryptoNativePendingInvoice,
 } from "@/services/api/billing";
-
-import {
-  CRYPTO_INVOICE_CHANGED_EVENT,
-  notify_crypto_invoice_changed,
-} from "./billing_constants";
 
 const DISMISSED_STORAGE_KEY = "aster_crypto_banner_dismissed";
 const REFRESH_INTERVAL_MS = 60_000;
@@ -110,7 +110,9 @@ interface CryptoResumeBannerProps {
   class_name?: string;
 }
 
-export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps) {
+export function CryptoResumeBanner({
+  class_name = "",
+}: CryptoResumeBannerProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const [invoices, set_invoices] = useState<CryptoNativePendingInvoice[]>([]);
@@ -239,6 +241,7 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
       set_is_cancelling(false);
 
       if (!response?.data) {
+        set_confirm_open(false);
         set_cancel_failed(true);
 
         return;
@@ -260,16 +263,12 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
       className={`rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 ${class_name}`}
     >
       <div className="flex items-center gap-3">
-        <CoinIcon
-          chain={invoice.chain}
-          currency={invoice.currency}
-          size={32}
-        />
+        <CoinIcon chain={invoice.chain} currency={invoice.currency} size={32} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-txt-primary">
             {pending_count > 1
               ? t("settings.crypto_native_pending_banner_multi", {
-                  count: String(pending_count),
+                  count: pending_count,
                 })
               : t("settings.crypto_native_pending_banner")}
           </p>
@@ -329,11 +328,11 @@ export function CryptoResumeBanner({ class_name = "" }: CryptoResumeBannerProps)
         </p>
       )}
       <ConfirmModal
+        hide_dont_ask
         confirm_text={t("settings.crypto_native_cancel_invoice")}
         confirm_variant="destructive"
         description={t("settings.crypto_native_cancel_confirm_body")}
         dont_ask={false}
-        hide_dont_ask
         on_cancel={handle_cancel_dismiss}
         on_confirm={handle_cancel_confirm}
         on_dont_ask_change={() => undefined}

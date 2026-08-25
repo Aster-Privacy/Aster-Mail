@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { apply_input_transform } from "@/utils/input_transform";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowDownTrayIcon,
@@ -228,10 +230,11 @@ export function RecoveryCodesModal({
 
   const handle_copy = async () => {
     try {
-      await navigator.clipboard.writeText(codes.join("\n"));
+      await copy_text_or_throw(codes.join("\n"));
       show_toast(t("auth.recovery_codes_copied"), "success");
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -240,6 +243,7 @@ export function RecoveryCodesModal({
       await generate_recovery_pdf(user?.email ?? "", codes, t);
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("common.download_failed"), "error");
     }
   };
 
@@ -248,6 +252,7 @@ export function RecoveryCodesModal({
       await download_recovery_text(user?.email ?? "", codes, t);
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
+      show_toast(t("common.download_failed"), "error");
     }
   };
 
@@ -258,9 +263,11 @@ export function RecoveryCodesModal({
 
   return (
     <Modal
+      close_on_escape={step === "verify"}
       close_on_overlay={false}
       is_open={is_open}
       on_close={handle_modal_close}
+      show_close_button={step === "verify"}
       size="md"
     >
       {step === "verify" ? (
@@ -321,7 +328,11 @@ export function RecoveryCodesModal({
                     type="text"
                     value={totp_code}
                     onChange={(e) => {
-                      set_totp_code(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      set_totp_code(
+                        apply_input_transform(e.target, (v) =>
+                          v.replace(/\D/g, "").slice(0, 6),
+                        ),
+                      );
                       if (error) set_error("");
                     }}
                     onKeyDown={(e) => e["key"] === "Enter" && handle_generate()}
@@ -392,7 +403,7 @@ export function RecoveryCodesModal({
                     key={index}
                     className="rounded-lg px-3 py-2.5 border flex items-center gap-2 bg-surf-tertiary border-edge-secondary"
                   >
-                    <span className="text-xs text-txt-muted w-5 text-right shrink-0">
+                    <span className="text-xs text-txt-muted w-5 text-end shrink-0">
                       {index + 1}.
                     </span>
                     <span
@@ -410,11 +421,11 @@ export function RecoveryCodesModal({
               </div>
               <div className="flex justify-center gap-2">
                 <Button variant="secondary" onClick={handle_download_pdf}>
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                  <ArrowDownTrayIcon className="w-4 h-4 me-2" />
                   {t("settings.download_pdf")}
                 </Button>
                 <Button variant="secondary" onClick={handle_download_text}>
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                  <ArrowDownTrayIcon className="w-4 h-4 me-2" />
                   {t("auth.download_as_text")}
                 </Button>
               </div>

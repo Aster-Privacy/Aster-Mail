@@ -64,10 +64,14 @@ type FilterMode = "all" | "enabled" | "disabled";
 
 const ALIASES_PER_PAGE = 50;
 
+const BULK_BATCH_SIZE = 10;
+
 interface AliasListProps {
   aliases: DecryptedEmailAlias[];
   domain_addresses: (DecryptedDomainAddress & { domain_name: string })[];
   aliases_loading: boolean;
+  aliases_load_failed?: boolean;
+  on_reload?: () => void;
   toggling_id: string | null;
   alias_deleting_id: string | null;
   domain_addr_deleting_id: string | null;
@@ -176,6 +180,9 @@ function UndecryptableAliasCard({
             <div className="flex items-center gap-2">
               <Input
                 autoFocus
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 className="h-8 text-xs"
                 disabled={restoring}
                 placeholder={t("settings.alias_restore_placeholder")}
@@ -234,6 +241,8 @@ export function AliasList({
   aliases,
   domain_addresses,
   aliases_loading,
+  aliases_load_failed,
+  on_reload,
   toggling_id,
   alias_deleting_id,
   domain_addr_deleting_id,
@@ -289,12 +298,48 @@ export function AliasList({
     return result;
   }, [aliases, search_query, filter_mode]);
 
+  const filtered_domain_addresses = useMemo(() => {
+    let result = domain_addresses;
+    const query = search_query.trim().toLowerCase();
+
+    if (query) {
+      result = result.filter(
+        (a) =>
+          `${a.local_part}@${a.domain_name}`.toLowerCase().includes(query) ||
+          (a.display_name ?? "").toLowerCase().includes(query),
+      );
+    }
+    if (filter_mode === "enabled") {
+      result = result.filter((a) => a.is_enabled);
+    } else if (filter_mode === "disabled") {
+      result = result.filter((a) => !a.is_enabled);
+    }
+
+    return result;
+  }, [domain_addresses, search_query, filter_mode]);
+
+  const filtered_entries = useMemo(
+    () => [
+      ...filtered_aliases.map((alias) => ({
+        kind: "alias" as const,
+        key: alias.id,
+        alias,
+      })),
+      ...filtered_domain_addresses.map((address) => ({
+        kind: "domain_address" as const,
+        key: `da-${address.id}`,
+        address,
+      })),
+    ],
+    [filtered_aliases, filtered_domain_addresses],
+  );
+
   const [current_page, set_current_page] = useState(0);
   const list_top_ref = useRef<HTMLDivElement>(null);
 
   const total_pages = Math.max(
     1,
-    Math.ceil(filtered_aliases.length / ALIASES_PER_PAGE),
+    Math.ceil(filtered_entries.length / ALIASES_PER_PAGE),
   );
 
   useEffect(() => {
@@ -302,18 +347,28 @@ export function AliasList({
   }, [search_query, filter_mode]);
 
   useEffect(() => {
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(filtered_aliases.map((a) => a.id));
+      const next = new Set(Array.from(prev).filter((id) => visible.has(id)));
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [filtered_aliases]);
+
+  useEffect(() => {
     if (current_page > total_pages - 1) {
       set_current_page(total_pages - 1);
     }
   }, [current_page, total_pages]);
 
-  const page_aliases = useMemo(
+  const page_entries = useMemo(
     () =>
-      filtered_aliases.slice(
+      filtered_entries.slice(
         current_page * ALIASES_PER_PAGE,
         current_page * ALIASES_PER_PAGE + ALIASES_PER_PAGE,
       ),
-    [filtered_aliases, current_page],
+    [filtered_entries, current_page],
   );
 
   const handle_page_change = (page: number) => {
@@ -346,34 +401,95 @@ export function AliasList({
     }
   };
 
-  const handle_bulk_enable = async () => {
+  const run_bulk_toggle = async (is_enabled: boolean) => {
     const ids = Array.from(selected_ids);
+    const results: { error?: string }[] = [];
 
-    await Promise.all(ids.map((id) => update_alias(id, { is_enabled: true })));
+    for (let index = 0; index < ids.length; index += BULK_BATCH_SIZE) {
+      const batch = ids.slice(index, index + BULK_BATCH_SIZE);
+
+      results.push(
+        ...(await Promise.all(
+          batch.map((id) =>
+            update_alias(id, { is_enabled }).catch((caught) => {
+              ignore_error(
+                "components/settings/aliases/alias_list:run_bulk_toggle",
+                caught,
+              );
+
+              return { error: "request_failed" };
+            }),
+          ),
+        )),
+      );
+    }
+    const failed = results.filter((result) => !!result.error).length;
+
     on_aliases_changed?.();
-    show_toast(t("settings.alias_bulk_enable"), "success");
+
+    if (failed > 0) {
+      show_toast(
+        t("settings.alias_bulk_update_partial_failed", {
+          count: failed,
+          total: ids.length,
+        }),
+        "error",
+      );
+
+      return;
+    }
+
+    show_toast(
+      is_enabled
+        ? t("settings.alias_bulk_enabled")
+        : t("settings.alias_bulk_disabled"),
+      "success",
+    );
+  };
+
+  const handle_bulk_enable = async () => {
+    await run_bulk_toggle(true);
   };
 
   const handle_bulk_disable = async () => {
-    const ids = Array.from(selected_ids);
-
-    await Promise.all(ids.map((id) => update_alias(id, { is_enabled: false })));
-    on_aliases_changed?.();
-    show_toast(t("settings.alias_bulk_disable"), "success");
+    await run_bulk_toggle(false);
   };
 
   const handle_bulk_delete_confirm = async () => {
-    try {
-      const ids = Array.from(selected_ids);
+    const ids = Array.from(selected_ids);
+    const results: { error?: string }[] = [];
 
-      await Promise.all(ids.map((id) => delete_alias(id)));
-      set_selected_ids(new Set());
-      set_show_bulk_delete_confirm(false);
-      on_aliases_changed?.();
-    } catch (caught) {
-      ignore_error(
-        "components/settings/aliases/alias_list:handle_bulk_delete_confirm",
-        caught,
+    for (let index = 0; index < ids.length; index += BULK_BATCH_SIZE) {
+      const batch = ids.slice(index, index + BULK_BATCH_SIZE);
+
+      results.push(
+        ...(await Promise.all(
+          batch.map((id) =>
+            delete_alias(id).catch((caught) => {
+              ignore_error(
+                "components/settings/aliases/alias_list:handle_bulk_delete_confirm",
+                caught,
+              );
+
+              return { error: "request_failed" };
+            }),
+          ),
+        )),
+      );
+    }
+    const failed_ids = ids.filter((_, index) => !!results[index].error);
+
+    set_selected_ids(new Set(failed_ids));
+    set_show_bulk_delete_confirm(false);
+    on_aliases_changed?.();
+
+    if (failed_ids.length > 0) {
+      show_toast(
+        t("settings.alias_bulk_delete_partial_failed", {
+          count: failed_ids.length,
+          total: ids.length,
+        }),
+        "error",
       );
     }
   };
@@ -402,6 +518,25 @@ export function AliasList({
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (
+    aliases_load_failed &&
+    aliases.length === 0 &&
+    domain_addresses.length === 0
+  ) {
+    return (
+      <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+        <p className="text-sm text-txt-secondary mb-3">
+          {t("settings.aliases_load_failed")}
+        </p>
+        {on_reload && (
+          <Button onClick={on_reload} size="sm" variant="outline">
+            {t("common.retry")}
+          </Button>
+        )}
       </div>
     );
   }
@@ -437,9 +572,9 @@ export function AliasList({
 
       <div className="flex items-center gap-2 mb-3">
         <div className="relative flex-1">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
+          <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
           <input
-            className="w-full h-9 pl-9 pr-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none focus:border-blue-500"
+            className="w-full h-9 ps-9 pe-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none focus:border-blue-500"
             placeholder={t("settings.alias_search_placeholder")}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
@@ -477,7 +612,7 @@ export function AliasList({
       {bulk_mode && (
         <div className="flex h-12 items-center justify-between gap-2 mb-3 px-1 border-b border-edge-secondary">
           <button
-            className="flex min-w-0 cursor-pointer items-center gap-2 text-left"
+            className="flex min-w-0 cursor-pointer items-center gap-2 text-start"
             type="button"
             onClick={() => handle_select_all(!all_filtered_selected)}
           >
@@ -489,7 +624,7 @@ export function AliasList({
             <span className="text-sm text-txt-muted tabular-nums">
               {selected_ids.size > 0
                 ? t("settings.alias_bulk_selected", {
-                    count: String(selected_ids.size),
+                    count: selected_ids.size,
                   })
                 : t("settings.alias_bulk_select_all")}
             </span>
@@ -535,30 +670,41 @@ export function AliasList({
       )}
 
       <div ref={list_top_ref} className="space-y-2">
-        {page_aliases.map((alias) =>
-          alias.decryption_failed ? (
+        {page_entries.map((entry) =>
+          entry.kind === "domain_address" ? (
+            <DomainAddressItem
+              key={entry.key}
+              address={entry.address}
+              deleting={domain_addr_deleting_id === entry.address.id}
+              is_avatar_locked={is_avatar_locked}
+              on_avatar_changed={on_avatar_changed}
+              on_delete={on_domain_addr_delete}
+              on_display_name_saved={on_domain_address_display_name_saved}
+              on_open_editor={() => on_open_domain_editor(entry.address.id)}
+            />
+          ) : entry.alias.decryption_failed ? (
             <UndecryptableAliasCard
-              key={alias.id}
-              alias={alias}
-              deleting={alias_deleting_id === alias.id}
+              key={entry.key}
+              alias={entry.alias}
+              deleting={alias_deleting_id === entry.alias.id}
               on_delete={on_alias_delete}
               on_restored={on_aliases_changed}
             />
           ) : (
             <AliasItem
-              key={alias.id}
-              alias={alias}
+              key={entry.key}
+              alias={entry.alias}
               bulk_mode={bulk_mode}
-              deleting={alias_deleting_id === alias.id}
+              deleting={alias_deleting_id === entry.alias.id}
               is_avatar_locked={is_avatar_locked}
-              is_selected={selected_ids.has(alias.id)}
+              is_selected={selected_ids.has(entry.alias.id)}
               on_avatar_changed={on_avatar_changed}
               on_delete={on_alias_delete}
-              on_open_editor={() => on_open_editor(alias.id)}
+              on_open_editor={() => on_open_editor(entry.alias.id)}
               on_pin_toggle={on_alias_pin_toggle}
               on_select={handle_select}
               on_toggle={on_alias_toggle}
-              toggling={toggling_id === alias.id}
+              toggling={toggling_id === entry.alias.id}
             />
           ),
         )}
@@ -568,18 +714,6 @@ export function AliasList({
         on_page_change={handle_page_change}
         total_pages={total_pages}
       />
-      {domain_addresses.map((addr) => (
-        <DomainAddressItem
-          key={`da-${addr.id}`}
-          address={addr}
-          deleting={domain_addr_deleting_id === addr.id}
-          is_avatar_locked={is_avatar_locked}
-          on_avatar_changed={on_avatar_changed}
-          on_delete={on_domain_addr_delete}
-          on_display_name_saved={on_domain_address_display_name_saved}
-          on_open_editor={() => on_open_domain_editor(addr.id)}
-        />
-      ))}
       <RecentlyDeletedAliasesSection
         on_restored={() => on_aliases_changed?.()}
         refresh_signal={deleted_refresh_signal}

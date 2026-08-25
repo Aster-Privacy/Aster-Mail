@@ -26,6 +26,7 @@ import {
   type BillingHistoryItem,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
+import { describe_billing_entry } from "@/utils/billing_description";
 
 interface BillingHistorySectionProps {
   history: BillingHistoryItem[];
@@ -54,7 +55,7 @@ export function BillingHistorySection({ history }: BillingHistorySectionProps) {
             >
               <div>
                 <p className="text-sm text-txt-primary">
-                  {item.description ||
+                  {describe_billing_entry(item.description, t) ||
                     item.plan_name ||
                     t("settings.payment")}
                 </p>

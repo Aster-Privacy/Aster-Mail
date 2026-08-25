@@ -37,6 +37,7 @@ const mock_state = vi.hoisted(() => ({
     full_address: string;
     display_name?: string;
     is_enabled: boolean;
+    downgrade_grace_expires_at?: string;
   }[],
 }));
 
@@ -244,5 +245,44 @@ describe("mobile AliasesSection alias search", () => {
     expect(host.textContent).toContain("shopping@astermail.org");
     expect(host.textContent).toContain("bank@astermail.org");
     expect(host.textContent).toContain("news@aster.cx");
+  });
+});
+
+describe("mobile AliasesSection downgrade grace period", () => {
+  const switch_for = (address: string) =>
+    host.querySelector(
+      `input[aria-label="${address}"]`,
+    ) as HTMLInputElement | null;
+
+  it("locks the alias switch and explains the grace period", async () => {
+    mock_state.aliases = [
+      {
+        id: "1",
+        full_address: "shopping@astermail.org",
+        is_enabled: false,
+        downgrade_grace_expires_at: new Date(
+          Date.now() + 3 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+      },
+    ];
+    await render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+
+    expect(switch_for("shopping@astermail.org")?.disabled).toBe(true);
+    expect(host.textContent).toContain("settings.alias_grace_upgrade_hint");
+    expect(host.textContent).toContain("common.disabled");
+  });
+
+  it("leaves the switch usable outside a grace period", async () => {
+    mock_state.aliases = [
+      {
+        id: "1",
+        full_address: "shopping@astermail.org",
+        is_enabled: true,
+      },
+    ];
+    await render(<AliasesSection on_back={() => {}} on_close={() => {}} />);
+
+    expect(switch_for("shopping@astermail.org")?.disabled).toBe(false);
+    expect(host.textContent).not.toContain("settings.alias_grace_upgrade_hint");
   });
 });

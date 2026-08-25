@@ -28,6 +28,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+
 import { Modal } from "@/components/ui/modal";
 import { format_bytes } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
@@ -91,7 +92,10 @@ export function FamilyWelcomeModal({
   const Icon = current.icon;
   const is_last = step === STEPS.length - 1;
 
-  const handle_close = () => { set_step(0); on_close(); };
+  const handle_close = () => {
+    set_step(0);
+    on_close();
+  };
 
   const go = (next: number) => {
     set_dir(next > step ? 1 : -1);
@@ -99,8 +103,10 @@ export function FamilyWelcomeModal({
   };
 
   const handle_next = () => {
-    if (is_last) { handle_close(); on_go_to_family(); }
-    else go(step + 1);
+    if (is_last) {
+      handle_close();
+      on_go_to_family();
+    } else go(step + 1);
   };
 
   const variants = {
@@ -110,31 +116,45 @@ export function FamilyWelcomeModal({
   };
 
   return (
-    <Modal is_open={is_open} on_close={handle_close} size="lg" show_close_button={false} close_on_overlay={false}>
+    <Modal
+      close_on_overlay={false}
+      is_open={is_open}
+      on_close={handle_close}
+      show_close_button={false}
+      size="lg"
+    >
       <div className="relative flex flex-col overflow-hidden">
         <button
+          className="absolute end-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary"
           onClick={handle_close}
-          className="absolute right-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary"
         >
           <XMarkIcon className="w-4 h-4" />
         </button>
 
-        <AnimatePresence mode="wait" custom={dir}>
+        <AnimatePresence custom={dir} mode="wait">
           <motion.div
             key={step}
-            custom={dir}
-            variants={variants}
-            initial="enter"
             animate="center"
-            exit="exit"
-            transition={{ duration: reduce_motion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="px-8 pt-8 pb-6"
+            custom={dir}
+            exit="exit"
+            initial="enter"
+            transition={{
+              duration: reduce_motion ? 0 : 0.22,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            variants={variants}
           >
             <div className="flex flex-col items-center gap-1 mb-6 w-full">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
                 {plan_name}
               </span>
-              <span className="text-xs text-txt-muted">{t("settings.fam_welcome_summary", { count: max_members, storage: format_bytes(storage_pool_bytes) })}</span>
+              <span className="text-xs text-txt-muted">
+                {t("settings.fam_welcome_summary", {
+                  count: max_members,
+                  storage: format_bytes(storage_pool_bytes),
+                })}
+              </span>
             </div>
 
             <div className="flex justify-center mb-5 w-full">
@@ -142,8 +162,12 @@ export function FamilyWelcomeModal({
             </div>
 
             <div className="text-center mb-6">
-              <h2 className="text-lg font-semibold text-txt-primary mb-2">{t(current.title)}</h2>
-              <p className="text-sm text-txt-muted leading-relaxed max-w-xs mx-auto">{t(current.description)}</p>
+              <h2 className="text-lg font-semibold text-txt-primary mb-2">
+                {t(current.title)}
+              </h2>
+              <p className="text-sm text-txt-muted leading-relaxed max-w-xs mx-auto">
+                {t(current.description)}
+              </p>
             </div>
 
             <ul className="space-y-3 bg-surf-secondary rounded-xl p-4 border border-edge-secondary">
@@ -161,43 +185,46 @@ export function FamilyWelcomeModal({
           {STEPS.map((s, i) => (
             <button
               key={i}
-              onClick={() => go(i)}
+              aria-label={t("settings.fam_welcome_step_aria", {
+                number: i + 1,
+                title: t(s.title),
+              })}
               className={`rounded-full transition-all duration-300 ${
                 i === step
                   ? "w-6 h-2 bg-accent-blue"
                   : i < step
-                  ? "w-1.5 h-2 bg-accent-blue opacity-40"
-                  : "w-1.5 h-2 bg-edge-secondary"
+                    ? "w-1.5 h-2 bg-accent-blue opacity-40"
+                    : "w-1.5 h-2 bg-edge-secondary"
               }`}
-              aria-label={t("settings.fam_welcome_step_aria", { number: i + 1, title: t(s.title) })}
+              onClick={() => go(i)}
             />
           ))}
         </div>
 
         <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-edge-secondary mt-2">
           <button
-            onClick={handle_close}
             className="aster_btn aster_btn_ghost aster_btn_sm"
+            onClick={handle_close}
           >
             {t("common.skip")}
           </button>
           <div className="flex items-center gap-3">
             {step > 0 && (
               <button
-                onClick={() => go(step - 1)}
                 className="aster_btn aster_btn_depth aster_btn_sm"
+                onClick={() => go(step - 1)}
               >
                 {t("common.back")}
               </button>
             )}
             <button
-              onClick={handle_next}
               className="aster_btn aster_btn_depth aster_btn_sm flex items-center gap-1.5"
+              onClick={handle_next}
             >
               {is_last ? (
                 <>
                   {t("settings.fam_welcome_setup")}
-                  <ArrowRightIcon className="w-4 h-4" />
+                  <ArrowRightIcon className="w-4 h-4 rtl:-scale-x-100" />
                 </>
               ) : (
                 t("common.next")

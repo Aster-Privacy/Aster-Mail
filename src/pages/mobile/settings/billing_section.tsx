@@ -21,8 +21,13 @@
 
 import { motion } from "framer-motion";
 import {
+  describe_billing_entry,
+  describe_plan,
+} from "@/utils/billing_description";
+import {
   ChevronRightIcon,
   CheckIcon,
+  ExclamationTriangleIcon,
   XCircleIcon,
   UserGroupIcon,
   ClipboardDocumentIcon,
@@ -31,14 +36,21 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
+import { render_billing_dialogs } from "./billing_dialogs";
+import { use_billing_section } from "./use_billing_section";
+
 import {
   PLAN_TIERS,
+  FAMILY_PLAN_TIERS,
+  FAMILY_PLAN_DUO_FEATURES,
+  FAMILY_PLAN_FAMILY_FEATURES,
+  SUPPORTED_CURRENCIES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
-
 import { Spinner } from "@/components/ui/spinner";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
+import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -47,8 +59,7 @@ import {
   format_price,
   format_date,
 } from "@/services/api/billing";
-import { render_billing_dialogs } from "./billing_dialogs";
-import { use_billing_section } from "./use_billing_section";
+import { copy_text } from "@/utils/copy_text";
 
 export function BillingSection({
   on_back,
@@ -71,13 +82,26 @@ export function BillingSection({
     selected_storage,
     set_selected_storage,
     available_addons,
+    active_addons,
+    academic_status,
+    refresh_academic_status,
+    set_addon_to_cancel,
     set_show_addon_method_modal,
     set_addon_method_target,
     preferred_currency,
+    handle_currency_change,
     billing_period,
     set_billing_period,
+    current_billing_interval,
+    plan_type,
+    set_plan_type,
+    handle_family_select,
+    has_payment_failed,
+    grace_days_remaining,
     referral_info,
     referral_history_list,
+    subscription_load_failed,
+    load_data,
     is_sending_referral,
     credit_balance,
     set_credit_balance,
@@ -96,6 +120,11 @@ export function BillingSection({
     is_paid_plan,
     is_crypto_sub,
   } = state;
+  const plan_description = describe_plan(
+    subscription?.plan.code,
+    subscription?.plan.description,
+    t,
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -113,6 +142,29 @@ export function BillingSection({
           <>
             <div className="px-4 pt-4">
               <CryptoResumeBanner class_name="mb-4" />
+              {has_payment_failed && (
+                <div className="mb-4 flex items-start gap-3 rounded-2xl bg-red-600 p-4">
+                  <ExclamationTriangleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-50" />
+                  <div className="flex-1">
+                    <p className="text-[14px] font-medium text-red-50">
+                      {t("settings.payment_failed_warning")}
+                    </p>
+                    <p className="mt-1 text-[12px] text-red-100">
+                      {t("settings.grace_period_remaining", {
+                        days: grace_days_remaining,
+                      })}
+                    </p>
+                    <button
+                      className="mt-3 inline-flex items-center rounded-lg bg-red-950 px-3 py-1.5 text-[12px] font-semibold text-red-50 disabled:opacity-50"
+                      disabled={is_action_loading}
+                      type="button"
+                      onClick={handle_manage_billing}
+                    >
+                      {t("settings.update_payment_method")}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div
                 className="relative overflow-hidden rounded-2xl p-5"
                 style={{
@@ -145,7 +197,7 @@ export function BillingSection({
                     onClick={scroll_to_plans}
                   >
                     {t("settings.billing_banner_cta")}
-                    <ChevronRightIcon className="w-4 h-4" />
+                    <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
                   </button>
                 </div>
               </div>
@@ -167,6 +219,23 @@ export function BillingSection({
               </div>
             )}
 
+            {!subscription && subscription_load_failed && (
+              <SettingsGroup title={t("settings.current_plan")}>
+                <div className="px-4 py-6 text-center">
+                  <p className="text-[14px] text-[var(--text-muted)]">
+                    {t("common.something_went_wrong_try_again")}
+                  </p>
+                  <button
+                    className="mt-3 rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--text-primary)]"
+                    type="button"
+                    onClick={() => void load_data()}
+                  >
+                    {t("common.retry")}
+                  </button>
+                </div>
+              </SettingsGroup>
+            )}
+
             {subscription && (
               <SettingsGroup title={t("settings.current_plan")}>
                 <div className="px-4 py-4">
@@ -177,7 +246,7 @@ export function BillingSection({
                       </span>
                       {is_paid_plan &&
                         subscription.active_discount_description && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-500/15 text-green-500">
+                          <span className="ms-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-500/15 text-green-500">
                             {subscription.active_discount_description}
                           </span>
                         )}
@@ -186,14 +255,14 @@ export function BillingSection({
                           {t("settings.free_plan_description")}
                         </p>
                       )}
-                      {is_paid_plan && subscription.plan.description && (
+                      {is_paid_plan && plan_description && (
                         <p className="text-[12px] mt-0.5 text-[var(--text-muted)]">
-                          {subscription.plan.description}
+                          {plan_description}
                         </p>
                       )}
                     </div>
                     {is_paid_plan && subscription.current_period_end && (
-                      <div className="text-right">
+                      <div className="text-end">
                         <span className="text-[14px] font-medium text-[var(--text-secondary)]">
                           {format_price(
                             convert_cents(
@@ -203,7 +272,9 @@ export function BillingSection({
                             preferred_currency,
                           )}
                           <span className="text-[11px] font-normal text-[var(--text-muted)]">
-                            {subscription.plan.billing_period?.startsWith("year")
+                            {subscription.plan.billing_period?.startsWith(
+                              "year",
+                            )
                               ? t("settings.per_year_short")
                               : t("settings.per_month_short")}
                           </span>
@@ -322,7 +393,7 @@ export function BillingSection({
                       onClick={scroll_to_plans}
                     >
                       {t("settings.upgrade_for_more_short")}
-                      <ChevronRightIcon className="w-4 h-4" />
+                      <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
                     </motion.button>
                   )}
                 </div>
@@ -334,11 +405,59 @@ export function BillingSection({
                 <p className="text-[13px] mb-3 text-[var(--text-muted)]">
                   {t("settings.storage_addons_description")}
                 </p>
+                {active_addons.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="mb-2 text-[13px] font-medium text-[var(--text-secondary)]">
+                      {t("settings.active_addons")}
+                    </h4>
+                    <div className="space-y-2">
+                      {active_addons.map((addon) => (
+                        <div
+                          key={addon.user_addon_id}
+                          className="flex items-center justify-between rounded-[14px] bg-[var(--mobile-bg-card-hover)] p-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-[14px] font-medium text-[var(--text-primary)]">
+                              {addon.size_label}
+                            </p>
+                            <p className="text-[12px] text-[var(--text-muted)]">
+                              {format_price(
+                                convert_cents(
+                                  addon.price_cents,
+                                  preferred_currency,
+                                ),
+                                preferred_currency,
+                              )}
+                              {t("settings.per_month_short")}
+                            </p>
+                            {addon.cancel_at_period_end &&
+                              addon.current_period_end && (
+                                <p className="mt-0.5 text-[12px] text-amber-500">
+                                  {t("settings.cancels")}{" "}
+                                  {format_date(addon.current_period_end)}
+                                </p>
+                              )}
+                          </div>
+                          {!addon.cancel_at_period_end && (
+                            <button
+                              className="rounded-[14px] px-3 py-2 text-[13px] font-medium text-[var(--color-danger,#ef4444)] disabled:opacity-50"
+                              disabled={is_action_loading}
+                              type="button"
+                              onClick={() => set_addon_to_cancel(addon)}
+                            >
+                              {t("settings.cancel_addon")}
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   {available_addons.map((addon) => (
                     <button
                       key={addon.id}
-                      className="relative rounded-[14px] p-3 text-left transition-all"
+                      className="relative rounded-[14px] p-3 text-start transition-all"
                       style={{
                         backgroundColor:
                           selected_storage === addon.id
@@ -395,6 +514,31 @@ export function BillingSection({
             <div ref={plans_ref}>
               <SettingsGroup title={t("settings.available_plans")}>
                 <div className="px-4 py-3">
+                  <div className="flex items-center justify-center gap-1 p-1 rounded-xl bg-[var(--mobile-bg-card-hover)] mb-3">
+                    <button
+                      className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
+                        plan_type === "individual"
+                          ? "bg-[var(--mobile-bg-card)] text-[var(--text-primary)] shadow-sm"
+                          : "text-[var(--text-muted)]"
+                      }`}
+                      type="button"
+                      onClick={() => set_plan_type("individual")}
+                    >
+                      {t("settings.plan_type_individual")}
+                    </button>
+                    <button
+                      className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
+                        plan_type === "family"
+                          ? "bg-[var(--mobile-bg-card)] text-[var(--text-primary)] shadow-sm"
+                          : "text-[var(--text-muted)]"
+                      }`}
+                      type="button"
+                      onClick={() => set_plan_type("family")}
+                    >
+                      {t("settings.plan_type_family")}
+                    </button>
+                  </div>
+
                   <div className="flex items-center justify-center gap-1 p-1 rounded-xl bg-[var(--mobile-bg-card-hover)] mb-4">
                     <button
                       className={`flex-1 rounded-[14px] py-2 text-[13px] font-medium transition-colors ${
@@ -420,176 +564,332 @@ export function BillingSection({
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    {PLAN_TIERS.map((tier, tier_index) => {
-                      const current_plan_code = subscription?.plan.code;
-                      const is_current = current_plan_code === tier.id;
-                      const current_tier_index = PLAN_TIERS.findIndex(
-                        (t) => t.id === current_plan_code,
-                      );
-                      const is_downgrade =
-                        current_tier_index > -1 &&
-                        tier_index < current_tier_index;
+                  <div className="mb-4 flex items-center justify-center gap-2">
+                    <p className="text-[12px] text-[var(--text-muted)]">
+                      {preferred_currency === "usd"
+                        ? t("settings.prices_in_usd_note")
+                        : t("settings.prices_converted_note")}
+                    </p>
+                    <select
+                      className="rounded-lg bg-[var(--mobile-bg-card-hover)] px-2 py-1 text-[12px] text-[var(--text-secondary)] outline-none"
+                      value={preferred_currency}
+                      onChange={(e) => handle_currency_change(e.target.value)}
+                    >
+                      {SUPPORTED_CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                      return (
-                        <div
-                          key={tier.id}
-                          className="rounded-2xl overflow-hidden"
-                          style={{
-                            border: `2px solid ${is_current ? "var(--mobile-accent)" : "var(--border-primary)"}`,
-                            backgroundColor: "var(--mobile-bg-card-hover)",
-                          }}
-                        >
+                  {plan_type === "family" && (
+                    <div className="space-y-3">
+                      {FAMILY_PLAN_TIERS.map((tier) => {
+                        const card_interval =
+                          billing_period === "yearly" ? "year" : "month";
+                        const is_same_plan =
+                          subscription?.plan.code === tier.id;
+                        const is_current =
+                          is_same_plan &&
+                          current_billing_interval === card_interval;
+                        const is_interval_switch =
+                          is_same_plan &&
+                          current_billing_interval !== card_interval;
+                        const features = (
+                          tier.max_members === 2
+                            ? FAMILY_PLAN_DUO_FEATURES
+                            : FAMILY_PLAN_FAMILY_FEATURES
+                        ).map((feature) => ({
+                          label: t(feature.label_key),
+                          on: feature.on,
+                        }));
+
+                        return (
                           <div
-                            className="px-4 pt-4 pb-3 text-center"
+                            key={tier.id}
+                            className="rounded-2xl overflow-hidden"
                             style={{
-                              background: "transparent",
+                              border: `2px solid ${is_current ? "var(--mobile-accent)" : "var(--border-primary)"}`,
+                              backgroundColor: "var(--mobile-bg-card-hover)",
                             }}
                           >
-                            {is_current && (
-                              <span
-                                className="inline-flex px-3 py-1 rounded-full text-[11px] font-medium mb-2"
+                            <div className="px-4 pt-4 pb-3 text-center">
+                              {is_current && (
+                                <span
+                                  className="inline-flex px-3 py-1 rounded-full text-[11px] font-medium mb-2"
+                                  style={{
+                                    backgroundColor:
+                                      "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+                                    color: "var(--color-info)",
+                                    border:
+                                      "1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)",
+                                  }}
+                                >
+                                  {t("settings.current_plan")}
+                                </span>
+                              )}
+                              <h4 className="text-[17px] font-bold text-[var(--text-primary)]">
+                                {tier.name}
+                              </h4>
+                              <div className="mt-1.5">
+                                <span className="text-[28px] font-bold text-[var(--text-primary)]">
+                                  {format_price(
+                                    convert_cents(
+                                      billing_period === "monthly"
+                                        ? tier.monthly_cents
+                                        : tier.yearly_cents,
+                                      preferred_currency,
+                                    ),
+                                    preferred_currency,
+                                  )}
+                                </span>
+                                <span className="text-[13px] text-[var(--text-muted)]">
+                                  {billing_period === "monthly"
+                                    ? t("settings.per_month_short")
+                                    : t("settings.per_year_short")}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-[var(--text-muted)] mt-1">
+                                {tier.storage_label}
+                              </p>
+                              <motion.button
+                                className="flex w-full items-center justify-center rounded-xl py-2.5 mt-3 text-[14px] font-semibold disabled:opacity-50"
+                                disabled={is_action_loading || is_current}
                                 style={{
-                                  backgroundColor:
-                                    "color-mix(in srgb, var(--accent-color) 10%, transparent)",
-                                  color: "var(--color-info)",
-                                  border:
-                                    "1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)",
+                                  background: "var(--mobile-bg-card)",
+                                  color: is_current
+                                    ? "var(--text-muted)"
+                                    : "var(--text-primary)",
+                                  border: "1px solid var(--border-primary)",
+                                }}
+                                type="button"
+                                onClick={() => {
+                                  if (is_current) return;
+                                  handle_family_select(tier);
                                 }}
                               >
-                                {t("settings.current_plan")}
-                              </span>
-                            )}
-                            <h4 className="text-[17px] font-bold text-[var(--text-primary)]">
-                              {tier.name}
-                            </h4>
-                            <div className="mt-1.5">
-                              <span className="text-[28px] font-bold text-[var(--text-primary)]">
-                                {format_price(
-                                  convert_cents(
-                                    billing_period === "monthly"
-                                      ? tier.monthly_cents
-                                      : tier.yearly_cents,
-                                    preferred_currency,
-                                  ),
-                                  preferred_currency,
-                                )}
-                              </span>
-                              <span className="text-[13px] text-[var(--text-muted)]">
-                                {billing_period === "monthly"
-                                  ? t("settings.per_month_short")
-                                  : t("settings.per_year_short")}
-                              </span>
+                                {is_current
+                                  ? t("settings.current_plan")
+                                  : is_interval_switch
+                                    ? card_interval === "year"
+                                      ? t("settings.switch_to_yearly")
+                                      : t("settings.switch_to_monthly")
+                                    : t("settings.subscribe")}
+                              </motion.button>
                             </div>
-                            {billing_period === "monthly" ? (
-                              <p className="text-[11px] text-[var(--text-muted)] mt-1">
-                                {format_price(
-                                  convert_cents(
-                                    tier.yearly_cents,
-                                    preferred_currency,
-                                  ),
-                                  preferred_currency,
-                                )}
-                                {t("settings.per_year_short")} ·{" "}
-                                {t("settings.save_yearly", {
-                                  amount: format_price(
-                                    convert_cents(
-                                      tier.savings_cents,
-                                      preferred_currency,
-                                    ),
-                                    preferred_currency,
-                                  ),
-                                })}
-                              </p>
-                            ) : (
-                              <p
-                                className="text-[11px] font-medium mt-1"
-                                style={{ color: "var(--color-success)" }}
-                              >
-                                {t("settings.save_yearly", {
-                                  amount: format_price(
-                                    convert_cents(
-                                      tier.savings_cents,
-                                      preferred_currency,
-                                    ),
-                                    preferred_currency,
-                                  ),
-                                })}
-                              </p>
-                            )}
-                            <motion.button
-                              className="flex w-full items-center justify-center rounded-xl py-2.5 mt-3 text-[14px] font-semibold text-white disabled:opacity-50"
-                              disabled={is_action_loading || is_current}
-                              style={
-                                is_current
-                                  ? {
-                                      background: "var(--mobile-bg-card)",
-                                      color: "var(--text-muted)",
-                                      border: "1px solid var(--border-primary)",
-                                    }
-                                  : {
-                                      background: "var(--mobile-bg-card)",
-                                      color: "var(--text-primary)",
-                                      border: "1px solid var(--border-primary)",
-                                    }
-                              }
-                              type="button"
-                              onClick={() => {
-                                if (is_current) return;
-                                const api_plan = plans.find(
-                                  (p) => p.code === tier.id,
-                                );
 
-                                if (api_plan) {
-                                  handle_select_plan(api_plan);
-                                } else {
-                                  show_toast(
-                                    t("settings.plans_coming_soon"),
-                                    "info",
-                                  );
-                                }
+                            <div className="px-4 pb-4 pt-3 border-t border-[var(--border-primary)]">
+                              <div className="space-y-2">
+                                {features.map((feature, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <CheckIcon
+                                      className="w-3.5 h-3.5 flex-shrink-0 text-brand"
+                                      strokeWidth={2.5}
+                                    />
+                                    <span className="text-[12px] text-[var(--text-secondary)]">
+                                      {feature.label}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {plan_type === "individual" && (
+                    <div className="space-y-3">
+                      {PLAN_TIERS.map((tier, tier_index) => {
+                        const current_plan_code = subscription?.plan.code;
+                        const card_interval =
+                          billing_period === "yearly" ? "year" : "month";
+                        const is_same_plan = current_plan_code === tier.id;
+                        const is_current =
+                          is_same_plan &&
+                          current_billing_interval === card_interval;
+                        const is_interval_switch =
+                          is_same_plan &&
+                          current_billing_interval !== card_interval;
+                        const current_tier_index = PLAN_TIERS.findIndex(
+                          (t) => t.id === current_plan_code,
+                        );
+                        const is_downgrade =
+                          !is_same_plan &&
+                          current_tier_index > -1 &&
+                          tier_index < current_tier_index;
+
+                        return (
+                          <div
+                            key={tier.id}
+                            className="rounded-2xl overflow-hidden"
+                            style={{
+                              border: `2px solid ${is_current ? "var(--mobile-accent)" : "var(--border-primary)"}`,
+                              backgroundColor: "var(--mobile-bg-card-hover)",
+                            }}
+                          >
+                            <div
+                              className="px-4 pt-4 pb-3 text-center"
+                              style={{
+                                background: "transparent",
                               }}
                             >
-                              {is_current
-                                ? t("settings.current_plan")
-                                : is_downgrade
-                                  ? t("settings.downgrade")
-                                  : t("settings.subscribe")}
-                            </motion.button>
-                          </div>
-
-                          <div className="px-4 pb-4 pt-3 border-t border-[var(--border-primary)]">
-                            {tier.id !== "star" && (
-                              <p
-                                className="text-[11px] font-medium pb-1"
-                                style={{ color: "var(--color-info)" }}
-                              >
-                                {tier.id === "nova"
-                                  ? t("settings.all_star_features")
-                                  : t("settings.all_nova_features")}
-                              </p>
-                            )}
-                            <div className="space-y-2">
-                              {plan_features[tier.id]?.map((feature, i) => (
-                                <div
-                                  key={i}
-                                  className="flex items-center gap-2"
+                              {is_current && (
+                                <span
+                                  className="inline-flex px-3 py-1 rounded-full text-[11px] font-medium mb-2"
+                                  style={{
+                                    backgroundColor:
+                                      "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+                                    color: "var(--color-info)",
+                                    border:
+                                      "1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)",
+                                  }}
                                 >
-                                  <CheckIcon
-                                    className="w-3.5 h-3.5 flex-shrink-0 text-brand"
-                                    strokeWidth={2.5}
-                                  />
-                                  <span className="text-[12px] text-[var(--text-secondary)]">
-                                    {feature}
-                                  </span>
-                                </div>
-                              ))}
+                                  {t("settings.current_plan")}
+                                </span>
+                              )}
+                              <h4 className="text-[17px] font-bold text-[var(--text-primary)]">
+                                {tier.name}
+                              </h4>
+                              <div className="mt-1.5">
+                                <span className="text-[28px] font-bold text-[var(--text-primary)]">
+                                  {format_price(
+                                    convert_cents(
+                                      billing_period === "monthly"
+                                        ? tier.monthly_cents
+                                        : tier.yearly_cents,
+                                      preferred_currency,
+                                    ),
+                                    preferred_currency,
+                                  )}
+                                </span>
+                                <span className="text-[13px] text-[var(--text-muted)]">
+                                  {billing_period === "monthly"
+                                    ? t("settings.per_month_short")
+                                    : t("settings.per_year_short")}
+                                </span>
+                              </div>
+                              {billing_period === "monthly" ? (
+                                <p className="text-[11px] text-[var(--text-muted)] mt-1">
+                                  {format_price(
+                                    convert_cents(
+                                      tier.yearly_cents,
+                                      preferred_currency,
+                                    ),
+                                    preferred_currency,
+                                  )}
+                                  {t("settings.per_year_short")} ·{" "}
+                                  {t("settings.save_yearly", {
+                                    amount: format_price(
+                                      convert_cents(
+                                        tier.savings_cents,
+                                        preferred_currency,
+                                      ),
+                                      preferred_currency,
+                                    ),
+                                  })}
+                                </p>
+                              ) : (
+                                <p
+                                  className="text-[11px] font-medium mt-1"
+                                  style={{ color: "var(--color-success)" }}
+                                >
+                                  {t("settings.save_yearly", {
+                                    amount: format_price(
+                                      convert_cents(
+                                        tier.savings_cents,
+                                        preferred_currency,
+                                      ),
+                                      preferred_currency,
+                                    ),
+                                  })}
+                                </p>
+                              )}
+                              <motion.button
+                                className="flex w-full items-center justify-center rounded-xl py-2.5 mt-3 text-[14px] font-semibold text-white disabled:opacity-50"
+                                disabled={is_action_loading || is_current}
+                                style={
+                                  is_current
+                                    ? {
+                                        background: "var(--mobile-bg-card)",
+                                        color: "var(--text-muted)",
+                                        border:
+                                          "1px solid var(--border-primary)",
+                                      }
+                                    : {
+                                        background: "var(--mobile-bg-card)",
+                                        color: "var(--text-primary)",
+                                        border:
+                                          "1px solid var(--border-primary)",
+                                      }
+                                }
+                                type="button"
+                                onClick={() => {
+                                  if (is_current) return;
+                                  const api_plan = plans.find(
+                                    (p) => p.code === tier.id,
+                                  );
+
+                                  if (api_plan) {
+                                    handle_select_plan(api_plan);
+                                  } else {
+                                    show_toast(
+                                      t("settings.plans_coming_soon"),
+                                      "info",
+                                    );
+                                  }
+                                }}
+                              >
+                                {is_current
+                                  ? t("settings.current_plan")
+                                  : is_interval_switch
+                                    ? card_interval === "year"
+                                      ? t("settings.switch_to_yearly")
+                                      : t("settings.switch_to_monthly")
+                                    : is_downgrade
+                                      ? t("settings.downgrade")
+                                      : t("settings.subscribe")}
+                              </motion.button>
+                            </div>
+
+                            <div className="px-4 pb-4 pt-3 border-t border-[var(--border-primary)]">
+                              {tier.id !== "star" && (
+                                <p
+                                  className="text-[11px] font-medium pb-1"
+                                  style={{ color: "var(--color-info)" }}
+                                >
+                                  {tier.id === "nova"
+                                    ? t("settings.all_star_features")
+                                    : t("settings.all_nova_features")}
+                                </p>
+                              )}
+                              <div className="space-y-2">
+                                {plan_features[tier.id]?.map((feature, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <CheckIcon
+                                      className="w-3.5 h-3.5 flex-shrink-0 text-brand"
+                                      strokeWidth={2.5}
+                                    />
+                                    <span className="text-[12px] text-[var(--text-secondary)]">
+                                      {feature}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {preferred_currency !== "usd" && (
                     <p className="mt-3 text-[11px] text-center text-[var(--text-muted)]">
@@ -609,7 +909,7 @@ export function BillingSection({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[14px] text-[var(--text-primary)]">
-                        {item.description ||
+                        {describe_billing_entry(item.description, t) ||
                           item.plan_name ||
                           t("settings.payment")}
                       </p>
@@ -651,8 +951,15 @@ export function BillingSection({
             <div className="px-4 pt-2">
               <CreditsSection
                 credit_balance={credit_balance}
-                set_credit_balance={set_credit_balance}
                 preferred_currency={preferred_currency}
+                set_credit_balance={set_credit_balance}
+              />
+            </div>
+
+            <div className="px-4 pt-2">
+              <AcademicDiscountSection
+                academic_status={academic_status}
+                refresh_academic_status={refresh_academic_status}
               />
             </div>
 
@@ -685,13 +992,18 @@ export function BillingSection({
                         />
                         <button
                           className="h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              build_referral_invite_url(
-                                referral_info.referral_code,
-                              ),
-                            );
-                            show_toast(t("settings.link_copied"), "success");
+                          onClick={async () => {
+                            if (
+                              await copy_text(
+                                build_referral_invite_url(
+                                  referral_info.referral_code,
+                                ),
+                              )
+                            ) {
+                              show_toast(t("settings.link_copied"), "success");
+                            } else {
+                              show_toast(t("common.failed_to_copy"), "error");
+                            }
                           }}
                         >
                           <ClipboardDocumentIcon className="w-4 h-4" />
@@ -819,7 +1131,9 @@ export function BillingSection({
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-sm text-txt-secondary">
-                      {t("settings.referral_loading")}
+                      {state.referral_load_failed
+                        ? t("common.something_went_wrong_try_again")
+                        : t("settings.referral_loading")}
                     </p>
                   </div>
                 )}

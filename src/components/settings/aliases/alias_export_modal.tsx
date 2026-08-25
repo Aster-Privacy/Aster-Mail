@@ -558,8 +558,8 @@ export function AliasExportModal({
 
             <p className="text-sm text-txt-secondary">
               {t("settings.alias_export_summary", {
-                rows: total_rows,
-                files: active_sources.length,
+                count: total_rows,
+                files: t("common.file_count", { count: active_sources.length }),
               })}
             </p>
 

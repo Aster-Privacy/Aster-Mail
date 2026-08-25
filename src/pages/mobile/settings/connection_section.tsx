@@ -18,18 +18,26 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ConnectionMethod, ConnectionState } from "@/services/routing/types";
+import type {
+  ConnectionMethod,
+  ConnectionState,
+} from "@/services/routing/types";
 
 import { useState, useEffect, useCallback } from "react";
 import { CheckIcon } from "@heroicons/react/24/outline";
 
 import { SettingsHeader } from "./shared";
+
 import { connection_store } from "@/services/routing/connection_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_cdn_relay_supported } from "@/services/routing/tor_transport";
 
-const OPTIONS: { value: ConnectionMethod; label_key: string; desc_key: string }[] = [
+const OPTIONS: {
+  value: ConnectionMethod;
+  label_key: string;
+  desc_key: string;
+}[] = [
   {
     value: "direct",
     label_key: "settings.connection.direct",
@@ -64,10 +72,18 @@ export function ConnectionSection({
       try {
         await connection_store.set_method(method);
         show_toast(
-          method === "cdn_relay"
-            ? t("settings.connection.status_connected")
-            : t("settings.connection.status_disconnected" as Parameters<typeof t>[0]),
-          method === "cdn_relay" ? "success" : "info",
+          method === "direct"
+            ? t(
+                "settings.connection.status_disconnected" as Parameters<
+                  typeof t
+                >[0],
+              )
+            : t(
+                "settings.connection.status_connecting" as Parameters<
+                  typeof t
+                >[0],
+              ),
+          "info",
         );
       } catch (e) {
         show_toast(
@@ -100,10 +116,11 @@ export function ConnectionSection({
               (opt) => opt.value !== "cdn_relay" || is_cdn_relay_supported(),
             ).map((opt, i) => {
               const is_selected = state.method === opt.value;
+
               return (
                 <button
                   key={opt.value}
-                  className={`flex w-full items-start gap-3 px-4 py-3.5 text-left active:opacity-80 disabled:opacity-50 ${i > 0 ? "border-t border-[var(--mobile-border,rgba(255,255,255,0.06))]" : ""}`}
+                  className={`flex w-full items-start gap-3 px-4 py-3.5 text-start active:opacity-80 disabled:opacity-50 ${i > 0 ? "border-t border-[var(--mobile-border,rgba(255,255,255,0.06))]" : ""}`}
                   disabled={is_switching}
                   type="button"
                   onClick={() => handle_change(opt.value)}

@@ -24,8 +24,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-  true;
+(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
 const toast_messages: string[] = [];
 
@@ -297,5 +298,53 @@ describe("use_external_accounts_form edit prefill", () => {
     expect(hook.has_stored_password).toBe(false);
     expect(hook.form_email).toBe("person@example.com");
     expect(hook.is_loading_account_settings).toBe(false);
+  });
+
+  it("blocks saving and offers a retry when the settings request fails", async () => {
+    get_connection_settings.mockResolvedValue({ error: "nope" });
+    get_sync_settings.mockResolvedValue({ error: "nope" });
+    get_advanced_settings.mockResolvedValue({ error: "nope" });
+
+    await act(async () => {
+      hook.handle_edit(account);
+    });
+    await flush();
+
+    expect(hook.prefill_failed).toBe(true);
+    expect(hook.is_form_busy).toBe(true);
+
+    get_connection_settings.mockResolvedValue({
+      data: {
+        host: "imap.example.com",
+        port: 993,
+        username: "person@example.com",
+        use_tls: true,
+        smtp_host: "smtp.example.com",
+        smtp_port: 587,
+        smtp_username: "person@example.com",
+        has_password: true,
+        has_smtp_password: true,
+      },
+    });
+    get_sync_settings.mockResolvedValue({
+      data: { sync_frequency: "15m", sync_folders: ["INBOX"] },
+    });
+    get_advanced_settings.mockResolvedValue({
+      data: {
+        tls_method: "auto",
+        connection_timeout_seconds: 30,
+        archive_sent_to_remote: false,
+        delete_after_fetch: false,
+      },
+    });
+
+    await act(async () => {
+      hook.retry_prefill();
+    });
+    await flush();
+
+    expect(hook.prefill_failed).toBe(false);
+    expect(hook.form_host).toBe("imap.example.com");
+    expect(hook.is_form_busy).toBe(false);
   });
 });

@@ -68,7 +68,7 @@ export function AccountList({
       <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
         <span className="text-xs font-medium text-txt-muted">
           {t("settings.external_account_count", {
-            count: String(accounts.length),
+            count: accounts.length,
           })}
         </span>
       </div>

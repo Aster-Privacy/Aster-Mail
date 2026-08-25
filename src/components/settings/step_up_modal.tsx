@@ -20,7 +20,7 @@
 //
 import type { StepUpCredentials } from "@/services/api/step_up";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -44,8 +44,8 @@ import {
 } from "@/services/api/webauthn";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 interface StepUpModalProps {
   is_open: boolean;
@@ -70,12 +70,32 @@ export function StepUpModal({
   const [password, set_password] = useState("");
   const [code, set_code] = useState("");
   const [totp_required, set_totp_required] = useState(false);
+  const [totp_optional, set_totp_optional] = useState(false);
   const [has_hardware_keys, set_has_hardware_keys] = useState(false);
   const [show_password, set_show_password] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
+  const [keys_error, set_keys_error] = useState(false);
   const input_ref = useRef<HTMLInputElement>(null);
   const submitting_ref = useRef(false);
+
+  const load_hardware_keys = useCallback(() => {
+    set_keys_error(false);
+
+    return list_hardware_keys()
+      .then((res) => {
+        if (!res.data) {
+          set_keys_error(true);
+
+          return;
+        }
+        set_has_hardware_keys(res.data.keys.length > 0);
+      })
+      .catch((caught) => {
+        set_keys_error(true);
+        ignore_error("components/settings/step_up_modal:StepUpModal", caught);
+      });
+  }, []);
 
   useEffect(() => {
     if (!is_open) return;
@@ -84,27 +104,22 @@ export function StepUpModal({
     set_error("");
     set_show_password(false);
     set_totp_required(false);
+    set_totp_optional(false);
     set_has_hardware_keys(false);
+    set_keys_error(false);
     setTimeout(() => input_ref.current?.focus(), 100);
 
     fetch_step_up_requirements()
       .then((requirements) => {
         set_totp_required(requirements.totp_required);
       })
-      .catch((caught) =>
-        ignore_error("components/settings/step_up_modal:StepUpModal", caught),
-      );
+      .catch((caught) => {
+        set_totp_optional(true);
+        ignore_error("components/settings/step_up_modal:StepUpModal", caught);
+      });
 
-    list_hardware_keys()
-      .then((res) => {
-        if (res.data?.keys && res.data.keys.length > 0) {
-          set_has_hardware_keys(true);
-        }
-      })
-      .catch((caught) =>
-        ignore_error("components/settings/step_up_modal:StepUpModal", caught),
-      );
-  }, [is_open]);
+    void load_hardware_keys();
+  }, [is_open, load_hardware_keys]);
 
   const can_submit =
     !!password && (!totp_required || code.length === 6) && !is_loading;
@@ -120,7 +135,7 @@ export function StepUpModal({
     try {
       const credentials = await derive_step_up_credentials(
         password,
-        totp_required ? code : undefined,
+        code.length === 6 ? code : undefined,
       );
 
       if (!totp_required && has_hardware_keys) {
@@ -130,7 +145,7 @@ export function StepUpModal({
 
       await on_confirm(credentials);
     } catch (err) {
-      set_error(err instanceof Error ? err.message : t("common.step_up_error"));
+      set_error(user_facing_error(err, t("common.step_up_error")));
     } finally {
       submitting_ref.current = false;
       set_is_loading(false);
@@ -138,7 +153,14 @@ export function StepUpModal({
   };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="md">
+    <Modal
+      close_on_escape={!is_loading}
+      close_on_overlay={!is_loading}
+      is_open={is_open}
+      on_close={on_close}
+      show_close_button={!is_loading}
+      size="md"
+    >
       <ModalHeader>
         <ModalTitle>{title}</ModalTitle>
         <ModalDescription>{description}</ModalDescription>
@@ -155,7 +177,8 @@ export function StepUpModal({
             <div className="relative">
               <Input
                 ref={input_ref}
-                className="w-full pr-10"
+                autoComplete="current-password"
+                className="w-full pe-10"
                 disabled={is_loading}
                 id="step-up-password"
                 maxLength={128}
@@ -169,7 +192,7 @@ export function StepUpModal({
                 }
               />
               <button
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
                 type="button"
                 onClick={() => set_show_password(!show_password)}
               >
@@ -182,7 +205,7 @@ export function StepUpModal({
             </div>
           </div>
 
-          {totp_required && (
+          {(totp_required || totp_optional) && (
             <div>
               <label
                 className="text-sm font-medium block mb-2 text-txt-primary"
@@ -215,6 +238,21 @@ export function StepUpModal({
             </p>
           )}
 
+          {keys_error && (
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-sm text-center text-txt-muted">
+                {t("settings.failed_load_security_status")}
+              </p>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => void load_hardware_keys()}
+              >
+                {t("settings.try_again")}
+              </Button>
+            </div>
+          )}
+
           {error && <p className="text-sm text-center text-red-500">{error}</p>}
         </div>
       </ModalBody>
@@ -228,7 +266,7 @@ export function StepUpModal({
           onClick={handle_confirm}
         >
           {confirm_label}
-          {is_loading ? <Spinner className="ml-2" size="md" /> : null}
+          {is_loading ? <Spinner className="ms-2" size="md" /> : null}
         </Button>
       </ModalFooter>
     </Modal>

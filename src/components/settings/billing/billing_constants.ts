@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 export const ADDON_BADGES: Record<string, "popular" | "best_value"> = {
   "100 GB": "popular",
   "10 TB": "best_value",
@@ -161,7 +163,6 @@ export interface FamilyPlanTier {
   monthly_cents: number;
   yearly_cents: number;
   biennial_cents: number;
-  savings_label: string;
   is_recommended?: boolean;
 }
 
@@ -175,7 +176,6 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
     monthly_cents: 1299,
     yearly_cents: 11999,
     biennial_cents: 20699,
-    savings_label: "Save $35.89/yr",
   },
   {
     id: "family",
@@ -186,10 +186,13 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
     monthly_cents: 2699,
     yearly_cents: 26399,
     biennial_cents: 45499,
-    savings_label: "Save $59.89/yr",
     is_recommended: true,
   },
 ];
+
+export function family_yearly_savings_cents(tier: FamilyPlanTier): number {
+  return Math.max(0, tier.monthly_cents * 12 - tier.yearly_cents);
+}
 
 export const PLAN_TIERS: PlanTier[] = [
   {
@@ -358,54 +361,54 @@ export function detect_currency_from_locale(): string {
 }
 
 export interface FamilyPlanFeature {
-  label: string;
+  label_key: TranslationKey;
   on: boolean;
 }
 
 export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
-  { label: "2 members, separate accounts", on: true },
-  { label: "Everything in Nova, for every member", on: true },
-  { label: "1 TB shared pool, privately allocated per member", on: true },
-  { label: "End-to-end encryption", on: true },
-  { label: "Zero-access architecture", on: true },
-  { label: "Shared family aliases", on: true },
-  { label: "Unlimited email aliases", on: true },
-  { label: "30 custom domains", on: true },
-  { label: "Use your favorite mail app (via Aster Bridge)", on: true },
-  { label: "Invite by link or email", on: true },
-  { label: "Priority support", on: true },
-  { label: "Domain sharing across members", on: true },
-  { label: "Security policies (2FA enforcement)", on: true },
-  { label: "Lockdown Mode", on: true },
-  { label: "Admin role transfer", on: true },
-  { label: "Org groups & distribution lists", on: false },
-  { label: "Activity log & audit trail", on: false },
-  { label: "Org-wide email filters", on: false },
-  { label: "Data retention policies", on: false },
-  { label: "Per-member storage controls", on: false },
+  { label_key: "settings.family_feat_members_2", on: true },
+  { label_key: "settings.family_feat_everything_nova", on: true },
+  { label_key: "settings.family_feat_pool_1tb", on: true },
+  { label_key: "settings.plan_feat_e2ee", on: true },
+  { label_key: "settings.plan_feat_zero_knowledge", on: true },
+  { label_key: "settings.family_shared_aliases", on: true },
+  { label_key: "settings.plan_feat_aliases_unlimited", on: true },
+  { label_key: "settings.plan_feat_domains_30", on: true },
+  { label_key: "settings.plan_feat_imap_smtp", on: true },
+  { label_key: "settings.family_feat_invite", on: true },
+  { label_key: "settings.plan_f_support_priority", on: true },
+  { label_key: "settings.family_feat_domain_sharing", on: true },
+  { label_key: "settings.family_feat_security_policies", on: true },
+  { label_key: "settings.lockdown_title", on: true },
+  { label_key: "settings.family_feat_admin_transfer", on: true },
+  { label_key: "settings.family_feat_org_groups", on: false },
+  { label_key: "settings.family_feat_activity_log", on: false },
+  { label_key: "settings.family_feat_org_filters", on: false },
+  { label_key: "settings.family_feat_retention", on: false },
+  { label_key: "settings.family_feat_storage_controls", on: false },
 ];
 
 export const FAMILY_PLAN_FAMILY_FEATURES: FamilyPlanFeature[] = [
-  { label: "Up to 6 members, separate accounts", on: true },
-  { label: "Everything in Supernova, for every member", on: true },
-  { label: "3 TB shared pool, privately allocated per member", on: true },
-  { label: "End-to-end encryption", on: true },
-  { label: "Zero-access architecture", on: true },
-  { label: "Shared family aliases", on: true },
-  { label: "Unlimited email aliases", on: true },
-  { label: "30 custom domains", on: true },
-  { label: "Use your favorite mail app (via Aster Bridge)", on: true },
-  { label: "Invite by link or email", on: true },
-  { label: "Priority support", on: true },
-  { label: "Org groups & distribution lists", on: true },
-  { label: "Activity log & audit trail", on: true },
-  { label: "Org-wide email filters", on: true },
-  { label: "Domain sharing across members", on: true },
-  { label: "Security policies (2FA enforcement)", on: true },
-  { label: "Lockdown Mode", on: true },
-  { label: "Data retention policies", on: true },
-  { label: "Per-member storage controls", on: true },
-  { label: "Admin role transfer", on: true },
+  { label_key: "settings.family_feat_members_6", on: true },
+  { label_key: "settings.family_feat_everything_supernova", on: true },
+  { label_key: "settings.family_feat_pool_3tb", on: true },
+  { label_key: "settings.plan_feat_e2ee", on: true },
+  { label_key: "settings.plan_feat_zero_knowledge", on: true },
+  { label_key: "settings.family_shared_aliases", on: true },
+  { label_key: "settings.plan_feat_aliases_unlimited", on: true },
+  { label_key: "settings.plan_feat_domains_30", on: true },
+  { label_key: "settings.plan_feat_imap_smtp", on: true },
+  { label_key: "settings.family_feat_invite", on: true },
+  { label_key: "settings.plan_f_support_priority", on: true },
+  { label_key: "settings.family_feat_org_groups", on: true },
+  { label_key: "settings.family_feat_activity_log", on: true },
+  { label_key: "settings.family_feat_org_filters", on: true },
+  { label_key: "settings.family_feat_domain_sharing", on: true },
+  { label_key: "settings.family_feat_security_policies", on: true },
+  { label_key: "settings.lockdown_title", on: true },
+  { label_key: "settings.family_feat_retention", on: true },
+  { label_key: "settings.family_feat_storage_controls", on: true },
+  { label_key: "settings.family_feat_admin_transfer", on: true },
 ];
 
 export const FEATURE_MIN_PLAN: Record<string, string> = {

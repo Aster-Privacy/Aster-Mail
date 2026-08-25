@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SignaturePlacement } from "@/services/api/signatures";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PlusIcon,
@@ -29,6 +31,9 @@ import {
   Bars3BottomLeftIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch, UpgradeBtn } from "@aster/ui";
+
+import { FmtButton, FmtDivider, SignatureMode, escape_html } from "./helpers";
+import { use_signature_section } from "./use_signature_section";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -49,12 +54,11 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { LinkDialog } from "@/components/compose/link_dialog";
+import { FontSizeSelect } from "@/components/compose/compose_toolbar/font_size";
+import { ColorPickerPopover } from "@/components/compose/compose_toolbar/color_picker";
+import { use_frozen_selection } from "@/components/compose/compose_toolbar/shared";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
-import type { SignaturePlacement } from "@/services/api/signatures";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
-
-import { FmtButton, FmtDivider, SignatureMode, escape_html } from "./helpers";
-import { use_signature_section } from "./use_signature_section";
 
 export function SignatureSection() {
   const {
@@ -70,6 +74,8 @@ export function SignatureSection() {
     has_badges,
     error,
     set_error,
+    editor_error,
+    has_unreadable,
     editor,
     set_editor,
     deleting_id,
@@ -93,10 +99,16 @@ export function SignatureSection() {
     open_create_editor,
     open_edit_editor,
     close_editor,
+    request_close_editor,
+    confirm_discard_open,
+    set_confirm_discard_open,
     handle_save,
     handle_delete,
     handle_set_default,
   } = use_signature_section();
+
+  const { freeze_selection, apply_with_frozen_selection } =
+    use_frozen_selection(rich_editor);
 
   if (is_initial_load && is_loading && signatures.length === 0) {
     return <SettingsSkeleton variant="list" />;
@@ -117,7 +129,7 @@ export function SignatureSection() {
         </p>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.signature_mode")}
             </p>
@@ -155,7 +167,7 @@ export function SignatureSection() {
 
         {has_badges && (
           <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pr-4">
+            <div className="flex-1 pe-4">
               <p className="text-sm font-medium text-txt-primary">
                 {t("settings.show_badges_in_signature")}
               </p>
@@ -164,6 +176,7 @@ export function SignatureSection() {
               </p>
             </div>
             <Switch
+              aria-label={t("settings.show_badges_in_signature")}
               checked={preferences.show_badges_in_signature}
               size="lg"
               onCheckedChange={(checked) =>
@@ -171,6 +184,12 @@ export function SignatureSection() {
               }
             />
           </div>
+        )}
+
+        {has_unreadable && (
+          <p className="mb-4 text-[12px] text-txt-muted">
+            {t("settings.unreadable_entries_notice")}
+          </p>
         )}
 
         {error && (
@@ -213,7 +232,7 @@ export function SignatureSection() {
 
           <Modal
             is_open={editor.is_open}
-            on_close={close_editor}
+            on_close={request_close_editor}
             show_close_button={!editor.is_saving}
             size="lg"
           >
@@ -225,6 +244,14 @@ export function SignatureSection() {
               </ModalTitle>
             </ModalHeader>
             <ModalBody className="space-y-4">
+              {editor_error && (
+                <p
+                  className="p-3 rounded-lg text-sm bg-red-500/10 text-red-500"
+                  role="alert"
+                >
+                  {editor_error}
+                </p>
+              )}
               <div>
                 <label
                   className="text-sm font-medium block mb-2 text-txt-primary"
@@ -334,12 +361,12 @@ export function SignatureSection() {
               </div>
 
               <div>
-                <label
+                <span
                   className="text-sm font-medium block mb-2 text-txt-primary"
-                  htmlFor="signature-content"
+                  id="signature-content-label"
                 >
                   {t("settings.signature_content")}
-                </label>
+                </span>
                 <div
                   className={`rounded-md border bg-input-bg overflow-hidden ${
                     content_invalid ? "border-red-500" : "border-input-border"
@@ -350,6 +377,34 @@ export function SignatureSection() {
                     className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 border-b border-input-border"
                     role="toolbar"
                   >
+                    <FontSizeSelect
+                      font_size={rich_editor.format_state.current_font_size}
+                      on_before_open={freeze_selection}
+                      on_change={(size) =>
+                        apply_with_frozen_selection(() =>
+                          rich_editor.set_font_size(size),
+                        )
+                      }
+                    />
+
+                    <ColorPickerPopover
+                      bg_color={rich_editor.format_state.current_bg_color}
+                      font_color={rich_editor.format_state.current_font_color}
+                      on_before_open={freeze_selection}
+                      on_bg_color_change={(color) =>
+                        apply_with_frozen_selection(() =>
+                          rich_editor.set_background_color(color),
+                        )
+                      }
+                      on_font_color_change={(color) =>
+                        apply_with_frozen_selection(() =>
+                          rich_editor.set_font_color(color),
+                        )
+                      }
+                    />
+
+                    <FmtDivider />
+
                     <FmtButton
                       active={rich_editor.format_state.active_formats.has(
                         "bold",
@@ -525,7 +580,10 @@ export function SignatureSection() {
                   <div
                     ref={editor_div_ref}
                     contentEditable
+                    aria-labelledby="signature-content-label"
+                    aria-multiline="true"
                     className="px-3 py-2 text-sm min-h-[150px] max-h-[300px] overflow-y-auto text-txt-primary outline-none [&_img]:max-w-full"
+                    role="textbox"
                     onDragOver={rich_editor.handle_drag_over}
                     onDrop={rich_editor.handle_drop}
                     onInput={rich_editor.handle_input}
@@ -543,7 +601,7 @@ export function SignatureSection() {
               <Button
                 disabled={editor.is_saving}
                 variant="ghost"
-                onClick={close_editor}
+                onClick={request_close_editor}
               >
                 {t("common.cancel")}
               </Button>
@@ -555,7 +613,7 @@ export function SignatureSection() {
                 {editor.is_saving ? (
                   <>
                     {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
+                    <Spinner className="ms-2" size="md" />
                   </>
                 ) : editor.editing_id ? (
                   t("settings.update_signature")
@@ -669,8 +727,8 @@ export function SignatureSection() {
                               "<br>",
                             ),
                       }}
-                      className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary border border-edge-primary [&_img]:max-w-full"
                       data-selectable-region
+                      className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary border border-edge-primary [&_img]:max-w-full"
                       tabIndex={-1}
                     />
                   </motion.div>
@@ -680,6 +738,16 @@ export function SignatureSection() {
           )}
         </div>
       </div>
+
+      <ConfirmationModal
+        confirm_text={t("mail.discard")}
+        is_open={confirm_discard_open}
+        message={t("common.discard_changes_message")}
+        on_cancel={() => set_confirm_discard_open(false)}
+        on_confirm={close_editor}
+        title={t("common.discard_changes_title")}
+        variant="danger"
+      />
 
       <ConfirmationModal
         confirm_text={t("common.delete")}
@@ -706,7 +774,7 @@ export function SignatureSection() {
         </div>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.signature_placement_description")}
             </p>

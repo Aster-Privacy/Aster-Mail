@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { LoginEventEntry } from "@/services/api/auth";
+
+import { useId, useState } from "react";
 import {
   KeyIcon,
   ArrowPathIcon,
@@ -30,31 +33,17 @@ import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n";
 import {
   SESSION_TIMEOUT_OPTIONS,
   KEY_ROTATION_OPTIONS,
   KEY_HISTORY_OPTIONS,
 } from "@/components/settings/hooks/use_security";
 import { InfoPopover } from "@/components/ui/info_popover";
-import type { LoginEventEntry } from "@/services/api/auth";
+import { label_toggle_children } from "@/lib/labeled_control";
 import { TotpInlineSetup } from "@/components/settings/security/totp_inline_setup";
 import { ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
-
-function format_relative_time(
-  iso: string,
-  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
-): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return t("common.just_now");
-  if (minutes < 60) return t("common.minutes_ago_short", { count: minutes });
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return t("common.hours_ago_short", { count: hours });
-  const days = Math.floor(hours / 24);
-  if (days < 30) return t("common.days_ago_short", { count: days });
-  return new Date(iso).toLocaleDateString();
-}
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { format_relative_time_short } from "@/utils/date_utils";
 
 interface SecuritySettingProps {
   title: React.ReactNode;
@@ -63,17 +52,31 @@ interface SecuritySettingProps {
   info?: { title: string; description: string };
 }
 
-function SecuritySetting({ title, description, action, info }: SecuritySettingProps) {
+function SecuritySetting({
+  title,
+  description,
+  action,
+  info,
+}: SecuritySettingProps) {
+  const label_id = useId();
+
   return (
     <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+      <div className="flex-1 pe-4">
+        <p
+          className="text-sm font-medium text-txt-primary flex items-center gap-1.5"
+          id={label_id}
+        >
           {title}
-          {info && <InfoPopover description={info.description} title={info.title} />}
+          {info && (
+            <InfoPopover description={info.description} title={info.title} />
+          )}
         </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
-      <div className="flex-shrink-0">{action}</div>
+      <div className="flex-shrink-0">
+        {label_toggle_children(action, label_id)}
+      </div>
     </div>
   );
 }
@@ -102,6 +105,8 @@ function OptionButton({ is_selected, label, on_click }: OptionButtonProps) {
 
 interface TwoStepVerificationGroupProps {
   totp_enabled: boolean;
+  totp_status_failed?: boolean;
+  on_totp_status_retry?: () => void;
   totp_backup_codes_remaining: number | undefined;
   on_two_factor_toggle: () => void;
   on_regenerate_backup_codes?: () => void;
@@ -111,6 +116,8 @@ interface TwoStepVerificationGroupProps {
 
 export function TwoStepVerificationGroup({
   totp_enabled,
+  totp_status_failed = false,
+  on_totp_status_retry,
   totp_backup_codes_remaining,
   on_two_factor_toggle,
   on_regenerate_backup_codes,
@@ -123,53 +130,66 @@ export function TwoStepVerificationGroup({
     <div>
       <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
         {t("settings.two_step_verification")}
-        {!totp_enabled && (
-          <ActionRecommendedBadge tip={t("settings.two_step_verification_recommendation")} />
+        {!totp_enabled && !totp_status_failed && (
+          <ActionRecommendedBadge
+            tip={t("settings.two_step_verification_recommendation")}
+          />
         )}
       </p>
-      <p className="text-sm mt-0.5 text-txt-muted">
-        {totp_enabled
-          ? t("settings.two_step_verification_enabled_description")
-          : t("settings.two_step_verification_description")}
-      </p>
-
-      <div className="flex items-center justify-between py-3">
-        <p className="text-sm text-txt-primary">
-          {t("settings.authenticator_app")}
+      {!totp_status_failed && (
+        <p className="text-sm mt-0.5 text-txt-muted">
+          {totp_enabled
+            ? t("settings.two_step_verification_enabled_description")
+            : t("settings.two_step_verification_description")}
         </p>
-        {totp_enabled ? (
-          <Switch size="lg" checked={totp_enabled} onCheckedChange={on_two_factor_toggle} />
-        ) : (
-          <Button variant="outline" onClick={on_two_factor_toggle}>
-            {show_inline_setup ? t("common.cancel") : t("settings.setup_2fa")}
-          </Button>
-        )}
-      </div>
+      )}
 
-      {show_inline_setup && (
+      {totp_status_failed ? (
+        <div className="py-3">
+          <LoadFailedNotice on_retry={() => on_totp_status_retry?.()} />
+        </div>
+      ) : (
+        <div className="flex items-center justify-between py-3">
+          <p className="text-sm text-txt-primary">
+            {t("settings.authenticator_app")}
+          </p>
+          {totp_enabled ? (
+            <Switch
+              aria-label={t("settings.authenticator_app")}
+              checked={totp_enabled}
+              size="lg"
+              onCheckedChange={on_two_factor_toggle}
+            />
+          ) : (
+            <Button variant="outline" onClick={on_two_factor_toggle}>
+              {show_inline_setup ? t("common.cancel") : t("settings.setup_2fa")}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {show_inline_setup && !totp_status_failed && (
         <TotpInlineSetup on_success={on_inline_setup_success} />
       )}
 
       {totp_enabled && on_regenerate_backup_codes && (
         <SecuritySetting
           action={
-            <Button
-              variant="outline"
-              onClick={on_regenerate_backup_codes}
-            >
+            <Button variant="outline" onClick={on_regenerate_backup_codes}>
               {t("settings.regenerate_backup_codes")}
             </Button>
           }
-          description={t("settings.regenerate_backup_codes_description").replace(
-            "{{count}}",
-            String(totp_backup_codes_remaining ?? 0),
-          )}
+          description={t("settings.regenerate_backup_codes_description", {
+            count: totp_backup_codes_remaining ?? 0,
+          })}
           title={t("settings.backup_codes")}
         />
       )}
     </div>
   );
 }
+
+const SIGN_IN_PREVIEW_COUNT = 10;
 
 interface LoginAlertsSessionsGroupProps {
   session_timeout_enabled: boolean;
@@ -178,9 +198,14 @@ interface LoginAlertsSessionsGroupProps {
   on_timeout_change: (minutes: number) => void;
   timeout_description: string;
   login_alerts_enabled: boolean;
+  login_alerts_loaded: boolean;
+  login_alerts_failed: boolean;
   on_login_alerts_toggle: () => void;
+  on_reload_login_alerts: () => void;
   login_events: LoginEventEntry[];
   login_events_loading: boolean;
+  login_events_failed: boolean;
+  on_reload_login_events: () => void;
 }
 
 export function LoginAlertsSessionsGroup({
@@ -190,11 +215,20 @@ export function LoginAlertsSessionsGroup({
   on_timeout_change,
   timeout_description,
   login_alerts_enabled,
+  login_alerts_loaded,
+  login_alerts_failed,
   on_login_alerts_toggle,
+  on_reload_login_alerts,
   login_events,
   login_events_loading,
+  login_events_failed,
+  on_reload_login_events,
 }: LoginAlertsSessionsGroupProps) {
   const { t } = use_i18n();
+  const [show_all_sign_ins, set_show_all_sign_ins] = useState(false);
+  const visible_login_events = show_all_sign_ins
+    ? login_events
+    : login_events.slice(0, SIGN_IN_PREVIEW_COUNT);
 
   return (
     <div>
@@ -208,8 +242,9 @@ export function LoginAlertsSessionsGroup({
 
       <SecuritySetting
         action={
-          <Switch size="lg"
+          <Switch
             checked={session_timeout_enabled}
+            size="lg"
             onCheckedChange={on_timeout_toggle}
           />
         }
@@ -238,17 +273,35 @@ export function LoginAlertsSessionsGroup({
       )}
       <SecuritySetting
         action={
-          <Switch size="lg"
-            checked={login_alerts_enabled}
-            onCheckedChange={on_login_alerts_toggle}
-          />
+          login_alerts_failed && !login_alerts_loaded ? (
+            <button
+              className="text-xs font-medium text-accent-primary hover:underline"
+              type="button"
+              onClick={on_reload_login_alerts}
+            >
+              {t("common.retry")}
+            </button>
+          ) : (
+            <Switch
+              checked={login_alerts_enabled}
+              disabled={!login_alerts_loaded}
+              size="lg"
+              onCheckedChange={on_login_alerts_toggle}
+            />
+          )
         }
-        description={t("settings.login_alerts_description")}
+        description={
+          login_alerts_failed && !login_alerts_loaded
+            ? t("common.something_went_wrong_try_again")
+            : t("settings.login_alerts_description")
+        }
         title={
           <>
             {t("settings.login_alerts")}
-            {!login_alerts_enabled && (
-              <ActionRecommendedBadge tip={t("settings.login_alerts_off_recommendation")} />
+            {login_alerts_loaded && !login_alerts_enabled && (
+              <ActionRecommendedBadge
+                tip={t("settings.login_alerts_off_recommendation")}
+              />
             )}
           </>
         }
@@ -262,6 +315,19 @@ export function LoginAlertsSessionsGroup({
         </div>
         {login_events_loading ? (
           <p className="text-xs text-txt-muted">{t("common.loading")}</p>
+        ) : login_events_failed && login_events.length === 0 ? (
+          <div className="py-4 text-center">
+            <p className="text-xs text-txt-muted">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <button
+              className="mt-2 text-xs font-medium text-accent-primary hover:underline"
+              type="button"
+              onClick={on_reload_login_events}
+            >
+              {t("common.retry")}
+            </button>
+          </div>
         ) : login_events.length === 0 ? (
           <div className="py-4 text-center">
             <ComputerDesktopIcon className="w-6 h-6 text-txt-muted mx-auto mb-2" />
@@ -271,7 +337,7 @@ export function LoginAlertsSessionsGroup({
           </div>
         ) : (
           <div className="space-y-1">
-            {login_events.slice(0, 10).map((event) => (
+            {visible_login_events.map((event) => (
               <div
                 key={event.id}
                 className="flex items-center justify-between py-2 border-b border-edge-secondary last:border-0"
@@ -286,11 +352,22 @@ export function LoginAlertsSessionsGroup({
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-txt-muted ml-4 shrink-0">
-                  {format_relative_time(event.created_at, t)}
+                <span className="text-xs text-txt-muted ms-4 shrink-0">
+                  {format_relative_time_short(event.created_at, t)}
                 </span>
               </div>
             ))}
+            {login_events.length > SIGN_IN_PREVIEW_COUNT && (
+              <button
+                className="mt-1 text-xs font-medium text-accent-primary hover:underline"
+                type="button"
+                onClick={() => set_show_all_sign_ins((prev) => !prev)}
+              >
+                {show_all_sign_ins
+                  ? t("common.show_less")
+                  : t("common.show_more")}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -320,8 +397,9 @@ export function ExternalLinkWarningsGroup({
       </div>
       <SecuritySetting
         action={
-          <Switch size="lg"
+          <Switch
             checked={!external_link_warning_dismissed}
+            size="lg"
             onCheckedChange={on_external_link_toggle}
           />
         }
@@ -330,7 +408,10 @@ export function ExternalLinkWarningsGroup({
             ? t("settings.external_link_warning_disabled")
             : t("settings.external_link_warning_enabled")
         }
-        info={{ title: t("settings.info_external_link_warnings_title"), description: t("settings.info_external_link_warnings_description") }}
+        info={{
+          title: t("settings.info_external_link_warnings_title"),
+          description: t("settings.info_external_link_warnings_description"),
+        }}
         title={t("settings.external_link_warnings")}
       />
     </div>
@@ -339,6 +420,7 @@ export function ExternalLinkWarningsGroup({
 
 interface ForwardSecrecyGroupProps {
   forward_secrecy_enabled: boolean;
+  forward_secrecy_working?: boolean;
   on_forward_secrecy_toggle: () => void;
   key_rotation_hours: number;
   on_key_rotation_change: (hours: number) => void;
@@ -351,6 +433,7 @@ interface ForwardSecrecyGroupProps {
 
 export function ForwardSecrecyGroup({
   forward_secrecy_enabled,
+  forward_secrecy_working = false,
   on_forward_secrecy_toggle,
   key_rotation_hours,
   on_key_rotation_change,
@@ -373,12 +456,13 @@ export function ForwardSecrecyGroup({
       </div>
       <SecuritySetting
         action={
-          <Switch size="lg"
+          <Switch
             checked={forward_secrecy_enabled}
+            disabled={forward_secrecy_working}
+            size="lg"
             onCheckedChange={on_forward_secrecy_toggle}
           />
         }
-        info={{ title: t("settings.info_forward_secrecy_title"), description: t("settings.info_forward_secrecy_description") }}
         description={
           forward_secrecy_enabled
             ? t("settings.forward_secrecy_enabled_description").replace(
@@ -391,6 +475,10 @@ export function ForwardSecrecyGroup({
               )
             : t("settings.forward_secrecy_disabled_description")
         }
+        info={{
+          title: t("settings.info_forward_secrecy_title"),
+          description: t("settings.info_forward_secrecy_description"),
+        }}
         title={t("settings.forward_secrecy")}
       />
       {forward_secrecy_enabled && (
@@ -407,14 +495,10 @@ export function ForwardSecrecyGroup({
               <span className="text-txt-primary">
                 {key_age_hours !== null
                   ? key_age_hours < 24
-                    ? t("settings.hours").replace(
-                        "{{count}}",
-                        String(key_age_hours),
-                      )
-                    : t("settings.days").replace(
-                        "{{count}}",
-                        String(Math.floor(key_age_hours / 24)),
-                      )
+                    ? t("settings.hours", { count: key_age_hours })
+                    : t("settings.days", {
+                        count: Math.floor(key_age_hours / 24),
+                      })
                   : "—"}
               </span>
             </div>
@@ -432,7 +516,12 @@ export function ForwardSecrecyGroup({
               <ArrowPathIcon className="w-4 h-4 text-txt-muted" />
               <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.key_rotation_interval")}
-                <InfoPopover description={t("settings.info_key_rotation_interval_description")} title={t("settings.info_key_rotation_interval_title")} />
+                <InfoPopover
+                  description={t(
+                    "settings.info_key_rotation_interval_description",
+                  )}
+                  title={t("settings.info_key_rotation_interval_title")}
+                />
               </span>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -451,7 +540,10 @@ export function ForwardSecrecyGroup({
               <KeyIcon className="w-4 h-4 text-txt-muted" />
               <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.key_history_limit")}
-                <InfoPopover description={t("settings.info_key_history_limit_description")} title={t("settings.info_key_history_limit_title")} />
+                <InfoPopover
+                  description={t("settings.info_key_history_limit_description")}
+                  title={t("settings.info_key_history_limit_title")}
+                />
               </span>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -470,7 +562,7 @@ export function ForwardSecrecyGroup({
           </div>
           <div className="pt-2">
             <Button size="md" variant="outline" onClick={on_rotate_keys_now}>
-              <ArrowPathIcon className="w-4 h-4 mr-2" />
+              <ArrowPathIcon className="w-4 h-4 me-2" />
               {t("settings.rotate_keys_now")}
             </Button>
             <p className="text-xs mt-2 text-txt-muted">

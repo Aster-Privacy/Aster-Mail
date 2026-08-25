@@ -20,15 +20,20 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
 
+import { useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { next_radio_index } from "@/lib/radiogroup_navigation";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { resolve_list_density } from "@/lib/list_density";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { build_theme_fields_update } from "@/lib/theme_sync";
+import {
+  build_theme_fields_update,
+  get_effective_theme_fields,
+} from "@/lib/theme_sync";
 
 interface QuickSettingsPanelProps {
   is_open: boolean;
@@ -101,6 +106,19 @@ function ThumbPaneBottom() {
           backgroundColor: "var(--bg-primary)",
         }}
       />
+    </span>
+  );
+}
+
+function ThemeSystemMini() {
+  return (
+    <span className="flex h-full w-full">
+      <span className="h-full w-1/2 overflow-hidden">
+        <ThemeMini mode="light" />
+      </span>
+      <span className="h-full w-1/2 overflow-hidden">
+        <ThemeMini mode="dark" />
+      </span>
     </span>
   );
 }
@@ -180,6 +198,33 @@ function QuickSection({
   action,
   children,
 }: QuickSectionProps) {
+  const group_ref = useRef<HTMLDivElement>(null);
+  const selected_index = options
+    ? options.findIndex((option) => option.value === value)
+    : -1;
+
+  const handle_option_keydown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!options) return;
+
+    const is_rtl =
+      typeof document !== "undefined" &&
+      document.documentElement.getAttribute("dir") === "rtl";
+    const next = next_radio_index(
+      e["key"],
+      selected_index,
+      options.length,
+      is_rtl,
+    );
+
+    if (next === null) return;
+
+    e.preventDefault();
+    on_change?.(options[next].value);
+    group_ref.current
+      ?.querySelectorAll<HTMLButtonElement>("[role='radio']")
+      [next]?.focus();
+  };
+
   return (
     <section
       className="px-4 py-3"
@@ -193,16 +238,24 @@ function QuickSection({
       </header>
 
       {options && (
-        <div aria-label={title} role="radiogroup">
-          {options.map((option) => {
+        <div
+          ref={group_ref}
+          aria-label={title}
+          role="radiogroup"
+          onKeyDown={handle_option_keydown}
+        >
+          {options.map((option, index) => {
             const is_selected = option.value === value;
 
             return (
               <button
                 key={option.value}
                 aria-checked={is_selected}
-                className="quick_settings_row flex w-full items-center gap-3 rounded-[8px] px-1 py-[5px] text-left"
+                className="quick_settings_row flex w-full items-center gap-3 rounded-[8px] px-1 py-[5px] text-start"
                 role="radio"
+                tabIndex={
+                  is_selected || (selected_index < 0 && index === 0) ? 0 : -1
+                }
                 type="button"
                 onClick={() => on_change?.(option.value)}
               >
@@ -273,7 +326,7 @@ export function QuickSettingsPanel({
   const { preferences, update_preference, update_preferences } =
     use_preferences();
 
-  const handle_theme_select = (mode: "light" | "dark") => {
+  const handle_theme_select = (mode: "light" | "dark" | "system") => {
     set_theme_preference(mode);
     update_preferences(
       build_theme_fields_update(preferences, {
@@ -284,12 +337,15 @@ export function QuickSettingsPanel({
     );
   };
 
+  const is_default_color =
+    get_effective_theme_fields(preferences).color_theme === "default";
+
   use_escape_layer(is_open, on_close, "quick_settings_panel", false);
 
   if (!is_open) return null;
 
   return (
-    <aside className="quick_settings_panel ml-1 hidden h-full w-[clamp(272px,26vw,352px)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:ml-2 md:rounded-xl lg:flex">
+    <aside className="quick_settings_panel ms-1 hidden h-full w-[clamp(272px,26vw,352px)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:ms-2 md:rounded-xl lg:flex">
       <div className="flex min-h-[56px] flex-shrink-0 items-center gap-3 px-4">
         <h2 className="flex-1 truncate text-[16px] font-medium text-txt-primary">
           {t("settings.quick_settings")}
@@ -369,6 +425,13 @@ export function QuickSettingsPanel({
               update_preference("show_profile_pictures", next, true)
             }
           />
+          <QuickToggle
+            checked={preferences.show_email_preview !== false}
+            label={t("settings.quick_preview_text")}
+            on_change={(next) =>
+              update_preference("show_email_preview", next, true)
+            }
+          />
         </QuickSection>
 
         <QuickSection
@@ -400,7 +463,9 @@ export function QuickSettingsPanel({
               {t("settings.quick_more_appearance")}
             </button>
           }
-          on_change={(v) => handle_theme_select(v as "light" | "dark")}
+          on_change={(v) =>
+            handle_theme_select(v as "light" | "dark" | "system")
+          }
           options={[
             {
               value: "light",
@@ -412,9 +477,14 @@ export function QuickSettingsPanel({
               label: t("settings.theme_dark"),
               thumbnail: <ThemeMini mode="dark" />,
             },
+            {
+              value: "system",
+              label: t("settings.theme_system"),
+              thumbnail: <ThemeSystemMini />,
+            },
           ]}
           title={t("settings.theme")}
-          value={theme_preference}
+          value={is_default_color ? theme_preference : ""}
         />
 
         <div className="h-3 flex-shrink-0" />

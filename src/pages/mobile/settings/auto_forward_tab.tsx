@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect } from "react";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { motion } from "framer-motion";
 import {
   PlusIcon,
@@ -41,18 +42,22 @@ import {
   type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
 import { ForwardingRuleBuilder } from "@/components/settings/forwarding_rule_builder";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export function AutoForwardTab() {
   const { t } = use_i18n();
   const [rules, set_rules] = useState<ForwardingRuleResponse[]>([]);
   const [rules_loading, set_rules_loading] = useState(true);
+  const [rules_load_failed, set_rules_load_failed] = useState(false);
+  const [rules_reload_token, set_rules_reload_token] = useState(0);
   const [show_rule_builder, set_show_rule_builder] = useState(false);
   const [editing_rule, set_editing_rule] =
     useState<ForwardingRuleResponse | null>(null);
   const [is_saving_rule, set_is_saving_rule] = useState(false);
   const [is_deleting_rule, set_is_deleting_rule] = useState(false);
+  const [confirm_delete_rule, set_confirm_delete_rule] =
+    useState<ForwardingRuleResponse | null>(null);
   const [resending_address, set_resending_address] = useState<string | null>(
     null,
   );
@@ -107,8 +112,11 @@ export function AutoForwardTab() {
             t("settings.forwarding_verification_resent", { address }),
             "success",
           );
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } finally {
         set_resending_address(null);
@@ -144,16 +152,23 @@ export function AutoForwardTab() {
     let cancelled = false;
 
     async function load_rules() {
+      set_rules_loading(true);
       try {
         const result = await list_forwarding_rules();
 
         if (cancelled) return;
-        if (result.data) set_rules(result.data);
+        if (result.data) {
+          set_rules(result.data);
+          set_rules_load_failed(false);
+        } else {
+          set_rules_load_failed(true);
+        }
       } catch (caught) {
         ignore_error(
           "pages/mobile/settings/auto_forward_tab:load_rules",
           caught,
         );
+        if (!cancelled) set_rules_load_failed(true);
       } finally {
         if (!cancelled) set_rules_loading(false);
       }
@@ -163,7 +178,7 @@ export function AutoForwardTab() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [rules_reload_token]);
 
   const handle_toggle_rule = useCallback(
     async (rule: ForwardingRuleResponse) => {
@@ -191,6 +206,7 @@ export function AutoForwardTab() {
             r.id === rule.id ? { ...r, is_enabled: !new_enabled } : r,
           ),
         );
+        show_toast(t("common.failed_to_update_rule"), "error");
       }
     },
     [t],
@@ -208,7 +224,11 @@ export function AutoForwardTab() {
             t("settings.removed_forwarding_rule", { name: rule.name }),
             "success",
           );
+        } else {
+          show_toast(t("common.delete_failed"), "error");
         }
+      } catch {
+        show_toast(t("common.delete_failed"), "error");
       } finally {
         set_is_deleting_rule(false);
       }
@@ -241,8 +261,11 @@ export function AutoForwardTab() {
             notify_saved(result.data, false);
             set_show_rule_builder(false);
             set_editing_rule(null);
-          } else if (result.error) {
-            show_toast(result.error, "error");
+          } else {
+            show_toast(
+              result.error || t("common.something_went_wrong_try_again"),
+              "error",
+            );
           }
         } else {
           const result = await create_forwarding_rule(
@@ -257,15 +280,18 @@ export function AutoForwardTab() {
             notify_saved(result.data, true);
             set_show_rule_builder(false);
             set_editing_rule(null);
-          } else if (result.error) {
-            show_toast(result.error, "error");
+          } else {
+            show_toast(
+              result.error || t("common.something_went_wrong_try_again"),
+              "error",
+            );
           }
         }
       } finally {
         set_is_saving_rule(false);
       }
     },
-    [editing_rule, notify_saved],
+    [editing_rule, notify_saved, t],
   );
 
   const get_condition_summary = useCallback(
@@ -285,7 +311,8 @@ export function AutoForwardTab() {
   );
 
   const format_rule_date = useCallback((date_string: string) => {
-    return new Date(date_string).toLocaleDateString(undefined, {
+    return new Date(date_string).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -317,6 +344,19 @@ export function AutoForwardTab() {
       {rules_loading ? (
         <div className="flex items-center justify-center py-12">
           <Spinner size="md" />
+        </div>
+      ) : rules_load_failed && rules.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">
+          <p className="text-center text-[14px] text-[var(--mobile-text-muted)]">
+            {t("common.something_went_wrong_try_again")}
+          </p>
+          <button
+            className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+            type="button"
+            onClick={() => set_rules_reload_token((prev) => prev + 1)}
+          >
+            {t("common.retry")}
+          </button>
         </div>
       ) : rules.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">
@@ -456,13 +496,13 @@ export function AutoForwardTab() {
                   type="button"
                   onClick={() => handle_toggle_rule(rule)}
                 >
-                  {rule.is_enabled ? t("common.paused") : t("common.enable")}
+                  {rule.is_enabled ? t("common.disable") : t("common.enable")}
                 </button>
                 <button
                   className="rounded-[14px] px-3 py-2 text-[13px] font-medium text-[var(--mobile-danger)] bg-[var(--mobile-bg-card-hover)] disabled:opacity-50"
                   disabled={is_deleting_rule}
                   type="button"
-                  onClick={() => handle_delete_rule(rule)}
+                  onClick={() => set_confirm_delete_rule(rule)}
                 >
                   <TrashIcon className="w-4 h-4" />
                 </button>
@@ -495,6 +535,7 @@ export function AutoForwardTab() {
                 : t("settings.create_forwarding_rule")}
             </h3>
             <ForwardingRuleBuilder
+              key={editing_rule?.id ?? "new"}
               initial_conditions={editing_rule?.conditions}
               initial_forward_to={editing_rule?.forward_to}
               initial_keep_copy={editing_rule?.keep_copy}
@@ -509,6 +550,20 @@ export function AutoForwardTab() {
           </motion.div>
         </div>
       )}
+      <ConfirmationModal
+        confirm_text={t("common.delete")}
+        is_open={confirm_delete_rule !== null}
+        message={t("settings.delete_forwarding_rule_message")}
+        on_cancel={() => set_confirm_delete_rule(null)}
+        on_confirm={() => {
+          const rule = confirm_delete_rule;
+
+          set_confirm_delete_rule(null);
+          if (rule) handle_delete_rule(rule);
+        }}
+        title={t("settings.delete_forwarding_rule_title")}
+        variant="danger"
+      />
     </>
   );
 }

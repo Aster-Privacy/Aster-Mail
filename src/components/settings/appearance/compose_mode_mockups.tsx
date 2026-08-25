@@ -70,7 +70,8 @@ function get_colors(theme: "light" | "dark" | "themed") {
       text_secondary: "#374151",
       text_tertiary: "#6b7280",
       text_muted: "#9ca3af",
-      selected_bg: "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, white)",
+      selected_bg:
+        "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, white)",
       indicator_bg: "#ffffff",
       indicator_border: "#e8e8e8",
       border: "#e8e8e8",
@@ -99,7 +100,8 @@ function get_colors(theme: "light" | "dark" | "themed") {
     text_secondary: "#e5e5e5",
     text_tertiary: "#888888",
     text_muted: "#666666",
-    selected_bg: "color-mix(in srgb, var(--accent-color, #3b82f6) 18%, #121212)",
+    selected_bg:
+      "color-mix(in srgb, var(--accent-color, #3b82f6) 18%, #121212)",
     indicator_bg: "#121212",
     indicator_border: "#333333",
     border: "#333333",
@@ -151,14 +153,29 @@ function MockupSidebar({ c }: { c: Colors }) {
             border: `1px solid ${c.indicator_border}`,
           }}
         >
-          <div className="w-1.5 h-1.5 rounded-sm" style={{ backgroundColor: c.text_primary }} />
-          <div className="flex-1 h-0.5 rounded-sm" style={{ backgroundColor: c.text_primary }} />
-          <div className="w-1 h-1 rounded-full" style={{ backgroundColor: c.brand }} />
+          <div
+            className="w-1.5 h-1.5 rounded-sm"
+            style={{ backgroundColor: c.text_primary }}
+          />
+          <div
+            className="flex-1 h-0.5 rounded-sm"
+            style={{ backgroundColor: c.text_primary }}
+          />
+          <div
+            className="w-1 h-1 rounded-full"
+            style={{ backgroundColor: c.brand }}
+          />
         </div>
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-3.5 rounded px-1 flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-sm" style={{ backgroundColor: c.text_muted }} />
-            <div className="flex-1 h-0.5 rounded-sm" style={{ backgroundColor: c.text_muted }} />
+            <div
+              className="w-1.5 h-1.5 rounded-sm"
+              style={{ backgroundColor: c.text_muted }}
+            />
+            <div
+              className="flex-1 h-0.5 rounded-sm"
+              style={{ backgroundColor: c.text_muted }}
+            />
           </div>
         ))}
         <div className="flex-1" />
@@ -167,7 +184,10 @@ function MockupSidebar({ c }: { c: Colors }) {
             className="w-full h-0.5 rounded-full overflow-hidden"
             style={{ backgroundColor: c.storage_track }}
           >
-            <div className="h-full rounded-full" style={{ width: "35%", backgroundColor: c.brand }} />
+            <div
+              className="h-full rounded-full"
+              style={{ width: "35%", backgroundColor: c.brand }}
+            />
           </div>
         </div>
       </div>
@@ -189,9 +209,15 @@ function MockupEmailRows({ c }: { c: Colors }) {
         className="h-3.5 flex items-center px-1.5 flex-shrink-0"
         style={{ borderBottom: `1px solid ${c.border_secondary}` }}
       >
-        <div className="h-1 rounded-sm w-5" style={{ backgroundColor: c.text_primary }} />
+        <div
+          className="h-1 rounded-sm w-5"
+          style={{ backgroundColor: c.text_primary }}
+        />
         <div className="flex-1" />
-        <div className="h-0.5 rounded-sm w-3" style={{ backgroundColor: c.text_muted }} />
+        <div
+          className="h-0.5 rounded-sm w-3"
+          style={{ backgroundColor: c.text_muted }}
+        />
       </div>
       {rows.map((row, i) => (
         <div
@@ -208,17 +234,32 @@ function MockupEmailRows({ c }: { c: Colors }) {
           />
           <div
             className="h-0.5 rounded-sm flex-shrink-0"
-            style={{ width: row.width, backgroundColor: row.unread ? c.text_primary : c.text_secondary }}
+            style={{
+              width: row.width,
+              backgroundColor: row.unread ? c.text_primary : c.text_secondary,
+            }}
           />
-          <div className="flex-1 h-0.5 rounded-sm" style={{ backgroundColor: c.text_tertiary }} />
-          <div className="w-1.5 h-0.5 rounded-sm flex-shrink-0" style={{ backgroundColor: c.text_muted }} />
+          <div
+            className="flex-1 h-0.5 rounded-sm"
+            style={{ backgroundColor: c.text_tertiary }}
+          />
+          <div
+            className="w-1.5 h-0.5 rounded-sm flex-shrink-0"
+            style={{ backgroundColor: c.text_muted }}
+          />
         </div>
       ))}
     </div>
   );
 }
 
-function ComposeCard({ c, full_height = false }: { c: Colors; full_height?: boolean }) {
+function ComposeCard({
+  c,
+  full_height = false,
+}: {
+  c: Colors;
+  full_height?: boolean;
+}) {
   return (
     <div
       className="flex flex-col overflow-hidden"
@@ -239,35 +280,64 @@ function ComposeCard({ c, full_height = false }: { c: Colors; full_height?: bool
           borderBottom: `1px solid ${c.compose_border_bottom}`,
         }}
       >
-        <div className="flex-1 h-0.5 rounded-sm bg-white/60" style={{ width: "40%" }} />
+        <div
+          className="flex-1 h-0.5 rounded-sm bg-white/60"
+          style={{ width: "40%" }}
+        />
         <div className="flex gap-0.5">
           <div className="w-1 h-1 rounded-sm bg-white/50" />
           <div className="w-1 h-1 rounded-sm bg-white/50" />
           <div className="w-1 h-1 rounded-sm bg-white/50" />
         </div>
       </div>
-      <div className="flex flex-col flex-1 overflow-hidden" style={{ backgroundColor: c.bg }}>
+      <div
+        className="flex flex-col flex-1 overflow-hidden"
+        style={{ backgroundColor: c.bg }}
+      >
         {["To", "Subject"].map((label) => (
           <div
             key={label}
             className="flex items-center px-1.5 flex-shrink-0 gap-1"
-            style={{ height: 10, borderBottom: `1px solid ${c.border_secondary}` }}
+            style={{
+              height: 10,
+              borderBottom: `1px solid ${c.border_secondary}`,
+            }}
           >
-            <div className="h-0.5 rounded-sm" style={{ width: 8, backgroundColor: c.text_muted }} />
+            <div
+              className="h-0.5 rounded-sm"
+              style={{ width: 8, backgroundColor: c.text_muted }}
+            />
             <div
               className="flex-1 h-0.5 rounded-sm"
-              style={{ backgroundColor: label === "To" ? c.text_secondary : c.text_tertiary, opacity: 0.6 }}
+              style={{
+                backgroundColor:
+                  label === "To" ? c.text_secondary : c.text_tertiary,
+                opacity: 0.6,
+              }}
             />
           </div>
         ))}
         <div className="flex-1 p-1 flex flex-col gap-0.5">
-          <div className="h-0.5 rounded-sm" style={{ backgroundColor: c.body_line }} />
-          <div className="h-0.5 rounded-sm w-[88%]" style={{ backgroundColor: c.body_line }} />
-          <div className="h-0.5 rounded-sm w-[72%]" style={{ backgroundColor: c.body_line }} />
+          <div
+            className="h-0.5 rounded-sm"
+            style={{ backgroundColor: c.body_line }}
+          />
+          <div
+            className="h-0.5 rounded-sm w-[88%]"
+            style={{ backgroundColor: c.body_line }}
+          />
+          <div
+            className="h-0.5 rounded-sm w-[72%]"
+            style={{ backgroundColor: c.body_line }}
+          />
         </div>
         <div
           className="flex items-center px-1.5 flex-shrink-0 gap-1"
-          style={{ height: 11, borderTop: `1px solid ${c.border_secondary}`, backgroundColor: c.toolbar_bg }}
+          style={{
+            height: 11,
+            borderTop: `1px solid ${c.border_secondary}`,
+            backgroundColor: c.toolbar_bg,
+          }}
         >
           <div
             className="h-2 rounded-sm px-1 flex items-center"
@@ -276,7 +346,11 @@ function ComposeCard({ c, full_height = false }: { c: Colors; full_height?: bool
             <div className="w-2 h-0.5 rounded-sm bg-white/90" />
           </div>
           {[1, 2, 3].map((i) => (
-            <div key={i} className="w-1.5 h-1.5 rounded-sm" style={{ backgroundColor: c.text_muted }} />
+            <div
+              key={i}
+              className="w-1.5 h-1.5 rounded-sm"
+              style={{ backgroundColor: c.text_muted }}
+            />
           ))}
         </div>
       </div>
@@ -296,7 +370,10 @@ export function ComposeMockupDefault({ theme }: ComposeMockupProps) {
       <div className="flex-1 flex" style={{ backgroundColor: c.bg }}>
         <MockupEmailRows c={c} />
       </div>
-      <div className="absolute bottom-1.5 right-1.5" style={{ width: "44%", minWidth: 0 }}>
+      <div
+        className="absolute bottom-1.5 end-1.5"
+        style={{ width: "44%", minWidth: 0 }}
+      >
         <ComposeCard c={c} />
       </div>
     </div>
@@ -319,7 +396,7 @@ export function ComposeMockupFullscreen({ theme }: ComposeMockupProps) {
         className="absolute inset-0 flex items-center justify-center"
         style={{ backgroundColor: c.modal_overlay }}
       >
-        <ComposeCard c={c} full_height />
+        <ComposeCard full_height c={c} />
       </div>
     </div>
   );
@@ -337,7 +414,7 @@ export function ComposeMockupMinimized({ theme }: ComposeMockupProps) {
       <div className="flex-1 flex" style={{ backgroundColor: c.bg }}>
         <MockupEmailRows c={c} />
       </div>
-      <div className="absolute bottom-0 right-1.5" style={{ width: "44%" }}>
+      <div className="absolute bottom-0 end-1.5" style={{ width: "44%" }}>
         <div
           className="flex items-center px-1.5 gap-0.5"
           style={{
@@ -350,8 +427,11 @@ export function ComposeMockupMinimized({ theme }: ComposeMockupProps) {
             boxShadow: c.card_shadow,
           }}
         >
-          <div className="flex-1 h-0.5 rounded-sm bg-white/60" style={{ maxWidth: "55%" }} />
-          <div className="flex gap-0.5 ml-auto">
+          <div
+            className="flex-1 h-0.5 rounded-sm bg-white/60"
+            style={{ maxWidth: "55%" }}
+          />
+          <div className="flex gap-0.5 ms-auto">
             <div className="w-1 h-1 rounded-sm bg-white/50" />
             <div className="w-1 h-1 rounded-sm bg-white/50" />
           </div>

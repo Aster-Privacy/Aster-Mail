@@ -18,18 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/services/api/aliases";
+import type {} from "@/lib/i18n/types";
 
-import { useCallback, useEffect,  useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AdjustmentsHorizontalIcon,
   NoSymbolIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 
-import {  format_relative_time } from "../alias_stats_format";
+import { format_relative_time } from "../alias_stats_format";
 
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -81,6 +82,7 @@ export function DeliveryLogPanel({
   const { t } = use_i18n();
   const [events, set_events] = useState<DeliveryEvent[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [expanded, set_expanded] = useState(false);
 
   const load = useCallback(async () => {
@@ -90,6 +92,7 @@ export function DeliveryLogPanel({
       return;
     }
     set_loading(true);
+    set_load_error(false);
     try {
       const response = domain_address_id
         ? await get_domain_address_delivery_log(domain_address_id)
@@ -97,8 +100,11 @@ export function DeliveryLogPanel({
 
       if (response.data) {
         set_events(response.data.events ?? []);
+      } else {
+        set_load_error(true);
       }
     } catch {
+      set_load_error(true);
       set_events([]);
     } finally {
       set_loading(false);
@@ -113,6 +119,8 @@ export function DeliveryLogPanel({
     <div className="space-y-3">
       {loading ? (
         <Spinner size="md" />
+      ) : load_error ? (
+        <LoadFailedNotice on_retry={() => load()} />
       ) : events.length === 0 ? (
         <p className="text-xs text-txt-muted">
           {t("settings.alias_delivery_log_empty")}
@@ -150,4 +158,3 @@ export function DeliveryLogPanel({
     </div>
   );
 }
-

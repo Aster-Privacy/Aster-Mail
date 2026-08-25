@@ -35,6 +35,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { SettingsHeader, SettingsGroup } from "./shared";
+
 import {
   get_family_group,
   invite_member,
@@ -62,25 +63,35 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ignore_error } from "@/lib/ignore_error";
 import { format_bytes } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
+import { copy_text } from "@/utils/copy_text";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const GB = 1_073_741_824;
 const DEFAULT_STORAGE_GB = 500;
 
 function storage_bar_pct(used: number, total: number): number {
   if (total <= 0) return 0;
+
   return Math.min(Math.round((used / total) * 100), 100);
 }
 
-function role_label(role: "owner" | "member", t: ReturnType<typeof use_i18n>["t"]): string {
-  return role === "owner" ? t("settings.family_member_owner") : t("settings.family_member_member");
+function role_label(
+  role: "owner" | "member",
+  t: ReturnType<typeof use_i18n>["t"],
+): string {
+  return role === "owner"
+    ? t("settings.family_member_owner")
+    : t("settings.family_member_member");
 }
 
 function format_date(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -125,21 +136,28 @@ export function FamilySection({
     useState<FamilyMemberInfo | null>(null);
   const [show_leave_dialog, set_show_leave_dialog] = useState(false);
   const [action_loading, set_action_loading] = useState(false);
+  const [load_error, set_load_error] = useState(false);
 
-  const [revoke_target, set_revoke_target] =
-    useState<PendingInviteInfo | null>(null);
+  const [revoke_target, set_revoke_target] = useState<PendingInviteInfo | null>(
+    null,
+  );
 
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   const load = useCallback(async () => {
     set_loading(true);
+    set_load_error(false);
     try {
       const res = await get_family_group();
+
       if (res.data) {
         set_group(res.data);
         localStorage.setItem("aster_is_family_plan", "1");
+      } else if (res.error) {
+        set_load_error(true);
       }
     } catch {
+      set_load_error(true);
       set_group(null);
     } finally {
       set_loading(false);
@@ -154,22 +172,24 @@ export function FamilySection({
     if (!invite_email.trim()) return;
     if (turnstile_required && !invite_captcha) {
       show_toast(t("settings.fam_org_captcha_required"), "error");
+
       return;
     }
     set_invite_loading(true);
     try {
       const storage_bytes =
-        Math.max(1, parseInt(invite_storage_gb, 10) || DEFAULT_STORAGE_GB) *
-        GB;
+        Math.max(1, parseInt(invite_storage_gb, 10) || DEFAULT_STORAGE_GB) * GB;
       const res = await invite_member(
         invite_email.trim(),
         storage_bytes,
         invite_captcha ?? undefined,
       );
+
       if (res.error) {
         show_toast(res.error, "error");
         turnstile_invite_ref.current?.reset();
         set_invite_captcha(null);
+
         return;
       }
       show_toast(t("settings.family_invite_sent"), "success");
@@ -181,11 +201,19 @@ export function FamilySection({
     } finally {
       set_invite_loading(false);
     }
-  }, [invite_email, invite_storage_gb, invite_captcha, turnstile_required, t, load]);
+  }, [
+    invite_email,
+    invite_storage_gb,
+    invite_captcha,
+    turnstile_required,
+    t,
+    load,
+  ]);
 
   const handle_copy_link = useCallback(async () => {
     if (turnstile_required && !link_captcha) {
       show_toast(t("settings.fam_org_captcha_required"), "error");
+
       return;
     }
     set_link_loading(true);
@@ -196,14 +224,19 @@ export function FamilySection({
         storage_bytes,
         link_captcha ?? undefined,
       );
+
       if (res.error || !res.data?.join_url) {
         show_toast(res.error ?? t("errors.unknown_error"), "error");
         turnstile_link_ref.current?.reset();
         set_link_captcha(null);
+
         return;
       }
-      await navigator.clipboard.writeText(res.data.join_url);
-      show_toast(t("settings.family_invite_link_copied"), "success");
+      if (await copy_text(res.data.join_url)) {
+        show_toast(t("settings.family_invite_link_copied"), "success");
+      } else {
+        show_toast(t("common.failed_to_copy"), "error");
+      }
       set_link_captcha(null);
       turnstile_link_ref.current?.reset();
     } finally {
@@ -215,49 +248,84 @@ export function FamilySection({
     if (!revoke_target) return;
     set_action_loading(true);
     try {
-      await revoke_invite(revoke_target.id);
+      const res = await revoke_invite(revoke_target.id);
+
+      if (res.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_revoke_target(null);
+      show_toast(t("settings.fam_org_invite_revoked_toast"), "success");
       await load();
     } finally {
       set_action_loading(false);
     }
-  }, [revoke_target, load]);
+  }, [revoke_target, load, t]);
 
   const handle_remove = useCallback(async () => {
     if (!remove_target) return;
     set_action_loading(true);
     try {
-      await remove_family_member(remove_target.user_id);
+      const res = await remove_family_member(remove_target.user_id);
+
+      if (res.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_remove_target(null);
+      show_toast(t("settings.fam_org_member_removed_toast"), "success");
       await load();
     } finally {
       set_action_loading(false);
     }
-  }, [remove_target, load]);
+  }, [remove_target, load, t]);
 
   const handle_transfer = useCallback(async () => {
     if (!transfer_target) return;
     set_action_loading(true);
     try {
-      await transfer_family_admin(transfer_target.user_id);
+      const res = await transfer_family_admin(transfer_target.user_id);
+
+      if (res.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_transfer_target(null);
+      show_toast(t("settings.fam_org_admin_transferred_toast"), "success");
       await load();
     } finally {
       set_action_loading(false);
     }
-  }, [transfer_target, load]);
+  }, [transfer_target, load, t]);
 
   const handle_leave = useCallback(async () => {
     set_action_loading(true);
     try {
-      await leave_family();
+      const res = await leave_family();
+
+      if (res.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_show_leave_dialog(false);
-      localStorage.removeItem("aster_is_family_plan");
+      try {
+        localStorage.removeItem("aster_is_family_plan");
+      } catch (caught) {
+        ignore_error(
+          "pages/mobile/settings/family_section:handle_leave",
+          caught,
+        );
+      }
+      window.dispatchEvent(new CustomEvent("aster:plan-changed"));
       on_back();
     } finally {
       set_action_loading(false);
     }
-  }, [on_back]);
+  }, [on_back, t]);
 
   if (loading) {
     return (
@@ -284,8 +352,19 @@ export function FamilySection({
         />
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
           <p className="text-[15px] text-[var(--text-primary)]">
-            {t("settings.family_plan_subtitle")}
+            {load_error
+              ? t("common.something_went_wrong_try_again")
+              : t("settings.family_plan_subtitle")}
           </p>
+          {load_error && (
+            <button
+              className="text-[14px] font-medium text-[var(--mobile-accent)]"
+              type="button"
+              onClick={() => load()}
+            >
+              {t("common.retry")}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -326,8 +405,8 @@ export function FamilySection({
               />
             </div>
             <p className="mt-2 text-[12px] text-[var(--mobile-text-secondary)]">
-              {group.plan_name} &middot; {active_members.length}/{group.max_members}{" "}
-              {t("settings.family_members").toLowerCase()}
+              {group.plan_name} &middot; {active_members.length}/
+              {group.max_members} {t("settings.family_members").toLowerCase()}
             </p>
           </div>
         </div>
@@ -339,6 +418,7 @@ export function FamilySection({
               member.allocated_storage_bytes,
             );
             const is_self = member.username === user?.username;
+
             return (
               <div
                 key={member.user_id}
@@ -355,7 +435,7 @@ export function FamilySection({
                       <span className="truncate text-[14px] font-medium text-[var(--text-primary)]">
                         {member.username}
                         {is_self && (
-                          <span className="ml-1 text-[var(--mobile-text-secondary)]">
+                          <span className="ms-1 text-[var(--mobile-text-secondary)]">
                             ({t("settings.encryption_banner_you")})
                           </span>
                         )}
@@ -366,8 +446,14 @@ export function FamilySection({
                     </div>
                     <p className="mt-0.5 text-[12px] text-[var(--mobile-text-secondary)]">
                       {t("settings.family_member_storage")
-                        .replace("{{used}}", format_bytes(member.storage_used_bytes))
-                        .replace("{{limit}}", format_bytes(member.allocated_storage_bytes))}
+                        .replace(
+                          "{{used}}",
+                          format_bytes(member.storage_used_bytes),
+                        )
+                        .replace(
+                          "{{limit}}",
+                          format_bytes(member.allocated_storage_bytes),
+                        )}
                     </p>
                     <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[var(--mobile-bg-card-hover)]">
                       <div
@@ -538,8 +624,7 @@ export function FamilySection({
                 <button
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--mobile-border,rgba(255,255,255,0.10))] bg-[var(--mobile-bg-card-hover)] py-2.5 text-[14px] font-medium text-[var(--text-primary)] active:opacity-70 disabled:opacity-50"
                   disabled={
-                    link_loading ||
-                    (turnstile_required && !link_captcha)
+                    link_loading || (turnstile_required && !link_captcha)
                   }
                   type="button"
                   onClick={handle_copy_link}
@@ -576,7 +661,9 @@ export function FamilySection({
 
       <AlertDialog
         open={!!remove_target}
-        onOpenChange={(open) => { if (!open) set_remove_target(null); }}
+        onOpenChange={(open) => {
+          if (!open) set_remove_target(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -607,7 +694,9 @@ export function FamilySection({
 
       <AlertDialog
         open={!!transfer_target}
-        onOpenChange={(open) => { if (!open) set_transfer_target(null); }}
+        onOpenChange={(open) => {
+          if (!open) set_transfer_target(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -637,7 +726,9 @@ export function FamilySection({
 
       <AlertDialog
         open={!!revoke_target}
-        onOpenChange={(open) => { if (!open) set_revoke_target(null); }}
+        onOpenChange={(open) => {
+          if (!open) set_revoke_target(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -63,13 +63,16 @@ describe("convert_cents", () => {
 
     const processor_yearly_paise = 862900;
     const shown = convert_cents(nova?.yearly_cents ?? 0, "inr");
-    const drift = Math.abs(shown - processor_yearly_paise) / processor_yearly_paise;
+    const drift =
+      Math.abs(shown - processor_yearly_paise) / processor_yearly_paise;
 
     expect(drift).toBeLessThan(0.01);
   });
 
   it("falls back to the unconverted amount for an unknown currency", () => {
-    expect(convert_cents(500, "zzz")).toBe(500 * (1 + CURRENCY_CONVERSION_MARGIN));
+    expect(convert_cents(500, "zzz")).toBe(
+      500 * (1 + CURRENCY_CONVERSION_MARGIN),
+    );
   });
 });
 

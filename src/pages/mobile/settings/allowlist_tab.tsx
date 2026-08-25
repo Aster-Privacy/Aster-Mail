@@ -20,7 +20,7 @@
 //
 import type { DecryptedAllowedSender } from "@/services/api/allowed_senders";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { PlusIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -28,7 +28,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   list_allowed_senders,
   remove_allowed_sender_by_token,
@@ -39,32 +38,35 @@ export function AllowlistTab() {
   const { t } = use_i18n();
   const [allowed, set_allowed] = useState<DecryptedAllowedSender[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [show_add_form, set_show_add_form] = useState(false);
   const [new_email, set_new_email] = useState("");
   const [is_adding, set_is_adding] = useState(false);
+  const pending_tokens = useRef<Set<string>>(new Set());
   const [is_domain, set_is_domain] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  const load_senders = useCallback(async () => {
+    set_is_loading(true);
+    try {
+      const result = await list_allowed_senders();
 
-    async function load() {
-      try {
-        const result = await list_allowed_senders();
-
-        if (cancelled) return;
-        if (result.data) set_allowed(result.data);
-      } catch (caught) {
-        ignore_error("pages/mobile/settings/allowlist_tab:load", caught);
-      } finally {
-        if (!cancelled) set_is_loading(false);
+      if (result.data) {
+        set_allowed(result.data);
+        set_load_error(false);
+      } else {
+        set_load_error(true);
       }
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/allowlist_tab:load", caught);
+      set_load_error(true);
+    } finally {
+      set_is_loading(false);
     }
-    load();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  useEffect(() => {
+    load_senders();
+  }, [load_senders]);
 
   const close_add_form = useCallback(() => {
     set_show_add_form(false);
@@ -72,15 +74,30 @@ export function AllowlistTab() {
     set_is_domain(false);
   }, []);
 
-  const handle_remove_allowed = useCallback(async (token: string) => {
-    await remove_allowed_sender_by_token(token);
-    set_allowed((prev) => prev.filter((a) => a.sender_token !== token));
-  }, []);
+  const handle_remove_allowed = useCallback(
+    async (token: string) => {
+      if (pending_tokens.current.has(token)) return;
+      pending_tokens.current.add(token);
+
+      const result = await remove_allowed_sender_by_token(token);
+
+      pending_tokens.current.delete(token);
+
+      if (result.error) {
+        show_toast(t("common.delete_failed"), "error");
+        await load_senders();
+
+        return;
+      }
+      set_allowed((prev) => prev.filter((a) => a.sender_token !== token));
+    },
+    [load_senders, t],
+  );
 
   const handle_add = useCallback(async () => {
     const value = new_email.trim();
 
-    if (!value) return;
+    if (!value || is_adding) return;
 
     const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const domain_regex =
@@ -107,13 +124,16 @@ export function AllowlistTab() {
         set_allowed((prev) => [result.data!, ...prev]);
         show_toast(t("settings.sender_added_to_allowlist"), "success");
         close_add_form();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_is_adding(false);
     }
-  }, [new_email, is_domain, close_add_form, t]);
+  }, [new_email, is_domain, is_adding, close_add_form, t]);
 
   return (
     <>
@@ -180,6 +200,19 @@ export function AllowlistTab() {
         <div className="flex items-center justify-center py-12">
           <Spinner size="md" />
         </div>
+      ) : load_error && allowed.length === 0 ? (
+        <div className="px-4 py-10 text-center">
+          <p className="text-[14px] text-[var(--mobile-text-muted)]">
+            {t("common.something_went_wrong_try_again")}
+          </p>
+          <button
+            className="mt-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+            type="button"
+            onClick={() => load_senders()}
+          >
+            {t("common.retry")}
+          </button>
+        </div>
       ) : allowed.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">
           <EnvelopeIcon className="h-16 w-16 text-[var(--mobile-text-muted)] opacity-40" />
@@ -196,9 +229,11 @@ export function AllowlistTab() {
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] text-[var(--mobile-text-primary)]">
-                  {sender.name || sender.email}
+                  {sender.is_domain
+                    ? `*.${sender.email}`
+                    : sender.name || sender.email}
                 </p>
-                {sender.name && (
+                {!sender.is_domain && sender.name && (
                   <p className="truncate text-[13px] text-[var(--mobile-text-muted)]">
                     {sender.email}
                   </p>

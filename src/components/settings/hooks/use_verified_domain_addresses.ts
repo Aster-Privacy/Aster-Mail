@@ -42,20 +42,31 @@ export interface VerifiedDomainAddress {
 export function use_verified_domain_addresses() {
   const [addresses, set_addresses] = useState<VerifiedDomainAddress[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
 
   const load = useCallback(async () => {
     if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
       set_addresses([]);
-      set_is_loading(true);
+      set_load_failed(false);
+      set_is_loading(false);
 
       return;
     }
 
     set_is_loading(true);
+    set_load_failed(false);
 
     try {
       const response = await list_domains();
-      const active = (response.data?.domains ?? []).filter(
+
+      if (!response.data) {
+        set_addresses([]);
+        set_load_failed(true);
+
+        return;
+      }
+
+      const active = response.data.domains.filter(
         (d) =>
           d.status === "active" &&
           !DEFAULT_DOMAINS.includes(d.domain_name.toLowerCase()),
@@ -73,10 +84,15 @@ export function use_verified_domain_addresses() {
 
       const all: VerifiedDomainAddress[] = [];
 
+      let any_failed = false;
+
       for (let i = 0; i < active.length; i++) {
         const data = responses[i].data;
 
-        if (!data) continue;
+        if (!data) {
+          any_failed = true;
+          continue;
+        }
 
         const decrypted = await decrypt_domain_addresses(
           data.addresses.filter((a) => a.is_enabled),
@@ -93,9 +109,11 @@ export function use_verified_domain_addresses() {
 
       all.sort((a, b) => a.value.localeCompare(b.value));
       set_addresses(all);
+      set_load_failed(any_failed && all.length === 0);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_addresses([]);
+      set_load_failed(true);
     } finally {
       set_is_loading(false);
     }
@@ -115,5 +133,5 @@ export function use_verified_domain_addresses() {
     };
   }, [load]);
 
-  return { addresses, is_loading, reload: load };
+  return { addresses, is_loading, load_failed, reload: load };
 }

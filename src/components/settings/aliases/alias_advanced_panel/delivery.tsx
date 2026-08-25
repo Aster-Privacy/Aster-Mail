@@ -19,11 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { AliasRun } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, } from "@aster/ui";
+import { Button } from "@aster/ui";
 
+import { PanelRow } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -47,7 +48,6 @@ import {
   run_alias_on_existing,
 } from "@/services/api/aliases";
 
-import { PanelRow } from "./shared";
 export interface AliasDeliveryUpdate {
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
@@ -64,7 +64,12 @@ export const DELIVERY_INBOX_VALUE = "__inbox__";
 export const DELIVERY_ARCHIVE_VALUE = "__archive__";
 export const DELIVERY_NO_LABEL_VALUE = "__no_label__";
 
-export const DELIVERABLE_FOLDER_TYPES = new Set(["folder", "custom", "spam", "trash"]);
+export const DELIVERABLE_FOLDER_TYPES = new Set([
+  "folder",
+  "custom",
+  "spam",
+  "trash",
+]);
 
 export const ALIAS_RUN_POLL_MIN_MS = 1200;
 export const ALIAS_RUN_POLL_MAX_MS = 8000;
@@ -107,7 +112,10 @@ export function use_alias_run(alias_id?: string) {
 
     if (response.error) {
       failures_ref.current += 1;
-      if (active_ref.current && failures_ref.current < ALIAS_RUN_POLL_MAX_FAILURES) {
+      if (
+        active_ref.current &&
+        failures_ref.current < ALIAS_RUN_POLL_MAX_FAILURES
+      ) {
         schedule();
       }
 
@@ -264,10 +272,10 @@ export function DeliveryPanel({
 
     const update: AliasDeliveryUpdate =
       next === DELIVERY_ARCHIVE_VALUE
-        ? { never_inbox: true }
+        ? { never_inbox: true, delivery_folder_token: null }
         : next === DELIVERY_INBOX_VALUE
-          ? { delivery_folder_token: null }
-          : { delivery_folder_token: next };
+          ? { never_inbox: false, delivery_folder_token: null }
+          : { never_inbox: false, delivery_folder_token: next };
 
     const response = await on_save(update);
 
@@ -541,7 +549,7 @@ export function DeliveryPanel({
             </Button>
             {apply_status && (
               <span
-                className="max-w-56 text-right text-xs text-txt-muted"
+                className="max-w-56 text-end text-xs text-txt-muted"
                 data-testid="alias_apply_existing_status"
               >
                 {apply_status}
@@ -553,4 +561,3 @@ export function DeliveryPanel({
     </div>
   );
 }
-

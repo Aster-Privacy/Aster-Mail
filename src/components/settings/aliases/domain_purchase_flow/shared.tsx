@@ -18,24 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+import type { ApiErrorCode } from "@/services/api/client";
+
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import {
   CheckCircleIcon as CheckCircleSolid,
   XCircleIcon as XCircleSolid,
 } from "@heroicons/react/24/solid";
-import { Badge,  Tooltip } from "@aster/ui";
-
+import { Badge, Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
   format_domain_price,
   type DomainSearchResult,
 } from "@/services/api/domains";
-import type { ApiErrorCode } from "@/services/api/client";
-
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export type PurchaseView = "search" | "confirm" | "progress";
@@ -50,12 +46,17 @@ export const TERMINAL_ORDER_STATUSES = new Set([
 ]);
 
 export function checkout_error_key(code?: ApiErrorCode, server_code?: string) {
-  if (server_code === "PLAN_LIMIT_EXCEEDED") return "settings.domain_purchase_error_limit" as const;
+  if (server_code === "PLAN_LIMIT_EXCEEDED")
+    return "settings.domain_purchase_error_limit" as const;
   if (server_code === "SERVICE_UNAVAILABLE")
     return "settings.domain_purchase_error_paused" as const;
-  if (code === "CONFLICT") return "settings.domain_purchase_error_taken" as const;
-  if (code === "FORBIDDEN") return "settings.domain_purchase_error_not_allowed" as const;
-  if (code === "RATE_LIMIT_EXCEEDED") return "settings.domain_purchase_error_slow_down" as const;
+  if (code === "CONFLICT")
+    return "settings.domain_purchase_error_taken" as const;
+  if (code === "FORBIDDEN")
+    return "settings.domain_purchase_error_not_allowed" as const;
+  if (code === "RATE_LIMIT_EXCEEDED")
+    return "settings.domain_purchase_error_slow_down" as const;
+
   return "settings.domain_purchase_error" as const;
 }
 
@@ -67,7 +68,10 @@ export interface DomainPurchaseFlowProps {
   on_create_address?: () => void;
 }
 
-export const TERMS_LINKS: { key: "aster" | "registrar" | "icann"; url: string }[] = [
+export const TERMS_LINKS: {
+  key: "aster" | "registrar" | "icann";
+  url: string;
+}[] = [
   { key: "aster", url: "https://astermail.org/terms" },
   {
     key: "registrar",
@@ -108,23 +112,31 @@ export function BenefitList() {
   );
 }
 
-export function TermsSentence({ on_external }: { on_external: (url: string) => void }) {
+export function TermsSentence({
+  on_external,
+}: {
+  on_external: (url: string) => void;
+}) {
   const { t } = use_i18n();
   const terms_labels = use_terms_labels();
   const sentence = t("settings.domain_purchase_terms_inline");
-  const parts = sentence.split(/(\{\{aster\}\}|\{\{registrar\}\}|\{\{icann\}\})/g);
+  const parts = sentence.split(
+    /(\{\{aster\}\}|\{\{registrar\}\}|\{\{icann\}\})/g,
+  );
 
   return (
     <p className="text-xs leading-relaxed text-txt-muted">
       {parts.map((part, index) => {
         const link = TERMS_LINKS.find(({ key }) => part === `{{${key}}}`);
+
         if (!link) {
           return <span key={index}>{part}</span>;
         }
+
         return (
           <button
             key={index}
-            className="inline text-left text-txt-muted underline underline-offset-2 decoration-txt-muted/30 transition-colors hover:text-[var(--accent-color)] hover:decoration-current"
+            className="inline text-start text-txt-muted underline underline-offset-2 decoration-txt-muted/30 transition-colors hover:text-[var(--accent-color)] hover:decoration-current"
             onClick={() => on_external(link.url)}
           >
             {terms_labels[link.key]}
@@ -149,7 +161,7 @@ export function ResultRow({
 
   return (
     <button
-      className={`w-full flex items-center justify-between gap-3 px-3 h-[52px] text-left transition-colors rounded-xl ${
+      className={`w-full flex items-center justify-between gap-3 px-3 h-[52px] text-start transition-colors rounded-xl ${
         available ? "hover:bg-surf-secondary" : "cursor-default"
       }`}
       disabled={!available}
@@ -207,31 +219,34 @@ export function ResultRow({
       </span>
       {available ? (
         <span className="flex items-center gap-3 min-w-0">
-        <span className="text-right flex-shrink-0 flex flex-col justify-center leading-tight">
-          <span>
-          <span className="block text-[15px] font-medium text-[var(--accent-color)]">
-            {t("settings.domain_purchase_per_year", {
-              price: format_domain_price(result.price_cents, result.currency),
-            })}
-          </span>
-          {result.renewal_price_cents !== null &&
-            result.renewal_price_cents !== result.price_cents && (
-              <span className="hidden sm:block text-[11px] text-txt-muted">
-                {t("settings.domain_purchase_renews_at", {
+          <span className="text-end flex-shrink-0 flex flex-col justify-center leading-tight">
+            <span>
+              <span className="block text-[15px] font-medium text-[var(--accent-color)]">
+                {t("settings.domain_purchase_per_year", {
                   price: format_domain_price(
-                    result.renewal_price_cents,
+                    result.price_cents,
                     result.currency,
                   ),
                 })}
               </span>
-            )}
+              {result.renewal_price_cents !== null &&
+                result.renewal_price_cents !== result.price_cents && (
+                  <span className="hidden sm:block text-[11px] text-txt-muted">
+                    {t("settings.domain_purchase_renews_at", {
+                      price: format_domain_price(
+                        result.renewal_price_cents,
+                        result.currency,
+                      ),
+                    })}
+                  </span>
+                )}
+            </span>
           </span>
-        </span>
-        {primary && (
-          <span className="hidden sm:inline-block px-4 py-1.5 rounded-full text-[13px] font-semibold text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]">
-            {t("common.continue")}
-          </span>
-        )}
+          {primary && (
+            <span className="hidden sm:inline-block px-4 py-1.5 rounded-full text-[13px] font-semibold text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]">
+              {t("common.continue")}
+            </span>
+          )}
         </span>
       ) : (
         <span
@@ -258,9 +273,12 @@ export type checkout_draft = {
 export function read_checkout_draft(): checkout_draft | null {
   try {
     const raw = sessionStorage.getItem(CHECKOUT_KEY);
+
     if (!raw) return null;
     const parsed = JSON.parse(raw) as checkout_draft;
+
     if (!parsed?.selected?.domain) return null;
+
     return {
       selected: parsed.selected,
       years: parsed.years >= 1 && parsed.years <= 3 ? parsed.years : 1,
@@ -276,10 +294,12 @@ export function write_checkout_draft(draft: checkout_draft | null) {
     if (!draft) sessionStorage.removeItem(CHECKOUT_KEY);
     else sessionStorage.setItem(CHECKOUT_KEY, JSON.stringify(draft));
   } catch (caught) {
-    ignore_error("components/settings/aliases/domain_purchase_flow/shared:write_checkout_draft", caught);
+    ignore_error(
+      "components/settings/aliases/domain_purchase_flow/shared:write_checkout_draft",
+      caught,
+    );
   }
 }
-
 
 export function read_intro_seen() {
   try {
@@ -293,7 +313,10 @@ export function mark_intro_seen() {
   try {
     localStorage.setItem(INTRO_SEEN_KEY, "1");
   } catch (caught) {
-    ignore_error("components/settings/aliases/domain_purchase_flow/shared:mark_intro_seen", caught);
+    ignore_error(
+      "components/settings/aliases/domain_purchase_flow/shared:mark_intro_seen",
+      caught,
+    );
   }
 }
 
@@ -301,7 +324,10 @@ export function SkeletonRows() {
   return (
     <div>
       {[0, 1, 2, 3, 4].map((i) => (
-        <div key={i} className="flex items-center justify-between px-3 h-[52px]">
+        <div
+          key={i}
+          className="flex items-center justify-between px-3 h-[52px]"
+        >
           <div className="flex items-center gap-3 animate-pulse">
             <div className="w-4 h-4 rounded-full bg-surf-tertiary" />
             <div
@@ -315,4 +341,3 @@ export function SkeletonRows() {
     </div>
   );
 }
-

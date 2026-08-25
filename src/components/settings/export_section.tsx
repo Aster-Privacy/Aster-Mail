@@ -32,10 +32,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { Badge, Button } from "@aster/ui";
 
+import { ExportModal } from "./export_modal";
+
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
-
-import { ExportModal } from "./export_modal";
 
 export function ExportSection() {
   const { t } = use_i18n();
@@ -53,7 +53,7 @@ export function ExportSection() {
         </div>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.export_title")}
             </p>
@@ -82,7 +82,10 @@ export function ExportSection() {
           <div className="flex-1">
             <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_scope_mail_title")}
-              <InfoPopover description={t("settings.export_scope_mail_help")} title={t("settings.export_scope_mail_title")} />
+              <InfoPopover
+                description={t("settings.export_scope_mail_help")}
+                title={t("settings.export_scope_mail_title")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_scope_mail_body")}
@@ -95,7 +98,10 @@ export function ExportSection() {
           <div className="flex-1">
             <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_scope_contacts_title")}
-              <InfoPopover description={t("settings.export_scope_contacts_help")} title={t("settings.export_scope_contacts_title")} />
+              <InfoPopover
+                description={t("settings.export_scope_contacts_help")}
+                title={t("settings.export_scope_contacts_title")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_scope_contacts_body")}
@@ -127,7 +133,7 @@ export function ExportSection() {
 
         <div className="flex items-start gap-3 py-4">
           <KeyIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.export_security_password_row_title")}
             </p>
@@ -142,10 +148,13 @@ export function ExportSection() {
 
         <div className="flex items-start gap-3 py-4">
           <LockClosedIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
               {t("settings.export_security_vault_row_title")}
-              <InfoPopover description={t("settings.export_security_vault_row_help")} title={t("settings.export_security_vault_row_title")} />
+              <InfoPopover
+                description={t("settings.export_security_vault_row_help")}
+                title={t("settings.export_security_vault_row_title")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.export_security_vault_row_body")}

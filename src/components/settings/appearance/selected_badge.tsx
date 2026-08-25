@@ -20,13 +20,8 @@
 //
 export function SelectedBadge() {
   return (
-    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-brand shadow-sm ring-2 ring-surf-primary">
-      <svg
-        fill="none"
-        height="10"
-        viewBox="0 0 16 16"
-        width="10"
-      >
+    <span className="absolute -top-1.5 -end-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-brand shadow-sm ring-2 ring-surf-primary">
+      <svg fill="none" height="10" viewBox="0 0 16 16" width="10">
         <path
           d="M3.5 8.5L6.3 11.3L12.5 4.7"
           stroke="white"

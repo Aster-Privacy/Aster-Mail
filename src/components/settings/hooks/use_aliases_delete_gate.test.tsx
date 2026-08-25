@@ -22,8 +22,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+const stable_t = vi.hoisted(() => (k: string) => k);
+
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (k: string) => k }),
+  use_i18n: () => ({ t: stable_t }),
 }));
 
 const plan_limits_mock = vi.hoisted(() => ({ instant_alias_delete: 0 }));
@@ -31,7 +33,8 @@ const plan_limits_mock = vi.hoisted(() => ({ instant_alias_delete: 0 }));
 vi.mock("@/hooks/use_plan_limits", () => ({
   use_plan_limits: () => ({
     limits: {
-      plan_code: plan_limits_mock.instant_alias_delete === 0 ? "free" : "supernova",
+      plan_code:
+        plan_limits_mock.instant_alias_delete === 0 ? "free" : "supernova",
       limits: {
         has_instant_alias_delete: {
           limit: plan_limits_mock.instant_alias_delete,
@@ -45,8 +48,8 @@ vi.mock("@/hooks/use_plan_limits", () => ({
 
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
 vi.mock("@/hooks/mail_events", async (import_original) => {
-  const actual =
-    await import_original<typeof import("@/hooks/mail_events")>();
+  const actual = await import_original<typeof import("@/hooks/mail_events")>();
+
   return { ...actual, emit_aliases_changed: vi.fn() };
 });
 
@@ -106,7 +109,6 @@ vi.mock("@/services/api/domains", () => ({
 import { use_aliases, clear_aliases_cache } from "./use_aliases";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

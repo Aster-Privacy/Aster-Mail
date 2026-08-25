@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TlsMethod } from "@/components/settings/hooks/use_external_accounts";
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
 import {
@@ -26,6 +27,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Checkbox } from "@aster/ui";
+import { useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { render_toggle_button } from "@/components/settings/external_accounts/toggle_button";
@@ -59,6 +61,8 @@ export function AdvancedSettingsSection({
   handle_connection_timeout_change,
   t,
 }: AdvancedSettingsSectionProps) {
+  const [timeout_input, set_timeout_input] = useState<string | null>(null);
+
   return (
     <div className="space-y-3">
       <button
@@ -76,7 +80,7 @@ export function AdvancedSettingsSection({
         {t("settings.advanced_settings")}
       </button>
       {show_advanced && (
-        <div className="space-y-4 pl-6">
+        <div className="space-y-4 ps-6">
           <div>
             <label
               className="text-xs font-medium mb-1 block text-txt-muted"
@@ -112,8 +116,14 @@ export function AdvancedSettingsSection({
               max={120}
               min={5}
               type="number"
-              value={form_connection_timeout}
-              onChange={(e) => handle_connection_timeout_change(e.target.value)}
+              value={timeout_input ?? form_connection_timeout}
+              onBlur={(e) => {
+                handle_connection_timeout_change(e.target.value);
+                set_timeout_input(null);
+              }}
+              onChange={(e) => set_timeout_input(e.target.value)}
+              onFocus={(e) => set_timeout_input(e.target.value)}
+              onKeyDown={commit_on_enter}
             />
           </div>
           <div className="flex items-center gap-2">

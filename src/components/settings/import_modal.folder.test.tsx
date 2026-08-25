@@ -22,8 +22,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-  true;
+(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
 const store_calls: number[] = [];
 
@@ -46,16 +47,17 @@ vi.mock("@/provider", () => ({
 }));
 
 vi.mock("framer-motion", () => ({
-  AnimatePresence: ({ children }: { children?: unknown }) =>
-    children as never,
+  AnimatePresence: ({ children }: { children?: unknown }) => children as never,
   motion: new Proxy(
     {},
     {
       get:
         () =>
         ({ children, ...rest }: { children?: unknown }) => {
-          const { animate, exit, initial, transition, ...dom } =
-            rest as Record<string, unknown>;
+          const { animate, exit, initial, transition, ...dom } = rest as Record<
+            string,
+            unknown
+          >;
 
           void animate;
           void exit;
@@ -115,6 +117,7 @@ vi.mock("@/services/import/repair_threads", () => ({
 }));
 
 import { ImportModal } from "./import_modal";
+
 import { store_imported_emails } from "@/services/api/email_import";
 
 function make_eml_file(i: number): File {
@@ -155,9 +158,7 @@ describe("ImportModal folder selection (integration)", () => {
 
   it("imports all 300 emails from a folder of 300 .eml files (plus junk)", async () => {
     await act(async () => {
-      root.render(
-        <ImportModal is_open on_close={() => {}} provider="mbox" />,
-      );
+      root.render(<ImportModal is_open on_close={() => {}} provider="mbox" />);
     });
 
     const folder_input = container.querySelector(
@@ -189,7 +190,7 @@ describe("ImportModal folder selection (integration)", () => {
     expect(store_imported_emails).toHaveBeenCalled();
     expect(total_stored).toBe(300);
     expect(container.textContent).toContain(
-      'settings.emails_imported_count {"count":"300"}',
+      'settings.emails_imported_count {"count":300}',
     );
   });
 });

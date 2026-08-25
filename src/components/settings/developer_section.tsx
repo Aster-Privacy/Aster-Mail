@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { trigger_download } from "@/utils/download_blob";
 import type { IdentityKeyStatus } from "@/services/api/key_rotation";
 
 import { useState, useEffect, useCallback } from "react";
@@ -35,6 +37,7 @@ import { Button } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -42,8 +45,6 @@ import { use_folders } from "@/hooks/use_folders";
 import { use_online_status } from "@/hooks/use_online_status";
 import { format_bytes } from "@/lib/utils";
 import { get_identity_key_status } from "@/services/api/key_rotation";
-import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_wkd_publication_status,
   get_keyserver_publication_status,
@@ -52,6 +53,7 @@ import {
   get_vault_from_memory,
   has_passphrase_in_memory,
 } from "@/services/crypto/memory_key_store";
+import { app_locale } from "@/utils/date_format";
 
 function get_local_storage_size(): string {
   let total = 0;
@@ -144,18 +146,13 @@ function count_local_storage_keys(): number {
 function get_indexed_db_info(
   unsupported: string,
   unknown: string,
-  db_one: (count: string) => string,
-  db_other: (count: string) => string,
+  format_count: (count: number) => string,
 ): Promise<string> {
   if (!("indexedDB" in window)) return Promise.resolve(unsupported);
 
   return indexedDB
     .databases()
-    .then((dbs) =>
-      dbs.length === 1
-        ? db_one(String(dbs.length))
-        : db_other(String(dbs.length)),
-    )
+    .then((dbs) => format_count(dbs.length))
     .catch(() => unknown);
 }
 
@@ -202,6 +199,7 @@ export function DeveloperSection() {
   const [sw_status, set_sw_status] = useState(t("settings.dev_checking"));
   const [key_status, set_key_status] = useState<IdentityKeyStatus | null>(null);
   const [key_loading, set_key_loading] = useState(true);
+  const [confirm_clear_cache, set_confirm_clear_cache] = useState(false);
   const [wkd_published, set_wkd_published] = useState<boolean | null>(null);
   const [keyserver_published, set_keyserver_published] = useState<
     boolean | null
@@ -217,7 +215,9 @@ export function DeveloperSection() {
         if (registrations.length > 0) {
           const active = registrations.filter((r) => r.active).length;
 
-          set_sw_status(t("settings.dev_active_count", { count: String(active) }));
+          set_sw_status(
+            t("settings.dev_active_count", { count: active }),
+          );
         } else {
           set_sw_status(t("settings.dev_none_registered"));
         }
@@ -225,20 +225,19 @@ export function DeveloperSection() {
     } else {
       set_sw_status(t("settings.dev_unsupported"));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     get_indexed_db_info(
       t("settings.dev_unsupported"),
       t("settings.dev_unknown"),
-      (count) => t("settings.dev_databases_count_one", { count }),
-      (count) => t("settings.dev_databases_count_other", { count }),
+      (count) => t("settings.dev_databases_count", { count }),
     )
       .then(set_idb_info)
       .catch((e) => {
         if (import.meta.env.DEV) console.error(e);
       });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -246,7 +245,7 @@ export function DeveloperSection() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [t]);
 
   const load_crypto_status = useCallback(async () => {
     set_key_loading(true);
@@ -292,16 +291,19 @@ export function DeveloperSection() {
     const delta_ms = Date.now() - ts;
     const seconds = Math.max(0, Math.floor(delta_ms / 1000));
 
-    if (seconds < 60) return t("settings.dev_seconds_ago", { count: String(seconds) });
+    if (seconds < 60)
+      return t("settings.dev_seconds_ago", { count: seconds });
     const minutes = Math.floor(seconds / 60);
 
-    if (minutes < 60) return t("settings.dev_minutes_ago", { count: String(minutes) });
+    if (minutes < 60)
+      return t("settings.dev_minutes_ago", { count: minutes });
     const hours = Math.floor(minutes / 60);
 
-    if (hours < 24) return t("settings.dev_hours_ago", { count: String(hours) });
+    if (hours < 24)
+      return t("settings.dev_hours_ago", { count: hours });
     const days = Math.floor(hours / 24);
 
-    return t("settings.dev_days_ago", { count: String(days) });
+    return t("settings.dev_days_ago", { count: days });
   };
   const loaded_ago_text = loaded_ts ? format_relative_time(loaded_ts) : null;
   const total_emails = stats.inbox + stats.sent + stats.archived + stats.trash;
@@ -314,15 +316,15 @@ export function DeveloperSection() {
   const has_passphrase = has_passphrase_in_memory();
 
   const copy_to_clipboard = (text: string) => {
-    navigator.clipboard
-      .writeText(text)
+    copy_text_or_throw(text)
       .then(() => {
         show_toast(t("common.copied_to_clipboard"));
       })
-      .catch((caught) => ignore_error("components/settings/developer_section:copy_to_clipboard", caught));
+      .catch(() => show_toast(t("common.failed_to_copy"), "error"));
   };
 
   const handle_clear_cache = async () => {
+    set_confirm_clear_cache(false);
     localStorage.clear();
     sessionStorage.clear();
     if ("caches" in window) {
@@ -387,16 +389,12 @@ export function DeveloperSection() {
         viewport: get_viewport_info(),
       },
     };
-    const blob = new Blob([JSON.stringify(debug_data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = `astermail-debug-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    trigger_download(
+      new Blob([JSON.stringify(debug_data, null, 2)], {
+        type: "application/json",
+      }),
+      `astermail-debug-${Date.now()}.json`,
+    );
   };
 
   const format_key_age = (hours: number | null): string => {
@@ -408,20 +406,27 @@ export function DeveloperSection() {
     return `${days}d ${Math.round(hours % 24)}h`;
   };
 
-  const dev_row = (label: string, value: string, copyable?: boolean) => (
+  const dev_row = (
+    label: string,
+    value: string,
+    copyable?: boolean,
+    copy_value?: string,
+  ) => (
     <div className="flex justify-between items-center">
       <span className="text-[13px] text-txt-secondary">{label}</span>
       <span
         className={`text-[13px] font-mono tabular-nums ${copyable ? "cursor-pointer hover:opacity-70" : ""} text-txt-primary`}
         role={copyable ? "button" : undefined}
         tabIndex={copyable ? 0 : undefined}
-        onClick={copyable ? () => copy_to_clipboard(value) : undefined}
+        onClick={
+          copyable ? () => copy_to_clipboard(copy_value ?? value) : undefined
+        }
         onKeyDown={
           copyable
             ? (e) => {
                 if (e["key"] === "Enter" || e["key"] === " ") {
                   e.preventDefault();
-                  copy_to_clipboard(value);
+                  copy_to_clipboard(copy_value ?? value);
                 }
               }
             : undefined
@@ -436,6 +441,12 @@ export function DeveloperSection() {
     if (ok === null) return "var(--text-muted)";
 
     return ok ? "var(--color-success)" : "var(--color-danger)";
+  };
+
+  const publication_label = (published: boolean | null) => {
+    if (published === null) return t("settings.dev_unknown");
+
+    return published ? t("settings.published") : t("settings.not_published");
   };
 
   const dev_row_with_status = (
@@ -493,7 +504,7 @@ export function DeveloperSection() {
                 {t("settings.build")}
               </p>
               <button
-                className="text-[13px] font-mono cursor-pointer hover:opacity-70 text-txt-primary text-left"
+                className="text-[13px] font-mono cursor-pointer hover:opacity-70 text-txt-primary text-start"
                 type="button"
                 onClick={() => copy_to_clipboard(build_hash)}
               >
@@ -501,7 +512,9 @@ export function DeveloperSection() {
               </button>
               {loaded_ago_text && (
                 <p className="text-[11px] text-txt-muted">
-                  {t("settings.dev_loaded_ago", { time: loaded_ago_text || "" })}
+                  {t("settings.dev_loaded_ago", {
+                    time: loaded_ago_text || "",
+                  })}
                 </p>
               )}
             </div>
@@ -552,28 +565,29 @@ export function DeveloperSection() {
               )}
               {dev_row(
                 t("settings.fingerprint"),
-                key_status?.key_fingerprint?.slice(0, 16) || t("settings.dev_none"),
+                key_status?.key_fingerprint?.slice(0, 16) ||
+                  t("settings.dev_none"),
                 !!key_status?.key_fingerprint,
+                key_status?.key_fingerprint ?? undefined,
               )}
               {dev_row_with_status(
                 t("settings.wkd"),
-                wkd_published
-                  ? t("settings.published")
-                  : t("settings.not_published"),
+                publication_label(wkd_published),
                 wkd_published,
               )}
               {dev_row_with_status(
                 t("settings.keyserver"),
-                keyserver_published
-                  ? t("settings.published")
-                  : t("settings.not_published"),
+                publication_label(keyserver_published),
                 keyserver_published,
               )}
               <div className="border-t pt-2 mt-2 border-edge-secondary">
                 {dev_row(t("settings.dev_encryption_label"), "AES-256-GCM")}
                 {dev_row(t("settings.dev_key_exchange_label"), "KEM-768")}
                 {dev_row(t("settings.dev_signatures_label"), "PGP Ed25519")}
-                {dev_row(t("settings.dev_password_kdf_label"), "PBKDF2-SHA-256 (client) + Argon2id (server)")}
+                {dev_row(
+                  t("settings.dev_password_kdf_label"),
+                  "PBKDF2-SHA-256 (client) + Argon2id (server)",
+                )}
               </div>
             </>,
           )
@@ -587,13 +601,15 @@ export function DeveloperSection() {
             {dev_row(
               t("settings.user_id"),
               user?.id?.slice(0, 8) || "\u2014",
-              true,
+              !!user?.id,
+              user?.id,
             )}
             {dev_row(t("settings.session_duration"), session_duration)}
             {dev_row(
               t("settings.user_agent"),
-              navigator.userAgent.slice(0, 40) + "...",
+              navigator.userAgent.slice(0, 40) + "\u2026",
               true,
+              navigator.userAgent,
             )}
           </>,
         )}
@@ -603,13 +619,25 @@ export function DeveloperSection() {
         {section_header(t("settings.email_statistics"), ChartBarIcon)}
         {section_box(
           <>
-            {dev_row(t("settings.total_emails"), total_emails.toLocaleString())}
-            {dev_row(t("mail.inbox"), stats.inbox.toLocaleString())}
-            {dev_row(t("mail.sent"), stats.sent.toLocaleString())}
-            {dev_row(t("mail.unread"), stats.unread.toLocaleString())}
-            {dev_row(t("mail.drafts"), stats.drafts.toLocaleString())}
-            {dev_row(t("settings.archived"), stats.archived.toLocaleString())}
-            {dev_row(t("mail.trash"), stats.trash.toLocaleString())}
+            {dev_row(
+              t("settings.total_emails"),
+              total_emails.toLocaleString(app_locale()),
+            )}
+            {dev_row(t("mail.inbox"), stats.inbox.toLocaleString(app_locale()))}
+            {dev_row(t("mail.sent"), stats.sent.toLocaleString(app_locale()))}
+            {dev_row(
+              t("mail.unread"),
+              stats.unread.toLocaleString(app_locale()),
+            )}
+            {dev_row(
+              t("mail.drafts"),
+              stats.drafts.toLocaleString(app_locale()),
+            )}
+            {dev_row(
+              t("settings.archived"),
+              stats.archived.toLocaleString(app_locale()),
+            )}
+            {dev_row(t("mail.trash"), stats.trash.toLocaleString(app_locale()))}
             {dev_row(t("settings.custom_folders"), custom_folders.toString())}
             {dev_row(
               t("settings.storage"),
@@ -623,9 +651,18 @@ export function DeveloperSection() {
         {section_header(t("settings.performance"), BoltIcon)}
         {section_box(
           <>
-            {dev_row(t("settings.page_load"), get_page_load_time(t("settings.dev_unavailable")))}
-            {dev_row(t("settings.dom_ready"), get_dom_content_loaded(t("settings.dev_unavailable")))}
-            {dev_row(t("settings.js_heap"), get_memory_usage(t("settings.dev_unavailable")))}
+            {dev_row(
+              t("settings.page_load"),
+              get_page_load_time(t("settings.dev_unavailable")),
+            )}
+            {dev_row(
+              t("settings.dom_ready"),
+              get_dom_content_loaded(t("settings.dev_unavailable")),
+            )}
+            {dev_row(
+              t("settings.js_heap"),
+              get_memory_usage(t("settings.dev_unavailable")),
+            )}
             {dev_row(t("settings.screen"), get_screen_info())}
             {dev_row(t("settings.viewport"), get_viewport_info())}
           </>,
@@ -641,9 +678,18 @@ export function DeveloperSection() {
               is_online ? t("settings.online") : t("common.offline"),
               is_online,
             )}
-            {dev_row(t("settings.connection"), get_connection_type(t("settings.dev_unknown")))}
-            {dev_row(t("settings.speed"), get_connection_speed(t("settings.dev_unknown")))}
-            {dev_row(t("settings.latency"), get_connection_latency(t("settings.dev_unknown")))}
+            {dev_row(
+              t("settings.connection"),
+              get_connection_type(t("settings.dev_unknown")),
+            )}
+            {dev_row(
+              t("settings.speed"),
+              get_connection_speed(t("settings.dev_unknown")),
+            )}
+            {dev_row(
+              t("settings.latency"),
+              get_connection_latency(t("settings.dev_unknown")),
+            )}
           </>,
         )}
       </div>
@@ -655,11 +701,13 @@ export function DeveloperSection() {
             {dev_row(t("settings.service_worker"), sw_status)}
             {dev_row(
               t("settings.local_storage"),
-              `${get_local_storage_size()} (${t("settings.dev_keys_count", { count: String(count_local_storage_keys()) })})`,
+              `${get_local_storage_size()} (${t("settings.dev_keys_count", { count: count_local_storage_keys() })})`,
             )}
             {dev_row(
               t("settings.session_storage"),
-              t("settings.dev_keys_count", { count: String(Object.keys(sessionStorage).length) }),
+              t("settings.dev_keys_count", {
+                count: Object.keys(sessionStorage).length,
+              }),
             )}
             {dev_row(t("settings.indexed_db"), idb_info)}
           </>,
@@ -700,12 +748,23 @@ export function DeveloperSection() {
           <Button
             className="w-full"
             variant="destructive"
-            onClick={handle_clear_cache}
+            onClick={() => set_confirm_clear_cache(true)}
           >
             {t("settings.clear_cache_reload")}
           </Button>
         </div>
       </div>
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("common.continue")}
+        is_open={confirm_clear_cache}
+        message={t("settings.clear_cache_confirm_message")}
+        on_cancel={() => set_confirm_clear_cache(false)}
+        on_confirm={handle_clear_cache}
+        title={t("settings.clear_cache_reload")}
+        variant="danger"
+      />
     </div>
   );
 }

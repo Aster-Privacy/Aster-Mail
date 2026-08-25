@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { PlanChangeConfirmModal } from "./plan_change_confirm_modal";
+
 import { preview_plan_change } from "@/services/api/billing";
 
 vi.mock("@/services/api/billing", () => ({
@@ -35,13 +36,8 @@ vi.mock("@/lib/i18n/context", () => ({
 }));
 
 vi.mock("@/components/ui/modal", () => ({
-  Modal: ({
-    is_open,
-    children,
-  }: {
-    is_open: boolean;
-    children?: unknown;
-  }) => (is_open ? <div data-testid="modal">{children as never}</div> : null),
+  Modal: ({ is_open, children }: { is_open: boolean; children?: unknown }) =>
+    is_open ? <div data-testid="modal">{children as never}</div> : null,
   ModalHeader: ({ children }: { children?: unknown }) => (
     <div>{children as never}</div>
   ),
@@ -78,7 +74,6 @@ vi.mock("@aster/ui", () => ({
 const mocked_preview = vi.mocked(preview_plan_change);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -211,7 +206,11 @@ describe("PlanChangeConfirmModal", () => {
   it("ignores a stale preview after the modal is closed and reopened", async () => {
     let resolve_first:
       | ((value: {
-          data: { credit_cents: number; amount_due_cents: number; currency: string };
+          data: {
+            credit_cents: number;
+            amount_due_cents: number;
+            currency: string;
+          };
         }) => void)
       | undefined;
 

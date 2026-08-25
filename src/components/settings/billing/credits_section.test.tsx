@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { CreditsSection } from "./credits_section";
+
 import {
   get_credit_packages,
   purchase_credits,
@@ -54,7 +55,6 @@ const mocked_packages = vi.mocked(get_credit_packages);
 const mocked_purchase = vi.mocked(purchase_credits);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -75,8 +75,8 @@ describe("CreditsSection top-up bfcache restore", () => {
       root.render(
         <CreditsSection
           credit_balance={null}
-          set_credit_balance={vi.fn()}
           preferred_currency="usd"
+          set_credit_balance={vi.fn()}
         />,
       );
     });
@@ -106,12 +106,16 @@ describe("CreditsSection top-up bfcache restore", () => {
 
   it("re-enables the buy button after a bfcache restore (pageshow persisted)", async () => {
     const assign = vi.fn();
+
     Object.defineProperty(window, "location", {
       value: { ...window.location, assign },
       writable: true,
     });
 
-    let resolve_purchase: ((value: { data: { url: string } }) => void) | undefined;
+    let resolve_purchase:
+      | ((value: { data: { url: string } }) => void)
+      | undefined;
+
     mocked_purchase.mockReturnValue(
       new Promise((resolve) => {
         resolve_purchase = resolve;
@@ -125,6 +129,7 @@ describe("CreditsSection top-up bfcache restore", () => {
     });
 
     const buy_button = find_button("settings.buy_credits")!;
+
     expect(buy_button.textContent).toContain("settings.buy_credits");
     expect(buy_button.disabled).toBe(false);
 
@@ -135,7 +140,9 @@ describe("CreditsSection top-up bfcache restore", () => {
     expect(find_button("settings.buying_credits")!.disabled).toBe(true);
 
     await act(async () => {
-      resolve_purchase?.({ data: { url: "https://checkout.stripe.com/c/pay/cs_test" } });
+      resolve_purchase?.({
+        data: { url: "https://checkout.stripe.com/c/pay/cs_test" },
+      });
     });
 
     expect(assign).toHaveBeenCalledWith(
@@ -145,11 +152,13 @@ describe("CreditsSection top-up bfcache restore", () => {
 
     await act(async () => {
       const evt = new Event("pageshow");
+
       Object.defineProperty(evt, "persisted", { value: true });
       window.dispatchEvent(evt);
     });
 
     const restored = find_button("settings.buy_credits")!;
+
     expect(restored.textContent).toContain("settings.buy_credits");
     expect(restored.disabled).toBe(false);
   });
@@ -163,6 +172,7 @@ describe("CreditsSection top-up bfcache restore", () => {
 
     await act(async () => {
       const evt = new Event("pageshow");
+
       Object.defineProperty(evt, "persisted", { value: false });
       window.dispatchEvent(evt);
     });

@@ -30,13 +30,23 @@ import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { cn } from "@/lib/utils";
 
 const MAX_FEEDBACK_LENGTH = 2000;
+
+const FEEDBACK_CATEGORIES = [
+  { value: "general", label_key: "settings.feedback_category_general" },
+  { value: "feature", label_key: "settings.feedback_category_idea" },
+  { value: "bug", label_key: "settings.feedback_category_bug" },
+] as const;
+
+type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number]["value"];
 
 export function FeedbackSection() {
   const { t } = use_i18n();
   const [feedback_text, set_feedback_text] = useState("");
   const [is_sending, set_is_sending] = useState(false);
+  const [category, set_category] = useState<FeedbackCategory>("general");
 
   const handle_send = useCallback(async () => {
     if (!feedback_text.trim()) return;
@@ -46,21 +56,26 @@ export function FeedbackSection() {
     try {
       const response = await api_client.post<{ success: boolean }>(
         API_ENDPOINTS.core.feedback.base,
-        { message: feedback_text.trim(), platform: is_desktop() ? "desktop" : "web" },
+        {
+          message: feedback_text.trim(),
+          category,
+          platform: is_desktop() ? "desktop" : "web",
+        },
       );
 
       if (response.data?.success) {
         show_toast(t("settings.thank_you_feedback"), "success");
         set_feedback_text("");
-      } else if (response.code === "FORBIDDEN") {
+        set_category("general");
+      } else if (
+        response.code === "RATE_LIMIT_EXCEEDED" ||
+        response.code === "FORBIDDEN"
+      ) {
         show_toast(t("settings.too_many_requests"), "warning");
       } else if (response.code === "UNAUTHORIZED") {
         show_toast(t("settings.please_log_in_feedback"), "warning");
       } else {
-        show_toast(
-          response.error || t("settings.failed_send_feedback"),
-          "error",
-        );
+        show_toast(t("settings.failed_send_feedback"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -68,7 +83,7 @@ export function FeedbackSection() {
     } finally {
       set_is_sending(false);
     }
-  }, [feedback_text]);
+  }, [feedback_text, category, t]);
 
   return (
     <div className="space-y-4">
@@ -79,6 +94,24 @@ export function FeedbackSection() {
             {t("settings.your_feedback")}
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
+        </div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {FEEDBACK_CATEGORIES.map((option) => (
+            <button
+              key={option.value}
+              aria-pressed={category === option.value}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                category === option.value
+                  ? "border-[var(--accent-color)] text-[var(--accent-color)] bg-[var(--accent-color)]/10"
+                  : "border-edge-secondary text-txt-secondary hover:text-txt-primary",
+              )}
+              type="button"
+              onClick={() => set_category(option.value)}
+            >
+              {t(option.label_key)}
+            </button>
+          ))}
         </div>
         <textarea
           className="aster_input resize-none"

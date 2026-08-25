@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback,  } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { submit_on_enter } from "@/lib/commit_on_enter";
 import {
   TrashIcon,
   ExclamationTriangleIcon,
@@ -27,20 +28,36 @@ import {
   PlusIcon,
   FunnelIcon,
 } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
+
+import { TFn } from "./helpers";
+
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { Spinner } from "@/components/ui/spinner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {  Button } from "@aster/ui";
 import {
-  list_org_filters, create_org_filter, update_org_filter, delete_org_filter,
-  create_consent_request, list_member_consent_requests, respond_consent_request,
-   type OrgFilter, 
-   type ConsentKind, type MemberConsentRequest,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  list_org_filters,
+  create_org_filter,
+  update_org_filter,
+  delete_org_filter,
+  create_consent_request,
+  list_member_consent_requests,
+  respond_consent_request,
+  type OrgFilter,
+  type ConsentKind,
+  type MemberConsentRequest,
 } from "@/services/api/family_org";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import {
   Modal,
   ModalHeader,
@@ -57,8 +74,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
-
-import { TFn } from "./helpers";
 import { ignore_error } from "@/lib/ignore_error";
 
 export const FILTER_FIELD_COLORS: Record<string, string> = {
@@ -117,15 +132,20 @@ export function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: dot_color }} />
-            <span className="text-[13px] font-medium text-txt-primary truncate">{filter.name}</span>
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: dot_color }}
+            />
+            <span className="text-[13px] font-medium text-txt-primary truncate">
+              {filter.name}
+            </span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-stretch h-7 rounded-[12px] border bg-transparent border-neutral-200 dark:border-neutral-700 overflow-hidden">
-              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 rounded-l-[11px]">
+              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 rounded-s-[11px]">
                 {field_label}
               </span>
-              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 border-l border-neutral-200 dark:border-neutral-700">
+              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 border-s border-neutral-200 dark:border-neutral-700">
                 <span className="truncate max-w-[200px]">{filter.value}</span>
               </span>
             </span>
@@ -140,20 +160,35 @@ export function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
         </div>
         <div className="flex items-center gap-1 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
           <button
-            type="button"
-            onClick={e => { e.stopPropagation(); on_toggle(filter); }}
             className="p-1.5 text-txt-muted hover:text-txt-primary"
-            title={filter.is_enabled ? t("settings.fam_org_filter_disable") : t("settings.fam_org_filter_enable")}
+            title={
+              filter.is_enabled
+                ? t("settings.fam_org_filter_disable")
+                : t("settings.fam_org_filter_enable")
+            }
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              on_toggle(filter);
+            }}
           >
-            {filter.is_enabled
-              ? <CheckCircleIcon className="w-4 h-4" style={{ color: "var(--accent-blue)" }} />
-              : <XCircleIcon className="w-4 h-4" />}
+            {filter.is_enabled ? (
+              <CheckCircleIcon
+                className="w-4 h-4"
+                style={{ color: "var(--accent-blue)" }}
+              />
+            ) : (
+              <XCircleIcon className="w-4 h-4" />
+            )}
           </button>
           <button
-            type="button"
-            onClick={e => { e.stopPropagation(); on_delete(filter.id); }}
             className="p-1.5 text-txt-muted hover:text-red-500"
             title={t("settings.fam_org_filter_delete")}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              on_delete(filter.id);
+            }}
           >
             <TrashIcon className="w-4 h-4" />
           </button>
@@ -173,7 +208,15 @@ export interface ConsentGateDialogProps {
   on_sent: () => void;
 }
 
-export function ConsentGateDialog({ open, on_close, kind, description, payload, member_count, on_sent }: ConsentGateDialogProps) {
+export function ConsentGateDialog({
+  open,
+  on_close,
+  kind,
+  description,
+  payload,
+  member_count,
+  on_sent,
+}: ConsentGateDialogProps) {
   const { t } = use_i18n();
   const [sending, set_sending] = useState(false);
 
@@ -181,6 +224,7 @@ export function ConsentGateDialog({ open, on_close, kind, description, payload, 
     set_sending(true);
     try {
       const r = await create_consent_request(kind, description, payload);
+
       if (r.data) {
         show_toast(t("settings.fam_consent_sent_toast"), "success");
         on_sent();
@@ -196,7 +240,10 @@ export function ConsentGateDialog({ open, on_close, kind, description, payload, 
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={open_val => !open_val && on_close()}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(open_val) => !open_val && on_close()}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("settings.fam_consent_title")}</AlertDialogTitle>
@@ -210,8 +257,10 @@ export function ConsentGateDialog({ open, on_close, kind, description, payload, 
           </div>
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={on_close}>{t("settings.fam_consent_cancel")}</AlertDialogCancel>
-          <Button variant="depth" onClick={send} disabled={sending}>
+          <AlertDialogCancel onClick={on_close}>
+            {t("settings.fam_consent_cancel")}
+          </AlertDialogCancel>
+          <Button disabled={sending} variant="depth" onClick={send}>
             {sending ? <Spinner size="sm" /> : t("settings.fam_consent_send")}
           </Button>
         </AlertDialogFooter>
@@ -224,20 +273,41 @@ export function MemberConsentPanel() {
   const { t } = use_i18n();
   const [requests, set_requests] = useState<MemberConsentRequest[]>([]);
   const [responding, set_responding] = useState<string | null>(null);
+  const [load_failed, set_load_failed] = useState(false);
+
+  const load_requests = useCallback(() => {
+    set_load_failed(false);
+    list_member_consent_requests()
+      .then((r) => {
+        if (r.data) set_requests(r.data.filter((req) => !req.responded));
+        else set_load_failed(true);
+      })
+      .catch((caught) => {
+        set_load_failed(true);
+        ignore_error(
+          "components/settings/billing/family_section/filters:MemberConsentPanel",
+          caught,
+        );
+      });
+  }, []);
 
   useEffect(() => {
-    list_member_consent_requests()
-      .then(r => { if (r.data) set_requests(r.data.filter(req => !req.responded)); })
-      .catch((caught) => ignore_error("components/settings/billing/family_section/filters:MemberConsentPanel", caught));
-  }, []);
+    load_requests();
+  }, [load_requests]);
 
   const respond = async (id: string, accepted: boolean) => {
     set_responding(id);
     try {
       const r = await respond_consent_request(id, accepted);
+
       if (!r.error) {
-        set_requests(prev => prev.filter(req => req.id !== id));
-        show_toast(accepted ? t("settings.fam_consent_member_accepted_toast") : t("settings.fam_consent_member_declined_toast"), "success");
+        set_requests((prev) => prev.filter((req) => req.id !== id));
+        show_toast(
+          accepted
+            ? t("settings.fam_consent_member_accepted_toast")
+            : t("settings.fam_consent_member_declined_toast"),
+          "success",
+        );
       } else {
         show_toast(t("settings.fam_consent_send_failed"), "error");
       }
@@ -248,24 +318,51 @@ export function MemberConsentPanel() {
     }
   };
 
-  if (requests.length === 0) return null;
+  if (requests.length === 0) {
+    if (load_failed) return <LoadFailedNotice on_retry={load_requests} />;
+
+    return null;
+  }
 
   return (
     <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
       <div className="flex items-center gap-2">
         <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
-        <p className="text-sm font-semibold text-txt-primary">{t("settings.fam_consent_member_title")}</p>
+        <p className="text-sm font-semibold text-txt-primary">
+          {t("settings.fam_consent_member_title")}
+        </p>
       </div>
       <div className="space-y-2">
-        {requests.map(req => (
-          <div key={req.id} className="rounded-lg bg-surf-primary border border-edge-secondary p-3">
-            <p className="text-xs text-txt-muted mb-1">{t("settings.fam_consent_member_from", { name: req.admin_username })}</p>
+        {requests.map((req) => (
+          <div
+            key={req.id}
+            className="rounded-lg bg-surf-primary border border-edge-secondary p-3"
+          >
+            <p className="text-xs text-txt-muted mb-1">
+              {t("settings.fam_consent_member_from", {
+                name: req.admin_username,
+              })}
+            </p>
             <p className="text-sm text-txt-primary mb-3">{req.description}</p>
             <div className="flex gap-2">
-              <Button size="sm" variant="depth" disabled={responding === req.id} onClick={() => respond(req.id, true)}>
-                {responding === req.id ? <Spinner size="sm" /> : t("settings.fam_consent_member_accept")}
+              <Button
+                disabled={responding === req.id}
+                size="sm"
+                variant="depth"
+                onClick={() => respond(req.id, true)}
+              >
+                {responding === req.id ? (
+                  <Spinner size="sm" />
+                ) : (
+                  t("settings.fam_consent_member_accept")
+                )}
               </Button>
-              <Button size="sm" variant="outline" disabled={!!responding} onClick={() => respond(req.id, false)}>
+              <Button
+                disabled={responding === req.id}
+                size="sm"
+                variant="outline"
+                onClick={() => respond(req.id, false)}
+              >
                 {t("settings.fam_consent_member_decline")}
               </Button>
             </div>
@@ -276,58 +373,123 @@ export function MemberConsentPanel() {
   );
 }
 
-export function FiltersContent({ other_member_count, initial_filters }: { other_member_count: number; initial_filters?: OrgFilter[] | null }) {
+export function FiltersContent({
+  other_member_count,
+  initial_filters,
+}: {
+  other_member_count: number;
+  initial_filters?: OrgFilter[] | null;
+}) {
   const { t } = use_i18n();
   const [filters, set_filters] = useState<OrgFilter[]>(initial_filters ?? []);
   const [loading, set_loading] = useState(!initial_filters);
   const [show_form, set_show_form] = useState(false);
   const [creating, set_creating] = useState(false);
-  const [form, set_form] = useState({ name: "", value: "", field: "from", action: "trash" });
+  const [form, set_form] = useState({
+    name: "",
+    value: "",
+    field: "from",
+    action: "trash",
+  });
   const [consent_open, set_consent_open] = useState(false);
   const [consent_payload, set_consent_payload] = useState<unknown>(null);
+  const [consent_kind, set_consent_kind] =
+    useState<ConsentKind>("filter_create");
 
   const load = useCallback(async () => {
-    try { const r = await list_org_filters(); if (r.data) set_filters(r.data); }
-    catch { show_toast(t("settings.fam_org_filters_load_failed"), "error"); }
-    finally { set_loading(false); }
+    try {
+      const r = await list_org_filters();
+
+      if (r.data) set_filters(r.data);
+      else show_toast(t("settings.fam_org_filters_load_failed"), "error");
+    } catch {
+      show_toast(t("settings.fam_org_filters_load_failed"), "error");
+    } finally {
+      set_loading(false);
+    }
   }, [t]);
-  useEffect(() => { if (!initial_filters) load(); }, [load, initial_filters]);
+
+  useEffect(() => {
+    if (!initial_filters) load();
+  }, [load, initial_filters]);
 
   const create = async () => {
     if (!form.name.trim() || !form.value.trim()) return;
     if (other_member_count > 0) {
-      set_consent_payload({ name: form.name.trim(), filter_type: "block", field: form.field, value: form.value.trim(), action: form.action });
+      set_consent_kind("filter_create");
+      set_consent_payload({
+        name: form.name.trim(),
+        filter_type: "block",
+        field: form.field,
+        value: form.value.trim(),
+        action: form.action,
+      });
       set_consent_open(true);
+
       return;
     }
     set_creating(true);
     try {
-      const r = await create_org_filter({ name: form.name.trim(), filter_type: "block", field: form.field, value: form.value.trim(), action: form.action });
-      if (r.data) { set_filters(f => [...f, r.data!]); set_form({ name: "", value: "", field: "from", action: "trash" }); set_show_form(false); show_toast(t("settings.fam_org_filters_created"), "success"); }
-    } catch { show_toast(t("settings.fam_org_filters_create_failed"), "error"); }
-    finally { set_creating(false); }
+      const r = await create_org_filter({
+        name: form.name.trim(),
+        filter_type: "block",
+        field: form.field,
+        value: form.value.trim(),
+        action: form.action,
+      });
+
+      if (r.data) {
+        set_filters((f) => [...f, r.data!]);
+        set_form({ name: "", value: "", field: "from", action: "trash" });
+        set_show_form(false);
+        show_toast(t("settings.fam_org_filters_created"), "success");
+      } else {
+        show_toast(t("settings.fam_org_filters_create_failed"), "error");
+      }
+    } catch {
+      show_toast(t("settings.fam_org_filters_create_failed"), "error");
+    } finally {
+      set_creating(false);
+    }
   };
+
+  const submit_filter_form = submit_on_enter(() => {
+    if (!creating) void create();
+  });
 
   const toggle_f = async (f: OrgFilter) => {
     if (!f.is_enabled && other_member_count > 0) {
+      set_consent_kind("filter_enable");
       set_consent_payload({ id: f.id, is_enabled: true });
       set_consent_open(true);
+
       return;
     }
     try {
       const r = await update_org_filter(f.id, { is_enabled: !f.is_enabled });
-      if (r.data) set_filters(fs => fs.map(x => x.id === f.id ? r.data! : x));
+
+      if (r.data)
+        set_filters((fs) => fs.map((x) => (x.id === f.id ? r.data! : x)));
       else show_toast(t("settings.fam_org_filters_update_failed"), "error");
-    } catch { show_toast(t("settings.fam_org_filters_update_failed"), "error"); }
+    } catch {
+      show_toast(t("settings.fam_org_filters_update_failed"), "error");
+    }
   };
 
   const del_f = async (id: string) => {
     try {
       const r = await delete_org_filter(id);
-      if (r.error) { show_toast(t("settings.fam_org_action_failed"), "error"); return; }
-      set_filters(f => f.filter(x => x.id !== id)); show_toast(t("settings.fam_org_filters_deleted"), "success");
+
+      if (r.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
+      set_filters((f) => f.filter((x) => x.id !== id));
+      show_toast(t("settings.fam_org_filters_deleted"), "success");
+    } catch {
+      show_toast(t("settings.fam_org_filters_delete_failed"), "error");
     }
-    catch { show_toast(t("settings.fam_org_filters_delete_failed"), "error"); }
   };
 
   return (
@@ -338,15 +500,15 @@ export function FiltersContent({ other_member_count, initial_filters }: { other_
             <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
               <FunnelIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("settings.fam_org_filters_heading")}
-              <InfoPopover title={t("settings.fam_org_filters_info_title")} description={t("settings.fam_org_filters_info_desc")} />
+              <InfoPopover
+                description={t("settings.fam_org_filters_info_desc")}
+                title={t("settings.fam_org_filters_info_title")}
+              />
               <span className="text-xs font-normal text-txt-muted">
                 {loading ? "..." : filters.length}
               </span>
             </h3>
-            <Button
-              variant="depth"
-              onClick={() => set_show_form(true)}
-            >
+            <Button variant="depth" onClick={() => set_show_form(true)}>
               <PlusIcon className="w-4 h-4" />
               {t("settings.fam_org_filters_new")}
             </Button>
@@ -360,64 +522,148 @@ export function FiltersContent({ other_member_count, initial_filters }: { other_
 
       {loading && filters.length === 0 && (
         <div className="space-y-3">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+            />
           ))}
         </div>
       )}
 
-      <Modal is_open={show_form} on_close={() => { set_show_form(false); set_form({ name: "", value: "", field: "from", action: "trash" }); }} size="md" close_on_overlay={false}>
+      <Modal
+        close_on_overlay={false}
+        is_open={show_form}
+        on_close={() => {
+          set_show_form(false);
+          set_form({ name: "", value: "", field: "from", action: "trash" });
+        }}
+        size="md"
+      >
         <ModalHeader>
           <ModalTitle>{t("settings.fam_org_filters_modal_title")}</ModalTitle>
-          <ModalDescription>{t("settings.fam_org_filters_modal_desc")}</ModalDescription>
+          <ModalDescription>
+            {t("settings.fam_org_filters_modal_desc")}
+          </ModalDescription>
         </ModalHeader>
         <div className="px-6 pb-2 space-y-4">
           <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted">{t("settings.fam_org_filters_name_label")}</label>
-            <Input placeholder={t("settings.fam_org_filters_name_placeholder")} value={form.name} onChange={e => set_form(f => ({ ...f, name: e.target.value }))} autoFocus />
+            <label className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
+              {t("settings.fam_org_filters_name_label")}
+            </label>
+            <Input
+              autoFocus
+              placeholder={t("settings.fam_org_filters_name_placeholder")}
+              value={form.name}
+              onChange={(e) =>
+                set_form((f) => ({ ...f, name: e.target.value }))
+              }
+              onKeyDown={submit_filter_form}
+            />
           </div>
           <div className="border-t border-neutral-200 dark:border-neutral-700" />
           <div className="space-y-1">
             <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
               {t("settings.fam_org_filters_condition_label")}
-              <InfoPopover title={t("settings.fam_org_filters_condition_info_title")} description={t("settings.fam_org_filters_condition_info_desc")} />
+              <InfoPopover
+                description={t("settings.fam_org_filters_condition_info_desc")}
+                title={t("settings.fam_org_filters_condition_info_title")}
+              />
             </label>
             <div className="flex gap-2">
-              <Select value={form.field} onValueChange={v => set_form(f => ({ ...f, field: v }))}>
-                <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+              <Select
+                value={form.field}
+                onValueChange={(v) => set_form((f) => ({ ...f, field: v }))}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="from">{t("settings.fam_org_filters_field_from_option")}</SelectItem>
-                  <SelectItem value="to">{t("settings.fam_org_filters_field_to_option")}</SelectItem>
-                  <SelectItem value="domain">{t("settings.fam_org_filters_field_domain_option")}</SelectItem>
-                  <SelectItem value="subject">{t("settings.fam_org_filters_field_subject_option")}</SelectItem>
-                  <SelectItem value="ip">{t("settings.fam_org_filters_field_ip_option")}</SelectItem>
+                  <SelectItem value="from">
+                    {t("settings.fam_org_filters_field_from_option")}
+                  </SelectItem>
+                  <SelectItem value="to">
+                    {t("settings.fam_org_filters_field_to_option")}
+                  </SelectItem>
+                  <SelectItem value="domain">
+                    {t("settings.fam_org_filters_field_domain_option")}
+                  </SelectItem>
+                  <SelectItem value="subject">
+                    {t("settings.fam_org_filters_field_subject_option")}
+                  </SelectItem>
+                  <SelectItem value="ip">
+                    {t("settings.fam_org_filters_field_ip_option")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
-              <Input placeholder={t("settings.fam_org_filters_value_placeholder")} size="sm" className="flex-1" value={form.value} onChange={e => set_form(f => ({ ...f, value: e.target.value }))} />
+              <Input
+                className="flex-1"
+                placeholder={t("settings.fam_org_filters_value_placeholder")}
+                size="sm"
+                value={form.value}
+                onChange={(e) =>
+                  set_form((f) => ({ ...f, value: e.target.value }))
+                }
+                onKeyDown={submit_filter_form}
+              />
             </div>
           </div>
           <div className="border-t border-neutral-200 dark:border-neutral-700" />
           <div className="space-y-1">
             <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
               {t("settings.fam_org_filters_action_label")}
-              <InfoPopover title={t("settings.fam_org_filters_action_info_title")} description={t("settings.fam_org_filters_action_info_desc")} />
+              <InfoPopover
+                description={t("settings.fam_org_filters_action_info_desc")}
+                title={t("settings.fam_org_filters_action_info_title")}
+              />
             </label>
-            <Select value={form.action} onValueChange={v => set_form(f => ({ ...f, action: v }))}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <Select
+              value={form.action}
+              onValueChange={(v) => set_form((f) => ({ ...f, action: v }))}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="trash">{t("settings.fam_org_filters_action_trash_option")}</SelectItem>
-                <SelectItem value="block">{t("settings.fam_org_filters_action_block_option")}</SelectItem>
-                <SelectItem value="archive">{t("settings.fam_org_filters_action_archive_option")}</SelectItem>
-                <SelectItem value="tag">{t("settings.fam_org_filters_action_tag_option")}</SelectItem>
-                <SelectItem value="redirect">{t("settings.fam_org_filters_action_redirect_option")}</SelectItem>
+                <SelectItem value="trash">
+                  {t("settings.fam_org_filters_action_trash_option")}
+                </SelectItem>
+                <SelectItem value="block">
+                  {t("settings.fam_org_filters_action_block_option")}
+                </SelectItem>
+                <SelectItem value="archive">
+                  {t("settings.fam_org_filters_action_archive_option")}
+                </SelectItem>
+                <SelectItem value="tag">
+                  {t("settings.fam_org_filters_action_tag_option")}
+                </SelectItem>
+                <SelectItem value="redirect">
+                  {t("settings.fam_org_filters_action_redirect_option")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
         <ModalFooter>
-          <Button variant="outline" onClick={() => { set_show_form(false); set_form({ name: "", value: "", field: "from", action: "trash" }); }}>{t("settings.fam_org_filters_cancel")}</Button>
-          <Button variant="depth" onClick={create} disabled={creating || !form.name.trim() || !form.value.trim()}>
-            {creating ? <Spinner size="sm" /> : t("settings.fam_org_filters_create")}
+          <Button
+            variant="outline"
+            onClick={() => {
+              set_show_form(false);
+              set_form({ name: "", value: "", field: "from", action: "trash" });
+            }}
+          >
+            {t("settings.fam_org_filters_cancel")}
+          </Button>
+          <Button
+            disabled={creating || !form.name.trim() || !form.value.trim()}
+            variant="depth"
+            onClick={create}
+          >
+            {creating ? (
+              <Spinner size="sm" />
+            ) : (
+              t("settings.fam_org_filters_create")
+            )}
           </Button>
         </ModalFooter>
       </Modal>
@@ -425,33 +671,48 @@ export function FiltersContent({ other_member_count, initial_filters }: { other_
       {!loading && filters.length === 0 && (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <FunnelIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
-          <p className="text-sm text-txt-muted mb-1">{t("settings.fam_org_filters_empty_title")}</p>
-          <p className="text-xs text-txt-muted">{t("settings.fam_org_filters_empty_desc")}</p>
+          <p className="text-sm text-txt-muted mb-1">
+            {t("settings.fam_org_filters_empty_title")}
+          </p>
+          <p className="text-xs text-txt-muted">
+            {t("settings.fam_org_filters_empty_desc")}
+          </p>
         </div>
       )}
 
       {filters.length > 0 && (
         <div className="space-y-2">
-          {filters.map(f => (
+          {filters.map((f) => (
             <FilterCard
               key={f.id}
               filter={f}
-              on_toggle={toggle_f}
               on_delete={del_f}
+              on_toggle={toggle_f}
             />
           ))}
         </div>
       )}
       <ConsentGateDialog
-        open={consent_open}
-        on_close={() => { set_consent_open(false); set_consent_payload(null); }}
-        kind="filter_create"
-        description={t("settings.fam_consent_filter_create_desc")}
-        payload={consent_payload}
+        description={
+          consent_kind === "filter_enable"
+            ? t("settings.fam_consent_filter_enable_desc")
+            : t("settings.fam_consent_filter_create_desc")
+        }
+        kind={consent_kind}
         member_count={other_member_count}
-        on_sent={() => { set_show_form(false); set_form({ name: "", value: "", field: "from", action: "trash" }); }}
+        on_close={() => {
+          set_consent_open(false);
+          set_consent_payload(null);
+        }}
+        on_sent={() => {
+          if (consent_kind !== "filter_create") return;
+
+          set_show_form(false);
+          set_form({ name: "", value: "", field: "from", action: "trash" });
+        }}
+        open={consent_open}
+        payload={consent_payload}
       />
     </div>
   );
 }
-

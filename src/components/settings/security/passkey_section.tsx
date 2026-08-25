@@ -26,9 +26,12 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Badge } from "@aster/ui";
-import { RecommendationBox, ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
-import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 
+import {
+  RecommendationBox,
+  ActionRecommendedBadge,
+} from "@/components/settings/security/recommendation_box";
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
@@ -47,10 +50,13 @@ import {
   is_passkey_supported,
   is_platform_passkey_available,
 } from "@/services/api/passkeys";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
 
 function format_date(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -71,7 +77,12 @@ interface KeyRowProps {
   removing: boolean;
 }
 
-function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps) {
+function KeyRow({
+  key_info,
+  on_delete_click,
+  on_rename,
+  removing,
+}: KeyRowProps) {
   const { t } = use_i18n();
   const [editing, set_editing] = useState(false);
   const [draft, set_draft] = useState("");
@@ -90,8 +101,10 @@ function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps)
 
   const save_name = async () => {
     const trimmed = draft.trim() || null;
+
     set_saving(true);
     const resp = await rename_hardware_key(key_info.id, trimmed);
+
     set_saving(false);
     if (resp.error) {
       show_toast(resp.error, "error");
@@ -122,14 +135,14 @@ function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps)
                   value={draft}
                   onChange={(e) => set_draft(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") save_name();
+                    if (e.key === "Enter" && !is_composing(e)) save_name();
                     if (e.key === "Escape") cancel_edit();
                   }}
                 />
                 <Button
-                  variant="primary"
-                  size="sm"
                   disabled={saving}
+                  size="sm"
+                  variant="primary"
                   onClick={save_name}
                 >
                   {saving ? (
@@ -138,11 +151,7 @@ function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps)
                     t("common.save")
                   )}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={cancel_edit}
-                >
+                <Button size="sm" variant="outline" onClick={cancel_edit}>
                   {t("common.cancel")}
                 </Button>
               </div>
@@ -154,7 +163,7 @@ function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps)
                       ? t("passkeys.unnamed_passkey")
                       : t("passkeys.unnamed_security_key"))}
                 </span>
-                <Badge color="gray" className="flex-shrink-0">
+                <Badge className="flex-shrink-0" color="gray">
                   {display_type === "passkey"
                     ? t("passkeys.passkey_badge")
                     : t("passkeys.security_key_badge")}
@@ -163,8 +172,7 @@ function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps)
             )}
             {!editing && (
               <p className="text-xs text-txt-muted mt-0.5">
-                {t("passkeys.registered")}{" "}
-                {format_date(key_info.registered_at)}
+                {t("passkeys.registered")} {format_date(key_info.registered_at)}
                 {key_info.last_used
                   ? ` · ${t("passkeys.last_used")} ${format_date(key_info.last_used)}`
                   : ` · ${t("passkeys.never_used")}`}
@@ -174,7 +182,7 @@ function KeyRow({ key_info, on_delete_click, on_rename, removing }: KeyRowProps)
         </div>
 
         {!editing && (
-          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          <div className="flex items-center gap-2 flex-shrink-0 ms-2">
             <Button size="sm" variant="outline" onClick={start_edit}>
               {t("passkeys.rename")}
             </Button>
@@ -202,6 +210,7 @@ export function PasskeySection() {
   const { current_account_id } = use_auth();
   const [keys, set_keys] = useState<HardwareKeyInfo[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [removing_id, set_removing_id] = useState<string | null>(null);
   const [pending_delete, set_pending_delete] = useState<HardwareKeyInfo | null>(
     null,
@@ -209,14 +218,20 @@ export function PasskeySection() {
   const [registering, set_registering] = useState<
     "passkey" | "security_key" | null
   >(null);
-  const [_platform_available, set_platform_available] = useState(false);
+  const [platform_available, set_platform_available] = useState<boolean | null>(
+    null,
+  );
   const webauthn_supported = is_passkey_supported();
 
   const load_keys = useCallback(async () => {
+    set_load_error(false);
     try {
       const resp = await list_hardware_keys();
+
       if (resp.data) {
         set_keys(resp.data.keys);
+      } else {
+        set_load_error(true);
       }
     } finally {
       set_loading(false);
@@ -234,6 +249,7 @@ export function PasskeySection() {
       set_removing_id(key_id);
       try {
         const resp = await remove_hardware_key(key_id);
+
         if (resp.data?.success) {
           set_keys((prev) => prev.filter((k) => k.id !== key_id));
           show_toast(t("passkeys.removed"), "success");
@@ -247,14 +263,11 @@ export function PasskeySection() {
     [t],
   );
 
-  const handle_rename = useCallback(
-    (key_id: string, name: string | null) => {
-      set_keys((prev) =>
-        prev.map((k) => (k.id === key_id ? { ...k, name_encrypted: name } : k)),
-      );
-    },
-    [],
-  );
+  const handle_rename = useCallback((key_id: string, name: string | null) => {
+    set_keys((prev) =>
+      prev.map((k) => (k.id === key_id ? { ...k, name_encrypted: name } : k)),
+    );
+  }, []);
 
   const handle_add_passkey = useCallback(async () => {
     set_registering("passkey");
@@ -262,9 +275,15 @@ export function PasskeySection() {
       const passphrase = current_account_id
         ? await get_session_passphrase(current_account_id).catch(() => null)
         : null;
-      const resp = await register_platform_passkey(null, passphrase ?? undefined);
+      const resp = await register_platform_passkey(
+        null,
+        passphrase ?? undefined,
+      );
+
       if (resp.data?.success) {
-        const is_native = (resp.data as any).is_platform_authenticator !== false;
+        const is_native =
+          (resp.data as any).is_platform_authenticator !== false;
+
         if (!is_native) {
           show_toast(t("passkeys.saved_to_password_manager"), "info");
         } else {
@@ -275,8 +294,11 @@ export function PasskeySection() {
         show_toast(t("passkeys.no_platform_authenticator"), "error");
       } else if (resp.error === "passkey_cancelled") {
         show_toast(t("passkeys.passkey_setup_cancelled"), "info");
-      } else if (resp.error) {
-        show_toast(resp.error, "error");
+      } else {
+        show_toast(
+          resp.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_registering(null);
@@ -287,6 +309,7 @@ export function PasskeySection() {
     set_registering("security_key");
     try {
       const resp = await register_security_key(null);
+
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
         await load_keys();
@@ -294,8 +317,11 @@ export function PasskeySection() {
         show_toast(t("passkeys.no_platform_authenticator"), "error");
       } else if (resp.error === "passkey_cancelled") {
         show_toast(t("passkeys.security_key_not_found"), "info");
-      } else if (resp.error) {
-        show_toast(resp.error, "error");
+      } else {
+        show_toast(
+          resp.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_registering(null);
@@ -312,8 +338,10 @@ export function PasskeySection() {
             description={`${t("passkeys.passkey_hint")} ${t("passkeys.security_key_hint")}`}
             title={t("passkeys.section_title")}
           />
-          {webauthn_supported && !loading && keys.length === 0 && (
-            <ActionRecommendedBadge tip={t("settings.no_passkeys_recommendation")} />
+          {webauthn_supported && !loading && !load_error && keys.length === 0 && (
+            <ActionRecommendedBadge
+              tip={t("settings.no_passkeys_recommendation")}
+            />
           )}
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
@@ -333,7 +361,28 @@ export function PasskeySection() {
         </div>
       ) : (
         <AnimatePresence mode="popLayout">
-          {keys.length === 0 ? (
+          {load_error && keys.length === 0 ? (
+            <motion.div
+              animate={{ opacity: 1 }}
+              className="py-6 text-center"
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+            >
+              <p className="text-sm text-txt-muted mb-3">
+                {t("settings.failed_load_security_status")}
+              </p>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  set_loading(true);
+                  void load_keys();
+                }}
+              >
+                {t("settings.try_again")}
+              </Button>
+            </motion.div>
+          ) : keys.length === 0 ? (
             <motion.div
               animate={{ opacity: 1 }}
               className="py-6 text-center"
@@ -341,7 +390,9 @@ export function PasskeySection() {
               initial={{ opacity: 0 }}
             >
               <FingerPrintIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
-              <p className="text-sm text-txt-muted">{t("passkeys.no_passkeys")}</p>
+              <p className="text-sm text-txt-muted">
+                {t("passkeys.no_passkeys")}
+              </p>
             </motion.div>
           ) : (
             <motion.div
@@ -372,21 +423,23 @@ export function PasskeySection() {
 
       {webauthn_supported && !is_desktop() && (
         <div className="flex items-center gap-2 mt-2">
-          <Button
-            disabled={registering !== null}
-            size="sm"
-            variant="outline"
-            onClick={handle_add_passkey}
-          >
-            {registering === "passkey" ? (
-              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
-            ) : (
-              <FingerPrintIcon className="w-4 h-4 mr-2" />
-            )}
-            {registering === "passkey"
-              ? t("passkeys.registering")
-              : t("passkeys.add_passkey")}
-          </Button>
+          {platform_available !== false && (
+            <Button
+              disabled={registering !== null}
+              size="sm"
+              variant="outline"
+              onClick={handle_add_passkey}
+            >
+              {registering === "passkey" ? (
+                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin me-2" />
+              ) : (
+                <FingerPrintIcon className="w-4 h-4 me-2" />
+              )}
+              {registering === "passkey"
+                ? t("passkeys.registering")
+                : t("passkeys.add_passkey")}
+            </Button>
+          )}
           <Button
             disabled={registering !== null}
             size="sm"
@@ -394,9 +447,9 @@ export function PasskeySection() {
             onClick={handle_add_security_key}
           >
             {registering === "security_key" ? (
-              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin mr-2" />
+              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin me-2" />
             ) : (
-              <PlusIcon className="w-4 h-4 mr-2" />
+              <PlusIcon className="w-4 h-4 me-2" />
             )}
             {registering === "security_key"
               ? t("passkeys.registering")
@@ -406,6 +459,7 @@ export function PasskeySection() {
       )}
 
       <ConfirmModal
+        hide_dont_ask
         confirm_text={t("common.delete")}
         confirm_variant="destructive"
         description={t(
@@ -421,18 +475,17 @@ export function PasskeySection() {
           },
         )}
         dont_ask={false}
-        hide_dont_ask
+        on_cancel={() => set_pending_delete(null)}
+        on_confirm={() => {
+          if (pending_delete) handle_remove(pending_delete.id);
+        }}
+        on_dont_ask_change={() => {}}
         show={!!pending_delete}
         title={t(
           pending_delete && !pending_delete.is_passkey
             ? "passkeys.delete_security_key_title"
             : "passkeys.delete_passkey_title",
         )}
-        on_cancel={() => set_pending_delete(null)}
-        on_confirm={() => {
-          if (pending_delete) handle_remove(pending_delete.id);
-        }}
-        on_dont_ask_change={() => {}}
       />
     </div>
   );

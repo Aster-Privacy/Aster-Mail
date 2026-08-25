@@ -18,11 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { describe, it, expect, vi } from "vitest";
 
 import { resolve_password_change_error } from "./password_change_error";
+
 import { en } from "@/lib/i18n/translations/en";
-import type { TranslationKey } from "@/lib/i18n/types";
 
 const translate = (key: TranslationKey): string => {
   const [namespace, name] = key.split(".");
@@ -64,6 +66,36 @@ describe("resolve_password_change_error", () => {
         en.settings.password_change_fingerprint_mismatch,
       );
     }
+  });
+
+  it("translates the upgrade code the server sends alongside prose", () => {
+    const resolved = resolve_password_change_error(
+      "This app version can't make this change. Update to the latest version and try again.",
+      translate,
+      "CLIENT_UPGRADE_REQUIRED",
+    );
+
+    expect(resolved).toBe(en.settings.password_change_client_upgrade_required);
+  });
+
+  it("translates an incomplete alias re-encryption", () => {
+    const resolved = resolve_password_change_error(
+      "Some aliases did not finish re-encrypting, so nothing changed. Try again.",
+      translate,
+      "ALIAS_REENCRYPTION_INCOMPLETE",
+    );
+
+    expect(resolved).toBe(en.settings.password_change_reencryption_incomplete);
+  });
+
+  it("keeps the server prose when the code is unknown", () => {
+    const resolved = resolve_password_change_error(
+      "Current password is incorrect",
+      translate,
+      "UNAUTHORIZED",
+    );
+
+    expect(resolved).toBe("Current password is incorrect");
   });
 
   it("leaves every other server error untouched", () => {
@@ -109,6 +141,14 @@ describe("resolve_password_change_error", () => {
 
       expect(message).toBeTruthy();
       expect(message).not.toContain("FINGERPRINT_MISMATCH");
+
+      for (const key of [
+        "password_change_client_upgrade_required",
+        "password_change_reencryption_incomplete",
+      ]) {
+        expect(bundle.settings[key]).toBeTruthy();
+        expect(bundle.settings[key]).not.toMatch(/[A-Z]{4,}_[A-Z]{4,}/);
+      }
     }
   });
 });

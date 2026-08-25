@@ -60,8 +60,17 @@ import {
 import { enable_lockdown, disable_lockdown } from "@/services/api/lockdown";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
-
 import { ignore_error } from "@/lib/ignore_error";
+
+const TRANSPORT_FAILURE_CODES = new Set([
+  "NETWORK_ERROR",
+  "TIMEOUT_ERROR",
+  "SERVER_ERROR",
+]);
+
+function is_transport_failure(code?: string): boolean {
+  return code !== undefined && TRANSPORT_FAILURE_CODES.has(code);
+}
 
 function LockdownSection({ account_id }: { account_id: string }) {
   const { t } = use_i18n();
@@ -77,8 +86,19 @@ function LockdownSection({ account_id }: { account_id: string }) {
 
   useEffect(() => {
     if (!account_id) return;
+
+    let cancelled = false;
+
     set_enabled(is_lockdown_enabled(account_id));
-    init_lockdown_from_server(account_id).then(set_enabled);
+    init_lockdown_from_server(account_id).then((server_enabled) => {
+      if (cancelled) return;
+
+      set_enabled(server_enabled);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [account_id]);
 
   const handle_toggle = (checked: boolean) => {
@@ -142,7 +162,11 @@ function LockdownSection({ account_id }: { account_id: string }) {
       });
 
       if (res.error) {
-        set_creds_error(t("settings.duress_pin_invalid_credentials"));
+        set_creds_error(
+          is_transport_failure(res.code)
+            ? t("common.something_went_wrong_try_again")
+            : t("settings.duress_pin_invalid_credentials"),
+        );
         set_disabling(false);
 
         return;
@@ -163,7 +187,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
     <>
       <div className="py-3">
         <div className="flex items-center justify-between">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <div className="flex items-center gap-1.5">
               <p className="text-sm font-medium text-txt-primary">
                 {t("settings.lockdown_enable")}
@@ -180,7 +204,12 @@ function LockdownSection({ account_id }: { account_id: string }) {
               {t("settings.lockdown_description")}
             </p>
           </div>
-          <Switch checked={enabled} size="lg" onCheckedChange={handle_toggle} />
+          <Switch
+            aria-label={t("settings.lockdown_enable")}
+            checked={enabled}
+            size="lg"
+            onCheckedChange={handle_toggle}
+          />
         </div>
       </div>
 
@@ -287,19 +316,31 @@ export function VanguardSection() {
 
   const [enabled, set_enabled] = useState(false);
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);
+  const [is_disabling, set_is_disabling] = useState(false);
 
   useEffect(() => {
     if (!account_id) return;
+
+    let cancelled = false;
+
     set_enabled(is_vanguard_enabled(account_id));
     init_vanguard_from_server(account_id).then((server_enabled) => {
+      if (cancelled) return;
+
       set_enabled(server_enabled);
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [account_id]);
 
   useEffect(() => {
     if (is_loading || !limits || !limits.plan_code) return;
     if (!is_nova_plus && enabled && account_id) {
-      disable_vanguard().then(() => {
+      disable_vanguard().then((res) => {
+        if (res.error) return;
+
         set_vanguard_enabled(account_id, false);
         set_lockdown_enabled(account_id, false);
         clear_app_lock_config(account_id);
@@ -327,32 +368,40 @@ export function VanguardSection() {
     }
   };
 
-  const confirm_disable = () => {
+  const confirm_disable = async () => {
     if (is_lockdown_enabled(account_id)) {
       set_show_disable_confirm(false);
       show_toast(t("settings.lockdown_must_disable_first"), "error");
 
       return;
     }
+
+    if (is_disabling) return;
+    set_is_disabling(true);
+    set_show_disable_confirm(false);
+
+    const res = await disable_vanguard();
+
+    if (res.error) {
+      const status = await get_vanguard_status();
+
+      if (status.data) {
+        set_enabled(status.data.enabled);
+        set_vanguard_enabled(account_id, status.data.enabled);
+      }
+      show_toast(res.error, "error");
+      set_is_disabling(false);
+
+      return;
+    }
+
     set_enabled(false);
     set_vanguard_enabled(account_id, false);
     set_lockdown_enabled(account_id, false);
     clear_app_lock_config(account_id);
     clear_session_unlock(account_id);
-    set_show_disable_confirm(false);
-    disable_vanguard().then((res) => {
-      if (res.error) {
-        get_vanguard_status().then((status) => {
-          if (status.data) {
-            set_enabled(status.data.enabled);
-            set_vanguard_enabled(account_id, status.data.enabled);
-          }
-        });
-        show_toast(res.error, "error");
-      } else {
-        show_toast(t("settings.vanguard_disabled_toast"), "success");
-      }
-    });
+    show_toast(t("settings.vanguard_disabled_toast"), "success");
+    set_is_disabling(false);
   };
 
   if (is_loading) {
@@ -363,7 +412,7 @@ export function VanguardSection() {
     <>
       <div className="py-4 px-1">
         <div className="flex items-center justify-between">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <div className="flex items-center gap-1.5">
               <p className="text-sm font-medium text-txt-primary">
                 {t("settings.vanguard_enable")}
@@ -383,7 +432,9 @@ export function VanguardSection() {
 
           {is_nova_plus ? (
             <Switch
+              aria-label={t("settings.vanguard_title")}
               checked={enabled}
+              disabled={is_disabling}
               size="lg"
               onCheckedChange={handle_toggle}
             />
@@ -404,7 +455,7 @@ export function VanguardSection() {
         </div>
 
         {enabled && (
-          <div className="mt-4 border-l-2 border-primary/25 pl-4 space-y-0">
+          <div className="mt-4 border-s-2 border-primary/25 ps-4 space-y-0">
             <AppLockSection />
             <LockdownSection account_id={account_id} />
           </div>
@@ -432,7 +483,7 @@ export function VanguardSection() {
           >
             {t("common.cancel")}
           </Button>
-          <Button variant="destructive" onClick={confirm_disable}>
+          <Button variant="destructive" onClick={() => void confirm_disable()}>
             {t("settings.vanguard_disable")}
           </Button>
         </ModalFooter>

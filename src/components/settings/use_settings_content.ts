@@ -18,8 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
-import { use_search_registry } from "@/components/settings/search_context";
+import type {
+  NavItem,
+  NavItems,
+  Section,
+  SettingsContentProps,
+} from "./settings_content_helpers";
+import { safe_local_set } from "@/lib/safe_storage";
 
 import {
   useState,
@@ -35,6 +40,16 @@ import {
   CodeBracketIcon,
 } from "@heroicons/react/24/outline";
 
+import { load_family_section } from "./settings_lazy_sections";
+import {
+  get_nav_items,
+  get_persisted_section,
+  set_persisted_section,
+} from "./settings_content_helpers";
+
+import { start_scroll_seek } from "@/components/settings/settings_scroll_target";
+import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
+import { use_search_registry } from "@/components/settings/search_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -52,29 +67,17 @@ import {
   get_credits,
 } from "@/services/api/billing";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import { load_family_section } from "./settings_lazy_sections";
-
 import { is_desktop_runtime } from "@/services/updates/updater";
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { list_devices } from "@/services/api/devices";
-import { prefetch_family_group, refresh_family_plan_flag } from "@/services/api/family";
-
-import { ignore_error } from "@/lib/ignore_error";
-
 import {
-  get_nav_items,
-  get_persisted_section,
-  set_persisted_section,
-} from "./settings_content_helpers";
-import type {
-  NavItem,
-  NavItems,
-  Section,
-  SettingsContentProps,
-} from "./settings_content_helpers";
+  prefetch_family_group,
+  refresh_family_plan_flag,
+} from "@/services/api/family";
+import { ignore_error } from "@/lib/ignore_error";
+import { is_onion_host } from "@/lib/onion_host";
 
 export type { SettingsSection } from "./settings_content_helpers";
-
 
 export function use_settings_content(props: SettingsContentProps) {
   const {
@@ -85,6 +88,7 @@ export function use_settings_content(props: SettingsContentProps) {
   } = props;
 
   const is_popup = variant === "popup";
+
   use_settings_prefetch(true);
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -120,6 +124,8 @@ export function use_settings_content(props: SettingsContentProps) {
   const [is_family_plan, set_is_family_plan] = useState(
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
+  const [is_family_plan_resolved, set_is_family_plan_resolved] =
+    useState(false);
   const [search_query, set_search_query] = useState("");
   const [scroll_target, set_scroll_target] = useState<string | null>(null);
   const [show_inline_totp_setup, set_show_inline_totp_setup] = useState(false);
@@ -160,7 +166,22 @@ export function use_settings_content(props: SettingsContentProps) {
     }
   }, [is_family_plan]);
 
-  const NAV_ITEMS_BASE = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
+  useEffect(() => {
+    const is_unavailable =
+      (section === "family" && is_family_plan_resolved && !is_family_plan) ||
+      ((section === "billing" || section === "import") && is_onion_host());
+
+    if (!is_unavailable) return;
+
+    set_section("appearance");
+    set_persisted_section("appearance");
+    on_section_change_ref.current("appearance", true);
+  }, [section, is_family_plan, is_family_plan_resolved]);
+
+  const NAV_ITEMS_BASE = useMemo(
+    () => get_nav_items(t, is_family_plan),
+    [t, is_family_plan],
+  );
   const [indicator_style, set_indicator_style] = useState<{
     top: number;
     height: number;
@@ -203,13 +224,28 @@ export function use_settings_content(props: SettingsContentProps) {
   }, [navigate]);
 
   useEffect(() => {
-    refresh_family_plan_flag(set_is_family_plan);
-    list_devices().then((res) => {
-      const has_any = (res.data?.devices?.length ?? 0) > 0;
+    let cancelled = false;
 
-      localStorage.setItem("aster_has_devices", has_any ? "1" : "0");
-      set_has_devices(has_any);
+    refresh_family_plan_flag((resolved_is_family_plan) => {
+      if (cancelled) return;
+      set_is_family_plan(resolved_is_family_plan);
+      set_is_family_plan_resolved(true);
     });
+    list_devices()
+      .then((res) => {
+        if (cancelled || res.error || !res.data) return;
+
+        const has_any = (res.data.devices?.length ?? 0) > 0;
+
+        safe_local_set("aster_has_devices", has_any ? "1" : "0");
+        set_has_devices(has_any);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:list_devices",
+          caught,
+        ),
+      );
 
     const warm_billing = () => {
       void import("@/components/settings/billing_section").catch((caught) =>
@@ -228,12 +264,18 @@ export function use_settings_content(props: SettingsContentProps) {
     if (typeof requestIdleCallback === "function") {
       const idle_id = requestIdleCallback(warm_billing, { timeout: 2000 });
 
-      return () => cancelIdleCallback(idle_id);
+      return () => {
+        cancelled = true;
+        cancelIdleCallback(idle_id);
+      };
     }
 
     const timeout_id = setTimeout(warm_billing, 400);
 
-    return () => clearTimeout(timeout_id);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout_id);
+    };
   }, []);
 
   useEffect(() => {
@@ -283,17 +325,23 @@ export function use_settings_content(props: SettingsContentProps) {
 
     if (cached !== null) set_dev_mode_enabled(cached);
 
+    let cancelled = false;
+
     const load_dev_mode = async () => {
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
-      if (result.data === null) return;
+      if (cancelled || result.data === null) return;
 
       set_dev_mode_enabled(result.data);
       write_dev_mode_cache(current_account_id, result.data);
     };
 
     load_dev_mode();
+
+    return () => {
+      cancelled = true;
+    };
   }, [current_account_id]);
 
   useEffect(() => {
@@ -360,6 +408,7 @@ export function use_settings_content(props: SettingsContentProps) {
       const modal_open = document.querySelector(
         '[role="dialog"]:not([data-state="closed"]), [role="alertdialog"]:not([data-state="closed"]), [aria-modal="true"]:not([data-state="closed"])',
       );
+
       if (modal_open) return;
       on_close();
     };
@@ -379,12 +428,45 @@ export function use_settings_content(props: SettingsContentProps) {
       ? base.general
       : base.general.filter((item) => item.id !== "trusted_devices");
     const mail = [...base.mail];
+
     if (is_desktop_runtime()) {
-      mail.push({ id: "updates" as Section, label: t("settings.updates"), icon: ArrowDownTrayIcon, description: "Check for app updates and manage auto-update settings", keywords: ["update", "check for updates", "auto update", "automatic updates", "app version", "version history", "release notes", "update available"] });
+      mail.push({
+        id: "updates" as Section,
+        label: t("settings.updates"),
+        icon: ArrowDownTrayIcon,
+        description: "Check for app updates and manage auto-update settings",
+        keywords: [
+          "update",
+          "check for updates",
+          "auto update",
+          "automatic updates",
+          "app version",
+          "version history",
+          "release notes",
+          "update available",
+        ],
+      });
     }
     if (dev_mode_enabled) {
-      mail.push({ id: "developer" as Section, label: t("settings.developer"), icon: CodeBracketIcon, description: "API tokens, developer mode, request logs, and diagnostics", keywords: ["developer", "dev mode", "api token", "access token", "debug", "request logs", "diagnostics", "developer tools"] });
+      mail.push({
+        id: "developer" as Section,
+        label: t("settings.developer"),
+        icon: CodeBracketIcon,
+        description:
+          "API tokens, developer mode, request logs, and diagnostics",
+        keywords: [
+          "developer",
+          "dev mode",
+          "api token",
+          "access token",
+          "debug",
+          "request logs",
+          "diagnostics",
+          "developer tools",
+        ],
+      });
     }
+
     return { general, mail };
   }, [NAV_ITEMS_BASE, dev_mode_enabled, has_devices, t]);
 
@@ -392,11 +474,13 @@ export function use_settings_content(props: SettingsContentProps) {
 
   const search_results = useMemo(() => {
     const q = search_query.trim().toLowerCase();
+
     if (!q) return [] as NavItem[];
     const match = (item: NavItem) =>
       item.label.toLowerCase().includes(q) ||
       item.description.toLowerCase().includes(q) ||
       item.keywords.some((kw) => kw.includes(q));
+
     return [...nav_items.general, ...nav_items.mail].filter(match);
   }, [search_query, nav_items]);
 
@@ -404,50 +488,68 @@ export function use_settings_content(props: SettingsContentProps) {
 
   const registry_results = useMemo(() => {
     const q = search_query.trim().toLowerCase();
+
     if (q.length < 2) return [];
     const visible_sections = new Set([
       ...nav_items.general.map((i) => i.id),
       ...nav_items.mail.map((i) => i.id),
     ]);
-    const all = [...SETTINGS_SEARCH_REGISTRY, ...dynamic_entries];
+    const section_labels = new Map(
+      [...nav_items.general, ...nav_items.mail].map((i) => [i.id, i.label]),
+    );
+    const all = [...SETTINGS_SEARCH_REGISTRY, ...dynamic_entries].map(
+      (entry) => {
+        const section_label = section_labels.get(entry.section);
+        const separator = entry.breadcrumb.indexOf(" > ");
+
+        return {
+          ...entry,
+          english_label: entry.label,
+          english_breadcrumb: entry.breadcrumb,
+          label: entry.label_key ? t(entry.label_key) : entry.label,
+          breadcrumb: !section_label
+            ? entry.breadcrumb
+            : separator === -1
+              ? section_label
+              : `${section_label} > ${entry.crumb_key ? t(entry.crumb_key) : entry.breadcrumb.slice(separator + 3)}`,
+        };
+      },
+    );
     const seen = new Set<string>();
-    return all.filter((entry) => {
-      if (!visible_sections.has(entry.section)) return false;
-      const matches =
-        entry.label.toLowerCase().includes(q) ||
-        entry.breadcrumb.toLowerCase().includes(q) ||
-        entry.keywords?.some((kw) => kw.includes(q));
-      if (!matches) return false;
-      const key = `${entry.section}::${entry.label}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, 12);
-  }, [search_query, nav_items, dynamic_entries]);
+
+    return all
+      .filter((entry) => {
+        if (!visible_sections.has(entry.section)) return false;
+        const matches =
+          entry.label.toLowerCase().includes(q) ||
+          entry.english_label.toLowerCase().includes(q) ||
+          entry.breadcrumb.toLowerCase().includes(q) ||
+          entry.english_breadcrumb.toLowerCase().includes(q) ||
+          entry.keywords?.some((kw) => kw.includes(q));
+
+        if (!matches) return false;
+        const key = `${entry.section}::${entry.label}`;
+
+        if (seen.has(key)) return false;
+        seen.add(key);
+
+        return true;
+      })
+      .slice(0, 12);
+  }, [search_query, nav_items, dynamic_entries, t]);
 
   useEffect(() => {
     if (!scroll_target) return;
     const container = content_container_ref.current;
+
     if (!container) return;
-    const timer = setTimeout(() => {
-      const lower = scroll_target.toLowerCase();
-      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-          const tag = node.parentElement?.tagName.toLowerCase();
-          if (tag && ["script", "style", "input", "textarea"].includes(tag)) return NodeFilter.FILTER_REJECT;
-          return node.textContent?.toLowerCase().includes(lower)
-            ? NodeFilter.FILTER_ACCEPT
-            : NodeFilter.FILTER_REJECT;
-        },
-      });
-      const found = walker.nextNode() as Text | null;
-      const target_el = found?.parentElement;
-      if (target_el) {
-        target_el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    return start_scroll_seek(container, scroll_target, (target) => {
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
       }
       set_scroll_target(null);
-    }, 120);
-    return () => clearTimeout(timer);
+    });
   }, [scroll_target, section]);
 
   useLayoutEffect(() => {

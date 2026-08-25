@@ -18,14 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  type ReactNode,
-} from "react";
+import { type ReactNode } from "react";
 
-import {
-  type SignaturePlacement,
-} from "@/services/api/signatures";
-
+import { type SignaturePlacement } from "@/services/api/signatures";
 
 export function escape_html(str: string): string {
   return str
@@ -74,7 +69,12 @@ export interface FmtButtonProps {
   title?: string;
 }
 
-export function FmtButton({ active, onClick, children, title }: FmtButtonProps) {
+export function FmtButton({
+  active,
+  onClick,
+  children,
+  title,
+}: FmtButtonProps) {
   return (
     <button
       aria-label={title}
@@ -116,4 +116,3 @@ export const initial_editor_state: EditorState = {
   placement: null,
   show_validation: false,
 };
-

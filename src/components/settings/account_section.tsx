@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { Badge, BadgePreferences } from "@/services/api/user";
+import type { StepUpCredentials } from "@/services/api/step_up";
+import type { RecoveryEmailData } from "@/services/api/recovery_email";
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -31,10 +34,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { StepUpModal } from "./step_up_modal";
-import type { StepUpCredentials } from "@/services/api/step_up";
+
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_should_reduce_motion } from "@/provider";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -80,7 +84,6 @@ import {
   normalize_recovery_email,
   EMPTY_RECOVERY_EMAIL,
 } from "@/services/api/recovery_email";
-import type { RecoveryEmailData } from "@/services/api/recovery_email";
 import {
   Select,
   SelectContent,
@@ -95,6 +98,10 @@ import {
   use_profile_picture_upload,
 } from "@/hooks/use_profile_picture_upload";
 import { is_onion_host } from "@/lib/onion_host";
+import { app_locale } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
+import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -131,19 +138,19 @@ function RecoveryModal({
   }, [is_open, current]);
 
   const handle_save = async () => {
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const trimmed_email = email.trim();
+
+    if (!trimmed_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed_email)) {
       set_error(t("common.enter_valid_email"));
 
       return;
     }
     set_saving(true);
     try {
-      await on_save(email);
+      await on_save(trimmed_email);
       on_close();
     } catch (err) {
-      set_error(
-        err instanceof Error ? err.message : t("common.failed_to_save"),
-      );
+      set_error(user_facing_error(err, t("common.failed_to_save")));
     } finally {
       set_saving(false);
     }
@@ -165,7 +172,9 @@ function RecoveryModal({
           type="email"
           value={email}
           onChange={(e) => set_email(e.target.value)}
-          onKeyDown={(e) => e["key"] === "Enter" && handle_save()}
+          onKeyDown={(e) =>
+            e["key"] === "Enter" && !is_composing(e) && handle_save()
+          }
         />
         {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
       </ModalBody>
@@ -177,7 +186,7 @@ function RecoveryModal({
           {saving ? (
             <>
               {t("common.saving")}
-              <Spinner className="ml-2" size="md" />
+              <Spinner className="ms-2" size="md" />
             </>
           ) : (
             t("common.save")
@@ -210,7 +219,7 @@ function FreePlanBanner() {
               {t("settings.free_plan_banner_title")}
             </p>
           </div>
-          <p className="text-sm text-txt-muted mt-1 ml-7">
+          <p className="text-sm text-txt-muted mt-1 ms-7">
             {t("settings.free_plan_description")}
           </p>
         </div>
@@ -248,7 +257,7 @@ export function AccountSection() {
   const copy_primary_address = useCallback(
     async (address: string) => {
       try {
-        await navigator.clipboard.writeText(address);
+        await copy_text_or_throw(address);
         show_toast(t("common.copied"), "success");
       } catch {
         show_toast(t("common.failed_to_copy_to_clipboard"), "error");
@@ -280,8 +289,11 @@ export function AccountSection() {
   const [inactivity_window, set_inactivity_window] = useState(24);
   const [saving_inactivity, set_saving_inactivity] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
-  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
+  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(
+    null,
+  );
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
 
   const inactivity_window_info_description = (() => {
     const [first, second, final] =
@@ -298,38 +310,55 @@ export function AccountSection() {
       .replace("{{final}}", format_offset(final));
   })();
 
-  useEffect(() => {
-    const run = async () => {
-      try {
-        const [badges_response, prefs_response, recovery_response, inactivity_response] =
-          await Promise.all([
-            fetch_my_badges(),
-            fetch_badge_preferences(),
-            vault
-              ? get_recovery_email(vault).catch(() => ({
-                  data: EMPTY_RECOVERY_EMAIL,
-                }))
-              : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
-            get_inactivity_settings(),
-          ]);
+  const load_account_data = useCallback(async () => {
+    set_load_failed(false);
 
-        if (badges_response.data) set_badges(badges_response.data);
-        if (prefs_response.data) {
-          set_badge_prefs(prefs_response.data);
-          set_my_badge_prefs(prefs_response.data);
-        }
-        if (recovery_response.data) set_recovery(recovery_response.data);
-        if (inactivity_response.data)
-          set_inactivity_window(inactivity_response.data.inactivity_window_months);
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-      } finally {
-        set_is_initial_load(false);
-      }
-    };
+    const [
+      badges_response,
+      prefs_response,
+      recovery_response,
+      inactivity_response,
+    ] = await Promise.all([
+      fetch_my_badges(),
+      fetch_badge_preferences(),
+      vault
+        ? get_recovery_email(vault).catch(() => ({
+            data: EMPTY_RECOVERY_EMAIL,
+          }))
+        : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
+      get_inactivity_settings(),
+    ]);
 
-    run();
+    if (badges_response.data) set_badges(badges_response.data);
+    if (prefs_response.data) {
+      set_badge_prefs(prefs_response.data);
+      set_my_badge_prefs(prefs_response.data);
+    }
+    if (recovery_response.data) set_recovery(recovery_response.data);
+    if (inactivity_response.data)
+      set_inactivity_window(inactivity_response.data.inactivity_window_months);
+
+    if (
+      !badges_response.data ||
+      !prefs_response.data ||
+      !inactivity_response.data
+    ) {
+      set_load_failed(true);
+    }
+
+    set_is_initial_load(false);
   }, [vault]);
+
+  const reload_account_data = useCallback(() => {
+    load_account_data().catch(() => {
+      set_load_failed(true);
+      set_is_initial_load(false);
+    });
+  }, [load_account_data]);
+
+  useEffect(() => {
+    reload_account_data();
+  }, [reload_account_data]);
 
   const persist_badge_prefs = async (patch: {
     active_badge_slug?: string | null;
@@ -340,10 +369,12 @@ export function AccountSection() {
     if (!badge_prefs) return;
     const previous = badge_prefs;
     const optimistic: BadgePreferences = { ...badge_prefs, ...patch };
+
     set_badge_prefs(optimistic);
     set_my_badge_prefs(optimistic);
     try {
       const response = await update_badge_preferences(patch);
+
       if (response.data) {
         set_badge_prefs(response.data);
         set_my_badge_prefs(response.data);
@@ -370,25 +401,28 @@ export function AccountSection() {
   }, [preferences.profile_color]);
 
   const save_name = async () => {
+    if (saving_name) return;
     if (!name.trim() || !user || name === (user.display_name || user.username))
       return;
     set_saving_name(true);
     try {
       const r = await update_display_name(name);
 
-      if (r.data?.user)
+      if (r.data?.user) {
         await update_user({
           ...user,
           display_name: r.data.user.display_name || undefined,
         });
+      } else {
+        show_toast(r.error || t("common.failed_to_save"), "error");
+      }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-
-      return;
+      show_toast(t("common.failed_to_save"), "error");
+    } finally {
+      set_saving_name(false);
     }
-    set_saving_name(false);
   };
-
 
   const request_recovery_step_up = (email: string) => {
     set_pending_recovery_email(email);
@@ -397,7 +431,7 @@ export function AccountSection() {
   };
 
   const save_recovery = async (email: string) => {
-    if (!vault) return;
+    if (!vault) throw new Error(t("common.failed_to_save"));
 
     const normalized = normalize_recovery_email(email);
 
@@ -512,7 +546,6 @@ export function AccountSection() {
     }
   };
 
-
   const request_inactivity_window_change = (months: number) => {
     if (months < 3 || months > 24) return;
     set_pending_inactivity_months(months);
@@ -530,6 +563,8 @@ export function AccountSection() {
   return (
     <div className="space-y-4">
       <FreePlanBanner />
+
+      {load_failed && <LoadFailedNotice on_retry={reload_account_data} />}
 
       <div className="rounded-xl overflow-hidden bg-surf-tertiary border border-edge-secondary">
         <div
@@ -579,8 +614,8 @@ export function AccountSection() {
               )}
             </div>
             <button
-              className="absolute -bottom-1 -right-1 p-1.5 rounded-full transition-colors disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary"
               aria-label={t("auth.change_photo")}
+              className="absolute -bottom-1 -end-1 p-1.5 rounded-full transition-colors disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary"
               disabled={uploading || removing_photo}
               title={t("auth.change_photo")}
               onClick={open_picker}
@@ -616,10 +651,10 @@ export function AccountSection() {
                     : "opacity-0 [@media(hover:none)]:opacity-100",
                 )}
                 disabled={uploading || removing_photo}
-                onFocus={() => set_avatar_hovered(true)}
-                onBlur={() => set_avatar_hovered(false)}
                 title={t("common.remove_photo")}
+                onBlur={() => set_avatar_hovered(false)}
                 onClick={remove_picture}
+                onFocus={() => set_avatar_hovered(true)}
               >
                 {removing_photo ? (
                   <Spinner size="xs" />
@@ -698,7 +733,7 @@ export function AccountSection() {
           )}
         </div>
         <div
-          className="cursor-pointer rounded-md px-2 -mr-2 py-1 hover:bg-surf-hover transition-colors"
+          className="cursor-pointer rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
           onClick={() =>
             copy_primary_address(primary_identity.email || account_email)
           }
@@ -721,10 +756,13 @@ export function AccountSection() {
         <div className="flex items-center gap-3">
           <Input
             className="w-48"
+            maxLength={MAX_DISPLAY_NAME_LENGTH}
             value={name}
             onBlur={save_name}
             onChange={(e) => set_name(e.target.value)}
-            onKeyDown={(e) => e["key"] === "Enter" && save_name()}
+            onKeyDown={(e) =>
+              e["key"] === "Enter" && !is_composing(e) && save_name()
+            }
           />
           {saving_name && <Spinner className="text-txt-muted" size="md" />}
         </div>
@@ -754,13 +792,10 @@ export function AccountSection() {
               }
             >
               <SelectTrigger className="h-10 w-48 flex-shrink-0 bg-transparent text-sm">
-
                 <SelectValue placeholder={t("badges.none")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">
-                  {t("badges.none")}
-                </SelectItem>
+                <SelectItem value="none">{t("badges.none")}</SelectItem>
                 {badges.map((badge) => {
                   const visual = get_badge_visual(badge.slug);
                   const Icon = visual.icon;
@@ -776,7 +811,7 @@ export function AccountSection() {
                         <span className="truncate">{badge.display_name}</span>
                         {badge.find_order != null && (
                           <span className="tabular-nums opacity-70">
-                            #{badge.find_order.toLocaleString()}
+                            #{badge.find_order.toLocaleString(app_locale())}
                           </span>
                         )}
                       </span>
@@ -793,7 +828,9 @@ export function AccountSection() {
                 checked={badge_prefs.show_badge_profile}
                 description={t("badges.show_on_profile_description")}
                 label={t("badges.show_on_profile")}
-                on_change={(v) => persist_badge_prefs({ show_badge_profile: v })}
+                on_change={(v) =>
+                  persist_badge_prefs({ show_badge_profile: v })
+                }
               />
               <BadgeToggleRow
                 checked={badge_prefs.show_badge_signature}
@@ -879,7 +916,11 @@ export function AccountSection() {
           <div>
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("common.inactivity_window")}
-              <InfoPopover title={t("common.inactivity_window_info_title")} description={inactivity_window_info_description} learn_more_url="https://astermail.org/terms#section-9" />
+              <InfoPopover
+                description={inactivity_window_info_description}
+                learn_more_url="https://astermail.org/terms#section-9"
+                title={t("common.inactivity_window_info_title")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("common.inactivity_window_description")}
@@ -897,7 +938,10 @@ export function AccountSection() {
               <SelectContent>
                 {[3, 6, 9, 12, 18, 24].map((m) => (
                   <SelectItem key={m} value={String(m)}>
-                    {t("common.inactivity_window_months").replace("{{n}}", String(m))}
+                    {t("common.inactivity_window_months").replace(
+                      "{{n}}",
+                      String(m),
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -953,7 +997,8 @@ export function AccountSection() {
         is_open={show_step_up}
         on_close={() => {
           set_show_step_up(false);
-          if (step_up_mode === "inactivity") set_pending_inactivity_months(null);
+          if (step_up_mode === "inactivity")
+            set_pending_inactivity_months(null);
         }}
         on_confirm={handle_step_up_confirm}
         title={
@@ -994,7 +1039,12 @@ function BadgeToggleRow({
         <div className="text-sm font-medium text-txt-primary">{label}</div>
         <div className="text-xs mt-0.5 text-txt-muted">{description}</div>
       </div>
-      <Switch size="lg" checked={checked} onCheckedChange={on_change} />
+      <Switch
+        aria-label={label}
+        checked={checked}
+        size="lg"
+        onCheckedChange={on_change}
+      />
     </div>
   );
 }

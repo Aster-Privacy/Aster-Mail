@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -39,6 +40,7 @@ import { Switch } from "@aster/ui";
 import { SettingsHeader } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { format_number } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -62,9 +64,10 @@ import {
 } from "@/services/api/domains";
 import { update_alias } from "@/services/api/aliases";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
+import { get_grace_days_remaining } from "@/components/settings/aliases/grace_period";
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const ALIASES_PER_PAGE = 50;
 
@@ -84,6 +87,7 @@ export function AliasesSection({
   );
   const [purchased_orders, set_purchased_orders] = useState<DomainOrder[]>([]);
   const [purchased_loading, set_purchased_loading] = useState(false);
+  const [purchased_load_failed, set_purchased_load_failed] = useState(false);
   const [purchase_initial_query, set_purchase_initial_query] = useState<
     string | null
   >(null);
@@ -100,16 +104,24 @@ export function AliasesSection({
         set_purchased_orders((prev) =>
           prev.filter((order) => order.id !== order_id),
         );
+      } else {
+        show_toast(
+          response.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } catch (caught) {
-      ignore_error("pages/mobile/settings/aliases_section:handle_cancel_order", caught);
+      ignore_error(
+        "pages/mobile/settings/aliases_section:handle_cancel_order",
+        caught,
+      );
+      show_toast(t("common.something_went_wrong_try_again"), "error");
     } finally {
       set_cancelling_order_id(null);
     }
   };
 
-  useEffect(() => {
-    if (purchase_open) return;
+  const load_purchased_orders = useCallback(() => {
     set_purchased_loading(true);
     list_domain_orders()
       .then((r) => {
@@ -121,11 +133,26 @@ export function AliasesSection({
                 !["expired", "refunded", "failed"].includes(o.status),
             ),
           );
+          set_purchased_load_failed(false);
+
+          return;
         }
+        set_purchased_load_failed(true);
       })
-      .catch((caught) => ignore_error("pages/mobile/settings/aliases_section:handle_cancel_order", caught))
+      .catch((caught) => {
+        set_purchased_load_failed(true);
+        ignore_error(
+          "pages/mobile/settings/aliases_section:load_purchased_orders",
+          caught,
+        );
+      })
       .finally(() => set_purchased_loading(false));
-  }, [purchase_open]);
+  }, []);
+
+  useEffect(() => {
+    if (purchase_open) return;
+    load_purchased_orders();
+  }, [purchase_open, load_purchased_orders]);
 
   useEffect(() => {
     const open_purchase = () => {
@@ -150,7 +177,10 @@ export function AliasesSection({
         sessionStorage.removeItem("aster_pending_domain_order");
       }
     } catch (caught) {
-      ignore_error("pages/mobile/settings/aliases_section:handle_cancel_order", caught);
+      ignore_error(
+        "pages/mobile/settings/aliases_section:handle_cancel_order",
+        caught,
+      );
     }
 
     if (params.get("cancelled") === "1") {
@@ -163,11 +193,19 @@ export function AliasesSection({
         url.searchParams.delete("cancelled");
         window.history.replaceState({}, "", url.toString());
       } catch (caught) {
-        ignore_error("pages/mobile/settings/aliases_section:open_purchase", caught);
+        ignore_error(
+          "pages/mobile/settings/aliases_section:open_purchase",
+          caught,
+        );
       }
 
       if (cancelled_id) {
-        cancel_domain_order(cancelled_id).catch((caught) => ignore_error("pages/mobile/settings/aliases_section:open_purchase", caught));
+        cancel_domain_order(cancelled_id).catch((caught) =>
+          ignore_error(
+            "pages/mobile/settings/aliases_section:open_purchase",
+            caught,
+          ),
+        );
       }
 
       return;
@@ -183,7 +221,10 @@ export function AliasesSection({
           url.searchParams.set("domain_order", order_id);
           window.history.replaceState({}, "", url.toString());
         } catch (caught) {
-          ignore_error("pages/mobile/settings/aliases_section:open_purchase", caught);
+          ignore_error(
+            "pages/mobile/settings/aliases_section:open_purchase",
+            caught,
+          );
         }
       }
       set_purchase_order_id(order_id);
@@ -254,12 +295,11 @@ export function AliasesSection({
 
   const handle_copy = useCallback(
     (text: string) => {
-      navigator.clipboard
-        .writeText(text)
+      copy_text_or_throw(text)
         .then(() => {
           show_toast(t("settings.copied_to_clipboard"), "success");
         })
-        .catch((caught) => ignore_error("pages/mobile/settings/aliases_section:handle_page_change", caught));
+        .catch(() => show_toast(t("common.failed_to_copy"), "error"));
     },
     [t],
   );
@@ -280,10 +320,15 @@ export function AliasesSection({
             ...prev,
             [domain_id]: (response.data as DnsRecordsResponse).records,
           }));
+        } else {
+          show_toast(
+            response.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     },
-    [expanded_domain, domain_dns_records],
+    [expanded_domain, domain_dns_records, t],
   );
 
   const total_count = hook.alias_counts?.count ?? hook.aliases.length;
@@ -333,7 +378,7 @@ export function AliasesSection({
                 }}
               >
                 {t("settings.domain_purchase_banner_cta")}
-                <ChevronRightIcon className="w-4 h-4" />
+                <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
               </button>
             </div>
           </div>
@@ -346,7 +391,8 @@ export function AliasesSection({
             </p>
             {hook.alias_counts && (
               <span className="text-[12px] text-[var(--text-muted)]">
-                {total_count}/{max_count === -1 ? "∞" : max_count}
+                {format_number(total_count)}/
+                {max_count === -1 ? "∞" : format_number(max_count)}
               </span>
             )}
           </div>
@@ -395,9 +441,9 @@ export function AliasesSection({
           (hook.aliases.length > 0 || hook.domain_addresses.length > 0) && (
             <div className="px-4 pt-3">
               <div className="relative">
-                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--mobile-text-muted)]" />
+                <MagnifyingGlassIcon className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--mobile-text-muted)]" />
                 <input
-                  className="w-full rounded-xl bg-[var(--mobile-bg-card)] py-2.5 pl-9 pr-3 text-[14px] text-[var(--mobile-text-primary)] outline-none placeholder:text-[var(--mobile-text-muted)]"
+                  className="w-full rounded-xl bg-[var(--mobile-bg-card)] py-2.5 ps-9 pe-3 text-[14px] text-[var(--mobile-text-primary)] outline-none placeholder:text-[var(--mobile-text-muted)]"
                   placeholder={t("settings.alias_search_placeholder")}
                   type="text"
                   value={search_query}
@@ -410,6 +456,21 @@ export function AliasesSection({
         {hook.aliases_loading ? (
           <div className="flex items-center justify-center py-12">
             <Spinner size="md" />
+          </div>
+        ) : hook.aliases_load_failed &&
+          hook.aliases.length === 0 &&
+          hook.domain_addresses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">
+            <p className="text-center text-[14px] text-[var(--mobile-text-muted)]">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <button
+              className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+              type="button"
+              onClick={() => void hook.load_aliases()}
+            >
+              {t("common.retry")}
+            </button>
           </div>
         ) : hook.aliases.length === 0 && hook.domain_addresses.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">
@@ -450,18 +511,16 @@ export function AliasesSection({
                 <AliasNoteEditor
                   alias_address={alias.full_address}
                   note={alias.note}
-                  variant="mobile"
                   on_save={(note_value) =>
                     update_alias(alias.id, { note: note_value || null })
                   }
                   on_saved={(note_value) =>
                     hook.handle_note_saved(alias.id, note_value)
                   }
+                  variant="mobile"
                 />
                 <AliasWebsitesEditor
                   alias_address={alias.full_address}
-                  variant="mobile"
-                  websites={alias.websites}
                   on_save={(websites_value) =>
                     update_alias(alias.id, {
                       websites:
@@ -471,11 +530,29 @@ export function AliasesSection({
                   on_saved={(websites_value) =>
                     hook.handle_websites_saved(alias.id, websites_value)
                   }
+                  variant="mobile"
+                  websites={alias.websites}
                 />
+                {alias.downgrade_grace_expires_at && (
+                  <p className="mt-2 text-[12px] text-amber-600 dark:text-amber-400">
+                    {t("settings.alias_grace_days", {
+                      days: String(
+                        get_grace_days_remaining(
+                          alias.downgrade_grace_expires_at,
+                        ),
+                      ),
+                    })}{" "}
+                    {t("settings.alias_grace_upgrade_hint")}
+                  </p>
+                )}
                 <div className="mt-2 flex items-center gap-3">
                   <Switch
+                    aria-label={alias.full_address}
                     checked={alias.is_enabled}
-                    disabled={hook.toggling_id === alias.id}
+                    disabled={
+                      hook.toggling_id === alias.id ||
+                      !!alias.downgrade_grace_expires_at
+                    }
                     onCheckedChange={(v) =>
                       hook.handle_alias_toggle(alias.id, v)
                     }
@@ -485,10 +562,10 @@ export function AliasesSection({
                   >
                     {alias.is_enabled
                       ? t("common.enabled")
-                      : t("common.disable")}
+                      : t("common.disabled")}
                   </span>
                   <button
-                    className="ml-auto text-[13px] text-[var(--mobile-danger)]"
+                    className="ms-auto text-[13px] text-[var(--mobile-danger)]"
                     disabled={hook.alias_deleting_id === alias.id}
                     type="button"
                     onClick={() => hook.handle_alias_delete(alias.id)}
@@ -530,7 +607,7 @@ export function AliasesSection({
                     {addr.domain_name}
                   </span>
                   <button
-                    className="ml-auto text-[13px] text-[var(--mobile-danger)]"
+                    className="ms-auto text-[13px] text-[var(--mobile-danger)]"
                     disabled={hook.domain_addr_deleting_id === addr.id}
                     type="button"
                     onClick={() =>
@@ -565,8 +642,10 @@ export function AliasesSection({
             </p>
             {hook.max_domains !== 0 && (
               <span className="text-[12px] text-[var(--text-muted)]">
-                {hook.domains.length}/
-                {hook.max_domains === -1 ? "∞" : hook.max_domains}
+                {format_number(hook.domains.length)}/
+                {hook.max_domains === -1
+                  ? "∞"
+                  : format_number(hook.max_domains)}
               </span>
             )}
           </div>
@@ -746,13 +825,13 @@ export function AliasesSection({
                                         ({record.purpose})
                                       </span>
                                       {record.is_verified ? (
-                                        <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 ml-auto" />
+                                        <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 ms-auto" />
                                       ) : record.required === false ? (
-                                        <span className="text-[10px] ml-auto text-[var(--text-muted)]">
+                                        <span className="text-[10px] ms-auto text-[var(--text-muted)]">
                                           {t("settings.optional_step")}
                                         </span>
                                       ) : (
-                                        <XCircleIcon className="w-3.5 h-3.5 text-yellow-500 ml-auto" />
+                                        <XCircleIcon className="w-3.5 h-3.5 text-yellow-500 ms-auto" />
                                       )}
                                     </div>
                                     <div className="mb-1">
@@ -813,7 +892,7 @@ export function AliasesSection({
             </p>
             {purchased_orders.length > 0 && (
               <span className="text-[12px] text-[var(--text-muted)]">
-                {purchased_orders.length}
+                {format_number(purchased_orders.length)}
               </span>
             )}
           </div>
@@ -842,6 +921,19 @@ export function AliasesSection({
             <div className="flex items-center justify-center py-8">
               <Spinner size="md" />
             </div>
+          ) : purchased_load_failed && purchased_orders.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[var(--border-primary)] py-8 px-4">
+              <p className="text-center text-[13px] text-[var(--mobile-text-muted)]">
+                {t("common.something_went_wrong_try_again")}
+              </p>
+              <button
+                className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+                type="button"
+                onClick={() => load_purchased_orders()}
+              >
+                {t("common.retry")}
+              </button>
+            </div>
           ) : purchased_orders.length === 0 ? (
             <div className="flex flex-col items-center rounded-xl border border-dashed border-[var(--border-primary)] py-8 px-4">
               <ShoppingBagIcon className="h-12 w-12 text-[var(--mobile-text-muted)] opacity-40 mb-2" />
@@ -854,7 +946,7 @@ export function AliasesSection({
               {purchased_orders.map((order) => (
                 <button
                   key={order.id}
-                  className={`flex w-full items-center justify-between gap-3 rounded-xl bg-[var(--mobile-bg-card)] p-4 text-left ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl bg-[var(--mobile-bg-card)] p-4 text-start ${
                     order.status === "complete" ||
                     order.status === "pending_payment"
                       ? "cursor-default"
@@ -921,7 +1013,9 @@ export function AliasesSection({
                           ? t("settings.domain_purchase_purchased_expires", {
                               date: new Date(
                                 order.expires_at,
-                              ).toLocaleDateString(),
+                              ).toLocaleDateString(app_locale(), {
+                                timeZone: get_display_time_zone(),
+                              }),
                             })
                           : ""
                         : order.status === "lapsed"
@@ -984,7 +1078,10 @@ export function AliasesSection({
               window.history.replaceState({}, "", url.toString());
             }
           } catch (caught) {
-            ignore_error("pages/mobile/settings/aliases_section:handle_page_change", caught);
+            ignore_error(
+              "pages/mobile/settings/aliases_section:handle_page_change",
+              caught,
+            );
           }
         }}
         on_create_address={() => {
@@ -1051,7 +1148,6 @@ export function AliasesSection({
         title={t("common.delete_address")}
         variant="danger"
       />
-
     </div>
   );
 }

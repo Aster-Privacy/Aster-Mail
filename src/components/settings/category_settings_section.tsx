@@ -37,6 +37,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import {
   BUILTIN_CATEGORIES,
@@ -49,7 +50,7 @@ export function CategorySettingsSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const { t } = use_i18n();
-  const { limits } = use_plan_limits();
+  const { limits, is_loading: plan_loading } = use_plan_limits();
   const [modal_open, set_modal_open] = useState(false);
   const [editing_rule, set_editing_rule] = useState<CustomCategoryRule | null>(
     null,
@@ -62,7 +63,7 @@ export function CategorySettingsSection() {
 
   const category_limit = limits
     ? (limits.limits["max_custom_categories"]?.limit ?? -1)
-    : -1;
+    : 0;
   const is_unlimited = category_limit < 0;
   const at_limit = !is_unlimited && custom_categories.length >= category_limit;
   const can_add_custom = is_unlimited || category_limit > 0;
@@ -125,6 +126,8 @@ export function CategorySettingsSection() {
     update_preferences({ custom_categories: next }, true);
   };
 
+  if (plan_loading && !limits) return <SettingsSkeleton variant="list" />;
+
   return (
     <div>
       <div className="mb-4">
@@ -138,7 +141,7 @@ export function CategorySettingsSection() {
       </div>
 
       <div className="flex items-center justify-between py-4 border-t border-b border-edge-secondary">
-        <div className="flex-1 pr-4">
+        <div className="flex-1 pe-4">
           <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
             {t("settings.inbox_categories")}
             <InfoPopover
@@ -151,6 +154,7 @@ export function CategorySettingsSection() {
           </p>
         </div>
         <Switch
+          aria-label={t("settings.inbox_categories")}
           checked={preferences.inbox_categories_enabled !== false}
           size="lg"
           onCheckedChange={() =>
@@ -163,7 +167,7 @@ export function CategorySettingsSection() {
         />
       </div>
 
-      <div className="aster_scrollbar_thin max-h-[420px] overflow-y-auto pr-1 mt-2">
+      <div className="aster_scrollbar_thin max-h-[420px] overflow-y-auto pe-1 mt-2">
         {BUILTIN_CATEGORIES.filter((cat) => cat.removable).map((cat) => {
           const Icon = category_icon(cat.icon);
           const is_enabled = enabled_ids.has(cat.id);
@@ -173,7 +177,7 @@ export function CategorySettingsSection() {
               key={cat.id}
               className="flex items-center justify-between py-3"
             >
-              <div className="flex-1 pr-4 flex items-center gap-3">
+              <div className="flex-1 pe-4 flex items-center gap-3">
                 <Icon className="w-[18px] h-[18px] text-txt-muted flex-shrink-0" />
                 <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
                   {t(cat.label_key)}
@@ -184,6 +188,7 @@ export function CategorySettingsSection() {
                 </p>
               </div>
               <Switch
+                aria-label={t(cat.label_key)}
                 checked={is_enabled}
                 onCheckedChange={() => toggle_builtin(cat.id, is_enabled)}
               />
@@ -235,7 +240,7 @@ export function CategorySettingsSection() {
                 {t("settings.no_custom_categories")}
               </p>
             ) : (
-              <div className="aster_scrollbar_thin max-h-[320px] space-y-1 overflow-y-auto pr-1">
+              <div className="aster_scrollbar_thin max-h-[320px] space-y-1 overflow-y-auto pe-1">
                 {custom_categories.map((rule) => {
                   const Icon = category_icon(rule.icon);
                   const is_locked = !permitted_custom_ids.has(rule.id);
@@ -245,7 +250,7 @@ export function CategorySettingsSection() {
                       key={rule.id}
                       className={`flex items-center justify-between py-2 ${is_locked ? "opacity-60" : ""}`}
                     >
-                      <div className="flex-1 pr-4 flex items-center gap-3">
+                      <div className="flex-1 pe-4 flex items-center gap-3">
                         <Icon className="w-[18px] h-[18px] text-txt-muted flex-shrink-0" />
                         <div>
                           <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
@@ -300,6 +305,7 @@ export function CategorySettingsSection() {
                           </Button>
                         ) : (
                           <Switch
+                            aria-label={rule.name}
                             checked={rule.enabled}
                             onCheckedChange={() => toggle_custom(rule)}
                           />
