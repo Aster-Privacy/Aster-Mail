@@ -48,7 +48,11 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
-import { emit_mail_changed, emit_scheduled_changed } from "@/hooks/mail_events";
+import {
+  emit_email_sent,
+  emit_mail_changed,
+  emit_scheduled_changed,
+} from "@/hooks/mail_events";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   cancel_scheduled_email,
@@ -300,6 +304,7 @@ export function ScheduledPopupViewer({
         action: "sent",
         email_id: scheduled_data.id,
       });
+      emit_email_sent();
       emit_mail_changed();
       on_close();
     } else {
