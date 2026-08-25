@@ -39,6 +39,7 @@ import { AnimatePresence } from "framer-motion";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
+import { OfflineIndicator } from "@/components/common/offline_indicator";
 import { use_offline_queue_failures } from "@/hooks/use_offline_queue_failures";
 import { AppLock } from "@/components/mobile/app_lock";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -505,6 +506,7 @@ function MobileApp() {
   return (
     <AppLock>
       <div className="relative flex h-[100dvh] flex-col bg-[var(--bg-primary)]">
+        <OfflineIndicator position="top" />
         <ErrorBoundary>
           <Suspense fallback={<MobileLoader />}>
             <Routes>
