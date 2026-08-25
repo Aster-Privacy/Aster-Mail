@@ -193,6 +193,7 @@ export const es = {
     edit_reschedule: "Editar y reprogramar",
     reschedule: "Reprogramar",
     send_time_updated: "Hora de envío actualizada",
+    scheduled_already_sending: "Este correo ya se está enviando, así que ya no puedes cambiarlo.",
     cancel_scheduled: "Cancelar programado",
     unlock_folder: "Desbloquear carpeta",
     lock_folder: "Bloquear carpeta",
@@ -856,6 +857,7 @@ export const es = {
       "Tus claves privadas no están cargadas en este dispositivo. Iniciar sesión de nuevo las desbloqueará. Tus claves en el servidor no se ven afectadas.",
     offline_action_queued:
       "Estás sin conexión ahora mismo. Esto está en cola y se completará cuando vuelvas a conectarte.",
+    offline_action_failed: "No se pudo aplicar un cambio que hiciste sin conexión. Inténtalo de nuevo.",
     failed_to_update:
       "Este cambio no se guardó. Otro intento debería resolverlo.",
     failed_to_load_search_results:

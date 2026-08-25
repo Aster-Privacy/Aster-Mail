@@ -188,6 +188,7 @@ export const ja = {
     edit_reschedule: "編集と再スケジュール",
     reschedule: "再スケジュール",
     send_time_updated: "送信時刻を更新しました",
+    scheduled_already_sending: "このメールはすでに送信中のため、変更できません。",
     cancel_scheduled: "スケジュールをキャンセル",
     unlock_folder: "フォルダのロックを解除",
     lock_folder: "フォルダをロック",
@@ -846,6 +847,7 @@ export const ja = {
       "このデバイスに秘密鍵が読み込まれていません。再度サインインするとロックが解除されます。サーバー上の鍵には変更ありません。",
     offline_action_queued:
       "現在オフラインです。接続が戻り次第、この操作はキューから実行されます。",
+    offline_action_failed: "オフライン中に行った変更を適用できませんでした。もう一度お試しください。",
     failed_to_update:
       "この変更は保存されませんでした。もう一度試すと通ることが多いです。",
     failed_to_load_search_results:

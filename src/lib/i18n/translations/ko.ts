@@ -186,6 +186,7 @@ export const ko = {
     edit_reschedule: "편집 및 일정 변경",
     reschedule: "일정 변경",
     send_time_updated: "보내는 시간이 업데이트되었습니다",
+    scheduled_already_sending: "이 메일은 이미 발송 중이어서 더 이상 변경할 수 없습니다.",
     cancel_scheduled: "예약 취소",
     unlock_folder: "폴더 잠금 해제",
     lock_folder: "폴더 잠금",
@@ -830,6 +831,7 @@ export const ko = {
       "이 기기에 비공개 키가 불러와져 있지 않습니다. 다시 로그인하면 키가 풀립니다. 서버의 키는 그대로입니다.",
     offline_action_queued:
       "지금은 오프라인 상태입니다. 이 작업은 대기 중이며 다시 연결되는 즉시 완료됩니다.",
+    offline_action_failed: "오프라인에서 변경한 내용을 적용하지 못했습니다. 다시 시도하세요.",
     failed_to_update: "변경 사항이 저장되지 않았습니다. 다시 시도하면 됩니다.",
     failed_to_load_search_results:
       "검색이 완료되지 않았습니다. 다시 시도하면 됩니다.",

@@ -190,6 +190,7 @@ export const tr = {
     edit_reschedule: "Düzenle ve yeniden planla",
     reschedule: "Yeniden zamanla",
     send_time_updated: "Gönderim saati güncellendi",
+    scheduled_already_sending: "Bu ileti zaten gönderiliyor, bu yüzden artık değiştiremezsin.",
     cancel_scheduled: "Planlamayı iptal et",
     unlock_folder: "Klasörün kilidini aç",
     lock_folder: "Klasörü kilitle",
@@ -849,6 +850,7 @@ export const tr = {
       "Özel anahtarlarınız bu cihazda yüklü değil. Tekrar giriş yapmak onların kilidini açar. Sunucudaki anahtarlarınız olduğu gibi.",
     offline_action_queued:
       "Şu anda çevrimdışısınız. Bu sıraya alındı ve siz yeniden bağlanır bağlanmaz tamamlanacak.",
+    offline_action_failed: "Çevrimdışıyken yaptığın bir değişiklik uygulanamadı. Tekrar dene.",
     failed_to_update:
       "Bu değişiklik kaydedilmedi. Bir kez daha denemek genellikle yeterli olur.",
     failed_to_load_search_results:

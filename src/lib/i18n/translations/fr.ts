@@ -230,6 +230,7 @@ export const fr = {
     extra_protection_layer: "Couche de protection supplémentaire",
     lock_folder: "Verrouiller le dossier",
     unlock_folder: "Déverrouiller le dossier",
+    scheduled_already_sending: "Cet e-mail est déjà en cours d'envoi, vous ne pouvez donc plus le modifier.",
     cancel_scheduled: "Annuler la planification",
     edit_reschedule: "Modifier et reprogrammer",
     reschedule: "Reprogrammer",
@@ -859,6 +860,7 @@ export const fr = {
       "Vos clés privées ne sont pas chargées sur cet appareil. Vous reconnecter les déverrouillera. Vos clés sur le serveur sont intactes.",
     offline_action_queued:
       "Vous êtes hors ligne pour l'instant. Ceci est en file d'attente et se terminera dès que vous serez reconnecté.",
+    offline_action_failed: "Une modification effectuée hors connexion n'a pas pu être appliquée. Réessayez.",
     failed_to_update:
       "Cette modification ne s'est pas enregistrée. Un autre essai devrait suffire.",
     failed_to_load_search_results:

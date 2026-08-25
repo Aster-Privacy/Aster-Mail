@@ -189,6 +189,7 @@ export const pl = {
     edit_reschedule: "Edytuj i przełóż",
     reschedule: "Zmień termin",
     send_time_updated: "Zaktualizowano czas wysyłki",
+    scheduled_already_sending: "Ta wiadomość jest już wysyłana, więc nie można jej zmienić.",
     cancel_scheduled: "Anuluj zaplanowane",
     unlock_folder: "Odblokuj folder",
     lock_folder: "Zablokuj folder",
@@ -850,6 +851,7 @@ export const pl = {
       "Klucze prywatne nie są załadowane na tym urządzeniu. Ponowne zalogowanie je odblokuje. Klucze na serwerze pozostają nietknięte.",
     offline_action_queued:
       "Jesteś teraz offline. To zostało zakolejkowane i dokończy się, gdy tylko nastąpi ponowne połączenie.",
+    offline_action_failed: "Nie udało się zastosować zmiany wprowadzonej w trybie offline. Spróbuj ponownie.",
     failed_to_update:
       "Ta zmiana nie została zapisana. Kolejna próba powinna to załatwić.",
     failed_to_load_search_results:

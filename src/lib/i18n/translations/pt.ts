@@ -747,6 +747,7 @@ export const pt = {
       "Suas chaves privadas não estão carregadas neste dispositivo. Entrar novamente vai desbloqueá-las. Suas chaves no servidor permanecem intactas.",
     offline_action_queued:
       "Você está offline no momento. Esta ação está na fila e será concluída assim que você se reconectar.",
+    offline_action_failed: "Não foi possível aplicar uma alteração feita sem conexão. Tente novamente.",
     failed_to_update:
       "Esta alteração não foi salva. Outra tentativa deve funcionar.",
     failed_to_load_search_results:
@@ -1160,6 +1161,7 @@ export const pt = {
     edit_reschedule: "Editar e reagendar",
     reschedule: "Reagendar",
     send_time_updated: "Hora de envio atualizada",
+    scheduled_already_sending: "Este email já está sendo enviado, portanto não é mais possível alterá-lo.",
     cancel_scheduled: "Cancelar agendamento",
     unlock_folder: "Desbloquear pasta",
     lock_folder: "Bloquear pasta",

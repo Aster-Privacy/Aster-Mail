@@ -186,6 +186,7 @@ export const nl = {
     edit_reschedule: "Edit & reschedule",
     reschedule: "Opnieuw plannen",
     send_time_updated: "Verzendtijd bijgewerkt",
+    scheduled_already_sending: "Dit bericht wordt al verzonden, dus je kunt het niet meer wijzigen.",
     cancel_scheduled: "Cancel scheduled",
     unlock_folder: "Unlock Folder",
     lock_folder: "Lock Folder",
@@ -833,6 +834,7 @@ export const nl = {
       "Uw privésleutels zijn op dit apparaat niet geladen. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn onaangeroerd.",
     offline_action_queued:
       "U bent op dit moment offline. Dit staat in de wachtrij en wordt voltooid zodra u weer verbinding hebt.",
+    offline_action_failed: "Een wijziging die je offline maakte, kon niet worden toegepast. Probeer het opnieuw.",
     failed_to_update:
       "Deze wijziging is niet opgeslagen. Een nieuwe poging zou werken.",
     failed_to_load_search_results:

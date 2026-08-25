@@ -197,6 +197,7 @@ export const it = {
     edit_reschedule: "Modifica e riprogramma",
     reschedule: "Riprogramma",
     send_time_updated: "Orario di invio aggiornato",
+    scheduled_already_sending: "Questa email è già in fase di invio, quindi non puoi più modificarla.",
     cancel_scheduled: "Annulla programmazione",
     unlock_folder: "Sblocca cartella",
     lock_folder: "Blocca cartella",
@@ -861,6 +862,7 @@ export const it = {
       "Le sue chiavi private non sono caricate su questo dispositivo. Accedere di nuovo le sbloccherà. Le sue chiavi sul server sono intatte.",
     offline_action_queued:
       "Lei è offline in questo momento. Questa azione è in coda e si completerà appena si riconnetterà.",
+    offline_action_failed: "Una modifica fatta offline non è stata applicata. Riprova.",
     failed_to_update:
       "Questa modifica non è stata salvata. Un altro tentativo dovrebbe bastare.",
     failed_to_load_search_results:

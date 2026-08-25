@@ -224,6 +224,7 @@ export const de = {
     extra_protection_layer: "Zusätzliche Schutzschicht",
     lock_folder: "Ordner sperren",
     unlock_folder: "Ordner entsperren",
+    scheduled_already_sending: "Diese E-Mail wird bereits gesendet, du kannst sie daher nicht mehr ändern.",
     cancel_scheduled: "Geplant abbrechen",
     edit_reschedule: "Bearbeiten & neu planen",
     reschedule: "Neu planen",
@@ -812,6 +813,7 @@ export const de = {
       "Ihre privaten Schlüssel sind auf diesem Gerät nicht geladen. Ein erneutes Anmelden entsperrt sie. Ihre Schlüssel auf dem Server sind unberührt.",
     offline_action_queued:
       "Sie sind gerade offline. Dies ist in der Warteschlange und wird ausgeführt, sobald Sie wieder verbunden sind.",
+    offline_action_failed: "Eine Änderung, die du offline vorgenommen hast, konnte nicht angewendet werden. Versuche es erneut.",
     failed_to_update:
       "Diese Änderung wurde nicht gespeichert. Ein erneuter Versuch genügt meist.",
     failed_to_fetch_tags:

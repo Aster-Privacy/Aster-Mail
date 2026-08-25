@@ -679,6 +679,7 @@ export const zh_CN = {
       "这台设备上的私钥尚未加载，重新登录就可以解锁。服务器上的密钥未受影响。",
     offline_action_queued:
       "您当前处于离线状态，这项操作已加入队列，重新联网后会自动完成。",
+    offline_action_failed: "你在离线时所做的更改未能应用。请重试。",
     failed_to_update: "这次更改未能保存，再试一次应该可以。",
     failed_to_load_search_results: "您的搜索未能完成，再试一次应该可以。",
     failed_to_fetch_tags: "您的标签未能加载，再试一次应该可以。",
@@ -1054,6 +1055,7 @@ export const zh_CN = {
     edit_reschedule: "编辑并重新安排",
     reschedule: "重新安排",
     send_time_updated: "发送时间已更新",
+    scheduled_already_sending: "这封邮件正在发送，因此无法再更改。",
     cancel_scheduled: "取消定时发送",
     unlock_folder: "解锁文件夹",
     lock_folder: "锁定文件夹",
