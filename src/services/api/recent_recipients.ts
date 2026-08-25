@@ -154,6 +154,9 @@ export async function list_recent_recipients(
   return api_client.get<RecentRecipientsListResponse>(url);
 }
 
+export const RECENT_RECIPIENTS_MAX_LIMIT = 100;
+const RECENT_RECIPIENTS_BATCH_SIZE = 50;
+
 export async function save_recent_recipients(
   emails: string[],
 ): Promise<ApiResponse<SaveRecentRecipientsResponse>> {
@@ -166,10 +169,33 @@ export async function save_recent_recipients(
     }),
   );
 
-  return api_client.post<SaveRecentRecipientsResponse>(
-    "/contacts/v1/recent_recipients",
-    { recipients },
-  );
+  let saved_count = 0;
+  let last_error: string | undefined;
+
+  for (
+    let start = 0;
+    start < recipients.length;
+    start += RECENT_RECIPIENTS_BATCH_SIZE
+  ) {
+    const batch = recipients.slice(start, start + RECENT_RECIPIENTS_BATCH_SIZE);
+    const response = await api_client.post<SaveRecentRecipientsResponse>(
+      "/contacts/v1/recent_recipients",
+      { recipients: batch },
+    );
+
+    if (response.error || !response.data) {
+      last_error = response.error ?? "failed to save recent recipients";
+      continue;
+    }
+
+    saved_count += response.data.saved_count ?? batch.length;
+  }
+
+  if (last_error && saved_count === 0) {
+    return { error: last_error };
+  }
+
+  return { data: { success: true, saved_count } };
 }
 
 export async function delete_all_recent_recipients(): Promise<

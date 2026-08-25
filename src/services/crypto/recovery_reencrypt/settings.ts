@@ -35,6 +35,7 @@ import {
 import {
   delete_all_recent_recipients,
   list_recent_recipients,
+  RECENT_RECIPIENTS_MAX_LIMIT,
   save_recent_recipients,
 } from "@/services/api/recent_recipients";
 import {  base64_to_array } from "../base64";
@@ -214,7 +215,7 @@ export async function re_encrypt_allowed_senders(
 export async function re_encrypt_recent_recipients(
   old_aes: CryptoKey,
 ): Promise<boolean> {
-  const resp = await list_recent_recipients();
+  const resp = await list_recent_recipients(RECENT_RECIPIENTS_MAX_LIMIT);
 
   if (resp.error || !resp.data) return false;
 
