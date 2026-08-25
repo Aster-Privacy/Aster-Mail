@@ -92,7 +92,10 @@ export function UnsubscribeBanner({
     cancelled_ref.current = false;
     set_is_dismissed(true);
 
-    const delay_seconds = preferences.undo_send_seconds ?? 10;
+    const delay_seconds = Math.min(
+      30,
+      Math.max(1, preferences.undo_send_seconds ?? 10),
+    );
     const delay_ms = delay_seconds * 1000;
 
     show_action_toast({
