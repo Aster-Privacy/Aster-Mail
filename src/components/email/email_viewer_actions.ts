@@ -59,9 +59,11 @@ import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import {
   adjust_stats_spam,
+  adjust_stats_trash,
   adjust_stats_unread,
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
+import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   conversation_has_unread_sibling,
   read_clears_conversation,
@@ -73,7 +75,11 @@ import {
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import {
+  report_spam_sender,
+  remove_spam_sender,
+  permanent_delete_mail_item,
+} from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { set_forward_mail_id } from "@/services/forward_store";
@@ -674,6 +680,33 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
     deps.set_is_trash_loading(true);
 
+    if (deps.mail_item.is_trashed) {
+      const result = await permanent_delete_mail_item(deps.email_id);
+
+      deps.set_is_trash_loading(false);
+
+      if (!result.error) {
+        adjust_stats_trash(-1);
+        invalidate_mail_stats();
+        remove_email_from_view_cache(deps.email_id);
+        emit_mail_items_removed({ ids: [deps.email_id] });
+        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        show_action_toast({
+          message: deps.t("common.email_permanently_deleted"),
+          action_type: "trash",
+          email_ids: [deps.email_id],
+        });
+        deps.on_dismiss();
+      } else {
+        show_toast(
+          result.error || deps.t("common.something_went_wrong"),
+          "error",
+        );
+      }
+
+      return;
+    }
+
     const deltas = compute_trash_deltas({
       item_type: deps.mail_item.item_type,
       is_read: deps.is_read,
@@ -715,6 +748,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       deps.on_dismiss();
     } else {
       revert_stat_deltas(deltas);
+      show_toast(deps.t("common.something_went_wrong"), "error");
     }
   }, [
     deps.email_id,
