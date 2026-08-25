@@ -79,6 +79,8 @@ export interface SpamSignal {
 export interface ThreadWithMessages {
   thread: MailThread;
   messages: ThreadMessageItem[];
+  has_more?: boolean;
+  next_cursor?: string | null;
 }
 
 export interface ThreadsListResponse {
@@ -127,16 +129,24 @@ export async function get_thread(
   );
 }
 
-export async function get_thread_messages(
+const THREAD_MESSAGES_PAGE_SIZE = 100;
+const THREAD_MESSAGES_MAX_PAGES = 50;
+
+async function fetch_thread_messages_page(
   thread_token: string,
-  options?: { is_trashed?: boolean; is_spam?: boolean },
+  options: { is_trashed?: boolean; is_spam?: boolean },
+  cursor?: string,
 ): Promise<ApiResponse<ThreadWithMessages>> {
   const params = new URLSearchParams();
-  if (options?.is_trashed) params.set("is_trashed", "true");
-  if (options?.is_spam) params.set("is_spam", "true");
-  const qs = params.toString();
-  const suffix = qs ? `?${qs}` : "";
-  const response = await with_folder_unlock<ThreadWithMessages>(
+
+  if (options.is_trashed) params.set("is_trashed", "true");
+  if (options.is_spam) params.set("is_spam", "true");
+  params.set("limit", THREAD_MESSAGES_PAGE_SIZE.toString());
+  if (cursor) params.set("cursor", cursor);
+
+  const suffix = `?${params.toString()}`;
+
+  return with_folder_unlock<ThreadWithMessages>(
     resolve_thread_unlock_token(thread_token),
     (unlock_token) =>
       api_client.get<ThreadWithMessages>(
@@ -144,15 +154,62 @@ export async function get_thread_messages(
         unlock_token ? { folder_unlock_token: unlock_token } : undefined,
       ),
   );
+}
 
-  if (response.data?.messages) {
-    remember_thread_message_ids(
+export async function get_thread_messages(
+  thread_token: string,
+  options?: { is_trashed?: boolean; is_spam?: boolean },
+): Promise<ApiResponse<ThreadWithMessages>> {
+  const messages: ThreadMessageItem[] = [];
+  const seen_cursors = new Set<string>();
+
+  let thread: MailThread | undefined;
+  let cursor: string | undefined;
+  let first_response: ApiResponse<ThreadWithMessages> | undefined;
+
+  for (let page = 0; page < THREAD_MESSAGES_MAX_PAGES; page += 1) {
+    const response = await fetch_thread_messages_page(
       thread_token,
-      response.data.messages.map((message) => message.id),
+      options ?? {},
+      cursor,
     );
+
+    if (response.error || !response.data) {
+      if (messages.length === 0) return response;
+      break;
+    }
+
+    first_response ??= response;
+    thread = response.data.thread;
+    messages.push(...response.data.messages);
+
+    const next = response.data.next_cursor;
+
+    if (
+      !response.data.has_more ||
+      !next ||
+      response.data.messages.length === 0 ||
+      seen_cursors.has(next)
+    ) {
+      break;
+    }
+    seen_cursors.add(next);
+    cursor = next;
   }
 
-  return response;
+  if (!first_response?.data || !thread) {
+    return first_response ?? { error: "failed to load thread messages" };
+  }
+
+  remember_thread_message_ids(
+    thread_token,
+    messages.map((message) => message.id),
+  );
+
+  return {
+    ...first_response,
+    data: { thread, messages, has_more: false, next_cursor: null },
+  };
 }
 
 export async function mark_thread_read(
