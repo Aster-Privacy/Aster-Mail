@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LockClosedIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -150,6 +150,10 @@ function format_bytes(bytes: number) {
   return `${value.toFixed(value >= 10 || unit_index === 0 ? 0 : 1)} ${units[unit_index]}`;
 }
 
+function is_desktop(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
 export function UpgradeModal() {
   const { t } = use_i18n();
   const state = use_upgrade_state();
@@ -158,6 +162,7 @@ export function UpgradeModal() {
   const [interval, set_interval] = useState<"month" | "year">("year");
   const [selected_id, set_selected_id] = useState<string | null>(null);
   const [is_starting, set_is_starting] = useState(false);
+  const pending_desktop_checkout_ref = useRef(false);
 
   use_currency_rates();
 
@@ -203,6 +208,20 @@ export function UpgradeModal() {
       set_is_starting(false);
     }
   }, [state.is_open, refresh]);
+
+  useEffect(() => {
+    const handle_focus = () => {
+      if (!pending_desktop_checkout_ref.current) return;
+      pending_desktop_checkout_ref.current = false;
+      set_is_starting(false);
+      request_cache.invalidate("/payments/v1");
+      refresh(true);
+    };
+
+    window.addEventListener("focus", handle_focus);
+
+    return () => window.removeEventListener("focus", handle_focus);
+  }, [refresh]);
 
   const is_storage = state.reason === "storage_full";
 
@@ -303,7 +322,14 @@ export function UpgradeModal() {
           return;
         }
 
-        if (result.requires_checkout) return;
+        if (result.requires_checkout) {
+          if (is_desktop()) {
+            pending_desktop_checkout_ref.current = true;
+            set_is_starting(false);
+          }
+
+          return;
+        }
 
         request_cache.invalidate("/payments/v1");
         await refresh();
@@ -326,10 +352,8 @@ export function UpgradeModal() {
           "error",
         );
         set_is_starting(false);
-      } else if (
-        typeof window !== "undefined" &&
-        "__TAURI_INTERNALS__" in window
-      ) {
+      } else if (is_desktop()) {
+        pending_desktop_checkout_ref.current = true;
         set_is_starting(false);
       }
     } catch {
