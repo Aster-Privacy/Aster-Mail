@@ -418,10 +418,15 @@ async function setup_prf_passphrase(
   const enc = await encrypt_with_prf(prf_output, passphrase);
   if (!enc) return;
 
-  await api_client.post(`/core/v1/auth/hardware-keys/${key_id}/prf`, {
-    prf_encrypted_passphrase: enc.encrypted,
-    prf_nonce: enc.nonce,
-  });
+  const response = await api_client.post(
+    `/core/v1/auth/hardware-keys/${key_id}/prf`,
+    {
+      prf_encrypted_passphrase: enc.encrypted,
+      prf_nonce: enc.nonce,
+    },
+  );
+
+  if (response.error) throw new Error(response.error);
 }
 
 async function encrypt_with_prf(
