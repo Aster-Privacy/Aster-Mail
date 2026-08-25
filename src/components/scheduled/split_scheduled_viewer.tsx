@@ -30,6 +30,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { scheduled_error_message } from "./scheduled_error_message";
+
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -192,7 +194,7 @@ export function SplitScheduledViewer({
       emit_mail_changed();
       on_close();
     } else {
-      show_toast(response.error || t("common.something_went_wrong"), "error");
+      show_toast(scheduled_error_message(response, t), "error");
       emit_scheduled_changed({
         action: "updated",
         email_id: scheduled_data.id,
@@ -222,7 +224,7 @@ export function SplitScheduledViewer({
         });
         emit_mail_changed();
       } else {
-        show_toast(response.error || t("common.something_went_wrong"), "error");
+        show_toast(scheduled_error_message(response, t), "error");
         emit_scheduled_changed({
           action: "updated",
           email_id: scheduled_data.id,
@@ -249,7 +251,7 @@ export function SplitScheduledViewer({
       emit_mail_changed();
       on_close();
     } else {
-      show_toast(response.error || t("common.something_went_wrong"), "error");
+      show_toast(scheduled_error_message(response, t), "error");
       emit_scheduled_changed({
         action: "updated",
         email_id: scheduled_data.id,
@@ -270,7 +272,7 @@ export function SplitScheduledViewer({
       on_edit(response.data);
       on_close();
     } else {
-      show_toast(response.error || t("common.something_went_wrong"), "error");
+      show_toast(scheduled_error_message(response, t), "error");
     }
   }, [scheduled_data.id, vault, on_edit, on_close, t]);
 

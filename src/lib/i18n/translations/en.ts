@@ -260,6 +260,8 @@ export const en: Translations = {
     edit_reschedule: "Edit & reschedule",
     reschedule: "Reschedule",
     send_time_updated: "Send time updated",
+    scheduled_already_sending:
+      "This email is already sending, so you can no longer change it.",
     cancel_scheduled: "Cancel scheduled",
     unlock_folder: "Unlock Folder",
     lock_folder: "Lock Folder",

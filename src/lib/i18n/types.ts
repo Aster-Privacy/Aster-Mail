@@ -673,6 +673,7 @@ export interface CommonTranslations {
   edit_reschedule: string;
   reschedule: string;
   send_time_updated: string;
+  scheduled_already_sending: string;
   cancel_scheduled: string;
   unlock_folder: string;
   lock_folder: string;
