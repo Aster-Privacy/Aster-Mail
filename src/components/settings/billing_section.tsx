@@ -646,13 +646,20 @@ export function BillingSection() {
         set_cancel_reason_text("");
         request_cache.invalidate("/payments/v1");
         await load_data();
+      } else if (response.code === "UNAUTHORIZED") {
+        set_cancel_password_error(t("settings.incorrect_password_error"));
+        show_toast(t("settings.incorrect_password_error"), "error");
       } else {
-        set_cancel_password_error(t("settings.cancel_password_error"));
-        show_toast(t("settings.failed_cancel_subscription"), "error");
+        show_toast(
+          server_error_text(
+            response.error,
+            t("settings.failed_cancel_subscription"),
+          ),
+          "error",
+        );
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      set_cancel_password_error(t("settings.cancel_password_error"));
       show_toast(t("settings.failed_cancel_subscription"), "error");
     } finally {
       clear_cancel_password_cache();
