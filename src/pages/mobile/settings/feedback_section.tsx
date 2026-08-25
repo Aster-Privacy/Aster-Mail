@@ -30,6 +30,8 @@ import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { show_toast } from "@/components/toast/simple_toast";
+import { get_platform } from "@/native/capacitor_bridge";
 
 export function FeedbackSection({
   on_back,
@@ -47,13 +49,26 @@ export function FeedbackSection({
     if (!message.trim() || is_sending) return;
     set_is_sending(true);
     try {
-      await api_client.post<{ success: boolean }>(
+      const response = await api_client.post<{ success: boolean }>(
         API_ENDPOINTS.core.feedback.base,
-        { message: message.trim() },
+        { message: message.trim(), platform: get_platform() },
       );
-      set_sent(true);
-      set_message("");
+
+      if (response.data?.success) {
+        set_sent(true);
+        set_message("");
+      } else if (response.code === "FORBIDDEN") {
+        show_toast(t("settings.too_many_requests"), "warning");
+      } else if (response.code === "UNAUTHORIZED") {
+        show_toast(t("settings.please_log_in_feedback"), "warning");
+      } else {
+        show_toast(
+          response.error || t("settings.failed_send_feedback"),
+          "error",
+        );
+      }
     } catch (caught) {
+      show_toast(t("settings.failed_send_feedback"), "error");
       ignore_error(
         "pages/mobile/settings/feedback_section:FeedbackSection",
         caught,
@@ -61,7 +76,7 @@ export function FeedbackSection({
     } finally {
       set_is_sending(false);
     }
-  }, [message, is_sending]);
+  }, [message, is_sending, t]);
 
   return (
     <div className="flex h-full flex-col">
